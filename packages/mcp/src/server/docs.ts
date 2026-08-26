@@ -18,6 +18,7 @@
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { TOOLS } from "../tools-config.js";
+import { KIBI_ICONS } from "./icons.js";
 
 interface ToolConfig {
   name: string;
@@ -29,6 +30,7 @@ const ACTIVE_TOOLS: readonly ToolConfig[] = TOOLS;
 export interface DocResource {
   uri: string;
   name: string;
+  title: string;
   description: string;
   mimeType: "text/markdown";
   text: string;
@@ -69,6 +71,7 @@ export const PROMPTS = [
   // implements REQ-002, REQ-013, REQ-mcp-search-discovery
   {
     name: "kibi-bootstrap",
+    title: "Bootstrap Kibi knowledge",
     description:
       "Bootstrap Kibi knowledge for an existing repository through the canonical planner and apply operation.",
     text: [
@@ -93,6 +96,7 @@ export const PROMPTS = [
   },
   {
     name: "kibi_overview",
+    title: "Kibi usage overview",
     description: "High-level model for using kibi-mcp safely and effectively.",
     text: [
       "# kibi-mcp Overview",
@@ -127,6 +131,7 @@ export const PROMPTS = [
   },
   {
     name: "kibi_workflow",
+    title: "Kibi workflow steps",
     description:
       "Step-by-step call order for discovery, mutation, and verification.",
     text: [
@@ -150,6 +155,7 @@ export const PROMPTS = [
   },
   {
     name: "kibi_constraints",
+    title: "Kibi constraints",
     description: "Operational limits, validation rules, and mutation gotchas.",
     text: [
       "# kibi-mcp Constraints",
@@ -241,6 +247,7 @@ function registerDocResources(): DocResource[] {
     {
       uri: "kibi://docs/overview",
       name: "kibi docs overview",
+      title: "Kibi server overview",
       description: "Full server description, purpose, and scope.",
       mimeType: "text/markdown",
       text: overview,
@@ -248,6 +255,7 @@ function registerDocResources(): DocResource[] {
     {
       uri: "kibi://docs/tools",
       name: "kibi docs tools",
+      title: "Kibi tools reference",
       description: "Available tools with summaries and required parameters.",
       mimeType: "text/markdown",
       text: renderToolsDoc(),
@@ -255,6 +263,7 @@ function registerDocResources(): DocResource[] {
     {
       uri: "kibi://docs/errors",
       name: "kibi docs errors",
+      title: "Kibi error guide",
       description: "Common error modes and suggested recovery actions.",
       mimeType: "text/markdown",
       text: errors,
@@ -262,6 +271,7 @@ function registerDocResources(): DocResource[] {
     {
       uri: "kibi://docs/examples",
       name: "kibi docs examples",
+      title: "Kibi usage examples",
       description: "Concrete tool call sequences for common tasks.",
       mimeType: "text/markdown",
       text: examples,
@@ -273,21 +283,33 @@ export const DOC_RESOURCES = registerDocResources();
 
 export function setupDocsAndPrompts(server: McpServer): void {
   for (const prompt of PROMPTS) {
-    server.prompt(prompt.name, prompt.description, async () => ({
-      messages: [
-        {
-          role: "user" as const,
-          content: { type: "text" as const, text: prompt.text },
-        },
-      ],
-    }));
+    server.registerPrompt(
+      prompt.name,
+      {
+        title: prompt.title,
+        description: prompt.description,
+      },
+      async () => ({
+        messages: [
+          {
+            role: "user" as const,
+            content: { type: "text" as const, text: prompt.text },
+          },
+        ],
+      }),
+    );
   }
 
   for (const resource of DOC_RESOURCES) {
-    server.resource(
+    server.registerResource(
       resource.name,
       resource.uri,
-      { description: resource.description, mimeType: resource.mimeType },
+      {
+        title: resource.title,
+        description: resource.description,
+        mimeType: resource.mimeType,
+        icons: KIBI_ICONS,
+      },
       async () => ({
         contents: [
           {

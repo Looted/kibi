@@ -4413,8 +4413,7 @@ symbols:
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable
-      resource examples
+    title: predicate guidance loads a canonical decision tree with immutable resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -9047,7 +9046,7 @@ symbols:
       - type: executable_for
         target: TEST-mcp-search-discovery
   - id: SYM-mcp-test-node-driver-startServer
-    title: nodeMcpDriverHelpers.startServer
+    title: startServer
     sourceFile: packages/mcp/tests/drivers/node-mcp-driver-helpers.mjs
     symbol_role: behavioral
     granularity_reason: extractor-miss

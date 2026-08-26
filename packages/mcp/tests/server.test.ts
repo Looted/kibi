@@ -228,7 +228,7 @@ describe("MCP Server", () => {
       id: 1,
       method: "initialize",
       params: {
-        protocolVersion: "2024-11-05",
+        protocolVersion: "2025-11-25",
         capabilities: {},
         clientInfo: { name: "test", version: "1.0" },
       },
@@ -249,14 +249,14 @@ describe("MCP Server", () => {
       id: 1,
       method: "initialize",
       params: {
-        protocolVersion: "2024-11-05",
+        protocolVersion: "2025-11-25",
         capabilities: {},
         clientInfo: { name: "test", version: "1.0" },
       },
     });
 
     const result = response.result as Record<string, unknown>;
-    expect(result.protocolVersion).toBe("2024-11-05");
+    expect(result.protocolVersion).toBe("2025-11-25");
     expect(result.serverInfo).toBeDefined();
     expect((result.serverInfo as Record<string, unknown>).name).toBe(
       "kibi-mcp",
@@ -269,6 +269,26 @@ describe("MCP Server", () => {
     await killServer(proc);
   });
 
+  test("should negotiate legacy protocol version", async () => {
+    const proc = startServer();
+
+    const response = await sendRequest(proc, {
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: {
+        protocolVersion: "2024-11-05",
+        capabilities: {},
+        clientInfo: { name: "test", version: "1.0" },
+      },
+    });
+
+    const result = response.result as Record<string, unknown>;
+    expect(result.protocolVersion).toBe("2024-11-05");
+
+    await killServer(proc);
+  });
+
   test("should handle notifications/initialized", async () => {
     const proc = startServer();
 
@@ -277,7 +297,7 @@ describe("MCP Server", () => {
       id: 1,
       method: "initialize",
       params: {
-        protocolVersion: "2024-11-05",
+        protocolVersion: "2025-11-25",
         capabilities: {},
         clientInfo: { name: "test", version: "1.0" },
       },
@@ -301,7 +321,7 @@ describe("MCP Server", () => {
       id: 1,
       method: "initialize",
       params: {
-        protocolVersion: "2024-11-05",
+        protocolVersion: "2025-11-25",
         capabilities: {},
         clientInfo: { name: "test", version: "1.0" },
       },
@@ -369,7 +389,7 @@ describe("MCP Server", () => {
       id: 1,
       method: "initialize",
       params: {
-        protocolVersion: "2024-11-05",
+        protocolVersion: "2025-11-25",
         capabilities: {},
         clientInfo: { name: "test", version: "1.0" },
       },
@@ -409,7 +429,7 @@ describe("MCP Server", () => {
       id: 1,
       method: "initialize",
       params: {
-        protocolVersion: "2024-11-05",
+        protocolVersion: "2025-11-25",
         capabilities: {},
         clientInfo: { name: "test", version: "1.0" },
       },
@@ -474,7 +494,7 @@ describe("MCP Server", () => {
       id: 1,
       method: "initialize",
       params: {
-        protocolVersion: "2024-11-05",
+        protocolVersion: "2025-11-25",
         capabilities: {},
         clientInfo: { name: "test", version: "1.0" },
       },
@@ -527,7 +547,7 @@ describe("MCP Server", () => {
           id: 1,
           method: "initialize",
           params: {
-            protocolVersion: "2024-11-05",
+            protocolVersion: "2025-11-25",
             capabilities: {},
             clientInfo: { name: "test", version: "1.0" },
           },
@@ -637,7 +657,7 @@ describe("MCP Server", () => {
           id: 1,
           method: "initialize",
           params: {
-            protocolVersion: "2024-11-05",
+            protocolVersion: "2025-11-25",
             capabilities: {},
             clientInfo: { name: "test", version: "1.0" },
           },
@@ -714,7 +734,7 @@ describe("MCP Server", () => {
         id: 1,
         method: "initialize",
         params: {
-          protocolVersion: "2024-11-05",
+          protocolVersion: "2025-11-25",
           capabilities: {},
           clientInfo: { name: "test", version: "1.0" },
         },
@@ -757,7 +777,7 @@ describe("MCP Server", () => {
       id: 1,
       method: "initialize",
       params: {
-        protocolVersion: "2024-11-05",
+        protocolVersion: "2025-11-25",
         capabilities: {},
         clientInfo: { name: "test", version: "1.0" },
       },
@@ -797,7 +817,7 @@ describe("MCP Server", () => {
       id: 1,
       method: "initialize",
       params: {
-        protocolVersion: "2024-11-05",
+        protocolVersion: "2025-11-25",
         capabilities: {},
         clientInfo: { name: "test", version: "1.0" },
       },
@@ -850,7 +870,7 @@ describe("MCP Server", () => {
         id: 1,
         method: "initialize",
         params: {
-          protocolVersion: "2024-11-05",
+          protocolVersion: "2025-11-25",
           capabilities: {},
           clientInfo: { name: "test", version: "1.0" },
         },
@@ -885,7 +905,7 @@ describe("MCP Server", () => {
       id: 1,
       method: "initialize",
       params: {
-        protocolVersion: "2024-11-05",
+        protocolVersion: "2025-11-25",
         capabilities: {},
         clientInfo: { name: "test", version: "1.0" },
       },
@@ -937,7 +957,7 @@ describe("MCP Server", () => {
           id: 1,
           method: "initialize",
           params: {
-            protocolVersion: "2024-11-05",
+            protocolVersion: "2025-11-25",
             capabilities: {},
             clientInfo: { name: "test", version: "1.0" },
           },
@@ -1082,7 +1102,7 @@ describe("MCP Server", () => {
         id: 1,
         method: "initialize",
         params: {
-          protocolVersion: "2024-11-05",
+          protocolVersion: "2025-11-25",
           capabilities: {},
           clientInfo: { name: "test", version: "1.0" },
         },
@@ -1148,7 +1168,7 @@ describe("MCP Server", () => {
           id: 1,
           method: "initialize",
           params: {
-            protocolVersion: "2024-11-05",
+            protocolVersion: "2025-11-25",
             capabilities: {},
             clientInfo: { name: "test", version: "1.0" },
           },
@@ -1266,7 +1286,7 @@ describe("MCP Server", () => {
         id: 1,
         method: "initialize",
         params: {
-          protocolVersion: "2024-11-05",
+          protocolVersion: "2025-11-25",
           capabilities: {},
           clientInfo: { name: "test", version: "1.0" },
         },

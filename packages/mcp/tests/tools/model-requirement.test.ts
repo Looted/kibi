@@ -41,7 +41,9 @@ describe("kb_model_requirement", () => {
 
   afterEach(async () => {
     await fs.rm(tmp, { recursive: true, force: true });
-    process.env.KIBI_WORKSPACE = undefined;
+    for (const key of ["KIBI_WORKSPACE"]) {
+      delete process.env[key];
+    }
   });
 
   async function loadModule(): Promise<ModelRequirementModule> {

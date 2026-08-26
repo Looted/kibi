@@ -78,7 +78,7 @@ export async function startServer({
     stdio: ["pipe", "pipe", "pipe"],
   });
   const initialize = await request(child, 1, "initialize", {
-    protocolVersion: "2024-11-05",
+    protocolVersion: "2025-11-25",
     capabilities: {},
     clientInfo: { name: "node-transport-driver", version: "1.0.0" },
   });
