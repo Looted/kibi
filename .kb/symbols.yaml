@@ -29505,7 +29505,6 @@ symbols:
     status: active
     sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
     symbol_role: behavioral
-    granularity_reason: module-level-behavior
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -29514,7 +29513,6 @@ symbols:
     status: active
     sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
     symbol_role: behavioral
-    granularity_reason: module-level-behavior
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -29523,7 +29521,6 @@ symbols:
     status: active
     sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
     symbol_role: behavioral
-    granularity_reason: module-level-behavior
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -29532,7 +29529,6 @@ symbols:
     status: active
     sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
     symbol_role: behavioral
-    granularity_reason: module-level-behavior
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -29545,3 +29541,11 @@ symbols:
     relationships:
       - type: implements
         target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-skillopt-stop-fixture-engine
+    title: stopFixtureEngine
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization

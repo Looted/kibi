@@ -1,5 +1,6 @@
 import { execFile } from "node:child_process";
 import { writeFileSync } from "node:fs";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import { EngineClient } from "../../../packages/cli/src/engine";
@@ -78,7 +79,11 @@ async function runStagedCli(
     new Response(child.stdout).text(),
     new Response(child.stderr).text(),
   ]);
-  return { ok: exitCode === 0, stdout, stderr };
+  try {
+    return { ok: exitCode === 0, stdout, stderr };
+  } finally {
+    await stopFixtureEngine(workspaceTarget);
+  }
 }
 
 /**
@@ -378,8 +383,8 @@ export async function setupSeededFreshKb(
   cliRoot: string,
 ): Promise<void> {
   await initFixtureRepository(workspaceTarget);
-  const expectOk = async (args: readonly string[], label: string, stdin?: string) => {
-    const result = await runStagedCli(cliRoot, workspaceTarget, args, stdin);
+  const expectOk = async (args: readonly string[], label: string) => {
+    const result = await runStagedCli(cliRoot, workspaceTarget, args);
     if (!result.ok) {
       throw new FixtureSetupError(
         `${label} failed: ${result.stderr.slice(0, 500) || result.stdout.slice(0, 200)}`,
@@ -388,34 +393,42 @@ export async function setupSeededFreshKb(
     return result.stdout;
   };
   await expectOk(["init"], "kibi init");
-  await expectOk(
-    ["upsert", "--input", "-"],
-    "requirement upsert",
-    JSON.stringify({
-      type: "req",
-      id: "REQ-SETUP-BASE",
-      properties: { title: "seeded fixture requirement", status: "open" },
-      document: { path: ".kb/requirements/REQ-SETUP-BASE.md" },
-    }),
+  await mkdir(join(workspaceTarget, ".kb", "requirements"), {
+    recursive: true,
+    mode: 0o700,
+  });
+  await writeFile(
+    join(workspaceTarget, ".kb", "requirements", "REQ-SETUP-BASE.md"),
+    [
+      "---",
+      "title: seeded fixture requirement",
+      "status: open",
+      "id: REQ-SETUP-BASE",
+      "type: req",
+      "---",
+      "",
+    ].join("\n"),
+    "utf8",
   );
-  await expectOk(
-    ["upsert", "--input", "-"],
-    "symbol upsert",
-    JSON.stringify({
-      type: "symbol",
-      id: "SYM-SETUP-FIXTURE",
-      properties: {
-        title: "fixtureFamily",
-        status: "active",
-        sourceFile: "src/fixture.ts",
-      },
-      relationships: [
-        { type: "implements", from: "SYM-SETUP-FIXTURE", to: "REQ-SETUP-BASE" },
-      ],
-    }),
+  await writeFile(
+    join(workspaceTarget, ".kb", "symbols.yaml"),
+    [
+      "symbols:",
+      "  - id: SYM-SETUP-FIXTURE",
+      "    title: fixtureFamily",
+      "    status: active",
+      "    sourceFile: src/fixture.ts",
+      "    relationships:",
+      "      - type: implements",
+      "        target: REQ-SETUP-BASE",
+      "",
+    ].join("\n"),
+    "utf8",
   );
-  await expectOk(["sync"], "import sync");
+  // Sync discovers tracked source files. Commit the evaluator-owned seed before
+  // importing it so the branch snapshot contains the two authored entities.
   await stageCommitAll(workspaceTarget);
+  await expectOk(["sync"], "import sync");
 }
 
 /**
@@ -436,14 +449,34 @@ export async function setupSeededStaleKb(
     "requirements",
     "REQ-SETUP-BASE.md",
   );
-  const original = await (await import("node:fs/promises")).readFile(
-    requirementPath,
-    "utf8",
-  );
-  await (await import("node:fs/promises")).writeFile(
+  const original = await readFile(requirementPath, "utf8");
+  await writeFile(
     requirementPath,
     `${original}\nUnabsorbed evaluator drift: stale-state classification seed.\n`,
     "utf8",
   );
   await stageCommitAll(workspaceTarget);
+}
+
+/**
+ * Shut down any lingering staging engine daemon so the brokered MCP server
+ * attaches a clean branch store. Two live Prolog clients on one store corrupt
+ * each other's foreign term handles (observed as `invalid term_t` during
+ * staged upserts when the broker launched first).
+ */
+// implements REQ-skillopt-codex-optimization
+export async function stopFixtureEngine(
+  workspaceTarget: string,
+): Promise<void> {
+  const daemon = new EngineClient({
+    workspaceRoot: workspaceTarget,
+    branch: FIXTURE_BRANCH,
+    timeout: 5_000,
+  });
+  try {
+    await daemon.stop(false);
+  } catch {
+    // No daemon was running.
+  }
+  await daemon.terminate();
 }

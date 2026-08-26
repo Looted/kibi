@@ -76,3 +76,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-286d92fb22de
+  - type: implements
+    from: SYM-skillopt-stop-fixture-engine
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-26T18:32:32.602Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06399db95e3f

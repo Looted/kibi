@@ -8,7 +8,11 @@ export type OperationCase = {
 };
 
 export const OPERATIONS: readonly OperationCase[] = [
-  { tool: "kb_query", route: "query", input: { type: "req" } },
+  {
+    tool: "kb_query",
+    route: "query",
+    input: { type: "req", sourceFile: ".kb/requirements" },
+  },
   {
     tool: "kb_search",
     route: "search",
@@ -96,7 +100,7 @@ export const OPERATIONS: readonly OperationCase[] = [
   {
     tool: "kb_check",
     route: "check",
-    input: { rules: ["required-fields"] },
+    input: { rules: ["required-fields", "query-plan-safety"] },
   },
   {
     tool: "kb_sparql_remote",
