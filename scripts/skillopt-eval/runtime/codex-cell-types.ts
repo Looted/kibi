@@ -44,6 +44,8 @@ export type CodexCellOptions = Readonly<{
   artifactRoot: string;
   targetSkill: CanonicalSkill;
   candidate?: SkillCandidateSurface;
+  /** Bundle assembly: swap several skills at once (each surface-validated). */
+  bundleCandidates?: Partial<Record<CanonicalSkill, SkillCandidateSurface>>;
   codexExecutable: string;
   bwrapExecutable: string;
   env: NodeJS.ProcessEnv;

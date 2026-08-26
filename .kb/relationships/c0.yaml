@@ -111,3 +111,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c397466561ae
+  - type: implements
+    from: SYM-skillopt-bundle-cell-runner-type
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-26T09:18:32.787Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-874ec9532a40

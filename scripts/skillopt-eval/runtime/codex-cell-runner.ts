@@ -103,6 +103,9 @@ export async function runCodexCell(
       ...(options.candidate === undefined
         ? {}
         : { candidate: options.candidate }),
+      ...(options.bundleCandidates === undefined
+        ? {}
+        : { candidates: options.bundleCandidates }),
     });
     const login = await dependencies.prepareLogin({
       privateCodexHome: workspace.codexHome,

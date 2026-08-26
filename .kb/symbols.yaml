@@ -4413,7 +4413,8 @@ symbols:
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable resource examples
+    title: predicate guidance loads a canonical decision tree with immutable
+      resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -13033,6 +13034,16 @@ symbols:
         target: REQ-008
       - type: implements
         target: REQ-mcp-suggest-predicates
+  - id: SYM-kibi-icons
+    title: KIBI_ICONS
+    status: active
+    sourceFile: packages/mcp/src/server/icons.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
   - id: SYM-setWorkspaceFsDepsForTests
     title: _setWorkspaceFsDepsForTests
     sourceFile: packages/vscode/src/activation/workspace.ts
@@ -13956,24 +13967,26 @@ symbols:
         target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-candidate-surface-error
     title: CandidateSurfaceError
+    status: active
     sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
+    granularity_reason: legacy-link
     symbol_role: structural
-    granularity_reason: extractor-miss
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-candidate-surface-error-name
     title: CandidateSurfaceError.name
+    status: active
     sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
+    granularity_reason: legacy-link
     symbol_role: structural
-    granularity_reason: extractor-miss
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-candidate-validation-error
     title: CandidateValidationError
     sourceFile: scripts/skillopt-eval/variants.ts
@@ -15887,24 +15900,26 @@ symbols:
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-fixture-integrity-error
     title: FixtureIntegrityError
+    status: active
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    granularity_reason: legacy-link
     symbol_role: structural
-    granularity_reason: extractor-miss
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-fixture-integrity-error-name
     title: FixtureIntegrityError.name
+    status: active
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    granularity_reason: legacy-link
     symbol_role: structural
-    granularity_reason: extractor-miss
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-fixture-materialize-run
     title: materializeFixtureRun
     sourceFile: scripts/skillopt-eval/fixtures/materialize.ts
@@ -29387,3 +29402,102 @@ symbols:
         target: TEST-generated-coordinate-repair
       - type: implements
         target: REQ-generated-coordinate-persistence
+  - id: SYM-skillopt-bundle-default-timeout
+    title: DEFAULT_BUNDLE_CELL_TIMEOUT_MS
+    status: active
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
+    granularity_reason: config-artifact
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-bundle-candidates-resolver
+    title: BundleCandidatesResolver
+    status: active
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-bundle-cell-summary-type
+    title: BundleCellSummary
+    status: active
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-bundle-summarize-arm
+    title: summarizeBundleArm
+    status: active
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
+    granularity_reason: module-level-behavior
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-bundle-gate-options-type
+    title: PaidBundleGateOptions
+    status: active
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-bundle-gate-result-type
+    title: PaidBundleGateResult
+    status: active
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-bundle-run-paid-gate
+    title: runPaidBundleGate
+    status: active
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
+    granularity_reason: module-level-behavior
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-bundle-evaluation-branch
+    title: BUNDLE_EVALUATION_BRANCH
+    status: active
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
+    granularity_reason: config-artifact
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-bundle-arm-type
+    title: BundleArm
+    status: active
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-bundle-arm-summary-type
+    title: BundleArmSummary
+    status: active
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-bundle-cell-runner-type
+    title: BundleCellRunner
+    status: active
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization

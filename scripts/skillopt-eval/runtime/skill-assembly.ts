@@ -99,6 +99,10 @@ export async function assembleCanonicalSkills(
     workspace: string;
     targetSkill: CanonicalSkill;
     candidate?: SkillCandidateSurface;
+    /** Bundle assembly: swap several skills at once (each validated). */
+    candidates?: Readonly<
+      Partial<Record<CanonicalSkill, SkillCandidateSurface>>
+    >;
   }>,
 ): Promise<SkillAssemblyReceipt> {
   return withSharedAdoptionLock(input.sourceRepoRoot, async () =>
@@ -112,6 +116,9 @@ async function assembleCanonicalSkillsUnlocked(
     workspace: string;
     targetSkill: CanonicalSkill;
     candidate?: SkillCandidateSurface;
+    candidates?: Readonly<
+      Partial<Record<CanonicalSkill, SkillCandidateSurface>>
+    >;
   }>,
 ): Promise<SkillAssemblyReceipt> {
   const skillsDir = join(
@@ -123,19 +130,20 @@ async function assembleCanonicalSkillsUnlocked(
       const bundle = loadBundledSkillFrom(skillsDir, id);
       const markdown = await readFile(join(bundle.rootDir, "SKILL.md"), "utf8");
       const resources = canonicalResources(skillsDir, id, bundle.manifest);
-      if (id === input.targetSkill && input.candidate !== undefined) {
-        assertCandidateSurface(input.candidate, bundle.manifest, resources);
+      const candidate =
+        input.candidates?.[id] ??
+        (id === input.targetSkill ? input.candidate : undefined);
+      if (candidate !== undefined) {
+        assertCandidateSurface(candidate, bundle.manifest, resources);
       }
-      return { id, bundle, markdown, resources };
+      return { id, bundle, markdown, resources, candidate };
     }),
   );
 
   const receipts: SkillAssemblyReceipt["skills"][number][] = [];
   for (const skill of loaded) {
     const body =
-      skill.id === input.targetSkill && input.candidate !== undefined
-        ? input.candidate.body
-        : skill.bundle.body;
+      skill.candidate !== undefined ? skill.candidate.body : skill.bundle.body;
     const root = join(input.workspace, ".agents/skills", skill.id);
     await mkdir(root, { recursive: true });
     await writeFile(

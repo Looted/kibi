@@ -34,3 +34,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-59c0549c0752
+  - type: implements
+    from: SYM-skillopt-bundle-summarize-arm
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-26T09:15:44.007Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97f2bd574294

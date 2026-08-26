@@ -6,6 +6,7 @@ import {
   ArtifactRootRequiredError,
   prepareArtifactPath,
 } from "./artifact-path";
+import { runPaidBundleGate } from "./bundle-workflow";
 import { CliUsageError, type WorkflowOptions } from "./cli-options";
 import {
   EvaluationInfrastructureError,
@@ -188,6 +189,8 @@ async function runWorkflowAtRoot(
       dependencies,
       artifactPath,
     );
+  if (command === "bundle" && !options.fake)
+    return await runPaidBundleStage(options, dependencies);
   if (!options.fake)
     throw new CliUsageError(
       `${command} requires --fake until the bounded real smoke gate is enabled`,
@@ -299,6 +302,72 @@ async function runPaidOptimization(
       `${JSON.stringify({ command, ...evaluationInfrastructurePayload(error) })}\n`,
     );
     return 1;
+  } finally {
+    await runtimeLease.cleanup();
+  }
+}
+
+// implements REQ-skillopt-codex-optimization
+async function runPaidBundleStage(
+  options: WorkflowOptions,
+  dependencies: WorkflowDependencies,
+): Promise<number> {
+  if (!options.allowPaid)
+    throw new CliUsageError(
+      "bundle requires --allow-paid after preflight and smoke",
+    );
+  if (options.skill !== "all")
+    throw new CliUsageError("real bundle requires --skill all");
+  if (options.cellRuntime === undefined)
+    throw new CliUsageError(
+      "bundle requires --fixture-run-root for bounded Codex cells",
+    );
+  const preflight = await dependencies.runPreflight({
+    runId: options.runId,
+    sourceWorktree: process.cwd(),
+    artifactRoot: options.artifactRoot,
+  });
+  if (preflight.verdict !== "pass") {
+    process.stdout.write(
+      `${JSON.stringify({ command: "bundle", stage: "preflight", ...preflight })}\n`,
+    );
+    return 1;
+  }
+  const smoke = await dependencies.runCapabilityCanary({
+    runId: options.runId,
+    sourceWorktree: process.cwd(),
+    artifactRoot: options.artifactRoot,
+  });
+  if (smoke.verdict !== "pass") {
+    process.stdout.write(
+      `${JSON.stringify({ command: "bundle", stage: "smoke", ...smoke })}\n`,
+    );
+    return 1;
+  }
+  const runtimeLease = await dependencies.createCodexRuntimeLease({
+    artifactRoot: options.artifactRoot,
+  });
+  try {
+    const result = await runPaidBundleGate(
+      {
+        runId: options.runId,
+        artifactRoot: options.artifactRoot,
+        sourceWorktree: process.cwd(),
+        fixtureRunRoot: options.cellRuntime.fixtureRunRoot,
+        env: process.env,
+        codexExecutable: runtimeLease.codexExecutable,
+        bwrapExecutable: runtimeLease.bwrapExecutable,
+      },
+      { runCodexCell: async (cellOptions) => await runCodexCell(cellOptions) },
+    );
+    const verdictLine = {
+      command: "bundle",
+      verdict: result.verdict,
+      reportPath: result.reportPath,
+      productionAdoption: "external-verdict-required",
+    };
+    process.stdout.write(`${JSON.stringify(verdictLine)}\n`);
+    return result.exitCode;
   } finally {
     await runtimeLease.cleanup();
   }
