@@ -58,7 +58,7 @@ export async function request(child, id, method, params) {
   return await readMessage(child);
 }
 
-export async function startServer({
+export async function spawnMcpTestServer({
   entityCount,
   delaySeconds,
   stderrBytes = 0,

@@ -9046,7 +9046,7 @@ symbols:
       - type: executable_for
         target: TEST-mcp-search-discovery
   - id: SYM-mcp-test-node-driver-startServer
-    title: startServer
+    title: spawnMcpTestServer
     sourceFile: packages/mcp/tests/drivers/node-mcp-driver-helpers.mjs
     symbol_role: behavioral
     granularity_reason: extractor-miss
