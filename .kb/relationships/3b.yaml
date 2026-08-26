@@ -167,3 +167,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f040c57de9b4
+  - type: implements
+    from: SYM-skillopt-bundle-run-paid-gate
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-26T09:20:43.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e04618b2685b

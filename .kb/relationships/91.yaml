@@ -20,3 +20,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-210d76b3aee7
+  - type: relates_to
+    from: FACT-cli-query-EE5FD5
+    to: REQ-cli-query
+    created_at: 2026-08-26T07:44:01.277Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e9222b9d36c

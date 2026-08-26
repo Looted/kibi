@@ -667,6 +667,16 @@ function sealedFinalState(
   );
   const expectedWorkflow = options.evaluatorManifest.workflowExpectation;
   const taskOutcome = taskComplete ? "complete" : "blocked";
+  // Pre-approval phases expect the agent to stop before any write; when it
+  // does, that is the sanctioned "interim" outcome rather than "blocked".
+  const stoppedBeforeWrites = !brokerTools.some(
+    (tool) =>
+      tool === "kb_apply_plan" || tool === "kb_upsert" || tool === "kb_delete",
+  );
+  const workflowOutcome =
+    expectedWorkflow?.expectedOutcome === "interim" && stoppedBeforeWrites
+      ? "interim"
+      : taskOutcome;
   const limitationDisposition =
     (status &&
       (status.acceptedLimitations !== undefined ||
@@ -676,7 +686,6 @@ function sealedFinalState(
       : JSON.stringify(requests).includes('"disposition":"deferred"')
         ? "unaccepted"
         : "not_applicable";
-  const workflowOutcome = taskOutcome;
   const closeout: WorkflowCloseout = {
     taskOutcome: workflowOutcome,
     kbState,

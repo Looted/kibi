@@ -261,7 +261,7 @@ test("Node CLI and MCP consume complete attached-KB discovery frames repeatedly"
       });
       try {
         await request(child, 1, "initialize", {
-          protocolVersion: "2024-11-05",
+          protocolVersion: "2025-11-25",
           capabilities: {},
           clientInfo: { name: "attached-kb-regression", version: "1.0.0" },
         });

@@ -199,3 +199,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ff4d0d3123d9
+  - type: covered_by
+    from: SYM-core-kb-attach-audit-store
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-26T07:14:35.823Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-120882c2db92

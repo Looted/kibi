@@ -5,7 +5,8 @@
         "destructiveHint": false,
         "idempotentHint": true,
         "openWorldHint": false,
-        "readOnlyHint": true
+        "readOnlyHint": true,
+        "title": "Query Kibi entities"
       },
       "description": "Read entities from the KB with filters. Use for discovery and lookup before edits. Do not use for writes. No mutation side effects. Tags filter by metadata tags only, not entity IDs.",
       "inputSchema": {
@@ -226,7 +227,8 @@
         "destructiveHint": false,
         "idempotentHint": true,
         "openWorldHint": false,
-        "readOnlyHint": true
+        "readOnlyHint": true,
+        "title": "Search Kibi knowledge base"
       },
       "description": "Search KB entities for discovery using legacy lexical ranking or deterministic intent-v1 ranking. Intent mode accepts host-agent semantic facets and source locations, returns evidence and abstains below its confidence threshold. Use for exploratory lookup before exact follow-up with kb_query. No mutation side effects.",
       "inputSchema": {
@@ -1343,7 +1345,8 @@
         "destructiveHint": false,
         "idempotentHint": true,
         "openWorldHint": false,
-        "readOnlyHint": true
+        "readOnlyHint": true,
+        "title": "Find missing Kibi relationships"
       },
       "description": "Run bulk missing/present relationship analysis over KB entities. Use for questions like which requirements lack scenarios or tests. No mutation side effects.",
       "inputSchema": {
@@ -1570,7 +1573,8 @@
         "destructiveHint": false,
         "idempotentHint": true,
         "openWorldHint": false,
-        "readOnlyHint": true
+        "readOnlyHint": true,
+        "title": "Report Kibi coverage and proofs"
       },
       "description": "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Reports include the compatible repair plan plus typed kibi.migration-plan.v2 actions; semantic and E2E actions remain review/execution work. Paginated plans identify incomplete scope and no mutation occurs.",
       "inputSchema": {
@@ -1831,7 +1835,8 @@
         "destructiveHint": false,
         "idempotentHint": true,
         "openWorldHint": false,
-        "readOnlyHint": true
+        "readOnlyHint": true,
+        "title": "Traverse Kibi graph"
       },
       "description": "Run bounded graph traversal from one or more seed IDs across curated relationship types. No mutation side effects.",
       "inputSchema": {
@@ -2061,7 +2066,8 @@
         "destructiveHint": false,
         "idempotentHint": true,
         "openWorldHint": true,
-        "readOnlyHint": true
+        "readOnlyHint": true,
+        "title": "Run a remote SPARQL query"
       },
       "description": "Opt-in remote SPARQL query tool for external HTTP(S) RDF endpoints. This does not query Kibi's local RDF store directly, stores no credentials, and depends on network availability.",
       "inputSchema": {
@@ -2503,7 +2509,8 @@
         "destructiveHint": true,
         "idempotentHint": false,
         "openWorldHint": false,
-        "readOnlyHint": false
+        "readOnlyHint": false,
+        "title": "Create or update Kibi entities"
       },
       "description": "Create or update one entity and optional relationships. Use for KB mutations after validating intent; prefer kb_validate_upsert first because it returns semantic advisor receipts for prose-heavy requirements. Use kb_model_requirement before hand-writing strict property facts from prose, and kb_suggest_predicates before hand-writing ontology predicate facts. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`, or `requires_predicate`) so consistency and contradiction checks remain queryable. Relationship endpoints must already exist in KB. For requirements, the write will be rejected if it contradicts existing current requirements that constrain the same subject with incompatible properties. To replace a conflicting requirement, include a `supersedes` relationship from the new requirement to the old one in the same request. Successful writes may return non-blocking semantic advisor warnings; inspect and repair those warnings before treating prose as contradiction-checkable. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates.",
       "inputSchema": {
@@ -3380,7 +3387,8 @@
         "destructiveHint": false,
         "idempotentHint": true,
         "openWorldHint": false,
-        "readOnlyHint": true
+        "readOnlyHint": true,
+        "title": "Validate a Kibi upsert payload"
       },
       "description": "Validate a kb_upsert payload without mutating the KB. Use this read-only preflight before kb_upsert, especially for requirements, because it returns schema/modeling errors plus semantic advisor receipts that identify prose likely needing kb_model_requirement, kb_suggest_predicates, ambiguity review, or an ontology-gap observation.",
       "inputSchema": {
@@ -3597,7 +3605,8 @@
         "destructiveHint": true,
         "idempotentHint": false,
         "openWorldHint": false,
-        "readOnlyHint": false
+        "readOnlyHint": false,
+        "title": "Delete a Kibi entity"
       },
       "description": "Delete entities by ID. Use only for intentional removals after dependency checks. Do not use as a bulk cleanup shortcut. Side effects: mutates and saves KB; skips entities with dependents.",
       "inputSchema": {
@@ -3878,7 +3887,8 @@
         "destructiveHint": false,
         "idempotentHint": true,
         "openWorldHint": false,
-        "readOnlyHint": true
+        "readOnlyHint": true,
+        "title": "Validate Kibi knowledge base"
       },
       "description": "Run KB validation rules and return violations, quality diagnostics, and typed kibi.migration-plan.v2 actions. Use before or after mutations and after source edits; checks remain read-only and never infer or apply actions from prose suggestions.",
       "inputSchema": {
@@ -4159,7 +4169,8 @@
         "destructiveHint": false,
         "idempotentHint": true,
         "openWorldHint": false,
-        "readOnlyHint": true
+        "readOnlyHint": true,
+        "title": "Model a Kibi requirement"
       },
       "description": "Convert a prose requirement plus optional extracted claim fields into a deterministic strict-lane write set. Read-only modeling returns a sequential applyPlan for later kb_upsert calls. High-confidence claims emit req+fact strict output; lower-confidence claims emit an observation review artifact. Includes migration warnings when legacy schemaVersion metadata is detected.",
       "inputSchema": {
@@ -4754,7 +4765,8 @@
         "destructiveHint": false,
         "idempotentHint": true,
         "openWorldHint": false,
-        "readOnlyHint": true
+        "readOnlyHint": true,
+        "title": "Plan Kibi bootstrap"
       },
       "description": "Generate a deterministic, snapshot-bound kibi.bootstrap-plan.v1 for repository onboarding. Read-only analysis returns evidence, bounded context questions, exact dependency-ordered actions, a canonical plan hash, and no mutation side effects.",
       "inputSchema": {

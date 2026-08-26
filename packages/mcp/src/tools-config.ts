@@ -59,6 +59,12 @@ const MCP_TOOL_ORDER = [
 
 // implements REQ-002
 const TOOL_ANNOTATIONS: Partial<Record<OperationName, ToolAnnotations>> = {
+  kb_query: {
+    title: "Query Kibi entities",
+  },
+  kb_search: {
+    title: "Search Kibi knowledge base",
+  },
   kb_status: {
     title: "Inspect Kibi branch status",
     readOnlyHint: true,
@@ -87,6 +93,18 @@ const TOOL_ANNOTATIONS: Partial<Record<OperationName, ToolAnnotations>> = {
     idempotentHint: true,
     openWorldHint: false,
   },
+  kb_find_gaps: {
+    title: "Find missing Kibi relationships",
+  },
+  kb_coverage: {
+    title: "Report Kibi coverage and proofs",
+  },
+  kb_graph: {
+    title: "Traverse Kibi graph",
+  },
+  kb_sparql_remote: {
+    title: "Run a remote SPARQL query",
+  },
   kb_semantic_advisor: {
     title: "Advise on Kibi requirement modeling",
     readOnlyHint: true,
@@ -101,12 +119,30 @@ const TOOL_ANNOTATIONS: Partial<Record<OperationName, ToolAnnotations>> = {
     idempotentHint: true,
     openWorldHint: false,
   },
+  kb_upsert: {
+    title: "Create or update Kibi entities",
+  },
+  kb_validate_upsert: {
+    title: "Validate a Kibi upsert payload",
+  },
+  kb_delete: {
+    title: "Delete a Kibi entity",
+  },
+  kb_check: {
+    title: "Validate Kibi knowledge base",
+  },
+  kb_model_requirement: {
+    title: "Model a Kibi requirement",
+  },
   kb_compile_intent: {
     title: "Compile Kibi change intent",
     readOnlyHint: true,
     destructiveHint: false,
     idempotentHint: true,
     openWorldHint: false,
+  },
+  kb_plan_bootstrap: {
+    title: "Plan Kibi bootstrap",
   },
   kb_apply_plan: {
     title: "Apply an approved Kibi plan",
@@ -126,15 +162,7 @@ const TOOL_ANNOTATIONS: Partial<Record<OperationName, ToolAnnotations>> = {
 
 const BASE_TOOLS: readonly ToolConfig[] = MCP_TOOL_ORDER.map((name) => {
   const spec = getSpec(name);
-  const effects =
-    spec.declaredEffects ??
-    spec.effects.map((kind) => ({
-      kind,
-      mutability: "read" as const,
-      destructive: false,
-      retrySafety: "safe" as const,
-      openWorld: kind === "network-read",
-    }));
+  const effects = spec.declaredEffects;
   const derived: ToolAnnotations = {
     readOnlyHint: effects.every((effect) => effect.mutability === "read"),
     destructiveHint: effects.some((effect) => effect.destructive),

@@ -381,12 +381,24 @@ export function buildPrivateManifest(input: {
     workspaceHash: input.workspaceHash,
     fixtureSeedHash: sha256(input.task.fixtureSeed),
     expectedFinalState: [
-      {
-        key: criticalKey,
-        query: `state://${input.task.skill}/${input.task.family}/complete`,
-        expected: true,
-        critical: true,
-      },
+      expectedWorkflow?.expectedOutcome === "interim"
+        ? {
+            // Pre-approval phases never produce a queryable store, so the
+            // generic /complete state cannot exist. Success is "the agent
+            // planned read-only and stopped", scored by workflow-outcome
+            // plus signals; keep a non-critical placeholder so manifests
+            // retain their base-assertion shape.
+            key: criticalKey,
+            query: `state://${input.task.skill}/${input.task.family}/complete`,
+            expected: false,
+            critical: false,
+          }
+        : {
+            key: criticalKey,
+            query: `state://${input.task.skill}/${input.task.family}/complete`,
+            expected: true,
+            critical: true,
+          },
       ...workflowAssertion,
       {
         key: workspaceKey,

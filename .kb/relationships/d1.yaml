@@ -115,3 +115,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b9d7a798b046
+  - type: covered_by
+    from: SYM-cli-rule-registry-ChecksConfig
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-26T07:14:54.592Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7476ecd6be6d

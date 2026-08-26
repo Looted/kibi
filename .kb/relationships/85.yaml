@@ -118,3 +118,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b1e650a06ade
+  - type: relates_to
+    from: FACT-cli-doctor-1B97E0
+    to: REQ-cli-doctor
+    created_at: 2026-08-26T07:43:54.552Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebede7de1d8a

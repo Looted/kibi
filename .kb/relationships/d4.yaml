@@ -76,3 +76,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0cabf4ca4a12
+  - type: covered_by
+    from: SYM-mcp-collectQueryPlanSafetyViolations
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-26T07:16:04.627Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fda81f41e6d3

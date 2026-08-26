@@ -22,6 +22,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { initializeDiagnosticMode } from "./diagnostics.js";
 import { loadDefaultEnvFile } from "./env.js";
 import { setupDocsAndPrompts } from "./server/docs.js";
+import { KIBI_ICONS } from "./server/icons.js";
 import { registerAllTools } from "./server/tools.js";
 import {
   connectTransport,
@@ -34,6 +35,14 @@ const packageJson = JSON.parse(
 ) as { version?: string };
 const VERSION = packageJson.version ?? "0.1.0";
 
+const SERVER_INSTRUCTIONS = [
+  "Kibi is a branch-local requirements knowledge base for software traceability.",
+  "Start with kb_search for discovery, then kb_query for exact lookups before any mutation.",
+  "Model requirements as linked facts via kb_model_requirement or kb_upsert (create endpoints before linking them).",
+  "Mutate sequentially with kb_upsert and kb_delete; validate with kb_check during iteration and run an unfiltered kb_check before completion.",
+  "Confirm branch freshness with kb_status. For first-time repository setup, use the kibi-bootstrap prompt.",
+].join(" ");
+
 export async function startServer(): Promise<void> {
   // Load environment configuration
   loadDefaultEnvFile();
@@ -42,7 +51,18 @@ export async function startServer(): Promise<void> {
   initializeDiagnosticMode();
 
   // Create MCP server
-  const server = new McpServer({ name: "kibi-mcp", version: VERSION });
+  const server = new McpServer(
+    {
+      name: "kibi-mcp",
+      title: "Kibi MCP",
+      description:
+        "Agent-native requirements compiler: branch-local knowledge base for requirements, scenarios, tests, facts, and code-symbol traceability.",
+      websiteUrl: "https://github.com/Looted/kibi",
+      version: VERSION,
+      icons: KIBI_ICONS,
+    },
+    { instructions: SERVER_INSTRUCTIONS },
+  );
 
   // Setup documentation resources and prompts
   setupDocsAndPrompts(server);

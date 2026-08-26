@@ -37,12 +37,17 @@ describe("workspace utilities", () => {
     );
     tempDir = path.join(isolationRoot, "workspace");
     fs.mkdirSync(tempDir);
-    // Clear relevant env vars
-    process.env.KIBI_WORKSPACE = undefined;
-    process.env.KIBI_PROJECT_ROOT = undefined;
-    process.env.KIBI_ROOT = undefined;
-    process.env.KIBI_KB_PATH = undefined;
-    process.env.KB_PATH = undefined;
+    // Clear relevant env vars (assign-and-delete rather than `= undefined`,
+    // which coerces to the truthy string "undefined" and defeats env resolution)
+    for (const key of [
+      "KIBI_WORKSPACE",
+      "KIBI_PROJECT_ROOT",
+      "KIBI_ROOT",
+      "KIBI_KB_PATH",
+      "KB_PATH",
+    ]) {
+      delete process.env[key];
+    }
   });
 
   afterEach(() => {

@@ -124,6 +124,36 @@ function commandReferencesKb(command: string): boolean {
   return KB_PATH_PATTERN.test(remainder);
 }
 
+const MCP_ITEM_TYPES = new Set([
+  "mcp_tool_call",
+  "mcp_call",
+  "tool_call",
+  "custom_tool_call",
+  "function_call",
+]);
+
+/**
+ * Brokered MCP tool calls are the sanctioned interface: their arguments and
+ * results legitimately contain `.kb`-relative plan/journal paths. Filesystem
+ * trust-plane scans only apply to shell/file-tool surfaces.
+ */
+function mcpItemType(value: unknown): string | null {
+  if (typeof value !== "object" || value === null) return null;
+  const itemType = (value as Record<string, unknown>).type;
+  return typeof itemType === "string" ? itemType : null;
+}
+
+function isMcpToolCallItem(event: Readonly<Record<string, unknown>>): boolean {
+  if (MCP_ITEM_TYPES.has(String(event.type ?? ""))) return true;
+  if (event.type !== "item.completed") return false;
+  // Raw stream items nest under `item`; normalized evidence nests under
+  // `payload.item`. Check both so pre-normalization scans are covered.
+  const candidates = [event.item, event.payload].map(mcpItemType);
+  return candidates.some(
+    (itemType) => itemType !== null && MCP_ITEM_TYPES.has(itemType),
+  );
+}
+
 function eventViolations(
   event: Readonly<Record<string, unknown>>,
   options: CodexNormalizationOptions,
@@ -137,29 +167,31 @@ function eventViolations(
   ) {
     violations.push("hidden_data_leakage");
   }
-  if (
-    strings.some(
-      ({ key, value }) =>
-        /^(?:command|path|file_path)$/i.test(key) &&
-        (key.toLowerCase() === "command"
-          ? commandReferencesKb(value)
-          : KB_PATH_PATTERN.test(value)),
-    )
-  ) {
-    violations.push("direct_kb_access");
-  }
-  if (
-    strings.some(
-      ({ key, value }) =>
-        (/^(?:path|file_path)$/i.test(key) &&
-          (value.split(/[\\/]/).includes("..") ||
-            options.forbiddenRoots.some((root) => value.startsWith(root)))) ||
-        (key === "command" &&
-          options.forbiddenRoots.some((root) => value.includes(root)) &&
-          /(?:^|\s)(?:cp|mkdir|mv|rm|tee|touch)(?:\s|$)|>/.test(value)),
-    )
-  ) {
-    violations.push("forbidden_write");
+  if (!isMcpToolCallItem(event)) {
+    if (
+      strings.some(
+        ({ key, value }) =>
+          /^(?:command|path|file_path)$/i.test(key) &&
+          (key.toLowerCase() === "command"
+            ? commandReferencesKb(value)
+            : KB_PATH_PATTERN.test(value)),
+      )
+    ) {
+      violations.push("direct_kb_access");
+    }
+    if (
+      strings.some(
+        ({ key, value }) =>
+          (/^(?:path|file_path)$/i.test(key) &&
+            (value.split(/[\\/]/).includes("..") ||
+              options.forbiddenRoots.some((root) => value.startsWith(root)))) ||
+          (key === "command" &&
+            options.forbiddenRoots.some((root) => value.includes(root)) &&
+            /(?:^|\s)(?:cp|mkdir|mv|rm|tee|touch)(?:\s|$)|>/.test(value)),
+      )
+    ) {
+      violations.push("forbidden_write");
+    }
   }
   if (
     event.type === "web_search" ||

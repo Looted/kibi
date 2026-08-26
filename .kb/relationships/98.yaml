@@ -48,3 +48,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6fabf07a7f15
+  - type: covered_by
+    from: SYM-cli-PrologProcess-getPid
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-26T07:16:34.398Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6bd12b48220c

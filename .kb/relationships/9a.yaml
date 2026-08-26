@@ -62,3 +62,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1af69f77c8e5
+  - type: relates_to
+    from: FACT-cli-query-FAFD65
+    to: REQ-cli-query
+    created_at: 2026-08-26T07:43:59.813Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e834d2b125d5

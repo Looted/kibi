@@ -31,20 +31,25 @@ describe("server docs coverage", () => {
     const resourceCalls: unknown[] = [];
 
     const mockServer = {
-      prompt: mock(
+      registerPrompt: mock(
         (
           name: string,
-          description: string,
+          config: { title: string; description: string },
           resolver: () => Promise<{ messages: unknown[] }>,
         ) => {
-          promptCalls.push({ name, description, resolver });
+          promptCalls.push({ name, config, resolver });
         },
       ),
-      resource: mock(
+      registerResource: mock(
         (
           name: string,
           uri: string,
-          opts: { description: string; mimeType: string },
+          opts: {
+            title: string;
+            description: string;
+            mimeType: string;
+            icons: unknown[];
+          },
           resolver: () => Promise<{ contents: unknown[] }>,
         ) => {
           resourceCalls.push({ name, uri, opts, resolver });
@@ -62,9 +67,11 @@ describe("server docs coverage", () => {
         (c) => (c as { name: string }).name === prompt.name,
       );
       expect(call).toBeDefined();
-      expect((call as { description: string }).description).toBe(
-        prompt.description,
+      expect((call as { config: { title: string } }).config.title).toBe(
+        prompt.title,
       );
+      expect((call as { config: { description: string } }).config.description)
+        .toBe(prompt.description);
     }
   });
 
@@ -72,12 +79,17 @@ describe("server docs coverage", () => {
     const resourceCalls: unknown[] = [];
 
     const mockServer = {
-      prompt: mock(() => {}),
-      resource: mock(
+      registerPrompt: mock(() => {}),
+      registerResource: mock(
         (
           name: string,
           uri: string,
-          opts: { description: string; mimeType: string },
+          opts: {
+            title: string;
+            description: string;
+            mimeType: string;
+            icons: unknown[];
+          },
           resolver: () => Promise<{ contents: unknown[] }>,
         ) => {
           resourceCalls.push({ name, uri, opts, resolver });
@@ -96,10 +108,20 @@ describe("server docs coverage", () => {
       );
       expect(call).toBeDefined();
       expect((call as { name: string }).name).toBe(resource.name);
-      expect(
-        (call as { opts: { description: string; mimeType: string } }).opts
-          .mimeType,
-      ).toBe(resource.mimeType);
+      const opts = (
+        call as {
+          opts: {
+            title: string;
+            description: string;
+            mimeType: string;
+            icons: unknown[];
+          };
+        }
+      ).opts;
+      expect(opts.mimeType).toBe(resource.mimeType);
+      expect(opts.title).toBe(resource.title);
+      expect(Array.isArray(opts.icons)).toBe(true);
+      expect(opts.icons.length).toBeGreaterThan(0);
     }
   });
 
@@ -107,16 +129,16 @@ describe("server docs coverage", () => {
     let capturedResolver: (() => Promise<{ messages: unknown[] }>) | undefined;
 
     const mockServer = {
-      prompt: mock(
+      registerPrompt: mock(
         (
           _name: string,
-          _description: string,
+          _config: unknown,
           resolver: () => Promise<{ messages: unknown[] }>,
         ) => {
           capturedResolver = resolver;
         },
       ),
-      resource: mock(() => {}),
+      registerResource: mock(() => {}),
     } as unknown as McpServer;
 
     setupDocsAndPrompts(mockServer);
@@ -145,8 +167,8 @@ describe("server docs coverage", () => {
     let capturedResolver: (() => Promise<{ contents: unknown[] }>) | undefined;
 
     const mockServer = {
-      prompt: mock(() => {}),
-      resource: mock(
+      registerPrompt: mock(() => {}),
+      registerResource: mock(
         (
           _name: string,
           _uri: string,
@@ -187,8 +209,8 @@ describe("server docs coverage", () => {
     }> = [];
 
     const mockServer = {
-      prompt: mock(() => {}),
-      resource: mock(
+      registerPrompt: mock(() => {}),
+      registerResource: mock(
         (
           _name: string,
           uri: string,
@@ -224,10 +246,10 @@ describe("server docs coverage", () => {
     const callOrder: string[] = [];
 
     const mockServer = {
-      prompt: mock((name: string) => {
+      registerPrompt: mock((name: string) => {
         callOrder.push(`prompt:${name}`);
       }),
-      resource: mock((name: string) => {
+      registerResource: mock((name: string) => {
         callOrder.push(`resource:${name}`);
       }),
     } as unknown as McpServer;
@@ -252,8 +274,8 @@ describe("server docs coverage", () => {
 
   test("setupDocsAndPrompts with empty server does not throw", () => {
     const mockServer = {
-      prompt: mock(() => {}),
-      resource: mock(() => {}),
+      registerPrompt: mock(() => {}),
+      registerResource: mock(() => {}),
     } as unknown as McpServer;
 
     expect(() => setupDocsAndPrompts(mockServer)).not.toThrow();
@@ -286,6 +308,7 @@ describe("server docs coverage", () => {
     for (const resource of DOC_RESOURCES) {
       expect(typeof resource.uri).toBe("string");
       expect(typeof resource.name).toBe("string");
+      expect(typeof resource.title).toBe("string");
       expect(typeof resource.description).toBe("string");
       expect(resource.mimeType).toBe("text/markdown");
       expect(typeof resource.text).toBe("string");

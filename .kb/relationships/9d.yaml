@@ -73,3 +73,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-054b433d9bee
+  - type: covered_by
+    from: SYM-cli-PrologProcess-execOneShot
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-26T07:16:29.767Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cefcb75f839f

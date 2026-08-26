@@ -203,6 +203,8 @@ symbols:
       - type: implements
         target: REQ-agent-guided-migration-orchestration
       - type: implements
+        target: REQ-cli-doctor
+      - type: implements
         target: REQ-cli-doctor-packed-provenance
   - id: SYM-kibi-check-diagnostic
     title: CheckDiagnostic
@@ -1976,13 +1978,16 @@ symbols:
     links:
       - REQ-mcp-tool-check
       - REQ-core-validation-rules
+    status: active
     relationships:
-      - type: implements
-        target: REQ-mcp-tool-check
-      - type: implements
-        target: REQ-core-validation-rules
       - type: covered_by
         target: TEST-001
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-validation-rules
+      - type: implements
+        target: REQ-mcp-tool-check
   - id: SYM-010
     title: startServer
     status: active
@@ -2100,39 +2105,45 @@ symbols:
     title: kb_commit_upsert
     sourceFile: packages/core/src/kb.pl
     symbol_role: behavioral
+    status: active
     relationships:
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-core-audit-logging
       - type: implements
         target: REQ-core-journaled-engine-persistence
       - type: implements
         target: REQ-core-persistence
       - type: implements
-        target: REQ-core-audit-logging
-      - type: implements
         target: REQ-core-prolog-process-management
       - type: implements
         target: REQ-mcp-tool-upsert
-      - type: covered_by
-        target: TEST-core-atomic-upsert-persistence
-      - type: covered_by
-        target: TEST-core-journaled-engine-persistence
   - id: SYM-core-kb-attach-audit-store
     title: kb_attach
     sourceFile: packages/core/src/kb.pl
     symbol_role: behavioral
     granularity_reason: extractor-miss
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-persistence
-      - type: implements
-        target: REQ-core-journaled-engine-persistence
-      - type: implements
-        target: REQ-core-audit-logging
       - type: covered_by
         target: TEST-core-atomic-upsert-persistence
       - type: covered_by
         target: TEST-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-audit-logging
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-core-persistence
   - id: SYM-core-kb-save-locked
     title: kb_save_locked
     status: active
@@ -2144,6 +2155,8 @@ symbols:
         target: TEST-core-atomic-upsert-persistence
       - type: covered_by
         target: TEST-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-core-atomic-upsert-persistence
       - type: implements
@@ -2810,11 +2823,14 @@ symbols:
   - id: SYM-cli-analyzePrologQueryPlanSafety
     title: analyzePrologQueryPlanSafety
     sourceFile: packages/cli/src/utils/prolog-query-plan-safety.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-validation-rules
       - type: covered_by
         target: TEST-004
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-validation-rules
   - id: SYM-cli-BaseEntity
     title: BaseEntity
     sourceFile: packages/cli/src/types/entities.ts
@@ -3546,109 +3562,139 @@ symbols:
     title: PrologProcess.getPid
     sourceFile: packages/cli/src/prolog.ts
     granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-prolog-process-management
       - type: covered_by
         target: TEST-001
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-prolog-process-management
   - id: SYM-cli-PrologProcess-invalidateCache
     title: PrologProcess.invalidateCache
     sourceFile: packages/cli/src/prolog.ts
     granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-prolog-process-management
       - type: covered_by
         target: TEST-001
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-prolog-process-management
   - id: SYM-cli-PrologProcess-isRunning
     title: PrologProcess.isRunning
     sourceFile: packages/cli/src/prolog.ts
     granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-prolog-process-management
       - type: covered_by
         target: TEST-001
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-prolog-process-management
   - id: SYM-cli-PrologProcess-query
     title: PrologProcess.query
     sourceFile: packages/cli/src/prolog.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-mcp-search-discovery
       - type: implements
         target: REQ-core-atomic-upsert-persistence
       - type: implements
         target: REQ-core-audit-logging
       - type: implements
+        target: REQ-core-prolog-process-management
+      - type: implements
         target: REQ-mcp-search-discovery
-      - type: covered_by
-        target: TEST-001
-      - type: covered_by
-        target: TEST-mcp-search-discovery
   - id: SYM-cli-PrologProcess-start
     title: PrologProcess.start
     sourceFile: packages/cli/src/prolog.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-prolog-process-management
       - type: covered_by
         target: TEST-001
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-prolog-process-management
   - id: SYM-cli-PrologProcess-terminate
     title: PrologProcess.terminate
     sourceFile: packages/cli/src/prolog.ts
     granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-prolog-process-management
-      - type: implements
-        target: REQ-core-atomic-upsert-persistence
       - type: covered_by
         target: TEST-001
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-core-prolog-process-management
   - id: SYM-cli-PrologProcess-execOneShot
     title: PrologProcess.execOneShot
     sourceFile: packages/cli/src/prolog.ts
     symbol_role: behavioral
     granularity_reason: extractor-miss
+    status: active
     relationships:
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-core-atomic-upsert-persistence
       - type: implements
         target: REQ-core-prolog-process-management
-      - type: covered_by
-        target: TEST-core-atomic-upsert-persistence
   - id: SYM-cli-PrologProcess-signalProcessTree
     title: PrologProcess.signalProcessTree
     sourceFile: packages/cli/src/prolog.ts
     symbol_role: behavioral
     granularity_reason: extractor-miss
+    status: active
     relationships:
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-core-atomic-upsert-persistence
       - type: implements
         target: REQ-core-prolog-process-management
-      - type: covered_by
-        target: TEST-core-atomic-upsert-persistence
   - id: SYM-cli-PrologProcess-terminateProcessTree
     title: PrologProcess.terminateProcessTree
     sourceFile: packages/cli/src/prolog.ts
     symbol_role: behavioral
     granularity_reason: extractor-miss
+    status: active
     relationships:
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-core-atomic-upsert-persistence
       - type: implements
         target: REQ-core-prolog-process-management
-      - type: covered_by
-        target: TEST-core-atomic-upsert-persistence
   - id: SYM-cli-PrologQueryPlanSafetyViolation
     title: PrologQueryPlanSafetyViolation
     sourceFile: packages/cli/src/utils/prolog-query-plan-safety.ts
     granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-validation-rules
       - type: covered_by
         target: TEST-004
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-validation-rules
   - id: SYM-cli-protocol-result-type
     title: CliProtocolResult
     status: active
@@ -3673,6 +3719,10 @@ symbols:
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-015
+      - type: implements
+        target: REQ-cli-query
       - type: implements
         target: REQ-kibi-operation-interface-parity
       - type: implements
@@ -4191,6 +4241,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-004
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-core-validation-rules
   - id: SYM-cli-rule-registry-DEFAULT_CHECKS_CONFIG
@@ -4202,35 +4254,46 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-004
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-core-validation-rules
   - id: SYM-cli-rule-registry-getEffectiveRules
     title: getEffectiveRules
     sourceFile: packages/cli/src/utils/rule-registry.ts
     symbol_role: behavioral
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-validation-rules
       - type: covered_by
         target: TEST-004
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-validation-rules
   - id: SYM-cli-rule-registry-RULE_NAMES
     title: RULE_NAMES
     sourceFile: packages/cli/src/utils/rule-registry.ts
     symbol_role: config
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-validation-rules
       - type: covered_by
         target: TEST-004
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-validation-rules
   - id: SYM-cli-rule-registry-RuleDefinition
     title: RuleDefinition
     sourceFile: packages/cli/src/utils/rule-registry.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-validation-rules
       - type: covered_by
         target: TEST-004
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-validation-rules
   - id: SYM-cli-rule-registry-RULES
     title: RULES
     status: active
@@ -4239,6 +4302,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-004
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
       - type: covered_by
@@ -4256,26 +4321,34 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-004
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-core-validation-rules
   - id: SYM-cli-rule-registry-validateRuleName
     title: validateRuleName
     sourceFile: packages/cli/src/utils/rule-registry.ts
     symbol_role: behavioral
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-validation-rules
       - type: covered_by
         target: TEST-004
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-validation-rules
   - id: SYM-cli-rule-registry-Violation
     title: Violation
     sourceFile: packages/cli/src/utils/rule-registry.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-validation-rules
       - type: covered_by
         target: TEST-004
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-validation-rules
   - id: SYM-cli-run-aggregated-checks
     title: runAggregatedChecks
     status: active
@@ -4284,6 +4357,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-001
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-mcp-tool-check-coverage
       - type: implements
@@ -4338,8 +4413,7 @@ symbols:
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable
-      resource examples
+    title: predicate guidance loads a canonical decision tree with immutable resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -8556,11 +8630,14 @@ symbols:
     title: collectQueryPlanSafetyViolations
     sourceFile: packages/mcp/src/tools/query-plan-safety.ts
     symbol_role: behavioral
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-validation-rules
       - type: covered_by
         target: TEST-001
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-validation-rules
   - id: SYM-mcp-connectTransport
     title: connectTransport
     status: active
@@ -8712,11 +8789,14 @@ symbols:
     text_ref: packages/mcp/src/tools/check-prolog.ts#runAggregatedChecks
     links:
       - REQ-core-validation-rules
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-validation-rules
       - type: covered_by
         target: TEST-001
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-validation-rules
   - id: SYM-mcp-sameBranchKbStamp
     title: sameBranchKbStamp
     sourceFile: packages/mcp/src/server/kb-freshness.ts
@@ -8966,7 +9046,7 @@ symbols:
       - type: executable_for
         target: TEST-mcp-search-discovery
   - id: SYM-mcp-test-node-driver-startServer
-    title: nodeMcpDriverHelpers.startServer
+    title: spawnMcpTestServer
     sourceFile: packages/mcp/tests/drivers/node-mcp-driver-helpers.mjs
     symbol_role: behavioral
     granularity_reason: extractor-miss
@@ -12953,6 +13033,16 @@ symbols:
         target: REQ-008
       - type: implements
         target: REQ-mcp-suggest-predicates
+  - id: SYM-kibi-icons
+    title: KIBI_ICONS
+    status: active
+    sourceFile: packages/mcp/src/server/icons.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
   - id: SYM-setWorkspaceFsDepsForTests
     title: _setWorkspaceFsDepsForTests
     sourceFile: packages/vscode/src/activation/workspace.ts
@@ -13623,6 +13713,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-file-bridge-unit
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
@@ -13874,24 +13966,26 @@ symbols:
         target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-candidate-surface-error
     title: CandidateSurfaceError
+    status: active
     sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
+    granularity_reason: legacy-link
     symbol_role: structural
-    granularity_reason: extractor-miss
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-candidate-surface-error-name
     title: CandidateSurfaceError.name
+    status: active
     sourceFile: scripts/skillopt-eval/runtime/skill-assembly.ts
+    granularity_reason: legacy-link
     symbol_role: structural
-    granularity_reason: extractor-miss
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-candidate-validation-error
     title: CandidateValidationError
     sourceFile: scripts/skillopt-eval/variants.ts
@@ -15805,24 +15899,26 @@ symbols:
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-fixture-integrity-error
     title: FixtureIntegrityError
+    status: active
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    granularity_reason: legacy-link
     symbol_role: structural
-    granularity_reason: extractor-miss
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-fixture-integrity-error-name
     title: FixtureIntegrityError.name
+    status: active
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
+    granularity_reason: legacy-link
     symbol_role: structural
-    granularity_reason: extractor-miss
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-fixture-materialize-run
     title: materializeFixtureRun
     sourceFile: scripts/skillopt-eval/fixtures/materialize.ts
@@ -16988,15 +17084,18 @@ symbols:
     title: PredicateCaseSnapshotSchema
     sourceFile: scripts/skillopt-eval/contracts/evidence.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-predicate-first-requirements
-      - type: implements
-        target: REQ-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
       - type: covered_by
         target: TEST-skillopt-predicate-first-requirements
       - type: covered_by
-        target: TEST-kibi-logical-requirement-coverage
+        target: TEST-skillopt-scoring-gates-unit
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+      - type: implements
+        target: REQ-skillopt-predicate-first-requirements
   - id: SYM-skillopt-predicate-case-snapshot-type
     title: PredicateCaseSnapshot
     sourceFile: scripts/skillopt-eval/contracts/evidence.ts
@@ -21033,6 +21132,8 @@ symbols:
         target: TEST-mcp-suggest-predicates
       - type: implements
         target: REQ-002
+      - type: implements
+        target: REQ-013
       - type: implements
         target: REQ-mcp-suggest-predicates
   - id: SYM-ToolsRuntime
@@ -29300,3 +29401,102 @@ symbols:
         target: TEST-generated-coordinate-repair
       - type: implements
         target: REQ-generated-coordinate-persistence
+  - id: SYM-skillopt-bundle-default-timeout
+    title: DEFAULT_BUNDLE_CELL_TIMEOUT_MS
+    status: active
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
+    granularity_reason: config-artifact
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-bundle-candidates-resolver
+    title: BundleCandidatesResolver
+    status: active
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-bundle-cell-summary-type
+    title: BundleCellSummary
+    status: active
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-bundle-summarize-arm
+    title: summarizeBundleArm
+    status: active
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
+    granularity_reason: module-level-behavior
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-bundle-gate-options-type
+    title: PaidBundleGateOptions
+    status: active
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-bundle-gate-result-type
+    title: PaidBundleGateResult
+    status: active
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-bundle-run-paid-gate
+    title: runPaidBundleGate
+    status: active
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
+    granularity_reason: module-level-behavior
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-bundle-evaluation-branch
+    title: BUNDLE_EVALUATION_BRANCH
+    status: active
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
+    granularity_reason: config-artifact
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-bundle-arm-type
+    title: BundleArm
+    status: active
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-bundle-arm-summary-type
+    title: BundleArmSummary
+    status: active
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-skillopt-bundle-cell-runner-type
+    title: BundleCellRunner
+    status: active
+    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
+    granularity_reason: config-artifact
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization

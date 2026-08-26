@@ -28,21 +28,21 @@ semantic_inventory:
   - claim_key: CLAIM-B57914657DBD0FDB
     claim_text: The `kibi doctor` command runs a series of diagnostic checks to verify that the local environment (SWI-Prolog version, git) and the project KB setup (.kb directory, config, hooks) are correctly configured and healthy
     role: descriptive
-    status: ontology_gap
+    status: modeled
     span:
       start: 0
       end: 216
     payload_hash: 01ba1d01b96cb5f85fcd0bb8220ff81328a64364e06ba16538857da9a7c2be0e
-    reason: No approved domain predicate schema expresses this clause; generic logical_requirement_rule grounding was removed.
+    reason: Grounded by FACT-cli-doctor-BD0FDB via requires_predicate.
   - claim_key: CLAIM-063781AB551B97E0
     claim_text: It provides actionable remediation steps for failed checks
     role: descriptive
-    status: ontology_gap
+    status: modeled
     span:
       start: 218
       end: 276
     payload_hash: 01ba1d01b96cb5f85fcd0bb8220ff81328a64364e06ba16538857da9a7c2be0e
-    reason: No approved domain predicate schema expresses this clause; generic logical_requirement_rule grounding was removed.
+    reason: Grounded by FACT-cli-doctor-1B97E0 via requires_predicate.
 type: req
 ---
 

@@ -97,3 +97,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d61822919060
+  - type: covered_by
+    from: SYM-cli-run-aggregated-checks
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-26T07:15:58.145Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e10dc1d2117

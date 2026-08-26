@@ -313,13 +313,19 @@ export async function runOperatorCommand(
     ]);
   }
   if (command === "suite") {
-    const runId = dependencies.randomId();
-    process.stderr.write(`skillopt suite run-id=${runId}\n`);
+    const layout = await preparePaidOptimize(dependencies);
+    process.stderr.write(
+      `skillopt suite run-id=${layout.runId}\nartifact-root=${layout.artifactRoot}\nfixture-run-root=${layout.fixtureRunRoot}\n`,
+    );
     return await dependencies.runCli([
       "bundle",
       "--allow-paid",
       "--run-id",
-      runId,
+      layout.runId,
+      "--artifact-root",
+      layout.artifactRoot,
+      "--fixture-run-root",
+      layout.fixtureRunRoot,
       "--skill",
       "all",
     ]);

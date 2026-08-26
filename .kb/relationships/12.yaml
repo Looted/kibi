@@ -69,3 +69,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fc3f947b472a
+  - type: relates_to
+    from: FACT-core-validation-rules-CA4929
+    to: REQ-core-validation-rules
+    created_at: 2026-08-26T07:20:43.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb513b059e28
+  - type: implements
+    from: SYM-kibi-doctor-command
+    to: REQ-cli-doctor
+    created_at: 2026-08-26T07:44:25.394Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09d067497110

@@ -97,3 +97,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-53e67c9452c6
+  - type: relates_to
+    from: FACT-cli-query-92382F
+    to: REQ-cli-query
+    created_at: 2026-08-26T07:44:02.821Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1632e2810d27

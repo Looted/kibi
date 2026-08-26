@@ -20,3 +20,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eac20a0aa28a
+  - type: implements
+    from: SYM-skillopt-bundle-gate-result-type
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-26T09:18:32.795Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48db9e59b8e6
