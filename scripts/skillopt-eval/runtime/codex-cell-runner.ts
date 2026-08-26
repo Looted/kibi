@@ -124,42 +124,31 @@ export async function runCodexCell(
       options.sourceWorktree,
     );
     // Evaluator-owned precondition setup runs AFTER staging the broker and
-    // BEFORE the MCP probe/model launch, using the staged production CLI.
-    // The model never gains direct `.kb` access; the sandbox deny rule and
-    // the broker allowlist stay intact.
+    // BEFORE the MCP probe/model launch, using the production CLI build of
+    // the source worktree. The packed kibi-cli shadow inside the staged MCP
+    // runtime deliberately carries no dependency tree, so resolving its
+    // dist/cli.js would fail on the very first external require; the source
+    // build is byte-identical and dependency-complete. The model never gains
+    // direct `.kb` access; the sandbox deny rule and the broker allowlist
+    // stay intact.
+    const stagingCliRoot = resolve(options.sourceWorktree, "packages/cli");
     if (
       options.evaluatorManifest.fixtureSetup ===
       "generated_coordinate_divergence"
     ) {
-      const cliRoot = broker.downstream.cliRoot;
-      if (cliRoot === undefined) {
-        throw new FixtureSetupError("staged runtime exposes no kibi-cli root");
-      }
       await setupGeneratedCoordinateDivergence(
         workspace.target,
-        cliRoot,
+        stagingCliRoot,
         fixtureSymbolId(request.taskId),
       );
     } else {
       const setupMode = options.evaluatorManifest.fixtureSetup;
-      if (
-        setupMode === "seeded_fresh_kb" ||
-        setupMode === "seeded_stale_kb" ||
-        setupMode === "thin_root_kb"
-      ) {
-        const cliRoot = broker.downstream.cliRoot;
-        if (cliRoot === undefined) {
-          throw new FixtureSetupError(
-            "staged runtime exposes no kibi-cli root",
-          );
-        }
-        if (setupMode === "seeded_fresh_kb") {
-          await setupSeededFreshKb(workspace.target, cliRoot);
-        } else if (setupMode === "seeded_stale_kb") {
-          await setupSeededStaleKb(workspace.target, cliRoot);
-        } else {
-          await setupThinRootKb(workspace.target, cliRoot);
-        }
+      if (setupMode === "seeded_fresh_kb") {
+        await setupSeededFreshKb(workspace.target, stagingCliRoot);
+      } else if (setupMode === "seeded_stale_kb") {
+        await setupSeededStaleKb(workspace.target, stagingCliRoot);
+      } else if (setupMode === "thin_root_kb") {
+        await setupThinRootKb(workspace.target, stagingCliRoot);
       }
     }
     const runtimeRoot = join(workspace.target, ".runtime");
