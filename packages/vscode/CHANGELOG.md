@@ -1,5 +1,60 @@
 # kibi-vscode
 
+## 1.0.0
+
+### Major Changes
+
+- 9e6fb3f: Kibi now uses one opinionated project contract: all Kibi-managed knowledge lives under `.kb/`, check enforcement is owned by the installed Kibi version, and projects can no longer weaken health by disabling rules or relocating entity paths in `.kb/config.json`. Existing repositories must run `kibi migrate --yes` to move legacy `documentation/...` knowledge into the canonical layout and adopt `.kb/manifest.json`.
+
+  Advisory modeling checks still run by default, but they report as non-blocking quality diagnostics instead of failing `kibi check`. Migration rewrites the old blanket `.kb/` gitignore stanza so authored lanes are trackable, and a malformed leftover `config.json` blocks the one-way cutover instead of guessing default paths.
+
+  - Remove user-configurable entity paths and persistent `checks.rules` overrides; retire `.kb/config.json` after migration.
+  - Introduce `.kb/manifest.json` for Kibi-owned lifecycle metadata (schema version, semantic backfill state).
+  - Add one-way legacy storage migration (`documentation/` and custom configured paths → `.kb/<lane>/`).
+  - Split check results by enforcement class: canonical → blocking violations; advisory → quality diagnostics; migration → explicit `--rules` only. Default execution is derived from the class (no separate `runsByDefault` flag).
+  - Normalize legacy Kibi `.gitignore` fences during init and migrate; treat `.kb/migrations/` as derived runtime state.
+  - Fail closed when leftover `.kb/config.json` cannot be parsed.
+  - Update init, sync, hooks, staged evidence, doctor, migration-plan, and integration packages for canonical paths.
+  - Generate the requirement-health report on pull requests as a `kibi-pr-report` artifact; keep GitHub Pages deployment on the default branch only.
+  - OpenCode treats canonical `.kb/` entity lanes as knowledge that requires evidence; only derived runtime trees (and leftover `config.json`) are ignored.
+  - Cursor and Codex hook path policy treat canonical `.kb/` lanes as tracked knowledge, not opaque compiled-store paths.
+  - Pending relationship shards are not treated as symbols manifests during source discovery.
+
+### Patch Changes
+
+- Updated dependencies [6ca08bb]
+- Updated dependencies [a2acea9]
+- Updated dependencies [33262f8]
+- Updated dependencies [9e6fb3f]
+- Updated dependencies [3d7d04f]
+- Updated dependencies [2d6cc59]
+- Updated dependencies [8f71f1a]
+- Updated dependencies [a07fad5]
+- Updated dependencies [2e68da9]
+- Updated dependencies [4cf383b]
+- Updated dependencies [7bc4f61]
+- Updated dependencies [15b5825]
+- Updated dependencies [51fb55b]
+- Updated dependencies [1ca62af]
+- Updated dependencies [f1a6d5c]
+- Updated dependencies [1ca62af]
+- Updated dependencies [44fd818]
+- Updated dependencies [8fe890c]
+- Updated dependencies
+- Updated dependencies [7654339]
+- Updated dependencies [c77d3f1]
+- Updated dependencies [395e38f]
+- Updated dependencies
+- Updated dependencies [535dea8]
+- Updated dependencies [5fdb828]
+- Updated dependencies [b97329a]
+- Updated dependencies [4c75e4d]
+- Updated dependencies [c942344]
+- Updated dependencies [07803e4]
+- Updated dependencies [b746960]
+- Updated dependencies [400e88c]
+  - kibi-cli@1.0.0
+
 ## 0.4.14
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "kibi-cursor",
-  "version": "0.6.3",
+  "version": "1.0.0",
   "description": "Kibi Cursor plugin - thin adapter for Cursor MCP integration and editor hooks",
   "type": "module",
   "main": "dist/index.js",
@@ -42,8 +42,8 @@
     "prepack": "npm run build"
   },
   "peerDependencies": {
-    "kibi-cli": ">=0.12.0 <1",
-    "kibi-mcp": ">=0.12.0 <1"
+    "kibi-cli": ">=1.0.0",
+    "kibi-mcp": ">=1.0.0"
   },
   "peerDependenciesMeta": {
     "kibi-cli": {

@@ -1,5 +1,119 @@
 # kibi-cursor
 
+## 1.0.0
+
+### Major Changes
+
+- 9e6fb3f: Kibi now uses one opinionated project contract: all Kibi-managed knowledge lives under `.kb/`, check enforcement is owned by the installed Kibi version, and projects can no longer weaken health by disabling rules or relocating entity paths in `.kb/config.json`. Existing repositories must run `kibi migrate --yes` to move legacy `documentation/...` knowledge into the canonical layout and adopt `.kb/manifest.json`.
+
+  Advisory modeling checks still run by default, but they report as non-blocking quality diagnostics instead of failing `kibi check`. Migration rewrites the old blanket `.kb/` gitignore stanza so authored lanes are trackable, and a malformed leftover `config.json` blocks the one-way cutover instead of guessing default paths.
+
+  - Remove user-configurable entity paths and persistent `checks.rules` overrides; retire `.kb/config.json` after migration.
+  - Introduce `.kb/manifest.json` for Kibi-owned lifecycle metadata (schema version, semantic backfill state).
+  - Add one-way legacy storage migration (`documentation/` and custom configured paths → `.kb/<lane>/`).
+  - Split check results by enforcement class: canonical → blocking violations; advisory → quality diagnostics; migration → explicit `--rules` only. Default execution is derived from the class (no separate `runsByDefault` flag).
+  - Normalize legacy Kibi `.gitignore` fences during init and migrate; treat `.kb/migrations/` as derived runtime state.
+  - Fail closed when leftover `.kb/config.json` cannot be parsed.
+  - Update init, sync, hooks, staged evidence, doctor, migration-plan, and integration packages for canonical paths.
+  - Generate the requirement-health report on pull requests as a `kibi-pr-report` artifact; keep GitHub Pages deployment on the default branch only.
+  - OpenCode treats canonical `.kb/` entity lanes as knowledge that requires evidence; only derived runtime trees (and leftover `config.json`) are ignored.
+  - Cursor and Codex hook path policy treat canonical `.kb/` lanes as tracked knowledge, not opaque compiled-store paths.
+  - Pending relationship shards are not treated as symbols manifests during source discovery.
+
+- 4c75e4d: Kibi onboarding now separates repository initialization from teaching Kibi about an existing codebase. After `kibi init`, an agent can run the `kibi-bootstrap` workflow to produce a reviewable, hash-bound plan and apply the exact approved plan safely. The old autopilot and init-kibi public names are removed so new users see one clear bootstrap path.
+
+  - Replace `kb_autopilot_generate`/`autopilot-generate` with `kb_plan_bootstrap`/`plan-bootstrap`.
+  - Add `kibi.bootstrap-plan.v1` validation, deterministic approval hashes, dependency ordering, stale-plan checks, and typed bootstrap recovery through `kb_apply_plan`.
+  - Synchronize the four canonical skill mirrors and update client adapters, docs, fixtures, and SkillOpt cases.
+
+### Patch Changes
+
+- a2acea9: Kibi now has a source-first, exact-Git runtime contract for first-party
+  adapters. CLI JSON and MCP structured results share a versioned envelope with
+  effect and repair information, while branch stores are hashed and explicitly
+  identity-bound. The mutation path can author tracked source documents and
+  canonical relationship shards without staging or committing them.
+
+  - Add the `kibi-runtime` first-party integration package.
+  - Add exact branch-store manifests, explicit legacy migration/quarantine, and
+    typed result/effect contracts.
+  - Add source-first document writes, relationship-shard updates, and deletion
+    approval plans.
+
+- 3d7d04f: Generic MCP and CLI agents now discover Kibi's operating rules from bundled skills instead of a long copy-paste prompt. Improving an existing product KB is covered by a `kibi-usage` resource rather than a second manual, so agent guidance stays in one place and cannot drift from the packaged workflow.
+
+  - Add `kibi-usage` `resources/kb-improvement.md` and bump that skill to 2.1.0.
+  - Replace `docs/prompts/llm-rules.md` with `docs/generic-agent-onboarding.md`.
+  - Remove the obsolete retroactive-init prompt; bootstrap stays in the `kibi-bootstrap` skill.
+
+- 29793c7: The Cursor stop hook no longer starts an extra Kibi follow-up after you only deliver a plan. Reads and search no longer look like source edits, so plan mode can finish without an impact-check nudge. If that same turn actually edited source or updated the knowledge base, the existing follow-up still runs.
+
+  - Record dirty paths only from known editable tools.
+  - Treat `CreatePlan` as plan delivery and stay silent at stop unless that turn also edited source or mutated the KB.
+  - Skip follow-up when `stop.status` is `aborted` or `error`.
+
+- 8db2e37: Cursor plugin users can now enable Kibi without adding a separate project MCP configuration. The plugin finds the `kibi-mcp` version installed in the opened project, starts it inside that workspace, and reports a clear setup error when the dependency is missing. It never downloads or falls back to a global Kibi runtime.
+
+  - Replace the plugin MCP `npx --no-install` command with the packaged consumer-workspace launcher.
+  - Cover isolated and packed plugin launches, workspace selection, package-layout resolution, exit codes, and signal forwarding.
+
+- 535dea8: Agents can now keep working in synthetic, detached, or unreadable workspaces while Kibi reports the migration work it can evaluate. Coverage and checks preserve their useful domain results when branch status is unavailable, and the Codex/Cursor skill assets now stay aligned with their published plugin metadata.
+
+  - Keep status-derived migration actions read-only and append them only when branch resolution succeeds.
+  - Preserve the shared migration-plan contract across coverage and checks without requiring a Prolog-backed status query in non-Git harnesses.
+  - Synchronize plugin manifests and freshness skill CLI examples for the next coordinated patch release.
+
+- b746960: Kibi now teaches and enforces requirement supersession in one consistent
+  direction: the replacement points to the requirement it replaces. Reversed
+  edges can no longer hide a newer contradictory policy merely by making that
+  newer requirement non-current. Relationship checks also block authored links
+  that have silently disappeared from compiled knowledge.
+
+  - Document `supersedes` as new-to-old across bundled and generated skills.
+  - Reject reversed supersession when tracked source history proves that the
+    purported replacement predates its target.
+  - Restrict legacy branch migration to literal-to-hashed storage conversion for
+    the same exact Git identity; every cross-identity pair is refused.
+  - Cover exact-Git branch policy conflicts and approved evolution with Prolog
+    regression tests.
+  - Preserve partial-upsert relationship projections and validate
+    authored-to-compiled relationship parity.
+
+- Updated dependencies [6ca08bb]
+- Updated dependencies [a2acea9]
+- Updated dependencies [33262f8]
+- Updated dependencies [9e6fb3f]
+- Updated dependencies [3d7d04f]
+- Updated dependencies [2d6cc59]
+- Updated dependencies [8f71f1a]
+- Updated dependencies [a07fad5]
+- Updated dependencies [2e68da9]
+- Updated dependencies [4cf383b]
+- Updated dependencies [7bc4f61]
+- Updated dependencies [15b5825]
+- Updated dependencies [51fb55b]
+- Updated dependencies [1ca62af]
+- Updated dependencies [f1a6d5c]
+- Updated dependencies [1ca62af]
+- Updated dependencies [44fd818]
+- Updated dependencies [8fe890c]
+- Updated dependencies
+- Updated dependencies [7654339]
+- Updated dependencies [c77d3f1]
+- Updated dependencies [967cef7]
+- Updated dependencies [395e38f]
+- Updated dependencies
+- Updated dependencies [535dea8]
+- Updated dependencies [5fdb828]
+- Updated dependencies [b97329a]
+- Updated dependencies [4c75e4d]
+- Updated dependencies [c942344]
+- Updated dependencies [07803e4]
+- Updated dependencies [b746960]
+- Updated dependencies [400e88c]
+  - kibi-cli@1.0.0
+  - kibi-mcp@1.0.0
+
 ## Unreleased
 
 ### Patch Changes
