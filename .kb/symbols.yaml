@@ -6026,6 +6026,38 @@ symbols:
         target: REQ-020
       - type: covered_by
         target: TEST-014
+  - id: SYM-expectedRepositoryUrl
+    title: expectedRepositoryUrl
+    sourceFile: scripts/verify-publish-metadata.ts
+    links:
+      - REQ-020
+    relationships:
+      - type: implements
+        target: REQ-020
+  - id: SYM-normalizeRepositoryUrl
+    title: normalizeRepositoryUrl
+    sourceFile: scripts/verify-publish-metadata.ts
+    links:
+      - REQ-020
+    relationships:
+      - type: implements
+        target: REQ-020
+  - id: SYM-repositoryMatches
+    title: repositoryMatches
+    sourceFile: scripts/verify-publish-metadata.ts
+    links:
+      - REQ-020
+    relationships:
+      - type: implements
+        target: REQ-020
+  - id: SYM-verifyPublishMetadata
+    title: verifyPublishMetadata
+    sourceFile: scripts/verify-publish-metadata.ts
+    links:
+      - REQ-020
+    relationships:
+      - type: implements
+        target: REQ-020
   - id: SYM-DIAGNOSTIC_MODE_ENABLED
     title: DIAGNOSTIC_MODE_ENABLED
     status: active

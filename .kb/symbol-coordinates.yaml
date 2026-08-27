@@ -7147,6 +7147,14 @@ coordinates:
     sourceEndLine: 109
     sourceFile: packages/cli/src/operations/mutation/validate-upsert.ts
     sourceLine: 22
+  SYM-expectedRepositoryUrl:
+    identityHash: b29da94091ed473165c5f445ac2d39a88f1a002f7d06c90e69a4606d58abb992
+    sourceHash: 2f0a085c26281bc8d9f453dbe90ee972afded9aafa33d178a184b1a7bb43d989
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 45
+    sourceFile: scripts/verify-publish-metadata.ts
+    sourceLine: 40
   SYM-ExternalAdoptionVerdict:
     identityHash: 9c04a6719491e7ccc4e9c8bd19e6c0df5ee1d373ecd425e937ecf82b685a76a0
     sourceHash: 5fdc3feb189db0b97791c40c3eb532f0ebe5080b40d428c7a6cc350d27a02ddf
@@ -11491,6 +11499,14 @@ coordinates:
     sourceEndLine: 129
     sourceFile: packages/cli/src/utils/strict-modeling.ts
     sourceLine: 114
+  SYM-normalizeRepositoryUrl:
+    identityHash: 2927c13e1fedf838ec684cdb7949101839291c09485ab62d16534ddfa2c204a3
+    sourceHash: 2f0a085c26281bc8d9f453dbe90ee972afded9aafa33d178a184b1a7bb43d989
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 62
+    sourceFile: scripts/verify-publish-metadata.ts
+    sourceLine: 53
   SYM-normalizeResourcePath:
     identityHash: 79551cd8b8ff5b727ca4a122c44cdf418ed168eb66fb435069fb41881329b3e1
     sourceHash: 7eba7995919009daa8d7e2cc79b409848d3a979224c099b9358b86033694c0b7
@@ -13227,6 +13243,14 @@ coordinates:
     sourceEndLine: 107
     sourceFile: scripts/sync-agent-skills.ts
     sourceLine: 104
+  SYM-repositoryMatches:
+    identityHash: b624a8b26026189a7709f52bda54f848e00d0383f587bc4ba1a92ceb7c930c8a
+    sourceHash: 2f0a085c26281bc8d9f453dbe90ee972afded9aafa33d178a184b1a7bb43d989
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 67
+    sourceFile: scripts/verify-publish-metadata.ts
+    sourceLine: 65
   SYM-reqcompiler-coverage-command:
     identityHash: 1d4607f3e5acfa50d5b81699e93b3ebe4710524d747c5f04e81b50f0ceb1b79e
     sourceHash: 535459016d1fc5c24db7703480bfd529d7a245682bbe68e0c0c0f23d43e1a6a6
@@ -14109,10 +14133,10 @@ coordinates:
     sourceLine: 207
   SYM-runtime-packed-daemon-build:
     identityHash: 440226a4ad44f665e21422a4f393158be4d0cfab64649ec501bbdd4cdbda6451
-    sourceHash: 0f2e1dcc8da6490bbf93855e4b94e447fa980b15e7d268f7eb31fa8260ff2762
+    sourceHash: 2071420c83473e08d4ee5b41e9537113edbe6d40b7b7ef62ae67871c62d436af
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 33
+    sourceEndLine: 38
     sourceFile: packages/runtime/package.json
     sourceLine: 1
   SYM-runtime-PrologPort:
@@ -22787,6 +22811,14 @@ coordinates:
     sourceEndLine: 22
     sourceFile: scripts/skillopt-eval/verification-harness-options.ts
     sourceLine: 22
+  SYM-verifyPublishMetadata:
+    identityHash: 194834d08c0a60719f52ccc7e334c8e4dbd33ee0b3b21ab041cbafaf78616aaa
+    sourceHash: 2f0a085c26281bc8d9f453dbe90ee972afded9aafa33d178a184b1a7bb43d989
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 155
+    sourceFile: scripts/verify-publish-metadata.ts
+    sourceLine: 84
   SYM-vscode-code-action-provider-action-kind:
     identityHash: cdcba576490b7e38a93ac44dcdf3c9194c2e54fe9e39fe96f404efe4d5333e6e
     sourceHash: 22995cbfce0eb5c25f6a17e19ecec40a2e8555cf039b139c304b14ad45e0c49d

@@ -95,6 +95,8 @@ jobs:
         run: bun run build:cursor
       - name: Build and package VS Code extension
         run: bun run --cwd packages/vscode package
+      - name: Verify publish metadata for npm provenance
+        run: bun run scripts/verify-publish-metadata.ts
       - name: Clean stale tarballs
         run: bun run clean:tarballs
       - name: Pack packages
