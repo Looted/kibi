@@ -1,5 +1,19 @@
 # kibi-runtime
 
+## 1.0.1
+
+### Patch Changes
+
+- `kibi-runtime@1.0.0` could not be installed from npm because the publish was
+  rejected: the package manifest had no `repository` entry, so npm's provenance
+  verification failed with
+  "Failed to validate repository information". This release adds the missing
+  repository metadata so the package publishes and installs normally, matching
+  every other Kibi package.
+
+  - Add the standard `repository` block (`git`, `https://github.com/Looted/kibi.git`)
+    to `kibi-runtime/package.json`; no code or behavior changes.
+
 ## 1.0.0
 
 ### Major Changes
