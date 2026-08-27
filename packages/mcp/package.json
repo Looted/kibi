@@ -9,7 +9,7 @@
     "fast-glob": "^3.2.12",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
-    "kibi-runtime": "^1.0.0",
+    "kibi-runtime": "^1.0.1",
     "kibi-core": "^0.11.0",
     "mcpcat": "^0.1.12",
     "ts-morph": "^23.0.0",
