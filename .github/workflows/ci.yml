@@ -348,6 +348,44 @@ jobs:
           cd ../codex && npm pack
           cd ../cursor && npm pack
 
+      - name: Verify publish metadata for npm provenance
+        run: bun run scripts/verify-publish-metadata.ts
+
+      - name: Rehearse release decision with mock registry
+        run: |
+          PUBLISHED_TOKENS=$(node -e "
+            const fs = require('node:fs');
+            const dirs = ['core', 'runtime', 'cli', 'mcp', 'opencode', 'codex', 'cursor'];
+            console.log(dirs.map((d) => {
+              const j = JSON.parse(fs.readFileSync('packages/' + d + '/package.json', 'utf8'));
+              return j.name + '@' + j.version;
+            }).join(','));
+          ")
+          GITHUB_REF_NAME=master KIBI_RELEASE_MOCK_NPM="$PUBLISHED_TOKENS" \
+            bun run scripts/run-release-state.ts > /tmp/release-state-all-published.json
+          GITHUB_REF_NAME=master KIBI_RELEASE_MOCK_NPM="" \
+            bun run scripts/run-release-state.ts > /tmp/release-state-none-published.json
+          node -e "
+            const fs = require('node:fs');
+            const allowed = new Set(['NOOP', 'PREPARE_RELEASE', 'PUBLISH_ONLY_RERUN', 'ALREADY_PUBLISHED_NOOP']);
+            const canonical = new Set(['core', 'runtime', 'cli', 'mcp', 'opencode', 'codex', 'cursor']);
+            for (const [name, path] of [
+              ['all-published', '/tmp/release-state-all-published.json'],
+              ['none-published', '/tmp/release-state-none-published.json'],
+            ]) {
+              const d = JSON.parse(fs.readFileSync(path, 'utf8'));
+              if (!allowed.has(d.action)) {
+                throw new Error(name + ': unexpected release action ' + d.action);
+              }
+              for (const entry of d.toPublish || []) {
+                if (!canonical.has(entry.split('=')[0])) {
+                  throw new Error(name + ': non-canonical toPublish entry ' + entry);
+                }
+              }
+              console.log(name + ': action=' + d.action + ' toPublish=' + (d.toPublish || []).length);
+            }
+          "
+
       - name: Verify tarballs exist and are non-empty
         run: ls -lh packages/*/*.tgz
 
