@@ -194,6 +194,9 @@ jobs:
           npm install ${{ github.workspace }}/packages/mcp/kibi-mcp-*.tgz
           npm install ${{ github.workspace }}/packages/opencode/kibi-opencode-*.tgz
           npm install ${{ github.workspace }}/packages/codex/kibi-codex-*.tgz
+          # /tmp/kibi-smoke-test is intentionally not a git repository;
+          # standalone workspaces must declare their branch identity.
+          export KIBI_BRANCH=smoke
           ./node_modules/.bin/kibi --version
           ./node_modules/.bin/kibi init --no-hooks
           ./node_modules/.bin/kibi query req
