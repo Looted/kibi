@@ -26,19 +26,15 @@ const setupTransportHandlers = mock(
 const connectTransport = mock(
   async (_server: unknown, _transport: unknown) => {},
 );
+const realDocs = { ...(await import("../../src/server/docs.js")) };
+const realTools = { ...(await import("../../src/server/tools.js")) };
+const realTransport = { ...(await import("../../src/server/transport.js")) };
 
 describe("server entrypoint", () => {
   afterEach(async () => {
-    await mock.module("../../src/server/docs.js", () => ({
-      setupDocsAndPrompts,
-    }));
-    await mock.module("../../src/server/tools.js", () => ({
-      registerAllTools,
-    }));
-    await mock.module("../../src/server/transport.js", () => ({
-      setupTransportHandlers,
-      connectTransport,
-    }));
+    await mock.module("../../src/server/docs.js", () => realDocs);
+    await mock.module("../../src/server/tools.js", () => realTools);
+    await mock.module("../../src/server/transport.js", () => realTransport);
   });
 
   test("startServer wires docs, tools, and transport in order", async () => {

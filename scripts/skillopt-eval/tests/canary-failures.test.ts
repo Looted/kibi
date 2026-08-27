@@ -35,14 +35,21 @@ afterEach(async () => {
 });
 
 let fakeCodexExecutable = "";
+let fakeBwrapExecutable = "";
 beforeAll(async () => {
   const root = await mkdtemp(join(tmpdir(), "skillopt-canary-fake-codex-"));
   fakeCodexExecutable = join(root, "codex");
+  fakeBwrapExecutable = join(root, "bwrap");
   await writeFile(fakeCodexExecutable, "#!/bin/sh\nexit 0\n", {
     encoding: "utf8",
     mode: 0o700,
   });
+  await writeFile(fakeBwrapExecutable, "#!/bin/sh\nexit 0\n", {
+    encoding: "utf8",
+    mode: 0o700,
+  });
   await chmod(fakeCodexExecutable, 0o500);
+  await chmod(fakeBwrapExecutable, 0o500);
 });
 afterAll(async () => {
   if (fakeCodexExecutable !== "")
@@ -55,7 +62,10 @@ async function runCapabilityCanary(
 ): ReturnType<typeof baseRunCapabilityCanary> {
   return baseRunCapabilityCanary(options, {
     ...deps,
-    stageDependencies: { codexExecutable: fakeCodexExecutable },
+    stageDependencies: {
+      codexExecutable: fakeCodexExecutable,
+      systemBwrapExecutable: fakeBwrapExecutable,
+    },
     verifyEvidence: async (events, probe) => verifyProbeEvidence(events, probe),
   });
 }

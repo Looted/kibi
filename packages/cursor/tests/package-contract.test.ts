@@ -45,8 +45,8 @@ describe("kibi-cursor package contract", () => {
     ]);
     expect(packageJson.publishConfig?.access).toBe("public");
     expect(packageJson.peerDependencies).toMatchObject({
-      "kibi-cli": ">=0.12.0 <1",
-      "kibi-mcp": ">=0.12.0 <1",
+      "kibi-cli": ">=1.0.0",
+      "kibi-mcp": ">=1.0.0",
     });
     expect(packageJson.peerDependenciesMeta).toStrictEqual({
       "kibi-cli": { optional: true },

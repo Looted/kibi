@@ -460,7 +460,6 @@ const entitySchema: Record<string, unknown> = {
     verification_contract: VERIFICATION_CONTRACT_SCHEMA,
     verification_receipts: {
       type: "array",
-      maxItems: 50,
       items: VERIFICATION_RECEIPT_SCHEMA,
     },
     type: {

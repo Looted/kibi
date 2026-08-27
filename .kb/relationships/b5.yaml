@@ -244,3 +244,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1ba905f3c314
+  - type: implements
+    from: SYM-skillopt-setup-seeded-stale-kb
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-26T18:07:20.997Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1105530e7168

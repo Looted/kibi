@@ -677,10 +677,50 @@ describe("pre-approval interim outcome scoring", () => {
     if (manifest.workflowExpectation?.expectedOutcome !== "interim") {
       throw new Error("fixture must expect interim outcome");
     }
-    // Thin cold-start fixture: no KB attached yet, so every verifier call
-    // surfaces an error envelope and the closeout stays not_evaluated.
-    const errEnvelope = {
-      content: [{ type: "text", text: "branch store unavailable" }],
+    // Staged thin-root fixture: the KB is attached, synced, and committed,
+    // so the probe calls succeed and report a clean fresh posture. Coverage
+    // stays unavailable because a thin KB holds no proof rows.
+    const emptyQuery = {
+      content: [{ type: "text", text: "No entities found." }],
+      structuredContent: {
+        kibiProtocol: 1,
+        status: "success",
+        data: { entities: [], count: 0 },
+      },
+    };
+    const cleanCheck = {
+      content: [{ type: "text", text: "No violations found" }],
+      structuredContent: {
+        kibiProtocol: 1,
+        status: "success",
+        data: { violations: [], count: 0, diagnostics: [] },
+      },
+    };
+    const thinStatus = {
+      content: [
+        {
+          type: "text",
+          text: "Branch skillopt-eval is unknown (snapshot missing, dirty=true)",
+        },
+      ],
+      structuredContent: {
+        kibiProtocol: 1,
+        status: "success",
+        data: {
+          branch: "skillopt-eval",
+          dirty: false,
+          syncState: "fresh",
+          snapshotId: "generation-1:0",
+          staleReasons: [],
+          verificationSnapshotAvailable: true,
+          verificationSnapshotDirty: false,
+        },
+      },
+    };
+    const coverageError = {
+      content: [
+        { type: "text", text: "Tool kb_coverage failed: no proof rows" },
+      ],
       structuredContent: { status: "error" },
     };
     const finalState = `${JSON.stringify({
@@ -699,26 +739,26 @@ describe("pre-approval interim outcome scoring", () => {
         {
           tool: "kb_query",
           args: {},
-          result: errEnvelope,
-          resultHash: resultHash(errEnvelope),
+          result: emptyQuery,
+          resultHash: resultHash(emptyQuery),
         },
         {
           tool: "kb_check",
           args: {},
-          result: errEnvelope,
-          resultHash: resultHash(errEnvelope),
+          result: cleanCheck,
+          resultHash: resultHash(cleanCheck),
         },
         {
           tool: "kb_status",
           args: {},
-          result: errEnvelope,
-          resultHash: resultHash(errEnvelope),
+          result: thinStatus,
+          resultHash: resultHash(thinStatus),
         },
         {
           tool: "kb_coverage",
           args: { by: "req" },
-          result: errEnvelope,
-          resultHash: resultHash(errEnvelope),
+          result: coverageError,
+          resultHash: resultHash(coverageError),
         },
       ],
     })}\n`;

@@ -49,7 +49,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     discover_then_exact_lookup: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
@@ -61,7 +61,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     safe_typed_mutation: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "dirty",
       expectedProofState: "unresolved",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
@@ -74,7 +74,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     validation_recovery: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "dirty",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
@@ -90,7 +90,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     classify_branch_status: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
@@ -102,7 +102,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     recover_stale_state: {
       expectedOutcome: "complete",
       expectedKbState: "stale",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
@@ -116,7 +116,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     },
     inspect_source_impact: {
       expectedOutcome: "complete",
-      expectedKbState: "dirty",
+      expectedKbState: "stale",
       expectedVerificationState: "dirty",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
@@ -128,7 +128,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     },
     determine_completion_outcome: {
       expectedOutcome: "complete",
-      expectedKbState: "dirty",
+      expectedKbState: "stale",
       expectedVerificationState: "dirty",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
@@ -147,7 +147,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     discover_requirement: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
@@ -158,7 +158,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     },
     symbol_granularity: {
       expectedOutcome: "complete",
-      expectedKbState: "dirty",
+      expectedKbState: "clean_fresh",
       expectedVerificationState: "dirty",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
@@ -174,7 +174,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     trace_relationship_chain: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
@@ -186,7 +186,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     executable_coverage: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "fresh",
       expectedProofState: "unresolved",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
@@ -201,8 +201,8 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     // ------------------------------------------------------------------
     bootstrap_analysis: {
       expectedOutcome: "interim",
-      expectedKbState: "not_evaluated",
-      expectedVerificationState: "not_evaluated",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
@@ -213,8 +213,8 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     },
     bounded_context_questions: {
       expectedOutcome: "interim",
-      expectedKbState: "not_evaluated",
-      expectedVerificationState: "not_evaluated",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["planner context gate honored", "no premature writes"],
@@ -223,7 +223,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     approved_plan_apply: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "dirty",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
@@ -236,7 +236,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     repair_escalation: {
       expectedOutcome: "blocked",
       expectedKbState: "stale",
-      expectedVerificationState: "dirty",
+      expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "unaccepted",
       requiredSignals: [
@@ -252,7 +252,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     exact_branch_identity: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["exact Git branch equals KB branch"],
@@ -260,8 +260,8 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     },
     legacy_branch_storage: {
       expectedOutcome: "complete",
-      expectedKbState: "legacy_compat",
-      expectedVerificationState: "not_evaluated",
+      expectedKbState: "stale",
+      expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["migration preview", "explicit apply boundary"],
@@ -270,7 +270,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     zero_blocking_but_stale: {
       expectedOutcome: "complete",
       expectedKbState: "stale",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["stale symbol IDs", "syncState stale"],
@@ -288,7 +288,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     legacy_shard_edge_cleanup: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "dirty",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["exact edge absent after sync", "endpoints preserved"],
@@ -313,8 +313,8 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     },
     stale_symbol_remap: {
       expectedOutcome: "complete",
-      expectedKbState: "stale",
-      expectedVerificationState: "not_evaluated",
+      expectedKbState: "clean_fresh",
+      expectedVerificationState: "dirty",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["evidence-backed repair candidates"],
@@ -325,7 +325,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     },
     dirty_editor_config: {
       expectedOutcome: "complete",
-      expectedKbState: "clean_fresh",
+      expectedKbState: "stale",
       expectedVerificationState: "dirty",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
@@ -378,7 +378,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     obsolete_symbol_delete_with_replacement: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "dirty",
       expectedProofState: "mixed",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["replacement evidence", "coverage transfer evidence"],
@@ -387,7 +387,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     generated_only_symbol_coordinate_repair: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "dirty",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
@@ -408,7 +408,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     relationship_shard_delete: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "dirty",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["canonical relationship shard", "unrelated records"],
@@ -417,7 +417,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     same_version_export_surface_drift: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "unavailable",
+      expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "unaccepted",
       requiredSignals: ["release defect", "new package version required"],
@@ -426,7 +426,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     legacy_migration_postconditions: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "dirty",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["target path absent", "journals preserved"],
@@ -435,7 +435,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     unreadable_branch_store_recovery: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "dirty",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["recovery preview", "original backup preserved"],
@@ -444,7 +444,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     arbitrary_branch_migration_refused: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["cross-branch migration refused"],
@@ -453,7 +453,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     missing_branch_store_status: {
       expectedOutcome: "complete",
       expectedKbState: "dirty",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "unavailable",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["missing branch-store status"],
@@ -477,7 +477,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     safe_schema_application: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "dirty",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
@@ -490,7 +490,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     stale_plan_hash_rejection: {
       expectedOutcome: "complete",
       expectedKbState: "stale",
-      expectedVerificationState: "dirty",
+      expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["stale plan hash rejected", "fresh migration preview"],
@@ -502,7 +502,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     partial_plan_destructive_refusal: {
       expectedOutcome: "complete",
       expectedKbState: "stale",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["automatic action IDs", "destructive action refused"],
@@ -511,7 +511,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     unreadable_store_without_prolog: {
       expectedOutcome: "complete",
       expectedKbState: "stale",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
@@ -535,7 +535,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     legacy_shard_reconciliation: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "dirty",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["exact edge absent after sync", "endpoints preserved"],
@@ -544,7 +544,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     extractor_owned_symbol_safety: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "dirty",
       expectedProofState: "mixed",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
@@ -571,7 +571,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     mixed_package_operator_escalation: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "unavailable",
+      expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "unaccepted",
       requiredSignals: ["release defect", "operator package action"],
@@ -598,7 +598,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     bundle_bootstrap_discovery: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "dirty",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
@@ -610,7 +610,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     bundle_mutation_validation: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "dirty",
       expectedProofState: "unresolved",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["typed mutation applied", "final check executed"],
@@ -619,7 +619,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     bundle_mutation_validation_recovery: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "dirty",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
@@ -632,7 +632,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     bundle_source_freshness: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
@@ -644,7 +644,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     bundle_source_stale: {
       expectedOutcome: "complete",
       expectedKbState: "stale",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "fresh",
       expectedProofState: "not_evaluated",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
@@ -659,7 +659,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     bundle_semantic_test: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "dirty",
       expectedProofState: "unresolved",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: [
@@ -672,7 +672,7 @@ export const OBJECTIVE_WORKFLOWS: Readonly<Record<string, ObjectiveWorkflow>> =
     bundle_predicate_test: {
       expectedOutcome: "complete",
       expectedKbState: "clean_fresh",
-      expectedVerificationState: "not_evaluated",
+      expectedVerificationState: "dirty",
       expectedProofState: "unresolved",
       expectedLimitationDisposition: "not_applicable",
       requiredSignals: ["predicate fact stored", "test chain validated"],

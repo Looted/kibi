@@ -50,6 +50,15 @@ jobs:
       - name: Verify npm is available
         run: npm --version
 
+      - name: Setup SkillOpt Python environment
+        env:
+          UV_VERSION: "0.9.26"
+        run: |
+          curl --fail --silent --show-error --location \
+            "https://astral.sh/uv/${UV_VERSION}/install.sh" | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/uv" sync --project tools/skillopt --frozen
+
       - name: Install JS deps
         run: |
           bun install --frozen-lockfile

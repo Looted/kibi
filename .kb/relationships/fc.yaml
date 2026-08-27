@@ -146,3 +146,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-efec11a7660c
+  - type: implements
+    from: SYM-skillopt-setup-thin-root-kb
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-26T18:07:23.810Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-131332b46c23

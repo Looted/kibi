@@ -227,7 +227,13 @@ const PrivateEvaluatorManifestSchema = z
     expectedFinalState: z.array(AssertionSchema).min(1),
     finalStateRequests: z.array(FinalStateRequestSchema).optional(),
     fixtureSetup: z
-      .enum(["none", "generated_coordinate_divergence"])
+      .enum([
+        "none",
+        "generated_coordinate_divergence",
+        "seeded_fresh_kb",
+        "seeded_stale_kb",
+        "thin_root_kb",
+      ])
       .optional(),
     protocolContract: ProtocolContractSchema.optional(),
     orderedMcpPredicates: z
