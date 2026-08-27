@@ -77,7 +77,7 @@ export const searchSpec = {
   name: "kb_search",
   cliName: "search",
   description:
-    "Search KB entities for discovery using metadata and markdown body text. Use for exploratory lookup before exact follow-up with kb_query. No mutation side effects.",
+    "Search KB entities for discovery using legacy lexical ranking or deterministic intent-v1 ranking. Intent mode accepts host-agent semantic facets and source locations, returns evidence and abstains below its confidence threshold. Use for exploratory lookup before exact follow-up with kb_query. No mutation side effects.",
   businessInputSchema: {
     type: "object",
     required: ["query"],
@@ -107,6 +107,59 @@ export const searchSpec = {
         default: 0,
         description: "Optional zero-based pagination offset. Default: 0.",
       },
+      rankingMode: {
+        type: "string",
+        enum: ["legacy", "intent-v1"],
+        default: "legacy",
+        description:
+          "Optional deterministic ranking mode. Omit for backward-compatible lexical search; use intent-v1 for semantic facets, source-aware evidence, graph boosts, and abstention.",
+      },
+      semanticFacets: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          actors: { type: "array", items: { type: "string" }, maxItems: 20 },
+          actions: { type: "array", items: { type: "string" }, maxItems: 20 },
+          objects: { type: "array", items: { type: "string" }, maxItems: 20 },
+          constraints: {
+            type: "array",
+            items: { type: "string" },
+            maxItems: 20,
+          },
+          aliases: { type: "array", items: { type: "string" }, maxItems: 20 },
+        },
+        description:
+          "Optional host-agent semantic interpretation. Kibi uses these strings as deterministic aliases/facets; it does not call a model itself.",
+      },
+      sourceLocations: {
+        type: "array",
+        maxItems: 20,
+        items: {
+          type: "object",
+          required: ["path"],
+          additionalProperties: false,
+          properties: {
+            path: {
+              type: "string",
+              minLength: 1,
+              description: "Workspace-relative source path.",
+            },
+            line: { type: "integer", minimum: 1 },
+            column: { type: "integer", minimum: 1 },
+            symbol: { type: "string", minLength: 1 },
+          },
+        },
+        description:
+          "Optional changed-code locations. Results are matched to source-linked symbols/entities and include source evidence.",
+      },
+      minScore: {
+        type: "number",
+        minimum: 0,
+        maximum: 1,
+        default: 0.18,
+        description:
+          "Intent-v1 acceptance threshold between 0 and 1. Low-confidence queries abstain instead of returning misleading matches.",
+      },
     },
   },
   requiresProlog: true,
@@ -118,9 +171,10 @@ export const statusSpec = {
   name: "kb_status",
   cliName: "status",
   description:
-    "Report current branch, KB snapshot and freshness metadata, plus the deterministic workspace snapshot used to validate execution receipts. Read-only status inspection with no mutation side effects.",
+    "Report current branch, KB snapshot, freshness metadata, schema status, and a typed kibi.migration-plan.v2 action graph. Read-only status inspection with no mutation side effects; damaged stores are diagnosed without starting the engine.",
   businessInputSchema: { type: "object", properties: {} },
-  requiresProlog: true,
+  // Status must remain available when the branch store cannot be attached.
+  requiresProlog: false,
   effects: ["kb-read", "workspace-read"],
   execute: executeStatus,
 } as const satisfies OperationSpec<StatusInput, StatusPayload>;

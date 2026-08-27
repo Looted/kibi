@@ -8,7 +8,7 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const canonicalRoot = join(repoRoot, "packages/cli/src/public/skills");
 
 const EXPECTED_SKILL_IDS = [
-  "init-kibi",
+  "kibi-bootstrap",
   "kibi-freshness",
   "kibi-traceability",
   "kibi-usage",
@@ -130,18 +130,18 @@ describe("canonical skills source", () => {
     }
   });
 
-  test("newly-canonical skills are pinned at version 1.0.0 with wildcard compatibility", () => {
-    const newCanonical = [
-      "init-kibi",
-      "kibi-freshness",
-      "kibi-traceability",
-    ] as const;
-    for (const id of newCanonical) {
+  test("canonical skills declare their current release versions and compatibility", () => {
+    const newCanonical = {
+      "kibi-bootstrap": "3.0.0",
+      "kibi-freshness": "2.0.0",
+      "kibi-traceability": "2.0.0",
+    } as const;
+    for (const [id, version] of Object.entries(newCanonical)) {
       const skillFile = join(canonicalRoot, id, "SKILL.md");
       const raw = readFileSync(skillFile, "utf8");
       const manifest = parseFrontmatter(raw);
-      expect(manifest.version, `${id} version`).toBe("1.0.0");
-      expect(manifest.kibiCompatibility, `${id} compat`).toBe("*");
+      expect(manifest.version, `${id} version`).toBe(version);
+      expect(manifest.kibiCompatibility, `${id} compat`).toBe(">=1.0.0");
     }
   });
 
@@ -157,9 +157,11 @@ describe("canonical skills source", () => {
     for (const id of EXPECTED_SKILL_IDS) {
       const skillFile = join(canonicalRoot, id, "SKILL.md");
       const raw = readFileSync(skillFile, "utf8");
-      expect(raw).toContain("## Interface Selection");
+      expect(raw).toMatch(/## Interface (Selection|and preview)/);
       expect(raw).toContain("MCP");
-      expect(raw).toMatch(/npx --no-install|bunx --no-install/);
+      expect(raw).toMatch(
+        /npx --no-install|bunx --no-install|kibi status --input/,
+      );
       expect(raw.toLowerCase()).not.toContain("mcp only");
       expect(raw.toLowerCase()).not.toContain("exclusively through mcp");
     }

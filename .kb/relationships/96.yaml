@@ -1,0 +1,99 @@
+relationships:
+  - id: rel-d052c0a9ba21
+    type: executable_for
+    from: SYM-packed-stop-runtime-engines
+    to: TEST-test-journaled-engine-harness
+    created_at: "2026-08-16T18:52:30.452Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: relates_to
+    from: REQ-cli-canonical-runtime
+    to: ADR-026
+    created_at: 2026-08-18T16:39:06.664Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b59e2a94f3bb
+  - type: relates_to
+    from: REQ-cli-canonical-runtime
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T16:39:06.682Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ff1db2735dc
+  - type: supersedes
+    from: REQ-cli-canonical-runtime
+    to: REQ-cli-sync
+    created_at: 2026-08-18T16:39:06.686Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1ce54ba8087
+  - type: specified_by
+    from: REQ-cli-canonical-runtime
+    to: SCEN-cli-canonical-runtime
+    created_at: 2026-08-18T16:39:42.915Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5366c00a6e5a
+  - type: verified_by
+    from: REQ-cli-canonical-runtime
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-08-18T16:39:42.931Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4ac6ae8e214
+  - type: verified_by
+    from: REQ-cli-canonical-runtime
+    to: TEST-mcp-canonical-activation
+    created_at: 2026-08-18T16:39:42.936Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4e64a7222af
+  - type: verified_by
+    from: REQ-cli-canonical-runtime
+    to: TEST-cursor-canonical-manifest
+    created_at: 2026-08-18T16:39:42.940Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25c43b150697
+  - type: implements
+    from: SYM-canonical-CANONICAL_ENTITY_PATHS
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:03:27.561Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6474ad24721b
+  - type: covered_by
+    from: SYM-canonical-CANONICAL_ENTITY_PATHS
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:03:27.571Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76223dd45a3f
+  - type: implements
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-description
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:49:54.193Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7152911c7164
+  - type: covered_by
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-description
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:49:54.201Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-91df6ba0292a
+  - type: covered_by
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-description
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:17:49.794Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b178864cc23
+  - type: relates_to
+    from: FACT-core-prolog-process-management-E396BE
+    to: REQ-core-prolog-process-management
+    created_at: 2026-08-26T07:20:49.871Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79ae33a49105

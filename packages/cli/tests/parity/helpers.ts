@@ -1,6 +1,7 @@
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { isolatedCliSandboxEnv } from "../helpers/isolated-env.js";
 
 type ContractEntity = {
   readonly id: string;
@@ -42,6 +43,7 @@ const VOLATILE_KEYS = new Set([
   "request_id",
   "_diagnostic_telemetry",
   "elapsedMs",
+  "syncedAt",
   "usageLogLineNumber",
   "prologPid",
   "pid",
@@ -54,7 +56,7 @@ async function runWorkspaceCommand(
 ): Promise<void> {
   const child = Bun.spawn([...command], {
     cwd: root,
-    env: { ...process.env, KIBI_WORKSPACE: root },
+    env: isolatedCliSandboxEnv({ KIBI_WORKSPACE: root }),
     stdout: "pipe",
     stderr: "pipe",
   });
@@ -110,7 +112,36 @@ export async function createParityWorkspace(): Promise<ParityWorkspace> {
 
   return {
     root,
-    cleanup: () => rm(root, { recursive: true, force: true }),
+    cleanup: async () => {
+      let stopError: unknown;
+      try {
+        await runWorkspaceCommand(root, [
+          "bun",
+          "run",
+          KIBI_BIN,
+          "engine",
+          "stop",
+        ]);
+      } catch (error) {
+        stopError = error;
+      }
+
+      try {
+        await rm(root, { recursive: true, force: true });
+      } catch (cleanupError) {
+        if (stopError !== undefined) {
+          throw new AggregateError(
+            [stopError, cleanupError],
+            `Parity workspace cleanup failed for ${root}`,
+          );
+        }
+        throw cleanupError;
+      }
+
+      if (stopError !== undefined) {
+        throw stopError;
+      }
+    },
   };
 }
 

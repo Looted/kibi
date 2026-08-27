@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 
 import type { HookState } from "./hook-state.js";
+// implements REQ-cursor-kibi-plugin-v1, REQ-cursor-stop-job-vs-plan
 
 const stateFileName = "hook-state.json";
 const lockFileName = "hook-state.lock";
@@ -64,6 +65,7 @@ export function emptyHookState(): HookState {
     kbCheckRun: false,
     impactCheckRun: false,
     impactCheckedPaths: [],
+    planDelivered: false,
   };
 }
 
@@ -162,6 +164,7 @@ function coerceHookState(value: unknown): HookState {
     kbCheckRun: value.kbCheckRun === true,
     impactCheckRun: value.impactCheckRun === true,
     impactCheckedPaths: [...new Set(impactCheckedPaths)].slice(-maxGuidedPaths),
+    planDelivered: value.planDelivered === true,
   };
 }
 

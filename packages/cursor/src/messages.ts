@@ -1,4 +1,4 @@
-// implements REQ-cursor-kibi-plugin-v1
+// implements REQ-cursor-kibi-plugin-v1, REQ-cursor-stop-job-vs-plan
 import type { HookState } from "./hook-state.js";
 import { type McpState, resolveKibiInterface } from "./kb-mcp-tools.js";
 import {
@@ -37,6 +37,15 @@ export function stopFollowupMessage(state: HookState): string | undefined {
   const uncheckedSourcePaths = sourceImpactPaths.filter(
     (sourcePath) => !state.impactCheckedPaths.includes(sourcePath),
   );
+  const freshnessPaths = state.dirtyPaths.filter(isKbFreshnessRelevantPath);
+  const hasFollowupWork =
+    uncheckedSourcePaths.length > 0 ||
+    (freshnessPaths.length > 0 && !state.kbCheckRun);
+
+  if (state.planDelivered && !hasFollowupWork) {
+    return undefined;
+  }
+
   if (uncheckedSourcePaths.length > 0 && !state.impactCheckRun) {
     return impactCheckFollowup(uncheckedSourcePaths);
   }
@@ -45,7 +54,6 @@ export function stopFollowupMessage(state: HookState): string | undefined {
     return impactCheckFollowup(uncheckedSourcePaths);
   }
 
-  const freshnessPaths = state.dirtyPaths.filter(isKbFreshnessRelevantPath);
   if (freshnessPaths.length === 0 || state.kbCheckRun) {
     return undefined;
   }

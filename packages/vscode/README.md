@@ -155,7 +155,7 @@ bun run --cwd packages/vscode build
 4. Verify these conditions:
    - `editor.codeLens` is enabled.
    - Active file language is `TypeScript` or `JavaScript`.
-   - Workspace root contains `.kb/config.json` and `symbols.yaml`.
+   - Workspace root contains `.kb/manifest.json` and `.kb/symbols.yaml`.
    - The file path is listed in `symbols.yaml` under `sourceFile`.
 5. Check `Developer: Show Running Extensions` and confirm `kibi-vscode` is active.
 6. If lenses still do not appear, capture:

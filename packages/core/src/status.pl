@@ -19,12 +19,16 @@ status_meta_dict(StatusDict) :-
     snapshot_id(SnapshotId),
     synced_at(DataFile, SyncedAt),
     freshness_state(DataFile, Dirty, SyncState),
+    stale_reasons(StaleReasons, StaleReasonCount, StaleReasonsTruncated),
     StatusDict = _{
         branch: Branch,
         snapshotId: SnapshotId,
         syncedAt: SyncedAt,
         dirty: Dirty,
         syncState: SyncState,
+        staleReasons: StaleReasons,
+        staleReasonCount: StaleReasonCount,
+        staleReasonsTruncated: StaleReasonsTruncated,
         kbPath: KbPath,
         lastSyncSource: persisted
     }.
@@ -37,6 +41,9 @@ status_meta_dict(StatusDict) :-
         syncedAt: null,
         dirty: false,
         syncState: unknown,
+        staleReasons: [],
+        staleReasonCount: 0,
+        staleReasonsTruncated: false,
         kbPath: KbPath,
         lastSyncSource: unknown
     }.
@@ -104,8 +111,89 @@ freshness_state(DataFile, false, fresh) :-
     !.
 freshness_state(_, true, unknown).
 
+stale_reasons(Reasons, Count, Truncated) :-
+    findall(Reason, stale_indexed_source_reason(Reason), IndexedReasons),
+    findall(Reason, stale_knowledge_lane_reason(Reason), KnowledgeReasons),
+    findall(Reason, stale_documentation_reason(Reason), DocumentationReasons),
+    append(IndexedReasons, KnowledgeReasons, IndexedAndKnowledge),
+    append(IndexedAndKnowledge, DocumentationReasons, Reasons0),
+    sort(Reasons0, Sorted),
+    length(Sorted, Count),
+    (   Count > 200
+    ->  length(Reasons, 200), append(Reasons, _, Sorted), Truncated = true
+    ;   Reasons = Sorted, Truncated = false
+    ).
+
+stale_indexed_source_reason(Reason) :-
+    attached_workspace_root(WorkspaceRoot),
+    kb:kb_indexed_sources(Sources),
+    member(SourceAtom, Sources),
+    repo_relative_source(SourceAtom, RelativeSource),
+    directory_file_path(WorkspaceRoot, RelativeSource, SourcePath),
+    (   exists_file(SourcePath)
+    ->  time_file(SourcePath, FileTime),
+        kb_snapshot_time(SnapshotTime),
+        FileTime > SnapshotTime,
+        Code = indexed_source_newer
+    ;   exists_directory(SourcePath)
+    ->  fail
+    ;   Code = indexed_source_missing
+    ),
+    entity_ids_for_source(RelativeSource, EntityIds),
+    Reason = _{code: Code, path: RelativeSource, entityIds: EntityIds}.
+
+stale_knowledge_lane_reason(Reason) :-
+    attached_workspace_root(WorkspaceRoot),
+    knowledge_lane(Lane),
+    directory_file_path(WorkspaceRoot, '.kb', KbRoot),
+    directory_file_path(KbRoot, Lane, LaneRoot),
+    exists_directory(LaneRoot),
+    kb_snapshot_time(SnapshotTime),
+    directory_tree_newer_path(LaneRoot, SnapshotTime, Path),
+    workspace_relative_path(WorkspaceRoot, Path, RelativePath),
+    entity_ids_for_source(RelativePath, EntityIds),
+    Reason = _{code: knowledge_source_newer, path: RelativePath, entityIds: EntityIds}.
+
+stale_documentation_reason(Reason) :-
+    attached_workspace_root(WorkspaceRoot),
+    directory_file_path(WorkspaceRoot, 'documentation', DocumentationRoot),
+    exists_directory(DocumentationRoot),
+    kb_snapshot_time(SnapshotTime),
+    directory_tree_newer_path(DocumentationRoot, SnapshotTime, Path),
+    workspace_relative_path(WorkspaceRoot, Path, RelativePath),
+    entity_ids_for_source(RelativePath, EntityIds),
+    Reason = _{code: documentation_source_newer, path: RelativePath, entityIds: EntityIds}.
+
+kb_snapshot_time(SnapshotTime) :-
+    kb:kb_attached(KbPath),
+    (   directory_file_path(KbPath, 'CURRENT', DataFile), exists_file(DataFile)
+    ->  time_file(DataFile, SnapshotTime)
+    ;   directory_file_path(KbPath, 'kb.rdf', DataFile), exists_file(DataFile)
+    ->  time_file(DataFile, SnapshotTime)
+    ;   SnapshotTime = 0
+    ).
+
+entity_ids_for_source(RelativeSource, EntityIds) :-
+    findall(Id,
+        (kb_entity(Id, _Type, Props),
+         entity_source_property(Props, RawSource),
+         source_value_atom(RawSource, SourceAtom),
+         repo_relative_source(SourceAtom, RelativeSource),
+         Id \= '') ,
+        Ids0),
+    sort(Ids0, EntityIds).
+
+entity_source_property(Props, RawSource) :-
+    memberchk(sourceFile=RawSource, Props),
+    !.
+entity_source_property(Props, RawSource) :-
+    memberchk(source=RawSource, Props).
+
 workspace_state_changed(SnapshotTime) :-
     workspace_source_changed(SnapshotTime),
+    !.
+workspace_state_changed(SnapshotTime) :-
+    knowledge_lane_tree_changed(SnapshotTime),
     !.
 workspace_state_changed(SnapshotTime) :-
     documentation_tree_changed(SnapshotTime),
@@ -126,6 +214,15 @@ workspace_source_changed(SnapshotTime) :-
     ),
     !.
 
+knowledge_lane_tree_changed(SnapshotTime) :-
+    attached_workspace_root(WorkspaceRoot),
+    knowledge_lane(Lane),
+    directory_file_path(WorkspaceRoot, '.kb', KbRoot),
+    directory_file_path(KbRoot, Lane, LaneRoot),
+    exists_directory(LaneRoot),
+    directory_tree_newer(LaneRoot, SnapshotTime),
+    !.
+
 documentation_tree_changed(SnapshotTime) :-
     attached_workspace_root(WorkspaceRoot),
     directory_file_path(WorkspaceRoot, 'documentation', DocumentationRoot),
@@ -140,6 +237,7 @@ directory_tree_newer(Path, SnapshotTime) :-
     time_file(Path, EntryTime),
     EntryTime > SnapshotTime,
     !.
+
 directory_tree_newer(Path, SnapshotTime) :-
     exists_directory(Path),
     directory_files(Path, Entries),
@@ -149,6 +247,21 @@ directory_tree_newer(Path, SnapshotTime) :-
     directory_file_path(Path, Entry, ChildPath),
     directory_tree_newer(ChildPath, SnapshotTime),
     !.
+
+directory_tree_newer_path(Path, SnapshotTime, Path) :-
+    exists_file(Path),
+    entity_documentation_file(Path),
+    \+ ignored_documentation_file(Path),
+    time_file(Path, EntryTime),
+    EntryTime > SnapshotTime.
+directory_tree_newer_path(Path, SnapshotTime, ChildPath) :-
+    exists_directory(Path),
+    directory_files(Path, Entries),
+    member(Entry, Entries),
+    Entry \= '.',
+    Entry \= '..',
+    directory_file_path(Path, Entry, Candidate),
+    directory_tree_newer_path(Candidate, SnapshotTime, ChildPath).
 
 attached_workspace_root(WorkspaceRoot) :-
     kb:kb_attached(KbPath),
@@ -219,8 +332,20 @@ source_value_atom(Val, Atom) :-
     term_string(Val, Str),
     atom_string(Atom, Str).
 
+knowledge_lane(requirements).
+knowledge_lane(scenarios).
+knowledge_lane(tests).
+knowledge_lane(facts).
+knowledge_lane(adr).
+knowledge_lane(flags).
+knowledge_lane(events).
+
 ignored_documentation_file(Path) :-
     file_base_name(Path, 'README.md').
+ignored_documentation_file(Path) :-
+    sub_atom(Path, _, _, _, '/tests/e2e/').
+ignored_documentation_file(Path) :-
+    sub_atom(Path, _, _, _, '/tests/benchmarks/').
 
 entity_documentation_file(Path) :-
     read_file_to_string(Path, Content, []),

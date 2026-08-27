@@ -1,3 +1,4 @@
+import "../helpers/ensure-test-branch.js";
 import {
   afterAll,
   beforeAll,
@@ -80,6 +81,10 @@ describe("kb_graph multi-relationship integration", () => {
   });
 
   beforeEach(async () => {
+    // Detach before replacing the attached store. Removing an RDF directory
+    // while Prolog still owns the previous attachment leaves a stale in-memory
+    // entity index and makes later relationship validation fail nondeterministically.
+    await prolog.query("kb_detach").catch(() => undefined);
     await fs.rm(testKbPath, { recursive: true, force: true });
     await fs.mkdir(testKbPath, { recursive: true });
     await prolog.query(`kb_attach('${testKbPath}')`);
@@ -304,7 +309,11 @@ describe("kb_graph canonical traceability chain traversal", () => {
   let testKbPath: string;
 
   beforeAll(async () => {
-    prolog = new RealPrologProcess();
+    // Keep the long-lived session used by production MCP callers. Bun's
+    // default one-shot fallback starts a fresh SWI-Prolog process for every
+    // validation and persistence query; this chain's six upserts can then
+    // exceed the test timeout and leave in-flight writes behind.
+    prolog = new RealPrologProcess({ oneShot: false });
     await prolog.start();
     await prolog.query(
       "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
@@ -313,6 +322,9 @@ describe("kb_graph canonical traceability chain traversal", () => {
   });
 
   beforeEach(async () => {
+    // Detach before replacing the attached store so Prolog cannot retain the
+    // previous branch's entity index after its RDF directory is removed.
+    await prolog.query("kb_detach").catch(() => undefined);
     await fs.rm(testKbPath, { recursive: true, force: true });
     await fs.mkdir(testKbPath, { recursive: true });
     await prolog.query(`kb_attach('${testKbPath}')`);

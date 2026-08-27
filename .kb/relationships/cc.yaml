@@ -1,0 +1,85 @@
+relationships:
+  - id: rel-54fc4d50c25d
+    type: implements
+    from: SYM-auto-5E0D46927248
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:16:44.371Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-auto-5E0D46927248
+    to: REQ-core-atomic-upsert-persistence
+    created_at: 2026-08-16T07:50:26.151Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1043680874d
+  - type: covered_by
+    from: SYM-auto-5E0D46927248
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:50:26.156Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c56cdb7caa72
+  - type: covered_by
+    from: SYM-assert-semantic-inventory-boundary
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-16T18:52:06.537Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9959331f954
+  - type: implements
+    from: SYM-canonical-MarkdownValidationResult
+    to: REQ-cli-staged-impact-enforcement
+    created_at: 2026-08-18T17:36:45.217Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d24a7c52ca7
+  - type: covered_by
+    from: SYM-canonical-MarkdownValidationResult
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-08-18T17:36:45.226Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eaaf4de266fb
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-planbootstrapresult
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:49:26.917Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e13b0dcd2fdb
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-planbootstrapresult
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:49:26.924Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5001382a9fcd
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-planbootstrapresult
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:18:48.478Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9bfdd5106bde
+  - type: covered_by
+    from: SYM-auto-5E0D46927248
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:41:31.717Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-003064517816
+  - type: implements
+    from: SYM-hashManifestWithCoordinates
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-23T20:41:10.292Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5893ec75327d
+  - type: covered_by
+    from: SYM-hashManifestWithCoordinates
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:41:10.304Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a70751d12db

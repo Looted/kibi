@@ -1,11 +1,12 @@
 import {
   type CoverageInput,
   type LegacyMigrationPlan,
+  type MigrationPlan,
   type RepairPlan,
   executeCoverage,
-} from "kibi-cli/operations";
-import type { OperationContext } from "kibi-cli/operations/runtime-types";
-import type { PrologProcess } from "kibi-cli/prolog";
+} from "kibi-runtime";
+import type { OperationContext } from "kibi-runtime";
+import type { PrologProcess } from "kibi-runtime";
 import { createDiscoveryContext } from "./discovery-adapter.js";
 
 type ReportingProlog = Pick<PrologProcess, "query">;
@@ -22,6 +23,8 @@ export interface CoverageResult {
     readonly rows: readonly Readonly<Record<string, unknown>>[];
     readonly repairPlan?: RepairPlan;
     readonly legacyMigrationPlan?: LegacyMigrationPlan;
+    readonly symbolRepairPlan?: Readonly<Record<string, unknown>>;
+    readonly migrationPlan?: MigrationPlan;
     readonly meta?: Readonly<Record<string, unknown>>;
   };
 }

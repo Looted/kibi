@@ -1839,6 +1839,9 @@ literal_to_value(semantic_inventory, Literal, Value) :-
 literal_to_value(verification_receipts, Literal, Value) :-
     !,
     structured_literal_value(Literal, Value).
+literal_to_value(verification_contract, Literal, Value) :-
+    !,
+    structured_literal_value(Literal, Value).
 literal_to_value(_Key, Literal, Value) :-
     (   % Handle ^^/2 functor (RDF typed literal shorthand)
         Literal = ^^(StrVal, 'http://www.w3.org/2001/XMLSchema#string')

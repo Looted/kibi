@@ -35,6 +35,12 @@ const defaults = {
   getBranchDiagnostic: (_error?: string) => "mock diagnostic",
   isValidBranchName: (_branch: string) => true,
   resolveActiveBranch: (_workspaceRoot: string) => ({ branch: "develop" }),
+  resolveBranchAttachment: (_workspaceRoot: string) => ({
+    gitBranch: "develop",
+    kbBranch: "develop",
+    kind: "exact" as const,
+    migrationRequired: false,
+  }),
   resolveKbPath: (_workspaceRoot: string, _branch: string) => "/mock/kb/path",
   resolveWorkspaceRoot: (_startDir?: string) => "/mock/workspace",
   createRequire: () => {
@@ -74,6 +80,7 @@ const mockCopyCleanSnapshot = mock(defaults.copyCleanSnapshot);
 const mockGetBranchDiagnostic = mock(defaults.getBranchDiagnostic);
 const mockIsValidBranchName = mock(defaults.isValidBranchName);
 const mockResolveActiveBranch = mock(defaults.resolveActiveBranch);
+const mockResolveBranchAttachment = mock(defaults.resolveBranchAttachment);
 const mockResolveKbPath = mock(defaults.resolveKbPath);
 const mockResolveWorkspaceRoot = mock(defaults.resolveWorkspaceRoot);
 const mockCreateRequire = mock(defaults.createRequire);
@@ -93,6 +100,7 @@ function resetMocks() {
   mockGetBranchDiagnostic.mockClear();
   mockIsValidBranchName.mockClear();
   mockResolveActiveBranch.mockClear();
+  mockResolveBranchAttachment.mockClear();
   mockResolveKbPath.mockClear();
   mockResolveWorkspaceRoot.mockClear();
   mockCreateRequire.mockClear();
@@ -110,6 +118,9 @@ function resetMocks() {
   mockGetBranchDiagnostic.mockImplementation(defaults.getBranchDiagnostic);
   mockIsValidBranchName.mockImplementation(defaults.isValidBranchName);
   mockResolveActiveBranch.mockImplementation(defaults.resolveActiveBranch);
+  mockResolveBranchAttachment.mockImplementation(
+    defaults.resolveBranchAttachment,
+  );
   mockResolveKbPath.mockImplementation(defaults.resolveKbPath);
   mockResolveWorkspaceRoot.mockImplementation(defaults.resolveWorkspaceRoot);
   mockCreateRequire.mockImplementation(defaults.createRequire);
@@ -143,6 +154,7 @@ function createMockSessionDeps() {
     getBranchDiagnostic: mockGetBranchDiagnostic,
     isValidBranchName: mockIsValidBranchName,
     resolveActiveBranch: mockResolveActiveBranch,
+    resolveBranchAttachment: mockResolveBranchAttachment,
     resolveKbPath: mockResolveKbPath,
     resolveWorkspaceRoot: mockResolveWorkspaceRoot,
   };
@@ -158,11 +170,9 @@ describe.serial("session module", () => {
   beforeEach(() => {
     resetMocks();
     // Reset environment
-    process.env = {
-      ...originalEnv,
-      KIBI_BRANCH: undefined,
-      KIBI_MCP_DEBUG: undefined,
-    };
+    process.env = { ...originalEnv };
+    Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+    Reflect.deleteProperty(process.env, "KIBI_MCP_DEBUG");
   });
 
   afterEach(async () => {
@@ -277,7 +287,7 @@ describe.serial("session module", () => {
       expect(mockIsValidBranchName).toHaveBeenCalledWith("my-branch");
     });
 
-    test("should copy from the previous branch when it exists", async () => {
+    test("should create an empty branch even when another branch exists", async () => {
       process.env.KIBI_BRANCH = "feature-prev";
       mockResolveKbPath.mockImplementation(
         (_workspaceRoot, branch) => `/workspace/.kb/branches/${branch}`,
@@ -294,11 +304,11 @@ describe.serial("session module", () => {
 
       session.ensureBranchKbExists("/workspace", "feature-next");
 
-      expect(mockCopyCleanSnapshot).toHaveBeenCalledWith(
-        "/workspace/.kb/branches/feature-prev",
+      expect(mockCopyCleanSnapshot).not.toHaveBeenCalled();
+      expect(mockMkdirSync).toHaveBeenCalledWith(
         "/workspace/.kb/branches/feature-next",
+        { recursive: true },
       );
-      expect(mockMkdirSync).not.toHaveBeenCalled();
     });
   });
 
@@ -431,9 +441,12 @@ describe.serial("session module", () => {
 
   describe("ensureProlog", () => {
     test("should return a PrologProcess-like object on success", async () => {
-      process.env = { ...process.env, KIBI_BRANCH: undefined };
-      mockResolveActiveBranch.mockImplementation(() => ({
-        branch: "develop",
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+      mockResolveBranchAttachment.mockImplementation(() => ({
+        gitBranch: "develop",
+        kbBranch: "develop",
+        kind: "exact",
+        migrationRequired: false,
       }));
       mockIsValidBranchName.mockImplementation(() => true);
 
@@ -476,23 +489,31 @@ describe.serial("session module", () => {
       expect(mockIsValidBranchName).toHaveBeenCalledWith("feature");
     });
 
-    test("should call resolveActiveBranch when KIBI_BRANCH not set", async () => {
-      process.env = { ...process.env, KIBI_BRANCH: undefined };
-      mockResolveActiveBranch.mockImplementation(() => ({
-        branch: "main",
+    test("should resolve the exact branch attachment when KIBI_BRANCH is not set", async () => {
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+      mockResolveBranchAttachment.mockImplementation(() => ({
+        gitBranch: "main",
+        kbBranch: "main",
+        kind: "exact",
+        migrationRequired: false,
       }));
       mockIsValidBranchName.mockImplementation(() => true);
 
       const session = await importSession();
       await session.ensureProlog();
 
-      expect(mockResolveActiveBranch).toHaveBeenCalled();
+      expect(mockResolveBranchAttachment).toHaveBeenCalledWith(
+        "/mock/workspace",
+      );
     });
 
     test("should handle concurrent calls without error", async () => {
-      process.env = { ...process.env, KIBI_BRANCH: undefined };
-      mockResolveActiveBranch.mockImplementation(() => ({
-        branch: "develop",
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+      mockResolveBranchAttachment.mockImplementation(() => ({
+        gitBranch: "develop",
+        kbBranch: "develop",
+        kind: "exact",
+        migrationRequired: false,
       }));
       mockIsValidBranchName.mockImplementation(() => true);
 
@@ -984,7 +1005,7 @@ describe.serial("session module", () => {
       expect(mockMkdirSync).not.toHaveBeenCalled();
     });
 
-    test("ensureBranchKbExists copies the previous non-develop branch when available", async () => {
+    test("ensureBranchKbExists does not copy the previous non-develop branch", async () => {
       process.env.KIBI_BRANCH = "previous-copy-branch";
       const session = await importCoveredSession();
       mockResolveKbPath.mockImplementation(
@@ -999,11 +1020,11 @@ describe.serial("session module", () => {
 
       session.ensureBranchKbExists("/workspace", "copied-branch");
 
-      expect(mockCopyCleanSnapshot).toHaveBeenCalledWith(
-        "/workspace/.kb/branches/previous-copy-branch",
+      expect(mockCopyCleanSnapshot).not.toHaveBeenCalled();
+      expect(mockMkdirSync).toHaveBeenCalledWith(
         "/workspace/.kb/branches/copied-branch",
+        { recursive: true },
       );
-      expect(mockMkdirSync).not.toHaveBeenCalled();
     });
 
     test("initiateGracefulShutdown returns early when already shutting down", async () => {
@@ -1150,14 +1171,16 @@ describe.serial("session module", () => {
 
       expect(mockIsValidBranchName).toHaveBeenCalledWith("override-only");
       expect(mockResolveActiveBranch).not.toHaveBeenCalled();
+      expect(mockResolveBranchAttachment).not.toHaveBeenCalled();
       expect(session.activeBranchName).toBe("override-only");
     });
 
     test("ensureProlog reports branch resolution diagnostics when active branch lookup fails", async () => {
-      process.env = { ...process.env, KIBI_BRANCH: undefined };
-      mockResolveActiveBranch.mockImplementation((() => ({
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+      mockResolveBranchAttachment.mockImplementation((() => ({
         error: "detached HEAD",
-      })) as unknown as typeof defaults.resolveActiveBranch);
+        code: "DETACHED_HEAD",
+      })) as unknown as typeof defaults.resolveBranchAttachment);
       mockGetBranchDiagnostic.mockImplementation(
         (_cwd?: string, error?: string) => `diagnostic: ${error}`,
       );
@@ -1274,7 +1297,7 @@ describe.serial("session module", () => {
       );
     });
 
-    test("ensureProlog debug initialization logs createRequire success details", async () => {
+    test("ensureProlog debug initialization identifies the runtime boundary", async () => {
       process.env.KIBI_BRANCH = "debug-success-branch";
       process.env.KIBI_MCP_DEBUG = "1";
       const originalConsoleError = console.error;
@@ -1286,17 +1309,10 @@ describe.serial("session module", () => {
 
         await session.ensureProlog();
 
-        expect(mockCreateRequire).toHaveBeenCalled();
         expect(
           containsConsoleArg(
             consoleErrorMock.mock.calls,
-            "require.resolve('kibi-cli/prolog') -> /path/to/kibi-cli",
-          ),
-        ).toBe(true);
-        expect(
-          containsConsoleArg(
-            consoleErrorMock.mock.calls,
-            "kibi-cli version: 1.0.0",
+            "[KIBI-MCP] Runtime boundary: kibi-runtime",
           ),
         ).toBe(true);
         expect(

@@ -1,0 +1,129 @@
+name: Kibi strict requirement proof
+
+concurrency:
+  group: kibi-proof-${{ github.ref }}
+  # A proof run writes snapshot-bound receipts for every contract. Let a run
+  # finish instead of cancelling it when another develop commit arrives.
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop]
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  KIBI_CLI: ./packages/cli/bin/kibi
+  KIBI_BRANCH: ${{ github.head_ref || github.ref_name }}
+
+jobs:
+  proof:
+    name: Contracted proof and health report
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Install SWI-Prolog
+        run: bash scripts/ci-install-swi-prolog.sh bubblewrap
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.10"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "26.7.0"
+
+      - name: Provision strict-proof host prerequisites
+        env:
+          UV_VERSION: "0.9.26"
+          CODEX_CLI_VERSION: "0.144.6"
+        run: |
+          curl --fail --silent --show-error --location \
+            "https://astral.sh/uv/${UV_VERSION}/install.sh" | sh
+          export PATH="$HOME/.local/bin:$PATH"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          npm install --global "@openai/codex@${CODEX_CLI_VERSION}"
+          uv --version
+          codex --version
+          bwrap --version
+          uv sync --project tools/skillopt --frozen
+          uv run --project tools/skillopt python tools/skillopt/verify_pin.py
+
+      - name: Install dependencies
+        run: |
+          bun install --frozen-lockfile
+          cd .opencode && bun install --frozen-lockfile
+
+      - name: Build packages used by packed proof contracts
+        run: bun run build
+
+      - name: Compile packed proof tests
+        run: bun run compile:e2e:packed
+
+      - name: Sync and validate integrity of the proof snapshot
+        id: integrity
+        run: |
+          bun packages/cli/bin/kibi sync --refresh-symbol-coordinates
+          bun packages/cli/bin/kibi check --format json --rules no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness
+
+      - name: Run every contracted proof command through Kibi
+        run: node scripts/run-proof-runner.mjs
+
+      - name: Enforce proof baseline and clean snapshot
+        run: node scripts/check-proof-baseline.mjs
+
+      - name: Generate requirement health report
+        if: ${{ !cancelled() && steps.integrity.outcome == 'success' }}
+        run: bun packages/cli/bin/kibi report --output kibi-report
+
+      - name: Upload Kibi proof artifacts
+        if: ${{ !cancelled() && steps.integrity.outcome == 'success' }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: kibi-requirement-proof
+          path: |
+            kibi-report
+            proof
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Namespace Pages output under /kibi-report/
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && steps.integrity.outcome == 'success' }}
+        run: |
+          mkdir -p pages/kibi-report
+          cp -R kibi-report/. pages/kibi-report/
+
+      - name: Upload Kibi Pages artifact
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' && !cancelled() && steps.integrity.outcome == 'success' }}
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: pages
+
+  deploy:
+    name: Deploy Kibi proof report
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+    needs: proof
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy proof report to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

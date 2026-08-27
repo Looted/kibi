@@ -1,0 +1,78 @@
+relationships:
+  - id: rel-253abf11044a
+    type: implements
+    from: SYM-isSupportedLegacyBranchMigration
+    to: REQ-branch-store-recovery-v3
+    created_at: "2026-08-17T08:38:26.458Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-isSupportedLegacyBranchMigration
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-08-17T08:38:26.460Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e62ce9eedfa4
+  - type: implements
+    from: SYM-skillopt-required-kibi-tools
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-21T19:52:52.491Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-609c3f85e5d9
+  - type: covered_by
+    from: SYM-skillopt-required-kibi-tools
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-21T19:52:52.506Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-050f1a1a1745
+  - type: executable_for
+    from: SYM-packed-create-owned-temp-directory
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-21T20:36:41.116Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ea07a37d390
+  - type: implements
+    from: SYM-handleKbSkillsList
+    to: REQ-002
+    created_at: 2026-08-22T20:06:42.488Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5db7ca2f8da6
+  - type: covered_by
+    from: SYM-handleKbSkillsList
+    to: TEST-005
+    created_at: 2026-08-22T20:06:42.498Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbf6cc7b549d
+  - type: covered_by
+    from: SYM-handleKbSkillsList
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:06:42.502Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c45a4d2e617
+  - type: implements
+    from: SYM-cli-discovery-resolve-core-module
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:23:57.598Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9acbc7fe6e53
+  - type: covered_by
+    from: SYM-cli-discovery-resolve-core-module
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:23:57.614Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a53d7afd0f7b
+  - type: covered_by
+    from: SYM-cli-discovery-resolve-core-module
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:23:57.618Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb3161bd9728

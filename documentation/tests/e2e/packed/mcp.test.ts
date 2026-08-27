@@ -79,7 +79,7 @@ if (RUN_NODE_TEST_SUITE) {
 
         createMarkdownFile(
           sandbox,
-          "documentation/requirements/REQ-MCP-001.md",
+          ".kb/requirements/REQ-MCP-001.md",
           {
             id: "REQ-MCP-001",
             title: "MCP Test Requirement",
@@ -251,7 +251,10 @@ if (RUN_NODE_TEST_SUITE) {
                       "kb_check",
                       "kb_model_requirement",
                       "kb_suggest_predicates",
-                      "kb_autopilot_generate",
+                      "kb_plan_bootstrap",
+                      "kb_compile_intent",
+                      "kb_apply_plan",
+                      "kb_ingest_verification",
                     ]);
                     assert.ok(
                       !toolNames.includes("kb_briefing_generate"),
@@ -339,12 +342,15 @@ if (RUN_NODE_TEST_SUITE) {
                       "Prompts should be an array",
                     );
                     const initPrompt = prompts.find(
-                      (p) => p.name === "init-kibi",
+                      (p) => p.name === "kibi-bootstrap",
                     );
-                    assert.ok(initPrompt, "init-kibi should be registered");
+                    assert.ok(
+                      initPrompt,
+                      "kibi-bootstrap should be registered",
+                    );
                     assert.match(
                       initPrompt.description ?? "",
-                      /interactive activation|new or empty/i,
+                      /canonical planner|plan.*apply/i,
                     );
                     resolve();
                   });

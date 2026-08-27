@@ -19,11 +19,11 @@
 const args = globalThis.Bun?.argv?.slice(2) ?? process.argv.slice(2);
 
 async function importStartupResolution() {
-  try {
-    return await import("../dist/startup-resolution.js");
-  } catch {
-    return await import("../src/startup-resolution.ts");
-  }
+  // Published packages contain the compiled runtime only. Do not replace a
+  // real dependency/import failure with a source-tree fallback: doing so
+  // hides package contract errors and makes startup depend on an unpackaged
+  // TypeScript tree.
+  return await import("../dist/startup-resolution.js");
 }
 
 async function serverEntrypointUrl() {
@@ -32,7 +32,10 @@ async function serverEntrypointUrl() {
   if (existsSync(distUrl)) {
     return distUrl.href;
   }
-  return new URL("../src/server.ts", import.meta.url).href;
+  throw new Error(
+    `[KIBI-MCP] Missing compiled server entrypoint: ${distUrl.pathname}. ` +
+      "Run the package build before launching kibi-mcp.",
+  );
 }
 
 async function buildResolution() {
@@ -64,11 +67,9 @@ async function importServer(entrypoint) {
     const { pathToFileURL } = await import("node:url");
     return await import(pathToFileURL(entrypoint).href);
   }
-  try {
-    return await import("../dist/server.js");
-  } catch {
-    return await import("../src/server.ts");
-  }
+  // Preserve the original import error. In particular, an incompatible
+  // kibi-cli export must not be replaced with a misleading source fallback.
+  return await import("../dist/server.js");
 }
 
 function printHelp() {

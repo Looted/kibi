@@ -112,12 +112,18 @@ function copyCanonicalSkills(input: WorkspaceInput): void {
 }
 
 // implements REQ-skillopt-logical-evidence-fidelity
+export function fixtureSymbolId(taskId: string): string {
+  const suffix = sha256(taskId).slice(0, 12).toUpperCase();
+  return `SYM-FIXTURE-${suffix}`;
+}
+
+// implements REQ-skillopt-logical-evidence-fidelity
 function fixtureEntityIds(taskId: string) {
   const suffix = sha256(taskId).slice(0, 12).toUpperCase();
   return {
     requirement: `REQ-FIXTURE-${suffix}`,
     test: `TEST-FIXTURE-${suffix}`,
-    symbol: `SYM-FIXTURE-${suffix}`,
+    symbol: fixtureSymbolId(taskId),
   } as const;
 }
 
@@ -160,6 +166,32 @@ function writePublicPredicateClaim(input: WorkspaceInput): void {
     split: semanticCase.split,
     claimText: semanticCase.publicClaim.claimText,
     publicSchema: semanticCase.publicClaim.publicSchema,
+  });
+}
+
+// implements REQ-skillopt-codex-optimization
+function writeCoordinateRepairObservation(input: WorkspaceInput): void {
+  if (
+    input.task.taskData.objectiveCode !==
+    "generated_only_symbol_coordinate_repair"
+  ) {
+    return;
+  }
+  // Public observations of the incident only. The expected migration action,
+  // plan hash, action ID, and any scoring expectation stay evaluator-private.
+  writeJson(input.root, "symbol-coordinate-repair.json", {
+    symbol: {
+      id: fixtureSymbolId(input.task.id),
+      title: input.task.family,
+      sourceFile: "src/fixture.ts",
+    },
+    observation: {
+      extractionComplete: true,
+      authoredManifestCurrent: true,
+      generatedArtifactPresent: true,
+      reportedGap: "missing_symbol_coordinates",
+      reportedBy: "kb_coverage",
+    },
   });
 }
 
@@ -213,6 +245,7 @@ export function writePublicWorkspace(input: WorkspaceInput): string {
   copyCanonicalSkills(input);
   writeAdversarialFiles(input);
   writeSafeMutationEvidence(input);
+  writeCoordinateRepairObservation(input);
   // Predicate-family tasks materialize the public claim and schema (no expected
   // outcome) from the semantically distinct registry. The private expectation
   // lives only in the evaluator/verifier lane.

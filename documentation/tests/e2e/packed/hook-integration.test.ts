@@ -13,6 +13,7 @@ import {
   type TestSandbox,
   checkPrologAvailable,
   createSandbox,
+  exactBranchStorePath,
   kibi,
   packAll,
   run,
@@ -20,6 +21,31 @@ import {
 
 const RUN_NODE_TEST_SUITE =
   typeof (globalThis as { Bun?: unknown }).Bun === "undefined";
+
+export function assertDefaultBranchSyncHooks(repoDir: string): void {
+  for (const hookName of ["post-checkout", "post-merge"]) {
+    const hookPath = join(repoDir, ".git/hooks", hookName);
+    assert.ok(existsSync(hookPath), `${hookName} hook should exist`);
+    assert.ok(
+      (statSync(hookPath).mode & 0o111) !== 0,
+      `${hookName} hook should be executable`,
+    );
+    assert.match(readFileSync(hookPath, "utf8"), /kibi sync/);
+  }
+  const checkout = readFileSync(
+    join(repoDir, ".git/hooks/post-checkout"),
+    "utf8",
+  );
+  assert.match(checkout, /branch_flag is 1 for branch checkout/);
+  assert.doesNotMatch(checkout, /--from/);
+}
+
+export function assertPostMergeSynchronizedTrackedSources(
+  queryOutput: string,
+): void {
+  assert.match(queryOutput, /Develop/);
+  assert.match(queryOutput, /Feature/);
+}
 
 if (RUN_NODE_TEST_SUITE) {
   describe("E2E: Git Hook Integration", () => {
@@ -65,22 +91,7 @@ if (RUN_NODE_TEST_SUITE) {
       if (!hasProlog) return;
 
       await kibi(sandbox, ["init"]);
-
-      const hookPath = join(sandbox.repoDir, ".git/hooks/post-checkout");
-      assert.ok(existsSync(hookPath), "post-checkout hook should exist");
-
-      const stats = statSync(hookPath);
-      const isExecutable = (stats.mode & 0o111) !== 0;
-      assert.ok(isExecutable, "Hook should be executable");
-
-      const content = readFileSync(hookPath, "utf8");
-      assert.ok(content.includes("kibi sync"), "Hook should contain kibi sync");
-      // Ensure we only run branch-ensure on branch checkout and attempt to forward old branch
-      assert.ok(/branch_flag is 1 for branch checkout/.test(content));
-      assert.ok(
-        /git name-rev --name-only/.test(content) ||
-          /kibi branch ensure --from/.test(content),
-      );
+      assertDefaultBranchSyncHooks(sandbox.repoDir);
     });
 
     it("should install post-merge hook by default", async () => {
@@ -120,7 +131,7 @@ if (RUN_NODE_TEST_SUITE) {
 
       await kibi(sandbox, ["init"]);
 
-      const reqDir = join(sandbox.repoDir, "documentation/requirements");
+      const reqDir = join(sandbox.repoDir, ".kb/requirements");
       mkdirSync(reqDir, { recursive: true });
 
       writeFileSync(
@@ -148,11 +159,13 @@ status: open
 
       // After init the branch directory exists; after sync the KB RDF exists.
       assert.ok(
-        existsSync(join(sandbox.repoDir, ".kb/branches/develop")),
+        existsSync(exactBranchStorePath(sandbox.repoDir, "develop")),
         "develop branch KB should exist",
       );
       assert.ok(
-        existsSync(join(sandbox.repoDir, ".kb/branches/develop/kb.rdf")),
+        existsSync(
+          join(exactBranchStorePath(sandbox.repoDir, "develop"), "kb.rdf"),
+        ),
         "develop branch KB RDF should exist after sync",
       );
 
@@ -162,18 +175,20 @@ status: open
       });
 
       assert.ok(
-        existsSync(join(sandbox.repoDir, ".kb/branches/feature/kb.rdf")),
+        existsSync(
+          join(exactBranchStorePath(sandbox.repoDir, "feature"), "kb.rdf"),
+        ),
         "feature branch KB should be created",
       );
 
-      // Verify the feature KB was copied from develop rather than created fresh.
-      // Both files should have identical content (a real copy, not a blank file).
+      // Verify the feature KB was compiled independently from the checked-out
+      // tracked source rather than copied from the develop store.
       const developKb = readFileSync(
-        join(sandbox.repoDir, ".kb/branches/develop/kb.rdf"),
+        join(exactBranchStorePath(sandbox.repoDir, "develop"), "kb.rdf"),
         "utf8",
       );
       const featureKb = readFileSync(
-        join(sandbox.repoDir, ".kb/branches/feature/kb.rdf"),
+        join(exactBranchStorePath(sandbox.repoDir, "feature"), "kb.rdf"),
         "utf8",
       );
 
@@ -183,7 +198,7 @@ status: open
       assert.strictEqual(
         normalizeTimestamps(featureKb),
         normalizeTimestamps(developKb),
-        "feature KB should preserve develop KB content after checkout sync",
+        "feature KB should contain the same tracked-source entities after checkout sync",
       );
     });
 
@@ -192,7 +207,7 @@ status: open
 
       await kibi(sandbox, ["init"]);
 
-      const reqDir = join(sandbox.repoDir, "documentation/requirements");
+      const reqDir = join(sandbox.repoDir, ".kb/requirements");
       mkdirSync(reqDir, { recursive: true });
 
       writeFileSync(
@@ -253,14 +268,7 @@ status: open
       });
 
       const { stdout: developQuery } = await kibi(sandbox, ["query", "req"]);
-      assert.ok(
-        developQuery.includes("Develop"),
-        "develop query should include Develop requirement after merge",
-      );
-      assert.ok(
-        developQuery.includes("Feature"),
-        "develop query should include Feature requirement after merge",
-      );
+      assertPostMergeSynchronizedTrackedSources(developQuery);
     });
 
     it("should be idempotent on re-install", async () => {
@@ -341,7 +349,7 @@ echo "Existing hook"
 
         await kibi(sandbox, ["init"]);
 
-        const reqDir = join(sandbox.repoDir, "documentation/requirements");
+        const reqDir = join(sandbox.repoDir, ".kb/requirements");
         mkdirSync(reqDir, { recursive: true });
 
         writeFileSync(
@@ -400,7 +408,7 @@ status: open
 
         await kibi(sandbox, ["init"]);
 
-        const reqDir = join(sandbox.repoDir, "documentation/requirements");
+        const reqDir = join(sandbox.repoDir, ".kb/requirements");
         mkdirSync(reqDir, { recursive: true });
 
         writeFileSync(

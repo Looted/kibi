@@ -61,8 +61,11 @@ const OPERATION_NAMES = [
   "kb_delete",
   "kb_model_requirement",
   "kb_suggest_predicates",
-  "kb_autopilot_generate",
+  "kb_plan_bootstrap",
   "kb_sparql_remote",
+  "kb_compile_intent",
+  "kb_apply_plan",
+  "kb_ingest_verification",
 ] as const;
 
 const VOLATILE_KEYS = new Set([
@@ -130,6 +133,25 @@ function stableStringify(value: unknown): string {
   return JSON.stringify(stable(value), null, 2);
 }
 
+function stableSchemaStringify(value: unknown): string {
+  return JSON.stringify(stableSchema(value), null, 2);
+}
+
+function stableSchema(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((entry) => stableSchema(entry));
+  }
+  if (value === null || typeof value !== "object") {
+    return value;
+  }
+  const record = value as JsonRecord;
+  return Object.fromEntries(
+    Object.entries(record)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, entry]) => [key, stableSchema(entry)]),
+  );
+}
+
 function formatUpdatedFixtures(filePaths: readonly string[]): void {
   const result = Bun.spawnSync({
     cmd: [BIOME_EXECUTABLE, "format", "--write", ...filePaths],
@@ -153,6 +175,7 @@ function buildToolListSnapshot(
     name: string;
     description: string;
     inputSchema: JsonRecord;
+    outputSchema?: JsonRecord;
     annotations?: JsonRecord;
   }[],
 ) {
@@ -160,9 +183,12 @@ function buildToolListSnapshot(
     tools: tools.map((tool) => ({
       name: tool.name,
       description: tool.description,
-      inputSchema: stable(tool.inputSchema) as JsonRecord,
+      inputSchema: stableSchema(tool.inputSchema) as JsonRecord,
+      ...(tool.outputSchema
+        ? { outputSchema: stableSchema(tool.outputSchema) as JsonRecord }
+        : {}),
       ...(tool.annotations
-        ? { annotations: stable(tool.annotations) as JsonRecord }
+        ? { annotations: stableSchema(tool.annotations) as JsonRecord }
         : {}),
     })),
   };
@@ -209,7 +235,7 @@ function createRegisteredToolsSnapshot(): CapturedTool[] {
     handleKbValidateUpsert: async () => ({}),
     handleKbModelRequirement: async () => ({}),
     handleKbSuggestPredicates: async () => ({}),
-    handleKbAutopilotGenerate: async () => ({}),
+    handleKbPlanBootstrap: async () => ({}),
   } as unknown as Parameters<typeof registerAllTools>[1];
 
   registerAllTools(server, runtime);
@@ -242,7 +268,7 @@ describe("mcp contract fixtures", () => {
     const registered = createRegisteredToolsSnapshot();
     const toolDefinitions = new Map(TOOLS.map((tool) => [tool.name, tool]));
 
-    expect(registered.map((tool) => tool.name)).toHaveLength(18);
+    expect(registered.map((tool) => tool.name)).toHaveLength(21);
     expect(registered.map((tool) => tool.name)).not.toContain(
       "kb_briefing_generate",
     );
@@ -253,18 +279,21 @@ describe("mcp contract fixtures", () => {
     );
 
     if (updateFixtures) {
-      writeFileSync(TOOL_LIST_BASE_PATH, `${stableStringify(baseTools)}\n`);
+      writeFileSync(
+        TOOL_LIST_BASE_PATH,
+        `${stableSchemaStringify(baseTools)}\n`,
+      );
       writeFileSync(
         TOOL_LIST_DIAGNOSTIC_PATH,
-        `${stableStringify(diagnosticTools)}\n`,
+        `${stableSchemaStringify(diagnosticTools)}\n`,
       );
       updatedFixturePaths.push(TOOL_LIST_BASE_PATH, TOOL_LIST_DIAGNOSTIC_PATH);
     } else {
-      expect(stableStringify(baseTools)).toBe(
-        stableStringify(readJson(TOOL_LIST_BASE_PATH)),
+      expect(stableSchemaStringify(baseTools)).toBe(
+        stableSchemaStringify(readJson(TOOL_LIST_BASE_PATH)),
       );
-      expect(stableStringify(diagnosticTools)).toBe(
-        stableStringify(readJson(TOOL_LIST_DIAGNOSTIC_PATH)),
+      expect(stableSchemaStringify(diagnosticTools)).toBe(
+        stableSchemaStringify(readJson(TOOL_LIST_DIAGNOSTIC_PATH)),
       );
     }
 

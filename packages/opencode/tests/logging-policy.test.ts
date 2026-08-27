@@ -283,7 +283,7 @@ describe("logging policy", () => {
         runSync: async () => ({ exitCode: 0 }),
       });
 
-      sched.onFileEdited("documentation/requirements/REQ-001.md");
+      sched.onFileEdited(".kb/requirements/REQ-001.md");
       await new Promise((r) => setTimeout(r, 50));
 
       const consoleLogCalls = logCalls.filter(
@@ -327,11 +327,9 @@ describe("logging policy", () => {
         runCheck: async () => ({ exitCode: 1 }),
       });
 
-      sched.scheduleSync(
-        "file.edited",
-        "documentation/requirements/REQ-001.md",
-        ["required-fields"],
-      );
+      sched.scheduleSync("file.edited", ".kb/requirements/REQ-001.md", [
+        "required-fields",
+      ]);
       await new Promise((r) => setTimeout(r, 50));
 
       const consoleLogCalls = logCalls.filter(
@@ -492,7 +490,7 @@ describe("logging policy", () => {
       await hooks.event({
         event: {
           type: "file.edited",
-          properties: { file: ".kb/config.json" },
+          properties: { file: ".kb/manifest.json" },
         },
       });
 
@@ -639,7 +637,7 @@ describe("logging policy", () => {
       await hooks.event({
         event: {
           type: "file.edited",
-          properties: { file: ".kb/config.json" },
+          properties: { file: ".kb/manifest.json" },
         },
       });
 
@@ -855,24 +853,21 @@ describe("logging policy", () => {
       const kbDir = path.join(tmpDir, ".kb");
       fs.mkdirSync(kbDir, { recursive: true });
       fs.writeFileSync(
-        path.join(kbDir, "config.json"),
+        path.join(kbDir, "manifest.json"),
         JSON.stringify({}, null, 2),
       );
       for (const dir of [
-        "documentation/requirements",
-        "documentation/scenarios",
-        "documentation/tests",
-        "documentation/adr",
-        "documentation/flags",
-        "documentation/events",
-        "documentation/facts",
+        ".kb/requirements",
+        ".kb/scenarios",
+        ".kb/tests",
+        ".kb/adr",
+        ".kb/flags",
+        ".kb/events",
+        ".kb/facts",
       ]) {
         fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
       }
-      fs.writeFileSync(
-        path.join(tmpDir, "documentation", "symbols.yaml"),
-        "\n",
-      );
+      fs.writeFileSync(path.join(tmpDir, ".kb", "symbols.yaml"), "\n");
 
       const srcDir = path.join(tmpDir, "src");
       fs.mkdirSync(srcDir, { recursive: true });
@@ -1236,11 +1231,11 @@ describe("logging policy", () => {
         runCheck: async () => ({ exitCode: 1 }),
       });
 
-      sched.scheduleSync(
-        "smart-enforcement.kb-doc",
-        "documentation/facts/FACT-001.md",
-        ["required-fields", "no-dangling-refs", "strict-fact-shape"],
-      );
+      sched.scheduleSync("smart-enforcement.kb-doc", ".kb/facts/FACT-001.md", [
+        "required-fields",
+        "no-dangling-refs",
+        "strict-fact-shape",
+      ]);
       advance(100);
       await Promise.resolve();
       await Promise.resolve();
@@ -1297,7 +1292,7 @@ describe("logging policy", () => {
         runSync: async () => ({ exitCode: 1 }),
       });
 
-      sched.onFileEdited("documentation/requirements/REQ-001.md");
+      sched.onFileEdited(".kb/requirements/REQ-001.md");
       advance(100);
       await Promise.resolve();
       await Promise.resolve();
@@ -1342,12 +1337,31 @@ describe("logging policy", () => {
         ),
       );
 
-      // Create .kb/config.json so posture detects root_active
+      // Create canonical .kb/ layout so posture is root_active
       const kbDir = path.join(tmpDir, ".kb");
       fs.mkdirSync(kbDir, { recursive: true });
       fs.writeFileSync(
-        path.join(kbDir, "config.json"),
-        JSON.stringify({ version: 1, maintenance: { enabled: false } }),
+        path.join(kbDir, "manifest.json"),
+        JSON.stringify({
+          manifestVersion: 1,
+          schemaVersion: 5,
+          semanticAdvisorBackfill: "not_applicable",
+        }),
+      );
+      for (const dir of [
+        ".kb/requirements",
+        ".kb/scenarios",
+        ".kb/tests",
+        ".kb/adr",
+        ".kb/flags",
+        ".kb/events",
+        ".kb/facts",
+      ]) {
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+      }
+      fs.writeFileSync(
+        path.join(tmpDir, ".kb", "symbols.yaml"),
+        "symbols: []\n",
       );
 
       // Create code file
@@ -1528,12 +1542,31 @@ describe("logging policy", () => {
       fs.mkdirSync(srcDir, { recursive: true });
       fs.writeFileSync(path.join(srcDir, "repeat.ts"), "export const w = 4;");
 
-      // Create .kb/config.json so posture detects root_active
+      // Create canonical .kb/ layout so posture is root_active
       const kbDir2 = path.join(tmpDir, ".kb");
       fs.mkdirSync(kbDir2, { recursive: true });
       fs.writeFileSync(
-        path.join(kbDir2, "config.json"),
-        JSON.stringify({ version: 1, maintenance: { enabled: false } }),
+        path.join(kbDir2, "manifest.json"),
+        JSON.stringify({
+          manifestVersion: 1,
+          schemaVersion: 5,
+          semanticAdvisorBackfill: "not_applicable",
+        }),
+      );
+      for (const dir of [
+        ".kb/requirements",
+        ".kb/scenarios",
+        ".kb/tests",
+        ".kb/adr",
+        ".kb/flags",
+        ".kb/events",
+        ".kb/facts",
+      ]) {
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+      }
+      fs.writeFileSync(
+        path.join(tmpDir, ".kb", "symbols.yaml"),
+        "symbols: []\n",
       );
 
       logger.setClient({

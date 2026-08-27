@@ -88,6 +88,9 @@ describe("kibi-cursor local marketplace fixture", () => {
       fs.existsSync(path.join(pluginRoot, ".cursor-plugin", "plugin.json")),
     ).toBe(true);
     expect(fs.existsSync(path.join(pluginRoot, "mcp.json"))).toBe(true);
+    expect(
+      fs.existsSync(path.join(pluginRoot, "bin", "launch-kibi-mcp.mjs")),
+    ).toBe(true);
     expect(fs.existsSync(path.join(pluginRoot, "hooks", "hooks.json"))).toBe(
       true,
     );
@@ -138,6 +141,10 @@ describe("kibi-cursor local marketplace fixture", () => {
           "plugins/kibi-cursor/.cursor-plugin/plugin.json",
         ],
         ["mcp.json", "plugins/kibi-cursor/mcp.json"],
+        [
+          "bin/launch-kibi-mcp.mjs",
+          "plugins/kibi-cursor/bin/launch-kibi-mcp.mjs",
+        ],
         ["hooks/hooks.json", "plugins/kibi-cursor/hooks/hooks.json"],
         ["skills", "plugins/kibi-cursor/skills"],
         ["rules", "plugins/kibi-cursor/rules"],

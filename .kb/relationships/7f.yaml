@@ -1,0 +1,134 @@
+relationships:
+  - id: rel-aa8f17e1019a
+    type: implements
+    from: SYM-cursor-HookStopStatus
+    to: REQ-cursor-stop-job-vs-plan
+    created_at: "2026-08-18T11:57:06.920Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-cursor-HookStopStatus
+    to: TEST-cursor-stop-job-vs-plan
+    created_at: 2026-08-18T11:57:06.922Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4a82f2286ec
+  - type: relates_to
+    from: FACT-canonical-kb-contract
+    to: ADR-026
+    created_at: 2026-08-18T15:33:32.519Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af7a02cef56e
+  - type: relates_to
+    from: FACT-canonical-kb-contract
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T15:33:32.541Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0104070961a3
+  - type: relates_to
+    from: FACT-canonical-kb-contract
+    to: REQ-cli-check
+    created_at: 2026-08-18T15:33:32.545Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c53f2aecc80d
+  - type: implements
+    from: SYM-cli-report-favicon-data-uri
+    to: REQ-kibi-branded-health-report
+    created_at: 2026-08-18T19:58:11.779Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae40d0f98d0f
+  - type: covered_by
+    from: SYM-cli-report-favicon-data-uri
+    to: TEST-kibi-branded-health-report
+    created_at: 2026-08-18T19:58:11.782Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a831bcca2eba
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapplanhash
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:48:52.638Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce605faabf66
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapplanhash
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:48:52.644Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe951706bc2f
+  - type: implements
+    from: SYM-DocResource
+    to: REQ-002
+    created_at: 2026-08-22T20:06:02.176Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21660d8538e6
+  - type: implements
+    from: SYM-DocResource
+    to: REQ-008
+    created_at: 2026-08-22T20:06:02.188Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17d9040eb00d
+  - type: covered_by
+    from: SYM-DocResource
+    to: TEST-005
+    created_at: 2026-08-22T20:06:02.192Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92c64530c6c8
+  - type: covered_by
+    from: SYM-DocResource
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:06:02.196Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf7058e72759
+  - type: implements
+    from: SYM-handleKbModelRequirement
+    to: REQ-002
+    created_at: 2026-08-22T20:06:37.785Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-687ebd131fcf
+  - type: covered_by
+    from: SYM-handleKbModelRequirement
+    to: TEST-005
+    created_at: 2026-08-22T20:06:37.801Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ea9427fc37b
+  - type: covered_by
+    from: SYM-handleKbModelRequirement
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:06:37.807Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3b64e6bf2cd
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapplanhash
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:17:05.571Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7e79a17fefb
+  - type: implements
+    from: SYM-SymbolCompilerLockError-name
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-23T20:30:48.152Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-478a8ebafc1f
+  - type: covered_by
+    from: SYM-SymbolCompilerLockError-name
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:30:48.166Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1129ea0310de

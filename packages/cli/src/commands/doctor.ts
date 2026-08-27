@@ -18,15 +18,29 @@
 
 import { execSync } from "node:child_process";
 import { existsSync, readFileSync, statSync } from "node:fs";
+import { createRequire } from "node:module";
 import * as path from "node:path";
+import { fileURLToPath } from "node:url";
+import {
+  buildMigrationPlan,
+  migrationAction,
+} from "../public/operations/migration-plan.js";
+import { readKbManifestStatus } from "../utils/kb-manifest.js";
+import { planLegacyStorageMigration } from "./legacy-storage-migration.js";
 
 interface DoctorCheck {
   name: string;
   check: () => { passed: boolean; message: string; remediation?: string };
 }
 
+export interface DoctorOptions {
+  format?: "json" | "table";
+}
+
 // implements REQ-003
-export async function doctorCommand(): Promise<{ exitCode: number }> {
+export async function doctorCommand(
+  options: DoctorOptions = {},
+): Promise<{ exitCode: number }> {
   const checks: DoctorCheck[] = [
     {
       name: "SWI-Prolog",
@@ -37,8 +51,12 @@ export async function doctorCommand(): Promise<{ exitCode: number }> {
       check: checkKbDirectory,
     },
     {
-      name: "config.json",
-      check: checkConfigJson,
+      name: ".kb/ manifest",
+      check: checkKbManifest,
+    },
+    {
+      name: "Canonical storage",
+      check: checkLegacyStorage,
     },
     {
       name: "Git repository",
@@ -58,23 +76,43 @@ export async function doctorCommand(): Promise<{ exitCode: number }> {
     },
   ];
 
-  console.log("Kibi Environment Diagnostics\n");
-
-  let allPassed = true;
-
-  for (const { name, check } of checks) {
-    const result = check();
-    const status = result.passed ? "✓" : "✗";
-    console.log(`${status} ${name}: ${result.message}`);
-
-    if (!result.passed) {
-      allPassed = false;
-      if (result.remediation) {
-        console.log(`  → ${result.remediation}`);
-      }
-    }
+  const results = checks.map(({ name, check }) => ({ name, ...check() }));
+  const allPassed = results.every((result) => result.passed);
+  const runtime = await runtimeProvenance();
+  const packageActions = await packageMigrationActions(runtime);
+  const migrationPlan = buildMigrationPlan({
+    expected: {
+      branch: null,
+      kbBranch: null,
+      configHash: null,
+    },
+    evaluatedDomains: ["package"],
+    actions: packageActions,
+  });
+  if (options.format === "json") {
+    console.log(
+      JSON.stringify(
+        {
+          version: "kibi.doctor.v1",
+          passed: allPassed,
+          runtime,
+          checks: results,
+          migrationPlan,
+        },
+        null,
+        2,
+      ),
+    );
+    return { exitCode: allPassed ? 0 : 1 };
   }
 
+  console.log("Kibi Environment Diagnostics\n");
+  for (const result of results) {
+    const status = result.passed ? "✓" : "✗";
+    console.log(`${status} ${result.name}: ${result.message}`);
+    if (!result.passed && result.remediation)
+      console.log(`  → ${result.remediation}`);
+  }
   console.log();
 
   if (allPassed) {
@@ -83,6 +121,252 @@ export async function doctorCommand(): Promise<{ exitCode: number }> {
   }
   console.log("Some checks failed. Please address the issues above.");
   return { exitCode: 1 };
+}
+
+async function packageMigrationActions(
+  runtime: Readonly<Record<string, unknown>>,
+) {
+  const actions = [];
+  const versions = ["cliVersion", "coreVersion", "mcpVersion"].filter(
+    (key) => runtime[key] === "unresolved" || runtime[key] === "unknown",
+  );
+  if (versions.length > 0) {
+    actions.push(
+      migrationAction({
+        id: "package-provenance-unresolved",
+        code: "package_provenance_unresolved",
+        category: "package",
+        safety: "operator",
+        invocation: {
+          kind: "review",
+          instruction:
+            "Install one coordinated Kibi artifact set and rerun kibi doctor; Kibi never selects a package manager or rewrites dependency configuration.",
+        },
+        evidence: { unresolvedVersions: versions },
+        dispositionRequired: true,
+      }),
+    );
+  }
+  const cliVersion =
+    typeof runtime.cliVersion === "string" ? runtime.cliVersion : "unknown";
+  const mcpCliRange =
+    typeof runtime.mcpCliRange === "string" ? runtime.mcpCliRange : "unknown";
+  if (
+    cliVersion !== "unknown" &&
+    mcpCliRange !== "unknown" &&
+    !satisfiesCaretRange(cliVersion, mcpCliRange)
+  ) {
+    actions.push(
+      migrationAction({
+        id: "package-mcp-cli-range-mismatch",
+        code: "package_dependency_range_mismatch",
+        category: "package",
+        safety: "operator",
+        invocation: {
+          kind: "review",
+          instruction:
+            "Install a newly versioned coordinated Kibi package set whose MCP CLI dependency range includes the installed CLI; project-local overrides are temporary and Kibi never edits dependency configuration.",
+        },
+        evidence: { cliVersion, mcpCliRange },
+        dispositionRequired: true,
+      }),
+    );
+  }
+  if (runtime.executeApplyPlanExported === false) {
+    actions.push(
+      migrationAction({
+        id: "package-cli-export-surface-drift",
+        code: "package_export_surface_drift",
+        category: "package",
+        safety: "operator",
+        invocation: {
+          kind: "review",
+          instruction:
+            "Treat same-version artifacts with different exports as a release defect: obtain a newly versioned CLI/MCP pair and do not downgrade receipts or hand-edit package metadata.",
+        },
+        evidence: { executeApplyPlanExported: false },
+        dispositionRequired: true,
+      }),
+    );
+  }
+  return actions;
+}
+
+function satisfiesCaretRange(version: string, range: string): boolean {
+  const match = range.trim().match(/^\^(\d+)\.(\d+)\.(\d+)/);
+  if (!match) return true;
+  const major = Number(match[1]);
+  const minor = Number(match[2]);
+  const patch = Number(match[3]);
+  const actual = version.match(/^(\d+)\.(\d+)\.(\d+)/);
+  if (!actual) return false;
+  const aMajor = Number(actual[1]);
+  const aMinor = Number(actual[2]);
+  const aPatch = Number(actual[3]);
+  return (
+    aMajor === major &&
+    (aMinor > minor || (aMinor === minor && aPatch >= patch))
+  );
+}
+
+async function runtimeProvenance(): Promise<Record<string, unknown>> {
+  const packagePath = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "..",
+    "..",
+    "package.json",
+  );
+  let cli: Record<string, unknown> = {};
+  try {
+    cli = JSON.parse(readFileSync(packagePath, "utf8")) as Record<
+      string,
+      unknown
+    >;
+  } catch {
+    // Keep doctor JSON useful even from an unusual packed entrypoint.
+  }
+  const core = resolveInstalledPackageInfo("kibi-core");
+  const mcp = resolveInstalledPackageInfo("kibi-mcp");
+  let executeApplyPlanExported: boolean | undefined;
+  try {
+    const operations = await import("../public/operations/index.js");
+    executeApplyPlanExported =
+      typeof operations.executeApplyPlan === "function";
+  } catch {
+    executeApplyPlanExported = false;
+  }
+  return {
+    cliVersion: typeof cli.version === "string" ? cli.version : "unknown",
+    coreVersion: core.version,
+    mcpVersion: mcp.version,
+    coreRange:
+      cli.dependencies && typeof cli.dependencies === "object"
+        ? ((cli.dependencies as Record<string, unknown>)["kibi-core"] ??
+          "unknown")
+        : "unknown",
+    mcpCliRange: mcp.dependencies?.["kibi-cli"] ?? "unknown",
+    executeApplyPlanExported,
+    entrypoint: process.argv[1] ?? "unknown",
+    packageVersions: process.env.KIBI_PACKAGE_VERSIONS ?? "unknown",
+    locations: {
+      cli: packagePath,
+      cliEntrypoint: process.argv[1] ?? "unknown",
+      core: core.path,
+      coreEntrypoint: core.entrypoint,
+      mcp: mcp.path,
+      mcpEntrypoint: mcp.entrypoint,
+    },
+  };
+}
+
+interface InstalledPackageInfo {
+  version: string;
+  path: string;
+  entrypoint: string;
+  dependencies?: Record<string, string> | undefined;
+}
+
+function packageInfoFromManifest(
+  manifestPath: string,
+): InstalledPackageInfo | undefined {
+  let metadata: {
+    version?: unknown;
+    main?: unknown;
+    dependencies?: unknown;
+  };
+  try {
+    metadata = JSON.parse(readFileSync(manifestPath, "utf8"));
+  } catch {
+    // Missing or unreadable manifest is not usable provenance.
+    return undefined;
+  }
+  return {
+    version:
+      typeof metadata.version === "string" ? metadata.version : "unknown",
+    path: manifestPath,
+    entrypoint:
+      typeof metadata.main === "string"
+        ? path.resolve(path.dirname(manifestPath), metadata.main)
+        : "unknown",
+    dependencies:
+      metadata.dependencies && typeof metadata.dependencies === "object"
+        ? (metadata.dependencies as Record<string, string>)
+        : undefined,
+  };
+}
+
+function nearestNamedPackageManifest(
+  startDir: string,
+  name: string,
+): string | undefined {
+  let current = startDir;
+  while (true) {
+    const candidate = path.join(current, "package.json");
+    try {
+      const metadata = JSON.parse(readFileSync(candidate, "utf8")) as {
+        name?: unknown;
+      };
+      if (metadata.name === name) return candidate;
+    } catch {
+      // Keep walking; an unrelated or absent manifest is not a match.
+    }
+    const parent = path.dirname(current);
+    if (parent === current) return undefined;
+    current = parent;
+  }
+}
+
+function resolveInstalledPackageInfo(name: string): InstalledPackageInfo {
+  const require = createRequire(import.meta.url);
+
+  // Preferred: direct manifest subpath. Works when the package exports
+  // "./package.json" or has no restrictive exports map at all.
+  try {
+    const info = packageInfoFromManifest(
+      require.resolve(`${name}/package.json`),
+    );
+    if (info) return info;
+  } catch {
+    // Fall through to entrypoint-based resolution below.
+  }
+
+  // Fallback: a tight exports map may hide ./package.json while the package
+  // itself is installed and runnable. Resolve the entrypoint, then walk up to
+  // the nearest manifest that actually names the target package so doctor
+  // never reports a coordinated install as unresolved.
+  try {
+    const entrypoint = require.resolve(name);
+    const manifestPath = nearestNamedPackageManifest(
+      path.dirname(entrypoint),
+      name,
+    );
+    const info = manifestPath
+      ? packageInfoFromManifest(manifestPath)
+      : undefined;
+    if (info) return info;
+  } catch {
+    // The package is genuinely absent from this install graph.
+  }
+
+  // Last resort: sibling workspace package inside the Kibi monorepo.
+  const local = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "..",
+    "..",
+    "..",
+    name.replace(/^kibi-/, ""),
+    "package.json",
+  );
+  if (existsSync(local)) {
+    const info = packageInfoFromManifest(local);
+    if (info) return info;
+  }
+  return {
+    version: "unresolved",
+    path: "unresolved",
+    entrypoint: "unresolved",
+    dependencies: undefined,
+  };
 }
 
 function checkSWIProlog(): {
@@ -157,14 +441,14 @@ function checkKbDirectory(): {
   };
 }
 
-function checkConfigJson(): {
+function checkKbManifest(): {
   passed: boolean;
   message: string;
   remediation?: string;
 } {
-  const configPath = path.join(process.cwd(), ".kb/config.json");
+  const status = readKbManifestStatus(process.cwd());
 
-  if (!existsSync(configPath)) {
+  if (status.state === "missing") {
     return {
       passed: false,
       message: "Not found",
@@ -172,21 +456,53 @@ function checkConfigJson(): {
     };
   }
 
-  try {
-    const content = readFileSync(configPath, "utf-8");
-    JSON.parse(content);
-
-    return {
-      passed: true,
-      message: "Valid JSON",
-    };
-  } catch (error) {
+  if (status.state !== "ok") {
     return {
       passed: false,
-      message: "Invalid JSON",
-      remediation: "Fix .kb/config.json syntax or run: kibi init",
+      message:
+        status.state === "invalid" ? "Invalid manifest" : "Future version",
+      remediation: `Repair .kb/manifest.json: ${status.warning}`,
     };
   }
+
+  return {
+    passed: true,
+    message: `schemaVersion ${status.manifest.schemaVersion}`,
+  };
+}
+
+function checkLegacyStorage(): {
+  passed: boolean;
+  message: string;
+  remediation?: string;
+} {
+  const plan = planLegacyStorageMigration(process.cwd());
+
+  if (plan.legacyConfig === "malformed") {
+    return {
+      passed: false,
+      message: "Legacy .kb/config.json is malformed",
+      remediation:
+        plan.legacyConfigError ??
+        "Repair or remove the legacy .kb/config.json, then run: kibi migrate --yes",
+    };
+  }
+
+  if (plan.legacyConfig === "present" || plan.moves.length > 0) {
+    return {
+      passed: false,
+      message:
+        plan.moves.length > 0
+          ? `${plan.moves.length} legacy knowledge file(s) still outside .kb/`
+          : "Legacy .kb/config.json still present",
+      remediation: "Run: kibi migrate --yes",
+    };
+  }
+
+  return {
+    passed: true,
+    message: "Canonical .kb/ layout",
+  };
 }
 
 function checkGitRepository(): {

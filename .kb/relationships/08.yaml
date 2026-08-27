@@ -1,0 +1,106 @@
+relationships:
+  - id: rel-982c08dcd310
+    type: implements
+    from: SYM-auto-AD376CE47FDF
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:21:10.621Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-auto-AD376CE47FDF
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-16T07:54:23.757Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3039fed56fbc
+  - type: covered_by
+    from: SYM-auto-AD376CE47FDF
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-08-16T07:54:23.761Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00ed80a851c9
+  - type: covered_by
+    from: SYM-cli-persistEntities
+    to: TEST-kibi-conservative-requirement-proof
+    created_at: 2026-08-16T18:51:34.253Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a282f8d54d9d
+  - type: covered_by
+    from: SYM-cli-persistEntities
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-16T18:52:06.502Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67ffbddb29f1
+  - type: covered_by
+    from: SYM-kibi-cli-src-commands-verify-ts-verifycommandoptions
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.886Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df0422bf5906
+  - type: validates
+    from: TEST-mcp-skills-resource-discoverability
+    to: SCEN-mcp-skills-resource-discoverability
+    created_at: 2026-08-18T07:53:54.535Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-270af233ed2e
+  - type: implements
+    from: 7657f944663e9895
+    to: REQ-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-21T10:53:46.627Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e10a8636285b
+  - type: covered_by
+    from: 7657f944663e9895
+    to: TEST-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-21T12:52:56.742Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b78664949c6
+  - type: implements
+    from: SYM-operation-skills-read-spec
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:30:49.929Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c85d3349bd41
+  - type: covered_by
+    from: SYM-operation-skills-read-spec
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:30:49.942Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49ce4db1cc40
+  - type: covered_by
+    from: SYM-operation-skills-read-spec
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:30:49.948Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b19bc2fa5c2e
+  - type: covered_by
+    from: SYM-auto-AD376CE47FDF
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:34:08.447Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-22571874d6ab
+  - type: implements
+    from: SYM-skillopt-cursor-persist-report
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:26:27.567Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3a04ea48ada
+  - type: covered_by
+    from: SYM-skillopt-cursor-persist-report
+    to: TEST-skillopt-cursor-compat
+    created_at: 2026-08-25T19:51:39.436Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f394a5f01fd7

@@ -31,6 +31,7 @@ interface JsonRpcResponse {
     serverInfo?: { name: string };
     tools?: Array<{ name: string }>;
     content?: Array<{ type: string; text: string }>;
+    structuredContent?: Record<string, unknown>;
   };
   error?: {
     code: number;
@@ -135,7 +136,7 @@ if (RUN_NODE_TEST_SUITE) {
 
         createMarkdownFile(
           sandbox,
-          "documentation/requirements/req1.md",
+          ".kb/requirements/req1.md",
           {
             id: "req1",
             title: "Initial Requirement",
@@ -342,6 +343,9 @@ if (RUN_NODE_TEST_SUITE) {
                   source: "test://integration",
                   tags: ["new"],
                 },
+                document: {
+                  path: ".kb/requirements/req-new.md",
+                },
               },
             },
           },
@@ -458,7 +462,7 @@ if (RUN_NODE_TEST_SUITE) {
     );
 
     it(
-      "should remove entity via kb_delete",
+      "should require an explicit supersession plan for authored requirements",
       { timeout: TEST_TIMEOUT_MS },
       async () => {
         if (!hasProlog) return;
@@ -483,6 +487,7 @@ if (RUN_NODE_TEST_SUITE) {
         assert.ok(deleteResponse.result);
         const deleteResult = deleteResponse.result as {
           content: Array<{ type: string; text: string }>;
+          structuredContent?: Record<string, unknown>;
         };
         assert.ok(
           deleteResult.content && deleteResult.content.length > 0,
@@ -492,7 +497,17 @@ if (RUN_NODE_TEST_SUITE) {
           deleteResult.content && deleteResult.content.length > 0,
           "Should have at least one content item",
         );
-        assert.ok(deleteResult.content?.[0]?.text.includes("Deleted"));
+        assert.match(
+          deleteResult.content?.[0]?.text ?? "",
+          /Deletion plan .*kb_apply_plan/,
+        );
+        const envelope = deleteResult.structuredContent as
+          | { data?: { deletionPlan?: { supersessionRequired?: boolean } } }
+          | undefined;
+        assert.strictEqual(
+          envelope?.data?.deletionPlan?.supersessionRequired,
+          true,
+        );
 
         const queryResponse = await sendJsonRpc(
           sandbox.kibiMcpBin,
@@ -519,10 +534,7 @@ if (RUN_NODE_TEST_SUITE) {
           "Should have at least one content item",
         );
         const queryText = queryResult.content?.[0]?.text;
-        assert.ok(
-          queryText &&
-            (queryText.includes("No entities") || queryText.includes("[]")),
-        );
+        assert.ok(queryText?.includes("req1"));
       },
     );
 

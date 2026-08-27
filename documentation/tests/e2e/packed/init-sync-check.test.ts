@@ -8,6 +8,7 @@ import {
   checkPrologAvailable,
   createMarkdownFile,
   createSandbox,
+  exactBranchStorePath,
   kibi,
   packAll,
   run,
@@ -60,30 +61,23 @@ if (RUN_NODE_TEST_SUITE) {
 
       const { stdout } = await kibi(sandbox, ["init"]);
 
-      assert.ok(
-        stdout.includes("initialized successfully"),
-        "Should indicate success",
-      );
+      assert.ok(stdout.includes("Kibi initialized"), "Should indicate success");
 
       assert.ok(existsSync(join(sandbox.repoDir, ".kb")), ".kb should exist");
       assert.ok(
-        existsSync(join(sandbox.repoDir, ".kb/config.json")),
-        "config.json should exist",
+        existsSync(join(sandbox.repoDir, ".kb/manifest.json")),
+        "manifest.json should exist",
       );
       assert.ok(
-        existsSync(join(sandbox.repoDir, ".kb/branches/develop")),
-        "develop branch should exist",
+        existsSync(exactBranchStorePath(sandbox.repoDir, "develop")),
+        "exact develop branch store should exist",
       );
 
-      const config = JSON.parse(
-        readFileSync(join(sandbox.repoDir, ".kb/config.json"), "utf8"),
+      const manifest = JSON.parse(
+        readFileSync(join(sandbox.repoDir, ".kb/manifest.json"), "utf8"),
       );
-      assert.ok(config.paths);
-      assert.strictEqual(
-        config.paths.requirements,
-        "documentation/requirements",
-      );
-      assert.strictEqual(config.paths.scenarios, "documentation/scenarios");
+      assert.ok(manifest.schemaVersion);
+      assert.ok(!Object.hasOwn(manifest, "paths"));
     });
 
     it("should sync imports entities from documents", async () => {
@@ -91,14 +85,14 @@ if (RUN_NODE_TEST_SUITE) {
 
       await kibi(sandbox, ["init"]);
 
-      const reqDir = join(sandbox.repoDir, "documentation/requirements");
-      const scenarioDir = join(sandbox.repoDir, "documentation/scenarios");
+      const reqDir = join(sandbox.repoDir, ".kb/requirements");
+      const scenarioDir = join(sandbox.repoDir, ".kb/scenarios");
       mkdirSync(reqDir, { recursive: true });
       mkdirSync(scenarioDir, { recursive: true });
 
       createMarkdownFile(
         sandbox,
-        "documentation/requirements/req1.md",
+        ".kb/requirements/req1.md",
         {
           title: "User Login",
           type: "req",
@@ -111,7 +105,7 @@ if (RUN_NODE_TEST_SUITE) {
 
       createMarkdownFile(
         sandbox,
-        "documentation/scenarios/login.md",
+        ".kb/scenarios/login.md",
         {
           title: "Login Flow",
           type: "scenario",
@@ -130,7 +124,9 @@ if (RUN_NODE_TEST_SUITE) {
       assert.ok(/\d+ entities/.test(stdout));
 
       assert.ok(
-        existsSync(join(sandbox.repoDir, ".kb/branches/develop/kb.rdf")),
+        existsSync(
+          join(exactBranchStorePath(sandbox.repoDir, "develop"), "kb.rdf"),
+        ),
         "RDF file should be created",
       );
     });
@@ -142,7 +138,7 @@ if (RUN_NODE_TEST_SUITE) {
 
       createMarkdownFile(
         sandbox,
-        "documentation/requirements/req-auth.md",
+        ".kb/requirements/req-auth.md",
         {
           id: "req-auth",
           title: "Authentication Required",
@@ -171,7 +167,7 @@ if (RUN_NODE_TEST_SUITE) {
 
         createMarkdownFile(
           sandbox,
-          "documentation/requirements/valid-req.md",
+          ".kb/requirements/valid-req.md",
           {
             title: "Valid Requirement",
             type: "req",
@@ -202,7 +198,7 @@ if (RUN_NODE_TEST_SUITE) {
 
       createMarkdownFile(
         sandbox,
-        "documentation/requirements/req1.md",
+        ".kb/requirements/req1.md",
         {
           title: "Test Requirement",
           type: "req",
@@ -239,7 +235,7 @@ if (RUN_NODE_TEST_SUITE) {
 
         createMarkdownFile(
           sandbox,
-          "documentation/requirements/req-auth.md",
+          ".kb/requirements/req-auth.md",
           {
             id: "req-auth",
             title: "Auth Requirement",
@@ -252,7 +248,7 @@ if (RUN_NODE_TEST_SUITE) {
 
         createMarkdownFile(
           sandbox,
-          "documentation/requirements/req-perf.md",
+          ".kb/requirements/req-perf.md",
           {
             id: "req-perf",
             title: "Performance Requirement",

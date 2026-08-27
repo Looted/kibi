@@ -1,5 +1,5 @@
-import { executeGraph } from "kibi-cli/operations";
-import type { PrologProcess } from "kibi-cli/prolog";
+import { executeGraph } from "kibi-runtime";
+import type { PrologProcess } from "kibi-runtime";
 
 type ReportingProlog = Pick<PrologProcess, "query">;
 
@@ -11,6 +11,14 @@ export interface GraphArgs {
   entityTypes?: string[];
   maxNodes?: number;
   maxEdges?: number;
+}
+
+function oneShotMode(prolog: ReportingProlog): boolean {
+  const mode = (prolog as unknown as { useOneShotMode?: unknown })
+    .useOneShotMode;
+  return mode === undefined
+    ? typeof (globalThis as { Bun?: unknown }).Bun !== "undefined"
+    : Boolean(mode);
 }
 
 export interface GraphResult {
@@ -39,6 +47,7 @@ export async function handleKbGraph(
       clock: () => new Date(),
       prolog: {
         query: (goal) => prolog.query(goal),
+        oneShotMode: oneShotMode(prolog),
         nextSolution: async () => null,
         save: () => prolog.query("kb_save"),
       },

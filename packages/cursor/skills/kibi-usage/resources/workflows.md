@@ -1,5 +1,38 @@
 # Workflows
 
+## Closeout contract
+
+End every task with these five independent fields (not a single inferred
+success flag):
+
+```text
+taskOutcome: complete | interim | blocked
+kbState: clean_fresh | stale | dirty | legacy_compat | not_evaluated
+verificationState: fresh | dirty | unavailable | not_evaluated
+proofState: proven | mixed | unresolved | not_evaluated
+limitationDisposition: none | accepted | unaccepted | not_applicable
+```
+
+`taskOutcome` describes whether the requested objective was completed. The
+other fields describe observed system state. A clean check can coexist with a
+stale or dirty KB; unresolved proof can coexist with a complete maintenance
+task. An accepted limitation is an auditable operator decision, never logical
+grounding, receipt editing, or proof. For every quality diagnostic, record its
+ID, one of `fixed`, `accepted`, or `deferred`, and a rationale. Keep accepted
+ontology gaps and historical telemetry limitations explicit.
+
+Receipt reuse is safe only when the live verification snapshot, contract hash,
+freshness window, and every required case result still match. Otherwise rerun
+the contracted command. If the contract changed, retain every older receipt
+unchanged, append evidence for the current contract, and keep proof unresolved
+with `verification_contract_mismatch` until that current receipt exists.
+Obsolete symbols require current extraction or Git evidence before
+remap/deletion; transfer coverage only when existing test evidence supports it,
+then sync and read back status. Same-version packages with different export
+surfaces are a release defect: require a new package version and label any
+project override temporary. This skill never selects a package manager or
+edits dependency configuration.
+
 ## Discovery to Validation Sequence
 
 The canonical workflow for any KB operation follows this pattern:
@@ -13,7 +46,7 @@ The canonical workflow for any KB operation follows this pattern:
 7. **Create endpoints**: validated `kb_upsert` for new entities, sequentially
 8. **Link**: validated `kb_upsert` with `requires_rule`, `requires_predicate`, `constrains`, or `requires_property`, sequentially
 9. **Validate coverage and consistency**: targeted `rule-safety`, `rule-verifiability`, `semantic-completeness`, `logic-coverage`, `predicate-verifiability`, and `domain-contradictions`, then final full `kb_check`
-10. **Prove execution**: read `kb_status.verificationSnapshot`, run each scenario-backed E2E command, append its `kibi.verification-receipt.v1`, and re-run `kb_coverage`; never promote durable test status into fresh evidence
+10. **Prove execution**: read `kb_status.verificationSnapshot`, run each scenario-backed E2E command exactly as declared by its `verification_contract.v1` through `kibi verify`, append the derived `kibi.verification-receipt.v2`, and re-run `kb_coverage`; never promote durable test status into fresh evidence
 11. **Repair incrementally**: require `kb_coverage.repairPlan.scope.complete`, apply only one `ready` dependency batch per requirement, validate before every sequential write, and rerun coverage before selecting the next batch
 12. **Gate workflow evidence**: when `.kb/usage.log` exists, run `kibi usage-metrics --format json --require-acceptance`; repair ranked telemetry diagnostics and never treat stale or insufficient evidence as a pass
 
@@ -22,6 +55,26 @@ Every current requirement without `logic_claims` remains visible as non-blocking
 `kibi.repair-plan.v1` is a deterministic read-only plan, not a mutation script. Its phase order keeps source and proposition analysis ahead of ground endpoints, endpoints ahead of manifests/links, logic ahead of contradictions, scenarios ahead of tests and receipts, and production ownership ahead of coverage and coordinate refresh. A `blocked` batch is waiting on every listed `dependsOn` batch. If pagination makes the plan partial, increase the requirement coverage limit rather than applying an incomplete project view.
 
 `kibi.telemetry-acceptance.v1` evaluates the latest 200 usage events and keeps process health separate from graph correctness. It requires at least 95% complete diagnostic telemetry and, when applicable, exact recent validation before every upsert and a same-requirement/current-hash advisor pass before requirement writes. It also evaluates source lookup misses, comparable complete-scope proof-gap recovery, receipt-specific coverage gaps, and mutation targets retried three or more times. Failed metrics become ranked `category: telemetry` quality diagnostics; missing current coverage fields or evidence older than seven days stays `insufficient_evidence`.
+
+## Agent-guided migration
+
+`kb_status`, unfiltered `kb_check`, and complete-scope `kb_coverage` may return
+the shared `kibi.migration-plan.v2`. Treat it as a typed action graph: inspect
+the canonical `planHash`, scope completeness, dependencies, safety class,
+preconditions, postconditions, and evidence. Apply only ready automatic actions
+with `autoApplicable: true` through an explicitly approved `kb_apply_plan` or
+`kibi migrate --apply-safe` request containing the exact hash and action IDs.
+Never infer an operation from a prose suggestion, and never apply a partial
+plan's destructive symbol or relationship action.
+
+The migration engine may normalize schema/config metadata, cut over validated
+legacy storage with backups, migrate the exact historical branch attachment,
+refresh coordinates, and perform provenance-proven stale cleanup. It does not
+choose package managers, ground semantic claims, resolve contradictions, rerun
+E2E tests, rewrite receipt history, remap authored symbols, or accept
+limitations. Those actions remain explicit review/operator/execution steps.
+
+For `e2e_receipt_freshness_low`, query each listed requirement/test gap and run its exact current contract through `kibi verify`; this appends v2 evidence and preserves older history. If `coverage_depth_review` conflicts with a coverage row whose `proofStages.passingE2e.status` is `passed`, report the diagnostic as a stale heuristic and keep any independent proof gaps unresolved.
 
 ## Creating a New Feature
 ```
@@ -50,10 +103,10 @@ Do not create a test-fact pair. Facts describe invariants; requirements or scena
 1. Confirm the exact `REQ -> SCEN -> TEST` path and require typed `verification_scope: end_to_end`; direct requirement-to-test links do not satisfy the conservative scenario stage.
 2. Read `kb_status` and retain its available `verificationSnapshot`. Stop if the runtime reports `unknown`; proof must fail closed when the code identity cannot be computed.
 3. Run the exact E2E command against that snapshot. Record runner, command, start/finish timestamps, outcome, an environment SHA-256, and an artifact/output SHA-256. Do not mint a passed receipt from an authored test status or from an unexecuted assertion.
-4. Preserve every existing receipt byte-for-byte and append a unique `kibi.verification-receipt.v1` object with strictly later `finished_at`. Mutation and incremental sync reject history removal, rewriting, and reordering.
+4. Preserve every existing receipt byte-for-byte and append the derived `kibi.verification-receipt.v2` object with strictly later `finished_at`. Earlier receipts may bind older contracts; they remain audit history but cannot prove the current contract. Mutation and incremental sync reject history removal, rewriting, and reordering.
 5. Re-read `kb_status`; if the snapshot changed during the run, discard the candidate as proof and rerun against the new snapshot. Then run `kb_coverage` and inspect `proofStages.passingE2e.receiptEvidence` plus gap codes.
 
-Only the newest receipt for the live snapshot qualifies, and it must be passed, no more than seven days old, and no more than five minutes in the future. Wrong-snapshot history is retained but stale for current proof. `missing_verification_receipt`, `stale_verification_receipt`, `failed_verification_receipt`, `invalid_verification_receipt`, and `verification_snapshot_unavailable` are repair states, not warnings to waive.
+Only the newest receipt matching both the live snapshot and current contract qualifies, and it must be passed, no more than seven days old, and no more than five minutes in the future. Wrong-snapshot and older-contract history is retained but cannot prove the current test. `missing_verification_receipt`, `stale_verification_receipt`, `failed_verification_receipt`, `invalid_verification_receipt`, `verification_contract_mismatch`, and `verification_snapshot_unavailable` are repair states, not warnings to waive.
 
 ## Predicate-First Requirement Modeling
 

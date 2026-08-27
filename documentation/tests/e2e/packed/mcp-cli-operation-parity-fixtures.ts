@@ -8,7 +8,11 @@ export type OperationCase = {
 };
 
 export const OPERATIONS: readonly OperationCase[] = [
-  { tool: "kb_query", route: "query", input: { type: "req" } },
+  {
+    tool: "kb_query",
+    route: "query",
+    input: { type: "req", sourceFile: ".kb/requirements" },
+  },
   {
     tool: "kb_search",
     route: "search",
@@ -47,6 +51,7 @@ export const OPERATIONS: readonly OperationCase[] = [
       type: "req",
       id: "REQ-PACKED-UPSERT",
       properties: { title: "Packed upsert", status: "open" },
+      document: { path: ".kb/requirements/REQ-PACKED-UPSERT.md" },
       relationships: [
         {
           type: "relates_to",
@@ -83,8 +88,8 @@ export const OPERATIONS: readonly OperationCase[] = [
     input: { text: "The CLI must expose every MCP operation." },
   },
   {
-    tool: "kb_autopilot_generate",
-    route: "autopilot-generate",
+    tool: "kb_plan_bootstrap",
+    route: "plan-bootstrap",
     input: { includeGenericMarkdown: false, maxCandidates: 1 },
   },
   {
@@ -95,7 +100,7 @@ export const OPERATIONS: readonly OperationCase[] = [
   {
     tool: "kb_check",
     route: "check",
-    input: { rules: ["required-fields"] },
+    input: { rules: ["required-fields", "query-plan-safety"] },
   },
   {
     tool: "kb_sparql_remote",
@@ -109,7 +114,7 @@ export const OPERATIONS: readonly OperationCase[] = [
 ] as const;
 
 export const EXPECTED_BUNDLE_PATHS = [
-  "package/skills/init-kibi/SKILL.md",
+  "package/skills/kibi-bootstrap/SKILL.md",
   "package/skills/kibi-freshness/SKILL.md",
   "package/skills/kibi-traceability/SKILL.md",
   "package/skills/kibi-usage/SKILL.md",

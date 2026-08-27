@@ -1,0 +1,120 @@
+relationships:
+  - id: rel-a0285e7fa33b
+    type: covered_by
+    from: SYM-reqcompiler-workspace-snapshot-evidence
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: "2026-08-15T12:41:40.307Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-reqcompiler-workspace-snapshot-evidence
+    to: REQ-kibi-verification-receipts-v2
+    created_at: 2026-08-15T16:37:52.157Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce7609e7b769
+  - type: covered_by
+    from: SYM-reqcompiler-workspace-snapshot-evidence
+    to: TEST-kibi-verification-receipts-v2
+    created_at: 2026-08-15T16:37:52.161Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b208163c166
+  - type: implements
+    from: SYM-auto-92638075C834
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-16T07:54:10.592Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-afbf71814b32
+  - type: covered_by
+    from: SYM-auto-92638075C834
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-08-16T07:54:10.597Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc01f42e40d1
+  - type: covered_by
+    from: SYM-reqcompiler-usage-report
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-08-16T18:52:12.209Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43859dfcb5ae
+  - type: covered_by
+    from: SYM-cli-engine-client-checkpoint
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-08-16T19:49:09.970Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e4a6d5382d1c
+  - type: implements
+    from: SYM-reqcompiler-graph-execute
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:32:31.595Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d6f10a37c23
+  - type: covered_by
+    from: SYM-reqcompiler-graph-execute
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:32:31.610Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d02779e76981
+  - type: covered_by
+    from: SYM-reqcompiler-graph-execute
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:32:31.618Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5cfb5e3fd1cb
+  - type: implements
+    from: SYM-resolveWorkContext
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:54:27.936Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3362ac3fa2ad
+  - type: covered_by
+    from: SYM-resolveWorkContext
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:54:27.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5934141aa2e8
+  - type: covered_by
+    from: SYM-resolveWorkContext
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:54:27.959Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a15337033db9
+  - type: implements
+    from: SYM-auto-92638075C834
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:54:09.055Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4cdda46d5a4
+  - type: covered_by
+    from: SYM-auto-92638075C834
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:54:09.059Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f8844a041db8
+  - type: covered_by
+    from: SYM-cli-PrologProcess-signalProcessTree
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-26T07:16:48.393Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69b9c6589ed1
+  - type: implements
+    from: SYM-skillopt-init-fixture-repository
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-26T18:07:26.619Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa44a2fb4ca1

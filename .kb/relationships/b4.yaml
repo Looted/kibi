@@ -1,0 +1,71 @@
+relationships:
+  - id: rel-a72a10ec0446
+    type: covered_by
+    from: SYM-reqcompiler-sync-cache-copy
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: "2026-08-16T18:52:06.554Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-loadConfig
+    to: REQ-011
+    created_at: 2026-08-22T20:12:57.224Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-96aebb24e0f7
+  - type: covered_by
+    from: SYM-loadConfig
+    to: TEST-cli-config-schema
+    created_at: 2026-08-22T20:12:57.232Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f36afc28ccc3
+  - type: covered_by
+    from: SYM-loadConfig
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:12:57.236Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46431d05c651
+  - type: implements
+    from: SYM-SessionEditEntry
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:55:19.708Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1038cd72a0fc
+  - type: covered_by
+    from: SYM-SessionEditEntry
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:55:19.719Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af9ba13fa4b4
+  - type: covered_by
+    from: SYM-SessionEditEntry
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:55:19.724Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-571a6ec7ef2d
+  - type: covered_by
+    from: SYM-discovery-search-input
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:37:13.625Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de1959fc1dbe
+  - type: implements
+    from: SYM-discovery-search-input
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:00:48.691Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-412909020b49
+  - type: covered_by
+    from: SYM-discovery-search-input
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:00:48.694Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f378102a8b73

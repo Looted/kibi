@@ -1,5 +1,4 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { execFileSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -9,6 +8,7 @@ import {
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { execFileSync } from "../helpers/isolated-env.js";
 
 describe("human and JSON discovery command parity", () => {
   let workspaceRoot: string;
@@ -29,13 +29,17 @@ describe("human and JSON discovery command parity", () => {
       stdio: "pipe",
     });
     run(["init"]);
-    mkdirSync(path.join(workspaceRoot, "documentation", "requirements"), {
+    mkdirSync(path.join(workspaceRoot, ".kb", "requirements"), {
       recursive: true,
     });
     writeFileSync(
-      path.join(workspaceRoot, "documentation", "requirements", "REQ-1.md"),
+      path.join(workspaceRoot, ".kb", "requirements", "REQ-1.md"),
       "---\nid: REQ-1\ntitle: OAuth discovery parity\nstatus: open\ntags: [auth]\n---\n\nOAuth discovery body.\n",
     );
+    execFileSync("git", ["add", ".kb"], {
+      cwd: workspaceRoot,
+      stdio: "pipe",
+    });
     run(["sync"]);
   }, 30_000);
 
@@ -55,8 +59,8 @@ describe("human and JSON discovery command parity", () => {
     );
 
     // Then
-    expect(protocol.entities).toEqual(human);
-    expect(protocol.count).toBe(human.length);
+    expect(protocol.data.entities).toEqual(human);
+    expect(protocol.data.count).toBe(human.length);
   }, 15_000);
 
   test("search returns matching ranking through flags and --input", () => {
@@ -74,7 +78,7 @@ describe("human and JSON discovery command parity", () => {
     );
 
     // Then
-    expect(protocol).toEqual(human);
+    expect(protocol.data).toEqual(human);
   }, 15_000);
 
   test("status returns matching freshness through flags and --input", () => {
@@ -85,6 +89,6 @@ describe("human and JSON discovery command parity", () => {
     const protocol = JSON.parse(run(["status", "--input", "-"], "{}"));
 
     // Then
-    expect(protocol).toEqual(human);
+    expect(protocol.data).toEqual(human);
   }, 15_000);
 });

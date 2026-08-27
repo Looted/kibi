@@ -38,6 +38,7 @@ import type {
   PrologSearchQueryResult,
 } from "./public/operations/runtime-types.js";
 import { isValidBranchName } from "./utils/branch-resolver.js";
+import { ensureBranchStoreManifest } from "./utils/branch-store-locator.js";
 
 export const ENGINE_PROTOCOL_VERSION = 1;
 export const ENGINE_IDLE_TIMEOUT_MS = 10 * 60 * 1000;
@@ -46,6 +47,7 @@ export const ENGINE_PACKAGE_VERSIONS =
 const ENGINE_QUERY_CACHE_MAX_ENTRIES = 128;
 const ENGINE_QUERY_CACHE_MAX_RESULT_BYTES = 8 * 1024 * 1024;
 const ENGINE_FRESHNESS_CACHE_MS = 100;
+const ENGINE_PUBLICATION_LOCK_STALE_MS = 5_000;
 
 function engineIdleTimeoutMs(): number {
   const configured = Number.parseInt(
@@ -57,10 +59,58 @@ function engineIdleTimeoutMs(): number {
     : ENGINE_IDLE_TIMEOUT_MS;
 }
 
-type EngineRequest = {
+export type EngineCommandV1 =
+  | Readonly<{ version: 1; kind: "status" }>
+  | Readonly<{
+      version: 1;
+      kind: "entities";
+      type?: string;
+      id?: string;
+      tags?: readonly string[];
+      sourceFile?: string;
+      limit: number;
+      offset: number;
+    }>
+  | Readonly<{
+      version: 1;
+      kind: "search";
+      query: string;
+      type?: string;
+      limit: number;
+      offset: number;
+    }>
+  | Readonly<{ version: 1; kind: "checkpoint" }>
+  | Readonly<{ version: 1; kind: "compact" }>
+  | Readonly<{ version: 1; kind: "save" }>
+  | Readonly<{ version: 1; kind: "check"; rule?: string }>
+  | Readonly<{
+      version: 1;
+      kind: "relationship";
+      action: "assert" | "retract";
+      type: string;
+      from: string;
+      to: string;
+    }>
+  | Readonly<{
+      version: 1;
+      kind: "persistence";
+      action: "checkpoint" | "compact" | "save" | "export";
+      targetDirectory?: string;
+    }>
+  | Readonly<{
+      version: 1;
+      kind: "lifecycle";
+      action: "stop" | "cancel";
+      requestId?: number;
+    }>
+  | Readonly<{ version: 1; kind: "stop" }>
+  | Readonly<{ version: 1; kind: "cancel"; requestId: number }>;
+
+export type EngineRequest = {
   readonly id: number;
   readonly method:
     | "query"
+    | "command"
     | "entities"
     | "search"
     | "kbStatus"
@@ -84,6 +134,7 @@ type EngineRequest = {
   readonly offset?: number;
   readonly targetDirectory?: string;
   readonly cancelOf?: number;
+  readonly command?: EngineCommandV1;
 };
 
 type EngineResponse = {
@@ -129,19 +180,81 @@ function mutatingEngineGoal(goal: string): boolean {
   );
 }
 
+function maskPrologData(goal: string): string {
+  const chars = [...goal];
+  let quote: "'" | '"' | "`" | null = null;
+  let lineComment = false;
+  let blockComment = false;
+  for (let index = 0; index < chars.length; index += 1) {
+    const current = chars[index];
+    const next = chars[index + 1];
+    if (lineComment) {
+      if (current === "\n") lineComment = false;
+      else chars[index] = " ";
+      continue;
+    }
+    if (blockComment) {
+      if (current === "*" && next === "/") {
+        chars[index] = " ";
+        chars[index + 1] = " ";
+        index += 1;
+        blockComment = false;
+      } else if (current !== "\n") {
+        chars[index] = " ";
+      }
+      continue;
+    }
+    if (quote !== null) {
+      if (current === "\\") {
+        chars[index] = " ";
+        if (index + 1 < chars.length) {
+          chars[index + 1] = " ";
+          index += 1;
+        }
+      } else if (current === quote) {
+        if (next === quote) {
+          chars[index] = " ";
+          chars[index + 1] = " ";
+          index += 1;
+        } else {
+          chars[index] = " ";
+          quote = null;
+        }
+      } else if (current !== "\n") {
+        chars[index] = " ";
+      }
+      continue;
+    }
+    if (current === "%") {
+      chars[index] = " ";
+      lineComment = true;
+    } else if (current === "/" && next === "*") {
+      chars[index] = " ";
+      chars[index + 1] = " ";
+      index += 1;
+      blockComment = true;
+    } else if (current === "'" || current === '"' || current === "`") {
+      chars[index] = " ";
+      quote = current;
+    }
+  }
+  return chars.join("");
+}
+
 function safeEngineGoal(goal: string): boolean {
   // The socket is a local capability boundary, not a general-purpose SWI
   // console. Public clients may compose the typed Kibi predicates needed by
-  // the 18 operation contracts, but process/filesystem/network escape hatches
+  // the typed operation contracts, but process/filesystem/network escape hatches
   // are rejected before they reach Prolog.
+  const executable = maskPrologData(goal);
   if (
-    /\b(?:halt|abort|shell|system|process_create|consult|load_files|open|close|delete_file|rename_file|make_directory|thread_create|rdf_attach_db|rdf_load|rdf_save|assertz|asserta|retractall)\s*\(/.test(
-      goal,
+    /\b(?:halt|abort|shell|system|process_create|consult|load_files|open|close|delete_file|rename_file|make_directory|thread_create|rdf_attach_db|rdf_load|rdf_save|assertz|asserta|retractall|set_prolog_flag)\s*\(/.test(
+      executable,
     )
   ) {
     return false;
   }
-  return /(?:^|[(:,\s])(?:kb_|checks:|status:|discovery:|requirement_proof:|findall\(|aggregate_all\(|rdf_transaction\(|set_prolog_flag\(|use_module\(|atom_json_dict\(|member\(|once\(|true\b|fail\b)/.test(
+  return /(?:^|[(:,\s])(?:kb_|checks:|status:|discovery:|requirement_proof:|findall\(|aggregate_all\(|rdf_transaction\(|use_module\(|atom_json_dict\(|member\(|once\(|true\b|fail\b)/.test(
     goal.trim(),
   );
 }
@@ -298,6 +411,140 @@ export function engineStartLockPath(
     );
   }
   return `${engineSocketPath(workspaceRoot, branch)}.start.lock`;
+}
+
+/**
+ * A generation publisher holds this lease from the existing daemon shutdown
+ * through the atomic branch-store cutover. Engine clients honor the lease so
+ * another process cannot auto-start a writer in the stop-to-publish gap.
+ */
+export function enginePublicationLockPath(
+  workspaceRoot: string,
+  branch: string,
+): string {
+  return `${engineSocketPath(workspaceRoot, branch)}.publish.lock`;
+}
+
+function publicationLockOwner(lockPath: string): {
+  readonly pid: number;
+  readonly createdAt: number;
+} | null {
+  try {
+    const [pidText, createdText] = readFileSync(lockPath, "utf8")
+      .trim()
+      .split(":");
+    const pid = Number.parseInt(pidText ?? "", 10);
+    const createdAt = Number.parseInt(createdText ?? "", 10);
+    if (!Number.isInteger(pid) || pid <= 1 || !Number.isFinite(createdAt)) {
+      return null;
+    }
+    return { pid, createdAt };
+  } catch {
+    return null;
+  }
+}
+
+function processIsAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function clearStalePublicationLock(lockPath: string): boolean {
+  if (!existsSync(lockPath)) return true;
+  const owner = publicationLockOwner(lockPath);
+  let age = 0;
+  try {
+    age = Date.now() - statSync(lockPath).mtimeMs;
+  } catch {
+    return false;
+  }
+  if (
+    (owner === null || !processIsAlive(owner.pid)) &&
+    age > ENGINE_PUBLICATION_LOCK_STALE_MS
+  ) {
+    try {
+      unlinkSync(lockPath);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
+function publicationLockIsActive(lockPath: string): boolean {
+  if (!existsSync(lockPath)) return false;
+  if (clearStalePublicationLock(lockPath)) return false;
+  return existsSync(lockPath);
+}
+
+export type EnginePublicationLease = Readonly<{
+  readonly path: string;
+  readonly release: () => void;
+}>;
+
+export function acquireEnginePublicationLease(
+  workspaceRoot: string,
+  branch: string,
+): EnginePublicationLease {
+  const lockPath = enginePublicationLockPath(workspaceRoot, branch);
+  mkdirSync(path.dirname(lockPath), { recursive: true, mode: 0o700 });
+  let descriptor: number | null = null;
+  try {
+    descriptor = openSync(lockPath, "wx", 0o600);
+  } catch {
+    if (clearStalePublicationLock(lockPath)) {
+      try {
+        descriptor = openSync(lockPath, "wx", 0o600);
+      } catch {
+        // Fall through to the stable fail-closed error below.
+      }
+    }
+  }
+  if (descriptor === null) {
+    throw new Error(
+      `Kibi engine publication is already in progress: ${lockPath}`,
+    );
+  }
+  try {
+    writeFileSync(lockPath, `${process.pid}:${Date.now()}\n`, { flag: "w" });
+  } catch (error) {
+    closeSync(descriptor);
+    unlinkSync(lockPath);
+    throw error;
+  }
+  const startLockPath = engineStartLockPath(workspaceRoot, branch);
+  const startDescriptor = tryAcquireStartLock(startLockPath);
+  if (startDescriptor === null) {
+    closeSync(descriptor);
+    unlinkSync(lockPath);
+    throw new Error(
+      `Kibi engine publication cannot acquire the engine start lease: ${startLockPath}`,
+    );
+  }
+  let released = false;
+  return {
+    path: lockPath,
+    release: () => {
+      if (released) return;
+      released = true;
+      try {
+        closeSync(descriptor as number);
+      } catch {
+        // The descriptor may already have been closed during process cleanup.
+      }
+      releaseStartLock(startLockPath, startDescriptor);
+      try {
+        unlinkSync(lockPath);
+      } catch {
+        // A subsequent publisher may have replaced a stale lock after a crash.
+      }
+    },
+  };
 }
 
 function tryAcquireStartLock(lockPath: string): number | null {
@@ -486,6 +733,8 @@ export type EngineClientOptions = {
   readonly workspaceRoot: string;
   readonly branch: string;
   readonly timeout?: number;
+  /** Internal stop-before-publish client may attach while it owns the lease. */
+  readonly allowPublicationLock?: boolean;
 };
 
 /** PrologPort-compatible client used by CLI and MCP operation runtimes. */
@@ -494,6 +743,7 @@ export class EngineClient {
   private readonly workspaceRoot: string;
   private readonly branch: string;
   private readonly timeout: number;
+  private readonly allowPublicationLock: boolean;
   private socket: net.Socket | null = null;
   private daemon: ChildProcess | null = null;
   private inputBuffer: Buffer<ArrayBufferLike> = Buffer.alloc(0);
@@ -514,11 +764,24 @@ export class EngineClient {
     }
     this.branch = options.branch;
     this.timeout = options.timeout ?? 120_000;
+    this.allowPublicationLock = options.allowPublicationLock ?? false;
   }
 
   async start(allowSpawn = true): Promise<void> {
     if (this.socket !== null && !this.socket.destroyed) return;
     const socketPath = engineSocketPath(this.workspaceRoot, this.branch);
+    const publicationLockPath = enginePublicationLockPath(
+      this.workspaceRoot,
+      this.branch,
+    );
+    if (
+      !this.allowPublicationLock &&
+      publicationLockIsActive(publicationLockPath)
+    ) {
+      throw new Error(
+        `Kibi engine publication is in progress: ${publicationLockPath}`,
+      );
+    }
     try {
       if (existsSync(socketPath)) {
         this.socket = await connectWithRetry(socketPath, 150);
@@ -700,6 +963,15 @@ export class EngineClient {
     }
   }
 
+  /** Execute a versioned, goal-free engine command. Raw query remains private
+   * compatibility traffic for the in-process Prolog adapter only. */
+  async command<T = PrologQueryResult>(
+    command: EngineCommandV1,
+    signal?: AbortSignal,
+  ): Promise<T> {
+    return this.request<T>({ method: "command", command }, signal);
+  }
+
   async queryBatch(goals: readonly string[]): Promise<PrologQueryResult> {
     const normalized = goals.map((goal) => goal.trim().replace(/\.+\s*$/, ""));
     return this.query(`rdf_transaction((${normalized.join(", ")}))`);
@@ -707,18 +979,23 @@ export class EngineClient {
 
   async queryEntities(
     input: PrologEntityQueryInput,
+    signal?: AbortSignal,
   ): Promise<PrologEntityQueryResult> {
-    const result = await this.request<PrologQueryResult>({
-      method: "entities",
-      ...(input.type !== undefined ? { type: input.type } : {}),
-      ...(input.id !== undefined ? { entityId: input.id } : {}),
-      ...(input.tags !== undefined ? { tags: input.tags } : {}),
-      ...(input.sourceFile !== undefined
-        ? { sourceFile: input.sourceFile }
-        : {}),
-      limit: input.limit,
-      offset: input.offset,
-    });
+    const result = await this.command<PrologQueryResult>(
+      {
+        version: 1,
+        kind: "entities",
+        ...(input.type !== undefined ? { type: input.type } : {}),
+        ...(input.id !== undefined ? { id: input.id } : {}),
+        ...(input.tags !== undefined ? { tags: input.tags } : {}),
+        ...(input.sourceFile !== undefined
+          ? { sourceFile: input.sourceFile }
+          : {}),
+        limit: input.limit,
+        offset: input.offset,
+      },
+      signal,
+    );
     if (!result.success) {
       throw new Error(result.error ?? "Indexed entity query failed");
     }
@@ -734,14 +1011,19 @@ export class EngineClient {
 
   async searchEntities(
     input: PrologSearchQueryInput,
+    signal?: AbortSignal,
   ): Promise<PrologSearchQueryResult> {
-    const result = await this.request<PrologQueryResult>({
-      method: "search",
-      searchQuery: input.query,
-      ...(input.type !== undefined ? { type: input.type } : {}),
-      limit: input.limit,
-      offset: input.offset,
-    });
+    const result = await this.command<PrologQueryResult>(
+      {
+        version: 1,
+        kind: "search",
+        query: input.query,
+        ...(input.type !== undefined ? { type: input.type } : {}),
+        limit: input.limit,
+        offset: input.offset,
+      },
+      signal,
+    );
     if (!result.success) {
       throw new Error(result.error ?? "Indexed search candidate query failed");
     }
@@ -779,8 +1061,8 @@ export class EngineClient {
     return result;
   }
 
-  async save(): Promise<PrologQueryResult> {
-    return this.query("kb_save");
+  async save(signal?: AbortSignal): Promise<PrologQueryResult> {
+    return this.query("kb_save", signal);
   }
 
   async storageStatus(): Promise<PrologQueryResult> {
@@ -788,15 +1070,15 @@ export class EngineClient {
   }
 
   async checkpoint(): Promise<PrologQueryResult> {
-    return this.request<PrologQueryResult>({ method: "checkpoint" });
+    return this.command<PrologQueryResult>({ version: 1, kind: "checkpoint" });
   }
 
   async queryStatusJson(): Promise<PrologQueryResult> {
-    return this.request<PrologQueryResult>({ method: "kbStatus" });
+    return this.command<PrologQueryResult>({ version: 1, kind: "status" });
   }
 
   async compact(): Promise<PrologQueryResult> {
-    return this.request<PrologQueryResult>({ method: "compact" });
+    return this.command<PrologQueryResult>({ version: 1, kind: "compact" });
   }
 
   async exportStorage(targetDirectory: string): Promise<PrologQueryResult> {
@@ -833,8 +1115,20 @@ export class EngineClient {
         throw new Error("Unable to start Kibi engine for stop request");
       }
     }
-    if (!this.isRunning()) return;
-    await this.request({ method: "stop" }).catch(() => undefined);
+    if (!this.isRunning()) {
+      if (existsSync(socketPath)) {
+        throw new Error(
+          `Kibi engine socket remains present but is not reachable: ${socketPath}`,
+        );
+      }
+      return;
+    }
+    let requestError: unknown;
+    try {
+      await this.request({ method: "stop" });
+    } catch (error) {
+      requestError = error;
+    }
     this.socket?.destroy();
     this.socket = null;
     // The daemon acknowledges stop before its SWI child has flushed and the
@@ -843,6 +1137,11 @@ export class EngineClient {
     const deadline = Date.now() + 5_000;
     while (existsSync(socketPath) && Date.now() < deadline) {
       await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    if (existsSync(socketPath)) {
+      const detail =
+        requestError instanceof Error ? `: ${requestError.message}` : "";
+      throw new Error(`Kibi engine did not stop within 5 seconds${detail}`);
     }
   }
 
@@ -1098,17 +1397,13 @@ export async function runEngineDaemon(options: {
   if (!isValidBranchName(options.branch)) {
     throw new Error(`Invalid Kibi engine branch name: ${options.branch}`);
   }
-  await ensureJournaledBranchStoreAsync(
-    path.join(options.workspaceRoot, ".kb", "branches", options.branch),
-  );
-  const prolog = new PrologProcess({ timeout: 120_000, oneShot: false });
-  await prolog.start();
-  const branchPath = path.join(
+  const branchPath = ensureBranchStoreManifest(
     options.workspaceRoot,
-    ".kb",
-    "branches",
     options.branch,
   );
+  await ensureJournaledBranchStoreAsync(branchPath);
+  const prolog = new PrologProcess({ timeout: 120_000, oneShot: false });
+  await prolog.start();
   const attached = await prolog.query(
     `kb_attach('${quoteProlog(branchPath)}')`,
   );
@@ -1164,6 +1459,27 @@ export async function runEngineDaemon(options: {
   const cancelledRequests = new Set<number>();
   const clients = new Set<net.Socket>();
   let shuttingDown = false;
+
+  const exactBranchStatus = (result: PrologQueryResult): PrologQueryResult => {
+    if (!result.success || typeof result.bindings.JsonString !== "string") {
+      return result;
+    }
+    try {
+      const decoded = JSON.parse(
+        JSON.parse(result.bindings.JsonString),
+      ) as Record<string, unknown>;
+      decoded.branch = options.branch;
+      return {
+        ...result,
+        bindings: {
+          ...result.bindings,
+          JsonString: JSON.stringify(JSON.stringify(decoded)),
+        },
+      };
+    } catch {
+      return result;
+    }
+  };
 
   const scheduleIdleExit = (): void => {
     if (activeClients > 0) return;
@@ -1276,6 +1592,160 @@ export async function runEngineDaemon(options: {
         }
         return result;
       }
+      case "command": {
+        const command = request.command;
+        if (command === undefined || command.version !== 1) {
+          throw new Error("engine.command must use version 1");
+        }
+        switch (command.kind) {
+          case "status":
+            return exactBranchStatus(
+              await prolog.query("status:kb_status_json(JsonString)"),
+            );
+          case "checkpoint": {
+            queryCache.clear();
+            freshnessCache = null;
+            const result = await prolog.query("kb_sync_checkpoint");
+            if (result.success) fsyncJournaledBranchStore(branchPath);
+            return result;
+          }
+          case "compact": {
+            const result = await prolog.query("kb_storage_compact");
+            if (result.success) fsyncJournaledBranchStore(branchPath);
+            return result;
+          }
+          case "save": {
+            const result = await prolog.query("kb_save");
+            if (result.success) fsyncJournaledBranchStore(branchPath);
+            return result;
+          }
+          case "check": {
+            if (
+              command.rule !== undefined &&
+              !/^[a-z][a-z0-9_]*$/.test(command.rule)
+            ) {
+              throw new Error(
+                "engine.check.rule must be a lowercase rule name",
+              );
+            }
+            // Rule selection is intentionally resolved inside the engine. A
+            // caller never supplies a Prolog goal over the command boundary.
+            return prolog.query("checks:check_all_json(JsonString)");
+          }
+          case "relationship": {
+            if (!command.type || !command.from || !command.to) {
+              throw new Error(
+                "engine.relationship requires type, from, and to",
+              );
+            }
+            const type = quoteProlog(command.type);
+            const from = quoteProlog(command.from);
+            const to = quoteProlog(command.to);
+            const goal =
+              command.action === "assert"
+                ? `kb_assert_relationship('${type}', '${from}', '${to}', [])`
+                : `kb_retract_relationship('${type}', '${from}', '${to}')`;
+            const result = await prolog.query(goal);
+            if (result.success) {
+              queryCache.clear();
+              freshnessCache = null;
+              fsyncJournaledBranchStore(branchPath);
+            }
+            return result;
+          }
+          case "persistence": {
+            const goal =
+              command.action === "checkpoint"
+                ? "kb_sync_checkpoint"
+                : command.action === "compact"
+                  ? "kb_storage_compact"
+                  : command.action === "save"
+                    ? "kb_save"
+                    : command.targetDirectory
+                      ? `kb_storage_export('${quoteProlog(command.targetDirectory)}')`
+                      : null;
+            if (goal === null) {
+              throw new Error(
+                "engine.persistence.export requires targetDirectory",
+              );
+            }
+            const result = await prolog.query(goal);
+            if (result.success) fsyncJournaledBranchStore(branchPath);
+            return result;
+          }
+          case "lifecycle": {
+            if (command.action === "stop") {
+              setImmediate(() => void shutdown());
+              return { stopped: true };
+            }
+            if (!Number.isInteger(command.requestId)) {
+              throw new Error("engine.lifecycle.cancel requires requestId");
+            }
+            const requestId = command.requestId as number;
+            cancelledRequests.add(requestId);
+            return { cancelled: requestId };
+          }
+          case "stop":
+            setImmediate(() => void shutdown());
+            return { stopped: true };
+          case "cancel":
+            cancelledRequests.add(command.requestId);
+            return { cancelled: command.requestId };
+          case "entities": {
+            if (
+              !Number.isInteger(command.limit) ||
+              !Number.isInteger(command.offset) ||
+              command.limit < 0 ||
+              command.offset < 0 ||
+              command.limit > 100_000
+            ) {
+              throw new Error(
+                "engine.entities.limit/offset must be bounded integers",
+              );
+            }
+            const type =
+              command.type === undefined
+                ? "none"
+                : `'${quoteProlog(command.type)}'`;
+            const id =
+              command.id === undefined
+                ? "none"
+                : `'${quoteProlog(command.id)}'`;
+            const tags = `[${(command.tags ?? []).map((tag) => `'${quoteProlog(tag)}'`).join(",")}]`;
+            const source =
+              command.sourceFile === undefined
+                ? "none"
+                : `'${quoteProlog(command.sourceFile)}'`;
+            return prolog.query(
+              `kb_query_entities(${type}, ${id}, ${tags}, ${source}, ${command.limit}, ${command.offset}, Rows, Count)`,
+            );
+          }
+          case "search": {
+            if (!command.query.trim())
+              throw new Error("engine.search.query must be non-empty");
+            if (
+              !Number.isInteger(command.limit) ||
+              !Number.isInteger(command.offset) ||
+              command.limit < 0 ||
+              command.offset < 0 ||
+              command.limit > 100_000
+            ) {
+              throw new Error(
+                "engine.search.limit/offset must be bounded integers",
+              );
+            }
+            const type =
+              command.type === undefined
+                ? "none"
+                : `'${quoteProlog(command.type)}'`;
+            return prolog.query(
+              `kb_search_entities(${type}, '${quoteProlog(command.query)}', ${command.limit}, ${command.offset}, Rows, Count)`,
+            );
+          }
+          default:
+            throw new Error("engine.command kind is unsupported");
+        }
+      }
       case "kbStatus": {
         if (
           freshnessCache !== null &&
@@ -1283,7 +1753,9 @@ export async function runEngineDaemon(options: {
         ) {
           return freshnessCache.result;
         }
-        const result = await prolog.query("status:kb_status_json(JsonString)");
+        const result = exactBranchStatus(
+          await prolog.query("status:kb_status_json(JsonString)"),
+        );
         if (result.success) {
           freshnessCache = { capturedAt: Date.now(), result };
         }

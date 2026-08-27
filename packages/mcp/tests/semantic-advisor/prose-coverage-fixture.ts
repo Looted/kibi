@@ -2,9 +2,8 @@ import type { ProseCoverageCase } from "kibi-cli/operations/semantic-advisor/pro
 
 export const PROSE_COVERAGE_CORPUS: ProseCoverageCase[] = [
   {
-    id: "align-annotation-timekey-slot-precision",
-    source:
-      "/home/looted/projects/align/docs/requirements/annotation-timekey.md",
+    id: "dogfood-project-a-annotation-timekey-slot-precision",
+    source: "/tmp/dogfood-project-a/docs/requirements/annotation-timekey.md",
     text: "Raw browser currentTime values must normalize into canonical integer decisecond timeKey values.",
     expected: {
       kind: "strict_property",
@@ -13,9 +12,9 @@ export const PROSE_COVERAGE_CORPUS: ProseCoverageCase[] = [
     },
   },
   {
-    id: "align-annotation-timekey-merge-policy",
+    id: "dogfood-project-a-annotation-timekey-merge-policy",
     source:
-      "/home/looted/projects/align/docs/facts/FACT-ANNOTATION-TIMEKEY-MERGE-POLICY.md",
+      "/tmp/dogfood-project-a/docs/facts/FACT-ANNOTATION-TIMEKEY-MERGE-POLICY.md",
     text: "Drawing, text, and voice data saved in the same tenth-second slot must merge into one annotation instead of creating multiple selectable annotations.",
     expected: {
       kind: "predicate",
@@ -357,5 +356,47 @@ export const PROSE_COVERAGE_CORPUS: ProseCoverageCase[] = [
     id: "predicate-throttle-policy-rule",
     text: "Event handlers must be throttled for high-frequency operations.",
     expected: { kind: "predicate", predicate_name: "throttle_policy_rule" },
+  },
+  {
+    id: "cursor-launcher-dependency-resolution",
+    text: "The published kibi-cursor plugin must resolve and execute the consumer project's project-local kibi-mcp package without downloading packages or using a global or plugin-local runtime",
+    expected: {
+      kind: "predicate",
+      predicate_name: "dependency_resolution_policy",
+    },
+  },
+  {
+    id: "cursor-launcher-ordered-resolution",
+    text: "It must resolve the consumer workspace in deterministic order: explicit workspace argument, WORKSPACE_FOLDER_PATHS, KIBI_WORKSPACE, CURSOR_WORKSPACE, then cwd only when cwd demonstrably contains project-local kibi-mcp",
+    expected: {
+      kind: "predicate",
+      predicate_name: "ordered_resolution_strategy",
+    },
+  },
+  {
+    id: "cursor-launcher-resolution-failure",
+    text: "unresolved placeholders are invalid and ambiguous multiple usable roots fail clearly",
+    expected: {
+      kind: "predicate",
+      predicate_name: "resolution_failure_policy",
+    },
+  },
+  {
+    id: "cursor-launcher-package-manager-exception",
+    text: "The launcher must resolve kibi-mcp through consumer-scoped Node package semantics including exports-restricted and pnpm-style layouts, and reject packages outside consumer scope unless active package-manager semantics authorize it",
+    expected: { kind: "predicate", predicate_name: "exception_rule" },
+  },
+  {
+    id: "cursor-launcher-process-contract",
+    text: "It must spawn the declared kibi-mcp bin with cwd and KIBI_WORKSPACE set to the consumer workspace, preserve stdio, and propagate child exit codes and termination signals",
+    expected: {
+      kind: "predicate",
+      predicate_name: "process_delegation_contract",
+    },
+  },
+  {
+    id: "cursor-launcher-missing-dependency",
+    text: "Missing project-local kibi-mcp must produce a concise actionable error",
+    expected: { kind: "predicate", predicate_name: "failure_behavior" },
   },
 ];

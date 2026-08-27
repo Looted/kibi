@@ -9,7 +9,10 @@
  */
 
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
-import type { SymbolCoordinatesRecord } from "../../../src/extractors/symbol-coordinates.js";
+import {
+  type SymbolCoordinatesRecord,
+  coordinateSourceHash,
+} from "../../../src/extractors/symbol-coordinates.js";
 import type { ManifestSymbolEntry } from "../../../src/extractors/symbols-coordinator.js";
 
 // --- Mocks ---
@@ -32,6 +35,10 @@ const mockWriteFileSync = mock(
   ) => {},
 );
 const mockExistsSync = mock((_path: import("node:fs").PathLike) => true);
+const mockRenameSync = mock(
+  (_from: import("node:fs").PathLike, _to: import("node:fs").PathLike) => {},
+);
+const mockUnlinkSync = mock((_path: import("node:fs").PathLike) => {});
 
 const mockEnrichSymbolCoordinates = mock(
   async (
@@ -49,10 +56,11 @@ const mockWriteCoordinateArtifact = mock(
   (_coords: Record<string, SymbolCoordinatesRecord>) => "artifact-content\n",
 );
 const mockResolveSymbolsManifestPaths = mock((_workspaceRoot: string) => ({
-  coordinatesPath: "/workspace/documentation/symbol-coordinates.yaml",
+  coordinatesPath: "/workspace/.kb/symbol-coordinates.yaml",
 }));
 
 import {
+  SYMBOLS_MANIFEST_COMMENT_BLOCK,
   hasAllGeneratedCoordinates,
   isCoarseGranularityAnchor,
   isEligibleForCoordinateRefresh,
@@ -72,6 +80,8 @@ const manifestDeps = (): RefreshManifestDeps => ({
   readFileSync:
     mockReadFileSync as unknown as RefreshManifestDeps["readFileSync"],
   writeFileSync: mockWriteFileSync as RefreshManifestDeps["writeFileSync"],
+  renameSync: mockRenameSync as unknown as RefreshManifestDeps["renameSync"],
+  unlinkSync: mockUnlinkSync as unknown as RefreshManifestDeps["unlinkSync"],
   writeCoordinateArtifact:
     mockWriteCoordinateArtifact as unknown as RefreshManifestDeps["writeCoordinateArtifact"],
   resolveSymbolsManifestPaths:
@@ -400,11 +410,15 @@ describe("isCoarseGranularityAnchor", () => {
 });
 
 describe("refreshManifestCoordinates", () => {
-  const manifestPath = "/workspace/documentation/symbols.yaml";
+  const manifestPath = "/workspace/.kb/symbols.yaml";
   const workspaceRoot = "/workspace";
 
   beforeEach(() => {
-    mockReadFileSync.mockImplementation(() => "original-content");
+    mockReadFileSync.mockImplementation((filePath) =>
+      String(filePath).endsWith("symbol-coordinates.yaml")
+        ? "coordinates: {}\n"
+        : "original-content",
+    );
     mockWriteFileSync.mockImplementation(() => {});
     mockExistsSync.mockImplementation(() => true);
     mockParseYAML.mockImplementation(() => ({
@@ -416,8 +430,10 @@ describe("refreshManifestCoordinates", () => {
     );
     mockWriteCoordinateArtifact.mockImplementation(() => "artifact-content\n");
     mockResolveSymbolsManifestPaths.mockImplementation(() => ({
-      coordinatesPath: "/workspace/documentation/symbol-coordinates.yaml",
+      coordinatesPath: "/workspace/.kb/symbol-coordinates.yaml",
     }));
+    mockRenameSync.mockImplementation(() => {});
+    mockUnlinkSync.mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -429,60 +445,53 @@ describe("refreshManifestCoordinates", () => {
     mockEnrichSymbolCoordinates.mockReset();
     mockWriteCoordinateArtifact.mockReset();
     mockResolveSymbolsManifestPaths.mockReset();
+    mockRenameSync.mockReset();
+    mockUnlinkSync.mockReset();
   });
 
-  test("warns and returns early for non-object YAML", async () => {
+  test("fails fatally for non-object YAML", async () => {
     mockParseYAML.mockImplementation(() => "not-an-object");
-    const { messages, restore } = captureWarn();
 
-    await refreshManifestCoordinates(
-      manifestPath,
-      workspaceRoot,
-      manifestDeps(),
-    );
-
-    expect(messages.length).toBe(1);
-    expect(messages[0]).toContain(
-      "is not a YAML object; skipping coordinate refresh",
-    );
+    await expect(
+      refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps()),
+    ).rejects.toThrow("is not a YAML object; refusing coordinate refresh");
     expect(mockEnrichSymbolCoordinates).not.toHaveBeenCalled();
-
-    restore();
   });
 
-  test("warns and returns early when symbols array is missing", async () => {
+  test("fails fatally when symbols array is missing", async () => {
     mockParseYAML.mockImplementation(() => ({ otherKey: "value" }));
-    const { messages, restore } = captureWarn();
 
-    await refreshManifestCoordinates(
-      manifestPath,
-      workspaceRoot,
-      manifestDeps(),
-    );
-
-    expect(messages.length).toBe(1);
-    expect(messages[0]).toContain(
-      "has no symbols array; skipping coordinate refresh",
-    );
+    await expect(
+      refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps()),
+    ).rejects.toThrow("has no symbols array; refusing coordinate refresh");
     expect(mockEnrichSymbolCoordinates).not.toHaveBeenCalled();
-
-    restore();
   });
 
-  test("warns and returns early when symbols is not an array", async () => {
+  test("fails fatally when symbols is not an array", async () => {
     mockParseYAML.mockImplementation(() => ({ symbols: "not-array" }));
-    const { messages, restore } = captureWarn();
 
-    await refreshManifestCoordinates(
-      manifestPath,
-      workspaceRoot,
-      manifestDeps(),
+    await expect(
+      refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps()),
+    ).rejects.toThrow("has no symbols array; refusing coordinate refresh");
+    expect(mockEnrichSymbolCoordinates).not.toHaveBeenCalled();
+  });
+
+  test("preflights the existing coordinate artifact before refresh", async () => {
+    mockReadFileSync.mockImplementation((filePath) =>
+      String(filePath).endsWith("symbol-coordinates.yaml")
+        ? "version: 2\ncoordinates: invalid\n"
+        : "original-content",
     );
 
-    expect(messages.length).toBe(1);
+    await expect(
+      refreshManifestCoordinates(
+        manifestPath,
+        workspaceRoot,
+        Object.assign(manifestDeps(), { refreshSymbolCoordinates: true }),
+      ),
+    ).rejects.toThrow(/Failed to parse coordinate artifact/);
     expect(mockEnrichSymbolCoordinates).not.toHaveBeenCalled();
-
-    restore();
+    expect(mockWriteCoordinateArtifact).not.toHaveBeenCalled();
   });
 
   test("increments refreshed count when coordinates changed", async () => {
@@ -573,6 +582,105 @@ describe("refreshManifestCoordinates", () => {
     expect(messages[0]).toContain("failed=0");
 
     restore();
+  });
+
+  test("persists title-match coordinates for coarse anchors during artifact refresh", async () => {
+    const entry = makeEntry({
+      sourceLine: undefined,
+      sourceColumn: undefined,
+      sourceEndLine: undefined,
+      sourceEndColumn: undefined,
+      granularity_reason: "test-suite",
+      title: "owned engine test runner",
+      sourceFile: "src/foo.ts",
+    });
+    mockParseYAML.mockImplementation(() => ({ symbols: [entry] }));
+    mockEnrichSymbolCoordinates.mockImplementation(async (e) => e);
+    mockExistsSync.mockImplementation(() => true);
+    mockReadFileSync.mockImplementation((filePath) =>
+      String(filePath).endsWith("foo.ts")
+        ? 'describe("owned engine test runner", () => {\n});\n'
+        : "coordinates: {}\n",
+    );
+
+    await refreshManifestCoordinates(
+      manifestPath,
+      workspaceRoot,
+      Object.assign(manifestDeps(), { refreshSymbolCoordinates: true }),
+    );
+
+    expect(mockWriteCoordinateArtifact).toHaveBeenCalledWith({
+      "SYM-001": {
+        identityHash: expect.any(String),
+        sourceHash: coordinateSourceHash(
+          'describe("owned engine test runner", () => {\n});\n',
+        ),
+        sourceFile: "src/foo.ts",
+        sourceLine: 1,
+        sourceColumn: 10,
+        sourceEndLine: 1,
+        sourceEndColumn: 34,
+      },
+    });
+  });
+
+  test("persists whole-file coordinates for coarse anchors when the title is absent", async () => {
+    const entry = makeEntry({
+      sourceLine: undefined,
+      sourceColumn: undefined,
+      sourceEndLine: undefined,
+      sourceEndColumn: undefined,
+      granularity_reason: "extractor-miss",
+      title: "Isolated attached-KB Node CLI and MCP discovery regression",
+      sourceFile: "src/foo.ts",
+    });
+    mockParseYAML.mockImplementation(() => ({ symbols: [entry] }));
+    mockEnrichSymbolCoordinates.mockImplementation(async (e) => e);
+    mockExistsSync.mockImplementation(() => true);
+    mockReadFileSync.mockImplementation((filePath) =>
+      String(filePath).endsWith("foo.ts")
+        ? "line one\nline two\n"
+        : "coordinates: {}\n",
+    );
+
+    await refreshManifestCoordinates(
+      manifestPath,
+      workspaceRoot,
+      Object.assign(manifestDeps(), { refreshSymbolCoordinates: true }),
+    );
+
+    expect(mockWriteCoordinateArtifact).toHaveBeenCalledWith({
+      "SYM-001": {
+        identityHash: expect.any(String),
+        sourceHash: coordinateSourceHash("line one\nline two\n"),
+        sourceFile: "src/foo.ts",
+        sourceLine: 1,
+        sourceColumn: 0,
+        sourceEndLine: 3,
+        sourceEndColumn: 0,
+      },
+    });
+  });
+
+  test("does not invent coordinates for extractable symbols that still lack them", async () => {
+    const entry = makeEntry({
+      sourceLine: undefined,
+      sourceColumn: undefined,
+      sourceEndLine: undefined,
+      sourceEndColumn: undefined,
+      sourceFile: "src/foo.ts",
+    });
+    mockParseYAML.mockImplementation(() => ({ symbols: [entry] }));
+    mockEnrichSymbolCoordinates.mockImplementation(async (e) => e);
+    mockExistsSync.mockImplementation(() => true);
+
+    await refreshManifestCoordinates(
+      manifestPath,
+      workspaceRoot,
+      Object.assign(manifestDeps(), { refreshSymbolCoordinates: true }),
+    );
+
+    expect(mockWriteCoordinateArtifact).toHaveBeenCalledWith({});
   });
 
   test("still counts legacy-link symbols without coordinates as failed", async () => {
@@ -703,13 +811,17 @@ describe("refreshManifestCoordinates", () => {
       Object.assign(manifestDeps(), { refreshSymbolCoordinates: true }),
     );
 
-    // Find the writeFileSync call that wrote the manifestPath
-    const manifestCall = mockWriteFileSync.mock.calls.find(
-      (c) => String(c[0]) === manifestPath,
+    // Manifest publication is atomic: temp write followed by rename.
+    const renameCall = mockRenameSync.mock.calls.find(
+      (c) => String(c[1]) === manifestPath,
     );
-    expect(manifestCall).toBeDefined();
-    const written = manifestCall?.[1] as string;
-    expect(written).toContain("new-yaml");
+    expect(renameCall).toBeDefined();
+    const tempPath = String(renameCall?.[0]);
+    const tempWrite = mockWriteFileSync.mock.calls.find(
+      (c) => String(c[0]) === tempPath,
+    );
+    expect(tempWrite).toBeDefined();
+    expect(tempWrite?.[1]).toContain("new-yaml");
   });
 
   test("always strips generated coordinates from the authored manifest", async () => {
@@ -747,14 +859,29 @@ describe("refreshManifestCoordinates", () => {
     }
   });
 
-  test("warns when coordinate artifact writing fails", async () => {
+  test("fails fatally when coordinate artifact publication fails", async () => {
     const entry = makeEntry();
     mockParseYAML.mockImplementation(() => ({ symbols: [entry] }));
     mockEnrichSymbolCoordinates.mockImplementation(async (e) => e);
     mockResolveSymbolsManifestPaths.mockImplementation(() => {
       throw new Error("config unavailable");
     });
-    const { messages, restore } = captureWarn();
+
+    // Parse and publication failures abort the refresh instead of being
+    // logged-and-ignored, so cache state never advances on partial output.
+    await expect(
+      refreshManifestCoordinates(
+        manifestPath,
+        workspaceRoot,
+        Object.assign(manifestDeps(), { refreshSymbolCoordinates: true }),
+      ),
+    ).rejects.toThrow("config unavailable");
+  });
+
+  test("publishes the coordinate artifact atomically via temp file rename", async () => {
+    const entry = makeEntry({ id: "SYM-ATOMIC" });
+    mockParseYAML.mockImplementation(() => ({ symbols: [entry] }));
+    mockEnrichSymbolCoordinates.mockImplementation(async (e) => e);
 
     await refreshManifestCoordinates(
       manifestPath,
@@ -762,12 +889,53 @@ describe("refreshManifestCoordinates", () => {
       Object.assign(manifestDeps(), { refreshSymbolCoordinates: true }),
     );
 
-    expect(messages[0]).toContain(
-      "Warning: Failed to write symbol-coordinates artifact",
+    const artifactRename = mockRenameSync.mock.calls.find(
+      (c) => String(c[1]) === "/workspace/.kb/symbol-coordinates.yaml",
     );
-    expect(messages[0]).toContain("config unavailable");
+    expect(artifactRename).toBeDefined();
+    expect(mockWriteFileSync).toHaveBeenCalledWith(
+      `/workspace/.kb/symbol-coordinates.yaml.kibi-tmp-${process.pid}`,
+      "artifact-content\n",
+      "utf8",
+    );
+  });
 
-    restore();
+  test("restores the manifest when coordinate artifact publication fails", async () => {
+    const entry = makeEntry({ id: "SYM-ROLLBACK" });
+    const publishedManifest = `${SYMBOLS_MANIFEST_COMMENT_BLOCK}yaml-content\n`;
+    let manifestReads = 0;
+    mockReadFileSync.mockImplementation((target) => {
+      if (String(target) === manifestPath) {
+        manifestReads += 1;
+        return manifestReads === 1 ? "original-content" : publishedManifest;
+      }
+      return "coordinates: {}\n";
+    });
+    mockParseYAML.mockImplementation(() => ({ symbols: [entry] }));
+    mockEnrichSymbolCoordinates.mockImplementation(async (e) => e);
+    mockRenameSync.mockImplementation((_from, target) => {
+      if (String(target).endsWith("symbol-coordinates.yaml")) {
+        throw new Error("artifact rename denied");
+      }
+    });
+
+    await expect(
+      refreshManifestCoordinates(
+        manifestPath,
+        workspaceRoot,
+        Object.assign(manifestDeps(), { refreshSymbolCoordinates: true }),
+      ),
+    ).rejects.toThrow("artifact rename denied");
+
+    const manifestRenames = mockRenameSync.mock.calls.filter(
+      (call) => String(call[1]) === manifestPath,
+    );
+    expect(manifestRenames).toHaveLength(2);
+    expect(mockWriteFileSync).toHaveBeenCalledWith(
+      `${manifestPath}.kibi-tmp-${process.pid}`,
+      "original-content",
+      "utf8",
+    );
   });
 
   test("logs with path.relative for manifest path", async () => {
@@ -783,8 +951,8 @@ describe("refreshManifestCoordinates", () => {
       manifestDeps(),
     );
 
-    // path.relative("/workspace", "/workspace/documentation/symbols.yaml") => "documentation/symbols.yaml"
-    expect(messages[0]).toContain("documentation/symbols.yaml");
+    // path.relative("/workspace", "/workspace/.kb/symbols.yaml") => ".kb/symbols.yaml"
+    expect(messages[0]).toContain(".kb/symbols.yaml");
     expect(messages[0]).toContain("✓ Refreshed symbol coordinates");
 
     restore();
@@ -954,12 +1122,16 @@ describe("refreshManifestCoordinates", () => {
       Object.assign(manifestDeps(), { refreshSymbolCoordinates: true }),
     );
 
-    // Find the manifest write among writes (artifact may be written too)
-    const manifestCall = mockWriteFileSync.mock.calls.find(
-      (c) => String(c[0]) === manifestPath,
+    // Manifest publication is atomic: temp write followed by rename.
+    const manifestRename = mockRenameSync.mock.calls.find(
+      (c) => String(c[1]) === manifestPath,
     );
-    expect(manifestCall).toBeDefined();
-    const written = manifestCall?.[1] as string;
+    expect(manifestRename).toBeDefined();
+    const tempWrite = mockWriteFileSync.mock.calls.find(
+      (c) => String(c[0]) === manifestRename?.[0],
+    );
+    expect(tempWrite).toBeDefined();
+    const written = tempWrite?.[1] as string;
     expect(written).toContain("# symbols.yaml");
     expect(written).toContain("AUTHORED fields (edit freely)");
     expect(written).toContain(
@@ -968,44 +1140,24 @@ describe("refreshManifestCoordinates", () => {
     expect(written).toContain("yaml-output");
   });
 
-  test("isRecord guard: null parsed YAML triggers early return", async () => {
+  test("isRecord guard: null parsed YAML fails fatally", async () => {
     mockParseYAML.mockImplementation(
       () => null as unknown as Record<string, unknown>,
     );
-    const { messages, restore } = captureWarn();
 
-    await refreshManifestCoordinates(
-      manifestPath,
-      workspaceRoot,
-      manifestDeps(),
-    );
-
-    expect(messages.length).toBe(1);
-    expect(messages[0]).toContain(
-      "is not a YAML object; skipping coordinate refresh",
-    );
-    expect(mockEnrichSymbolCoordinates).not.toHaveBeenCalled();
-
-    restore();
+    await expect(
+      refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps()),
+    ).rejects.toThrow("is not a YAML object; refusing coordinate refresh");
   });
 
-  test("isRecord guard: array parsed YAML triggers early return", async () => {
-    mockParseYAML.mockImplementation(() => ["not", "an", "object"]);
-    const { messages, restore } = captureWarn();
-
-    await refreshManifestCoordinates(
-      manifestPath,
-      workspaceRoot,
-      manifestDeps(),
+  test("isRecord guard: array parsed YAML fails fatally", async () => {
+    mockParseYAML.mockImplementation(
+      () => [] as unknown as Record<string, unknown>,
     );
 
-    expect(messages.length).toBe(1);
-    expect(messages[0]).toContain(
-      "is not a YAML object; skipping coordinate refresh",
-    );
-    expect(mockEnrichSymbolCoordinates).not.toHaveBeenCalled();
-
-    restore();
+    await expect(
+      refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps()),
+    ).rejects.toThrow("is not a YAML object; refusing coordinate refresh");
   });
 
   test("failed count when eligible file does not exist", async () => {

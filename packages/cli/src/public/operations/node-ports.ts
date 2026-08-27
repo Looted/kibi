@@ -1,5 +1,6 @@
-import { execFile } from "node:child_process";
+import { execFile, execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
+import * as fsSync from "node:fs";
 import * as fs from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -23,10 +24,22 @@ type NodeGitPort = GitPort & {
 };
 
 const execFileAsync = promisify(execFile);
-const SNAPSHOT_EXCLUDED_PREFIXES = [".changeset/", ".kb/", "docs/"] as const;
+const SNAPSHOT_EXCLUDED_PREFIXES = [
+  ".changeset/",
+  ".kb/branches/",
+  ".kb/recovery/",
+  ".kb/verification/",
+  ".kb/briefs/",
+  ".kb/migrations/",
+  "docs/",
+] as const;
 const ALWAYS_IGNORED_GLOBS = [
   "**/.git/**",
-  "**/.kb/**",
+  "**/.kb/branches/**",
+  "**/.kb/recovery/**",
+  "**/.kb/verification/**",
+  "**/.kb/briefs/**",
+  "**/.kb/migrations/**",
   "**/node_modules/**",
   "**/vendor/**",
   "**/vendors/**",
@@ -76,15 +89,40 @@ function withoutVerificationReceiptFrontmatter(content: string): string {
 }
 
 function snapshotFileContent(relativePath: string, content: Buffer): Buffer {
-  if (
-    relativePath.startsWith("documentation/") &&
-    relativePath.endsWith(".md")
-  ) {
+  if (relativePath.endsWith(".md")) {
     return Buffer.from(
       withoutVerificationReceiptFrontmatter(content.toString("utf8")),
     );
   }
   return content;
+}
+
+/**
+ * A tracked markdown file whose only change is verification-receipt frontmatter
+ * cannot alter the snapshot hash (receipts are stripped before hashing), so it
+ * must not mark the workspace dirty either. CI proof runs append receipts to
+ * tracked proof documents before reporting, and would otherwise always surface
+ * a dirty-workspace warning.
+ */
+function isReceiptOnlyMarkdownChange(
+  workspaceRoot: string,
+  relativePath: string,
+): boolean {
+  if (!relativePath.endsWith(".md")) return false;
+  try {
+    const working = snapshotFileContent(
+      relativePath,
+      fsSync.readFileSync(path.join(workspaceRoot, relativePath)),
+    );
+    const committed = execFileSync(
+      "git",
+      ["-C", workspaceRoot, "show", `HEAD:${relativePath}`],
+      { encoding: "buffer", maxBuffer: 64 * 1024 * 1024 },
+    ) as Buffer;
+    return working.equals(snapshotFileContent(relativePath, committed));
+  } catch {
+    return false;
+  }
 }
 
 async function workspaceSnapshot(workspaceRoot: string) {
@@ -108,7 +146,7 @@ async function workspaceSnapshot(workspaceRoot: string) {
     .filter(includedSnapshotPath)
     .sort();
   const digest = createHash("sha256");
-  digest.update("kibi.workspace-snapshot.v1\0");
+  digest.update("kibi.workspace-snapshot.v2\0");
   for (const relativePath of paths) {
     digest.update(relativePath);
     digest.update("\0");
@@ -132,14 +170,48 @@ async function workspaceSnapshot(workspaceRoot: string) {
       "status",
       "--porcelain=v1",
       "--untracked-files=normal",
+      "-z",
     ],
     { maxBuffer: 16 * 1024 * 1024 },
   );
+  const rawChanges = status.split("\0").filter(Boolean);
+  const changes: {
+    path: string;
+    status: string;
+    snapshotRelevant: boolean;
+    previousPath?: string;
+  }[] = [];
+  for (let index = 0; index < rawChanges.length; index++) {
+    const entry = rawChanges[index] ?? "";
+    const statusCode = entry.slice(0, 2);
+    const relativePath = entry.slice(3).replaceAll("\\", "/");
+    const previous = rawChanges[index + 1];
+    const isRenameOrCopy = statusCode[0] === "R" || statusCode[0] === "C";
+    const previousPath =
+      isRenameOrCopy && previous ? previous.replaceAll("\\", "/") : undefined;
+    const receiptOnly =
+      statusCode.includes("M") &&
+      includedSnapshotPath(relativePath) &&
+      isReceiptOnlyMarkdownChange(workspaceRoot, relativePath);
+    changes.push({
+      path: relativePath,
+      status: statusCode,
+      snapshotRelevant:
+        (includedSnapshotPath(relativePath) && !receiptOnly) ||
+        (previousPath !== undefined && includedSnapshotPath(previousPath)),
+      ...(previousPath !== undefined ? { previousPath } : {}),
+    });
+    if (previousPath !== undefined) index++;
+  }
+  const maxChanges = 200;
   return {
-    version: "kibi.workspace-snapshot.v1" as const,
+    version: "kibi.workspace-snapshot.v2" as const,
     hash: digest.digest("hex"),
-    dirty: status.trim().length > 0,
+    dirty: changes.some((change) => change.snapshotRelevant),
     fileCount: paths.length,
+    changes: changes.slice(0, maxChanges),
+    changeCount: changes.length,
+    changesTruncated: changes.length > maxChanges,
   };
 }
 
@@ -148,10 +220,12 @@ export const nodeFilesystem: NodeFilesystemPort = {
   writeFile: async (filePath, data) => {
     await fs.writeFile(filePath, data, "utf8");
   },
+  rename: (from, to) => fs.rename(from, to),
   mkdir: async (directoryPath) => {
     await fs.mkdir(directoryPath, { recursive: true });
   },
   stat: (filePath) => fs.stat(filePath),
+  unlink: (filePath) => fs.unlink(filePath),
   glob: (patterns, options) =>
     fg([...patterns], {
       cwd: options.cwd,

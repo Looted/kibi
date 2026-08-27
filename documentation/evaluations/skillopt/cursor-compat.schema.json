@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "kibi.skillopt-cursor-compat.v1",
+  "title": "SkillOpt Cursor compatibility report",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "artifactType",
+    "runId",
+    "skill",
+    "phase",
+    "cursorVersion",
+    "qualificationVerdict",
+    "variants",
+    "cells",
+    "verdict",
+    "reasons",
+    "productionAdoption"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "const": "1.1.0" },
+    "artifactType": { "const": "skillopt-cursor-compat" },
+    "runId": { "type": "string", "minLength": 1 },
+    "skill": {
+      "enum": [
+        "kibi-usage",
+        "kibi-freshness",
+        "kibi-traceability",
+        "kibi-bootstrap"
+      ]
+    },
+    "phase": { "enum": ["development", "held-out"] },
+    "cursorVersion": { "type": "string", "minLength": 1 },
+    "qualificationVerdict": { "enum": ["pass", "no-go"] },
+    "variants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "variant",
+          "cells",
+          "hardPasses",
+          "meanScore",
+          "securityFailures"
+        ],
+        "properties": {
+          "variant": { "enum": ["baseline", "one-shot", "skillopt"] },
+          "cells": { "type": "integer", "minimum": 0 },
+          "hardPasses": { "type": "integer", "minimum": 0 },
+          "meanScore": { "type": "number", "minimum": 0, "maximum": 100 },
+          "securityFailures": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "cells": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "taskId",
+          "variant",
+          "outcome",
+          "score",
+          "criticalFailures"
+        ],
+        "properties": {
+          "taskId": { "type": "string", "minLength": 1 },
+          "variant": { "enum": ["baseline", "one-shot", "skillopt"] },
+          "outcome": { "enum": ["pass", "fail", "ambiguous"] },
+          "score": { "type": "number", "minimum": 0, "maximum": 100 },
+          "criticalFailures": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "verdict": {
+      "enum": ["compatible", "incompatible", "informational", "not-qualified"]
+    },
+    "reasons": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "productionAdoption": { "const": "external-verdict-required" }
+  }
+}

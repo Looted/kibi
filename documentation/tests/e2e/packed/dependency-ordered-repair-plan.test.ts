@@ -10,6 +10,7 @@ import {
   createSandbox,
   kibi,
   packAll,
+  stageSourceFile,
 } from "./helpers.js";
 
 const RUN_NODE_TEST_SUITE =
@@ -137,12 +138,14 @@ async function cliJson<T>(sandbox: TestSandbox, args: readonly string[]) {
     0,
     `${args.join(" ")} failed: ${result.stdout}${result.stderr}`,
   );
-  return JSON.parse(result.stdout) as T;
+  const parsed = JSON.parse(result.stdout) as { data?: T };
+  return (parsed.data ?? parsed) as T;
 }
 
 function writeRequirement(sandbox: TestSandbox, id: string) {
+  const relativePath = `.kb/requirements/${id}.md`;
   writeFileSync(
-    join(sandbox.repoDir, "documentation", "requirements", `${id}.md`),
+    join(sandbox.repoDir, relativePath),
     `---
 id: ${id}
 title: Packed repair plan fixture ${id}
@@ -153,6 +156,7 @@ priority: must
 ${id} must remain traceable.
 `,
   );
+  stageSourceFile(sandbox, relativePath);
 }
 
 if (RUN_NODE_TEST_SUITE) {
@@ -173,7 +177,7 @@ if (RUN_NODE_TEST_SUITE) {
       await sandbox.install(tarballs);
       await sandbox.initGitRepo();
       await kibi(sandbox, ["init"]);
-      mkdirSync(join(sandbox.repoDir, "documentation", "requirements"), {
+      mkdirSync(join(sandbox.repoDir, ".kb", "requirements"), {
         recursive: true,
       });
       writeRequirement(sandbox, "REQ-PACKED-PLAN-A");

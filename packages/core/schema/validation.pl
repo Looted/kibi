@@ -119,6 +119,7 @@ is_fact_only_field(claim_span_end).
 % is_test_only_field(+Key) - true if Key is a test-specific field
 is_test_only_field(verification_scope).
 is_test_only_field(verification_perspective).
+is_test_only_field(verification_contract).
 is_test_only_field(verification_receipts).
 
 % validate_fact_shape(+Kind, +Props)

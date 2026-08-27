@@ -24,3 +24,73 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/tests/TEST-010.md
+  - type: covered_by
+    from: SYM-cli-relationship-flatten
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-08-16T19:49:09.978Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-721d4c8eb019
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-candidate
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:49:18.246Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4d99e142fa6
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-candidate
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:49:18.251Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-102124be1f6a
+  - type: implements
+    from: SYM-getWorkspaceMigrationWarning
+    to: REQ-002
+    created_at: 2026-08-22T20:06:29.654Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd6b855d9aad
+  - type: covered_by
+    from: SYM-getWorkspaceMigrationWarning
+    to: TEST-005
+    created_at: 2026-08-22T20:06:29.668Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d2fa3dbe3e1
+  - type: covered_by
+    from: SYM-getWorkspaceMigrationWarning
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:06:29.672Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4202be14eed2
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-candidate
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:16:30.066Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d2beecba386
+  - type: covered_by
+    from: SYM-reqcompiler-find-gaps-payload
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:39:29.057Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aaf3ab07d013
+  - type: implements
+    from: SYM-reqcompiler-find-gaps-payload
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:06:13.724Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3eda4d4a2c2c
+  - type: covered_by
+    from: SYM-reqcompiler-find-gaps-payload
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:06:13.727Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ea0b0ec84fa

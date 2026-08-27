@@ -5,9 +5,9 @@ import {
   extractManifestSymbolRecordsString,
 } from "../extractors/manifest.js";
 import {
-  type SymbolCoordinatesArtifact,
+  type ParsedCoordinateArtifact,
   mergeCoordinatesWithManifest,
-  readCoordinateArtifact,
+  parseCoordinateArtifact as parseStrict,
 } from "../extractors/symbol-coordinates.js";
 import { analyzeSourceText } from "../extractors/symbols-coordinator.js";
 import { isCoarseGranularityReason } from "../public/symbol-granularity.js";
@@ -126,13 +126,18 @@ function parseManifestRecords(
 
 function parseCoordinateArtifact(
   content: string | null | undefined,
-): SymbolCoordinatesArtifact | null {
+): ParsedCoordinateArtifact | null {
+  // An absent artifact must not masquerade as an empty authoritative one:
+  // inline authored coordinates stay comparable until the artifact exists.
+  // The strict parser preserves identity bindings so versioned artifacts
+  // overlay without falling back to source-text heuristics.
   if (content === null || content === undefined) {
-    return { coordinates: {} };
+    return null;
   }
 
   try {
-    return readCoordinateArtifact(content);
+    const parsed = parseStrict(content);
+    return parsed.status === "invalid" ? null : parsed;
   } catch {
     return null;
   }
@@ -327,7 +332,7 @@ function uniqueSorted(paths: Iterable<string>): string[] {
 
 function mergeManifestRecordsWithCoordinates(
   manifestRecords: ManifestSymbolRecord[] | null,
-  coordinateArtifact: SymbolCoordinatesArtifact | null,
+  coordinateArtifact: ParsedCoordinateArtifact | null,
 ): ManifestSymbolRecord[] {
   return mergeCoordinatesWithManifest(
     manifestRecords ?? [],
@@ -339,12 +344,12 @@ function getEffectiveManifestRecords(options: {
   stagedFiles: StagedFile[];
   paths: RelativeManifestPaths;
   headManifestRecords: ManifestSymbolRecord[] | null;
-  headCoordinateArtifact: SymbolCoordinatesArtifact | null;
+  headCoordinateArtifact: ParsedCoordinateArtifact | null;
 }): {
   stagedManifestFile: StagedFile | undefined;
   stagedCoordinatesFile: StagedFile | undefined;
   stagedManifestRecords: ManifestSymbolRecord[] | null;
-  stagedCoordinateArtifact: SymbolCoordinatesArtifact | null;
+  stagedCoordinateArtifact: ParsedCoordinateArtifact | null;
 } {
   const { headCoordinateArtifact, headManifestRecords, paths, stagedFiles } =
     options;

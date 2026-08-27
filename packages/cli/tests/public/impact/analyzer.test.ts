@@ -87,7 +87,6 @@ describe("analyzeChangedFileImpact", () => {
   it("includes active manifest results for changed source files", () => {
     withTempWorkspace((workspaceRoot) => {
       mkdirSync(join(workspaceRoot, ".kb"), { recursive: true });
-      mkdirSync(join(workspaceRoot, "documentation"), { recursive: true });
       mkdirSync(join(workspaceRoot, "src"), { recursive: true });
       const sourcePath = join(workspaceRoot, "src", "upload.ts");
       writeFileSync(
@@ -95,12 +94,12 @@ describe("analyzeChangedFileImpact", () => {
         JSON.stringify({ paths: { symbols: "documentation/symbols.yaml" } }),
       );
       writeFileSync(
-        join(workspaceRoot, "documentation", "symbols.yaml"),
+        join(workspaceRoot, ".kb", "symbols.yaml"),
         [
           "symbols:",
           "  - id: SYM-UPLOAD",
           "    title: upload",
-          "    source: documentation/symbols.yaml",
+          "    source: .kb/symbols.yaml",
           "    sourceFile: src/upload.ts",
           "    relationships:",
           "      - type: implements",
@@ -136,7 +135,6 @@ describe("analyzeChangedFileImpact", () => {
     withTempWorkspace((workspaceRoot) => {
       // Given
       mkdirSync(join(workspaceRoot, ".kb"), { recursive: true });
-      mkdirSync(join(workspaceRoot, "documentation"), { recursive: true });
       mkdirSync(join(workspaceRoot, "src"), { recursive: true });
       const sourcePath = join(workspaceRoot, "src", "upload.ts");
       writeFileSync(
@@ -144,12 +142,12 @@ describe("analyzeChangedFileImpact", () => {
         JSON.stringify({ paths: { symbols: "documentation/symbols.yaml" } }),
       );
       writeFileSync(
-        join(workspaceRoot, "documentation", "symbols.yaml"),
+        join(workspaceRoot, ".kb", "symbols.yaml"),
         [
           "symbols:",
           "  - id: SYM-STABLE-ANCHOR",
           "    title: stableAnchor",
-          "    source: documentation/symbols.yaml",
+          "    source: .kb/symbols.yaml",
           "    sourceFile: src/upload.ts",
           "    relationships:",
           "      - type: implements",

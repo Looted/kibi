@@ -1,10 +1,12 @@
-// implements REQ-cursor-kibi-plugin-v1
+// implements REQ-cursor-kibi-plugin-v1, REQ-cursor-stop-job-vs-plan
 export type HookEvent =
   | "sessionStart"
   | "preToolUse"
   | "postToolUse"
   | "beforeReadFile"
   | "stop";
+
+export type HookStopStatus = "completed" | "aborted" | "error";
 
 export type HookInput = {
   event: string;
@@ -14,6 +16,7 @@ export type HookInput = {
   toolInput?: unknown;
   conversationId?: string;
   filePath?: string;
+  status?: HookStopStatus;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -64,6 +67,16 @@ function normalizeEventName(event: string): string {
   return trimmed.charAt(0).toLowerCase() + trimmed.slice(1);
 }
 
+function parseStopStatus(
+  value: string | undefined,
+): HookStopStatus | undefined {
+  if (value === "completed" || value === "aborted" || value === "error") {
+    return value;
+  }
+
+  return undefined;
+}
+
 export function parseHookInput(input: unknown): HookInput {
   if (!isRecord(input)) {
     return { event: "" };
@@ -94,6 +107,7 @@ export function parseHookInput(input: unknown): HookInput {
     "conversationId",
   ]);
   const filePath = readString(input, ["file_path", "filePath", "path"]);
+  const status = parseStopStatus(readString(input, ["status"]));
   const parsed: HookInput = { event };
 
   if (cwd !== undefined) {
@@ -118,6 +132,10 @@ export function parseHookInput(input: unknown): HookInput {
 
   if (filePath !== undefined) {
     parsed.filePath = filePath;
+  }
+
+  if (status !== undefined) {
+    parsed.status = status;
   }
 
   return parsed;

@@ -1,0 +1,162 @@
+relationships:
+  - id: rel-c583bcfec090
+    type: covered_by
+    from: SYM-reqcompiler-verification-receipt-outcomes
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: "2026-08-15T12:41:40.308Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-reqcompiler-verification-receipt-outcomes
+    to: REQ-kibi-verification-receipts-v2
+    created_at: 2026-08-15T16:37:46.598Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb755e9abec6
+  - type: covered_by
+    from: SYM-reqcompiler-verification-receipt-outcomes
+    to: TEST-kibi-verification-receipts-v2
+    created_at: 2026-08-15T16:37:46.603Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ee11cf2c55e
+  - type: implements
+    from: SYM-auto-EBFD345AA32E
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-15T22:59:44.695Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-827b9457888b
+  - type: covered_by
+    from: SYM-auto-EBFD345AA32E
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:55:07.702Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c79c8edf3725
+  - type: implements
+    from: SYM-cli-rule-registry-isCanonicalRule
+    to: REQ-cli-check
+    created_at: 2026-08-18T17:03:47.818Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ccfdcedaf87
+  - type: covered_by
+    from: SYM-cli-rule-registry-isCanonicalRule
+    to: TEST-004
+    created_at: 2026-08-18T17:03:47.828Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32c7a73ba5de
+  - type: implements
+    from: SYM-cli-report-csp
+    to: REQ-kibi-html-health-report
+    created_at: 2026-08-18T20:41:45.397Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38cb3b938c56
+  - type: covered_by
+    from: SYM-cli-report-csp
+    to: TEST-kibi-html-health-report
+    created_at: 2026-08-18T20:41:45.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5fdfe466cb48
+  - type: implements
+    from: SYM-cursor-launchKibiMcp
+    to: REQ-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-08-20T13:01:14.077Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36a9e7e70cb9
+  - type: covered_by
+    from: SYM-cursor-launchKibiMcp
+    to: TEST-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-08-20T13:01:14.086Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6fc5a8f161fd
+  - type: implements
+    from: SYM-cursor-launchKibiMcp
+    to: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+    created_at: 2026-08-20T22:17:12.797Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d568b1b6249d
+  - type: covered_by
+    from: SYM-cursor-launchKibiMcp
+    to: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    created_at: 2026-08-20T22:17:12.814Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7e15bb49cba
+  - type: implements
+    from: SYM-cli-discovery-paginate-results
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:24:35.668Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6480a59e0b4d
+  - type: covered_by
+    from: SYM-cli-discovery-paginate-results
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:24:35.682Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b12e8d3a8b1d
+  - type: covered_by
+    from: SYM-cli-discovery-paginate-results
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:24:35.689Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-502fbaf85dab
+  - type: implements
+    from: SYM-operation-node-filesystem
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:29:53.740Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dba0ed484134
+  - type: covered_by
+    from: SYM-operation-node-filesystem
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:29:53.760Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3401c4281cd1
+  - type: covered_by
+    from: SYM-operation-node-filesystem
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:29:53.770Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a8dfc803b26
+  - type: covered_by
+    from: SYM-auto-EBFD345AA32E
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:34:37.114Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5c52916ed51
+  - type: implements
+    from: SYM-KnowledgeSuggestion
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:52:01.164Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05aaee4ea251
+  - type: covered_by
+    from: SYM-KnowledgeSuggestion
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:52:01.187Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e96ce71dca0c
+  - type: covered_by
+    from: SYM-KnowledgeSuggestion
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:52:01.205Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c063414c6575

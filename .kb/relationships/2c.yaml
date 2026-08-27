@@ -1,0 +1,113 @@
+relationships:
+  - id: rel-62a088957ac4
+    type: implements
+    from: SYM-auto-FF46BD43D461
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:18:46.296Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-auto-FF46BD43D461
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:50:43.776Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81dff7b9785e
+  - type: implements
+    from: SYM-auto-F3AA3B988CC5
+    to: REQ-mcp-relationship-preflight
+    created_at: 2026-08-16T07:53:36.890Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63313ad6e10b
+  - type: covered_by
+    from: SYM-auto-F3AA3B988CC5
+    to: TEST-mcp-relationship-preflight
+    created_at: 2026-08-16T07:53:36.895Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-362b50156292
+  - type: covered_by
+    from: SYM-distribution-parity-normalize
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: 2026-08-16T18:51:45.091Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04d6f52c3809
+  - type: covered_by
+    from: SYM-cli-impact-collectFullKbQualityDiagnostics
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-08-16T18:52:12.182Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7bede618156
+  - type: validates
+    from: TEST-kibi-source-relationship-parity
+    to: SCEN-kibi-source-relationship-parity
+    created_at: 2026-08-17T08:28:01.233Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94d6de6d0717
+  - type: implements
+    from: SYM-cli-report-source-web-url
+    to: REQ-kibi-html-health-report
+    created_at: 2026-08-18T20:41:25.858Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90b14a197e9e
+  - type: covered_by
+    from: SYM-cli-report-source-web-url
+    to: TEST-kibi-html-health-report
+    created_at: 2026-08-18T20:41:25.876Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc37c7345d97
+  - type: covered_by
+    from: SYM-cli-github-format-badge-markdown
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-19T20:54:39.710Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7cbcd74300f7
+  - type: covered_by
+    from: SYM-auto-FF46BD43D461
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:35:20.688Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fde316ada752
+  - type: implements
+    from: SYM-ToastCapableClient
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:56:51.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a555575868f
+  - type: covered_by
+    from: SYM-ToastCapableClient
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:56:51.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dececf87690b
+  - type: covered_by
+    from: SYM-ToastCapableClient
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:56:51.313Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-271c0a7aaa4a
+  - type: implements
+    from: SYM-auto-F3AA3B988CC5
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:56:03.424Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ea232a9ef8b
+  - type: covered_by
+    from: SYM-auto-F3AA3B988CC5
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:56:03.431Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-378a97e79e65

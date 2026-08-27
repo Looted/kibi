@@ -17,7 +17,7 @@ if [ "$branch_flag" = "1" ]; then
 
   # Basic validation: non-empty and does not contain ~ or ^
   if [ -n "$old_branch" ] && echo "$old_branch" | grep -qv '[~^]'; then
-    kibi branch ensure --from "$old_branch" && kibi sync
+kibi sync
   else
     kibi branch ensure && kibi sync
   fi

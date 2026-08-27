@@ -45,11 +45,13 @@ async function importWorkspaceModule() {
 }
 
 function setWorkspaceRootEnv(value: string | undefined) {
-  Object.defineProperty(process.env, "KIBI_WORKSPACE_ROOT", {
-    value,
-    writable: true,
-    configurable: true,
-  });
+  // Bun >=1.4 coerces undefined assignments into the string "undefined".
+  if (value === undefined) {
+    const { KIBI_WORKSPACE_ROOT: _omitted, ...rest } = process.env;
+    process.env = rest;
+    return;
+  }
+  process.env.KIBI_WORKSPACE_ROOT = value;
 }
 
 beforeEach(() => {
@@ -78,7 +80,7 @@ test("resolveWorkspaceRoot returns workspace folder path when workspaceFolders i
 test("resolveWorkspaceRoot falls back to KIBI_WORKSPACE_ROOT env var when workspaceFolders is empty", async () => {
   const kbConfigDir = path.join(tmpDir, ".kb");
   fs.mkdirSync(kbConfigDir, { recursive: true });
-  fs.writeFileSync(path.join(kbConfigDir, "config.json"), "{}");
+  fs.writeFileSync(path.join(kbConfigDir, "manifest.json"), "{}");
 
   const originalEnv = process.env.KIBI_WORKSPACE_ROOT;
   setWorkspaceRootEnv(tmpDir);
@@ -96,7 +98,7 @@ test("resolveWorkspaceRoot falls back to KIBI_WORKSPACE_ROOT env var when worksp
   }
 });
 
-test("resolveWorkspaceRoot logs warning when KIBI_WORKSPACE_ROOT is set but missing .kb/config.json", async () => {
+test("resolveWorkspaceRoot logs warning when KIBI_WORKSPACE_ROOT is set but missing .kb/manifest.json", async () => {
   const originalEnv = process.env.KIBI_WORKSPACE_ROOT;
   setWorkspaceRootEnv(tmpDir);
 
@@ -106,7 +108,7 @@ test("resolveWorkspaceRoot logs warning when KIBI_WORKSPACE_ROOT is set but miss
 
     expect(result).toBeUndefined();
     expect(output.appendLine).toHaveBeenCalledWith(
-      expect.stringContaining("missing .kb/config.json"),
+      expect.stringContaining("missing .kb/manifest.json"),
     );
   } finally {
     setWorkspaceRootEnv(originalEnv);

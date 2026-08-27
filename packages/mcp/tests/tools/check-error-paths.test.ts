@@ -51,7 +51,7 @@ afterEach(async () => {
 });
 
 describe("kb_check error and edge branches", () => {
-  test("falls back to default checks config when .kb/config.json is invalid", async () => {
+  test("leftover invalid .kb/config.json cannot weaken canonical checks", async () => {
     const workspaceRoot = await createWorkspace();
     process.env.KIBI_WORKSPACE = workspaceRoot;
 
@@ -97,12 +97,12 @@ describe("kb_check error and edge branches", () => {
     );
 
     expect(result.content[0]?.text).toBe("No violations found");
-    expect(result.structuredContent).toEqual({
+    expect(result.structuredContent).toMatchObject({
       violations: [],
       count: 0,
       diagnostics: [],
+      migrationPlan: { version: "kibi.migration-plan.v2" },
     });
-    expect(query).not.toHaveBeenCalled();
   });
 
   test("wraps aggregated query failures", async () => {

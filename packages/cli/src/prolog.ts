@@ -855,17 +855,35 @@ export class PrologProcess {
 
   private extractBindings(output: string): Record<string, string> {
     const bindings: Record<string, string> = {};
-    const lines = output.split("\n");
+    let variableName: string | undefined;
+    let valueLines: string[] = [];
 
-    for (const line of lines) {
-      const match = line.match(/^([A-Z_][A-Za-z0-9_]*)\s*=\s*(.+)\.?\s*$/);
-      if (match) {
-        const [, varName, value] = match;
-        if (varName !== undefined && value !== undefined) {
-          bindings[varName] = value.trim().replace(/\.$/, "").replace(/,$/, "");
-        }
+    const flush = (): void => {
+      if (variableName === undefined) return;
+      bindings[variableName] = valueLines
+        .join("\n")
+        .trim()
+        .replace(/\.$/, "")
+        .replace(/,$/, "");
+      variableName = undefined;
+      valueLines = [];
+    };
+
+    // Prolog may print a quoted string over multiple physical lines when the
+    // long-lived session's answer formatting is configured for readable JSON.
+    // Parse assignment records as blocks instead of dropping every continuation
+    // line after the first one (which previously reduced JsonString to "{").
+    for (const line of output.split("\n")) {
+      const match = line.match(/^([A-Z_][A-Za-z0-9_]*)\s*=\s*(.*)$/);
+      if (match?.[1] !== undefined && match[2] !== undefined) {
+        flush();
+        variableName = match[1];
+        valueLines = [match[2]];
+        continue;
       }
+      if (variableName !== undefined) valueLines.push(line);
     }
+    flush();
 
     return bindings;
   }

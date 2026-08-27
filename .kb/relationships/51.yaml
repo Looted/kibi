@@ -1,0 +1,176 @@
+relationships:
+  - type: implements
+    from: SYM-skillopt-bridge-request-schema
+    to: REQ-skillopt-logical-evidence-fidelity
+    created_at: 2026-08-15T22:59:58.076Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d628f6498528
+  - type: covered_by
+    from: SYM-auto-4B796036FBAD
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:52:59.495Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8963438ea008
+  - type: covered_by
+    from: SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporter-onend
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.875Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7cd4b6721f7d
+  - type: covered_by
+    from: SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporteroptions
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.878Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d9b4da43f6b3
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-verification-ingest-verification-ts-executeingestverification
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.903Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d962c1f3442
+  - type: specified_by
+    from: REQ-branch-store-recovery-v3
+    to: SCEN-branch-store-recovery
+    created_at: 2026-08-17T08:32:52.364Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b37dc169d91
+  - type: constrains
+    from: REQ-branch-store-recovery-v3
+    to: FACT-KB-PER-BRANCH
+    created_at: 2026-08-17T08:32:52.404Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d17b247ee7a
+  - type: requires_property
+    from: REQ-branch-store-recovery-v3
+    to: FACT-EXACT-BRANCH-IDENTITY-SOURCE
+    created_at: 2026-08-17T08:32:52.423Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45494ccf7ed3
+  - type: requires_predicate
+    from: REQ-branch-store-recovery-v3
+    to: FACT-PRED-D62E80F439F2
+    created_at: 2026-08-17T08:32:52.433Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-310084f949b1
+  - type: requires_property
+    from: REQ-branch-store-recovery-v3
+    to: FACT-EXACT-BRANCH-INITIALIZATION-MODE
+    created_at: 2026-08-17T08:32:52.450Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a662c39bc4cf
+  - type: requires_predicate
+    from: REQ-branch-store-recovery-v3
+    to: FACT-PRED-1B6C15026E81
+    created_at: 2026-08-17T08:32:52.467Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8db5078a874
+  - type: requires_predicate
+    from: REQ-branch-store-recovery-v3
+    to: FACT-BRANCH-STORE-SAME-IDENTITY-MIGRATION
+    created_at: 2026-08-17T08:32:52.474Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e04005929e5e
+  - type: requires_property
+    from: REQ-branch-store-recovery-v3
+    to: FACT-BRANCH-CROSS-IDENTITY-MIGRATION-REFUSED
+    created_at: 2026-08-17T08:32:52.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50e7d33723c1
+  - type: supersedes
+    from: REQ-branch-store-recovery-v3
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-17T08:32:52.487Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb0d7bdb308c
+  - type: implements
+    from: SYM-canonical-RepoPosture
+    to: REQ-opencode-posture-detection
+    created_at: 2026-08-18T17:37:28.584Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b2426513a33
+  - type: covered_by
+    from: SYM-canonical-RepoPosture
+    to: TEST-opencode-smart-enforcement
+    created_at: 2026-08-18T17:37:28.597Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b77056ebdd7a
+  - type: implements
+    from: SYM-redactDiagnosticArgs
+    to: REQ-002
+    created_at: 2026-08-22T20:08:51.136Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54fcab12434c
+  - type: covered_by
+    from: SYM-redactDiagnosticArgs
+    to: TEST-005
+    created_at: 2026-08-22T20:08:51.156Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c0b68dc2012
+  - type: covered_by
+    from: SYM-redactDiagnosticArgs
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:08:51.166Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f4e0d2cec3c
+  - type: implements
+    from: SYM-cli-logic-modeling-logicRuleFactId
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:22:22.483Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0b16bc98176
+  - type: covered_by
+    from: SYM-cli-logic-modeling-logicRuleFactId
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:22:22.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f3d1bc34720
+  - type: covered_by
+    from: SYM-cli-logic-modeling-logicRuleFactId
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:22:22.512Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-046cf4e67b0f
+  - type: implements
+    from: SYM-auto-4B796036FBAD
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:53:18.910Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-665d9ff32b66
+  - type: covered_by
+    from: SYM-auto-4B796036FBAD
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:53:18.917Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c07e9f179fa1
+  - type: covered_by
+    from: SYM-skillopt-bridge-request-schema
+    to: TEST-skillopt-file-bridge-unit
+    created_at: 2026-08-26T07:14:18.400Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93f29a6e86da

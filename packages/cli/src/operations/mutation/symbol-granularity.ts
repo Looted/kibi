@@ -1,5 +1,5 @@
 import path from "node:path";
-import { Project, ScriptKind } from "ts-morph";
+import { Project, ScriptKind, SyntaxKind } from "ts-morph";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import {
   type GranularSymbolCandidate,
@@ -46,10 +46,24 @@ function candidates(
     const className = cls.getName();
     if (className) found.push(candidate(className, "class"));
     for (const method of cls.getMethods()) {
+      if (isPrivateClassMember(method)) continue;
       const name = method.getName();
       if (className) found.push(candidate(`${className}.${name}`, "method"));
       bareMethods.set(name, candidate(name, "method"));
       methodCounts.set(name, (methodCounts.get(name) ?? 0) + 1);
+    }
+    for (const property of cls.getProperties()) {
+      if (isPrivateClassMember(property)) continue;
+      const name = property.getName();
+      if (className) found.push(candidate(`${className}.${name}`, "property"));
+    }
+    for (const accessor of [
+      ...cls.getGetAccessors(),
+      ...cls.getSetAccessors(),
+    ]) {
+      if (isPrivateClassMember(accessor)) continue;
+      const name = accessor.getName();
+      if (className) found.push(candidate(`${className}.${name}`, "accessor"));
     }
   }
   for (const [name, count] of methodCounts) {
@@ -65,7 +79,23 @@ function candidates(
   for (const item of source.getEnums()) {
     if (item.isExported()) found.push(candidate(item.getName(), "enum"));
   }
+  for (const statement of source.getVariableStatements()) {
+    if (!statement.isExported()) continue;
+    for (const declaration of statement.getDeclarations()) {
+      found.push(candidate(declaration.getName(), "variable"));
+    }
+  }
   return found.sort((left, right) => left.name.localeCompare(right.name));
+}
+
+function isPrivateClassMember(member: {
+  hasModifier(kind: SyntaxKind): boolean;
+  getName(): string;
+}): boolean {
+  return (
+    member.hasModifier(SyntaxKind.PrivateKeyword) ||
+    member.getName().startsWith("#")
+  );
 }
 
 function summarized(names: readonly string[]): string {
@@ -105,7 +135,9 @@ export async function validateSymbolGranularity(
     throw error;
   }
   const available = candidates(entity.sourceFile, content);
-  if (available.some(({ name }) => name === entity.title)) return;
+  const exact = available.find(({ name }) => name === entity.title);
+  if (exact && (exact.kind !== "variable" || entity.symbol_role === "config"))
+    return;
   const behavioral = getBehavioralSymbolNames(available);
   if (behavioral.length === 0) return;
   const nonBehavioral = getNonBehavioralSymbolNames(available);
@@ -114,6 +146,6 @@ export async function validateSymbolGranularity(
       ? ` Non-behavioral symbols in the file were ignored for this decision: ${summarized(nonBehavioral)}.`
       : "";
   throw new Error(
-    `Symbol ${String(entity.id)} links ${entity.sourceFile} coarsely while granular symbols are available (behavioral only): ${summarized(behavioral)}. Move relationships to a behavioral symbol, add a manifest behavioral anchor, or set granularity_reason to config-artifact, module-level-behavior, extractor-miss, or legacy-link.${ignored}`,
+    `Symbol ${String(entity.id)} links ${entity.sourceFile} coarsely while granular symbols are available (behavioral only): ${summarized(behavioral)}. Move relationships to a behavioral symbol, add a manifest behavioral anchor, or set granularity_reason to config-artifact, module-level-behavior, extractor-miss, legacy-link, or test-suite.${ignored}`,
   );
 }

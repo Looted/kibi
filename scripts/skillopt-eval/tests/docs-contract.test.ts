@@ -125,13 +125,30 @@ describe("SkillOpt documentation contract", () => {
       },
       {
         Script: "`skillopt:optimize`",
-        Command: "`bun run scripts/skillopt-eval/operator.ts optimize`",
+        Command:
+          "`bun run scripts/skillopt-eval/operator.ts optimize --skill <skill>`",
         Notes:
-          "Verifies pin and login, materializes fixtures, allocates artifact roots, then runs paid `kibi-usage` optimize (preflight, smoke, Codex rewrite, public development gate, held-out gates). Writes non-mutating review evidence only. Defaults to `--max-steps 1`; pass `--max-steps 1..4` for complete proposal rounds and `--seed-candidate PATH` to continue from preserved work.",
+          "Verifies pin and login, materializes fixtures, allocates artifact roots, then runs the selected skill through preflight, smoke, Codex rewrite, public development gate, and held-out gates. Writes non-mutating review evidence only. Defaults to `--max-steps 1`; pass `--max-steps 1..4` for complete proposal rounds and `--seed-candidate PATH` to continue from preserved work.",
+      },
+      {
+        Script: "bundle suite",
+        Command: "`bun run scripts/skillopt-eval/operator.ts suite`",
+        Notes:
+          "Evaluates the assembled four-skill bundle and its compatibility/behavioral gates without selecting a single candidate for adoption.",
+      },
+      {
+        Script: "`skillopt:cursor`",
+        Command: "`bun run scripts/skillopt-eval/cursor-operator.ts qualify`",
+        Notes:
+          "Non-authoritative Cursor compatibility lane. `qualify` checks version, session, models, and Kibi MCP approval with no paid call. `compat --skill S --candidate PATH --fixture-run-root PATH` runs frozen candidate bodies through the shared fixtures, evaluator broker, independent verifier, and sealed scorer. Cursor results never feed Codex gates or adoption.",
       },
     ]);
 
-    expect(skilloptScripts).toEqual(["skillopt:optimize", "skillopt:smoke"]);
+    expect(skilloptScripts).toEqual([
+      "skillopt:cursor",
+      "skillopt:optimize",
+      "skillopt:smoke",
+    ]);
     expect(packageJson.scripts).toMatchObject({
       "skillopt:smoke": "bun run scripts/skillopt-eval/operator.ts smoke",
       "skillopt:optimize": "bun run scripts/skillopt-eval/operator.ts optimize",
@@ -139,7 +156,7 @@ describe("SkillOpt documentation contract", () => {
     expect(docs).toContain("bun run skillopt:smoke");
     expect(docs).toContain("bun run skillopt:optimize");
     expect(docs).toContain(
-      "bun run scripts/skillopt-eval/operator.ts optimize --max-steps 4",
+      "bun run scripts/skillopt-eval/operator.ts optimize --skill kibi-usage --max-steps 4",
     );
     expect(docs).toContain("max-steps");
   });

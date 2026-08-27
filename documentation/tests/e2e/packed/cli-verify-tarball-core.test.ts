@@ -67,7 +67,13 @@ if (RUN_NODE_TEST_SUITE) {
         const out = execFileSync("tar", ["-tzf", tgz], { encoding: "utf8" });
         const entries = out.split("\n").map((l) => l.replace(/^package\//, ""));
 
-        const required = ["bin/kibi", "dist/cli.js", "package.json"];
+        const required = [
+          "bin/kibi",
+          "dist/cli.js",
+          "package.json",
+          "templates/github/kibi-report.yml",
+          "templates/github/kibi-badge.yml",
+        ];
         for (const r of required) {
           if (!entries.includes(r)) {
             throw new Error(

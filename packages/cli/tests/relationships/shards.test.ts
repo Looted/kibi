@@ -489,6 +489,29 @@ describe("relationship shard helpers", () => {
     ]);
   });
 
+  test("CST shard mutations preserve comments and unrelated records", () => {
+    const relationship = {
+      type: "implements",
+      from: "SYM-CST",
+      to: "REQ-CST-1",
+      created_at: "2026-03-15T12:45:00Z",
+      created_by: "agent",
+      source: "test",
+    };
+    const shardPath = computeShardPath(tmpDir, relationship.from);
+    fs.mkdirSync(path.dirname(shardPath), { recursive: true });
+    fs.writeFileSync(
+      shardPath,
+      `# keep this comment\nrelationships:\n  # keep this record comment\n  - id: rel-old\n    type: relates_to\n    from: SYM-CST\n    to: REQ-CST-OLD\n    created_at: "2026-03-15T10:00:00Z"\n    created_by: agent\n    source: test\n`,
+      "utf8",
+    );
+    appendRelationship(tmpDir, relationship);
+    const afterAppend = fs.readFileSync(shardPath, "utf8");
+    expect(afterAppend).toContain("# keep this comment");
+    expect(afterAppend).toContain("REQ-CST-OLD");
+    expect(afterAppend).toContain("REQ-CST-1");
+  });
+
   test("listShards returns an empty array when the directory is absent", () => {
     expect(listShards(tmpDir)).toEqual([]);
   });

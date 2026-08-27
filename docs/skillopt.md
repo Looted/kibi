@@ -13,7 +13,7 @@ SkillOpt is an isolated review tool, not a runtime dependency of Kibi. Real runs
 
 ## Trust-plane scope
 
-**Primary path for improving `kibi-usage`:** authenticated Codex CLI SkillOpt. Use the two package scripts below. They verify the pin, confirm the Codex login, and run the paid pipeline. `prepareExistingLogin` only mirrors that operator-owned session into a private Codex home; it does not provision credentials.
+**Primary path for improving the bundled skills:** authenticated Codex CLI SkillOpt. Select one of `kibi-usage`, `kibi-freshness`, `kibi-traceability`, or `kibi-bootstrap`; use the bundle suite for assembled acceptance. The scripts verify the pin, confirm the Codex login, and run the paid pipeline. `prepareExistingLogin` only mirrors that operator-owned session into a private Codex home; it does not provision credentials.
 
 Canonical skill mutation still requires a separate production-adoption verdict; SkillOpt review artifacts alone do not rewrite production skills.
 
@@ -26,21 +26,23 @@ An optional privileged verifier/installer lane (`kibi-skillopt-trust-v1`) exists
 | Script | Command | Notes |
 | --- | --- | --- |
 | `skillopt:smoke` | `bun run scripts/skillopt-eval/operator.ts smoke` | Verifies the SkillOpt pin and Codex login, then runs the paid two-model capability canary. |
-| `skillopt:optimize` | `bun run scripts/skillopt-eval/operator.ts optimize` | Verifies pin and login, materializes fixtures, allocates artifact roots, then runs paid `kibi-usage` optimize (preflight, smoke, Codex rewrite, public development gate, held-out gates). Writes non-mutating review evidence only. Defaults to `--max-steps 1`; pass `--max-steps 1..4` for complete proposal rounds and `--seed-candidate PATH` to continue from preserved work. |
+| `skillopt:optimize` | `bun run scripts/skillopt-eval/operator.ts optimize --skill <skill>` | Verifies pin and login, materializes fixtures, allocates artifact roots, then runs the selected skill through preflight, smoke, Codex rewrite, public development gate, and held-out gates. Writes non-mutating review evidence only. Defaults to `--max-steps 1`; pass `--max-steps 1..4` for complete proposal rounds and `--seed-candidate PATH` to continue from preserved work. |
+| bundle suite | `bun run scripts/skillopt-eval/operator.ts suite` | Evaluates the assembled four-skill bundle and its compatibility/behavioral gates without selecting a single candidate for adoption. |
+| `skillopt:cursor` | `bun run scripts/skillopt-eval/cursor-operator.ts qualify` | Non-authoritative Cursor compatibility lane. `qualify` checks version, session, models, and Kibi MCP approval with no paid call. `compat --skill S --candidate PATH --fixture-run-root PATH` runs frozen candidate bodies through the shared fixtures, evaluator broker, independent verifier, and sealed scorer. Cursor results never feed Codex gates or adoption. |
 
 ```bash
 bun run skillopt:smoke
-bun run skillopt:optimize
-bun run scripts/skillopt-eval/operator.ts optimize --max-steps 4
+bun run scripts/skillopt-eval/operator.ts optimize --skill kibi-usage
+bun run scripts/skillopt-eval/operator.ts suite
 ```
 
 To reuse a preserved candidate instead of starting the trainer from a fresh comparator:
 
 ```bash
-bun run scripts/skillopt-eval/operator.ts optimize --max-steps 4 --seed-candidate /path/to/candidate_skill.md
+bun run scripts/skillopt-eval/operator.ts optimize --skill kibi-usage --max-steps 4 --seed-candidate /path/to/candidate_skill.md
 ```
 
-The seed is safety-validated, rebound to the current immutable skill surface, and recorded as `skills/kibi-usage/seed-candidate.json`. Baseline and one-shot remain fresh comparators; seeding does not adopt or overwrite the canonical skill.
+The seed is safety-validated, rebound to the selected immutable skill surface, and recorded under that skill's artifact directory. Baseline and one-shot remain fresh comparators; seeding does not adopt or overwrite the canonical skill.
 
 `skillopt:optimize` prints `run-id`, `max-steps`, `artifact-root`, and `fixture-run-root` on stderr. Review output is stored **outside the source worktree** under `$XDG_RUNTIME_DIR/kibi-skillopt/operator/` (falling back to `~/.cache` or the process temp dir), including `optimization-review.json`.
 
@@ -90,3 +92,14 @@ The held-out predicate supplement always reserves all 36 cells for four cases, t
 ## Recovery
 
 If a run stalls, start a new `bun run skillopt:optimize` with a fresh run id and pass the prior `candidate_skill.md` through `--seed-candidate` when it is worth retaining. To discard a partial tree, delete the printed `artifact-root` and `fixture-run-root` paths only after preserving any accepted candidate bodies. Local review remains non-mutating on retries; production adoption is an external verdict and installer handoff.
+
+## Cursor compatibility lane (non-authoritative)
+
+The Codex run lock, optimizer, and sealed held-out matrix remain Codex-only (`hosts: ["codex"]`). The Cursor lane cross-checks frozen candidate bodies on the `cursor-agent` CLI and never steers optimization or adoption:
+
+1. `bun run skillopt:cursor qualify` — fail-closed checks for version, an authenticated session, available models, and an approved Kibi MCP server. The receipt records booleans/versions only; tokens and account identifiers are never persisted.
+2. Materialize fixtures once per run (reuse the printed `fixture-run-root` from `skillopt:optimize`, or materialize offline) and freeze candidate bodies.
+3. `bun run skillopt:cursor compat --skill <skill> --candidate <candidate_skill.md> --fixture-run-root <root>` — development phase runs baseline + one-shot (optional) + candidate across the four development tasks; held-out phase runs candidate-only across that skill's held-out tasks.
+4. Verdicts: development is `compatible` only with zero security failures, mean score ≥ 70, and hard-pass rate ≥ 0.5 on the candidate; held-out results are informational. Anything else reports `incompatible` or `not-qualified` and blocks the compatibility handoff without altering Codex rankings.
+
+Cursor cells run unsandboxed inside their disposable workspace copy (no bwrap equivalent), so their evidence is advisory by construction. Reports are written to `$OPERATOR_BASE/cursor/<run-id>/cursor-compat.json` alongside per-cell receipts, transcripts, broker traces, and independent final-state receipts.

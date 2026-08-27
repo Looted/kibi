@@ -18,10 +18,8 @@
 import process from "node:process";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
-import {
-  type RuntimeOperationSpec,
-  executeOperation,
-} from "kibi-cli/operations/runtime-types";
+import { type RuntimeOperationSpec, executeOperation } from "kibi-runtime";
+import { operationData, toKibiResult } from "kibi-runtime";
 import type { z } from "zod";
 import { isMcpDebugEnabled } from "../env.js";
 import {
@@ -47,6 +45,10 @@ export { _resetSessionModulePromise, _setToolsServerDepsForTests };
 
 const DEFAULT_TOOL_TIMEOUT_MS = 90_000;
 const TOOL_TIMEOUT_ENV = "KIBI_MCP_TOOL_TIMEOUT_MS";
+// Give cancellation and the Prolog reset a short bounded grace period, but do
+// not hold the MCP request open for the full five-second shutdown budget when
+// a handler never observes AbortSignal.
+const TOOL_TIMEOUT_GRACE_MS = 100;
 
 // implements REQ-008
 function debugLog(...args: Parameters<typeof console.error>): void {
@@ -70,7 +72,20 @@ function getToolTimeoutMs(): number {
 
 // implements REQ-002
 function createToolTimeoutError(toolName: string, timeoutMs: number): Error {
-  return new Error(`Tool ${toolName} timed out after ${timeoutMs}ms`);
+  const error = new Error(`Tool ${toolName} timed out after ${timeoutMs}ms`);
+  Object.assign(error, { code: "KIBI_TOOL_TIMEOUT", toolName, timeoutMs });
+  return error;
+}
+
+function isToolTimeoutError(value: unknown): value is Error & {
+  readonly code: "KIBI_TOOL_TIMEOUT";
+  readonly toolName: string;
+  readonly timeoutMs: number;
+} {
+  return (
+    value instanceof Error &&
+    (value as Error & { code?: unknown }).code === "KIBI_TOOL_TIMEOUT"
+  );
 }
 
 // implements REQ-002
@@ -88,8 +103,24 @@ async function withToolTimeout<T>(
       new Promise<never>((_, reject) => {
         timeout = setTimeout(() => {
           const error = createToolTimeoutError(toolName, timeoutMs);
-          reject(error);
-          void onTimeout(error, timeoutMs);
+          // Do not report the timeout until cancellation/reset has completed
+          // and the original request has reached a terminal state. This is
+          // especially important for source-first mutations: a caller must
+          // never retry while the authoritative journal is still deciding its
+          // outcome.
+          void onTimeout(error, timeoutMs)
+            .then(async () => {
+              await Promise.race([
+                operation.then(
+                  () => undefined,
+                  () => undefined,
+                ),
+                new Promise<void>((resolve) =>
+                  setTimeout(resolve, TOOL_TIMEOUT_GRACE_MS),
+                ),
+              ]);
+            })
+            .finally(() => reject(error));
         }, timeoutMs);
       }),
     ]);
@@ -113,6 +144,7 @@ export function addTool<TProlog>(
   runtime: ToolsRuntime<TProlog> = DEFAULT_TOOLS_RUNTIME as unknown as ToolsRuntime<TProlog>,
   spec?: RuntimeOperationSpec<Record<string, unknown>, unknown>,
   annotations?: ToolAnnotations,
+  outputSchema?: object,
 ): void {
   const wrappedHandler: ToolHandler = async (args) => {
     const startedAt = new Date();
@@ -190,6 +222,9 @@ export function addTool<TProlog>(
           },
         );
 
+        const data = operationData(result);
+        const envelope = toKibiResult(operationSpec, data);
+
         // Log usage in diagnostic mode
         if (diagnosticModeEnabled) {
           await appendDiagnosticSuccessUsage({
@@ -200,11 +235,25 @@ export function addTool<TProlog>(
             businessArgs,
             telemetry,
             startedAt,
-            result,
+            result: envelope,
           });
         }
 
-        return result;
+        if (
+          result !== null &&
+          typeof result === "object" &&
+          !Array.isArray(result) &&
+          "content" in result
+        ) {
+          return {
+            ...(result as Record<string, unknown>),
+            structuredContent: envelope,
+          };
+        }
+        return {
+          content: [{ type: "text", text: JSON.stringify(envelope) }],
+          structuredContent: envelope,
+        };
       } catch (error) {
         // Log error in diagnostic mode
         if (diagnosticModeEnabled) {
@@ -219,6 +268,55 @@ export function addTool<TProlog>(
             error,
             resetState: { resetAttempted, resetSucceeded, resetError },
           });
+        }
+        if (
+          isToolTimeoutError(error) &&
+          operationSpec.effects.some(
+            (effect) => effect === "kb-write" || effect === "workspace-write",
+          )
+        ) {
+          const recoveryActions = [
+            {
+              operation: "kb_status" as const,
+              reason:
+                "Determine whether the mutation crossed the authoritative source/journal commit boundary before taking any further action.",
+              required: true,
+            },
+            {
+              operation: "kb_apply_plan" as const,
+              reason:
+                "If status exposes a recovery journal, replay that typed journal action; never retry the timed-out mutation request.",
+              required: true,
+            },
+          ];
+          const timeoutData = {
+            effectFailures: [
+              {
+                kind: "mutation",
+                errorCode: "MUTATION_OUTCOME_UNKNOWN",
+                detail: {
+                  requestId,
+                  timeoutMs: error.timeoutMs,
+                },
+              },
+            ],
+            nextActions: recoveryActions,
+          };
+          const envelope = toKibiResult(operationSpec, timeoutData, {
+            status: "error",
+            nextActions: recoveryActions,
+            error: {
+              code: "MUTATION_OUTCOME_UNKNOWN",
+              message:
+                "The mutation timed out after cancellation; its commit state is indeterminate. Inspect status and replay the typed recovery action if required.",
+              retryable: false,
+              details: { requestId, tool: name },
+            },
+          });
+          return {
+            content: [{ type: "text", text: JSON.stringify(envelope) }],
+            structuredContent: envelope,
+          };
         }
         throw error;
       } finally {
@@ -242,6 +340,7 @@ export function addTool<TProlog>(
         c: {
           description: string;
           inputSchema: z.ZodTypeAny;
+          outputSchema?: z.ZodTypeAny;
           annotations?: ToolAnnotations;
         },
         h: ToolHandler,
@@ -252,6 +351,7 @@ export function addTool<TProlog>(
     {
       description,
       inputSchema: jsonSchemaToZod(inputSchema),
+      ...(outputSchema ? { outputSchema: jsonSchemaToZod(outputSchema) } : {}),
       ...(annotations ? { annotations } : {}),
     },
     wrappedHandler,

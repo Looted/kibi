@@ -3,7 +3,9 @@
 [![Status: Beta](https://img.shields.io/badge/status-beta-4c8bf5.svg)](#beta-status)
 [![CI](https://github.com/Looted/kibi/actions/workflows/ci.yml/badge.svg)](https://github.com/Looted/kibi/actions/workflows/ci.yml)
 [![Coverage](https://codecov.io/gh/Looted/kibi/branch/develop/graph/badge.svg)](https://codecov.io/gh/Looted/kibi)
+[![Kibi requirement health](https://looted.github.io/kibi/kibi-report/badge.svg)](https://looted.github.io/kibi/kibi-report/)
 [![License: AGPL-3.0-or-later](https://img.shields.io/badge/license-AGPL--3.0--or--later-6f42c1.svg)](LICENSE.md)
+[![X @kibi_dev](https://img.shields.io/badge/%40kibi__dev-000000.svg?logo=x&logoColor=white)](https://x.com/kibi_dev)
 
 **Say what the software should do. Kibi makes agents follow it—and prove they did.**
 
@@ -32,29 +34,16 @@ Install the core runtime, CLI, and MCP server in your project:
 npm install --save-dev kibi-core kibi-cli kibi-mcp
 ```
 
-Then initialize and explore your project memory:
+Then initialize Kibi and ask your coding agent to bootstrap the existing codebase:
 
 ```bash
-# Verify prerequisites
-npm exec -- kibi doctor
-
-# Initialize .kb/ and install Git hooks
+# Initialize Kibi infrastructure and install Git hooks
 npm exec -- kibi init
-
-# Import Markdown entities and code symbols
-npm exec -- kibi sync
-
-# Discover relevant knowledge
-npm exec -- kibi search auth
-
-# Confirm the active branch snapshot is fresh
-npm exec -- kibi status
-
-# Validate graph integrity and traceability
-npm exec -- kibi check
 ```
 
-`kibi init` installs Git hooks by default and adds the required `.kb/` entries to `.gitignore`. The hooks keep branch-local knowledge synchronized after checkout and merge.
+`kibi init` installs Git hooks by default and adds the required `.kb/` entries to `.gitignore`. It initializes Kibi infrastructure only; it does not infer product knowledge. Next, ask your coding agent: **“Bootstrap Kibi for this repository.”** The agent runs the read-only `kibi-bootstrap` plan, shows the exact plan hash for approval, applies it through `kb_apply_plan`, and validates the result.
+
+After bootstrap, work normally with your agent. For manual inspection or troubleshooting, use `kibi status`, `kibi check`, `kibi search`, and `kibi sync` as needed.
 
 Use your project's local binary runner with pnpm, Yarn, or Bun. See the [installation guide](docs/install.md) for package-manager equivalents, SWI-Prolog setup, global installation, and troubleshooting.
 
@@ -68,7 +57,82 @@ npm exec -- kibi query req --source src/auth/login.ts --format table
 # Find under-specified or under-tested requirements
 npm exec -- kibi gaps req --missing-rel specified_by,verified_by --format table
 npm exec -- kibi coverage --by req --format table
+
+# Generate a visual requirement-health report and open it locally
+npm exec -- kibi report --open
 ```
+
+The same `kibi report` command writes both files from **one** coverage snapshot:
+
+```text
+kibi-report/index.html
+kibi-report/badge.svg
+```
+
+They are meant to be published together. `% proven` is the share of applicable
+current Kibi requirements that have current proof. The HTML report is where to
+inspect which requirements are proven, which are missing proof, contradictions,
+and stale verification. No server, CDN, or external assets are required. On
+pushes to `develop`, this repository publishes that pair at
+`https://looted.github.io/kibi/kibi-report/`.
+
+### Publish requirement health on GitHub
+
+The recommended integration is a continuously updated report on GitHub Pages
+with a clickable `% proven` badge in the README. Kibi does not host badges or
+reports; GitHub Pages is the expected publisher, and the only GitHub UI step is
+enabling Actions as the Pages source.
+
+1. In GitHub: **Settings → Pages → Source → GitHub Actions**.
+2. Copy the canonical workflow to `.github/workflows/kibi-report.yml`. The
+   complete file lives at
+   [docs/examples/github/kibi-report.yml](docs/examples/github/kibi-report.yml)
+   (same content as the `kibi-cli` template).
+3. Add the clickable badge, replacing the lowercase Pages owner and repository
+   path. Files are published under `/kibi-report/` so they do not occupy the
+   Pages site root. For an owner-site repo named `OWNER.github.io`, omit the
+   repository segment (`https://OWNER.github.io/kibi-report/` and
+   `https://OWNER.github.io/kibi-report/badge.svg`).
+
+```markdown
+[![Kibi requirement health](https://OWNER.github.io/REPOSITORY/kibi-report/badge.svg)](https://OWNER.github.io/REPOSITORY/kibi-report/)
+```
+
+The workflow generates the report on pull requests, on the repository default
+branch (it does not assume `main`), and on `workflow_dispatch`. Pull requests
+fail if `kibi report` fails and upload the candidate `kibi-report/` directory
+as the `kibi-pr-report` artifact. Only the default branch and
+`workflow_dispatch` deploy GitHub Pages under `/kibi-report/`. A pull request
+never replaces the canonical public report or badge. Copy
+[docs/examples/github/kibi-report.yml](docs/examples/github/kibi-report.yml)
+rather than maintaining a second workflow. Adapt `cache: npm` and `npm ci` if
+the project does not use npm; see
+[GitHub integration](docs/github-integration.md).
+
+To scaffold those same files automatically:
+
+```bash
+npm exec -- kibi init --github
+```
+
+`kibi init --github` writes the documented workflow, adds the clickable badge
+when a README exists, and prints the Pages enable step. It is safe to re-run:
+it will not duplicate the badge or overwrite a customized workflow.
+
+Do not commit generated `kibi-report/` files. The image URL must be anonymously
+reachable for GitHub to render it in a public README.
+
+Badge-only publishing is an explicit opt-out, not the recommended flow:
+
+```bash
+npm exec -- kibi init --github --badge-only
+```
+
+That still generates the report from the same snapshot, but publishes only
+`badge.svg`. The README link then points at the metric explanation rather than
+a report that was never published. See
+[docs/github-integration.md](docs/github-integration.md) for package-manager
+adaptations, owner-site URLs, and troubleshooting.
 
 ## How it works
 
@@ -269,9 +333,9 @@ The optional `kibi-cursor` plugin adds rules, bundled skills, commands, and advi
 
 ### Bundled agent guidance
 
-Kibi's **skill subsystem** provides reusable, bundled skills for discovery, initialization, freshness, and traceability workflows. MCP-capable agents can discover them with `kb_skills_list` and load the relevant guidance with `kb_skills_load`. The same read-only operations are available through the trusted project-local CLI.
+Kibi's **skill subsystem** is the agent-guidance mechanism. It ships four reusable, bundled skills for operation safety, bootstrap, freshness, and traceability. Normal users can simply ask their agent to bootstrap; hosts use the bundled skills as infrastructure. MCP-capable agents can inspect them with `kb_skills_list` and `kb_skills_load`, and the same read-only operations are available through the trusted project-local CLI. Do not copy a long system prompt into the agent.
 
-See [generic agent onboarding](docs/mcp-reference.md#generic-agent-onboarding) for the progressive-disclosure and safety contract.
+See [generic-agent onboarding](docs/generic-agent-onboarding.md) for the copy-paste discovery snippet, and [MCP reference](docs/mcp-reference.md#generic-agent-onboarding) for the progressive-disclosure and safety contract.
 
 ## Packages
 
@@ -279,7 +343,7 @@ See [generic agent onboarding](docs/mcp-reference.md#generic-agent-onboarding) f
 | --- | --- |
 | `kibi-core` | Prolog-backed knowledge graph, inference, and validation |
 | `kibi-cli` | Human, agent, automation, and Git-hook interface |
-| `kibi-mcp` | MCP surface exposing the same 18 public operations |
+| `kibi-mcp` | MCP surface exposing the public Kibi operation contracts |
 | `kibi-opencode` | Optional OpenCode guidance and maintenance adapter |
 | `kibi-codex` | Optional Codex skills, MCP, and lifecycle adapter |
 | `kibi-cursor` | Optional Cursor rules, skills, MCP, and advisory hooks |
@@ -288,13 +352,14 @@ See [generic agent onboarding](docs/mcp-reference.md#generic-agent-onboarding) f
 ## Documentation
 
 - [Installation guide](docs/install.md) — Prerequisites, package managers, client setup, and verification
+- [GitHub badge + report](docs/github-integration.md) — Publish requirement health on GitHub Pages
 - [CLI reference](docs/cli-reference.md) — Commands, flags, and structured JSON routes
 - [MCP reference](docs/mcp-reference.md) — Tools, schemas, examples, and agent onboarding
 - [Entity schema](docs/entity-schema.md) — Entity types, relationships, and semantic fact lanes
 - [Inference rules](docs/inference-rules.md) — Validation and contradiction checks
 - [Architecture](docs/architecture.md) — Storage, branch isolation, data flow, and components
 - [Troubleshooting](docs/troubleshooting.md) — Common setup and recovery procedures
-- [LLM prompts](docs/prompts/llm-rules.md) — Ready-to-use guidance for AI agents
+- [Generic-agent onboarding](docs/generic-agent-onboarding.md) — Copy-paste skill discovery for generic MCP/CLI agents
 
 ## Beta status
 

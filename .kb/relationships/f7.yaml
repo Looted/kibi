@@ -1,0 +1,85 @@
+relationships:
+  - id: rel-69250603120f
+    type: relates_to
+    from: FACT-POL-027
+    to: ADR-013
+    created_at: "2026-08-15T18:53:42.369Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: relates_to
+    from: FACT-POL-027
+    to: ADR-014
+    created_at: 2026-08-15T18:55:00.687Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9492185d6e2a
+  - type: relates_to
+    from: FACT-POL-027
+    to: FACT-034
+    created_at: 2026-08-15T18:55:00.710Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-560a7605ed42
+  - type: covered_by
+    from: SYM-read-sync-semantic-cache
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-16T18:52:06.547Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9389e02f47c2
+  - type: implements
+    from: SYM-setupDocsAndPrompts
+    to: REQ-002
+    created_at: 2026-08-22T20:11:56.440Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-266f80573be5
+  - type: implements
+    from: SYM-setupDocsAndPrompts
+    to: REQ-008
+    created_at: 2026-08-22T20:11:56.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64e97e1759d1
+  - type: implements
+    from: SYM-setupDocsAndPrompts
+    to: REQ-mcp-suggest-predicates
+    created_at: 2026-08-22T20:11:56.462Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70cdbace32ea
+  - type: covered_by
+    from: SYM-setupDocsAndPrompts
+    to: TEST-005
+    created_at: 2026-08-22T20:11:56.468Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c1b0c38542c
+  - type: covered_by
+    from: SYM-setupDocsAndPrompts
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-08-22T20:11:56.472Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9bbb5c45a768
+  - type: covered_by
+    from: SYM-setupDocsAndPrompts
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:11:56.476Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44dd130e242d
+  - type: implements
+    from: SYM-RefreshResult
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-23T20:57:57.042Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b79698ec7764
+  - type: covered_by
+    from: SYM-RefreshResult
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:57:57.053Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3011f492c7d2

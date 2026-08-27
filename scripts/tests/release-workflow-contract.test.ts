@@ -10,6 +10,11 @@ const WORKFLOW_PATH = join(
   "workflows",
   "publish.yml",
 );
+const SELECTIVE_PUBLISH_PATH = join(
+  import.meta.dir,
+  "..",
+  "publish-selective.sh",
+);
 
 /**
  * Extract the text block for a named job from a GitHub Actions YAML workflow.
@@ -33,6 +38,7 @@ function extractJobBlock(content: string, jobName: string): string {
 
 describe("publish.yml CI workflow contract", () => {
   const workflowContent = readFileSync(WORKFLOW_PATH, "utf8");
+  const selectivePublishContent = readFileSync(SELECTIVE_PUBLISH_PATH, "utf8");
 
   // ── Existing baseline assertions ────────────────────────────────────
   test("invokes bun run scripts/run-release-state.ts", () => {
@@ -58,6 +64,57 @@ describe("publish.yml CI workflow contract", () => {
     expect(block).toContain("fetch-depth: 1");
     expect(block).toContain("ref: refs/heads/master");
     expect(block).not.toContain("fetch-depth: 0");
+    expect(block).toContain("bun run build:runtime");
+    expect(block).toContain("cd ../runtime && npm pack");
+    expect(block).toContain("packages/runtime/*.tgz");
+  });
+
+  test("keeps package packing and smoke-install order canonical", () => {
+    const block = extractJobBlock(workflowContent, "build-and-check");
+    const packOrder = [
+      ...block.matchAll(/cd (?:packages\/|\.\.\/)([^ ]+) && npm pack/g),
+    ].map(([, directory]) => directory);
+    expect(packOrder).toEqual([
+      "core",
+      "runtime",
+      "cli",
+      "mcp",
+      "opencode",
+      "codex",
+      "cursor",
+    ]);
+    const artifactOrder = [
+      ...block.matchAll(/packages\/([^/]+)\/\*\.tgz/g),
+    ].map(([, directory]) => directory);
+    expect(artifactOrder).toEqual(packOrder);
+
+    const smokeBlock = extractJobBlock(workflowContent, "release-gate");
+    const installOrder = ["core", "runtime", "cli", "mcp", "opencode", "codex"];
+    const installIndexes = installOrder.map((directory) =>
+      smokeBlock.indexOf(`packages/${directory}/kibi-`),
+    );
+    expect(installIndexes.every((index) => index >= 0)).toBe(true);
+    expect(installIndexes).toEqual([...installIndexes].sort((a, b) => a - b));
+  });
+
+  test("keeps publish-selective auto-detection in canonical package order", () => {
+    const autoBlock = selectivePublishContent.slice(
+      selectivePublishContent.indexOf("  # Auto-detect: check all packages"),
+    );
+    const calls = [
+      "kibi-core",
+      "kibi-runtime",
+      "kibi-cli",
+      "kibi-mcp",
+      "kibi-opencode",
+      "kibi-codex",
+      "kibi-cursor",
+    ];
+    const indexes = calls.map((name) =>
+      autoBlock.indexOf(`check_and_publish \"${name}\"`),
+    );
+    expect(indexes.every((index) => index >= 0)).toBe(true);
+    expect(indexes).toEqual([...indexes].sort((a, b) => a - b));
   });
 
   // ── release-gate ────────────────────────────────────────────────────
@@ -67,6 +124,7 @@ describe("publish.yml CI workflow contract", () => {
     expect(block).toContain("fetch-depth: 1");
     expect(block).toContain("ref: refs/heads/master");
     expect(block).not.toContain("fetch-depth: 0");
+    expect(block).toContain("packages/runtime/kibi-runtime-*.tgz");
   });
 
   // ── publish ─────────────────────────────────────────────────────────
@@ -75,6 +133,12 @@ describe("publish.yml CI workflow contract", () => {
     expect(block).not.toContain("actions/checkout@v6");
     expect(block).toContain("Download package tarballs");
     expect(block).toContain("npm publish");
+  });
+
+  test("packed publish compile does not repeat the emitting E2E typecheck", () => {
+    const block = extractJobBlock(workflowContent, "release-gate");
+    expect(block).toContain("bun run compile:e2e:packed");
+    expect(block).not.toContain("bun run typecheck:e2e:packed");
   });
 
   // ── create-github-releases ──────────────────────────────────────────

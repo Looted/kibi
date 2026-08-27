@@ -1,5 +1,5 @@
-import { type OperationContext, sparqlRemoteSpec } from "kibi-cli/operations";
-import type { PrologProcess } from "kibi-cli/prolog";
+import { type OperationContext, sparqlRemoteSpec } from "kibi-runtime";
+import type { PrologProcess } from "kibi-runtime";
 
 export type SparqlArgs = Readonly<Record<string, unknown>> & {
   readonly endpoint: string;

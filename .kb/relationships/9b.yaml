@@ -1,0 +1,106 @@
+relationships:
+  - id: rel-20850f26c64a
+    type: covered_by
+    from: SYM-append-only-verification-receipt-history-errors
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: "2026-08-15T12:41:40.306Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-append-only-verification-receipt-history-errors
+    to: REQ-kibi-verification-receipts-v2
+    created_at: 2026-08-15T16:37:35.765Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d56165b12de1
+  - type: covered_by
+    from: SYM-append-only-verification-receipt-history-errors
+    to: TEST-kibi-verification-receipts-v2
+    created_at: 2026-08-15T16:37:35.769Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12fa4b0308ba
+  - type: covered_by
+    from: SYM-auto-F8534C607C20
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:55:00.337Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c46cb444e3d
+  - type: validates
+    from: TEST-kibi-telemetry-acceptance-gate
+    to: SCEN-kibi-telemetry-acceptance-gate
+    created_at: 2026-08-16T18:52:12.175Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d016f2955a19
+  - type: covered_by
+    from: SYM-cli-extract-relationship-shards
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-08-16T19:49:09.986Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2d00cdea0c8
+  - type: implements
+    from: SYM-cli-rule-registry-RuleEnforcementClass
+    to: REQ-cli-check
+    created_at: 2026-08-18T17:03:51.926Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97fb61415c6b
+  - type: covered_by
+    from: SYM-cli-rule-registry-RuleEnforcementClass
+    to: TEST-004
+    created_at: 2026-08-18T17:03:51.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8121cbcec9dc
+  - type: implements
+    from: SYM-operation-catalog
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T21:00:22.343Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6687bd0f8051
+  - type: covered_by
+    from: SYM-operation-catalog
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T21:00:22.354Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60c469f36c9e
+  - type: covered_by
+    from: SYM-operation-catalog
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T21:00:22.359Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c45fb11cd811
+  - type: implements
+    from: SYM-auto-F8534C607C20
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:56:35.363Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4058b0affdf8
+  - type: covered_by
+    from: SYM-auto-F8534C607C20
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:56:35.368Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0513a6a5cc6a
+  - type: implements
+    from: SYM-skillopt-cursor-run-cell
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:27:26.217Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a58e427475c7
+  - type: covered_by
+    from: SYM-skillopt-cursor-run-cell
+    to: TEST-skillopt-cursor-compat
+    created_at: 2026-08-25T19:52:01.412Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1c02214ea28

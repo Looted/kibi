@@ -11,7 +11,7 @@ The repo-root setup relies on these files:
 3. `.cursor/rules/*.mdc` mirrors plugin rules after sync (optional but recommended for rule dogfood).
 4. `packages/mcp/dist/` and `packages/cursor/dist/` must exist in the **worktree or the primary checkout** because Cursor uses those built outputs.
 
-Agent-visible Kibi operations are not owned exclusively by this MCP dogfood wiring. MCP tools and the trusted project-local CLI's 18 `--input` JSON routes are peer surfaces over the same operation catalog; this setup exercises Cursor's MCP transport, resolver, and hooks specifically.
+Agent-visible Kibi operations are not owned exclusively by this MCP dogfood wiring. MCP tools and the trusted project-local CLI expose the same peer operation catalog; this setup exercises Cursor's MCP transport, resolver, and hooks specifically.
 
 Do **not** rely on a symlink into `~/.cursor/plugins/local` for repo dogfood. Cursor rejects symlinks whose targets live outside the plugins/local directory.
 
@@ -68,7 +68,7 @@ When Cursor opens a git worktree as the workspace root:
 - The checked-in resolver prefers a valid worktree MCP build, then derives the primary checkout only from the linked worktree's absolute `git-common-dir`. It rejects missing artifacts, unavailable runtimes or SWI-Prolog, and package-version mismatches.
 - The selected build directory is the MCP runtime working directory, while `KIBI_WORKSPACE` remains the opened worktree so Kibi data never moves to the primary checkout.
 - Keep at least one version-compatible built primary checkout (`bun run build` on the main tree) so sparse worktrees can still start MCP. The resolver never installs packages or searches global/cache fallbacks.
-- Marketplace/plugin MCP still uses `npx --no-install kibi-mcp` and needs `kibi-mcp` in the workspace `node_modules` (run `bun install` in that worktree) unless you disable the plugin MCP entry and keep project dogfood MCP.
+- Marketplace/plugin MCP uses the packaged `bin/launch-kibi-mcp.mjs` adapter. It resolves `kibi-mcp` from the opened workspace's `node_modules`, runs it with that workspace as cwd, and sets `KIBI_WORKSPACE`; run `bun install` in the worktree before enabling it. The adapter never downloads or uses a global package. Disable the plugin MCP entry and keep project dogfood MCP when testing the monorepo resolver.
 - After changing dogfood MCP or re-syncing the local plugin, reload Cursor (**Developer: Reload Window**).
 - If both project and plugin `kibi` MCP servers appear, disable the duplicate plugin entry in Customize / MCP settings so dogfood uses `.cursor/mcp.json`.
 - Root dogfood hooks pass `--trusted-workspace` as an explicit repository-local opt-in. Without that opt-in or an observed `kb_*` call, hooks emit setup guidance and never probe or execute the CLI.
@@ -125,10 +125,11 @@ bun test packages/cursor/tests/dogfood-config.test.ts
 - Check the Hooks output channel in Cursor
 - Reload Cursor after `hooks.json` changes
 
-**Plugin MCP fails with `npx canceled due to missing packages ... kibi-mcp`:**
-- The bundled plugin `mcp.json` uses `npx --no-install kibi-mcp`, which requires `kibi-mcp` in the workspace `node_modules`.
-- This repo wires that via root `devDependencies.kibi-mcp: workspace:*`. Run `bun install` after pulling that change.
-- For dogfood you can also disable the plugin MCP entry (`plugin-kibi-cursor-kibi`) and keep the workspace `.cursor/mcp.json` server, which runs the local `packages/mcp/bin/kibi-mcp` build instead.
+**Plugin MCP reports that project-local `kibi-mcp` is missing:**
+- The packaged launcher requires `kibi-mcp` in the opened workspace's `node_modules` and reports the exact workspace it checked.
+- Install the project-local foundation with `npm install --save-dev kibi-cli kibi-mcp kibi-core` (or the equivalent command for your package manager), then reload Cursor.
+- The plugin does not download packages at startup and does not use global or plugin-local runtimes.
+- For dogfood you can disable the plugin MCP entry (`plugin-kibi-cursor-kibi`) and keep the workspace `.cursor/mcp.json` server, which runs the local `packages/mcp/bin/kibi-mcp` build instead.
 
 **Published plugin got loaded instead of local artifacts:**
 - Prefer repo dogfood via `.cursor/mcp.json` and `.cursor/hooks.json`

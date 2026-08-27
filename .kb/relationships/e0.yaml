@@ -24,3 +24,129 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/events/EVT-001.md
+  - type: implements
+    from: SYM-auto-CF2DCAD0569D
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-15T22:20:29.427Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f425cbf3d634
+  - type: implements
+    from: SYM-auto-CF2DCAD0569D
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-16T07:53:56.570Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8cc964d8457
+  - type: covered_by
+    from: SYM-auto-CF2DCAD0569D
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-08-16T07:53:56.576Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce8aab4a0b2e
+  - type: requires_predicate
+    from: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+    to: FACT-PRED-D5B9A3D96F2D
+    created_at: 2026-08-20T22:14:10.261Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b303b30e658a
+  - type: requires_predicate
+    from: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+    to: FACT-PRED-7DF9B295814F
+    created_at: 2026-08-20T22:14:10.281Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3652ffb4388
+  - type: requires_predicate
+    from: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+    to: FACT-PRED-073AC8A66AD6
+    created_at: 2026-08-20T22:14:10.286Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3d11d94a511
+  - type: requires_predicate
+    from: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+    to: FACT-PRED-27F6945747CB
+    created_at: 2026-08-20T22:14:10.291Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a95812d262d8
+  - type: requires_predicate
+    from: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+    to: FACT-PRED-A39735F2CF1C
+    created_at: 2026-08-20T22:14:10.297Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f8d6fcae170
+  - type: requires_predicate
+    from: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+    to: FACT-PRED-F555DB150F42
+    created_at: 2026-08-20T22:14:10.302Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a55bfe29f26
+  - type: specified_by
+    from: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+    to: SCEN-kibi-consumer-local-plugin-launcher-ontology-v1
+    created_at: 2026-08-20T22:15:43.877Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-814508dd1ae1
+  - type: relates_to
+    from: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+    to: REQ-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-08-20T22:15:43.898Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0e5747f265d
+  - type: implements
+    from: SYM-cli-mutation-strict-fact-factKindShapeHints
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:22:47.930Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0b68b042d6c
+  - type: covered_by
+    from: SYM-cli-mutation-strict-fact-factKindShapeHints
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:22:47.949Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abf3b3a2e815
+  - type: covered_by
+    from: SYM-cli-mutation-strict-fact-factKindShapeHints
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:22:47.955Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3240ca8b55f6
+  - type: covered_by
+    from: SYM-auto-CF2DCAD0569D
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:42:23.312Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a0008853226
+  - type: implements
+    from: SYM-getLatestPluginVersion
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:49:32.273Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-667bd9d514f7
+  - type: covered_by
+    from: SYM-getLatestPluginVersion
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:49:32.289Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eaf04a102155
+  - type: covered_by
+    from: SYM-getLatestPluginVersion
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:49:32.300Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6272176dd567

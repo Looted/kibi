@@ -11,14 +11,14 @@ const skillsRoot = path.join(packageRoot, "skills");
 
 const requiredSkills = [
   "kibi-usage",
-  "init-kibi",
+  "kibi-bootstrap",
   "kibi-freshness",
   "kibi-traceability",
 ] as const;
 
 const expectedSkillNames: Record<(typeof requiredSkills)[number], string> = {
   "kibi-usage": "Kibi Usage",
-  "init-kibi": "init-kibi",
+  "kibi-bootstrap": "kibi-bootstrap",
   "kibi-freshness": "kibi-freshness",
   "kibi-traceability": "kibi-traceability",
 };
@@ -30,7 +30,7 @@ const requiredToolNames = [
   "kb_delete",
   "kb_check",
   "kb_status",
-  "kb_autopilot_generate",
+  "kb_plan_bootstrap",
 ];
 
 function parseFrontmatter(text: string): Record<string, string> {
@@ -111,9 +111,11 @@ describe("kibi-codex skills", () => {
         "utf8",
       );
 
-      expect(raw).toContain("## Interface Selection");
+      expect(raw).toMatch(/## Interface (Selection|and preview)/);
       expect(raw).toContain("MCP");
-      expect(raw).toMatch(/npx --no-install|bunx --no-install/);
+      expect(raw).toMatch(
+        /visible approved|trusted project-local CLI|peer interfaces/i,
+      );
       expect(raw.toLowerCase()).not.toContain("mcp only");
       expect(raw.toLowerCase()).not.toContain("exclusively through mcp");
     }
@@ -123,7 +125,7 @@ describe("kibi-codex skills", () => {
       "utf8",
     );
     expect(usage).toContain("resources/operation-access.md");
-    expect(usage).toContain("npx --no-install kibi upsert --input -");
+    expect(usage).toContain("npx --no-install kibi search --input -");
   });
 
   test("skills include source-linked lookup, freshness, and traceability guidance", () => {
@@ -156,9 +158,7 @@ describe("kibi-codex skills", () => {
         conceptCoverage.traceability = true;
       }
 
-      if (body.includes("source")) {
-        expect(body).toContain("kb_query");
-      }
+      expect(body).toMatch(/kb_query|kb_search|kb_status|kibi sync/);
     }
 
     expect(conceptCoverage.sourceLinked).toBe(true);
@@ -172,15 +172,11 @@ describe("kibi-codex skills", () => {
       "utf8",
     );
 
+    expect(raw).toContain("kibiProtocol");
+    expect(raw).toContain("committed_with_repairs");
+    expect(raw).toContain("typed `nextActions`");
     expect(raw).toContain("status: implemented");
-    expect(raw).toContain(
-      "strict `kb_upsert.properties` rejects unknown fields",
-    );
-    expect(raw).toContain(
-      "each row's `from` must equal the upserted entity ID",
-    );
-    expect(raw).toContain(
-      "When a generic `Query failed` appears, do not keep retrying the same payload",
-    );
+    expect(raw).toContain("source-first");
+    expect(raw).toContain("do not keep");
   });
 });

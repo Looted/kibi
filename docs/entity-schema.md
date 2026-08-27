@@ -104,37 +104,37 @@ This section provides guidance on selecting the appropriate entity type for your
 **Canonical Example: REQ + SCEN + TEST (Golden Path)**
 
 ```yaml
-# documentation/requirements/REQ-001.md
+# .kb/requirements/REQ-001.md
 ---
 id: REQ-001
 title: User authentication
 status: open
 created_at: 2026-03-10T10:00:00Z
 updated_at: 2026-03-10T10:00:00Z
-source: documentation/requirements/REQ-001.md
+source: .kb/requirements/REQ-001.md
 links:
   - type: specified_by
     target: SCEN-001
 ---
 
-# documentation/scenarios/SCEN-001.md
+# .kb/scenarios/SCEN-001.md
 ---
 id: SCEN-001
 title: Login with valid credentials
 status: active
 created_at: 2026-03-10T10:01:00Z
 updated_at: 2026-03-10T10:01:00Z
-source: documentation/scenarios/SCEN-001.md
+source: .kb/scenarios/SCEN-001.md
 ---
 
-# documentation/tests/TEST-001.md
+# .kb/tests/TEST-001.md
 ---
 id: TEST-001
 title: Login test
 status: passing
 created_at: 2026-03-10T10:02:00Z
 updated_at: 2026-03-10T10:02:00Z
-source: documentation/tests/TEST-001.md
+source: .kb/tests/TEST-001.md
 links:
   - type: validates
     target: SCEN-001
@@ -163,7 +163,7 @@ relationship:
   target: SCEN-001
   created_at: 2026-03-10T10:03:00Z
   created_by: analyst
-  source: documentation/requirements/REQ-001.md
+  source: .kb/requirements/REQ-001.md
 ---
 # Relationship: REQ-001 verified_by TEST-001
 relationship:
@@ -172,7 +172,7 @@ relationship:
   target: TEST-001
   created_at: 2026-03-10T10:04:00Z
   created_by: qa
-  source: documentation/requirements/REQ-001.md
+  source: .kb/requirements/REQ-001.md
 ```
 
 > **Rule:** Never embed scenarios or tests inside requirement records. Always create separate files for each entity and link them with explicit typed `links` entries or relationship rows (`specified_by`, `verified_by`). Plain string `links` are generic `relates_to` only.
@@ -188,33 +188,33 @@ relationship:
   - one `fact_kind: subject` fact linked via `constrains`
   - one `fact_kind: property_value` fact linked via `requires_property`
 - For v1, the supported evolution path is append-only: create a new requirement and link it to the prior one with `supersedes`.
-- Automated modeling via `kb_model_requirement` can produce deterministic write plans. `/init-kibi` also follows this pattern, but bootstrap writes still require a user-facing preview and explicit approval before applying `kb_upsert` payloads.
+- Automated modeling via `kb_model_requirement` can produce deterministic write plans. `/kibi-bootstrap` returns `kibi.bootstrap-plan.v1`; bootstrap writes require a user-facing preview and explicit approval before calling `kb_apply_plan`.
 - **Low-confidence downgrade:** If confidence is < 0.7, requirements are downgraded to `observation` facts to avoid false-positive contradictions.
 - Use `observation` and `meta` facts for runtime evidence, historical notes, and governance context that should not participate in contradiction blocking.
 
 **Canonical Contradiction-Safe Example:**
 
 ```yaml
-# documentation/facts/FACT-USER-ROLE.md
+# .kb/facts/FACT-USER-ROLE.md
 ---
 id: FACT-USER-ROLE
 title: User Role Assignment
 status: active
 created_at: 2026-03-24T00:00:00Z
 updated_at: 2026-03-24T00:00:00Z
-source: documentation/facts/FACT-USER-ROLE.md
+source: .kb/facts/FACT-USER-ROLE.md
 fact_kind: subject
 subject_key: user.role_assignment
 ---
 
-# documentation/facts/FACT-LIMIT-3.md
+# .kb/facts/FACT-LIMIT-3.md
 ---
 id: FACT-LIMIT-3
 title: Maximum of Three
 status: active
 created_at: 2026-03-24T00:00:00Z
 updated_at: 2026-03-24T00:00:00Z
-source: documentation/facts/FACT-LIMIT-3.md
+source: .kb/facts/FACT-LIMIT-3.md
 fact_kind: property_value
 subject_key: user.role_assignment
 property_key: max_roles
@@ -223,14 +223,14 @@ value_type: int
 value_int: 3
 ---
 
-# documentation/requirements/REQ-019.md
+# .kb/requirements/REQ-019.md
 ---
 id: REQ-019
 title: Users can now have 3 roles
 status: open
 created_at: 2026-02-20T13:06:00Z
 updated_at: 2026-03-24T00:00:00Z
-source: documentation/requirements/REQ-019.md
+source: .kb/requirements/REQ-019.md
 links:
   - type: constrains
     target: FACT-USER-ROLE
@@ -319,7 +319,7 @@ tags:
 | text_ref     | No       | string         | Markdown/doc pointer                             |
 | verification_scope | No | enum           | `unit`, `integration`, or `end_to_end`           |
 | verification_perspective | No | enum     | `internal` or `consumer`                         |
-| verification_receipts | No | array[object] | Append-only `kibi.verification-receipt.v1` execution history; requires `verification_scope` |
+| verification_receipts | No | array[object] | Append-only verification-receipt execution history; new evidence is `kibi.verification-receipt.v2`, while v1 entries remain historical compatibility data; requires `verification_scope` |
 
 `tags` remain metadata only. They do not alias or replace typed verification fields.
 
@@ -334,7 +334,7 @@ Coverage-depth reporting uses typed verification fields before legacy hints. A t
 
 Conservative requirement proof uses receipt history instead. Each receipt binds `receipt_id`, `test_id`, `runner`, `command`, typed `scope`, `outcome`, `code_snapshot`, `environment_hash`, `started_at`, `finished_at`, and `artifact_digest`. History is capped at 50 entries, receipt IDs are unique, finish times increase strictly, and existing entries cannot be removed, changed, or reordered through upsert or incremental sync. Proof accepts only the newest receipt for the deterministic current workspace snapshot when it passed, is not future-dated, and is at most seven days old. Missing, wrong-snapshot, stale, failed, malformed, or future-dated evidence produces explicit proof gaps.
 
-`kibi.workspace-snapshot.v1` hashes current versionable code plus requirement, scenario, fact, test-contract, and symbol-manifest inputs. It excludes `.kb/`, release changesets, general `docs/`, and only the `verification_receipts` frontmatter field inside entity Markdown, preventing a receipt from invalidating its own code hash without hiding changes to the surrounding test contract.
+`kibi.workspace-snapshot.v2` hashes current versionable code plus requirement, scenario, fact, test-contract, and symbol-manifest inputs. It excludes `.kb/`, release changesets, general `docs/`, and the `verification_receipts` frontmatter field inside every tracked Markdown file, preventing a receipt from invalidating its own code hash without hiding changes to the surrounding test contract. The v2 algorithm invalidates v1 snapshot-bound receipts once; they must be rerun.
 
 #### Check output diagnostics
 
@@ -356,21 +356,29 @@ updated_at: 2026-02-17T13:00:00Z
 source: https://example.com/fixtures/tests/TEST-001
 tags:
   - sample
-verification_scope: integration
-verification_perspective: internal
+verification_scope: end_to_end
+verification_perspective: consumer
 verification_receipts:
-  - version: kibi.verification-receipt.v1
+  - version: kibi.verification-receipt.v2
     receipt_id: VR-TEST-001-20260217T130500Z
     test_id: TEST-001
     runner: bun
     command: bun test ./tests/e2e/sample.test.ts
-    scope: integration
+    command_argv: [bun, test, ./tests/e2e/sample.test.ts]
+    scope: end_to_end
     outcome: passed
     code_snapshot: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     environment_hash: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
     started_at: 2026-02-17T13:00:00Z
     finished_at: 2026-02-17T13:05:00Z
     artifact_digest: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    contract_hash: dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+    case_results:
+      - symbol_id: SYM-TEST-001
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 300000
 ---
 ```
 
@@ -534,7 +542,7 @@ Legacy prose facts without `fact_kind` remain readable during migration, but new
 
 Requirements also retain a `semantic_inventory` proposition ledger. Each entry binds a claim key and exact claim text to a UTF-8 byte span and one of `modeled`, `ambiguous`, `ontology_gap`, `nonlogical`, or `missing`. An assertive proposition that is not modeled must be explicitly unresolved; prose alone is not logical coverage.
 
-Generated symbol coordinates (`sourceLine`, `sourceColumn`, `sourceEndLine`, and `sourceEndColumn`) are persisted into the RDF snapshot during sync alongside `sourceFile`. This lets conservative proof reporting validate the exact source-bound symbols that carry implementation and executable-test evidence; the authored manifest remains coordinate-free and `documentation/symbol-coordinates.yaml` remains the generated source of truth.
+Symbol coordinates are generated compiler state. Callers cannot author `sourceLine`, `sourceColumn`, `sourceEndLine`, or `sourceEndColumn` through `kb_upsert`: source-first symbol upserts re-extract the canonical manifest plus `.kb/symbol-coordinates.yaml` before committing, so partial payloads can no longer erase persisted coordinates, and coordinate refresh failures abort the mutation instead of being reported as complete. The artifact is version 2: every record carries an identity hash bound to the extraction that produced it, malformed artifacts fail sync and mutations closed, and publication is atomic. This lets conservative proof reporting validate the exact source-bound symbols that carry implementation and executable-test evidence; the authored manifest remains coordinate-free and `.kb/symbol-coordinates.yaml` remains the generated source of truth.
 
 | Property     | Required | Type           | Description                                      |
 |--------------|----------|----------------|--------------------------------------------------|
@@ -559,7 +567,7 @@ title: User Role Assignment
 status: active
 created_at: 2026-02-20T13:00:00Z
 updated_at: 2026-02-20T13:00:00Z
-source: documentation/facts/FACT-USER-ROLE.md
+source: .kb/facts/FACT-USER-ROLE.md
 tags:
   - domain
   - auth
@@ -761,7 +769,7 @@ relationship:
   target: FACT-USER-ROLE
   created_at: 2026-02-20T14:00:00Z
   created_by: analyst
-  source: documentation/requirements/REQ-018.md
+  source: .kb/requirements/REQ-018.md
 ```
 
 **requires_property**
@@ -773,7 +781,7 @@ relationship:
   target: FACT-LIMIT-2
   created_at: 2026-02-20T14:01:00Z
   created_by: analyst
-  source: documentation/requirements/REQ-018.md
+  source: .kb/requirements/REQ-018.md
 ```
 
 **relates_to**

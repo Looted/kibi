@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
-import { execSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { execSync } from "../helpers/isolated-env.js";
 
 import {
   getStagedFiles,
@@ -112,22 +112,22 @@ describe("git-staged", () => {
     it("collects supported staged files, handles renames, and normalizes sentinel hunks", () => {
       const exec = makeExec({
         "--name-status":
-          "A\0src/new file.ts\0R100\0src/old.ts\0src/renamed.ts\0M\0docs/requirements/REQ-123.md\0M\0nested/symbols.yaml\0\tblank-status.js\0",
+          "A\0src/new file.ts\0R100\0src/old.ts\0src/renamed.ts\0M\0.kb/requirements/REQ-123.md\0M\0.kb/symbols.yaml\0\tblank-status.js\0",
         'git diff --cached -U0 -- "src/new file.ts"':
           "diff --git a/src/new file.ts b/src/new file.ts\n--- /dev/null\n+++ b/src/new file.ts\n",
         'git diff --cached -U0 -- "src/renamed.ts"':
           "@@ -1 +1,2 @@\n+renamed\n",
-        'git diff --cached -U0 -- "docs/requirements/REQ-123.md"':
+        'git diff --cached -U0 -- ".kb/requirements/REQ-123.md"':
           "@@ -1 +1 @@\n-title\n+title\n",
-        'git diff --cached -U0 -- "nested/symbols.yaml"':
-          "diff --git a/nested/symbols.yaml b/nested/symbols.yaml\n--- /dev/null\n+++ b/nested/symbols.yaml\n",
+        'git diff --cached -U0 -- ".kb/symbols.yaml"':
+          "diff --git a/.kb/symbols.yaml b/.kb/symbols.yaml\n--- /dev/null\n+++ b/.kb/symbols.yaml\n",
         'git diff --cached -U0 -- "blank-status.js"': "@@ -0,0 +1 @@\n+ok\n",
         'git show :"src/new file.ts"':
           "export const created = true;\nconsole.log(created);\n",
         'git show :"src/renamed.ts"':
           "export function renamed() {}\nsecond line\n",
-        'git show :"docs/requirements/REQ-123.md"': "---\nid: REQ-123\n---\n",
-        'git show :"nested/symbols.yaml"': "symbols:\n  - id: SYM-1\n",
+        'git show :".kb/requirements/REQ-123.md"': "---\nid: REQ-123\n---\n",
+        'git show :".kb/symbols.yaml"': "symbols:\n  - id: SYM-1\n",
         'git show :"blank-status.js"': "export default 1;\n",
       });
 
@@ -135,7 +135,6 @@ describe("git-staged", () => {
         {
           path: "src/new file.ts",
           status: "A",
-          oldPath: undefined,
           hunkRanges: [{ start: 1, end: 3 }],
           diffText:
             "diff --git a/src/new file.ts b/src/new file.ts\n--- /dev/null\n+++ b/src/new file.ts\n",
@@ -150,26 +149,23 @@ describe("git-staged", () => {
           content: "export function renamed() {}\nsecond line\n",
         },
         {
-          path: "docs/requirements/REQ-123.md",
+          path: ".kb/requirements/REQ-123.md",
           status: "M",
-          oldPath: undefined,
           hunkRanges: [{ start: 1, end: 1 }],
           diffText: "@@ -1 +1 @@\n-title\n+title\n",
           content: "---\nid: REQ-123\n---\n",
         },
         {
-          path: "nested/symbols.yaml",
+          path: ".kb/symbols.yaml",
           status: "M",
-          oldPath: undefined,
           hunkRanges: [{ start: 1, end: 3 }],
           diffText:
-            "diff --git a/nested/symbols.yaml b/nested/symbols.yaml\n--- /dev/null\n+++ b/nested/symbols.yaml\n",
+            "diff --git a/.kb/symbols.yaml b/.kb/symbols.yaml\n--- /dev/null\n+++ b/.kb/symbols.yaml\n",
           content: "symbols:\n  - id: SYM-1\n",
         },
         {
           path: "blank-status.js",
           status: "M",
-          oldPath: undefined,
           hunkRanges: [{ start: 1, end: 1 }],
           diffText: "@@ -0,0 +1 @@\n+ok\n",
           content: "export default 1;\n",

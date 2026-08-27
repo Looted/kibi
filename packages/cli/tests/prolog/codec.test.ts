@@ -378,14 +378,14 @@ describe("parseViolationRows", () => {
   test("parses a single violation with five arguments", () => {
     expect(
       parseViolationRows(
-        `[violation(rule,'REQ-001',"Missing, field","Add subject_key",'documentation/facts/FACT-001.md')]`,
+        `[violation(rule,'REQ-001',"Missing, field","Add subject_key",'.kb/facts/FACT-001.md')]`,
       ),
     ).toEqual([
       {
         description: "Missing, field",
         entityId: "REQ-001",
         rule: "rule",
-        source: "documentation/facts/FACT-001.md",
+        source: ".kb/facts/FACT-001.md",
         suggestion: "Add subject_key",
       },
     ]);

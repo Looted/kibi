@@ -1,6 +1,6 @@
 import path from "node:path";
-import { PrologProcess, resolveKbPlPath } from "kibi-cli/prolog";
-import { escapeAtomContent } from "kibi-cli/prolog/codec";
+import { PrologProcess, resolveKbPlPath } from "kibi-runtime";
+import { escapeAtomContent } from "kibi-runtime";
 import { getCoreModulePathOverride, getKbPlPathOverride } from "../env.js";
 
 type PrologQueryResult = Awaited<ReturnType<PrologProcess["query"]>>;
@@ -8,6 +8,17 @@ type PrologQueryResult = Awaited<ReturnType<PrologProcess["query"]>>;
 type PrologQueryLike = {
   query: (goal: string) => Promise<PrologQueryResult>;
 };
+
+function isPrologProcess(value: unknown): value is PrologProcess {
+  return (
+    value instanceof PrologProcess ||
+    (value !== null &&
+      typeof value === "object" &&
+      typeof (value as { query?: unknown }).query === "function" &&
+      typeof (value as { invalidateCache?: unknown }).invalidateCache ===
+        "function")
+  );
+}
 
 // implements REQ-002, REQ-013
 export function resolveCorePlPath(fileName: string): string {
@@ -37,7 +48,7 @@ export async function runJsonModuleQuery<T>(
   const modulePath = escapeAtomContent(
     resolveCorePlPath(fileName).replace(/\\/g, "/"),
   );
-  if (!(prolog instanceof PrologProcess)) {
+  if (!isPrologProcess(prolog)) {
     const mockedResult = await prolog.query(
       `(use_module('${modulePath}'), ${goal})`,
     );

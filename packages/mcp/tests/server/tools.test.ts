@@ -267,12 +267,12 @@ describe("jsonSchemaToZod", () => {
   });
 
   describe("null type", () => {
-    test("returns z.any() for null type (not implemented)", () => {
+    test("accepts only null for a null type", () => {
       const schema = { type: "null" };
       const result = jsonSchemaToZod(schema);
       expect(result).toBeInstanceOf(z.ZodType);
       expect(result.safeParse(null).success).toBe(true);
-      expect(result.safeParse("anything").success).toBe(true);
+      expect(result.safeParse("anything").success).toBe(false);
     });
   });
 

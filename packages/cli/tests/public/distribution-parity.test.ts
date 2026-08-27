@@ -123,14 +123,14 @@ describe("distribution parity matrix", () => {
         {
           timestamp: "2026-08-10T12:00:00.000Z",
           nested: {
-            source: "/tmp/fixture/src/service.ts",
+            source: "/tmp/dogfood-project-a/src/service.ts",
             id: "missing_verification_receipt",
             proofStatus: "unproven",
             witness: "REQ-A conflicts with REQ-B",
           },
           requestId: "7a1990ea-b91e-4fd4-ae0a-a6adad637ef2",
         },
-        { workspaceRoots: ["/tmp/fixture"] },
+        { workspaceRoots: ["/tmp/dogfood-project-a"] },
       ),
     ).toEqual({
       nested: {
@@ -154,8 +154,8 @@ describe("distribution parity matrix", () => {
     expect(report.issues).toEqual([]);
     expect(report.summary).toMatchObject({
       runtimeCount: 4,
-      observationCount: 24,
-      matchCount: 24,
+      observationCount: 28,
+      matchCount: 28,
       divergenceCount: 0,
       unsupportedCount: 0,
     });
@@ -203,15 +203,20 @@ describe("distribution parity matrix", () => {
   });
 
   test("records unsupported project capabilities without treating them as matches", () => {
-    const project = runtime("bizzwords-cli", "project_resolved", "cli", {
-      project: "bizzwords",
-      actions: {
-        repair_plan: {
-          kind: "upgrade",
-          detail: "Upgrade kibi-cli from 0.14.0 to the current release.",
+    const project = runtime(
+      "dogfood-project-b-cli",
+      "project_resolved",
+      "cli",
+      {
+        project: "dogfood-project-b",
+        actions: {
+          repair_plan: {
+            kind: "upgrade",
+            detail: "Upgrade kibi-cli from 0.14.0 to the current release.",
+          },
         },
       },
-    });
+    );
     const runtimes = [...currentRuntimes(), project];
     const rows = observations(runtimes).map((row) =>
       row.runtimeId === project.id && row.capability === "repair_plan"
@@ -232,7 +237,7 @@ describe("distribution parity matrix", () => {
     expect(projectRow?.comparison).toBe("unsupported");
     expect(projectRow?.action?.kind).toBe("upgrade");
     expect(report.summary.unsupportedCount).toBe(1);
-    expect(report.summary.matchCount).toBe(29);
+    expect(report.summary.matchCount).toBe(34);
   });
 
   test("requires an action for every project divergence", () => {
@@ -284,8 +289,8 @@ describe("distribution parity matrix", () => {
 
     const report = await runDistributionParityMatrix(adapters);
 
-    expect(calls).toHaveLength(24);
-    expect(calls.slice(0, 6)).toEqual(
+    expect(calls).toHaveLength(28);
+    expect(calls.slice(0, 7)).toEqual(
       REQUIREMENT_COMPILER_CAPABILITIES.map(
         (capability) => `source-cli:${capability}`,
       ),

@@ -1,0 +1,127 @@
+relationships:
+  - id: rel-1457b6a119ec
+    type: covered_by
+    from: SYM-kibi-script-change-to-proof-eval-ts-searchcandidate
+    to: TEST-kibi-change-to-proof-evaluation
+    created_at: "2026-08-16T19:43:54.870Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-canonical-resolveCheckRules
+    to: REQ-cli-check
+    created_at: 2026-08-18T17:36:20.407Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf8afa7f654c
+  - type: covered_by
+    from: SYM-canonical-resolveCheckRules
+    to: TEST-004
+    created_at: 2026-08-18T17:36:20.415Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e453c3a83b2
+  - type: implements
+    from: SYM-cli-report-filter-type
+    to: REQ-kibi-html-health-report
+    created_at: 2026-08-18T20:42:14.219Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4a635714c183
+  - type: covered_by
+    from: SYM-cli-report-filter-type
+    to: TEST-kibi-html-health-report
+    created_at: 2026-08-18T20:42:14.227Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-946f4561bccd
+  - type: implements
+    from: SYM-kibi-predicate-semantic-applicability
+    to: REQ-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-21T08:28:09.860Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65481875d7ea
+  - type: covered_by
+    from: SYM-kibi-predicate-semantic-applicability
+    to: TEST-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-21T08:28:09.874Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92db59d6746c
+  - type: implements
+    from: SYM-SkillsReadArgs
+    to: REQ-002
+    created_at: 2026-08-22T20:10:11.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49033ffd89d6
+  - type: covered_by
+    from: SYM-SkillsReadArgs
+    to: TEST-005
+    created_at: 2026-08-22T20:10:11.850Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-496beaadc2f1
+  - type: covered_by
+    from: SYM-SkillsReadArgs
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:10:11.854Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eccb53de3922
+  - type: implements
+    from: SYM-loadConfig-2
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:52:17.676Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-722314c7abf5
+  - type: covered_by
+    from: SYM-loadConfig-2
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:52:17.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1b4e0fa57db
+  - type: covered_by
+    from: SYM-loadConfig-2
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:52:17.697Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bcec79968467
+  - type: implements
+    from: SYM-WorkContext
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:57:15.678Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-381f6594c170
+  - type: covered_by
+    from: SYM-WorkContext
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:57:15.694Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50cd29dc61aa
+  - type: covered_by
+    from: SYM-WorkContext
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:57:15.700Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6aba4b5bd942
+  - type: implements
+    from: SYM-coordinateIdentityKey
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-23T20:41:21.137Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5600b2435d3
+  - type: covered_by
+    from: SYM-coordinateIdentityKey
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:41:21.150Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb46caf3bba1

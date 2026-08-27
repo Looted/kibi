@@ -35,6 +35,7 @@ function restoreEnv(): void {
     Reflect.deleteProperty(process.env, key);
   }
   Object.assign(process.env, originalEnv);
+  Reflect.deleteProperty(process.env, "KIBI_BRANCH");
 }
 
 function createWorkspace(): string {
@@ -95,6 +96,13 @@ function installDeps(workspace: string): void {
     getBranchDiagnostic: (_cwd, error) => `diagnostic ${error}`,
     isValidBranchName: (branch) => !branch.includes("/"),
     resolveActiveBranch: () => ({ branch: "develop" }),
+    resolveBranchAttachment: () => ({
+      gitBranch: "develop",
+      kbBranch: "develop",
+      storePath: branchPath(workspace, "develop"),
+      kind: "exact",
+      migrationRequired: false,
+    }),
     resolveKbPath: branchPath,
     resolveWorkspaceRoot: () => workspace,
   });
@@ -333,11 +341,14 @@ describe.serial("direct session lifecycle coverage", () => {
     );
   });
 
-  test("active-branch resolution diagnostics and debug require failures are surfaced", async () => {
+  test("active-branch diagnostics and runtime boundary marker are surfaced", async () => {
     const workspace = createWorkspace();
     installDeps(workspace);
     session._setSessionDepsForTests({
-      resolveActiveBranch: () => ({ error: "detached", code: "DETACHED_HEAD" }),
+      resolveBranchAttachment: () => ({
+        error: "detached",
+        code: "DETACHED_HEAD",
+      }),
     });
     const originalConsoleError = console.error;
     const consoleErrorMock = mock((..._args: unknown[]) => {});
@@ -351,17 +362,14 @@ describe.serial("direct session lifecycle coverage", () => {
     installDeps(workspace);
     process.env.KIBI_BRANCH = "develop";
     process.env.KIBI_MCP_DEBUG = "1";
-    session._setSessionDepsForTests({
-      createRequire: () => {
-        throw new Error("create require denied");
-      },
-    });
     await session.ensureProlog();
     console.error = originalConsoleError;
 
     expect(
       consoleErrorMock.mock.calls.some((call) =>
-        call.some((part) => String(part).includes("create require denied")),
+        call.some((part) =>
+          String(part).includes("[KIBI-MCP] Runtime boundary: kibi-runtime"),
+        ),
       ),
     ).toBe(true);
   });

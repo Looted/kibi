@@ -16,6 +16,11 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import type {
+  VerificationContract,
+  VerificationReceipt,
+} from "../public/verification-receipt.js";
+
 export interface BaseEntity {
   id: string;
   title: string;
@@ -71,6 +76,8 @@ export interface FactFields {
 export interface TestVerificationFields {
   verification_scope?: "unit" | "integration" | "end_to_end";
   verification_perspective?: "internal" | "consumer";
+  verification_contract?: VerificationContract;
+  verification_receipts?: readonly VerificationReceipt[];
 }
 
 export type Requirement = BaseEntity & {

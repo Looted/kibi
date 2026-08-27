@@ -1,0 +1,36 @@
+relationships:
+  - id: rel-6c320718e6c6
+    type: covered_by
+    from: SYM-extractSemanticClauses
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: "2026-08-16T18:52:06.495Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-telemetry-remediation-command
+    to: TEST-kibi-telemetry-remediation-evidence
+    created_at: 2026-08-16T18:52:17.712Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5eef76f99b13
+  - type: implements
+    from: SYM-SyncRunnerResult
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:56:30.015Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fbd91677e18
+  - type: covered_by
+    from: SYM-SyncRunnerResult
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:56:30.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc1648804ae7
+  - type: covered_by
+    from: SYM-SyncRunnerResult
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:56:30.032Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-106c04733d25

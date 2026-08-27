@@ -1,8 +1,8 @@
-// E2E test: kibi-opencode bootstrap path behavior with relocated kibi-docs/*
+// E2E test: kibi-opencode bootstrap path behavior for the canonical .kb/ layout.
 //
 // This test verifies the bootstrap warning behavior for workspaces with:
-// - Healthy relocated paths (kibi-docs/requirements, etc. all present)
-// - Missing targets (some configured paths are missing)
+// - Healthy canonical .kb/ knowledge lanes
+// - A lifecycle manifest whose canonical targets are missing
 //
 // Uses the installed package (not repo imports) to validate actual npm tarball behavior.
 // implements REQ-opencode-kibi-plugin-v1
@@ -20,12 +20,47 @@ import {
 
 const REPO_ROOT = resolve(process.cwd());
 
+const CANONICAL_LANES = [
+  ".kb/requirements",
+  ".kb/scenarios",
+  ".kb/tests",
+  ".kb/adr",
+  ".kb/flags",
+  ".kb/events",
+  ".kb/facts",
+] as const;
+
+function writeCanonicalManifest(workspaceDir: string): void {
+  mkdirSync(join(workspaceDir, ".kb"), { recursive: true });
+  writeFileSync(
+    join(workspaceDir, ".kb", "manifest.json"),
+    JSON.stringify({
+      manifestVersion: 1,
+      schemaVersion: 5,
+      semanticAdvisorBackfill: "not_applicable",
+    }),
+    "utf8",
+  );
+}
+
+function writeHealthyCanonicalLayout(workspaceDir: string): void {
+  writeCanonicalManifest(workspaceDir);
+  for (const dir of CANONICAL_LANES) {
+    mkdirSync(join(workspaceDir, dir), { recursive: true });
+  }
+  writeFileSync(
+    join(workspaceDir, ".kb", "symbols.yaml"),
+    "symbols: []\n",
+    "utf8",
+  );
+}
+
 const RUN_NODE_TEST_SUITE =
   typeof (globalThis as { Bun?: unknown }).Bun === "undefined";
 
 if (RUN_NODE_TEST_SUITE) {
   describe(
-    "E2E: kibi-opencode bootstrap paths (relocated kibi-docs/*)",
+    "E2E: kibi-opencode bootstrap paths (canonical .kb/)",
     { timeout: 300000 },
     () => {
       let tmpDir: string;
@@ -60,56 +95,13 @@ if (RUN_NODE_TEST_SUITE) {
       });
 
       it(
-        "does not emit bootstrap warning for healthy relocated paths",
+        "does not emit bootstrap warning for a healthy canonical .kb/ layout",
         { timeout: 60000 },
         async () => {
-          const workspaceDir = join(tmpDir, "healthy-relocated");
+          const workspaceDir = join(tmpDir, "healthy-canonical");
           mkdirSync(workspaceDir, { recursive: true });
-          mkdirSync(join(workspaceDir, "kibi-docs/requirements"), {
-            recursive: true,
-          });
-          mkdirSync(join(workspaceDir, "kibi-docs/scenarios"), {
-            recursive: true,
-          });
-          mkdirSync(join(workspaceDir, "kibi-docs/tests"), { recursive: true });
-          mkdirSync(join(workspaceDir, "kibi-docs/adr"), { recursive: true });
-          mkdirSync(join(workspaceDir, "kibi-docs/flags"), { recursive: true });
-          mkdirSync(join(workspaceDir, "kibi-docs/events"), {
-            recursive: true,
-          });
-          mkdirSync(join(workspaceDir, "kibi-docs/facts"), { recursive: true });
-          writeFileSync(
-            join(workspaceDir, "kibi-docs/symbols.yaml"),
-            "",
-            "utf8",
-          );
+          writeHealthyCanonicalLayout(workspaceDir);
 
-          // Create .kb directory first
-          mkdirSync(join(workspaceDir, ".kb"), { recursive: true });
-
-          // Write .kb/config.json with relocated paths
-          writeFileSync(
-            join(workspaceDir, ".kb/config.json"),
-            JSON.stringify(
-              {
-                paths: {
-                  requirements: "kibi-docs/requirements",
-                  scenarios: "kibi-docs/scenarios",
-                  tests: "kibi-docs/tests",
-                  adr: "kibi-docs/adr",
-                  flags: "kibi-docs/flags",
-                  events: "kibi-docs/events",
-                  facts: "kibi-docs/facts",
-                  symbols: "kibi-docs/symbols.yaml",
-                },
-              },
-              null,
-              2,
-            ),
-            "utf8",
-          );
-
-          // Capture console.error output
           const originalError = console.error;
           const errorLines: string[] = [];
           console.error = (...args: unknown[]) => {
@@ -117,24 +109,19 @@ if (RUN_NODE_TEST_SUITE) {
           };
 
           try {
-            // Import and invoke the plugin
             const distIndex = join(
               installDir,
               "node_modules/kibi-opencode/dist/index.js",
             );
             const pkg = await import(distIndex);
 
-            const mockInput = {
+            await pkg.default({
               worktree: workspaceDir,
               directory: workspaceDir,
-            };
+            });
 
-            await pkg.default(mockInput);
-
-            // Restore console.error
             console.error = originalError;
 
-            // Check that no bootstrap warning was emitted
             const bootstrapLines = errorLines.filter(
               (line) =>
                 line.includes("workspace needs Kibi bootstrap") ||
@@ -144,11 +131,11 @@ if (RUN_NODE_TEST_SUITE) {
             assert.strictEqual(
               bootstrapLines.length,
               0,
-              `Expected 0 bootstrap warnings for healthy relocated paths, got: ${bootstrapLines.join(", ")}`,
+              `Expected 0 bootstrap warnings for a healthy canonical .kb/ layout, got: ${bootstrapLines.join(", ")}`,
             );
 
             if (process.env.KIBI_E2E_VERBOSE) {
-              console.log("  ✓ Healthy relocated paths: 0 bootstrap warnings");
+              console.log("  ✓ Healthy canonical layout: 0 bootstrap warnings");
             }
           } finally {
             console.error = originalError;
@@ -157,43 +144,16 @@ if (RUN_NODE_TEST_SUITE) {
       );
 
       it(
-        "emits exactly one bootstrap warning when configured target is missing",
+        "emits exactly one bootstrap warning when canonical targets are missing",
         { timeout: 60000 },
         async () => {
           const workspaceDir = join(tmpDir, "missing-target");
           mkdirSync(workspaceDir, { recursive: true });
-          mkdirSync(join(workspaceDir, "kibi-docs/requirements"), {
+          writeCanonicalManifest(workspaceDir);
+          mkdirSync(join(workspaceDir, ".kb/requirements"), {
             recursive: true,
           });
-          // Note: Only create requirements - other directories are missing
 
-          // Create .kb directory first
-          mkdirSync(join(workspaceDir, ".kb"), { recursive: true });
-
-          // Write .kb/config.json with relocated paths
-          // (all except requirements are missing)
-          writeFileSync(
-            join(workspaceDir, ".kb/config.json"),
-            JSON.stringify(
-              {
-                paths: {
-                  requirements: "kibi-docs/requirements",
-                  scenarios: "kibi-docs/scenarios",
-                  tests: "kibi-docs/tests",
-                  adr: "kibi-docs/adr",
-                  flags: "kibi-docs/flags",
-                  events: "kibi-docs/events",
-                  facts: "kibi-docs/facts",
-                  symbols: "kibi-docs/symbols.yaml",
-                },
-              },
-              null,
-              2,
-            ),
-            "utf8",
-          );
-
-          // Capture console.error output
           const originalError = console.error;
           const errorLines: string[] = [];
           console.error = (...args: unknown[]) => {
@@ -201,24 +161,19 @@ if (RUN_NODE_TEST_SUITE) {
           };
 
           try {
-            // Import and invoke the plugin
             const distIndex = join(
               installDir,
               "node_modules/kibi-opencode/dist/index.js",
             );
             const pkg = await import(distIndex);
 
-            const mockInput = {
+            await pkg.default({
               worktree: workspaceDir,
               directory: workspaceDir,
-            };
+            });
 
-            await pkg.default(mockInput);
-
-            // Restore console.error
             console.error = originalError;
 
-            // Check that exactly one bootstrap warning was emitted
             const bootstrapLines = errorLines.filter(
               (line) =>
                 line.includes("[kibi-opencode]") &&
@@ -228,11 +183,13 @@ if (RUN_NODE_TEST_SUITE) {
             assert.strictEqual(
               bootstrapLines.length,
               1,
-              `Expected exactly 1 bootstrap warning for missing targets, got: ${bootstrapLines.length}. Lines: ${errorLines.join(" | ")}`,
+              `Expected exactly 1 bootstrap warning for missing canonical targets, got: ${bootstrapLines.length}. Lines: ${errorLines.join(" | ")}`,
             );
 
             if (process.env.KIBI_E2E_VERBOSE) {
-              console.log("  ✓ Missing targets: exactly 1 bootstrap warning");
+              console.log(
+                "  ✓ Missing canonical targets: exactly 1 bootstrap warning",
+              );
             }
           } finally {
             console.error = originalError;

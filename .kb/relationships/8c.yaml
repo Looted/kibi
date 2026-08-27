@@ -1,0 +1,106 @@
+relationships:
+  - type: covered_by
+    from: SYM-auto-8A6A1669C54A
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:49:49.993Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80e4e0c90b98
+  - type: implements
+    from: SYM-canonical-LEGACY_CONFIG_PATH_KEYS
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:03:15.440Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65bd641d052d
+  - type: covered_by
+    from: SYM-canonical-LEGACY_CONFIG_PATH_KEYS
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:03:15.448Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f8e84682169
+  - type: implements
+    from: SYM-KbFreshnessEvaluation
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:50:20.174Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f3f65ae8b075
+  - type: covered_by
+    from: SYM-KbFreshnessEvaluation
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:50:20.187Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-097e69937d95
+  - type: covered_by
+    from: SYM-KbFreshnessEvaluation
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:50:20.193Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-672fc9f4e597
+  - type: implements
+    from: SYM-LinkedEntityResult
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:52:09.518Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47e92a91891b
+  - type: covered_by
+    from: SYM-LinkedEntityResult
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:52:09.533Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de2bd1f6fb9b
+  - type: covered_by
+    from: SYM-LinkedEntityResult
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:52:09.539Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2552176002f0
+  - type: implements
+    from: SYM-SchedulerOptions
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:55:01.960Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5903a259b6d
+  - type: covered_by
+    from: SYM-SchedulerOptions
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:55:01.985Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a64694c898a3
+  - type: covered_by
+    from: SYM-SchedulerOptions
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:55:01.990Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-219e4cd1dff5
+  - type: implements
+    from: SYM-auto-8A6A1669C54A
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:53:53.434Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7a17ff7326c
+  - type: covered_by
+    from: SYM-auto-8A6A1669C54A
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:53:53.440Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-08e81eff4dc6
+  - type: relates_to
+    from: FACT-core-prolog-process-management-6F473B
+    to: REQ-core-prolog-process-management
+    created_at: 2026-08-26T07:20:55.517Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7504aa11912a

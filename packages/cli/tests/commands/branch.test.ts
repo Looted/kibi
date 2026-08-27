@@ -1,281 +1,264 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { execSync } from "node:child_process";
 import {
   existsSync,
-  mkdirSync,
   mkdtempSync,
+  readFileSync,
+  readdirSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { writePendingSourceReceipt } from "../../src/operations/mutation/source-authoring.js";
+import {
+  branchStoreKey,
+  branchStorePath,
+} from "../../src/utils/branch-store-locator.js";
+import { execSync, isolatedCliSandboxEnv } from "../helpers/isolated-env.js";
 
-describe("kibi branch ensure", () => {
-  const TEST_TIMEOUT_MS = 15000;
+describe("kibi branch lifecycle", () => {
+  const kibiBin = path.resolve(__dirname, "../../bin/kibi");
   let tmpDir: string;
   let originalCwd: string;
-  const kibiBin = path.resolve(__dirname, "../../bin/kibi");
 
   beforeEach(() => {
     originalCwd = process.cwd();
     tmpDir = mkdtempSync(path.join(os.tmpdir(), "kibi-test-branch-"));
     process.chdir(tmpDir);
-
     execSync("git init -b main", { cwd: tmpDir, stdio: "pipe" });
     execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
     execSync("git config user.name 'Test User'", { cwd: tmpDir });
-    execSync("git checkout -b main", { cwd: tmpDir, stdio: "pipe" });
-    execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
-
-    mkdirSync(path.join(tmpDir, ".kb/branches"), { recursive: true });
+    execSync("git commit --allow-empty -m init", { cwd: tmpDir });
   });
 
   afterEach(() => {
-    process.chdir(originalCwd);
-    if (tmpDir && existsSync(tmpDir)) {
-      rmSync(tmpDir, { recursive: true, force: true });
+    try {
+      // Tests that run status/sync can leave the fixture daemon alive after
+      // the temporary repository is removed. Stop only this fixture's engine.
+      execSync(`bun ${kibiBin} engine stop`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+    } catch {
+      // A test may fail before the fixture has an attached engine.
     }
+    process.chdir(originalCwd);
+    rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  test(
-    "creates empty KB when no --from is passed and current branch has no source KB",
-    async () => {
-      const sourceBranch = "feature-src";
-      const targetBranch = "feature-target";
+  test("materializes an exact hashed store without copying another branch", () => {
+    const source = path.join(tmpDir, ".kb", "branches", "other/source");
+    execSync(`mkdir -p '${source}' && printf source > '${source}/kb.rdf'`);
+    execSync("git checkout -b feature/auth", { cwd: tmpDir, stdio: "pipe" });
 
-      // Create a KB for an unrelated branch (sourceBranch) but do NOT pass
-      // --from to branch ensure. Without --from, branch ensure should NOT
-      // auto-copy from unrelated branches — it only copies from the default
-      // branch (main/develop) if present, or creates an empty KB otherwise.
-      mkdirSync(path.join(tmpDir, ".kb/branches", sourceBranch), {
-        recursive: true,
-      });
-      writeFileSync(
-        path.join(tmpDir, ".kb/branches", sourceBranch, "kb.rdf"),
-        "test rdf content",
-      );
+    execSync(`bun ${kibiBin} branch ensure`, { cwd: tmpDir, stdio: "pipe" });
 
-      execSync(`git checkout -b ${targetBranch}`, {
+    const store = branchStorePath(tmpDir, "feature/auth");
+    expect(existsSync(store)).toBe(true);
+    expect(existsSync(path.join(store, "branch.json"))).toBe(true);
+    expect(existsSync(path.join(store, "kb.rdf"))).toBe(false);
+    expect(existsSync(path.join(tmpDir, ".kb", "branches", "feature"))).toBe(
+      false,
+    );
+  });
+
+  test("rejects cross-branch copying through branch ensure", () => {
+    execSync("git checkout -b feature/target", { cwd: tmpDir, stdio: "pipe" });
+    const result = Bun.spawnSync({
+      cmd: ["bun", kibiBin, "branch", "ensure", "--from", "main"],
+      cwd: tmpDir,
+      env: isolatedCliSandboxEnv(),
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    expect(result.exitCode).not.toBe(0);
+    expect(new TextDecoder().decode(result.stderr)).toContain(
+      "branch ensure --from was removed",
+    );
+  });
+
+  test("migrates a same-identity literal store only with explicit apply", () => {
+    const legacy = path.join(tmpDir, ".kb", "branches", "feature/auth");
+    execSync(`mkdir -p '${legacy}'`);
+    writeFileSync(path.join(legacy, "kb.rdf"), "<rdf:RDF></rdf:RDF>");
+    execSync("git checkout -b feature/auth", { cwd: tmpDir, stdio: "pipe" });
+
+    const preview = execSync(
+      `bun ${kibiBin} branch migrate --from feature/auth --to feature/auth`,
+      { cwd: tmpDir, encoding: "utf8" },
+    );
+    expect(preview).toContain("Preview only");
+    expect(existsSync(legacy)).toBe(true);
+    const approvalHash = preview.match(/Approval hash: ([a-f0-9]+)/)?.[1];
+    expect(approvalHash).toBeDefined();
+
+    const applied = execSync(
+      `bun ${kibiBin} branch migrate --from feature/auth --to feature/auth --apply --approval-hash ${approvalHash}`,
+      { cwd: tmpDir, encoding: "utf8" },
+    );
+    expect(applied).toContain("Legacy store preserved");
+    const store = branchStorePath(tmpDir, "feature/auth");
+    expect(
+      JSON.parse(readFileSync(path.join(store, "branch.json"), "utf8")),
+    ).toEqual({
+      version: 1,
+      branch: "feature/auth",
+      key: branchStoreKey("feature/auth"),
+    });
+    expect(existsSync(legacy)).toBe(false);
+  });
+
+  test("rejects arbitrary cross-branch migration", () => {
+    const legacy = path.join(tmpDir, ".kb", "branches", "unrelated");
+    execSync(`mkdir -p '${legacy}'`);
+    writeFileSync(path.join(legacy, "kb.rdf"), "<rdf:RDF></rdf:RDF>");
+    execSync("git checkout -b feature/auth", { cwd: tmpDir, stdio: "pipe" });
+
+    const result = Bun.spawnSync({
+      cmd: [
+        "bun",
+        kibiBin,
+        "branch",
+        "migrate",
+        "--from",
+        "unrelated",
+        "--to",
+        "feature/auth",
+      ],
+      cwd: tmpDir,
+      env: isolatedCliSandboxEnv(),
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    expect(result.exitCode).not.toBe(0);
+    expect(new TextDecoder().decode(result.stderr)).toContain(
+      "every cross-branch move is refused",
+    );
+    expect(existsSync(legacy)).toBe(true);
+  });
+
+  test("rejects the legacy main to exact master cross-identity move", () => {
+    const legacyMain = path.join(tmpDir, ".kb", "branches", "main");
+    execSync(`mkdir -p '${legacyMain}'`);
+    writeFileSync(path.join(legacyMain, "kb.rdf"), "<rdf:RDF></rdf:RDF>");
+    execSync("git checkout -b master", { cwd: tmpDir, stdio: "pipe" });
+
+    const result = Bun.spawnSync({
+      cmd: [
+        "bun",
+        kibiBin,
+        "branch",
+        "migrate",
+        "--from",
+        "main",
+        "--to",
+        "master",
+      ],
+      cwd: tmpDir,
+      env: isolatedCliSandboxEnv(),
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    expect(result.exitCode).not.toBe(0);
+    expect(new TextDecoder().decode(result.stderr)).toContain(
+      "every cross-branch move is refused",
+    );
+    expect(existsSync(legacyMain)).toBe(true);
+    expect(existsSync(branchStorePath(tmpDir, "master"))).toBe(false);
+  });
+
+  test("recovers a damaged exact branch store only after explicit apply", async () => {
+    execSync("mkdir -p .kb/requirements", { cwd: tmpDir });
+    writeFileSync(
+      path.join(tmpDir, ".kb/requirements/REQ-RECOVER-001.md"),
+      "---\nid: REQ-RECOVER-001\ntitle: Recover branch storage\nstatus: open\n---\n\nRecovery is explicit.\n",
+    );
+    execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+    const store = branchStorePath(tmpDir, "main");
+    writeFileSync(path.join(store, "CURRENT"), "corrupted-pointer\n");
+
+    const preview = execSync(`bun ${kibiBin} branch recover`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+    });
+    expect(preview).toContain("Preview only");
+
+    const applied = execSync(`bun ${kibiBin} branch recover --apply`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+    });
+    expect(applied).toContain("Original bytes preserved");
+    const status = JSON.parse(
+      execSync(`bun ${kibiBin} status --format json`, {
         cwd: tmpDir,
-        stdio: "pipe",
-      });
+        encoding: "utf8",
+      }),
+    ) as { syncState: string; branchStore: { state: string } };
+    expect(status.syncState).toBe("fresh");
+    expect(status.branchStore.state).toBe("healthy");
+    expect(
+      readdirSync(path.join(tmpDir, ".kb", "recovery", "main")),
+    ).toHaveLength(1);
+  }, 30000);
 
-      execSync(`bun ${kibiBin} branch ensure`, {
+  test("retires only unchanged missing source receipts during explicit recovery", async () => {
+    execSync("mkdir -p .kb/requirements", { cwd: tmpDir });
+    writeFileSync(
+      path.join(tmpDir, ".kb/requirements/REQ-RECEIPT.md"),
+      "---\nid: REQ-RECEIPT\ntitle: Receipt lifecycle\nstatus: open\n---\n\nReceipt lifecycle.\n",
+    );
+    execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
+    execSync("git add -- .kb/requirements/REQ-RECEIPT.md", {
+      cwd: tmpDir,
+      stdio: "pipe",
+    });
+    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+    writePendingSourceReceipt(
+      tmpDir,
+      ".kb/requirements/REQ-DELETED.md",
+      "a".repeat(64),
+    );
+    writePendingSourceReceipt(
+      tmpDir,
+      ".kb/relationships/missing.yaml",
+      "b".repeat(64),
+    );
+    const statusBeforeRecovery = JSON.parse(
+      execSync(`bun ${kibiBin} status --format json`, {
         cwd: tmpDir,
-        stdio: "pipe",
-      });
+        encoding: "utf8",
+      }),
+    ) as { branchStore: { state: string; recoveryRequired: boolean } };
+    expect(statusBeforeRecovery.branchStore).toMatchObject({
+      state: "healthy",
+      recoveryRequired: false,
+    });
+    const receiptRoot = path.join(tmpDir, ".kb", "recovery", "pending-sources");
+    const beforePreview = readdirSync(receiptRoot).sort();
+    const { discoverSourceFiles } = await import(
+      "../../src/commands/sync/discovery.js"
+    );
+    await expect(
+      discoverSourceFiles(tmpDir, { trackedOnly: true }),
+    ).rejects.toThrow("Pending source is missing");
+    const preview = execSync(`bun ${kibiBin} branch recover`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+    });
+    expect(preview).toContain("Preview only");
+    expect(readdirSync(receiptRoot).sort()).toEqual(beforePreview);
 
-      const targetPath = path.join(tmpDir, ".kb/branches", targetBranch);
-      expect(existsSync(targetPath)).toBe(true);
-      // kb.rdf should NOT be copied from sourceBranch since --from was not passed
-      expect(existsSync(path.join(targetPath, "kb.rdf"))).toBe(false);
-    },
-    TEST_TIMEOUT_MS,
-  );
+    const applied = execSync(`bun ${kibiBin} branch recover --apply`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+    });
+    expect(applied).toContain("Recovered exact branch KB");
+    expect(readdirSync(receiptRoot)).toHaveLength(0);
 
-  test(
-    "creates empty KB when --from KB does not exist",
-    async () => {
-      const targetBranch = "feature-branch";
-
-      mkdirSync(path.join(tmpDir, ".kb/branches", "main"), { recursive: true });
-      writeFileSync(
-        path.join(tmpDir, ".kb/branches", "main", "kb.rdf"),
-        "main rdf content",
-      );
-
-      execSync(`git checkout -b ${targetBranch}`, {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
-
-      execSync(`bun ${kibiBin} branch ensure`, {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
-
-      const targetPath = path.join(tmpDir, ".kb/branches", targetBranch);
-      expect(existsSync(targetPath)).toBe(true);
-      expect(existsSync(path.join(targetPath, "kb.rdf"))).toBe(false);
-    },
-    TEST_TIMEOUT_MS,
-  );
-
-  test(
-    "creates empty schema when neither --from nor default branch KB exists",
-    async () => {
-      const targetBranch = "feature-branch";
-
-      execSync(`git checkout -b ${targetBranch}`, {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
-
-      execSync(`bun ${kibiBin} branch ensure`, {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
-
-      const targetPath = path.join(tmpDir, ".kb/branches", targetBranch);
-      expect(existsSync(targetPath)).toBe(true);
-      expect(existsSync(path.join(targetPath, "kb.rdf"))).toBe(false);
-    },
-    TEST_TIMEOUT_MS,
-  );
-
-  test(
-    "creates empty KB for invalid --from branch name",
-    async () => {
-      const targetBranch = "feature-branch";
-
-      mkdirSync(path.join(tmpDir, ".kb/branches", "main"), { recursive: true });
-      writeFileSync(
-        path.join(tmpDir, ".kb/branches", "main", "kb.rdf"),
-        "main rdf content",
-      );
-
-      execSync(`git checkout -b ${targetBranch}`, {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
-
-      execSync(`bun ${kibiBin} branch ensure`, {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
-
-      const targetPath = path.join(tmpDir, ".kb/branches", targetBranch);
-      expect(existsSync(targetPath)).toBe(true);
-      expect(existsSync(path.join(targetPath, "kb.rdf"))).toBe(false);
-    },
-    TEST_TIMEOUT_MS,
-  );
-
-  test(
-    "creates empty KB for decorated --from branch name (refs/heads/)",
-    async () => {
-      const targetBranch = "feature-branch";
-
-      mkdirSync(path.join(tmpDir, ".kb/branches", "main"), { recursive: true });
-      writeFileSync(
-        path.join(tmpDir, ".kb/branches", "main", "kb.rdf"),
-        "main rdf content",
-      );
-
-      execSync(`git checkout -b ${targetBranch}`, {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
-
-      execSync(`bun ${kibiBin} branch ensure`, {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
-
-      const targetPath = path.join(tmpDir, ".kb/branches", targetBranch);
-      expect(existsSync(targetPath)).toBe(true);
-      expect(existsSync(path.join(targetPath, "kb.rdf"))).toBe(false);
-    },
-    TEST_TIMEOUT_MS,
-  );
-
-  test(
-    "does nothing when branch KB already exists",
-    async () => {
-      const existingBranch = "feature-branch";
-
-      mkdirSync(path.join(tmpDir, ".kb/branches", existingBranch), {
-        recursive: true,
-      });
-      writeFileSync(
-        path.join(tmpDir, ".kb/branches", existingBranch, "existing.rdf"),
-        "existing content",
-      );
-
-      execSync(`git checkout -b ${existingBranch}`, {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
-
-      execSync(`bun ${kibiBin} branch ensure --from other-branch`, {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
-
-      const targetPath = path.join(tmpDir, ".kb/branches", existingBranch);
-      expect(existsSync(path.join(targetPath, "existing.rdf"))).toBe(true);
-      expect(existsSync(path.join(targetPath, "kb.rdf"))).toBe(false);
-    },
-    TEST_TIMEOUT_MS,
-  );
-
-  test(
-    "excludes volatile artifacts when copying",
-    async () => {
-      const sourceBranch = "feature-src";
-      const targetBranch = "feature-target";
-
-      mkdirSync(path.join(tmpDir, ".kb/branches", sourceBranch), {
-        recursive: true,
-      });
-      writeFileSync(
-        path.join(tmpDir, ".kb/branches", sourceBranch, "kb.rdf"),
-        "rdf content",
-      );
-      writeFileSync(
-        path.join(tmpDir, ".kb/branches", sourceBranch, "sync-cache.json"),
-        "cache content",
-      );
-      writeFileSync(
-        path.join(tmpDir, ".kb/branches", sourceBranch, "audit.log"),
-        "audit content",
-      );
-
-      execSync(`git checkout -b ${targetBranch}`, {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
-
-      execSync(`bun ${kibiBin} branch ensure --from ${sourceBranch}`, {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
-
-      const targetPath = path.join(tmpDir, ".kb/branches", targetBranch);
-      expect(existsSync(path.join(targetPath, "kb.rdf"))).toBe(true);
-      expect(existsSync(path.join(targetPath, "sync-cache.json"))).toBe(false);
-      expect(existsSync(path.join(targetPath, "audit.log"))).toBe(false);
-    },
-    TEST_TIMEOUT_MS,
-  );
-
-  test(
-    "creates branch KB from valid --from branch",
-    async () => {
-      const fromBranch = "custom-source";
-      const targetBranch = "feature-target";
-
-      mkdirSync(path.join(tmpDir, ".kb/branches", fromBranch), {
-        recursive: true,
-      });
-      writeFileSync(
-        path.join(tmpDir, ".kb/branches", fromBranch, "custom.rdf"),
-        "custom content",
-      );
-
-      execSync(`git checkout -b ${targetBranch}`, {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
-
-      execSync(`bun ${kibiBin} branch ensure --from ${fromBranch}`, {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
-
-      const targetPath = path.join(tmpDir, ".kb/branches", targetBranch);
-      expect(existsSync(path.join(targetPath, "custom.rdf"))).toBe(true);
-    },
-    TEST_TIMEOUT_MS,
-  );
+    await expect(
+      discoverSourceFiles(tmpDir, { trackedOnly: true }),
+    ).resolves.toMatchObject({ markdownFiles: expect.any(Array) });
+  }, 30000);
 });

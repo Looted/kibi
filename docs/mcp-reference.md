@@ -1,6 +1,6 @@
 # MCP Server Reference
 
-The Kibi Model Context Protocol (MCP) server is a peer public interface alongside the CLI's 18 dedicated JSON routes. It serves MCP-capable agents over `stdio` and receives JSON-RPC 2.0 requests; operation schemas and executors are shared with the CLI.
+The Kibi Model Context Protocol (MCP) server is a peer public interface alongside the CLI's dedicated JSON routes. It serves MCP-capable agents over `stdio` and receives JSON-RPC 2.0 requests; operation schemas and executors are shared with the CLI.
 
 ## Public Tools
 
@@ -8,14 +8,16 @@ The public MCP surface is intentionally curated. Agents can call exact lookup, d
 
 ### Host-visible tool names
 
-The canonical MCP names in this reference use the `kb_*` form. Some hosts display tools with the configured MCP server name prefixed. In OpenCode, the same tools commonly appear as `kibi_kb_search`, `kibi_kb_query`, `kibi_kb_upsert`, `kibi_kb_check`, and `kibi_kb_autopilot_generate`. Use the host-visible prefixed name when an agent must reference an exact tool identifier; the semantics are identical to the canonical `kb_*` names documented here.
+The canonical MCP names in this reference use the `kb_*` form. Some hosts display tools with the configured MCP server name prefixed. In OpenCode, the same tools commonly appear as `kibi_kb_search`, `kibi_kb_query`, `kibi_kb_upsert`, `kibi_kb_check`, and `kibi_kb_plan_bootstrap`. Use the host-visible prefixed name when an agent must reference an exact tool identifier; the semantics are identical to the canonical `kb_*` names documented here.
 
 ### Generic-agent onboarding
+
+For a copy-paste discovery snippet, see [generic-agent onboarding](generic-agent-onboarding.md). Bundled skills are the canonical agent-guidance source; do not copy a long operating manual into the agent.
 
 MCP-capable agents should use the standard `tools/list` capability discovery step, then follow Kibi's progressive-disclosure path instead of assuming that a package `skills/` directory is loaded by the host:
 
 1. Call `kb_skills_list` to obtain the bundled skill manifests.
-2. Call `kb_skills_load` with a returned ID, normally `kibi-usage` for general Kibi workflow guidance.
+2. Call `kb_skills_load` with a returned ID, normally `kibi-usage` for general Kibi workflow guidance. Load `kibi-bootstrap`, `kibi-freshness`, or `kibi-traceability` when the task matches those workflows.
 3. Call `kb_skills_read` only for resource paths declared by that manifest.
 
 These skill operations are local, read-only, and do not require Prolog. They return a human-readable `content` item plus structured data for clients that support structured tool results. Their MCP registrations advertise `readOnlyHint: true`, `destructiveHint: false`, `idempotentHint: true`, and `openWorldHint: false` as client-facing behavior hints. Clients must treat annotations and skill text as untrusted guidance: authorization, schema validation, approval gates, and mutation sequencing remain enforced by the server and repository workflow.
@@ -30,9 +32,13 @@ printf '%s\n' '{"id":"kibi-usage","resource":"resources/workflows.md"}' | kibi s
 
 If neither a visible Kibi MCP surface nor a trusted local CLI is available, the agent must stop and ask the operator to enable one; it must not infer availability from configuration files or read `.kb/` directly.
 
-### `kb_autopilot_generate`
+Day-0 bootstrap uses the `kibi-bootstrap` bundled skill and `kb_plan_bootstrap`: inspect `kb_status.bootstrap`, follow its typed next action, review the deterministic `kibi.bootstrap-plan.v1`, ask only questions returned by a `needs_context` result, get explicit approval for its hash, then pass the unchanged plan to `kb_apply_plan`. Hosts that support it also expose `/kibi-bootstrap`.
 
-Discover existing repository entities and bootstrap the KB via read-only candidate synthesis. Use this as the backend for the interactive `/init-kibi` onboarding workflow.
+### `kb_plan_bootstrap`
+
+Discover existing repository evidence and return a deterministic, snapshot-bound
+`kibi.bootstrap-plan.v1`. Use this as the backend for the interactive
+`/kibi-bootstrap` onboarding workflow. It never mutates the KB.
 
 **Parameters:**
 - `includeGenericMarkdown` (optional): Include generic Markdown content as candidate evidence.
@@ -42,11 +48,14 @@ Discover existing repository entities and bootstrap the KB via read-only candida
 - `bootstrapContext` (optional): Declared project summary, source-of-truth paths/notes, priority roots, and verification anchors.
 
 **Returns:**
-Grouped candidate entities synthesized from declared context and codebase evidence, plus `structuredContent.applyPlan`: the exact sequential `kb_upsert` payloads for those candidates. Candidates must be explicitly previewed and approved by the user before applying the plan.
+Evidence, bounded context questions, dependency-ordered actions, expected
+snapshots/source hashes, payoff summary, diagnostics, and `planHash`. Only a
+`ready` plan may be approved. Apply it with `kb_apply_plan`; do not replay raw
+`kb_upsert` payloads.
 
 ## Repository Ignore Policy
 
-During read-only discovery (for example `kb_autopilot_generate`) and other file-based inference, Kibi will exclude files and directories matched by the repository ignore policy:
+During read-only discovery (for example `kb_plan_bootstrap`) and other file-based inference, Kibi will exclude files and directories matched by the repository ignore policy:
 
 - repository root `.gitignore` files and nested `.gitignore` files in subdirectories
 - `.git/info/exclude`
@@ -109,7 +118,9 @@ The modeling call is read-only. Applying its plan is a separate mutation and mus
 
 Suggest ontology predicate candidates for a prose requirement before an agent writes freeform ontology notes. Agents should spell out the requirement claim, call this tool, then either apply a returned `fact_kind: predicate` plan linked with `requires_predicate`, supply exact `argumentBindings` when a fitting schema still has unbound arguments, or record the returned `review:ontology-gap` observation when no predicate fits. Gap observations include a `relates_to` review anchor so unresolved ontology work remains queryable without entering the contradiction lane.
 
-The tool ranks project-local `fact_kind: predicate_schema` facts when available and falls back to Kibi's built-in predicate catalog covering state, transitions, guards, exceptions, mutual exclusion, dependencies, ownership, retry policies, escalation rules, availability SLAs, notification routing, idempotency, data residency, audit logging, consent, lifecycle actions, conflict resolution, fallback behavior, batch operations, consistency rules, build constraints, environment safety rules, schema invariants, coding standards, migration boundaries, absence/removal requirements, offline behavior, release gates, platform consistency, preservation rules, abstraction boundaries, security configuration, ordered strategies, refresh policies, scoped authorization, documentation standards, warmup policies, visual layout rules, enforcement-location rules, reconciliation rules, throttling policies, persistence/save/discard behavior, accessibility, retention, resource constraints, feature gates, events, permissions, defaults, uniqueness, state memberships, temporal ordering, conditional behavior, rate limits, and acceptance outcomes. Built-in candidates include usage hints (`use_when` / `do_not_use_when`) so agents can choose precise predicates instead of matching keywords blindly.
+The tool ranks project-local `fact_kind: predicate_schema` facts when available and falls back to Kibi's built-in predicate catalog covering state, transitions, guards, exceptions, mutual exclusion, dependencies, ownership, retry policies, escalation rules, availability SLAs, notification routing, idempotency, data residency, audit logging, consent, lifecycle actions, conflict resolution, fallback behavior, batch operations, consistency rules, build constraints, environment safety rules, schema invariants, coding standards, migration boundaries, absence/removal requirements, offline behavior, release gates, platform consistency, preservation rules, abstraction boundaries, security configuration, ordered strategies, refresh policies, scoped authorization, documentation standards, warmup policies, visual layout rules, enforcement-location rules, reconciliation rules, throttling policies, persistence/save/discard behavior, accessibility, retention, resource constraints, feature gates, events, permissions, defaults, uniqueness, state memberships, temporal ordering, conditional behavior, rate limits, acceptance outcomes, and reusable launcher contracts (`dependency_resolution_policy`, `ordered_resolution_strategy`, `resolution_failure_policy`, `process_delegation_contract`, and `failure_behavior`). Built-in candidates include usage hints (`use_when` / `do_not_use_when`) so agents can choose precise predicates instead of matching keywords blindly.
+
+Candidate diagnostics are additive: each candidate may report `eligibility` (`eligible` or `rejected`), `rejection_reasons`, a conservative aggregate `binding_provenance` (the least-reviewable provenance across arguments), per-argument `binding_provenance_by_argument` (`explicit`, `extracted`, `inferred`, or `placeholder`), `applicability_score`, and deterministic score components. Retrieval and argument binding do not by themselves make a candidate applicable; negative evidence and margin-based abstention can reject weak or near-tied candidates. When no schema is genuinely eligible, the response uses `record_ontology_gap` and includes a non-null `recommendedPredicateSchema` draft with proposed name, ordered arguments, extracted bindings, unresolved bindings, rationale, and reuse scope for review. Draft schemas are never applied automatically.
 
 **Parameters:**
 - `text` (required): Prose requirement or claim to classify into ontology predicates.
@@ -127,7 +138,7 @@ The tool ranks project-local `fact_kind: predicate_schema` facts when available 
 **Returns:**
 - `candidates`: Ranked predicate suggestions with schema signature, usage hints, ordered `predicate_args`, `binding_status`, `unbound_arguments`, `canonical_key`, score, and rationale.
 - `recommendedAction`: `apply_requires_predicate` when the top or explicitly selected candidate fits and every argument is bound, `provide_argument_bindings` when its schema fits but exact values are missing, `resolve_schema_reference` when an explicitly selected schema is unavailable, otherwise `record_ontology_gap`.
-- `structuredContent.applyPlan`: A ready-to-apply `kb_upsert` payload for a completely bound top predicate fact, an empty list for an incomplete binding, or an explicit `fact_kind: observation` tagged `review:ontology-gap` and `needs_schema_extension`, with a `relates_to` review anchor.
+- `structuredContent.actions`: A ready-to-apply `kb_upsert` payload for a completely bound top predicate fact, an empty list for an incomplete binding, or an explicit `fact_kind: observation` tagged `review:ontology-gap` and `needs_schema_extension`, with a `relates_to` review anchor.
 - `structuredContent.relationshipPlan`: When `requirementId` is supplied and a predicate fits, the req -> fact `requires_predicate` link plus the merged `logicClaims` manifest to apply after querying/preserving the existing requirement entity. This is separate from `applyPlan` so the tool never emits a foreign-source relationship that `kb_upsert` would reject.
 
 **Example:**
@@ -189,16 +200,22 @@ Array of matching entities with deterministic ordering.
 
 ### `kb_search`
 
-Search entities by metadata and markdown body text for exploratory discovery.
+Search entities by metadata and markdown body text for exploratory discovery. Set `rankingMode: "intent-v1"` to use deterministic host-agent facets, source-location matching, bounded traceability evidence, and explicit low-confidence abstention.
 
 **Parameters:**
 - `query` (required): Free-text query
 - `type` (optional): Entity type filter
 - `limit` (optional): Maximum number of ranked results
 - `offset` (optional): Number of results to skip
+- `rankingMode` (optional): `legacy` (default) or `intent-v1`
+- `semanticFacets` (optional): Host-provided `actors`, `actions`, `objects`, `constraints`, or `aliases` arrays
+- `sourceLocations` (optional): Workspace-relative `{path, line?, column?, symbol?}` locations for changed code
+- `minScore` (optional): Intent acceptance threshold between `0` and `1`; defaults to `0.18`
 
 **Returns:**
 Ranked results with match reasons and optional snippets.
+
+Intent-mode results additionally carry `evidence` for matched facets, source locations, graph paths, and normalized score. The payload includes `queryAnalysis` with candidate/accepted counts, top score, top-two margin, ranking mode, and `abstained`. An abstention is an explicit no-answer signal, not a successful empty lexical search.
 
 **Example:**
 ```json
@@ -209,70 +226,135 @@ Ranked results with match reasons and optional snippets.
 }
 ```
 
+### `kb_compile_intent`
+
+Compile complete post-change intent into a deterministic, snapshot-bound plan without mutating the KB. The compiler reuses intent-aware discovery and the semantic advisor, accounts for every proposition, checks current contradiction witnesses, proposes canonical traceability links, and emits dependency-ordered `kb_upsert`-style steps only for resolved typed claims.
+
+**Parameters:**
+- `intent` (required): Complete desired behavior, not a patch fragment.
+- `mode` (required): `create` or `update`.
+- `requirementId` (optional): Exact update target; automatic update selection is gated by score and runner-up margin.
+- `title`, `clauses`, `semanticFacets`, `sourceLocations`, `interpretations` (optional): Context for title, proposition decomposition, host-agent facets, changed-code evidence, and typed rule IR.
+- `scenarioDrafts`, `testDrafts` (optional): Draft traceability artifacts. Tests are linked through scenarios with `verified_by`.
+- `proposalDecisions` (optional): Explicit `accept`/`reject` decisions for returned traceability proposals; pending proposals are excluded from executable steps.
+
+**Returns:**
+`kibi.compile-plan.v1` with `planHash`, status (`ready`, `needs_resolution`, or `blocked`), branch/KB/workspace snapshot bindings, discovery candidates, proposition ledger, contradiction witnesses, traceability proposals, dependency-ordered steps, source before-hashes, and diagnostics. The plan is a review artifact; it is not a mutation request.
+
+**Example:**
+```json
+{
+  "intent": "Customer data must be retained for 7 years.",
+  "mode": "create",
+  "sourceLocations": [{"path": "src/retention/policy.ts", "symbol": "retentionYears"}]
+}
+```
+
+### `kb_apply_plan`
+
+Apply an approved `kibi.compile-plan.v1` after revalidating its canonical hash, branch/KB/workspace snapshots, source before-hashes, and entity/relationship shapes. Entity steps are applied sequentially through the shared upsert boundary. This v1 boundary does not publish source files or claim crash recovery.
+
+**Parameters:**
+- `plan` (required): Complete plan returned by `kb_compile_intent`.
+- `approvedPlanHash` (required): Exact reviewed `planHash`.
+
+**Returns:**
+`kibi.plan-apply-result.v1` with applied entity/relationship counts, final snapshots, validation counts, changed paths, and explicit notes about the current sequential boundary. It also accepts `kibi.migration-plan.v2`; migration application requires `approvedActionIds`, an exact `approvedPlanHash`, and rejects blocked or non-automatic actions. Migration results report per-action outcomes and reconciliation failures.
+
+### `kb_ingest_verification`
+
+Ingest a reporter-produced `kibi.playwright-run.v1` artifact for a contracted test. Kibi rechecks the live workspace snapshot, runner/command contract, required case/project coverage, and append-only history, then derives and appends a `kibi.verification-receipt.v2`. Caller-authored receipts and trusted outcomes are rejected.
+
+**Parameters:**
+- `testId` (required): Existing test entity with `verification_contract.v1`.
+- `snapshot` (required): Workspace snapshot captured immediately before execution.
+- `artifact` (required): Reporter artifact containing runner, command argv, code snapshot, environment hash, timestamps, process exit code, and case results.
+
+**Returns:**
+Derived receipt, proof outcome, receipt count, and the shared upsert result. A changed snapshot, missing contracted case, command drift, duplicate case, or append-only violation fails before mutation.
+
 ### `kb_status`
 
 Return branch, snapshot, and freshness metadata for the attached KB, plus the deterministic workspace snapshot used to validate execution receipts.
 
 **Returns:**
-Branch name, KB snapshot ID, sync state, dirty flag, KB path metadata, and `verificationSnapshot` evidence (`available`, `dirty`, file count, and `kibi.workspace-snapshot.v1` version). An unavailable workspace snapshot is reported as `unknown` and cannot prove an E2E stage.
+Branch name, KB snapshot ID, sync state, dirty flag, KB path metadata, and `verificationSnapshot` evidence (`available`, `dirty`, file count, and `kibi.workspace-snapshot.v2` version). An unavailable workspace snapshot is reported as `unknown` and cannot prove an E2E stage. Receipt-only frontmatter edits do not change the v2 hash.
+
+The response also includes exact `branchAttachment` metadata, bounded sorted
+`staleReasons` (with affected entity IDs and truncation totals), and
+`verificationSnapshotChanges`. Editor/config paths are reported as ordinary
+workspace changes; they are not silently ignored.
+
+When migration is needed, the response includes `schemaStatus` and a typed
+`migrationPlan` (`kibi.migration-plan.v2`) with canonical hash, scope
+completeness, dependencies, safety classes, exact invocations, evidence, and
+postconditions. Status never mutates and remains available without Prolog for
+missing or damaged stores.
+
+`kb_status` remains diagnostic when the branch store is missing, incomplete,
+or unreadable: it reports `branchStore` and a structured stale reason instead
+of initialising or repairing storage. A missing store is created only by
+`kibi branch ensure`; an incomplete or unreadable exact store is rebuilt only
+through the previewed `kibi branch recover --apply` workflow.
 
 **Example:**
 ```json
 {}
 ```
 
-MK|### `kb_skills_list`
-XZ|
-PW|List bundled Kibi agent skills available for progressive disclosure. Read-only; does not mutate the KB or require Prolog.
-QW|
-RH|**Parameters:**
-ZJ|- None
-QW|
-KQ|**Returns:**
-JP|Array of skill manifests with `id`, `name`, `version`, `description`, and declared `resources`.
-MS|
-TH|**Example:**
-YP|```json
-TT|{}
-TV|```
-NJ|
-BN|### `kb_skills_load`
-HT|
-YK|Load a bundled Kibi agent skill by ID, returning its manifest metadata, Markdown body, declared resources, content hash, and source type. Read-only; does not execute scripts or require Prolog.
+### `kb_skills_list`
+
+List bundled Kibi agent skills available for progressive disclosure. Read-only; does not mutate the KB or require Prolog.
+
+**Parameters:**
+- None
+
+**Returns:**
+Array of skill manifests with `id`, `name`, `version`, `description`, and declared `resources`.
+
+**Example:**
+```json
+{}
+```
+
+### `kb_skills_load`
+
+Load a bundled Kibi agent skill by ID, returning its manifest metadata, Markdown body, declared resources, content hash, and source type. Read-only; does not execute scripts or require Prolog.
 
 The visible text includes the skill's declared resources so agents can discover follow-up `kb_skills_read` calls without guessing resource paths.
-YQ|
-RH|**Parameters:**
-ZV|- `id` (required): Bundled skill ID to load. Example: `'kibi-usage'`.
-XY|
-KQ|**Returns:**
-SB|Skill bundle with `manifest`, `body`, `resources`, `hash`, and `sourceType`.
-BQ|
-TH|**Example:**
-YP|```json
-TY|{
-RN|  "id": "kibi-usage"
-MJ|}
-HP|```
-SH|
-WV|### `kb_skills_read`
-VH|
-YX|Read a declared resource from a bundled Kibi agent skill. Resource paths are restricted to the skill manifest; arbitrary file paths are not exposed. Read-only; does not require Prolog.
-PX|
-RH|**Parameters:**
-VZ|- `id` (required): Bundled skill ID. Example: `'kibi-usage'`.
-KQ|- `resource` (required): Manifest-declared resource path to read. Example: `'resources/fact-lanes.md'`.
-YY|
-KQ|**Returns:**
-VZ|Resource contents as text.
-BM|
-TH|**Example:**
-YP|```json
-TT|{
-TV|  "id": "kibi-usage",
-BQ|  "resource": "resources/fact-lanes.md"
-SZ|}
-YN|
+
+**Parameters:**
+- `id` (required): Bundled skill ID to load. Example: `'kibi-usage'`.
+
+**Returns:**
+Skill bundle with `manifest`, `body`, `resources`, `hash`, and `sourceType`.
+
+**Example:**
+```json
+{
+  "id": "kibi-usage"
+}
+```
+
+### `kb_skills_read`
+
+Read a declared resource from a bundled Kibi agent skill. Resource paths are restricted to the skill manifest; arbitrary file paths are not exposed. Read-only; does not require Prolog.
+
+**Parameters:**
+- `id` (required): Bundled skill ID. Example: `'kibi-usage'`.
+- `resource` (required): Manifest-declared resource path to read. Example: `'resources/fact-lanes.md'`.
+
+**Returns:**
+Resource contents as text.
+
+**Example:**
+```json
+{
+  "id": "kibi-usage",
+  "resource": "resources/fact-lanes.md"
+}
+```
+
 ### `kb_find_gaps`
 
 Run curated missing/present relationship analysis over KB entities.
@@ -314,13 +396,13 @@ Generate curated structural coverage and conservative end-to-end requirement pro
 **Returns:**
 Coverage summary rows, status metadata, and—when `by: "req"`—a deterministic `kibi.repair-plan.v1` read-only migration plan.
 
-For requirement coverage, summaries distinguish evaluated must-priority requirements from rows marked `notApplicable`. Requirement rows retain compatibility-oriented `coverageStatus` and add a separate `kibi.requirement-proof.v2` result with `proofStatus` (`proven`, `unresolved`, `missing`, or `not_applicable` for a non-current requirement), inspectable `proofStages`, stable `proofGaps`, and ranked `proofRepairs`. A row is proven only when semantic inventory and grounding, contradiction analysis, scenario-backed fresh passing E2E receipt evidence, executable test symbols, production ownership/coverage, and exact source coordinates all pass.
+For requirement coverage, summaries distinguish evaluated must-priority requirements from rows marked `notApplicable`. Requirement rows retain compatibility-oriented `coverageStatus` and add a separate `kibi.requirement-proof.v2` result with `proofStatus` (`proven`, `unresolved`, `missing`, or `not_applicable` for a non-current requirement), inspectable `proofStages`, blocking `proofGaps`, non-blocking `proofAdvisories`, and ranked `proofRepairs`. A row is proven only when semantic inventory and grounding, contradiction analysis, scenario-backed fresh passing E2E receipt evidence, executable test symbols, production ownership/coverage, and exact source coordinates all pass. Extra scenario-backed tests that still lack receipts after that strict proof exists are advisories, not proof gaps. A proven row never includes blocking `proofGaps`.
 
 `repairPlan` turns those row-local gaps into dependency-ordered batches across the returned requirement scope. Each batch identifies one requirement and phase, groups same-phase repairs, declares `state: ready|blocked`, lists prior `dependsOn` batches, and carries `workflowSteps`, targeted `validationRules`, and a conservative write policy. Plans are always `readOnly: true`; batches are always `autoApplicable: false`, so callers must query current endpoints, review semantic choices, validate payloads, and execute upserts sequentially. `scope.complete: false` and `status: partial` mean pagination omitted actionable requirements; rerun with `offset: 0` and a larger `limit` before treating the result as a project migration plan. `planId` remains stable for the same snapshot, filters, proof evidence, and gaps while volatile receipt age/check-time fields are ignored.
 
 With `includeMigrationPreview: true`, `legacyMigrationPlan` adds the versioned `kibi.legacy-migration-plan.v1` review surface. It selects only ready semantic-inventory repair batches, defaults to one requirement, binds normalized authored Markdown to an exact SHA-256 hash and UTF-8 spans, and gives every proposition one recommended lane or explicit unresolved disposition. Ranked candidates preserve exact schema identity, signature, origin, polarity, binding status, and unbound arguments, but never produce an applicable write. Authored prose is previewed in requirement-only `semantic_text`, while an independent `text_ref` remains unchanged; a differing pre-existing `semantic_text` blocks the batch as semantic source drift.
 
-The passing-E2E stage evaluates append-only `kibi.verification-receipt.v1` history. A receipt must bind the test and its typed scope, runner command, deterministic current code snapshot, environment hash, timestamps, outcome, and artifact digest. The newest receipt for the live snapshot must be passing and no older than seven days. Missing, wrong-snapshot, stale, failed, malformed, mismatched, future-dated, or snapshot-unavailable evidence cannot prove the requirement; durable test status remains structural metadata.
+The passing-E2E stage evaluates append-only verification-receipt history. New evidence is produced by `kibi verify` as `kibi.verification-receipt.v2`; older `v1` entries remain readable historical compatibility data. A current receipt must bind the test and its typed scope, runner command argv, contract hash, deterministic current code snapshot, environment hash, timestamps, outcome, artifact digest, and required case results. The newest receipt for the live snapshot and current contract must be passing and no older than seven days. Missing, wrong-snapshot, stale, failed, malformed, mismatched, future-dated, or snapshot-unavailable evidence cannot prove the requirement; durable test status remains structural metadata.
 
 Symbol rows distinguish production symbols from executable test symbols. Executable-only symbols are not applicable to production coverage; mixed-role symbols are uncovered and carry an explicit role error.
 
@@ -386,13 +468,21 @@ Kibi's Prolog core may use maintained SWI-Prolog libraries such as `library(aggr
 
 ### `kb_upsert`
 
-Create or update a single entity and optional relationships in one call.
+Create or update a single entity and optional relationships in one call. When
+the caller has a filesystem-capable context, the mutation is source-first: the
+tracked entity document and relationship shard are authored transactionally,
+then the compiled branch store is updated. Kibi never stages or commits those
+working-tree files for Git.
 
 **Parameters:**
 - `type`: Entity type enum
 - `id`: Entity ID
 - `properties`: Entity fields, including required `title` and `status` (status values depend on entity type; legacy values may still be accepted for compatibility). For `symbol` entities this may include `sourceFile`, `symbol_role`, and `granularity_reason`; for `fact` entities this includes typed fact fields such as `fact_kind`, `subject_key`, `property_key`, `operator`, `value_type`, and one matching `value_*` field.
 - `relationships` (optional): Relationship rows with enum-backed `type`, `from`, and `to`
+- `document` (optional): `{ path?, body? }` for an explicit tracked source
+  target. Existing entities preserve their current body when `body` is omitted;
+  new requirements default the body to `semantic_text`. New entities without a
+  unique configured target must provide `document.path`.
 
 `symbol_role` values are `behavioral`, `structural`, `type-shape`, `config`, `module`, and `unknown`. Use `behavioral` for manual anchors when behavior is hidden inside factory/expression composition and the extractor cannot create a narrower symbol.
 
@@ -411,26 +501,37 @@ When invoked through MCP, `kb_validate_upsert` also attaches to Prolog and valid
 
 ### `kb_delete`
 
-Delete one or more entities by ID. Deletion is blocked when dependents still reference the target.
+Delete one or more entities by ID, or retract exact relationship triples. The
+two modes are mutually exclusive. Relationship deletion preflights the whole
+batch, preserves endpoints and unrelated edges, and handles legacy relationship
+shards through Kibi internals.
 
 **Parameters:**
 - `ids`: Array of entity IDs to delete
+- `relationships`: Array of exact `{type, from, to}` triples to retract
+
+Provide exactly one non-empty array; `ids` and `relationships` cannot be mixed.
 
 **Returns:**
-Confirmation of deletion, or an error describing blocked dependents.
+The response includes `relationships_deleted`, per-selector results, and
+`sourceWrites` when a canonical shard was patched. Authored entity deletion
+returns a hash-bound `kibi.entity-deletion-plan.v1`; apply that plan through
+`kb_apply_plan` after approval. Requirements normally return a `supersedes`
+evolution plan instead of destructive deletion. Never edit `.kb/relationships`
+directly.
 
 ### `kb_check`
 
 Run KB validation rules after mutations. Agents can also opt into read-only changed-file impact diagnostics for source edits while the edit context is still fresh. The MCP tool and CLI JSON route are peer interactive gates; CLI staged checks and git hooks remain the commit-time enforcement gate.
 
 **Parameters:**
-- `rules` (optional): Validation rule subset (`must-priority-coverage`, `symbol-coverage`, `symbol-traceability`, `no-dangling-refs`, `no-cycles`, `required-fields`, `deprecated-adr-no-successor`, `domain-contradictions`, `strict-fact-shape`, `strict-req-fact-pairing`, `predicate-verifiability`, `logic-coverage`, `query-plan-safety`). `strict-fact-shape`, `strict-req-fact-pairing`, and `predicate-verifiability` are migration/semantic-audit checks and are disabled by default. `logic-coverage` is enabled by default, validates explicitly declared requirement manifests against linked ground facts, and leaves requirements without a manifest as gradual-backfill debt reported by quality diagnostics. `domain-contradictions` compares strict property constraints and exact opposite predicate polarities over the same namespace, predicate name, and ordered arguments. It does not infer arbitrary equivalence between differently shaped predicates.
+- `rules` (optional): Validation rule subset (`must-priority-coverage`, `symbol-coverage`, `symbol-traceability`, `no-dangling-refs`, `no-cycles`, `required-fields`, `deprecated-adr-no-successor`, `domain-contradictions`, `strict-fact-shape`, `strict-req-fact-pairing`, `predicate-verifiability`, `logic-coverage`, `query-plan-safety`). Canonical rules populate blocking `violations[]`. `strict-fact-shape`, `strict-req-fact-pairing`, and `predicate-verifiability` are advisory modeling checks: they run by default and report as non-blocking `qualityDiagnostics`. Migration diagnostics (`strict-readiness`, `semantic-completeness`) run only when explicitly selected. `logic-coverage` is enabled by default, validates explicitly declared requirement manifests against linked ground facts, and leaves requirements without a manifest as gradual-backfill debt reported by quality diagnostics. `domain-contradictions` compares strict property constraints and exact opposite predicate polarities over the same namespace, predicate name, and ordered arguments. It does not infer arbitrary equivalence between differently shaped predicates.
 - `sourceFiles` (optional): Repo-relative source paths to inspect for changed-file impact diagnostics.
 - `staged` (optional): Inspect staged source changes when building impact diagnostics.
 - `includeWorkingTreeDiff` (optional): Include unstaged working-tree content/diffs for the supplied `sourceFiles`.
 - `includeImpactDiagnostics` (optional): Include changed-file diagnostics such as `symbol_granularity_violation` and `symbol_semantic_review_needed` in structured output.
 - `maxDiagnostics` (optional): Cap returned impact diagnostics. Graph validation violations are not capped by this value.
-- `workspaceRoot` (optional): Workspace root for impact diagnostics and `.kb/config.json` lookup. Defaults to the MCP server workspace.
+- `workspaceRoot` (optional): Workspace root for impact diagnostics. Defaults to the MCP server workspace.
 
 **Returns:**
 Validation report with any hard violations found and suggested fixes. `structuredContent.violations[]` is the blocking correctness lane: graph, schema, contradiction, query-plan, and staged enforcement failures live there and continue to drive `count` and failure status. `structuredContent.qualityDiagnostics[]` is the additive audit-quality lane for non-blocking modeling, coverage-depth, symbol fanout, duplicate-coordinate, broad-requirement, status, strict-fact, and telemetry-acceptance review signals.
@@ -442,6 +543,10 @@ When diagnostic mode has produced `.kb/usage.log`, the unfiltered scan evaluates
 Quality diagnostics use explicit `severity` and `blocking` fields. `severity: "review"` and `severity: "info"` are advisory and do not fail checks by default; `severity: "warning"` is still non-blocking unless `blocking: true`; `severity: "error"` or `blocking: true` is a hard failure signal. Existing hard violations remain in `violations[]` rather than being downgraded into the advisory lane.
 
 When impact diagnostics are enabled, `structuredContent` also includes `impactDiagnostics`, `sourceFiles`, `extractedSymbols`, `linkedEntities`, and `nextActions`. Impact diagnostics follow the same blocking convention: advisory unless their severity is `error` or `blocking` is true. `symbol_granularity_violation` means a changed behavioral symbol has only coarse ownership when a narrower anchor is available and remains blocking. `symbol_semantic_review_needed` can fire even when graph coverage already exists; it tells the agent to inspect whether linked requirements, scenarios, and tests actually cover the changed behavior or UI copy. Kibi reports the linked entities and suggested MCP calls, but it does not prove prose semantics.
+
+The structured check response also includes `migrationPlan`. Treat its actions
+as typed evidence, not prose suggestions; apply only ready automatic actions
+with an explicit hash/action approval through `kb_apply_plan`.
 
 **Example:**
 ```json
@@ -461,17 +566,27 @@ When impact diagnostics are enabled, `structuredContent` also includes `impactDi
 
 ## Public Prompts
 
-### `/init-kibi`
+### `/kibi-bootstrap`
 
-Interactive onboarding workflow for day-0 KB activation. It guides agents to ask at most 4 bounded questions to gather declared context, call `kb_autopilot_generate` for read-only synthesis, present a preview for user approval, and perform sequential `kb_upsert` followed by `kb_check`.
+Interactive onboarding workflow for day-0 KB activation. It guides agents to ask at most four bounded questions when requested by the planner, call `kb_plan_bootstrap` for read-only synthesis, present the complete hash-bound plan for approval, call `kb_apply_plan` once, and finish with `kb_check`/`kb_status`.
 
 ## Branch Behavior
 
-- The server attaches to the active git branch automatically at startup.
-- If the active branch KB does not exist, the server copies from the previously active branch KB when available; otherwise it creates an empty branch KB.
-- Branch KBs are revalidated and updated automatically on branch change—no server restart is required for normal branch operations.
-- You can override the branch selection by setting the `KIBI_BRANCH` environment variable before starting the server.
-- Branch garbage collection is not part of the public MCP interface. Use `kibi gc` or automation hooks instead.
+- The server attaches to the exact active Git branch name, or `KIBI_BRANCH`
+  when set. Git-valid slash, Unicode, `@`, and `#` names are preserved
+  verbatim.
+- The compiled store lives at `.kb/branches/<sha256(exact-branch)>/` and is
+  verified by a versioned `branch.json`. A missing store is compiled from the
+  current checkout's tracked sources; Kibi never copies another branch store.
+- Git remains the merge and conflict authority. Unresolved authored-file
+  conflicts block compilation; Kibi does not select merge winners.
+- Branch KBs are revalidated and updated automatically on branch change—no
+  server restart is required for normal branch operations.
+- You can override the branch selection by setting `KIBI_BRANCH` before
+  starting the server; the value is validated without normalization.
+- Branch garbage collection is not part of the public MCP interface. Use
+  `kibi gc` or automation hooks; deleted stores are quarantined before any
+  explicit purge.
 
 ### KB Auto-Refresh
 
@@ -488,7 +603,7 @@ This behavior is important after external branch operations such as `kibi sync -
 
 ## Recommended Agent Workflow
 
-1. **Interactive Bootstrap**: Start with the `/init-kibi` workflow to gather declared context and synthesize entities. Always preview candidates for user approval before applying.
+1. **Interactive Bootstrap**: Start with the `/kibi-bootstrap` workflow, inspect typed status, and let `kb_plan_bootstrap` return any bounded context questions. Always preview candidates for user approval before applying.
 2. **Gather Context**: Use `kb_search` for discovery (decomposing broad tasks into focused probes) and `kb_query` for exact follow-up.
 3. **Inspect Freshness**: Use `kb_status` when branch or stale-state confidence matters.
 4. **Analyze**: Use `kb_find_gaps`, `kb_coverage`, and `kb_graph` for curated reporting.

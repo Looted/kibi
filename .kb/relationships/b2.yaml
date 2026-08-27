@@ -1,0 +1,127 @@
+relationships:
+  - id: rel-b19ce74841e3
+    type: implements
+    from: SYM-auto-7EA45A5BE416
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:16:10.746Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-auto-7EA45A5BE416
+    to: REQ-core-atomic-upsert-persistence
+    created_at: 2026-08-16T07:49:57.637Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a8820a605f4
+  - type: covered_by
+    from: SYM-auto-7EA45A5BE416
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:49:57.641Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-970d399cbc80
+  - type: covered_by
+    from: SYM-cli-prolog-search-query-result
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.159Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9d49c446b06
+  - type: relates_to
+    from: FACT-PRED-ADR-TEMPORAL-INFERENCE-CONTRACT
+    to: FACT-ADR-TEMPORAL-INFERENCE-RULES
+    created_at: 2026-08-17T09:19:27.856Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce28b03ba190
+  - type: executable_for
+    from: SYM-test-cli-github-init
+    to: TEST-kibi-github-report-integration
+    created_at: 2026-08-18T12:04:55.103Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f27f613e9747
+  - type: implements
+    from: SYM-auto-7EA45A5BE416
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T16:40:51.135Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79b19e64758a
+  - type: covered_by
+    from: SYM-auto-7EA45A5BE416
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-08-18T16:40:51.146Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5cadd6866363
+  - type: implements
+    from: SYM-canonical-refreshSymbolCoordinates
+    to: REQ-cli-sync
+    created_at: 2026-08-18T17:35:48.836Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bde92b1ebfc9
+  - type: covered_by
+    from: SYM-canonical-refreshSymbolCoordinates
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-08-18T17:35:48.848Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be5b62e23e08
+  - type: covered_by
+    from: SYM-cli-github-resolve-repo
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-19T20:56:06.865Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-edb3c98152f4
+  - type: covered_by
+    from: SYM-auto-7EA45A5BE416
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:40:37.672Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76d693996cad
+  - type: implements
+    from: SYM-error
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:48:18.120Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-026b12ec6e21
+  - type: covered_by
+    from: SYM-error
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:48:18.134Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b242ced6f9c0
+  - type: covered_by
+    from: SYM-error
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:48:18.141Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ceb8135cc1f3
+  - type: validates
+    from: TEST-opencode-bootstrap-paths
+    to: SCEN-opencode-bootstrap-nudge
+    created_at: 2026-08-24T06:17:43.315Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25cae2f6043a
+  - type: validates
+    from: TEST-opencode-bootstrap-paths
+    to: SCEN-opencode-kibi-plugin-v1
+    created_at: 2026-08-24T06:17:43.403Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6348220303b9
+  - type: validates
+    from: TEST-opencode-bootstrap-paths
+    to: SCEN-opencode-kibi-plugin-v1-coverage
+    created_at: 2026-08-24T07:19:17.908Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74c5c2d10ffe

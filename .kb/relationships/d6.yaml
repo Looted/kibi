@@ -17,3 +17,73 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/flags/FLAG-001.md
+  - type: covered_by
+    from: SYM-core-journaled-search-index
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-08-16T19:47:07.421Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67c90b0e8deb
+  - type: implements
+    from: SYM-scripts-runUnitCoverage
+    to: REQ-014
+    created_at: 2026-08-22T20:14:38.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e77cc19dbcf
+  - type: covered_by
+    from: SYM-scripts-runUnitCoverage
+    to: TEST-scripts-unit-coverage-runner
+    created_at: 2026-08-22T20:14:38.539Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-798ad1eaf306
+  - type: covered_by
+    from: SYM-scripts-runUnitCoverage
+    to: TEST-006
+    created_at: 2026-08-22T20:14:38.544Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0bcd8a9974f
+  - type: implements
+    from: SYM-operation-model-requirement-spec
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:29:44.551Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20dd8de3aef2
+  - type: covered_by
+    from: SYM-operation-model-requirement-spec
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:29:44.566Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-684ad952c68c
+  - type: covered_by
+    from: SYM-operation-model-requirement-spec
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:29:44.571Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c968bff169db
+  - type: covered_by
+    from: SYM-runtime-OperationContext
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:40:24.597Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c00e57cf4518
+  - type: implements
+    from: SYM-runtime-OperationContext
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:08:20.376Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b77f6ed1fcc
+  - type: covered_by
+    from: SYM-runtime-OperationContext
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:08:20.410Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c3d3322f498

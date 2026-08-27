@@ -1,6 +1,7 @@
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { isolatedCliSandboxEnv } from "../helpers/isolated-env.js";
 
 // implements REQ-kibi-operation-interface-parity
 export type CliResult = {
@@ -62,7 +63,7 @@ export async function runCliJsonRoute(
       ],
       {
         cwd: workspaceRoot,
-        env: { ...process.env, KIBI_WORKSPACE: workspaceRoot },
+        env: isolatedCliSandboxEnv({ KIBI_WORKSPACE: workspaceRoot }),
         stdout: "pipe",
         stderr: "pipe",
       },
@@ -93,7 +94,17 @@ export async function runMCPAdapter(
   if (!isMcpAdapterModule(adapter)) {
     throw new TypeError("Invalid MCP parity adapter module");
   }
-  return adapter.runMcpOperation(workspaceRoot, opName, input);
+  const originalKibiBranch = process.env.KIBI_BRANCH;
+  Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+  try {
+    return await adapter.runMcpOperation(workspaceRoot, opName, input);
+  } finally {
+    if (originalKibiBranch === undefined) {
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+    } else {
+      process.env.KIBI_BRANCH = originalKibiBranch;
+    }
+  }
 }
 
 function semanticCliResult(result: CliResult): unknown {

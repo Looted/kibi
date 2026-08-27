@@ -16,10 +16,20 @@ async function runJsonInvocation(invocation: JsonInvocation): Promise<void> {
 export function registerFoundationCommands(program: Command): void {
   program
     .command("init")
-    .description("Initialize .kb/ directory")
+    .description(
+      "Initialize Kibi repository infrastructure, hooks, and branch-local storage",
+    )
     .option(
       "--no-hooks",
       "Do not install git hooks (hooks installed by default)",
+    )
+    .option(
+      "--github",
+      "Scaffold the GitHub Pages badge + requirement-health report workflow",
+    )
+    .option(
+      "--badge-only",
+      "With --github, publish only the badge (opt out of the full report)",
     )
     .action(
       withExitCode(async (options: Parameters<typeof initCommand>[0]) =>
@@ -29,9 +39,29 @@ export function registerFoundationCommands(program: Command): void {
 
   program
     .command("migrate")
-    .description("Migrate .kb/config.json to the latest schema version")
+    .description("Preview or apply the structured migration plan")
     .option("--dry-run", "Preview migration changes without writing files")
     .option("--yes", "Apply migration changes without prompting")
+    .option("--format <format>", "Output format: json|table", "table")
+    .option(
+      "--apply-safe",
+      "Apply only explicitly approved deterministic migration actions",
+    )
+    .option(
+      "--approved-plan-hash <sha256>",
+      "Exact migration plan hash approved for --apply-safe",
+    )
+    .option(
+      "--approved-action <id>",
+      "Approve one migration action (repeatable through comma-separated IDs)",
+      (value: string, previous: string[] = []) => [
+        ...previous,
+        ...value
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean),
+      ],
+    )
     .action(
       withExitCode(async (options: Parameters<typeof migrateCommand>[0]) =>
         (await import("./commands/migrate.js")).migrateCommand(options),

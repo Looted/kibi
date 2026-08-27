@@ -19,11 +19,14 @@
 import { existsSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveActiveBranch } from "../utils/branch-resolver.js";
+import { classifyActivation } from "../operations/bootstrap/activation.js";
+import { nodeFilesystem } from "../public/operations/node-ports.js";
+import { resolveBranchAttachment } from "../utils/branch-resolver.js";
+import { scaffoldGitHubIntegration } from "./github-init.js";
 import {
   copySchemaFiles,
-  createConfigFile,
   createKbDirectoryStructure,
+  createManifestFile,
   ensureSymbolsManifestFile,
   installGitHooks,
   updateGitIgnore,
@@ -34,44 +37,102 @@ const __dirname = path.dirname(__filename);
 
 interface InitOptions {
   hooks?: boolean;
+  github?: boolean;
+  badgeOnly?: boolean;
 }
 
-// implements REQ-003
+async function initNextAction(): Promise<{
+  readonly operation: string;
+  readonly message: string;
+}> {
+  const sourceFiles = await nodeFilesystem.glob(
+    [
+      ".kb/requirements/**/*.md",
+      ".kb/scenarios/**/*.md",
+      ".kb/tests/**/*.md",
+      ".kb/adrs/**/*.md",
+      ".kb/adr/**/*.md",
+      ".kb/flags/**/*.md",
+      ".kb/events/**/*.md",
+      ".kb/facts/**/*.md",
+    ],
+    { cwd: process.cwd() },
+  );
+  const activation = await classifyActivation(
+    {
+      workspaceRoot: process.cwd(),
+      signal: new AbortController().signal,
+      clock: () => new Date(),
+      fs: nodeFilesystem,
+    },
+    sourceFiles,
+  );
+  switch (activation.activationState) {
+    case "root_active_seeded":
+      return {
+        operation: "continue-kibi-workflow",
+        message:
+          "  Next: your repository already has seeded Kibi knowledge; continue working with your coding agent.",
+      };
+    case "root_partial":
+      return {
+        operation: "kibi doctor",
+        message:
+          "  Next: run 'kibi doctor' to repair degraded Kibi infrastructure before bootstrapping.",
+      };
+    default:
+      return {
+        operation: "kb_plan_bootstrap",
+        message:
+          "  Next: ask your coding agent “Bootstrap Kibi for this repository.”",
+      };
+  }
+}
+
+// implements REQ-cli-init
+// implements REQ-kibi-github-report-integration
 export async function initCommand(
   options: InitOptions,
 ): Promise<{ exitCode: number }> {
+  if (options.badgeOnly === true && options.github !== true) {
+    console.error(
+      "Error: --badge-only requires --github. The recommended integration is `kibi init --github` (badge + full report).",
+    );
+    return { exitCode: 1 };
+  }
+
   const kbDir = path.join(process.cwd(), ".kb");
   const kbExists = existsSync(kbDir);
 
-  // Resolve branch: allow non-git repos to use default "main" for init
+  // Resolve the exact active Git branch. Standalone use must be explicit via
+  // KIBI_BRANCH; there is no implicit default branch.
   let currentBranch: string;
-  const result = resolveActiveBranch();
+  const result = resolveBranchAttachment();
 
   if ("error" in result) {
     const isNonGitError =
       result.code === "NOT_A_GIT_REPO" || result.code === "GIT_NOT_AVAILABLE";
 
-    if (isNonGitError) {
-      // For init command, use "main" as default branch when not in a git repo.
-      // This allows initialization before git init, which is useful for first-time setup.
-      console.warn("Warning: Not in a git repository");
-      console.warn(
-        "Using 'main' as default branch. Run 'kibi sync' in a git repo for proper branch-aware behavior.",
-      );
-      currentBranch = "main";
-    } else {
-      console.error("Error: Failed to resolve the active git branch.");
-      console.error(result.error);
-      return { exitCode: 1 };
-    }
-  } else {
-    currentBranch = result.branch;
+    console.error("Error: Failed to resolve the active git branch.");
+    console.error(
+      isNonGitError
+        ? `${result.error} Set KIBI_BRANCH explicitly for a standalone workspace.`
+        : result.error,
+    );
+    return { exitCode: 1 };
   }
+  if (result.migrationRequired) {
+    console.error(
+      `Error: KB is attached through legacy branch storage for '${result.gitBranch}'. Run 'kibi branch migrate --from ${result.kbBranch} --to ${result.gitBranch} --apply' first.`,
+    );
+    return { exitCode: 1 };
+  }
+  currentBranch = result.kbBranch;
 
   try {
     if (!kbExists) {
       createKbDirectoryStructure(kbDir, currentBranch);
-      createConfigFile(kbDir);
+      createManifestFile(kbDir);
       updateGitIgnore(process.cwd());
 
       const schemaSourceDir = path.resolve(__dirname, "..", "..", "schema");
@@ -79,6 +140,13 @@ export async function initCommand(
       await copySchemaFiles(kbDir, schemaSourceDir);
     } else {
       console.log("✓ .kb/ directory already exists, skipping creation");
+      // An orphan branch can legitimately remove tracked `.kb/manifest.json`
+      // while the ignored branch stores remain on disk. Recreate the
+      // lifecycle manifest so status/doctor stay coherent; entity paths are
+      // canonical and require no per-repository configuration.
+      if (!existsSync(path.join(kbDir, "manifest.json"))) {
+        createManifestFile(kbDir);
+      }
     }
 
     ensureSymbolsManifestFile(process.cwd());
@@ -92,10 +160,24 @@ export async function initCommand(
       }
     }
 
-    console.log("\nKibi initialized successfully!");
-    console.log("Next steps:");
-    console.log("  1. Run 'kibi doctor' to verify setup");
-    console.log("  2. Run 'kibi sync' to extract entities from documents");
+    console.log(
+      "\n✓ Kibi initialized. Kibi infrastructure is ready for this repository.",
+    );
+    console.log("  No product knowledge was inferred or changed by kibi init.");
+    if (kbExists) {
+      console.log("  Existing Kibi source knowledge was preserved.");
+    }
+    console.log((await initNextAction()).message);
+    console.log(
+      "  Optional diagnostic: run 'kibi doctor' if setup appears degraded.",
+    );
+
+    if (options.github === true) {
+      scaffoldGitHubIntegration({
+        cwd: process.cwd(),
+        badgeOnly: options.badgeOnly === true,
+      });
+    }
 
     return { exitCode: 0 };
   } catch (error) {

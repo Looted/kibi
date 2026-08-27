@@ -137,7 +137,7 @@ function findGitMetadata(
 }
 
 function hasRootKbConfig(root: string): boolean {
-  return existsSync(join(root, ".kb", "config.json"));
+  return existsSync(join(root, ".kb", "manifest.json"));
 }
 
 function uniqueResolved(paths: Array<string | null | undefined>): string[] {
@@ -234,7 +234,7 @@ function resolveBranch(git: GitMetadata | null): string {
   }
 
   const branch = ref.slice("refs/heads/".length);
-  return branch === "master" ? "main" : branch;
+  return branch;
 }
 
 function normalizeRepoRelativePath(

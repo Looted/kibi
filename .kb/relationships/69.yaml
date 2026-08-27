@@ -1,0 +1,120 @@
+relationships:
+  - id: rel-17ce80e5bdef
+    type: implements
+    from: SYM-skillopt-file-bridge-read-public
+    to: REQ-skillopt-codex-optimization
+    created_at: "2026-08-16T07:13:49.827Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-skillopt-file-bridge-read-public
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-16T07:13:49.828Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61a1a09dbb5c
+  - type: covered_by
+    from: SYM-core-requirement-proof
+    to: TEST-kibi-conservative-requirement-proof
+    created_at: 2026-08-16T18:51:34.268Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-110f50119910
+  - type: covered_by
+    from: SYM-kibi-cli-src-cli-register-verification-ts-registerverificationcommand
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.884Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c114d7b5640
+  - type: covered_by
+    from: SYM-cli-engine-socket-path
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.132Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3037436b651
+  - type: implements
+    from: SYM-parity-validate-strict-lane-pairing
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-17T11:13:52.874Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bba478d22406
+  - type: covered_by
+    from: SYM-parity-validate-strict-lane-pairing
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-17T11:13:52.879Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7298c3c71af0
+  - type: implements
+    from: SYM-canonical-DEFAULT_CONFIG_PATHS
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:01:58.338Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd2614a7f54f
+  - type: covered_by
+    from: SYM-canonical-DEFAULT_CONFIG_PATHS
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:01:58.348Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75cb584af7f1
+  - type: implements
+    from: SYM-cli-rule-registry-getDefaultRules
+    to: REQ-cli-check
+    created_at: 2026-08-18T17:03:39.730Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1a281223984
+  - type: covered_by
+    from: SYM-cli-rule-registry-getDefaultRules
+    to: TEST-004
+    created_at: 2026-08-18T17:03:39.740Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-22832ed3a1a5
+  - type: executable_for
+    from: SYM-cli-isolated-exec-sync
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-19T19:27:02.701Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5a4b0be62b0
+  - type: covered_by
+    from: SYM-parity-validate-strict-lane-pairing
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:37:17.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f3bf14127616
+  - type: covered_by
+    from: SYM-ModelRequirementResult
+    to: TEST-005
+    created_at: 2026-08-23T12:39:07.973Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2efae2a9a24f
+  - type: implements
+    from: SYM-ModelRequirementResult
+    to: REQ-002
+    created_at: 2026-08-23T22:10:00.165Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b40700eccca0
+  - type: covered_by
+    from: SYM-ModelRequirementResult
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:10:00.195Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5393d726b703
+  - type: covered_by
+    from: SYM-cli-rule-registry-Violation
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-26T07:15:37.448Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-271d672745de

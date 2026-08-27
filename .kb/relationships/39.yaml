@@ -1,0 +1,57 @@
+relationships:
+  - id: rel-210f66da1d41
+    type: covered_by
+    from: SYM-reqcompiler-telemetry-acceptance-policy
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: "2026-08-16T18:52:12.215Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-kibi-cli-src-public-operations-specs-planning-ts-applyplanspec
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-16T19:45:30.456Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ffaa85922b9
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-mutation-delete-executedelete
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:49:30.309Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f8ff52a790d
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-mutation-delete-executedelete
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:49:30.314Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dedcabd690a5
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-mutation-delete-executedelete
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:15:49.874Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a169b68ad7d
+  - type: implements
+    from: SYM-createKbFreshnessEvidenceStore
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:46:32.508Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f411180b09ce
+  - type: covered_by
+    from: SYM-createKbFreshnessEvidenceStore
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:46:32.523Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a110d9322679
+  - type: covered_by
+    from: SYM-createKbFreshnessEvidenceStore
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:46:32.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1aefba8b221b

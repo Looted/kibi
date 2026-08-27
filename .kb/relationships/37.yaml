@@ -1,0 +1,43 @@
+relationships:
+  - id: rel-ac011f0ca6a5
+    type: executable_for
+    from: SYM-auto-CC9A2A107D90
+    to: TEST-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:21:32.763Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-canonical-LEGACY_DEFAULT_ENTITY_PATHS
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:03:31.606Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b674bcd2367e
+  - type: covered_by
+    from: SYM-canonical-LEGACY_DEFAULT_ENTITY_PATHS
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:03:31.613Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1375e3d8ce89
+  - type: implements
+    from: SYM-classifyMeaningfulChange
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:46:12.079Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66b2d5b83294
+  - type: covered_by
+    from: SYM-classifyMeaningfulChange
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:46:12.090Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4c5f2c39738
+  - type: covered_by
+    from: SYM-classifyMeaningfulChange
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:46:12.098Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea630e670339

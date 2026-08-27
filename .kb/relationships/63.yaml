@@ -10,3 +10,52 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/scenarios/SCEN-005.md
+  - type: covered_by
+    from: SYM-auto-0973EC5179BE
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:53:02.249Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6cc8b15ee3b
+  - type: covered_by
+    from: SYM-cli-engine-commands
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-08-16T19:47:07.423Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fae73ff5399
+  - type: implements
+    from: SYM-cli-github-insert-badge
+    to: REQ-kibi-github-report-integration
+    created_at: 2026-08-18T12:03:36.728Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1eb37ed7571b
+  - type: covered_by
+    from: SYM-cli-github-insert-badge
+    to: TEST-kibi-github-report-integration
+    created_at: 2026-08-18T12:03:36.733Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-03b7ec373bc4
+  - type: covered_by
+    from: SYM-cli-github-insert-badge
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-19T20:54:52.516Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-511052386b19
+  - type: implements
+    from: SYM-auto-0973EC5179BE
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:48:41.088Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bce41705e53d
+  - type: covered_by
+    from: SYM-auto-0973EC5179BE
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:48:41.095Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e02be980711e

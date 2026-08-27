@@ -1,0 +1,197 @@
+relationships:
+  - id: rel-1b6eee22ff3e
+    type: covered_by
+    from: SYM-reqcompiler-parity-capabilities
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: "2026-08-16T18:51:45.134Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-write-sync-semantic-cache
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-16T18:52:06.549Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d7046746fef
+  - type: specified_by
+    from: REQ-014
+    to: SCEN-009
+    created_at: 2026-08-16T22:56:43.810Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-563b22cead35
+  - type: verified_by
+    from: REQ-014
+    to: TEST-011
+    created_at: 2026-08-16T22:56:43.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93e1cb472071
+  - type: requires_predicate
+    from: REQ-014
+    to: FACT-REQ-014-PRE-COMMIT-HOOK-INSTALLATION
+    created_at: 2026-08-17T08:17:58.945Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f48a7a5ab2a5
+  - type: constrains
+    from: REQ-014
+    to: FACT-CHECK-ENFORCEMENT
+    created_at: 2026-08-17T08:17:58.956Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-406d07798c6f
+  - type: requires_property
+    from: REQ-014
+    to: FACT-CHECK-ENFORCEMENT-GATE
+    created_at: 2026-08-17T08:17:58.958Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8839dd875692
+  - type: constrains
+    from: REQ-014
+    to: FACT-CI-GATING
+    created_at: 2026-08-17T08:17:58.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37d2866de88f
+  - type: requires_property
+    from: REQ-014
+    to: FACT-CI-GATING-MODE
+    created_at: 2026-08-17T08:17:58.964Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d84fed194ba
+  - type: covered_by
+    from: SYM-cli-github-has-badge
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-19T20:54:45.866Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99fe570678f8
+  - type: constrains
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-SUBJECT-79C92ADA34274409
+    created_at: 2026-08-20T22:05:24.885Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e6b0d32fc3f
+  - type: requires_property
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-PROP-6CB6EAF6F48DC108
+    created_at: 2026-08-20T22:05:24.910Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19590d3128e0
+  - type: requires_property
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-PROP-60F32F10D6BCB433
+    created_at: 2026-08-20T22:05:24.917Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d239f917e6d5
+  - type: requires_rule
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-RULE-B4018810804C39BB
+    created_at: 2026-08-20T22:05:24.924Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f29cfcdb3a0b
+  - type: requires_rule
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-RULE-48AEB32CAA5D0D22
+    created_at: 2026-08-20T22:05:24.930Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f14ce9fe0772
+  - type: requires_rule
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-RULE-14136BF7761A8C21
+    created_at: 2026-08-20T22:05:24.934Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8dd2d08926ca
+  - type: requires_rule
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-RULE-235633360AF478BE
+    created_at: 2026-08-20T22:05:24.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac40fe9f1dc5
+  - type: requires_rule
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-RULE-495538D2923976DC
+    created_at: 2026-08-20T22:05:24.944Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1a8adbd58da
+  - type: requires_rule
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-RULE-050759068A89B8DD
+    created_at: 2026-08-20T22:05:24.949Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e5c31b664fa
+  - type: requires_rule
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-RULE-9F98A139BADE71B4
+    created_at: 2026-08-20T22:05:24.953Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bc0f92ff764
+  - type: requires_rule
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-RULE-AE090594589798D9
+    created_at: 2026-08-20T22:05:24.958Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6250eef2fbe7
+  - type: requires_rule
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-RULE-D0B5C9528E56F35E
+    created_at: 2026-08-20T22:05:24.962Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97a90306799a
+  - type: requires_rule
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: FACT-RULE-6F232D165E251652
+    created_at: 2026-08-20T22:05:24.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71c6b69e1b62
+  - type: specified_by
+    from: REQ-kibi-predicate-suggestion-relevance-v1
+    to: SCEN-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-20T22:09:28.509Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-909775b9570c
+  - type: executable_for
+    from: 5112611e8378cf73
+    to: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    created_at: 2026-08-21T10:45:09.705Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6c3ebb84437
+  - type: implements
+    from: SYM-core-grounded-requirement-claim-fact
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:23:20.283Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a52853fbe423
+  - type: covered_by
+    from: SYM-core-grounded-requirement-claim-fact
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:23:20.302Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-adb304fb44d6
+  - type: covered_by
+    from: SYM-core-grounded-requirement-claim-fact
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:23:20.313Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f14db51289d

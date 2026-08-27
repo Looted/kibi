@@ -7,7 +7,7 @@ import {
   normalizePath,
   updateHookState,
 } from "./hook-state-storage.js";
-// implements REQ-cursor-kibi-plugin-v1
+// implements REQ-cursor-kibi-plugin-v1, REQ-cursor-stop-job-vs-plan
 import type { McpState } from "./kb-mcp-tools.js";
 
 export {
@@ -26,6 +26,7 @@ export type HookState = {
   kbCheckRun: boolean;
   impactCheckRun: boolean;
   impactCheckedPaths: string[];
+  planDelivered: boolean;
 };
 
 export function addDirtyPaths(
@@ -74,6 +75,12 @@ export function hasGuidedPath(
   const bucket =
     kind === "read" ? state.guidedReadPaths : state.guidedWritePaths;
   return bucket.includes(normalized);
+}
+
+export function recordPlanDelivered(stateDir: string | undefined): HookState {
+  return updateHookState(stateDir, (state) =>
+    state.planDelivered ? state : { ...state, planDelivered: true },
+  );
 }
 
 export function recordKbMcpTool(

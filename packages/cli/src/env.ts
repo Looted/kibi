@@ -13,14 +13,12 @@ function getEnvValue(key: string): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
-function getTrimmedEnvValue(key: string): string | undefined {
-  const value = getEnvValue(key)?.trim();
-  return value ? value : undefined;
-}
-
 export function getBranchOverride(): string | undefined {
-  // implements REQ-003
-  return getTrimmedEnvValue("KIBI_BRANCH");
+  // Branch identity is exact and must not be normalized. Preserve whitespace
+  // so the Git-ref validator rejects an accidental value instead of silently
+  // attaching a different branch.
+  const value = getEnvValue("KIBI_BRANCH");
+  return value === undefined || value.length === 0 ? undefined : value;
 }
 
 export function getKbPlPathOverride(): string | undefined {

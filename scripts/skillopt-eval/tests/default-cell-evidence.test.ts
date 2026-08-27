@@ -3,6 +3,8 @@ import { createHash } from "node:crypto";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { buildSkillCatalog } from "../catalog";
+import { buildPrivateManifest } from "../fixtures/evaluator";
 import { parsePrivateEvaluatorManifest } from "../fixtures/private";
 import { sealDefaultCellEvidence } from "../runtime/codex-cell-defaults";
 import { appendTraceReceipt } from "../runtime/jsonrpc";
@@ -88,6 +90,123 @@ function finalStateReceipt(): string {
         resultHash: resultHash(statusResult),
       },
     ],
+  })}\n`;
+}
+
+function workflowManifest() {
+  const base = evaluatorManifest("predicate");
+  const workflowExpectation = {
+    expectedOutcome: "complete" as const,
+    expectedKbState: "clean_fresh" as const,
+    expectedVerificationState: "fresh" as const,
+    expectedProofState: "unresolved" as const,
+    expectedLimitationDisposition: "not_applicable" as const,
+    requiredSignals: ["passing v2 receipt", "ontology gap remains unresolved"],
+    forbiddenActions: ["claim proof proven"],
+    closeout: {
+      taskOutcome: "complete" as const,
+      kbState: "clean_fresh" as const,
+      verificationState: "fresh" as const,
+      proofState: "unresolved" as const,
+      limitationDisposition: "not_applicable" as const,
+    },
+  };
+  const workflowAssertions = [
+    ["workflow-outcome", "workflow://outcome", "complete"],
+    ["workflow-kb-state", "workflow://closeout/kb-state", "clean_fresh"],
+    [
+      "workflow-verification-state",
+      "workflow://closeout/verification-state",
+      "fresh",
+    ],
+    ["workflow-proof-state", "workflow://closeout/proof-state", "unresolved"],
+    [
+      "workflow-limitation-disposition",
+      "workflow://closeout/limitation-disposition",
+      "not_applicable",
+    ],
+    ["workflow-signal-1", "workflow://signal/0", true],
+    ["workflow-signal-2", "workflow://signal/1", true],
+    ["workflow-forbidden-1", "workflow://forbidden/0", true],
+  ].map(([key, query, expected]) => ({ key, query, expected, critical: true }));
+  return parsePrivateEvaluatorManifest(
+    JSON.stringify({
+      ...base,
+      expectedFinalState: [...base.expectedFinalState, ...workflowAssertions],
+      rubric: base.rubric.map((item) =>
+        item.key === "final_state"
+          ? {
+              ...item,
+              criticalAssertionKeys: [
+                ...item.criticalAssertionKeys,
+                ...workflowAssertions.map(({ key }) => key),
+              ],
+            }
+          : item,
+      ),
+      workflowExpectation,
+    }),
+  );
+}
+
+function workflowFinalStateReceipt(): string {
+  const queryResult = {
+    structuredContent: {
+      entities: [
+        {
+          id: "REQ-WORKFLOW",
+          type: "req",
+          logic_claims: ["CLAIM-WORKFLOW"],
+          tags: ["ontology_gap"],
+        },
+      ],
+    },
+  };
+  const checkResult = {
+    structuredContent: { violations: [], count: 0, diagnostics: [] },
+  };
+  const statusResult = {
+    structuredContent: {
+      syncState: "fresh",
+      dirty: false,
+      verificationSnapshotDirty: false,
+      branchAttachment: {
+        gitBranch: "main",
+        kbBranch: "main",
+        kind: "exact",
+        migrationRequired: false,
+      },
+    },
+  };
+  const coverageResult = {
+    structuredContent: {
+      repairPlan: { scope: { complete: true } },
+      summary: { proofProven: 0, proofMissing: 1 },
+      rows: [
+        {
+          proofStatus: "unresolved",
+          proofStages: {
+            passingE2e: { receiptEvidence: "verification-receipt.v2 passed" },
+          },
+        },
+      ],
+    },
+  };
+  const requests = [
+    ["kb_query", {}, queryResult],
+    ["kb_check", {}, checkResult],
+    ["kb_status", {}, statusResult],
+    ["kb_coverage", { by: "req" }, coverageResult],
+  ].map(([tool, args, result]) => ({
+    tool,
+    args,
+    result,
+    resultHash: resultHash(result),
+  }));
+  return `${JSON.stringify({
+    schemaVersion: "1.0.0",
+    workspaceRoot: "/isolated/workspace",
+    requests,
   })}\n`;
 }
 
@@ -269,6 +388,41 @@ async function brokerTraceWithFailedThenSuccessfulCall(): Promise<string> {
 }
 
 describe("default Codex cell evidence sealing", () => {
+  test("scores closeout dimensions independently when E2E evidence passes but proof remains unresolved", async () => {
+    const manifest = workflowManifest();
+    const requests = [
+      { tool: "kb_query" as const, args: {} },
+      { tool: "kb_check" as const, args: {} },
+      { tool: "kb_status" as const, args: {} },
+      { tool: "kb_coverage" as const, args: { by: "req" } },
+    ];
+    const evidence = sealDefaultCellEvidence(
+      { evaluatorManifest: manifest, finalStateRequests: requests },
+      {
+        finalState: workflowFinalStateReceipt(),
+        brokerTrace: await brokerTrace(),
+        diagnosticReceipt:
+          '{"tool":"kb_query","status":"success","telemetry":null}\n',
+      },
+    );
+    expect(evidence.finalState.claims).toContainEqual({
+      key: "workflow-outcome",
+      value: "complete",
+    });
+    expect(evidence.finalState.claims).toContainEqual({
+      key: "workflow-proof-state",
+      value: "unresolved",
+    });
+    expect(evidence.finalState.closeout).toEqual({
+      taskOutcome: "complete",
+      kbState: "clean_fresh",
+      verificationState: "fresh",
+      proofState: "unresolved",
+      limitationDisposition: "not_applicable",
+    });
+    expect(scoreCell(manifest, evidence).criticalFailures).toEqual([]);
+  });
+
   test("binds authentic final-state MCP output and derives evaluator claims", async () => {
     const manifest = evaluatorManifest("predicate");
     const requests = [
@@ -500,5 +654,152 @@ describe("default Codex cell evidence sealing", () => {
       key: "final-safe-mutation-direction",
       value: false,
     });
+  });
+});
+
+describe("pre-approval interim outcome scoring", () => {
+  test("emits interim when the agent plans read-only and stops before writes", async () => {
+    const task = buildSkillCatalog("kibi-bootstrap").find(
+      (candidate) =>
+        candidate.taskData.objectiveCode === "bootstrap_analysis" &&
+        candidate.split === "train",
+    );
+    if (task === undefined) throw new Error("bootstrap train fixture missing");
+    const manifest = parsePrivateEvaluatorManifest(
+      JSON.stringify(
+        buildPrivateManifest({
+          task: task as never,
+          publicManifestHash: "a".repeat(64),
+          workspaceHash: "b".repeat(64),
+        }),
+      ),
+    );
+    if (manifest.workflowExpectation?.expectedOutcome !== "interim") {
+      throw new Error("fixture must expect interim outcome");
+    }
+    // Staged thin-root fixture: the KB is attached, synced, and committed,
+    // so the probe calls succeed and report a clean fresh posture. Coverage
+    // stays unavailable because a thin KB holds no proof rows.
+    const emptyQuery = {
+      content: [{ type: "text", text: "No entities found." }],
+      structuredContent: {
+        kibiProtocol: 1,
+        status: "success",
+        data: { entities: [], count: 0 },
+      },
+    };
+    const cleanCheck = {
+      content: [{ type: "text", text: "No violations found" }],
+      structuredContent: {
+        kibiProtocol: 1,
+        status: "success",
+        data: { violations: [], count: 0, diagnostics: [] },
+      },
+    };
+    const thinStatus = {
+      content: [
+        {
+          type: "text",
+          text: "Branch skillopt-eval is unknown (snapshot missing, dirty=true)",
+        },
+      ],
+      structuredContent: {
+        kibiProtocol: 1,
+        status: "success",
+        data: {
+          branch: "skillopt-eval",
+          dirty: false,
+          syncState: "fresh",
+          snapshotId: "generation-1:0",
+          staleReasons: [],
+          verificationSnapshotAvailable: true,
+          verificationSnapshotDirty: false,
+        },
+      },
+    };
+    const coverageError = {
+      content: [
+        { type: "text", text: "Tool kb_coverage failed: no proof rows" },
+      ],
+      structuredContent: { status: "error" },
+    };
+    const finalState = `${JSON.stringify({
+      schemaVersion: "1.0.0",
+      workspaceRoot: "/isolated/workspace",
+      binding: {
+        caseId: "kibi-bootstrap-bootstrap-analysis-train-1",
+        roots: {
+          publicManifestHash: "a".repeat(64),
+          workspaceHash: "b".repeat(64),
+          fixtureSeedHash: "c".repeat(64),
+        },
+        sequence: 1,
+      },
+      requests: [
+        {
+          tool: "kb_query",
+          args: {},
+          result: emptyQuery,
+          resultHash: resultHash(emptyQuery),
+        },
+        {
+          tool: "kb_check",
+          args: {},
+          result: cleanCheck,
+          resultHash: resultHash(cleanCheck),
+        },
+        {
+          tool: "kb_status",
+          args: {},
+          result: thinStatus,
+          resultHash: resultHash(thinStatus),
+        },
+        {
+          tool: "kb_coverage",
+          args: { by: "req" },
+          result: coverageError,
+          resultHash: resultHash(coverageError),
+        },
+      ],
+    })}\n`;
+    const root = await mkdtemp(join(tmpdir(), "skillopt-interim-evidence-"));
+    roots.push(root);
+    const tracePath = join(root, "broker-trace.jsonl");
+    await appendTraceReceipt(tracePath, {
+      correlationId: "rpc-1",
+      direction: "target_to_server",
+      kind: "request",
+      method: "tools/call",
+      toolName: "kb_plan_bootstrap",
+      payload: {},
+    });
+    await appendTraceReceipt(tracePath, {
+      correlationId: "rpc-1",
+      direction: "server_to_target",
+      kind: "response",
+      method: "tools/call",
+      toolName: "kb_plan_bootstrap",
+      payload: { result: {} },
+    });
+    const brokerTrace = await readFile(tracePath, "utf8");
+    const evidence = sealDefaultCellEvidence(
+      {
+        evaluatorManifest: manifest,
+        finalStateRequests: [
+          { tool: "kb_query" as const, args: {} },
+          { tool: "kb_check" as const, args: {} },
+          { tool: "kb_status" as const, args: {} },
+          { tool: "kb_coverage" as const, args: { by: "req" } },
+        ],
+      },
+      {
+        finalState,
+        brokerTrace,
+        diagnosticReceipt:
+          '{"tool":"kb_plan_bootstrap","status":"success","telemetry":null}\n',
+      },
+    );
+    expect(evidence.finalState.closeout.taskOutcome).toBe("interim");
+    expect(scoreCell(manifest, evidence).outcome).toBe("pass");
   });
 });

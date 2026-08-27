@@ -119,13 +119,13 @@ describe("branch-resolver", () => {
       );
     });
 
-    test("trims KIBI_BRANCH env var before returning it", () => {
+    test("rejects whitespace in KIBI_BRANCH instead of normalizing identity", () => {
       process.env.KIBI_BRANCH = "  env-branch  ";
 
       const result = resolveActiveBranch(tmpDir);
 
-      expect("branch" in result).toBe(true);
-      expect((result as { branch: string }).branch).toBe("env-branch");
+      expect("error" in result).toBe(true);
+      expect((result as { code: BranchErrorCode }).code).toBe("ENV_OVERRIDE");
     });
 
     test("returns current git branch when KIBI_BRANCH not set", () => {
@@ -190,13 +190,13 @@ describe("branch-resolver", () => {
         });
       });
 
-      test("normalizes master to main when git branch reports master", () => {
+      test("preserves master when git branch reports master", () => {
         queueExecSyncResponses("master\n");
 
         const result = resolveActiveBranch(tmpDir);
 
         expect("branch" in result).toBe(true);
-        expect((result as { branch: string }).branch).toBe("main");
+        expect((result as { branch: string }).branch).toBe("master");
         expect(mockExecSyncCalls.map((call) => call.command)).toEqual([
           "git branch --show-current",
         ]);
@@ -265,13 +265,13 @@ describe("branch-resolver", () => {
         ]);
       });
 
-      test("normalizes master to main when fallback git rev-parse reports master", () => {
+      test("preserves master when fallback git rev-parse reports master", () => {
         queueExecSyncResponses(new Error("branch lookup failed"), "master\n");
 
         const result = resolveActiveBranch(tmpDir);
 
         expect("branch" in result).toBe(true);
-        expect((result as { branch: string }).branch).toBe("main");
+        expect((result as { branch: string }).branch).toBe("master");
         expect(mockExecSyncCalls.map((call) => call.command)).toEqual([
           "git branch --show-current",
           "git rev-parse --abbrev-ref HEAD",
@@ -417,11 +417,17 @@ describe("branch-resolver", () => {
       expect(isValidBranchName("a".repeat(256))).toBe(false);
     });
 
-    test("rejects invalid characters", () => {
-      expect(isValidBranchName("feature@branch")).toBe(false);
-      expect(isValidBranchName("feature#123")).toBe(false);
+    test("accepts Git-valid punctuation and Unicode", () => {
+      expect(isValidBranchName("feature@branch")).toBe(true);
+      expect(isValidBranchName("фича/версия")).toBe(true);
+      expect(isValidBranchName("feature#123")).toBe(true);
+      expect(isValidBranchName("feature;123")).toBe(true);
+    });
+
+    test("rejects Git-ref separators and control characters", () => {
       expect(isValidBranchName("feature:123")).toBe(false);
-      expect(isValidBranchName("feature;123")).toBe(false);
+      expect(isValidBranchName("feature?123")).toBe(false);
+      expect(isValidBranchName("feature*123")).toBe(false);
     });
   });
 
@@ -542,33 +548,31 @@ describe("branch-resolver", () => {
   });
 
   describe("resolveDefaultBranch", () => {
-    test("returns configured defaultBranch when set", () => {
+    test("ignores deprecated configured defaultBranch", () => {
       const result = resolveDefaultBranch(tmpDir, { defaultBranch: "trunk" });
 
-      expect("branch" in result).toBe(true);
-      expect((result as { branch: string }).branch).toBe("trunk");
+      expect("error" in result).toBe(true);
+      expect((result as { error: string }).error).toContain(
+        "No remote default branch",
+      );
     });
 
-    test("preserves branch names with slashes", () => {
+    test("does not use configured branch names with slashes", () => {
       const result = resolveDefaultBranch(tmpDir, {
         defaultBranch: "feature/nested/path",
       });
 
-      expect("branch" in result).toBe(true);
-      expect((result as { branch: string }).branch).toBe("feature/nested/path");
+      expect("error" in result).toBe(true);
     });
 
-    test("returns error for invalid configured branch name", () => {
+    test("does not validate deprecated configured branch names", () => {
       const result = resolveDefaultBranch(tmpDir, {
         defaultBranch: "../etc/passwd",
       });
 
       expect("error" in result).toBe(true);
-      expect((result as { error: string; code: string }).code).toBe(
-        "INVALID_CONFIG",
-      );
-      expect((result as { error: string; code: string }).error).toContain(
-        "Invalid defaultBranch configured",
+      expect((result as { error: string }).error).toContain(
+        "No remote default branch",
       );
     });
 
@@ -594,7 +598,7 @@ describe("branch-resolver", () => {
       expect((result as { branch: string }).branch).toBe("develop");
     });
 
-    test("returns 'main' fallback when origin/HEAD does not exist", () => {
+    test("returns an explicit error when origin/HEAD does not exist", () => {
       // Initialize git repo without origin/HEAD
       execSync("git init -b main", { cwd: tmpDir });
       execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
@@ -603,15 +607,13 @@ describe("branch-resolver", () => {
 
       const result = resolveDefaultBranch(tmpDir, undefined);
 
-      expect("branch" in result).toBe(true);
-      expect((result as { branch: string }).branch).toBe("main");
+      expect("error" in result).toBe(true);
     });
 
-    test("returns 'main' fallback when not in a git repo", () => {
+    test("returns an explicit error when not in a git repo", () => {
       const result = resolveDefaultBranch(tmpDir, undefined);
 
-      expect("branch" in result).toBe(true);
-      expect((result as { branch: string }).branch).toBe("main");
+      expect("error" in result).toBe(true);
     });
 
     test("handles origin/HEAD with different branch names", () => {
@@ -636,13 +638,12 @@ describe("branch-resolver", () => {
       expect((result as { branch: string }).branch).toBe("master");
     });
 
-    test("trims configured defaultBranch before returning it", () => {
+    test("ignores whitespace-padded configured defaultBranch", () => {
       const result = resolveDefaultBranch(tmpDir, {
         defaultBranch: "  trunk  ",
       });
 
-      expect("branch" in result).toBe(true);
-      expect((result as { branch: string }).branch).toBe("trunk");
+      expect("error" in result).toBe(true);
     });
 
     describe("with mocked execSync", () => {
@@ -652,13 +653,12 @@ describe("branch-resolver", () => {
         });
       });
 
-      test("falls back to main when origin/HEAD resolves to an invalid branch", () => {
+      test("returns an explicit error when origin/HEAD is invalid", () => {
         queueExecSyncResponses("refs/remotes/origin/-invalid\n");
 
         const result = resolveDefaultBranch(tmpDir, undefined);
 
-        expect("branch" in result).toBe(true);
-        expect((result as { branch: string }).branch).toBe("main");
+        expect("error" in result).toBe(true);
         expect(mockExecSyncCalls.map((call) => call.command)).toEqual([
           "git symbolic-ref refs/remotes/origin/HEAD",
         ]);

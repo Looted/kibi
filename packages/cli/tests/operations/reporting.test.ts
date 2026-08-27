@@ -33,7 +33,7 @@ function contextWithPayload(payload: Readonly<Record<string, unknown>>): {
         revParse: async () => "main",
         showToplevel: async () => process.cwd(),
         workspaceSnapshot: async () => ({
-          version: "kibi.workspace-snapshot.v1",
+          version: "kibi.workspace-snapshot.v2",
           hash: "a".repeat(64),
           dirty: true,
           fileCount: 42,
@@ -83,7 +83,7 @@ describe("shared reporting operation executors", () => {
       verificationSnapshotAvailable: true,
       verificationSnapshotDirty: true,
       verificationSnapshotFileCount: 42,
-      verificationSnapshotVersion: "kibi.workspace-snapshot.v1",
+      verificationSnapshotVersion: "kibi.workspace-snapshot.v2",
     });
   });
 

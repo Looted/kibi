@@ -237,11 +237,13 @@ describe("SkillOpt operator entrypoints", () => {
     ).toEqual({
       command: "optimize",
       maxSteps: 3,
+      skill: "kibi-usage",
       seedCandidate: ".git/skillopt-candidates/run/candidate_skill.md",
     });
     expect(parseOperatorArgs(["smoke"])).toEqual({
       command: "smoke",
       maxSteps: 1,
+      skill: "kibi-usage",
     });
   });
 });

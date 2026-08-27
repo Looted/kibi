@@ -84,6 +84,38 @@ describe("semantic advisor operation", () => {
     ).toEqual({ field: "semantic_text", text: "" });
   });
 
+  test("does not treat error nouns in titles as modal-free requirements", () => {
+    for (const title of [
+      "Transaction failure",
+      "Save failure",
+      "Entity audit failure",
+    ]) {
+      const result = analyzeSemanticAdvisorInput({
+        payload: {
+          type: "req",
+          id: `REQ-${title.replace(/\s+/g, "-").toUpperCase()}`,
+          properties: { title },
+        },
+      });
+      expect(result.receipt.clauses[0]?.normative).toBe(false);
+      expect(result.receipt.suggestions).toEqual([]);
+    }
+  });
+
+  test("keeps standalone prohibition language normative", () => {
+    for (const text of ["Forbidden.", "Prohibited."]) {
+      const result = analyzeSemanticAdvisorInput({
+        payload: {
+          type: "req",
+          id: `REQ-${text.replace(/\W/g, "").toUpperCase()}`,
+          properties: { semantic_text: text },
+        },
+      });
+      expect(result.receipt.clauses[0]?.normative).toBe(true);
+      expect(result.receipt.propositions[0]?.role).toBe("normative");
+    }
+  });
+
   test("uses one stable claim identity across trailing punctuation artifacts", async () => {
     const context = {
       workspaceRoot: "/tmp/semantic-advisor",
@@ -212,6 +244,46 @@ describe("semantic advisor operation", () => {
     expect(complete.receipt.suggestions).toEqual([]);
   });
 
+  test("splits comma conjunctions without splitting launcher package lists", () => {
+    const ordinary = analyzeSemanticAdvisorInput({
+      payload: {
+        type: "req",
+        id: "REQ-COMMA-CONJUNCTION",
+        properties: {
+          semantic_text:
+            "System must validate input, and it must reject invalid values.",
+        },
+      },
+    });
+    expect(ordinary.receipt.clauses.map(({ text }) => text)).toEqual([
+      "System must validate input",
+      "it must reject invalid values",
+    ]);
+
+    const launcher = analyzeSemanticAdvisorInput({
+      payload: {
+        type: "req",
+        id: "REQ-LAUNCHER-COMMA-CONJUNCTION",
+        properties: {
+          semantic_text:
+            "The launcher must resolve kibi-mcp through consumer-scoped Node package semantics including exports-restricted and pnpm-style layouts, and reject packages outside consumer scope unless active package-manager semantics authorize it",
+        },
+      },
+    });
+    expect(launcher.receipt.clauses).toHaveLength(1);
+    expect(launcher.receipt.suggestions[0]).toMatchObject({
+      kind: "predicate",
+      predicate: {
+        predicate_name: "exception_rule",
+        predicate_args: [
+          "launcher",
+          "consumer_scoped_node_package_semantics",
+          "active_package_manager_semantics",
+        ],
+      },
+    });
+  });
+
   test("records canonical IR, byte spans, and shadow cues for a typed rule", () => {
     const text =
       "If a customer is active, the service must retain the account.";
@@ -321,6 +393,47 @@ describe("semantic advisor operation", () => {
         analyzeSemanticAdvisorInput({ payload }).receipt,
       ).errors,
     ).toEqual([]);
+  });
+
+  test("names stale grounding targets when proposition counts disagree", () => {
+    const text = "System must support OAuth2 authentication.";
+    const base = {
+      type: "req",
+      id: "REQ-STALE-GROUNDING",
+      properties: { title: "OAuth", status: "open", text_ref: text },
+      relationships: [
+        {
+          type: "requires_predicate",
+          from: "REQ-STALE-GROUNDING",
+          to: "FACT-STALE",
+        },
+      ],
+    };
+    const semantic = analyzeSemanticAdvisorInput({ payload: base });
+    const contract = semantic.receipt.inventory_contract;
+    const payload = {
+      ...base,
+      properties: {
+        ...base.properties,
+        logic_claims: semantic.receipt.logic_coverage.expected_claim_keys,
+        semantic_inventory_version: contract.version,
+        semantic_source_field: contract.source_field,
+        semantic_source_hash: contract.source_hash,
+        semantic_inventory: semantic.receipt.propositions.map(
+          (proposition) => ({ ...proposition, status: "ontology_gap" }),
+        ),
+      },
+    };
+
+    expect(
+      validateSemanticInventoryBoundary(
+        payload,
+        payload.relationships,
+        analyzeSemanticAdvisorInput({ payload }).receipt,
+      ).errors,
+    ).toContain(
+      "modeled semantic_inventory entries (0) must equal logical grounding relationships (1) [requires_predicate->FACT-STALE]",
+    );
   });
 
   test("rejects duplicate propositions and spans instead of deduplicating prose", () => {

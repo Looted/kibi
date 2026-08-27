@@ -1,19 +1,13 @@
 import path from "node:path";
 import { EngineClient } from "../engine.js";
-import { resolveActiveBranch } from "../utils/branch-resolver.js";
+import { resolveBranchAttachment } from "../utils/branch-resolver.js";
 
 function currentBranch(root: string): string {
-  const resolved = resolveActiveBranch(root);
+  const resolved = resolveBranchAttachment(root);
   if ("error" in resolved) {
-    if (
-      resolved.code === "NOT_A_GIT_REPO" ||
-      resolved.code === "GIT_NOT_AVAILABLE"
-    ) {
-      return "main";
-    }
     throw new Error(resolved.error);
   }
-  return resolved.branch;
+  return resolved.kbBranch;
 }
 
 function client(): EngineClient {
@@ -86,6 +80,14 @@ export async function storageStatusCommand(): Promise<void> {
 }
 
 export async function storageCompactCommand(): Promise<void> {
+  const root = workspaceRoot();
+  const attachment = resolveBranchAttachment(root);
+  if ("error" in attachment) throw new Error(attachment.error);
+  if (attachment.migrationRequired) {
+    throw new Error(
+      `Storage compaction blocked by legacy attachment (${attachment.gitBranch} -> ${attachment.kbBranch}); migrate the branch KB first.`,
+    );
+  }
   const engine = client();
   try {
     const result = await engine.compact();

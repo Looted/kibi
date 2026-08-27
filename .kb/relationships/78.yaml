@@ -1,0 +1,113 @@
+relationships:
+  - id: rel-2947cff636a0
+    type: covered_by
+    from: SYM-reqcompiler-telemetry-default-policy
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: "2026-08-16T18:52:12.222Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: supersedes
+    from: REQ-cli-init-canonical
+    to: REQ-cli-init
+    created_at: 2026-08-18T15:32:25.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5332230310a0
+  - type: relates_to
+    from: REQ-cli-init-canonical
+    to: ADR-026
+    created_at: 2026-08-18T15:32:25.460Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ad58c42a669
+  - type: specified_by
+    from: REQ-cli-init-canonical
+    to: SCEN-cli-canonical-init
+    created_at: 2026-08-18T15:33:24.544Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ed3d9afd0d9
+  - type: specified_by
+    from: REQ-cli-init-canonical
+    to: SCEN-cli-canonical-status
+    created_at: 2026-08-18T16:20:42.418Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-536ac6362c2a
+  - type: implements
+    from: SYM-cli-report-filter-counts
+    to: REQ-kibi-html-health-report
+    created_at: 2026-08-18T20:41:11.643Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9350659a5a55
+  - type: covered_by
+    from: SYM-cli-report-filter-counts
+    to: TEST-kibi-html-health-report
+    created_at: 2026-08-18T20:41:11.653Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00853a91c76a
+  - type: verified_by
+    from: SCEN-kibi-predicate-suggestion-relevance-v1
+    to: TEST-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-20T22:09:48.254Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-560142600034
+  - type: implements
+    from: SYM-ToolHandler
+    to: REQ-002
+    created_at: 2026-08-22T20:10:59.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-15efade7a0bc
+  - type: covered_by
+    from: SYM-ToolHandler
+    to: TEST-005
+    created_at: 2026-08-22T20:10:59.972Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7af21a0af4f7
+  - type: covered_by
+    from: SYM-ToolHandler
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:10:59.976Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11fda491b95e
+  - type: implements
+    from: SYM-loadSyncConfig
+    to: REQ-011
+    created_at: 2026-08-22T20:13:03.311Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fdc2e4d50115
+  - type: covered_by
+    from: SYM-loadSyncConfig
+    to: TEST-cli-config-schema
+    created_at: 2026-08-22T20:13:03.325Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4471aa1af08a
+  - type: covered_by
+    from: SYM-loadSyncConfig
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:13:03.330Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c4c8229f95e
+  - type: implements
+    from: SYM-skillopt-bundle-default-timeout
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-26T09:11:25.332Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1be7268f0070
+  - type: implements
+    from: SYM-skillopt-setup-seeded-fresh-kb
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-26T18:07:18.183Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df36aa647696

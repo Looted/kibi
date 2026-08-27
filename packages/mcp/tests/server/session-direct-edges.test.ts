@@ -36,6 +36,7 @@ function restoreEnv(): void {
   for (const key of Object.keys(process.env))
     Reflect.deleteProperty(process.env, key);
   Object.assign(process.env, originalEnv);
+  Reflect.deleteProperty(process.env, "KIBI_BRANCH");
 }
 
 function workspace(): string {
@@ -123,7 +124,7 @@ describe.serial("direct session edge coverage", () => {
       rmSync(root, { recursive: true, force: true });
   });
 
-  test("covers invalid branch, previous-branch copy, and reset termination errors", async () => {
+  test("covers invalid branch, empty branch initialization, and reset termination errors", async () => {
     expect(() =>
       session.ensureBranchKbExists("/workspace", "bad/name"),
     ).toThrow("Invalid branch name: bad/name");
@@ -142,9 +143,8 @@ describe.serial("direct session edge coverage", () => {
       console.error = originalConsoleError;
     }
 
-    expect(
-      calls.some((call) => call.startsWith("copy:previous:copy-target")),
-    ).toBe(true);
+    expect(calls.some((call) => call === "mkdir:copy-target")).toBe(true);
+    expect(calls.some((call) => call.startsWith("copy:"))).toBe(false);
     expect(consoleErrorMock).toHaveBeenCalledWith(
       "[KIBI-MCP] Error resetting Prolog worker:",
       expect.any(Error),
@@ -171,7 +171,7 @@ describe.serial("direct session edge coverage", () => {
     expect(session.ensureProlog()).rejects.toThrow("switch attach failed");
   });
 
-  test("covers debug require resolution and package metadata branches", async () => {
+  test("covers the runtime boundary debug marker", async () => {
     const root = workspace();
     const originalConsoleError = console.error;
     const consoleErrorMock = mock((..._args: unknown[]) => {});
@@ -180,37 +180,13 @@ describe.serial("direct session edge coverage", () => {
     process.env.KIBI_MCP_DEBUG = "1";
 
     try {
-      for (const mode of ["resolve", "no-version", "package-error"] as const) {
-        session.resetSessionStateForTests();
-        setDeps(root);
-        session._setSessionDepsForTests({
-          createRequire: () => {
-            const req = ((_specifier: string) => {
-              if (mode === "package-error") throw new Error("package denied");
-              return mode === "no-version"
-                ? { name: "kibi-cli" }
-                : { version: "1.0.0" };
-            }) as unknown as NodeJS.Require;
-            req.resolve = Object.assign(
-              (_specifier: string) => {
-                if (mode === "resolve") throw new Error("resolve denied");
-                return "/resolved";
-              },
-              { paths: (_specifier: string) => [] },
-            );
-            return req;
-          },
-        });
-        await session.ensureProlog();
-      }
+      await session.ensureProlog();
     } finally {
       console.error = originalConsoleError;
     }
 
     const logged = consoleErrorMock.mock.calls.flat().map(String).join("\n");
-    expect(logged).toContain("resolve denied");
-    expect(logged).toContain("no version field");
-    expect(logged).toContain("package denied");
+    expect(logged).toContain("[KIBI-MCP] Runtime boundary: kibi-runtime");
   });
 
   test("covers reset cleanup while shutdown timeout is pending", async () => {

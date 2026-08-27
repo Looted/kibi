@@ -1,5 +1,176 @@
 # kibi-cursor
 
+## 1.0.0
+
+### Major Changes
+
+- 9e6fb3f: Kibi now uses one opinionated project contract: all Kibi-managed knowledge lives under `.kb/`, check enforcement is owned by the installed Kibi version, and projects can no longer weaken health by disabling rules or relocating entity paths in `.kb/config.json`. Existing repositories must run `kibi migrate --yes` to move legacy `documentation/...` knowledge into the canonical layout and adopt `.kb/manifest.json`.
+
+  Advisory modeling checks still run by default, but they report as non-blocking quality diagnostics instead of failing `kibi check`. Migration rewrites the old blanket `.kb/` gitignore stanza so authored lanes are trackable, and a malformed leftover `config.json` blocks the one-way cutover instead of guessing default paths.
+
+  - Remove user-configurable entity paths and persistent `checks.rules` overrides; retire `.kb/config.json` after migration.
+  - Introduce `.kb/manifest.json` for Kibi-owned lifecycle metadata (schema version, semantic backfill state).
+  - Add one-way legacy storage migration (`documentation/` and custom configured paths → `.kb/<lane>/`).
+  - Split check results by enforcement class: canonical → blocking violations; advisory → quality diagnostics; migration → explicit `--rules` only. Default execution is derived from the class (no separate `runsByDefault` flag).
+  - Normalize legacy Kibi `.gitignore` fences during init and migrate; treat `.kb/migrations/` as derived runtime state.
+  - Fail closed when leftover `.kb/config.json` cannot be parsed.
+  - Update init, sync, hooks, staged evidence, doctor, migration-plan, and integration packages for canonical paths.
+  - Generate the requirement-health report on pull requests as a `kibi-pr-report` artifact; keep GitHub Pages deployment on the default branch only.
+  - OpenCode treats canonical `.kb/` entity lanes as knowledge that requires evidence; only derived runtime trees (and leftover `config.json`) are ignored.
+  - Cursor and Codex hook path policy treat canonical `.kb/` lanes as tracked knowledge, not opaque compiled-store paths.
+  - Pending relationship shards are not treated as symbols manifests during source discovery.
+
+- 4c75e4d: Kibi onboarding now separates repository initialization from teaching Kibi about an existing codebase. After `kibi init`, an agent can run the `kibi-bootstrap` workflow to produce a reviewable, hash-bound plan and apply the exact approved plan safely. The old autopilot and init-kibi public names are removed so new users see one clear bootstrap path.
+
+  - Replace `kb_autopilot_generate`/`autopilot-generate` with `kb_plan_bootstrap`/`plan-bootstrap`.
+  - Add `kibi.bootstrap-plan.v1` validation, deterministic approval hashes, dependency ordering, stale-plan checks, and typed bootstrap recovery through `kb_apply_plan`.
+  - Synchronize the four canonical skill mirrors and update client adapters, docs, fixtures, and SkillOpt cases.
+
+### Patch Changes
+
+- a2acea9: Kibi now has a source-first, exact-Git runtime contract for first-party
+  adapters. CLI JSON and MCP structured results share a versioned envelope with
+  effect and repair information, while branch stores are hashed and explicitly
+  identity-bound. The mutation path can author tracked source documents and
+  canonical relationship shards without staging or committing them.
+
+  - Add the `kibi-runtime` first-party integration package.
+  - Add exact branch-store manifests, explicit legacy migration/quarantine, and
+    typed result/effect contracts.
+  - Add source-first document writes, relationship-shard updates, and deletion
+    approval plans.
+
+- 3d7d04f: Generic MCP and CLI agents now discover Kibi's operating rules from bundled skills instead of a long copy-paste prompt. Improving an existing product KB is covered by a `kibi-usage` resource rather than a second manual, so agent guidance stays in one place and cannot drift from the packaged workflow.
+
+  - Add `kibi-usage` `resources/kb-improvement.md` and bump that skill to 2.1.0.
+  - Replace `docs/prompts/llm-rules.md` with `docs/generic-agent-onboarding.md`.
+  - Remove the obsolete retroactive-init prompt; bootstrap stays in the `kibi-bootstrap` skill.
+
+- 29793c7: The Cursor stop hook no longer starts an extra Kibi follow-up after you only deliver a plan. Reads and search no longer look like source edits, so plan mode can finish without an impact-check nudge. If that same turn actually edited source or updated the knowledge base, the existing follow-up still runs.
+
+  - Record dirty paths only from known editable tools.
+  - Treat `CreatePlan` as plan delivery and stay silent at stop unless that turn also edited source or mutated the KB.
+  - Skip follow-up when `stop.status` is `aborted` or `error`.
+
+- 8db2e37: Cursor plugin users can now enable Kibi without adding a separate project MCP configuration. The plugin finds the `kibi-mcp` version installed in the opened project, starts it inside that workspace, and reports a clear setup error when the dependency is missing. It never downloads or falls back to a global Kibi runtime.
+
+  - Replace the plugin MCP `npx --no-install` command with the packaged consumer-workspace launcher.
+  - Cover isolated and packed plugin launches, workspace selection, package-layout resolution, exit codes, and signal forwarding.
+
+- 535dea8: Agents can now keep working in synthetic, detached, or unreadable workspaces while Kibi reports the migration work it can evaluate. Coverage and checks preserve their useful domain results when branch status is unavailable, and the Codex/Cursor skill assets now stay aligned with their published plugin metadata.
+
+  - Keep status-derived migration actions read-only and append them only when branch resolution succeeds.
+  - Preserve the shared migration-plan contract across coverage and checks without requiring a Prolog-backed status query in non-Git harnesses.
+  - Synchronize plugin manifests and freshness skill CLI examples for the next coordinated patch release.
+
+- b746960: Kibi now teaches and enforces requirement supersession in one consistent
+  direction: the replacement points to the requirement it replaces. Reversed
+  edges can no longer hide a newer contradictory policy merely by making that
+  newer requirement non-current. Relationship checks also block authored links
+  that have silently disappeared from compiled knowledge.
+
+  - Document `supersedes` as new-to-old across bundled and generated skills.
+  - Reject reversed supersession when tracked source history proves that the
+    purported replacement predates its target.
+  - Restrict legacy branch migration to literal-to-hashed storage conversion for
+    the same exact Git identity; every cross-identity pair is refused.
+  - Cover exact-Git branch policy conflicts and approved evolution with Prolog
+    regression tests.
+  - Preserve partial-upsert relationship projections and validate
+    authored-to-compiled relationship parity.
+
+- Updated dependencies [6ca08bb]
+- Updated dependencies [a2acea9]
+- Updated dependencies [33262f8]
+- Updated dependencies [9e6fb3f]
+- Updated dependencies [3d7d04f]
+- Updated dependencies [2d6cc59]
+- Updated dependencies [8f71f1a]
+- Updated dependencies [a07fad5]
+- Updated dependencies [2e68da9]
+- Updated dependencies [4cf383b]
+- Updated dependencies [7bc4f61]
+- Updated dependencies [15b5825]
+- Updated dependencies [51fb55b]
+- Updated dependencies [1ca62af]
+- Updated dependencies [f1a6d5c]
+- Updated dependencies [1ca62af]
+- Updated dependencies [44fd818]
+- Updated dependencies [8fe890c]
+- Updated dependencies
+- Updated dependencies [7654339]
+- Updated dependencies [c77d3f1]
+- Updated dependencies [967cef7]
+- Updated dependencies [395e38f]
+- Updated dependencies
+- Updated dependencies [535dea8]
+- Updated dependencies [5fdb828]
+- Updated dependencies [b97329a]
+- Updated dependencies [4c75e4d]
+- Updated dependencies [c942344]
+- Updated dependencies [07803e4]
+- Updated dependencies [b746960]
+- Updated dependencies [400e88c]
+  - kibi-cli@1.0.0
+  - kibi-mcp@1.0.0
+
+## Unreleased
+
+### Patch Changes
+
+- The published Cursor plugin now launches the `kibi-mcp` installed in the opened project, even when Cursor starts plugin processes from the plugin installation directory. The launcher preserves the consumer workspace as the child cwd and `KIBI_WORKSPACE`, and fails with an actionable message when the project-local package is missing.
+
+  - Replace plugin MCP's ambient `npx --no-install` invocation with the packaged consumer-local resolver.
+  - Add isolated and packed-artifact coverage for workspace resolution, package layouts, exit codes, signals, and missing-runtime failures.
+
+## 0.6.3
+
+### Patch Changes
+
+- Existing Kibi installations now receive an agent-guided migration workflow instead of opaque repair advice. Status, checks, and coverage expose one deterministic, hash-bound action plan; agents can safely apply only explicitly approved automatic repairs while semantic, proof, package, and operator work remains visible for review. This makes damaged or legacy KBs recoverable without direct `.kb` edits and gives every run an auditable post-application readback.
+
+  - Add `kibi.migration-plan.v2` fragments to the 21-operation surfaces and support hash/action authorization in `kb_apply_plan` and `kibi migrate --apply-safe`.
+  - Add lazy status/planning and deterministic schema, branch, storage, coordinate, and recovery action execution with workspace-root-safe CLI/MCP parity.
+  - Refresh agent skills, traceability fixtures, and SkillOpt coverage for migration safety boundaries and five-axis closeout reporting.
+
+## 0.6.2
+
+### Patch Changes
+
+- de7b85a: Verification contracts can now evolve without forcing projects to erase valid historical test evidence. Kibi preserves every earlier receipt, accepts a newly appended receipt for the current contract, and only treats evidence matching both the current contract and live code snapshot as proof.
+
+  - Separate immutable receipt-history validation from current-contract binding during verification ingest.
+  - Report `verification_contract_mismatch` as an explicit proof gap until current-contract evidence is appended.
+  - Teach the usage skill and SkillOpt evaluator to preserve older-contract receipts and forbid history rewrites.
+
+- 584336b: Agents now get consistent guidance when execution proof, structural coverage, and KB freshness disagree. Current-contract E2E evidence is recorded as v2 without rewriting history, and full checks no longer report a contradictory weak-depth warning when the same live receipt already proves the scenario-backed test. Receipt freshness repairs also identify the affected requirements and tests so agents can rerun the exact contract.
+
+  - Share snapshot-bound proof evidence with full quality diagnostics.
+  - Add bounded receipt-gap telemetry and v2-native remediation guidance.
+  - Document and test the new receipt and proof-aware diagnostic requirements.
+  - Refresh the mirrored usage skills and dogfood-derived SkillOpt expectations.
+  - Keep the MCP package contract verifier self-contained with an explicit semver development dependency and matching workspace lock ranges.
+
+- Kibi can now explain a missing or damaged branch-local KB without changing it. Agents receive a precise recovery path, preserving the existing store before a deliberate rebuild, and no longer need to guess whether a clean check also means a clean, fresh KB.
+
+  - Add non-mutating branch-store inspection to status and a preview-first `kibi branch recover --apply` workflow.
+  - Restrict branch migration to the detected historical `master` -> legacy `main` compatibility attachment; arbitrary branch moves are refused.
+  - Refresh CLI/MCP status documentation, mirrored agent skills, and release-gate packed consumer coverage.
+
+- ef75929: Kibi’s release checks now validate compiled package APIs and dependency ranges in isolated npm and pnpm consumers, while the usage skill and private SkillOpt evaluator report task completion, KB freshness, verification, proof, and accepted limitations independently. Consumer repositories keep ownership of their local artifact update scripts and dependency overrides.
+
+  - Remove library-side consumer dogfood installers and retain release-only packed checks.
+  - Add deterministic closeout expectations and dogfood-derived held-out cases.
+
+## 0.6.1
+
+### Patch Changes
+
+- Dogfood projects now get branch-local knowledge bases that follow the exact Git ref, actionable stale-source diagnostics, and a sanctioned relationship cleanup path. Verification receipts and packed package provenance are stricter and reproducible, while agents receive conservative symbol-recovery guidance and explicit interim-state signals. This prevents silent `master`/`main` drift and makes passing E2E evidence distinguishable from complete semantic proof.
+
+  - Remove implicit branch-name normalization and add previewed legacy branch migration.
+  - Add exact relationship deletion, v2 receipt/schema parity, status diagnostics, dogfood package manifests, and SkillOpt cases.
+
 ## 0.6.0
 
 ### Minor Changes

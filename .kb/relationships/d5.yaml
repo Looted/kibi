@@ -1,0 +1,43 @@
+relationships:
+  - id: rel-872aa4721595
+    type: implements
+    from: SYM-auto-5D198D1E54F9
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:20:33.055Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-auto-5D198D1E54F9
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-15T22:59:33.270Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fcf6f4dfe95a
+  - type: covered_by
+    from: SYM-auto-5D198D1E54F9
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-08-16T07:53:57.953Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24e2dbefa975
+  - type: verified_by
+    from: SCEN-kibi-dependency-ordered-repair-plan
+    to: TEST-kibi-dependency-ordered-repair-plan
+    created_at: 2026-08-16T18:51:39.452Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c83e723a5b5
+  - type: covered_by
+    from: SYM-kibi-script-change-to-proof-eval-ts-evaluatesearch
+    to: TEST-kibi-change-to-proof-evaluation
+    created_at: 2026-08-16T19:43:54.864Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-542ec1fd0df6
+  - type: covered_by
+    from: SYM-auto-5D198D1E54F9
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:42:01.477Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5549c4fa3b6d

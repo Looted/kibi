@@ -1,0 +1,162 @@
+relationships:
+  - id: rel-dfe3871d3101
+    type: covered_by
+    from: SYM-effective-requirement-relationships
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: "2026-08-16T18:52:06.541Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-cli-engine-client-query
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.149Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c60d627a290
+  - type: covered_by
+    from: SYM-core-journaled-index-refresh
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-08-16T19:49:09.989Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cad47e8d867e
+  - type: validates
+    from: TEST-cli-supersedes-history-unit
+    to: SCEN-branch-store-recovery
+    created_at: 2026-08-17T11:26:30.858Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e8dea03a359
+  - type: implements
+    from: SYM-cli-report-view
+    to: REQ-kibi-html-health-report
+    created_at: 2026-08-18T19:48:14.908Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41d53f0b3590
+  - type: covered_by
+    from: SYM-cli-report-view
+    to: TEST-kibi-html-health-report
+    created_at: 2026-08-18T19:50:04.866Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c31f4741147
+  - type: covered_by
+    from: SYM-cli-github-ensure-gitignore
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-19T20:54:33.651Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-820a13db8118
+  - type: covered_by
+    from: SYM-cli-github-load-workflow-template
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-19T20:55:05.072Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f00def07ffc
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-upsert
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:48:35.032Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4b09f66e91a
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-upsert
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:48:35.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e99aafa608e3
+  - type: implements
+    from: SYM-extractRequirementClaim
+    to: REQ-002
+    created_at: 2026-08-22T20:06:17.281Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de9d5c6ded55
+  - type: covered_by
+    from: SYM-extractRequirementClaim
+    to: TEST-005
+    created_at: 2026-08-22T20:06:17.299Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00b644ba931a
+  - type: covered_by
+    from: SYM-extractRequirementClaim
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:06:17.304Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80086e0f015e
+  - type: implements
+    from: SYM-modeling-requirement-utils-normalizeClaimValue
+    to: REQ-002
+    created_at: 2026-08-22T20:08:26.728Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd99760609bb
+  - type: covered_by
+    from: SYM-modeling-requirement-utils-normalizeClaimValue
+    to: TEST-005
+    created_at: 2026-08-22T20:08:26.743Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8544552b814b
+  - type: covered_by
+    from: SYM-modeling-requirement-utils-normalizeClaimValue
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:08:26.750Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-997462158c84
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-upsert
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:16:55.615Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d839d599e945
+  - type: implements
+    from: SYM-parity-dependent-relationships-goal
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:31:28.530Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b25fc244320
+  - type: covered_by
+    from: SYM-parity-dependent-relationships-goal
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:31:28.544Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d609958f8b50
+  - type: covered_by
+    from: SYM-parity-dependent-relationships-goal
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:31:28.550Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c106007e39e
+  - type: implements
+    from: SYM-SymbolCompilerLockHandle
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-23T20:36:23.707Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc38ac96e33e
+  - type: covered_by
+    from: SYM-SymbolCompilerLockHandle
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:36:23.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7f4b5f375c2
+  - type: relates_to
+    from: FACT-core-validation-rules-DF093D
+    to: REQ-core-validation-rules
+    created_at: 2026-08-26T07:20:42.018Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a282ac4e27f

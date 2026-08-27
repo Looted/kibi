@@ -17,3 +17,108 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/tests/TEST-006.md
+  - type: covered_by
+    from: SYM-reqcompiler-remediation-options
+    to: TEST-kibi-telemetry-remediation-evidence
+    created_at: 2026-08-16T18:52:17.717Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b641f6eaabd8
+  - type: covered_by
+    from: SYM-cli-engine-package-versions
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.156Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd02fb8130d4
+  - type: validates
+    from: TEST-006
+    to: SCEN-003
+    created_at: 2026-08-17T07:13:47.840Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a38d8531e708
+  - type: validates
+    from: TEST-006
+    to: SCEN-git-hook-sync-v2
+    created_at: 2026-08-17T07:13:47.861Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81936085dfdc
+  - type: relates_to
+    from: TEST-006
+    to: REQ-git-hook-sync-v2
+    created_at: 2026-08-17T07:13:47.868Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14db0bd0cbc8
+  - type: relates_to
+    from: TEST-006
+    to: SCEN-git-hook-sync-v2
+    created_at: 2026-08-17T07:13:47.875Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e3a6b0b31a2
+  - type: implements
+    from: SYM-canonical-StagedFile
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T17:36:28.975Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-108f2b0fafbe
+  - type: covered_by
+    from: SYM-canonical-StagedFile
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-08-18T17:36:28.989Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f3bfa0581c11
+  - type: covered_by
+    from: SYM-cli-github-template-dir
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-19T20:56:19.065Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-356dea95fe14
+  - type: implements
+    from: SYM-EntityChangeItem
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:48:10.797Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee475a2fc565
+  - type: covered_by
+    from: SYM-EntityChangeItem
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:48:10.810Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-387922e7b3fd
+  - type: covered_by
+    from: SYM-EntityChangeItem
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:48:10.816Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb2109ac4bb0
+  - type: implements
+    from: SYM-warn
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:57:08.229Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3696e31d2b8a
+  - type: covered_by
+    from: SYM-warn
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:57:08.246Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1959406a2ab8
+  - type: covered_by
+    from: SYM-warn
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:57:08.253Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-861aa89d4d0b

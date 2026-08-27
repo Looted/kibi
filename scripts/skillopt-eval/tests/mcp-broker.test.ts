@@ -111,8 +111,8 @@ describe("evaluator-owned Kibi MCP evidence", () => {
       result: {
         tools: [
           ...REQUIRED_KIBI_TOOLS.map((name) => ({ name, inputSchema: {} })),
-          { name: "kb_delete", inputSchema: {} },
-          { name: "kb_skills_load", inputSchema: {} },
+          { name: "kb_autopilot_generate", inputSchema: {} },
+          { name: "unrelated_host_tool", inputSchema: {} },
         ],
       },
     };
@@ -302,7 +302,12 @@ describe("independent final-state client", () => {
         expect(request.result).not.toMatchObject({ isError: true });
       }
       expect(receipt.requests[0]?.result).toMatchObject({
-        structuredContent: { branch: "skillopt-eval" },
+        structuredContent: {
+          kibiProtocol: 1,
+          operation: "kb_status",
+          status: "success",
+          data: { branch: "skillopt-eval" },
+        },
       });
     } finally {
       await workspace.cleanup();

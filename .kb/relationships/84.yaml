@@ -1,0 +1,120 @@
+relationships:
+  - id: rel-ab1ce6f72c3c
+    type: implements
+    from: SYM-auto-8B6FF5246789
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:16:06.973Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-auto-8B6FF5246789
+    to: REQ-core-atomic-upsert-persistence
+    created_at: 2026-08-16T07:49:55.098Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cccd56e27914
+  - type: covered_by
+    from: SYM-auto-8B6FF5246789
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:49:55.103Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d37e5e1172bc
+  - type: verified_by
+    from: SCEN-kibi-branded-health-report
+    to: TEST-kibi-branded-health-report
+    created_at: 2026-08-16T17:20:44.100Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b287d984bd6b
+  - type: covered_by
+    from: SYM-reqcompiler-mcp-coverage-args
+    to: TEST-kibi-dependency-ordered-repair-plan
+    created_at: 2026-08-16T18:51:39.503Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b17491811b0f
+  - type: verified_by
+    from: REQ-kibi-change-to-proof-evaluation
+    to: TEST-kibi-change-to-proof-evaluation
+    created_at: 2026-08-16T19:43:54.859Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5fc7c19b94d9
+  - type: relates_to
+    from: FACT-RELATIONSHIP-PROVENANCE-TIMESTAMP
+    to: FACT-RELATIONSHIP-AUDIT-METADATA
+    created_at: 2026-08-17T08:14:37.965Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c20e12efac4
+  - type: implements
+    from: SYM-canonical-planLegacyStorageMigration
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:01:01.461Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-019aa6f7c61d
+  - type: covered_by
+    from: SYM-canonical-planLegacyStorageMigration
+    to: TEST-cli-migrate
+    created_at: 2026-08-18T17:01:01.473Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a9419e1fb6b
+  - type: implements
+    from: SYM-canonical-planLegacyStorageMigration
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T18:23:44.239Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d451c3950fe
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapcontext
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:48:56.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-799d3b355262
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapcontext
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:48:56.058Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2cc0bf775a6
+  - type: implements
+    from: SYM-UpsertArgs
+    to: REQ-002
+    created_at: 2026-08-22T20:11:16.483Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98b988f7698d
+  - type: covered_by
+    from: SYM-UpsertArgs
+    to: TEST-005
+    created_at: 2026-08-22T20:11:16.496Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5cefde9f6389
+  - type: covered_by
+    from: SYM-UpsertArgs
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:11:16.504Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3eb1795013b1
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapcontext
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:17:15.048Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5fb98f423897
+  - type: covered_by
+    from: SYM-auto-8B6FF5246789
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:38:46.378Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ab02175efdc

@@ -1,0 +1,50 @@
+relationships:
+  - id: rel-7305397ab157
+    type: implements
+    from: SYM-auto-9AEF238324D1
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:21:22.155Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-auto-9AEF238324D1
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-16T07:54:31.449Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e20d7f75b7d
+  - type: covered_by
+    from: SYM-auto-9AEF238324D1
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-08-16T07:54:31.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fe6235c587a
+  - type: implements
+    from: SYM-classifyDiagnosticError
+    to: REQ-002
+    created_at: 2026-08-22T20:04:56.421Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d359e280da9
+  - type: covered_by
+    from: SYM-classifyDiagnosticError
+    to: TEST-005
+    created_at: 2026-08-22T20:04:56.438Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31d734928cb1
+  - type: covered_by
+    from: SYM-classifyDiagnosticError
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:04:56.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9d56c67edb3
+  - type: covered_by
+    from: SYM-auto-9AEF238324D1
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:39:25.795Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eeaed233fbfb

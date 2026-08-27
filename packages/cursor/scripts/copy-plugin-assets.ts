@@ -9,6 +9,7 @@ const packageRoot = path.resolve(
 const distRoot = path.join(packageRoot, "dist");
 const pluginAssets = [
   ".cursor-plugin",
+  "bin",
   "hooks",
   "skills",
   "rules",

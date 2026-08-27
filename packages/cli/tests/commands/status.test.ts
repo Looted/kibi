@@ -1,5 +1,4 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { execSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -10,6 +9,7 @@ import {
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { execSync } from "../helpers/isolated-env.js";
 
 describe("kibi status", () => {
   let tmpDir: string;
@@ -20,12 +20,12 @@ describe("kibi status", () => {
     execSync("git init -b main", { cwd: tmpDir, stdio: "pipe" });
     execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
 
-    mkdirSync(path.join(tmpDir, "documentation", "requirements"), {
+    mkdirSync(path.join(tmpDir, ".kb", "requirements"), {
       recursive: true,
     });
 
     writeFileSync(
-      path.join(tmpDir, "documentation", "requirements", "REQ-001.md"),
+      path.join(tmpDir, ".kb", "requirements", "REQ-001.md"),
       `---
 id: REQ-001
 title: User authentication
@@ -36,6 +36,7 @@ Initial body.
 `,
     );
 
+    execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
   }, 30000); // kibi init + sync can take ~10s; allow 30s for slower CI environments
 
@@ -77,9 +78,42 @@ Initial body.
     }
   }, 15000);
 
+  test("reports a missing branch store without creating it", () => {
+    const missingDir = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-test-status-missing-store-"),
+    );
+    try {
+      execSync("git init -b trunk", { cwd: missingDir, stdio: "pipe" });
+
+      const output = execSync(`bun ${kibiBin} status --format json`, {
+        cwd: missingDir,
+        encoding: "utf8",
+      });
+      const result = JSON.parse(output) as {
+        branch: string;
+        dirty: boolean;
+        syncState: string;
+        branchStore: { state: string; errorCode: string };
+      };
+
+      expect(result.branch).toBe("trunk");
+      expect(result.dirty).toBe(true);
+      expect(result.syncState).toBe("unknown");
+      expect(result.branchStore).toMatchObject({
+        state: "missing",
+        errorCode: "branch_store_missing",
+      });
+      expect(
+        existsSync(path.join(missingDir, ".kb", "branches", "trunk")),
+      ).toBe(false);
+    } finally {
+      rmSync(missingDir, { recursive: true, force: true });
+    }
+  }, 15000);
+
   test("reports stale status after workspace edits without sync", () => {
     writeFileSync(
-      path.join(tmpDir, "documentation", "requirements", "REQ-001.md"),
+      path.join(tmpDir, ".kb", "requirements", "REQ-001.md"),
       `---
 id: REQ-001
 title: User authentication
@@ -113,12 +147,12 @@ Changed after sync.
     try {
       execSync("git init -b main", { cwd: freshDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} init`, { cwd: freshDir, stdio: "pipe" });
-      mkdirSync(path.join(freshDir, "documentation", "requirements"), {
+      mkdirSync(path.join(freshDir, ".kb", "requirements"), {
         recursive: true,
       });
 
       writeFileSync(
-        path.join(freshDir, "documentation", "requirements", "REQ-ABS-001.md"),
+        path.join(freshDir, ".kb", "requirements", "REQ-ABS-001.md"),
         `---
 id: REQ-ABS-001
 title: Absolute source path status
@@ -127,12 +161,7 @@ status: open
 `,
       );
       writeFileSync(
-        path.join(
-          freshDir,
-          "documentation",
-          "requirements",
-          "REQ-LEGACY-SOURCE.md",
-        ),
+        path.join(freshDir, ".kb", "requirements", "REQ-LEGACY-SOURCE.md"),
         `---
 id: REQ-LEGACY-SOURCE
 title: Legacy source identifier
@@ -145,12 +174,7 @@ source: REQ-009
         recursive: true,
       });
       writeFileSync(
-        path.join(
-          freshDir,
-          "documentation",
-          "requirements",
-          "REQ-DIRECTORY-SOURCE.md",
-        ),
+        path.join(freshDir, ".kb", "requirements", "REQ-DIRECTORY-SOURCE.md"),
         `---
 id: REQ-DIRECTORY-SOURCE
 title: Directory source
@@ -160,6 +184,7 @@ source: packages/example/
 `,
       );
 
+      execSync("git add .kb", { cwd: freshDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: freshDir, stdio: "pipe" });
 
       const output = execSync(`bun ${kibiBin} status --format json`, {
@@ -186,11 +211,7 @@ source: packages/example/
     try {
       execSync("git init -b main", { cwd: noOpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} init`, { cwd: noOpDir, stdio: "pipe" });
-      const requirementsDir = path.join(
-        noOpDir,
-        "documentation",
-        "requirements",
-      );
+      const requirementsDir = path.join(noOpDir, ".kb", "requirements");
       mkdirSync(requirementsDir, { recursive: true });
       const requirementPath = path.join(requirementsDir, "REQ-NOOP-001.md");
       const requirement = `---
@@ -200,6 +221,7 @@ status: open
 ---
 `;
       writeFileSync(requirementPath, requirement);
+      execSync("git add .kb", { cwd: noOpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: noOpDir, stdio: "pipe" });
 
       await Bun.sleep(20);
@@ -233,7 +255,7 @@ status: open
     try {
       execSync("git init -b main", { cwd: readmeDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} init`, { cwd: readmeDir, stdio: "pipe" });
-      mkdirSync(path.join(readmeDir, "documentation", "requirements"), {
+      mkdirSync(path.join(readmeDir, ".kb", "requirements"), {
         recursive: true,
       });
       mkdirSync(
@@ -249,12 +271,7 @@ status: open
       );
 
       writeFileSync(
-        path.join(
-          readmeDir,
-          "documentation",
-          "requirements",
-          "REQ-README-001.md",
-        ),
+        path.join(readmeDir, ".kb", "requirements", "REQ-README-001.md"),
         `---
 id: REQ-README-001
 title: README status freshness
@@ -276,6 +293,7 @@ status: open
 `,
       );
 
+      execSync("git add .kb", { cwd: readmeDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: readmeDir, stdio: "pipe" });
 
       const output = execSync(`bun ${kibiBin} status --format json`, {
@@ -302,23 +320,20 @@ status: open
     try {
       execSync("git init -b main", { cwd: notesDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} init`, { cwd: notesDir, stdio: "pipe" });
-      mkdirSync(path.join(notesDir, "documentation", "requirements"), {
+      mkdirSync(path.join(notesDir, ".kb", "requirements"), {
         recursive: true,
       });
       writeFileSync(
-        path.join(
-          notesDir,
-          "documentation",
-          "requirements",
-          "REQ-NOTES-001.md",
-        ),
+        path.join(notesDir, ".kb", "requirements", "REQ-NOTES-001.md"),
         "---\nid: REQ-NOTES-001\ntitle: Notes fixture\nstatus: open\n---\n",
       );
+      mkdirSync(path.join(notesDir, "documentation"), { recursive: true });
       writeFileSync(
         path.join(notesDir, "documentation", "learnings.md"),
         "# Implementation learnings\n\n- Keep sync and status behavior aligned.\n",
       );
 
+      execSync("git add .kb", { cwd: notesDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: notesDir, stdio: "pipe" });
 
       const output = execSync(`bun ${kibiBin} status --format json`, {
@@ -339,7 +354,7 @@ status: open
 
   test("reports stale status after adding a new documentation file without sync", () => {
     writeFileSync(
-      path.join(tmpDir, "documentation", "requirements", "REQ-002.md"),
+      path.join(tmpDir, ".kb", "requirements", "REQ-002.md"),
       `---
 id: REQ-002
 title: Session expiry
@@ -362,9 +377,7 @@ status: open
   }, 15000);
 
   test("reports stale status after deleting a synced source file", () => {
-    removeSync(
-      path.join(tmpDir, "documentation", "requirements", "REQ-001.md"),
-    );
+    removeSync(path.join(tmpDir, ".kb", "requirements", "REQ-001.md"));
 
     const output = execSync(`bun ${kibiBin} status --format json`, {
       cwd: tmpDir,

@@ -53,7 +53,7 @@ function makeEntity(overrides: Partial<ExtractedEntity> = {}): ExtractedEntity {
     status: "open",
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
-    source: "documentation/requirements/REQ-001.md",
+    source: ".kb/requirements/REQ-001.md",
     ...overrides,
   };
 }
@@ -155,7 +155,7 @@ describe("persistEntities", () => {
       id: "SYM-PROOF",
       type: "symbol",
       title: "proofSymbol",
-      source: "documentation/symbols.yaml",
+      source: ".kb/symbols.yaml",
       sourceLine: 12,
       sourceColumn: 3,
       sourceEndLine: 18,
@@ -548,6 +548,42 @@ describe("persistEntities", () => {
     );
     expect(assertCall).toContain("verification_scope=integration");
     expect(assertCall).toContain("verification_perspective=consumer");
+  });
+
+  test("serializes test verification contracts as preserved JSON", async () => {
+    const entity = makeEntity({
+      id: "TEST-CONTRACT",
+      type: "test",
+      status: "active",
+      verification_scope: "end_to_end",
+      verification_contract: {
+        version: "kibi.verification-contract.v1",
+        runner: "pnpm",
+        command_argv: ["pnpm", "run", "e2e", "--", "e2e/contract.spec.ts"],
+        required_case_symbols: ["SYM-CONTRACT-CASE"],
+        required_projects: ["chromium"],
+        success_policy: "all_required_cases_first_attempt",
+      },
+    });
+    const prolog = makeProlog({
+      "findall(Id, kb_entity(Id, _, _), ExistingIds)": {
+        success: true,
+        bindings: { ExistingIds: "[]" },
+      },
+    });
+
+    await persistEntities(
+      asPrologProcess(prolog),
+      [{ entity, relationships: [] }],
+      new Set(),
+    );
+
+    const assertCall = prolog.callLog.find((g) =>
+      g.includes("kb_assert_entity"),
+    );
+    expect(assertCall).toContain(
+      'verification_contract="{\\"version\\":\\"kibi.verification-contract.v1\\"',
+    );
   });
 
   test("serializes test verification receipts as preserved JSON", async () => {
@@ -1083,7 +1119,7 @@ describe("persistRelationships", () => {
     const prolog = makeProlog();
     const entity = makeEntity({
       id: "REQ-001",
-      source: "documentation/requirements/REQ-001.md",
+      source: ".kb/requirements/REQ-001.md",
     });
     const rel: ExtractedRelationship = {
       type: "depends_on",
@@ -1106,7 +1142,7 @@ describe("persistRelationships", () => {
     const prolog = makeProlog();
     const entity = makeEntity({
       id: "REQ-001",
-      source: "documentation/requirements/my-requirement.md",
+      source: ".kb/requirements/my-requirement.md",
     });
     const rel: ExtractedRelationship = {
       type: "depends_on",
@@ -1121,7 +1157,7 @@ describe("persistRelationships", () => {
         {
           entity: makeEntity({
             id: "REQ-002",
-            source: "documentation/requirements/REQ-002.md",
+            source: ".kb/requirements/REQ-002.md",
           }),
           relationships: [],
         },
@@ -1136,11 +1172,11 @@ describe("persistRelationships", () => {
     const prolog = makeProlog();
     const entity = makeEntity({
       id: "REQ-001",
-      source: "documentation/requirements/my-requirement.md",
+      source: ".kb/requirements/my-requirement.md",
     });
     const entity2 = makeEntity({
       id: "REQ-002",
-      source: "documentation/requirements/my-target.md",
+      source: ".kb/requirements/my-target.md",
     });
     const rel: ExtractedRelationship = {
       type: "depends_on",
@@ -1662,7 +1698,7 @@ describe("persistRelationships", () => {
     const prolog = makeProlog();
     const entity = makeEntity({
       id: "REQ-001",
-      source: "documentation/requirements/REQ-001.md",
+      source: ".kb/requirements/REQ-001.md",
     });
     const rel: ExtractedRelationship = {
       type: "depends_on",

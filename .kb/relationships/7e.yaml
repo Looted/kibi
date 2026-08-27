@@ -1,0 +1,183 @@
+relationships:
+  - type: implements
+    from: SYM-auto-6024925825AA
+    to: REQ-mcp-relationship-preflight
+    created_at: 2026-08-16T07:53:39.389Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3796221e23b7
+  - type: covered_by
+    from: SYM-auto-6024925825AA
+    to: TEST-mcp-relationship-preflight
+    created_at: 2026-08-16T07:53:39.392Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d4d58dced88
+  - type: covered_by
+    from: SYM-kibi-cli-src-public-verification-receipt-ts-verificationreceiptcurrentbindingerrors
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.859Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-684210b98251
+  - type: covered_by
+    from: SYM-cli-engine-daemon
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-16T18:52:30.401Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-568e45714ba9
+  - type: covered_by
+    from: SYM-cli-engine-client-query-status
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.116Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-882e6e20768d
+  - type: covered_by
+    from: SYM-cli-engine-daemon
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.140Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-22f06297cb05
+  - type: implements
+    from: SYM-cli-rule-registry-ruleRunsByDefault
+    to: REQ-cli-check
+    created_at: 2026-08-18T18:22:51.300Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-843fc7b5f692
+  - type: covered_by
+    from: SYM-cli-rule-registry-ruleRunsByDefault
+    to: TEST-cli-quality-diagnostics-contract
+    created_at: 2026-08-18T18:22:51.308Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-948f82018e5f
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-generate-selectbootstrapcandidates
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:48:40.893Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3e45550e923
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-generate-selectbootstrapcandidates
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:48:40.901Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9bbeaa9669d
+  - type: specified_by
+    from: REQ-opencode-bootstrap-nudge
+    to: SCEN-opencode-bootstrap-nudge
+    created_at: 2026-08-22T07:49:45.863Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71d507ab846d
+  - type: verified_by
+    from: REQ-opencode-bootstrap-nudge
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T07:49:45.899Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0b3adf82f51
+  - type: constrains
+    from: REQ-opencode-bootstrap-nudge
+    to: FACT-SUBJ-PLUGIN-ONBOARDING
+    created_at: 2026-08-22T07:49:45.910Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-855369829a84
+  - type: requires_property
+    from: REQ-opencode-bootstrap-nudge
+    to: FACT-PROP-NUDGE-ROUTING
+    created_at: 2026-08-22T07:49:45.547Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a3f5f0e65f5
+  - type: implements
+    from: SYM-StrictWriteSet
+    to: REQ-011
+    created_at: 2026-08-22T20:14:17.732Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b1b505c60d3
+  - type: covered_by
+    from: SYM-StrictWriteSet
+    to: TEST-cli-strict-modeling
+    created_at: 2026-08-22T20:14:17.748Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68c35a45f9a2
+  - type: covered_by
+    from: SYM-StrictWriteSet
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:14:17.756Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31271b2a5752
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-generate-selectbootstrapcandidates
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:17:00.350Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ecb793b0960
+  - type: implements
+    from: SYM-createAutoUpdateRunner
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:46:19.707Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba73e416c14e
+  - type: covered_by
+    from: SYM-createAutoUpdateRunner
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:46:19.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5714d57a0889
+  - type: covered_by
+    from: SYM-createAutoUpdateRunner
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:46:19.735Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d7b020c1386
+  - type: implements
+    from: SYM-FileLifecycle
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:48:44.739Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01e2e4ef3569
+  - type: covered_by
+    from: SYM-FileLifecycle
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:48:44.756Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95c1a66ead74
+  - type: covered_by
+    from: SYM-FileLifecycle
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:48:44.764Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0dca11d392f
+  - type: implements
+    from: SYM-auto-6024925825AA
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:53:33.827Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-313f793887f3
+  - type: covered_by
+    from: SYM-auto-6024925825AA
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:53:33.833Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02419101c84d

@@ -9,6 +9,7 @@ import {
   createSandbox,
   kibi,
   packAll,
+  stageSourceFile,
 } from "./helpers.js";
 
 const RUN_NODE_TEST_SUITE =
@@ -63,17 +64,14 @@ if (RUN_NODE_TEST_SUITE) {
         "installed kibi-cli should survive init and sync without errors",
         { timeout: 60000 },
         async () => {
-          const docsDir = join(
-            sandbox.repoDir,
-            "documentation",
-            "requirements",
-          );
+          const docsDir = join(sandbox.repoDir, ".kb", "requirements");
           mkdirSync(docsDir, { recursive: true });
           writeFileSync(
             join(docsDir, "REQ-ISSUE53-001.md"),
             "---\nid: REQ-ISSUE53-001\ntitle: Issue 53 Test Requirement\nstatus: open\n---\n\nTest requirement for issue 53 regression.",
             "utf8",
           );
+          stageSourceFile(sandbox, ".kb/requirements/REQ-ISSUE53-001.md");
 
           const syncResult = await kibi(sandbox, ["sync"]);
           assert.strictEqual(
@@ -245,13 +243,16 @@ if (RUN_NODE_TEST_SUITE) {
 
               const toolNames = toolsList.map((t) => t.name).sort();
               const expectedTools = [
-                "kb_autopilot_generate",
+                "kb_apply_plan",
                 "kb_check",
+                "kb_compile_intent",
                 "kb_coverage",
                 "kb_delete",
                 "kb_find_gaps",
                 "kb_graph",
+                "kb_ingest_verification",
                 "kb_model_requirement",
+                "kb_plan_bootstrap",
                 "kb_query",
                 "kb_search",
                 "kb_semantic_advisor",

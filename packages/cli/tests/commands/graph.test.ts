@@ -1,5 +1,4 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { execSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -9,6 +8,7 @@ import {
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { execSync } from "../helpers/isolated-env.js";
 
 describe("kibi graph", () => {
   let tmpDir: string;
@@ -19,15 +19,15 @@ describe("kibi graph", () => {
     execSync("git init -b main", { cwd: tmpDir, stdio: "pipe" });
     execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
 
-    mkdirSync(path.join(tmpDir, "documentation", "requirements"), {
+    mkdirSync(path.join(tmpDir, ".kb", "requirements"), {
       recursive: true,
     });
-    mkdirSync(path.join(tmpDir, "documentation", "scenarios"), {
+    mkdirSync(path.join(tmpDir, ".kb", "scenarios"), {
       recursive: true,
     });
 
     writeFileSync(
-      path.join(tmpDir, "documentation", "requirements", "REQ-001.md"),
+      path.join(tmpDir, ".kb", "requirements", "REQ-001.md"),
       `---
 id: REQ-001
 title: User authentication
@@ -40,7 +40,7 @@ links:
     );
 
     writeFileSync(
-      path.join(tmpDir, "documentation", "scenarios", "SCEN-001.md"),
+      path.join(tmpDir, ".kb", "scenarios", "SCEN-001.md"),
       `---
 id: SCEN-001
 title: Login flow
@@ -48,6 +48,8 @@ status: active
 ---
 `,
     );
+
+    execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
 
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
   }, 30000); // kibi init + sync can take ~10s; allow 30s for slower CI environments

@@ -1,7 +1,9 @@
 import assert from "node:assert";
+import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { after, before, describe, it } from "node:test";
+import { fileURLToPath } from "node:url";
 import {
   type Tarballs,
   type TestSandbox,
@@ -20,6 +22,21 @@ import {
 
 const RUN_NODE_TEST_SUITE =
   typeof (globalThis as { Bun?: unknown }).Bun === "undefined";
+const COMPILED_HELPERS_PATH = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "helpers.js",
+);
+
+function restoreEnvironmentValue(
+  name: "KIBI_TEST_TARBALLS" | "KIBI_E2E_PREFIX",
+  value: string | undefined,
+): void {
+  if (value === undefined) {
+    delete process.env[name];
+  } else {
+    process.env[name] = value;
+  }
+}
 
 if (RUN_NODE_TEST_SUITE) {
   describe(
@@ -29,23 +46,29 @@ if (RUN_NODE_TEST_SUITE) {
       let tarballs: Tarballs;
       let sandbox: TestSandbox;
       let artifactRoot: string;
+      let emptyRoot: string | undefined;
+      let originalTestTarballs: string | undefined;
+      let originalE2ePrefix: string | undefined;
 
       before(async () => {
-        // Create a temporary artifact root that mirrors actions/download-artifact output
-        artifactRoot = join(tmpdir(), `kibi-e2e-artifacts-${Date.now()}`);
+        originalTestTarballs = process.env.KIBI_TEST_TARBALLS;
+        originalE2ePrefix = process.env.KIBI_E2E_PREFIX;
+        // Create an owned artifact root that mirrors actions/download-artifact output.
+        artifactRoot = mkdtempSync(join(tmpdir(), "kibi-e2e-artifacts-"));
 
-        // Allow packAll() to resolve pre-packed tarballs by setting KIBI_TEST_TARBALLS
-        process.env.KIBI_TEST_TARBALLS = artifactRoot;
-
-        // packAll() will throw if tarballs are not present in artifactRoot;
-        // in normal CI the artifacts are downloaded into this directory.
-        // To make this smoke test hermetic locally we call packAll() which
-        // will create tarballs in the repo and then we mirror them into
-        // artifactRoot layout expected by helpers.findPrePackedTarball
-        // (helpers supports both flat and <pkg> subdir layouts).
-
-        // Produce tarballs (this writes into repo packages/* dirs)
-        tarballs = await packAll();
+        // In CI, the downloaded package artifacts are already available through
+        // KIBI_TEST_TARBALLS. Standalone runs pack once from the checkout, then
+        // copy that immutable artifact set into the simulated download root.
+        // Never repack the checkout while another packed test worker may be
+        // consuming the same tarballs.
+        const downloadedArtifacts = process.env.KIBI_TEST_TARBALLS;
+        if (downloadedArtifacts) {
+          tarballs = await packAll();
+        } else {
+          // biome-ignore lint/performance/noDelete: clear the inherited CI override so packAll uses workspace artifacts.
+          delete process.env.KIBI_TEST_TARBALLS;
+          tarballs = await packAll();
+        }
 
         // Create artifactRoot and copy tarballs into it under package-named subdirs
         // Use run('cp', ...) to avoid introducing fs copy logic here
@@ -57,7 +80,23 @@ if (RUN_NODE_TEST_SUITE) {
           cwd: "/tmp",
           env: process.env,
         });
+        await run("mkdir", ["-p", join(artifactRoot, "runtime")], {
+          cwd: "/tmp",
+          env: process.env,
+        });
         await run("mkdir", ["-p", join(artifactRoot, "mcp")], {
+          cwd: "/tmp",
+          env: process.env,
+        });
+        await run("mkdir", ["-p", join(artifactRoot, "opencode")], {
+          cwd: "/tmp",
+          env: process.env,
+        });
+        await run("mkdir", ["-p", join(artifactRoot, "codex")], {
+          cwd: "/tmp",
+          env: process.env,
+        });
+        await run("mkdir", ["-p", join(artifactRoot, "cursor")], {
           cwd: "/tmp",
           env: process.env,
         });
@@ -70,7 +109,23 @@ if (RUN_NODE_TEST_SUITE) {
           cwd: "/tmp",
           env: process.env,
         });
+        await run("cp", [tarballs.runtime, join(artifactRoot, "runtime")], {
+          cwd: "/tmp",
+          env: process.env,
+        });
         await run("cp", [tarballs.mcp, join(artifactRoot, "mcp")], {
+          cwd: "/tmp",
+          env: process.env,
+        });
+        await run("cp", [tarballs.opencode, join(artifactRoot, "opencode")], {
+          cwd: "/tmp",
+          env: process.env,
+        });
+        await run("cp", [tarballs.codex, join(artifactRoot, "codex")], {
+          cwd: "/tmp",
+          env: process.env,
+        });
+        await run("cp", [tarballs.cursor, join(artifactRoot, "cursor")], {
           cwd: "/tmp",
           env: process.env,
         });
@@ -79,7 +134,9 @@ if (RUN_NODE_TEST_SUITE) {
         // will install from the artifactRoot via KIBI_TEST_TARBALLS. Ensure any
         // baked prefix is unset so we exercise packed installs rather than a
         // pre-baked installation.
-        process.env.KIBI_E2E_PREFIX = undefined as unknown as string;
+        process.env.KIBI_TEST_TARBALLS = artifactRoot;
+        // biome-ignore lint/performance/noDelete: clear the inherited baked-prefix override for this isolated artifact test.
+        delete process.env.KIBI_E2E_PREFIX;
 
         // Create sandbox which will use KIBI_TEST_TARBALLS via packAll() during install
         sandbox = createSandbox();
@@ -90,7 +147,25 @@ if (RUN_NODE_TEST_SUITE) {
       });
 
       after(async () => {
-        if (sandbox) await sandbox.cleanup();
+        try {
+          if (sandbox) await sandbox.cleanup();
+        } finally {
+          if (artifactRoot) {
+            rmSync(artifactRoot, { recursive: true, force: true });
+            assert.strictEqual(existsSync(artifactRoot), false);
+          }
+          if (emptyRoot) {
+            rmSync(emptyRoot, { recursive: true, force: true });
+            assert.strictEqual(existsSync(emptyRoot), false);
+          }
+          restoreEnvironmentValue("KIBI_TEST_TARBALLS", originalTestTarballs);
+          restoreEnvironmentValue("KIBI_E2E_PREFIX", originalE2ePrefix);
+          assert.strictEqual(
+            process.env.KIBI_TEST_TARBALLS,
+            originalTestTarballs,
+          );
+          assert.strictEqual(process.env.KIBI_E2E_PREFIX, originalE2ePrefix);
+        }
       });
 
       it("happy-path group A: cli workflows + query + verify-core", async () => {
@@ -140,23 +215,19 @@ if (RUN_NODE_TEST_SUITE) {
         // Point KIBI_TEST_TARBALLS at an empty temp dir and expect packAll() to fail.
         // We spawn a fresh Node process so the helpers module has a fresh module
         // scope (cachedTarballsPromise won't be set) and honors the new env.
-        const emptyRoot = join(tmpdir(), `kibi-e2e-empty-${Date.now()}`);
-        await run("mkdir", ["-p", emptyRoot], {
-          cwd: "/tmp",
-          env: process.env,
-        });
+        emptyRoot = mkdtempSync(join(tmpdir(), "kibi-e2e-empty-"));
 
         const expr = [
           "process.env.KIBI_TEST_TARBALLS = ",
           JSON.stringify(emptyRoot),
-          "; import('/tmp/kibi-e2e-packed-compiled/helpers.js').then(async (h)=>{ try { await h.packAll(); console.log('PACK_OK'); process.exit(0); } catch(e){ console.error(e && e.message ? e.message : String(e)); process.exit(2); } })",
+          `; import(${JSON.stringify(COMPILED_HELPERS_PATH)}).then(async (h)=>{ try { await h.packAll(); console.log('PACK_OK'); process.exit(0); } catch(e){ console.error(e && e.message ? e.message : String(e)); process.exit(2); } })`,
         ].join("");
 
         const { exitCode, stdout, stderr } = await run(
           "node",
           ["--input-type=module", "-e", expr],
           {
-            cwd: "/tmp/kibi-e2e-packed-compiled",
+            cwd: dirname(COMPILED_HELPERS_PATH),
             env: process.env,
             timeoutMs: 120000,
           },

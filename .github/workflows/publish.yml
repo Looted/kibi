@@ -56,11 +56,7 @@ jobs:
           ref: refs/heads/master
           fetch-depth: 1
       - name: Install SWI-Prolog
-        run: |
-          sudo apt-get install -y software-properties-common
-          sudo apt-add-repository -y ppa:swi-prolog/stable
-          sudo apt-get update
-          sudo apt-get install -y swi-prolog
+        run: bash scripts/ci-install-swi-prolog.sh
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -84,7 +80,11 @@ jobs:
 
       - name: Typecheck matrix
         run: bun run typecheck
+      - name: Verify generated schema parity
+        run: bun run schema:check
 
+      - name: Build runtime package
+        run: bun run build:runtime
       - name: Build CLI package
         run: bun run build:cli
       - name: Build MCP package
@@ -100,6 +100,7 @@ jobs:
       - name: Pack packages
         run: |
           cd packages/core && npm pack
+          cd ../runtime && npm pack
           cd ../cli && npm pack
           cd ../mcp && npm pack
           cd ../opencode && npm pack
@@ -111,6 +112,7 @@ jobs:
           name: package-tarballs
           path: |
             packages/core/*.tgz
+            packages/runtime/*.tgz
             packages/cli/*.tgz
             packages/mcp/*.tgz
             packages/opencode/*.tgz
@@ -143,11 +145,7 @@ jobs:
           ref: refs/heads/master
           fetch-depth: 1
       - name: Install SWI-Prolog
-        run: |
-          sudo apt-get install -y software-properties-common
-          sudo apt-add-repository -y ppa:swi-prolog/stable
-          sudo apt-get update
-          sudo apt-get install -y swi-prolog
+        run: bash scripts/ci-install-swi-prolog.sh
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -171,11 +169,16 @@ jobs:
         env:
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
         timeout-minutes: 5
+      - name: Isolated CLI and MCP package contract verification
+        run: |
+          corepack enable
+          bun test --cwd documentation/tests/e2e/packed --timeout=300000 release-package-contract.test.ts
+        env:
+          KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
+        timeout-minutes: 10
       - name: Opencode packed behavior verification
         run: |
-          bun run typecheck:e2e:packed
-          rm -rf /tmp/kibi-e2e-packed-compiled
-          bunx tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json --outDir /tmp/kibi-e2e-packed-compiled
+          bun run compile:e2e:packed
           export NODE_OPTIONS='--enable-source-maps' && bunx node --test --test-concurrency=1 /tmp/kibi-e2e-packed-compiled/opencode-install.test.js /tmp/kibi-e2e-packed-compiled/opencode-plugin.test.js /tmp/kibi-e2e-packed-compiled/opencode-bootstrap-paths.test.js
         env:
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
@@ -186,6 +189,7 @@ jobs:
           cd /tmp/kibi-smoke-test
           npm init -y
           npm install ${{ github.workspace }}/packages/core/kibi-core-*.tgz
+          npm install ${{ github.workspace }}/packages/runtime/kibi-runtime-*.tgz
           npm install ${{ github.workspace }}/packages/cli/kibi-cli-*.tgz
           npm install ${{ github.workspace }}/packages/mcp/kibi-mcp-*.tgz
           npm install ${{ github.workspace }}/packages/opencode/kibi-opencode-*.tgz

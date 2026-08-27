@@ -1,0 +1,78 @@
+relationships:
+  - id: rel-4f0e9f3312d0
+    type: covered_by
+    from: SYM-001
+    to: TEST-core-journaled-engine-persistence
+    created_at: "2026-08-16T19:47:07.434Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-cli-engine-client-start
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.168Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d074927dc32
+  - type: validates
+    from: TEST-cli-workspace-snapshot-dirtiness
+    to: SCEN-kibi-snapshot-relevance
+    created_at: 2026-08-17T11:54:38.390Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ac30d75902d
+  - type: specified_by
+    from: REQ-mcp-relationship-preflight
+    to: SCEN-mcp-relationship-preflight
+    created_at: 2026-08-18T07:53:25.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4be5ce5393b8
+  - type: implements
+    from: SYM-canonical-entityLaneForPath
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:02:43.183Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf195015ca43
+  - type: covered_by
+    from: SYM-canonical-entityLaneForPath
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:02:43.192Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0f033d6df74
+  - type: implements
+    from: SYM-canonical-KibiTreeDataProvider-getNavigationTargetForEntity
+    to: REQ-vscode-traceability
+    created_at: 2026-08-18T17:37:54.556Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-273d421a5597
+  - type: covered_by
+    from: SYM-canonical-KibiTreeDataProvider-getNavigationTargetForEntity
+    to: TEST-vscode-traceability
+    created_at: 2026-08-18T17:37:54.566Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3ee2dd4e555
+  - type: implements
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-name
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:49:49.477Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a743e9e506c1
+  - type: covered_by
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-name
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:49:49.484Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-acc5b9197d03
+  - type: covered_by
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-name
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:19:03.545Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0786d6c58068

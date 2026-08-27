@@ -1,8 +1,14 @@
-import { describe, expect, mock, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 
 import { buildUpsertCommitGoal } from "../../src/operations/mutation/contradictions.js";
 import { buildPropertyList } from "../../src/operations/mutation/serialization.js";
+import { effectiveRelationships } from "../../src/operations/mutation/upsert.js";
 import { analyzeSemanticAdvisorInput } from "../../src/operations/semantic-advisor/analyze-prose.js";
+import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
 import type {
   OperationContext,
   PrologPort,
@@ -65,7 +71,104 @@ const verificationReceipt = {
   artifact_digest: "c".repeat(64),
 } as const;
 
+const verificationContract = {
+  version: "kibi.verification-contract.v1",
+  runner: "pnpm",
+  command_argv: ["pnpm", "run", "e2e", "--", "e2e/receipt.spec.ts"],
+  required_case_symbols: ["SYM-RECEIPT-CASE"],
+  required_projects: ["chromium"],
+  success_policy: "all_required_cases_first_attempt",
+} as const;
+
 describe("shared mutation operation specs", () => {
+  const originalBranch = process.env.KIBI_BRANCH;
+
+  beforeEach(() => {
+    process.env.KIBI_BRANCH = "test-branch";
+  });
+
+  afterEach(() => {
+    if (originalBranch === undefined) {
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+    } else {
+      process.env.KIBI_BRANCH = originalBranch;
+    }
+  });
+  test("effective relationship projection preserves repeated and omitted outgoing relationships", async () => {
+    const { context } = createContext((goal): PrologQueryResult => {
+      if (goal === "once(kb_entity('REQ-PROJECTION', _, _))") {
+        return { success: true, bindings: {} };
+      }
+      if (goal.includes("findall(To, kb_relationship(requires_property")) {
+        return {
+          success: true,
+          bindings: { Targets: "['FACT-A','FACT-B']" },
+        };
+      }
+      if (goal.includes("findall(To, kb_relationship(specified_by")) {
+        return {
+          success: true,
+          bindings: { Targets: "['SCEN-KEEP']" },
+        };
+      }
+      if (goal.includes("findall(From, kb_relationship(verified_by")) {
+        return {
+          success: true,
+          bindings: { Sources: "['REQ-INCOMING']" },
+        };
+      }
+      if (goal.startsWith("findall(To,")) {
+        return { success: true, bindings: { Targets: "[]" } };
+      }
+      if (goal.startsWith("findall(From,")) {
+        return { success: true, bindings: { Sources: "[]" } };
+      }
+      throw new Error(`Unexpected goal: ${goal}`);
+    });
+    const input = {
+      type: "req",
+      id: "REQ-PROJECTION",
+      properties: { title: "Projection", status: "open" },
+      relationships: [
+        {
+          type: "verified_by",
+          from: "REQ-PROJECTION",
+          to: "TEST-NEW",
+          metadata: { source: "explicit" },
+        },
+      ],
+    } as const;
+
+    const relationships = await effectiveRelationships(
+      input,
+      { id: input.id, type: input.type },
+      input.relationships,
+      context,
+    );
+
+    expect(relationships).toEqual(
+      expect.arrayContaining([
+        {
+          type: "requires_property",
+          from: "REQ-PROJECTION",
+          to: "FACT-A",
+        },
+        {
+          type: "requires_property",
+          from: "REQ-PROJECTION",
+          to: "FACT-B",
+        },
+        {
+          type: "specified_by",
+          from: "REQ-PROJECTION",
+          to: "SCEN-KEEP",
+        },
+        input.relationships[0],
+      ]),
+    );
+    expect(relationships).toHaveLength(4);
+  });
+
   test("builds one combined commit goal without a second auto-save", () => {
     const goal = buildUpsertCommitGoal({
       entity: {
@@ -129,6 +232,21 @@ describe("shared mutation operation specs", () => {
     );
   });
 
+  test("serializes verification contracts as one quoted JSON value", () => {
+    const properties = buildPropertyList({
+      id: "TEST-CONTRACT",
+      type: "test",
+      verification_contract: verificationContract,
+    });
+
+    expect(properties).toContain(
+      'verification_contract="{\\"version\\":\\"kibi.verification-contract.v1\\"',
+    );
+    expect(properties).not.toContain(
+      'verification_contract={"version":"kibi.verification-contract.v1"',
+    );
+  });
+
   test("validate-upsert accepts source-bound receipt history", async () => {
     const { context, query, save } = createContext(() => ({
       success: true,
@@ -160,7 +278,7 @@ describe("shared mutation operation specs", () => {
     expect(save).not.toHaveBeenCalled();
   });
 
-  test("validate-upsert rejects receipt history that does not bind its test and scope", async () => {
+  test("validate-upsert rejects duplicate history bound to another test without rewriting historical scope", async () => {
     const { context, save } = createContext(() => ({
       success: false,
       bindings: {},
@@ -183,9 +301,7 @@ describe("shared mutation operation specs", () => {
     expect(result.structuredContent).toMatchObject({ valid: false });
     const errorText = result.structuredContent?.errors.join(" ") ?? "";
     expect(errorText).toContain("test_id must equal 'TEST-OTHER'");
-    expect(errorText).toContain(
-      "scope must equal the test verification_scope 'integration'",
-    );
+    expect(errorText).not.toContain("scope must equal");
     expect(errorText).toContain("receipt_id duplicates 'VR-MUTATION-0001'");
     expect(save).not.toHaveBeenCalled();
   });
@@ -551,6 +667,70 @@ describe("shared mutation operation specs", () => {
     ).toBe(false);
   });
 
+  test("folds multiple authored deletions into one source write", async () => {
+    const workspaceRoot = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-delete-source-fold-"),
+    );
+    try {
+      mkdirSync(path.join(workspaceRoot, ".kb"), { recursive: true });
+      const symbolsPath = path.join(workspaceRoot, ".kb", "symbols.yaml");
+      const symbols =
+        "symbols:\n  - id: SYM-A\n    title: A\n  - id: SYM-B\n    title: B\n";
+      writeFileSync(symbolsPath, symbols);
+      const { context } = createContext((goal): PrologQueryResult => {
+        if (goal.startsWith("once(kb_entity('SYM-"))
+          return { success: true, bindings: {} };
+        if (goal.includes("Dependents"))
+          return { success: true, bindings: { Dependents: "[]" } };
+        if (goal.includes("findall(['SYM-A'"))
+          return {
+            success: true,
+            bindings: {
+              Results:
+                "[['SYM-A',symbol,[id='SYM-A',title='A',source='.kb/symbols.yaml']]]",
+            },
+          };
+        if (goal.includes("findall(['SYM-B'"))
+          return {
+            success: true,
+            bindings: {
+              Results:
+                "[['SYM-B',symbol,[id='SYM-B',title='B',source='.kb/symbols.yaml']]]",
+            },
+          };
+        throw new Error(`Unexpected goal: ${goal}`);
+      });
+      const result = await deleteSpec.execute(
+        { ids: ["SYM-A", "SYM-B"] },
+        {
+          ...context,
+          workspaceRoot,
+          fs: nodeFilesystem,
+          branchAttachment: {
+            gitBranch: "test-branch",
+            kbBranch: "test-branch",
+            storePath: path.join(
+              workspaceRoot,
+              ".kb",
+              "branches",
+              "test-branch",
+            ),
+            kind: "exact",
+            migrationRequired: false,
+          },
+        },
+      );
+
+      const plan = result.structuredContent?.deletionPlan;
+      expect(plan?.entityIds).toEqual(["SYM-A", "SYM-B"]);
+      expect(plan?.sourceWrites).toHaveLength(1);
+      expect(plan?.sourceWrites?.[0]?.body).not.toContain("SYM-A");
+      expect(plan?.sourceWrites?.[0]?.body).not.toContain("SYM-B");
+    } finally {
+      rmSync(workspaceRoot, { recursive: true, force: true });
+    }
+  });
+
   test("delete keeps mutation and save in one rollback-safe transaction", async () => {
     // Given
     const { context, query, save } = createContext(
@@ -588,5 +768,174 @@ describe("shared mutation operation specs", () => {
       expect.stringMatching(/^rdf_transaction\(\(.*kb_save\)\)$/),
     );
     expect(save).not.toHaveBeenCalled();
+  });
+
+  test("delete removes an authored YAML relationship before retracting a live edge", async () => {
+    const workspace = await mkdtemp(
+      path.join(os.tmpdir(), "kibi-yaml-delete-"),
+    );
+    try {
+      const manifestPath = path.join(workspace, ".kb", "symbols.yaml");
+      await mkdir(path.dirname(manifestPath), { recursive: true });
+      await writeFile(
+        manifestPath,
+        [
+          "# authored symbols",
+          "symbols:",
+          "  - id: SYM-YAML-DELETE",
+          "    title: Delete one authored relationship",
+          "    relationships:",
+          "      - type: executable_for",
+          "        target: TEST-YAML-DELETE",
+          "      - type: implements",
+          "        target: REQ-YAML-KEEP",
+          "  - id: SYM-YAML-KEEP",
+          "    title: Keep this symbol",
+          "",
+        ].join("\n"),
+        "utf8",
+      );
+
+      const {
+        context: baseContext,
+        query,
+        save,
+      } = createContext((goal): PrologQueryResult => {
+        if (goal.includes("findall(['SYM-YAML-DELETE',Type,Props]")) {
+          return {
+            success: true,
+            bindings: {
+              Results:
+                "[['SYM-YAML-DELETE',symbol,[source='.kb/symbols.yaml']]]",
+            },
+          };
+        }
+        if (goal.startsWith("once(kb_relationship(")) {
+          return { success: true, bindings: {} };
+        }
+        if (goal.startsWith("kb_retract_relationship(")) {
+          return { success: true, bindings: {} };
+        }
+        throw new Error(`Unexpected goal: ${goal}`);
+      });
+      const context: OperationContext = {
+        ...baseContext,
+        workspaceRoot: workspace,
+        fs: nodeFilesystem,
+        branchAttachment: {
+          gitBranch: "test",
+          kbBranch: "test",
+          storePath: path.join(workspace, ".kb", "branches", "test"),
+          kind: "exact",
+          migrationRequired: false,
+        },
+      };
+
+      const result = await deleteSpec.execute(
+        {
+          relationships: [
+            {
+              type: "executable_for",
+              from: "SYM-YAML-DELETE",
+              to: "TEST-YAML-DELETE",
+            },
+          ],
+        },
+        context,
+      );
+
+      expect(result.structuredContent).toMatchObject({
+        relationships_deleted: 1,
+        skipped: 0,
+        sync_required: true,
+        sourceWrites: [
+          expect.objectContaining({
+            path: ".kb/symbols.yaml",
+            mode: "write",
+          }),
+        ],
+      });
+      expect(query).toHaveBeenCalledWith(
+        expect.stringContaining("kb_retract_relationship(executable_for"),
+      );
+      expect(save).toHaveBeenCalledTimes(1);
+      const updated = await readFile(manifestPath, "utf8");
+      expect(updated).not.toContain("TEST-YAML-DELETE");
+      expect(updated).toContain("REQ-YAML-KEEP");
+      expect(updated).toContain("SYM-YAML-KEEP");
+      expect(updated).toContain("# authored symbols");
+    } finally {
+      await rm(workspace, { recursive: true, force: true });
+    }
+  });
+
+  test("delete fails closed when an authored YAML relationship cannot be patched", async () => {
+    const workspace = await mkdtemp(
+      path.join(os.tmpdir(), "kibi-yaml-delete-invalid-"),
+    );
+    try {
+      const manifestPath = path.join(workspace, ".kb", "symbols.yaml");
+      await mkdir(path.dirname(manifestPath), { recursive: true });
+      await writeFile(
+        manifestPath,
+        "symbols:\n  - id: SYM-YAML-INVALID\n    relationships: [\n",
+        "utf8",
+      );
+
+      const {
+        context: baseContext,
+        query,
+        save,
+      } = createContext((goal): PrologQueryResult => {
+        if (goal.includes("findall(['SYM-YAML-INVALID',Type,Props]")) {
+          return {
+            success: true,
+            bindings: {
+              Results:
+                "[['SYM-YAML-INVALID',symbol,[source='.kb/symbols.yaml']]]",
+            },
+          };
+        }
+        if (goal.startsWith("once(kb_relationship(")) {
+          return { success: true, bindings: {} };
+        }
+        throw new Error(`Unexpected goal: ${goal}`);
+      });
+      const context: OperationContext = {
+        ...baseContext,
+        workspaceRoot: workspace,
+        fs: nodeFilesystem,
+        branchAttachment: {
+          gitBranch: "test",
+          kbBranch: "test",
+          storePath: path.join(workspace, ".kb", "branches", "test"),
+          kind: "exact",
+          migrationRequired: false,
+        },
+      };
+
+      await expect(
+        deleteSpec.execute(
+          {
+            relationships: [
+              {
+                type: "executable_for",
+                from: "SYM-YAML-INVALID",
+                to: "TEST-YAML-INVALID",
+              },
+            ],
+          },
+          context,
+        ),
+      ).rejects.toThrow("Authored YAML relationship deletion failed");
+      expect(
+        query.mock.calls.some(([goal]) =>
+          String(goal).startsWith("kb_retract_relationship("),
+        ),
+      ).toBe(false);
+      expect(save).not.toHaveBeenCalled();
+    } finally {
+      await rm(workspace, { recursive: true, force: true });
+    }
   });
 });

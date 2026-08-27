@@ -1,0 +1,57 @@
+relationships:
+  - id: rel-22b2d05adf32
+    type: implements
+    from: SYM-skillopt-operator-dependencies
+    to: REQ-skillopt-codex-optimization
+    created_at: "2026-08-15T23:11:39.476Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-skillopt-operator-dependencies
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-15T23:11:39.477Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-adcbc4f82f3d
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-contradictionwitness
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-16T19:45:30.464Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce15f064822b
+  - type: constrains
+    from: REQ-codex-consumer-local-mcp-registration-v1
+    to: FACT-SUBJECT-B2901E12D49D9B8F
+    created_at: 2026-08-20T15:43:54.803Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b898935a5cbb
+  - type: requires_property
+    from: REQ-codex-consumer-local-mcp-registration-v1
+    to: FACT-PROP-0BD2B01385484F6E
+    created_at: 2026-08-20T15:43:54.815Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7199f4a0896c
+  - type: relates_to
+    from: REQ-codex-consumer-local-mcp-registration-v1
+    to: REQ-codex-kibi-plugin-v1
+    created_at: 2026-08-20T15:43:54.818Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2f0b2aeaa23d
+  - type: specified_by
+    from: REQ-codex-consumer-local-mcp-registration-v1
+    to: SCEN-codex-consumer-local-mcp-registration-v1
+    created_at: 2026-08-20T15:44:27.466Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9c41c24fd9f
+  - type: executable_for
+    from: SYM-kibi-bootstrap-cli-tests-operations-bootstrap-workspace-fixture-bootstrapworkspacefixture
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-21T19:38:19.907Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-072db61840fb

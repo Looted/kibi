@@ -18,7 +18,7 @@
 import {
   type ChangedFileImpactResult,
   analyzeChangedFileImpact,
-} from "kibi-cli/public/impact-diagnostics";
+} from "kibi-runtime";
 import type { CheckArgs } from "./check-types.js";
 
 export function hasImpactOptions(args: CheckArgs): boolean {

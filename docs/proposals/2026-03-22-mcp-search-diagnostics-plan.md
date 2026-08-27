@@ -1,5 +1,7 @@
 # MCP Search and Diagnostics Implementation Plan
 
+> **Archival note:** Agent operating guidance now lives in bundled Kibi skills (`kibi-usage`, `init-kibi`). Historical mentions of `docs/prompts/llm-rules.md` and `docs/prompts/retroactive-init.md` below are not current runbooks.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add one new public discovery tool, `kb_search`, while keeping `kb_query` precise, making `kb_check` much more actionable, and making `usage.log` good enough to measure whether Kibi is being used as intended.

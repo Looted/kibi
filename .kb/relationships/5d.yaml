@@ -1,0 +1,169 @@
+relationships:
+  - id: rel-a979912dbb59
+    type: executable_for
+    from: SYM-e2e-packed-cli-html-report
+    to: TEST-kibi-html-health-report
+    created_at: "2026-08-15T21:06:00.617Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-auto-DFC8FB7A3472
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-15T22:20:25.792Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-831d0c4a32ae
+  - type: executable_for
+    from: SYM-e2e-packed-cli-html-report
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:49:22.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-def1bf53c2cd
+  - type: implements
+    from: SYM-auto-DFC8FB7A3472
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-16T07:53:54.155Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ece5efb50d11
+  - type: covered_by
+    from: SYM-auto-DFC8FB7A3472
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-08-16T07:53:54.160Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-edb29e939339
+  - type: executable_for
+    from: SYM-e2e-packed-cli-html-report
+    to: TEST-kibi-branded-health-report
+    created_at: 2026-08-17T12:55:21.997Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44b0a90d44c7
+  - type: verified_by
+    from: SCEN-kibi-github-report-integration
+    to: TEST-kibi-github-report-integration
+    created_at: 2026-08-18T12:19:16.004Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be01a95b6b90
+  - type: verified_by
+    from: SCEN-kibi-github-report-integration
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-19T21:01:19.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7cb8b5269854
+  - type: implements
+    from: SYM-core-validate-entity-shape
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:20:02.941Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f2e8d269271f
+  - type: covered_by
+    from: SYM-core-validate-entity-shape
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:20:02.953Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-730797729427
+  - type: covered_by
+    from: SYM-core-validate-entity-shape
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:20:02.958Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37de462532dc
+  - type: covered_by
+    from: SYM-auto-DFC8FB7A3472
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:36:33.068Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-661ecb8d8315
+  - type: implements
+    from: SYM-injectPrompt
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:57:36.776Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-326d7235acd3
+  - type: covered_by
+    from: SYM-injectPrompt
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:57:36.789Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-868a41aedf06
+  - type: covered_by
+    from: SYM-injectPrompt
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:57:36.797Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-514eb07856f5
+  - type: covered_by
+    from: SYM-operation-check-options
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:38:03.031Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eafe43d6dcf4
+  - type: implements
+    from: SYM-operation-check-options
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:02:33.461Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6afc4ed0a24e
+  - type: covered_by
+    from: SYM-operation-check-options
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:02:33.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7979871bd0b
+  - type: requires_predicate
+    from: REQ-core-prolog-process-management
+    to: FACT-core-prolog-process-management-00ED72
+    created_at: 2026-08-26T07:20:59.211Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c97bc5e0e67
+  - type: requires_predicate
+    from: REQ-core-prolog-process-management
+    to: FACT-core-prolog-process-management-E396BE
+    created_at: 2026-08-26T07:20:59.247Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b69d904630c5
+  - type: requires_predicate
+    from: REQ-core-prolog-process-management
+    to: FACT-core-prolog-process-management-5009E0
+    created_at: 2026-08-26T07:20:59.261Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7b7b57cfbd1
+  - type: requires_predicate
+    from: REQ-core-prolog-process-management
+    to: FACT-core-prolog-process-management-53E17A
+    created_at: 2026-08-26T07:20:59.271Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb067690de44
+  - type: requires_predicate
+    from: REQ-core-prolog-process-management
+    to: FACT-core-prolog-process-management-777C0D
+    created_at: 2026-08-26T07:20:59.280Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39f06c2671d5
+  - type: requires_predicate
+    from: REQ-core-prolog-process-management
+    to: FACT-core-prolog-process-management-6F473B
+    created_at: 2026-08-26T07:20:59.288Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-513746b64a47

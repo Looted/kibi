@@ -20,6 +20,20 @@ type Batch = {
   args: string[];
 };
 
+export function isolatedUnitBatchEnv(
+  runtimeDirectory: string,
+): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
+    KIBI_ENGINE_IDLE_TIMEOUT_MS: "30000",
+    KIBI_RUNTIME_DIR: runtimeDirectory,
+  };
+  // Proof CI sets KIBI_BRANCH for the dogfood detached HEAD. Unit batches are
+  // independent Git sandboxes and must resolve their own branch identity.
+  Reflect.deleteProperty(env, "KIBI_BRANCH");
+  return env;
+}
+
 // implements REQ-root-suite-batch-diagnostics
 // covered_by TEST-root-suite-batch-diagnostics
 export const BATCH_TIMEOUT_MINUTES = 25;
@@ -234,11 +248,7 @@ async function runBatch(
   );
   const child = spawn("bun", batch.args, {
     cwd: process.cwd(),
-    env: {
-      ...process.env,
-      KIBI_ENGINE_IDLE_TIMEOUT_MS: "30000",
-      KIBI_RUNTIME_DIR: runtimeDirectory,
-    },
+    env: isolatedUnitBatchEnv(runtimeDirectory),
     stdio: ["ignore", "pipe", "pipe"],
   });
 

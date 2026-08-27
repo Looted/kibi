@@ -287,6 +287,31 @@ it("supports the legacy analyzeSourceText enrichment overload", async () => {
   ]);
 });
 
+it("strips stale generated coordinates before source analysis", async () => {
+  tsEnrichStub = async (inputEntries) => inputEntries;
+  const tsPath = writeFile("renamed.ts", "export function newName() {}\n");
+  const entries: ManifestSymbolEntry[] = [
+    {
+      id: "renamed",
+      title: "oldName",
+      sourceFile: path.basename(tsPath),
+      sourceLine: 1,
+      sourceColumn: 16,
+      sourceEndLine: 1,
+      sourceEndColumn: 23,
+      coordinatesGeneratedAt: "2025-01-01T00:00:00.000Z",
+    },
+  ];
+
+  const [out] = await runEnrichment(entries, tmpDir);
+
+  expect(out).toEqual({
+    id: "renamed",
+    title: "oldName",
+    sourceFile: path.basename(tsPath),
+  });
+});
+
 it("delegates TS/JS files to ts-morph exporter (ts and js) and resolves absolute/relative paths", async () => {
   tsEnrichStub = async (entries) =>
     entries.map((entry, index) => ({

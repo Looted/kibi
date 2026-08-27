@@ -1,0 +1,43 @@
+relationships:
+  - id: rel-7859b65dea1d
+    type: implements
+    from: SYM-skillopt-operator-run-options
+    to: REQ-skillopt-codex-optimization
+    created_at: "2026-08-15T23:11:55.507Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-skillopt-operator-run-options
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-15T23:11:55.507Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3774af9dc4df
+  - type: covered_by
+    from: SYM-kibi-cli-src-intent-search-ts-intentsourcematch
+    to: TEST-kibi-intent-aware-source-discovery
+    created_at: 2026-08-16T19:46:36.838Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59b495c21406
+  - type: covered_by
+    from: SYM-cli-github-report-workflow-relpath
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-19T20:56:00.691Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d7d881675f5
+  - type: implements
+    from: 76bad0a66461775e
+    to: REQ-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-21T10:54:00.323Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ea8b714beae
+  - type: covered_by
+    from: 76bad0a66461775e
+    to: TEST-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-21T12:53:08.307Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f6fad25d20e1

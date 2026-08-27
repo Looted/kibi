@@ -1,0 +1,71 @@
+relationships:
+  - id: rel-3ebcc63d45a3
+    type: executable_for
+    from: SYM-cursor-hook-runner-plan-vs-job-tests
+    to: TEST-cursor-stop-job-vs-plan
+    created_at: "2026-08-18T11:57:24.162Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-cli-report-repository-type
+    to: REQ-kibi-html-health-report
+    created_at: 2026-08-18T20:42:37.276Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-141c1a99d082
+  - type: covered_by
+    from: SYM-cli-report-repository-type
+    to: TEST-kibi-html-health-report
+    created_at: 2026-08-18T20:42:37.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43d99eeb089b
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapplanv1
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:49:21.708Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e0ae5083f13
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapplanv1
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:49:21.713Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2a924abae5f
+  - type: implements
+    from: SYM-shared-npm-cache-type
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-08-21T21:07:34.240Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ab037a4f629
+  - type: covered_by
+    from: SYM-shared-npm-cache-type
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-21T21:07:34.254Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a954d201e76
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapplanv1
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:19:30.982Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78b904546e3e
+  - type: implements
+    from: SYM-refreshSymbolCoordinatesForManifest
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-24T06:15:23.579Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f22fa16cd958
+  - type: covered_by
+    from: SYM-refreshSymbolCoordinatesForManifest
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-24T06:15:23.593Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-967adfba1291

@@ -17,3 +17,122 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/scenarios/SCEN-003.md
+  - type: verified_by
+    from: SCEN-003
+    to: TEST-006
+    created_at: 2026-08-17T07:12:37.312Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17f01b2d64eb
+  - type: verified_by
+    from: SCEN-003
+    to: TEST-009
+    created_at: 2026-08-17T07:12:37.343Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50b88baf02ef
+  - type: relates_to
+    from: SCEN-003
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-17T07:12:37.353Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d9f7ead1fcce
+  - type: relates_to
+    from: SCEN-003
+    to: REQ-git-hook-sync-v2
+    created_at: 2026-08-17T07:12:37.361Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9210aedae64
+  - type: validates
+    from: TEST-cli-relationship-type-contract
+    to: REQ-mcp-relationship-preflight
+    created_at: 2026-08-17T11:26:32.282Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7488b6c0880
+  - type: implements
+    from: SYM-canonical-StorageMigrationPlan
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:01:21.887Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b3fbda5f39d
+  - type: covered_by
+    from: SYM-canonical-StorageMigrationPlan
+    to: TEST-cli-migrate
+    created_at: 2026-08-18T17:01:21.897Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7ad627a239d
+  - type: verified_by
+    from: SCEN-001
+    to: TEST-001
+    created_at: 2026-08-22T19:54:32.146Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e6700801de9
+  - type: verified_by
+    from: SCEN-001
+    to: TEST-005
+    created_at: 2026-08-22T19:54:32.193Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-122a52b10b16
+  - type: verified_by
+    from: SCEN-001
+    to: TEST-012
+    created_at: 2026-08-22T19:54:32.205Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cea23fa13626
+  - type: verified_by
+    from: SCEN-001
+    to: TEST-mcp-query-relationships
+    created_at: 2026-08-22T19:54:32.215Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f11d08e13dbd
+  - type: verified_by
+    from: SCEN-001
+    to: TEST-mcp-upsert-coverage
+    created_at: 2026-08-22T19:54:32.225Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b953db79f15c
+  - type: verified_by
+    from: SCEN-001
+    to: TEST-007
+    created_at: 2026-08-22T19:54:32.236Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fadf33858796
+  - type: verified_by
+    from: SCEN-001
+    to: TEST-008
+    created_at: 2026-08-22T19:54:32.246Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-03cf158cc4d6
+  - type: verified_by
+    from: SCEN-001
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T19:54:32.254Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8025387b1bcc
+  - type: implements
+    from: SYM-BRIDGE-ARTIFACT-ROOT-ENV
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-23T23:30:10.648Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-693efd5b8ab7
+  - type: covered_by
+    from: SYM-BRIDGE-ARTIFACT-ROOT-ENV
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-23T23:30:10.663Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-795af7fd1067

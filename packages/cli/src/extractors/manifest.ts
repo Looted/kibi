@@ -22,9 +22,9 @@ import * as path from "node:path";
 import { load as parseYAML } from "js-yaml";
 import { DEFAULT_COORDINATES_PATH } from "../utils/manifest-paths.js";
 import {
-  type SymbolCoordinatesArtifact,
+  type ParsedCoordinateArtifact,
   mergeCoordinatesWithManifest,
-  readCoordinateArtifact,
+  parseCoordinateArtifact,
 } from "./symbol-coordinates.js";
 
 export interface ExtractedEntity {
@@ -214,6 +214,7 @@ export class ManifestError extends Error {
   constructor(
     message: string,
     public filePath: string,
+    public readonly classification?: "coordinate-artifact",
   ) {
     super(message);
     this.name = "ManifestError";
@@ -322,13 +323,19 @@ function extractFromParsedManifest(
   manifest: ManifestFile,
   filePath: string,
 ): ExtractionResult[] {
-  return extractFromManifestSymbolRecords(
+  return extractManifestSymbolRecords(
     getManifestSymbols(manifest, filePath),
     filePath,
   );
 }
 
-function extractFromManifestSymbolRecords(
+/**
+ * Convert overlay-merged manifest symbol records into extraction results.
+ * Exported so mutation flows can re-extract one canonical entity from the
+ * authored manifest plus generated coordinate artifact before committing.
+ */
+// implements REQ-generated-coordinate-persistence
+export function extractManifestSymbolRecords(
   manifestSymbols: ManifestSymbolRecord[],
   filePath: string,
 ): ExtractionResult[] {
@@ -442,7 +449,7 @@ export function extractManifestSymbolRecordsString(
 }
 
 export function extractFromManifest(filePath: string): ExtractionResult[] {
-  return extractFromManifestSymbolRecords(
+  return extractManifestSymbolRecords(
     readManifestWithCoordinateOverlay(filePath),
     filePath,
   );
@@ -464,23 +471,61 @@ function resolveCoordinatesPath(
 
 function readCoordinateArtifactFromFile(
   coordinatesPath: string,
-): SymbolCoordinatesArtifact | null {
+): ParsedCoordinateArtifact | null {
   if (!existsSync(coordinatesPath)) {
     return null;
   }
 
   try {
-    return readCoordinateArtifact(readFileSync(coordinatesPath, "utf8"));
+    const parsed = parseCoordinateArtifact(
+      readFileSync(coordinatesPath, "utf8"),
+    );
+    if (parsed.status === "invalid") {
+      throw new ManifestError(
+        parsed.reason,
+        coordinatesPath,
+        "coordinate-artifact",
+      );
+    }
+    return parsed;
   } catch (error) {
-    if (error instanceof Error) {
+    if (error instanceof Error && !(error instanceof ManifestError)) {
       throw new ManifestError(
         `Failed to parse coordinate artifact: ${error.message}`,
         coordinatesPath,
+        "coordinate-artifact",
       );
     }
-
     throw error;
   }
+}
+
+/** Resolve workspace-relative source files used to validate bound coordinates. */
+function sourceTextResolver(
+  manifestPath: string,
+): (sourceFile: string) => string | null {
+  const bases = [process.cwd()];
+  const grandparent = path.resolve(path.dirname(path.dirname(manifestPath)));
+  if (!bases.includes(grandparent)) bases.push(grandparent);
+  return (sourceFile: string) => {
+    let resolved: string | null = null;
+    for (const base of bases) {
+      const absolute = path.isAbsolute(sourceFile)
+        ? sourceFile
+        : path.resolve(base, sourceFile);
+      if (!existsSync(absolute)) continue;
+      try {
+        const content = readFileSync(absolute, "utf8");
+        if (typeof content === "string") {
+          resolved = content;
+          break;
+        }
+      } catch {
+        // Try the next resolution base.
+      }
+    }
+    return resolved;
+  };
 }
 
 // implements REQ-core-extractors
@@ -497,7 +542,9 @@ export function readManifestWithCoordinateOverlay(
     resolveCoordinatesPath(manifestPath, coordinatesPath),
   );
 
-  return mergeCoordinatesWithManifest(manifestRecords, coordinateArtifact);
+  return mergeCoordinatesWithManifest(manifestRecords, coordinateArtifact, {
+    resolveSourceText: sourceTextResolver(manifestPath),
+  });
 }
 
 function generateId(filePath: string, title: string): string {

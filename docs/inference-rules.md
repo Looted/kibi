@@ -73,13 +73,13 @@ These predicates remain useful for product features, automation, and future inte
 - `kb_delete`
 - `kb_check`
 
-## Migration-oriented validation rule
+## Advisory strict-fact validation
 
 - `strict-fact-shape`
   - checks only facts that already declare `fact_kind`
-  - ignores legacy prose facts without `fact_kind` (migration-safe)
-  - is intended for migration auditing and is **disabled by default** while older repos are being normalized
-  - can be opted into explicitly through CLI/MCP rule selection when a repo is ready to inspect or enforce strict fact shape
+  - ignores legacy prose facts without `fact_kind`
+  - runs by default as a non-blocking quality diagnostic; it does not fail canonical health
+  - can be selected explicitly with `--rules` for a focused audit without changing enforcement class
 
 - `domain-contradictions`
   - checks for logical conflicts between requirements based on shared strict facts
@@ -94,6 +94,6 @@ Bug records, incident notes, and workaround documentation should use `observatio
 
 ## Ignored Files and Inference
 
-Files and directories that match the repository ignore policy are excluded from Kibi's inference pipeline. Ignored files are not read for candidate synthesis and will not be inferred into KB entities by `kb_autopilot_generate` or other discovery-oriented tools. See the MCP repository ignore policy in `docs/mcp-reference.md` for the full list of honored ignore sources and hard-denied directories.
+Files and directories that match the repository ignore policy are excluded from Kibi's inference pipeline. Ignored files are not read for candidate synthesis and will not be inferred into KB entities by `kb_plan_bootstrap` or other discovery-oriented tools. See the MCP repository ignore policy in `docs/mcp-reference.md` for the full list of honored ignore sources and hard-denied directories.
 
 This behavior prevents editor state, tooling caches, and build outputs from polluting the knowledge base with transient or irrelevant artifacts. Note that v1 limits apply: global Git excludes (user-level `core.excludesFile`) are not read, and Kibi does not automatically remove or migrate any existing KB entities that may have been created previously from now-ignored files.

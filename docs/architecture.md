@@ -9,7 +9,7 @@ graph TD
     end
     D -->|Extract| E[Extractors]
     E -->|Entities/Relationships| KB[Prolog KB (per branch)]
-    CLI[CLI: flags + JSON routes] --> OPS[18 shared operation specs]
+    CLI[CLI: flags + JSON routes] --> OPS[shared operation specs]
     MCP[MCP Server] --> OPS
     OPS -->|Framed local RPC| ENG[Node kibi-engine\n(single writer per workspace/branch)]
     ENG -->|One interactive process| KB[SWI-Prolog KB (per branch)]
@@ -37,8 +37,8 @@ graph TD
 ### CLI
 - Located at `packages/cli/`
 - Peer public operation surface alongside MCP, plus maintenance and human-oriented commands
-- Exposes all 18 public operations through `--input <file|->` JSON routes and preserves ergonomic flag commands where available
-- Node.js 18+ is the supported CLI/MCP runtime and hosts the long-lived `kibi-engine` daemon
+- Exposes all 21 public operations through `--input <file|->` JSON routes and preserves ergonomic flag commands where available
+- Node.js 22+ is the supported CLI/MCP runtime and hosts the long-lived `kibi-engine` daemon
 - Automatically connects to (or starts) one engine per real workspace path and branch over a protected local socket/named pipe
 - Maintenance commands include init, sync, migrate, gc, branch, doctor, and usage-metrics
 - Runs extractors for Markdown/YAML
@@ -48,14 +48,17 @@ graph TD
 - Located at `packages/mcp/`
 - Peer public operation surface alongside the CLI
 - Provides stdio JSON-RPC transport (newline-delimited, no embedded newlines)
-- Registers the same 18 shared operation specs as host-visible `kb_*` tools
+- Registers the shared operation specs as host-visible `kb_*` tools
 - Uses the same Node engine as CLI, so MCP and CLI requests serialize through one SWI-Prolog writer
 
 ### Journaled engine
 
 - `packages/cli/src/engine.ts` owns the length-prefixed JSON RPC client and daemon lifecycle.
 - A daemon keeps one interactive SWI process attached for up to ten minutes after the last client disconnects. Requests carry IDs, protocol version, workspace identity, and structured errors over a local socket/named pipe.
-- New branches use `.kb/branches/<branch>/storage.json`, `rdf/` binary snapshots and journals, and an atomic `CURRENT` value of `<generation-id>:<commit-sequence>`. `kb.rdf` is a writable legacy-format sentinel that fences older clients.
+- New branches use `.kb/branches/<exact-ref-sha256>/branch.json` plus
+  `storage.json`, `rdf/` binary snapshots and journals, and an atomic `CURRENT`
+  value of `<generation-id>:<commit-sequence>`. The manifest is an identity
+  fence; literal branch directories are legacy compatibility storage.
 - Legacy `kb.rdf`/`audit.log` branches migrate once under `kb.lock` into a staging generation. Canonical triple digests, counts, audit resources, schema fields, and relationship endpoints are checked before publication; originals remain in immutable `legacy/` backups.
 - Domain triples and audit resources share the same RDF transaction. `audit.log` is only produced by `kibi storage export` and is not authoritative.
 - Ordinary sync compiles changed/deleted source files and relationship shards into the active journal. `kibi sync --rebuild` is the only path that publishes a replacement generation.
@@ -64,7 +67,10 @@ graph TD
 ### Codex Adapter Plugin
 - Located at `packages/codex/`
 - Optional package that provides a Codex plugin manifest, skill bundle, and lifecycle hooks
-- Points Codex MCP wiring to the local `kibi-mcp` server
+- Points Codex MCP wiring to the local `kibi-mcp` server through `mcpServers`; the
+  plugin leaves `cwd` unset so Codex supplies the active task workspace to the
+  project-local `npx --no-install` command. Setting `cwd` to `.` would instead
+  re-root the process in the installed plugin cache.
 - Provides optional reminders and advisories only; it does not replace `kibi-core`, `kibi-cli`, or `kibi-mcp`
 
 ### Cursor Adapter Plugin
@@ -74,7 +80,7 @@ graph TD
 - Uses Cursor-specific hooks (`sessionStart`, `preToolUse`, `postToolUse`, `beforeReadFile`, `stop`) for read/write guidance and freshness follow-ups
 - Provides optional reminders and advisories only; it does not replace `kibi-core`, `kibi-cli`, or `kibi-mcp`
 
-> **Entity Modeling:** `flag` entities represent runtime/config gates. Bug and workaround notes belong in `fact` entities with `fact_kind: observation` or `meta`. **Strict facts** drive contradiction checks; observation/meta are non-blocking notes. See [Entity Schema](entity-schema.md). `domain-contradictions` applies to strict lane; `strict-fact-shape` is a default-off migration check.
+> **Entity Modeling:** `flag` entities represent runtime/config gates. Bug and workaround notes belong in `fact` entities with `fact_kind: observation` or `meta`. **Strict facts** drive contradiction checks; observation/meta are non-blocking notes. See [Entity Schema](entity-schema.md). `domain-contradictions` applies to strict lane; `strict-fact-shape` is an advisory default-on quality diagnostic.
 ### VS Code Extension
 - Located at `packages/vscode/`
 - TreeView scaffolding for KB navigation
@@ -85,7 +91,7 @@ graph TD
 - Installed in `$GIT_DIR/hooks` or via `core.hooksPath`
 - `post-checkout`: ensures branch KB exists, runs sync
 - `post-merge`: runs sync
-- `kb gc`: deletes stale branch KBs
+- `kb gc`: quarantines stale branch KBs and purges them only explicitly after retention
 
 ## Data Flow Diagrams
 
@@ -129,11 +135,32 @@ sequenceDiagram
 
 ## Per-Branch KB Architecture
 
-- Each git branch has its own KB directory
-- On new branch creation: KB is copied from main branch snapshot
-- After creation, branch KBs evolve independently (no ongoing sync)
-- Branch KB isolation prevents cross-branch contamination
-- Git hooks automate KB creation and sync on branch events
+- Each exact Git branch identity has a compiled store under
+  `.kb/branches/<sha256(exact-ref)>/` with a versioned `branch.json`
+  identity fence.
+- `kibi sync` materializes a missing store from the current checkout's tracked
+  Markdown/YAML/manifests and never copies another branch's compiled store.
+- Git remains the sole branch/merge authority: unresolved authored-file
+  conflicts block compilation, and Kibi never selects merge winners.
+- Worktree-local branches remain live for collection; remote-only refs do not.
+- Legacy literal-path migration is explicit old/new, preview-first, and
+  preserves a recoverable backup. Deleted stores are quarantined before purge.
+- Git hooks invoke normal `kibi sync` only; they do not create or clone a
+  Kibi-specific branch model.
+
+## Source-First Mutation and Recovery
+
+Tracked Markdown/YAML, symbol manifests, and relationship shards are the
+authoritative project artifacts. `kb_upsert` and approved plan application may
+write those files transactionally through the runtime, preserving existing
+document bodies when requested, while Kibi never stages or commits Git state.
+RDF/Prolog stores are compiled outputs and can be rebuilt with `kibi sync`.
+
+Source writes carry before/after hashes, stay inside the workspace (including
+symlink checks), and use a recovery journal with staged preimages/postimages.
+Failures before the authoritative commit roll back; failures after it are
+reported as `committed_with_repairs` with typed repair actions rather than
+repeating the original mutation.
 
 ## RDF Persistence Details
 
@@ -155,7 +182,7 @@ sequenceDiagram
 
 - `post-checkout`: ensures branch KB exists, runs sync
 - `post-merge`: runs sync
-- `kb gc`: deletes stale branch KBs
+- `kb gc`: quarantines stale branch KBs and purges them only explicitly after retention
 
 ## Directory Structure
 

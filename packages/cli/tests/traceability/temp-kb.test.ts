@@ -457,7 +457,7 @@ describe("temp-kb", () => {
             status: "active",
             created_at: FIXED_TIMESTAMP,
             updated_at: FIXED_TIMESTAMP,
-            source: "documentation/symbols.yaml",
+            source: ".kb/symbols.yaml",
             sourceLine: 4,
             sourceColumn: 2,
             sourceEndLine: 9,
@@ -486,7 +486,7 @@ describe("temp-kb", () => {
           status: "active",
           created_at: FIXED_TIMESTAMP,
           updated_at: FIXED_TIMESTAMP,
-          source: "documentation/facts/FACT-001.md",
+          source: ".kb/facts/FACT-001.md",
           tags: ["alpha", "beta_tag"],
           owner: "platform_team",
           priority: "high",
@@ -585,7 +585,7 @@ describe("temp-kb", () => {
             status: "open",
             created_at: FIXED_TIMESTAMP,
             updated_at: FIXED_TIMESTAMP,
-            source: "documentation/requirements/REQ-LOGIC.md",
+            source: ".kb/requirements/REQ-LOGIC.md",
             semantic_text: "Atomic claim text",
             logic_claims: ["CLAIM-0000000000000000"],
             semantic_clauses: ["Atomic claim text"],
@@ -604,7 +604,7 @@ describe("temp-kb", () => {
             status: "passing",
             created_at: FIXED_TIMESTAMP,
             updated_at: FIXED_TIMESTAMP,
-            source: "documentation/tests/TEST-LOGIC.md",
+            source: ".kb/tests/TEST-LOGIC.md",
             verification_scope: "end_to_end",
             verification_perspective: "consumer",
           },
@@ -642,7 +642,7 @@ describe("temp-kb", () => {
             type: "req",
             title: "Login requirement",
             status: "open",
-            source: "documentation/requirements/REQ-LOGIN.md",
+            source: ".kb/requirements/REQ-LOGIN.md",
             relationships: [
               { type: "verified_by", from: "REQ-LOGIN", to: "TEST-LOGIN" },
             ],
@@ -652,7 +652,7 @@ describe("temp-kb", () => {
             type: "test",
             title: "Login test",
             status: "passing",
-            source: "documentation/tests/TEST-LOGIN.md",
+            source: ".kb/tests/TEST-LOGIN.md",
             relationships: [
               { type: "validates", from: "TEST-LOGIN", to: "REQ-LOGIN" },
             ],
@@ -662,7 +662,7 @@ describe("temp-kb", () => {
             type: "symbol",
             title: "loginFlow",
             status: "active",
-            source: "documentation/symbols.yaml",
+            source: ".kb/symbols.yaml",
             relationships: [
               { type: "implements", from: "SYM-LOGIN", to: "REQ-LOGIN" },
               { type: "covered_by", from: "SYM-LOGIN", to: "TEST-LOGIN" },
@@ -721,7 +721,7 @@ describe("temp-kb", () => {
           type: "req",
           title: "No audit requirement",
           status: "open",
-          source: "documentation/requirements/REQ-NO-AUDIT.md",
+          source: ".kb/requirements/REQ-NO-AUDIT.md",
         }),
       ]);
 
@@ -762,7 +762,7 @@ describe("temp-kb", () => {
             type: "req",
             title: "Broken requirement",
             status: "open",
-            source: "documentation/requirements/REQ-FAIL.md",
+            source: ".kb/requirements/REQ-FAIL.md",
           }),
         ]);
       } catch (caught) {
@@ -802,7 +802,7 @@ describe("temp-kb", () => {
             type: "req",
             title: "Broken requirement",
             status: "open",
-            source: "documentation/requirements/REQ-FAIL.md",
+            source: ".kb/requirements/REQ-FAIL.md",
             relationships: [
               { type: "verified_by", from: "REQ-FAIL", to: "TEST-FAIL" },
             ],
@@ -825,7 +825,7 @@ describe("temp-kb", () => {
           type: "req",
           title: "Old login requirement",
           status: "open",
-          source: "documentation/requirements/REQ-LOGIN.md",
+          source: ".kb/requirements/REQ-LOGIN.md",
           relationships: [
             { type: "verified_by", from: "REQ-LOGIN", to: "TEST-OLD" },
           ],
@@ -835,7 +835,7 @@ describe("temp-kb", () => {
           type: "test",
           title: "Old login test",
           status: "passing",
-          source: "documentation/tests/TEST-OLD.md",
+          source: ".kb/tests/TEST-OLD.md",
         }),
       ]);
 
@@ -855,7 +855,7 @@ describe("temp-kb", () => {
             type: "req",
             title: "New login requirement",
             status: "open",
-            source: "documentation/requirements/REQ-LOGIN.md",
+            source: ".kb/requirements/REQ-LOGIN.md",
             relationships: [
               { type: "verified_by", from: "REQ-LOGIN", to: "TEST-NEW" },
             ],
@@ -865,7 +865,7 @@ describe("temp-kb", () => {
             type: "test",
             title: "New login test",
             status: "passing",
-            source: "documentation/tests/TEST-NEW.md",
+            source: ".kb/tests/TEST-NEW.md",
           }),
         ]);
 
@@ -896,14 +896,14 @@ describe("temp-kb", () => {
             type: "req",
             title: "KB requirement",
             status: "open",
-            source: "documentation/requirements/REQ-KB.md",
+            source: ".kb/requirements/REQ-KB.md",
           }),
           makeExtractionResult({
             id: "TEST-LOGIN",
             type: "test",
             title: "Projected login test",
             status: "passing",
-            source: "documentation/tests/TEST-LOGIN.md",
+            source: ".kb/tests/TEST-LOGIN.md",
             relationships: [
               { type: "validates", from: "TEST-LOGIN", to: "REQ-KB" },
             ],
@@ -913,7 +913,7 @@ describe("temp-kb", () => {
             type: "symbol",
             title: "loginFlow",
             status: "active",
-            source: "documentation/symbols.yaml",
+            source: ".kb/symbols.yaml",
             relationships: [
               { type: "covered_by", from: "SYM-LOGIN", to: "TEST-LOGIN" },
             ],
@@ -956,7 +956,7 @@ describe("temp-kb", () => {
             type: "test",
             title: "Executable test",
             status: "passing",
-            source: "documentation/tests/TEST-EXE-001.md",
+            source: ".kb/tests/TEST-EXE-001.md",
             relationships: [
               { type: "validates", from: "TEST-EXE-001", to: "REQ-EXE" },
             ],
@@ -966,14 +966,14 @@ describe("temp-kb", () => {
             type: "req",
             title: "Exe requirement",
             status: "open",
-            source: "documentation/requirements/REQ-EXE.md",
+            source: ".kb/requirements/REQ-EXE.md",
           }),
           makeExtractionResult({
             id: "SYM-EXE-TEST",
             type: "symbol",
             title: "testHelper",
             status: "active",
-            source: "documentation/symbols.yaml",
+            source: ".kb/symbols.yaml",
             relationships: [
               {
                 type: "executable_for",
@@ -1022,14 +1022,14 @@ describe("temp-kb", () => {
             type: "req",
             title: "Coverage requirement",
             status: "open",
-            source: "documentation/requirements/REQ-COV.md",
+            source: ".kb/requirements/REQ-COV.md",
           }),
           makeExtractionResult({
             id: "TEST-COV",
             type: "test",
             title: "Coverage test",
             status: "passing",
-            source: "documentation/tests/TEST-COV.md",
+            source: ".kb/tests/TEST-COV.md",
             relationships: [
               { type: "validates", from: "TEST-COV", to: "REQ-COV" },
             ],
@@ -1039,7 +1039,7 @@ describe("temp-kb", () => {
             type: "symbol",
             title: "covFunc",
             status: "active",
-            source: "documentation/symbols.yaml",
+            source: ".kb/symbols.yaml",
             relationships: [
               { type: "covered_by", from: "SYM-COV", to: "TEST-COV" },
             ],

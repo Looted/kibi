@@ -1,0 +1,148 @@
+relationships:
+  - type: implements
+    from: SYM-skillopt-load-seed-candidate
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-15T22:44:09.162Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c80f3b83fc32
+  - type: covered_by
+    from: SYM-skillopt-load-seed-candidate
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-15T22:44:09.170Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c88c79684fc2
+  - type: implements
+    from: SYM-auto-3317F858EB14
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-16T07:54:18.113Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28a4ed9d4df0
+  - type: covered_by
+    from: SYM-auto-3317F858EB14
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-08-16T07:54:18.117Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b4fd8bc4239
+  - type: covered_by
+    from: SYM-reqcompiler-remediation-event-reference
+    to: TEST-kibi-telemetry-remediation-evidence
+    created_at: 2026-08-16T18:52:17.728Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37158a2f81c1
+  - type: covered_by
+    from: SYM-cli-engine-client-cancel
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.150Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47962cd69bc5
+  - type: verified_by
+    from: SCEN-cli-canonical-init
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T15:33:27.821Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6bc4ff4b6437
+  - type: implements
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-findsdkpackagejsonforpluginroot
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:49:35.506Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c96222b1529
+  - type: covered_by
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-findsdkpackagejsonforpluginroot
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:49:35.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79584a834131
+  - type: implements
+    from: SYM-SymbolsRefreshArgs
+    to: REQ-002
+    created_at: 2026-08-22T20:10:32.277Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-385d9d349ed7
+  - type: covered_by
+    from: SYM-SymbolsRefreshArgs
+    to: TEST-005
+    created_at: 2026-08-22T20:10:32.289Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4cb3826cbc2d
+  - type: covered_by
+    from: SYM-SymbolsRefreshArgs
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:10:32.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-795130ef7a1d
+  - type: implements
+    from: SYM-withDiagnosticTelemetrySchema
+    to: REQ-002
+    created_at: 2026-08-22T20:11:27.615Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c985590368c
+  - type: covered_by
+    from: SYM-withDiagnosticTelemetrySchema
+    to: TEST-005
+    created_at: 2026-08-22T20:11:27.628Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d972dec28b9
+  - type: covered_by
+    from: SYM-withDiagnosticTelemetrySchema
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:11:27.634Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-719b41fd2250
+  - type: covered_by
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-findsdkpackagejsonforpluginroot
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:19:46.700Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2593bdd7a04b
+  - type: implements
+    from: SYM-operation-semantic-advisor-spec
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T21:00:52.796Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-526b2ff66233
+  - type: covered_by
+    from: SYM-operation-semantic-advisor-spec
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T21:00:52.811Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8467eb496931
+  - type: covered_by
+    from: SYM-operation-semantic-advisor-spec
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T21:00:52.816Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26ff27b4d101
+  - type: implements
+    from: SYM-auto-3317F858EB14
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:52:37.222Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca9e5f2cb557
+  - type: covered_by
+    from: SYM-auto-3317F858EB14
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:52:37.228Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-478b85a84ea0

@@ -10,7 +10,7 @@ describe("repo posture classification", () => {
       fixture: "hybrid-root-plus-vendored",
       expected: "hybrid_root_plus_vendored",
     },
-    { fixture: "root-custom-paths", expected: "root_active" },
+    { fixture: "root-custom-paths", expected: "root_uninitialized" },
     { fixture: "root-uninitialized", expected: "root_uninitialized" },
     { fixture: "maintenance-degraded", expected: "root_active" },
   ];
@@ -38,12 +38,12 @@ describe("repo posture classification", () => {
     }
   });
 
-  it("maintenance-degraded fixture exposes maintenance overlay", () => {
+  it("maintenance-degraded fixture is a fully resolved canonical root", () => {
     const repo = createTempRepoFromFixture("maintenance-degraded");
     try {
       const posture = detectPosture(repo.path);
       expect(posture.state).toBe("root_active");
-      expect(posture.maintenanceDegraded).toBe(true);
+      expect(posture.needsBootstrap).toBe(false);
     } finally {
       repo.cleanup();
     }

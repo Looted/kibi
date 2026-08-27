@@ -1,0 +1,85 @@
+relationships:
+  - id: rel-4a52e20c365e
+    type: covered_by
+    from: SYM-reqcompiler-parity-capability-state
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: "2026-08-16T18:51:45.129Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-usage-metrics-command
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-08-16T18:52:12.190Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c6aa46b6aa1
+  - type: covered_by
+    from: SYM-cli-prolog-entity-query-input
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.130Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bfb9ea0ab360
+  - type: implements
+    from: SYM-strictWriteSetToApplyPlan
+    to: REQ-002
+    created_at: 2026-08-22T20:10:24.824Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a6006e043ca
+  - type: covered_by
+    from: SYM-strictWriteSetToApplyPlan
+    to: TEST-005
+    created_at: 2026-08-22T20:10:24.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-496b926cea0f
+  - type: covered_by
+    from: SYM-strictWriteSetToApplyPlan
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:10:24.841Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8325f6c48039
+  - type: covered_by
+    from: SYM-operation-check-input
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:37:57.007Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4ccf866054c
+  - type: covered_by
+    from: SYM-runtime-GitPort
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:40:02.477Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a92a37c8f46
+  - type: implements
+    from: SYM-operation-check-input
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:02:18.693Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0effe33750be
+  - type: covered_by
+    from: SYM-operation-check-input
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:02:18.696Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f8377783eab4
+  - type: implements
+    from: SYM-runtime-GitPort
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:07:35.781Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98b0d171d9f3
+  - type: covered_by
+    from: SYM-runtime-GitPort
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:07:35.809Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-35d0b2c89ad0

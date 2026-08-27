@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type { PrologProcess } from "kibi-cli/prolog";
+import { ensureBranchStoreManifest } from "kibi-cli/public/branch-resolver";
 import { handleKbDelete } from "../../src/tools/delete.js";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
 
@@ -67,9 +68,7 @@ describe("removed mutation pending markers", () => {
     workspaceRoot = await fs.mkdtemp(
       path.join(os.tmpdir(), "kibi-mcp-marker-"),
     );
-    await fs.mkdir(path.join(workspaceRoot, ".kb", "branches", "develop"), {
-      recursive: true,
-    });
+    ensureBranchStoreManifest(workspaceRoot, "develop");
     process.env.KIBI_WORKSPACE = workspaceRoot;
     process.env.KIBI_BRANCH = "develop";
   });
@@ -92,6 +91,9 @@ describe("removed mutation pending markers", () => {
     const { prolog } = createMockProlog(async (goal) => {
       if (goal === "once(kb_entity('REQ-MARKER-001', _, _))") {
         return { success: false };
+      }
+      if (goal.startsWith("findall(['REQ-MARKER-001','req',Props]")) {
+        return { success: true, bindings: { Results: "[]" } };
       }
       if (goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(req,")) {
         return { success: true };
@@ -124,6 +126,7 @@ describe("removed mutation pending markers", () => {
           to: "SCEN-MARKER-001",
         },
       ],
+      document: { path: "marker.md" },
       _requestId: "session-marker-1",
     } as Parameters<typeof handleKbUpsert>[1]);
 
@@ -142,6 +145,7 @@ describe("removed mutation pending markers", () => {
           to: "SCEN-MARKER-001",
         },
       ],
+      document: { path: "marker.md" },
       _requestId: "session-marker-1",
     } as Parameters<typeof handleKbUpsert>[1]);
 
@@ -209,6 +213,9 @@ describe("removed mutation pending markers", () => {
       if (goal === "once(kb_entity('REQ-MARKER-FAIL-001', _, _))") {
         return { success: false };
       }
+      if (goal.startsWith("findall(['REQ-MARKER-FAIL-001','req',Props]")) {
+        return { success: true, bindings: { Results: "[]" } };
+      }
       if (goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(req,")) {
         return { success: true };
       }
@@ -232,6 +239,7 @@ describe("removed mutation pending markers", () => {
           source: "test://marker",
         },
         _requestId: "session-fail-1",
+        document: { path: "marker-fail.md" },
       } as Parameters<typeof handleKbUpsert>[1]),
     ).rejects.toThrow("Failed to upsert entity REQ-MARKER-FAIL-001: disk full");
 

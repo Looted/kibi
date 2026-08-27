@@ -1,0 +1,217 @@
+{
+  "input": {
+    "intent": "Customer data must be retained for 7 years.",
+    "mode": "create"
+  },
+  "structuredContent": {
+    "status": "ready",
+    "version": "kibi.compile-plan.v1"
+  },
+  "tool": {
+    "description": "Compile complete change intent into a deterministic, snapshot-bound read-only plan. Reuses intent-aware discovery and semantic modeling, accounts for every proposition, reports contradiction witnesses, proposes traceability links, and emits dependency-ordered kb_upsert-style steps only for resolved typed claims. No mutation side effects.",
+    "inputSchema": {
+      "properties": {
+        "clauses": {
+          "description": "Optional complete atomic clause decomposition. Each assertive clause receives independent proposition accounting.",
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 64,
+          "type": "array"
+        },
+        "intent": {
+          "description": "Complete post-change normative intent. Send the desired behavior, not a patch fragment.",
+          "maxLength": 10000,
+          "minLength": 1,
+          "type": "string"
+        },
+        "interpretations": {
+          "description": "Optional host-supplied typed kibi.logic.v1 interpretations; Kibi validates them before including rule steps.",
+          "items": {
+            "properties": {
+              "claim_key": {
+                "type": "string"
+              },
+              "claim_text": {
+                "type": "string"
+              },
+              "confidence": {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              },
+              "ir": {
+                "type": "object"
+              },
+              "span": {
+                "type": "object"
+              }
+            },
+            "required": ["claim_key", "claim_text", "ir"],
+            "type": "object"
+          },
+          "maxItems": 3,
+          "type": "array"
+        },
+        "mode": {
+          "description": "Create a new requirement or update an existing one. Update auto-selection is allowed only with a high-confidence, well-separated candidate.",
+          "enum": ["create", "update"],
+          "type": "string"
+        },
+        "proposalDecisions": {
+          "description": "Explicit decisions for deterministic traceability proposals. Pending proposals never enter steps.",
+          "items": {
+            "properties": {
+              "decision": {
+                "enum": ["accept", "reject"],
+                "type": "string"
+              },
+              "proposalId": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": ["proposalId", "decision"],
+            "type": "object"
+          },
+          "maxItems": 20,
+          "type": "array"
+        },
+        "requirementId": {
+          "description": "Optional exact requirement ID. Required for an update when automatic selection is below the confidence and margin gates.",
+          "type": "string"
+        },
+        "scenarioDrafts": {
+          "description": "Optional scenario drafts. Each is linked requirement -> scenario with specified_by.",
+          "items": {
+            "properties": {
+              "body": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": ["title", "body"],
+            "type": "object"
+          },
+          "maxItems": 20,
+          "type": "array"
+        },
+        "semanticFacets": {
+          "additionalProperties": false,
+          "description": "Host-agent facets forwarded to deterministic intent-v1 discovery.",
+          "properties": {
+            "actions": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 20,
+              "type": "array"
+            },
+            "actors": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 20,
+              "type": "array"
+            },
+            "aliases": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 20,
+              "type": "array"
+            },
+            "constraints": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 20,
+              "type": "array"
+            },
+            "objects": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 20,
+              "type": "array"
+            }
+          },
+          "type": "object"
+        },
+        "sourceLocations": {
+          "description": "Workspace-relative source coordinates used for discovery and before-hash binding.",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "column": {
+                "minimum": 1,
+                "type": "integer"
+              },
+              "line": {
+                "minimum": 1,
+                "type": "integer"
+              },
+              "path": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "symbol": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": ["path"],
+            "type": "object"
+          },
+          "maxItems": 20,
+          "type": "array"
+        },
+        "testDrafts": {
+          "description": "Optional test drafts. Tests are attached to scenarios with verified_by; direct req -> test proof links are not emitted.",
+          "items": {
+            "properties": {
+              "body": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "verificationPerspective": {
+                "enum": ["internal", "consumer"],
+                "type": "string"
+              },
+              "verificationScope": {
+                "enum": ["unit", "integration", "end_to_end"],
+                "type": "string"
+              }
+            },
+            "required": ["title", "body"],
+            "type": "object"
+          },
+          "maxItems": 20,
+          "type": "array"
+        },
+        "title": {
+          "description": "Optional requirement title; existing title is preserved for updates when omitted.",
+          "type": "string"
+        }
+      },
+      "required": ["intent", "mode"],
+      "type": "object"
+    },
+    "name": "kb_compile_intent"
+  }
+}

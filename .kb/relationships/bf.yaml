@@ -10,3 +10,94 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/flags/FLAG-004.md
+  - type: implements
+    from: SYM-auto-EE0B2692CF85
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-15T22:15:37.082Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b442bd57f001
+  - type: implements
+    from: SYM-auto-EE0B2692CF85
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-16T07:49:35.558Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2bfe839afd9
+  - type: covered_by
+    from: SYM-auto-EE0B2692CF85
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-08-16T07:49:35.564Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66d0012acc92
+  - type: covered_by
+    from: SYM-cli-search-command
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-16T18:52:30.428Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14746c11c795
+  - type: executable_for
+    from: SYM-test-root-engine-shutdown-timeout
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-16T18:52:30.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bba8852bbb2
+  - type: implements
+    from: 86c21fecd3d7b203
+    to: REQ-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-21T10:45:34.872Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49b8fec9267e
+  - type: covered_by
+    from: 86c21fecd3d7b203
+    to: TEST-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-21T12:53:33.220Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-88428790947f
+  - type: implements
+    from: SYM-cli-search-command
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:26:36.571Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76a33e7e38c2
+  - type: implements
+    from: SYM-cli-search-command
+    to: REQ-mcp-search-discovery
+    created_at: 2026-08-22T20:26:36.582Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb0c6a4f16ad
+  - type: implements
+    from: SYM-cli-search-command
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-08-22T20:26:36.587Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca61292d5a65
+  - type: covered_by
+    from: SYM-cli-search-command
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:26:36.591Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-15bb9cd89834
+  - type: covered_by
+    from: SYM-cli-search-command
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:26:36.596Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-88119aa892b3
+  - type: covered_by
+    from: SYM-auto-EE0B2692CF85
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:41:11.674Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eac5498e53a2

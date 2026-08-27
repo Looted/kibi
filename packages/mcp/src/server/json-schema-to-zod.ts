@@ -103,7 +103,23 @@ export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
     return description ? union.describe(description) : union;
   }
 
-  const schemaType = typeof obj.type === "string" ? obj.type : undefined;
+  const schemaTypes = Array.isArray(obj.type)
+    ? obj.type.filter((value): value is string => typeof value === "string")
+    : typeof obj.type === "string"
+      ? [obj.type]
+      : [];
+
+  // JSON Schema nullable fields are represented as a type union in the
+  // catalog. Build a real Zod union so MCP publishes and validates the same
+  // nullability instead of silently degrading the field to z.any().
+  if (schemaTypes.length > 1) {
+    const variants = schemaTypes.map((type) =>
+      jsonSchemaToZod({ ...obj, type }),
+    );
+    return z.union(variants as [z.ZodTypeAny, z.ZodTypeAny, ...z.ZodTypeAny[]]);
+  }
+
+  const schemaType = schemaTypes[0];
 
   switch (schemaType) {
     case "object": {
@@ -228,6 +244,12 @@ export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
       const description =
         typeof obj.description === "string" ? obj.description : undefined;
       return description ? b.describe(description) : b;
+    }
+    case "null": {
+      const n = z.null();
+      const description =
+        typeof obj.description === "string" ? obj.description : undefined;
+      return description ? n.describe(description) : n;
     }
     default: {
       const anySchema = z.any();

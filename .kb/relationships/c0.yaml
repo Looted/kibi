@@ -1,0 +1,120 @@
+relationships:
+  - id: rel-b658c77ad24f
+    type: covered_by
+    from: SYM-kibi-cli-src-public-verification-receipt-ts-verificationreceiptv2
+    to: TEST-kibi-verification-evidence-contract
+    created_at: "2026-08-16T18:52:23.907Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanargs
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-16T19:45:30.458Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95223f8a36ec
+  - type: covered_by
+    from: SYM-kibi-cli-src-intent-search-ts-validateintentsearchinput
+    to: TEST-kibi-intent-aware-source-discovery
+    created_at: 2026-08-16T19:46:36.847Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-748d03c52b46
+  - type: implements
+    from: 7580de62d3ca1d60
+    to: REQ-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-21T10:54:07.097Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10c3c2135481
+  - type: covered_by
+    from: 7580de62d3ca1d60
+    to: TEST-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-21T12:52:44.188Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a627c0e08954
+  - type: implements
+    from: SYM-shared-npm-cache-declaration
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-08-21T20:52:12.843Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8241b04b5cd7
+  - type: covered_by
+    from: SYM-shared-npm-cache-declaration
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-21T20:52:12.860Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-506d47373aeb
+  - type: implements
+    from: SYM-mcp-session-activeBranchName
+    to: REQ-002
+    created_at: 2026-08-22T20:07:48.275Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89a1e9ed55c4
+  - type: covered_by
+    from: SYM-mcp-session-activeBranchName
+    to: TEST-005
+    created_at: 2026-08-22T20:07:48.288Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55031cae2a36
+  - type: covered_by
+    from: SYM-mcp-session-activeBranchName
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:07:48.292Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a546861cf236
+  - type: implements
+    from: SYM-requirement-extract-heuristic-claim
+    to: REQ-002
+    created_at: 2026-08-22T20:09:14.861Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b974b8fa002b
+  - type: covered_by
+    from: SYM-requirement-extract-heuristic-claim
+    to: TEST-005
+    created_at: 2026-08-22T20:09:14.881Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9bd047cac1f9
+  - type: covered_by
+    from: SYM-requirement-extract-heuristic-claim
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:09:14.889Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd59d3f1f906
+  - type: implements
+    from: SYM-BRIDGE-FIXTURE-RUN-ROOT-ENV
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-23T23:30:26.307Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a13252bf8e69
+  - type: covered_by
+    from: SYM-BRIDGE-FIXTURE-RUN-ROOT-ENV
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-23T23:30:26.321Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b80f9dcd82e4
+  - type: covered_by
+    from: SYM-cli-PrologQueryPlanSafetyViolation
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-26T07:16:23.869Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c397466561ae
+  - type: implements
+    from: SYM-skillopt-bundle-cell-runner-type
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-26T09:18:32.787Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-874ec9532a40

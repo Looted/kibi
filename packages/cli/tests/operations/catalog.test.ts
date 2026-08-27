@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import { OPERATION_CATALOG, getSpec, listSpecs } from "kibi-cli/operations";
+import { applyPlanSpec } from "../../src/public/operations/specs/planning.js";
 
 const EXPECTED_CLI_NAMES = {
   kb_query: "query",
@@ -15,20 +16,24 @@ const EXPECTED_CLI_NAMES = {
   kb_semantic_advisor: "semantic-advisor",
   kb_model_requirement: "model-requirement",
   kb_suggest_predicates: "suggest-predicates",
-  kb_autopilot_generate: "autopilot-generate",
+  kb_plan_bootstrap: "plan-bootstrap",
   kb_validate_upsert: "validate-upsert",
   kb_upsert: "upsert",
   kb_delete: "delete",
   kb_check: "check",
   kb_sparql_remote: "sparql-remote",
+  kb_compile_intent: "compile-intent",
+  kb_apply_plan: "apply-plan",
+  kb_ingest_verification: "ingest-verification",
 } as const;
 
 const PROLOG_FREE_OPERATIONS = new Set([
   "kb_skills_list",
   "kb_skills_load",
   "kb_skills_read",
+  "kb_status",
   "kb_semantic_advisor",
-  "kb_autopilot_generate",
+  "kb_plan_bootstrap",
   "kb_sparql_remote",
 ]);
 
@@ -42,9 +47,9 @@ const VALID_EFFECTS = new Set([
 ]);
 
 describe("public operation catalog", () => {
-  test("contains exactly the 18 unique operations and CLI routes", () => {
-    expect(OPERATION_CATALOG).toHaveLength(18);
-    expect(new Set(OPERATION_CATALOG.map(({ name }) => name)).size).toBe(18);
+  test("contains exactly the 21 unique operations and CLI routes", () => {
+    expect(OPERATION_CATALOG).toHaveLength(21);
+    expect(new Set(OPERATION_CATALOG.map(({ name }) => name)).size).toBe(21);
     expect(
       Object.fromEntries(
         OPERATION_CATALOG.map(({ name, cliName }) => [name, cliName]),
@@ -63,9 +68,25 @@ describe("public operation catalog", () => {
   });
 
   test("exposes immutable list and exact lookup helpers", () => {
-    expect(listSpecs()).toBe(OPERATION_CATALOG);
+    expect(listSpecs()).toHaveLength(OPERATION_CATALOG.length);
     for (const spec of OPERATION_CATALOG) {
-      expect(getSpec(spec.name)).toBe(spec);
+      const decorated = getSpec(spec.name);
+      expect(decorated).toMatchObject({
+        name: spec.name,
+        resultVersion: `kibi.${spec.name}.v1`,
+      });
+      expect(decorated.outputSchema).toBeDefined();
     }
+  });
+
+  test("accepts either an approved plan or a typed recovery journal", () => {
+    const schema = applyPlanSpec.businessInputSchema as Record<string, unknown>;
+    expect(Array.isArray(schema.oneOf)).toBe(true);
+    expect(schema.properties).toMatchObject({
+      recoveryJournalId: {
+        type: "string",
+        pattern: "^[A-Za-z0-9._-]+$",
+      },
+    });
   });
 });

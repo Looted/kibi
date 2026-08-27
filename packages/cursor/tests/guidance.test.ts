@@ -32,9 +32,9 @@ describe("Cursor guidance", () => {
     });
     expect(read).toContain('sourceFile="src/a.ts"');
     expect(read).toContain("MCP or CLI JSON route");
-    expect(
-      writeGuidance("documentation/requirements/REQ.md", observedContext),
-    ).toContain("keep REQ, SCEN, and TEST artifacts separate");
+    expect(writeGuidance(".kb/requirements/REQ.md", observedContext)).toContain(
+      "keep REQ, SCEN, and TEST artifacts separate",
+    );
     const write = writeGuidance("src/a.ts", observedContext);
     expect(write).toContain('sourceFiles:["src/a.ts"]');
     expect(write).toContain("MCP or CLI JSON route");

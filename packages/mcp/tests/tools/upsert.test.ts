@@ -1,3 +1,4 @@
+import "../helpers/ensure-test-branch.js";
 import { afterEach, describe, expect, mock, spyOn, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -16,6 +17,7 @@ type QueryResult = {
 
 const initialKibiMcpDebug: string | undefined = process.env.KIBI_MCP_DEBUG;
 const initialKibiWorkspace: string | undefined = process.env.KIBI_WORKSPACE;
+const initialKibiBranch: string | undefined = process.env.KIBI_BRANCH;
 let tempWorkspace: string | undefined;
 
 function createMockProlog(
@@ -119,11 +121,17 @@ afterEach(() => {
   } else {
     process.env.KIBI_WORKSPACE = initialKibiWorkspace;
   }
+  if (initialKibiBranch === undefined) {
+    Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+  } else {
+    process.env.KIBI_BRANCH = initialKibiBranch;
+  }
 });
 
 function createTempWorkspace(): string {
   tempWorkspace = mkdtempSync(path.join(tmpdir(), "kibi-mcp-upsert-"));
   process.env.KIBI_WORKSPACE = tempWorkspace;
+  process.env.KIBI_BRANCH = "main";
   return tempWorkspace;
 }
 
@@ -300,7 +308,7 @@ const videoPlayerStore = createStore(withMethods({
       properties: {
         title: "VideoPlayerStore",
         status: "active",
-        source: "documentation/symbols.yaml",
+        source: ".kb/symbols.yaml",
         sourceFile: "src/video-player.store.ts",
       },
       relationships: [
@@ -310,6 +318,7 @@ const videoPlayerStore = createStore(withMethods({
           to: "REQ-GRANULAR-001",
         },
       ],
+      document: { path: "symbols/video-player-store.yaml" },
     });
 
     expect(result.structuredContent?.relationships_created).toBe(1);
@@ -336,7 +345,7 @@ export function greet() {
         properties: {
           title: "greetModule",
           status: "active",
-          source: "documentation/symbols.yaml",
+          source: ".kb/symbols.yaml",
           sourceFile: "src/greet.ts",
         },
         relationships: [
@@ -350,6 +359,50 @@ export function greet() {
     ).rejects.toThrow(/granular symbols are available/i);
 
     expect(query).not.toHaveBeenCalled();
+  });
+
+  test("accepts exact exported config variable traceability", async () => {
+    const root = createTempWorkspace();
+    mkdirSync(path.join(root, "src"), { recursive: true });
+    writeFileSync(
+      path.join(root, "src", "relationships.ts"),
+      `export const RELATIONSHIP_TYPES = ["implements", "covered_by"] as const;
+
+export function validateRelationships() {
+  return RELATIONSHIP_TYPES;
+}
+`,
+    );
+    const { prolog } = createMockProlog(async (goal) => {
+      if (goal.includes("normalize_term_atom")) return { success: false };
+      return { success: true };
+    });
+    __test__.setRefreshCoordinatesForSymbolIdForTests(async () => ({
+      refreshed: true,
+      found: true,
+    }));
+
+    const result = await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "SYM-RELATIONSHIP-TYPES",
+      properties: {
+        title: "RELATIONSHIP_TYPES",
+        status: "active",
+        source: ".kb/symbols.yaml",
+        sourceFile: "src/relationships.ts",
+        symbol_role: "config",
+      },
+      relationships: [
+        {
+          type: "implements",
+          from: "SYM-RELATIONSHIP-TYPES",
+          to: "REQ-GRANULAR-001",
+        },
+      ],
+      document: { path: "symbols/relationship-types.yaml" },
+    });
+
+    expect(result.structuredContent?.relationships_created).toBe(1);
   });
 
   test("accepts method symbol traceability when a class method exists", async () => {
@@ -379,7 +432,7 @@ export function greet() {
       properties: {
         title: "Worker.run",
         status: "active",
-        source: "documentation/symbols.yaml",
+        source: ".kb/symbols.yaml",
         sourceFile: "src/worker.ts",
       },
       relationships: [
@@ -389,6 +442,48 @@ export function greet() {
           to: "REQ-GRANULAR-001",
         },
       ],
+      document: { path: "symbols/worker-run.yaml" },
+    });
+
+    expect(result.structuredContent?.relationships_created).toBe(1);
+  });
+
+  test("accepts property symbol traceability when a class property exists", async () => {
+    const root = createTempWorkspace();
+    mkdirSync(path.join(root, "src"), { recursive: true });
+    writeFileSync(
+      path.join(root, "src", "worker.ts"),
+      `export class Worker {
+  readonly state = "ready";
+}
+`,
+    );
+    const { prolog } = createMockProlog(async (goal) => {
+      if (goal.includes("normalize_term_atom")) return { success: false };
+      return { success: true };
+    });
+    __test__.setRefreshCoordinatesForSymbolIdForTests(async () => ({
+      refreshed: true,
+      found: true,
+    }));
+
+    const result = await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "SYM-WORKER-STATE",
+      properties: {
+        title: "Worker.state",
+        status: "active",
+        source: ".kb/symbols.yaml",
+        sourceFile: "src/worker.ts",
+      },
+      relationships: [
+        {
+          type: "implements",
+          from: "SYM-WORKER-STATE",
+          to: "REQ-GRANULAR-001",
+        },
+      ],
+      document: { path: "symbols/worker-state.yaml" },
     });
 
     expect(result.structuredContent?.relationships_created).toBe(1);
@@ -421,7 +516,7 @@ export class Beta {
         properties: {
           title: "run",
           status: "active",
-          source: "documentation/symbols.yaml",
+          source: ".kb/symbols.yaml",
           sourceFile: "src/workers.ts",
         },
         relationships: [
@@ -464,7 +559,7 @@ export function greet() {
       properties: {
         title: "greetModule",
         status: "active",
-        source: "documentation/symbols.yaml",
+        source: ".kb/symbols.yaml",
         sourceFile: "src/greet.ts",
         granularity_reason: "module-level-behavior",
       },
@@ -475,6 +570,7 @@ export function greet() {
           to: "REQ-GRANULAR-001",
         },
       ],
+      document: { path: "symbols/greet-module.yaml" },
     });
 
     expect(result.structuredContent?.relationships_created).toBe(1);
@@ -482,6 +578,9 @@ export function greet() {
 
   test("rejects constrains relationships targeting property_value facts", async () => {
     const { prolog, query } = createMockProlog(async (goal) => {
+      if (goal === "once(kb_entity('REQ-STRICT-CONSTRAINS', _, _))") {
+        return { success: false };
+      }
       if (goal.includes("normalize_term_atom(_SlpFK, property_value)")) {
         return { success: true };
       }
@@ -508,11 +607,14 @@ export function greet() {
       }),
     ).rejects.toThrow(/Property_value facts cannot be direct targets/);
 
-    expect(query).toHaveBeenCalledTimes(1);
+    expect(query).toHaveBeenCalledTimes(2);
   });
 
   test("rejects requires_property relationships targeting subject facts", async () => {
     const { prolog, query } = createMockProlog(async (goal) => {
+      if (goal === "once(kb_entity('REQ-STRICT-PROPERTY', _, _))") {
+        return { success: false };
+      }
       if (goal.includes("normalize_term_atom(_SlpFK, subject)")) {
         return { success: true };
       }
@@ -539,7 +641,7 @@ export function greet() {
       }),
     ).rejects.toThrow(/Subject facts cannot be direct targets/);
 
-    expect(query).toHaveBeenCalledTimes(1);
+    expect(query).toHaveBeenCalledTimes(2);
   });
 
   test("supports requirement upserts with relationships and contradiction checks in one transaction", async () => {
@@ -894,15 +996,7 @@ export function greet() {
       if (goal.startsWith("findall(From, kb_relationship(")) {
         return { success: true, bindings: { Sources: "[]" } };
       }
-      if (
-        goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(req,") &&
-        goal.includes(
-          "kb_assert_relationship_no_audit(specified_by, 'REQ-PRESERVE-EMPTY-RELS', 'SCEN-001', [])",
-        ) &&
-        goal.includes(
-          "kb_assert_relationship_no_audit(verified_by, 'REQ-PRESERVE-EMPTY-RELS', 'TEST-001', [])",
-        )
-      ) {
+      if (goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(req,")) {
         return { success: true };
       }
       if (goal.startsWith("kb_log_entity_upsert(updated, req,")) {
@@ -933,13 +1027,14 @@ export function greet() {
       String(goal).startsWith("rdf_transaction"),
     )?.[0] as string | undefined;
 
-    expect(transactionGoal).toContain(
-      "kb_assert_relationship_no_audit(specified_by, 'REQ-PRESERVE-EMPTY-RELS', 'SCEN-001', [])",
+    expect(transactionGoal).not.toContain("kb_assert_relationship_no_audit");
+    expect(result.structuredContent?.relationships_created).toBe(0);
+    expect(query).toHaveBeenCalledWith(
+      "findall(To, kb_relationship(specified_by, 'REQ-PRESERVE-EMPTY-RELS', To), Targets)",
     );
-    expect(transactionGoal).toContain(
-      "kb_assert_relationship_no_audit(verified_by, 'REQ-PRESERVE-EMPTY-RELS', 'TEST-001', [])",
+    expect(query).toHaveBeenCalledWith(
+      "findall(To, kb_relationship(verified_by, 'REQ-PRESERVE-EMPTY-RELS', To), Targets)",
     );
-    expect(result.structuredContent?.relationships_created).toBeGreaterThan(0);
   });
 
   test("deduplicates contradiction details in formatted transaction errors", async () => {
@@ -1384,6 +1479,7 @@ export function greet() {
     } as unknown as Parameters<typeof registerAllTools>[1];
 
     registerAllTools(server as never, runtime);
+    process.env.KIBI_BRANCH = "test";
     await registered.get("kb_upsert")?.({
       type: "req",
       id: "REQ-FRESH-SAVE-001",
@@ -1425,7 +1521,7 @@ export function greet() {
     ]);
   });
 
-  test("refreshes symbol coordinates after a successful symbol upsert", async () => {
+  test("symbol coordinate refresh is owned by the source-first compiler, not a post-commit side effect", async () => {
     const refreshCoordinatesForSymbolId = mock(async () => ({
       refreshed: true,
       found: true,
@@ -1455,6 +1551,8 @@ export function greet() {
       throw new Error(`Unexpected goal: ${goal}`);
     });
 
+    // Without filesystem ports there is no authored manifest/artifact lane;
+    // generated coordinates are never fabricated from the partial payload.
     const result = await handleKbUpsert(prolog, {
       type: "symbol",
       id: "SYM-REFRESH-001",
@@ -1465,61 +1563,12 @@ export function greet() {
       },
     });
 
-    expect(refreshCoordinatesForSymbolId).toHaveBeenCalledWith(
-      "SYM-REFRESH-001",
-    );
+    expect(refreshCoordinatesForSymbolId).not.toHaveBeenCalled();
     expect(warnSpy).not.toHaveBeenCalled();
     expect(result.structuredContent?.created).toBe(1);
-  });
-
-  test("warns instead of failing when symbol coordinate refresh throws in debug mode", async () => {
-    const refreshCoordinatesForSymbolId = mock(async () => {
-      throw "refresh blew up";
-    });
-    __test__.setRefreshCoordinatesForSymbolIdForTests(
-      refreshCoordinatesForSymbolId,
+    expect(JSON.stringify(result.structuredContent)).not.toContain(
+      "sourceLine",
     );
-    process.env.KIBI_MCP_DEBUG = "1";
-    const warnSpy = spyOn(console, "warn").mockImplementation(() => {});
-
-    const { prolog } = createMockProlog(async (goal) => {
-      if (goal === "once(kb_entity('SYM-REFRESH-WARN-001', _, _))") {
-        return { success: false };
-      }
-      if (
-        goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(symbol,")
-      ) {
-        return { success: true };
-      }
-      if (goal.startsWith("kb_log_entity_upsert(created, symbol,")) {
-        return { success: true };
-      }
-      if (goal === "kb_save") {
-        return { success: true };
-      }
-
-      throw new Error(`Unexpected goal: ${goal}`);
-    });
-
-    const result = await handleKbUpsert(prolog, {
-      type: "symbol",
-      id: "SYM-REFRESH-WARN-001",
-      properties: {
-        title: "Warn me",
-        status: "active",
-        source: "test://upsert",
-      },
-    });
-
-    expect(refreshCoordinatesForSymbolId).toHaveBeenCalledWith(
-      "SYM-REFRESH-WARN-001",
-    );
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining(
-        "Symbol coordinate auto-refresh failed for SYM-REFRESH-WARN-001: refresh blew up",
-      ),
-    );
-    expect(result.structuredContent?.created).toBe(1);
   });
 
   test("wraps non-Error exceptions raised during execution", async () => {

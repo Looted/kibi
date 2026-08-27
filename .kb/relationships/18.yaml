@@ -1,0 +1,141 @@
+relationships:
+  - id: rel-45167c49ecfe
+    type: implements
+    from: SYM-kibi-migrate-plan-command
+    to: REQ-agent-guided-migration-orchestration
+    created_at: "2026-08-15T22:43:27.209Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-kibi-migrate-plan-command
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-08-15T22:43:27.210Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1497542a7196
+  - type: covered_by
+    from: SYM-cli-discovery-renderCoverageTable
+    to: TEST-kibi-conservative-requirement-proof
+    created_at: 2026-08-16T18:51:34.250Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c6ee70f44bb
+  - type: covered_by
+    from: SYM-cli-discovery-renderCoverageTable
+    to: TEST-kibi-dependency-ordered-repair-plan
+    created_at: 2026-08-16T18:51:39.469Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f6b8562689c
+  - type: specified_by
+    from: REQ-008
+    to: SCEN-001
+    created_at: 2026-08-16T22:54:04.827Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17a964bf2898
+  - type: verified_by
+    from: REQ-008
+    to: TEST-006
+    created_at: 2026-08-16T22:54:04.843Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9902e39af61e
+  - type: constrains
+    from: REQ-008
+    to: FACT-KB-PER-BRANCH
+    created_at: 2026-08-17T07:06:28.630Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2124d1f988e9
+  - type: requires_property
+    from: REQ-008
+    to: FACT-REQ-008-BRANCH-INITIALIZATION-MODE
+    created_at: 2026-08-17T07:06:28.649Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b6d2a7d04ba
+  - type: implements
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-opencodeconfighookinput
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:49:44.716Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09439fbd19e0
+  - type: covered_by
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-opencodeconfighookinput
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:49:44.723Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58e47af1af3a
+  - type: covered_by
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-opencodeconfighookinput
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:15:22.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5d17e16b4c2
+  - type: implements
+    from: SYM-FileOperationState
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:48:49.689Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43a24cf2375e
+  - type: covered_by
+    from: SYM-FileOperationState
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:48:49.703Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-624d84596259
+  - type: covered_by
+    from: SYM-FileOperationState
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:48:49.709Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3bd0156a2f7
+  - type: implements
+    from: SYM-computeEnforcementPolicy
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:57:30.851Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-000bf2be1d6c
+  - type: implements
+    from: SYM-computeEnforcementPolicy
+    to: REQ-agent-kibi-interface-selection
+    created_at: 2026-08-22T20:57:30.866Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f8ae8a03974
+  - type: covered_by
+    from: SYM-computeEnforcementPolicy
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:57:30.872Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04dabe3f8894
+  - type: covered_by
+    from: SYM-computeEnforcementPolicy
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:57:30.879Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3c0a9867b62
+  - type: implements
+    from: SYM-withSymbolCompilerLock
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-23T20:41:46.759Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a87da1545fe
+  - type: covered_by
+    from: SYM-withSymbolCompilerLock
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:41:46.774Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0351102c6e4

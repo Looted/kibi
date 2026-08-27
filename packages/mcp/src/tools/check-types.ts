@@ -1,4 +1,4 @@
-import type { Violation } from "kibi-cli/public/check-types";
+import type { Violation } from "kibi-runtime";
 /*
  Kibi — repo-local, per-branch, queryable long-term memory for software projects
  Copyright (C) 2026 Piotr Franczyk
@@ -16,8 +16,9 @@ import type { Violation } from "kibi-cli/public/check-types";
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import type { ChangedFileImpactResult } from "kibi-cli/public/impact-diagnostics";
-import type { QualityDiagnostic } from "kibi-cli/public/impact-diagnostics";
+import type { ChangedFileImpactResult } from "kibi-runtime";
+import type { QualityDiagnostic } from "kibi-runtime";
+import type { MigrationPlan } from "kibi-runtime";
 
 export interface CheckArgs {
   rules?: string[];
@@ -58,5 +59,6 @@ export interface CheckResult {
     extractedSymbols?: ChangedFileImpactResult["extractedSymbols"];
     linkedEntities?: ChangedFileImpactResult["linkedEntities"];
     nextActions?: ChangedFileImpactResult["nextActions"];
+    migrationPlan?: MigrationPlan;
   };
 }

@@ -2,18 +2,13 @@ import { describe, expect, test } from "bun:test";
 import { buildPrompt } from "../src/prompt";
 
 describe("agent surface policy", () => {
-  test("agent-visible prompt selects Kibi interfaces by capability", () => {
+  test("agent-visible prompt routes through canonical Kibi skills", () => {
     const prompt = buildPrompt();
-    expect(prompt).toContain("/init-kibi");
-    expect(prompt).toContain("kb_autopilot_generate");
-    expect(prompt).toContain("MCP tools are visible");
-    expect(prompt).toContain("trusted project-local CLI");
-    expect(prompt).toContain("--input");
-    expect(prompt).toContain("neither interface is available");
-    expect(prompt).toContain("Do not read or edit `.kb/` files directly");
-    expect(prompt).toContain("Query before mutate");
-    expect(prompt).toContain("sequentially");
-    expect(prompt).toContain("`kb_check` before completion");
+    expect(prompt).toContain("/kibi-bootstrap");
+    expect(prompt).toContain("kibi-usage");
+    expect(prompt).toContain("kibi-freshness");
+    expect(prompt).toContain("kibi-traceability");
+    expect(prompt).toContain("Never read or edit `.kb/` directly");
     expect(prompt).not.toContain("/brief-kibi");
     expect(prompt).not.toContain("kb_briefing_generate");
     expect(prompt).not.toMatch(/MCP[- ]only|exclusively through MCP/i);

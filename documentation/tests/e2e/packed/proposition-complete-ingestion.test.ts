@@ -10,6 +10,7 @@ import {
   createSandbox,
   kibi,
   packAll,
+  parseKibiResult,
 } from "./helpers.js";
 
 const RUN_NODE_TEST_SUITE =
@@ -20,7 +21,7 @@ async function packedCliEnforcesPropositionCompleteIngestion(
 ) {
   createMarkdownFile(
     sandbox,
-    "documentation/requirements/baseline.md",
+    ".kb/requirements/baseline.md",
     {
       id: "REQ-BASELINE",
       title: "Legacy baseline",
@@ -50,10 +51,10 @@ async function packedCliEnforcesPropositionCompleteIngestion(
     directInput,
   ]);
   assert.strictEqual(direct.exitCode, 0);
-  const directResult = JSON.parse(direct.stdout) as {
+  const directResult = parseKibiResult<{
     valid: boolean;
     errors: string[];
-  };
+  }>(direct.stdout);
   assert.strictEqual(directResult.valid, false);
   assert.match(
     directResult.errors.join("\n"),
@@ -62,7 +63,7 @@ async function packedCliEnforcesPropositionCompleteIngestion(
 
   createMarkdownFile(
     sandbox,
-    "documentation/requirements/new-requirement.md",
+    ".kb/requirements/new-requirement.md",
     {
       id: "REQ-NEW",
       title: "Retain audit records",
@@ -78,7 +79,7 @@ async function packedCliEnforcesPropositionCompleteIngestion(
     /proposition-complete ingestion failed/,
   );
 
-  const requirementDir = join(sandbox.repoDir, "documentation/requirements");
+  const requirementDir = join(sandbox.repoDir, ".kb/requirements");
   mkdirSync(requirementDir, { recursive: true });
   writeFileSync(
     join(requirementDir, "new-requirement.md"),

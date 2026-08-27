@@ -38,3 +38,143 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/facts/FACT-034.md
+  - type: relates_to
+    from: FACT-034
+    to: FACT-POL-027
+    created_at: 2026-08-15T18:55:00.715Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3569cfd4f7da
+  - type: covered_by
+    from: SYM-suggest-predicates-core-handler
+    to: TEST-kibi-ontology-convergence-witnesses
+    created_at: 2026-08-16T18:51:59.946Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e45f80f3aa8
+  - type: covered_by
+    from: SYM-normalize-semantic-clause
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-16T18:52:06.534Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2590892a2f92
+  - type: implements
+    from: SYM-canonical-parseHunksFromDiff
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T17:36:37.179Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37f304df211c
+  - type: covered_by
+    from: SYM-canonical-parseHunksFromDiff
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-08-18T17:36:37.191Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0373f7ce7098
+  - type: implements
+    from: SYM-suggest-predicates-core-handler
+    to: REQ-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-20T22:11:11.760Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d144e1b9d89a
+  - type: covered_by
+    from: SYM-suggest-predicates-core-handler
+    to: TEST-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-20T22:17:53.866Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01514d70c449
+  - type: executable_for
+    from: SYM-kibi-consumer-local-plugin-launcher-ontology-e2e
+    to: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    created_at: 2026-08-21T08:38:40.566Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3bed3664e040
+  - type: implements
+    from: SYM-kibi-bootstrap-mcp-adapter
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-21T19:52:25.209Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d486ace2e0fd
+  - type: covered_by
+    from: SYM-kibi-bootstrap-mcp-adapter
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-21T19:52:25.231Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-35a4efd2c606
+  - type: covered_by
+    from: SYM-kibi-bootstrap-mcp-adapter
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:19:14.866Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48deac378618
+  - type: implements
+    from: SYM-suggest-predicates-core-handler
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:23:14.143Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14cea5a79906
+  - type: implements
+    from: SYM-suggest-predicates-core-handler
+    to: REQ-kibi-ontology-convergence-witnesses
+    created_at: 2026-08-22T20:23:14.160Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d18f9e41434b
+  - type: implements
+    from: SYM-suggest-predicates-core-handler
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:23:14.171Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26d8b1bf986f
+  - type: covered_by
+    from: SYM-suggest-predicates-core-handler
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:23:14.178Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32c46437e63a
+  - type: covered_by
+    from: SYM-suggest-predicates-core-handler
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:23:14.184Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-773bda369fbf
+  - type: covered_by
+    from: SYM-suggest-predicates-core-handler
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:23:14.192Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-96bdce08d542
+  - type: covered_by
+    from: SYM-suggest-predicates-core-handler
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:32:52.659Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be809014a644
+  - type: covered_by
+    from: SYM-cli-analyzePrologQueryPlanSafety
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-26T07:16:17.518Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9dd3e97895ae
+  - type: implements
+    from: SYM-skillopt-bundle-candidates-resolver
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-26T09:12:10.337Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d23579b0b362

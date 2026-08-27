@@ -1,7 +1,8 @@
 import { cp, mkdir, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { EpisodeRequestSchema } from "../contracts/episode";
-import { hashWorkspace } from "../fixtures/workspace";
+import { fixtureSymbolId, hashWorkspace } from "../fixtures/workspace";
+import { withHeldOutExecutionLease } from "../held-out-execution-lease";
 import { scoreCell } from "../scoring/cell";
 import { resolveIsolationArtifactRoot } from "./artifact-root";
 import { RequiredMcpStartupError } from "./canary-runtime";
@@ -18,6 +19,14 @@ import {
   FixtureIntegrityError,
 } from "./codex-cell-types";
 import { replayCodexEpisode } from "./codex-episode";
+import {
+  FixtureSetupError,
+  setupGeneratedCoordinateDivergence,
+  setupSeededFreshKb,
+  setupSeededStaleKb,
+  setupThinRootKb,
+  stopFixtureEngine,
+} from "./fixture-kb-setup";
 import { createIsolationWorkspace } from "./isolation-workspace";
 import {
   SKILLOPT_EVALUATION_BRANCH,
@@ -80,6 +89,11 @@ export async function runCodexCell(
   let diagnosticReceipt = "";
   let finalState = "";
   let infrastructureFailure: string | undefined;
+  const cellExecutionLockRoot = join(
+    options.artifactRoot,
+    ".fixture-setup-lock",
+  );
+  await mkdir(cellExecutionLockRoot, { recursive: true, mode: 0o700 });
   try {
     await cp(options.fixtureRoot, workspace.target, { recursive: true });
     if (hashWorkspace(workspace.target) !== request.workspaceFixtureHash) {
@@ -99,6 +113,9 @@ export async function runCodexCell(
       ...(options.candidate === undefined
         ? {}
         : { candidate: options.candidate }),
+      ...(options.bundleCandidates === undefined
+        ? {}
+        : { candidates: options.bundleCandidates }),
     });
     const login = await dependencies.prepareLogin({
       privateCodexHome: workspace.codexHome,
@@ -109,6 +126,42 @@ export async function runCodexCell(
       ...login.env,
       KIBI_BRANCH: SKILLOPT_EVALUATION_BRANCH,
     };
+    // Evaluator-owned precondition setup runs BEFORE staging the broker,
+    // using the production CLI build of the source worktree. The packed
+    // kibi-cli shadow inside the staged MCP runtime deliberately carries no
+    // dependency tree, so resolving its dist/cli.js would fail on the very
+    // first external require; the source build is byte-identical and
+    // dependency-complete. Staging must also complete (and shut down its
+    // engine daemon) before the brokered MCP server attaches the same
+    // branch store, or the two Prolog clients corrupt each other's foreign
+    // term handles. The model never gains direct `.kb` access; the sandbox
+    // deny rule and the broker allowlist stay intact.
+    const stagingCliRoot = resolve(options.sourceWorktree, "packages/cli");
+    await withHeldOutExecutionLease(cellExecutionLockRoot, async () => {
+      try {
+        if (
+          options.evaluatorManifest.fixtureSetup ===
+          "generated_coordinate_divergence"
+        ) {
+          await setupGeneratedCoordinateDivergence(
+            workspace.target,
+            stagingCliRoot,
+            fixtureSymbolId(request.taskId),
+          );
+        } else {
+          const setupMode = options.evaluatorManifest.fixtureSetup;
+          if (setupMode === "seeded_fresh_kb") {
+            await setupSeededFreshKb(workspace.target, stagingCliRoot);
+          } else if (setupMode === "seeded_stale_kb") {
+            await setupSeededStaleKb(workspace.target, stagingCliRoot);
+          } else if (setupMode === "thin_root_kb") {
+            await setupThinRootKb(workspace.target, stagingCliRoot);
+          }
+        }
+      } finally {
+        await stopFixtureEngine(workspace.target);
+      }
+    });
     const broker = await dependencies.stageBroker(
       workspace,
       options.sourceWorktree,

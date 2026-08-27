@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, relative, resolve } from "node:path";
 import { z } from "zod";
+import { CANONICAL_SKILLS } from "../catalog";
 import {
   CONTRACT_SCHEMA_VERSION,
   JsonValueSchema,
@@ -45,12 +46,7 @@ export const BridgeRequestSchema = z
     artifactType: z.literal("skillopt-bridge-request"),
     runId: z.uuid(),
     batchId: z.string().regex(/^[a-z0-9][a-z0-9-]{0,63}$/),
-    skill: z.enum([
-      "kibi-usage",
-      "kibi-freshness",
-      "kibi-traceability",
-      "init-kibi",
-    ]),
+    skill: z.enum(CANONICAL_SKILLS),
     phase: z.enum(["train", "development", "held-out"]),
     candidateBody: z.string().min(1).max(100_000),
     taskIds: z.array(TaskIdSchema).length(1),

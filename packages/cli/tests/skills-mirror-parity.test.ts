@@ -21,6 +21,7 @@ describe("generated skill mirror parity", () => {
       "SKILL.md",
       "resources/fact-lanes.md",
       "resources/workflows.md",
+      "resources/kb-improvement.md",
     ] as const;
 
     for (const target of ["codex", "cursor"] as const) {

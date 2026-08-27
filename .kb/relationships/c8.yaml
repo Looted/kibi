@@ -1,0 +1,148 @@
+relationships:
+  - id: rel-f9fd6fd12fa4
+    type: covered_by
+    from: SYM-reqcompiler-usage-log-row
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: "2026-08-16T18:52:12.209Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-cli-engine-durable-fsync
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-08-16T19:47:07.417Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0241bf3f1401
+  - type: executable_for
+    from: SYM-test-packed-source-relationship-parity
+    to: TEST-kibi-source-relationship-parity
+    created_at: 2026-08-17T08:39:17.971Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-357164605c87
+  - type: validates
+    from: TEST-mcp-canonical-activation
+    to: SCEN-cli-canonical-runtime
+    created_at: 2026-08-18T16:39:38.053Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79270995002f
+  - type: validates
+    from: TEST-mcp-canonical-activation
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T16:39:38.074Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca09253b5416
+  - type: implements
+    from: SYM-canonical-defaultKbManifest
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:02:02.469Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b229df41868
+  - type: covered_by
+    from: SYM-canonical-defaultKbManifest
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:02:02.478Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a10070664da7
+  - type: implements
+    from: SYM-cli-report-relative-time
+    to: REQ-kibi-html-health-report
+    created_at: 2026-08-18T19:47:56.764Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-631ef4750435
+  - type: covered_by
+    from: SYM-cli-report-relative-time
+    to: TEST-kibi-html-health-report
+    created_at: 2026-08-18T19:49:50.740Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4a180dee6768
+  - type: implements
+    from: SYM-cli-report-commit-web-url
+    to: REQ-kibi-html-health-report
+    created_at: 2026-08-18T20:41:20.811Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23b78fee954f
+  - type: covered_by
+    from: SYM-cli-report-commit-web-url
+    to: TEST-kibi-html-health-report
+    created_at: 2026-08-18T20:41:20.826Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f61611c2d6b7
+  - type: covered_by
+    from: SYM-cli-github-badge-workflow-relpath
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-19T20:54:21.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05910a7db2d9
+  - type: implements
+    from: SYM-cursor-parseWorkspaceFolderPaths
+    to: REQ-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-08-20T13:01:07.148Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6cfc9180481d
+  - type: covered_by
+    from: SYM-cursor-parseWorkspaceFolderPaths
+    to: TEST-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-08-20T13:01:07.166Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fc0c7fc2071
+  - type: implements
+    from: SYM-cursor-parseWorkspaceFolderPaths
+    to: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+    created_at: 2026-08-20T22:17:19.671Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e4fc8044e75
+  - type: covered_by
+    from: SYM-cursor-parseWorkspaceFolderPaths
+    to: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    created_at: 2026-08-20T22:17:19.693Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7adb990f0b6d
+  - type: implements
+    from: SYM-kibi-mcp-bin-entrypoint
+    to: REQ-mcp-cli-help
+    created_at: 2026-08-22T20:07:31.355Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4a2b82b322b
+  - type: implements
+    from: SYM-kibi-mcp-bin-entrypoint
+    to: REQ-002
+    created_at: 2026-08-22T20:07:31.374Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c70fe020d3e1
+  - type: covered_by
+    from: SYM-kibi-mcp-bin-entrypoint
+    to: TEST-mcp-cli-help
+    created_at: 2026-08-22T20:07:31.384Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8fb22ffc0db6
+  - type: covered_by
+    from: SYM-kibi-mcp-bin-entrypoint
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:07:31.390Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe63b7c4a829
+  - type: covered_by
+    from: SYM-cli-rule-registry-DEFAULT_CHECKS_CONFIG
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-26T07:15:00.916Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e7971fe6d80

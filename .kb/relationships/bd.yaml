@@ -1,0 +1,113 @@
+relationships:
+  - type: covered_by
+    from: SYM-auto-93C73D20FA03
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:50:39.076Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3e0ab7ede7b
+  - type: covered_by
+    from: SYM-reqcompiler-parity-version
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: 2026-08-16T18:51:45.133Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5b5bc4ad880
+  - type: covered_by
+    from: SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporter-ontestend
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.867Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b2a47769bea
+  - type: implements
+    from: SYM-cli-prolog-json-operation-decode-error-prefix-code-points
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-16T21:04:50.611Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9800596faa8c
+  - type: covered_by
+    from: SYM-cli-prolog-json-operation-decode-error-prefix-code-points
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T21:04:50.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e587bd14fc60
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapaction
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:49:19.941Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e15d3d82e5b8
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapaction
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:49:19.948Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c5b72997890
+  - type: implements
+    from: SYM-handleSparql
+    to: REQ-prolog-library-adoption
+    created_at: 2026-08-22T20:07:13.646Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61f587bc8cd3
+  - type: implements
+    from: SYM-handleSparql
+    to: REQ-002
+    created_at: 2026-08-22T20:07:13.661Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb9a8d9a2b4f
+  - type: covered_by
+    from: SYM-handleSparql
+    to: TEST-prolog-library-adoption-mcp
+    created_at: 2026-08-22T20:07:13.666Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2291e057877a
+  - type: covered_by
+    from: SYM-handleSparql
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:07:13.672Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0478acddd17e
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapaction
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:18:22.022Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b96207ec101e
+  - type: covered_by
+    from: SYM-cli-prolog-json-operation-decode-error-prefix-code-points
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:40:57.082Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85559a8cfd95
+  - type: implements
+    from: SYM-auto-93C73D20FA03
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:54:23.367Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60c8d5868f24
+  - type: covered_by
+    from: SYM-auto-93C73D20FA03
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:54:23.372Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbd06633009d
+  - type: specified_by
+    from: REQ-cli-doctor-packed-provenance
+    to: SCEN-cli-doctor-packed-provenance
+    created_at: 2026-08-25T19:00:19.254Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-474d0cdd6cc0

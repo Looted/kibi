@@ -1,0 +1,57 @@
+relationships:
+  - id: rel-db3492b26dd2
+    type: covered_by
+    from: SYM-reqcompiler-parity-runtime-adapter
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: "2026-08-16T18:51:45.112Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-sendToast
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:55:08.761Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-690fde6b01bc
+  - type: covered_by
+    from: SYM-sendToast
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:55:08.772Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ec8f9a2a190
+  - type: covered_by
+    from: SYM-sendToast
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:55:08.778Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f8d4ea726fd
+  - type: covered_by
+    from: SYM-operation-sparql-remote-input
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:38:39.129Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a01789ad376
+  - type: implements
+    from: SYM-operation-sparql-remote-input
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:04:09.491Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0dceed3b7790
+  - type: covered_by
+    from: SYM-operation-sparql-remote-input
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:04:09.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-608fdfd335d3
+  - type: covered_by
+    from: SYM-core-kb-commit-upsert
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-26T07:14:40.550Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2fe553efa77f

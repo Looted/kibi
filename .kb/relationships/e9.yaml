@@ -1,0 +1,92 @@
+relationships:
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-planbootstrapargs
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:48:57.731Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7daead87e6b
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-planbootstrapargs
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:48:57.736Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-215254135345
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-planbootstrapargs
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:19:21.220Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56e5a504de66
+  - type: implements
+    from: SYM-cli-impact-createRequirementQualityDiagnostics
+    to: REQ-audit-quality-diagnostics-v1
+    created_at: 2026-08-22T20:20:09.513Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb71056b5ccd
+  - type: implements
+    from: SYM-cli-impact-createRequirementQualityDiagnostics
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:20:09.522Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05ba1a5d5df7
+  - type: covered_by
+    from: SYM-cli-impact-createRequirementQualityDiagnostics
+    to: TEST-cli-requirement-quality-diagnostics
+    created_at: 2026-08-22T20:20:09.525Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e02b6011ada0
+  - type: covered_by
+    from: SYM-cli-impact-createRequirementQualityDiagnostics
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:20:09.529Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fde3e7f6b3f3
+  - type: covered_by
+    from: SYM-cli-impact-createRequirementQualityDiagnostics
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:20:09.534Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-644deacef955
+  - type: executable_for
+    from: SYM-test-opencode-bootstrap-paths
+    to: TEST-opencode-bootstrap-paths
+    created_at: 2026-08-24T06:18:16.177Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc7d147b8383
+  - type: implements
+    from: SYM-skillopt-predicate-objective-prefix
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:20:15.594Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-807f40384115
+  - type: implements
+    from: SYM-SymbolCoordinateWriteEntry
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-23T20:28:18.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19a5dbb99f7e
+  - type: covered_by
+    from: SYM-SymbolCoordinateWriteEntry
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:28:18.303Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-991b091ecf9f
+  - type: covered_by
+    from: SYM-skillopt-predicate-objective-prefix
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-25T19:52:58.014Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df300a0986e2

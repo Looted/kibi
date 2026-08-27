@@ -1,0 +1,127 @@
+relationships:
+  - id: rel-a056d765606b
+    type: covered_by
+    from: SYM-distribution-parity-run-matrix
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: "2026-08-16T18:51:45.099Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-reqcompiler-parity-issue
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: 2026-08-16T18:51:45.117Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3eee86c46c7
+  - type: covered_by
+    from: SYM-core-kb-save-locked
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-08-16T20:14:08.441Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ddefbd24dd4
+  - type: implements
+    from: SYM-canonical-stripToRoot
+    to: REQ-opencode-bootstrap-nudge
+    created_at: 2026-08-18T17:37:06.824Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2802054d625
+  - type: covered_by
+    from: SYM-canonical-stripToRoot
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-18T17:37:06.832Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-743a2e990057
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-presentation-normalizebootstrapcontext
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:48:48.511Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8ec8acfe23e
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-presentation-normalizebootstrapcontext
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:48:48.519Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30b5c051605c
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-presentation-normalizebootstrapcontext
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:16:38.300Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ecb772be5cb8
+  - type: implements
+    from: SYM-skillopt-evaluate-predicate-case
+    to: REQ-skillopt-predicate-first-requirements
+    created_at: 2026-08-22T20:20:54.305Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6032b86e51ee
+  - type: implements
+    from: SYM-skillopt-evaluate-predicate-case
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:20:54.318Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19ac6596da22
+  - type: covered_by
+    from: SYM-skillopt-evaluate-predicate-case
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-08-22T20:20:54.322Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75046add96e3
+  - type: covered_by
+    from: SYM-skillopt-evaluate-predicate-case
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:20:54.327Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ad14e31f1cc
+  - type: covered_by
+    from: SYM-skillopt-evaluate-predicate-case
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:20:54.333Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-920fe17be905
+  - type: covered_by
+    from: SYM-canonical-stripToRoot
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:44:25.041Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e348952b857
+  - type: covered_by
+    from: SYM-cli-discovery-deps
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:36:08.857Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c06091c4652
+  - type: implements
+    from: SYM-cli-discovery-deps
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:58:33.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7bbe1168016
+  - type: covered_by
+    from: SYM-cli-discovery-deps
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:58:33.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17e30f268e57
+  - type: covered_by
+    from: SYM-core-kb-save-locked
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-26T07:14:45.289Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db49d494cdaa

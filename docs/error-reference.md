@@ -114,7 +114,7 @@ Telemetry diagnostics are also advisory in `kb_check`, but `kibi usage-metrics -
 - `repeated_mutation_failures`: stop retrying, query endpoints, validate a reduced exact payload, repair runtime health, and retry once.
 - `mutation_validation_bypassed`: run `kb_validate_upsert` for the exact payload within one hour before sequential `kb_upsert`.
 - `semantic_advisor_bypassed`: rerun `kb_semantic_advisor` for the same requirement and current source hash before writing it.
-- `e2e_receipt_freshness_low`: execute scenario-backed E2E tests against the live snapshot and append fresh receipts.
+- `e2e_receipt_freshness_low`: query the affected tests, run each exact current verification contract through `kibi verify`, preserve receipt history, append generated v2 receipts, and rerun complete coverage.
 - `proof_gap_recovery_stalled`: apply reviewed ready repair batches and demonstrate a lower complete-scope gap count.
 - `source_lookup_zero_result_rate_high`: inspect and refresh the cited source links before repeating focused lookups.
 - `telemetry_completeness_low`, `telemetry_evidence_stale`, or `telemetry_acceptance_incomplete`: capture current complete diagnostic events; do not waive missing evidence as success.

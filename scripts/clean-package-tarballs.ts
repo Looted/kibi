@@ -31,6 +31,7 @@ const REPO_ROOT = new URL("..", import.meta.url).pathname;
 const PACKAGE_DIRS = [
   "packages/core",
   "packages/cli",
+  "packages/runtime",
   "packages/mcp",
   "packages/opencode",
   "packages/codex",

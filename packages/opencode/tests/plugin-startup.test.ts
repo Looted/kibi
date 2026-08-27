@@ -224,10 +224,10 @@ describe("plugin-startup branch resolution", () => {
     }
   });
 
-  test("normalizes KIBI_BRANCH=master to main", () => {
+  test("preserves KIBI_BRANCH=master exactly", () => {
     process.env.KIBI_BRANCH = "master";
 
-    expect(resolveCurrentBranch("/repo")).toBe("main");
+    expect(resolveCurrentBranch("/repo")).toBe("master");
     expect(execSyncMock).not.toHaveBeenCalled();
   });
 
@@ -237,11 +237,11 @@ describe("plugin-startup branch resolution", () => {
     expect(resolveCurrentBranch("/repo")).toBe("feat-x");
   });
 
-  test("normalizes git master branch to main", () => {
+  test("preserves git master branch exactly", () => {
     Reflect.deleteProperty(process.env, "KIBI_BRANCH");
     mockExecSyncString(() => "master\n");
 
-    expect(resolveCurrentBranch("/repo")).toBe("main");
+    expect(resolveCurrentBranch("/repo")).toBe("master");
   });
 
   test("returns unknown when git branch lookup fails", () => {

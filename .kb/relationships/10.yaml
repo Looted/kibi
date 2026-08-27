@@ -1,0 +1,141 @@
+relationships:
+  - id: rel-670c043bd512
+    type: implements
+    from: SYM-auto-87E4086AAAB1
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:22:40.176Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-auto-87E4086AAAB1
+    to: REQ-reusable-skill-subsystem
+    created_at: 2026-08-16T07:55:19.356Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23ca7ca3712b
+  - type: covered_by
+    from: SYM-auto-87E4086AAAB1
+    to: TEST-mcp-skills-resource-discoverability
+    created_at: 2026-08-16T07:55:19.361Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3cecaa2480fa
+  - type: verified_by
+    from: SCEN-kibi-source-relationship-parity
+    to: TEST-kibi-source-relationship-parity
+    created_at: 2026-08-17T08:28:15.132Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f2040cc5a30
+  - type: implements
+    from: SYM-core-proof-issues
+    to: REQ-kibi-conservative-requirement-proof
+    created_at: 2026-08-18T19:48:27.283Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f679a1f37fe8
+  - type: covered_by
+    from: SYM-core-proof-issues
+    to: TEST-kibi-conservative-requirement-proof
+    created_at: 2026-08-18T19:50:19.019Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64ccb4ed67a7
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-discoverysummary
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:49:14.864Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d1ab3489e11
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-discoverysummary
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:49:14.871Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f43c0242d6b
+  - type: implements
+    from: SYM-DeleteArgs
+    to: REQ-002
+    created_at: 2026-08-22T20:05:08.445Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44f55c78d48b
+  - type: covered_by
+    from: SYM-DeleteArgs
+    to: TEST-005
+    created_at: 2026-08-22T20:05:08.461Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-827aa8964846
+  - type: covered_by
+    from: SYM-DeleteArgs
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:05:08.466Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ade6c85aa3e5
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-discoverysummary
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:15:11.428Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-807f51a5012f
+  - type: implements
+    from: SYM-cli-with-exit-code
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:26:57.465Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ba1b059980a
+  - type: covered_by
+    from: SYM-cli-with-exit-code
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:26:57.480Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b6b4811d41b
+  - type: covered_by
+    from: SYM-cli-with-exit-code
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:26:57.486Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c750f58c0abc
+  - type: implements
+    from: SYM-parity-build-entity-delete-audit-goal
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:31:22.427Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24687b9355b1
+  - type: covered_by
+    from: SYM-parity-build-entity-delete-audit-goal
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:31:22.444Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4773fe4fe6c7
+  - type: covered_by
+    from: SYM-parity-build-entity-delete-audit-goal
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:31:22.450Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9eb421cc1dac
+  - type: covered_by
+    from: SYM-auto-87E4086AAAB1
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:34:30.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5bd80fd3520
+  - type: implements
+    from: SYM-skillopt-bundle-arm-summary-type
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-26T09:15:43.986Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59e8ada340f7

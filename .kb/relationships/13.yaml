@@ -1,0 +1,43 @@
+relationships:
+  - id: rel-8a7b2ae72825
+    type: executable_for
+    from: SYM-mcp-session-tests
+    to: TEST-005
+    created_at: "2026-08-15T22:43:56.626Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: executable_for
+    from: SYM-mcp-session-tests
+    to: TEST-009
+    created_at: 2026-08-15T22:43:56.627Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd8f9d80987f
+  - type: executable_for
+    from: SYM-mcp-session-tests
+    to: TEST-mcp-kb-freshness
+    created_at: 2026-08-15T22:43:56.634Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6d92104cde2
+  - type: covered_by
+    from: SYM-reqcompiler-parity-surface
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: 2026-08-16T18:51:45.127Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-864bc8e749d9
+  - type: implements
+    from: SYM-BRIDGE-SOURCE-WORKTREE-ENV
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-23T23:34:06.981Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c6e2d3e10ab
+  - type: covered_by
+    from: SYM-BRIDGE-SOURCE-WORKTREE-ENV
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-23T23:34:06.991Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8aeb514ee66c

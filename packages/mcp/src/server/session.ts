@@ -19,14 +19,16 @@
 import fs from "node:fs";
 import { createRequire } from "node:module";
 import process from "node:process";
-import { EngineClient } from "kibi-cli/engine";
-import { PrologProcess } from "kibi-cli/prolog";
+import { EngineClient } from "kibi-runtime";
+import { PrologProcess } from "kibi-runtime";
 import {
   copyCleanSnapshot,
+  ensureBranchStoreManifest,
   getBranchDiagnostic,
   isValidBranchName,
   resolveActiveBranch,
-} from "kibi-cli/public/branch-resolver";
+  resolveBranchAttachment,
+} from "kibi-runtime";
 import { getBranchOverride, isMcpDebugEnabled } from "../env.js";
 import { resolveKbPath, resolveWorkspaceRoot } from "../workspace.js";
 import {
@@ -39,12 +41,15 @@ import {
 
 interface SessionDeps {
   PrologProcess: typeof PrologProcess;
+  // Retained as a test/integration seam for callers that still provide the
+  // legacy dependency, but branch initialization no longer invokes it.
   copyCleanSnapshot: typeof copyCleanSnapshot;
   createRequire: typeof createRequire;
   fs: Pick<typeof fs, "existsSync" | "mkdirSync">;
   getBranchDiagnostic: typeof getBranchDiagnostic;
   isValidBranchName: typeof isValidBranchName;
   resolveActiveBranch: typeof resolveActiveBranch;
+  resolveBranchAttachment: typeof resolveBranchAttachment;
   resolveKbPath: typeof resolveKbPath;
   resolveWorkspaceRoot: typeof resolveWorkspaceRoot;
 }
@@ -57,6 +62,7 @@ const defaultSessionDeps: SessionDeps = {
   getBranchDiagnostic,
   isValidBranchName,
   resolveActiveBranch,
+  resolveBranchAttachment,
   resolveKbPath,
   resolveWorkspaceRoot,
 };
@@ -130,28 +136,18 @@ export function ensureBranchKbExists(
     return false;
   }
 
-  // Try to copy from the previously active branch if available
-  const previousBranch = activeBranchName;
-  const previousBranchPath = sessionDeps.resolveKbPath(
-    workspaceRoot,
-    previousBranch,
-  );
-
-  if (
-    previousBranch !== branch &&
-    previousBranch !== "develop" &&
-    sessionDeps.fs.existsSync(previousBranchPath)
-  ) {
-    // Copy from previous branch for continuity
-    sessionDeps.copyCleanSnapshot(previousBranchPath, branchPath);
-    debugLog(
-      `[KIBI-MCP] Created branch KB for '${branch}' from '${previousBranch}'`,
-    );
-    return false;
+  // Branch initialization is intentionally empty. The compiled store is
+  // materialized from the current checkout's authored sources by sync; it is
+  // never copied from another branch.
+  // Unit/integration hosts can provide a virtual filesystem through the
+  // existing session dependency seam.  Only the real Node filesystem needs
+  // the identity manifest writer; virtual hosts already model the resolved
+  // branch path and should not be forced to create that path on the host.
+  if (sessionDeps.fs === fs) {
+    ensureBranchStoreManifest(workspaceRoot, branch);
+  } else {
+    sessionDeps.fs.mkdirSync(branchPath, { recursive: true });
   }
-
-  // No previous branch available - create empty KB
-  sessionDeps.fs.mkdirSync(branchPath, { recursive: true });
   debugLog(`[KIBI-MCP] Created empty branch KB for '${branch}'`);
   return true;
 }
@@ -325,8 +321,9 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
     }
     targetBranch = envBranch;
   } else {
-    // No override - resolve active branch from git (may change between requests)
-    const branchResult = sessionDeps.resolveActiveBranch(workspaceRoot);
+    // No override - resolve the exact Git branch, with read-compatible legacy
+    // literal-path storage detection for bridge-release repositories.
+    const branchResult = sessionDeps.resolveBranchAttachment(workspaceRoot);
 
     if ("error" in branchResult) {
       const diagnostic = sessionDeps.getBranchDiagnostic(
@@ -337,7 +334,7 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
       throw new Error(`Failed to resolve active branch: ${branchResult.error}`);
     }
 
-    targetBranch = branchResult.branch;
+    targetBranch = branchResult.kbBranch;
   }
 
   // Check if we need to switch branches
@@ -460,49 +457,11 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
   await prologProcess.start();
   await assertGeneration();
 
-  // Startup debug: resolve which kibi-cli is being used and its version (best-effort).
-  // Gate all output under KIBI_MCP_DEBUG and write only to stderr via debugLog.
-  if (isMcpDebugEnabled()) {
-    try {
-      const req = sessionDeps.createRequire(import.meta.url);
-      try {
-        const resolved = req.resolve("kibi-cli/prolog");
-        debugLog(
-          `[KIBI-MCP] require.resolve('kibi-cli/prolog') -> ${resolved}`,
-        );
-      } catch (resolveErr) {
-        debugLog(
-          "[KIBI-MCP] require.resolve('kibi-cli/prolog') failed:",
-          (resolveErr as Error).message,
-        );
-      }
-
-      // Try to read package.json for kibi-cli to get version. This may fail if
-      // the package uses exports blocking package.json access — log explicit failure.
-      try {
-        // prefer direct package.json require; createRequire makes this ESM-friendly
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const pkg = req("kibi-cli/package.json");
-        if (pkg && typeof pkg.version === "string") {
-          debugLog(`[KIBI-MCP] kibi-cli version: ${pkg.version}`);
-        } else {
-          debugLog(
-            "[KIBI-MCP] kibi-cli package.json read but no version field",
-          );
-        }
-      } catch (pkgErr) {
-        debugLog(
-          "[KIBI-MCP] Failed to read kibi-cli package.json (exports may restrict access):",
-          (pkgErr as Error).message,
-        );
-      }
-    } catch (err) {
-      debugLog(
-        "[KIBI-MCP] Failed to create require() for debug lookup:",
-        (err as Error).message,
-      );
-    }
-  }
+  // Adapters report the package that owns runtime execution. Do not resolve
+  // CLI implementation paths from the MCP process; the runtime package is
+  // the sole first-party execution boundary.
+  if (isMcpDebugEnabled())
+    debugLog("[KIBI-MCP] Runtime boundary: kibi-runtime");
 
   debugLog("[KIBI-MCP] Branch selection:");
   debugLog(`[KIBI-MCP]   KIBI_BRANCH env: ${envBranch || "not set"}`);

@@ -2,8 +2,8 @@ import type {
   OperationContext,
   PrologPort,
   PrologQueryResult,
-} from "kibi-cli/operations/runtime-types";
-import type { PrologProcess } from "kibi-cli/prolog";
+} from "kibi-runtime";
+import type { PrologProcess } from "kibi-runtime";
 import { resolveWorkspaceRoot } from "../workspace.js";
 
 export function createDiscoveryContext(
@@ -12,11 +12,17 @@ export function createDiscoveryContext(
 ): OperationContext {
   // implements REQ-kibi-operation-interface-parity
   let lastResult: PrologQueryResult | null = null;
+  const mode = (prolog as unknown as { useOneShotMode?: unknown })
+    .useOneShotMode;
   const port: PrologPort = {
     query: async (goal) => {
       lastResult = await prolog.query(goal);
       return lastResult;
     },
+    oneShotMode:
+      mode === undefined
+        ? typeof (globalThis as { Bun?: unknown }).Bun !== "undefined"
+        : Boolean(mode),
     nextSolution: async () => {
       const result = lastResult;
       lastResult = null;

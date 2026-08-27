@@ -8,7 +8,11 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { basename, dirname, join, resolve } from "node:path";
+import { basename, dirname, join } from "node:path";
+import {
+  isolatedPackedSandboxEnv,
+  packAll as packAllPackages,
+} from "./helpers.js";
 
 export interface PnpmCommand {
   command: string;
@@ -18,6 +22,7 @@ export interface PnpmCommand {
 export interface Tarballs {
   core: string;
   cli: string;
+  runtime: string;
   mcp: string;
 }
 
@@ -28,6 +33,11 @@ export interface PnpmUpgradeSandbox {
   pnpm: PnpmCommand;
   cleanup(): void;
 }
+
+export type IsolatedPnpmEnvironment = Readonly<{
+  env: NodeJS.ProcessEnv;
+  storeDir: string;
+}>;
 
 export interface CommandResult {
   stdout: string;
@@ -67,50 +77,16 @@ export function resolvePnpm(): PnpmCommand {
 
 export function createPnpmUpgradeSandbox(): PnpmUpgradeSandbox {
   const pnpm = resolvePnpm();
-  const hostStoreDir = resolveHostPnpmStore(pnpm);
   const baseDir = mkdtempSync(join(tmpdir(), "kibi-e2e-pnpm-upgrade-"));
   const projectDir = join(baseDir, "project");
-  const homeDir = join(baseDir, "home");
-  const pnpmHome = join(baseDir, "pnpm-home");
-  const cacheDir = join(baseDir, "cache");
-  const dataDir = join(baseDir, "data");
-  const configDir = join(baseDir, "config");
-
-  for (const dir of [
-    projectDir,
-    homeDir,
-    pnpmHome,
-    cacheDir,
-    dataDir,
-    configDir,
-  ]) {
-    mkdirSync(dir, { recursive: true });
-  }
-  seedPnpmMetadataCache(cacheDir);
+  mkdirSync(projectDir, { recursive: true });
+  const { env, storeDir } = createIsolatedPnpmEnvironment(baseDir, pnpm);
 
   writeFileSync(
     join(projectDir, "package.json"),
     JSON.stringify({ name: "kibi-pnpm-upgrade-e2e", private: true }, null, 2),
     "utf8",
   );
-
-  const pnpmDir =
-    pnpm.command === "corepack"
-      ? dirname(resolve("corepack"))
-      : dirname(pnpm.command);
-  const env: NodeJS.ProcessEnv = {
-    ...process.env,
-    HOME: homeDir,
-    USERPROFILE: homeDir,
-    PNPM_HOME: pnpmHome,
-    XDG_CACHE_HOME: cacheDir,
-    XDG_DATA_HOME: dataDir,
-    XDG_CONFIG_HOME: configDir,
-    pnpm_config_store_dir: hostStoreDir,
-    npm_config_userconfig: join(baseDir, "npmrc"),
-    PATH: `${pnpmHome}:${pnpmDir}:/usr/bin:${process.env.PATH ?? ""}`,
-    NODE_ENV: "production",
-  };
 
   writeFileSync(
     env.npm_config_userconfig ?? join(baseDir, "npmrc"),
@@ -126,6 +102,56 @@ export function createPnpmUpgradeSandbox(): PnpmUpgradeSandbox {
     cleanup(): void {
       rmSync(baseDir, { recursive: true, force: true });
     },
+  };
+}
+
+export function createIsolatedPnpmEnvironment(
+  baseDir: string,
+  pnpm: PnpmCommand = resolvePnpm(),
+): IsolatedPnpmEnvironment {
+  const homeDir = join(baseDir, "home");
+  const pnpmHome = join(baseDir, "pnpm-home");
+  const cacheDir = join(baseDir, "cache");
+  const dataDir = join(baseDir, "data");
+  const configDir = join(baseDir, "config");
+  const corepackHome = join(baseDir, "corepack");
+  const storeDir = join(baseDir, "pnpm-store");
+
+  for (const dir of [
+    homeDir,
+    pnpmHome,
+    cacheDir,
+    dataDir,
+    configDir,
+    corepackHome,
+    storeDir,
+  ]) {
+    mkdirSync(dir, { recursive: true });
+  }
+  seedPnpmMetadataCache(cacheDir);
+  seedCorepackHome(corepackHome);
+  const hostStoreDir = resolveHostPnpmStore(pnpm);
+  if (existsSync(hostStoreDir)) {
+    cpSync(hostStoreDir, storeDir, { recursive: true });
+  }
+
+  const pnpmDir = dirname(pnpm.command);
+  return {
+    storeDir,
+    env: isolatedPackedSandboxEnv({
+      HOME: homeDir,
+      USERPROFILE: homeDir,
+      COREPACK_HOME: corepackHome,
+      COREPACK_ENABLE_DOWNLOAD_PROMPT: "0",
+      PNPM_HOME: pnpmHome,
+      XDG_CACHE_HOME: cacheDir,
+      XDG_DATA_HOME: dataDir,
+      XDG_CONFIG_HOME: configDir,
+      pnpm_config_store_dir: storeDir,
+      npm_config_userconfig: join(baseDir, "npmrc"),
+      PATH: `${pnpmHome}:${pnpmDir}:/usr/bin:${process.env.PATH ?? ""}`,
+      NODE_ENV: "production",
+    }),
   };
 }
 
@@ -157,6 +183,12 @@ function seedPnpmMetadataCache(cacheDir: string): void {
     return;
   }
   cpSync(hostCache, join(cacheDir, "pnpm"), { recursive: true });
+}
+
+function seedCorepackHome(corepackHome: string): void {
+  const source = process.env.COREPACK_HOME;
+  if (!source || !existsSync(source) || source === corepackHome) return;
+  cpSync(source, corepackHome, { recursive: true });
 }
 
 export function runCommand(
@@ -228,7 +260,7 @@ export async function installTarballsWithPnpm(
   options: { offline?: boolean } = {},
 ): Promise<CommandResult> {
   // implements REQ-mcp-pnpm-upgrade-stale-path
-  const installArgs = ["add", "--ignore-scripts"];
+  const installArgs = ["add"];
   if (options.offline !== false) {
     installArgs.push("--offline");
   }
@@ -260,89 +292,13 @@ export function pnpmLabel(pnpm: PnpmCommand): string {
   return [basename(pnpm.command), ...pnpm.argsPrefix].join(" ");
 }
 
-const packagesForPack = ["core", "cli", "mcp"] as const;
-let cachedTarballsPromise: Promise<Tarballs> | null = null;
-
-function findPrePackedTarball(
-  prePackedDir: string,
-  pkg: (typeof packagesForPack)[number],
-): string | null {
-  const candidateDirs = [prePackedDir, join(prePackedDir, pkg)];
-  for (const dir of candidateDirs) {
-    if (!existsSync(dir)) {
-      continue;
-    }
-    const match = execFileSync("ls", [dir], { encoding: "utf8" })
-      .trim()
-      .split("\n")
-      .find(
-        (fileName) =>
-          fileName.startsWith(`kibi-${pkg}-`) && fileName.endsWith(".tgz"),
-      );
-    if (match) {
-      return join(dir, match);
-    }
-  }
-  return null;
-}
-
-function resolveNpmForPack(): string {
-  try {
-    const npm = execFileSync("which", ["npm"], { encoding: "utf8" }).trim();
-    if (npm) {
-      return npm;
-    }
-  } catch {}
-  return "npm";
-}
-
+// implements REQ-mcp-pnpm-upgrade-stale-path
 export async function packAllForPnpmUpgrade(): Promise<Tarballs> {
-  if (cachedTarballsPromise) {
-    return cachedTarballsPromise;
-  }
-
-  cachedTarballsPromise = (async () => {
-    console.log("📦 Packing packages for pnpm upgrade regression...");
-    const repoRoot = resolve(process.cwd());
-    const prePackedDir = process.env.KIBI_TEST_TARBALLS;
-    const tarballs: Partial<Tarballs> = {};
-
-    if (prePackedDir && existsSync(prePackedDir)) {
-      for (const pkg of packagesForPack) {
-        const tarballPath = findPrePackedTarball(prePackedDir, pkg);
-        if (!tarballPath) {
-          throw new Error(`Pre-packed tarball not found for package: ${pkg}`);
-        }
-        tarballs[pkg] = tarballPath;
-      }
-      return tarballs as Tarballs;
-    }
-
-    const npm = resolveNpmForPack();
-    for (const pkg of packagesForPack) {
-      const packageDir = join(repoRoot, "packages", pkg);
-      const npmCommand = npm === "npm" ? "npm" : `"${npm}"`;
-      const result = execFileSync(
-        "/bin/bash",
-        ["-lc", `${npmCommand} pack --json --ignore-scripts`],
-        { cwd: packageDir, encoding: "utf8", stdio: ["pipe", "pipe", "pipe"] },
-      );
-      const packResult = JSON.parse(result) as Array<{ filename?: string }>;
-      const filename = packResult[0]?.filename;
-      if (!filename) {
-        throw new Error(`Failed to pack package ${pkg}: no filename in output`);
-      }
-      tarballs[pkg] = join(packageDir, filename);
-      console.log(`  ${pkg}: ${filename}`);
-    }
-
-    return tarballs as Tarballs;
-  })();
-
-  try {
-    return await cachedTarballsPromise;
-  } catch (error) {
-    cachedTarballsPromise = null;
-    throw error;
-  }
+  const tarballs = await packAllPackages();
+  return {
+    core: tarballs.core,
+    cli: tarballs.cli,
+    runtime: tarballs.runtime,
+    mcp: tarballs.mcp,
+  };
 }

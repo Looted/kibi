@@ -192,12 +192,12 @@ describe("env file loading behavior", () => {
     expect(isMcpDebugEnabled()).toBe(true);
   });
 
-  test("getBranchOverride trims non-empty KIBI_BRANCH values", () => {
+  test("getBranchOverride preserves exact non-empty KIBI_BRANCH values", () => {
     process.env.KIBI_BRANCH = "  feature/test  ";
-    expect(getBranchOverride()).toBe("feature/test");
+    expect(getBranchOverride()).toBe("  feature/test  ");
 
     process.env.KIBI_BRANCH = "   ";
-    expect(getBranchOverride()).toBeUndefined();
+    expect(getBranchOverride()).toBe("   ");
   });
 
   test("getCoreModulePathOverride resolves per-module override key", () => {

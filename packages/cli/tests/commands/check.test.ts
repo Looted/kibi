@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { execSync, spawnSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -11,6 +10,7 @@ import {
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { execSync, spawnSync } from "../helpers/isolated-env.js";
 
 function stdoutToString(stdout: unknown): string {
   if (typeof stdout === "string") return stdout;
@@ -90,6 +90,13 @@ function runKibi(
   args: string[],
   cwd: string,
 ): { status: number | null; stdout: string; stderr: string } {
+  // Non-staged checks consume the same Git-tracked source boundary as the
+  // production command. Test fixtures are authored after init, so stage and
+  // compile them here when a test intentionally focuses on check behavior.
+  if (args[0] === "check" && !args.includes("--staged")) {
+    execSync("git add .kb", { cwd, stdio: "pipe" });
+    execSync(`bun ${kibiBin} sync`, { cwd, stdio: "pipe" });
+  }
   const result = spawnSync("bun", [kibiBin, ...args], {
     cwd,
     encoding: "utf8",
@@ -103,8 +110,8 @@ function runKibi(
 }
 
 function writeBroadRequirementFixture(root: string): void {
-  const reqDir = path.join(root, "documentation/requirements");
-  const testDir = path.join(root, "documentation/tests");
+  const reqDir = path.join(root, ".kb/requirements");
+  const testDir = path.join(root, ".kb/tests");
   mkdirSync(reqDir, { recursive: true });
   mkdirSync(testDir, { recursive: true });
 
@@ -116,7 +123,7 @@ title: Broad check audit requirement
 type: req
 status: open
 priority: should
-source: documentation/requirements/REQ-BROAD-CHECK-001.md
+source: .kb/requirements/REQ-BROAD-CHECK-001.md
 links:
 ${Array.from({ length: 9 }, (_, index) => {
   const ordinal = index + 1;
@@ -140,7 +147,7 @@ id: TEST-BROAD-CHECK-${String(ordinal).padStart(3, "0")}
 title: Broad check test ${ordinal}
 type: test
 status: passing
-source: documentation/tests/TEST-BROAD-CHECK-${String(ordinal).padStart(3, "0")}.md
+source: .kb/tests/TEST-BROAD-CHECK-${String(ordinal).padStart(3, "0")}.md
 links:
   - type: validates
     target: REQ-BROAD-CHECK-001
@@ -150,19 +157,21 @@ links:
 `,
     );
   }
+
+  execSync("git add .kb", { cwd: root, stdio: "pipe" });
 }
 
 function writeUmbrellaBroadRequirementFixture(root: string): void {
   writeBroadRequirementFixture(root);
   writeFileSync(
-    path.join(root, "documentation/requirements/REQ-BROAD-CHECK-001.md"),
+    path.join(root, ".kb/requirements/REQ-BROAD-CHECK-001.md"),
     `---
 id: REQ-BROAD-CHECK-001
 title: Broad check audit requirement
 type: req
 status: open
 priority: should
-source: documentation/requirements/REQ-BROAD-CHECK-001.md
+source: .kb/requirements/REQ-BROAD-CHECK-001.md
 tags:
   - umbrella
 links:
@@ -176,49 +185,7 @@ ${Array.from({ length: 9 }, (_, index) => {
 # Broad check audit requirement
 `,
   );
-}
-
-function addSubjectOnlyStrictFactToBroadRequirement(root: string): void {
-  const factDir = path.join(root, "documentation/facts");
-  mkdirSync(factDir, { recursive: true });
-  writeFileSync(
-    path.join(factDir, "FACT-BROAD-SUBJECT-ONLY-001.md"),
-    `---
-id: FACT-BROAD-SUBJECT-ONLY-001
-title: Broad subject only fact
-type: fact
-status: active
-source: documentation/facts/FACT-BROAD-SUBJECT-ONLY-001.md
-fact_kind: subject
-subject_key: broad.audit
----
-
-# Broad subject only fact
-`,
-  );
-
-  writeFileSync(
-    path.join(root, "documentation/requirements/REQ-BROAD-CHECK-001.md"),
-    `---
-id: REQ-BROAD-CHECK-001
-title: Broad check audit requirement
-type: req
-status: open
-priority: should
-source: documentation/requirements/REQ-BROAD-CHECK-001.md
-links:
-${Array.from({ length: 9 }, (_, index) => {
-  const ordinal = index + 1;
-  return `  - type: verified_by
-    target: TEST-BROAD-CHECK-${String(ordinal).padStart(3, "0")}`;
-}).join("\n")}
-  - type: constrains
-    target: FACT-BROAD-SUBJECT-ONLY-001
----
-
-# Broad check audit requirement
-`,
-  );
+  execSync("git add .kb", { cwd: root, stdio: "pipe" });
 }
 
 type CoverageDepthFixture =
@@ -239,9 +206,9 @@ function writeCoverageDepthFixture(
   root: string,
   coverageDepth: CoverageDepthFixture,
 ): void {
-  const reqDir = path.join(root, "documentation/requirements");
-  const scenarioDir = path.join(root, "documentation/scenarios");
-  const testDir = path.join(root, "documentation/tests");
+  const reqDir = path.join(root, ".kb/requirements");
+  const scenarioDir = path.join(root, ".kb/scenarios");
+  const testDir = path.join(root, ".kb/tests");
   mkdirSync(reqDir, { recursive: true });
   mkdirSync(scenarioDir, { recursive: true });
   mkdirSync(testDir, { recursive: true });
@@ -272,7 +239,7 @@ function writeCoverageDepthFixture(
       "type: req",
       "status: open",
       "priority: should",
-      `source: documentation/requirements/${reqId}.md`,
+      `source: .kb/requirements/${reqId}.md`,
       ...requirementLinks,
     ]),
   );
@@ -285,7 +252,7 @@ function writeCoverageDepthFixture(
         `title: Coverage scenario ${coverageDepth}`,
         "type: scenario",
         "status: active",
-        `source: documentation/scenarios/${scenarioId}.md`,
+        `source: .kb/scenarios/${scenarioId}.md`,
       ]),
     );
   }
@@ -299,7 +266,7 @@ function writeCoverageDepthFixture(
         "type: test",
         "status: passing",
         "verification_scope: unit",
-        `source: documentation/tests/${testId}.md`,
+        `source: .kb/tests/${testId}.md`,
       ]),
     );
   }
@@ -313,7 +280,7 @@ function writeCoverageDepthFixture(
         "type: test",
         "status: open",
         "verification_scope: end_to_end",
-        `source: documentation/tests/${testId}.md`,
+        `source: .kb/tests/${testId}.md`,
       ]),
     );
   }
@@ -327,7 +294,7 @@ function writeCoverageDepthFixture(
         "type: test",
         "status: passing",
         "verification_scope: end_to_end",
-        `source: documentation/tests/${testId}.md`,
+        `source: .kb/tests/${testId}.md`,
       ]),
     );
   }
@@ -341,7 +308,7 @@ function writeCoverageDepthFixture(
         "type: test",
         "status: passing",
         "verification_scope: integration",
-        `source: documentation/tests/${testId}.md`,
+        `source: .kb/tests/${testId}.md`,
       ]),
     );
   }
@@ -355,7 +322,7 @@ function writeCoverageDepthFixture(
         "type: test",
         "status: passing",
         "verification_scope: integration",
-        `source: documentation/tests/${testId}.md`,
+        `source: .kb/tests/${testId}.md`,
         "links:",
         "  - type: validates",
         `    target: ${scenarioId}`,
@@ -372,13 +339,15 @@ function writeCoverageDepthFixture(
         "type: test",
         "status: passing",
         "verification_scope: end_to_end",
-        `source: documentation/tests/${testId}.md`,
+        `source: .kb/tests/${testId}.md`,
         "links:",
         "  - type: validates",
         `    target: ${scenarioId}`,
       ]),
     );
   }
+
+  execSync("git add .kb", { cwd: root, stdio: "pipe" });
 }
 
 describe("kibi check", () => {
@@ -597,20 +566,37 @@ describe("kibi check", () => {
     "keeps hard violation exit status when quality diagnostics are present",
     async () => {
       writeBroadRequirementFixture(tmpDir);
-      addSubjectOnlyStrictFactToBroadRequirement(tmpDir);
+      writeFileSync(
+        path.join(tmpDir, ".kb/requirements/REQ-MUST-UNCOVERED-001.md"),
+        `---
+id: REQ-MUST-UNCOVERED-001
+title: Uncovered must requirement
+type: req
+status: open
+priority: must
+source: .kb/requirements/REQ-MUST-UNCOVERED-001.md
+---
+
+# Uncovered must requirement
+`,
+      );
+      execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
-      const { status, stdout, stderr } = runKibi(
+      const { status, stdout } = runKibi(
         kibiBin,
-        ["check", "--rules", "strict-req-fact-pairing"],
+        ["check", "--rules", "must-priority-coverage", "--format", "json"],
         tmpDir,
       );
 
-      const output = stdoutToString(stdout || stderr);
+      const parsed = parseCheckJson(stdout);
       expect(status).toBe(1);
-      expect(output).toContain("Found 1 violation");
-      expect(output).toContain("strict-req-fact-pairing");
-      expect(output).toContain("broad_requirement_review");
+      expect(parsed.structuredContent?.count).toBeGreaterThan(0);
+      expect(
+        parsed.structuredContent?.qualityDiagnostics?.some(
+          (diagnostic) => diagnostic.id === "broad_requirement_review",
+        ) ?? false,
+      ).toBe(true);
     },
     TEST_TIMEOUT_MS,
   );
@@ -618,8 +604,8 @@ describe("kibi check", () => {
   test(
     "reports legacy fact-linked requirements as not-ready instead of contradictions",
     async () => {
-      const reqDir = path.join(tmpDir, "documentation/requirements");
-      const factDir = path.join(tmpDir, "documentation/facts");
+      const reqDir = path.join(tmpDir, ".kb/requirements");
+      const factDir = path.join(tmpDir, ".kb/facts");
 
       mkdirSync(reqDir, { recursive: true });
       mkdirSync(factDir, { recursive: true });
@@ -658,6 +644,7 @@ links:
 `,
       );
 
+      execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout, stderr } = runKibi(
@@ -667,8 +654,9 @@ links:
       );
 
       const output = stdoutToString(stdout || stderr);
-      expect(status).toBe(1);
-      expect(output).toContain("strict-readiness");
+      expect(status).toBe(0);
+      expect(output).toContain("No violations found");
+      expect(output).toContain("rule.strict-readiness");
       expect(output).toContain("REQ-LEGACY-TRACEABLE-001");
       expect(output).toContain("traceable");
       expect(output).toContain("not-ready");
@@ -678,10 +666,10 @@ links:
   );
 
   test(
-    "reports subject-only requirements as has-subject and pairing violations",
+    "reports subject-only requirements as has-subject and pairing quality diagnostics",
     async () => {
-      const reqDir = path.join(tmpDir, "documentation/requirements");
-      const factDir = path.join(tmpDir, "documentation/facts");
+      const reqDir = path.join(tmpDir, ".kb/requirements");
+      const factDir = path.join(tmpDir, ".kb/facts");
 
       mkdirSync(reqDir, { recursive: true });
       mkdirSync(factDir, { recursive: true });
@@ -730,11 +718,12 @@ links:
       );
 
       const output = stdoutToString(stdout || stderr);
-      expect(status).toBe(1);
-      expect(output).toContain("strict-readiness");
+      expect(status).toBe(0);
+      expect(output).toContain("No violations found");
+      expect(output).toContain("rule.strict-readiness");
       expect(output).toContain("REQ-SUBJECT-ONLY-001");
       expect(output).toContain("has-subject");
-      expect(output).toContain("strict-req-fact-pairing");
+      expect(output).toContain("rule.strict-req-fact-pairing");
       expect(output).toContain("requires_property");
     },
     TEST_TIMEOUT_MS,
@@ -744,9 +733,9 @@ links:
     "passes on valid KB",
     async () => {
       // Create valid requirement with scenario and test
-      const reqDir = path.join(tmpDir, "documentation/requirements");
-      const scenarioDir = path.join(tmpDir, "documentation/scenarios");
-      const testDir = path.join(tmpDir, "documentation/tests");
+      const reqDir = path.join(tmpDir, ".kb/requirements");
+      const scenarioDir = path.join(tmpDir, ".kb/scenarios");
+      const testDir = path.join(tmpDir, ".kb/tests");
 
       mkdirSync(reqDir, { recursive: true });
       mkdirSync(scenarioDir, { recursive: true });
@@ -801,6 +790,7 @@ links:
       );
 
       // Sync first
+      execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       // Check should pass
@@ -818,9 +808,9 @@ links:
   test(
     "check is read-only and does not rewrite kb.rdf",
     async () => {
-      const reqDir = path.join(tmpDir, "documentation/requirements");
-      const scenarioDir = path.join(tmpDir, "documentation/scenarios");
-      const testDir = path.join(tmpDir, "documentation/tests");
+      const reqDir = path.join(tmpDir, ".kb/requirements");
+      const scenarioDir = path.join(tmpDir, ".kb/scenarios");
+      const testDir = path.join(tmpDir, ".kb/tests");
 
       mkdirSync(reqDir, { recursive: true });
       mkdirSync(scenarioDir, { recursive: true });
@@ -868,9 +858,15 @@ links:
 `,
       );
 
+      execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
-      const rdfPath = path.join(tmpDir, ".kb/branches/main/kb.rdf");
+      const rdfPath = path.join(
+        (
+          await import("../../src/utils/branch-store-locator.js")
+        ).branchStorePath(tmpDir, "main"),
+        "kb.rdf",
+      );
       const before = readFileSync(rdfPath, "utf8");
       const beforeMtime = statSync(rdfPath).mtimeMs;
 
@@ -892,8 +888,8 @@ links:
   test(
     "detects must-priority requirement without scenario",
     async () => {
-      const reqDir = path.join(tmpDir, "documentation/requirements");
-      const testDir = path.join(tmpDir, "documentation/tests");
+      const reqDir = path.join(tmpDir, ".kb/requirements");
+      const testDir = path.join(tmpDir, ".kb/tests");
 
       mkdirSync(reqDir, { recursive: true });
       mkdirSync(testDir, { recursive: true });
@@ -946,8 +942,8 @@ links:
   test(
     "detects must-priority requirement without test",
     async () => {
-      const reqDir = path.join(tmpDir, "documentation/requirements");
-      const scenarioDir = path.join(tmpDir, "documentation/scenarios");
+      const reqDir = path.join(tmpDir, ".kb/requirements");
+      const scenarioDir = path.join(tmpDir, ".kb/scenarios");
 
       mkdirSync(reqDir, { recursive: true });
       mkdirSync(scenarioDir, { recursive: true });
@@ -997,9 +993,9 @@ tags: [scenario]
   test(
     "passes must-priority coverage with verified_by relationship",
     async () => {
-      const reqDir = path.join(tmpDir, "documentation/requirements");
-      const scenarioDir = path.join(tmpDir, "documentation/scenarios");
-      const testDir = path.join(tmpDir, "documentation/tests");
+      const reqDir = path.join(tmpDir, ".kb/requirements");
+      const scenarioDir = path.join(tmpDir, ".kb/scenarios");
+      const testDir = path.join(tmpDir, ".kb/tests");
 
       mkdirSync(reqDir, { recursive: true });
       mkdirSync(scenarioDir, { recursive: true });
@@ -1059,6 +1055,7 @@ links:
 `,
       );
 
+      execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
@@ -1072,7 +1069,7 @@ links:
   test(
     "reports each uncovered symbol once",
     async () => {
-      const symbolsDir = path.join(tmpDir, "documentation");
+      const symbolsDir = path.join(tmpDir, ".kb");
       mkdirSync(symbolsDir, { recursive: true });
       writeFileSync(
         path.join(symbolsDir, "symbols.yaml"),
@@ -1086,6 +1083,7 @@ links:
 `,
       );
 
+      execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout, stderr } = runKibi(
@@ -1103,7 +1101,7 @@ links:
   test(
     "detects self dependency cycle",
     async () => {
-      const reqDir = path.join(tmpDir, "documentation/requirements");
+      const reqDir = path.join(tmpDir, ".kb/requirements");
 
       mkdirSync(reqDir, { recursive: true });
 
@@ -1126,6 +1124,7 @@ links:
 `,
       );
 
+      execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout, stderr } = runKibi(
@@ -1144,7 +1143,7 @@ links:
   test(
     "detects dangling reference",
     async () => {
-      const reqDir = path.join(tmpDir, "documentation/requirements");
+      const reqDir = path.join(tmpDir, ".kb/requirements");
 
       mkdirSync(reqDir, { recursive: true });
 
@@ -1169,9 +1168,14 @@ links:
       );
 
       // Sync first
+      execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
-      const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--rules", "no-dangling-refs"],
+        tmpDir,
+      );
       expect(status).toBe(0);
       const output = stdoutToString(stdout || stderr);
       expect(output).toContain("No violations found");
@@ -1182,7 +1186,7 @@ links:
   test(
     "detects cycle in depends_on",
     async () => {
-      const reqDir = path.join(tmpDir, "documentation/requirements");
+      const reqDir = path.join(tmpDir, ".kb/requirements");
 
       mkdirSync(reqDir, { recursive: true });
 
@@ -1245,6 +1249,7 @@ links:
       );
 
       // Sync first
+      execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       // Check should fail
@@ -1261,7 +1266,7 @@ links:
   test(
     "detects missing required field",
     async () => {
-      const reqDir = path.join(tmpDir, "documentation/requirements");
+      const reqDir = path.join(tmpDir, ".kb/requirements");
 
       mkdirSync(reqDir, { recursive: true });
 
@@ -1282,7 +1287,11 @@ owner: alice
       // Sync first - this should create entity with missing title
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
-      const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--rules", "required-fields"],
+        tmpDir,
+      );
       expect(status).toBe(0);
       const output = stdoutToString(stdout || stderr);
       expect(output).toContain("No violations found");
@@ -1293,7 +1302,7 @@ owner: alice
   test(
     "suggests fixes with --fix flag",
     async () => {
-      const reqDir = path.join(tmpDir, "documentation/requirements");
+      const reqDir = path.join(tmpDir, ".kb/requirements");
 
       mkdirSync(reqDir, { recursive: true });
 
@@ -1315,6 +1324,7 @@ owner: alice
       );
 
       // Sync first
+      execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       // Check with --fix should suggest fixes
@@ -1335,7 +1345,7 @@ owner: alice
   test(
     "detects deprecated ADR with no successor",
     async () => {
-      const adrDir = path.join(tmpDir, "documentation/adr");
+      const adrDir = path.join(tmpDir, ".kb/adr");
 
       mkdirSync(adrDir, { recursive: true });
 
@@ -1371,7 +1381,7 @@ source: adr/ADR-001.md
   test(
     "passes when deprecated ADR has a supersedes relationship",
     async () => {
-      const adrDir = path.join(tmpDir, "documentation/adr");
+      const adrDir = path.join(tmpDir, ".kb/adr");
 
       mkdirSync(adrDir, { recursive: true });
 
@@ -1427,8 +1437,8 @@ links:
   test(
     "fails when domain contradictions exist",
     async () => {
-      const reqDir = path.join(tmpDir, "documentation/requirements");
-      const factDir = path.join(tmpDir, "documentation/facts");
+      const reqDir = path.join(tmpDir, ".kb/requirements");
+      const factDir = path.join(tmpDir, ".kb/facts");
 
       mkdirSync(reqDir, { recursive: true });
       mkdirSync(factDir, { recursive: true });
@@ -1524,6 +1534,7 @@ links:
 `,
       );
 
+      execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
@@ -1540,8 +1551,8 @@ links:
   test(
     "passes when contradiction is superseded",
     async () => {
-      const reqDir = path.join(tmpDir, "documentation/requirements");
-      const factDir = path.join(tmpDir, "documentation/facts");
+      const reqDir = path.join(tmpDir, ".kb/requirements");
+      const factDir = path.join(tmpDir, ".kb/facts");
 
       mkdirSync(reqDir, { recursive: true });
       mkdirSync(factDir, { recursive: true });
@@ -1639,6 +1650,7 @@ links:
 `,
       );
 
+      execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
@@ -1652,7 +1664,7 @@ links:
   test(
     "--staged passes when symbol is linked in symbols.yaml without inline directives",
     async () => {
-      const docDir = path.join(tmpDir, "documentation");
+      const docDir = path.join(tmpDir, ".kb");
       const reqDocDir = path.join(docDir, "requirements");
       const srcDir = path.join(tmpDir, "src");
 
@@ -1684,7 +1696,7 @@ status: open
 priority: must
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: documentation/requirements/REQ-STAGED-001.md
+source: .kb/requirements/REQ-STAGED-001.md
 ---
 `,
       );
@@ -1725,13 +1737,10 @@ source: documentation/requirements/REQ-STAGED-001.md
         cwd: tmpDir,
         stdio: "pipe",
       });
-      execSync(
-        "git add documentation/symbol-coordinates.yaml documentation/symbols.yaml",
-        {
-          cwd: tmpDir,
-          stdio: "pipe",
-        },
-      );
+      execSync("git add .kb/symbol-coordinates.yaml .kb/symbols.yaml", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
       // Run staged check - should pass because symbols.yaml links it
       const { status, stdout, stderr } = runKibi(
@@ -1750,7 +1759,7 @@ source: documentation/requirements/REQ-STAGED-001.md
   test(
     "--staged projects only manifest entities for staged source files",
     async () => {
-      const docDir = path.join(tmpDir, "documentation");
+      const docDir = path.join(tmpDir, ".kb");
       const reqDocDir = path.join(docDir, "requirements");
       const srcDir = path.join(tmpDir, "src");
       const legacyDir = path.join(tmpDir, "legacy");
@@ -1782,7 +1791,7 @@ status: open
 priority: must
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: documentation/requirements/REQ-STAGED-SCOPED-001.md
+source: .kb/requirements/REQ-STAGED-SCOPED-001.md
 ---
 `,
       );
@@ -1814,6 +1823,7 @@ source: documentation/requirements/REQ-STAGED-SCOPED-001.md
 `,
       );
 
+      execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
       execSync('git commit -m "baseline" --no-verify', {
@@ -1851,7 +1861,7 @@ source: documentation/requirements/REQ-STAGED-SCOPED-001.md
         stdio: "pipe",
       });
       execSync(
-        "git add src/app.ts documentation/symbols.yaml documentation/symbol-coordinates.yaml",
+        "git add src/app.ts .kb/symbols.yaml .kb/symbol-coordinates.yaml",
         {
           cwd: tmpDir,
           stdio: "pipe",
@@ -1869,20 +1879,18 @@ source: documentation/requirements/REQ-STAGED-SCOPED-001.md
   );
 
   test(
-    "--staged uses custom paths.symbols from config",
+    "--staged uses canonical .kb/symbols.yaml even when leftover config.json points elsewhere",
     async () => {
       const configDir = path.join(tmpDir, ".kb");
-      const docDir = path.join(tmpDir, "documentation");
-      const customDir = path.join(tmpDir, "custom");
-      const reqDocDir = path.join(tmpDir, "documentation/requirements");
+      const reqDocDir = path.join(tmpDir, ".kb/requirements");
       const srcDir = path.join(tmpDir, "src");
+      const customDir = path.join(tmpDir, "custom");
 
       mkdirSync(configDir, { recursive: true });
       mkdirSync(reqDocDir, { recursive: true });
-      mkdirSync(customDir, { recursive: true });
       mkdirSync(srcDir, { recursive: true });
+      mkdirSync(customDir, { recursive: true });
 
-      // Create custom config with custom symbols path
       writeFileSync(
         path.join(configDir, "config.json"),
         JSON.stringify({
@@ -1892,7 +1900,6 @@ source: documentation/requirements/REQ-STAGED-SCOPED-001.md
         }),
       );
 
-      // Initialize git and stage (skip pre-commit hook for initial setup)
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
       execSync('git config user.email "test@example.com"', {
         cwd: tmpDir,
@@ -1916,7 +1923,7 @@ status: open
 priority: must
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: documentation/requirements/REQ-CUSTOM-001.md
+source: .kb/requirements/REQ-CUSTOM-001.md
 ---
 `,
       );
@@ -1924,37 +1931,19 @@ source: documentation/requirements/REQ-CUSTOM-001.md
       writeFileSync(
         path.join(customDir, "my-symbols.yaml"),
         `symbols:
-  - id: SYMBOL-CUSTOM-001
-    title: customFunction
+  - id: SYMBOL-CUSTOM-IGNORED
+    title: ignoredCustom
     sourceFile: src/app.ts
-    links:
-      - REQ-CUSTOM-001
     status: active
 `,
       );
 
       writeFileSync(
-        path.join(customDir, "symbols.yaml"),
+        path.join(configDir, "symbols.yaml"),
         `symbols:
   - id: SYMBOL-CUSTOM-001
     title: customFunction
     sourceFile: src/app.ts
-    links:
-      - REQ-CUSTOM-001
-    status: active
-`,
-      );
-
-      writeFileSync(
-        path.join(docDir, "symbols.yaml"),
-        `symbols:
-  - id: SYM-CUSTOM-001
-    title: customFunction
-    sourceFile: src/app.ts
-    sourceLine: 1
-    sourceColumn: 16
-    sourceEndLine: 3
-    sourceEndColumn: 1
     links:
       - REQ-CUSTOM-001
     status: active
@@ -1969,7 +1958,6 @@ source: documentation/requirements/REQ-CUSTOM-001.md
 `,
       );
 
-      // Modify and stage
       writeFileSync(
         path.join(srcDir, "app.ts"),
         `export function customFunction() {
@@ -1977,16 +1965,22 @@ source: documentation/requirements/REQ-CUSTOM-001.md
 }
 `,
       );
+      execSync(
+        "git add src/app.ts .kb/symbols.yaml .kb/requirements/REQ-CUSTOM-001.md",
+        {
+          cwd: tmpDir,
+          stdio: "pipe",
+        },
+      );
       execSync(`bun ${kibiBin} sync --refresh-symbol-coordinates`, {
         cwd: tmpDir,
         stdio: "pipe",
       });
       execSync(
-        "git add src/app.ts custom/my-symbols.yaml custom/symbol-coordinates.yaml custom/symbols.yaml documentation/requirements/REQ-CUSTOM-001.md",
+        "git add src/app.ts .kb/symbols.yaml .kb/symbol-coordinates.yaml .kb/requirements/REQ-CUSTOM-001.md",
         { cwd: tmpDir, stdio: "pipe" },
       );
 
-      // Run staged check
       const { status, stdout, stderr } = runKibi(
         kibiBin,
         ["check", "--staged"],
@@ -2004,7 +1998,7 @@ source: documentation/requirements/REQ-CUSTOM-001.md
     "should run strict-fact-shape rule without errors",
     async () => {
       // Create a valid KB and test that the strict-fact-shape rule can run
-      const factDir = path.join(tmpDir, "documentation/facts");
+      const factDir = path.join(tmpDir, ".kb/facts");
       mkdirSync(factDir, { recursive: true });
 
       // Create a valid legacy fact (no fact_kind - should not trigger violation)
@@ -2044,7 +2038,7 @@ Content
   test(
     "should not flag well-formed strict facts with strict-fact-shape rule",
     async () => {
-      const factDir = path.join(tmpDir, "documentation/facts");
+      const factDir = path.join(tmpDir, ".kb/facts");
       mkdirSync(factDir, { recursive: true });
 
       // Create a well-formed strict fact
@@ -2083,7 +2077,7 @@ Content
   test(
     "should not flag legacy facts without fact_kind when strict-fact-shape enabled",
     async () => {
-      const factDir = path.join(tmpDir, "documentation/facts");
+      const factDir = path.join(tmpDir, ".kb/facts");
       mkdirSync(factDir, { recursive: true });
 
       // Create a legacy fact without fact_kind (should not be flagged)
@@ -2120,8 +2114,8 @@ Legacy prose fact without strict shape
   test(
     "should detect requires_property facts without matching strict subject linkage",
     async () => {
-      const reqDir = path.join(tmpDir, "documentation/requirements");
-      const factDir = path.join(tmpDir, "documentation/facts");
+      const reqDir = path.join(tmpDir, ".kb/requirements");
+      const factDir = path.join(tmpDir, ".kb/facts");
       mkdirSync(reqDir, { recursive: true });
       mkdirSync(factDir, { recursive: true });
 
@@ -2191,8 +2185,9 @@ links:
 
       const output = stdoutToString(stdout || stderr);
 
-      expect(status).toBe(1);
-      expect(output).toContain("strict-req-fact-pairing");
+      expect(status).toBe(0);
+      expect(output).toContain("No violations found");
+      expect(output).toContain("rule.strict-req-fact-pairing");
       expect(output).toContain("REQ-PAIRING-CLI-001");
     },
     TEST_TIMEOUT_MS,
@@ -2205,7 +2200,7 @@ links:
   test(
     "staged e2e: covered_by alone does not satisfy ownership gate (split semantics)",
     async () => {
-      const docDir = path.join(tmpDir, "documentation");
+      const docDir = path.join(tmpDir, ".kb");
       const testDocDir = path.join(docDir, "tests");
       const reqDocDir = path.join(docDir, "requirements");
       const srcDir = path.join(tmpDir, "src");
@@ -2237,7 +2232,7 @@ status: open
 priority: must
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: documentation/requirements/REQ-E2E-LOGIN.md
+source: .kb/requirements/REQ-E2E-LOGIN.md
 ---
 `,
       );
@@ -2250,7 +2245,7 @@ title: E2E Login Test
 status: passing
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: documentation/tests/TEST-E2E-LOGIN.md
+source: .kb/tests/TEST-E2E-LOGIN.md
 links:
   - type: validates
     target: REQ-E2E-LOGIN
@@ -2294,7 +2289,7 @@ links:
   test(
     "staged e2e: covered_by -> verified_by <- req fails ownership (split semantics)",
     async () => {
-      const docDir = path.join(tmpDir, "documentation");
+      const docDir = path.join(tmpDir, ".kb");
       const testDocDir = path.join(docDir, "tests");
       const reqDocDir = path.join(docDir, "requirements");
       const srcDir = path.join(tmpDir, "src");
@@ -2326,7 +2321,7 @@ status: open
 priority: must
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: documentation/requirements/REQ-E2E-LOGOUT.md
+source: .kb/requirements/REQ-E2E-LOGOUT.md
 links:
   - type: verified_by
     target: TEST-E2E-LOGOUT
@@ -2342,7 +2337,7 @@ title: E2E Logout Test
 status: passing
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: documentation/tests/TEST-E2E-LOGOUT.md
+source: .kb/tests/TEST-E2E-LOGOUT.md
 ---
 `,
       );
@@ -2384,7 +2379,7 @@ source: documentation/tests/TEST-E2E-LOGOUT.md
   test(
     "staged e2e: covered_by with no req-linked test fails",
     async () => {
-      const docDir = path.join(tmpDir, "documentation");
+      const docDir = path.join(tmpDir, ".kb");
       const testDocDir = path.join(docDir, "tests");
       const srcDir = path.join(tmpDir, "src");
       mkdirSync(testDocDir, { recursive: true });
@@ -2413,7 +2408,7 @@ title: Bare Test No Req
 status: passing
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: documentation/tests/TEST-E2E-BARE.md
+source: .kb/tests/TEST-E2E-BARE.md
 ---
 `,
       );
@@ -2452,7 +2447,7 @@ source: documentation/tests/TEST-E2E-BARE.md
   test(
     "staged e2e: relates_to replacing typed link fails",
     async () => {
-      const docDir = path.join(tmpDir, "documentation");
+      const docDir = path.join(tmpDir, ".kb");
       const testDocDir = path.join(docDir, "tests");
       const reqDocDir = path.join(docDir, "requirements");
       const srcDir = path.join(tmpDir, "src");
@@ -2484,7 +2479,7 @@ status: open
 priority: must
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: documentation/requirements/REQ-E2E-WEAK.md
+source: .kb/requirements/REQ-E2E-WEAK.md
 ---
 `,
       );
@@ -2497,7 +2492,7 @@ title: E2E Weak Test
 status: passing
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: documentation/tests/TEST-E2E-WEAK.md
+source: .kb/tests/TEST-E2E-WEAK.md
 links:
   - type: relates_to
     target: REQ-E2E-WEAK
@@ -2539,7 +2534,7 @@ links:
   test(
     "staged e2e: executable_for symbol passes staged ownership gate",
     async () => {
-      const docDir = path.join(tmpDir, "documentation");
+      const docDir = path.join(tmpDir, ".kb");
       const testDocDir = path.join(docDir, "tests");
       const reqDocDir = path.join(docDir, "requirements");
       const srcDir = path.join(tmpDir, "tests");
@@ -2571,7 +2566,7 @@ status: open
 priority: must
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: documentation/requirements/REQ-EXE-001.md
+source: .kb/requirements/REQ-EXE-001.md
 ---
 `,
       );
@@ -2584,7 +2579,7 @@ title: Exe Test
 status: passing
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: documentation/tests/TEST-EXE-001.md
+source: .kb/tests/TEST-EXE-001.md
 links:
   - type: validates
     target: REQ-EXE-001
@@ -2627,7 +2622,7 @@ links:
   test(
     "staged e2e: mixed-role symbol (executable_for + implements) fails",
     async () => {
-      const docDir = path.join(tmpDir, "documentation");
+      const docDir = path.join(tmpDir, ".kb");
       const testDocDir = path.join(docDir, "tests");
       const reqDocDir = path.join(docDir, "requirements");
       const srcDir = path.join(tmpDir, "src");
@@ -2659,7 +2654,7 @@ status: open
 priority: must
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: documentation/requirements/REQ-MIXED.md
+source: .kb/requirements/REQ-MIXED.md
 ---
 `,
       );
@@ -2672,7 +2667,7 @@ title: Mixed Test
 status: passing
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: documentation/tests/TEST-MIXED.md
+source: .kb/tests/TEST-MIXED.md
 ---
 `,
       );
@@ -2719,7 +2714,7 @@ source: documentation/tests/TEST-MIXED.md
   test(
     "staged e2e: production implements + covered_by with direct req->test fallback passes",
     async () => {
-      const docDir = path.join(tmpDir, "documentation");
+      const docDir = path.join(tmpDir, ".kb");
       const testDocDir = path.join(docDir, "tests");
       const reqDocDir = path.join(docDir, "requirements");
       const srcDir = path.join(tmpDir, "src");
@@ -2751,7 +2746,7 @@ status: open
 priority: must
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: documentation/requirements/REQ-FALLBACK.md
+source: .kb/requirements/REQ-FALLBACK.md
 ---
 `,
       );
@@ -2764,7 +2759,7 @@ title: Fallback Test
 status: passing
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: documentation/tests/TEST-FALLBACK.md
+source: .kb/tests/TEST-FALLBACK.md
 links:
   - type: validates
     target: REQ-FALLBACK
@@ -2813,7 +2808,7 @@ links:
   test(
     "staged e2e: direct manifest implements link still works (backward compat)",
     async () => {
-      const docDir = path.join(tmpDir, "documentation");
+      const docDir = path.join(tmpDir, ".kb");
       const reqDocDir = path.join(docDir, "requirements");
       const srcDir = path.join(tmpDir, "src");
       mkdirSync(reqDocDir, { recursive: true });
@@ -2843,7 +2838,7 @@ status: open
 priority: must
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: documentation/requirements/REQ-E2E-DIRECT.md
+source: .kb/requirements/REQ-E2E-DIRECT.md
 ---
 `,
       );
@@ -2885,7 +2880,7 @@ source: documentation/requirements/REQ-E2E-DIRECT.md
   test(
     "staged e2e: inline comment overlay still works (backward compat)",
     async () => {
-      const docDir = path.join(tmpDir, "documentation");
+      const docDir = path.join(tmpDir, ".kb");
       const reqDocDir = path.join(docDir, "requirements");
       const srcDir = path.join(tmpDir, "src");
       mkdirSync(reqDocDir, { recursive: true });
@@ -2915,7 +2910,7 @@ status: open
 priority: must
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: documentation/requirements/REQ-E2E-INLINE.md
+source: .kb/requirements/REQ-E2E-INLINE.md
 ---
 `,
       );
@@ -2960,7 +2955,7 @@ export function inlineFunc() {}
   test(
     "--staged resolves symbol ID from working-tree manifest when only code is staged (comment-only change, no symbols.yaml staged)",
     async () => {
-      const docDir = path.join(tmpDir, "documentation");
+      const docDir = path.join(tmpDir, ".kb");
       const reqDocDir = path.join(docDir, "requirements");
       const srcDir = path.join(tmpDir, "src");
 
@@ -2987,7 +2982,7 @@ status: open
 priority: must
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
-source: documentation/requirements/REQ-WT-001.md
+source: .kb/requirements/REQ-WT-001.md
 ---
 `,
       );
@@ -3047,7 +3042,7 @@ export function wtFunction() {
   test(
     "--staged --format json dedupes duplicate_symbol_coordinate_review diagnostics for overlapping staged/working-tree manifests",
     async () => {
-      const docDir = path.join(tmpDir, "documentation");
+      const docDir = path.join(tmpDir, ".kb");
       const srcDir = path.join(tmpDir, "src");
 
       mkdirSync(docDir, { recursive: true });
@@ -3082,7 +3077,7 @@ export function wtFunction() {
         path.join(docDir, "symbols.yaml"),
         "symbols:\n  - id: SYMBOL-DUP-001\n    title: duplicateSymbol\n    sourceFile: src/duplicate-symbol.ts\n    sourceLine: 1\n    sourceColumn: 16\n    sourceEndLine: 3\n    sourceEndColumn: 1\n    status: active\n  - id: SYMBOL-DUP-002\n    title: duplicateSymbol\n    sourceFile: src/duplicate-symbol.ts\n    sourceLine: 1\n    sourceColumn: 16\n    sourceEndLine: 3\n    sourceEndColumn: 1\n    status: active\n    # staged-overlap marker\n",
       );
-      execSync("git add documentation/symbols.yaml", {
+      execSync("git add .kb/symbols.yaml", {
         cwd: tmpDir,
         stdio: "pipe",
       });
@@ -3107,10 +3102,10 @@ export function wtFunction() {
   test(
     "passes symbol-coverage with complete scenario chain via typed links",
     async () => {
-      const reqDir = path.join(tmpDir, "documentation/requirements");
-      const scenarioDir = path.join(tmpDir, "documentation/scenarios");
-      const testDir = path.join(tmpDir, "documentation/tests");
-      const docsDir = path.join(tmpDir, "documentation");
+      const reqDir = path.join(tmpDir, ".kb/requirements");
+      const scenarioDir = path.join(tmpDir, ".kb/scenarios");
+      const testDir = path.join(tmpDir, ".kb/tests");
+      const docsDir = path.join(tmpDir, ".kb");
 
       mkdirSync(reqDir, { recursive: true });
       mkdirSync(scenarioDir, { recursive: true });
@@ -3149,10 +3144,10 @@ export function wtFunction() {
   test(
     "fails symbol-coverage when direct req→test exists but req has scenario",
     async () => {
-      const reqDir = path.join(tmpDir, "documentation/requirements");
-      const scenarioDir = path.join(tmpDir, "documentation/scenarios");
-      const testDir = path.join(tmpDir, "documentation/tests");
-      const docsDir = path.join(tmpDir, "documentation");
+      const reqDir = path.join(tmpDir, ".kb/requirements");
+      const scenarioDir = path.join(tmpDir, ".kb/scenarios");
+      const testDir = path.join(tmpDir, ".kb/tests");
+      const docsDir = path.join(tmpDir, ".kb");
 
       mkdirSync(reqDir, { recursive: true });
       mkdirSync(scenarioDir, { recursive: true });
@@ -3194,7 +3189,7 @@ import { parseViolationRows } from "../../src/prolog/codec";
 describe("parseViolationRows — via check integration", () => {
   test("correctly parses violation with comma in description", () => {
     const raw =
-      "[violation(strict-fact-shape,'FACT-ARC-018',\"Missing required fields: subject_key, property_key\",\"Add the missing fields\",'documentation/facts/FACT-ARC-018.md')]";
+      "[violation(strict-fact-shape,'FACT-ARC-018',\"Missing required fields: subject_key, property_key\",\"Add the missing fields\",'.kb/facts/FACT-ARC-018.md')]";
     const result = parseViolationRows(raw);
     expect(result).toHaveLength(1);
     expect(result[0].description).toBe(

@@ -1,0 +1,3 @@
+{"id":"compile-property","intent":"Customer data must be retained for 7 years.","assertivePropositions":1,"expectedStatus":"ready"}
+{"id":"compile-ambiguity","intent":"The service may retain data for a while.","assertivePropositions":1,"expectedStatus":"needs_resolution"}
+{"id":"compile-contradiction","intent":"Customer data must be retained for 1 day.","assertivePropositions":1,"expectedStatus":"blocked"}

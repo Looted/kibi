@@ -1,8 +1,6 @@
-import { existsSync, readFileSync } from "node:fs";
 // implements REQ-opencode-kibi-plugin-v1
 import { createRequire } from "node:module";
 import * as path from "node:path";
-import { createRepoIgnorePolicy } from "kibi-cli/ignore-policy";
 
 const _require = createRequire(import.meta.url);
 
@@ -24,42 +22,21 @@ try {
   };
 }
 
-// Local copy of DEFAULT_CONFIG.paths to avoid cross-package TS rootDir issues.
-// Must stay in sync with DEFAULT_CONFIG.paths in packages/cli/src/utils/config.ts.
-const DEFAULT_SYNC_PATHS = {
-  requirements: "documentation/requirements/**/*.md",
-  scenarios: "documentation/scenarios/**/*.md",
-  tests: "documentation/tests/**/*.md",
-  adr: "documentation/adr/**/*.md",
-  flags: "documentation/flags/**/*.md",
-  events: "documentation/events/**/*.md",
-  facts: "documentation/facts/**/*.md",
-  symbols: "documentation/symbols.yaml",
-};
+// Canonical Kibi knowledge paths — must stay in sync with
+// packages/cli/src/utils/kb-paths.ts CANONICAL_ENTITY_PATHS.
+const CANONICAL_KB_PATHS = {
+  requirements: ".kb/requirements/**/*.md",
+  scenarios: ".kb/scenarios/**/*.md",
+  tests: ".kb/tests/**/*.md",
+  adr: ".kb/adr/**/*.md",
+  flags: ".kb/flags/**/*.md",
+  events: ".kb/events/**/*.md",
+  facts: ".kb/facts/**/*.md",
+  symbols: ".kb/symbols.yaml",
+} as const;
 
-function loadSyncConfigLocal(cwd = process.cwd()) {
-  const configPath = path.join(cwd, ".kb/config.json");
-  let userConfig: { paths?: Record<string, string>; defaultBranch?: string } =
-    {};
-  if (existsSync(configPath)) {
-    try {
-      userConfig = JSON.parse(readFileSync(configPath, "utf8")) || {};
-    } catch {
-      userConfig = {};
-    }
-  }
-  return {
-    paths: {
-      ...DEFAULT_SYNC_PATHS,
-      ...(userConfig.paths ?? {}),
-    },
-    defaultBranch: userConfig.defaultBranch,
-  };
-}
-
-export function loadKbSyncPaths(cwd = process.cwd()) {
-  const cfg = loadSyncConfigLocal(cwd);
-  return cfg.paths ?? DEFAULT_SYNC_PATHS;
+export function loadKbSyncPaths(_cwd = process.cwd()) {
+  return CANONICAL_KB_PATHS;
 }
 
 // implements REQ-opencode-kibi-plugin-v1
@@ -127,21 +104,6 @@ function normalizePattern(p: string | undefined): string | null {
   return `${p.replace(/\/+$/, "")}/**/*.md`;
 }
 
-const DEFAULT_IGNORES = [
-  ".kb/**",
-  ".git/**",
-  "node_modules/**",
-  "dist/**",
-  "coverage/**",
-  ".opencode/**",
-  "**/*~",
-  "**/~*",
-  "**/.#*",
-  "**/*.swp",
-  "**/*.swo",
-  "**/.DS_Store",
-];
-
 // implements REQ-opencode-kibi-plugin-v1
 export function shouldHandleFile(
   filePath: string,
@@ -150,14 +112,8 @@ export function shouldHandleFile(
   const rel = path.isAbsolute(filePath)
     ? path.relative(cwd, filePath).split(path.sep).join("/")
     : filePath.split(path.sep).join("/");
-  // Check shared ignore policy (root .gitignore, nested .gitignore, .git/info/exclude,
-  // and hard denylist such as .sisyphus) before other pattern checks.
-  const policy = createRepoIgnorePolicy(cwd);
-  if (policy.isIgnored(rel)) return false;
 
   const paths = loadKbSyncPaths(cwd);
-
-  // Build include patterns from kibi paths
   const includeCandidates = [
     paths.requirements,
     paths.scenarios,
@@ -168,26 +124,16 @@ export function shouldHandleFile(
     paths.facts,
     paths.symbols,
   ] as Array<string | undefined>;
-
   const includePatterns: string[] = includeCandidates
     .map(normalizePattern)
     .filter((p): p is string => Boolean(p));
-
-  // default ignores then allow extension by .kb/config.json -> sync.ignore (not implemented here)
-  const ignorePatterns = DEFAULT_IGNORES;
-
-  // Compile matchers
-  const isIgnored = ignorePatterns.some((ig) => picomatch.isMatch(rel, ig));
-  if (isIgnored) return false;
-
-  // If any include pattern matches, accept
   const included = includePatterns.some((pat) => picomatch.isMatch(rel, pat));
-  if (included) return true;
-
-  // If symbols path is configured as exact file and matches exactly, accept
-  if (paths.symbols) {
-    const sym = paths.symbols;
-    if (sym === rel || picomatch.isMatch(rel, sym)) return true;
+  if (
+    included ||
+    (paths.symbols !== undefined &&
+      (paths.symbols === rel || picomatch.isMatch(rel, paths.symbols)))
+  ) {
+    return true;
   }
 
   return false;

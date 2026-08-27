@@ -51,10 +51,10 @@ const TRACEABILITY_PATTERN = /implements\s+REQ-[A-Za-z0-9_-]+/i;
  * Classify a file edit into a deterministic risk class.
  *
  * Classification order (first match wins):
- * 1. manual_kb_edit        — file is under .kb/
+ * 1. manual_kb_edit        — opaque/derived `.kb/` files (pathKind "kb")
  * 2. safe_test_only        — pathKind is "test"
- * 3. req_policy_candidate  — pathKind is "requirement"
- * 4. kb_doc_structural     — pathKind is "scenario", "adr", or "fact"
+ * 3. req_policy_candidate  — pathKind is "requirement" (including `.kb/requirements`)
+ * 4. kb_doc_structural     — pathKind is "scenario", "adr", "fact", "flag", "event", or "symbol"
  * 5. safe_docs_only        — pathKind is "unknown" (markdown/config/etc.)
  * 6. traceability_candidate — code with exports AND (hasDurableComment OR missing traceability)
  * 7. behavior_candidate    — code with exports, already has traceability, no durable comment
@@ -69,11 +69,14 @@ export function classifyRisk(params: ClassifyRiskParams): RiskClassification {
     fileContent,
   } = params;
 
-  // 1. manual_kb_edit — direct KB manipulation is always risky
-  if (isUnderKb) {
+  // 1. manual_kb_edit — derived/runtime `.kb/` files, not canonical lanes.
+  // Entity lanes under `.kb/` keep their typed pathKind (requirement, symbol, …).
+  if (isUnderKb && pathKind === "kb") {
     return {
       riskClass: "manual_kb_edit",
-      reasons: ["File is under .kb/ — manual edits bypass KB validation"],
+      reasons: [
+        "File is opaque or derived `.kb/` runtime state — manual edits bypass KB validation",
+      ],
     };
   }
 

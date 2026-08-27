@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "branch": "develop",
+  "recoveredAt": "2026-08-17T09:43:26.263Z",
+  "priorState": "healthy",
+  "priorErrorCode": null,
+  "backupPath": ".kb/recovery/develop/2026-08-17T09-41-03.486Z",
+  "strategy": "rebuild_from_authored_sources"
+}

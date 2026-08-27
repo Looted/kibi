@@ -1,0 +1,141 @@
+relationships:
+  - id: rel-e12c63421709
+    type: specified_by
+    from: REQ-kibi-html-health-report
+    to: SCEN-kibi-html-health-report
+    created_at: "2026-08-15T21:04:03.502Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: requires_predicate
+    from: REQ-kibi-html-health-report
+    to: FACT-PRED-775E3CA717FB
+    created_at: 2026-08-15T21:04:03.503Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25b9dd5e6d48
+  - type: requires_predicate
+    from: REQ-kibi-html-health-report
+    to: FACT-PRED-FBED98927CA2
+    created_at: 2026-08-15T21:04:03.518Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2baf0524080a
+  - type: requires_predicate
+    from: REQ-kibi-html-health-report
+    to: FACT-PRED-5B296D9EA88F
+    created_at: 2026-08-15T21:04:03.522Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a280bff27684
+  - type: requires_predicate
+    from: REQ-kibi-html-health-report
+    to: FACT-PRED-FCCC8C0397F3
+    created_at: 2026-08-15T21:04:03.525Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-906c81c59e38
+  - type: requires_predicate
+    from: REQ-kibi-html-health-report
+    to: FACT-PRED-81A8ED15EE8B
+    created_at: 2026-08-15T21:04:03.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7512b962b109
+  - type: requires_predicate
+    from: REQ-kibi-html-health-report
+    to: FACT-PRED-B606CED833B8
+    created_at: 2026-08-15T21:04:03.531Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-568e6e11e36a
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-executecompileintent
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-16T19:45:30.477Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aac9b3abba07
+  - type: implements
+    from: SYM-installGitHooks
+    to: REQ-cli-init
+    created_at: 2026-08-17T12:55:05.645Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d487d8a4139
+  - type: implements
+    from: SYM-installGitHooks
+    to: REQ-git-hook-sync-v2
+    created_at: 2026-08-17T12:55:05.658Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b566ba95a1da
+  - type: covered_by
+    from: SYM-installGitHooks
+    to: TEST-001
+    created_at: 2026-08-17T12:55:05.663Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c51924a31ef1
+  - type: covered_by
+    from: SYM-installGitHooks
+    to: TEST-006
+    created_at: 2026-08-17T12:55:05.668Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f330d2256584
+  - type: implements
+    from: 6bbf244479d3b27f
+    to: REQ-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-21T10:54:30.843Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-616b23778cf1
+  - type: covered_by
+    from: 6bbf244479d3b27f
+    to: TEST-kibi-predicate-suggestion-relevance-v1
+    created_at: 2026-08-21T12:52:34.645Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-153dc6842592
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-markdown-candidates-candidatebuildresult
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-21T19:37:57.983Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ee61f198bcf
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-markdown-candidates-candidatebuildresult
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-21T19:37:58.014Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fddf98eeb377
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-markdown-candidates-candidatebuildresult
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:15:29.111Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-248f0b205e73
+  - type: implements
+    from: SYM-buildEnforcementScopeKey
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:45:42.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f5564aaa563
+  - type: covered_by
+    from: SYM-buildEnforcementScopeKey
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:45:42.403Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a3d0860852d
+  - type: covered_by
+    from: SYM-buildEnforcementScopeKey
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:45:42.410Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31f01b8b5a2a

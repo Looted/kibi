@@ -6,12 +6,12 @@ import { fileURLToPath } from "node:url";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 
-const canonicalRoot = join(repoRoot, "packages/cli/src/public/skills");
+const canonicalRoot = join(repoRoot, "packages/runtime/src/skills");
 const mirrorRoot = join(repoRoot, "packages/cursor/skills");
 const hashManifestPath = join(mirrorRoot, ".canon-hash.json");
 
 const EXPECTED_SKILL_IDS = [
-  "init-kibi",
+  "kibi-bootstrap",
   "kibi-freshness",
   "kibi-traceability",
   "kibi-usage",

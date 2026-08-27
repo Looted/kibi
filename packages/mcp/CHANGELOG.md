@@ -1,5 +1,215 @@
 # kibi-mcp
 
+## 1.0.0
+
+### Major Changes
+
+- 9e6fb3f: Kibi now uses one opinionated project contract: all Kibi-managed knowledge lives under `.kb/`, check enforcement is owned by the installed Kibi version, and projects can no longer weaken health by disabling rules or relocating entity paths in `.kb/config.json`. Existing repositories must run `kibi migrate --yes` to move legacy `documentation/...` knowledge into the canonical layout and adopt `.kb/manifest.json`.
+
+  Advisory modeling checks still run by default, but they report as non-blocking quality diagnostics instead of failing `kibi check`. Migration rewrites the old blanket `.kb/` gitignore stanza so authored lanes are trackable, and a malformed leftover `config.json` blocks the one-way cutover instead of guessing default paths.
+
+  - Remove user-configurable entity paths and persistent `checks.rules` overrides; retire `.kb/config.json` after migration.
+  - Introduce `.kb/manifest.json` for Kibi-owned lifecycle metadata (schema version, semantic backfill state).
+  - Add one-way legacy storage migration (`documentation/` and custom configured paths → `.kb/<lane>/`).
+  - Split check results by enforcement class: canonical → blocking violations; advisory → quality diagnostics; migration → explicit `--rules` only. Default execution is derived from the class (no separate `runsByDefault` flag).
+  - Normalize legacy Kibi `.gitignore` fences during init and migrate; treat `.kb/migrations/` as derived runtime state.
+  - Fail closed when leftover `.kb/config.json` cannot be parsed.
+  - Update init, sync, hooks, staged evidence, doctor, migration-plan, and integration packages for canonical paths.
+  - Generate the requirement-health report on pull requests as a `kibi-pr-report` artifact; keep GitHub Pages deployment on the default branch only.
+  - OpenCode treats canonical `.kb/` entity lanes as knowledge that requires evidence; only derived runtime trees (and leftover `config.json`) are ignored.
+  - Cursor and Codex hook path policy treat canonical `.kb/` lanes as tracked knowledge, not opaque compiled-store paths.
+  - Pending relationship shards are not treated as symbols manifests during source discovery.
+
+- 4c75e4d: Kibi onboarding now separates repository initialization from teaching Kibi about an existing codebase. After `kibi init`, an agent can run the `kibi-bootstrap` workflow to produce a reviewable, hash-bound plan and apply the exact approved plan safely. The old autopilot and init-kibi public names are removed so new users see one clear bootstrap path.
+
+  - Replace `kb_autopilot_generate`/`autopilot-generate` with `kb_plan_bootstrap`/`plan-bootstrap`.
+  - Add `kibi.bootstrap-plan.v1` validation, deterministic approval hashes, dependency ordering, stale-plan checks, and typed bootstrap recovery through `kb_apply_plan`.
+  - Synchronize the four canonical skill mirrors and update client adapters, docs, fixtures, and SkillOpt cases.
+
+### Minor Changes
+
+- a2acea9: Kibi now has a source-first, exact-Git runtime contract for first-party
+  adapters. CLI JSON and MCP structured results share a versioned envelope with
+  effect and repair information, while branch stores are hashed and explicitly
+  identity-bound. The mutation path can author tracked source documents and
+  canonical relationship shards without staging or committing them.
+
+  - Add the `kibi-runtime` first-party integration package.
+  - Add exact branch-store manifests, explicit legacy migration/quarantine, and
+    typed result/effect contracts.
+  - Add source-first document writes, relationship-shard updates, and deletion
+    approval plans.
+
+- 7654339: Predicate suggestions now abstain more safely when relevance is weak or bindings are unreviewed, while explaining candidate eligibility and rejection reasons.
+
+  When a genuine ontology gap remains, agents receive a reviewable schema draft instead of an empty recommendation. Reusable launcher schemas and regression coverage improve guidance for consumer-local package resolution and process execution.
+
+  - Add public applicability, binding-provenance, score diagnostics, abstention, and recommended-schema draft fields.
+  - Add five launcher-oriented schemas, Cursor launcher coverage, MCP assertions, and reference documentation.
+  - Preserve `requires_rule` relationship shards during source-first extraction and sync.
+  - Compose multi-entity authored deletions targeting one source file into a single hash-bound write.
+  - Fail packed E2E bootstrap immediately when shared npm installation exits unsuccessfully, preserving command output for diagnosis.
+  - Scope explicit `kb_check --rules` diagnostics in the Prolog check path instead of evaluating the full rule aggregate first.
+  - Fix Logic IR dependency extraction so positive stored rules remain ground and stratification checks terminate.
+  - Normalize RDF-typed `rule_schema_id` references before rule verifiability lookup and cover the repair with Prolog regressions.
+
+- 967cef7: kibi-mcp now speaks the latest stable MCP protocol revision (2025-11-25) and
+  gives agent clients richer server metadata out of the box. When a client
+  connects, the server identifies itself with a human-readable title,
+  description, website URL, and Kibi logo icons, and includes instructions that
+  steer agents toward the discover-then-mutate workflow. Documentation resources
+  and prompts now carry display titles, so MCP client UIs can present them
+  properly instead of falling back to raw identifiers.
+
+  - Upgrade `@modelcontextprotocol/sdk` from ^1.26.0 to ^1.30.0 (protocol
+    ceiling 2024-11-05 → 2025-11-25; tool input-validation failures now surface
+    as tool-execution errors the model can self-correct, per SEP-1303).
+  - Enrich initialize `serverInfo` with `title`, `description`, `websiteUrl`,
+    and SEP-973 `icons`; add initialize-result `instructions`.
+  - Migrate deprecated `server.prompt()`/`server.resource()` calls to
+    `registerPrompt`/`registerResource`.
+  - Add `title` annotations for all 21 tools and for all documentation prompts
+    and resources; attach logo icons to documentation resources.
+  - Update protocol-version tests to negotiate 2025-11-25 while asserting legacy
+    2024-11-05 clients still connect.
+
+### Patch Changes
+
+- 7bc4f61: Symbol coordinates no longer vanish when agents edit symbols, and a stale warm cache can no longer hide the damage. Editing a symbol through Kibi now keeps its exact code location in compiled knowledge, and when compiled state ever loses those coordinates while everything else looks unchanged, the approved coordinate refresh actually repairs it instead of reporting "Imported 0". Refresh failures now stop the operation loudly instead of being logged and ignored, so proof gaps appear immediately rather than after the next full rebuild.
+
+  - Source-first symbol upserts re-extract the canonical manifest + artifact entity before committing; authored `symbols.yaml` stays coordinate-free.
+  - Sync cache v2: workspace-root-relative keys, `symbol-coordinates.yaml` fingerprinted with its manifest, explicit refreshes forced through persistence, cache written only after durable save.
+  - Generated artifacts become identity-bound v2 records published atomically under a workspace symbol compiler lock; malformed artifacts fail closed everywhere.
+  - New MCP/CLI regression suites plus a Prolog proof-stage regression cover persistence, warm-cache repair, and fail-closed behavior.
+
+- Generated symbol coordinates now stay aligned with live source files during sync and source-first mutations, even when operations overlap or fail partway through. Coordinate artifacts are published and restored atomically, so callers do not inherit stale or half-written compiler state.
+
+  - Add workspace-scoped symbol compiler locking and compare-before-restore artifact rollback.
+  - Include coordinate artifacts and referenced source files in sync freshness fingerprints.
+  - Support explicit `test-suite` granularity for intentionally coarse test anchors.
+
+- b746960: Kibi now teaches and enforces requirement supersession in one consistent
+  direction: the replacement points to the requirement it replaces. Reversed
+  edges can no longer hide a newer contradictory policy merely by making that
+  newer requirement non-current. Relationship checks also block authored links
+  that have silently disappeared from compiled knowledge.
+
+  - Document `supersedes` as new-to-old across bundled and generated skills.
+  - Reject reversed supersession when tracked source history proves that the
+    purported replacement predates its target.
+  - Restrict legacy branch migration to literal-to-hashed storage conversion for
+    the same exact Git identity; every cross-identity pair is refused.
+  - Cover exact-Git branch policy conflicts and approved evolution with Prolog
+    regression tests.
+  - Preserve partial-upsert relationship projections and validate
+    authored-to-compiled relationship parity.
+
+- Updated dependencies [a2acea9]
+- Updated dependencies [e3fd1f2]
+- Updated dependencies [9e6fb3f]
+- Updated dependencies [3d7d04f]
+- Updated dependencies [7bc4f61]
+- Updated dependencies [1ca62af]
+- Updated dependencies [7654339]
+- Updated dependencies
+- Updated dependencies [3cb9545]
+- Updated dependencies [8d25c5c]
+- Updated dependencies [b97329a]
+- Updated dependencies [4c75e4d]
+- Updated dependencies [b746960]
+- Updated dependencies [400e88c]
+  - kibi-runtime@1.0.0
+  - kibi-core@0.11.0
+
+## 0.24.0
+
+### Minor Changes
+
+- Existing Kibi installations now receive an agent-guided migration workflow instead of opaque repair advice. Status, checks, and coverage expose one deterministic, hash-bound action plan; agents can safely apply only explicitly approved automatic repairs while semantic, proof, package, and operator work remains visible for review. This makes damaged or legacy KBs recoverable without direct `.kb` edits and gives every run an auditable post-application readback.
+
+  - Add `kibi.migration-plan.v2` fragments to the 21-operation surfaces and support hash/action authorization in `kb_apply_plan` and `kibi migrate --apply-safe`.
+  - Add lazy status/planning and deterministic schema, branch, storage, coordinate, and recovery action execution with workspace-root-safe CLI/MCP parity.
+  - Refresh agent skills, traceability fixtures, and SkillOpt coverage for migration safety boundaries and five-axis closeout reporting.
+
+### Patch Changes
+
+- Updated dependencies
+  - kibi-core@0.10.3
+  - kibi-cli@0.21.0
+
+## 0.23.1
+
+### Patch Changes
+
+- 584336b: Agents now get consistent guidance when execution proof, structural coverage, and KB freshness disagree. Current-contract E2E evidence is recorded as v2 without rewriting history, and full checks no longer report a contradictory weak-depth warning when the same live receipt already proves the scenario-backed test. Receipt freshness repairs also identify the affected requirements and tests so agents can rerun the exact contract.
+
+  - Share snapshot-bound proof evidence with full quality diagnostics.
+  - Add bounded receipt-gap telemetry and v2-native remediation guidance.
+  - Document and test the new receipt and proof-aware diagnostic requirements.
+  - Refresh the mirrored usage skills and dogfood-derived SkillOpt expectations.
+  - Keep the MCP package contract verifier self-contained with an explicit semver development dependency and matching workspace lock ranges.
+
+- Kibi can now explain a missing or damaged branch-local KB without changing it. Agents receive a precise recovery path, preserving the existing store before a deliberate rebuild, and no longer need to guess whether a clean check also means a clean, fresh KB.
+
+  - Add non-mutating branch-store inspection to status and a preview-first `kibi branch recover --apply` workflow.
+  - Restrict branch migration to the detected historical `master` -> legacy `main` compatibility attachment; arbitrary branch moves are refused.
+  - Refresh CLI/MCP status documentation, mirrored agent skills, and release-gate packed consumer coverage.
+
+- ef75929: Kibi’s release checks now validate compiled package APIs and dependency ranges in isolated npm and pnpm consumers, while the usage skill and private SkillOpt evaluator report task completion, KB freshness, verification, proof, and accepted limitations independently. Consumer repositories keep ownership of their local artifact update scripts and dependency overrides.
+
+  - Remove library-side consumer dogfood installers and retain release-only packed checks.
+  - Add deterministic closeout expectations and dogfood-derived held-out cases.
+
+- Updated dependencies [de7b85a]
+- Updated dependencies [584336b]
+- Updated dependencies
+- Updated dependencies [ef75929]
+  - kibi-cli@0.20.1
+  - kibi-core@0.10.2
+
+## 0.23.0
+
+### Minor Changes
+
+- 9d71304: Kibi can now compile a complete change intent into a reviewable, snapshot-bound plan before anything is written, then apply an explicitly approved plan only after rechecking its hash and live snapshots. The new operations reuse intent-aware discovery and semantic modeling, account for every proposition, surface current contradiction witnesses, and keep traceability proposals separate from executable steps until explicitly accepted.
+
+  - Add the shared `kb_compile_intent` / `compile-intent` operation and deterministic `kibi.compile-plan.v1` result.
+  - Add the guarded `kb_apply_plan` / `apply-plan` mutation boundary and `kibi.plan-apply-result.v1` result.
+  - Add contracted verification ingestion through `kb_ingest_verification`, including snapshot-bound `kibi.verification-receipt.v2` case results.
+  - Register the operation through the CLI and MCP parity surfaces with contract tests and documentation.
+
+- Dogfood projects now get branch-local knowledge bases that follow the exact Git ref, actionable stale-source diagnostics, and a sanctioned relationship cleanup path. Verification receipts and packed package provenance are stricter and reproducible, while agents receive conservative symbol-recovery guidance and explicit interim-state signals. This prevents silent `master`/`main` drift and makes passing E2E evidence distinguishable from complete semantic proof.
+
+  - Remove implicit branch-name normalization and add previewed legacy branch migration.
+  - Add exact relationship deletion, v2 receipt/schema parity, status diagnostics, dogfood package manifests, and SkillOpt cases.
+
+- 9d71304: Kibi search can now recover requirements from unfamiliar functionality wording and changed source locations when the host agent supplies semantic facets. Intent searches return deterministic ranking evidence, traceability graph evidence, and an explicit abstention signal for low-confidence results while preserving the existing lexical search behavior.
+
+  - Add the `intent-v1` search ranking mode and source-location validation.
+  - Expose semantic facet matches, source matches, graph paths, and query analysis in shared CLI/MCP structured output.
+
+### Patch Changes
+
+- 7ddbaff: Dogfood projects can now resume proof work without losing their declared test intent. Test entities persist a typed verification contract, workspace snapshots ignore receipt-only churn consistently, and the sync guard no longer mistakes quoted requirement prose for executable escape hatches. Explicit ontology gaps remain unresolved rather than being reported as missing logical proof.
+
+  - Persist and validate `verification_contract.v1` through extraction, mutation, sync, and staged traceability KBs.
+  - Version the receipt-stable workspace snapshot as `kibi.workspace-snapshot.v2`.
+  - Make logic coverage inventory-aware and support Prolog-encoded semantic inventories.
+
+- MCP startup now fails with the original dependency error instead of silently loading an unpackaged source file, and the CLI/MCP package contract is checked against the packed artifacts. The coordinated release also makes MCP require the CLI release that exports every operation it imports.
+
+  - Preserve compiled-entrypoint import errors in the `kibi-mcp` launcher.
+  - Require the compatible `kibi-cli` export surface and verify it in isolated package consumers.
+
+- Updated dependencies [9d71304]
+- Updated dependencies
+- Updated dependencies [7ddbaff]
+- Updated dependencies [9d71304]
+- Updated dependencies
+- Updated dependencies [9d71304]
+  - kibi-cli@0.20.0
+  - kibi-core@0.10.1
+
 ## 0.22.0
 
 ### Minor Changes
@@ -310,7 +520,7 @@
   - Enrich MCP diagnostic usage fields for `kb_semantic_advisor`, `kb_suggest_predicates`, and `kb_upsert`.
   - Classify requirement contradiction errors as `semantic_contradiction` validation failures with actionable hints.
   - Preserve semantic context in CLI sync/rebuild validation errors instead of reducing Prolog failures to `Query returned false`.
-  - Extend prose coverage with real Align annotation time-key and merge-policy requirements.
+  - Extend prose coverage with real dogfood project A annotation time-key and merge-policy requirements.
   - Refresh changed Prolog check modules through the MCP aggregated check loader.
 
 - 224f18b: Agents and hook users now get clearer guidance when behavior-changing staged files are missing Kibi impact evidence. The staged check points to the staged-impact workflow, explains that MCP KB writes do not automatically stage tracked markdown or manifest evidence, and tells users which files to stage before rerunning the hook. MCP validation also catches invalid relationship shortcuts earlier, and bundled skill loading makes follow-up resources easier to discover.

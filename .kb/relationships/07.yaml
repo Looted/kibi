@@ -1,0 +1,85 @@
+relationships:
+  - id: rel-343a03e6d8d5
+    type: validates
+    from: TEST-kibi-dependency-ordered-repair-plan
+    to: SCEN-kibi-dependency-ordered-repair-plan
+    created_at: "2026-08-16T18:51:39.469Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-reqcompiler-mcp-coverage-result
+    to: TEST-kibi-dependency-ordered-repair-plan
+    created_at: 2026-08-16T18:51:39.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ad5be08988f
+  - type: covered_by
+    from: SYM-cli-engine-client-get-pid
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.128Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d722db479ffb
+  - type: implements
+    from: SYM-canonical-KB_PATHS
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:03:19.457Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1da128b572d6
+  - type: covered_by
+    from: SYM-canonical-KB_PATHS
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:03:19.464Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad148d3c8e8d
+  - type: implements
+    from: SYM-buildStrictWriteSet
+    to: REQ-011
+    created_at: 2026-08-22T20:12:17.473Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ffcd2c31c24
+  - type: covered_by
+    from: SYM-buildStrictWriteSet
+    to: TEST-cli-strict-modeling
+    created_at: 2026-08-22T20:12:17.486Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-96ed767be91e
+  - type: covered_by
+    from: SYM-buildStrictWriteSet
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:12:17.490Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8f1d8b548b7
+  - type: implements
+    from: SYM-runKibiOpencodeAutoUpdate
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T21:00:58.636Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52fcdfe32a36
+  - type: covered_by
+    from: SYM-runKibiOpencodeAutoUpdate
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T21:00:58.650Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-401d735ce4a3
+  - type: covered_by
+    from: SYM-runKibiOpencodeAutoUpdate
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T21:00:58.654Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8100b7a767b
+  - type: covered_by
+    from: SYM-cli-rule-registry-RULE_NAMES
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-26T07:15:13.864Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3a156418c2a

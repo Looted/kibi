@@ -157,47 +157,49 @@ describe("modeling guidance: canonical entity-choice rule", () => {
     });
   });
 
-  // ─── docs/prompts/llm-rules.md ─────────────────────────────────────────────
+  // ─── bundled kibi-usage skill ───────────────────────────────────────────────
 
-  describe("docs/prompts/llm-rules.md", () => {
+  describe("kibi-usage skill", () => {
+    const usageSkill = "packages/runtime/src/skills/kibi-usage/SKILL.md";
+
     test("must explicitly state that flag is for runtime/config gating", () => {
-      const content = readDoc("docs/prompts/llm-rules.md");
+      const content = readDoc(usageSkill);
       expect(content).toMatch(
         /flag\b.*runtime|flag\b.*config\s*gate|runtime.*gate.*flag/i,
       );
     });
 
     test("must explicitly forbid creating flag for a bug/workaround note without an actual gate", () => {
-      const content = readDoc("docs/prompts/llm-rules.md");
+      const content = readDoc(usageSkill);
       expect(content).toMatch(
-        /not.*flag.*bug|flag.*not.*bug|do not.*flag.*bug|flag.*without.*gate|wrong.*flag.*bug|incorrect.*flag.*bug/i,
+        /not.*flag.*bug|flag.*not.*bug|do not.*flag.*bug|flag.*without.*gate|wrong.*flag.*bug|incorrect.*flag.*bug|Bug-as-flag/i,
       );
     });
 
     test("must state that bugs/incident notes belong under observation/meta facts", () => {
-      const content = readDoc("docs/prompts/llm-rules.md");
-      // already partially there — test explicit linkage to flags
+      const content = readDoc(usageSkill);
       expect(content).toMatch(
-        /flag[^a-z].*observation|flag[^a-z].*meta|observation.*flag|meta.*flag/i,
+        /flag[^a-z][\s\S]*observation|flag[^a-z][\s\S]*meta|observation[\s\S]*flag|meta[\s\S]*flag/i,
       );
     });
   });
 
-  // ─── docs/prompts/retroactive-init.md ──────────────────────────────────────
+  // ─── bundled kibi-bootstrap skill ────────────────────────────────────────────────
 
-  describe("docs/prompts/retroactive-init.md", () => {
-    test("must explicitly state not to create flag for bugs/workarounds without an actual gate", () => {
-      const content = readDoc("docs/prompts/retroactive-init.md");
-      expect(content).toMatch(
-        /not.*flag.*bug|flag.*not.*bug|do not.*flag.*bug|flag.*without.*gate|flag.*only.*gate|no.*flag.*workaround/i,
+  describe("kibi-bootstrap skill", () => {
+    test("must describe bootstrap preview, plan-owned apply, and repair-safe completion", () => {
+      const content = readDoc(
+        "packages/runtime/src/skills/kibi-bootstrap/SKILL.md",
       );
-    });
-
-    test("must state that bug/workaround notes should use fact with observation/meta", () => {
-      const content = readDoc("docs/prompts/retroactive-init.md");
+      expect(content).toContain("kb_plan_bootstrap");
+      expect(content).toMatch(/preview/i);
+      expect(content).toMatch(/approval/i);
+      expect(content).toContain("`kb_apply_plan`");
       expect(content).toMatch(
-        /bug.*fact|workaround.*fact|fact.*bug|fact.*workaround/i,
+        /owns dependency ordering[\s\S]*sequential mutation/,
       );
+      expect(content).toMatch(/Direct\s+`kb_upsert`\s+is forbidden/i);
+      expect(content).toContain("committed_with_repairs");
     });
   });
 

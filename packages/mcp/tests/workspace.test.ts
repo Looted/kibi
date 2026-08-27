@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { branchStorePath } from "kibi-cli/public/branch-resolver";
 import {
   resolveEnvFilePath,
   resolveKbPath,
@@ -13,28 +14,40 @@ describe("workspace utilities", () => {
   let isolationRoot: string;
   const originalEnv = { ...process.env };
 
+  function tempRootParent(): string {
+    const candidates =
+      process.platform === "linux" ? ["/dev/shm", os.tmpdir()] : [os.tmpdir()];
+    const parent = candidates.find(
+      (candidate) =>
+        fs.existsSync(candidate) &&
+        !fs.existsSync(path.join(candidate, ".git")) &&
+        !fs.existsSync(path.join(candidate, ".kb")),
+    );
+    if (!parent) {
+      throw new Error("No marker-free temporary directory is available");
+    }
+    return parent;
+  }
+
   beforeEach(() => {
-    // Create tempDir inside a dedicated subdirectory to isolate upward traversal
-    // from any .git/.kb that may exist in os.tmpdir() itself (e.g. /tmp/.git)
+    // Use a private marker-free temp parent so upward traversal never reaches
+    // the checkout or shared os.tmpdir markers.
     isolationRoot = fs.mkdtempSync(
-      path.join(os.tmpdir(), "kibi-workspace-test-"),
+      path.join(tempRootParent(), "kibi-workspace-test-"),
     );
     tempDir = path.join(isolationRoot, "workspace");
     fs.mkdirSync(tempDir);
-    // Remove any stale .git/.kb left in os.tmpdir() by prior test runs to prevent
-    // findUpwards from traversing above our tempDir and hitting them
-    for (const marker of [".git", ".kb"]) {
-      const stale = path.join(os.tmpdir(), marker);
-      if (fs.existsSync(stale)) {
-        fs.rmSync(stale, { recursive: true, force: true });
-      }
+    // Clear relevant env vars (assign-and-delete rather than `= undefined`,
+    // which coerces to the truthy string "undefined" and defeats env resolution)
+    for (const key of [
+      "KIBI_WORKSPACE",
+      "KIBI_PROJECT_ROOT",
+      "KIBI_ROOT",
+      "KIBI_KB_PATH",
+      "KB_PATH",
+    ]) {
+      delete process.env[key];
     }
-    // Clear relevant env vars
-    process.env.KIBI_WORKSPACE = undefined;
-    process.env.KIBI_PROJECT_ROOT = undefined;
-    process.env.KIBI_ROOT = undefined;
-    process.env.KIBI_KB_PATH = undefined;
-    process.env.KB_PATH = undefined;
   });
 
   afterEach(() => {
@@ -96,7 +109,7 @@ describe("workspace utilities", () => {
       const kbPath = path.join(tempDir, "custom-kb");
       process.env.KIBI_KB_PATH = kbPath;
       expect(resolveKbPath(tempDir, "main")).toBe(
-        path.join(path.resolve(kbPath), "branches", "main"),
+        branchStorePath(path.resolve(kbPath), "main"),
       );
     });
 
@@ -107,7 +120,7 @@ describe("workspace utilities", () => {
     });
 
     test("should use default path", () => {
-      const expected = path.join(tempDir, ".kb", "branches", "main");
+      const expected = branchStorePath(tempDir, "main");
       expect(resolveKbPath(tempDir, "main")).toBe(expected);
     });
   });

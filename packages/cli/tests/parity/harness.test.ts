@@ -41,6 +41,11 @@ async function assertPackageCompatibility(): Promise<void> {
       mcpPackage.dependencies["kibi-cli"],
     ),
   ).toBe(true);
+
+  const packedOperations = await import(
+    "../../dist/public/operations/index.js"
+  );
+  expect(typeof packedOperations.executeApplyPlan).toBe("function");
 }
 
 function assertNormalizerContract(): void {
@@ -75,7 +80,7 @@ describe("semantic MCP/CLI operation parity", () => {
   }, 30_000);
 
   afterAll(() => {
-    expect(PARITY_CASES).toHaveLength(18);
+    expect(PARITY_CASES).toHaveLength(21);
   });
 
   for (const parityCase of PARITY_CASES) {

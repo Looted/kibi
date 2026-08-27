@@ -17,6 +17,7 @@ import {
 import { runCodexCell } from "./runtime/codex-cell-runner";
 import { runCodexSkillOptStep } from "./runtime/codex-optimizer";
 import { PublicTaskClaimSchema } from "./runtime/file-bridge";
+import { taskFinalStateRequests } from "./runtime/final-state-requests";
 import { type ProcessResult, runBoundedProcess } from "./runtime/process";
 import { resolveTaskFixture } from "./runtime/task-fixture";
 import { freezeCandidateVariant } from "./variants";
@@ -295,11 +296,10 @@ export const defaultEvaluateDevelopment: RealOptimizationDependencies["evaluateD
         codexExecutable: runtime.codexExecutable,
         bwrapExecutable: runtime.bwrapExecutable,
         env: input.env,
-        finalStateRequests: [
-          { tool: "kb_query", args: {} },
-          { tool: "kb_check", args: {} },
-          { tool: "kb_status", args: {} },
-        ],
+        finalStateRequests: taskFinalStateRequests(
+          descriptor.id,
+          fixture.evaluatorManifest.protocolContract !== undefined,
+        ),
         evaluatorManifest: fixture.evaluatorManifest,
         hiddenMarkers: runtime.hiddenMarkers ?? [],
         pricingHash: runtime.pricingHash ?? "0".repeat(64),

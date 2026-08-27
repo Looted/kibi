@@ -1,15 +1,9 @@
-import {
-  type Dirent,
-  existsSync,
-  readFileSync,
-  readdirSync,
-  statSync,
-} from "node:fs";
+import { type Dirent, existsSync, readFileSync, readdirSync } from "node:fs";
 import * as path from "node:path";
 import ignore from "ignore";
+import { DERIVED_KB_PREFIXES } from "../utils/kb-paths.js";
 
 const HARD_DENYLIST = [
-  ".kb",
   ".git",
   "node_modules",
   "vendor",
@@ -17,6 +11,9 @@ const HARD_DENYLIST = [
   ".sisyphus",
   ".opencode",
 ];
+
+/** Derived .kb/ runtime trees. Authored knowledge lanes stay visible. */
+const HARD_DENY_KB_PREFIXES = DERIVED_KB_PREFIXES;
 
 export interface IgnorePolicy {
   isIgnored(inputPath: string): boolean;
@@ -41,7 +38,7 @@ function toPosix(p: string): string {
   return p.split(path.sep).join("/");
 }
 
-// implements REQ-001
+// implements REQ-cli-canonical-runtime
 export function createRepoIgnorePolicy(workspaceRoot: string): IgnorePolicy {
   const root = path.resolve(workspaceRoot);
 
@@ -69,7 +66,7 @@ export function createRepoIgnorePolicy(workspaceRoot: string): IgnorePolicy {
       if (ent.isDirectory()) {
         // avoid descending into common heavy or control directories
         if (HARD_DENYLIST.includes(name)) continue;
-        // also avoid .git itself to prevent reading internal excludes as nested
+        if (name === ".kb") continue;
         if (name === ".git") continue;
         walk(abs);
       } else if (ent.isFile()) {
@@ -113,6 +110,11 @@ export function createRepoIgnorePolicy(workspaceRoot: string): IgnorePolicy {
 
   function matchesHardDeny(relPosix: string): boolean {
     const segments = relPosix.split("/").filter(Boolean);
+    for (const prefix of HARD_DENY_KB_PREFIXES) {
+      if (relPosix === prefix || relPosix.startsWith(`${prefix}/`)) {
+        return true;
+      }
+    }
     for (const deny of HARD_DENYLIST) {
       if (segments.includes(deny)) return true;
     }
@@ -185,6 +187,10 @@ export function createRepoIgnorePolicy(workspaceRoot: string): IgnorePolicy {
       // match directory and its contents anywhere
       globs.push(`**/${d}/**`);
       globs.push(`**/${d}`);
+    }
+    for (const prefix of HARD_DENY_KB_PREFIXES) {
+      globs.push(`**/${prefix}/**`);
+      globs.push(`**/${prefix}`);
     }
 
     // Root .gitignore patterns (convert to simple globs)

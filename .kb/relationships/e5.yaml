@@ -1,0 +1,134 @@
+relationships:
+  - id: rel-7eff5ebbde7e
+    type: executable_for
+    from: SYM-auto-88E6CA6A3463
+    to: TEST-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:15:11.212Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-kibi-cli-src-public-operations-specs-verification-ts-ingestverificationspec
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.857Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-309b1eb80d96
+  - type: executable_for
+    from: SYM-mcp-isolated-exec-sync
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-19T19:26:48.809Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d6dfd51debaf
+  - type: implements
+    from: SYM-cli-discovery-build-entity-goal
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:24:17.440Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8156cef737d7
+  - type: covered_by
+    from: SYM-cli-discovery-build-entity-goal
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:24:17.450Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9369b885a35d
+  - type: covered_by
+    from: SYM-cli-discovery-build-entity-goal
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:24:17.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d425dd815f0
+  - type: implements
+    from: SYM-operation-search-spec
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:30:26.877Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85b10577a50d
+  - type: implements
+    from: SYM-operation-search-spec
+    to: REQ-mcp-search-discovery
+    created_at: 2026-08-22T20:30:26.888Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-666c0d301043
+  - type: covered_by
+    from: SYM-operation-search-spec
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:30:26.892Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a29c6a9fd506
+  - type: covered_by
+    from: SYM-operation-search-spec
+    to: TEST-mcp-search-discovery
+    created_at: 2026-08-22T20:30:26.896Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce74d855ee19
+  - type: covered_by
+    from: SYM-operation-search-spec
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:30:26.900Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8eb6d33bf28
+  - type: implements
+    from: SYM-operation-sparql-remote-spec
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:30:56.427Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-baa3d7cc955b
+  - type: covered_by
+    from: SYM-operation-sparql-remote-spec
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:30:56.439Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-572fb0fa6f83
+  - type: covered_by
+    from: SYM-operation-sparql-remote-spec
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:30:56.447Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b71ce01bc148
+  - type: implements
+    from: SYM-PendingTrigger
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:53:00.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abadda33cd20
+  - type: covered_by
+    from: SYM-PendingTrigger
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:53:00.049Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8688be8b35dd
+  - type: covered_by
+    from: SYM-PendingTrigger
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:53:00.060Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2798a177b658
+  - type: implements
+    from: SYM-ParsedCoordinateArtifact
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-23T20:27:52.003Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8175b807f39b
+  - type: covered_by
+    from: SYM-ParsedCoordinateArtifact
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:27:52.029Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b239dcd0b49a

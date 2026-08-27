@@ -8,12 +8,12 @@
 ]).
 
 :- use_module(library(http/json)).
+:- use_module(library(crypto)).
 :- use_module(library(date)).
 :- use_module(library(pcre)).
 :- use_module('kb.pl').
 :- use_module('checks.pl', [
-    check_domain_contradictions/1,
-    check_domain_contradiction_witnesses/1,
+    check_domain_contradictions_and_witnesses/2,
     check_rule_safety/1,
     check_rule_verifiability/1
 ]).
@@ -25,8 +25,7 @@ requirement_proof_context(Context) :-
     requirement_proof_context(unknown, '1970-01-01T00:00:00Z', 604800, Context).
 
 requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, Context) :-
-    check_domain_contradictions(Contradictions),
-    check_domain_contradiction_witnesses(ContradictionWitnesses),
+    check_domain_contradictions_and_witnesses(Contradictions, ContradictionWitnesses),
     check_rule_safety(UnsafeRules),
     check_rule_verifiability(UnverifiableRules),
     normalize_atom(VerificationSnapshot, Snapshot),
@@ -52,6 +51,7 @@ requirement_proof(ReqId, _ReqProps, _Context, Proof) :-
         proofVersion: Version,
         proofStatus: not_applicable,
         proofGaps: [],
+        proofAdvisories: [],
         proofRepairs: [],
         proofStages: _{applicability: _{status: not_applicable}}
     }.
@@ -76,7 +76,7 @@ requirement_proof(ReqId, ReqProps, Context, Proof) :-
         productionSymbols: ProductionStage,
         sourceCoordinates: CoordinateStage
     },
-    proof_gaps(Stages, Gaps),
+    proof_issues(Stages, Gaps, Advisories),
     proof_repairs(Gaps, Repairs),
     proof_status(Stages, Status),
     proof_version(Version),
@@ -84,6 +84,7 @@ requirement_proof(ReqId, ReqProps, Context, Proof) :-
         proofVersion: Version,
         proofStatus: Status,
         proofGaps: Gaps,
+        proofAdvisories: Advisories,
         proofRepairs: Repairs,
         proofStages: Stages
     }.
@@ -224,6 +225,7 @@ logic_grounding_stage(ReqId, Props, Inventory, Context, Stage) :-
         InvalidRuleFactIds,
         Status
     ),
+    ground_source_refs(Evidence, GroundSources),
     Stage = _{
         status: Status,
         manifestClaims: ManifestKeys,
@@ -238,7 +240,8 @@ logic_grounding_stage(ReqId, Props, Inventory, Context, Stage) :-
         missingManifestClaims: MissingManifestKeys,
         extraManifestClaims: ExtraManifestKeys,
         undeclaredGroundClaims: UndeclaredGroundKeys,
-        invalidRuleFacts: InvalidRuleFactIds
+        invalidRuleFacts: InvalidRuleFactIds,
+        sources: GroundSources
     }.
 
 requirement_claim_keys(Props, true, Keys) :-
@@ -436,7 +439,8 @@ scenario_stage(ReqId, Stage, ScenarioIds) :-
         ScenarioIds0),
     sort(ScenarioIds0, ScenarioIds),
     (ScenarioIds = [] -> Status = missing ; Status = passed),
-    Stage = _{status: Status, scenarios: ScenarioIds}.
+    maplist(entity_source_ref, ScenarioIds, Sources),
+    Stage = _{status: Status, scenarios: ScenarioIds, sources: Sources}.
 
 scenario_test_stage(ScenarioIds, Stage, ScenarioTests) :-
     findall(TestId,
@@ -444,7 +448,8 @@ scenario_test_stage(ScenarioIds, Stage, ScenarioTests) :-
         ScenarioTests0),
     sort(ScenarioTests0, ScenarioTests),
     (ScenarioTests = [] -> Status = missing ; Status = passed),
-    Stage = _{status: Status, tests: ScenarioTests}.
+    maplist(entity_source_ref, ScenarioTests, Sources),
+    Stage = _{status: Status, tests: ScenarioTests, sources: Sources}.
 
 scenario_test(ScenarioId, TestId) :-
     kb_relationship(verified_by, ScenarioId, TestId),
@@ -460,9 +465,10 @@ passing_e2e_stage(ScenarioTests, Context, Stage, PassingE2eTests) :-
     evidence_tests_with_state(Evidence, stale, StaleReceiptTests),
     evidence_tests_with_state(Evidence, failed, FailedReceiptTests),
     evidence_tests_with_state(Evidence, invalid, InvalidReceiptTests),
+    evidence_tests_with_state(Evidence, contract_mismatch, ContractMismatchReceiptTests),
     evidence_tests_with_state(Evidence, snapshot_unavailable, SnapshotUnavailableTests),
     evidence_tests_with_state(Evidence, not_end_to_end, NonEndToEndTests),
-    passing_e2e_status(PassingE2eTests, InvalidReceiptTests, SnapshotUnavailableTests, Status),
+    passing_e2e_status(PassingE2eTests, InvalidReceiptTests, ContractMismatchReceiptTests, SnapshotUnavailableTests, Status),
     Stage = _{
         status: Status,
         tests: PassingE2eTests,
@@ -471,6 +477,7 @@ passing_e2e_stage(ScenarioTests, Context, Stage, PassingE2eTests) :-
         staleReceiptTests: StaleReceiptTests,
         failedReceiptTests: FailedReceiptTests,
         invalidReceiptTests: InvalidReceiptTests,
+        contractMismatchReceiptTests: ContractMismatchReceiptTests,
         snapshotUnavailableTests: SnapshotUnavailableTests,
         nonEndToEndTests: NonEndToEndTests,
         currentCodeSnapshot: Context.verificationSnapshot,
@@ -478,10 +485,11 @@ passing_e2e_stage(ScenarioTests, Context, Stage, PassingE2eTests) :-
         maxAgeSeconds: Context.verificationMaxAgeSeconds
     }.
 
-passing_e2e_status(Passing, _, _, passed) :- Passing \= [], !.
-passing_e2e_status([], Invalid, _, unresolved) :- Invalid \= [], !.
-passing_e2e_status([], _, SnapshotUnavailable, unresolved) :- SnapshotUnavailable \= [], !.
-passing_e2e_status([], _, _, missing).
+passing_e2e_status(Passing, _, _, _, passed) :- Passing \= [], !.
+passing_e2e_status([], Invalid, _, _, unresolved) :- Invalid \= [], !.
+passing_e2e_status([], _, ContractMismatch, _, unresolved) :- ContractMismatch \= [], !.
+passing_e2e_status([], _, _, SnapshotUnavailable, unresolved) :- SnapshotUnavailable \= [], !.
+passing_e2e_status([], _, _, _, missing).
 
 evidence_tests_with_state(Evidence, State, TestIds) :-
     findall(TestId,
@@ -497,26 +505,33 @@ test_receipt_evidence(Context, TestId, Evidence) :-
     ;   Context.verificationSnapshot == unknown
     ->  Evidence = _{testId: TestId, state: snapshot_unavailable, scope: Scope}
     ;   verification_receipt_entries(Props, Receipts, ReceiptPropertyPresent),
-        receipt_evidence_state(TestId, Scope, Receipts, ReceiptPropertyPresent, Context, Evidence)
+        receipt_evidence_state(TestId, Scope, Props, Receipts, ReceiptPropertyPresent, Context, Evidence)
     ).
 
-receipt_evidence_state(TestId, Scope, [], false, _Context,
+receipt_evidence_state(TestId, Scope, _Props, [], false, _Context,
         _{testId: TestId, state: missing, scope: Scope, receiptCount: 0}) :- !.
-receipt_evidence_state(TestId, Scope, Receipts, _Present, _Context,
+receipt_evidence_state(TestId, Scope, Props, Receipts, _Present, _Context,
         _{testId: TestId, state: invalid, scope: Scope, receiptCount: Count}) :-
     length(Receipts, Count),
-    (Receipts == []
-    ; member(Receipt, Receipts), \+ valid_receipt_shape(TestId, Scope, Receipt)
+    verification_contract_binding(Props, ContractBinding),
+    (ContractBinding == invalid
+    ; Receipts == []
+    ; member(Receipt, Receipts), \+ valid_receipt_shape(TestId, Receipt)
     ; \+ chronological_receipt_history(Receipts)),
     !.
-receipt_evidence_state(TestId, Scope, Receipts, _Present, Context, Evidence) :-
-    include(receipt_for_snapshot(Context.verificationSnapshot), Receipts, CurrentReceipts),
-    (   CurrentReceipts == []
+receipt_evidence_state(TestId, Scope, Props, Receipts, _Present, Context, Evidence) :-
+    include(receipt_for_snapshot(Context.verificationSnapshot), Receipts, SnapshotReceipts),
+    (   SnapshotReceipts == []
     ->  length(Receipts, Count),
         Evidence = _{testId: TestId, state: stale, scope: Scope, receiptCount: Count}
-    ;   latest_receipt(CurrentReceipts, Latest, FinishedStamp),
-        receipt_runtime_state(Latest, FinishedStamp, Context, State, AgeSeconds),
-        receipt_evidence_dict(TestId, Scope, Latest, State, AgeSeconds, Evidence)
+    ;   verification_contract_binding(Props, ContractBinding),
+        include(receipt_matches_current_binding(Scope, ContractBinding), SnapshotReceipts, CurrentReceipts),
+        (   CurrentReceipts == []
+        ->  receipt_contract_mismatch_evidence(TestId, Scope, SnapshotReceipts, ContractBinding, Evidence)
+        ;   latest_receipt(CurrentReceipts, Latest, FinishedStamp),
+            receipt_runtime_state(Latest, FinishedStamp, Context, State, AgeSeconds),
+            receipt_evidence_dict(TestId, Scope, Latest, State, AgeSeconds, Evidence)
+        )
     ).
 
 verification_receipt_entries(Props, Receipts, Present) :-
@@ -527,9 +542,10 @@ verification_receipt_entries(Props, Receipts, Present) :-
         Receipts = []
     ).
 
-valid_receipt_shape(TestId, Scope, Receipt) :-
+valid_receipt_shape(TestId, Receipt) :-
     inventory_entry_field(Receipt, version, RawVersion),
-    normalize_receipt_atom(RawVersion, 'kibi.verification-receipt.v1'),
+    normalize_receipt_atom(RawVersion, Version),
+    memberchk(Version, ['kibi.verification-receipt.v1', 'kibi.verification-receipt.v2']),
     inventory_entry_field(Receipt, receipt_id, RawReceiptId),
     normalize_receipt_atom(RawReceiptId, ReceiptId), valid_receipt_id(ReceiptId),
     inventory_entry_field(Receipt, test_id, RawTestId),
@@ -539,10 +555,11 @@ valid_receipt_shape(TestId, Scope, Receipt) :-
     inventory_entry_field(Receipt, command, RawCommand),
     normalize_receipt_atom(RawCommand, Command), Command \= '',
     inventory_entry_field(Receipt, scope, RawScope),
-    normalize_receipt_atom(RawScope, Scope),
+    normalize_receipt_atom(RawScope, ReceiptScope),
+    memberchk(ReceiptScope, [unit, integration, end_to_end]),
     inventory_entry_field(Receipt, outcome, RawOutcome),
     normalize_receipt_atom(RawOutcome, Outcome),
-    memberchk(Outcome, [passed, failed, errored, cancelled, skipped]),
+    memberchk(Outcome, [passed, failed, errored, cancelled, skipped, timed_out, interrupted]),
     inventory_entry_field(Receipt, code_snapshot, RawSnapshot),
     normalize_receipt_atom(RawSnapshot, Snapshot), valid_sha256(Snapshot),
     inventory_entry_field(Receipt, environment_hash, RawEnvironmentHash),
@@ -551,7 +568,53 @@ valid_receipt_shape(TestId, Scope, Receipt) :-
     normalize_receipt_atom(RawArtifactDigest, ArtifactDigest), valid_sha256(ArtifactDigest),
     receipt_timestamp(Receipt, started_at, StartedStamp),
     receipt_timestamp(Receipt, finished_at, FinishedStamp),
-    FinishedStamp >= StartedStamp.
+    FinishedStamp >= StartedStamp,
+    valid_receipt_version_fields(Version, Receipt).
+
+valid_receipt_version_fields('kibi.verification-receipt.v1', _Receipt).
+valid_receipt_version_fields('kibi.verification-receipt.v2', Receipt) :-
+    inventory_entry_field(Receipt, command_argv, RawCommandArgv),
+    is_list(RawCommandArgv),
+    RawCommandArgv \= [],
+    maplist(nonempty_receipt_atom, RawCommandArgv),
+    inventory_entry_field(Receipt, contract_hash, RawContractHash),
+    normalize_receipt_atom(RawContractHash, ContractHash),
+    valid_sha256(ContractHash),
+    inventory_entry_field(Receipt, case_results, RawCases),
+    is_list(RawCases),
+    RawCases \= [],
+    maplist(valid_receipt_case, RawCases),
+    findall(Key,
+        (member(Case, RawCases), receipt_case_key(Case, Key)), Keys),
+    sort(Keys, UniqueKeys),
+    length(Keys, KeyCount),
+    length(UniqueKeys, KeyCount).
+
+nonempty_receipt_atom(Value) :-
+    normalize_receipt_atom(Value, Atom),
+    Atom \= ''.
+
+valid_receipt_case(Case) :-
+    inventory_entry_field(Case, symbol_id, RawSymbolId),
+    nonempty_receipt_atom(RawSymbolId),
+    inventory_entry_field(Case, project, RawProject),
+    nonempty_receipt_atom(RawProject),
+    inventory_entry_field(Case, outcome, RawOutcome),
+    normalize_receipt_atom(RawOutcome, Outcome),
+    memberchk(Outcome, [passed, failed, timed_out, skipped, interrupted]),
+    inventory_entry_field(Case, retries, Retries),
+    normalize_integer(Retries, RetryCount),
+    RetryCount >= 0,
+    inventory_entry_field(Case, duration_ms, Duration),
+    normalize_integer(Duration, DurationMs),
+    DurationMs >= 0.
+
+receipt_case_key(Case, Key) :-
+    inventory_entry_field(Case, project, Project),
+    inventory_entry_field(Case, symbol_id, SymbolId),
+    normalize_receipt_atom(Project, ProjectAtom),
+    normalize_receipt_atom(SymbolId, SymbolAtom),
+    atomic_list_concat([ProjectAtom, SymbolAtom], '/', Key).
 
 valid_sha256(Value) :-
     atom_length(Value, 64),
@@ -583,6 +646,82 @@ strictly_increasing([Left, Right|Rest]) :-
 receipt_for_snapshot(Snapshot, Receipt) :-
     inventory_entry_field(Receipt, code_snapshot, RawSnapshot),
     normalize_receipt_atom(RawSnapshot, Snapshot).
+
+receipt_matches_current_binding(Scope, ContractBinding, Receipt) :-
+    inventory_entry_field(Receipt, scope, RawScope),
+    normalize_receipt_atom(RawScope, Scope),
+    receipt_matches_current_contract(ContractBinding, Receipt).
+
+receipt_matches_current_contract(none, _Receipt).
+receipt_matches_current_contract(hash(ExpectedHash), Receipt) :-
+    inventory_entry_field(Receipt, version, RawVersion),
+    normalize_receipt_atom(RawVersion, 'kibi.verification-receipt.v2'),
+    inventory_entry_field(Receipt, contract_hash, RawContractHash),
+    normalize_receipt_atom(RawContractHash, ExpectedHash).
+
+receipt_contract_mismatch_evidence(TestId, Scope, Receipts, ContractBinding, Evidence) :-
+    length(Receipts, Count),
+    findall(Hash,
+        (member(Receipt, Receipts),
+         inventory_entry_field(Receipt, contract_hash, RawHash),
+         normalize_receipt_atom(RawHash, Hash)),
+        Hashes0),
+    sort(Hashes0, Hashes),
+    current_contract_hash_value(ContractBinding, CurrentContractHash),
+    Evidence = _{
+        testId: TestId,
+        state: contract_mismatch,
+        scope: Scope,
+        receiptCount: Count,
+        currentContractHash: CurrentContractHash,
+        receiptContractHashes: Hashes
+    }.
+
+current_contract_hash_value(hash(Hash), Hash).
+current_contract_hash_value(none, none).
+
+verification_contract_binding(Props, Binding) :-
+    (   memberchk(verification_contract=RawContract, Props)
+    ->  (verification_contract_hash(RawContract, Hash) -> Binding = hash(Hash) ; Binding = invalid)
+    ;   Binding = none
+    ).
+
+verification_contract_hash(RawContract, Hash) :-
+    verification_contract_dict(RawContract, Contract),
+    canonical_json_value(Contract, Canonical),
+    crypto_data_hash(Canonical, Hash, [algorithm(sha256), encoding(utf8)]).
+
+verification_contract_dict(^^(Value, _), Contract) :- !,
+    verification_contract_dict(Value, Contract).
+verification_contract_dict(literal(type(_, Value)), Contract) :- !,
+    verification_contract_dict(Value, Contract).
+verification_contract_dict(literal(Value), Contract) :- !,
+    verification_contract_dict(Value, Contract).
+verification_contract_dict(Contract, Contract) :-
+    is_dict(Contract), !.
+verification_contract_dict(Raw, Contract) :-
+    (atom(Raw) ; string(Raw)),
+    catch(atom_json_dict(Raw, Contract, [value_string_as(string)]), _, fail),
+    is_dict(Contract).
+
+canonical_json_value(Value, Json) :-
+    is_dict(Value), !,
+    dict_pairs(Value, _, Pairs),
+    maplist(canonical_json_pair, Pairs, Parts),
+    atomics_to_string(Parts, ",", Body),
+    format(string(Json), "{~s}", [Body]).
+canonical_json_value(Value, Json) :-
+    is_list(Value), !,
+    maplist(canonical_json_value, Value, Parts),
+    atomics_to_string(Parts, ",", Body),
+    format(string(Json), "[~s]", [Body]).
+canonical_json_value(Value, Json) :-
+    with_output_to(string(Json), json_write(current_output, Value, [width(0)])).
+
+canonical_json_pair(Key-Value, Json) :-
+    with_output_to(string(KeyJson), json_write(current_output, Key, [width(0)])),
+    canonical_json_value(Value, ValueJson),
+    format(string(Json), "~s:~s", [KeyJson, ValueJson]).
 
 latest_receipt(Receipts, Latest, FinishedStamp) :-
     findall(Stamp-Receipt,
@@ -662,7 +801,7 @@ test_scope(Props, end_to_end) :-
     !.
 test_scope(_, unknown).
 
-executable_symbol_stage([], _{status: blocked, symbols: [], missingTests: []}, []).
+executable_symbol_stage([], _{status: blocked, symbols: [], missingTests: [], coordinates: []}, []).
 executable_symbol_stage(PassingE2eTests, Stage, Symbols) :-
     PassingE2eTests \= [],
     findall(SymbolId,
@@ -673,7 +812,8 @@ executable_symbol_stage(PassingE2eTests, Stage, Symbols) :-
     sort(Symbols0, Symbols),
     include(test_missing_executable_symbol, PassingE2eTests, MissingTests),
     (MissingTests = [] -> Status = passed ; Status = missing),
-    Stage = _{status: Status, symbols: Symbols, missingTests: MissingTests}.
+    maplist(symbol_coordinate_ref, Symbols, Coordinates),
+    Stage = _{status: Status, symbols: Symbols, missingTests: MissingTests, coordinates: Coordinates}.
 
 test_missing_executable_symbol(TestId) :-
     \+ (kb_relationship(executable_for, SymbolId, TestId), kb_entity(SymbolId, symbol, _)).
@@ -683,16 +823,36 @@ production_symbol_stage(ReqId, PassingE2eTests, Stage, ProductionSymbols) :-
         (kb_relationship(implements, SymbolId, ReqId),
          kb_entity(SymbolId, symbol, _),
          \+ kb:executable_test_symbol(SymbolId)),
-        Production0),
-    sort(Production0, ProductionSymbols),
+        Implementing0),
+    sort(Implementing0, ImplementingSymbols),
+    include(type_shape_symbol_with_structural_contract, ImplementingSymbols, StructuralSymbols),
+    exclude(type_shape_symbol_with_structural_contract, ImplementingSymbols, ProductionSymbols),
     include(symbol_not_covered_by_tests(PassingE2eTests), ProductionSymbols, UncoveredSymbols),
-    production_stage_status(ProductionSymbols, PassingE2eTests, UncoveredSymbols, Status),
-    Stage = _{status: Status, symbols: ProductionSymbols, uncoveredSymbols: UncoveredSymbols}.
+    production_stage_status(ProductionSymbols, StructuralSymbols, PassingE2eTests, UncoveredSymbols, Status),
+    maplist(symbol_coordinate_ref, ProductionSymbols, Coordinates),
+    Stage = _{
+        status: Status,
+        symbols: ProductionSymbols,
+        structuralSymbols: StructuralSymbols,
+        uncoveredSymbols: UncoveredSymbols,
+        coordinates: Coordinates
+    }.
 
-production_stage_status([], _, _, missing) :- !.
-production_stage_status(_, [], _, blocked) :- !.
-production_stage_status(_, _, [], passed) :- !.
-production_stage_status(_, _, _, missing).
+type_shape_symbol_with_structural_contract(SymbolId) :-
+    kb_entity(SymbolId, symbol, SymbolProps),
+    memberchk(symbol_role=RawRole, SymbolProps),
+    normalize_atom(RawRole, 'type-shape'),
+    kb_relationship(covered_by, SymbolId, TestId),
+    kb_entity(TestId, test, TestProps),
+    test_scope(TestProps, unit),
+    memberchk(status=RawStatus, TestProps),
+    normalize_atom(RawStatus, Status),
+    memberchk(Status, [active, passing]).
+
+production_stage_status([], [], _, _, missing) :- !.
+production_stage_status(_, _, [], _, blocked) :- !.
+production_stage_status(_, _, _, [], passed) :- !.
+production_stage_status(_, _, _, _, missing).
 
 symbol_not_covered_by_tests(Tests, SymbolId) :-
     \+ (member(TestId, Tests), kb_relationship(covered_by, SymbolId, TestId)).
@@ -707,11 +867,15 @@ source_coordinate_stage(ReqProps, ExecutableSymbols, ProductionSymbols, Stage) :
     ;   RequirementSource = present,
         coordinate_stage_status(Symbols, MissingSymbols, Status)
     ),
+    requirement_source_path(ReqProps, RequirementPath),
+    maplist(symbol_coordinate_ref, Symbols, Coordinates),
     Stage = _{
         status: Status,
         requirementSource: RequirementSource,
+        requirementPath: RequirementPath,
         symbols: Symbols,
-        missingSymbols: MissingSymbols
+        missingSymbols: MissingSymbols,
+        coordinates: Coordinates
     }.
 
 coordinate_stage_status([], _, blocked) :- !.
@@ -724,7 +888,7 @@ symbol_missing_coordinates(SymbolId) :-
 
 valid_symbol_coordinates(Props) :-
     memberchk(sourceFile=RawSourceFile, Props),
-    normalize_atom(RawSourceFile, SourceFile),
+    source_path_atom(RawSourceFile, SourceFile),
     SourceFile \= '',
     memberchk(sourceLine=RawLine, Props),
     memberchk(sourceColumn=RawColumn, Props),
@@ -739,10 +903,66 @@ valid_symbol_coordinates(Props) :-
     EndLine >= Line,
     EndColumn >= 0.
 
-nonempty_source(Props) :-
+% Prefer sourceFile, then source, without URI-basename stripping. Paths must
+% remain inspectable coordinates for report linking.
+proof_source_property(Props, RawSource) :-
+    memberchk(sourceFile=RawSource, Props),
+    source_path_atom(RawSource, _),
+    !.
+proof_source_property(Props, RawSource) :-
     memberchk(source=RawSource, Props),
-    normalize_atom(RawSource, Source),
-    Source \= ''.
+    source_path_atom(RawSource, _).
+
+nonempty_source(Props) :-
+    proof_source_property(Props, _).
+
+requirement_source_path(Props, Path) :-
+    proof_source_property(Props, RawSource),
+    source_path_atom(RawSource, Path),
+    !.
+requirement_source_path(_, '').
+
+entity_source_path(Id, Path) :-
+    kb_entity(Id, _, Props),
+    requirement_source_path(Props, Path).
+
+entity_source_ref(Id, _{id: Id, path: Path}) :-
+    entity_source_path(Id, Path).
+
+ground_source_refs(Evidence, Refs) :-
+    findall(Ref,
+        (member(Item, Evidence),
+         entity_source_ref(Item.factId, Ref),
+         Ref.path \= ''),
+        Refs0),
+    sort(Refs0, Refs).
+
+symbol_coordinate_ref(SymbolId, Ref) :-
+    kb_entity(SymbolId, symbol, Props),
+    memberchk(sourceFile=RawFile, Props),
+    source_path_atom(RawFile, File),
+    File \= '',
+    !,
+    (   valid_symbol_coordinates(Props)
+    ->  memberchk(sourceLine=RawLine, Props),
+        memberchk(sourceColumn=RawColumn, Props),
+        memberchk(sourceEndLine=RawEndLine, Props),
+        memberchk(sourceEndColumn=RawEndColumn, Props),
+        normalize_integer(RawLine, Line),
+        normalize_integer(RawColumn, Column),
+        normalize_integer(RawEndLine, EndLine),
+        normalize_integer(RawEndColumn, EndColumn),
+        Ref = _{
+            id: SymbolId,
+            path: File,
+            line: Line,
+            column: Column,
+            endLine: EndLine,
+            endColumn: EndColumn
+        }
+    ;   Ref = _{id: SymbolId, path: File}
+    ).
+symbol_coordinate_ref(SymbolId, _{id: SymbolId, path: ''}).
 
 proof_status(Stages, unresolved) :-
     Stages.contradictions.status == blocked,
@@ -762,7 +982,36 @@ stage_dict(Stages, Stage) :-
     member(_-Stage, Pairs).
 
 proof_gaps(Stages, Gaps) :-
-    findall(Gap, (gap_definition(Gap, _, _, _), proof_gap_present(Gap, Stages)), Gaps).
+    proof_issues(Stages, Gaps, _).
+
+proof_advisories(Stages, Advisories) :-
+    proof_issues(Stages, _, Advisories).
+
+% implements REQ-kibi-conservative-requirement-proof
+% proofGaps are blocking only. Receipt-completeness codes become
+% proofAdvisories when passingE2e already supplies strict proof.
+% Invariant: proofStatus == proven implies proofGaps == [].
+proof_issues(Stages, Gaps, Advisories) :-
+    findall(Gap,
+        (gap_definition(Gap, _, _, _),
+         proof_gap_present(Gap, Stages),
+         \+ proof_issue_advisory(Gap, Stages)),
+        Gaps),
+    findall(Gap,
+        (gap_definition(Gap, _, _, _),
+         proof_gap_present(Gap, Stages),
+         proof_issue_advisory(Gap, Stages)),
+        Advisories).
+
+receipt_completeness_issue(missing_verification_receipt).
+receipt_completeness_issue(stale_verification_receipt).
+receipt_completeness_issue(failed_verification_receipt).
+receipt_completeness_issue(invalid_verification_receipt).
+receipt_completeness_issue(verification_contract_mismatch).
+
+proof_issue_advisory(Gap, Stages) :-
+    receipt_completeness_issue(Gap),
+    Stages.passingE2e.status == passed.
 
 proof_gap_present(missing_semantic_inventory, Stages) :- Stages.semanticInventory.propositionCount =:= 0.
 proof_gap_present(incomplete_semantic_inventory, Stages) :- Stages.semanticInventory.missingCount > 0.
@@ -783,9 +1032,12 @@ proof_gap_present(missing_verification_receipt, Stages) :- Stages.passingE2e.mis
 proof_gap_present(stale_verification_receipt, Stages) :- Stages.passingE2e.staleReceiptTests \= [].
 proof_gap_present(failed_verification_receipt, Stages) :- Stages.passingE2e.failedReceiptTests \= [].
 proof_gap_present(invalid_verification_receipt, Stages) :- Stages.passingE2e.invalidReceiptTests \= [].
+proof_gap_present(verification_contract_mismatch, Stages) :- Stages.passingE2e.contractMismatchReceiptTests \= [].
 proof_gap_present(verification_snapshot_unavailable, Stages) :- Stages.passingE2e.snapshotUnavailableTests \= [].
 proof_gap_present(missing_executable_test_symbol, Stages) :- Stages.executableSymbols.status == missing.
-proof_gap_present(missing_production_symbol, Stages) :- Stages.productionSymbols.symbols == [].
+proof_gap_present(missing_production_symbol, Stages) :-
+    Stages.productionSymbols.symbols == [],
+    Stages.productionSymbols.structuralSymbols == [].
 proof_gap_present(missing_production_symbol_coverage, Stages) :- Stages.productionSymbols.uncoveredSymbols \= [].
 proof_gap_present(missing_symbol_coordinates, Stages) :- Stages.sourceCoordinates.missingSymbols \= [].
 proof_gap_present(missing_requirement_source, Stages) :- Stages.sourceCoordinates.requirementSource == missing.
@@ -803,14 +1055,15 @@ gap_definition(contradiction_check_incomplete, 41, contradictions, "Complete log
 gap_definition(missing_scenario, 50, scenarios, "Add a specified_by scenario for the requirement.").
 gap_definition(missing_scenario_test, 51, scenario_tests, "Link the scenario to a test with verified_by or validates.").
 gap_definition(missing_passing_e2e, 52, passing_e2e, "Record fresh passing end-to-end evidence on a scenario-backed test.").
-gap_definition(missing_verification_receipt, 53, passing_e2e, "Record a kibi.verification-receipt.v1 result for the scenario-backed E2E test.").
+gap_definition(missing_verification_receipt, 53, passing_e2e, "Run the exact current verification contract through kibi verify and append its kibi.verification-receipt.v2 result for the scenario-backed E2E test.").
 gap_definition(stale_verification_receipt, 54, passing_e2e, "Re-run the E2E test against the current code snapshot and append its receipt.").
 gap_definition(failed_verification_receipt, 55, passing_e2e, "Repair the failing E2E behavior and append a newer passing receipt for the same snapshot.").
 gap_definition(invalid_verification_receipt, 56, passing_e2e, "Repair malformed, future-dated, mismatched, or otherwise uncheckable receipt evidence.").
-gap_definition(verification_snapshot_unavailable, 57, passing_e2e, "Run coverage through a CLI or MCP runtime that exposes the deterministic workspace snapshot.").
+gap_definition(verification_contract_mismatch, 57, passing_e2e, "Run the current verification contract and append its receipt without rewriting historical evidence.").
+gap_definition(verification_snapshot_unavailable, 58, passing_e2e, "Run coverage through a CLI or MCP runtime that exposes the deterministic workspace snapshot.").
 gap_definition(missing_executable_test_symbol, 60, executable_symbols, "Link executable test code to every qualifying E2E test with executable_for.").
 gap_definition(missing_production_symbol, 70, production_symbols, "Link at least one production symbol to the requirement with implements.").
-gap_definition(missing_production_symbol_coverage, 71, production_symbols, "Link every implementing production symbol to a qualifying E2E test with covered_by.").
+gap_definition(missing_production_symbol_coverage, 71, production_symbols, "Link every runtime implementing production symbol to a qualifying E2E test with covered_by; type-shape symbols retain structural unit contracts instead.").
 gap_definition(missing_symbol_coordinates, 80, source_coordinates, "Refresh and persist exact coordinates for every proof-bearing symbol.").
 gap_definition(missing_requirement_source, 81, source_coordinates, "Bind the requirement to its current source document.").
 
@@ -821,6 +1074,10 @@ proof_repairs(Gaps, Repairs) :-
 
 normalize_atom(Value, Atom) :-
     kb:normalize_term_atom(Value, Atom).
+
+source_path_atom(Value, Atom) :-
+    kb:source_value_atom(Value, Atom),
+    Atom \= ''.
 
 normalize_atom_list(Value, Atoms) :-
     kb:normalize_term_atom_list(Value, Atoms).

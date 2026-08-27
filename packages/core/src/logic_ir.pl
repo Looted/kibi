@@ -530,7 +530,7 @@ rule_dependency_edge(
 logic_predicate_signature(atom(Namespace, Name, Args, _Polarity, _ClosedWorld), predicate(Namespace, Name, Arity)) :-
     length(Args, Arity).
 
-expression_dependency(atom(_Namespace, _Name, _Args, _Polarity, _ClosedWorld), Atom, positive) :-
+expression_dependency(Atom, Atom, positive) :-
     Atom = atom(_, _, _, _, _).
 expression_dependency(not(Atom), Atom, negative).
 expression_dependency(all(Items), Atom, Sign) :- member(Item, Items), expression_dependency(Item, Atom, Sign).

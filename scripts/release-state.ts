@@ -67,6 +67,7 @@ export interface ReleaseContext {
 /** Canonical publishable package directories */
 export const PUBLISHABLE_DIRS = [
   "core",
+  "runtime",
   "cli",
   "mcp",
   "opencode",

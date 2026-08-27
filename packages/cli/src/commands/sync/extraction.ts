@@ -16,7 +16,11 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { extractFromManifest } from "../../extractors/manifest.js";
+import * as path from "node:path";
+import {
+  ManifestError,
+  extractFromManifest,
+} from "../../extractors/manifest.js";
 import {
   type ExtractionResult,
   FrontmatterError,
@@ -28,6 +32,37 @@ export interface ExtractionOutput {
   results: ExtractionResult[];
   failedCacheKeys: Set<string>;
   errors: { file: string; message: string }[];
+}
+
+/**
+ * Authored source identities are workspace-relative POSIX paths. Code symbol
+ * coordinates remain a separate `sourceFile` field, but use the same stable
+ * relative identity so branch-local snapshots do not embed host-specific
+ * absolute paths.
+ */
+export function normalizeExtractionSources(
+  results: readonly ExtractionResult[],
+  workspaceRoot: string,
+): ExtractionResult[] {
+  const root = path.resolve(workspaceRoot);
+  const normalize = (value: string): string => {
+    if (/^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(value)) return value;
+    const absolute = path.isAbsolute(value) ? path.resolve(value) : undefined;
+    if (absolute?.startsWith(`${root}${path.sep}`)) {
+      return path.relative(root, absolute).replaceAll(path.sep, "/");
+    }
+    return value.replaceAll("\\", "/");
+  };
+  return results.map((result) => ({
+    ...result,
+    entity: {
+      ...result.entity,
+      source: normalize(result.entity.source),
+    },
+    ...(result.sourceFile !== undefined
+      ? { sourceFile: normalize(result.sourceFile) }
+      : {}),
+  }));
 }
 
 interface ExtractionDependencies {
@@ -45,6 +80,7 @@ export async function processExtractions(
   changedMarkdownFiles: string[],
   changedManifestFiles: string[],
   validateOnly: boolean,
+  workspaceRoot = process.cwd(),
   dependencies: ExtractionDependencies = DEFAULT_EXTRACTION_DEPENDENCIES,
 ): Promise<ExtractionOutput> {
   const results: ExtractionResult[] = [];
@@ -70,7 +106,7 @@ export async function processExtractions(
       } else {
         console.warn(`Warning: Failed to extract from ${file}: ${message}`);
       }
-      failedCacheKeys.add(toCacheKey(file));
+      failedCacheKeys.add(toCacheKey(workspaceRoot, file));
     }
   }
 
@@ -80,12 +116,19 @@ export async function processExtractions(
       results.push(...manifestResults);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
+      if (
+        error instanceof ManifestError &&
+        error.classification === "coordinate-artifact" &&
+        !validateOnly
+      ) {
+        throw error;
+      }
       if (validateOnly) {
         errors.push({ file, message });
       } else {
         console.warn(`Warning: Failed to extract from ${file}: ${message}`);
       }
-      failedCacheKeys.add(toCacheKey(file));
+      failedCacheKeys.add(toCacheKey(workspaceRoot, file));
     }
   }
 

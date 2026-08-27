@@ -12,7 +12,7 @@ Install these **before** enabling the plugin MCP server:
 | --- | --- |
 | **SWI-Prolog 9+** (`swipl` on `PATH`) | Powers Kibi inference and validation |
 | **`kibi-cli`** | Project CLI (`kibi` command) |
-| **`kibi-mcp`** | MCP server the plugin's `mcp.json` invokes via `npx --no-install kibi-mcp` |
+| **`kibi-mcp`** | MCP server installed in the opened project; the plugin launcher resolves this package without downloading it |
 | **`kibi-core`** | Shared graph/runtime dependency |
 
 ```bash
@@ -25,7 +25,7 @@ Full setup: [docs/install.md](https://github.com/Looted/kibi/blob/develop/docs/i
 
 Add this plugin only after the base packages work in your project.
 
-**Git worktrees:** the published plugin MCP entry (`npx --no-install kibi-mcp`) needs `kibi-mcp` resolvable from that worktree's `node_modules` (run install there). For this monorepo's dogfood path, prefer project `.cursor/mcp.json`, which can fall back to the primary checkout's built MCP — see [DEV.md](./DEV.md#linked-worktrees).
+**Git worktrees:** the published plugin MCP entry resolves `kibi-mcp` from the opened worktree's `node_modules` (run install there). The plugin does not download or bundle a Kibi runtime. For this monorepo's dogfood path, prefer project `.cursor/mcp.json`, which can fall back to the primary checkout's built MCP — see [DEV.md](./DEV.md#linked-worktrees).
 
 ## Installation
 
@@ -55,14 +55,17 @@ cp -r "$(npm root)/kibi-cursor" ~/.cursor/plugins/local/kibi-cursor
 
 ## MCP configuration
 
-The plugin bundles `mcp.json` pointing at the project-local `kibi-mcp` binary:
+The plugin bundles `mcp.json` with a thin launcher that locates and starts the
+`kibi-mcp` package installed in the opened project. The launcher runs from the
+consumer workspace and sets `KIBI_WORKSPACE` to that root; it never downloads,
+bundles, or falls back to a global Kibi runtime:
 
 ```json
 {
   "mcpServers": {
     "kibi": {
-      "command": "npx",
-      "args": ["--no-install", "kibi-mcp"]
+      "command": "node",
+      "args": ["bin/launch-kibi-mcp.mjs", "${workspaceFolder}"]
     }
   }
 }
@@ -90,7 +93,7 @@ Manual MCP fallback (no plugin install required):
 ```
 agent-plugin/
 ├── plugin.json   # agent-plugins.org/schemas/1.0.0/plugin.schema.json
-├── skills/       # canonical Kibi Agent Skills (kibi-usage, init-kibi, ...)
+├── skills/       # canonical Kibi Agent Skills (kibi-usage, kibi-bootstrap, ...)
 └── mcp.json      # agent-plugins.org/schemas/1.0.0/mcp.schema.json (stdio kibi-mcp)
 ```
 
@@ -103,18 +106,18 @@ agent-plugin/
 ### Discovery-first rules and skills
 
 - **Rules**: always-on capability-based workflow guidance plus optional traceability rules for source files.
-- **Skills**: `kibi-usage`, `init-kibi`, `kibi-freshness`, and `kibi-traceability`.
-- **Commands**: `/init-kibi` documents the `kb_autopilot_generate` bootstrap workflow.
+- **Skills**: `kibi-usage`, `kibi-bootstrap`, `kibi-freshness`, and `kibi-traceability`.
+- **Commands**: `/kibi-bootstrap` documents the `kb_plan_bootstrap` bootstrap workflow.
 
 ### Advisory editor hooks
 
 Hooks are warning-only and never replace MCP/CLI behavior:
 
-- **sessionStart**: bootstrap reminder when `.kb/config.json` is missing.
+- **sessionStart**: bootstrap reminder when `.kb/manifest.json` is missing.
 - **preToolUse**: warns on explicit direct `.kb/**` edits without blocking.
 - **beforeReadFile** and **postToolUse (Read)**: inject source-linked lookup guidance once per path per session.
 - **postToolUse (Write/Edit)**: inject traceability and freshness guidance once per path per session, including `kb_check({sourceFiles:[...], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})` for meaningful source edits.
-- **stop**: emits a single freshness or impact-check follow-up when meaningful paths changed during the session.
+- **stop**: emits a single freshness or impact-check follow-up when meaningful paths were **edited** during the turn (reads and search do not count). Plan delivery (`CreatePlan`) stays silent unless that same turn also edited source or mutated the KB.
 
 ### What the plugin does not do
 

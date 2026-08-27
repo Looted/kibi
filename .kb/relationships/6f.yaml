@@ -1,0 +1,85 @@
+relationships:
+  - id: rel-114eb3fd1f42
+    type: covered_by
+    from: SYM-core-entity-property-schema
+    to: TEST-kibi-conservative-requirement-proof
+    created_at: "2026-08-16T18:51:34.273Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-core-entity-property-schema
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-16T18:52:06.530Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7473e59a6806
+  - type: executable_for
+    from: SYM-packed-cleanup-shared-install
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-16T18:52:30.451Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-adeb77269794
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-planstep
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-16T19:45:30.481Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-88028e41adc8
+  - type: covered_by
+    from: SYM-atomicPublish
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-08-16T19:47:07.407Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf4703a1d612
+  - type: implements
+    from: SYM-operation-validate-upsert-spec
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:31:19.118Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e096c4be7fe
+  - type: covered_by
+    from: SYM-operation-validate-upsert-spec
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:31:19.128Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8edb1013fabc
+  - type: covered_by
+    from: SYM-operation-validate-upsert-spec
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:31:19.132Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45b9a2f00ca6
+  - type: covered_by
+    from: SYM-operation-content-type
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:38:20.379Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a29822229e5
+  - type: implements
+    from: SYM-operation-content-type
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:03:15.449Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-687694e4c153
+  - type: covered_by
+    from: SYM-operation-content-type
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:03:15.482Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-286d92fb22de
+  - type: implements
+    from: SYM-skillopt-stop-fixture-engine
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-26T18:32:32.602Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06399db95e3f

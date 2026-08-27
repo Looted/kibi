@@ -7,6 +7,11 @@ import type {
   PrologPort,
   PrologQueryResult,
 } from "../../src/public/operations/runtime-types.js";
+import {
+  type RelationshipParityRecord,
+  compareRelationshipParity,
+  parseCompiledRelationshipRows,
+} from "../../src/public/operations/source-relationship-parity.js";
 import { checkSpec } from "../../src/public/operations/specs/check.js";
 
 function createContext(
@@ -37,6 +42,109 @@ function emptyFullQualityResult(goal: string): PrologQueryResult | undefined {
 }
 
 describe("shared check operation executor", () => {
+  test("keeps the authored relationship parity record contract explicit", () => {
+    const record: RelationshipParityRecord = {
+      type: "implements",
+      from: "SYM-PARITY",
+      to: "REQ-PARITY",
+      source: ".kb/symbols.yaml",
+      ownership: "authored",
+    };
+
+    expect(record).toEqual({
+      type: "implements",
+      from: "SYM-PARITY",
+      to: "REQ-PARITY",
+      source: ".kb/symbols.yaml",
+      ownership: "authored",
+    });
+  });
+
+  test("detects authored relationship loss without collapsing repeated or unrelated edges", () => {
+    const violations = compareRelationshipParity(
+      [
+        {
+          type: "requires_property",
+          from: "REQ-1",
+          to: "FACT-A",
+          source: ".kb/requirements/REQ-1.md",
+        },
+        {
+          type: "requires_property",
+          from: "REQ-1",
+          to: "FACT-B",
+          source: ".kb/requirements/REQ-1.md",
+        },
+        {
+          type: "specified_by",
+          from: "REQ-1",
+          to: "SCEN-KEEP",
+          source: ".kb/requirements/REQ-1.md",
+        },
+      ],
+      [
+        { type: "requires_property", from: "REQ-1", to: "FACT-A" },
+        { type: "specified_by", from: "REQ-1", to: "SCEN-KEEP" },
+      ],
+    );
+
+    expect(violations).toEqual([
+      expect.objectContaining({
+        rule: "source-relationship-parity",
+        entityId: "REQ-1",
+        description: expect.stringContaining("requires_property REQ-1->FACT-B"),
+        evidence: expect.objectContaining({
+          direction: "authored_to_compiled",
+        }),
+      }),
+    ]);
+  });
+
+  test("does not require authored ownership for explicitly runtime-only relationships", () => {
+    const violations = compareRelationshipParity(
+      [
+        {
+          type: "specified_by",
+          from: "REQ-AUTHORED",
+          to: "SCEN-MISSING",
+          source: ".kb/requirements/REQ-AUTHORED.md",
+        },
+      ],
+      [
+        {
+          type: "validates",
+          from: "TEST-RUNTIME",
+          to: "SCEN-RUNTIME",
+          source: "test://fixture",
+          ownership: "runtime",
+        },
+      ],
+    );
+
+    expect(violations).toHaveLength(1);
+    expect(violations[0]).toMatchObject({
+      entityId: "REQ-AUTHORED",
+      evidence: { direction: "authored_to_compiled" },
+    });
+  });
+
+  test("normalizes quoted Prolog entity IDs before parity comparison", () => {
+    expect(
+      parseCompiledRelationshipRows(
+        "specified_by",
+        "[['REQ-PARITY-E2E','SCEN-PARITY-E2E',\".kb/requirements/REQ-PARITY-E2E.md\"]]",
+      ),
+    ).toEqual([
+      {
+        type: "specified_by",
+        from: "REQ-PARITY-E2E",
+        to: "SCEN-PARITY-E2E",
+        source: ".kb/requirements/REQ-PARITY-E2E.md",
+        ownership: "authored",
+      },
+    ]);
+  });
+
   test("returns no violations for empty aggregated result", async () => {
     // Given: an aggregated Prolog response with no violations and empty KB tables.
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
@@ -60,8 +168,8 @@ describe("shared check operation executor", () => {
     expect(result.content[0]?.text).toContain("No violations");
   });
 
-  test("passes requireAdr true to symbol-traceability query", async () => {
-    // Given: a workspace with requireAdr enabled via .kb/config.json.
+  test("ignores leftover requireAdr config and always passes false", async () => {
+    // Given: a leftover .kb/config.json that tries to enable requireAdr.
     const workspaceRoot = mkdtempSync(
       path.join(os.tmpdir(), "kibi-check-shared-"),
     );
@@ -88,12 +196,11 @@ describe("shared check operation executor", () => {
     });
 
     try {
-      // When: executing the check operation.
       await checkSpec.execute({}, createContext(query, workspaceRoot));
 
-      // Then: the aggregated Prolog query receives the requireAdr flag as true.
       expect(capturedQuery).toContain("check_all_json_with_options");
-      expect(capturedQuery).toContain("true");
+      expect(capturedQuery).toContain("false");
+      expect(capturedQuery).not.toMatch(/check_all_json_with_options\(\s*true/);
     } finally {
       rmSync(workspaceRoot, { recursive: true, force: true });
     }
@@ -116,7 +223,7 @@ describe("shared check operation executor", () => {
                   description:
                     "Must-priority requirement lacks scenario coverage",
                   suggestion: "Create scenario that covers this requirement",
-                  source: "documentation/requirements/REQ-MUST-001.md",
+                  source: ".kb/requirements/REQ-MUST-001.md",
                 },
               ],
             }),

@@ -1,6 +1,6 @@
 import path from "node:path";
 import { type PrologProcess, resolveKbPlPath } from "../prolog.js";
-import { escapeAtom } from "../prolog/codec.js";
+import { escapeAtom, toPrologAtom } from "../prolog/codec.js";
 import type { Violation } from "./check.js";
 
 interface JsonViolation {
@@ -18,25 +18,29 @@ interface JsonViolation {
  * faster than running individual checks with multiple round-trips.
  * @param prolog - The Prolog process
  * @param rulesAllowlist - Set of rule names to run (null = all)
- * @param requireAdr - Whether to require ADR constraints for symbol-traceability
  */
 export async function runAggregatedChecks(
   prolog: Pick<PrologProcess, "query">,
   rulesAllowlist: Set<string> | null,
-  requireAdr = false,
 ): Promise<Violation[]> {
   // implements REQ-003
   const violations: Violation[] = [];
 
   const checksPlPath = path.join(path.dirname(resolveKbPlPath()), "checks.pl");
   const checksPlPathEscaped = escapeAtom(checksPlPath);
-  // Use check_all_json_with_options if available, otherwise fall back to check_all_json
-  const requireAdrStr = requireAdr ? "true" : "false";
-  const query = `(use_module('${checksPlPathEscaped}'), 
-    (   predicate_property(checks:check_all_json_with_options(_, _), _)
-    ->  call(checks:check_all_json_with_options(JsonString, ${requireAdrStr}))
+  const fallbackQuery = `(   predicate_property(checks:check_all_json_with_options(_, _), _)
+    ->  call(checks:check_all_json_with_options(JsonString, false))
     ;   call(checks:check_all_json(JsonString))
-    ))`;
+    )`;
+  const checksQuery = rulesAllowlist
+    ? `(   predicate_property(checks:check_selected_json(_, _), _)
+      ->  call(checks:check_selected_json([${[...rulesAllowlist]
+        .map(toPrologAtom)
+        .join(",")}], JsonString))
+      ;   ${fallbackQuery}
+      )`
+    : fallbackQuery;
+  const query = `(use_module('${checksPlPathEscaped}'), ${checksQuery})`;
 
   const result = await prolog.query(query);
 

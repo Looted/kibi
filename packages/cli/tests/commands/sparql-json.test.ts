@@ -34,7 +34,7 @@ describe("sparql-remote JSON command adapter", () => {
 
       // Then
       expect(exitCode, stderr).toBe(0);
-      expect(JSON.parse(stdout)).toEqual({ rows: SPARQL_FIXTURE_ROWS });
+      expect(JSON.parse(stdout).data).toEqual({ rows: SPARQL_FIXTURE_ROWS });
     } finally {
       await fixture.stop();
     }

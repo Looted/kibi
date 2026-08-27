@@ -1,0 +1,148 @@
+relationships:
+  - id: rel-9f55e9108a70
+    type: executable_for
+    from: SYM-cli-engine-signal-shutdown-test
+    to: TEST-test-journaled-engine-harness
+    created_at: "2026-08-16T18:52:30.450Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: validates
+    from: TEST-kibi-change-to-proof-plan-compiler
+    to: SCEN-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-16T19:42:25.539Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92c41b4995aa
+  - type: specified_by
+    from: REQ-011
+    to: SCEN-001
+    created_at: 2026-08-16T22:54:52.596Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ff2859a9c68
+  - type: specified_by
+    from: REQ-011
+    to: SCEN-cli-strict-modeling-v1
+    created_at: 2026-08-16T22:54:52.612Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42084a676168
+  - type: specified_by
+    from: REQ-011
+    to: SCEN-cli-config-schema-v1
+    created_at: 2026-08-16T22:54:52.616Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-020e215c2ff0
+  - type: specified_by
+    from: REQ-011
+    to: SCEN-mcp-model-requirement-v1
+    created_at: 2026-08-16T22:54:52.620Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd4b128343cf
+  - type: verified_by
+    from: REQ-011
+    to: TEST-011
+    created_at: 2026-08-16T22:54:52.625Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4a96300a553b
+  - type: verified_by
+    from: REQ-011
+    to: TEST-cli-strict-modeling
+    created_at: 2026-08-16T22:54:52.629Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-843826ae1ccf
+  - type: verified_by
+    from: REQ-011
+    to: TEST-cli-config-schema
+    created_at: 2026-08-16T22:54:52.633Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dfa556fa9d63
+  - type: verified_by
+    from: REQ-011
+    to: TEST-mcp-model-requirement
+    created_at: 2026-08-16T22:54:52.637Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4bea362036d5
+  - type: constrains
+    from: REQ-011
+    to: FACT-WRITE-GOVERNANCE
+    created_at: 2026-08-17T08:17:15.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83f631ef6efd
+  - type: requires_property
+    from: REQ-011
+    to: FACT-UPSERT-VALIDATION
+    created_at: 2026-08-17T08:17:15.850Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-727413073d7c
+  - type: requires_property
+    from: REQ-011
+    to: FACT-AUDIT-APPEND-ONLY
+    created_at: 2026-08-17T08:17:15.854Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2fa28e6f1e1
+  - type: verified_by
+    from: SCEN-cursor-stop-job-vs-plan
+    to: TEST-cursor-stop-job-vs-plan
+    created_at: 2026-08-18T11:56:20.019Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-706061dd62dd
+  - type: relates_to
+    from: SCEN-cursor-stop-job-vs-plan
+    to: REQ-cursor-stop-job-vs-plan
+    created_at: 2026-08-18T11:56:20.030Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb8059650a66
+  - type: implements
+    from: SYM-EnforcementPolicyResult
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:47:57.136Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0e056d3c2a5
+  - type: covered_by
+    from: SYM-EnforcementPolicyResult
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:47:57.150Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ecc246295d4
+  - type: covered_by
+    from: SYM-EnforcementPolicyResult
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:47:57.156Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-afa2ae82873d
+  - type: covered_by
+    from: SYM-parity-validated-upsert-type
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:39:16.408Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0a37ed38a99
+  - type: implements
+    from: SYM-parity-validated-upsert-type
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:05:42.926Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fdbb63403a78
+  - type: covered_by
+    from: SYM-parity-validated-upsert-type
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:05:42.932Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79508e85aa2e

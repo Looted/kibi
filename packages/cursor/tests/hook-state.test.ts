@@ -10,6 +10,7 @@ import {
   hasGuidedPath,
   loadHookState,
   recordKbMcpTool,
+  recordPlanDelivered,
   rememberGuidedPath,
   resolveStateDir,
   saveHookState,
@@ -26,6 +27,7 @@ const EMPTY_HOOK_STATE: HookState = {
   kbCheckRun: false,
   impactCheckRun: false,
   impactCheckedPaths: [],
+  planDelivered: false,
 };
 
 function createStateDir(): string {
@@ -81,6 +83,7 @@ describe("Cursor hook state", () => {
       kbCheckRun: true,
       impactCheckRun: true,
       impactCheckedPaths: [" src\\a.ts ", "src/a.ts"],
+      planDelivered: true,
     });
 
     const state = loadHookState(stateDir);
@@ -95,6 +98,7 @@ describe("Cursor hook state", () => {
     expect(state.impactCheckRun).toBe(true);
     expect(state.impactCheckedPaths).toEqual(["src/a.ts"]);
     expect(state.mcpState).toBe("observed");
+    expect(state.planDelivered).toBe(true);
   });
 
   test("Given conversation id without plugin data When resolving state dir Then temp-safe id is used", () => {
@@ -294,5 +298,14 @@ describe("Cursor hook state", () => {
       impactCheckRun: true,
       impactCheckedPaths: ["src/a.ts"],
     });
+  });
+
+  test("Given CreatePlan When recording plan delivery Then the flag is sticky and idempotent", () => {
+    const stateDir = createStateDir();
+    stateDirs.push(stateDir);
+
+    expect(recordPlanDelivered(stateDir).planDelivered).toBe(true);
+    expect(recordPlanDelivered(stateDir).planDelivered).toBe(true);
+    expect(loadHookState(stateDir).planDelivered).toBe(true);
   });
 });

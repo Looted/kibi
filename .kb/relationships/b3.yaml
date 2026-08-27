@@ -1,0 +1,85 @@
+relationships:
+  - id: rel-b3c993b9ecbb
+    type: covered_by
+    from: SYM-core-discovery-requirementCoverageRow
+    to: TEST-kibi-conservative-requirement-proof
+    created_at: "2026-08-16T18:51:34.270Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-SemanticAdvisorReceipt
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-16T18:52:06.523Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33cfdf60c1a8
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-planning-apply-plan-orderbootstrapactions
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:49:32.687Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f60caec8a60
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-planning-apply-plan-orderbootstrapactions
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:49:32.694Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fce1172d2449
+  - type: implements
+    from: SYM-mcp-session-isShuttingDown
+    to: REQ-002
+    created_at: 2026-08-22T20:07:54.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a808d05a250f
+  - type: covered_by
+    from: SYM-mcp-session-isShuttingDown
+    to: TEST-005
+    created_at: 2026-08-22T20:07:54.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d0d6eaaff78
+  - type: covered_by
+    from: SYM-mcp-session-isShuttingDown
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:07:54.458Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2ce40412bbb
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-planning-apply-plan-orderbootstrapactions
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:18:04.979Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83ae83aa83ef
+  - type: implements
+    from: SYM-skillopt-cursor-run-compat-gate
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:26:18.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce631d2b4073
+  - type: implements
+    from: SYM-BrokerRawCall
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-23T23:19:54.455Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5411ddaa9004
+  - type: covered_by
+    from: SYM-BrokerRawCall
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-23T23:19:54.466Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33a41b3ed06f
+  - type: covered_by
+    from: SYM-skillopt-cursor-run-compat-gate
+    to: TEST-skillopt-cursor-compat
+    created_at: 2026-08-25T19:52:10.163Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77fe7dde2539

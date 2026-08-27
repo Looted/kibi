@@ -1,0 +1,106 @@
+relationships:
+  - id: rel-4527319198cd
+    type: covered_by
+    from: SYM-reqcompiler-verification-receipt-version
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: "2026-08-15T12:41:40.307Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-reqcompiler-verification-receipt-version
+    to: REQ-kibi-verification-receipts-v2
+    created_at: 2026-08-15T16:37:50.275Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d515f608898
+  - type: covered_by
+    from: SYM-reqcompiler-verification-receipt-version
+    to: TEST-kibi-verification-receipts-v2
+    created_at: 2026-08-15T16:37:50.279Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0dd26220a650
+  - type: implements
+    from: SYM-auto-B2B1769454DE
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-16T07:54:13.105Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6837ab04e577
+  - type: covered_by
+    from: SYM-auto-B2B1769454DE
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-08-16T07:54:13.111Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a11fac5f032
+  - type: covered_by
+    from: SYM-reqcompiler-parity-action
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: 2026-08-16T18:51:45.103Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80c507efe0bf
+  - type: covered_by
+    from: SYM-cli-github-workflow-template-filename
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-19T20:56:25.128Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c9b79f58b0d
+  - type: implements
+    from: SYM-SkillsReadResult
+    to: REQ-002
+    created_at: 2026-08-22T20:10:18.126Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-22a4abd43af9
+  - type: covered_by
+    from: SYM-SkillsReadResult
+    to: TEST-005
+    created_at: 2026-08-22T20:10:18.140Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74ff126e3887
+  - type: covered_by
+    from: SYM-SkillsReadResult
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:10:18.144Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad1b971b517b
+  - type: implements
+    from: SYM-core-contradicting-reqs
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:19:58.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-661aa814edd3
+  - type: covered_by
+    from: SYM-core-contradicting-reqs
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:19:58.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d5bc7b3d4aa
+  - type: covered_by
+    from: SYM-core-contradicting-reqs
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:19:58.263Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-955b5df8c819
+  - type: implements
+    from: SYM-auto-B2B1769454DE
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:55:12.417Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f91782c36bfa
+  - type: covered_by
+    from: SYM-auto-B2B1769454DE
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:55:12.422Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-944010200f3b

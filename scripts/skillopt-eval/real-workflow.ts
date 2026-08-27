@@ -145,8 +145,8 @@ export async function runRealOptimization(
   dependencies: Partial<RealOptimizationDependencies> = {},
 ): Promise<RealOptimizationResult> {
   const [skill] = options.skills;
-  if (skill !== "kibi-usage" || options.skills.length !== 1)
-    throw new Error("real optimization accepts only kibi-usage");
+  if (skill === undefined || options.skills.length !== 1)
+    throw new Error("real optimization accepts exactly one canonical skill");
   const root = resolve(options.artifactRoot);
   const env = options.env ?? process.env;
   const sourceClean =
@@ -161,17 +161,19 @@ export async function runRealOptimization(
     const roots = await predicateRoots(root);
     const trainDescriptors =
       options.cellRuntime === undefined
-        ? publicSkillDescriptors("train")
+        ? publicSkillDescriptors("train", skill)
         : await taskScopedPublicSkillDescriptors(
             "train",
             options.cellRuntime.fixtureRunRoot,
+            skill,
           );
     const developmentDescriptors =
       options.cellRuntime === undefined
-        ? publicSkillDescriptors("development")
+        ? publicSkillDescriptors("development", skill)
         : await taskScopedPublicSkillDescriptors(
             "development",
             options.cellRuntime.fixtureRunRoot,
+            skill,
           );
     const candidates: Array<{
       skill: CanonicalSkill;
@@ -311,6 +313,7 @@ export async function runRealOptimization(
             runId: options.runId,
             roots,
             env,
+            includeBundle: false,
             ...(options.cellRuntime === undefined
               ? {}
               : { runtime: options.cellRuntime }),

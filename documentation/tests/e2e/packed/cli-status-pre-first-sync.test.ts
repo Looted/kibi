@@ -9,6 +9,8 @@ import {
   createSandbox,
   kibi,
   packAll,
+  parseKibiResult,
+  stageSourceFile,
 } from "./helpers.js";
 
 const RUN_NODE_TEST_SUITE =
@@ -82,13 +84,13 @@ if (RUN_NODE_TEST_SUITE) {
           `kibi status should succeed: ${statusResult.stderr}`,
         );
 
-        const statusJson = JSON.parse(statusResult.stdout) as {
+        const statusJson = parseKibiResult<{
           branch: string;
           snapshotId: string;
           syncedAt: string | null;
           dirty: boolean;
           syncState: string;
-        };
+        }>(statusResult.stdout);
 
         // Assert pre-sync contract
         assert.strictEqual(
@@ -136,7 +138,7 @@ if (RUN_NODE_TEST_SUITE) {
         );
 
         // Write a minimal requirement file
-        const docsDir = join(sandbox.repoDir, "documentation", "requirements");
+        const docsDir = join(sandbox.repoDir, ".kb", "requirements");
         mkdirSync(docsDir, { recursive: true });
         writeFileSync(
           join(docsDir, "REQ-STATUS-001.md"),
@@ -150,6 +152,7 @@ Test requirement for CLI status pre-first-sync regression.
 `,
           "utf8",
         );
+        stageSourceFile(sandbox, ".kb/requirements/REQ-STATUS-001.md");
 
         // Run sync
         const syncResult = await kibi(sandbox, ["sync"]);
@@ -171,13 +174,13 @@ Test requirement for CLI status pre-first-sync regression.
           `kibi status should succeed: ${statusResult.stderr}`,
         );
 
-        const statusJson = JSON.parse(statusResult.stdout) as {
+        const statusJson = parseKibiResult<{
           branch: string;
           snapshotId: string;
           syncedAt: string | null;
           dirty: boolean;
           syncState: string;
-        };
+        }>(statusResult.stdout);
 
         // Assert post-sync contract
         assert.strictEqual(

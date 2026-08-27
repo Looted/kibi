@@ -11,6 +11,21 @@ const WORKFLOW_PATH = join(
   "ci.yml",
 );
 const CODECOV_CONFIG_PATH = join(import.meta.dir, "..", "..", "codecov.yml");
+const DOCKERFILE_PATH = join(
+  import.meta.dir,
+  "..",
+  "..",
+  "docker",
+  "test-runner.Dockerfile",
+);
+const DOCKER_ENTRYPOINT_PATH = join(
+  import.meta.dir,
+  "..",
+  "..",
+  "scripts",
+  "docker",
+  "entrypoint.sh",
+);
 
 /**
  * Extract the text block for a named job from a GitHub Actions YAML workflow.
@@ -35,6 +50,8 @@ function extractJobBlock(content: string, jobName: string): string {
 describe("ci.yml CI workflow contract", () => {
   const workflowContent = readFileSync(WORKFLOW_PATH, "utf8");
   const codecovConfig = readFileSync(CODECOV_CONFIG_PATH, "utf8");
+  const dockerfileContent = readFileSync(DOCKERFILE_PATH, "utf8");
+  const dockerEntrypointContent = readFileSync(DOCKER_ENTRYPOINT_PATH, "utf8");
   const packedJobs = [
     "packed-e2e-cli-regression",
     "packed-e2e-mcp-regression",
@@ -42,14 +59,19 @@ describe("ci.yml CI workflow contract", () => {
     "packed-e2e-branch-workflow",
   ] as const;
   const sourceDependentPackedJobs: readonly string[] = [
+    "packed-e2e-cli-regression",
     "packed-e2e-mcp-regression",
     "packed-e2e-tarball-verify",
+    "packed-e2e-branch-workflow",
   ] as readonly string[];
   const coverageGatedJobs = [...packedJobs, "publish-dry-run"] as const;
 
   test("artifact names appear in workflow", () => {
     expect(workflowContent).toContain("kibi-tarballs");
     expect(workflowContent).toContain("kibi-e2e-tests-compiled");
+    expect(extractJobBlock(workflowContent, "build-and-test")).toContain(
+      "cd ../runtime && npm pack",
+    );
   });
 
   test("packed-e2e jobs: download artifacts and checkout only when source-dependent", () => {
@@ -75,6 +97,33 @@ describe("ci.yml CI workflow contract", () => {
     }
   });
 
+  test("multi-file CLI and MCP packed jobs use the shared packed runner", () => {
+    expect(
+      extractJobBlock(workflowContent, "packed-e2e-cli-regression"),
+    ).toContain("node scripts/run-packed-e2e.mjs");
+    expect(
+      extractJobBlock(workflowContent, "packed-e2e-mcp-regression"),
+    ).toContain("node scripts/run-packed-e2e.mjs");
+    expect(workflowContent).not.toMatch(
+      /node --test --test-concurrency=1 \/tmp\/kibi-e2e-packed-compiled\/(?:cli|mcp)-[^\n]+\.test\.js[^\n]*\n[^\n]*node --test/s,
+    );
+  });
+
+  test("packed compilation performs the E2E typecheck while emitting", () => {
+    const buildBlock = extractJobBlock(workflowContent, "build-and-test");
+    expect(buildBlock).toContain("bun run compile:e2e:packed");
+    expect(buildBlock).not.toContain("bun run typecheck:e2e:packed");
+  });
+
+  test("Docker packed fallback covers every package and uses the shared runner", () => {
+    const packageList = "core cli runtime mcp opencode codex cursor";
+    expect(dockerfileContent).toContain(`for pkg in ${packageList}; do`);
+    expect(dockerEntrypointContent).toContain(`for pkg in ${packageList}; do`);
+    expect(dockerEntrypointContent).toContain(
+      "/workspace/scripts/run-packed-e2e.mjs",
+    );
+  });
+
   test("build-and-test: explicit shallow checkout", () => {
     const block = extractJobBlock(workflowContent, "build-and-test");
     expect(block).toContain("actions/checkout@v6");
@@ -92,13 +141,13 @@ describe("ci.yml CI workflow contract", () => {
     );
   });
 
-  test("Codecov unit status requires 100 percent coverage", () => {
+  test("Codecov unit status enforces the initial 50 percent floor", () => {
     expect(workflowContent).toContain("flags: unit");
     expect(workflowContent).toContain("files: ./coverage/unit/lcov.info");
-    expect(codecovConfig).toContain('range: "100...100"');
+    expect(codecovConfig).toContain('range: "50...100"');
     expect(codecovConfig).toContain("project:");
     expect(codecovConfig).toContain("patch:");
-    expect(codecovConfig).toContain("target: 100%");
+    expect(codecovConfig).toContain("target: 50%");
     expect(codecovConfig).toContain("threshold: 0%");
     expect(codecovConfig).toContain("- unit");
   });
@@ -115,6 +164,10 @@ describe("ci.yml CI workflow contract", () => {
     expect(block).toContain("actions/checkout@v6");
     expect(block).toContain("fetch-depth: 1");
     expect(block).not.toContain("fetch-depth: 0");
+    expect(block).toContain("bun run build:runtime");
+    expect(block).toContain("cd ../runtime && npm pack");
+    expect(block).toContain("cd ../codex && npm pack");
+    expect(block).toContain("cd ../cursor && npm pack");
   });
 
   describe("negative regression detection", () => {

@@ -1,4 +1,5 @@
 import assert from "node:assert";
+import { createHash } from "node:crypto";
 import {
   existsSync,
   mkdirSync,
@@ -20,6 +21,18 @@ import {
 
 const RUN_NODE_TEST_SUITE =
   typeof (globalThis as { Bun?: unknown }).Bun === "undefined";
+
+function branchKbPath(repoDir: string, branch: string): string {
+  const key = createHash("sha256").update(branch).digest("hex");
+  return join(repoDir, `.kb/branches/${key}`);
+}
+
+function stageSources(sandbox: TestSandbox): Promise<unknown> {
+  return run("git", ["add", ".kb"], {
+    cwd: sandbox.repoDir,
+    env: sandbox.env,
+  });
+}
 
 if (RUN_NODE_TEST_SUITE) {
   describe("E2E: Branch KB Workflow", () => {
@@ -71,7 +84,7 @@ if (RUN_NODE_TEST_SUITE) {
 
         await kibi(sandbox, ["init", "--no-hooks"]);
 
-        const reqDir = join(sandbox.repoDir, "documentation/requirements");
+        const reqDir = join(sandbox.repoDir, ".kb/requirements");
         mkdirSync(reqDir, { recursive: true });
 
         writeFileSync(
@@ -86,6 +99,7 @@ status: open
 `,
         );
 
+        await stageSources(sandbox);
         await kibi(sandbox, ["sync"]);
 
         await run("git", ["add", "."], {
@@ -114,14 +128,15 @@ status: open
 `,
         );
 
+        await stageSources(sandbox);
         await kibi(sandbox, ["sync"]);
 
         assert.ok(
-          existsSync(join(sandbox.repoDir, ".kb/branches/develop/kb.rdf")),
+          existsSync(join(branchKbPath(sandbox.repoDir, "develop"), "kb.rdf")),
           "develop KB should exist",
         );
         assert.ok(
-          existsSync(join(sandbox.repoDir, ".kb/branches/feature/kb.rdf")),
+          existsSync(join(branchKbPath(sandbox.repoDir, "feature"), "kb.rdf")),
           "feature KB should exist",
         );
       },
@@ -135,7 +150,7 @@ status: open
 
         await kibi(sandbox, ["init", "--no-hooks"]);
 
-        const reqDir = join(sandbox.repoDir, "documentation/requirements");
+        const reqDir = join(sandbox.repoDir, ".kb/requirements");
         mkdirSync(reqDir, { recursive: true });
 
         writeFileSync(
@@ -150,6 +165,7 @@ status: open
 `,
         );
 
+        await stageSources(sandbox);
         await kibi(sandbox, ["sync"]);
 
         await run("git", ["add", "."], {
@@ -181,6 +197,7 @@ status: open
 `,
         );
 
+        await stageSources(sandbox);
         await kibi(sandbox, ["sync"]);
 
         const { stdout: featureQuery } = await kibi(sandbox, ["query", "req"]);
@@ -217,7 +234,7 @@ status: open
 
         await kibi(sandbox, ["init", "--no-hooks"]);
 
-        const reqDir = join(sandbox.repoDir, "documentation/requirements");
+        const reqDir = join(sandbox.repoDir, ".kb/requirements");
         mkdirSync(reqDir, { recursive: true });
 
         writeFileSync(
@@ -232,6 +249,7 @@ status: open
 `,
         );
 
+        await stageSources(sandbox);
         await kibi(sandbox, ["sync"]);
 
         await run("git", ["add", "."], {
@@ -260,6 +278,7 @@ status: open
 `,
         );
 
+        await stageSources(sandbox);
         await kibi(sandbox, ["sync"]);
 
         const { stdout: v2Query } = await kibi(sandbox, ["query", "req"]);
@@ -299,7 +318,7 @@ status: open
           env: sandbox.env,
         });
 
-        const reqDir = join(sandbox.repoDir, "documentation/requirements");
+        const reqDir = join(sandbox.repoDir, ".kb/requirements");
         mkdirSync(reqDir, { recursive: true });
 
         writeFileSync(
@@ -315,14 +334,17 @@ status: open
         );
 
         assert.ok(
-          !existsSync(join(sandbox.repoDir, ".kb/branches/new-feature")),
+          !existsSync(branchKbPath(sandbox.repoDir, "new-feature")),
           "Branch KB should not exist before sync",
         );
 
+        await stageSources(sandbox);
         await kibi(sandbox, ["sync"]);
 
         assert.ok(
-          existsSync(join(sandbox.repoDir, ".kb/branches/new-feature/kb.rdf")),
+          existsSync(
+            join(branchKbPath(sandbox.repoDir, "new-feature"), "kb.rdf"),
+          ),
           "Branch KB should be created after sync",
         );
       },
@@ -336,7 +358,7 @@ status: open
 
         await kibi(sandbox, ["init", "--no-hooks"]);
 
-        const reqDir = join(sandbox.repoDir, "documentation/requirements");
+        const reqDir = join(sandbox.repoDir, ".kb/requirements");
         mkdirSync(reqDir, { recursive: true });
 
         writeFileSync(
@@ -351,6 +373,7 @@ status: open
 `,
         );
 
+        await stageSources(sandbox);
         await kibi(sandbox, ["sync"]);
 
         await run("git", ["add", "."], {
@@ -398,7 +421,7 @@ status: open
 
         await kibi(sandbox, ["init", "--no-hooks"]);
 
-        const reqDir = join(sandbox.repoDir, "documentation/requirements");
+        const reqDir = join(sandbox.repoDir, ".kb/requirements");
         mkdirSync(reqDir, { recursive: true });
 
         writeFileSync(
@@ -413,6 +436,7 @@ status: open
 `,
         );
 
+        await stageSources(sandbox);
         await kibi(sandbox, ["sync"]);
 
         await run("git", ["add", "."], {
@@ -469,11 +493,11 @@ status: open
         assert.ok(developQuery.includes("Feature"));
 
         assert.ok(
-          existsSync(join(sandbox.repoDir, ".kb/branches/develop/kb.rdf")),
+          existsSync(join(branchKbPath(sandbox.repoDir, "develop"), "kb.rdf")),
           "develop KB should exist",
         );
         assert.ok(
-          existsSync(join(sandbox.repoDir, ".kb/branches/feature/kb.rdf")),
+          existsSync(join(branchKbPath(sandbox.repoDir, "feature"), "kb.rdf")),
           "feature KB should still exist",
         );
       },
@@ -487,7 +511,7 @@ status: open
 
         await kibi(sandbox, ["init", "--no-hooks"]);
 
-        const reqDir = join(sandbox.repoDir, "documentation/requirements");
+        const reqDir = join(sandbox.repoDir, ".kb/requirements");
         mkdirSync(reqDir, { recursive: true });
 
         writeFileSync(
@@ -502,6 +526,7 @@ status: open
 `,
         );
 
+        await stageSources(sandbox);
         await kibi(sandbox, ["sync"]);
 
         await run("git", ["add", "."], {
@@ -539,15 +564,33 @@ status: open
 `,
         );
 
-        await kibi(sandbox, ["sync"]);
+        await stageSources(sandbox);
+        const staged = await run("git", ["ls-files"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
+        assert.match(staged.stdout, /\.kb\/requirements\/orphan\.md/);
+        const syncResult = await kibi(sandbox, ["sync"]);
+        assert.equal(syncResult.exitCode, 0, syncResult.stderr);
+        assert.match(
+          syncResult.stdout,
+          /orphan|Imported|entities/i,
+          syncResult.stdout,
+        );
 
         const { stdout: orphanQuery } = await kibi(sandbox, ["query", "req"]);
-        assert.ok(orphanQuery.includes("orphan"));
-        assert.ok(!orphanQuery.includes("Develop"));
+        assert.ok(
+          orphanQuery.includes("orphan"),
+          `${syncResult.stdout}\n${orphanQuery}`,
+        );
+        assert.ok(
+          !orphanQuery.includes("Develop"),
+          `${syncResult.stdout}\n${orphanQuery}`,
+        );
       },
     );
     it(
-      "should copy develop KB to new branch via post-checkout hook",
+      "should compile an independent exact-branch KB via post-checkout hook",
       { timeout: TEST_TIMEOUT_MS },
       async () => {
         if (!hasProlog) return;
@@ -555,7 +598,7 @@ status: open
         // Use real hooks so the post-checkout hook fires on branch creation
         await kibi(sandbox, ["init"]);
 
-        const reqDir = join(sandbox.repoDir, "documentation/requirements");
+        const reqDir = join(sandbox.repoDir, ".kb/requirements");
         mkdirSync(reqDir, { recursive: true });
 
         writeFileSync(
@@ -581,25 +624,26 @@ status: open
           env: sandbox.env,
         });
 
-        // The post-checkout hook fires here and should copy develop KB to feature
+        // The post-checkout hook fires here and compiles the exact feature
+        // branch from the tracked checkout. It must not copy the develop store.
         await run("git", ["checkout", "-b", "feature-hook-copy"], {
           cwd: sandbox.repoDir,
           env: sandbox.env,
         });
 
         const featureKbPath = join(
-          sandbox.repoDir,
-          ".kb/branches/feature-hook-copy/kb.rdf",
+          branchKbPath(sandbox.repoDir, "feature-hook-copy"),
+          "kb.rdf",
         );
         assert.ok(
           existsSync(featureKbPath),
           "feature branch KB should be created by hook",
         );
 
-        // The KB should have been COPIED from develop, so it should already
-        // contain the develop entity without an explicit sync
+        // The checkout contains the develop source, so the independent
+        // feature store should already contain it without a cross-branch copy.
         const kbContent = readFileSync(featureKbPath, "utf8");
-        assert.ok(kbContent.length > 0, "copied KB should not be empty");
+        assert.ok(kbContent.length > 0, "compiled KB should not be empty");
       },
     );
   });

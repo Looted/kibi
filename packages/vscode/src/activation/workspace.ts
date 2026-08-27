@@ -32,15 +32,15 @@ export function resolveWorkspaceRoot(
     const envWorkspaceRoot = process.env.KIBI_WORKSPACE_ROOT;
     if (envWorkspaceRoot) {
       const resolved = path.resolve(envWorkspaceRoot);
-      const kbConfigPath = path.join(resolved, ".kb", "config.json");
-      if (workspaceExistsSync(kbConfigPath)) {
+      const kbManifestPath = path.join(resolved, ".kb", "manifest.json");
+      if (workspaceExistsSync(kbManifestPath)) {
         workspaceRoot = resolved;
         output.appendLine(
           `No workspace folder attached; using KIBI_WORKSPACE_ROOT fallback: ${workspaceRoot}`,
         );
       } else {
         output.appendLine(
-          `KIBI_WORKSPACE_ROOT is set but missing .kb/config.json: ${resolved}`,
+          `KIBI_WORKSPACE_ROOT is set but missing .kb/manifest.json: ${resolved}`,
         );
       }
     }

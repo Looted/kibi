@@ -32,6 +32,16 @@ export const upsertSpec = {
       },
       properties: ENTITY_PROPERTIES_SCHEMA,
       relationships: RELATIONSHIPS_SCHEMA,
+      document: {
+        type: "object",
+        additionalProperties: false,
+        description:
+          "Optional source-first document write. Paths are workspace-relative; omit body when updating to preserve the existing body bytes.",
+        properties: {
+          path: { type: "string", minLength: 1 },
+          body: { type: "string" },
+        },
+      },
     },
   },
   requiresProlog: true,

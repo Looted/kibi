@@ -1,0 +1,71 @@
+relationships:
+  - type: implements
+    from: SYM-auto-09D119AE523D
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-16T07:54:08.112Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74d98d9455f2
+  - type: covered_by
+    from: SYM-auto-09D119AE523D
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-08-16T07:54:08.116Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d89c105748b4
+  - type: verified_by
+    from: REQ-core-journaled-engine-persistence
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-08-16T19:47:07.384Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c667105d717
+  - type: verified_by
+    from: REQ-core-journaled-engine-persistence
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.101Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2f228156820
+  - type: implements
+    from: SYM-DiagnosticErrorFields
+    to: REQ-002
+    created_at: 2026-08-22T20:05:49.248Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6aa96f757b39
+  - type: covered_by
+    from: SYM-DiagnosticErrorFields
+    to: TEST-005
+    created_at: 2026-08-22T20:05:49.261Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48201c3f55da
+  - type: covered_by
+    from: SYM-DiagnosticErrorFields
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:05:49.269Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dfaa3b956726
+  - type: implements
+    from: SYM-auto-09D119AE523D
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:50:41.433Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ad525deb6ca
+  - type: covered_by
+    from: SYM-auto-09D119AE523D
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:50:41.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1af69f77c8e5
+  - type: relates_to
+    from: FACT-cli-query-FAFD65
+    to: REQ-cli-query
+    created_at: 2026-08-26T07:43:59.813Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e834d2b125d5

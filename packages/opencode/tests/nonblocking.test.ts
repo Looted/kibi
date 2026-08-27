@@ -21,7 +21,7 @@ describe("non-blocking UX", () => {
       },
     });
 
-    scheduler.onFileEdited("documentation/requirements/REQ-001.md");
+    scheduler.onFileEdited(".kb/requirements/REQ-001.md");
     // Code after onFileEdited executes immediately - sync runs in background
     afterSchedule = true;
 
@@ -192,7 +192,7 @@ describe("non-blocking UX", () => {
 
       scheduler.scheduleSync(
         "smart-enforcement.kb-doc",
-        "documentation/facts/FACT-001.md",
+        ".kb/facts/FACT-001.md",
         ["required-fields", "no-dangling-refs", "strict-fact-shape"],
       );
       advance(100);

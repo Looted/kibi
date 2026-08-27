@@ -33,7 +33,7 @@ export const USAGE_DEFINITIONS: Readonly<Record<string, Definition>> = {
     objectiveCode: "model_strict_claim",
     sourceFile: "documentation/requirements/fixture.md",
     mutation: "write",
-    activationMode: "attached_thin_handoff",
+    activationMode: "attached_thin_bootstrap",
     repository: "thin",
     kb: "fresh",
     worktree: "clean",

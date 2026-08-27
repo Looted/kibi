@@ -45,6 +45,18 @@ const REQUIRED_GUIDANCE = [
   "claim_key",
   "claim_text",
   "logic-coverage",
+  "taskOutcome",
+  "kbState",
+  "verificationState",
+  "proofState",
+  "limitationDisposition",
+  "quality diagnostic",
+  "fixed",
+  "accepted",
+  "deferred",
+  "contract hash",
+  "freshness window",
+  "temporary",
 ].join("\n");
 const roots: string[] = [];
 

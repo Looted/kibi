@@ -88,23 +88,22 @@ It should be ignored.
   // implements REQ-opencode-kibi-plugin-v1
   test("loadKbSyncPaths falls back to defaults when config JSON is invalid", () => {
     fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
-    fs.writeFileSync(path.join(tmpDir, ".kb", "config.json"), "{not-json");
+    fs.writeFileSync(path.join(tmpDir, ".kb", "manifest.json"), "{not-json");
 
     const paths = loadKbSyncPaths(tmpDir);
 
-    assert.equal(paths.requirements, "documentation/requirements/**/*.md");
-    assert.equal(paths.symbols, "documentation/symbols.yaml");
+    assert.equal(paths.requirements, ".kb/requirements/**/*.md");
+    assert.equal(paths.symbols, ".kb/symbols.yaml");
   });
 
   // implements REQ-opencode-kibi-plugin-v1
-  test("getKbExistenceTargets skips blank configured entries and keeps yaml files", () => {
+  test("getKbExistenceTargets always reports canonical .kb/ lanes", () => {
     fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
     fs.writeFileSync(
-      path.join(tmpDir, ".kb", "config.json"),
+      path.join(tmpDir, ".kb", "manifest.json"),
       JSON.stringify({
         paths: {
           requirements: "",
-          scenarios: "docs/scenarios",
           symbols: "docs/symbols.yml",
         },
       }),
@@ -114,13 +113,13 @@ It should be ignored.
 
     assert.equal(
       targets.some((target) => target.key === "requirements"),
-      false,
+      true,
     );
     assert.deepEqual(
       targets.find((target) => target.key === "symbols"),
       {
         key: "symbols",
-        relativePath: "docs/symbols.yml",
+        relativePath: ".kb/symbols.yaml",
         kind: "file",
       },
     );
@@ -160,44 +159,41 @@ priority: 1
   // implements REQ-opencode-kibi-plugin-v1
   test("checkWorkspaceHealth uses defaults when config exists but is unreadable", () => {
     fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
-    fs.writeFileSync(path.join(tmpDir, ".kb", "config.json"), "{not-json");
-    fs.mkdirSync(path.join(tmpDir, "documentation", "requirements"), {
+    fs.writeFileSync(path.join(tmpDir, ".kb", "manifest.json"), "{not-json");
+    fs.mkdirSync(path.join(tmpDir, ".kb", "requirements"), {
       recursive: true,
     });
 
     const result = checkWorkspaceHealth(tmpDir);
 
     assert.equal(result.missingConfig, false);
-    assert.ok(result.missingDocDirs.includes("documentation/scenarios"));
+    assert.ok(result.missingDocDirs.includes(".kb/scenarios"));
   });
 
   // implements REQ-opencode-kibi-plugin-v1
   test("checkWorkspaceHealth keeps partial roots advisory when only two targets are missing", () => {
     fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
     fs.writeFileSync(
-      path.join(tmpDir, ".kb", "config.json"),
+      path.join(tmpDir, ".kb", "manifest.json"),
       JSON.stringify({}),
     );
 
     const docDirs = [
-      "documentation/requirements",
-      "documentation/scenarios",
-      "documentation/tests",
-      "documentation/adr",
-      "documentation/flags",
-      "documentation/events",
+      ".kb/requirements",
+      ".kb/scenarios",
+      ".kb/tests",
+      ".kb/adr",
+      ".kb/flags",
+      ".kb/events",
     ];
     for (const dir of docDirs) {
       fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
     }
-    fs.writeFileSync(
-      path.join(tmpDir, "documentation", "symbols.yaml"),
-      "[]\n",
-    );
+    fs.writeFileSync(path.join(tmpDir, ".kb", "symbols.yaml"), "[]\n");
 
     const result = checkWorkspaceHealth(tmpDir);
 
-    assert.deepEqual(result.missingDocDirs, ["documentation/facts"]);
+    assert.deepEqual(result.missingDocDirs, [".kb/facts"]);
     assert.equal(result.needsBootstrap, false);
   });
 

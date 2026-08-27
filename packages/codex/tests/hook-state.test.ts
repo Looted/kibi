@@ -106,7 +106,7 @@ describe("Codex hook state", () => {
     expect(state.dirtyPaths.at(-1)).toBe("src/generated-79.ts");
   });
 
-  test("recovers from stale lock files", () => {
+  test("ignores legacy lock files while reading journal state", () => {
     const pluginData = createPluginData();
     pluginDataRoots.push(pluginData);
     const staleLockPath = path.join(pluginData, "hook-state.lock");
@@ -118,151 +118,45 @@ describe("Codex hook state", () => {
     addDirtyPaths(pluginData, ["src/recovered.ts"]);
 
     expect(loadHookState(pluginData).dirtyPaths).toEqual(["src/recovered.ts"]);
-    expect(fs.existsSync(staleLockPath)).toBe(false);
+    expect(fs.existsSync(staleLockPath)).toBe(true);
   });
 
-  test("falls back when lock acquisition fails or stale lock removal fails", () => {
+  test("ignores incomplete journal entries", () => {
     const pluginData = createPluginData();
     pluginDataRoots.push(pluginData);
-    addDirtyPaths(pluginData, ["src/existing.ts"]);
-    const originalOpenSync = fs.openSync;
-    const originalUnlinkSync = fs.unlinkSync;
-    class ExistingLockError extends Error {
-      readonly code = "EEXIST";
-    }
-
-    fs.openSync = () => {
-      throw new Error("permission denied");
-    };
-    try {
-      expect(addDirtyPaths(pluginData, ["src/no-lock.ts"]).dirtyPaths).toEqual([
-        "src/existing.ts",
-        "src/no-lock.ts",
-      ]);
-    } finally {
-      fs.openSync = originalOpenSync;
-    }
-
-    const staleLockPath = path.join(pluginData, "hook-state.lock");
-    fs.writeFileSync(staleLockPath, "stale-process");
-    const staleDate = new Date(Date.now() - 60_000);
-    fs.utimesSync(staleLockPath, staleDate, staleDate);
-    fs.openSync = () => {
-      throw new ExistingLockError("lock exists");
-    };
-    fs.unlinkSync = () => {
-      throw new Error("unlink stale failed");
-    };
-
-    try {
-      expect(
-        addDirtyPaths(pluginData, ["src/stale-unlink.ts"]).dirtyPaths,
-      ).toEqual(["src/existing.ts", "src/stale-unlink.ts"]);
-    } finally {
-      fs.openSync = originalOpenSync;
-      fs.unlinkSync = originalUnlinkSync;
-    }
-  });
-
-  test("falls back when an existing lock cannot be inspected", () => {
-    const pluginData = createPluginData();
-    pluginDataRoots.push(pluginData);
-    addDirtyPaths(pluginData, ["src/existing.ts"]);
-    const originalOpenSync = fs.openSync;
-    const originalStatSync = fs.statSync;
-    class ExistingLockError extends Error {
-      readonly code = "EEXIST";
-    }
-    fs.openSync = () => {
-      throw new ExistingLockError("lock exists");
-    };
-    fs.statSync = () => {
-      throw new Error("stat failed");
-    };
-
-    try {
-      expect(addDirtyPaths(pluginData, ["src/stat-fallback.ts"])).toEqual({
-        dirtyPaths: ["src/existing.ts", "src/stat-fallback.ts"],
-        kbCheckRun: false,
-        impactCheckRun: false,
-        impactCheckedPaths: [],
-      });
-    } finally {
-      fs.openSync = originalOpenSync;
-      fs.statSync = originalStatSync;
-    }
-  });
-
-  test("falls back without persistence when active locks block record and clear", () => {
-    const pluginData = createPluginData();
-    pluginDataRoots.push(pluginData);
-    addDirtyPaths(pluginData, ["src/existing.ts"]);
     fs.writeFileSync(
-      path.join(pluginData, "hook-state.lock"),
-      "active-process",
+      path.join(pluginData, "hook-state.events.jsonl"),
+      '{"kind":"add_dirty_paths","dirtyPaths":["src/complete.ts"]}\n{"kind":"add_dirty_paths"',
     );
 
-    expect(
-      recordKbMcpTool(pluginData, "kb_check", {
-        impactCheckRun: true,
-        sourceFiles: ["src/checked.ts"],
-      }),
-    ).toEqual({
-      dirtyPaths: ["src/existing.ts"],
-      kbCheckRun: true,
-      impactCheckRun: true,
-      impactCheckedPaths: ["src/checked.ts"],
-    });
+    expect(loadHookState(pluginData).dirtyPaths).toEqual(["src/complete.ts"]);
+  });
+
+  test("persists clear as an ordered journal event", () => {
+    const pluginData = createPluginData();
+    pluginDataRoots.push(pluginData);
+    addDirtyPaths(pluginData, ["src/existing.ts"]);
     expect(clearDirtyPaths(pluginData)).toEqual(EMPTY_HOOK_STATE);
-    expect(loadHookState(pluginData).dirtyPaths).toEqual(["src/existing.ts"]);
+    addDirtyPaths(pluginData, ["src/after-clear.ts"]);
+    expect(loadHookState(pluginData).dirtyPaths).toEqual([
+      "src/after-clear.ts",
+    ]);
   });
 
-  test("falls back when locked add and record writes throw", () => {
+  test("surfaces journal persistence failures instead of claiming success", () => {
     const pluginData = createPluginData();
     pluginDataRoots.push(pluginData);
-    addDirtyPaths(pluginData, ["src/existing.ts"]);
-    const originalRenameSync = fs.renameSync;
-    fs.renameSync = () => {
-      throw new Error("rename failed");
+    const originalAppendFileSync = fs.appendFileSync;
+    fs.appendFileSync = () => {
+      throw new Error("journal unavailable");
     };
 
     try {
-      expect(addDirtyPaths(pluginData, ["src/add-fallback.ts"])).toEqual({
-        dirtyPaths: ["src/existing.ts", "src/add-fallback.ts"],
-        kbCheckRun: false,
-        impactCheckRun: false,
-        impactCheckedPaths: [],
-      });
-      expect(
-        recordKbMcpTool(pluginData, "kb_check", {
-          impactCheckRun: true,
-          sourceFiles: ["src/record-fallback.ts"],
-        }),
-      ).toEqual({
-        dirtyPaths: ["src/existing.ts"],
-        kbCheckRun: true,
-        impactCheckRun: true,
-        impactCheckedPaths: ["src/record-fallback.ts"],
-      });
+      expect(() => addDirtyPaths(pluginData, ["src/lost.ts"])).toThrow(
+        "journal unavailable",
+      );
     } finally {
-      fs.renameSync = originalRenameSync;
-    }
-  });
-
-  test("returns cleared state when locked clear write throws", () => {
-    const pluginData = createPluginData();
-    pluginDataRoots.push(pluginData);
-    addDirtyPaths(pluginData, ["src/existing.ts"]);
-    const originalRenameSync = fs.renameSync;
-    fs.renameSync = () => {
-      throw new Error("rename failed");
-    };
-
-    try {
-      expect(clearDirtyPaths(pluginData)).toEqual(EMPTY_HOOK_STATE);
-      expect(loadHookState(pluginData).dirtyPaths).toEqual(["src/existing.ts"]);
-    } finally {
-      fs.renameSync = originalRenameSync;
+      fs.appendFileSync = originalAppendFileSync;
     }
   });
 
@@ -294,7 +188,8 @@ describe("Codex hook state", () => {
     pluginDataRoots.push(pluginData);
 
     expect(recordKbMcpTool(undefined, " ")).toEqual(EMPTY_HOOK_STATE);
-    recordKbMcpTool(pluginData, "kb_query");
+    expect(recordKbMcpTool(pluginData, "kb_query")).toEqual(EMPTY_HOOK_STATE);
+    expect(loadHookState(pluginData)).toEqual(EMPTY_HOOK_STATE);
     recordKbMcpTool(pluginData, "kb_check", {
       impactCheckRun: true,
       sourceFiles: [" src\\a.ts ", "src/a.ts"],

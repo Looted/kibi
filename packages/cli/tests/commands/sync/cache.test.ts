@@ -102,8 +102,29 @@ const defaultCache = (): SyncCache => ({
 // --- Tests ---
 
 describe("SYNC_CACHE_VERSION", () => {
-  test("is 1", () => {
-    expect(SYNC_CACHE_VERSION).toBe(1);
+  test("is 2 (workspace-relative keys + coordinate artifact dependency)", () => {
+    expect(SYNC_CACHE_VERSION).toBe(2);
+  });
+
+  test("invalidates v1 caches on read", () => {
+    mockExistsSync.mockImplementation(() => true);
+    mockReadFileSync.mockReturnValue(
+      JSON.stringify({
+        // A legacy v1 payload must be discarded wholesale on upgrade.
+        version: 1,
+        hashes: { "old.md": "abc" },
+        seenAt: { "old.md": "2026-01-01T00:00:00Z" },
+        semanticHashes: {},
+        semanticContracts: {},
+      }),
+    );
+
+    const cache = readSyncCache("/tmp/cache/sync-cache.json", cacheDeps());
+
+    expect(cache.version).toBe(2);
+    expect(cache.hashes).toEqual({});
+    expect(Object.keys(cache.seenAt)).toEqual([]);
+    mockExistsSync.mockImplementation(() => false);
   });
 });
 
@@ -120,13 +141,13 @@ describe("SYNC_CACHE_TTL_MS", () => {
 describe("SyncCache type", () => {
   test("has version, hashes, and seenAt fields", () => {
     const cache: SyncCache = {
-      version: 1,
+      version: 2,
       hashes: { "foo.ts": "abc123" },
       seenAt: { "foo.ts": "2026-01-01T00:00:00Z" },
       semanticHashes: { "foo.ts": "semantic123" },
       semanticContracts: { "foo.ts": true },
     };
-    expect(cache.version).toBe(1);
+    expect(cache.version).toBe(2);
     expect(cache.hashes["foo.ts"]).toBe("abc123");
     expect(cache.seenAt["foo.ts"]).toBe("2026-01-01T00:00:00Z");
     expect(cache.semanticHashes["foo.ts"]).toBe("semantic123");
@@ -135,35 +156,31 @@ describe("SyncCache type", () => {
 });
 
 describe("toCacheKey", () => {
+  const workspaceRoot = "/workspace";
+
   test("normalizes path separators to forward slash", () => {
-    // On POSIX, path.sep is '/', so join with '/' directly
-    const result = toCacheKey("src/commands/sync/cache.ts");
-    expect(result).toBe("src/commands/sync/cache.ts");
+    const result = toCacheKey(workspaceRoot, "/workspace/src/foo.ts");
+    expect(result).toBe("src/foo.ts");
     expect(result).not.toContain("\\");
   });
 
-  test("converts absolute path to relative using cwd", () => {
-    const cwd = process.cwd();
-    const absolutePath = `${cwd}/src/foo.ts`;
-    const result = toCacheKey(absolutePath);
-    expect(result).toBe("src/foo.ts");
+  test("is workspace-root relative, not process-cwd relative", () => {
+    const insideWorkspace = `${workspaceRoot}/packages/app/a.md`;
+    expect(toCacheKey(workspaceRoot, insideWorkspace)).toBe(
+      "packages/app/a.md",
+    );
+    expect(toCacheKey(`${workspaceRoot}/packages/app`, insideWorkspace)).toBe(
+      "a.md",
+    );
+  });
+
+  test("resolves relative paths against the workspace root", () => {
+    expect(toCacheKey(workspaceRoot, "docs/readme.md")).toBe("docs/readme.md");
+    expect(toCacheKey(workspaceRoot, "./a/b/c.ts")).toBe("a/b/c.ts");
   });
 
   test("handles empty string", () => {
-    const result = toCacheKey("");
-    expect(result).toBe("");
-  });
-
-  test("normalizes multiple separators", () => {
-    // path.relative with segments already using / on posix just returns them
-    // The key behavior is splitting by path.sep and joining with /
-    const result = toCacheKey("a/b/c");
-    expect(result).toBe("a/b/c");
-  });
-
-  test("returns relative path as-is when already relative", () => {
-    const result = toCacheKey("docs/readme.md");
-    expect(result).toBe("docs/readme.md");
+    expect(toCacheKey(workspaceRoot, "")).toBe("");
   });
 });
 
@@ -178,7 +195,7 @@ describe("hashFile", () => {
     } = makeHashMock("hashed_hex_value");
     mockCreateHash.mockReturnValue(hash);
 
-    const result = hashFile("/some/file.ts", cacheDeps());
+    const result = hashFile("/workspace", "/some/file.ts", cacheDeps());
 
     expect(mockCreateHash).toHaveBeenCalledWith("sha256");
     expect(mockUpdate).toHaveBeenCalledWith(Buffer.from("hello world"));
@@ -195,8 +212,8 @@ describe("hashFile", () => {
       return makeHashMock(`hash_${content.toString()}`).hash;
     });
 
-    const result1 = hashFile("/file1.ts", cacheDeps());
-    const result2 = hashFile("/file2.ts", cacheDeps());
+    const result1 = hashFile("/workspace", "/file1.ts", cacheDeps());
+    const result2 = hashFile("/workspace", "/file2.ts", cacheDeps());
 
     // Same content must produce the same hash
     expect(result1).toBe(result2);
@@ -206,7 +223,7 @@ describe("hashFile", () => {
     mockReadFileSync.mockReturnValue(Buffer.from("x"));
     mockCreateHash.mockReturnValue(makeHashMock("abc").hash);
 
-    hashFile("/path/to/my/file.ts", cacheDeps());
+    hashFile("/workspace", "/path/to/my/file.ts", cacheDeps());
     expect(mockReadFileSync).toHaveBeenCalledWith("/path/to/my/file.ts");
   });
 });
@@ -230,7 +247,7 @@ describe("readSyncCache", () => {
 
   test("returns parsed cache when file exists with valid version", () => {
     const cached: SyncCache = {
-      version: 1,
+      version: 2,
       hashes: { "foo.ts": "abc123" },
       seenAt: { "foo.ts": "2026-01-01T00:00:00Z" },
       semanticHashes: { "foo.ts": "semantic123" },
@@ -242,7 +259,7 @@ describe("readSyncCache", () => {
     const result = readSyncCache("/cache/path.json", cacheDeps());
 
     expect(result).toEqual(cached);
-    expect(result.version).toBe(1);
+    expect(result.version).toBe(2);
     expect(result.hashes).toEqual({ "foo.ts": "abc123" });
     expect(result.seenAt).toEqual({ "foo.ts": "2026-01-01T00:00:00Z" });
   });
@@ -290,19 +307,19 @@ describe("readSyncCache", () => {
   });
 
   test("defaults hashes to empty object when missing", () => {
-    const cached = { version: 1 };
+    const cached = { version: 2 };
     mockExistsSync.mockReturnValue(true);
     mockReadFileSync.mockReturnValue(JSON.stringify(cached));
 
     const result = readSyncCache("/cache/path.json", cacheDeps());
 
-    expect(result.version).toBe(1);
+    expect(result.version).toBe(2);
     expect(result.hashes).toEqual({});
     expect(result.seenAt).toEqual({});
   });
 
   test("defaults seenAt to empty object when missing", () => {
-    const cached = { version: 1, hashes: { "a.ts": "hash1" } };
+    const cached = { version: 2, hashes: { "a.ts": "hash1" } };
     mockExistsSync.mockReturnValue(true);
     mockReadFileSync.mockReturnValue(JSON.stringify(cached));
 
@@ -314,11 +331,11 @@ describe("readSyncCache", () => {
 
   test("defaults hashes and seenAt to empty when both missing", () => {
     mockExistsSync.mockReturnValue(true);
-    mockReadFileSync.mockReturnValue(JSON.stringify({ version: 1 }));
+    mockReadFileSync.mockReturnValue(JSON.stringify({ version: 2 }));
 
     const result = readSyncCache("/cache/path.json", cacheDeps());
     expect(result).toEqual({
-      version: 1,
+      version: 2,
       hashes: {},
       seenAt: {},
       semanticHashes: {},
@@ -329,7 +346,7 @@ describe("readSyncCache", () => {
   test("reads file with utf8 encoding", () => {
     mockExistsSync.mockReturnValue(true);
     mockReadFileSync.mockReturnValue(
-      JSON.stringify({ version: 1, hashes: {}, seenAt: {} }),
+      JSON.stringify({ version: 2, hashes: {}, seenAt: {} }),
     );
 
     readSyncCache("/cache.json", cacheDeps());
@@ -366,7 +383,7 @@ describe("writeSyncCache", () => {
   test("writes cache as JSON with 2-space indentation and trailing newline", () => {
     mockExistsSync.mockReturnValue(true);
     const cache: SyncCache = {
-      version: 1,
+      version: 2,
       hashes: { "foo.ts": "abc" },
       seenAt: { "foo.ts": "2026-01-01" },
       semanticHashes: { "foo.ts": "semantic" },
@@ -387,14 +404,14 @@ describe("writeSyncCache", () => {
     mockExistsSync.mockReturnValue(true);
 
     const cache1: SyncCache = {
-      version: 1,
+      version: 2,
       hashes: { "a.ts": "h1" },
       seenAt: {},
       semanticHashes: {},
       semanticContracts: {},
     };
     const cache2: SyncCache = {
-      version: 1,
+      version: 2,
       hashes: { "b.ts": "h2" },
       seenAt: {},
       semanticHashes: {},
@@ -436,7 +453,7 @@ describe("copySyncCache", () => {
   test("copies live cache to staging when live cache exists", () => {
     mockExistsSync.mockReturnValue(true);
     const cacheContent = JSON.stringify({
-      version: 1,
+      version: 2,
       hashes: { "a.ts": "h1" },
       seenAt: {},
     });

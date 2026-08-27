@@ -1,0 +1,225 @@
+relationships:
+  - id: rel-d124fb330a5e
+    type: implements
+    from: SYM-skillopt-write-bridge-request
+    to: REQ-skillopt-codex-optimization
+    created_at: "2026-08-16T07:14:17.257Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-skillopt-write-bridge-request
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-16T07:14:17.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92a2cfbb5cec
+  - type: verified_by
+    from: SCEN-kibi-verification-evidence-contract
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.823Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb57b7b07fb6
+  - type: covered_by
+    from: SYM-cli-sync-normalized-hash
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-08-16T19:49:09.984Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92619509ade3
+  - type: specified_by
+    from: REQ-audit-quality-diagnostics-v1
+    to: SCEN-audit-quality-diagnostics-v1
+    created_at: 2026-08-16T22:47:14.626Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff8cf3e8f8be
+  - type: verified_by
+    from: REQ-audit-quality-diagnostics-v1
+    to: TEST-audit-quality-diagnostics-v1
+    created_at: 2026-08-16T22:47:14.644Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2053a866947
+  - type: verified_by
+    from: REQ-audit-quality-diagnostics-v1
+    to: TEST-cli-quality-diagnostics-contract
+    created_at: 2026-08-16T22:47:14.648Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-075cf11c099a
+  - type: verified_by
+    from: REQ-audit-quality-diagnostics-v1
+    to: TEST-mcp-quality-diagnostics-contract
+    created_at: 2026-08-16T22:47:14.652Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d91563843e3c
+  - type: verified_by
+    from: REQ-audit-quality-diagnostics-v1
+    to: TEST-cli-symbol-quality-diagnostics
+    created_at: 2026-08-16T22:47:14.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-580f5492d160
+  - type: verified_by
+    from: REQ-audit-quality-diagnostics-v1
+    to: TEST-cli-mixed-purpose-diagnostics
+    created_at: 2026-08-16T22:47:14.660Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89efc82caa00
+  - type: verified_by
+    from: REQ-audit-quality-diagnostics-v1
+    to: TEST-cli-requirement-quality-diagnostics
+    created_at: 2026-08-16T22:47:14.665Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51ecb8225649
+  - type: verified_by
+    from: REQ-audit-quality-diagnostics-v1
+    to: TEST-opencode-advisory-diagnostics
+    created_at: 2026-08-16T22:47:14.669Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29a1139c6fd7
+  - type: verified_by
+    from: REQ-audit-quality-diagnostics-v1
+    to: TEST-coverage-depth-labels
+    created_at: 2026-08-16T22:47:14.672Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc981a39d146
+  - type: implements
+    from: SYM-updateGitIgnore
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T18:23:26.914Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c80cdc770d3
+  - type: covered_by
+    from: SYM-updateGitIgnore
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T18:23:26.926Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9646a51a80d2
+  - type: specified_by
+    from: REQ-cursor-consumer-local-mcp-launcher-v1
+    to: SCEN-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-08-20T12:59:55.873Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10d864ada1b5
+  - type: relates_to
+    from: REQ-cursor-consumer-local-mcp-launcher-v1
+    to: REQ-cursor-kibi-plugin-v1
+    created_at: 2026-08-20T12:59:55.889Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f2c08631970a
+  - type: requires_predicate
+    from: REQ-cursor-consumer-local-mcp-launcher-v1
+    to: FACT-PRED-BABC674A6E13
+    created_at: 2026-08-20T20:35:31.779Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe548e9ce65a
+  - type: requires_predicate
+    from: REQ-cursor-consumer-local-mcp-launcher-v1
+    to: FACT-PRED-FD73EABDF83A
+    created_at: 2026-08-20T20:35:31.824Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ceaf472b4d19
+  - type: requires_predicate
+    from: REQ-cursor-consumer-local-mcp-launcher-v1
+    to: FACT-PRED-270BA8568B7D
+    created_at: 2026-08-20T20:35:31.846Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-15e9bb275032
+  - type: requires_predicate
+    from: REQ-cursor-consumer-local-mcp-launcher-v1
+    to: FACT-PRED-DD4E3E041FE1
+    created_at: 2026-08-20T20:35:31.856Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b0288c6fcc1b
+  - type: requires_predicate
+    from: REQ-cursor-consumer-local-mcp-launcher-v1
+    to: FACT-PRED-FF255911CF23
+    created_at: 2026-08-20T20:35:31.866Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29df2ac15dbf
+  - type: requires_predicate
+    from: REQ-cursor-consumer-local-mcp-launcher-v1
+    to: FACT-PRED-A506C5EA5D79
+    created_at: 2026-08-20T20:35:31.876Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-91cddd6d423c
+  - type: implements
+    from: SYM-handleKbUpsert
+    to: REQ-002
+    created_at: 2026-08-22T20:07:08.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71fa129b1651
+  - type: implements
+    from: SYM-handleKbUpsert
+    to: REQ-mcp-relationship-preflight
+    created_at: 2026-08-22T20:07:08.743Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7e92e3f3567
+  - type: covered_by
+    from: SYM-handleKbUpsert
+    to: TEST-005
+    created_at: 2026-08-22T20:07:08.751Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-860173f847c7
+  - type: covered_by
+    from: SYM-handleKbUpsert
+    to: TEST-mcp-relationship-preflight
+    created_at: 2026-08-22T20:07:08.758Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f75b882141f
+  - type: covered_by
+    from: SYM-handleKbUpsert
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:07:08.767Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-488d58eb1a37
+  - type: implements
+    from: SYM-SparqlResult
+    to: REQ-prolog-library-adoption
+    created_at: 2026-08-23T12:41:15.242Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c5452f91836
+  - type: covered_by
+    from: SYM-SparqlResult
+    to: TEST-prolog-library-adoption-mcp
+    created_at: 2026-08-23T12:41:15.258Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7dd01a225eb8
+  - type: implements
+    from: SYM-SparqlResult
+    to: REQ-002
+    created_at: 2026-08-23T22:10:21.050Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50b5d1ba72a3
+  - type: covered_by
+    from: SYM-SparqlResult
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:10:21.078Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c585e121ac9

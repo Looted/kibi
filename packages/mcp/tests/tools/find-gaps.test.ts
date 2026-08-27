@@ -1,3 +1,4 @@
+import "../helpers/ensure-test-branch.js";
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import type { PrologProcess } from "kibi-cli/prolog";
 import { PrologProcess as RealPrologProcess } from "kibi-cli/prolog";
@@ -25,7 +26,7 @@ describe("MCP find-gaps tool handler", () => {
               missingRelationships: ["specified_by"],
               presentRelationships: [],
               relationshipCounts: { specified_by: 0, verified_by: 1 },
-              source: "documentation/requirements/REQ-001.md",
+              source: ".kb/requirements/REQ-001.md",
             },
           ],
           count: 1,
@@ -51,13 +52,15 @@ describe("MCP find-gaps tool handler", () => {
   });
 });
 
-describe("kb_find_gaps isolated-core regression (issue #118)", () => {
+describe.serial("kb_find_gaps isolated-core regression (issue #118)", () => {
   let prolog: RealPrologProcess;
   let fixture: IsolatedCoreFixture;
 
   beforeAll(async () => {
     fixture = setupIsolatedCore();
-    prolog = new RealPrologProcess();
+    // Exercise the long-lived Prolog session used by production MCP callers;
+    // Bun's one-shot fallback is covered by the lower-level Prolog tests.
+    prolog = new RealPrologProcess({ oneShot: false });
     await prolog.start();
     await prolog.query(
       "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
@@ -118,17 +121,6 @@ describe("kb_find_gaps isolated-core regression (issue #118)", () => {
         offset: 0,
       });
 
-      expect(missingResult.structuredContent?.count).toBe(1);
-      expect(missingResult.structuredContent?.rows[0]?.id).toBe(
-        "REQ-118-GAPS-1",
-      );
-    },
-    KB_FIND_GAPS_INTEGRATION_TIMEOUT_MS,
-  );
-
-  test(
-    "find_gaps returns only reqs present with specified_by from isolated core",
-    async () => {
       // Query for reqs that HAVE specified_by — should return only REQ-118-GAPS-2
       const presentResult = await handleKbFindGaps(prolog, {
         type: "req",
@@ -137,6 +129,10 @@ describe("kb_find_gaps isolated-core regression (issue #118)", () => {
         offset: 0,
       });
 
+      expect(missingResult.structuredContent?.count).toBe(1);
+      expect(missingResult.structuredContent?.rows[0]?.id).toBe(
+        "REQ-118-GAPS-1",
+      );
       expect(presentResult.structuredContent?.count).toBe(1);
       expect(presentResult.structuredContent?.rows[0]?.id).toBe(
         "REQ-118-GAPS-2",

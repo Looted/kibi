@@ -1,6 +1,6 @@
-import { afterEach, describe, expect, mock, test } from "bun:test";
+import { afterEach, describe, expect, mock, spyOn, test } from "bun:test";
 import fs from "node:fs";
-import os from "node:os";
+import * as os from "node:os";
 import path from "node:path";
 
 import {
@@ -19,14 +19,14 @@ import {
 } from "../src/file-entity-links.js";
 import { createFileOperationState } from "../src/file-operation-state.js";
 import {
-  detectInitKibiCommandCapability,
-  findSdkPackageJsonForPluginRoot,
-  registerInitKibiCommand,
-} from "../src/init-kibi-capability.js";
-import {
   createKbFreshnessEvidenceStore,
   evaluateKbFreshness,
 } from "../src/kb-freshness-state.js";
+import {
+  detectKibiBootstrapCommandCapability,
+  findSdkPackageJsonForPluginRoot,
+  registerKibiBootstrapCommand,
+} from "../src/kibi-bootstrap-capability.js";
 import * as logger from "../src/logger.js";
 import { classifyMeaningfulChange } from "../src/meaningful-change-classifier.js";
 import kibiOpencodePlugin from "../src/plugin.js";
@@ -105,8 +105,10 @@ const globals = globalThis as typeof globalThis & {
 };
 
 const originalXdgCacheHome = process.env.XDG_CACHE_HOME;
+const originalXdgConfigHome = process.env.XDG_CONFIG_HOME;
 const originalAppData = process.env.APPDATA;
 const originalLocalAppData = process.env.LOCALAPPDATA;
+const originalHome = process.env.HOME;
 const originalFetch = globalThis.fetch;
 const originalPlatform = process.platform;
 
@@ -121,6 +123,11 @@ function restoreProcessState(): void {
   } else {
     process.env.XDG_CACHE_HOME = originalXdgCacheHome;
   }
+  if (originalXdgConfigHome === undefined) {
+    Reflect.deleteProperty(process.env, "XDG_CONFIG_HOME");
+  } else {
+    process.env.XDG_CONFIG_HOME = originalXdgConfigHome;
+  }
   if (originalAppData === undefined) {
     Reflect.deleteProperty(process.env, "APPDATA");
   } else {
@@ -130,6 +137,11 @@ function restoreProcessState(): void {
     Reflect.deleteProperty(process.env, "LOCALAPPDATA");
   } else {
     process.env.LOCALAPPDATA = originalLocalAppData;
+  }
+  if (originalHome === undefined) {
+    Reflect.deleteProperty(process.env, "HOME");
+  } else {
+    process.env.HOME = originalHome;
   }
   globalThis.fetch = originalFetch;
   globals.__kibi_test_scheduler_factory = undefined;
@@ -149,24 +161,38 @@ function makeTempDir(prefix: string): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
 }
 
+function isolateUserEnvironment(root: string): string {
+  const home = path.join(root, "home");
+  const cacheHome = path.join(root, "cache");
+  const configHome = path.join(root, "config");
+  fs.mkdirSync(home, { recursive: true });
+  fs.mkdirSync(cacheHome, { recursive: true });
+  fs.mkdirSync(configHome, { recursive: true });
+  process.env.HOME = home;
+  process.env.XDG_CACHE_HOME = cacheHome;
+  process.env.XDG_CONFIG_HOME = configHome;
+  spyOn(os, "homedir").mockReturnValue(home);
+  return home;
+}
+
 function makeWorkspace(prefix: string): string {
   const tmpDir = makeTempDir(prefix);
   fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
   fs.mkdirSync(path.join(tmpDir, ".opencode"), { recursive: true });
-  fs.writeFileSync(path.join(tmpDir, ".kb", "config.json"), "{}\n");
+  fs.writeFileSync(path.join(tmpDir, ".kb", "manifest.json"), "{}\n");
   for (const dir of [
-    "documentation/requirements",
-    "documentation/scenarios",
-    "documentation/tests",
-    "documentation/adr",
-    "documentation/flags",
-    "documentation/events",
-    "documentation/facts",
+    ".kb/requirements",
+    ".kb/scenarios",
+    ".kb/tests",
+    ".kb/adr",
+    ".kb/flags",
+    ".kb/events",
+    ".kb/facts",
     "src",
   ]) {
     fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
   }
-  fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "[]\n");
+  fs.writeFileSync(path.join(tmpDir, ".kb", "symbols.yaml"), "[]\n");
   return tmpDir;
 }
 
@@ -272,6 +298,7 @@ describe("coverage completion for auto-update", () => {
   test("Given platform-specific caches When reading cached version Then each cache root is considered", () => {
     const tmpDir = makeTempDir("kibi-auto-update-platform-");
     try {
+      const home = isolateUserEnvironment(tmpDir);
       withPlatform("win32");
       process.env.APPDATA = path.join(tmpDir, "roaming");
       process.env.LOCALAPPDATA = path.join(tmpDir, "local");
@@ -302,7 +329,7 @@ describe("coverage completion for auto-update", () => {
 
       withPlatform("darwin");
       const darwinPackage = path.join(
-        os.homedir(),
+        home,
         "Library",
         "Caches",
         "opencode",
@@ -314,10 +341,6 @@ describe("coverage completion for auto-update", () => {
       fs.mkdirSync(path.dirname(darwinPackage), { recursive: true });
       fs.writeFileSync(darwinPackage, JSON.stringify({ version: "1.2.5" }));
       expect(getCachedPluginVersion()).toBe("1.2.5");
-      fs.rmSync(path.join(os.homedir(), "Library", "Caches", "opencode"), {
-        recursive: true,
-        force: true,
-      });
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -507,13 +530,12 @@ describe("coverage completion for auto-update", () => {
   });
 
   test("Given mocked child process When running install Then active workspace selection is covered", async () => {
-    const cacheHome = makeTempDir("kibi-auto-update-install-");
+    const tmpDir = makeTempDir("kibi-auto-update-install-");
     try {
-      process.env.XDG_CACHE_HOME = cacheHome;
+      const home = isolateUserEnvironment(tmpDir);
+      const configDir = path.join(home, ".config", "opencode");
       const configPackageJson = path.join(
-        os.homedir(),
-        ".config",
-        "opencode",
+        configDir,
         "node_modules",
         "kibi-opencode",
         "package.json",
@@ -541,22 +563,18 @@ describe("coverage completion for auto-update", () => {
       expect(execCalls[0]).toEqual({
         command: "bun",
         args: ["install"],
-        cwd: path.join(os.homedir(), ".config", "opencode"),
-      });
-      fs.rmSync(path.join(os.homedir(), ".config", "opencode"), {
-        recursive: true,
-        force: true,
+        cwd: configDir,
       });
     } finally {
-      fs.rmSync(cacheHome, { recursive: true, force: true });
+      fs.rmSync(tmpDir, { recursive: true, force: true });
     }
   });
 });
 
-describe("coverage completion for init-kibi capability", () => {
+describe("coverage completion for kibi-bootstrap capability", () => {
   test("Given direct detection inputs When unsupported surfaces are missing Then reason includes version when present", () => {
     expect(
-      detectInitKibiCommandCapability({
+      detectKibiBootstrapCommandCapability({
         pluginVersion: "1.4.7",
         pluginHooksDts: "export interface Hooks { event?: () => void; }",
         sdkTypesDts: "export interface Config {}",
@@ -569,7 +587,7 @@ describe("coverage completion for init-kibi capability", () => {
     });
 
     expect(
-      detectInitKibiCommandCapability({
+      detectKibiBootstrapCommandCapability({
         pluginVersion: "1.4.7",
         pluginHooksDts:
           "export interface Hooks { config?: (input: Config) => Promise<void>; }",
@@ -585,13 +603,13 @@ describe("coverage completion for init-kibi capability", () => {
   test("Given config hook receives invalid input When registering command Then unsupported reasons are returned", () => {
     const capability = { supported: true, pluginVersion: "1.4.7" } as const;
 
-    expect(registerInitKibiCommand(null, capability)).toEqual({
+    expect(registerKibiBootstrapCommand(null, capability)).toEqual({
       supported: false,
       pluginVersion: "1.4.7",
       reason: "@opencode-ai/plugin@1.4.7 config hook input is not an object.",
     });
 
-    expect(registerInitKibiCommand({ command: [] }, capability)).toEqual({
+    expect(registerKibiBootstrapCommand({ command: [] }, capability)).toEqual({
       supported: false,
       pluginVersion: "1.4.7",
       reason:
@@ -637,9 +655,11 @@ describe("coverage completion for init-kibi capability", () => {
 
       process.chdir(tmpDir);
       const freshCapabilityModule = await import(
-        new URL("../src/init-kibi-capability.ts?dogfood", import.meta.url).href
+        new URL("../src/kibi-bootstrap-capability.ts?dogfood", import.meta.url)
+          .href
       );
-      const capability = freshCapabilityModule.getInitKibiCommandCapability();
+      const capability =
+        freshCapabilityModule.getKibiBootstrapCommandCapability();
 
       expect(capability.supported).toBe(true);
     } finally {
@@ -674,7 +694,7 @@ describe("coverage completion for small pure modules", () => {
     const tmpDir = makeWorkspace("kibi-e2e-more-");
     try {
       fs.writeFileSync(
-        path.join(tmpDir, "documentation", "symbols.yaml"),
+        path.join(tmpDir, ".kb", "symbols.yaml"),
         [
           "symbols:",
           "  - id: SYM-one",
@@ -687,7 +707,7 @@ describe("coverage completion for small pure modules", () => {
         ].join("\n"),
       );
       fs.writeFileSync(
-        path.join(tmpDir, "documentation", "tests", "TEST-no-frontmatter.md"),
+        path.join(tmpDir, ".kb", "tests", "TEST-no-frontmatter.md"),
         "plain body names src/other.ts only\n",
       );
 
@@ -708,7 +728,7 @@ describe("coverage completion for small pure modules", () => {
     try {
       const result = getFileLinkedEntityIds(
         tmpDir,
-        path.join(tmpDir, "documentation", "events", "EVT-created.md"),
+        path.join(tmpDir, ".kb", "events", "EVT-created.md"),
       );
 
       expect(result).toEqual({ ids: ["EVT-created"], source: "doc-path" });
@@ -954,14 +974,14 @@ describe("coverage completion for policy, prompt, and reconcile", () => {
     expect(
       buildPrompt({
         recentEdits: [
-          { path: "documentation/requirements/REQ-1.md", kind: "requirement" },
+          { path: ".kb/requirements/REQ-1.md", kind: "requirement" },
         ],
         posture: "root_active",
       }),
     ).toContain("Requirement changes detected");
     expect(
       buildPrompt({
-        recentEdits: [{ path: "documentation/facts/FACT-1.md", kind: "fact" }],
+        recentEdits: [{ path: ".kb/facts/FACT-1.md", kind: "fact" }],
         posture: "root_active",
       }),
     ).toContain("Kibi documentation changes detected");
@@ -1043,8 +1063,8 @@ describe("coverage completion for policy, prompt, and reconcile", () => {
             changeKind: "updated",
             properties: {
               title: "Fact title",
-              source: "documentation/facts/FACT-1.md",
-              text_ref: "documentation/facts/FACT-1.md#L1",
+              source: ".kb/facts/FACT-1.md",
+              text_ref: ".kb/facts/FACT-1.md#L1",
             },
           },
         },
@@ -1054,8 +1074,8 @@ describe("coverage completion for policy, prompt, and reconcile", () => {
         id: "FACT-1",
         type: "fact",
         title: "Fact title",
-        source: "documentation/facts/FACT-1.md",
-        textRef: "documentation/facts/FACT-1.md#L1",
+        source: ".kb/facts/FACT-1.md",
+        textRef: ".kb/facts/FACT-1.md#L1",
       },
     ]);
   });
@@ -1245,12 +1265,7 @@ describe("coverage completion for plugin lifecycle", () => {
       dispose: () => {},
     });
     try {
-      const reqPath = path.join(
-        tmpDir,
-        "documentation",
-        "requirements",
-        "REQ-must.md",
-      );
+      const reqPath = path.join(tmpDir, ".kb", "requirements", "REQ-must.md");
       fs.writeFileSync(reqPath, "---\npriority: must\n---\nRequirement\n");
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
@@ -1261,12 +1276,12 @@ describe("coverage completion for plugin lifecycle", () => {
       await hooks.event?.({
         event: {
           type: "file.edited",
-          properties: { file: "documentation/requirements/REQ-must.md" },
+          properties: { file: ".kb/requirements/REQ-must.md" },
         },
       });
       const output = { system: [] as string[] };
       await hooks["experimental.chat.system.transform"]?.(
-        { focusFilePath: "documentation/requirements/REQ-must.md" },
+        { focusFilePath: ".kb/requirements/REQ-must.md" },
         output,
       );
 
@@ -1525,7 +1540,7 @@ describe("coverage completion for plugin lifecycle", () => {
     const scheduled: ScheduledSync[] = [];
     installSchedulerStub(scheduled);
     try {
-      const factPath = path.join(tmpDir, "documentation", "facts", "FACT-1.md");
+      const factPath = path.join(tmpDir, ".kb", "facts", "FACT-1.md");
       fs.writeFileSync(factPath, "---\ntitle: Fact\n---\nFact body\n");
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
@@ -1535,7 +1550,7 @@ describe("coverage completion for plugin lifecycle", () => {
       await hooks.event?.({
         event: {
           type: "file.edited",
-          properties: { file: "documentation/facts/FACT-1.md" },
+          properties: { file: ".kb/facts/FACT-1.md" },
         },
       });
 
@@ -1553,7 +1568,7 @@ describe("coverage completion for plugin lifecycle", () => {
     const tmpDir = makeWorkspace("kibi-plugin-e2e-reminder-");
     try {
       fs.writeFileSync(
-        path.join(tmpDir, "documentation", "symbols.yaml"),
+        path.join(tmpDir, ".kb", "symbols.yaml"),
         [
           "symbols:",
           "  - id: SYM-e2e",
@@ -1564,7 +1579,7 @@ describe("coverage completion for plugin lifecycle", () => {
         ].join("\n"),
       );
       fs.writeFileSync(
-        path.join(tmpDir, "documentation", "tests", "TEST-e2e.md"),
+        path.join(tmpDir, ".kb", "tests", "TEST-e2e.md"),
         [
           "---",
           "title: E2E",

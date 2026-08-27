@@ -620,6 +620,32 @@ test(logic_coverage_accepts_complete_ground_manifest, [setup(setup_kb), cleanup(
     check_logic_coverage(Violations),
     \+ member(violation('logic-coverage', 'REQ-LOGIC-COMPLETE', _, _, _), Violations).
 
+test(logic_coverage_allows_explicit_unresolved_inventory, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    Modeled = 'CLAIM-AAAAAAAABBBBBBBB',
+    OntologyGap = 'CLAIM-CCCCCCCCDDDDDDDD',
+    ModeledString = "CLAIM-AAAAAAAABBBBBBBB",
+    Inventory = [
+        _{claim_key: Modeled, claim_text: "A modeled claim", role: normative, status: modeled, span: _{start: 0, end: 15}},
+        _{claim_key: OntologyGap, claim_text: "An unsupported domain claim", role: normative, status: ontology_gap, span: _{start: 16, end: 43}}
+    ],
+    assert_fixture_entity(req, 'REQ-LOGIC-UNRESOLVED', "Modeled and unresolved", open, [
+        logic_claims=[Modeled, OntologyGap],
+        semantic_inventory=Inventory
+    ]),
+    assert_fixture_entity(fact, 'FACT-LOGIC-MODELED', "Ground modeled claim", active, [
+        fact_kind=property_value,
+        subject_key="checkout",
+        property_key="modeled_claim",
+        operator=eq,
+        value_type=string,
+        value_string="true",
+        claim_key=ModeledString,
+        claim_text="A modeled claim"
+    ]),
+    kb_assert_relationship(requires_property, 'REQ-LOGIC-UNRESOLVED', 'FACT-LOGIC-MODELED', []),
+    check_logic_coverage(Violations),
+    \+ member(violation('logic-coverage', 'REQ-LOGIC-UNRESOLVED', _, _, _), Violations).
+
 test(logic_coverage_rejects_multiple_ground_facts_for_one_claim, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-LOGIC-DUPLICATE-CLAIM', "Duplicate claim", open, [
         logic_claims=["CLAIM-7777777777777777"]
@@ -1547,6 +1573,88 @@ test(requirement_proof_marks_noncurrent_requirements_not_applicable, [setup(setu
     assertion(Row.proofGaps == []),
     assertion(Report.summary.proofNotApplicable == 1).
 
+test(requirement_proof_uncovered_behavioral_implementation_still_blocks, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-PROOF-BEHAVIORAL-GAP', "Behavioral proof gap", active, []),
+    assert_fixture_entity(test, 'TEST-PROOF-BEHAVIORAL-E2E', "Behavioral proof E2E", passing, [verification_scope=end_to_end]),
+    assert_fixture_entity(symbol, 'SYM-PROOF-BEHAVIORAL-GAP', "runtime_behavior", active, [
+        symbol_role=behavioral,
+        sourceFile="src/runtime.ts"
+    ]),
+    kb_assert_relationship(implements, 'SYM-PROOF-BEHAVIORAL-GAP', 'REQ-PROOF-BEHAVIORAL-GAP', []),
+    requirement_proof:production_symbol_stage(
+        'REQ-PROOF-BEHAVIORAL-GAP',
+        ['TEST-PROOF-BEHAVIORAL-E2E'],
+        Stage,
+        Symbols
+    ),
+    assertion(Symbols == ['SYM-PROOF-BEHAVIORAL-GAP']),
+    assertion(Stage.structuralSymbols == []),
+    assertion(Stage.uncoveredSymbols == ['SYM-PROOF-BEHAVIORAL-GAP']),
+    assertion(Stage.status == missing).
+
+test(requirement_proof_type_shape_contract_is_not_runtime_e2e_or_coordinate_evidence, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-PROOF-TYPE-SHAPE', "Type-shape proof contract", active, []),
+    assert_fixture_entity(test, 'TEST-PROOF-TYPE-SHAPE-E2E', "Type-shape scenario E2E", passing, [verification_scope=end_to_end]),
+    assert_fixture_entity(test, 'TEST-PROOF-TYPE-SHAPE-UNIT', "Type import contract", passing, [verification_scope=unit]),
+    assert_fixture_entity(symbol, 'SYM-PROOF-RUNTIME', "runtime_behavior", active, [
+        symbol_role=behavioral,
+        sourceFile="src/runtime.ts",
+        sourceLine=1,
+        sourceColumn=0,
+        sourceEndLine=3,
+        sourceEndColumn=1
+    ]),
+    assert_fixture_entity(symbol, 'SYM-PROOF-TYPE-SHAPE', "RuntimeShape", active, [
+        symbol_role='type-shape',
+        sourceFile="src/runtime.ts"
+    ]),
+    kb_assert_relationship(implements, 'SYM-PROOF-RUNTIME', 'REQ-PROOF-TYPE-SHAPE', []),
+    kb_assert_relationship(implements, 'SYM-PROOF-TYPE-SHAPE', 'REQ-PROOF-TYPE-SHAPE', []),
+    kb_assert_relationship(covered_by, 'SYM-PROOF-RUNTIME', 'TEST-PROOF-TYPE-SHAPE-E2E', []),
+    kb_assert_relationship(covered_by, 'SYM-PROOF-TYPE-SHAPE', 'TEST-PROOF-TYPE-SHAPE-UNIT', []),
+    requirement_proof:production_symbol_stage(
+        'REQ-PROOF-TYPE-SHAPE',
+        ['TEST-PROOF-TYPE-SHAPE-E2E'],
+        Stage,
+        Symbols
+    ),
+    assertion(Symbols == ['SYM-PROOF-RUNTIME']),
+    assertion(Stage.structuralSymbols == ['SYM-PROOF-TYPE-SHAPE']),
+    assertion(Stage.uncoveredSymbols == []),
+    assertion(Stage.status == passed),
+    requirement_proof:source_coordinate_stage(
+        [source="documentation/requirements/type-shape.md"],
+        [],
+        Symbols,
+        CoordinateStage
+    ),
+    assertion(CoordinateStage.status == passed),
+    assertion(CoordinateStage.missingSymbols == []).
+
+test(requirement_proof_preserves_structurally_tested_type_shape_symbols, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-PROOF-STRUCTURAL-TYPE', "Structural type requirement", active, []),
+    assert_fixture_entity(test, 'TEST-PROOF-STRUCTURAL-E2E', "Structural scenario E2E", passing, [verification_scope=end_to_end]),
+    assert_fixture_entity(test, 'TEST-PROOF-STRUCTURAL-UNIT', "Structural type unit contract", active, [verification_scope=unit]),
+    assert_fixture_entity(symbol, 'SYM-PROOF-STRUCTURAL-TYPE', "StructuralType", active, [
+        symbol_role='type-shape',
+        sourceFile="src/structural.ts"
+    ]),
+    kb_assert_relationship(implements, 'SYM-PROOF-STRUCTURAL-TYPE', 'REQ-PROOF-STRUCTURAL-TYPE', []),
+    kb_assert_relationship(covered_by, 'SYM-PROOF-STRUCTURAL-TYPE', 'TEST-PROOF-STRUCTURAL-UNIT', []),
+    requirement_proof:production_symbol_stage(
+        'REQ-PROOF-STRUCTURAL-TYPE',
+        ['TEST-PROOF-STRUCTURAL-E2E'],
+        Stage,
+        Symbols
+    ),
+    assertion(Symbols == []),
+    assertion(Stage.structuralSymbols == ['SYM-PROOF-STRUCTURAL-TYPE']),
+    assertion(Stage.status == passed),
+    assertion(kb_entity('SYM-PROOF-STRUCTURAL-TYPE', symbol, _)),
+    Stages = _{productionSymbols: Stage},
+    assertion(\+ requirement_proof:proof_gap_present(missing_production_symbol, Stages)),
+    assertion(\+ requirement_proof:proof_gap_present(missing_production_symbol_coverage, Stages)).
+
 test(requirement_proof_requires_the_complete_semantic_scenario_e2e_symbol_chain, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     ClaimKey = 'CLAIM-ABCDEF0123456789',
     ClaimKeyString = "CLAIM-ABCDEF0123456789",
@@ -1617,6 +1725,10 @@ test(requirement_proof_requires_the_complete_semantic_scenario_e2e_symbol_chain,
     assertion(Row.testCount == 1),
     assertion(Row.proofStatus == proven),
     assertion(Row.proofGaps == []),
+    assertion(Row.proofAdvisories == []),
+    assertion(Row.proofStages.sourceCoordinates.requirementPath == 'test://kb.plt'),
+    assertion(memberchk(_{id: 'SYM-PROOF-PRODUCTION', path: 'packages/core/src/requirement_proof.pl', line: 10, column: 0, endLine: 30, endColumn: 1}, Row.proofStages.sourceCoordinates.coordinates)),
+    assertion(memberchk(_{id: 'SCEN-PROOF-COMPLETE', path: 'test://kb.plt'}, Row.proofStages.scenarios.sources)),
     assertion(Row.proofStages.semanticInventory.status == passed),
     assertion(Row.proofStages.logicGrounding.status == passed),
     assertion(Row.proofStages.contradictions.outcome == no_conflict_found),
@@ -1646,6 +1758,98 @@ test(requirement_proof_requires_the_complete_semantic_scenario_e2e_symbol_chain,
     assertion(MismatchRow.proofStages.logicGrounding.claimTextMismatchClaims == [ClaimKey]),
     assertion(memberchk(ambiguous_logic_grounding, MismatchRow.proofGaps)).
 
+test(requirement_proof_extra_missing_receipts_are_advisories_when_strict_proof_exists, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ClaimKey = 'CLAIM-ABCDEF0123456789',
+    ClaimKeyString = "CLAIM-ABCDEF0123456789",
+    Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    verification_receipt_json(
+        'TEST-PROOF-ADVISORY-E2E',
+        Snapshot,
+        passed,
+        '2026-08-10T11:55:00Z',
+        '2026-08-10T12:00:00Z',
+        ReceiptJson
+    ),
+    Inventory = [_{
+        claim_key: ClaimKey,
+        claim_text: "Coverage reports expose conservative proof outcomes",
+        role: normative,
+        status: modeled,
+        span: _{start: 0, end: 51}
+    }],
+    assert_fixture_entity(req, 'REQ-PROOF-ADVISORY', "Conservative requirement proof with extra test", active, [
+        priority=must,
+        source=".kb/requirements/REQ-PROOF-ADVISORY.md",
+        logic_claims=[ClaimKey],
+        semantic_inventory=Inventory
+    ]),
+    assert_fixture_entity(fact, 'FACT-PROOF-ADV-SUBJECT', "Coverage report subject", active, [
+        fact_kind=subject,
+        subject_key="kibi.coverage.report",
+        source=".kb/facts/FACT-PROOF-ADV-SUBJECT.md"
+    ]),
+    assert_fixture_entity(fact, 'FACT-PROOF-ADV-PROPERTY', "Proof outcome property", active, [
+        fact_kind=property_value,
+        subject_key="kibi.coverage.report",
+        property_key="proof_outcome",
+        operator=eq,
+        value_type=string,
+        value_string="conservative",
+        claim_key=ClaimKeyString,
+        claim_text="Coverage reports expose conservative proof outcomes",
+        source=".kb/facts/FACT-PROOF-ADV-PROPERTY.md"
+    ]),
+    assert_fixture_entity(scenario, 'SCEN-PROOF-ADVISORY', "Inspect a requirement proof", active, [
+        source=".kb/scenarios/SCEN-PROOF-ADVISORY.md"
+    ]),
+    assert_fixture_entity(scenario, 'SCEN-PROOF-ADVISORY-EXTRA', "Inspect extra evidence", active, [
+        source=".kb/scenarios/SCEN-PROOF-ADVISORY-EXTRA.md"
+    ]),
+    assert_fixture_entity(test, 'TEST-PROOF-ADVISORY-E2E', "Requirement proof E2E", passing, [
+        verification_scope=end_to_end,
+        verification_receipts=ReceiptJson,
+        source="documentation/tests/e2e/advisory.test.ts"
+    ]),
+    assert_fixture_entity(test, 'TEST-PROOF-ADVISORY-EXTRA', "Additional E2E without a receipt", passing, [
+        verification_scope=end_to_end,
+        source="documentation/tests/e2e/advisory-extra.test.ts"
+    ]),
+    assert_fixture_entity(symbol, 'SYM-PROOF-ADV-PRODUCTION', "requirement_proof", active, [
+        sourceFile="packages/core/src/requirement_proof.pl",
+        sourceLine=10,
+        sourceColumn=0,
+        sourceEndLine=30,
+        sourceEndColumn=1
+    ]),
+    assert_fixture_entity(symbol, 'SYM-PROOF-ADV-E2E', "requirement proof E2E test", active, [
+        sourceFile="packages/core/tests/kb.plt",
+        sourceLine=1300,
+        sourceColumn=0,
+        sourceEndLine=1340,
+        sourceEndColumn=1
+    ]),
+    kb_assert_relationship(constrains, 'REQ-PROOF-ADVISORY', 'FACT-PROOF-ADV-SUBJECT', []),
+    kb_assert_relationship(requires_property, 'REQ-PROOF-ADVISORY', 'FACT-PROOF-ADV-PROPERTY', []),
+    kb_assert_relationship(specified_by, 'REQ-PROOF-ADVISORY', 'SCEN-PROOF-ADVISORY', []),
+    kb_assert_relationship(specified_by, 'REQ-PROOF-ADVISORY', 'SCEN-PROOF-ADVISORY-EXTRA', []),
+    kb_assert_relationship(verified_by, 'SCEN-PROOF-ADVISORY', 'TEST-PROOF-ADVISORY-E2E', []),
+    kb_assert_relationship(verified_by, 'SCEN-PROOF-ADVISORY-EXTRA', 'TEST-PROOF-ADVISORY-EXTRA', []),
+    kb_assert_relationship(implements, 'SYM-PROOF-ADV-PRODUCTION', 'REQ-PROOF-ADVISORY', []),
+    kb_assert_relationship(covered_by, 'SYM-PROOF-ADV-PRODUCTION', 'TEST-PROOF-ADVISORY-E2E', []),
+    kb_assert_relationship(executable_for, 'SYM-PROOF-ADV-E2E', 'TEST-PROOF-ADVISORY-E2E', []),
+    coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-PROOF-ADVISORY', Row),
+    assertion(Row.proofStatus == proven),
+    assertion(Row.proofGaps == []),
+    assertion(memberchk(missing_verification_receipt, Row.proofAdvisories)),
+    assertion(\+ memberchk(missing_verification_receipt, Row.proofGaps)),
+    assertion(Row.source == '.kb/requirements/REQ-PROOF-ADVISORY.md'),
+    assertion(Row.proofStages.sourceCoordinates.requirementPath == '.kb/requirements/REQ-PROOF-ADVISORY.md'),
+    assertion(memberchk(_{id: 'SCEN-PROOF-ADVISORY', path: '.kb/scenarios/SCEN-PROOF-ADVISORY.md'}, Row.proofStages.scenarios.sources)),
+    assertion(memberchk(_{id: 'TEST-PROOF-ADVISORY-E2E', path: 'documentation/tests/e2e/advisory.test.ts'}, Row.proofStages.scenarioTests.sources)),
+    assertion(memberchk(_{id: 'FACT-PROOF-ADV-PROPERTY', path: '.kb/facts/FACT-PROOF-ADV-PROPERTY.md'}, Row.proofStages.logicGrounding.sources)).
+
 test(requirement_proof_receipts_are_snapshot_bound_fresh_and_outcome_sensitive, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     OtherSnapshot = 'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
@@ -1659,6 +1863,7 @@ test(requirement_proof_receipts_are_snapshot_bound_fresh_and_outcome_sensitive, 
     coverage_row(MissingReport.rows, 'REQ-PROOF-RECEIPTS', MissingRow),
     assertion(MissingRow.proofStages.passingE2e.missingReceiptTests == ['TEST-PROOF-RECEIPTS']),
     assertion(memberchk(missing_verification_receipt, MissingRow.proofGaps)),
+    assertion(\+ memberchk(missing_verification_receipt, MissingRow.proofAdvisories)),
 
     verification_receipt_json('TEST-PROOF-RECEIPTS', OtherSnapshot, passed, '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', StaleJson),
     assert_fixture_entity(test, 'TEST-PROOF-RECEIPTS', "Receipt-sensitive E2E", passing, [verification_scope=end_to_end, verification_receipts=StaleJson]),
@@ -1706,6 +1911,87 @@ test(requirement_proof_receipts_are_snapshot_bound_fresh_and_outcome_sensitive, 
     assertion(PassedRow.proofStages.passingE2e.tests == ['TEST-PROOF-RECEIPTS']),
     assertion(PassedRow.proofStages.passingE2e.status == passed).
 
+test(requirement_proof_preserves_old_contract_receipts_but_only_current_contract_proves, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    Contract = _{
+        version: 'kibi.verification-contract.v1',
+        runner: playwright,
+        command_argv: [pnpm, exec, playwright, test],
+        required_case_symbols: ['SYM-CASE-1'],
+        required_projects: [chromium],
+        success_policy: all_required_cases_first_attempt
+    },
+    atom_json_dict(ContractJsonAtom, Contract, []),
+    atom_string(ContractJsonAtom, ContractJson),
+    requirement_proof:verification_contract_hash(ContractJson, ContractHash),
+    assertion(ContractHash == '4ef7f9eb930e4fe2b9b94809d7e8bd12935aeff8878b8caed01e505807d1d70a'),
+    OldReceipt = _{
+        version: 'kibi.verification-receipt.v2',
+        receipt_id: 'VR-OLD-CONTRACT-0001',
+        test_id: 'TEST-PROOF-CONTRACT-DRIFT',
+        runner: playwright,
+        command: 'pnpm exec playwright test',
+        command_argv: [pnpm, exec, playwright, test],
+        scope: end_to_end,
+        outcome: passed,
+        code_snapshot: Snapshot,
+        environment_hash: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+        started_at: '2026-08-10T11:50:00Z',
+        finished_at: '2026-08-10T11:55:00Z',
+        artifact_digest: 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+        contract_hash: 'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
+        case_results: [_{
+            symbol_id: 'SYM-CASE-1',
+            project: chromium,
+            outcome: passed,
+            retries: 0,
+            duration_ms: 1000
+        }]
+    },
+    atom_json_dict(OldHistoryAtom, [OldReceipt], []),
+    atom_string(OldHistoryAtom, OldHistory),
+    assert_fixture_entity(req, 'REQ-PROOF-CONTRACT-DRIFT', "Contract-sensitive proof", active, [priority=must]),
+    assert_fixture_entity(scenario, 'SCEN-PROOF-CONTRACT-DRIFT', "Run the current contract", active, []),
+    assert_fixture_entity(test, 'TEST-PROOF-CONTRACT-DRIFT', "Contract-drift E2E", passing, [
+        verification_scope=end_to_end,
+        verification_contract=ContractJson,
+        verification_receipts=OldHistory
+    ]),
+    kb_assert_relationship(specified_by, 'REQ-PROOF-CONTRACT-DRIFT', 'SCEN-PROOF-CONTRACT-DRIFT', []),
+    kb_assert_relationship(verified_by, 'SCEN-PROOF-CONTRACT-DRIFT', 'TEST-PROOF-CONTRACT-DRIFT', []),
+    coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, MismatchJson),
+    json_string_dict(MismatchJson, MismatchReport),
+    coverage_row(MismatchReport.rows, 'REQ-PROOF-CONTRACT-DRIFT', MismatchRow),
+    assertion(MismatchRow.proofStages.passingE2e.contractMismatchReceiptTests == ['TEST-PROOF-CONTRACT-DRIFT']),
+    MismatchRow.proofStages.passingE2e.receiptEvidence = [MismatchEvidence],
+    assertion(MismatchEvidence.currentContractHash == ContractHash),
+    assertion(MismatchEvidence.receiptContractHashes == ['dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd']),
+    assertion(MismatchEvidence.receiptCount == 1),
+    assertion(MismatchEvidence.scope == end_to_end),
+    assertion(MismatchEvidence.state == contract_mismatch),
+    assertion(MismatchEvidence.testId == 'TEST-PROOF-CONTRACT-DRIFT'),
+    assertion(memberchk(verification_contract_mismatch, MismatchRow.proofGaps)),
+    CurrentReceipt = OldReceipt.put(_{
+        receipt_id: 'VR-CURRENT-CONTRACT-01',
+        started_at: '2026-08-10T11:56:00Z',
+        finished_at: '2026-08-10T12:00:00Z',
+        artifact_digest: 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+        contract_hash: ContractHash
+    }),
+    atom_json_dict(CurrentHistoryAtom, [OldReceipt, CurrentReceipt], []),
+    atom_string(CurrentHistoryAtom, CurrentHistory),
+    assert_fixture_entity(test, 'TEST-PROOF-CONTRACT-DRIFT', "Contract-drift E2E", passing, [
+        verification_scope=end_to_end,
+        verification_contract=ContractJson,
+        verification_receipts=CurrentHistory
+    ]),
+    coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, CurrentJson),
+    json_string_dict(CurrentJson, CurrentReport),
+    coverage_row(CurrentReport.rows, 'REQ-PROOF-CONTRACT-DRIFT', CurrentRow),
+    assertion(CurrentRow.proofStages.passingE2e.tests == ['TEST-PROOF-CONTRACT-DRIFT']),
+    assertion(CurrentRow.proofStages.passingE2e.status == passed),
+    assertion(\+ memberchk(verification_contract_mismatch, CurrentRow.proofGaps)).
+
 test(symbol_coverage_does_not_count_executable_test_symbols_as_production_coverage, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(test, 'TEST-SYMBOL-ROLE', "Executable symbol test", passing, [verification_scope=end_to_end]),
     assert_fixture_entity(symbol, 'SYM-EXECUTABLE-ONLY', "Executable test symbol", active, []),
@@ -1718,6 +2004,39 @@ test(symbol_coverage_does_not_count_executable_test_symbols_as_production_covera
     assertion(Row.executableTestCount == 1),
     assertion(Report.summary.notApplicable == 1),
     assertion(Report.summary.fullyCovered == 0).
+
+% implements REQ-generated-coordinate-persistence
+
+test(missing_single_coordinate_blocks_proof_until_all_four_persist, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-COORD-STAGE', "Coordinate stage regression", active, [
+        source="test://kb.plt"
+    ]),
+    % One missing generated field must fail closed...
+    assert_fixture_entity(symbol, 'SYM-COORD-STAGE', "coordinate stage symbol", active, [
+        sourceFile="src/stage.ts",
+        sourceLine=3,
+        sourceColumn=0,
+        sourceEndLine=5
+    ]),
+    kb_assert_relationship(implements, 'SYM-COORD-STAGE', 'REQ-COORD-STAGE', []),
+    coverage_report_json(req, [], true, true, 100, 0, BeforeJsonString),
+    json_string_dict(BeforeJsonString, BeforeReport),
+    coverage_row(BeforeReport.rows, 'REQ-COORD-STAGE', BeforeRow),
+    assertion(BeforeRow.proofStages.sourceCoordinates.status == missing),
+    requirement_proof:proof_gap_present(missing_symbol_coordinates, BeforeRow.proofStages),
+    % ...and persisting all four generated fields clears the gap.
+    assert_fixture_entity(symbol, 'SYM-COORD-STAGE', "coordinate stage symbol", active, [
+        sourceFile="src/stage.ts",
+        sourceLine=3,
+        sourceColumn=0,
+        sourceEndLine=5,
+        sourceEndColumn=1
+    ]),
+    coverage_report_json(req, [], true, true, 100, 0, AfterJsonString),
+    json_string_dict(AfterJsonString, AfterReport),
+    coverage_row(AfterReport.rows, 'REQ-COORD-STAGE', AfterRow),
+    assertion(AfterRow.proofStages.sourceCoordinates.status == passed),
+    \+ requirement_proof:proof_gap_present(missing_symbol_coordinates, AfterRow.proofStages).
 
 :- end_tests(kb_coverage_depth).
 
@@ -2686,6 +3005,57 @@ test(check_all_json_with_options_serializes_dict, [setup(setup_kb), cleanup(clea
     assertion(Row.get(entityId) == "SYM-ADR-NEEDED"),
     assertion(Row.get(description) == "Symbol has no ADR constraint.").
 
+test(check_rule_verifiability_normalizes_typed_schema_reference, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    rule_fixture_json(oblige, typed_schema_reference, RuleJson),
+    assert_fixture_entity(fact, 'FACT-RULE-SCHEMA-TYPED', "Typed rule schema", active, [
+        fact_kind=rule_schema,
+        rule_name="kibi.logic.v1",
+        argument_names=["rule_ir"],
+        argument_types=["logic_ir"]
+    ]),
+    assert_fixture_entity(fact, 'FACT-RULE-TYPED', "Rule with typed schema reference", active, [
+        fact_kind=rule,
+        rule_ir=RuleJson,
+        rule_hash="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        rule_schema_id="FACT-RULE-SCHEMA-TYPED",
+        rule_name="kibi.logic.v1",
+        semantic_key="typed_schema_reference",
+        claim_key="CLAIM-EEEEEEEEEEEEEEEE",
+        claim_text="A typed rule schema reference remains verifiable",
+        claim_span_start=0,
+        claim_span_end=58
+    ]),
+    kb_entity('FACT-RULE-TYPED', fact, StoredProps),
+    memberchk(rule_schema_id=StoredSchemaId, StoredProps),
+    assertion(StoredSchemaId = ^^("FACT-RULE-SCHEMA-TYPED", _)),
+    assert_fixture_entity(req, 'REQ-RULE-TYPED', "Requirement with typed rule", open, []),
+    kb_assert_relationship(requires_rule, 'REQ-RULE-TYPED', 'FACT-RULE-TYPED', []),
+    check_rule_verifiability(Violations),
+    assertion(Violations == []).
+
+test(check_rule_verifiability_normalizes_typed_invalid_schema_reference, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    rule_fixture_json(oblige, typed_invalid_schema_reference, RuleJson),
+    assert_fixture_entity(fact, 'FACT-NOT-RULE-SCHEMA-TYPED', "Typed non-schema fact", active, [
+        fact_kind=observation
+    ]),
+    assert_fixture_entity(fact, 'FACT-RULE-INVALID-TYPED', "Rule with typed invalid schema reference", active, [
+        fact_kind=rule,
+        rule_ir=RuleJson,
+        rule_hash="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        rule_schema_id="FACT-NOT-RULE-SCHEMA-TYPED",
+        rule_name="kibi.logic.v1",
+        semantic_key="typed_invalid_schema_reference",
+        claim_key="CLAIM-FFFFFFFFFFFFFFFF",
+        claim_text="A typed rule schema reference identifies the schema kind",
+        claim_span_start=0,
+        claim_span_end=62
+    ]),
+    assert_fixture_entity(req, 'REQ-RULE-INVALID-TYPED', "Requirement with typed invalid rule", open, []),
+    kb_assert_relationship(requires_rule, 'REQ-RULE-INVALID-TYPED', 'FACT-RULE-INVALID-TYPED', []),
+    check_rule_verifiability(Violations),
+    member(violation('rule-verifiability', 'REQ-RULE-INVALID-TYPED', Description, _, _), Violations),
+    assertion(sub_string(Description, _, _, _, "FACT-NOT-RULE-SCHEMA-TYPED, which is not a rule_schema fact")).
+
 test(check_must_priority_coverage_reports_missing_scenario_semantics, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
     assert_fixture_entity(req, 'REQ-MUST-NO-SCENARIO', "Must req without scenario", active, [priority=must]),
     assert_fixture_entity(test, 'TEST-MUST-NO-SCENARIO', "Direct validating test", active, []),
@@ -2734,8 +3104,8 @@ test(check_required_fields_reports_each_missing_field_and_empty_source, [setup(s
 test(check_no_cycles_reports_self_cycle_and_formats_source_name, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-SELF-CYCLE', "Self cycle req", active, [source="docs/requirements/REQ-SELF-CYCLE.md"]),
     kb_assert_relationship(depends_on, 'REQ-SELF-CYCLE', 'REQ-SELF-CYCLE', []),
-    check_no_cycles([violation('no-cycles', 'REQ-SELF-CYCLE', Description, _, 'kb.plt')]),
-    assertion(sub_string(Description, _, _, _, "kb.plt → kb.plt")).
+    check_no_cycles([violation('no-cycles', 'REQ-SELF-CYCLE', Description, _, 'REQ-SELF-CYCLE.md')]),
+    assertion(sub_string(Description, _, _, _, "REQ-SELF-CYCLE.md → REQ-SELF-CYCLE.md")).
 
 test(check_no_cycles_deduplicates_equivalent_cycles, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-CYCLE-A', "Cycle A", active, []),
@@ -2773,6 +3143,14 @@ test(check_domain_contradictions_wraps_conflict_reason, [setup(setup_kb), cleanu
     JsonViolation.evidence.witnesses = [JsonWitness],
     assertion(JsonWitness.left.factId == 'FACT-CONFLICT-A'),
     assertion(JsonWitness.right.factId == 'FACT-CONFLICT-B').
+
+test(check_domain_contradictions_and_witnesses_returns_matching_evidence, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_contradicting_requirement_pair('REQ-CONFLICT-A', 10, 'REQ-CONFLICT-B', 20),
+    checks:check_domain_contradictions_and_witnesses(Violations, Witnesses),
+    Violations = [violation('domain-contradictions', "REQ-CONFLICT-A/REQ-CONFLICT-B", _, _, "")],
+    Witnesses = [Witness],
+    assertion(Witness.kind == strict_property),
+    assertion(Witness.status == contradiction).
 
 test(rule_contradiction_witness_is_source_bound_and_blocks_proof, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_rule_requirement_pair(customer, customer),
@@ -2952,6 +3330,45 @@ test(check_req_contradiction_allows_direct_supersession, [setup(setup_kb), clean
     kb_assert_relationship(supersedes, 'REQ-SUPERSEDES-A', 'REQ-SUPERSEDES-B', []),
     check_req_contradiction('REQ-SUPERSEDES-A').
 
+test(exact_branch_policy_requires_new_to_old_supersession,
+     [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_branch_initialization_policy_pair,
+    catch(
+        (check_req_contradiction('REQ-BRANCH-EXACT'), Caught = false),
+        error(kb_contradiction(Pairs), _),
+        (assertion(Pairs \= []), Caught = true)
+    ),
+    assertion(Caught == true),
+    kb_commit_upsert(req, [
+        id='REQ-BRANCH-EXACT',
+        title="Exact Git branch store policy",
+        status=open,
+        created_at="2026-02-01T00:00:00Z",
+        updated_at="2026-02-01T00:00:00Z",
+        source="test://kb.plt"
+    ], [rel(supersedes, 'REQ-BRANCH-EXACT', 'REQ-BRANCH-LEGACY', [])], false, updated),
+    kb_relationship(supersedes, 'REQ-BRANCH-EXACT', 'REQ-BRANCH-LEGACY'),
+    \+ contradicting_reqs(_, _, _).
+
+test(cross_identity_migration_refusal_conflicts_with_legacy_exception,
+     [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_cross_identity_migration_policy_pair,
+    catch(
+        (check_req_contradiction('REQ-MIGRATION-EXACT'), Caught = false),
+        error(kb_contradiction(Pairs), _),
+        (assertion(Pairs \= []), Caught = true)
+    ),
+    assertion(Caught == true),
+    kb_commit_upsert(req, [
+        id='REQ-MIGRATION-EXACT',
+        title="Same-identity migration policy",
+        status=open,
+        created_at="2026-02-01T00:00:00Z",
+        updated_at="2026-02-01T00:00:00Z",
+        source="test://kb.plt"
+    ], [rel(supersedes, 'REQ-MIGRATION-EXACT', 'REQ-MIGRATION-LEGACY', [])], false, updated),
+    \+ contradicting_reqs(_, _, _).
+
 :- end_tests(kb_wrapper_coverage_gaps).
 
 :- begin_tests(derived_chr_pilot).
@@ -3076,13 +3493,17 @@ test(cleanup_temp_file_removes_existing_temp_file, [setup(setup_kb), cleanup(cle
 
 % Test setup/cleanup helpers
 assert_fixture_entity(Type, Id, Title, Status, ExtraProps) :-
+    (   memberchk(source=_, ExtraProps)
+    ->  SourceDefault = []
+    ;   SourceDefault = [source="test://kb.plt"]
+    ),
     append([
         id=Id,
         title=Title,
         status=Status,
         created_at="2026-05-01T00:00:00Z",
-        updated_at="2026-05-01T00:00:00Z",
-        source="test://kb.plt"
+        updated_at="2026-05-01T00:00:00Z"
+        | SourceDefault
     ], ExtraProps, Props),
     kb_assert_entity(Type, Props).
 
@@ -3138,6 +3559,98 @@ assert_contradicting_requirement_pair(ReqA, ValueA, ReqB, ValueB) :-
     kb_assert_relationship(constrains, ReqB, 'FACT-CONFLICT-SUBJECT', []),
     kb_assert_relationship(requires_property, ReqA, 'FACT-CONFLICT-A', []),
     kb_assert_relationship(requires_property, ReqB, 'FACT-CONFLICT-B', []).
+
+assert_branch_initialization_policy_pair :-
+    assert_fixture_entity(fact, 'FACT-BRANCH-SUBJECT', "Branch store subject", active, [
+        fact_kind=subject,
+        subject_key="kibi.kb.branch"
+    ]),
+    assert_fixture_entity(fact, 'FACT-BRANCH-LEGACY-MODE', "Legacy branch initialization mode", active, [
+        fact_kind=property_value,
+        subject_key="kibi.kb.branch",
+        property_key="initialization_mode",
+        operator=eq,
+        value_type=string,
+        value_string="automatic",
+        claim_key="CLAIM-1111111111111111",
+        claim_text="A missing branch store must copy the resolved default branch"
+    ]),
+    assert_fixture_entity(fact, 'FACT-BRANCH-EXACT-MODE', "Exact branch initialization mode", active, [
+        fact_kind=property_value,
+        subject_key="kibi.kb.branch",
+        property_key="initialization_mode",
+        operator=eq,
+        value_type=string,
+        value_string="explicit_branch_ensure",
+        claim_key="CLAIM-2222222222222222",
+        claim_text="A missing exact branch store may only use explicit branch ensure"
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-BRANCH-LEGACY',
+        title="Legacy default-branch copy policy",
+        status=open,
+        created_at="2026-01-01T00:00:00Z",
+        updated_at="2026-01-01T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-BRANCH-EXACT',
+        title="Exact Git branch store policy",
+        status=open,
+        created_at="2026-02-01T00:00:00Z",
+        updated_at="2026-02-01T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(constrains, 'REQ-BRANCH-LEGACY', 'FACT-BRANCH-SUBJECT', []),
+    kb_assert_relationship(constrains, 'REQ-BRANCH-EXACT', 'FACT-BRANCH-SUBJECT', []),
+    kb_assert_relationship(requires_property, 'REQ-BRANCH-LEGACY', 'FACT-BRANCH-LEGACY-MODE', []),
+    kb_assert_relationship(requires_property, 'REQ-BRANCH-EXACT', 'FACT-BRANCH-EXACT-MODE', []).
+
+assert_cross_identity_migration_policy_pair :-
+    assert_fixture_entity(fact, 'FACT-MIGRATION-SUBJECT', "Branch migration subject", active, [
+        fact_kind=subject,
+        subject_key="kibi.kb.branch"
+    ]),
+    assert_fixture_entity(fact, 'FACT-MIGRATION-LEGACY-ALLOW', "Legacy cross-identity exception", active, [
+        fact_kind=property_value,
+        subject_key="kibi.kb.branch",
+        property_key="cross_identity_migration_allowed",
+        operator=eq,
+        value_type=bool,
+        value_bool=true,
+        claim_key="CLAIM-3333333333333333",
+        claim_text="The legacy main to master cross-identity move is allowed"
+    ]),
+    assert_fixture_entity(fact, 'FACT-MIGRATION-EXACT-REFUSE', "Exact identity migration refusal", active, [
+        fact_kind=property_value,
+        subject_key="kibi.kb.branch",
+        property_key="cross_identity_migration_allowed",
+        operator=eq,
+        value_type=bool,
+        value_bool=false,
+        claim_key="CLAIM-4444444444444444",
+        claim_text="Every cross-identity migration is refused"
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-MIGRATION-LEGACY',
+        title="Legacy cross-identity migration exception",
+        status=open,
+        created_at="2026-01-01T00:00:00Z",
+        updated_at="2026-01-01T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-MIGRATION-EXACT',
+        title="Same-identity migration policy",
+        status=open,
+        created_at="2026-02-01T00:00:00Z",
+        updated_at="2026-02-01T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(constrains, 'REQ-MIGRATION-LEGACY', 'FACT-MIGRATION-SUBJECT', []),
+    kb_assert_relationship(constrains, 'REQ-MIGRATION-EXACT', 'FACT-MIGRATION-SUBJECT', []),
+    kb_assert_relationship(requires_property, 'REQ-MIGRATION-LEGACY', 'FACT-MIGRATION-LEGACY-ALLOW', []),
+    kb_assert_relationship(requires_property, 'REQ-MIGRATION-EXACT', 'FACT-MIGRATION-EXACT-REFUSE', []).
 
 assert_rule_requirement_pair(BodyNameA, BodyNameB) :-
     rule_fixture_json(oblige, BodyNameA, RuleJsonA),

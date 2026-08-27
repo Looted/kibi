@@ -1,0 +1,78 @@
+relationships:
+  - id: rel-72490fac0748
+    type: covered_by
+    from: SYM-reqcompiler-usage-options
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: "2026-08-16T18:52:12.209Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporter
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.885Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86ed43ec098d
+  - type: covered_by
+    from: SYM-core-journaled-indexes
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-08-16T19:47:07.410Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8498e717d73
+  - type: specified_by
+    from: REQ-mcp-tag-filtering-server-side
+    to: SCEN-mcp-tag-filtering-server-side
+    created_at: 2026-08-18T07:53:41.668Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90424fc31372
+  - type: executable_for
+    from: SYM-test-cli-init-github-flags
+    to: TEST-kibi-github-report-integration
+    created_at: 2026-08-18T12:05:15.664Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f006d7c37df6
+  - type: executable_for
+    from: SYM-test-cli-init-github-flags
+    to: TEST-001
+    created_at: 2026-08-18T12:05:15.671Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99c1222dcc48
+  - type: implements
+    from: SYM-packed-e2e-runner
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-08-21T19:56:43.261Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1dcd242ebd04
+  - type: covered_by
+    from: SYM-packed-e2e-runner
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-21T19:56:43.311Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b984f4d7735c
+  - type: verified_by
+    from: SCEN-kibi-operation-interface-parity
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T19:57:07.373Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7214a21086c6
+  - type: relates_to
+    from: SCEN-kibi-operation-interface-parity
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T19:57:07.410Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f2d25630d042
+  - type: relates_to
+    from: SCEN-kibi-operation-interface-parity
+    to: ADR-022
+    created_at: 2026-08-22T19:57:07.420Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b5e43f14e7c

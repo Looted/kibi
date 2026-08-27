@@ -52,7 +52,7 @@ The plugin now uses a posture-aware, low-token smart-enforcement model before em
 
 - **Repo posture detection**: distinguishes `root_active`, `root_partial`, `root_uninitialized`, `vendored_only`, and `hybrid_root_plus_vendored`
 - **Risk classification**: separates `safe_docs_only`, `safe_test_only`, `kb_doc_structural`, `req_policy_candidate`, `behavior_candidate`, `traceability_candidate`, and `manual_kb_edit`
-- **Source-linked Kibi links**: risky code edits (`behavior_candidate`, `traceability_candidate`) prepend a concise list of existing Kibi links (e.g., `- Existing Kibi links: REQ-001, REQ-002`) when 1-3 concrete source-linked KB hits are found in `documentation/symbols.yaml`. Skip on cache hit.
+- **Source-linked Kibi links**: risky code edits (`behavior_candidate`, `traceability_candidate`) prepend a concise list of existing Kibi links (e.g., `- Existing Kibi links: REQ-001, REQ-002`) when 1-3 concrete source-linked KB hits are found in `.kb/symbols.yaml`. Skip on cache hit.
 - **Start-task risky cue**: authoritative risky edits also add a compact Kibi context cue so agents can start with explicit source-linked guidance before acting, while staying inside the same single prompt block and token budget.
 - **Effective mode gating**: `advisory` (default) never blocks; `strict` escalates checks and reminders for `root_active` and `hybrid_root_plus_vendored` postures when `requireRootKbForStrict` is enabled; `hard` fails closed for authoritative roots and linked git worktrees, injecting capability-based recovery steps until the Kibi checkpoint passes. `maintenanceDegraded` overrides everything back to `advisory`.
 - **Low-token prompt policy**: docs-only and test-only edits avoid unnecessary discovery prompts; vendored-only repos suppress operational bootstrap nudges; at most one contextual block is injected per prompt (≤120 words, ≤5 bullets)
@@ -155,9 +155,11 @@ The plugin injects guidance into OpenCode sessions to improve agent grounding. U
 
 ### Bootstrap Command
 
-OpenCode exposes Kibi MCP prompts as slash commands. The \`/init-kibi\` command triggers the \`kb_autopilot_generate\` workflow to assist in retroactive bootstrap. Agents use visible MCP tools when available, a trusted project-local CLI JSON route with `--input` when MCP is unavailable, and stop for operator action when neither interface is available.
+OpenCode exposes the canonical bootstrap skill as `/kibi-bootstrap`. The
+command routes an explicit request to the read-only planner and its typed
+approval/apply workflow.
 
-OpenCode may show Kibi MCP tools with the configured server prefix. For example, canonical MCP names such as `kb_autopilot_generate`, `kb_upsert`, and `kb_check` can appear to agents as `kibi_kb_autopilot_generate`, `kibi_kb_upsert`, and `kibi_kb_check`. Use the visible `kibi_kb_*` identifier when OpenCode requires an exact tool name; it maps to the same MCP operation.
+OpenCode may show Kibi MCP tools with the configured server prefix. For example, canonical MCP names such as `kb_plan_bootstrap`, `kb_upsert`, and `kb_check` can appear to agents as `kibi_kb_plan_bootstrap`, `kibi_kb_upsert`, and `kibi_kb_check`. Use the visible `kibi_kb_*` identifier when OpenCode requires an exact tool name; it maps to the same MCP operation.
 
 ### Discovery-first capability guidance
 
@@ -301,7 +303,7 @@ Disable specific features while keeping others:
 
 ## Troubleshooting
 
-If you see a false "workspace needs Kibi bootstrap" warning even though your workspace is already initialized with `.kb/config.json` pointing at relocated `kibi-docs/*` paths, this indicates a stale plugin cache. See [the main troubleshooting docs](../../docs/troubleshooting.md#opencode-shows-workspace-needs-kibi-bootstrap-before-the-tui) for recovery steps.
+If you see a false "workspace needs Kibi bootstrap" warning even though `.kb/manifest.json` and the canonical knowledge lanes exist, this usually means a stale plugin cache. Leftover `.kb/config.json` custom paths are ignored. See [the main troubleshooting docs](../../docs/troubleshooting.md#opencode-shows-workspace-needs-kibi-bootstrap-before-the-tui) for recovery steps.
 
 ## Architecture
 
@@ -318,7 +320,7 @@ A proposed enhancement would inject Kibi context hints into file-read results (e
 
 1. OpenCode's current plugin surface does not expose file-content interception hooks
 2. The `experimental.chat.system.transform` hook only supports system prompt injection
-3. Symbol metadata from `documentation/symbols.yaml` can inform this feature once host support exists
+3. Symbol metadata from `.kb/symbols.yaml` can inform this feature once host support exists
 
 Current workaround: static system prompt guidance directs agents to query Kibi explicitly.
 
@@ -335,7 +337,7 @@ The plugin provides proactive guidance when agents perform file operations:
 The OpenCode plugin respects the repository ignore policy used by Kibi's discovery pipeline. In practice this means:
 
 - The plugin's background sync and file-event handling skip paths matched by repository `.gitignore` files, nested `.gitignore` files, and `.git/info/exclude`.
-- The plugin also treats a curated set of tool/runtime directories as never-relevant for KB sync (for example: `.sisyphus`, `.opencode`, `.kb`, `.git`, `node_modules`, `vendor`, `third_party`).
+- The plugin also treats a curated set of tool/runtime directories as never-relevant for KB sync (for example: `.sisyphus`, `.opencode`, `.git`, `node_modules`, `vendor`, `third_party`). Derived `.kb/branches`, `.kb/recovery`, `.kb/verification`, and `.kb/briefs` trees are ignored; authored knowledge lanes under `.kb/` are not.
 
 When a file event occurs for an ignored path, the plugin skips processing and will not surface candidate guidance for that file. This avoids noisy sync triggers and prevents build/editor artifacts from triggering KB sync work.
 

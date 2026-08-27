@@ -62,6 +62,7 @@ describe("kibi-cursor portable Agent Plugin artifact", () => {
   test("committed artifact exists with the expected layout", () => {
     expect(existsSync(path.join(artifactRoot, "plugin.json"))).toBe(true);
     expect(existsSync(path.join(artifactRoot, "mcp.json"))).toBe(true);
+    expect(existsSync(path.join(artifactRoot, "bin"))).toBe(false);
     expect(statSync(path.join(artifactRoot, "skills")).isDirectory()).toBe(
       true,
     );
@@ -104,7 +105,10 @@ describe("kibi-cursor portable Agent Plugin artifact", () => {
     const raw = readFileSync(path.join(artifactRoot, "mcp.json"), "utf8");
     const mcp = JSON.parse(raw) as {
       $schema?: unknown;
-      mcpServers?: Record<string, { type?: unknown; command?: unknown }>;
+      mcpServers?: Record<
+        string,
+        { type?: unknown; command?: unknown; args?: unknown }
+      >;
     };
 
     expect(mcp.$schema).toBe(AGENT_MCP_SCHEMA);
@@ -117,7 +121,8 @@ describe("kibi-cursor portable Agent Plugin artifact", () => {
     const server = mcp.mcpServers?.kibi;
     expect(server).toBeTruthy();
     expect(server?.type).toBe("stdio");
-    expect(typeof server?.command).toBe("string");
+    expect(server?.command).toBe("npx");
+    expect(server?.args).toEqual(["--no-install", "kibi-mcp"]);
   });
 
   test("generated artifact matches the committed artifact (no drift)", () => {

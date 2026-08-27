@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { executeOperation } from "../src/cli-protocol.js";
 import type { CliContext } from "../src/cli-protocol.js";
 
@@ -27,7 +27,7 @@ function createContext(): CliContext {
       revParse: async () => "develop",
       showToplevel: async () => process.cwd(),
       workspaceSnapshot: async () => ({
-        version: "kibi.workspace-snapshot.v1",
+        version: "kibi.workspace-snapshot.v2",
         hash: "a".repeat(64),
         dirty: true,
         fileCount: 12,
@@ -37,13 +37,41 @@ function createContext(): CliContext {
 }
 
 describe("executeOperation", () => {
+  const originalBranch = process.env.KIBI_BRANCH;
+
+  beforeEach(() => {
+    process.env.KIBI_BRANCH = "develop";
+  });
+
+  afterEach(() => {
+    if (originalBranch === undefined) {
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+    } else {
+      process.env.KIBI_BRANCH = originalBranch;
+    }
+  });
   test("renders one JSON value with a trailing newline on success", async () => {
     const result = await executeOperation("kb_status", {}, createContext());
 
-    expect(result).toEqual({
-      exitCode: 0,
-      stdout: `{"branch":"develop","snapshotId":"stamp:test","syncedAt":null,"dirty":false,"syncState":"fresh","verificationSnapshot":"${"a".repeat(64)}","verificationSnapshotAvailable":true,"verificationSnapshotDirty":true,"verificationSnapshotFileCount":12,"verificationSnapshotVersion":"kibi.workspace-snapshot.v1"}\n`,
-    });
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(result.stdout ?? "")).toEqual(
+      expect.objectContaining({
+        kibiProtocol: 1,
+        operation: "kb_status",
+        status: "success",
+        data: expect.objectContaining({
+          branch: "develop",
+          snapshotId: expect.any(String),
+          verificationSnapshot: "a".repeat(64),
+          migrationPlan: expect.objectContaining({
+            version: "kibi.migration-plan.v2",
+          }),
+        }),
+        effects: expect.any(Array),
+        nextActions: [],
+      }),
+    );
+    expect(result.stdout?.endsWith("\n")).toBe(true);
   });
 
   test("returns exit 2 and stderr-only diagnostics for invalid input", async () => {
@@ -54,7 +82,11 @@ describe("executeOperation", () => {
     );
 
     expect(result.exitCode).toBe(2);
-    expect(result.stdout).toBeUndefined();
+    expect(JSON.parse(result.stdout ?? "")).toMatchObject({
+      kibiProtocol: 1,
+      status: "error",
+      error: { code: "VALIDATION_FAILED" },
+    });
     expect(result.stderr).toContain("VALIDATION_FAILED");
     expect(result.stderr).toContain("unexpected");
   });
@@ -62,9 +94,14 @@ describe("executeOperation", () => {
   test("returns exit 2 for an unknown operation", async () => {
     const result = await executeOperation("unknown", {}, createContext());
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       exitCode: 2,
       stderr: "Error [UNKNOWN_OPERATION]: Unknown operation 'unknown'.\n",
+    });
+    expect(JSON.parse(result.stdout ?? "")).toMatchObject({
+      kibiProtocol: 1,
+      operation: "unknown",
+      status: "error",
     });
   });
 

@@ -1,0 +1,85 @@
+relationships:
+  - id: rel-09d3b33ad0cd
+    type: implements
+    from: SYM-canonical-SemanticAdvisorBackfill
+    to: REQ-cli-init-canonical
+    created_at: "2026-08-18T17:02:26.847Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-canonical-SemanticAdvisorBackfill
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:02:26.848Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d60607b5f952
+  - type: implements
+    from: SYM-cli-report-view-query
+    to: REQ-kibi-html-health-report
+    created_at: 2026-08-18T20:42:22.352Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c380768c213a
+  - type: covered_by
+    from: SYM-cli-report-view-query
+    to: TEST-kibi-html-health-report
+    created_at: 2026-08-18T20:42:22.361Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e7c36978727
+  - type: implements
+    from: SYM-StrictModelInput
+    to: REQ-011
+    created_at: 2026-08-22T20:14:10.244Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23f400b52d1a
+  - type: covered_by
+    from: SYM-StrictModelInput
+    to: TEST-cli-strict-modeling
+    created_at: 2026-08-22T20:14:10.255Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9fc451de109
+  - type: covered_by
+    from: SYM-StrictModelInput
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:14:10.259Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b430890db43
+  - type: implements
+    from: SYM-skillopt-cursor-usage-error-name
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:29:01.635Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d0b9fa7aad6
+  - type: implements
+    from: SYM-kibi-doctor-command
+    to: REQ-cli-doctor-packed-provenance
+    created_at: 2026-08-25T19:01:20.744Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43d3b30a8f5a
+  - type: covered_by
+    from: SYM-skillopt-cursor-usage-error-name
+    to: TEST-skillopt-cursor-compat
+    created_at: 2026-08-25T19:52:30.754Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc3f947b472a
+  - type: relates_to
+    from: FACT-core-validation-rules-CA4929
+    to: REQ-core-validation-rules
+    created_at: 2026-08-26T07:20:43.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb513b059e28
+  - type: implements
+    from: SYM-kibi-doctor-command
+    to: REQ-cli-doctor
+    created_at: 2026-08-26T07:44:25.394Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09d067497110

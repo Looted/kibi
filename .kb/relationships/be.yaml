@@ -1,0 +1,99 @@
+relationships:
+  - id: rel-c1027fce4e6a
+    type: executable_for
+    from: SYM-auto-AD2DCA2227C8
+    to: TEST-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:15:03.847Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-auto-13239C566F5C
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-15T22:22:51.202Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-307138a52dcc
+  - type: implements
+    from: SYM-auto-13239C566F5C
+    to: REQ-reusable-skill-subsystem
+    created_at: 2026-08-16T07:55:26.065Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d8d00ddafd5
+  - type: covered_by
+    from: SYM-auto-13239C566F5C
+    to: TEST-mcp-skills-resource-discoverability
+    created_at: 2026-08-16T07:55:26.070Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57a4933f2aed
+  - type: covered_by
+    from: SYM-operation-executeCoverage
+    to: TEST-kibi-conservative-requirement-proof
+    created_at: 2026-08-16T18:51:34.275Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1101e8fce83a
+  - type: covered_by
+    from: SYM-operation-executeCoverage
+    to: TEST-kibi-dependency-ordered-repair-plan
+    created_at: 2026-08-16T18:51:39.477Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9c69ba2013b
+  - type: verified_by
+    from: SCEN-core-journaled-engine-migration
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-08-16T19:47:07.367Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95721fe8a7a5
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapemptykbsnapshotid
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:48:54.338Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06a21931e091
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapemptykbsnapshotid
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:48:54.345Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fabe82bf60e3
+  - type: implements
+    from: SYM-refreshCoordinatesForSymbolId
+    to: REQ-002
+    created_at: 2026-08-22T20:08:58.193Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b21751682c34
+  - type: covered_by
+    from: SYM-refreshCoordinatesForSymbolId
+    to: TEST-005
+    created_at: 2026-08-22T20:08:58.208Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97286847c6ac
+  - type: covered_by
+    from: SYM-refreshCoordinatesForSymbolId
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:08:58.217Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5eaa15175bf1
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapemptykbsnapshotid
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:18:26.047Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41dbfafdcb2c
+  - type: covered_by
+    from: SYM-auto-13239C566F5C
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:41:03.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c2b2ee21ba8

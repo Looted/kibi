@@ -14,10 +14,16 @@ import path from "node:path";
 import {
   ENGINE_PROTOCOL_VERSION,
   EngineClient,
+  acquireEnginePublicationLease,
+  enginePublicationLockPath,
   engineSocketPath,
   ensureJournaledBranchStoreAsync,
 } from "../dist/engine.js";
 import { PrologProcess } from "../dist/prolog.js";
+import {
+  branchStorePath,
+  ensureBranchStoreManifest,
+} from "../src/utils/branch-store-locator.js";
 
 const roots: string[] = [];
 
@@ -71,8 +77,12 @@ function rawEngineRequest(
 }
 
 async function createLegacyStore(root: string): Promise<string> {
-  const branchPath = path.join(root, ".kb", "branches", "main");
+  const branchPath = branchStorePath(root, "main");
   mkdirSync(branchPath, { recursive: true });
+  // This test exercises the journal conversion inside an already-attached
+  // hashed store. Literal-path branch migration is covered by the branch
+  // command tests and is intentionally never inferred by the engine.
+  ensureBranchStoreManifest(root, "main");
   const prolog = new PrologProcess({ timeout: 30_000, oneShot: true });
   const attached = await prolog.query(`kb_attach('${branchPath}')`);
   expect(attached.success).toBe(true);
@@ -261,6 +271,74 @@ describe("journaled engine", () => {
     }
   });
 
+  test("fails closed when an exclusive stop cannot reach a stale socket", async () => {
+    const root = tempRoot();
+    const socket = engineSocketPath(root, "main");
+    writeFileSync(socket, "stale socket placeholder\n");
+    const client = new EngineClient({
+      workspaceRoot: root,
+      branch: "main",
+      timeout: 250,
+    });
+
+    try {
+      await expect(client.stop(false)).rejects.toThrow(
+        "socket remains present but is not reachable",
+      );
+    } finally {
+      rmSync(socket, { force: true });
+      await client.terminate();
+    }
+  });
+
+  test("fences new engine clients while generation publication owns its lease", async () => {
+    const root = tempRoot();
+    const lease = acquireEnginePublicationLease(root, "main");
+    const client = new EngineClient({
+      workspaceRoot: root,
+      branch: "main",
+      timeout: 250,
+    });
+
+    try {
+      expect(existsSync(enginePublicationLockPath(root, "main"))).toBe(true);
+      await expect(client.start(false)).rejects.toThrow(
+        "engine publication is in progress",
+      );
+    } finally {
+      lease.release();
+      expect(existsSync(enginePublicationLockPath(root, "main"))).toBe(false);
+      await client.terminate();
+    }
+  });
+
+  test("allows forbidden words inside entity prose but rejects executable escape hatches", async () => {
+    const root = tempRoot();
+    const client = new EngineClient({ workspaceRoot: root, branch: "main" });
+    try {
+      await client.start();
+      const prose = await client.query(
+        'kb_assert_entity(req, [id=\'REQ-GOAL-DATA\', title="The system ( and shell ( words are prose", status=open, created_at="2026-08-12T00:00:00Z", updated_at="2026-08-12T00:00:00Z", source="tests/goal-data.md"])',
+      );
+      expect(prose.success).toBe(true);
+      await expect(client.query("system('echo unsafe')")).rejects.toThrow(
+        "typed Kibi predicates",
+      );
+      await expect(
+        client.query(
+          "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
+        ),
+      ).rejects.toThrow("typed Kibi predicates");
+      await expect(
+        client.query(
+          "(true, set_prolog_flag(answer_write_options, [max_depth(0)]))",
+        ),
+      ).rejects.toThrow("typed Kibi predicates");
+    } finally {
+      await client.stop().catch(() => undefined);
+    }
+  });
+
   test("cancels a queued request without poisoning the daemon", async () => {
     const root = tempRoot();
     const client = new EngineClient({ workspaceRoot: root, branch: "main" });
@@ -407,7 +485,7 @@ describe("journaled engine", () => {
 
   test("leaves corrupt legacy input usable after migration failure", async () => {
     const root = tempRoot();
-    const branchPath = path.join(root, ".kb", "branches", "main");
+    const branchPath = branchStorePath(root, "main");
     mkdirSync(branchPath, { recursive: true });
     writeFileSync(path.join(branchPath, "kb.rdf"), "not valid RDF @@@\n");
     writeFileSync(path.join(branchPath, "audit.log"), "");

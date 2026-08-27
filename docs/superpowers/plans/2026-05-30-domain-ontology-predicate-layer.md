@@ -1,5 +1,7 @@
 # Domain Ontology Predicate Layer Implementation Plan
 
+> **Archival note:** Agent operating guidance now lives in bundled Kibi skills (`kibi-usage`). Historical mentions of `docs/prompts/llm-rules.md` below are not current runbooks.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Refactor Kibi from a strict key/value contradiction checker into an alpha ontology substrate that can encode arbitrary domain knowledge as typed predicates, scoped rules, and fine-grained code-symbol evidence while preserving cheap rollback paths.

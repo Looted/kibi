@@ -1,0 +1,162 @@
+relationships:
+  - id: rel-5605593f1b76
+    type: covered_by
+    from: SYM-mcp-discovery-context
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: "2026-08-16T19:47:37.169Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-cursor-runHook
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T16:41:15.346Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed6c47bb8e37
+  - type: covered_by
+    from: SYM-cursor-runHook
+    to: TEST-cursor-canonical-manifest
+    created_at: 2026-08-18T16:41:15.353Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-868d1ea19e0b
+  - type: implements
+    from: SYM-cli-logic-ir-LOGIC_IR_VERSION
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:21:14.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c810a2786f8
+  - type: covered_by
+    from: SYM-cli-logic-ir-LOGIC_IR_VERSION
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:21:14.703Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71a2840a621c
+  - type: covered_by
+    from: SYM-cli-logic-ir-LOGIC_IR_VERSION
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:21:14.707Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a446e3e811a
+  - type: implements
+    from: SYM-mcp-discovery-context
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:28:13.305Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-612e1884d289
+  - type: implements
+    from: SYM-mcp-discovery-context
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-08-22T20:28:13.317Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f00897e06b8b
+  - type: covered_by
+    from: SYM-mcp-discovery-context
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:28:13.321Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b09fd7ff336
+  - type: covered_by
+    from: SYM-mcp-discovery-context
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:28:13.326Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d5b0b9b4cf2
+  - type: implements
+    from: SYM-cli-main
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:32:16.313Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86f4429cd25e
+  - type: covered_by
+    from: SYM-cli-main
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:32:16.326Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f82f3ee3e14
+  - type: covered_by
+    from: SYM-cli-main
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:32:16.331Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-272252c9f5d7
+  - type: implements
+    from: SYM-PROMPTS
+    to: REQ-002
+    created_at: 2026-08-22T21:00:14.907Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e43e3c8097d4
+  - type: implements
+    from: SYM-PROMPTS
+    to: REQ-mcp-suggest-predicates
+    created_at: 2026-08-22T21:00:14.924Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69b9aff19587
+  - type: implements
+    from: SYM-PROMPTS
+    to: REQ-mcp-tool-upsert
+    created_at: 2026-08-22T21:00:14.930Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f7fff43e833
+  - type: implements
+    from: SYM-PROMPTS
+    to: REQ-agent-kibi-interface-selection
+    created_at: 2026-08-22T21:00:14.935Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b6c933ee04e
+  - type: covered_by
+    from: SYM-PROMPTS
+    to: TEST-005
+    created_at: 2026-08-22T21:00:14.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-832a80c9f0fa
+  - type: covered_by
+    from: SYM-PROMPTS
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-08-22T21:00:14.944Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3faac03d1a19
+  - type: covered_by
+    from: SYM-PROMPTS
+    to: TEST-mcp-upsert-coverage
+    created_at: 2026-08-22T21:00:14.950Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dbc108624931
+  - type: covered_by
+    from: SYM-PROMPTS
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T21:00:14.954Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bffb05cf6f3a
+  - type: implements
+    from: SYM-refreshSymbolCoordinatesUnlocked
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-23T20:41:51.818Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48fc9f681155
+  - type: covered_by
+    from: SYM-refreshSymbolCoordinatesUnlocked
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:41:51.836Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-462f5f21c8f7

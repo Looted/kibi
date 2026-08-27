@@ -1,0 +1,92 @@
+relationships:
+  - id: rel-227cb561ab72
+    type: covered_by
+    from: SYM-cli-register-json-only-commands
+    to: TEST-test-journaled-engine-harness
+    created_at: "2026-08-16T18:52:30.416Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-shared-npm-cache-resolution
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-08-21T19:57:14.212Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9117e0b7f42
+  - type: covered_by
+    from: SYM-shared-npm-cache-resolution
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-21T19:57:14.223Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6de998c45cb5
+  - type: implements
+    from: SYM-cli-register-json-only-commands
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:25:59.355Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7edcf0316f9
+  - type: implements
+    from: SYM-cli-register-json-only-commands
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-08-22T20:25:59.374Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae8446bc4c76
+  - type: covered_by
+    from: SYM-cli-register-json-only-commands
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:25:59.381Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d432ce2ae956
+  - type: covered_by
+    from: SYM-cli-register-json-only-commands
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:25:59.389Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7d77bd096e3
+  - type: implements
+    from: SYM-parity-save-mutation
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:31:54.609Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea7424dc8be3
+  - type: covered_by
+    from: SYM-parity-save-mutation
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:31:54.622Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50b87f9a4bf8
+  - type: covered_by
+    from: SYM-parity-save-mutation
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:31:54.628Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a5f3ce8b997
+  - type: implements
+    from: SYM-evaluateKbFreshness
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:48:31.720Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c975e2041262
+  - type: covered_by
+    from: SYM-evaluateKbFreshness
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:48:31.734Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-22f0901a2992
+  - type: covered_by
+    from: SYM-evaluateKbFreshness
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:48:31.742Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1388b81b02bc

@@ -1,21 +1,30 @@
 {
   "name": "kibi-cli",
-  "version": "0.19.0",
+  "version": "1.0.0",
   "type": "module",
   "description": "Kibi CLI for knowledge base management",
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "main": "./dist/cli.js",
   "bin": {
     "kibi": "bin/kibi"
   },
-  "files": ["dist", "bin", "schema", "src/schemas", "src/public"],
+  "files": [
+    "dist",
+    "bin",
+    "schema",
+    "src/schemas",
+    "src/public",
+    "templates"
+  ],
   "scripts": {
-    "build": "tsc -p tsconfig.json && mkdir -p dist/public/skills && cp -r src/public/skills/. dist/public/skills/",
+    "build": "tsc -p tsconfig.json && rm -rf dist/public/skills && mkdir -p dist/public/skills && cp -r src/public/skills/. dist/public/skills/ && node ../../scripts/generate-entity-schema.mjs --check",
     "test": "node ../../scripts/run-owned-engine-tests.mjs -- bun test --timeout 15000 .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "prepack": "npm run build"
+    "schema:generate": "tsc -p tsconfig.json && node ../../scripts/generate-entity-schema.mjs",
+    "schema:check": "tsc -p tsconfig.json && node ../../scripts/generate-entity-schema.mjs --check",
+    "prepack": "npm run build && node ../../scripts/verify-package-contract.mjs kibi-cli"
   },
   "exports": {
     ".": {
@@ -37,6 +46,14 @@
     "./operations/runtime-types": {
       "types": "./dist/public/operations/runtime-types.d.ts",
       "default": "./dist/public/operations/runtime-types.js"
+    },
+    "./operations/result-envelope": {
+      "types": "./dist/public/operations/result-envelope.d.ts",
+      "default": "./dist/public/operations/result-envelope.js"
+    },
+    "./runtime/cli-runtime": {
+      "types": "./dist/runtime/cli-runtime.d.ts",
+      "default": "./dist/runtime/cli-runtime.js"
     },
     "./operations/node-ports": {
       "types": "./dist/public/operations/node-ports.d.ts",
@@ -61,6 +78,10 @@
     "./extractors/symbols-coordinator": {
       "types": "./dist/public/extractors/symbols-coordinator.d.ts",
       "default": "./dist/public/extractors/symbols-coordinator.js"
+    },
+    "./extractors/symbol-coordinates": {
+      "types": "./dist/extractors/symbol-coordinates.d.ts",
+      "default": "./dist/extractors/symbol-coordinates.js"
     },
     "./extractors/manifest": {
       "types": "./dist/public/extractors/manifest.d.ts",
@@ -93,6 +114,18 @@
     "./search-ranking": {
       "types": "./dist/search-ranking.d.ts",
       "default": "./dist/search-ranking.js"
+    },
+    "./intent-search": {
+      "types": "./dist/intent-search.d.ts",
+      "default": "./dist/intent-search.js"
+    },
+    "./playwright-reporter": {
+      "types": "./dist/verification/playwright-reporter.d.ts",
+      "default": "./dist/verification/playwright-reporter.js"
+    },
+    "./playwright-case-id": {
+      "types": "./dist/public/playwright-case-id.d.ts",
+      "default": "./dist/public/playwright-case-id.js"
     },
     "./public/check-types": {
       "types": "./dist/public/check-types.d.ts",
@@ -151,6 +184,10 @@
       "types": "./dist/operations/mutation/symbol-refresh.d.ts",
       "default": "./dist/operations/mutation/symbol-refresh.js"
     },
+    "./operations/mutation/symbol-compiler-lock": {
+      "types": "./dist/operations/mutation/symbol-compiler-lock.d.ts",
+      "default": "./dist/operations/mutation/symbol-compiler-lock.js"
+    },
     "./operations/mutation/types": {
       "types": "./dist/operations/mutation/types.d.ts",
       "default": "./dist/operations/mutation/types.js"
@@ -193,12 +230,14 @@
     "fast-glob": "^3.2.12",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
-    "kibi-core": "^0.10.0",
+    "kibi-core": "^0.11.0",
     "ts-morph": "^23.0.0",
-    "ignore": "^5.3.0"
+    "ignore": "^5.3.0",
+    "yaml": "^2.9.0"
   },
   "devDependencies": {
     "@types/node": "latest",
+    "semver": "^7.7.4",
     "typescript": "^5.7.0"
   },
   "license": "AGPL-3.0-or-later",

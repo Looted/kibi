@@ -3,6 +3,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { deriveDiagnosticUsageFields } from "../src/public/diagnostic-usage.js";
 
 const cliPath = path.resolve(__dirname, "../src/cli.ts");
 const temporaryDirectories: string[] = [];
@@ -14,6 +15,39 @@ afterEach(() => {
 });
 
 describe("CLI JSON diagnostic usage", () => {
+  test("unwraps versioned CLI result envelopes for coverage telemetry", () => {
+    const fields = deriveDiagnosticUsageFields(
+      "kb_coverage",
+      { by: "req" },
+      { is_autonomous: true },
+      {
+        kibiProtocol: 1,
+        operation: "kb_coverage",
+        resultVersion: "kibi.kb_coverage.v1",
+        status: "success",
+        data: {
+          rows: [
+            {
+              id: "REQ-1",
+              proofGaps: [],
+              proofStages: { passingE2e: { status: "passed" } },
+            },
+          ],
+          summary: { total: 1, proofProven: 1, proofMissing: 0 },
+          repairPlan: { scope: { complete: true } },
+        },
+      },
+    );
+
+    expect(fields).toMatchObject({
+      coverage_requirement_count: 1,
+      coverage_proven_count: 1,
+      coverage_proof_gap_count: 0,
+      coverage_receipt_gap_count: 0,
+      coverage_scope_complete: true,
+    });
+  });
+
   test("appends correlated semantic evidence in diagnostic mode", () => {
     const workspace = mkdtempSync(path.join(os.tmpdir(), "kibi-cli-diag-"));
     temporaryDirectories.push(workspace);

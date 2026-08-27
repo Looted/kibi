@@ -191,14 +191,21 @@ export function validateSemanticInventoryBoundary(
   const modeledCount = inventory.filter(
     ({ status }) => status === "modeled",
   ).length;
-  const groundingCount = relationships.filter(
+  const groundingRelationships = relationships.filter(
     (relationship) =>
       relationship.from === payload.id &&
       LOGICAL_RELATIONSHIPS.has(stringValue(relationship.type)),
-  ).length;
+  );
+  const groundingCount = groundingRelationships.length;
   if (modeledCount !== groundingCount) {
+    const groundingTargets = groundingRelationships
+      .map(
+        (relationship) =>
+          `${stringValue(relationship.type)}->${stringValue(relationship.to)}`,
+      )
+      .join(", ");
     errors.push(
-      `modeled semantic_inventory entries (${modeledCount}) must equal logical grounding relationships (${groundingCount})`,
+      `modeled semantic_inventory entries (${modeledCount}) must equal logical grounding relationships (${groundingCount})${groundingTargets ? ` [${groundingTargets}]` : ""}`,
     );
   }
 

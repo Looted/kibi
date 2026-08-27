@@ -1,14 +1,18 @@
 import { describe, expect, test } from "bun:test";
-import {
-  type ChildProcess,
-  execSync,
-  spawn,
-  spawnSync,
-} from "node:child_process";
+import { type ChildProcess, spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  branchStorePath,
+  ensureBranchStoreManifest,
+} from "kibi-cli/public/branch-resolver";
+import {
+  execSync,
+  isolatedMcpSandboxEnv,
+  spawnSync,
+} from "./helpers/isolated-env.js";
 
 // Read expected version from package.json to prevent drift
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -18,6 +22,32 @@ const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8")) as {
 };
 const EXPECTED_VERSION = packageJson.version ?? "0.1.0";
 const HEAVY_TOOL_TIMEOUT_MS = 30000;
+
+function syncRebuild(kibiBin: string, cwd: string): void {
+  const result = spawnSync("node", [kibiBin, "sync", "--rebuild"], {
+    cwd,
+    encoding: "utf8",
+  });
+  if (result.error !== undefined) throw result.error;
+  if (result.status === 0) return;
+  throw new Error(
+    [
+      `sync --rebuild exited ${result.status ?? "without a status"}${result.signal ? ` (${result.signal})` : ""}`,
+      result.stdout.trim() ? `stdout:\n${result.stdout.trim()}` : "",
+      result.stderr.trim() ? `stderr:\n${result.stderr.trim()}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n"),
+  );
+}
+
+function stopWorkspaceEngine(kibiBin: string, cwd: string): void {
+  spawnSync(process.execPath, [kibiBin, "engine", "stop"], {
+    cwd,
+    encoding: "utf8",
+    stdio: "ignore",
+  });
+}
 
 async function sendRequest(
   proc: ChildProcess,
@@ -83,7 +113,7 @@ function startServer(options?: {
   const proc = spawn("bun", ["run", serverPath, ...(options?.args ?? [])], {
     stdio: ["pipe", "pipe", "pipe"],
     cwd: options?.cwd,
-    env: options?.env ? { ...process.env, ...options.env } : process.env,
+    env: isolatedMcpSandboxEnv(options?.env),
   });
 
   // Log errors from the server process
@@ -171,9 +201,12 @@ async function waitForStatusState(
       },
     });
     const result = response.result as Record<string, unknown> | undefined;
-    const structured = result?.structuredContent as
+    const envelope = result?.structuredContent as
       | Record<string, unknown>
       | undefined;
+    const structured = (
+      envelope?.kibiProtocol === 1 ? envelope.data : envelope
+    ) as Record<string, unknown> | undefined;
     last = structured;
     if (
       structured?.dirty === expected.dirty &&
@@ -195,7 +228,7 @@ describe("MCP Server", () => {
       id: 1,
       method: "initialize",
       params: {
-        protocolVersion: "2024-11-05",
+        protocolVersion: "2025-11-25",
         capabilities: {},
         clientInfo: { name: "test", version: "1.0" },
       },
@@ -216,14 +249,14 @@ describe("MCP Server", () => {
       id: 1,
       method: "initialize",
       params: {
-        protocolVersion: "2024-11-05",
+        protocolVersion: "2025-11-25",
         capabilities: {},
         clientInfo: { name: "test", version: "1.0" },
       },
     });
 
     const result = response.result as Record<string, unknown>;
-    expect(result.protocolVersion).toBe("2024-11-05");
+    expect(result.protocolVersion).toBe("2025-11-25");
     expect(result.serverInfo).toBeDefined();
     expect((result.serverInfo as Record<string, unknown>).name).toBe(
       "kibi-mcp",
@@ -236,6 +269,26 @@ describe("MCP Server", () => {
     await killServer(proc);
   });
 
+  test("should negotiate legacy protocol version", async () => {
+    const proc = startServer();
+
+    const response = await sendRequest(proc, {
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: {
+        protocolVersion: "2024-11-05",
+        capabilities: {},
+        clientInfo: { name: "test", version: "1.0" },
+      },
+    });
+
+    const result = response.result as Record<string, unknown>;
+    expect(result.protocolVersion).toBe("2024-11-05");
+
+    await killServer(proc);
+  });
+
   test("should handle notifications/initialized", async () => {
     const proc = startServer();
 
@@ -244,7 +297,7 @@ describe("MCP Server", () => {
       id: 1,
       method: "initialize",
       params: {
-        protocolVersion: "2024-11-05",
+        protocolVersion: "2025-11-25",
         capabilities: {},
         clientInfo: { name: "test", version: "1.0" },
       },
@@ -268,7 +321,7 @@ describe("MCP Server", () => {
       id: 1,
       method: "initialize",
       params: {
-        protocolVersion: "2024-11-05",
+        protocolVersion: "2025-11-25",
         capabilities: {},
         clientInfo: { name: "test", version: "1.0" },
       },
@@ -284,7 +337,7 @@ describe("MCP Server", () => {
     const result = response.result as Record<string, unknown>;
     expect(result.tools).toBeDefined();
     const tools = result.tools as Array<Record<string, unknown>>;
-    expect(tools.length).toBe(18);
+    expect(tools.length).toBe(21);
     expect(tools.map((tool) => tool.name)).toEqual([
       "kb_query",
       "kb_search",
@@ -303,7 +356,10 @@ describe("MCP Server", () => {
       "kb_check",
       "kb_model_requirement",
       "kb_suggest_predicates",
-      "kb_autopilot_generate",
+      "kb_plan_bootstrap",
+      "kb_compile_intent",
+      "kb_apply_plan",
+      "kb_ingest_verification",
     ]);
     expect(tools.map((tool) => tool.name)).not.toContain(
       "kb_briefing_generate",
@@ -333,7 +389,7 @@ describe("MCP Server", () => {
       id: 1,
       method: "initialize",
       params: {
-        protocolVersion: "2024-11-05",
+        protocolVersion: "2025-11-25",
         capabilities: {},
         clientInfo: { name: "test", version: "1.0" },
       },
@@ -352,19 +408,19 @@ describe("MCP Server", () => {
     expect(prompts.length).toBeGreaterThanOrEqual(1);
 
     // Check that public prompts are included
-    const initKibiPrompt = prompts.find((p) => p.name === "init-kibi");
+    const initKibiPrompt = prompts.find((p) => p.name === "kibi-bootstrap");
     expect(initKibiPrompt).toBeDefined();
     expect(initKibiPrompt?.description).toBeDefined();
     expect(typeof initKibiPrompt?.description).toBe("string");
     expect(initKibiPrompt?.description).toMatch(
-      /interactive activation|new or empty/i,
+      /canonical planner|existing repository|bootstrap/i,
     );
     expect(prompts.map((prompt) => prompt.name)).not.toContain("brief-kibi");
 
     await killServer(proc);
   });
 
-  test("should handle prompts/get for init-kibi", async () => {
+  test("should handle prompts/get for kibi-bootstrap", async () => {
     const proc = startServer();
 
     // Initialize first
@@ -373,19 +429,19 @@ describe("MCP Server", () => {
       id: 1,
       method: "initialize",
       params: {
-        protocolVersion: "2024-11-05",
+        protocolVersion: "2025-11-25",
         capabilities: {},
         clientInfo: { name: "test", version: "1.0" },
       },
     });
 
-    // Get init-kibi prompt
+    // Get kibi-bootstrap prompt
     const response = await sendRequest(proc, {
       jsonrpc: "2.0",
       id: 2,
       method: "prompts/get",
       params: {
-        name: "init-kibi",
+        name: "kibi-bootstrap",
       },
     });
 
@@ -408,13 +464,16 @@ describe("MCP Server", () => {
       .join(" ");
 
     // Assert that content mentions expected public tools
-    expect(contentText).toMatch(/kb_autopilot_generate/);
-    expect(contentText).toMatch(/kb_upsert/);
+    expect(contentText).toMatch(/kb_plan_bootstrap/);
+    expect(contentText).toMatch(/structuredContent\.plan/);
+    expect(contentText).toMatch(/kb_apply_plan/);
     expect(contentText).toMatch(/kb_check/);
-    expect(contentText).toMatch(/Project Summary/);
-    expect(contentText).toMatch(/Source of Truth/);
-    expect(contentText).toMatch(/post-hoc/i);
+    expect(contentText).toMatch(/kb_status/);
     expect(contentText).toMatch(/read-only/);
+    expect(contentText).not.toMatch(/kb_upsert/);
+    expect(contentText).not.toMatch(/Project Summary/);
+    expect(contentText).not.toMatch(/Source of Truth/);
+    expect(contentText).not.toMatch(/post-hoc/i);
 
     // Assert that content mentions activation workflow concepts
     expect(contentText).toMatch(/(activationState|activation|approval)/i);
@@ -435,7 +494,7 @@ describe("MCP Server", () => {
       id: 1,
       method: "initialize",
       params: {
-        protocolVersion: "2024-11-05",
+        protocolVersion: "2025-11-25",
         capabilities: {},
         clientInfo: { name: "test", version: "1.0" },
       },
@@ -458,7 +517,7 @@ describe("MCP Server", () => {
   });
 
   test(
-    "should handle tools/call for kb_autopilot_generate",
+    "should handle tools/call for kb_plan_bootstrap",
     async () => {
       const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-auto-"));
       const kibiBin = path.resolve(import.meta.dir, "../../cli/bin/kibi");
@@ -488,7 +547,7 @@ describe("MCP Server", () => {
           id: 1,
           method: "initialize",
           params: {
-            protocolVersion: "2024-11-05",
+            protocolVersion: "2025-11-25",
             capabilities: {},
             clientInfo: { name: "test", version: "1.0" },
           },
@@ -501,7 +560,7 @@ describe("MCP Server", () => {
             id: 2,
             method: "tools/call",
             params: {
-              name: "kb_autopilot_generate",
+              name: "kb_plan_bootstrap",
               arguments: {},
             },
           },
@@ -517,7 +576,10 @@ describe("MCP Server", () => {
         expect(content.length).toBeGreaterThan(0);
         expect(content[0].type).toBe("text");
 
-        const structured = result.structuredContent as Record<string, unknown>;
+        const envelope = result.structuredContent as Record<string, unknown>;
+        const structured = (
+          envelope.kibiProtocol === 1 ? envelope.data : envelope
+        ) as Record<string, unknown>;
         expect(structured).toBeDefined();
         expect([
           "root_uninitialized",
@@ -531,6 +593,7 @@ describe("MCP Server", () => {
         expect([
           "cold_start_bootstrap",
           "repair_bootstrap",
+          "attached_thin_bootstrap",
           "attached_thin_handoff",
           "attached_seeded_handoff",
           "vendored_blocked",
@@ -544,12 +607,20 @@ describe("MCP Server", () => {
         expect(Array.isArray(structured.suppressedCandidates)).toBe(true);
         expect(typeof structured.discoverySummary).toBe("object");
         expect(typeof structured.payoffSummary).toBe("object");
-
-        expect(result.candidates).toEqual(structured.candidates);
-        expect(result.suppressedCandidates).toEqual(
-          structured.suppressedCandidates,
+        const bootstrapPlan = structured.plan as Record<string, unknown>;
+        expect(bootstrapPlan).toEqual(
+          expect.objectContaining({
+            version: "kibi.bootstrap-plan.v1",
+            planHash: expect.any(String),
+            diagnostics: expect.any(Array),
+          }),
         );
-        expect(result.payoffSummary).toEqual(structured.payoffSummary);
+
+        expect(structured.candidates).toEqual(bootstrapPlan.candidates);
+        expect(structured.suppressedCandidates).toEqual(
+          bootstrapPlan.suppressedCandidates,
+        );
+        expect(structured.payoffSummary).toEqual(bootstrapPlan.payoffSummary);
       } finally {
         await killServer(proc);
         spawnSync(process.execPath, [kibiBin, "engine", "stop"], {
@@ -586,7 +657,7 @@ describe("MCP Server", () => {
           id: 1,
           method: "initialize",
           params: {
-            protocolVersion: "2024-11-05",
+            protocolVersion: "2025-11-25",
             capabilities: {},
             clientInfo: { name: "test", version: "1.0" },
           },
@@ -602,14 +673,13 @@ describe("MCP Server", () => {
               name: "kb_model_requirement",
               arguments: {
                 text: "Customer data must be retained for 7 years.",
-                source: "documentation/requirements/customer-retention.md",
+                source: ".kb/requirements/customer-retention.md",
                 confidence: 0.92,
                 subjectKey: "Customer.Data",
                 propertyKey: "Retention Years",
                 operator: "eq",
                 value: 7,
-                provenance:
-                  "documentation/requirements/customer-retention.md#L1",
+                provenance: ".kb/requirements/customer-retention.md#L1",
               },
             },
           },
@@ -625,7 +695,10 @@ describe("MCP Server", () => {
         expect(content.length).toBeGreaterThan(0);
         expect(content[0]?.type).toBe("text");
 
-        const structured = result.structuredContent as Record<string, unknown>;
+        const envelope = result.structuredContent as Record<string, unknown>;
+        const structured = (
+          envelope.kibiProtocol === 1 ? envelope.data : envelope
+        ) as Record<string, unknown>;
         expect(structured).toBeDefined();
         expect(structured.isStrict).toBe(true);
         expect(Array.isArray(structured.applyPlan)).toBe(true);
@@ -661,7 +734,7 @@ describe("MCP Server", () => {
         id: 1,
         method: "initialize",
         params: {
-          protocolVersion: "2024-11-05",
+          protocolVersion: "2025-11-25",
           capabilities: {},
           clientInfo: { name: "test", version: "1.0" },
         },
@@ -704,7 +777,7 @@ describe("MCP Server", () => {
       id: 1,
       method: "initialize",
       params: {
-        protocolVersion: "2024-11-05",
+        protocolVersion: "2025-11-25",
         capabilities: {},
         clientInfo: { name: "test", version: "1.0" },
       },
@@ -744,7 +817,7 @@ describe("MCP Server", () => {
       id: 1,
       method: "initialize",
       params: {
-        protocolVersion: "2024-11-05",
+        protocolVersion: "2025-11-25",
         capabilities: {},
         clientInfo: { name: "test", version: "1.0" },
       },
@@ -762,6 +835,7 @@ describe("MCP Server", () => {
     const tempRoot = fs.mkdtempSync(
       path.join(os.tmpdir(), "kibi-mcp-branch-init-"),
     );
+    const kibiBin = path.resolve(import.meta.dir, "../../cli/bin/kibi");
 
     execSync("git init -b main", { cwd: tempRoot, stdio: "ignore" });
     execSync('git config user.email "test@example.com"', {
@@ -781,7 +855,8 @@ describe("MCP Server", () => {
       stdio: "ignore",
     });
 
-    const developKb = path.join(tempRoot, ".kb/branches/develop");
+    const developKb = branchStorePath(tempRoot, "develop");
+    ensureBranchStoreManifest(tempRoot, "develop");
     writeEmptyKbSnapshot(developKb);
 
     const proc = startServer({
@@ -795,7 +870,7 @@ describe("MCP Server", () => {
         id: 1,
         method: "initialize",
         params: {
-          protocolVersion: "2024-11-05",
+          protocolVersion: "2025-11-25",
           capabilities: {},
           clientInfo: { name: "test", version: "1.0" },
         },
@@ -813,10 +888,11 @@ describe("MCP Server", () => {
 
       expect(response.error).toBeUndefined();
       expect(
-        fs.existsSync(path.join(tempRoot, ".kb/branches/feature-auto-ensure")),
+        fs.existsSync(branchStorePath(tempRoot, "feature-auto-ensure")),
       ).toBe(true);
     } finally {
       await killServer(proc);
+      stopWorkspaceEngine(kibiBin, tempRoot);
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
   });
@@ -829,7 +905,7 @@ describe("MCP Server", () => {
       id: 1,
       method: "initialize",
       params: {
-        protocolVersion: "2024-11-05",
+        protocolVersion: "2025-11-25",
         capabilities: {},
         clientInfo: { name: "test", version: "1.0" },
       },
@@ -851,6 +927,7 @@ describe("MCP Server", () => {
 
   test("should handle mixed kb_query/kb_check/kb_upsert/kb_delete burst without timeouts", async () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-burst-"));
+    const kibiBin = path.resolve(import.meta.dir, "../../cli/bin/kibi");
 
     execSync("git init -b main", { cwd: tempRoot, stdio: "ignore" });
     execSync('git config user.email "test@example.com"', {
@@ -866,7 +943,8 @@ describe("MCP Server", () => {
     execSync('git commit -m "init"', { cwd: tempRoot, stdio: "ignore" });
     execSync("git checkout -b develop", { cwd: tempRoot, stdio: "ignore" });
 
-    const developKb = path.join(tempRoot, ".kb/branches/develop");
+    const developKb = branchStorePath(tempRoot, "develop");
+    ensureBranchStoreManifest(tempRoot, "develop");
     writeEmptyKbSnapshot(developKb);
 
     const proc = startServer({ cwd: tempRoot });
@@ -879,7 +957,7 @@ describe("MCP Server", () => {
           id: 1,
           method: "initialize",
           params: {
-            protocolVersion: "2024-11-05",
+            protocolVersion: "2025-11-25",
             capabilities: {},
             clientInfo: { name: "test", version: "1.0" },
           },
@@ -903,6 +981,9 @@ describe("MCP Server", () => {
                 properties: {
                   title: `Burst ${i}`,
                   status: "open",
+                },
+                document: {
+                  path: `.kb/requirements/${upsertId}.md`,
                 },
               },
             },
@@ -977,6 +1058,7 @@ describe("MCP Server", () => {
       }
     } finally {
       await killServer(proc);
+      stopWorkspaceEngine(kibiBin, tempRoot);
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
   }, 180000);
@@ -1000,11 +1082,11 @@ describe("MCP Server", () => {
       cwd: tempRoot,
       stdio: "ignore",
     });
-    fs.mkdirSync(path.join(tempRoot, "documentation", "requirements"), {
+    fs.mkdirSync(path.join(tempRoot, ".kb", "requirements"), {
       recursive: true,
     });
     fs.writeFileSync(
-      path.join(tempRoot, "documentation", "requirements", "REQ-LIVE-BASE.md"),
+      path.join(tempRoot, ".kb", "requirements", "REQ-LIVE-BASE.md"),
       "---\nid: REQ-LIVE-BASE\ntitle: Live session baseline\nstatus: open\n---\n",
     );
     execSync(`bun ${kibiBin} sync`, {
@@ -1020,7 +1102,7 @@ describe("MCP Server", () => {
         id: 1,
         method: "initialize",
         params: {
-          protocolVersion: "2024-11-05",
+          protocolVersion: "2025-11-25",
           capabilities: {},
           clientInfo: { name: "test", version: "1.0" },
         },
@@ -1039,7 +1121,7 @@ describe("MCP Server", () => {
       });
 
       fs.writeFileSync(
-        path.join(tempRoot, "documentation", "requirements", "REQ-LIVE-001.md"),
+        path.join(tempRoot, ".kb", "requirements", "REQ-LIVE-001.md"),
         "---\nid: REQ-LIVE-001\ntitle: Live session status\nstatus: open\n---\n",
       );
 
@@ -1051,6 +1133,7 @@ describe("MCP Server", () => {
       expect(afterStructured?.syncState).toBe("stale");
     } finally {
       await killServer(proc);
+      stopWorkspaceEngine(kibiBin, tempRoot);
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
   }, 30000);
@@ -1058,6 +1141,7 @@ describe("MCP Server", () => {
   test("should create usage.log when --diagnostic-mode is enabled", async () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-diag-"));
     const repoDir = path.join(tempRoot, "repo");
+    const kibiBin = path.resolve(import.meta.dir, "../../cli/bin/kibi");
     fs.mkdirSync(repoDir, { recursive: true });
 
     // Initialize git repo and kibi
@@ -1072,7 +1156,7 @@ describe("MCP Server", () => {
     const proc = spawn("bun", ["run", serverPath, "--diagnostic-mode"], {
       stdio: ["pipe", "pipe", "pipe"],
       cwd: repoDir,
-      env: process.env,
+      env: isolatedMcpSandboxEnv(),
     });
 
     try {
@@ -1084,7 +1168,7 @@ describe("MCP Server", () => {
           id: 1,
           method: "initialize",
           params: {
-            protocolVersion: "2024-11-05",
+            protocolVersion: "2025-11-25",
             capabilities: {},
             clientInfo: { name: "test", version: "1.0" },
           },
@@ -1098,13 +1182,10 @@ describe("MCP Server", () => {
       );
 
       // Initialize kibi via CLI
-      execSync(
-        `node ${path.resolve(import.meta.dir, "../../cli/bin/kibi")} init`,
-        {
-          cwd: repoDir,
-          env: process.env,
-        },
-      );
+      execSync(`node ${kibiBin} init`, {
+        cwd: repoDir,
+        env: isolatedMcpSandboxEnv(),
+      });
 
       // Call kb_query with diagnostic telemetry
       await sendRequest(
@@ -1152,6 +1233,7 @@ describe("MCP Server", () => {
       expect(typeof lastLine.result_summary).toBe("string");
     } finally {
       await killServer(proc);
+      stopWorkspaceEngine(kibiBin, repoDir);
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
   }, 60000);
@@ -1181,11 +1263,7 @@ describe("MCP Server", () => {
       cwd: tempRoot,
       stdio: "ignore",
     });
-    const requirementsDir = path.join(
-      tempRoot,
-      "documentation",
-      "requirements",
-    );
+    const requirementsDir = path.join(tempRoot, ".kb", "requirements");
     fs.mkdirSync(requirementsDir, { recursive: true });
     const staleRequirement = path.join(
       requirementsDir,
@@ -1195,10 +1273,8 @@ describe("MCP Server", () => {
       staleRequirement,
       "---\nid: REQ-stale-before-rebuild\ntitle: Stale requirement\nstatus: open\n---\n",
     );
-    execSync(`node ${kibiBin} sync --rebuild`, {
-      cwd: tempRoot,
-      stdio: "ignore",
-    });
+    execSync("git add .kb/requirements", { cwd: tempRoot, stdio: "ignore" });
+    syncRebuild(kibiBin, tempRoot);
 
     const proc = startServer({ cwd: tempRoot });
     const pidBefore = proc.pid;
@@ -1210,7 +1286,7 @@ describe("MCP Server", () => {
         id: 1,
         method: "initialize",
         params: {
-          protocolVersion: "2024-11-05",
+          protocolVersion: "2025-11-25",
           capabilities: {},
           clientInfo: { name: "test", version: "1.0" },
         },
@@ -1251,10 +1327,8 @@ describe("MCP Server", () => {
         path.join(requirementsDir, "REQ-fresh-after-rebuild.md"),
         "---\nid: REQ-fresh-after-rebuild\ntitle: Fresh requirement\nstatus: open\n---\n",
       );
-      execSync(`node ${kibiBin} sync --rebuild`, {
-        cwd: tempRoot,
-        stdio: "ignore",
-      });
+      execSync("git add .kb/requirements", { cwd: tempRoot, stdio: "ignore" });
+      syncRebuild(kibiBin, tempRoot);
 
       // Query SAME process again — must see fresh data
       const after = await sendRequest(
@@ -1297,6 +1371,7 @@ describe("MCP Server", () => {
       }
     } finally {
       await killServer(proc);
+      stopWorkspaceEngine(kibiBin, tempRoot);
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
   }, 60000);

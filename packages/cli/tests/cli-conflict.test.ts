@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { spawnSync } from "./helpers/isolated-env.js";
 
 const cliEntry = path.resolve(import.meta.dir, "../src/cli.ts");
 const temporaryDirectories: string[] = [];

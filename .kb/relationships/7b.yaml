@@ -1,0 +1,50 @@
+relationships:
+  - id: rel-eb22fe09ce8c
+    type: covered_by
+    from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-plan-apply-result-version
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: "2026-08-16T19:45:30.487Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-canonical-StorageMigrationMove
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:01:25.879Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c5087479d2d
+  - type: covered_by
+    from: SYM-canonical-StorageMigrationMove
+    to: TEST-cli-migrate
+    created_at: 2026-08-18T17:01:25.886Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a20a5e598ffb
+  - type: implements
+    from: SYM-CheckRunner
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:45:57.744Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c97ee9de21ef
+  - type: covered_by
+    from: SYM-CheckRunner
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:45:57.754Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf656131475f
+  - type: covered_by
+    from: SYM-CheckRunner
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:45:57.758Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63b535da7aeb
+  - type: relates_to
+    from: FACT-core-prolog-process-management-777C0D
+    to: REQ-core-prolog-process-management
+    created_at: 2026-08-26T07:20:54.044Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e72325bae2fa

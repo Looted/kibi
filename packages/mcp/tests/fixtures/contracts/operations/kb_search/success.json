@@ -21,7 +21,7 @@
     ]
   },
   "tool": {
-    "description": "Search KB entities for discovery using metadata and markdown body text. Use for exploratory lookup before exact follow-up with kb_query. No mutation side effects.",
+    "description": "Search KB entities for discovery using legacy lexical ranking or deterministic intent-v1 ranking. Intent mode accepts host-agent semantic facets and source locations, returns evidence and abstains below its confidence threshold. Use for exploratory lookup before exact follow-up with kb_query. No mutation side effects.",
     "inputSchema": {
       "properties": {
         "limit": {
@@ -29,6 +29,13 @@
           "description": "Optional max rows to return after ranking. Default: 20.",
           "minimum": 0,
           "type": "integer"
+        },
+        "minScore": {
+          "default": 0.18,
+          "description": "Intent-v1 acceptance threshold between 0 and 1. Low-confidence queries abstain instead of returning misleading matches.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
         },
         "offset": {
           "default": 0,
@@ -41,6 +48,83 @@
           "maxLength": 4096,
           "minLength": 1,
           "type": "string"
+        },
+        "rankingMode": {
+          "default": "legacy",
+          "description": "Optional deterministic ranking mode. Omit for backward-compatible lexical search; use intent-v1 for semantic facets, source-aware evidence, graph boosts, and abstention.",
+          "enum": ["legacy", "intent-v1"],
+          "type": "string"
+        },
+        "semanticFacets": {
+          "additionalProperties": false,
+          "description": "Optional host-agent semantic interpretation. Kibi uses these strings as deterministic aliases/facets; it does not call a model itself.",
+          "properties": {
+            "actions": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 20,
+              "type": "array"
+            },
+            "actors": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 20,
+              "type": "array"
+            },
+            "aliases": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 20,
+              "type": "array"
+            },
+            "constraints": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 20,
+              "type": "array"
+            },
+            "objects": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 20,
+              "type": "array"
+            }
+          },
+          "type": "object"
+        },
+        "sourceLocations": {
+          "description": "Optional changed-code locations. Results are matched to source-linked symbols/entities and include source evidence.",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "column": {
+                "minimum": 1,
+                "type": "integer"
+              },
+              "line": {
+                "minimum": 1,
+                "type": "integer"
+              },
+              "path": {
+                "description": "Workspace-relative source path.",
+                "minLength": 1,
+                "type": "string"
+              },
+              "symbol": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": ["path"],
+            "type": "object"
+          },
+          "maxItems": 20,
+          "type": "array"
         },
         "type": {
           "description": "Optional entity type filter to narrow discovery. Example: 'req'.",

@@ -1,10 +1,6 @@
-import { getSpec } from "kibi-cli/operations";
-import { nodeGit } from "kibi-cli/operations/node-ports";
-import type {
-  PrologPort,
-  PrologQueryResult,
-} from "kibi-cli/operations/runtime-types";
-import type { PrologProcess } from "kibi-cli/prolog";
+import { getSpec, nodeFilesystem, nodeGit } from "kibi-runtime";
+import type { PrologPort, PrologQueryResult } from "kibi-runtime";
+import type { PrologProcess } from "kibi-runtime";
 import {
   DIAGNOSTIC_MODE_ENABLED,
   appendUsageLogLine,
@@ -15,13 +11,13 @@ import {
 import { isMcpDebugEnabled } from "../env.js";
 import { createMcpRuntime } from "../runtime/mcp-runtime.js";
 import { TOOLS } from "../tools-config.js";
-import { handleKbAutopilotGenerate } from "../tools/autopilot-generate.js";
 import { handleKbCheck } from "../tools/check.js";
 import { handleKbCoverage } from "../tools/coverage.js";
 import { handleKbDelete } from "../tools/delete.js";
 import { handleKbFindGaps } from "../tools/find-gaps.js";
 import { handleKbGraph } from "../tools/graph.js";
 import { handleKbModelRequirement } from "../tools/model-requirement.js";
+import { handleKbPlanBootstrap } from "../tools/plan-bootstrap.js";
 import { handleKbQuery } from "../tools/query.js";
 import { handleKbSearch } from "../tools/search.js";
 import { handleKbSemanticAdvisor } from "../tools/semantic-advisor.js";
@@ -157,6 +153,7 @@ const operationRuntime = createMcpRuntime<PrologProcess>({
     (await getSessionModule()).attachedBranchKbPath,
   ensureProlog: async () => (await getSessionModule()).ensureProlog(),
   adaptProlog,
+  fs: nodeFilesystem,
   git: nodeGit,
   net: { fetch: (input, init) => globalThis.fetch(input, init) },
   refreshAttachedBranchStamp: async () => {
@@ -213,5 +210,5 @@ export const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
   handleKbValidateUpsert,
   handleKbModelRequirement,
   handleKbSuggestPredicates,
-  handleKbAutopilotGenerate,
+  handleKbPlanBootstrap,
 };

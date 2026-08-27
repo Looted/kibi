@@ -25,7 +25,7 @@ Traceability relationships (`implements`, `covered_by`, `executable_for`) should
 
 Extracted class members use `ClassName.memberName` when they are the narrow behavioral seam. For example, an exported UI component property initialized with `computed(() => ...)`, `effect(...)`, `signal(...)`, a callback, or another non-trivial expression can be a behavioral anchor such as `UploadPageComponent.processingProgressLabel`. Prefer linking that member directly when the requirement ownership is about the member's behavior or UI-facing copy.
 
-Interfaces, type aliases, and enums are `type-shape` symbols. They describe data or API shape and should not by themselves block a module/file-level behavioral link. When behavior is composed through factory expressions, generated code, framework conventions, or language constructs the extractor cannot model, declare a manual symbol in `documentation/symbols.yaml` with `symbol_role: behavioral`.
+Interfaces, type aliases, and enums are `type-shape` symbols. They describe data or API shape and should not by themselves block a module/file-level behavioral link. When behavior is composed through factory expressions, generated code, framework conventions, or language constructs the extractor cannot model, declare a manual symbol in `.kb/symbols.yaml` with `symbol_role: behavioral`.
 
 If no precise behavioral anchor exists yet, use `granularity_reason: extractor-miss` or `granularity_reason: module-level-behavior` on the coarse symbol and treat it as an audited fallback.
 

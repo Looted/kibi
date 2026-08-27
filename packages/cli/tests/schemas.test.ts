@@ -98,7 +98,7 @@ describe("Entity Schema", () => {
       status: "open",
       created_at: "2026-08-11T00:00:00Z",
       updated_at: "2026-08-11T00:00:00Z",
-      source: "documentation/requirements/REQ-SEMANTIC-SOURCE.md",
+      source: ".kb/requirements/REQ-SEMANTIC-SOURCE.md",
       semantic_text: "Authored requirement prose.",
       semantic_source_field: "semantic_text",
     };
@@ -119,7 +119,7 @@ describe("Entity Schema", () => {
       status: "failing",
       created_at: "2026-08-10T00:00:00Z",
       updated_at: "2026-08-10T00:00:00Z",
-      source: "documentation/tests/TEST-RECEIPT-SCHEMA.md",
+      source: ".kb/tests/TEST-RECEIPT-SCHEMA.md",
       verification_scope: "end_to_end",
       verification_receipts: [
         {
@@ -143,6 +143,16 @@ describe("Entity Schema", () => {
     };
 
     expect(validate({ ...base, type: "test" })).toBe(true);
+    expect(
+      validate({
+        ...base,
+        type: "test",
+        verification_receipts: Array.from({ length: 51 }, (_, index) => ({
+          ...base.verification_receipts[0],
+          receipt_id: `VR-SCHEMA-${String(index).padStart(8, "0")}`,
+        })),
+      }),
+    ).toBe(true);
     expect(validate({ ...base, type: "req" })).toBe(false);
     const { verification_scope: _scope, ...withoutScope } = base;
     expect(validate({ ...withoutScope, type: "test" })).toBe(false);

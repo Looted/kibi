@@ -1,0 +1,85 @@
+relationships:
+  - id: rel-ad1184b3c69c
+    type: implements
+    from: SYM-auto-23F02839C46A
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:21:47.410Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-auto-23F02839C46A
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:54:44.239Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-afbdebb005cb
+  - type: covered_by
+    from: SYM-telemetry-diagnostic-append-cli
+    to: TEST-kibi-telemetry-remediation-evidence
+    created_at: 2026-08-16T18:52:17.705Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbe3d01d2152
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-proposaldecision
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-16T19:45:30.473Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a247d18b58e
+  - type: verified_by
+    from: SCEN-kibi-snapshot-relevance
+    to: TEST-cli-workspace-snapshot-dirtiness
+    created_at: 2026-08-17T11:55:12.987Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb0ec92e20fa
+  - type: implements
+    from: SYM-cursor-resolveProjectLocalMcp
+    to: REQ-cursor-kibi-plugin-v1
+    created_at: 2026-08-20T12:40:34.783Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ffd0eb2e19c
+  - type: covered_by
+    from: SYM-cursor-resolveProjectLocalMcp
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-08-20T12:40:34.790Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92ea5c52a32e
+  - type: implements
+    from: SYM-cursor-resolveProjectLocalMcp
+    to: REQ-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-08-20T13:00:53.165Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e775959ce33d
+  - type: covered_by
+    from: SYM-cursor-resolveProjectLocalMcp
+    to: TEST-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-08-20T13:00:53.172Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-463cf86a80b2
+  - type: implements
+    from: SYM-cursor-resolveProjectLocalMcp
+    to: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
+    created_at: 2026-08-20T22:17:26.417Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7af372a7252
+  - type: covered_by
+    from: SYM-cursor-resolveProjectLocalMcp
+    to: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    created_at: 2026-08-20T22:17:26.434Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-008ef922f141
+  - type: covered_by
+    from: SYM-auto-23F02839C46A
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:36:58.391Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-557c4fd9c288

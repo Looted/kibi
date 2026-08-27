@@ -1,5 +1,7 @@
 # KB Contradiction Model Remediation Delta & v1 Contract
 
+> **Archival note:** Agent operating guidance now lives in bundled Kibi skills (`kibi-usage`, `init-kibi`). Historical mentions of `llm-rules.md` and `retroactive-init.md` below are not current runbooks.
+
 > **For agentic workers:** This document is the canonical remediation contract. It freezes v1 semantics and defines the delta between current implementation and the intended state.
 
 ## 1. Remediation Delta Matrix

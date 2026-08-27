@@ -7,8 +7,10 @@ const DOC_FILES = [
   "docs/inference-rules.md",
   "docs/cli-reference.md",
   "docs/mcp-reference.md",
-  "docs/prompts/llm-rules.md",
-  "docs/prompts/retroactive-init.md",
+  "docs/generic-agent-onboarding.md",
+  "packages/runtime/src/skills/kibi-usage/SKILL.md",
+  "packages/runtime/src/skills/kibi-usage/resources/fact-lanes.md",
+  "packages/runtime/src/skills/kibi-bootstrap/SKILL.md",
   "docs/architecture.md",
   "CONTRIBUTING.md",
   "README.md",
@@ -64,7 +66,7 @@ describe("Docs Consistency: Fact Model & Contradictions", () => {
   });
 
   describe("Rule Descriptions", () => {
-    test("strict-fact-shape must be described as default-off migration check", () => {
+    test("strict-fact-shape must be described as an advisory default-on quality diagnostic", () => {
       const docs = [
         "docs/cli-reference.md",
         "docs/mcp-reference.md",
@@ -73,7 +75,8 @@ describe("Docs Consistency: Fact Model & Contradictions", () => {
       for (const file of docs) {
         const content = getFileContent(file).toLowerCase();
         if (content.includes("strict-fact-shape")) {
-          expect(content).toMatch(/default-off|migration/i);
+          expect(content).toMatch(/advisory/);
+          expect(content).toMatch(/qualitydiagnostic|quality diagnostic/);
         }
       }
     });
@@ -110,10 +113,21 @@ describe("Docs Consistency: Fact Model & Contradictions", () => {
       expect(content).toMatch(/`kb_skills_read`/);
     });
 
-    test("llm-rules.md references skill subsystem", () => {
-      const content = getFileContent("docs/prompts/llm-rules.md");
+    test("generic-agent-onboarding.md teaches skill discovery", () => {
+      const content = getFileContent("docs/generic-agent-onboarding.md");
+      expect(content).toMatch(/kb_skills_list/);
       expect(content).toMatch(/kb_skills_load/);
       expect(content).toMatch(/kibi-usage/);
+    });
+
+    test("generic-agent-onboarding.md stays a tiny discovery bootstrap", () => {
+      const content = getFileContent("docs/generic-agent-onboarding.md");
+      const lineCount = content.split("\n").length;
+      expect(lineCount).toBeLessThan(40);
+      expect(content).not.toContain("subject_key");
+      expect(content).not.toContain("kb_upsert");
+      expect(content).not.toMatch(/completion contract/i);
+      expect(content).not.toContain("fact_kind");
     });
 
     test("README.md mentions reusable skills", () => {
@@ -122,11 +136,21 @@ describe("Docs Consistency: Fact Model & Contradictions", () => {
       expect(content).toMatch(/bundled skills/i);
     });
 
+    test("example prompts do not duplicate Kibi operating rules", () => {
+      const content = getFileContent(
+        "docs/examples/prompts/improve-product-kb.md",
+      );
+      expect(content).not.toMatch(/Hard Rules/i);
+      expect(content).not.toContain("subject_key");
+      expect(content).not.toContain("kb_upsert");
+      expect(content).toMatch(/kibi-usage/);
+    });
+
     test("Docs state bundled-only skills and no remote install in v1", () => {
       const docs = [
         "docs/cli-reference.md",
         "docs/mcp-reference.md",
-        "docs/prompts/llm-rules.md",
+        "docs/generic-agent-onboarding.md",
         "README.md",
       ];
       for (const file of docs) {
@@ -140,7 +164,7 @@ describe("Docs Consistency: Fact Model & Contradictions", () => {
       const docs = [
         "docs/cli-reference.md",
         "docs/mcp-reference.md",
-        "docs/prompts/llm-rules.md",
+        "docs/generic-agent-onboarding.md",
       ];
       for (const file of docs) {
         const content = getFileContent(file).toLowerCase();

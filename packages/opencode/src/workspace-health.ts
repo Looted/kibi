@@ -11,18 +11,7 @@ export interface WorkspaceHealth {
   hasKbEvidence: boolean;
 }
 
-const KB_CONFIG_FILE = ".kb/config.json";
-// Fallback defaults used when .kb/config.json does not exist
-const KIBI_DOC_DIRS = [
-  "documentation/requirements",
-  "documentation/scenarios",
-  "documentation/tests",
-  "documentation/adr",
-  "documentation/flags",
-  "documentation/events",
-  "documentation/facts",
-  "documentation/symbols.yaml",
-];
+const KB_MANIFEST_FILE = ".kb/manifest.json";
 
 // implements REQ-opencode-kibi-plugin-v1
 /**
@@ -31,58 +20,24 @@ const KIBI_DOC_DIRS = [
  * bootstrap-needs to the posture result.
  */
 export function checkWorkspaceHealth(cwd: string): WorkspaceHealth {
-  // Use posture detection for root-scoped classification
   const posture = detectPosture(cwd);
 
-  const configPath = path.join(cwd, KB_CONFIG_FILE);
-  const missingConfig = !fs.existsSync(configPath);
+  const manifestPath = path.join(cwd, KB_MANIFEST_FILE);
+  const missingConfig = !fs.existsSync(manifestPath);
 
   const missingDocDirs: string[] = [];
-  if (missingConfig) {
-    // No config file: fall back to hardcoded defaults
-    for (const docDir of KIBI_DOC_DIRS) {
-      const fullPath = path.resolve(cwd, docDir);
-      if (!fs.existsSync(fullPath)) {
-        missingDocDirs.push(docDir);
-      }
-    }
-  } else {
-    // Config exists: check if user specified custom paths
-    let hasUserPaths = false;
-    try {
-      const raw = JSON.parse(fs.readFileSync(configPath, "utf8"));
-      hasUserPaths = Boolean(raw?.paths);
-    } catch {
-      hasUserPaths = false;
-    }
-    if (hasUserPaths) {
-      // User has custom paths: resolve targets dynamically
-      const targets = getKbExistenceTargets(cwd);
-      for (const target of targets) {
-        const fullPath = path.resolve(cwd, target.relativePath);
-        if (!fs.existsSync(fullPath)) {
-          missingDocDirs.push(target.relativePath);
-        }
-      }
-    } else {
-      // Config exists but no custom paths: use hardcoded defaults
-      for (const docDir of KIBI_DOC_DIRS) {
-        const fullPath = path.resolve(cwd, docDir);
-        if (!fs.existsSync(fullPath)) {
-          missingDocDirs.push(docDir);
-        }
-      }
+  const targets = getKbExistenceTargets(cwd);
+  for (const target of targets) {
+    const fullPath = path.resolve(cwd, target.relativePath);
+    if (!fs.existsSync(fullPath)) {
+      missingDocDirs.push(target.relativePath);
     }
   }
 
-  // Check for any evidence of Kibi usage
   const kbDir = path.join(cwd, ".kb");
   const hasKbEvidence =
     fs.existsSync(kbDir) && fs.readdirSync(kbDir).length > 0;
 
-  // Restore lenient threshold for repos that have a config but are missing a few dirs.
-  // Uninitialized repos always need bootstrap; partial repos fall back to the legacy
-  // >2 missing dirs threshold so small gaps (e.g. unused flags/events) do not nag.
   const needsBootstrap =
     posture.state === "root_uninitialized" ||
     (posture.state === "root_partial" && missingDocDirs.length > 2);

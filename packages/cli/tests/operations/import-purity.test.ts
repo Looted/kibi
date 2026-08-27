@@ -23,7 +23,7 @@ describe("operations import purity", () => {
 
     const operations = await import("kibi-cli/operations");
 
-    expect(operations.OPERATION_CATALOG).toHaveLength(18);
+    expect(operations.OPERATION_CATALOG).toHaveLength(21);
     expect(stdoutWrite).not.toHaveBeenCalled();
     expect(stderrWrite).not.toHaveBeenCalled();
     expect(writeFileSync).not.toHaveBeenCalled();

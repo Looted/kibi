@@ -39,7 +39,7 @@ describe("deriveFileOperationReminder", () => {
 
     test("created requirement doc does NOT return new file reminder (not a code file)", () => {
       const result = deriveFileOperationReminder({
-        normalizedPath: "documentation/requirements/REQ-001.md",
+        normalizedPath: ".kb/requirements/REQ-001.md",
         lifecycle: "created",
         pathKind: "requirement",
         linkedEntityResult: { ids: [], source: "none" },
@@ -158,11 +158,13 @@ describe("deriveFileOperationReminder", () => {
       expect(result.lifecycleReminder).toContain(
         "packages/opencode/src/existing.ts",
       );
-      expect(result.lifecycleReminder).toContain("kb_check");
+      expect(result.lifecycleReminder).toContain(
+        "Inspect typed Kibi status `nextActions`",
+      );
       expect(result.reminderKindsToMark).toContain("kibi_write");
     });
 
-    test("deleted file with no linked IDs in hard mode hard-blocks with sourceFile cleanup guidance", () => {
+    test("deleted file with no linked IDs in hard mode hard-blocks with source-linked traceability cleanup guidance", () => {
       const result = derivePolicyReminder({
         normalizedPath: "packages/opencode/src/no-links.ts",
         lifecycle: "deleted",
@@ -174,13 +176,13 @@ describe("deriveFileOperationReminder", () => {
       });
 
       expect(result.policyDecision).toBe("hard_block");
-      expect(result.lifecycleReminder).toContain("kb_search");
-      expect(result.lifecycleReminder).toContain("kb_query");
-      expect(result.lifecycleReminder).toContain("sourceFile");
+      expect(result.lifecycleReminder).toContain(
+        "Deleted paths without linked IDs still require a source-linked traceability review before cleanup.",
+      );
       expect(result.lifecycleReminder).toContain(
         "packages/opencode/src/no-links.ts",
       );
-      expect(result.lifecycleReminder).toContain("kb_upsert");
+      expect(result.lifecycleReminder).toContain("typed traceability workflow");
       expect(result.reminderKindsToMark).toContain("kibi_delete");
     });
 
@@ -213,7 +215,7 @@ describe("deriveFileOperationReminder", () => {
         checkpointEvidence: false,
       });
       const symbolManifestResult = derivePolicyReminder({
-        normalizedPath: "documentation/symbols.yaml",
+        normalizedPath: ".kb/symbols.yaml",
         lifecycle: "created",
         pathKind: "symbol" satisfies PathKind,
         linkedEntityResult: { ids: [], source: "none" },
@@ -226,7 +228,7 @@ describe("deriveFileOperationReminder", () => {
       expect(configResult.lifecycleReminder).toContain("bunfig.toml");
       expect(symbolManifestResult.policyDecision).toBe("hard_block");
       expect(symbolManifestResult.lifecycleReminder).toContain(
-        "documentation/symbols.yaml",
+        ".kb/symbols.yaml",
       );
     });
 
@@ -274,7 +276,7 @@ describe("deriveFileOperationReminder", () => {
           { normalizedPath: "src/two.ts", lifecycle: "created" },
           { normalizedPath: "tests/three.test.ts", lifecycle: "created" },
           { normalizedPath: "docs/four.md", lifecycle: "edited" },
-          { normalizedPath: "documentation/symbols.yaml", lifecycle: "edited" },
+          { normalizedPath: ".kb/symbols.yaml", lifecycle: "edited" },
           { normalizedPath: "src/six.ts", lifecycle: "deleted" },
           { normalizedPath: "src/seven.ts", lifecycle: "edited" },
         ],
@@ -333,7 +335,7 @@ describe("deriveFileOperationReminder", () => {
 
     test("deleted file with doc-path identity returns reminder with ID and kibi_delete kind", () => {
       const result = deriveFileOperationReminder({
-        normalizedPath: "documentation/requirements/REQ-001.md",
+        normalizedPath: ".kb/requirements/REQ-001.md",
         lifecycle: "deleted",
         pathKind: "requirement",
         linkedEntityResult: { ids: ["REQ-001"], source: "doc-path" },

@@ -1,5 +1,4 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { execSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -13,10 +12,14 @@ import * as os from "node:os";
 import * as path from "node:path";
 import relationshipSchema from "../../src/public/schemas/relationship.js";
 import { createCliRuntime } from "../../src/runtime/cli-runtime.js";
+import { branchStorePath } from "../../src/utils/branch-store-locator.js";
+import { execSync } from "../helpers/isolated-env.js";
 
 describe("kibi query", () => {
   test("attaches the supplied workspace branch instead of the injected ambient branch", async () => {
     const workspace = mkdtempSync(path.join(os.tmpdir(), "kibi-runtime-"));
+    const originalKibiBranch = process.env.KIBI_BRANCH;
+    Reflect.deleteProperty(process.env, "KIBI_BRANCH");
     execSync("git init -b develop", { cwd: workspace });
     const goals: string[] = [];
     const runtime = createCliRuntime({
@@ -40,9 +43,14 @@ describe("kibi query", () => {
       });
 
       expect(goals).toContainEqual(
-        expect.stringContaining(".kb/branches/develop"),
+        expect.stringContaining(branchStorePath(workspace, "develop")),
       );
     } finally {
+      if (originalKibiBranch === undefined) {
+        Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+      } else {
+        process.env.KIBI_BRANCH = originalKibiBranch;
+      }
       rmSync(workspace, { force: true, recursive: true });
     }
   });
@@ -152,6 +160,11 @@ User logs in with OAuth2 provider.
     tags: [payments]
 `,
     );
+
+    execSync("git add requirements scenarios symbols.yaml", {
+      cwd: tmpDir,
+      stdio: "pipe",
+    });
 
     // Sync the fixtures into KB
     execSync(`node ${kibiBin} sync`, {
@@ -306,6 +319,28 @@ User logs in with OAuth2 provider.
   );
 
   test(
+    "does not poison the shared engine JSON output after a relationship query",
+    () => {
+      execSync(
+        `node ${kibiBin} query --relationships REQ-NOT-PRESENT --format json`,
+        { cwd: tmpDir, encoding: "utf8" },
+      );
+
+      const statusOutput = execSync(`node ${kibiBin} status --format json`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
+      const status = JSON.parse(statusOutput) as {
+        branchStore?: { state?: string };
+        engineStatus?: { state?: string };
+      };
+      expect(status.branchStore?.state).toBe("healthy");
+      expect(status.engineStatus).toBeUndefined();
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
     "outputs table format",
     () => {
       const output = execSync(`node ${kibiBin} query req --format table`, {
@@ -369,7 +404,7 @@ User logs in with OAuth2 provider.
   test(
     "query is read-only and does not rewrite kb.rdf",
     () => {
-      const docReqDir = path.join(tmpDir, "documentation/requirements");
+      const docReqDir = path.join(tmpDir, ".kb/requirements");
       mkdirSync(docReqDir, { recursive: true });
       writeFileSync(
         path.join(docReqDir, "req-readonly.md"),
@@ -381,6 +416,10 @@ status: open
 ---
 `,
       );
+      execSync("git add .kb/requirements/req-readonly.md", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
       execSync(`node ${kibiBin} sync`, {
         cwd: tmpDir,
@@ -392,10 +431,10 @@ status: open
           cwd: tmpDir,
           encoding: "utf8",
         }).trim() || "master";
-      const effectiveBranch = branch === "master" ? "main" : branch;
+      const effectiveBranch = branch;
       const rdfPath = path.join(
-        tmpDir,
-        `.kb/branches/${effectiveBranch}/kb.rdf`,
+        branchStorePath(tmpDir, effectiveBranch),
+        "kb.rdf",
       );
       const before = readFileSync(rdfPath, "utf8");
       const beforeMtime = statSync(rdfPath).mtimeMs;

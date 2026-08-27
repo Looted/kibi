@@ -1,7 +1,12 @@
 import { createHash, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { buildBundleCatalog, buildSkillCatalog } from "./catalog";
+import {
+  CANONICAL_SKILLS,
+  type CanonicalSkill,
+  buildBundleCatalog,
+  buildSkillCatalog,
+} from "./catalog";
 import { assertCellInfrastructureHealthy } from "./evaluation-infrastructure";
 import { parseHeldOutTaskManifest } from "./fixtures/contracts";
 import {
@@ -20,6 +25,7 @@ import {
   requireRuntime,
 } from "./real-workflow-types";
 import { runCodexCell } from "./runtime/codex-cell-runner";
+import { taskFinalStateRequests } from "./runtime/final-state-requests";
 import { resolveTaskFixture } from "./runtime/task-fixture";
 
 export type { HeldOutPhysicalCell } from "./held-out-eligibility";
@@ -39,14 +45,20 @@ function sha256(value: string): string {
   return createHash("sha256").update(value, "utf8").digest("hex");
 }
 
-function terminalTasks(): readonly TerminalTask[] {
-  const predicates = PREDICATE_HELD_OUT_CASE_IDS.map((taskId) => ({
-    kind: "predicate" as const,
-    taskId,
-    family: PREDICATE_SEMANTIC_CLASSES.get(taskId) ?? "predicate",
-    replicates: [1, 2, 3] as const,
-  }));
-  const skills = buildSkillCatalog("kibi-usage")
+function terminalTasks(
+  skill: CanonicalSkill,
+  options: Readonly<{ includeBundle: boolean }>,
+): readonly TerminalTask[] {
+  const predicates =
+    skill === "kibi-usage"
+      ? PREDICATE_HELD_OUT_CASE_IDS.map((taskId) => ({
+          kind: "predicate" as const,
+          taskId,
+          family: PREDICATE_SEMANTIC_CLASSES.get(taskId) ?? "predicate",
+          replicates: [1, 2, 3] as const,
+        }))
+      : [];
+  const skills = buildSkillCatalog(skill)
     .filter(
       (task) =>
         task.split === "held-out" && task.family !== "fact-predicate-modeling",
@@ -57,12 +69,14 @@ function terminalTasks(): readonly TerminalTask[] {
       family: task.family,
       replicates: [undefined] as const,
     }));
-  const bundles = buildBundleCatalog().map((task) => ({
-    kind: "bundle" as const,
-    taskId: task.id,
-    family: task.family,
-    replicates: [undefined] as const,
-  }));
+  const bundles = options.includeBundle
+    ? buildBundleCatalog().map((task) => ({
+        kind: "bundle" as const,
+        taskId: task.id,
+        family: task.family,
+        replicates: [undefined] as const,
+      }))
+    : [];
   return [...predicates, ...skills, ...bundles];
 }
 
@@ -118,13 +132,40 @@ export const defaultEvaluateHeldOut: RealOptimizationDependencies["evaluateHeldO
     const runtime = requireRuntime(input.runtime);
     const cellRunner = input.cellRunner ?? runCodexCell;
     const candidateHashes = frozenCandidateHashes(input.variants);
+    const taskPlan = terminalTasks(input.skill, {
+      includeBundle: input.includeBundle !== false,
+    });
+    const uniqueTaskIds = (kind: TerminalTask["kind"]): readonly string[] =>
+      taskPlan
+        .filter((task) => task.kind === kind)
+        .map((task) => task.taskId)
+        .filter((taskId, index, all) => all.indexOf(taskId) === index);
+    const expected = {
+      predicate: taskPlan
+        .filter((task) => task.kind === "predicate")
+        .reduce((total, task) => total + task.replicates.length * 3, 0),
+      skill: taskPlan
+        .filter((task) => task.kind === "skill")
+        .reduce((total, task) => total + task.replicates.length * 3, 0),
+      bundle: taskPlan
+        .filter((task) => task.kind === "bundle")
+        .reduce((total, task) => total + task.replicates.length * 3, 0),
+    };
+    const expectedTotal = expected.predicate + expected.skill + expected.bundle;
     const receiptStore = new HeldOutReceiptStore({
       artifactRoot: input.artifactRoot,
       roots: input.roots,
       candidateHashes,
-      heldOutCaseIds: PREDICATE_HELD_OUT_CASE_IDS,
+      // Keep the historical predicate reservation shape for direct callers;
+      // the production optimizer passes includeBundle=false and binds the
+      // selected skill's task IDs as well.
+      heldOutCaseIds:
+        input.includeBundle === undefined
+          ? PREDICATE_HELD_OUT_CASE_IDS
+          : [...uniqueTaskIds("predicate"), ...uniqueTaskIds("skill")],
       runId: input.runId,
       fixtureClaimRoot: input.roots.corpus,
+      expectedPhysicalCellCount: expectedTotal,
     });
     return receiptStore.withLease(async () => {
       const terminal = await receiptStore.loadTerminal();
@@ -133,7 +174,7 @@ export const defaultEvaluateHeldOut: RealOptimizationDependencies["evaluateHeldO
       }
       const reservation = await receiptStore.reserve();
       const tasks = await Promise.all(
-        terminalTasks().map((task) =>
+        taskPlan.map((task) =>
           resolveTerminalTask(runtime.fixtureRunRoot, task),
         ),
       );
@@ -165,11 +206,10 @@ export const defaultEvaluateHeldOut: RealOptimizationDependencies["evaluateHeldO
               codexExecutable: runtime.codexExecutable,
               bwrapExecutable: runtime.bwrapExecutable,
               env: input.env,
-              finalStateRequests: [
-                { tool: "kb_query", args: {} },
-                { tool: "kb_check", args: {} },
-                { tool: "kb_status", args: {} },
-              ],
+              finalStateRequests: taskFinalStateRequests(
+                task.taskId,
+                task.fixture.evaluatorManifest.protocolContract !== undefined,
+              ),
               evaluatorManifest: task.fixture.evaluatorManifest,
               hiddenMarkers: runtime.hiddenMarkers ?? [],
               pricingHash: runtime.pricingHash ?? "0".repeat(64),
@@ -205,6 +245,10 @@ export const defaultEvaluateHeldOut: RealOptimizationDependencies["evaluateHeldO
       const review = evaluateHeldOutMatrix({
         reservation,
         physicalCells: cells,
+        expected: {
+          ...expected,
+          total: expectedTotal,
+        },
       });
       const persisted = await receiptStore.persistTerminal(
         review.terminalReceipt,

@@ -1,6 +1,6 @@
 {
   "name": "kibi-codex",
-  "version": "0.20.0",
+  "version": "1.0.0",
   "description": "Kibi Codex plugin - thin adapter for Codex MCP integration",
   "type": "module",
   "main": "dist/index.js",
@@ -38,8 +38,8 @@
     "prepack": "npm run build"
   },
   "peerDependencies": {
-    "kibi-cli": ">=0.12.0 <1",
-    "kibi-mcp": ">=0.12.0 <1"
+    "kibi-cli": ">=1.0.0",
+    "kibi-mcp": ">=1.0.0"
   },
   "peerDependenciesMeta": {
     "kibi-cli": {

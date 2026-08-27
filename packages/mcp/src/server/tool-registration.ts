@@ -1,18 +1,23 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
-import { type OperationName, getSpec } from "kibi-cli/operations";
-import type {
-  OperationContext,
-  RuntimeOperationSpec,
-} from "kibi-cli/operations/runtime-types";
+import { type OperationName, getSpec, statusSpec } from "kibi-runtime";
+import {
+  executeApplyPlan,
+  executeCompileIntent,
+  executeDelete,
+  executeIngestVerification,
+  executeUpsert,
+  validateUpsertSpec,
+} from "kibi-runtime";
+import type { OperationContext, RuntimeOperationSpec } from "kibi-runtime";
 
-import type { AutopilotGenerateArgs } from "../tools/autopilot-generate.js";
 import type { CheckArgs } from "../tools/check.js";
 import type { CoverageArgs } from "../tools/coverage.js";
 import type { DeleteArgs } from "../tools/delete.js";
 import type { FindGapsArgs } from "../tools/find-gaps.js";
 import type { GraphArgs } from "../tools/graph.js";
 import type { ModelRequirementArgs } from "../tools/model-requirement.js";
+import type { PlanBootstrapArgs } from "../tools/plan-bootstrap.js";
 import type { QueryArgs } from "../tools/query.js";
 import type { SearchArgs } from "../tools/search.js";
 import type { SemanticAdvisorArgs } from "../tools/semantic-advisor.js";
@@ -36,6 +41,7 @@ type ToolRegistrar<TProlog> = (
   runtime: ToolsRuntime<TProlog>,
   spec?: RuntimeOperationSpec<Record<string, unknown>, unknown>,
   annotations?: ToolAnnotations,
+  outputSchema?: object,
 ) => void;
 
 type ToolRegistration = {
@@ -55,7 +61,10 @@ export function registerConfiguredTools<TProlog>(
   const toolDef = (name: string) => {
     const t = runtime.tools.find((tool) => tool.name === name);
     if (!t) throw new Error(`Unknown tool: ${name}`);
-    return t as typeof t & { annotations?: ToolAnnotations };
+    return t as typeof t & {
+      annotations?: ToolAnnotations;
+      outputSchema?: Readonly<Record<string, unknown>>;
+    };
   };
   const prologFor = (context: OperationContext): TProlog => {
     const prolog = runtime.operationRuntime.sessionProlog(context);
@@ -64,6 +73,12 @@ export function registerConfiguredTools<TProlog>(
     }
     return prolog;
   };
+  const withSessionProlog = (context: OperationContext): OperationContext => ({
+    ...context,
+    prolog: prologFor(context) as unknown as NonNullable<
+      OperationContext["prolog"]
+    >,
+  });
   const register = ({ name, execute }: ToolRegistration): void => {
     const definition = toolDef(name);
     const publicSpec = getSpec(name);
@@ -82,6 +97,7 @@ export function registerConfiguredTools<TProlog>(
       runtime,
       spec,
       definition.annotations,
+      definition.outputSchema,
     );
   };
 
@@ -102,7 +118,10 @@ export function registerConfiguredTools<TProlog>(
   register({
     name: "kb_status",
     execute: async (context, args) =>
-      runtime.handleKbStatus(prologFor(context), args as StatusArgs, context),
+      // Status owns its non-mutating fallback. Do not require the session engine
+      // here: an absent or unreadable branch store is exactly the condition it
+      // must be able to describe.
+      statusSpec.execute(args as StatusArgs, context),
   });
   register({
     name: "kb_skills_list",
@@ -151,20 +170,20 @@ export function registerConfiguredTools<TProlog>(
   register({
     name: "kb_upsert",
     execute: async (context, args) =>
-      runtime.handleKbUpsert(prologFor(context), args as unknown as UpsertArgs),
+      executeUpsert(args as unknown as UpsertArgs, withSessionProlog(context)),
   });
   register({
     name: "kb_validate_upsert",
     execute: async (context, args) =>
-      runtime.handleKbValidateUpsert(
-        prologFor(context),
+      validateUpsertSpec.execute(
         args as unknown as UpsertArgs,
+        withSessionProlog(context),
       ),
   });
   register({
     name: "kb_delete",
     execute: async (context, args) =>
-      runtime.handleKbDelete(prologFor(context), args as unknown as DeleteArgs),
+      executeDelete(args as unknown as DeleteArgs, withSessionProlog(context)),
   });
   register({
     name: "kb_check",
@@ -188,11 +207,32 @@ export function registerConfiguredTools<TProlog>(
       ),
   });
   register({
-    name: "kb_autopilot_generate",
+    name: "kb_plan_bootstrap",
     execute: async (context, args) =>
-      runtime.handleKbAutopilotGenerate(
-        args as unknown as AutopilotGenerateArgs,
+      runtime.handleKbPlanBootstrap(
+        args as unknown as PlanBootstrapArgs,
         context,
       ),
+  });
+  register({
+    name: "kb_compile_intent",
+    execute: async (context, args) =>
+      runtime.handleKbCompileIntent
+        ? runtime.handleKbCompileIntent(args, context)
+        : executeCompileIntent(args as never, context as never),
+  });
+  register({
+    name: "kb_apply_plan",
+    execute: async (context, args) =>
+      runtime.handleKbApplyPlan
+        ? runtime.handleKbApplyPlan(args, context)
+        : executeApplyPlan(args as never, context as never),
+  });
+  register({
+    name: "kb_ingest_verification",
+    execute: async (context, args) =>
+      runtime.handleKbIngestVerification
+        ? runtime.handleKbIngestVerification(args, context)
+        : executeIngestVerification(args as never, context as never),
   });
 }

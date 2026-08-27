@@ -1,0 +1,99 @@
+relationships:
+  - id: rel-86782dc04c5f
+    type: executable_for
+    from: SYM-test-packed-ontology-convergence-witnesses
+    to: TEST-kibi-ontology-convergence-witnesses
+    created_at: "2026-08-15T22:43:11.222Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-core-req-conflict-witness
+    to: TEST-kibi-ontology-convergence-witnesses
+    created_at: 2026-08-16T18:51:59.950Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e4ec1945c73
+  - type: covered_by
+    from: SYM-cli-logic-modeling-buildLogicApplyPlan
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-16T18:52:06.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0a93beef673
+  - type: covered_by
+    from: SYM-kibi-cli-src-intent-search-ts-intentsearchfacets
+    to: TEST-kibi-intent-aware-source-discovery
+    created_at: 2026-08-16T19:46:36.834Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b29701a1f661
+  - type: relates_to
+    from: FACT-COPY-FROM-MAIN
+    to: FACT-EXACT-BRANCH-INITIALIZATION-MODE
+    created_at: 2026-08-17T07:13:01.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b3e422e251e
+  - type: implements
+    from: SYM-core-logical-ground-signature
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:23:24.953Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e98752081412
+  - type: covered_by
+    from: SYM-core-logical-ground-signature
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:23:24.968Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5d86922a286
+  - type: covered_by
+    from: SYM-core-logical-ground-signature
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:23:24.972Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d79f6870d1e7
+  - type: implements
+    from: SYM-cli-discovery-execute-reporting-spec
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:23:48.010Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76ed817e0dab
+  - type: covered_by
+    from: SYM-cli-discovery-execute-reporting-spec
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:23:48.024Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74c671572ace
+  - type: covered_by
+    from: SYM-cli-discovery-execute-reporting-spec
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:23:48.029Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ecc31eaadf0f
+  - type: covered_by
+    from: SYM-parity-validate-upsert-payload-type
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:39:12.122Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7a66b65fd39
+  - type: implements
+    from: SYM-parity-validate-upsert-payload-type
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:05:30.049Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f77f566a693f
+  - type: covered_by
+    from: SYM-parity-validate-upsert-payload-type
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:05:30.077Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56e413fd7731

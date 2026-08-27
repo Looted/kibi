@@ -20,6 +20,7 @@ import * as crypto from "node:crypto";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { load as parseYAML } from "js-yaml";
+import { parseDocument } from "yaml";
 
 /**
  * Represents a relationship record stored in shard files.
@@ -178,7 +179,107 @@ export function writeShard(
   }
 
   const yamlContent = serializeToYAML(unique);
-  fs.writeFileSync(shardPath, yamlContent, "utf8");
+  atomicWriteText(shardPath, yamlContent);
+}
+
+/**
+ * Publish one canonical shard replacement atomically. Relationship shards are
+ * authored source, so a torn write must never leave a half-valid YAML file
+ * for the next sync or Git operation.
+ */
+function atomicWriteText(targetPath: string, body: string): void {
+  const temporary = `${targetPath}.kibi-write-${process.pid}-${Date.now()}-${Math.random()
+    .toString(16)
+    .slice(2)}`;
+  try {
+    fs.writeFileSync(temporary, body, { encoding: "utf8", mode: 0o600 });
+    fs.renameSync(temporary, targetPath);
+  } catch (error) {
+    try {
+      if (fs.existsSync(temporary)) fs.unlinkSync(temporary);
+    } catch {
+      // Preserve the original publication failure.
+    }
+    throw error;
+  }
+}
+
+export type RelationshipSelector = Readonly<{
+  type: string;
+  from: string;
+  to: string;
+}>;
+
+export type RemovedRelationshipRecords = Readonly<{
+  selector: RelationshipSelector;
+  shardPaths: readonly string[];
+  sources: readonly string[];
+  removed: boolean;
+}>;
+
+/**
+ * Remove exact legacy-shard relationships using an atomic temp-file rename.
+ * The caller is responsible for retracting the compiled RDF edge afterwards.
+ */
+export function removeRelationshipsFromShards(
+  kbRoot: string,
+  selectors: readonly RelationshipSelector[],
+): RemovedRelationshipRecords[] {
+  const wanted = new Set(
+    selectors.map(
+      (selector) => `${selector.type}\0${selector.from}\0${selector.to}`,
+    ),
+  );
+  const removed = new Map<string, { paths: string[]; sources: string[] }>();
+  for (const shardPath of listShards(kbRoot)) {
+    const records = readShard(shardPath);
+    const matching = records.filter((record) =>
+      wanted.has(`${record.type}\0${record.from}\0${record.to}`),
+    );
+    if (matching.length === 0) continue;
+    // Patch the YAML sequence in place so comments, ordering, and unrelated
+    // records survive a relationship deletion. The compiled store is never
+    // the mutation target; this shard remains the canonical source artifact.
+    const document = parseDocument(fs.readFileSync(shardPath, "utf8"));
+    const sequence = document.get("relationships", true);
+    if (!sequence || typeof sequence !== "object" || !("items" in sequence)) {
+      throw new Error(
+        `Invalid shard file: missing 'relationships' array at ${shardPath}`,
+      );
+    }
+    const items = (sequence as { items: unknown[] }).items;
+    for (let index = items.length - 1; index >= 0; index -= 1) {
+      const item = items[index];
+      if (!item || typeof item !== "object" || !("get" in item)) continue;
+      const get = (item as { get(name: string): unknown }).get.bind(item);
+      if (
+        wanted.has(
+          `${String(get("type"))}\0${String(get("from"))}\0${String(get("to"))}`,
+        )
+      ) {
+        document.deleteIn(["relationships", index]);
+      }
+    }
+    atomicWriteText(shardPath, document.toString());
+    for (const record of matching) {
+      const key = `${record.type}\0${record.from}\0${record.to}`;
+      const entry = removed.get(key) ?? { paths: [], sources: [] };
+      entry.paths.push(shardPath);
+      entry.sources.push(record.source);
+      removed.set(key, entry);
+    }
+  }
+  return selectors.map((selector) => {
+    const entry = removed.get(
+      `${selector.type}\0${selector.from}\0${selector.to}`,
+    );
+    return {
+      selector,
+      shardPaths: entry?.paths ?? [],
+      sources: entry?.sources ?? [],
+      removed: entry !== undefined,
+    };
+  });
 }
 
 /**
@@ -247,7 +348,19 @@ export function appendRelationship(
       ...relationship,
       id: recordId,
     };
-    writeShard(shardPath, [...existing, newRecord]);
+    if (fs.existsSync(shardPath)) {
+      const document = parseDocument(fs.readFileSync(shardPath, "utf8"));
+      const sequence = document.get("relationships", true);
+      if (!sequence || typeof sequence !== "object" || !("items" in sequence)) {
+        throw new Error(
+          `Invalid shard file: missing 'relationships' array at ${shardPath}`,
+        );
+      }
+      (sequence as { items: unknown[] }).items.push(newRecord);
+      atomicWriteText(shardPath, document.toString());
+    } else {
+      writeShard(shardPath, [newRecord]);
+    }
   }
 
   return { shardPath, recordId };

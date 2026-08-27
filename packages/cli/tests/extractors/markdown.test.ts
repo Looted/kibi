@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, mock, test } from "bun:test";
 import { mkdirSync, unlinkSync, writeFileSync } from "node:fs";
+import path from "node:path";
 import {
   FrontmatterError,
   detectEmbeddedEntities,
@@ -15,6 +16,13 @@ import {
 beforeAll(() => {
   mock.restore();
 });
+
+const requirementFixture = path.resolve(
+  __dirname,
+  "../fixtures/requirements/REQ-001.md",
+);
+const adrFixture = path.resolve(__dirname, "../fixtures/adr/ADR-001.md");
+
 describe("Markdown Extractor", () => {
   test("normalizes authored requirement bodies for source-bound planning", () => {
     expect(
@@ -84,9 +92,7 @@ The policy must preserve code evidence.`,
   });
 
   test("extracts requirement from markdown", () => {
-    const result = extractFromMarkdown(
-      "packages/cli/tests/fixtures/requirements/REQ-001.md",
-    );
+    const result = extractFromMarkdown(requirementFixture);
     expect(result.entity.type).toBe("req");
     expect(result.entity.id).toMatch(/^[0-9a-f]{16}$/);
     expect(result.entity.title).toBe("User Authentication");
@@ -101,9 +107,7 @@ The policy must preserve code evidence.`,
   });
 
   test("infers type from directory path", () => {
-    const result = extractFromMarkdown(
-      "packages/cli/tests/fixtures/adr/ADR-001.md",
-    );
+    const result = extractFromMarkdown(adrFixture);
     expect(result.entity.type).toBe("adr");
   });
 
@@ -304,28 +308,20 @@ claim_text: Checkout requires payment before submission.
   });
 
   test("generates consistent IDs", () => {
-    const result1 = extractFromMarkdown(
-      "packages/cli/tests/fixtures/requirements/REQ-001.md",
-    );
-    const result2 = extractFromMarkdown(
-      "packages/cli/tests/fixtures/requirements/REQ-001.md",
-    );
+    const result1 = extractFromMarkdown(requirementFixture);
+    const result2 = extractFromMarkdown(requirementFixture);
     expect(result1.entity.id).toBe(result2.entity.id);
   });
 
   test("extracts all entity fields", () => {
-    const result = extractFromMarkdown(
-      "packages/cli/tests/fixtures/requirements/REQ-001.md",
-    );
+    const result = extractFromMarkdown(requirementFixture);
     expect(result.entity).toHaveProperty("id");
     expect(result.entity).toHaveProperty("title");
     expect(result.entity).toHaveProperty("status");
     expect(result.entity).toHaveProperty("created_at");
     expect(result.entity).toHaveProperty("updated_at");
     expect(result.entity).toHaveProperty("source");
-    expect(result.entity.source).toBe(
-      "packages/cli/tests/fixtures/requirements/REQ-001.md",
-    );
+    expect(result.entity.source).toBe(requirementFixture);
   });
 
   test("handles missing required title field", () => {
@@ -1019,6 +1015,13 @@ title: Verification Field Test
 type: test
 verification_scope: integration
 verification_perspective: consumer
+verification_contract:
+  version: kibi.verification-contract.v1
+  runner: pnpm
+  command_argv: [pnpm, run, e2e, --, e2e/verification.spec.ts]
+  required_case_symbols: [SYM-VERIFICATION-CASE]
+  required_projects: [chromium]
+  success_policy: all_required_cases_first_attempt
 ---
 # Verification Field Test
 `,
@@ -1028,6 +1031,11 @@ verification_perspective: consumer
         const result = extractFromMarkdown(tempFile);
         expect(result.entity.verification_scope).toBe("integration");
         expect(result.entity.verification_perspective).toBe("consumer");
+        expect(result.entity.verification_contract).toMatchObject({
+          version: "kibi.verification-contract.v1",
+          runner: "pnpm",
+          required_case_symbols: ["SYM-VERIFICATION-CASE"],
+        });
       } finally {
         unlinkSync(tempFile);
       }

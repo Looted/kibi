@@ -4,17 +4,23 @@ import type {
   ExtractedEntity,
   ExtractionResult,
 } from "../../extractors/markdown.js";
-import type { PrologProcess } from "../../prolog.js";
 import {
   parseEntityFromList,
   parseListOfLists,
   parseTriples,
 } from "../../prolog/codec.js";
 import {
+  runOperationJsonQuery,
+  toPrologAtom,
+  toPrologList,
+} from "../operations/prolog-json.js";
+import type { PrologPort } from "../operations/runtime-types.js";
+import {
   analyzeTelemetryAcceptance,
   createTelemetryAcceptanceDiagnostics,
   parseTelemetryUsageLog,
 } from "../telemetry-acceptance.js";
+import { VERIFICATION_RECEIPT_MAX_AGE_SECONDS } from "../verification-receipt.js";
 import { createCoverageDepthQualityDiagnostics } from "./coverage-depth-quality.js";
 import { createRequirementQualityDiagnostics } from "./requirement-quality.js";
 import { createSymbolQualityDiagnostics } from "./symbol-quality.js";
@@ -40,12 +46,18 @@ const RELATIONSHIP_TYPES = [
 ] as const;
 
 type FullKbQualityDiagnosticsOptions = {
-  readonly prolog: Pick<PrologProcess, "query">;
+  readonly prolog: Pick<PrologPort, "query">;
   readonly hardViolationEntityIds?: ReadonlySet<string>;
   readonly maxDiagnostics?: number;
   readonly workspaceRoot?: string;
   readonly now?: Date;
+  readonly verificationSnapshot?: string;
+  readonly checkedAt?: string;
 };
+
+type CoveragePayload = Readonly<{
+  readonly rows?: readonly Readonly<Record<string, unknown>>[];
+}>;
 
 function stringField(entity: Record<string, unknown>, key: string): string {
   const value = entity[key];
@@ -171,7 +183,7 @@ function sourceFileFor(entity: Record<string, unknown>): string | undefined {
 }
 
 async function loadKbExtractionResults(
-  prolog: Pick<PrologProcess, "query">,
+  prolog: Pick<PrologPort, "query">,
 ): Promise<ExtractionResult[]> {
   const entityResult = await prolog.query(
     "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)",
@@ -206,6 +218,99 @@ async function loadKbExtractionResults(
     }
     return result;
   });
+}
+
+function stringArrayField(value: unknown): readonly string[] | undefined {
+  return Array.isArray(value) ? value.map(String) : undefined;
+}
+
+function proofStage(
+  row: Readonly<Record<string, unknown>>,
+): Readonly<Record<string, unknown>> | undefined {
+  const stages = row.proofStages;
+  if (!stages || typeof stages !== "object" || Array.isArray(stages)) {
+    return undefined;
+  }
+  const passingE2e = (stages as Record<string, unknown>).passingE2e;
+  return passingE2e &&
+    typeof passingE2e === "object" &&
+    !Array.isArray(passingE2e)
+    ? (passingE2e as Readonly<Record<string, unknown>>)
+    : undefined;
+}
+
+async function loadCoverageProofEvidence(
+  prolog: Pick<PrologPort, "query">,
+  requirementCount: number,
+  verificationSnapshot: string | undefined,
+  checkedAt: string | undefined,
+): Promise<
+  ReadonlyMap<
+    string,
+    Readonly<{
+      readonly proofStatus?: string;
+      readonly passingE2eStatus?: string;
+      readonly passingE2eTests?: readonly string[];
+      readonly receiptGapCodes?: readonly string[];
+    }>
+  >
+> {
+  if (
+    verificationSnapshot === undefined ||
+    checkedAt === undefined ||
+    requirementCount === 0
+  ) {
+    return new Map();
+  }
+  let payload: CoveragePayload;
+  try {
+    payload = await runOperationJsonQuery<CoveragePayload>(
+      prolog as PrologPort,
+      "discovery.pl",
+      `discovery:coverage_report_json('req', ${toPrologList([])}, true, true, ${requirementCount}, 0, ${toPrologAtom(verificationSnapshot)}, ${toPrologAtom(checkedAt)}, ${VERIFICATION_RECEIPT_MAX_AGE_SECONDS}, JsonString)`,
+      "Quality diagnostic coverage evidence",
+    );
+  } catch {
+    // Quality diagnostics must fail closed when the optional proof readback is
+    // unavailable; a failed advisory query must not make kb_check fail.
+    return new Map();
+  }
+  const evidence = new Map<
+    string,
+    Readonly<{
+      readonly proofStatus?: string;
+      readonly passingE2eStatus?: string;
+      readonly passingE2eTests?: readonly string[];
+      readonly receiptGapCodes?: readonly string[];
+    }>
+  >();
+  for (const row of payload.rows ?? []) {
+    const id = typeof row.id === "string" ? row.id : undefined;
+    if (id === undefined) continue;
+    const passingE2e = proofStage(row);
+    const proofGaps = stringArrayField(row.proofGaps);
+    const passingE2eTests = stringArrayField(passingE2e?.tests);
+    evidence.set(id, {
+      ...(typeof row.proofStatus === "string"
+        ? { proofStatus: row.proofStatus }
+        : {}),
+      ...(typeof passingE2e?.status === "string"
+        ? { passingE2eStatus: passingE2e.status }
+        : {}),
+      ...(passingE2eTests !== undefined ? { passingE2eTests } : {}),
+      ...(proofGaps !== undefined
+        ? {
+            receiptGapCodes: proofGaps.filter(
+              (gap) =>
+                gap.includes("verification_receipt") ||
+                gap.includes("verification_contract") ||
+                gap.includes("verification_snapshot"),
+            ),
+          }
+        : {}),
+    });
+  }
+  return evidence;
 }
 
 function capDiagnostics(
@@ -282,8 +387,16 @@ export async function collectFullKbQualityDiagnostics(
       options.now ?? new Date(),
     ),
   ]);
-  const coverageDepthDiagnostics =
-    createCoverageDepthQualityDiagnostics(manifestResults);
+  const proofEvidence = await loadCoverageProofEvidence(
+    options.prolog,
+    manifestResults.filter((result) => result.entity.type === "req").length,
+    options.verificationSnapshot,
+    options.checkedAt,
+  );
+  const coverageDepthDiagnostics = createCoverageDepthQualityDiagnostics(
+    manifestResults,
+    proofEvidence,
+  );
   const diagnostics = [
     ...telemetryDiagnostics,
     ...createRequirementQualityDiagnostics({

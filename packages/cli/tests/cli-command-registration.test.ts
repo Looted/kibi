@@ -19,11 +19,11 @@ const JSON_COMMANDS = [
   "check",
   "model-requirement",
   "suggest-predicates",
-  "autopilot-generate",
+  "plan-bootstrap",
 ] as const;
 
 describe("buildProgram", () => {
-  test("registers all 18 catalog JSON routes with --input", () => {
+  test("registers all 21 catalog JSON routes with --input", () => {
     const program = buildProgram();
 
     const registered = JSON_COMMANDS.filter((name) => {
@@ -71,5 +71,17 @@ describe("buildProgram", () => {
         (command) => command.name() === "usage-remediation",
       ),
     ).toBe(true);
+  });
+
+  test("registers CLI-only verify orchestration with explicit argv", () => {
+    const program = buildProgram();
+    const verify = program.commands.find(
+      (command) => command.name() === "verify",
+    );
+
+    expect(verify).toBeDefined();
+    expect(verify?.options.some((option) => option.long === "--test-id")).toBe(
+      true,
+    );
   });
 });

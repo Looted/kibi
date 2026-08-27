@@ -3,6 +3,7 @@
 :- module(kibi_entities, [entity_type/1, entity_property/3, required_property/2, optional_property/2]).
 
 % Entity types
+% implements REQ-004
 entity_type(req).
 entity_type(scenario).
 entity_type(test).
@@ -87,6 +88,7 @@ entity_property(symbol, sourceEndColumn, integer).
 % Typed test verification fields - only valid for test entities
 entity_property(test, verification_scope, atom).
 entity_property(test, verification_perspective, atom).
+entity_property(test, verification_contract, list_or_json).
 entity_property(test, verification_receipts, string).
 
 % Required properties for all entity types
@@ -113,6 +115,7 @@ optional_property(req, semantic_source_hash).
 optional_property(req, semantic_inventory).
 optional_property(test, verification_scope).
 optional_property(test, verification_perspective).
+optional_property(test, verification_contract).
 optional_property(test, verification_receipts).
 
 % Documentation helpers

@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { fileURLToPath } from "node:url";
 
+import { isolatedCliSandboxEnv } from "../helpers/isolated-env.js";
 import { createParityWorkspace } from "../parity/helpers.js";
 
 describe("mutation JSON command adapters", () => {
@@ -12,6 +13,7 @@ describe("mutation JSON command adapters", () => {
       type: "req",
       id: "REQ-TEST",
       properties: { title: "test", status: "open" },
+      document: { path: "requirements/REQ-TEST.md" },
     };
 
     try {
@@ -20,7 +22,7 @@ describe("mutation JSON command adapters", () => {
         ["bun", "run", kibiBin, "upsert", "--input", "-"],
         {
           cwd: workspace.root,
-          env: { ...process.env, KIBI_WORKSPACE: workspace.root },
+          env: isolatedCliSandboxEnv({ KIBI_WORKSPACE: workspace.root }),
           stdin: new Blob([JSON.stringify(input)]),
           stdout: "pipe",
           stderr: "pipe",
@@ -34,7 +36,12 @@ describe("mutation JSON command adapters", () => {
 
       // Then
       expect(exitCode, stderr).toBe(0);
-      expect(JSON.parse(stdout)).toMatchObject({ created: 1, updated: 0 });
+      expect(JSON.parse(stdout)).toMatchObject({
+        kibiProtocol: 1,
+        operation: "kb_upsert",
+        status: "success",
+        data: { created: 1, updated: 0 },
+      });
     } finally {
       await workspace.cleanup();
     }

@@ -114,10 +114,7 @@ describe("prompt coverage", () => {
         posture: "root_active",
         riskClass: "behavior_candidate",
         hardGateBlock: {
-          shownPaths: [
-            "packages/opencode/src/prompt.ts",
-            "documentation/symbols.yaml",
-          ],
+          shownPaths: ["packages/opencode/src/prompt.ts", ".kb/symbols.yaml"],
           remainingCount: 2,
           reason: "preflight checkpoint failed",
         },
@@ -130,8 +127,8 @@ describe("prompt coverage", () => {
     assert.match(prompt, /STOP implementation/);
     assert.match(prompt, /Reason: preflight checkpoint failed\./);
     assert.match(prompt, /\+2 more dirty files/);
-    assert.match(prompt, /kb_search/);
-    assert.match(prompt, /kb_check/);
+    assert.match(prompt, /typed Kibi status/);
+    assert.match(prompt, /kibi-(usage|freshness|traceability)/);
     assert.ok(!prompt.includes("Code changes detected"));
   });
 
@@ -170,7 +167,7 @@ describe("prompt coverage", () => {
         workspaceHealth: {
           needsBootstrap: true,
           missingConfig: true,
-          missingDocDirs: ["documentation/requirements"],
+          missingDocDirs: [".kb/requirements"],
           hasKbEvidence: false,
         },
       },
@@ -178,9 +175,9 @@ describe("prompt coverage", () => {
     );
 
     assert.match(prompt, /Bootstrap required/);
-    assert.match(prompt, /\/init-kibi/);
-    assert.match(prompt, /--input <file\|->/);
-    assert.match(prompt, /Kibi capability selection/);
+    assert.match(prompt, /\/kibi-bootstrap/);
+    assert.match(prompt, /kb_status\.bootstrap\.nextAction/);
+    assert.doesNotMatch(prompt, /MCP.*CLI|capability selection/i);
   });
 
   test("advisory cache suppresses repeated semantic guidance", () => {
@@ -335,7 +332,7 @@ describe("prompt coverage", () => {
       supportedCapability,
     );
 
-    assert.match(prompt, /Existing Kibi links: REQ-opencode-kibi-plugin-v1/);
+    assert.match(prompt, /Existing Kibi links: .*REQ-opencode-kibi-plugin-v1/);
     assert.match(prompt, /Keep e2e reminder visible/);
     assert.ok(
       !prompt.includes("Duplicate lifecycle reminder should be suppressed"),
@@ -388,7 +385,7 @@ describe("prompt coverage", () => {
       baseConfig,
       {
         recentEdits: [
-          { path: "documentation/requirements/REQ-1.md", kind: "requirement" },
+          { path: ".kb/requirements/REQ-1.md", kind: "requirement" },
         ],
         posture: "root_active",
         riskClass: "req_policy_candidate",

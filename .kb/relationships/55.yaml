@@ -24,3 +24,59 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/tests/TEST-002.md
+  - type: verified_by
+    from: SCEN-009
+    to: TEST-011
+    created_at: 2026-08-22T19:55:02.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8962124dff84
+  - type: verified_by
+    from: SCEN-009
+    to: TEST-006
+    created_at: 2026-08-22T19:55:02.314Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58a4f66839b1
+  - type: implements
+    from: SYM-normalizePropertyKey
+    to: REQ-011
+    created_at: 2026-08-22T20:13:25.817Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7e17247a2fc
+  - type: covered_by
+    from: SYM-normalizePropertyKey
+    to: TEST-cli-strict-modeling
+    created_at: 2026-08-22T20:13:25.832Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0055429632e
+  - type: covered_by
+    from: SYM-normalizePropertyKey
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:13:25.836Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c700b860007a
+  - type: implements
+    from: SYM-skillopt-cursor-usage-error
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:28:53.497Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3068470e909a
+  - type: covered_by
+    from: SYM-skillopt-cursor-usage-error
+    to: TEST-skillopt-cursor-compat
+    created_at: 2026-08-25T19:52:26.195Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad66b08e3807
+  - type: implements
+    from: SYM-skillopt-bundle-gate-options-type
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-26T09:17:10.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6f95a62205c

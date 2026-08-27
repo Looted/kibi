@@ -20,7 +20,7 @@ import path from "node:path";
 import process from "node:process";
 import type { PrologProcess } from "kibi-cli/prolog";
 import type { Violation } from "kibi-cli/public/check-types";
-import { handleKbCheck } from "../../src/tools/check.js";
+import { type CheckResult, handleKbCheck } from "../../src/tools/check.js";
 import { resolveCorePlPath } from "../../src/tools/core-module.js";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
 import {
@@ -39,7 +39,7 @@ async function createBroadQualityFixture(prolog: PrologProcess): Promise<void> {
       title: "Broad MCP audit requirement",
       status: "open",
       priority: "should",
-      source: "documentation/requirements/REQ-BROAD-MCP-001.md",
+      source: ".kb/requirements/REQ-BROAD-MCP-001.md",
     },
   });
 
@@ -51,7 +51,7 @@ async function createBroadQualityFixture(prolog: PrologProcess): Promise<void> {
       properties: {
         title: `Broad MCP test ${ordinal}`,
         status: "passing",
-        source: `documentation/tests/${testId}.md`,
+        source: `.kb/tests/${testId}.md`,
       },
       relationships: [
         { type: "validates", from: testId, to: "REQ-BROAD-MCP-001" },
@@ -66,7 +66,7 @@ async function createBroadQualityFixture(prolog: PrologProcess): Promise<void> {
       title: "Broad MCP audit requirement",
       status: "open",
       priority: "should",
-      source: "documentation/requirements/REQ-BROAD-MCP-001.md",
+      source: ".kb/requirements/REQ-BROAD-MCP-001.md",
     },
     relationships: Array.from({ length: 9 }, (_, index) => {
       const ordinal = index + 1;
@@ -88,7 +88,7 @@ async function createCoverageDepthQualityFixture(
     properties: {
       title: "Unit coverage MCP test",
       status: "passing",
-      source: "documentation/tests/TEST-COVERAGE-MCP-UNIT-001.md",
+      source: ".kb/tests/TEST-COVERAGE-MCP-UNIT-001.md",
       verification_scope: "unit",
     },
   });
@@ -100,7 +100,7 @@ async function createCoverageDepthQualityFixture(
       title: "Unit-only MCP coverage requirement",
       status: "open",
       priority: "should",
-      source: "documentation/requirements/REQ-COVERAGE-MCP-UNIT-001.md",
+      source: ".kb/requirements/REQ-COVERAGE-MCP-UNIT-001.md",
     },
     relationships: [
       {
@@ -112,10 +112,22 @@ async function createCoverageDepthQualityFixture(
   });
 }
 
+function advisoryRuleDiagnostic(
+  result: CheckResult,
+  rule: string,
+  entityId: string,
+) {
+  return result.structuredContent?.qualityDiagnostics?.find(
+    (diagnostic) =>
+      diagnostic.id === `rule.${rule}` && diagnostic.entityId === entityId,
+  );
+}
+
 describe("MCP Check Tool Handler", () => {
   let prolog: PrologProcess;
   let testKbPath: string;
   let previousWorkspace: string | undefined;
+  let previousKibiBranch: string | undefined;
 
   beforeAll(async () => {
     prolog = await startIntegrationProlog();
@@ -126,7 +138,9 @@ describe("MCP Check Tool Handler", () => {
     const attachResult = await attachTestKb(prolog, testKbPath);
     expect(attachResult.success).toBe(true);
     previousWorkspace = process.env.KIBI_WORKSPACE;
+    previousKibiBranch = process.env.KIBI_BRANCH;
     process.env.KIBI_WORKSPACE = testKbPath;
+    process.env.KIBI_BRANCH = "main";
   });
 
   afterEach(async () => {
@@ -135,6 +149,11 @@ describe("MCP Check Tool Handler", () => {
       Reflect.deleteProperty(process.env, "KIBI_WORKSPACE");
     } else {
       process.env.KIBI_WORKSPACE = previousWorkspace;
+    }
+    if (previousKibiBranch === undefined) {
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+    } else {
+      process.env.KIBI_BRANCH = previousKibiBranch;
     }
     if (testKbPath) {
       await fs.rm(testKbPath, { recursive: true, force: true });
@@ -204,7 +223,7 @@ describe("MCP Check Tool Handler", () => {
       properties: {
         title: "Requirement with test status",
         status: "passing",
-        source: "documentation/requirements/REQ-STATUS-MCP-001.md",
+        source: ".kb/requirements/REQ-STATUS-MCP-001.md",
       },
     });
 
@@ -1092,7 +1111,7 @@ describe("MCP Check Tool Handler", () => {
     expect(symbolTraceabilityViolation?.entityId).toBe("symbol-all-001");
   }, 15000);
 
-  test("should respect disabled rules from .kb/config.json", async () => {
+  test("should ignore disabled rules from leftover .kb/config.json", async () => {
     await fs.mkdir(path.join(testKbPath, ".kb"), { recursive: true });
     await fs.writeFile(
       path.join(testKbPath, ".kb", "config.json"),
@@ -1126,10 +1145,10 @@ describe("MCP Check Tool Handler", () => {
         v.entityId === "symbol-config-disabled-001",
     );
 
-    expect(violation).toBeUndefined();
+    expect(violation).toBeDefined();
   }, 15000);
 
-  test("should respect requireAdr from .kb/config.json", async () => {
+  test("should ignore leftover requireAdr from .kb/config.json", async () => {
     await fs.mkdir(path.join(testKbPath, ".kb"), { recursive: true });
     await fs.writeFile(
       path.join(testKbPath, ".kb", "config.json"),
@@ -1184,8 +1203,7 @@ describe("MCP Check Tool Handler", () => {
         v.entityId === "symbol-config-adr-001",
     );
 
-    expect(violation).toBeDefined();
-    expect(violation?.description).toMatch(/ADR/i);
+    expect(violation).toBeUndefined();
   }, 15000);
 
   test("should pass well-formed strict facts with strict-fact-shape rule", async () => {
@@ -1237,7 +1255,7 @@ describe("MCP Check Tool Handler", () => {
     expect(violation).toBeUndefined();
   }, 15000);
 
-  test("should allow explicit strict-fact-shape opt-in even when disabled by config", async () => {
+  test("should report explicit strict-fact-shape findings as quality diagnostics even when leftover config disables it", async () => {
     await fs.mkdir(path.join(testKbPath, ".kb"), { recursive: true });
     await fs.writeFile(
       path.join(testKbPath, ".kb", "config.json"),
@@ -1268,13 +1286,20 @@ describe("MCP Check Tool Handler", () => {
         workspaceRoot: testKbPath,
       });
 
-      const violation = result.structuredContent?.violations.find(
-        (v) =>
-          v.rule === "strict-fact-shape" &&
-          v.entityId === "FACT-CHECK-STRICT-001",
+      const diagnostic = advisoryRuleDiagnostic(
+        result,
+        "strict-fact-shape",
+        "FACT-CHECK-STRICT-001",
       );
 
-      expect(violation).toBeDefined();
+      expect(result.structuredContent?.count).toBe(0);
+      expect(
+        result.structuredContent?.violations.find(
+          (v) => v.rule === "strict-fact-shape",
+        ),
+      ).toBeUndefined();
+      expect(diagnostic).toBeDefined();
+      expect(diagnostic?.blocking).toBe(false);
     } finally {
       await prolog.query("kb_detach");
       const reattachResult = await prolog.query(`kb_attach('${testKbPath}')`);
@@ -1377,14 +1402,20 @@ describe("MCP Check Tool Handler", () => {
       rules: ["strict-req-fact-pairing"],
     });
 
-    const violation = result.structuredContent?.violations.find(
-      (v) =>
-        v.rule === "strict-req-fact-pairing" &&
-        v.entityId === "REQ-PAIR-MISSING-PROP-MCP-001",
+    const diagnostic = advisoryRuleDiagnostic(
+      result,
+      "strict-req-fact-pairing",
+      "REQ-PAIR-MISSING-PROP-MCP-001",
     );
 
-    expect(violation).toBeDefined();
-    expect(violation?.description).toMatch(/requires_property/i);
+    expect(result.structuredContent?.count).toBe(0);
+    expect(
+      result.structuredContent?.violations.find(
+        (v) => v.rule === "strict-req-fact-pairing",
+      ),
+    ).toBeUndefined();
+    expect(diagnostic).toBeDefined();
+    expect(diagnostic?.message).toMatch(/requires_property/i);
   }, 15000);
 
   test("should flag requirements relying on legacy facts for strict pairing", async () => {
@@ -1436,17 +1467,18 @@ describe("MCP Check Tool Handler", () => {
       rules: ["strict-req-fact-pairing"],
     });
 
-    const violation = result.structuredContent?.violations.find(
-      (v) =>
-        v.rule === "strict-req-fact-pairing" &&
-        v.entityId === "REQ-PAIR-LEGACY-MCP-001",
+    const diagnostic = advisoryRuleDiagnostic(
+      result,
+      "strict-req-fact-pairing",
+      "REQ-PAIR-LEGACY-MCP-001",
     );
 
-    expect(violation).toBeDefined();
-    expect(violation?.description).toMatch(/legacy|property_value|strict/i);
+    expect(result.structuredContent?.count).toBe(0);
+    expect(diagnostic).toBeDefined();
+    expect(diagnostic?.message).toMatch(/legacy|property_value|strict/i);
   }, 15000);
 
-  test("should allow explicit strict-req-fact-pairing opt-in even when disabled by config", async () => {
+  test("should report explicit strict-req-fact-pairing findings as quality diagnostics even when leftover config disables it", async () => {
     await fs.mkdir(path.join(testKbPath, ".kb"), { recursive: true });
     await fs.writeFile(
       path.join(testKbPath, ".kb", "config.json"),
@@ -1497,13 +1529,15 @@ describe("MCP Check Tool Handler", () => {
       workspaceRoot: testKbPath,
     });
 
-    const violation = result.structuredContent?.violations.find(
-      (v) =>
-        v.rule === "strict-req-fact-pairing" &&
-        v.entityId === "REQ-PAIR-OPTIN-MCP-001",
+    const diagnostic = advisoryRuleDiagnostic(
+      result,
+      "strict-req-fact-pairing",
+      "REQ-PAIR-OPTIN-MCP-001",
     );
 
-    expect(violation).toBeDefined();
+    expect(result.structuredContent?.count).toBe(0);
+    expect(diagnostic).toBeDefined();
+    expect(diagnostic?.blocking).toBe(false);
   }, 15000);
 
   test("should flag requires_predicate edges pointing to observation facts", async () => {
@@ -1539,16 +1573,17 @@ describe("MCP Check Tool Handler", () => {
       rules: ["predicate-verifiability"],
     });
 
-    const violation = result.structuredContent?.violations.find(
-      (v) =>
-        v.rule === "predicate-verifiability" &&
-        v.entityId === "REQ-PREDICATE-VERIFY-MCP-001",
+    const diagnostic = advisoryRuleDiagnostic(
+      result,
+      "predicate-verifiability",
+      "REQ-PREDICATE-VERIFY-MCP-001",
     );
 
-    expect(violation).toBeDefined();
-    expect(violation?.description).toContain("requires_predicate");
-    expect(violation?.description).toContain("fact_kind=observation");
-    expect(violation?.suggestion).toContain("fact_kind: predicate");
+    expect(result.structuredContent?.count).toBe(0);
+    expect(diagnostic).toBeDefined();
+    expect(diagnostic?.message).toContain("requires_predicate");
+    expect(diagnostic?.message).toContain("fact_kind=observation");
+    expect(diagnostic?.suggestion).toContain("fact_kind: predicate");
   }, 15000);
 
   test("should pass requires_predicate edges pointing to predicate facts", async () => {

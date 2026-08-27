@@ -43,7 +43,7 @@ describe("runAggregatedChecks", () => {
 
     const prolog = makeProlog(result);
 
-    const out = await runAggregatedChecks(prolog, null, false);
+    const out = await runAggregatedChecks(prolog, null);
     expect(out).toHaveLength(1);
     expect(out[0]).toEqual({
       rule: "rule-a",
@@ -63,7 +63,7 @@ describe("runAggregatedChecks", () => {
       bindings: { JsonString: JSON.stringify({}) },
     };
     const prolog = makeProlog(result);
-    const out = await runAggregatedChecks(prolog, null, false);
+    const out = await runAggregatedChecks(prolog, null);
     expect(out).toHaveLength(0);
   });
 
@@ -82,7 +82,7 @@ describe("runAggregatedChecks", () => {
     const double = JSON.stringify(JSON.stringify(violations));
     const result = { success: true, bindings: { JsonString: double } };
     const prolog = makeProlog(result);
-    const out = await runAggregatedChecks(prolog, null, false);
+    const out = await runAggregatedChecks(prolog, null);
     expect(out[0].description).toBe("d");
   });
 
@@ -110,7 +110,7 @@ describe("runAggregatedChecks", () => {
       bindings: { JsonString: JSON.stringify(violations) },
     };
     const prolog = makeProlog(result);
-    const out = await runAggregatedChecks(prolog, new Set(["keep"]), false);
+    const out = await runAggregatedChecks(prolog, new Set(["keep"]));
     expect(out).toHaveLength(1);
     expect(out[0].rule).toBe("keep");
   });
@@ -118,7 +118,7 @@ describe("runAggregatedChecks", () => {
   test("missing JsonString binding handling", async () => {
     const result = { success: true, bindings: {} };
     const prolog = makeProlog(result);
-    await expect(runAggregatedChecks(prolog, null, false)).rejects.toThrow(
+    await expect(runAggregatedChecks(prolog, null)).rejects.toThrow(
       "No JSON string in binding",
     );
   });
@@ -126,7 +126,7 @@ describe("runAggregatedChecks", () => {
   test("invalid JSON parsing error", async () => {
     const result = { success: true, bindings: { JsonString: "not json" } };
     const prolog = makeProlog(result);
-    await expect(runAggregatedChecks(prolog, null, false)).rejects.toThrow(
+    await expect(runAggregatedChecks(prolog, null)).rejects.toThrow(
       "Failed to parse violations JSON",
     );
   });
@@ -134,7 +134,7 @@ describe("runAggregatedChecks", () => {
   test("failed Prolog query handling", async () => {
     const result = { success: false, error: "oom" };
     const prolog = makeProlog(result);
-    await expect(runAggregatedChecks(prolog, null, false)).rejects.toThrow(
+    await expect(runAggregatedChecks(prolog, null)).rejects.toThrow(
       /Aggregated checks query failed/,
     );
   });
@@ -155,28 +155,35 @@ describe("runAggregatedChecks", () => {
       success: true,
       bindings: { JsonString: JSON.stringify(violations) },
     });
-    const out = await runAggregatedChecks(prolog, null, false);
+    const out = await runAggregatedChecks(prolog, null);
     expect(out[0].suggestion).toBeUndefined();
     expect(out[0].source).toBeUndefined();
   });
 
-  test("requireAdr flag passed to check_all_json_with_options (true and false)", async () => {
+  test("always evaluates symbol-traceability without a project requireAdr knob", async () => {
     const violations = { r: [] };
     const capture: { lastQuery?: string } = {};
-    const prologTrue = makeProlog(
+    const prolog = makeProlog(
       { success: true, bindings: { JsonString: JSON.stringify(violations) } },
       capture,
     );
-    await runAggregatedChecks(prologTrue, null, true);
+    await runAggregatedChecks(prolog, null);
     expect(capture.lastQuery).toContain("check_all_json_with_options");
-    expect(capture.lastQuery).toContain("true");
+    expect(capture.lastQuery).toContain("false");
+    expect(capture.lastQuery).not.toContain("check_selected_json");
+  });
 
-    const capture2: { lastQuery?: string } = {};
-    const prologFalse = makeProlog(
-      { success: true, bindings: { JsonString: JSON.stringify(violations) } },
-      capture2,
+  test("uses the selected Prolog check path for focused rules", async () => {
+    const capture: { lastQuery?: string } = {};
+    const prolog = makeProlog(
+      { success: true, bindings: { JsonString: JSON.stringify({}) } },
+      capture,
     );
-    await runAggregatedChecks(prologFalse, null, false);
-    expect(capture2.lastQuery).toContain("false");
+    await runAggregatedChecks(prolog, new Set(["logic-coverage"]));
+    expect(capture.lastQuery).toContain("check_selected_json");
+    expect(capture.lastQuery).toContain("['logic-coverage']");
+    expect(capture.lastQuery).toContain(
+      "call(checks:check_selected_json(['logic-coverage'], JsonString))",
+    );
   });
 });

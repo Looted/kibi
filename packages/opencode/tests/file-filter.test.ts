@@ -12,10 +12,7 @@ import {
 
 describe("file-filter shouldHandleFile", () => {
   it("matches documentation markdown under configured directories", () => {
-    const ok = shouldHandleFile(
-      "documentation/requirements/REQ-001.md",
-      process.cwd(),
-    );
+    const ok = shouldHandleFile(".kb/requirements/REQ-001.md", process.cwd());
     assert.equal(ok, true);
   });
 
@@ -28,7 +25,7 @@ describe("file-filter shouldHandleFile", () => {
   });
 
   it("matches symbols manifest path", () => {
-    const ok = shouldHandleFile("documentation/symbols.yaml", process.cwd());
+    const ok = shouldHandleFile(".kb/symbols.yaml", process.cwd());
     assert.equal(ok, true);
   });
 
@@ -97,7 +94,7 @@ describe("file-filter shouldHandleFile", () => {
 
   it("accepts non-ignored configured docs markdown", () => {
     const ok = shouldHandleFile(
-      "documentation/requirements/NOT_IGNORED.md",
+      ".kb/requirements/NOT_IGNORED.md",
       process.cwd(),
     );
     assert.equal(ok, true);
@@ -148,83 +145,43 @@ describe("stripToRoot", () => {
 
 // implements REQ-opencode-kibi-plugin-v1
 describe("getKbExistenceTargets normalization contract", () => {
-  let tmpDir: string;
-
-  // Helpers for creating temp config
-  const makeConfig = (paths: Record<string, string>) => {
+  it("reports canonical .kb/ lanes regardless of leftover config.json paths", () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-norm-1-"));
     const kbDir = path.join(tmpDir, ".kb");
     fs.mkdirSync(kbDir, { recursive: true });
     fs.writeFileSync(
       path.join(kbDir, "config.json"),
-      JSON.stringify({ paths }),
+      JSON.stringify({
+        paths: {
+          requirements: "kibi-docs/requirements/**/*.md",
+          symbols: "kibi-docs/symbols.yaml",
+        },
+      }),
     );
-  };
-
-  it("strips glob patterns from configured paths", () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-norm-1-"));
-    makeConfig({
-      requirements: "kibi-docs/requirements/**/*.md",
-      symbols: "kibi-docs/symbols.yaml",
-    });
     const targets = getKbExistenceTargets(tmpDir);
     const req = targets.find((t) => t.key === "requirements");
     assert.ok(req, "requirements target should exist");
-    assert.equal(req.relativePath, "kibi-docs/requirements");
+    assert.equal(req.relativePath, ".kb/requirements");
     assert.equal(req.kind, "dir");
+    const symbols = targets.find((t) => t.key === "symbols");
+    assert.equal(symbols?.relativePath, ".kb/symbols.yaml");
+    assert.equal(symbols?.kind, "file");
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it("normalizes trailing slashes before stripping", () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-norm-2-"));
-    makeConfig({
-      requirements: "kibi-docs/requirements/",
-      symbols: "kibi-docs/symbols.yaml",
-    });
-    const targets = getKbExistenceTargets(tmpDir);
+  it("strips glob patterns from canonical lane patterns", () => {
+    const targets = getKbExistenceTargets("/nonexistent");
     const req = targets.find((t) => t.key === "requirements");
-    assert.ok(req, "requirements target should exist");
-    assert.equal(req.relativePath, "kibi-docs/requirements");
-    fs.rmSync(tmpDir, { recursive: true, force: true });
-  });
-
-  it("resolves bare glob * to cwd root", () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-norm-3-"));
-    makeConfig({
-      requirements: "*",
-      symbols: "symbols.yaml",
-    });
-    const targets = getKbExistenceTargets(tmpDir);
-    const req = targets.find((t) => t.key === "requirements");
-    assert.ok(req, "requirements target should exist");
-    assert.equal(req.relativePath, ".");
+    assert.ok(req);
+    assert.equal(req.relativePath, ".kb/requirements");
     assert.equal(req.kind, "dir");
-    fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it("keeps .yaml targets as file kind", () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-norm-4-"));
-    makeConfig({
-      requirements: "requirements/**/*.md",
-      symbols: "data/symbols.yaml",
-    });
-    const targets = getKbExistenceTargets(tmpDir);
-    const sym = targets.find((t) => t.key === "symbols");
-    assert.ok(sym, "symbols target should exist");
-    assert.equal(sym.relativePath, "data/symbols.yaml");
-    assert.equal(sym.kind, "file");
-    fs.rmSync(tmpDir, { recursive: true, force: true });
-  });
-
-  it("strips /*.md patterns", () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-norm-5-"));
-    makeConfig({
-      requirements: "docs/*.md",
-      symbols: "docs/symbols.yaml",
-    });
-    const targets = getKbExistenceTargets(tmpDir);
-    const req = targets.find((t) => t.key === "requirements");
-    assert.ok(req, "requirements target should exist");
-    assert.equal(req.relativePath, "docs");
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+  it("keeps symbols.yaml as a file target", () => {
+    const targets = getKbExistenceTargets("/nonexistent");
+    const symbols = targets.find((t) => t.key === "symbols");
+    assert.ok(symbols);
+    assert.equal(symbols.relativePath, ".kb/symbols.yaml");
+    assert.equal(symbols.kind, "file");
   });
 });

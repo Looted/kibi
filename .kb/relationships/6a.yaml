@@ -1,0 +1,85 @@
+relationships:
+  - id: rel-d710c42fc163
+    type: implements
+    from: SYM-auto-D498ACFE9198
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:22:47.516Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-auto-D498ACFE9198
+    to: REQ-reusable-skill-subsystem
+    created_at: 2026-08-16T07:55:23.590Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4154704728b
+  - type: covered_by
+    from: SYM-auto-D498ACFE9198
+    to: TEST-mcp-skills-resource-discoverability
+    created_at: 2026-08-16T07:55:23.594Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5502fd187986
+  - type: covered_by
+    from: SYM-reqcompiler-parity-issue-code
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: 2026-08-16T18:51:45.132Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1013788e073
+  - type: implements
+    from: SYM-operation-query-spec
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:30:20.030Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2be495a4d28
+  - type: covered_by
+    from: SYM-operation-query-spec
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:30:20.043Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1fef063d556
+  - type: covered_by
+    from: SYM-operation-query-spec
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:30:20.047Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e898cd8248b
+  - type: covered_by
+    from: SYM-auto-D498ACFE9198
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:37:25.209Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-954e3c350193
+  - type: implements
+    from: SYM-KibiOpencodePluginEntry
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:51:49.911Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-03ffc27b74b7
+  - type: covered_by
+    from: SYM-KibiOpencodePluginEntry
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:51:49.938Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58c3e2a614f4
+  - type: covered_by
+    from: SYM-KibiOpencodePluginEntry
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:51:49.950Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25c77171b1ca
+  - type: validates
+    from: TEST-skillopt-cursor-compat
+    to: SCEN-skillopt-cursor-compat
+    created_at: 2026-08-25T19:06:14.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fcfade4aa5ef

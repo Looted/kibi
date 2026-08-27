@@ -1,0 +1,148 @@
+relationships:
+  - id: rel-04e1a08172b1
+    type: implements
+    from: SYM-auto-F45AD8A9E2FF
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:20:22.155Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-auto-F45AD8A9E2FF
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-15T22:59:29.642Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-416c686514c4
+  - type: covered_by
+    from: SYM-auto-F45AD8A9E2FF
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-08-16T07:53:51.715Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-867bc86483db
+  - type: covered_by
+    from: SYM-kibi-cli-src-public-verification-receipt-ts-verification-contract-version
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.882Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-472a71b351f6
+  - type: executable_for
+    from: SYM-packed-create-sandbox
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-16T18:52:30.458Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-890bd7f880d6
+  - type: implements
+    from: SYM-auto-F45AD8A9E2FF
+    to: REQ-branch-store-recovery-v3
+    created_at: 2026-08-17T08:38:00.467Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f66f6569d61
+  - type: implements
+    from: SYM-mcp-connectTransport
+    to: REQ-002
+    created_at: 2026-08-22T20:07:37.675Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6acc170ecf0e
+  - type: covered_by
+    from: SYM-mcp-connectTransport
+    to: TEST-mcp-kb-freshness
+    created_at: 2026-08-22T20:07:37.688Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d4e676335f0
+  - type: covered_by
+    from: SYM-mcp-connectTransport
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:07:37.695Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7f64693bec64
+  - type: implements
+    from: SYM-discovery-execute-status
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-22T20:33:33.433Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10cd13a31408
+  - type: implements
+    from: SYM-discovery-execute-status
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:33:33.466Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-376ecbe76aef
+  - type: implements
+    from: SYM-discovery-execute-status
+    to: REQ-cli-status-pre-first-sync
+    created_at: 2026-08-22T20:33:33.483Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4144c120ebd5
+  - type: implements
+    from: SYM-discovery-execute-status
+    to: REQ-mcp-search-discovery
+    created_at: 2026-08-22T20:33:33.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97ccbafb69e4
+  - type: covered_by
+    from: SYM-discovery-execute-status
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:33:33.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1cef7af210d
+  - type: covered_by
+    from: SYM-discovery-execute-status
+    to: TEST-mcp-search-discovery
+    created_at: 2026-08-22T20:33:33.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-668420e737bb
+  - type: covered_by
+    from: SYM-discovery-execute-status
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-08-22T20:33:33.526Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac57cb81c8db
+  - type: covered_by
+    from: SYM-discovery-execute-status
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:33:33.534Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97c775221169
+  - type: covered_by
+    from: SYM-auto-F45AD8A9E2FF
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:35:42.281Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4fa717ed0139
+  - type: implements
+    from: SYM-AutoUpdateInput
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:45:05.157Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a6e0ed75014
+  - type: covered_by
+    from: SYM-AutoUpdateInput
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:45:05.191Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a9904fc4692
+  - type: covered_by
+    from: SYM-AutoUpdateInput
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:45:05.208Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f629f87096e

@@ -67,13 +67,20 @@ describe("isValidBranchName", () => {
   });
 
   test("rejects branch names with invalid characters", () => {
-    expect(isValidBranchName("feature@branch")).toBe(false);
-    expect(isValidBranchName("feature#branch")).toBe(false);
+    expect(isValidBranchName("feature\\branch")).toBe(false);
     expect(isValidBranchName("feature branch")).toBe(false);
     expect(isValidBranchName("feature:branch")).toBe(false);
     expect(isValidBranchName("feature*branch")).toBe(false);
     expect(isValidBranchName("feature?branch")).toBe(false);
-    expect(isValidBranchName("feature<branch>")).toBe(false);
+    expect(isValidBranchName("feature[branch]")).toBe(false);
+    expect(isValidBranchName("feature~branch")).toBe(false);
+  });
+
+  test("rejects Git-forbidden dot components and lock suffixes", () => {
+    expect(isValidBranchName(".hidden")).toBe(false);
+    expect(isValidBranchName("feature/.hidden")).toBe(false);
+    expect(isValidBranchName("feature.lock")).toBe(false);
+    expect(isValidBranchName("feature/data.lock")).toBe(false);
   });
 
   test("accepts branch names up to 255 characters", () => {

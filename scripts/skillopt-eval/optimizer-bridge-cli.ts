@@ -1,15 +1,11 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { z } from "zod";
+import { CANONICAL_SKILLS } from "./catalog";
 import { contractHash } from "./contracts/common";
 import { runCodexSkillOptStep } from "./runtime/codex-optimizer";
 
-const SkillSchema = z.enum([
-  "kibi-usage",
-  "kibi-freshness",
-  "kibi-traceability",
-  "init-kibi",
-]);
+const SkillSchema = z.enum(CANONICAL_SKILLS);
 const Sha256Schema = z.string().regex(/^[a-f0-9]{64}$/);
 const CorpusRootsSchema = z
   .object({

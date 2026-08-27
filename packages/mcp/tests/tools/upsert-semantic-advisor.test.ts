@@ -9,6 +9,7 @@ import {
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { analyzeSemanticAdvisorInput } from "kibi-cli/operations/semantic-advisor/analyze-prose";
 import type { PrologProcess } from "kibi-cli/prolog";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
 import {
@@ -41,7 +42,7 @@ describe("MCP upsert semantic advisor", () => {
   });
 
   test("returns advisory receipt for successful prose-heavy requirement upsert", async () => {
-    const result = await handleKbUpsert(prolog, {
+    const payload = {
       type: "req",
       id: "REQ-SESSIONS",
       properties: {
@@ -50,20 +51,19 @@ describe("MCP upsert semantic advisor", () => {
         source: "docs/requirements/sessions.md",
         text_ref: "src/session-policy.ts:42",
         semantic_text: "Users may have at most two active sessions.",
-        logic_claims: ["CLAIM-B11B8974A6381868"],
-        semantic_inventory_version: "kibi.semantic-inventory.v1",
-        semantic_source_field: "semantic_text",
-        semantic_source_hash:
-          "706dcc5a38491a75afd7e253b0759247ded41207b25a36088742a3e2ea4fb640",
-        semantic_inventory: [
-          {
-            claim_key: "CLAIM-B11B8974A6381868",
-            claim_text: "Users may have at most two active sessions",
-            role: "descriptive",
-            status: "ontology_gap",
-            span: { start: 0, end: 42 },
-          },
-        ],
+      },
+    };
+    const semantic = analyzeSemanticAdvisorInput({ payload });
+    const contract = semantic.receipt.inventory_contract;
+    const result = await handleKbUpsert(prolog, {
+      ...payload,
+      properties: {
+        ...payload.properties,
+        logic_claims: semantic.receipt.logic_coverage.expected_claim_keys,
+        semantic_inventory_version: contract.version,
+        semantic_source_field: contract.source_field,
+        semantic_source_hash: contract.source_hash,
+        semantic_inventory: semantic.receipt.propositions,
       },
     });
 

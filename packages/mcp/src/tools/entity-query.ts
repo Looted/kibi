@@ -5,5 +5,5 @@ export {
   loadEntities,
   paginateResults,
   validateEntityType,
-} from "kibi-cli/operations";
-export type { EntityQueryInput as EntityQueryArgs } from "kibi-cli/operations";
+} from "kibi-runtime";
+export type { EntityQueryInput as EntityQueryArgs } from "kibi-runtime";

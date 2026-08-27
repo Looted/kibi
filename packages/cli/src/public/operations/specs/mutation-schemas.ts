@@ -1,4 +1,7 @@
-import { VERIFICATION_RECEIPT_SCHEMA } from "../../verification-receipt.js";
+import {
+  VERIFICATION_CONTRACT_SCHEMA,
+  VERIFICATION_RECEIPT_SCHEMA,
+} from "../../verification-receipt.js";
 
 export const ENTITY_TYPES = [
   "req",
@@ -119,6 +122,7 @@ export const ENTITY_PROPERTIES_SCHEMA = {
         "module-level-behavior",
         "extractor-miss",
         "legacy-link",
+        "test-suite",
       ],
       description:
         "Optional justification for a coarse file/module-level symbol traceability relationship when narrower function/class/type symbols exist.",
@@ -148,6 +152,7 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       description:
         "Optional typed verification perspective for test entities. Example: 'consumer'.",
     },
+    verification_contract: VERIFICATION_CONTRACT_SCHEMA,
     verification_receipts: {
       type: "array",
       maxItems: 50,

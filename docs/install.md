@@ -76,11 +76,20 @@ For other package managers, use the same local-runner pattern:
 | pnpm | `pnpm exec kibi status` | `pnpm exec kibi-mcp` |
 | Yarn | `yarn exec kibi status` | `yarn exec kibi-mcp` |
 
-Common environment check: `npm exec -- kibi doctor`.
+Common environment check: `npm exec -- kibi doctor` (optional troubleshooting after initialization).
 
 Validation command: `npm exec -- kibi check`.
 
-The CLI and MCP server are peer agent-operation surfaces. MCP-capable hosts can call the 18 `kb_*` tools directly; agents in trusted project-local shells can invoke the equivalent 18 CLI routes with `kibi <route> --input <file|->`. Neither path requires direct access to `.kb/**` files.
+The CLI and MCP server are peer agent-operation surfaces. MCP-capable hosts can call the public `kb_*` contracts directly; agents in trusted project-local shells can invoke the equivalent CLI JSON routes with `kibi <route> --input <file|->`. Neither path requires direct access to `.kb/**` files.
+
+### First-run lifecycle
+
+After installing the packages, use this short path:
+
+1. Run `kibi init` to create repository infrastructure and Git hooks.
+2. Ask your coding agent to “Bootstrap Kibi for this repository.” The agent calls the read-only `kb_plan_bootstrap` planner, asks only questions returned by a `needs_context` result, and shows the exact plan for approval.
+3. After approval, the agent passes the unchanged returned plan to `kb_apply_plan`, then runs `kb_check` and `kb_status`.
+4. Continue normal work with the seeded Kibi context. Use `kibi doctor` only when typed status says infrastructure is degraded.
 
 Avoid auto-install or hot-load commands for MCP startup (`npx -y`, `pnpm dlx` /
 `pnx`, or `yarn dlx`) unless you intentionally
@@ -152,10 +161,14 @@ If you use pnpm, replace `"command": "npx"` and `"args"` with:
 ### Optional: OpenCode plugin
 
 `kibi-opencode` is an optional OpenCode plugin. It injects Kibi guidance,
-provides the `/init-kibi` convenience command when the host supports it, and runs
-background sync/check maintenance. It does **not** ship a replacement `kibi` or
-`kibi-mcp` binary, so keep the base `kibi-cli`, `kibi-mcp`, and `kibi-core`
-packages installed and keep the `mcp.kibi` server configured separately.
+provides the `/kibi-bootstrap` convenience command when the host supports it, and runs
+background sync/check maintenance. Canonical bootstrap behavior lives in the
+bundled `kibi-bootstrap` skill (`kb_plan_bootstrap`, preview, apply via the approved plan).
+Generic MCP agents should start from
+[generic-agent onboarding](generic-agent-onboarding.md). The plugin does **not**
+ship a replacement `kibi` or `kibi-mcp` binary, so keep the base `kibi-cli`,
+`kibi-mcp`, and `kibi-core` packages installed and keep the `mcp.kibi` server
+configured separately.
 
 ```bash
 npm install --save-dev kibi-opencode
@@ -203,6 +216,12 @@ The marketplace lives at `.agents/plugins/marketplace.json` and points Codex at
 `./packages/codex`, where the plugin manifest, skills, hooks, and MCP config are
 stored. Codex resolves that path relative to the marketplace root.
 
+The plugin's `.mcp.json` deliberately leaves `cwd` unset. Codex then launches
+`npx --no-install kibi-mcp` from the active task workspace, so the MCP server
+comes from the consumer project's local dependencies. Do not change this to
+`cwd: "."`: that would run from the installed plugin cache instead. The manual
+project-level MCP configuration below remains an independent fallback.
+
 For local development or npm package smoke testing, you can also install the
 adapter package with your project-local dependencies:
 
@@ -217,7 +236,7 @@ developing/testing.
 The installed plugin package contributes:
 
 - `.codex-plugin/plugin.json` manifest
-- `.mcp.json` MCP config pointing to your local `kibi-mcp`
+- `.mcp.json` MCP config pointing to your local `kibi-mcp` and inheriting the active task cwd
 - `hooks/hooks.json` lifecycle hooks
 - `skills/*/SKILL.md` Kibi workflow guidance
 
@@ -264,11 +283,16 @@ npm install --save-dev kibi-cursor
 The installed plugin package contributes:
 
 - `.cursor-plugin/plugin.json` manifest
-- `mcp.json` MCP config pointing to your local `kibi-mcp`
+- `mcp.json` MCP config with a launcher that resolves and starts the `kibi-mcp` installed in the opened project
 - `hooks/hooks.json` advisory lifecycle hooks
 - `rules/*.mdc` workflow and traceability guidance
 - `skills/*/SKILL.md` Kibi workflow skills
-- `commands/init-kibi.md` bootstrap command guidance
+- `commands/kibi-bootstrap.md` bootstrap command guidance
+
+The plugin launcher runs the consumer project's `kibi-mcp` with the opened
+workspace as its current directory and with `KIBI_WORKSPACE` set to that root.
+It does not download, bundle, or use a global Kibi runtime. Install the base
+packages in each project before enabling the plugin MCP server.
 
 Manual MCP fallback (no plugin install required):
 

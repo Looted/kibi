@@ -3,9 +3,9 @@ import {
   formatInvalidRelationshipTuple,
   formatRelationshipSourceMismatch,
   validateLiveRelationshipTargets as validateSharedTargets,
-} from "kibi-cli/operations/mutation/relationships";
-import type { PrologPort } from "kibi-cli/operations/runtime-types";
-import type { PrologProcess } from "kibi-cli/prolog";
+} from "kibi-runtime";
+import type { PrologPort } from "kibi-runtime";
+import type { PrologProcess } from "kibi-runtime";
 
 export {
   formatInvalidRelationshipError,

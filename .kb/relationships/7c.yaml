@@ -1,0 +1,99 @@
+relationships:
+  - id: rel-db1f7707940e
+    type: implements
+    from: SYM-auto-D290A037F617
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:22:36.478Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-auto-D290A037F617
+    to: REQ-reusable-skill-subsystem
+    created_at: 2026-08-16T07:55:16.738Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-edb17b679caf
+  - type: covered_by
+    from: SYM-auto-D290A037F617
+    to: TEST-mcp-skills-resource-discoverability
+    created_at: 2026-08-16T07:55:16.742Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d69a53c90bb
+  - type: covered_by
+    from: SYM-cli-prolog-json-binding-decode-stage
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T22:22:31.940Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a12bcf09ba6
+  - type: implements
+    from: SYM-canonical-LegacyKbConfig
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:01:54.292Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4a1ac5353cd
+  - type: covered_by
+    from: SYM-canonical-LegacyKbConfig
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:01:54.301Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8537d64e7f8d
+  - type: implements
+    from: SYM-canonical-EntityLane
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:02:59.253Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f7e58e0deef
+  - type: covered_by
+    from: SYM-canonical-EntityLane
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:02:59.263Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85c705afcba5
+  - type: covered_by
+    from: SYM-auto-D290A037F617
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:38:22.626Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb654d77e344
+  - type: implements
+    from: SYM-isPluginEnabled
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:50:05.531Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-834b4d4ab0d9
+  - type: covered_by
+    from: SYM-isPluginEnabled
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:50:05.550Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44fb0e92e440
+  - type: covered_by
+    from: SYM-isPluginEnabled
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:50:05.558Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c6ac3a321ab
+  - type: implements
+    from: SYM-cli-prolog-json-binding-decode-stage
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:59:41.955Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2dd341f25648
+  - type: covered_by
+    from: SYM-cli-prolog-json-binding-decode-stage
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:59:41.959Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9fd740d5e66

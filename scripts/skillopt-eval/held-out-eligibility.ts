@@ -55,6 +55,12 @@ export function evaluateHeldOutGateOutcomes(
   input: Readonly<{
     reservation: ReservedPredicateMatrix;
     physicalCells: readonly HeldOutPhysicalCell[];
+    expected?: Readonly<{
+      total: number;
+      predicate: number;
+      skill: number;
+      bundle: number;
+    }>;
   }>,
 ): HeldOutGateOutcomes {
   const boundCells = bindPhysicalCells(input.physicalCells);
@@ -76,6 +82,7 @@ export function evaluateHeldOutGateOutcomes(
       predicate,
       skill,
       bundle,
+      ...(input.expected === undefined ? {} : { expected: input.expected }),
     }) &&
     hashes !== null &&
     input.reservation.matchesFrozenCandidateHashes(hashes);

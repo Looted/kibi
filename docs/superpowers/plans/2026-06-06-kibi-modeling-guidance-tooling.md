@@ -1,5 +1,7 @@
 # Kibi Modeling Guidance and Error Ergonomics Implementation Plan
 
+> **Archival note:** Agent operating guidance now lives in bundled Kibi skills (`kibi-usage`, `init-kibi`). Historical mentions of `docs/prompts/llm-rules.md` below are not current runbooks.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make Kibi's semantic modeling lane discoverable and hard to misuse, so agents can model requirements as strict facts or ontology predicates without falling back to prose after opaque validation errors.
@@ -12,11 +14,11 @@
 
 ## Context and Problem Statement
 
-Align's KB analysis exposed a repeatable agent failure mode:
+Dogfood project A's KB analysis exposed a repeatable agent failure mode:
 
 - Kibi already exposes strict fact fields (`fact_kind`, `subject_key`, `property_key`, `operator`, `value_type`, `value_*`) and ontology predicate fields (`predicate_name`, `predicate_args`, `canonical_key`, `polarity`, `closed_world`).
 - `kb_suggest_predicates` and `kb_model_requirement` already provide modeling assistance and apply plans.
-- An Align agent attempted to create a property fact with camelCase fields (`subjectKey`, `propertyKey`, `value`) and received only `Entity validation failed: root: must NOT have additional properties`.
+- A dogfood project A agent attempted to create a property fact with camelCase fields (`subjectKey`, `propertyKey`, `value`) and received only `Entity validation failed: root: must NOT have additional properties`.
 - The agent then retried using prose-only `links`/`text_ref`, creating a structurally weak `requires_property` relationship to a non-typed fact.
 
 This means the missing value is not primarily more predicate theory. It is agent ergonomics: exact field names, examples in the tool surface, preflight guidance, and corrective errors that tell the agent what to do next.
@@ -41,7 +43,7 @@ This means the missing value is not primarily more predicate theory. It is agent
 
 ### Tests
 
-- Modify: `packages/mcp/tests/tools/upsert.test.ts` — camelCase alias, missing strict fact fields, predicate shape, and Align-style regression tests.
+- Modify: `packages/mcp/tests/tools/upsert.test.ts` — camelCase alias, missing strict fact fields, predicate shape, and dogfood-project-a-style regression tests.
 - Modify: `packages/mcp/tests/tools/model-requirement.test.ts` — low-confidence downgrade warning tests.
 - Modify: `packages/mcp/tests/tools/suggest-predicates.test.ts` — ontology-gap next-step tests.
 - Modify: `packages/mcp/tests/server/tools-coverage.test.ts` — schema description coverage.
@@ -370,7 +372,7 @@ Include:
 - when to use observation/meta;
 - exact `kb_upsert` payloads;
 - common validation errors and fixes;
-- Align-style camelCase failure example.
+- Dogfood-project-a-style camelCase failure example.
 
 - [ ] **Step 3: Reference the resource in OpenCode prompt guidance**
 
@@ -388,12 +390,12 @@ Expected: PASS or narrow to affected tests if full suite is slow.
 
 ---
 
-## Task 7: Validate with an Align-style regression fixture
+## Task 7: Validate with a dogfood-project-a-style regression fixture
 
 **Files:**
 - Create: `packages/mcp/tests/tools/modeling-guidance-regression.test.ts` or add to `packages/mcp/tests/tools/upsert.test.ts`
 
-- [ ] **Step 1: Reproduce the Align failure**
+- [ ] **Step 1: Reproduce the dogfood project A failure**
 
 Test payload:
 
@@ -514,8 +516,8 @@ The changeset must start with a human-facing summary before technical bullets.
 ## Success Criteria
 
 - Agents can see exact typed fact field names in the MCP tool schema and docs.
-- A malformed Align-style payload produces a corrective error, not a generic AJV message.
+- A malformed dogfood-project-a-style payload produces a corrective error, not a generic AJV message.
 - `kb_model_requirement` and `kb_suggest_predicates` are presented as the default routes from prose to structure.
 - Structural relationships to legacy prose facts produce migration warnings.
 - Docs and prompts clearly distinguish strict/predicate facts from `text_ref` prose.
-- Targeted tests prove the corrected Align-style property fact round-trips through `kb_upsert`.
+- Targeted tests prove the corrected dogfood-project-a-style property fact round-trips through `kb_upsert`.

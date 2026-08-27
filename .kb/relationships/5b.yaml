@@ -1,0 +1,8 @@
+relationships:
+  - id: rel-0034b337945b
+    type: covered_by
+    from: SYM-cli-engine-client-query-batch
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: "2026-08-16T19:47:37.168Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert

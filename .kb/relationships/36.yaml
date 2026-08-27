@@ -10,3 +10,108 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/scenarios/SCEN-006.md
+  - type: covered_by
+    from: SYM-reqcompiler-remediation-version
+    to: TEST-kibi-telemetry-remediation-evidence
+    created_at: 2026-08-16T18:52:17.741Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77e6c4fa78f3
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-verification-ingest-verification-ts-ingestverificationargs
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.853Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80862c0f28e9
+  - type: covered_by
+    from: SYM-cli-engine-client-storage-status
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-08-16T19:47:07.425Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8315436b045a
+  - type: covered_by
+    from: SYM-cli-engine-protocol-version
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.142Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b87d7644ba85
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-activationmode
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:49:06.268Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2927a342b79d
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-activationmode
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:49:06.275Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-704f69585433
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-activationmode
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:15:45.105Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b8f6e68eb6e
+  - type: implements
+    from: SYM-core-check-logic-coverage
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:23:08.715Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b346c42f4a1
+  - type: covered_by
+    from: SYM-core-check-logic-coverage
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:23:08.733Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0dd0d4490f09
+  - type: covered_by
+    from: SYM-core-check-logic-coverage
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:23:08.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7bf77290af25
+  - type: implements
+    from: SYM-skillopt-delete-objectives
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:20:41.840Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea0bb1755490
+  - type: covered_by
+    from: SYM-skillopt-delete-objectives
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-25T19:52:40.979Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7cddcb25ae9
+  - type: requires_predicate
+    from: REQ-core-validation-rules
+    to: FACT-core-validation-rules-5171BD
+    created_at: 2026-08-26T07:20:46.778Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3400fd742880
+  - type: requires_predicate
+    from: REQ-core-validation-rules
+    to: FACT-core-validation-rules-DF093D
+    created_at: 2026-08-26T07:20:46.813Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a9115898117
+  - type: requires_predicate
+    from: REQ-core-validation-rules
+    to: FACT-core-validation-rules-CA4929
+    created_at: 2026-08-26T07:20:46.822Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c801db4205b

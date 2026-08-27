@@ -70,7 +70,7 @@ describe("MCP skills tool handlers", () => {
         resource: "resources/missing.md",
       }),
     ).rejects.toThrow(
-      /Skills read failed: Skill resource not found: kibi-usage\/resources\/missing.md[\s\S]*Declared resources: resources\/relationship-directions.md, resources\/fact-lanes.md, resources\/workflows.md/,
+      /Skills read failed: Skill resource not found: kibi-usage\/resources\/missing.md[\s\S]*Declared resources: resources\/operation-access.md, resources\/branch-lifecycle.md, resources\/source-authoring.md/,
     );
   });
 

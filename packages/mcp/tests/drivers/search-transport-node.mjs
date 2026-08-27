@@ -3,14 +3,14 @@ import {
   isAlive,
   readChildPid,
   request,
-  startServer,
+  spawnMcpTestServer,
   stopServer,
   waitForExit,
   waitUntilReaped,
 } from "./node-mcp-driver-helpers.mjs";
 
 async function runOverflow() {
-  const { child, workspace } = await startServer({
+  const { child, workspace } = await spawnMcpTestServer({
     entityCount: 70_000,
     delaySeconds: 0,
   });
@@ -34,7 +34,7 @@ async function runOverflow() {
 }
 
 async function runStderrOverflow() {
-  const { child, workspace } = await startServer({
+  const { child, workspace } = await spawnMcpTestServer({
     entityCount: 1,
     delaySeconds: 0,
     stderrBytes: 9 * 1024 * 1024,
@@ -64,7 +64,7 @@ async function runStderrOverflow() {
 }
 
 async function runSearch() {
-  const { child, workspace } = await startServer({
+  const { child, workspace } = await spawnMcpTestServer({
     entityCount: 1,
     delaySeconds: 0,
   });
@@ -87,7 +87,7 @@ async function runSearch() {
 }
 
 async function runQuery() {
-  const { child, workspace } = await startServer({
+  const { child, workspace } = await spawnMcpTestServer({
     entityCount: 1,
     delaySeconds: 0,
   });
@@ -110,7 +110,7 @@ async function runQuery() {
 }
 
 async function runGraph() {
-  const { child, workspace } = await startServer({
+  const { child, workspace } = await spawnMcpTestServer({
     entityCount: 1,
     delaySeconds: 0,
   });
@@ -134,7 +134,7 @@ async function runGraph() {
 }
 
 async function runStatus() {
-  const { child, workspace } = await startServer({
+  const { child, workspace } = await spawnMcpTestServer({
     entityCount: 1,
     delaySeconds: 0,
   });
@@ -158,7 +158,7 @@ async function runStatus() {
 }
 
 async function runSignal(signal) {
-  const { child, workspace } = await startServer({
+  const { child, workspace } = await spawnMcpTestServer({
     entityCount: 1,
     delaySeconds: 30,
   });

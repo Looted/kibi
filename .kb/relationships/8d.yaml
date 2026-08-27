@@ -1,0 +1,127 @@
+relationships:
+  - id: rel-1227f8ad53b8
+    type: implements
+    from: SYM-auto-102F79E615A0
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:22:05.650Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-auto-102F79E615A0
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:54:55.404Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4721cc15853
+  - type: relates_to
+    from: FACT-BRANCH-INITIALIZATION
+    to: FACT-EXACT-BRANCH-INITIALIZATION-MODE
+    created_at: 2026-08-17T07:13:04.913Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02dd7f1f9b91
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-strictplan
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:48:36.731Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a29040eb6248
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-strictplan
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:48:36.739Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9046af4e933
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-strictplan
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:17:29.239Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5962346c6b3f
+  - type: implements
+    from: SYM-cli-validate-against-schema
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:26:51.755Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2591f6168967
+  - type: covered_by
+    from: SYM-cli-validate-against-schema
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:26:51.768Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80098953a641
+  - type: covered_by
+    from: SYM-cli-validate-against-schema
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:26:51.772Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-645b76858699
+  - type: covered_by
+    from: SYM-auto-102F79E615A0
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:39:05.005Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e63c1ff79c2
+  - type: implements
+    from: SYM-KibiCheckpointRunResult
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:51:27.867Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a84e168db249
+  - type: covered_by
+    from: SYM-KibiCheckpointRunResult
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:51:27.881Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc5da6ea39e9
+  - type: covered_by
+    from: SYM-KibiCheckpointRunResult
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:51:27.888Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e3c91ec7f1d
+  - type: implements
+    from: SYM-skillopt-canonical-property-key
+    to: REQ-skillopt-logical-evidence-fidelity
+    created_at: 2026-08-22T20:58:03.455Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5e6863ab9a9
+  - type: covered_by
+    from: SYM-skillopt-canonical-property-key
+    to: TEST-skillopt-logical-evidence-fidelity
+    created_at: 2026-08-22T20:58:03.470Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48a05b3b7ded
+  - type: covered_by
+    from: SYM-skillopt-canonical-property-key
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:58:03.475Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9eb26f15cb21
+  - type: requires_predicate
+    from: REQ-core-audit-logging
+    to: FACT-core-audit-logging-C227B0
+    created_at: 2026-08-26T07:20:38.985Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9cd2bb3b02d1
+  - type: requires_predicate
+    from: REQ-core-audit-logging
+    to: FACT-core-audit-logging-7CEFB9
+    created_at: 2026-08-26T07:20:39.020Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-efd49252ab16

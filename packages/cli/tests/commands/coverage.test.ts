@@ -1,5 +1,4 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { execSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -12,6 +11,8 @@ import os from "node:os";
 import path from "node:path";
 import { renderCoverageTable } from "../../src/commands/discovery-shared.js";
 import type { LegacyMigrationPlan } from "../../src/public/operations/legacy-migration-plan.js";
+import { branchStorePath } from "../../src/utils/branch-store-locator.js";
+import { execSync } from "../helpers/isolated-env.js";
 
 describe("kibi coverage", () => {
   let tmpDir: string;
@@ -22,12 +23,12 @@ describe("kibi coverage", () => {
     execSync("git init -b main", { cwd: tmpDir, stdio: "pipe" });
     execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
 
-    mkdirSync(path.join(tmpDir, "documentation", "requirements"), {
+    mkdirSync(path.join(tmpDir, ".kb", "requirements"), {
       recursive: true,
     });
 
     writeFileSync(
-      path.join(tmpDir, "documentation", "requirements", "REQ-001.md"),
+      path.join(tmpDir, ".kb", "requirements", "REQ-001.md"),
       `---
 id: REQ-001
 title: User authentication
@@ -40,7 +41,7 @@ When a user authenticates, the system must create a session.
     );
 
     writeFileSync(
-      path.join(tmpDir, "documentation", "requirements", "REQ-002.md"),
+      path.join(tmpDir, ".kb", "requirements", "REQ-002.md"),
       `---
 id: REQ-002
 title: Optional telemetry hints
@@ -49,16 +50,11 @@ status: open
 `,
     );
 
-    mkdirSync(path.join(tmpDir, "documentation", "facts"), {
+    mkdirSync(path.join(tmpDir, ".kb", "facts"), {
       recursive: true,
     });
     writeFileSync(
-      path.join(
-        tmpDir,
-        "documentation",
-        "facts",
-        "FACT-SCHEMA-AUTH-SESSION.md",
-      ),
+      path.join(tmpDir, ".kb", "facts", "FACT-SCHEMA-AUTH-SESSION.md"),
       `---
 id: FACT-SCHEMA-AUTH-SESSION
 type: fact
@@ -77,9 +73,11 @@ tags: [authentication, session]
 `,
     );
 
-    mkdirSync(path.join(tmpDir, "documentation", "tests"), {
+    mkdirSync(path.join(tmpDir, ".kb", "tests"), {
       recursive: true,
     });
+
+    execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
 
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
   }, 30000); // kibi init + sync can take ~10s; allow 30s for slower CI environments
@@ -118,6 +116,7 @@ tags: [authentication, session]
         proofVersion: string;
         proofStatus: string;
         proofGaps: string[];
+        proofAdvisories: string[];
       }>;
       repairPlan: {
         version: string;
@@ -157,6 +156,7 @@ tags: [authentication, session]
     expect(req1Row?.proofVersion).toBe("kibi.requirement-proof.v2");
     expect(req1Row?.proofStatus).toBe("missing");
     expect(req1Row?.proofGaps).toContain("missing_semantic_inventory");
+    expect(req1Row?.proofAdvisories).toEqual([]);
     expect(result.repairPlan.version).toBe("kibi.repair-plan.v1");
     expect(result.repairPlan.readOnly).toBe(true);
     expect(result.repairPlan.status).toBe("ready");
@@ -171,7 +171,7 @@ tags: [authentication, session]
     expect(req2Row?.coverageDepth).toBe("no_test_evidence");
   }, 30000); // 30 second test timeout
   test("previews one source-bound migration batch without mutating the KB", () => {
-    const kbPath = path.join(tmpDir, ".kb", "branches", "main", "kb.rdf");
+    const kbPath = path.join(branchStorePath(tmpDir, "main"), "kb.rdf");
     const before = readFileSync(kbPath, "utf8");
     const command = `bun ${kibiBin} coverage --by req --include-migration-preview --migration-predicate-min-score 0 --format json`;
     const first = JSON.parse(

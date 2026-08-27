@@ -1,0 +1,50 @@
+relationships:
+  - id: rel-7abee1aa8b68
+    type: verified_by
+    from: SCEN-kibi-fresh-verification-receipts
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: "2026-08-15T12:41:40.304Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-cli-engine-client-terminate
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.167Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a74c6853956c
+  - type: implements
+    from: SYM-canonical-PendingSourceReceiptSnapshot
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T17:35:40.615Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f89dd24d162f
+  - type: covered_by
+    from: SYM-canonical-PendingSourceReceiptSnapshot
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-08-18T17:35:40.622Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-425863d8a7b4
+  - type: covered_by
+    from: SYM-operation-check-payload
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:38:09.441Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0edf35192b8
+  - type: implements
+    from: SYM-operation-check-payload
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:03:06.150Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be710715050c
+  - type: covered_by
+    from: SYM-operation-check-payload
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:03:06.174Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01bee5310219

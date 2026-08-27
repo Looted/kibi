@@ -3,8 +3,8 @@ import {
   skillsListSpec,
   skillsLoadSpec,
   skillsReadSpec,
-} from "kibi-cli/operations";
-import { loadBundledSkill } from "kibi-cli/skills";
+} from "kibi-runtime";
+import { loadBundledSkill } from "kibi-runtime";
 
 export type SkillsListArgs = Record<string, never>;
 export type SkillsListResult = Awaited<

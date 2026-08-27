@@ -1,0 +1,127 @@
+relationships:
+  - id: rel-0c8a5132d040
+    type: covered_by
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-traceabilityproposal
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: "2026-08-16T19:45:30.473Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-parity-run-operation-json-query
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.170Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd8dce6c9e67
+  - type: implements
+    from: SYM-canonical-KibiTreeDataProvider-onDidChangeTreeData
+    to: REQ-vscode-traceability
+    created_at: 2026-08-18T17:38:01.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21f1737b66b6
+  - type: covered_by
+    from: SYM-canonical-KibiTreeDataProvider-onDidChangeTreeData
+    to: TEST-vscode-traceability
+    created_at: 2026-08-18T17:38:01.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf626df7f401
+  - type: implements
+    from: SYM-cli-rule-registry-getRuleEnforcementClass
+    to: REQ-cli-check
+    created_at: 2026-08-18T18:22:44.730Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50811e69487a
+  - type: covered_by
+    from: SYM-cli-rule-registry-getRuleEnforcementClass
+    to: TEST-cli-quality-diagnostics-contract
+    created_at: 2026-08-18T18:22:44.738Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ee52869204d
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-requirement-claims-claimfor
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-21T19:38:03.883Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b385e316c71
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-requirement-claims-claimfor
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-21T19:38:03.914Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6deb923d4146
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-requirement-claims-claimfor
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:17:56.076Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fcc1d2f2f0fd
+  - type: implements
+    from: SYM-parity-run-operation-json-query
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:31:45.478Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ce7eba538c5
+  - type: implements
+    from: SYM-parity-run-operation-json-query
+    to: REQ-mcp-search-discovery
+    created_at: 2026-08-22T20:31:45.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45482f84f4d9
+  - type: implements
+    from: SYM-parity-run-operation-json-query
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-08-22T20:31:45.499Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f94722df0504
+  - type: covered_by
+    from: SYM-parity-run-operation-json-query
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:31:45.505Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1ab4de2c9db
+  - type: covered_by
+    from: SYM-parity-run-operation-json-query
+    to: TEST-mcp-search-discovery
+    created_at: 2026-08-22T20:31:45.510Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a9895e18b2e
+  - type: covered_by
+    from: SYM-parity-run-operation-json-query
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:31:45.516Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5efdc1e546c
+  - type: implements
+    from: SYM-resolveCurrentBranch
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:54:14.009Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9abf4b3ba89
+  - type: covered_by
+    from: SYM-resolveCurrentBranch
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:54:14.025Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1663040c4069
+  - type: covered_by
+    from: SYM-resolveCurrentBranch
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:54:14.033Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e9f00b099ef

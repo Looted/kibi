@@ -35,6 +35,19 @@ describe("createRepoIgnorePolicy", () => {
     expect(policy.isIgnored(".opencode/plans/bar.md")).toBe(true);
   });
 
+  test("hard denylist ignores derived .kb runtime trees but not authored lanes", () => {
+    withTempWorkspace((dir) => {
+      const policy = createRepoIgnorePolicy(dir);
+      expect(policy.isIgnored(".kb/branches/main/entities.json")).toBe(true);
+      expect(policy.isIgnored(".kb/recovery/pending.json")).toBe(true);
+      expect(policy.isIgnored(".kb/verification/snapshot.json")).toBe(true);
+      expect(policy.isIgnored(".kb/briefs/note.md")).toBe(true);
+      expect(policy.isIgnored(".kb/migrations/001.json")).toBe(true);
+      expect(policy.isIgnored(".kb/requirements/REQ-001.md")).toBe(false);
+      expect(policy.isIgnored(".kb/symbols.yaml")).toBe(false);
+    });
+  });
+
   test("root .gitignore is honored", () => {
     const dir = createTempWorkspace();
     writeFileSync(path.join(dir, ".gitignore"), "*.log\n");

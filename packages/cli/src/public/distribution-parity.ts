@@ -20,6 +20,7 @@ export const REQUIREMENT_COMPILER_CAPABILITIES = [
   "conservative_proof",
   "repair_plan",
   "verification_receipts",
+  "verification_contract",
   "telemetry_acceptance",
 ] as const;
 

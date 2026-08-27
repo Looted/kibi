@@ -1,0 +1,43 @@
+relationships:
+  - id: rel-410ff3491879
+    type: covered_by
+    from: SYM-cli-engine-client
+    to: TEST-core-journaled-engine-persistence
+    created_at: "2026-08-16T19:47:07.437Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-cli-engine-client
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.159Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c86a49c0b06
+  - type: implements
+    from: SYM-deriveDiagnosticHints
+    to: REQ-002
+    created_at: 2026-08-22T20:05:26.114Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71d23100fb52
+  - type: covered_by
+    from: SYM-deriveDiagnosticHints
+    to: TEST-005
+    created_at: 2026-08-22T20:05:26.125Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e671b3ef543d
+  - type: covered_by
+    from: SYM-deriveDiagnosticHints
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:05:26.129Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-639b44e50044
+  - type: relates_to
+    from: FACT-core-audit-logging-7CEFB9
+    to: REQ-core-audit-logging
+    created_at: 2026-08-26T07:20:06.218Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-912eb5053a47

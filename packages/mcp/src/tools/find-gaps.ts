@@ -1,7 +1,15 @@
-import { executeFindGaps } from "kibi-cli/operations";
-import type { PrologProcess } from "kibi-cli/prolog";
+import { executeFindGaps } from "kibi-runtime";
+import type { PrologProcess } from "kibi-runtime";
 
 type ReportingProlog = Pick<PrologProcess, "query">;
+
+function oneShotMode(prolog: ReportingProlog): boolean {
+  const mode = (prolog as unknown as { useOneShotMode?: unknown })
+    .useOneShotMode;
+  return mode === undefined
+    ? typeof (globalThis as { Bun?: unknown }).Bun !== "undefined"
+    : Boolean(mode);
+}
 
 export interface FindGapsArgs {
   type?: string;
@@ -38,6 +46,7 @@ export async function handleKbFindGaps(
       clock: () => new Date(),
       prolog: {
         query: (goal) => prolog.query(goal),
+        oneShotMode: oneShotMode(prolog),
         nextSolution: async () => null,
         save: () => prolog.query("kb_save"),
       },

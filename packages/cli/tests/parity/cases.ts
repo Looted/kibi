@@ -61,10 +61,63 @@ const SEED_INPUTS = {
     text: "The editor must save changes automatically when the user navigates away.",
     maxCandidates: 1,
   },
-  kb_autopilot_generate: {
+  kb_plan_bootstrap: {
     includeGenericMarkdown: false,
     minConfidence: 0.8,
     maxCandidates: 1,
+  },
+  kb_compile_intent: {
+    intent: "Customer data must be retained for 7 years.",
+    mode: "create",
+  },
+  kb_apply_plan: {
+    plan: {
+      version: "kibi.compile-plan.v1",
+      planHash: "0".repeat(64),
+      status: "needs_resolution",
+      expected: {
+        branch: "develop",
+        kbSnapshotId: "stamp:test",
+        workspaceSnapshot: "0".repeat(64),
+        sourceHashes: {},
+      },
+      target: {
+        mode: "create",
+        requirementId: "REQ-test",
+        selectionReason: "fixture",
+      },
+      discovery: { candidates: [], abstained: true },
+      propositions: [],
+      contradictionAnalysis: { outcome: "unresolved", witnesses: [] },
+      proposals: [],
+      steps: [],
+      sourceWrites: [],
+      diagnostics: [],
+    },
+    approvedPlanHash: "0".repeat(64),
+  },
+  kb_ingest_verification: {
+    testId: "TEST-001",
+    snapshot: "0".repeat(64),
+    artifact: {
+      version: "kibi.playwright-run.v1",
+      runner: "playwright",
+      command_argv: ["pnpm", "exec", "playwright", "test"],
+      code_snapshot: "0".repeat(64),
+      environment_hash: "1".repeat(64),
+      started_at: "2026-08-13T00:00:00Z",
+      finished_at: "2026-08-13T00:00:01Z",
+      process_exit_code: 0,
+      cases: [
+        {
+          symbol_id: "SYM-CASE-1",
+          project: "chromium",
+          outcome: "passed",
+          retries: 0,
+          duration_ms: 1,
+        },
+      ],
+    },
   },
 } as const satisfies Record<OperationName, JsonInput>;
 

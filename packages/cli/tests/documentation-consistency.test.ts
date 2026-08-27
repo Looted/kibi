@@ -2,7 +2,16 @@ import { describe, expect, test } from "bun:test";
 import * as fs from "node:fs";
 import * as path from "node:path";
 
-const DOCS_ROOT = path.resolve(import.meta.dir, "../../../documentation");
+const KB_ROOT = path.resolve(import.meta.dir, "../../../.kb");
+const KNOWLEDGE_LANES = [
+  "requirements",
+  "scenarios",
+  "tests",
+  "facts",
+  "adr",
+  "flags",
+  "events",
+] as const;
 
 function findMarkdownFiles(dir: string): string[] {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -24,9 +33,12 @@ function extractFrontmatterId(filePath: string): string | null {
   return match ? match[1].trim() : null;
 }
 
-describe("documentation consistency", () => {
+describe("knowledge-lane consistency", () => {
   test("all markdown frontmatter ids match their filename basename", () => {
-    const files = findMarkdownFiles(DOCS_ROOT);
+    const files = KNOWLEDGE_LANES.flatMap((lane) => {
+      const dir = path.join(KB_ROOT, lane);
+      return fs.existsSync(dir) ? findMarkdownFiles(dir) : [];
+    });
     const mismatches: string[] = [];
 
     for (const file of files) {
@@ -61,8 +73,8 @@ describe("flag and fact canonical wording", () => {
       "AGENTS.md",
       "docs/entity-schema.md",
       "docs/inference-rules.md",
-      "docs/prompts/llm-rules.md",
-      "docs/prompts/retroactive-init.md",
+      "docs/generic-agent-onboarding.md",
+      "packages/runtime/src/skills/kibi-usage/SKILL.md",
       "README.md",
       "docs/mcp-reference.md",
       "docs/cli-reference.md",
@@ -92,17 +104,17 @@ describe("flag and fact canonical wording", () => {
     expect(violations).toHaveLength(0);
   });
 
-  test("README quick start must not mention nonexistent autopilot CLI command", () => {
+  test("README quick start must not mention nonexistent bootstrap CLI command", () => {
     const content = readDoc("README.md");
-    expect(content).not.toMatch(/npx\s+kibi\s+autopilot\s+generate/);
+    expect(content).not.toMatch(/npx\s+kibi\s+bootstrap\s+generate/);
   });
 
   test("docs must not describe 'workaround' as an entity type", () => {
     const filesToCheck = [
       "AGENTS.md",
       "docs/entity-schema.md",
-      "docs/prompts/llm-rules.md",
-      "docs/prompts/retroactive-init.md",
+      "docs/generic-agent-onboarding.md",
+      "packages/runtime/src/skills/kibi-usage/SKILL.md",
     ];
     const pseudoTypePatterns = [
       /type:\s*workaround/i,
@@ -207,12 +219,12 @@ describe("symbol traceability taxonomy rubric", () => {
 // Regression tests for stale symbol aliases
 describe("symbols.yaml regression", () => {
   test("SYM-KibiMCPServer must not be present", () => {
-    const syms = fs.readFileSync(path.join(DOCS_ROOT, "symbols.yaml"), "utf8");
+    const syms = fs.readFileSync(path.join(KB_ROOT, "symbols.yaml"), "utf8");
     expect(syms.includes("SYM-KibiMCPServer")).toBe(false);
   });
 
   test("title: startServer appears exactly once (canonical SYM-010)", () => {
-    const syms = fs.readFileSync(path.join(DOCS_ROOT, "symbols.yaml"), "utf8");
+    const syms = fs.readFileSync(path.join(KB_ROOT, "symbols.yaml"), "utf8");
     const matches = syms.match(/^\s*title:\s*startServer$/gm) || [];
     expect(matches.length).toBe(1);
   });

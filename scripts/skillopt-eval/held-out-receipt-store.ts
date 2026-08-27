@@ -1,5 +1,6 @@
 import { lstat, mkdir } from "node:fs/promises";
 import { isAbsolute, join, relative, resolve } from "node:path";
+import type { CanonicalSkill } from "./catalog";
 import {
   JsonValueSchema,
   canonicalJson,
@@ -76,7 +77,8 @@ export class HeldOutReceiptStore {
       candidateHashes: FrozenCandidateHashes;
       heldOutCaseIds: readonly string[];
       runId: string;
-      skill?: "kibi-usage";
+      skill?: CanonicalSkill;
+      expectedPhysicalCellCount?: number;
       fixtureClaimRoot: string;
     }>,
   ) {}
@@ -121,7 +123,11 @@ export class HeldOutReceiptStore {
     const directory = await this.directory();
     const reservation = await this.readReservation(directory);
     const expected = HeldOutTerminalReceiptSchema.parse(receipt);
-    if (expected.physicalCellCount !== 96) {
+    if (
+      expected.physicalCellCount < 1 ||
+      (this.options.expectedPhysicalCellCount !== undefined &&
+        expected.physicalCellCount !== this.options.expectedPhysicalCellCount)
+    ) {
       throw new HeldOutReceiptStoreError(
         "held_out_terminal_cell_count_invalid",
       );

@@ -1,103 +1,199 @@
-/*
- Kibi — repo-local, per-branch, queryable long-term memory for software projects
- Copyright (C) 2026 Piotr Franczyk
-
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-import { execSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import {
+  branchStoreKey,
+  branchStoresRoot,
+  readBranchStoreManifest,
+} from "../utils/branch-store-locator.js";
 
-export async function gcCommand(options: {
+const DEFAULT_RETENTION_DAYS = 30;
+
+type GcOptions = {
   dryRun?: boolean;
   force?: boolean;
-}) {
-  // If force is true, perform deletion. Otherwise default to dry run.
-  const dryRun = options?.force ? false : (options?.dryRun ?? true);
+  purge?: boolean;
+  retentionDays?: number;
+};
+
+function localBranches(workspaceRoot: string): Set<string> {
+  const result = spawnSync("git", ["branch", "--format=%(refname:short)"], {
+    encoding: "utf8",
+    cwd: workspaceRoot,
+    stdio: ["pipe", "pipe", "pipe"],
+  });
+  if (result.status !== 0) {
+    throw new Error(
+      result.stderr?.trim() || "unable to list local Git branches",
+    );
+  }
+  const output = result.stdout ?? "";
+  const live = new Set(
+    output
+      .split("\n")
+      .map((branch) => branch.trim())
+      .filter(Boolean),
+  );
+  // A branch checked out in another worktree is live even when it is not the
+  // current worktree's symbolic HEAD. Remote-only refs are deliberately not
+  // included: they have no local authored checkout to protect.
+  const worktrees = spawnSync("git", ["worktree", "list", "--porcelain"], {
+    encoding: "utf8",
+    cwd: workspaceRoot,
+    stdio: ["pipe", "pipe", "pipe"],
+  });
+  if (worktrees.status === 0) {
+    for (const line of (worktrees.stdout ?? "").split("\n")) {
+      const match = line.match(/^branch refs\/heads\/(.+)$/);
+      if (match?.[1]) live.add(match[1]);
+    }
+  }
+  return live;
+}
+
+function quarantineRoot(workspaceRoot: string): string {
+  return path.join(workspaceRoot, ".kb", "quarantine", "branches");
+}
+
+function quarantineBranch(
+  workspaceRoot: string,
+  sourcePath: string,
+  branch: string,
+): string {
+  const target = path.join(
+    quarantineRoot(workspaceRoot),
+    branchStoreKey(branch),
+    new Date().toISOString().replaceAll(":", "-"),
+  );
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.renameSync(sourcePath, target);
+  fs.writeFileSync(
+    path.join(target, "quarantine.json"),
+    `${JSON.stringify(
+      {
+        version: 1,
+        branch,
+        key: branchStoreKey(branch),
+        quarantinedAt: new Date().toISOString(),
+        sourcePath: path.relative(workspaceRoot, sourcePath),
+      },
+      null,
+      2,
+    )}\n`,
+    { mode: 0o600 },
+  );
+  return target;
+}
+
+function purgeQuarantine(workspaceRoot: string, retentionDays: number): number {
+  const root = quarantineRoot(workspaceRoot);
+  if (!fs.existsSync(root)) return 0;
+  const cutoff = Date.now() - retentionDays * 24 * 60 * 60 * 1000;
+  let purged = 0;
+  for (const key of fs.readdirSync(root, { withFileTypes: true })) {
+    if (!key.isDirectory()) continue;
+    const keyPath = path.join(root, key.name);
+    for (const entry of fs.readdirSync(keyPath, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      const candidate = path.join(keyPath, entry.name);
+      const metadataPath = path.join(candidate, "quarantine.json");
+      let quarantinedAt = fs.statSync(candidate).mtimeMs;
+      try {
+        const metadata = JSON.parse(fs.readFileSync(metadataPath, "utf8")) as {
+          quarantinedAt?: string;
+        };
+        if (metadata.quarantinedAt) {
+          const parsed = Date.parse(metadata.quarantinedAt);
+          if (Number.isFinite(parsed)) quarantinedAt = parsed;
+        }
+      } catch {
+        // A missing or malformed journal falls back to the directory mtime.
+      }
+      if (retentionDays > 0 && quarantinedAt > cutoff) continue;
+      fs.rmSync(candidate, { recursive: true, force: true });
+      purged += 1;
+    }
+    if (fs.readdirSync(keyPath).length === 0) {
+      fs.rmSync(keyPath, { recursive: true, force: true });
+    }
+  }
+  return purged;
+}
+
+export async function gcCommand(options: GcOptions = {}): Promise<void> {
+  const workspaceRoot = process.cwd();
+  const retentionDays =
+    Number.isFinite(options.retentionDays) && (options.retentionDays ?? 0) >= 0
+      ? Math.floor(options.retentionDays as number)
+      : DEFAULT_RETENTION_DAYS;
+  const branchesRoot = branchStoresRoot(workspaceRoot);
 
   try {
-    const kbRoot = path.resolve(process.cwd(), ".kb/branches");
-
-    if (!fs.existsSync(kbRoot)) {
-      console.error("No branch KBs found (.kb/branches does not exist)");
-      process.exitCode = 1;
+    if (!fs.existsSync(branchesRoot)) {
+      console.log("No branch KBs found (.kb/branches does not exist)");
+      process.exitCode = 0;
       return;
     }
-
-    let gitBranches: Set<string>;
-    try {
-      execSync("git rev-parse --git-dir", {
-        encoding: "utf-8",
-        cwd: process.cwd(),
-        stdio: ["pipe", "pipe", "pipe"],
-        env: process.env,
-      });
-
-      const output = execSync("git branch --format='%(refname:short)'", {
-        encoding: "utf-8",
-        cwd: process.cwd(),
-        stdio: ["pipe", "pipe", "pipe"],
-        env: process.env,
-      });
-
-      gitBranches = new Set(
-        output
-          .trim()
-          .split("\n")
-          .map((b) => b.trim().replace(/^'|'$/g, ""))
-          .filter((b) => b),
-      );
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.error(
-        `Not in a git repository or git command failed: ${message}`,
-      );
-      process.exitCode = 1;
-      return;
-    }
-
-    const kbBranches = fs
-      .readdirSync(kbRoot, { withFileTypes: true })
-      .filter((d) => d.isDirectory())
-      .map((d) => d.name);
-
-    // Branches are protected if they exist in git - no default branch concept
-    const staleBranches = kbBranches.filter((kb) => !gitBranches.has(kb));
-
-    // Perform deletion when dryRun is false (force requested)
-    const performDelete = !dryRun;
-    let deletedCount = 0;
-    if (performDelete && staleBranches.length > 0) {
-      for (const branch of staleBranches) {
-        const branchPath = path.join(kbRoot, branch);
-        fs.rmSync(branchPath, { recursive: true, force: true });
-        deletedCount++;
+    const live = localBranches(workspaceRoot);
+    const candidates: Array<{ branch: string; path: string; legacy: boolean }> =
+      [];
+    const visit = (dir: string, relativeBranch: string): void => {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const candidatePath = path.join(dir, entry.name);
+        if (!entry.isDirectory()) continue;
+        const manifest = readBranchStoreManifest(candidatePath);
+        if (manifest !== null) {
+          candidates.push({
+            branch: manifest.branch,
+            path: candidatePath,
+            legacy: false,
+          });
+          continue;
+        }
+        const next = relativeBranch
+          ? `${relativeBranch}/${entry.name}`
+          : entry.name;
+        if (
+          fs.existsSync(path.join(candidatePath, "kb.rdf")) ||
+          fs.existsSync(path.join(candidatePath, "storage.json"))
+        ) {
+          candidates.push({ branch: next, path: candidatePath, legacy: true });
+        } else {
+          visit(candidatePath, next);
+        }
       }
-    }
+    };
+    visit(branchesRoot, "");
 
-    if (dryRun) {
+    const stale = candidates.filter(({ branch }) => !live.has(branch));
+    if (!options.force && !options.purge) {
       console.log(
-        `Found ${staleBranches.length} stale branch KB(s) (dry run - not deleted)`,
+        `Found ${stale.length} stale branch KB(s) (dry run - not quarantined)`,
       );
-      if (staleBranches.length > 0) {
-        for (const b of staleBranches) console.log(`  - ${b}`);
+      for (const candidate of stale) {
+        console.log(`  - ${candidate.branch}: ${candidate.path}`);
       }
-    } else {
-      console.log(`Deleted ${deletedCount} stale branch KB(s)`);
+      process.exitCode = 0;
+      return;
     }
 
+    if (options.force && !options.purge) {
+      for (const candidate of stale) {
+        const destination = quarantineBranch(
+          workspaceRoot,
+          candidate.path,
+          candidate.branch,
+        );
+        console.log(`Quarantined ${candidate.branch}: ${destination}`);
+      }
+    }
+    if (options.purge) {
+      const purged = purgeQuarantine(workspaceRoot, retentionDays);
+      console.log(
+        `Purged ${purged} quarantined branch store(s) older than ${retentionDays} day(s)`,
+      );
+    }
     process.exitCode = 0;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

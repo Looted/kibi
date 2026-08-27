@@ -17,3 +17,59 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/tests/TEST-005.md
+  - type: covered_by
+    from: SYM-cli-discovery-attached-branch
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.163Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f98c5fa4d171
+  - type: implements
+    from: SYM-canonical-rewritePendingSourceReceiptPaths
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:01:09.797Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80129987cec4
+  - type: covered_by
+    from: SYM-canonical-rewritePendingSourceReceiptPaths
+    to: TEST-cli-migrate
+    created_at: 2026-08-18T17:01:09.806Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8590d2688ae
+  - type: implements
+    from: SYM-RelationshipSpec
+    to: REQ-011
+    created_at: 2026-08-22T20:13:44.603Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67b791bdf604
+  - type: covered_by
+    from: SYM-RelationshipSpec
+    to: TEST-cli-strict-modeling
+    created_at: 2026-08-22T20:13:44.619Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77223726846e
+  - type: covered_by
+    from: SYM-RelationshipSpec
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:13:44.624Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e02962184074
+  - type: implements
+    from: SYM-skillopt-cursor-variant-summary
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:22:41.765Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4a46abe763df
+  - type: covered_by
+    from: SYM-skillopt-cursor-variant-summary
+    to: TEST-skillopt-cursor-compat
+    created_at: 2026-08-25T19:52:34.166Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2960823f29f3

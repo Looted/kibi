@@ -1,0 +1,106 @@
+relationships:
+  - id: rel-002f2f1fe3ef
+    type: implements
+    from: SYM-auto-974943F1E67A
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:21:54.755Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-auto-974943F1E67A
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:54:49.169Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44b62faedd6d
+  - type: implements
+    from: SYM-canonical-readKbManifest
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:02:10.638Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-125c0dea4cf1
+  - type: covered_by
+    from: SYM-canonical-readKbManifest
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:02:10.645Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3f1eae0337f
+  - type: validates
+    from: TEST-cursor-consumer-local-mcp-launcher-v1
+    to: REQ-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-08-20T13:00:03.160Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e4f0f9ec4e4
+  - type: implements
+    from: SYM-modeling-requirement-utils-trimSentenceTail
+    to: REQ-002
+    created_at: 2026-08-22T20:08:46.149Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12dc81c69f76
+  - type: covered_by
+    from: SYM-modeling-requirement-utils-trimSentenceTail
+    to: TEST-005
+    created_at: 2026-08-22T20:08:46.160Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f8cb8f90f3e
+  - type: covered_by
+    from: SYM-modeling-requirement-utils-trimSentenceTail
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:08:46.163Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4c69dd9ded5
+  - type: implements
+    from: SYM-buildStableRequirementIds
+    to: REQ-011
+    created_at: 2026-08-22T20:12:11.168Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3347d18a0b19
+  - type: covered_by
+    from: SYM-buildStableRequirementIds
+    to: TEST-cli-strict-modeling
+    created_at: 2026-08-22T20:12:11.180Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe2f889a498d
+  - type: covered_by
+    from: SYM-buildStableRequirementIds
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:12:11.185Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54149bf5f1bb
+  - type: covered_by
+    from: SYM-auto-974943F1E67A
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:42:16.641Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-165df6c739e2
+  - type: covered_by
+    from: SYM-cli-validation-result-type
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:36:50.188Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8e76f3366af
+  - type: implements
+    from: SYM-cli-validation-result-type
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:00:20.157Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec3f90c4e391
+  - type: covered_by
+    from: SYM-cli-validation-result-type
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:00:20.162Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4d9ed4d1ce8e

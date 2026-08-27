@@ -1,8 +1,15 @@
 import { VERIFICATION_RECEIPT_MAX_AGE_SECONDS } from "../../verification-receipt.js";
+import { executeStatus } from "../discovery-executors.js";
 import {
   type LegacyMigrationPlan,
   buildLegacyMigrationPlanFromContext,
 } from "../legacy-migration-plan.js";
+import {
+  type MigrationPlan,
+  buildActionsFromCoverage,
+  buildMigrationPlan,
+  mergeMigrationPlans,
+} from "../migration-plan.js";
 import {
   runOperationJsonQuery,
   toPrologAtom,
@@ -10,6 +17,7 @@ import {
 } from "../prolog-json.js";
 import { type RepairPlan, buildRepairPlan } from "../repair-plan.js";
 import type { OperationContext } from "../runtime-types.js";
+import { buildSymbolRepairPlan } from "../symbol-repair-plan.js";
 import type { OperationResult, OperationSpec } from "../types.js";
 import { readWorkspaceSnapshot } from "../workspace-snapshot.js";
 
@@ -60,6 +68,8 @@ export type CoveragePayload = {
   readonly rows: readonly Readonly<Record<string, unknown>>[];
   readonly repairPlan?: RepairPlan;
   readonly legacyMigrationPlan?: LegacyMigrationPlan;
+  readonly symbolRepairPlan?: Readonly<Record<string, unknown>>;
+  readonly migrationPlan?: MigrationPlan;
   readonly meta?: Readonly<Record<string, unknown>>;
 };
 
@@ -168,6 +178,10 @@ export async function executeCoverage(
       "Coverage execution",
     );
     const repairPlan = buildRepairPlan(payload, input, codeSnapshot);
+    const symbolRepairPlan =
+      input.by === "symbol"
+        ? await buildSymbolRepairPlan(payload.rows, context)
+        : undefined;
     const legacyMigrationPlan =
       input.includeMigrationPreview === true && repairPlan !== undefined
         ? await buildLegacyMigrationPlanFromContext(
@@ -177,10 +191,50 @@ export async function executeCoverage(
             context,
           )
         : undefined;
+    // Coverage can still report its complete Prolog-backed domain in a
+    // synthetic or non-Git workspace where branch status cannot be resolved.
+    // Preserve the coverage plan and let status expose its own branch action
+    // when an attachment is available.
+    let statusPlan: MigrationPlan | undefined;
+    try {
+      const statusResult = await executeStatus({}, context);
+      statusPlan = statusResult.structuredContent?.migrationPlan;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (!message.includes("Failed to resolve active branch")) throw error;
+    }
+    const coveragePlan = buildMigrationPlan({
+      expected: {
+        branch: context.branchAttachment?.gitBranch ?? null,
+        kbBranch: context.branchAttachment?.kbBranch ?? null,
+        ...(typeof payload.meta?.snapshotId === "string"
+          ? { kbSnapshotId: payload.meta.snapshotId }
+          : {}),
+        workspaceSnapshot: codeSnapshot,
+      },
+      evaluatedDomains: ["semantic", "verification", "symbol"],
+      incompleteDomains:
+        payload.meta?.scopeComplete === false ? ["coverage"] : [],
+      actions: buildActionsFromCoverage({
+        ...(repairPlan !== undefined
+          ? {
+              repairPlan: repairPlan as unknown as Readonly<
+                Record<string, unknown>
+              >,
+            }
+          : {}),
+        ...(symbolRepairPlan !== undefined ? { symbolRepairPlan } : {}),
+      }),
+    });
+    const migrationPlan = statusPlan
+      ? mergeMigrationPlans([statusPlan, coveragePlan])
+      : coveragePlan;
     const enrichedPayload = {
       ...payload,
       ...(repairPlan !== undefined ? { repairPlan } : {}),
       ...(legacyMigrationPlan !== undefined ? { legacyMigrationPlan } : {}),
+      ...(symbolRepairPlan !== undefined ? { symbolRepairPlan } : {}),
+      migrationPlan,
       meta: {
         ...(payload.meta ?? {}),
         verificationReceiptMaxAgeSeconds: VERIFICATION_RECEIPT_MAX_AGE_SECONDS,
@@ -218,7 +272,7 @@ export const coverageSpec = {
   name: "kb_coverage",
   cliName: "coverage",
   description:
-    "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Requirement reports include a deterministic, dependency-ordered, read-only repair plan; optional legacy migration previews reconstruct authored proposition inventories and rank exact schema candidates without producing executable writes. Paginated plans identify incomplete scope. Requirement rows keep coverageStatus separate from proofStatus and require fresh snapshot-bound E2E receipts before proof. No mutation side effects.",
+    "Generate curated structural coverage and conservative end-to-end requirement proof reports for requirements, symbols, or grouped types. Reports include the compatible repair plan plus typed kibi.migration-plan.v2 actions; semantic and E2E actions remain review/execution work. Paginated plans identify incomplete scope and no mutation occurs.",
   businessInputSchema: {
     type: "object",
     properties: {

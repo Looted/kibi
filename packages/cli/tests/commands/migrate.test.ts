@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { spawnSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -12,6 +11,7 @@ import {
 import os from "node:os";
 import path from "node:path";
 import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
+import { spawnSync } from "../helpers/isolated-env.js";
 
 const kibiCliEntry = path.resolve(__dirname, "../../src/cli.ts");
 
@@ -50,25 +50,59 @@ function initializeGitRepo(cwd: string): void {
   });
 }
 
-function removeSchemaVersion(configPath: string): string {
-  const config = JSON.parse(readFileSync(configPath, "utf8")) as {
-    schemaVersion?: unknown;
-    [key: string]: unknown;
-  };
-
-  const { schemaVersion: _schemaVersion, ...legacyConfig } = config;
-  const serialized = JSON.stringify(legacyConfig, null, 2);
-  writeFileSync(configPath, serialized, "utf8");
-  return serialized;
-}
-
 function readJson(filePath: string): Record<string, unknown> {
   return JSON.parse(readFileSync(filePath, "utf8")) as Record<string, unknown>;
 }
 
-function writeLegacyGranularityFixture(root: string): void {
+const LEGACY_KIBI_GITIGNORE = `.kb/
+!.kb/config.json
+!.kb/schema/
+!.kb/relationships/
+!.kb/relationships/*.yaml
+`;
+
+function writeLegacyGitIgnore(root: string): void {
+  writeFileSync(path.join(root, ".gitignore"), LEGACY_KIBI_GITIGNORE, "utf8");
+}
+
+function gitCheckIgnoreStatus(cwd: string, relPath: string): number | null {
+  return spawnSync("git", ["check-ignore", "-q", "--", relPath], {
+    cwd,
+    encoding: "utf8",
+  }).status;
+}
+
+function writeLegacyConfig(
+  root: string,
+  extra: Record<string, unknown> = {},
+): void {
+  mkdirSync(path.join(root, ".kb"), { recursive: true });
+  writeFileSync(
+    path.join(root, ".kb", "config.json"),
+    `${JSON.stringify(
+      {
+        schemaVersion: 4,
+        paths: {
+          requirements: "documentation/requirements",
+          symbols: "documentation/symbols.yaml",
+        },
+        ...extra,
+      },
+      null,
+      2,
+    )}\n`,
+    "utf8",
+  );
+}
+
+function writeLegacyKnowledge(root: string): void {
+  mkdirSync(path.join(root, "documentation/requirements"), { recursive: true });
+  writeFileSync(
+    path.join(root, "documentation/requirements/REQ-ONE.md"),
+    "---\nid: REQ-ONE\ntype: req\ntitle: One\nstatus: active\n---\n\nKeep this.\n",
+    "utf8",
+  );
   mkdirSync(path.join(root, "src"), { recursive: true });
-  mkdirSync(path.join(root, "documentation"), { recursive: true });
   writeFileSync(
     path.join(root, "src", "greet.ts"),
     `export function greet() {
@@ -97,9 +131,6 @@ describe("kibi migrate", () => {
   beforeEach(() => {
     tmpDir = mkdtempSync(path.join(os.tmpdir(), "kibi-test-migrate-"));
     initializeGitRepo(tmpDir);
-
-    const initResult = runKibi(["init", "--no-hooks"], tmpDir);
-    expect(initResult.status).toBe(0);
   });
 
   afterEach(() => {
@@ -108,285 +139,176 @@ describe("kibi migrate", () => {
     }
   });
 
-  test("dry-run reports schema migration without writing files", () => {
-    const configPath = path.join(tmpDir, ".kb", "config.json");
-    const auditPath = path.join(tmpDir, ".kb", "migrations", "main.json");
-    const beforeConfig = removeSchemaVersion(configPath);
+  test("fresh init is already current and --yes is a no-op", () => {
+    expect(runKibi(["init", "--no-hooks"], tmpDir).status).toBe(0);
+    const result = runKibi(["migrate", "--yes"], tmpDir);
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("No migration needed");
+    expect(existsSync(path.join(tmpDir, ".kb", "config.json"))).toBe(false);
+    expect(
+      readJson(path.join(tmpDir, ".kb", "manifest.json")).schemaVersion,
+    ).toBe(LATEST_KB_SCHEMA_VERSION);
+  });
+
+  test("dry-run reports storage moves without writing files", () => {
+    writeLegacyConfig(tmpDir, { schemaVersion: 1 });
+    writeLegacyKnowledge(tmpDir);
 
     const result = runKibi(["migrate", "--dry-run"], tmpDir);
 
     expect(result.status).toBe(0);
-    expect(result.stdout).toContain("schemaVersion");
     expect(result.stdout).toContain("dry run");
-    expect(readFileSync(configPath, "utf8")).toBe(beforeConfig);
-    expect(existsSync(auditPath)).toBe(false);
+    expect(result.stdout).toContain(
+      "documentation/requirements/REQ-ONE.md -> .kb/requirements/REQ-ONE.md",
+    );
+    expect(result.stdout).toContain("would retire legacy .kb/config.json");
+    expect(result.stdout).toContain("would mark 1 legacy coarse symbol");
+    expect(
+      existsSync(path.join(tmpDir, "documentation/requirements/REQ-ONE.md")),
+    ).toBe(true);
+    expect(existsSync(path.join(tmpDir, ".kb", "manifest.json"))).toBe(false);
+    expect(
+      existsSync(path.join(tmpDir, ".kb", "migrations", "main.json")),
+    ).toBe(false);
   });
 
-  test("reports missing .kb directory as a migration error", () => {
-    rmSync(path.join(tmpDir, ".kb"), { recursive: true, force: true });
+  test("--yes moves knowledge, retires config.json, and writes the manifest", () => {
+    writeLegacyConfig(tmpDir, {
+      schemaVersion: 1,
+      semanticAdvisorBackfill: "pending",
+    });
+    writeLegacyKnowledge(tmpDir);
 
-    const result = runKibi(["migrate"], tmpDir);
+    const result = runKibi(["migrate", "--yes"], tmpDir);
 
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("Moved");
+    expect(result.stdout).toContain("Retired legacy .kb/config.json");
+    expect(result.stdout).toContain("Marked 1 existing coarse symbol");
+    expect(existsSync(path.join(tmpDir, ".kb/requirements/REQ-ONE.md"))).toBe(
+      true,
+    );
+    expect(
+      readFileSync(path.join(tmpDir, ".kb/requirements/REQ-ONE.md"), "utf8"),
+    ).toContain("Keep this.");
+    expect(existsSync(path.join(tmpDir, ".kb", "config.json"))).toBe(false);
+    const manifest = readJson(path.join(tmpDir, ".kb", "manifest.json"));
+    expect(manifest.schemaVersion).toBe(LATEST_KB_SCHEMA_VERSION);
+    expect(manifest.semanticAdvisorBackfill).toBe("pending");
+    expect(
+      readFileSync(path.join(tmpDir, ".kb", "symbols.yaml"), "utf8"),
+    ).toContain("granularity_reason: legacy-link");
+    const audit = readJson(path.join(tmpDir, ".kb", "migrations", "main.json"));
+    expect(audit.toVersion).toBe(LATEST_KB_SCHEMA_VERSION);
+    expect(audit.symbolGranularityLegacyLinks).toBe(1);
+  });
+
+  test("--yes rewrites the pre-canonical gitignore fence so migrated knowledge is trackable", () => {
+    writeLegacyConfig(tmpDir, { schemaVersion: 1 });
+    writeLegacyKnowledge(tmpDir);
+    writeLegacyGitIgnore(tmpDir);
+
+    expect(gitCheckIgnoreStatus(tmpDir, ".kb/requirements/REQ-ONE.md")).toBe(0);
+
+    const result = runKibi(["migrate", "--yes"], tmpDir);
+    expect(result.status).toBe(0);
+
+    const gitignore = readFileSync(path.join(tmpDir, ".gitignore"), "utf8");
+    expect(gitignore).not.toMatch(/^\.kb\/$/m);
+    expect(gitignore).toContain(".kb/migrations/");
+    expect(gitCheckIgnoreStatus(tmpDir, ".kb/requirements/REQ-ONE.md")).toBe(1);
+    expect(gitCheckIgnoreStatus(tmpDir, ".kb/migrations/main.json")).toBe(0);
+  });
+
+  test("dry-run does not rewrite a legacy gitignore fence", () => {
+    writeLegacyConfig(tmpDir, { schemaVersion: 1 });
+    writeLegacyKnowledge(tmpDir);
+    writeLegacyGitIgnore(tmpDir);
+
+    const result = runKibi(["migrate", "--dry-run"], tmpDir);
+    expect(result.status).toBe(0);
+    expect(readFileSync(path.join(tmpDir, ".gitignore"), "utf8")).toBe(
+      LEGACY_KIBI_GITIGNORE,
+    );
+  });
+
+  test("malformed leftover config is a blocker and does not guess documentation/ paths", () => {
+    mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
+    writeFileSync(path.join(tmpDir, ".kb", "config.json"), "{", "utf8");
+    writeLegacyKnowledge(tmpDir);
+    writeLegacyGitIgnore(tmpDir);
+
+    const result = runKibi(["migrate", "--yes"], tmpDir);
     expect(result.status).toBe(1);
-    expect(result.stderr).toContain("Missing .kb/ directory");
+    expect(result.stderr).toContain("malformed");
+    expect(result.stderr).toContain("will not infer");
+    expect(
+      existsSync(path.join(tmpDir, "documentation/requirements/REQ-ONE.md")),
+    ).toBe(true);
+    expect(existsSync(path.join(tmpDir, ".kb/requirements/REQ-ONE.md"))).toBe(
+      false,
+    );
+    expect(readFileSync(path.join(tmpDir, ".gitignore"), "utf8")).toBe(
+      LEGACY_KIBI_GITIGNORE,
+    );
   });
 
-  test("reports missing config file as a migration error", () => {
-    rmSync(path.join(tmpDir, ".kb", "config.json"), { force: true });
-
-    const result = runKibi(["migrate"], tmpDir);
-
-    expect(result.status).toBe(1);
-    expect(result.stderr).toContain("Missing .kb/config.json");
-  });
-
-  test("reports invalid JSON config as a migration error", () => {
-    writeFileSync(path.join(tmpDir, ".kb", "config.json"), "{ nope", "utf8");
-
-    const result = runKibi(["migrate"], tmpDir);
-    expect(result.status).toBe(1);
-    expect(result.stderr).toContain("Invalid .kb/config.json");
-  });
-
-  test("reports non-object JSON config as a migration error", () => {
-    writeFileSync(path.join(tmpDir, ".kb", "config.json"), "[]", "utf8");
-
-    const result = runKibi(["migrate"], tmpDir);
-    expect(result.status).toBe(1);
-    expect(result.stderr).toContain("must contain a JSON object");
-  });
-
-  test("rejects config schema versions newer than the CLI", () => {
-    const configPath = path.join(tmpDir, ".kb", "config.json");
-    const config = readJson(configPath);
+  test("blocks conflicting destinations instead of overwriting", () => {
+    writeLegacyConfig(tmpDir);
+    writeLegacyKnowledge(tmpDir);
+    mkdirSync(path.join(tmpDir, ".kb/requirements"), { recursive: true });
     writeFileSync(
-      configPath,
-      `${JSON.stringify({ ...config, schemaVersion: 999 }, null, 2)}\n`,
+      path.join(tmpDir, ".kb/requirements/REQ-ONE.md"),
+      "canonical copy\n",
       "utf8",
     );
 
     const result = runKibi(["migrate", "--yes"], tmpDir);
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("already exists");
+    expect(
+      readFileSync(
+        path.join(tmpDir, "documentation/requirements/REQ-ONE.md"),
+        "utf8",
+      ),
+    ).toContain("Keep this.");
+    expect(
+      readFileSync(path.join(tmpDir, ".kb/requirements/REQ-ONE.md"), "utf8"),
+    ).toBe("canonical copy\n");
+  });
 
+  test("rejects manifest schema versions newer than the CLI", () => {
+    expect(runKibi(["init", "--no-hooks"], tmpDir).status).toBe(0);
+    const manifestPath = path.join(tmpDir, ".kb", "manifest.json");
+    const manifest = readJson(manifestPath);
+    writeFileSync(
+      manifestPath,
+      `${JSON.stringify({ ...manifest, schemaVersion: 999 }, null, 2)}\n`,
+      "utf8",
+    );
+
+    const result = runKibi(["migrate", "--yes"], tmpDir);
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("Unsupported schemaVersion 999");
   });
 
-  test("formats invalid schema versions in dry-run output", () => {
-    const configPath = path.join(tmpDir, ".kb", "config.json");
-    const config = readJson(configPath);
-    writeFileSync(
-      configPath,
-      `${JSON.stringify({ ...config, schemaVersion: "not-a-number" }, null, 2)}\n`,
-      "utf8",
-    );
-
-    const result = runKibi(["migrate", "--dry-run"], tmpDir);
-
-    expect(result.status).toBe(0);
-    expect(result.stdout).toContain(
-      'schemaVersion from invalid ("not-a-number")',
-    );
-  });
-
-  test("without --yes warns and exits 0 without writing files", () => {
-    const configPath = path.join(tmpDir, ".kb", "config.json");
-    const auditPath = path.join(tmpDir, ".kb", "migrations", "main.json");
-    const beforeConfig = removeSchemaVersion(configPath);
-
-    const result = runKibi(["migrate"], tmpDir);
-
-    expect(result.status).toBe(0);
-    expect(result.stdout).toContain(
-      `Warning: Migration required for ${path.join(".kb", "config.json")}.`,
-    );
-    expect(result.stdout).toContain("No changes applied.");
-    expect(result.stdout).toContain(
-      "Use --dry-run to preview or --yes to apply the migration.",
-    );
-    expect(readFileSync(configPath, "utf8")).toBe(beforeConfig);
-    expect(existsSync(auditPath)).toBe(false);
-  });
-
-  test("--yes upgrades legacy config and writes migration audit metadata", () => {
-    const configPath = path.join(tmpDir, ".kb", "config.json");
-    const auditPath = path.join(tmpDir, ".kb", "migrations", "main.json");
-
-    removeSchemaVersion(configPath);
-
-    const result = runKibi(["migrate", "--yes"], tmpDir);
-
-    expect(result.status).toBe(0);
-    expect(result.stdout).toContain("Migrated");
-    expect(result.stdout).toContain("schemaVersion");
-
-    const config = readJson(configPath);
-    expect(config.schemaVersion).toBe(LATEST_KB_SCHEMA_VERSION);
-
-    expect(existsSync(auditPath)).toBe(true);
-    const audit = readJson(auditPath);
-    expect(audit.fromVersion).toBeNull();
-    expect(audit.toVersion).toBe(LATEST_KB_SCHEMA_VERSION);
-    expect(audit.branch).toBe("main");
-    expect(audit.migratedAt).toEqual(expect.any(String));
-    expect(audit.warning).toEqual(expect.any(String));
-  });
-
-  test("dry-run reports legacy coarse symbol migration without writing files", () => {
-    const configPath = path.join(tmpDir, ".kb", "config.json");
-    const symbolsPath = path.join(tmpDir, "documentation", "symbols.yaml");
-    const config = readJson(configPath);
-    writeFileSync(
-      configPath,
-      `${JSON.stringify({ ...config, schemaVersion: 1 }, null, 2)}\n`,
-      "utf8",
-    );
-    writeLegacyGranularityFixture(tmpDir);
-    const beforeSymbols = readFileSync(symbolsPath, "utf8");
-
-    const result = runKibi(["migrate", "--dry-run"], tmpDir);
-
-    expect(result.status).toBe(0);
-    expect(result.stdout).toContain("schemaVersion from 1");
-    expect(result.stdout).toContain("would mark 1 legacy coarse symbol");
-    expect(readFileSync(symbolsPath, "utf8")).toBe(beforeSymbols);
-  });
-
-  test("--yes marks existing coarse symbols as legacy links", () => {
-    const configPath = path.join(tmpDir, ".kb", "config.json");
-    const symbolsPath = path.join(tmpDir, "documentation", "symbols.yaml");
-    const auditPath = path.join(tmpDir, ".kb", "migrations", "main.json");
-    const config = readJson(configPath);
-    writeFileSync(
-      configPath,
-      `${JSON.stringify({ ...config, schemaVersion: 1 }, null, 2)}\n`,
-      "utf8",
-    );
-    writeLegacyGranularityFixture(tmpDir);
-
-    const result = runKibi(["migrate", "--yes"], tmpDir);
-
-    expect(result.status).toBe(0);
-    expect(result.stdout).toContain("Marked 1 existing coarse symbol");
-    expect(readFileSync(symbolsPath, "utf8")).toContain(
-      "granularity_reason: legacy-link",
-    );
-    const audit = readJson(auditPath);
-    expect(audit.symbolGranularityLegacyLinks).toBe(1);
-  });
-
-  test("skips symbol granularity migration when symbols path is not a string", () => {
-    const configPath = path.join(tmpDir, ".kb", "config.json");
-    const config = readJson(configPath);
-    writeFileSync(
-      configPath,
-      `${JSON.stringify(
-        { ...config, schemaVersion: 1, paths: { symbols: null } },
-        null,
-        2,
-      )}\n`,
-      "utf8",
-    );
-
-    const result = runKibi(["migrate", "--dry-run"], tmpDir);
-
-    expect(result.status).toBe(0);
-    expect(result.stdout).not.toContain("legacy coarse symbol");
-  });
-
-  test("skips symbol granularity migration for malformed manifests and already-reasoned symbols", () => {
-    const configPath = path.join(tmpDir, ".kb", "config.json");
-    const symbolsPath = path.join(tmpDir, "documentation", "symbols.yaml");
-    const config = readJson(configPath);
-    writeFileSync(
-      configPath,
-      `${JSON.stringify({ ...config, schemaVersion: 1 }, null, 2)}\n`,
-      "utf8",
-    );
-    mkdirSync(path.dirname(symbolsPath), { recursive: true });
-    writeFileSync(
-      symbolsPath,
-      [
-        "symbols:",
-        "  - null",
-        "  - id: SYM-NO-SOURCE",
-        "    title: noSource",
-        "  - id: SYM-NO-TITLE",
-        "    sourceFile: src/missing.ts",
-        "  - title: noId",
-        "    sourceFile: src/missing.ts",
-        "  - id: SYM-REASONED",
-        "    title: reasoned",
-        "    sourceFile: src/missing.ts",
-        "    granularity_reason: legacy-link",
-        "    links:",
-        "      - REQ-REASONED",
-        "  - id: SYM-NO-TRACE",
-        "    title: noTrace",
-        "    sourceFile: src/missing.ts",
-        "",
-      ].join("\n"),
-      "utf8",
-    );
-
-    const result = runKibi(["migrate", "--dry-run"], tmpDir);
-
-    expect(result.status).toBe(0);
-    expect(result.stdout).not.toContain("legacy coarse symbol");
-  });
-
-  test("--yes marks semantic advisor backfill pending for schema v2 configs", () => {
-    const configPath = path.join(tmpDir, ".kb", "config.json");
-    const auditPath = path.join(tmpDir, ".kb", "migrations", "main.json");
-    const config = readJson(configPath);
-    writeFileSync(
-      configPath,
-      `${JSON.stringify(
-        {
-          ...config,
-          schemaVersion: 2,
-        },
-        null,
-        2,
-      )}\n`,
-      "utf8",
-    );
-
-    const result = runKibi(["migrate", "--yes"], tmpDir);
-
-    expect(result.status).toBe(0);
-    expect(result.stdout).toContain("semantic advisor backfill as pending");
-
-    const migratedConfig = readJson(configPath);
-    expect(migratedConfig.schemaVersion).toBe(LATEST_KB_SCHEMA_VERSION);
-    expect(migratedConfig.semanticAdvisorBackfill).toBe("pending");
-
-    const audit = readJson(auditPath);
-    expect(audit.fromVersion).toBe(2);
-    expect(audit.toVersion).toBe(LATEST_KB_SCHEMA_VERSION);
-    expect(audit.semanticAdvisorBackfill).toBe("pending");
-  });
-
   test("second --yes run is a no-op", () => {
-    const configPath = path.join(tmpDir, ".kb", "config.json");
-    const auditPath = path.join(tmpDir, ".kb", "migrations", "main.json");
-
-    removeSchemaVersion(configPath);
+    writeLegacyConfig(tmpDir, { schemaVersion: 2 });
+    writeLegacyKnowledge(tmpDir);
 
     const firstRun = runKibi(["migrate", "--yes"], tmpDir);
     expect(firstRun.status).toBe(0);
 
-    const configBefore = readFileSync(configPath, "utf8");
+    const manifestPath = path.join(tmpDir, ".kb", "manifest.json");
+    const auditPath = path.join(tmpDir, ".kb", "migrations", "main.json");
+    const manifestBefore = readFileSync(manifestPath, "utf8");
     const auditBefore = readFileSync(auditPath, "utf8");
     const auditMtimeBefore = statSync(auditPath).mtimeMs;
 
     const secondRun = runKibi(["migrate", "--yes"], tmpDir);
-
     expect(secondRun.status).toBe(0);
     expect(secondRun.stdout).toContain("No migration needed");
-    expect(secondRun.stdout).toContain(
-      `already at schemaVersion ${LATEST_KB_SCHEMA_VERSION}`,
-    );
-    expect(readFileSync(configPath, "utf8")).toBe(configBefore);
+    expect(readFileSync(manifestPath, "utf8")).toBe(manifestBefore);
     expect(readFileSync(auditPath, "utf8")).toBe(auditBefore);
     expect(statSync(auditPath).mtimeMs).toBe(auditMtimeBefore);
   });

@@ -1,0 +1,99 @@
+relationships:
+  - id: rel-f3ac3fc634c5
+    type: covered_by
+    from: SYM-semantic-source-of
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: "2026-08-16T18:52:06.532Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-canonical-LegacyKbConfigPaths
+    to: REQ-cli-init-canonical
+    created_at: 2026-08-18T17:01:50.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc30d458a7bc
+  - type: covered_by
+    from: SYM-canonical-LegacyKbConfigPaths
+    to: TEST-cli-canonical-init
+    created_at: 2026-08-18T17:01:50.313Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b46dd65730f4
+  - type: executable_for
+    from: SYM-cli-isolated-spawn-sync
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-19T19:27:10.251Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c648808b0cf1
+  - type: covered_by
+    from: SYM-cli-github-placeholder-owner
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-19T20:55:42.264Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24c9490bd5ad
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapevidence
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:49:13.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fae6cedc30e
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapevidence
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:49:13.247Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7be4a8c72f93
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapevidence
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:19:51.729Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e185e039d524
+  - type: implements
+    from: SYM-cli-logic-ir-validateLogicIr
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:22:08.932Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75a15393216a
+  - type: covered_by
+    from: SYM-cli-logic-ir-validateLogicIr
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:22:08.943Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c01c08b2d1a6
+  - type: covered_by
+    from: SYM-cli-logic-ir-validateLogicIr
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:22:08.948Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68d9fac57466
+  - type: implements
+    from: SYM-setClient
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:55:35.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82fe203de086
+  - type: covered_by
+    from: SYM-setClient
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:55:35.456Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d11d58bf08b
+  - type: covered_by
+    from: SYM-setClient
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:55:35.461Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8b81aa94b62

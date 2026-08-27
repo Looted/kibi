@@ -53,12 +53,8 @@ function setupMinimalWorkspace(root: string) {
   const kbConfigDir = path.join(root, ".kb");
   fs.mkdirSync(kbConfigDir, { recursive: true });
   fs.writeFileSync(
-    path.join(kbConfigDir, "config.json"),
-    JSON.stringify(
-      { paths: { symbols: "documentation/symbols.yaml" } },
-      null,
-      2,
-    ),
+    path.join(kbConfigDir, "manifest.json"),
+    JSON.stringify({ paths: { symbols: ".kb/symbols.yaml" } }, null, 2),
   );
   const branchDir = path.join(root, ".kb", "branches", "develop");
   fs.mkdirSync(branchDir, { recursive: true });
@@ -69,11 +65,7 @@ function setupMinimalWorkspace(root: string) {
          xmlns:kb="http://kibi.dev/kb/">
 </rdf:RDF>`,
   );
-  fs.mkdirSync(path.join(root, "documentation"), { recursive: true });
-  fs.writeFileSync(
-    path.join(tmpDir, "documentation", "symbols.yaml"),
-    "symbols: []\n",
-  );
+  fs.writeFileSync(path.join(root, ".kb", "symbols.yaml"), "symbols: []\n");
 }
 
 // Helper to import extension module with fresh vscode mock

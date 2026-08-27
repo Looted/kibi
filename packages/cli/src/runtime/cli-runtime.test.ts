@@ -8,6 +8,7 @@ import type {
   RuntimeOperationSpec,
 } from "../public/operations/runtime-types.js";
 import { _setBranchResolverDepsForTests } from "../utils/branch-resolver.js";
+import { branchStorePath } from "../utils/branch-store-locator.js";
 import { createCliRuntime } from "./cli-runtime.js";
 
 const readSpec: RuntimeOperationSpec<Record<string, never>, void> = {
@@ -45,6 +46,10 @@ function createManagedProlog(events: string[]): ManagedProlog {
   };
 }
 
+function attachEvent(workspaceRoot: string, branch: string): string {
+  return `query:kb_attach('${branchStorePath(workspaceRoot, branch)}')`;
+}
+
 // Branch resolution in the runtime goes through `resolveActiveBranch`, which
 // consults `defaultDeps.execSync` from branch-resolver.ts. Inject a fake
 // execSync so the tests do not depend on a real git repo at /workspace.
@@ -58,13 +63,21 @@ function fakeBranchExecSync(branch: string) {
 }
 
 describe("CLI operation runtime", () => {
+  const originalKibiBranch = process.env.KIBI_BRANCH;
+
   beforeAll(() => {
+    Reflect.deleteProperty(process.env, "KIBI_BRANCH");
     _setBranchResolverDepsForTests({
       execSync: fakeBranchExecSync("feature/runtime"),
     });
   });
 
   afterAll(() => {
+    if (originalKibiBranch === undefined) {
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+    } else {
+      process.env.KIBI_BRANCH = originalKibiBranch;
+    }
     // Restore real execSync so other test files are not affected.
     _setBranchResolverDepsForTests({ execSync: undefined as never });
   });
@@ -86,7 +99,7 @@ describe("CLI operation runtime", () => {
     expect(context.prolog).toBeDefined();
     expect(events).toEqual([
       "start",
-      "query:kb_attach('/workspace/.kb/branches/feature/runtime')",
+      attachEvent("/workspace", "feature/runtime"),
       "terminate",
     ]);
   });
@@ -106,7 +119,7 @@ describe("CLI operation runtime", () => {
     // Then
     expect(events).toEqual([
       "start",
-      "query:kb_attach('/workspace/.kb/branches/feature/runtime')",
+      attachEvent("/workspace", "feature/runtime"),
     ]);
     await runtime.close(context, { status: "success", result: undefined });
   });
@@ -129,7 +142,7 @@ describe("CLI operation runtime", () => {
     // Then
     expect(events).toEqual([
       "start",
-      "query:kb_attach('/workspace/.kb/branches/feature/runtime')",
+      attachEvent("/workspace", "feature/runtime"),
       "terminate",
     ]);
   });
@@ -182,12 +195,8 @@ describe("CLI operation runtime", () => {
       const context = await runtime.open(readSpec);
       await runtime.close(context, { status: "success", result: undefined });
 
-      expect(events).toContain(
-        "query:kb_attach('/workspace/.kb/branches/develop')",
-      );
-      expect(events).not.toContain(
-        "query:kb_attach('/workspace/.kb/branches/main')",
-      );
+      expect(events).toContain(attachEvent("/workspace", "develop"));
+      expect(events).not.toContain(attachEvent("/workspace", "main"));
     } finally {
       _setBranchResolverDepsForTests({
         execSync: fakeBranchExecSync("feature/runtime"),
@@ -195,17 +204,13 @@ describe("CLI operation runtime", () => {
     }
   });
 
-  test("falls back to main on non-git workspaces instead of failing", async () => {
-    // A non-git workspace is a supported context: kibi init and kibi migrate
-    // both resolve to "main" for NOT_A_GIT_REPO / GIT_NOT_AVAILABLE, creating
-    // .kb/branches/main. Read-side operations must attach to that same path
-    // so the packed install smoke test (`kibi init` then `kibi query req`)
-    // succeeds without a git repository.
+  test("requires an explicit branch override on non-git workspaces", async () => {
     const events: string[] = [];
     const failingExecSync = (() => {
       throw new Error("fatal: not a git repository");
     }) as unknown as typeof import("node:child_process").execSync;
     _setBranchResolverDepsForTests({ execSync: failingExecSync });
+    process.env.KIBI_BRANCH = "standalone";
     try {
       const runtime = createCliRuntime({
         workspaceRoot: "/not-a-git-repo",
@@ -215,10 +220,9 @@ describe("CLI operation runtime", () => {
       const context = await runtime.open(readSpec);
       await runtime.close(context, { status: "success", result: undefined });
 
-      expect(events).toContain(
-        "query:kb_attach('/not-a-git-repo/.kb/branches/main')",
-      );
+      expect(events).toContain(attachEvent("/not-a-git-repo", "standalone"));
     } finally {
+      Reflect.deleteProperty(process.env, "KIBI_BRANCH");
       _setBranchResolverDepsForTests({
         execSync: fakeBranchExecSync("feature/runtime"),
       });

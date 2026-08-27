@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { type ChildProcess, spawn } from "node:child_process";
 import path from "node:path";
+import { isolatedMcpSandboxEnv } from "./helpers/isolated-env.js";
 
 type JsonValue = null | boolean | number | string | JsonValue[] | JsonObject;
 type JsonObject = { [key: string]: JsonValue };
@@ -13,7 +14,7 @@ function startServer(options?: {
   return spawn("bun", ["run", serverPath], {
     stdio: ["pipe", "pipe", "pipe"],
     cwd: options?.cwd,
-    env: options?.env ? { ...process.env, ...options.env } : process.env,
+    env: isolatedMcpSandboxEnv(options?.env),
   });
 }
 
@@ -139,7 +140,7 @@ describe("MCP stdio protocol hardening", () => {
       id: 1,
       method: "initialize",
       params: {
-        protocolVersion: "2024-11-05",
+        protocolVersion: "2025-11-25",
         capabilities: {},
         clientInfo: { name: "test", version: "1.0" },
       },
@@ -163,7 +164,7 @@ describe("MCP stdio protocol hardening", () => {
       id: 1,
       method: "initialize",
       params: {
-        protocolVersion: "2024-11-05",
+        protocolVersion: "2025-11-25",
         capabilities: {},
         clientInfo: { name: "test", version: "1.0" },
       },
@@ -181,7 +182,7 @@ describe("MCP stdio protocol hardening", () => {
       id: 1,
       method: "initialize",
       params: {
-        protocolVersion: "2024-11-05",
+        protocolVersion: "2025-11-25",
         capabilities: {},
         clientInfo: { name: "test", version: "1.0" },
       },
@@ -205,7 +206,7 @@ describe("MCP stdio protocol hardening", () => {
       id: 1,
       method: "initialize",
       params: {
-        protocolVersion: "2024-11-05",
+        protocolVersion: "2025-11-25",
         capabilities: {},
         clientInfo: { name: "test", version: "1.0" },
       },
@@ -227,7 +228,7 @@ describe("MCP stdio protocol hardening", () => {
       id: 1,
       method: "initialize",
       params: {
-        protocolVersion: "2024-11-05",
+        protocolVersion: "2025-11-25",
         capabilities: {},
         clientInfo: { name: "test", version: "1.0" },
       },

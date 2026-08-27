@@ -129,26 +129,26 @@ if (RUN_NODE_TEST_SUITE) {
           // Bootstrap the temp project so posture is root_active (comment guidance is visible)
           mkdirSync(join(projectDir, ".kb"), { recursive: true });
           writeFileSync(
-            join(projectDir, ".kb", "config.json"),
-            JSON.stringify({}),
+            join(projectDir, ".kb", "manifest.json"),
+            JSON.stringify({
+              manifestVersion: 1,
+              schemaVersion: 5,
+              semanticAdvisorBackfill: "not_applicable",
+            }),
             "utf8",
           );
           for (const dir of [
-            "documentation/requirements",
-            "documentation/scenarios",
-            "documentation/tests",
-            "documentation/adr",
-            "documentation/flags",
-            "documentation/events",
-            "documentation/facts",
+            ".kb/requirements",
+            ".kb/scenarios",
+            ".kb/tests",
+            ".kb/adr",
+            ".kb/flags",
+            ".kb/events",
+            ".kb/facts",
           ]) {
             mkdirSync(join(projectDir, dir), { recursive: true });
           }
-          writeFileSync(
-            join(projectDir, "documentation", "symbols.yaml"),
-            "[]",
-            "utf8",
-          );
+          writeFileSync(join(projectDir, ".kb", "symbols.yaml"), "[]", "utf8");
 
           // Write Python file with a module docstring containing domain invariants
           const pyFile = join(projectDir, "src", "models.py");
@@ -290,26 +290,26 @@ class User:
           // Bootstrap the temp project so posture is root_active (comment guidance is visible)
           mkdirSync(join(projectDir, ".kb"), { recursive: true });
           writeFileSync(
-            join(projectDir, ".kb", "config.json"),
-            JSON.stringify({}),
+            join(projectDir, ".kb", "manifest.json"),
+            JSON.stringify({
+              manifestVersion: 1,
+              schemaVersion: 5,
+              semanticAdvisorBackfill: "not_applicable",
+            }),
             "utf8",
           );
           for (const dir of [
-            "documentation/requirements",
-            "documentation/scenarios",
-            "documentation/tests",
-            "documentation/adr",
-            "documentation/flags",
-            "documentation/events",
-            "documentation/facts",
+            ".kb/requirements",
+            ".kb/scenarios",
+            ".kb/tests",
+            ".kb/adr",
+            ".kb/flags",
+            ".kb/events",
+            ".kb/facts",
           ]) {
             mkdirSync(join(projectDir, dir), { recursive: true });
           }
-          writeFileSync(
-            join(projectDir, "documentation", "symbols.yaml"),
-            "[]",
-            "utf8",
-          );
+          writeFileSync(join(projectDir, ".kb", "symbols.yaml"), "[]", "utf8");
 
           // Write Python file with # comments containing decision rationale
           const pyFile = join(projectDir, "src", "database.py");

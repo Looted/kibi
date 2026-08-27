@@ -47,7 +47,7 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
       await kibi(sandbox, ["init"]);
       createMarkdownFile(
         sandbox,
-        "documentation/requirements/REQ-PACKED-PARITY.md",
+        ".kb/requirements/REQ-PACKED-PARITY.md",
         {
           id: "REQ-PACKED-PARITY",
           title: "Packed parity",
@@ -59,7 +59,7 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
       );
       createMarkdownFile(
         sandbox,
-        "documentation/scenarios/SCEN-PACKED-PARITY.md",
+        ".kb/scenarios/SCEN-PACKED-PARITY.md",
         {
           id: "SCEN-PACKED-PARITY",
           title: "Packed parity scenario",
@@ -82,7 +82,7 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
   });
 
   it(
-    "drives all 18 packed CLI JSON routes through file and stdin input",
+    "drives the packed CLI JSON routes through file and stdin input",
     { timeout: 300_000 },
     async () => {
       if (!hasProlog) return;
@@ -117,7 +117,7 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
   );
 
   it(
-    "matches the frozen 18-tool MCP schema fixture without briefing generation",
+    "matches the frozen MCP schema fixture without briefing generation",
     { timeout: 120_000 },
     async () => {
       if (!hasProlog) return;
@@ -148,7 +148,7 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
         const tools = response.result?.tools as
           | readonly Record<string, unknown>[]
           | undefined;
-        assert.strictEqual(tools?.length, 18);
+        assert.strictEqual(tools?.length, 21);
         assert.ok(!tools?.some((tool) => tool.name === "kb_briefing_generate"));
       } finally {
         process.kill();

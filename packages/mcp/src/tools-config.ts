@@ -17,8 +17,8 @@
  */
 
 import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
-import { getSpec } from "kibi-cli/operations";
-import type { OperationName } from "kibi-cli/operations";
+import { getSpec } from "kibi-runtime";
+import type { OperationName } from "kibi-runtime";
 
 import {
   DIAGNOSTIC_MODE_ENABLED,
@@ -29,6 +29,7 @@ interface ToolConfig {
   name: string;
   description: string;
   inputSchema: Readonly<Record<string, unknown>>;
+  outputSchema?: Readonly<Record<string, unknown>>;
   annotations?: ToolAnnotations;
 }
 
@@ -50,11 +51,20 @@ const MCP_TOOL_ORDER = [
   "kb_check",
   "kb_model_requirement",
   "kb_suggest_predicates",
-  "kb_autopilot_generate",
+  "kb_plan_bootstrap",
+  "kb_compile_intent",
+  "kb_apply_plan",
+  "kb_ingest_verification",
 ] as const satisfies readonly OperationName[];
 
 // implements REQ-002
 const TOOL_ANNOTATIONS: Partial<Record<OperationName, ToolAnnotations>> = {
+  kb_query: {
+    title: "Query Kibi entities",
+  },
+  kb_search: {
+    title: "Search Kibi knowledge base",
+  },
   kb_status: {
     title: "Inspect Kibi branch status",
     readOnlyHint: true,
@@ -83,6 +93,18 @@ const TOOL_ANNOTATIONS: Partial<Record<OperationName, ToolAnnotations>> = {
     idempotentHint: true,
     openWorldHint: false,
   },
+  kb_find_gaps: {
+    title: "Find missing Kibi relationships",
+  },
+  kb_coverage: {
+    title: "Report Kibi coverage and proofs",
+  },
+  kb_graph: {
+    title: "Traverse Kibi graph",
+  },
+  kb_sparql_remote: {
+    title: "Run a remote SPARQL query",
+  },
   kb_semantic_advisor: {
     title: "Advise on Kibi requirement modeling",
     readOnlyHint: true,
@@ -97,15 +119,68 @@ const TOOL_ANNOTATIONS: Partial<Record<OperationName, ToolAnnotations>> = {
     idempotentHint: true,
     openWorldHint: false,
   },
+  kb_upsert: {
+    title: "Create or update Kibi entities",
+  },
+  kb_validate_upsert: {
+    title: "Validate a Kibi upsert payload",
+  },
+  kb_delete: {
+    title: "Delete a Kibi entity",
+  },
+  kb_check: {
+    title: "Validate Kibi knowledge base",
+  },
+  kb_model_requirement: {
+    title: "Model a Kibi requirement",
+  },
+  kb_compile_intent: {
+    title: "Compile Kibi change intent",
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
+  kb_plan_bootstrap: {
+    title: "Plan Kibi bootstrap",
+  },
+  kb_apply_plan: {
+    title: "Apply an approved Kibi plan",
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: false,
+    openWorldHint: false,
+  },
+  kb_ingest_verification: {
+    title: "Ingest contracted verification evidence",
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: false,
+    openWorldHint: false,
+  },
 };
 
 const BASE_TOOLS: readonly ToolConfig[] = MCP_TOOL_ORDER.map((name) => {
   const spec = getSpec(name);
+  const effects = spec.declaredEffects;
+  const derived: ToolAnnotations = {
+    readOnlyHint: effects.every((effect) => effect.mutability === "read"),
+    destructiveHint: effects.some((effect) => effect.destructive),
+    idempotentHint: effects.every((effect) => effect.retrySafety === "safe"),
+    openWorldHint: effects.some((effect) => effect.openWorld),
+  };
   return {
     name: spec.name,
     description: spec.description,
     inputSchema: spec.businessInputSchema,
-    ...(TOOL_ANNOTATIONS[name] ? { annotations: TOOL_ANNOTATIONS[name] } : {}),
+    ...(spec.outputSchema ? { outputSchema: spec.outputSchema } : {}),
+    annotations: {
+      ...(TOOL_ANNOTATIONS[name] ?? {}),
+      // Mutability and world-model hints are generated from the authoritative
+      // operation effects. Hand-authored entries may supply presentation-only
+      // metadata such as a title, but cannot contradict the catalog contract.
+      ...derived,
+    },
   };
 });
 

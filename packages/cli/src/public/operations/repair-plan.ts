@@ -237,6 +237,7 @@ const GAP_STAGE: Readonly<Record<string, string>> = {
   stale_verification_receipt: "passing_e2e",
   failed_verification_receipt: "passing_e2e",
   invalid_verification_receipt: "passing_e2e",
+  verification_contract_mismatch: "passing_e2e",
   verification_snapshot_unavailable: "passing_e2e",
   missing_executable_test_symbol: "executable_symbols",
   missing_production_symbol: "production_symbols",

@@ -1,5 +1,6 @@
 import { describe, expect, mock, test } from "bun:test";
 import { getSpec } from "kibi-cli/operations";
+import type { OperationContext } from "kibi-cli/operations/runtime-types";
 
 import { handleKbCoverage } from "../../src/tools/coverage.js";
 import { handleKbFindGaps } from "../../src/tools/find-gaps.js";
@@ -14,13 +15,21 @@ function fakeProlog(payload: Readonly<Record<string, unknown>>) {
   };
 }
 
-function context(prolog: ReturnType<typeof fakeProlog>) {
+function context(prolog: ReturnType<typeof fakeProlog>): OperationContext {
   return {
     workspaceRoot: process.cwd(),
     signal: new AbortController().signal,
     clock: () => new Date(0),
+    branchAttachment: {
+      gitBranch: "reporting-adapter-test",
+      kbBranch: "reporting-adapter-test",
+      storePath: ".kb/branches/reporting-adapter-test",
+      kind: "explicit_override",
+      migrationRequired: false,
+    },
     prolog: {
       query: (goal: string) => prolog.query(goal),
+      oneShotMode: typeof (globalThis as { Bun?: unknown }).Bun !== "undefined",
       nextSolution: async () => null,
       save: () => prolog.query("kb_save"),
     },
@@ -49,7 +58,7 @@ describe("MCP reporting thin adapters", () => {
     const input = { includePassing: true, includeTransitive: false };
 
     const shared = await getSpec("kb_coverage").execute(input, context(prolog));
-    const adapted = await handleKbCoverage(prolog, input);
+    const adapted = await handleKbCoverage(prolog, input, context(prolog));
 
     expect(JSON.stringify(adapted)).toBe(JSON.stringify(shared));
   });

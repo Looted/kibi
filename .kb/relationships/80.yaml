@@ -1,0 +1,148 @@
+relationships:
+  - id: rel-4660ecbd402a
+    type: implements
+    from: SYM-auto-A41B8718B7AD
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:21:58.450Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-auto-A41B8718B7AD
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:54:51.604Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-969538f6618d
+  - type: covered_by
+    from: SYM-core-validation-check-kind
+    to: TEST-kibi-conservative-requirement-proof
+    created_at: 2026-08-16T18:51:34.273Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea7fdde6e5cb
+  - type: covered_by
+    from: SYM-repair-plan-build
+    to: TEST-kibi-dependency-ordered-repair-plan
+    created_at: 2026-08-16T18:51:39.481Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-563f3197a0ff
+  - type: covered_by
+    from: SYM-kibi-script-change-to-proof-eval-ts-searchevaluator
+    to: TEST-kibi-change-to-proof-evaluation
+    created_at: 2026-08-16T19:43:54.878Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05a1e96dd6d2
+  - type: validates
+    from: TEST-cursor-stop-job-vs-plan
+    to: SCEN-cursor-stop-job-vs-plan
+    created_at: 2026-08-18T11:55:25.968Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06f088800b5f
+  - type: relates_to
+    from: TEST-cursor-stop-job-vs-plan
+    to: REQ-cursor-stop-job-vs-plan
+    created_at: 2026-08-18T11:56:33.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b96b148baabd
+  - type: implements
+    from: SYM-canonical-clearRecoveredPendingSourceReceipts
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T17:35:44.747Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-168aa3af3725
+  - type: covered_by
+    from: SYM-canonical-clearRecoveredPendingSourceReceipts
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-08-18T17:35:44.762Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9faad000d1c5
+  - type: requires_predicate
+    from: REQ-runtime-packed-engine-daemon
+    to: FACT-RUNTIME-PACKED-ENGINE-DAEMON-SHIP
+    created_at: 2026-08-21T09:46:34.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc517f90b589
+  - type: requires_predicate
+    from: REQ-runtime-packed-engine-daemon
+    to: FACT-RUNTIME-PACKED-CONSUMER-ENGINE-START
+    created_at: 2026-08-21T09:46:34.555Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3964d7288c11
+  - type: specified_by
+    from: REQ-runtime-packed-engine-daemon
+    to: SCEN-runtime-packed-engine-daemon
+    created_at: 2026-08-21T09:46:34.570Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-512939139a2e
+  - type: verified_by
+    from: REQ-runtime-packed-engine-daemon
+    to: TEST-runtime-packed-engine-daemon
+    created_at: 2026-08-21T09:46:34.583Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb397002156e
+  - type: implements
+    from: SYM-createCliRuntime
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:27:02.745Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83b14aa4b11c
+  - type: covered_by
+    from: SYM-createCliRuntime
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:27:02.768Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3d48878d5b3
+  - type: covered_by
+    from: SYM-createCliRuntime
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:27:02.783Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98fdc5f257e4
+  - type: implements
+    from: SYM-KibiCheckpointRunnerOptions
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:51:20.665Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67c3b62fe997
+  - type: covered_by
+    from: SYM-KibiCheckpointRunnerOptions
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:51:20.679Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5b4c5ea9c7d
+  - type: covered_by
+    from: SYM-KibiCheckpointRunnerOptions
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:51:20.685Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-822c1160c089
+  - type: implements
+    from: SYM-FixtureSetupError-name
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-23T23:20:18.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09e5663973c7
+  - type: covered_by
+    from: SYM-FixtureSetupError-name
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-23T23:20:18.669Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cab387c70bde

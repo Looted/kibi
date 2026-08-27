@@ -17,6 +17,12 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { createOwnedPackedTempDirectory } from "./helpers.js";
+import {
+  type NpmPackResult,
+  parseNpmPackJsonOutput,
+  resolveNpmPackFilename,
+} from "./npm-pack-json.js";
 
 const REPO_ROOT = resolve(process.cwd());
 
@@ -30,14 +36,13 @@ export interface IsolatedInstall {
   installDir: string;
 }
 
-export interface NpmPackResult {
-  filename: string;
-  version: string;
-}
+type KibiPackage = "core" | "cli" | "runtime" | "mcp" | "opencode";
 
-type KibiPackage = "core" | "cli" | "mcp" | "opencode";
-
-const REQUIRED_DEP_PACKAGES: ReadonlyArray<KibiPackage> = ["core", "cli"];
+const REQUIRED_DEP_PACKAGES: ReadonlyArray<KibiPackage> = [
+  "core",
+  "cli",
+  "runtime",
+];
 
 function findTarballFromEnv(
   tarballEnv: string,
@@ -102,14 +107,21 @@ function packKibiPackageTarball(
   repoRoot: string = REPO_ROOT,
 ): string {
   const pkgDir = join(repoRoot, "packages", pkg);
+  const packDestination = createOwnedPackedTempDirectory(
+    "kibi-opencode-tarballs-",
+  );
 
   let packOutput: string;
   try {
-    packOutput = execFileSync("npm", ["pack", "--json"], {
-      cwd: pkgDir,
-      encoding: "utf8",
-      stdio: ["pipe", "pipe", "pipe"],
-    });
+    packOutput = execFileSync(
+      "npm",
+      ["pack", "--json", "--pack-destination", packDestination],
+      {
+        cwd: pkgDir,
+        encoding: "utf8",
+        stdio: ["pipe", "pipe", "pipe"],
+      },
+    );
   } catch (error) {
     const err = error as Error & { stderr?: Buffer; stdout?: Buffer };
     throw new Error(
@@ -124,7 +136,10 @@ function packKibiPackageTarball(
     throw new Error(`npm pack did not return a filename for kibi-${pkg}`);
   }
 
-  const tarballPath = join(pkgDir, packResults[0].filename);
+  const tarballPath = resolveNpmPackFilename(
+    packDestination,
+    packResults[0].filename,
+  );
   if (!existsSync(tarballPath)) {
     throw new Error(`Tarball not found: ${tarballPath}`);
   }
@@ -132,26 +147,10 @@ function packKibiPackageTarball(
   return tarballPath;
 }
 
-export function parseNpmPackJsonOutput(output: string): NpmPackResult[] {
-  // implements REQ-opencode-kibi-plugin-v1
-  for (let i = 0; i < output.length; i += 1) {
-    if (output[i] !== "[") continue;
-
-    const remaining = output.slice(i + 1).trimStart();
-    if (!remaining.startsWith("{")) continue;
-
-    try {
-      const parsed = JSON.parse(output.slice(i)) as unknown;
-      if (Array.isArray(parsed)) {
-        return parsed as NpmPackResult[];
-      }
-    } catch {
-      // Keep scanning: earlier build output may contain non-JSON bracketed text.
-    }
-  }
-
-  throw new Error(`npm pack did not emit parseable JSON output: ${output}`);
-}
+export {
+  type NpmPackResult,
+  parseNpmPackJsonOutput,
+} from "./npm-pack-json.js";
 
 /**
  * Resolve the kibi-opencode tarball.
@@ -180,14 +179,21 @@ export function resolveOpencodeTarball(
   // Pack fresh tarball
   log("  📦 Packing kibi-opencode...");
   const opencodeDir = join(repoRoot, "packages/opencode");
+  const packDestination = createOwnedPackedTempDirectory(
+    "kibi-opencode-tarballs-",
+  );
 
   let packOutput: string;
   try {
-    packOutput = execFileSync("npm", ["pack", "--json"], {
-      cwd: opencodeDir,
-      encoding: "utf8",
-      stdio: ["pipe", "pipe", "pipe"],
-    });
+    packOutput = execFileSync(
+      "npm",
+      ["pack", "--json", "--pack-destination", packDestination],
+      {
+        cwd: opencodeDir,
+        encoding: "utf8",
+        stdio: ["pipe", "pipe", "pipe"],
+      },
+    );
   } catch (error) {
     const err = error as Error & { stderr?: Buffer; stdout?: Buffer };
     throw new Error(
@@ -202,7 +208,10 @@ export function resolveOpencodeTarball(
     throw new Error("npm pack did not return a filename");
   }
 
-  const tarballPath = join(opencodeDir, packResults[0].filename);
+  const tarballPath = resolveNpmPackFilename(
+    packDestination,
+    packResults[0].filename,
+  );
   if (!existsSync(tarballPath)) {
     throw new Error(`Tarball not found: ${tarballPath}`);
   }
@@ -251,10 +260,10 @@ export function installOpencodeTarball(
 ): void {
   // implements REQ-opencode-kibi-plugin-v1
   log("  📥 Installing kibi-opencode from tarball...");
-  const installArgs = ["install", "--legacy-peer-deps", "--no-audit"];
+  const installArgs = ["install", "--no-audit"];
   const tarballEnv = process.env.KIBI_TEST_TARBALLS;
 
-  for (const dep of ["core", "cli"] as const) {
+  for (const dep of ["core", "cli", "runtime"] as const) {
     if (tarballEnv) {
       const depTarball = findTarballFromEnv(tarballEnv, dep);
       if (depTarball) {

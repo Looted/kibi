@@ -1,4 +1,5 @@
 import { execFileSync, spawn } from "node:child_process";
+import { createHash } from "node:crypto";
 import {
   existsSync,
   mkdirSync,
@@ -10,6 +11,10 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
+import {
+  parseNpmPackJsonOutput,
+  resolveNpmPackFilename,
+} from "./npm-pack-json.js";
 import { writePackedInstallManifest } from "./packed-install-manifest.js";
 
 // allow: SIZE_OK — legacy packed E2E helper API spans established tests; splitting it requires a repository-wide migration.
@@ -26,11 +31,86 @@ import { writePackedInstallManifest } from "./packed-install-manifest.js";
 
 const REPO_ROOT = resolve(process.cwd());
 
-let cachedTarballsPromise: Promise<Tarballs> | null = null;
+/**
+ * Packed sandboxes are independent Git checkouts. Host CI may set
+ * `KIBI_BRANCH` for the dogfood repository's detached HEAD; leaking that
+ * identity into a temp repo makes hashed stores and `kibi init`/`sync`
+ * attach to the host branch instead of the sandbox branch.
+ */
+export function isolatedPackedSandboxEnv(
+  overrides: NodeJS.ProcessEnv = {},
+): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = { ...process.env, ...overrides };
+  env.KIBI_BRANCH = undefined;
+  const explicit = overrides.KIBI_BRANCH;
+  if (
+    typeof explicit === "string" &&
+    explicit.length > 0 &&
+    explicit !== process.env.KIBI_BRANCH
+  ) {
+    env.KIBI_BRANCH = explicit;
+  }
+  return env;
+}
+
+/** Return the exact hashed compiled-store directory for a Git branch identity. */
+export function exactBranchStorePath(repoDir: string, branch: string): string {
+  const key = createHash("sha256").update(branch).digest("hex");
+  return join(repoDir, ".kb", "branches", key);
+}
+
+type PackSource = Readonly<{
+  key: string;
+  externalRoot: string | null;
+}>;
+
+type SharedInstallation = Readonly<{
+  prefix: string;
+  promise: Promise<void>;
+}>;
+
+export interface SharedNpmCacheResolution {
+  path: string;
+  owned: boolean;
+}
+
+const cachedTarballs = new Map<string, Promise<Tarballs>>();
+const tarballRoots = new Map<string, string>();
+const sharedInstallations = new Map<string, SharedInstallation>();
 let sharedPrefixPath: string | null = null;
-let sharedInstallKey: string | null = null;
-let sharedInstallPromise: Promise<void> | null = null;
 const ownedSharedPaths = new Set<string>();
+
+/** Create a packed-test temp directory reclaimed when this worker exits. */
+export function createOwnedPackedTempDirectory(
+  prefix = "kibi-e2e-tarballs-",
+): string {
+  const directory = mkdtempSync(join(tmpdir(), prefix));
+  ownedSharedPaths.add(directory);
+  return directory;
+}
+
+/**
+ * Use an operator-provided npm cache when requested, while keeping the
+ * default cache lifecycle isolated to the current packed test process.
+ * Configured caches are deliberately not returned as owned paths: cleanup
+ * must never remove user-provided state.
+ */
+function resolveNpmCache(fallbackPath: string | (() => string)): {
+  path: string;
+  owned: boolean;
+} {
+  const configuredPath = process.env.KIBI_E2E_NPM_CACHE?.trim();
+  if (configuredPath) {
+    const cachePath = resolve(REPO_ROOT, configuredPath);
+    mkdirSync(cachePath, { recursive: true });
+    return { path: cachePath, owned: false };
+  }
+
+  const cachePath =
+    typeof fallbackPath === "function" ? fallbackPath() : fallbackPath;
+  mkdirSync(cachePath, { recursive: true });
+  return { path: cachePath, owned: true };
+}
 
 // Some artifact-only tests intentionally clear KIBI_E2E_PREFIX and create a
 // worker-local fallback installation. Ensure those paths are reclaimed when
@@ -50,7 +130,12 @@ function resolveNpmBinary(): string {
   }
 
   try {
-    const npmPath = execFileSync("which", ["npm"], { encoding: "utf8" }).trim();
+    const locator = process.platform === "win32" ? "where.exe" : "which";
+    const npmPath = execFileSync(locator, ["npm"], {
+      encoding: "utf8",
+    })
+      .split(/\r?\n/)[0]
+      ?.trim();
     if (npmPath) {
       return npmPath;
     }
@@ -61,9 +146,46 @@ function resolveNpmBinary(): string {
   return "npm";
 }
 
+function resolveBunBinary(): string {
+  try {
+    const locator = process.platform === "win32" ? "where.exe" : "which";
+    const bunPath = execFileSync(locator, ["bun"], {
+      encoding: "utf8",
+    })
+      .split(/\r?\n/)[0]
+      ?.trim();
+    if (bunPath) return bunPath;
+  } catch (error) {
+    if (!(error instanceof Error)) throw error;
+  }
+
+  return "bun";
+}
+
+function npmPackCommand(npmBinary: string): {
+  command: string;
+  args: string[];
+} {
+  if (/\.(?:c?m?js)$/i.test(npmBinary)) {
+    return { command: process.execPath, args: [npmBinary] };
+  }
+  return { command: npmBinary, args: [] };
+}
+
+function packageInstallArgs(packageManagerBinary: string): string[] {
+  return basename(packageManagerBinary).toLowerCase().includes("pnpm")
+    ? ["install"]
+    : ["install", "--no-audit"];
+}
+
 function resolveGitBinary(): string {
   try {
-    const gitPath = execFileSync("which", ["git"], { encoding: "utf8" }).trim();
+    const locator = process.platform === "win32" ? "where.exe" : "which";
+    const gitPath = execFileSync(locator, ["git"], {
+      encoding: "utf8",
+    })
+      .split(/\r?\n/)[0]
+      ?.trim();
     if (gitPath) {
       return gitPath;
     }
@@ -74,18 +196,48 @@ function resolveGitBinary(): string {
   return "git";
 }
 
+/**
+ * Resolve the suite-level npm cache before the install's isolated HOME is
+ * applied. Explicit Kibi and ambient npm cache settings are never owned by
+ * this helper; the final fallback is the only cache path we clean up.
+ */
+// implements REQ-test-journaled-engine-harness
+export function resolveSharedNpmCache(): SharedNpmCacheResolution {
+  const configuredCache =
+    process.env.KIBI_E2E_NPM_CACHE?.trim() ||
+    process.env.npm_config_cache?.trim();
+  if (configuredCache) {
+    return { path: resolve(configuredCache), owned: false };
+  }
+
+  const originalHome =
+    process.env.HOME?.trim() || process.env.USERPROFILE?.trim();
+  if (originalHome) {
+    return { path: join(resolve(originalHome), ".npm"), owned: false };
+  }
+
+  const fallbackPath = mkdtempSync(join(tmpdir(), "kibi-e2e-cache-"));
+  ownedSharedPaths.add(fallbackPath);
+  return { path: fallbackPath, owned: true };
+}
+
 function getSharedPrefixPath(): string {
   if (!sharedPrefixPath) {
-    sharedPrefixPath = mkdtempSync(join(tmpdir(), "kibi-e2e-prefix-"));
-    ownedSharedPaths.add(sharedPrefixPath);
-    writeFileSync(
-      join(sharedPrefixPath, "package.json"),
-      JSON.stringify({ name: "kibi-packed-e2e", private: true }, null, 2),
-      "utf8",
-    );
+    sharedPrefixPath = allocateSharedPrefixPath();
   }
 
   return sharedPrefixPath;
+}
+
+function allocateSharedPrefixPath(): string {
+  const prefix = mkdtempSync(join(tmpdir(), "kibi-e2e-prefix-"));
+  ownedSharedPaths.add(prefix);
+  writeFileSync(
+    join(prefix, "package.json"),
+    JSON.stringify({ name: "kibi-packed-e2e", private: true }, null, 2),
+    "utf8",
+  );
+  return prefix;
 }
 
 function hasInstalledKibi(prefix: string | undefined): prefix is string {
@@ -144,68 +296,131 @@ function findPrePackedTarball(
 const packagesForPack = [
   "core",
   "cli",
+  "runtime",
   "mcp",
   "opencode",
   "codex",
   "cursor",
 ] as const;
 
-async function bootstrapSharedInstall(): Promise<void> {
+function resolvePackSource(): PackSource {
+  const configuredRoot = process.env.KIBI_TEST_TARBALLS;
+  if (configuredRoot && existsSync(configuredRoot)) {
+    const externalRoot = resolve(configuredRoot);
+    return { key: `external:${externalRoot}`, externalRoot };
+  }
+  return { key: `workspace:${REPO_ROOT}`, externalRoot: null };
+}
+
+function tarballRootFor(source: PackSource, tarballs: Tarballs): string {
+  if (source.externalRoot) return source.externalRoot;
+  const root = tarballRoots.get(source.key);
+  if (root) return root;
+  return dirname(tarballs.core);
+}
+
+async function bootstrapSharedInstall(
+  source: PackSource,
+): Promise<SharedPackedEnvironment> {
   const bakedPrefix = process.env.KIBI_E2E_PREFIX;
   const useBakedPrefix = hasInstalledKibi(bakedPrefix);
 
   if (useBakedPrefix) {
-    return;
+    const tarballs = await packAll();
+    return {
+      prefix: bakedPrefix,
+      tarballsRoot: tarballRootFor(source, tarballs),
+    };
   }
 
   const tarballs = await packAll();
-  const npmPrefix = getSharedPrefixPath();
+  const installKey = [
+    tarballs.core,
+    tarballs.cli,
+    tarballs.runtime,
+    tarballs.mcp,
+    tarballs.opencode,
+    tarballs.codex,
+    tarballs.cursor,
+  ].join("|");
+  const existing = sharedInstallations.get(installKey);
+  if (existing) {
+    sharedPrefixPath = existing.prefix;
+    await existing.promise;
+    return {
+      prefix: existing.prefix,
+      tarballsRoot: tarballRootFor(source, tarballs),
+    };
+  }
+
+  const npmPrefix = allocateSharedPrefixPath();
   const npmBinary = resolveNpmBinary();
   const npmDir = dirname(npmBinary);
   const gitDir = dirname(resolveGitBinary());
   const homeDir = mkdtempSync(join(tmpdir(), "kibi-e2e-home-"));
-  const cacheDir = mkdtempSync(join(tmpdir(), "kibi-e2e-cache-"));
+  const sharedNpmCache = resolveSharedNpmCache();
   ownedSharedPaths.add(homeDir);
-  ownedSharedPaths.add(cacheDir);
-  const installKey = [tarballs.core, tarballs.cli, tarballs.mcp].join("|");
-  const env: NodeJS.ProcessEnv = {
-    ...process.env,
+  if (sharedNpmCache.owned) ownedSharedPaths.add(sharedNpmCache.path);
+  const env: NodeJS.ProcessEnv = isolatedPackedSandboxEnv({
     HOME: homeDir,
     USERPROFILE: homeDir,
-    npm_config_cache: cacheDir,
+    npm_config_cache: sharedNpmCache.path,
     npm_config_userconfig: join(npmPrefix, "npmrc"),
     PATH: `${join(npmPrefix, "node_modules", ".bin")}:${gitDir}:${npmDir}:/usr/bin:${process.env.PATH ?? ""}`,
     NODE_ENV: "production",
-  };
-
-  if (sharedInstallKey === installKey && sharedInstallPromise) {
-    await sharedInstallPromise;
-    return;
-  }
-
-  sharedInstallKey = installKey;
-  sharedInstallPromise = (async () => {
+  });
+  const installPromise = (async () => {
     console.log("📥 Bootstrapping shared packed test installation...");
     writePackedInstallManifest(npmPrefix, tarballs);
-    await run(npmBinary, ["install", "--legacy-peer-deps", "--no-audit"], {
+    const installResult = await run(npmBinary, packageInstallArgs(npmBinary), {
       cwd: npmPrefix,
       env,
       timeoutMs: 300000,
     });
+    if (installResult.exitCode !== 0) {
+      throw new Error(
+        `Shared packed installation failed with exit code ${installResult.exitCode}.\nstdout:\n${installResult.stdout}\nstderr:\n${installResult.stderr}`,
+      );
+    }
     await verifyKibiCliResolutionImpl(npmPrefix, env);
   })();
 
-  await sharedInstallPromise;
+  sharedInstallations.set(installKey, {
+    prefix: npmPrefix,
+    promise: installPromise,
+  });
+  try {
+    await installPromise;
+  } catch (error) {
+    sharedInstallations.delete(installKey);
+    throw error;
+  }
+  sharedPrefixPath = npmPrefix;
+  return {
+    prefix: npmPrefix,
+    tarballsRoot: tarballRootFor(source, tarballs),
+  };
 }
 
-// The packed-suite runner calls this once and passes the prepared prefix to
-// every isolated test-file process. Individual test invocation remains
-// supported by the module-level bootstrap at the end of this file.
+/** Immutable prefix and tarball source shared by one packed test run. */
+export interface SharedPackedEnvironment {
+  readonly prefix: string;
+  readonly tarballsRoot: string;
+}
+
+// The packed-suite runner calls this once and passes the prepared prefix and
+// tarball source to every isolated test-file process. Individual test
+// invocation remains supported by the module-level bootstrap at the end of
+// this file.
 // implements REQ-test-journaled-engine-harness
+export async function prepareSharedPackedEnvironment(): Promise<SharedPackedEnvironment> {
+  return bootstrapSharedInstall(resolvePackSource());
+}
+
+// Compatibility wrapper retained for callers that only need the prefix.
 export async function prepareSharedPackedInstallation(): Promise<string> {
-  await bootstrapSharedInstall();
-  const bakedPrefix = process.env.KIBI_E2E_PREFIX;
-  return hasInstalledKibi(bakedPrefix) ? bakedPrefix : getSharedPrefixPath();
+  const environment = await prepareSharedPackedEnvironment();
+  return environment.prefix;
 }
 
 export function cleanupSharedPackedInstallation(): void {
@@ -214,14 +429,16 @@ export function cleanupSharedPackedInstallation(): void {
   }
   ownedSharedPaths.clear();
   sharedPrefixPath = null;
-  sharedInstallKey = null;
-  sharedInstallPromise = null;
+  cachedTarballs.clear();
+  tarballRoots.clear();
+  sharedInstallations.clear();
 }
 
 /** Tarball paths for each package */
 export interface Tarballs {
   core: string;
   cli: string;
+  runtime: string;
   mcp: string;
   opencode: string;
   codex: string;
@@ -240,6 +457,11 @@ export interface RunResult {
   stdout: string;
   stderr: string;
   exitCode: number;
+}
+
+export function parseKibiResult<T>(stdout: string): T {
+  const parsed = JSON.parse(stdout) as { data?: T };
+  return (parsed.data ?? parsed) as T;
 }
 
 /** Options for kibi commands */
@@ -283,21 +505,29 @@ export interface TestSandbox {
  * In Docker environments, checks for pre-packed tarballs first
  */
 export async function packAll(): Promise<Tarballs> {
-  if (cachedTarballsPromise) {
-    return cachedTarballsPromise;
-  }
+  // Artifact-only tests can switch from the runner's baked installation to a
+  // downloaded-artifact directory after this module has been imported. Cache
+  // by source so that a previous local pack cannot silently leak into that
+  // workflow.
+  const source = resolvePackSource();
+  const cached = cachedTarballs.get(source.key);
+  if (cached) return cached;
 
-  cachedTarballsPromise = (async () => {
-    console.log("📦 Packing packages...");
-
+  const promise = (async () => {
     const tarballs: Partial<Tarballs> = {};
     const npmBinary = resolveNpmBinary();
+    const bunBinary = resolveBunBinary();
+    const lifecycleEnv: NodeJS.ProcessEnv = {
+      ...process.env,
+      PATH: `${dirname(bunBinary)}:${process.env.PATH ?? ""}`,
+    };
 
-    const prePackedDir = process.env.KIBI_TEST_TARBALLS;
-    if (prePackedDir && existsSync(prePackedDir)) {
-      console.log(`  Using pre-packed tarballs from ${prePackedDir}`);
+    if (source.externalRoot) {
+      console.log(
+        `📦 Resolving/reusing pre-packed tarballs from ${source.externalRoot}...`,
+      );
       for (const pkg of packagesForPack) {
-        const tarballPath = findPrePackedTarball(prePackedDir, pkg);
+        const tarballPath = findPrePackedTarball(source.externalRoot, pkg);
         if (tarballPath) {
           tarballs[pkg] = tarballPath;
           console.log(`    ✓ ${pkg}: ${basename(tarballPath)}`);
@@ -306,51 +536,72 @@ export async function packAll(): Promise<Tarballs> {
         }
       }
 
+      tarballRoots.set(source.key, source.externalRoot);
       return tarballs as Tarballs;
     }
 
-    for (const pkg of packagesForPack) {
-      const pkgDir = join(REPO_ROOT, "packages", pkg);
-      console.log(`  Packing packages/${pkg}...`);
+    // Keep workspace packs out of package directories. The destination is
+    // owned by this helper process and is reclaimed with the other shared
+    // packed-test paths; operator-provided artifact roots remain untouched.
+    const packDestination = createOwnedPackedTempDirectory();
 
-      try {
-        const npmCommand = npmBinary === "npm" ? "npm" : `\"${npmBinary}\"`;
-        const result = execFileSync(
-          "/bin/bash",
-          ["-lc", `${npmCommand} pack --json --ignore-scripts`],
-          {
-            cwd: pkgDir,
-            encoding: "utf8",
-            stdio: ["pipe", "pipe", "pipe"],
-          },
-        );
+    try {
+      for (const pkg of packagesForPack) {
+        const pkgDir = join(REPO_ROOT, "packages", pkg);
+        console.log(`  Packing packages/${pkg}...`);
 
-        interface PackResult {
-          filename: string;
-        }
-        const packResult = JSON.parse(result) as PackResult[];
-        const filename = packResult[0]?.filename;
-        if (!filename) {
-          throw new Error(
-            `Failed to pack package ${pkg}: no filename in output`,
+        try {
+          const npmCommand = npmPackCommand(npmBinary);
+          const result = execFileSync(
+            npmCommand.command,
+            [
+              ...npmCommand.args,
+              "pack",
+              "--json",
+              "--pack-destination",
+              packDestination,
+            ],
+            {
+              cwd: pkgDir,
+              encoding: "utf8",
+              env: lifecycleEnv,
+              stdio: ["pipe", "pipe", "pipe"],
+            },
           );
+          const packResult = parseNpmPackJsonOutput(result);
+          const filename = packResult[0]?.filename;
+          if (!filename) {
+            throw new Error(
+              `Failed to pack package ${pkg}: no filename in output`,
+            );
+          }
+          const tarballPath = resolveNpmPackFilename(packDestination, filename);
+          if (!existsSync(tarballPath)) {
+            throw new Error(`npm pack did not create ${tarballPath}`);
+          }
+          tarballs[pkg] = tarballPath;
+          console.log(`    → ${basename(filename)}`);
+        } catch (err) {
+          const error = err as Error;
+          throw new Error(`Failed to pack package ${pkg}: ${error.message}`);
         }
-        tarballs[pkg] = join(pkgDir, filename);
-
-        console.log(`    → ${filename}`);
-      } catch (err) {
-        const error = err as Error;
-        throw new Error(`Failed to pack package ${pkg}: ${error.message}`);
       }
-    }
 
-    return tarballs as Tarballs;
+      tarballRoots.set(source.key, packDestination);
+      return tarballs as Tarballs;
+    } catch (error) {
+      rmSync(packDestination, { recursive: true, force: true });
+      ownedSharedPaths.delete(packDestination);
+      throw error;
+    }
   })();
 
+  cachedTarballs.set(source.key, promise);
   try {
-    return await cachedTarballsPromise;
+    return await promise;
   } catch (error) {
-    cachedTarballsPromise = null;
+    cachedTarballs.delete(source.key);
+    tarballRoots.delete(source.key);
     throw error;
   }
 }
@@ -370,15 +621,14 @@ export function createSandbox(): TestSandbox {
 
   // Create isolated directories
   const repoDir = join(baseDir, "repo");
-  const npmPrefix = useBakedPrefix
+  let npmPrefix = useBakedPrefix
     ? (bakedPrefix as string)
     : getSharedPrefixPath();
-  const npmCache = join(baseDir, "npm-cache");
+  const npmCache = resolveNpmCache(join(baseDir, "npm-cache")).path;
   const homeDir = join(baseDir, "home");
   const runtimeDir = join(baseDir, "runtime");
 
   mkdirSync(repoDir, { recursive: true });
-  mkdirSync(npmCache, { recursive: true });
   mkdirSync(homeDir, { recursive: true });
   mkdirSync(runtimeDir, { recursive: true });
 
@@ -386,26 +636,27 @@ export function createSandbox(): TestSandbox {
   // Include npm directory in PATH for E2E tests
   const npmBinary = resolveNpmBinary();
   const npmDir = dirname(npmBinary);
-  const env: NodeJS.ProcessEnv = {
-    ...process.env,
-    HOME: homeDir,
-    USERPROFILE: homeDir, // Windows
-    npm_config_prefix: npmPrefix,
-    npm_config_cache: npmCache,
-    npm_config_userconfig: join(baseDir, "npmrc"), // Empty config
-    PATH: `${join(npmPrefix, "node_modules", ".bin")}:${gitDir}:${npmDir}:/usr/bin:${process.env.PATH ?? ""}`,
-    // Prevent git from using global config
-    GIT_CONFIG_GLOBAL: join(baseDir, "gitconfig"),
-    GIT_CONFIG_SYSTEM: "/dev/null",
-    // Prevent Prolog from using user config
-    XDG_CONFIG_HOME: join(baseDir, "config"),
-    XDG_CACHE_HOME: join(baseDir, "cache"),
-    XDG_DATA_HOME: join(baseDir, "data"),
-    KIBI_ENGINE_IDLE_TIMEOUT_MS: "30000",
-    KIBI_RUNTIME_DIR: runtimeDir,
-    // Ensure NODE_ENV is production-like for tests
-    NODE_ENV: "production",
-  };
+  const buildEnv = (prefix: string): NodeJS.ProcessEnv =>
+    isolatedPackedSandboxEnv({
+      HOME: homeDir,
+      USERPROFILE: homeDir, // Windows
+      npm_config_prefix: prefix,
+      npm_config_cache: npmCache,
+      npm_config_userconfig: join(baseDir, "npmrc"), // Empty config
+      PATH: `${join(prefix, "node_modules", ".bin")}:${gitDir}:${npmDir}:/usr/bin:${process.env.PATH ?? ""}`,
+      // Prevent git from using global config
+      GIT_CONFIG_GLOBAL: join(baseDir, "gitconfig"),
+      GIT_CONFIG_SYSTEM: "/dev/null",
+      // Prevent Prolog from using user config
+      XDG_CONFIG_HOME: join(baseDir, "config"),
+      XDG_CACHE_HOME: join(baseDir, "cache"),
+      XDG_DATA_HOME: join(baseDir, "data"),
+      KIBI_ENGINE_IDLE_TIMEOUT_MS: "30000",
+      KIBI_RUNTIME_DIR: runtimeDir,
+      // Ensure NODE_ENV is production-like for tests
+      NODE_ENV: "production",
+    });
+  let env = buildEnv(npmPrefix);
 
   // Create empty git config
   writeFileSync(
@@ -415,19 +666,43 @@ export function createSandbox(): TestSandbox {
   );
 
   // Store binary paths for direct execution
-  const kibiBin = join(npmPrefix, "node_modules", ".bin", "kibi");
-  const kibiMcpBin = join(npmPrefix, "node_modules", ".bin", "kibi-mcp");
+  const usesPnpm = basename(npmBinary).toLowerCase().includes("pnpm");
+  const resolveKibiBin = (prefix: string): string =>
+    usesPnpm
+      ? join(prefix, "node_modules", "kibi-cli", "bin", "kibi")
+      : join(prefix, "node_modules", ".bin", "kibi");
+  const resolveKibiMcpBin = (prefix: string): string =>
+    usesPnpm
+      ? join(prefix, "node_modules", "kibi-mcp", "bin", "kibi-mcp")
+      : join(prefix, "node_modules", ".bin", "kibi-mcp");
+  let kibiBin = resolveKibiBin(npmPrefix);
+  let kibiMcpBin = resolveKibiMcpBin(npmPrefix);
+
+  const useInstallation = (prefix: string): void => {
+    npmPrefix = prefix;
+    env = buildEnv(prefix);
+    kibiBin = resolveKibiBin(prefix);
+    kibiMcpBin = resolveKibiMcpBin(prefix);
+  };
 
   return {
     baseDir,
     repoDir,
-    npmPrefix,
+    get npmPrefix() {
+      return npmPrefix;
+    },
     npmCache,
     homeDir,
     runtimeDir,
-    kibiBin,
-    kibiMcpBin,
-    env,
+    get kibiBin() {
+      return kibiBin;
+    },
+    get kibiMcpBin() {
+      return kibiMcpBin;
+    },
+    get env() {
+      return env;
+    },
 
     async install(tarballs: Tarballs): Promise<void> {
       if (useBakedPrefix) {
@@ -436,31 +711,62 @@ export function createSandbox(): TestSandbox {
         return;
       }
 
-      const installKey = [tarballs.core, tarballs.cli, tarballs.mcp].join("|");
+      const installKey = [
+        tarballs.core,
+        tarballs.cli,
+        tarballs.runtime,
+        tarballs.mcp,
+        tarballs.opencode,
+        tarballs.codex,
+        tarballs.cursor,
+      ].join("|");
 
-      if (sharedInstallKey === installKey && sharedInstallPromise) {
-        await sharedInstallPromise;
+      const existing = sharedInstallations.get(installKey);
+      if (existing) {
+        useInstallation(existing.prefix);
+        sharedPrefixPath = existing.prefix;
+        await existing.promise;
         return;
       }
 
-      sharedInstallKey = installKey;
-      sharedInstallPromise = (async () => {
+      const current = [...sharedInstallations.entries()].find(
+        ([, installation]) => installation.prefix === npmPrefix,
+      );
+      if (current && current[0] !== installKey) {
+        useInstallation(allocateSharedPrefixPath());
+      }
+
+      const installPromise = (async () => {
         console.log("📥 Installing packages into shared sandbox...");
         writePackedInstallManifest(npmPrefix, tarballs);
-        await run(npmBinary, ["install", "--legacy-peer-deps", "--no-audit"], {
-          cwd: npmPrefix,
-          env,
-          timeoutMs: 300000,
-        });
+        const installResult = await run(
+          npmBinary,
+          packageInstallArgs(npmBinary),
+          {
+            cwd: npmPrefix,
+            env,
+            timeoutMs: 300000,
+          },
+        );
+        if (installResult.exitCode !== 0) {
+          throw new Error(
+            `Packed sandbox installation failed with exit code ${installResult.exitCode}.\nstdout:\n${installResult.stdout}\nstderr:\n${installResult.stderr}`,
+          );
+        }
         await verifyKibiCliResolutionImpl(npmPrefix, env);
         console.log("  ✓ Packages installed");
       })();
 
+      sharedInstallations.set(installKey, {
+        prefix: npmPrefix,
+        promise: installPromise,
+      });
+
       try {
-        await sharedInstallPromise;
+        await installPromise;
+        sharedPrefixPath = npmPrefix;
       } catch (error) {
-        sharedInstallKey = null;
-        sharedInstallPromise = null;
+        sharedInstallations.delete(installKey);
         throw error;
       }
     },
@@ -682,7 +988,28 @@ ${content}
 `;
 
   writeFileSync(fullPath, fileContent, "utf8");
+  // Source-first sync intentionally ignores arbitrary untracked files. E2E
+  // fixtures represent authored project inputs, so stage each fixture before
+  // asking Kibi to compile it; this keeps the test workflow aligned with Git's
+  // authority instead of weakening the compiler policy.
+  execFileSync(resolveGitBinary(), ["add", "--", relativePath], {
+    cwd: sandbox.repoDir,
+    env: sandbox.env,
+    stdio: "pipe",
+  });
   console.log(`  📝 Created ${relativePath}`);
+}
+
+/** Mark a fixture path as Git-tracked so source compilation may consume it. */
+export function stageSourceFile(
+  sandbox: TestSandbox,
+  relativePath: string,
+): void {
+  execFileSync(resolveGitBinary(), ["add", "--", relativePath], {
+    cwd: sandbox.repoDir,
+    env: sandbox.env,
+    stdio: "pipe",
+  });
 }
 
 /**
@@ -779,4 +1106,4 @@ async function verifyKibiCliResolutionImpl(
     console.log(`E2E debug: require.resolve('kibi-cli/prolog') -> ${resolved}`);
 }
 
-await bootstrapSharedInstall();
+await bootstrapSharedInstall(resolvePackSource());

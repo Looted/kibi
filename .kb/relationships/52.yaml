@@ -1,0 +1,134 @@
+relationships:
+  - id: rel-b3405640ceb8
+    type: implements
+    from: SYM-cli-prolog-json-operation-decode-error-code
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-16T21:04:28.350Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-cli-prolog-json-operation-decode-error-code
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T21:04:28.351Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-208e917b6bdb
+  - type: implements
+    from: SYM-cli-report-format-source-coordinate
+    to: REQ-kibi-html-health-report
+    created_at: 2026-08-18T20:41:30.707Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c394d2a5915
+  - type: covered_by
+    from: SYM-cli-report-format-source-coordinate
+    to: TEST-kibi-html-health-report
+    created_at: 2026-08-18T20:41:30.719Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30ccdc360ecf
+  - type: implements
+    from: SYM-proof-runner
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-08-21T19:57:00.262Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48f29437dd35
+  - type: covered_by
+    from: SYM-proof-runner
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-21T19:57:00.299Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b0d8f9789be
+  - type: implements
+    from: SYM-cli-logic-ir-LOGIC_RULE_MAX_ATOMS
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:21:25.829Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e92e043ab571
+  - type: covered_by
+    from: SYM-cli-logic-ir-LOGIC_RULE_MAX_ATOMS
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:21:25.845Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f6993c098b4e
+  - type: covered_by
+    from: SYM-cli-logic-ir-LOGIC_RULE_MAX_ATOMS
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:21:25.849Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71e4b096d417
+  - type: implements
+    from: SYM-cli-mutation-serialization-parsePrologList
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:22:41.999Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46142ebdf12a
+  - type: covered_by
+    from: SYM-cli-mutation-serialization-parsePrologList
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:22:42.013Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6e6170022bb
+  - type: covered_by
+    from: SYM-cli-mutation-serialization-parsePrologList
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:22:42.019Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92981aa4c0c0
+  - type: covered_by
+    from: SYM-cli-prolog-json-operation-decode-error-code
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:36:18.288Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11eac07d7922
+  - type: implements
+    from: SYM-KibiConfig
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:51:35.083Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ad3815ee559
+  - type: covered_by
+    from: SYM-KibiConfig
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:51:35.097Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5561e1f43375
+  - type: covered_by
+    from: SYM-KibiConfig
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:51:35.104Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-474951e5f4c6
+  - type: implements
+    from: SYM-skillopt-cursor-main
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:28:35.869Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c591541b506
+  - type: covered_by
+    from: SYM-skillopt-cursor-main
+    to: TEST-skillopt-cursor-compat
+    created_at: 2026-08-25T19:22:09.150Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50f4e90d5728
+  - type: implements
+    from: SYM-skillopt-cursor-main
+    to: REQ-skillopt-cursor-compat
+    created_at: 2026-08-25T19:50:20.022Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f95a1418577

@@ -36,6 +36,7 @@ const scriptPath = path.join(packageRoot, "scripts", "copy-plugin-assets.ts");
 
 const manifestAssets = [
   path.join(".cursor-plugin", "plugin.json"),
+  "bin",
   path.join("hooks", "hooks.json"),
   "skills",
   "rules",

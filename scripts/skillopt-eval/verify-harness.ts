@@ -2,6 +2,7 @@ import { constants } from "node:fs";
 import { cp, lstat, mkdir, open, rename } from "node:fs/promises";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { z } from "zod";
+import type { CanonicalSkill } from "./catalog";
 import {
   JsonValueSchema,
   contractHash,
@@ -45,7 +46,7 @@ type VerificationReview = Readonly<{
   artifactType: "skillopt-verification-review";
   mode: "fake-local";
   runId: string;
-  skill: "kibi-usage";
+  skill: CanonicalSkill;
   sourceRoot: string;
   preflightReceiptHash: string;
   rootAuthorizationHash: string;

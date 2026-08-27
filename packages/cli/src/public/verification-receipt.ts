@@ -1,5 +1,13 @@
+import { createHash } from "node:crypto";
+
 export const VERIFICATION_RECEIPT_VERSION =
   "kibi.verification-receipt.v1" as const;
+// implements REQ-kibi-verification-evidence-contract
+export const VERIFICATION_RECEIPT_V2_VERSION =
+  "kibi.verification-receipt.v2" as const;
+// implements REQ-kibi-verification-evidence-contract
+export const VERIFICATION_CONTRACT_VERSION =
+  "kibi.verification-contract.v1" as const;
 
 export const VERIFICATION_RECEIPT_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 
@@ -9,9 +17,11 @@ export const VERIFICATION_RECEIPT_OUTCOMES = [
   "errored",
   "cancelled",
   "skipped",
+  "timed_out",
+  "interrupted",
 ] as const;
 
-export const VERIFICATION_RECEIPT_SCHEMA = {
+const VERIFICATION_RECEIPT_V1_SCHEMA = {
   type: "object",
   required: [
     "version",
@@ -47,6 +57,87 @@ export const VERIFICATION_RECEIPT_SCHEMA = {
   additionalProperties: false,
 } as const;
 
+// implements REQ-kibi-verification-evidence-contract
+export const VERIFICATION_CONTRACT_SCHEMA = {
+  type: "object",
+  required: [
+    "version",
+    "runner",
+    "command_argv",
+    "required_case_symbols",
+    "required_projects",
+    "success_policy",
+  ],
+  properties: {
+    version: { type: "string", const: VERIFICATION_CONTRACT_VERSION },
+    runner: { type: "string", minLength: 1 },
+    command_argv: {
+      type: "array",
+      minItems: 1,
+      items: { type: "string", minLength: 1 },
+    },
+    required_case_symbols: {
+      type: "array",
+      items: { type: "string", minLength: 1 },
+      uniqueItems: true,
+    },
+    required_projects: {
+      type: "array",
+      items: { type: "string", minLength: 1 },
+      uniqueItems: true,
+    },
+    success_policy: {
+      type: "string",
+      const: "all_required_cases_first_attempt",
+    },
+  },
+  additionalProperties: false,
+} as const;
+
+const VERIFICATION_RECEIPT_V2_SCHEMA = {
+  ...VERIFICATION_RECEIPT_V1_SCHEMA,
+  required: [
+    ...VERIFICATION_RECEIPT_V1_SCHEMA.required,
+    "command_argv",
+    "contract_hash",
+    "case_results",
+  ],
+  properties: {
+    ...VERIFICATION_RECEIPT_V1_SCHEMA.properties,
+    version: { type: "string", const: VERIFICATION_RECEIPT_V2_VERSION },
+    command_argv: {
+      type: "array",
+      minItems: 1,
+      items: { type: "string", minLength: 1 },
+    },
+    contract_hash: { type: "string", pattern: "^[a-f0-9]{64}$" },
+    case_results: {
+      type: "array",
+      minItems: 1,
+      maxItems: 1000,
+      items: {
+        type: "object",
+        required: ["symbol_id", "project", "outcome", "retries", "duration_ms"],
+        properties: {
+          symbol_id: { type: "string", minLength: 1 },
+          project: { type: "string", minLength: 1 },
+          outcome: {
+            type: "string",
+            enum: ["passed", "failed", "timed_out", "skipped", "interrupted"],
+          },
+          retries: { type: "integer", minimum: 0 },
+          duration_ms: { type: "integer", minimum: 0 },
+        },
+        additionalProperties: false,
+      },
+    },
+  },
+} as const;
+
+export const VERIFICATION_RECEIPT_SCHEMA = {
+  oneOf: [VERIFICATION_RECEIPT_V1_SCHEMA, VERIFICATION_RECEIPT_V2_SCHEMA],
+} as const;
+
 export type VerificationReceipt = Readonly<{
   version: typeof VERIFICATION_RECEIPT_VERSION;
   receipt_id: string;
@@ -60,6 +151,31 @@ export type VerificationReceipt = Readonly<{
   started_at: string;
   finished_at: string;
   artifact_digest: string;
+}>;
+
+// implements REQ-kibi-verification-evidence-contract
+export type VerificationReceiptV2 = VerificationReceipt &
+  Readonly<{
+    version: typeof VERIFICATION_RECEIPT_V2_VERSION;
+    command_argv: readonly string[];
+    contract_hash: string;
+    case_results: readonly {
+      symbol_id: string;
+      project: string;
+      outcome: "passed" | "failed" | "timed_out" | "skipped" | "interrupted";
+      retries: number;
+      duration_ms: number;
+    }[];
+  }>;
+
+// implements REQ-kibi-verification-evidence-contract
+export type VerificationContract = Readonly<{
+  version: typeof VERIFICATION_CONTRACT_VERSION;
+  runner: string;
+  command_argv: readonly string[];
+  required_case_symbols: readonly string[];
+  required_projects: readonly string[];
+  success_policy: "all_required_cases_first_attempt";
 }>;
 
 function timestamp(value: unknown): number | null {
@@ -101,12 +217,11 @@ export function verificationReceiptHistoryErrors(
       errors.push(`${prefix}.test_id must equal '${testId}'`);
     }
     if (
-      typeof verificationScope === "string" &&
-      receipt.scope !== verificationScope
+      !(["unit", "integration", "end_to_end"] as const).includes(
+        receipt.scope as "unit" | "integration" | "end_to_end",
+      )
     ) {
-      errors.push(
-        `${prefix}.scope must equal the test verification_scope '${verificationScope}'`,
-      );
+      errors.push(`${prefix}.scope must be a supported verification scope`);
     }
     const startedAt = timestamp(receipt.started_at);
     const finishedAt = timestamp(receipt.finished_at);
@@ -127,6 +242,126 @@ export function verificationReceiptHistoryErrors(
       );
     }
     if (finishedAt !== null) previousFinishedAt = finishedAt;
+    if (receipt.version === VERIFICATION_RECEIPT_V2_VERSION) {
+      if (
+        !Array.isArray(receipt.command_argv) ||
+        receipt.command_argv.length === 0 ||
+        receipt.command_argv.some(
+          (argument) => typeof argument !== "string" || argument.trim() === "",
+        )
+      ) {
+        errors.push(
+          `${prefix}.command_argv must be a non-empty argv of strings`,
+        );
+      }
+      if (
+        typeof receipt.contract_hash !== "string" ||
+        !/^[a-f0-9]{64}$/.test(receipt.contract_hash)
+      ) {
+        errors.push(`${prefix}.contract_hash must be a SHA-256 hex digest`);
+      }
+      const caseResults = receipt.case_results;
+      if (!Array.isArray(caseResults) || caseResults.length === 0) {
+        errors.push(
+          `${prefix}.case_results must contain at least one contracted case`,
+        );
+      } else {
+        const seenCases = new Set<string>();
+        for (const [caseIndex, caseResult] of caseResults.entries()) {
+          if (
+            !caseResult ||
+            typeof caseResult !== "object" ||
+            Array.isArray(caseResult)
+          ) {
+            errors.push(
+              `${prefix}.case_results[${caseIndex}] must be an object`,
+            );
+            continue;
+          }
+          const row = caseResult as Record<string, unknown>;
+          if (
+            typeof row.symbol_id !== "string" ||
+            row.symbol_id.trim() === "" ||
+            typeof row.project !== "string" ||
+            row.project.trim() === ""
+          ) {
+            errors.push(
+              `${prefix}.case_results[${caseIndex}] requires non-empty symbol_id and project`,
+            );
+          }
+          if (
+            ![
+              "passed",
+              "failed",
+              "timed_out",
+              "skipped",
+              "interrupted",
+            ].includes(String(row.outcome))
+          ) {
+            errors.push(
+              `${prefix}.case_results[${caseIndex}].outcome is not a supported result`,
+            );
+          }
+          const key = `${String(row.project ?? "")}\0${String(row.symbol_id ?? "")}`;
+          if (seenCases.has(key))
+            errors.push(
+              `${prefix}.case_results duplicates '${key.replace("\0", "/")}'`,
+            );
+          seenCases.add(key);
+          if (
+            typeof row.retries !== "number" ||
+            !Number.isInteger(row.retries) ||
+            row.retries < 0
+          )
+            errors.push(
+              `${prefix}.case_results[${caseIndex}].retries must be a non-negative integer`,
+            );
+          if (
+            typeof row.duration_ms !== "number" ||
+            !Number.isInteger(row.duration_ms) ||
+            row.duration_ms < 0
+          )
+            errors.push(
+              `${prefix}.case_results[${caseIndex}].duration_ms must be a non-negative integer`,
+            );
+        }
+      }
+    }
+  }
+  return errors;
+}
+
+// implements REQ-kibi-verification-evidence-contract
+export function verificationReceiptCurrentBindingErrors(
+  testId: string,
+  verificationScope: unknown,
+  receipt: Readonly<Record<string, unknown>>,
+  contract?: Readonly<Record<string, unknown>>,
+): readonly string[] {
+  const errors: string[] = [];
+  if (receipt.test_id !== testId) {
+    errors.push(`verification receipt test_id must equal '${testId}'`);
+  }
+  if (typeof verificationScope !== "string") {
+    errors.push("verification_scope is required for current receipt evidence");
+  } else if (receipt.scope !== verificationScope) {
+    errors.push(
+      `verification receipt scope must equal the current verification_scope '${verificationScope}'`,
+    );
+  }
+  if (contract !== undefined) {
+    if (receipt.version !== VERIFICATION_RECEIPT_V2_VERSION) {
+      errors.push(
+        "the current verification_contract requires a kibi.verification-receipt.v2",
+      );
+    } else if (typeof receipt.contract_hash === "string") {
+      const expectedHash = verificationContractHash(contract);
+      if (receipt.contract_hash !== expectedHash) {
+        errors.push(
+          "verification receipt contract_hash does not match the current verification_contract",
+        );
+      }
+    }
   }
   return errors;
 }
@@ -142,6 +377,13 @@ function canonicalJson(value: unknown): string {
       .join(",")}}`;
   }
   return JSON.stringify(value);
+}
+
+// implements REQ-kibi-verification-evidence-contract
+export function verificationContractHash(
+  contract: Readonly<Record<string, unknown>>,
+): string {
+  return createHash("sha256").update(canonicalJson(contract)).digest("hex");
 }
 
 export function appendOnlyVerificationReceiptHistoryErrors(

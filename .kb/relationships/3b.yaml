@@ -1,0 +1,176 @@
+relationships:
+  - id: rel-fca592679944
+    type: covered_by
+    from: SYM-verification-receipt-history-errors
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: "2026-08-15T12:41:40.306Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-verification-receipt-history-errors
+    to: REQ-kibi-verification-receipts-v2
+    created_at: 2026-08-15T16:37:55.835Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a9c5a4ca168
+  - type: covered_by
+    from: SYM-verification-receipt-history-errors
+    to: TEST-kibi-verification-receipts-v2
+    created_at: 2026-08-15T16:37:55.840Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fab98bb0d51c
+  - type: covered_by
+    from: SYM-reqcompiler-parity-capability
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: 2026-08-16T18:51:45.120Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f9daad263f0
+  - type: covered_by
+    from: SYM-test-root-runBatch
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-16T18:52:30.438Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c72ea9353899
+  - type: covered_by
+    from: SYM-kibi-cli-src-public-operations-specs-planning-ts-compileintentspec
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-16T19:45:30.482Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1bfd779218ea
+  - type: depends_on
+    from: REQ-016
+    to: REQ-005
+    created_at: 2026-08-16T22:43:44.273Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ce0e7f93c5c
+  - type: specified_by
+    from: REQ-016
+    to: SCEN-011
+    created_at: 2026-08-16T22:43:44.299Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b3aad86f315
+  - type: verified_by
+    from: REQ-016
+    to: TEST-013
+    created_at: 2026-08-16T22:43:44.304Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af07398d21c9
+  - type: constrains
+    from: REQ-016
+    to: FACT-ADR-SUPERSESSION
+    created_at: 2026-08-17T09:20:46.131Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d39e790dc466
+  - type: requires_property
+    from: REQ-016
+    to: FACT-ADR-SUPERSESSION-CHAIN
+    created_at: 2026-08-17T09:20:46.146Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-146e491c246d
+  - type: requires_predicate
+    from: REQ-016
+    to: FACT-PRED-ADR-TEMPORAL-INFERENCE-CONTRACT
+    created_at: 2026-08-17T09:20:46.150Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1386099d3cc9
+  - type: requires_predicate
+    from: REQ-016
+    to: FACT-PRED-ADR-DECISION-HISTORY-QUERY-CAPABILITY
+    created_at: 2026-08-17T09:20:46.153Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-849c5926ea7c
+  - type: implements
+    from: SYM-SkillsLoadResult
+    to: REQ-002
+    created_at: 2026-08-22T20:10:05.526Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5da03be6aa0
+  - type: covered_by
+    from: SYM-SkillsLoadResult
+    to: TEST-005
+    created_at: 2026-08-22T20:10:05.542Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be2717884d88
+  - type: covered_by
+    from: SYM-SkillsLoadResult
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:10:05.549Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e24eb7012f62
+  - type: implements
+    from: SYM-SchemaVersionStatus
+    to: REQ-011
+    created_at: 2026-08-22T20:13:50.432Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b826264a0f9
+  - type: covered_by
+    from: SYM-SchemaVersionStatus
+    to: TEST-cli-config-schema
+    created_at: 2026-08-22T20:13:50.450Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ab2746fc67e
+  - type: covered_by
+    from: SYM-SchemaVersionStatus
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:13:50.459Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e003965860c8
+  - type: implements
+    from: SYM-createFileOperationState
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:46:25.965Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf2a1b38e591
+  - type: covered_by
+    from: SYM-createFileOperationState
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:46:25.981Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3dac9525fc8
+  - type: covered_by
+    from: SYM-createFileOperationState
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:46:25.990Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89ee3f907670
+  - type: implements
+    from: SYM-skillopt-cursor-qualification-error
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:25:27.777Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23c70840ee25
+  - type: covered_by
+    from: SYM-skillopt-cursor-qualification-error
+    to: TEST-skillopt-cursor-compat
+    created_at: 2026-08-25T19:51:51.214Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f040c57de9b4
+  - type: implements
+    from: SYM-skillopt-bundle-run-paid-gate
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-26T09:20:43.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e04618b2685b

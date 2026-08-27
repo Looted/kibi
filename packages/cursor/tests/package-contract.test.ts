@@ -34,6 +34,7 @@ describe("kibi-cursor package contract", () => {
     expect(packageJson.files).toEqual([
       ".cursor-plugin",
       "mcp.json",
+      "bin",
       "hooks",
       "skills",
       "rules",
@@ -44,8 +45,8 @@ describe("kibi-cursor package contract", () => {
     ]);
     expect(packageJson.publishConfig?.access).toBe("public");
     expect(packageJson.peerDependencies).toMatchObject({
-      "kibi-cli": ">=0.12.0 <1",
-      "kibi-mcp": ">=0.12.0 <1",
+      "kibi-cli": ">=1.0.0",
+      "kibi-mcp": ">=1.0.0",
     });
     expect(packageJson.peerDependenciesMeta).toStrictEqual({
       "kibi-cli": { optional: true },
@@ -56,6 +57,12 @@ describe("kibi-cursor package contract", () => {
     const declaredTypes = packageJson.types;
     expect(exportsTypes).toBe(declaredTypes);
     expect(declaredTypes).toBe("./dist/index.d.ts");
+  });
+
+  test("packages the consumer-local MCP launcher", () => {
+    expect(
+      fs.existsSync(path.join(packageRoot, "bin", "launch-kibi-mcp.mjs")),
+    ).toBe(true);
   });
 
   test("package exports adapter entrypoint", async () => {

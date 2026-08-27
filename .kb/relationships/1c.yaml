@@ -1,0 +1,78 @@
+relationships:
+  - type: implements
+    from: SYM-auto-4682A3D1BEB4
+    to: REQ-mcp-search-discovery
+    created_at: 2026-08-16T07:55:02.187Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e71c4fb763f
+  - type: covered_by
+    from: SYM-auto-4682A3D1BEB4
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:55:02.192Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-665c73fb1de2
+  - type: covered_by
+    from: SYM-reqcompiler-sync-cache-ttl
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-16T18:52:06.555Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd8794c97f62
+  - type: covered_by
+    from: SYM-cli-relationship-extracted-shape
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-08-16T19:49:09.991Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-608487a40d79
+  - type: implements
+    from: SYM-initializeDiagnosticMode
+    to: REQ-002
+    created_at: 2026-08-22T20:07:18.311Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b73a7fb73c1
+  - type: covered_by
+    from: SYM-initializeDiagnosticMode
+    to: TEST-005
+    created_at: 2026-08-22T20:07:18.322Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-274ebd5b5e00
+  - type: covered_by
+    from: SYM-initializeDiagnosticMode
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:07:18.326Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41b50b6fba0c
+  - type: implements
+    from: SYM-auto-4682A3D1BEB4
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:53:09.486Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca55a99beaa0
+  - type: covered_by
+    from: SYM-auto-4682A3D1BEB4
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:53:09.495Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9ae8e1be1cb
+  - type: relates_to
+    from: FACT-core-prolog-process-management-5009E0
+    to: REQ-core-prolog-process-management
+    created_at: 2026-08-26T07:20:51.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2062add6e68a
+  - type: implements
+    from: SYM-kibi-bootstrap-plan-expected-snapshots
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-26T18:07:41.033Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd0e15a294e2

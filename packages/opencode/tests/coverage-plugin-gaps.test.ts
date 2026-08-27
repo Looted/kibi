@@ -55,20 +55,20 @@ function makeTempWorkspace(prefix: string): string {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
   fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
   fs.mkdirSync(path.join(tmpDir, ".opencode"), { recursive: true });
-  fs.writeFileSync(path.join(tmpDir, ".kb", "config.json"), "{}\n");
+  fs.writeFileSync(path.join(tmpDir, ".kb", "manifest.json"), "{}\n");
   for (const dir of [
-    "documentation/requirements",
-    "documentation/scenarios",
-    "documentation/tests",
-    "documentation/adr",
-    "documentation/flags",
-    "documentation/events",
-    "documentation/facts",
+    ".kb/requirements",
+    ".kb/scenarios",
+    ".kb/tests",
+    ".kb/adr",
+    ".kb/flags",
+    ".kb/events",
+    ".kb/facts",
     "src",
   ]) {
     fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
   }
-  fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "[]\n");
+  fs.writeFileSync(path.join(tmpDir, ".kb", "symbols.yaml"), "[]\n");
   return tmpDir;
 }
 
@@ -396,7 +396,7 @@ describe("plugin coverage gaps - deleted file lifecycle", () => {
     globals.__kibi_test_schedule_startup_notify = () => {};
     try {
       fs.writeFileSync(
-        path.join(tmpDir, "documentation", "requirements", "REQ-del.md"),
+        path.join(tmpDir, ".kb", "requirements", "REQ-del.md"),
         "---\npriority: must\n---\nTest\n",
       );
       const hooks = await kibiOpencodePlugin({
@@ -408,14 +408,14 @@ describe("plugin coverage gaps - deleted file lifecycle", () => {
       await hooks.event?.({
         event: {
           type: "file.edited",
-          properties: { file: "documentation/requirements/REQ-del.md" },
+          properties: { file: ".kb/requirements/REQ-del.md" },
         },
       });
       // Now delete; lastKnownKind will be truthy
       await hooks.event?.({
         event: {
           type: "file.deleted",
-          properties: { file: "documentation/requirements/REQ-del.md" },
+          properties: { file: ".kb/requirements/REQ-del.md" },
         },
       });
 
@@ -424,7 +424,7 @@ describe("plugin coverage gaps - deleted file lifecycle", () => {
       );
       expect(
         scheduled.some(
-          (entry) => entry.filePath === "documentation/requirements/REQ-del.md",
+          (entry) => entry.filePath === ".kb/requirements/REQ-del.md",
         ),
       ).toBe(true);
     } finally {
@@ -495,7 +495,7 @@ describe("plugin coverage gaps - degraded mode advisory branches", () => {
     });
     try {
       fs.writeFileSync(
-        path.join(tmpDir, "documentation", "requirements", "REQ-policy.md"),
+        path.join(tmpDir, ".kb", "requirements", "REQ-policy.md"),
         "---\npriority: must\n---\nRequirement body\n",
       );
       const hooks = await kibiOpencodePlugin({
@@ -507,14 +507,14 @@ describe("plugin coverage gaps - degraded mode advisory branches", () => {
       await hooks.event?.({
         event: {
           type: "file.edited",
-          properties: { file: "documentation/requirements/REQ-policy.md" },
+          properties: { file: ".kb/requirements/REQ-policy.md" },
         },
       });
       // Second edit hits the cache+degraded branch
       await hooks.event?.({
         event: {
           type: "file.edited",
-          properties: { file: "documentation/requirements/REQ-policy.md" },
+          properties: { file: ".kb/requirements/REQ-policy.md" },
         },
       });
       await flushPromises();
@@ -560,7 +560,7 @@ describe("plugin coverage gaps - degraded mode advisory branches", () => {
     });
     try {
       fs.writeFileSync(
-        path.join(tmpDir, "documentation", "facts", "FACT-1.md"),
+        path.join(tmpDir, ".kb", "facts", "FACT-1.md"),
         "---\ntitle: Fact\nstatus: active\n---\nFact body\n",
       );
       const hooks = await kibiOpencodePlugin({
@@ -572,14 +572,14 @@ describe("plugin coverage gaps - degraded mode advisory branches", () => {
       await hooks.event?.({
         event: {
           type: "file.edited",
-          properties: { file: "documentation/facts/FACT-1.md" },
+          properties: { file: ".kb/facts/FACT-1.md" },
         },
       });
       // Second event will hit degraded path
       await hooks.event?.({
         event: {
           type: "file.edited",
-          properties: { file: "documentation/facts/FACT-1.md" },
+          properties: { file: ".kb/facts/FACT-1.md" },
         },
       });
       await flushPromises();
@@ -630,7 +630,7 @@ describe("plugin coverage gaps - degraded mode advisory branches", () => {
     });
     try {
       fs.writeFileSync(
-        path.join(tmpDir, "documentation", "requirements", "REQ-structured.md"),
+        path.join(tmpDir, ".kb", "requirements", "REQ-structured.md"),
         "---\npriority: must\n---\nRequirement\n",
       );
       const hooks = await kibiOpencodePlugin({
@@ -642,14 +642,14 @@ describe("plugin coverage gaps - degraded mode advisory branches", () => {
       await hooks.event?.({
         event: {
           type: "file.edited",
-          properties: { file: "documentation/requirements/REQ-structured.md" },
+          properties: { file: ".kb/requirements/REQ-structured.md" },
         },
       });
       // Second event hits degraded
       await hooks.event?.({
         event: {
           type: "file.edited",
-          properties: { file: "documentation/requirements/REQ-structured.md" },
+          properties: { file: ".kb/requirements/REQ-structured.md" },
         },
       });
       await flushPromises();

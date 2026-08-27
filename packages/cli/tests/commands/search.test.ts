@@ -1,5 +1,4 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { execSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -9,6 +8,7 @@ import {
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { execSync } from "../helpers/isolated-env.js";
 
 describe("kibi search", () => {
   let tmpDir: string;
@@ -19,16 +19,16 @@ describe("kibi search", () => {
     execSync("git init -b main", { cwd: tmpDir, stdio: "pipe" });
     execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
 
-    mkdirSync(path.join(tmpDir, "documentation", "requirements"), {
+    mkdirSync(path.join(tmpDir, ".kb", "requirements"), {
       recursive: true,
     });
     mkdirSync(path.join(tmpDir, "src"), { recursive: true });
-    mkdirSync(path.join(tmpDir, "documentation", "facts"), {
+    mkdirSync(path.join(tmpDir, ".kb", "facts"), {
       recursive: true,
     });
 
     writeFileSync(
-      path.join(tmpDir, "documentation", "requirements", "REQ-001.md"),
+      path.join(tmpDir, ".kb", "requirements", "REQ-001.md"),
       "---\nid: REQ-001\ntitle: OAuth login flow\nstatus: open\n---\n\nThe markdown body mentions latent discovery token.\n",
     );
 
@@ -40,7 +40,7 @@ describe("kibi search", () => {
     writeFileSync(
       path.join(
         tmpDir,
-        "documentation",
+        ".kb",
         "facts",
         "FACT-apple-signin-revenuecat-recovery.md",
       ),
@@ -61,7 +61,7 @@ describe("kibi search", () => {
     writeFileSync(
       path.join(
         tmpDir,
-        "documentation",
+        ".kb",
         "requirements",
         "REQ-search-revenuecat-entitlement.md",
       ),
@@ -81,7 +81,7 @@ describe("kibi search", () => {
     writeFileSync(
       path.join(
         tmpDir,
-        "documentation",
+        ".kb",
         "facts",
         "FACT-search-unrelated-sync-feedback.md",
       ),
@@ -98,6 +98,8 @@ describe("kibi search", () => {
         "",
       ].join("\n"),
     );
+
+    execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
 
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
   }, 30000);

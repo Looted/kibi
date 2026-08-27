@@ -1,0 +1,148 @@
+relationships:
+  - id: rel-8992f8bddb03
+    type: covered_by
+    from: SYM-core-discovery-coverageSummary
+    to: TEST-kibi-conservative-requirement-proof
+    created_at: "2026-08-16T18:51:34.273Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-cli-mutation-RELATIONSHIP_TYPES
+    to: REQ-mcp-relationship-preflight
+    created_at: 2026-08-17T11:09:17.751Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e582fe52a0c3
+  - type: covered_by
+    from: SYM-cli-mutation-RELATIONSHIP_TYPES
+    to: TEST-mcp-relationship-preflight
+    created_at: 2026-08-17T11:09:17.756Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9d845302105
+  - type: covered_by
+    from: SYM-cli-mutation-RELATIONSHIP_TYPES
+    to: TEST-cli-relationship-type-contract
+    created_at: 2026-08-17T11:28:01.848Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31988a6f5225
+  - type: implements
+    from: SYM-canonical-git-staged-Status
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T17:36:33.092Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a7b2fcbd0d1
+  - type: covered_by
+    from: SYM-canonical-git-staged-Status
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-08-18T17:36:33.100Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f9f26f464e7
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapstructuredcontent
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:49:25.207Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e20e4ce4c54f
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapstructuredcontent
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:49:25.215Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b184aca6eab
+  - type: implements
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-opencodecommanddefinition
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:49:42.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83a2ac5465f8
+  - type: covered_by
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-opencodecommanddefinition
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:49:42.416Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21980810a22d
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrapstructuredcontent
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:16:44.636Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc6f3782f4ed
+  - type: covered_by
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-opencodecommanddefinition
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:16:49.356Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87b7219587f1
+  - type: implements
+    from: SYM-createMcpRuntime
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:27:10.188Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4aaaa35f4acf
+  - type: covered_by
+    from: SYM-createMcpRuntime
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:27:10.201Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-715388278953
+  - type: covered_by
+    from: SYM-createMcpRuntime
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:27:10.211Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3dde325e33a3
+  - type: covered_by
+    from: SYM-reqcompiler-find-gaps-input
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:39:22.188Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25075712f0ec
+  - type: implements
+    from: SYM-reqcompiler-find-gaps-input
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:05:52.664Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0f105c6087f
+  - type: covered_by
+    from: SYM-reqcompiler-find-gaps-input
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:05:52.669Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72adaf331bd7
+  - type: implements
+    from: SYM-skillopt-cursor-cell-deps
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:28:04.946Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e4077a8ca0b
+  - type: specified_by
+    from: REQ-generated-coordinate-persistence
+    to: SCEN-generated-coordinate-repair
+    created_at: 2026-08-23T20:00:10.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ff9817ef32e
+  - type: covered_by
+    from: SYM-skillopt-cursor-cell-deps
+    to: TEST-skillopt-cursor-compat
+    created_at: 2026-08-25T19:50:50.316Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ab1b03898cc

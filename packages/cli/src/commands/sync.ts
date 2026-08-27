@@ -17,7 +17,15 @@
  */
 
 import { execSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync } from "node:fs";
+import { createHash } from "node:crypto";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  renameSync,
+  writeFileSync,
+} from "node:fs";
 import * as path from "node:path";
 import type { Diagnostic, SyncSummary } from "../diagnostics.js";
 import {
@@ -29,6 +37,8 @@ import {
 } from "../diagnostics.js";
 import {
   EngineClient,
+  type EnginePublicationLease,
+  acquireEnginePublicationLease,
   engineSocketPath,
   ensureJournaledBranchStoreAsync,
   fsyncJournaledBranchStore,
@@ -42,18 +52,27 @@ import {
   extractRelationshipShard,
   validateRelationships,
 } from "../extractors/relationships.js";
+import {
+  type SymbolCompilerLockHandle,
+  acquireSymbolCompilerLock,
+  releaseSymbolCompilerLock,
+} from "../operations/mutation/symbol-compiler-lock.js";
 import { analyzeSemanticAdvisorInput } from "../operations/semantic-advisor/analyze-prose.js";
 import { validateSemanticInventoryBoundary } from "../operations/semantic-advisor/ingestion-boundary.js";
 import { PrologProcess } from "../prolog.js";
+import { resolveBranchAttachment } from "../utils/branch-resolver.js";
 import {
-  copyCleanSnapshot,
-  resolveActiveBranch,
-} from "../utils/branch-resolver.js";
-import { loadSyncConfig } from "../utils/config.js";
+  branchStoreManifestPath,
+  branchStorePath,
+  ensureBranchStoreManifest,
+  expectedBranchStoreManifest,
+} from "../utils/branch-store-locator.js";
+import { loadEntityPaths } from "../utils/config.js";
 import {
   SYNC_CACHE_TTL_MS,
   SYNC_CACHE_VERSION,
   hashFile,
+  hashManifestWithCoordinates,
   hashNormalized,
   readSyncCache,
   toCacheKey,
@@ -61,10 +80,15 @@ import {
 } from "./sync/cache.js";
 import type { SyncCache } from "./sync/cache.js";
 import {
+  clearRecoveredPendingSourceReceipts,
   discoverSourceFiles,
   normalizeMarkdownPath,
 } from "./sync/discovery.js";
-import { processExtractions } from "./sync/extraction.js";
+import type { PendingSourceReceiptSnapshot } from "./sync/discovery.js";
+import {
+  normalizeExtractionSources,
+  processExtractions,
+} from "./sync/extraction.js";
 import { refreshManifestCoordinates } from "./sync/manifest.js";
 import {
   persistEntities,
@@ -101,6 +125,135 @@ function relationshipFromKey(key: string): ExtractedRelationship {
   return { type, from, to };
 }
 
+function assertNoUnresolvedGitConflicts(workspaceRoot: string): void {
+  let conflicted = "";
+  try {
+    conflicted = execSync("git diff --name-only --diff-filter=U --", {
+      cwd: workspaceRoot,
+      encoding: "utf8",
+      timeout: 5000,
+      stdio: ["pipe", "pipe", "pipe"],
+    }).trim();
+  } catch {
+    // A non-Git workspace is handled by branch resolution below. Do not turn
+    // a missing Git binary into a misleading conflict diagnostic.
+    return;
+  }
+  if (conflicted) {
+    throw new SyncError(
+      `Unresolved Git conflicts block Kibi compilation; resolve these authored files first: ${conflicted.split("\n").join(", ")}`,
+    );
+  }
+}
+
+function trackedRelationshipFiles(
+  workspaceRoot: string,
+  relationshipsDir: string,
+  recoverMissingPendingSources = false,
+  recoveredPendingReceiptPaths: PendingSourceReceiptSnapshot[] = [],
+): string[] {
+  let tracked: Set<string>;
+  try {
+    tracked = new Set(
+      execSync("git ls-files --cached -- .kb/relationships", {
+        cwd: workspaceRoot,
+        encoding: "utf8",
+        timeout: 5000,
+        stdio: ["pipe", "pipe", "pipe"],
+      })
+        .split("\n")
+        .filter(Boolean)
+        .map((file) => file.replaceAll("\\", "/")),
+    );
+  } catch {
+    // A non-Git workspace has no tracked relationship inputs. The caller's
+    // branch resolver will produce the user-facing attachment diagnostic.
+    return [];
+  }
+
+  const pending = new Set<string>();
+  const pendingRoot = path.join(
+    workspaceRoot,
+    ".kb",
+    "recovery",
+    "pending-sources",
+  );
+  if (existsSync(pendingRoot)) {
+    for (const receiptName of readdirSync(pendingRoot)) {
+      if (!receiptName.endsWith(".json")) continue;
+      let receipt: { path?: unknown; afterHash?: unknown };
+      try {
+        receipt = JSON.parse(
+          readFileSync(path.join(pendingRoot, receiptName), "utf8"),
+        ) as { path?: unknown; afterHash?: unknown };
+      } catch {
+        // Malformed receipts are left for explicit recovery diagnostics. They
+        // must never make an unrelated relationship shard disappear silently.
+        continue;
+      }
+      if (
+        typeof receipt.path !== "string" ||
+        typeof receipt.afterHash !== "string"
+      ) {
+        continue;
+      }
+      const relative = receipt.path.replaceAll("\\", "/");
+      if (!relative.startsWith(".kb/relationships/")) continue;
+      const absolute = path.resolve(workspaceRoot, relative);
+      if (!absolute.startsWith(`${path.resolve(workspaceRoot)}${path.sep}`)) {
+        throw new SyncError(
+          `Pending source path escapes workspace: ${relative}`,
+        );
+      }
+      if (!existsSync(absolute)) {
+        if (recoverMissingPendingSources) {
+          const receiptPath = path.join(pendingRoot, receiptName);
+          if (
+            !recoveredPendingReceiptPaths.some(
+              (candidate) => candidate.receiptPath === receiptPath,
+            )
+          ) {
+            recoveredPendingReceiptPaths.push({
+              receiptPath,
+              path: relative,
+              afterHash: receipt.afterHash,
+              rawHash: createHash("sha256")
+                .update(readFileSync(receiptPath))
+                .digest("hex"),
+            });
+          }
+          continue;
+        }
+        throw new SyncError(`Pending source is missing: ${relative}`);
+      }
+      const actual = createHash("sha256")
+        .update(readFileSync(absolute))
+        .digest("hex");
+      if (actual !== receipt.afterHash) {
+        throw new SyncError(
+          `Pending source hash drift blocks sync for ${relative}`,
+        );
+      }
+      pending.add(relative);
+    }
+  }
+
+  try {
+    return readdirSync(relationshipsDir)
+      .filter((file) => file.endsWith(".yaml") || file.endsWith(".yml"))
+      .map((file) => path.join(relationshipsDir, file))
+      .filter((file) => {
+        const relative = path
+          .relative(workspaceRoot, file)
+          .replaceAll(path.sep, "/");
+        return tracked.has(relative) || pending.has(relative);
+      })
+      .sort();
+  } catch {
+    return [];
+  }
+}
+
 function normalizedEntityHash(result: ExtractionResult): string {
   const entity = { ...result.entity } as Record<string, unknown>;
   // Manifest defaults are generated at extraction time. They must not turn a
@@ -114,6 +267,19 @@ function normalizedEntityHash(result: ExtractionResult): string {
       .map(relationshipKey)
       .sort((left, right) => left.localeCompare(right)),
   });
+}
+
+// implements REQ-kibi-proposition-complete-ingestion
+function semanticBoundaryRelationships(
+  result: ExtractionResult,
+  shardRelationships: readonly ExtractedRelationship[],
+): ExtractedRelationship[] {
+  const relationships = new Map<string, ExtractedRelationship>();
+  for (const relationship of [...result.relationships, ...shardRelationships]) {
+    if (relationship.from !== result.entity.id) continue;
+    relationships.set(relationshipKey(relationship), relationship);
+  }
+  return [...relationships.values()];
 }
 
 async function checkpointNoopSync(
@@ -157,6 +323,7 @@ interface SyncCommandRuntime {
     context: SyncCommandRuntimeContext & { kbModified: boolean },
   ) => Promise<void> | void;
   createProlog?: (options: { timeout: number }) => PrologProcess;
+  acquireSymbolCompilerLock?: typeof acquireSymbolCompilerLock;
 }
 
 function compilerCacheHasEntityDelta(cache: SyncCache): boolean {
@@ -167,10 +334,11 @@ function compilerCacheHasEntityDelta(cache: SyncCache): boolean {
 
 function compilerCacheIsFresh(
   cache: SyncCache,
+  workspaceRoot: string,
   sourceFiles: readonly string[],
   nowMs: number,
 ): boolean {
-  const sourceKeys = sourceFiles.map(toCacheKey);
+  const sourceKeys = sourceFiles.map((file) => toCacheKey(workspaceRoot, file));
   if (Object.keys(cache.hashes).some((key) => !sourceKeys.includes(key))) {
     return false;
   }
@@ -188,13 +356,18 @@ function compilerCacheIsFresh(
 
 function compilerCacheFilesMatch(
   cache: SyncCache,
+  workspaceRoot: string,
   sourceFiles: readonly string[],
   relationshipFiles: readonly string[],
+  sourceHashOf: (file: string) => string,
 ): boolean {
   for (const file of sourceFiles) {
-    if (cache.hashes[toCacheKey(file)] !== hashFile(file)) return false;
+    if (cache.hashes[toCacheKey(workspaceRoot, file)] !== sourceHashOf(file))
+      return false;
   }
-  const relationshipKeys = new Set(relationshipFiles.map(toCacheKey));
+  const relationshipKeys = new Set(
+    relationshipFiles.map((file) => toCacheKey(workspaceRoot, file)),
+  );
   if (
     Object.keys(cache.relationshipHashes ?? {}).some(
       (key) => !relationshipKeys.has(key),
@@ -203,7 +376,10 @@ function compilerCacheFilesMatch(
     return false;
   }
   for (const file of relationshipFiles) {
-    if (cache.relationshipHashes?.[toCacheKey(file)] !== hashFile(file)) {
+    if (
+      cache.relationshipHashes?.[toCacheKey(workspaceRoot, file)] !==
+      hashFile(workspaceRoot, file)
+    ) {
       return false;
     }
   }
@@ -216,22 +392,31 @@ export async function syncCommand(
     validateOnly?: boolean;
     rebuild?: boolean;
     refreshSymbolCoordinates?: boolean;
+    /** Explicitly rebuild an unreadable branch store from authored sources. */
+    recoveryBackupPath?: string;
+    /** Workspace to operate on when invoked through MCP or another host. */
+    workspaceRoot?: string;
   } = {},
   runtime: SyncCommandRuntime = {},
 ): Promise<SyncResult> {
   const validateOnly = options.validateOnly ?? false;
   const rebuild = options.rebuild ?? false;
+  const recoveryBackupPath = options.recoveryBackupPath;
+  const workspaceRoot = path.resolve(options.workspaceRoot ?? process.cwd());
   const startTime = Date.now();
   const diagnostics: Diagnostic[] = [];
   const entityCounts: Record<string, number> = {};
   let published = false;
   let currentBranch: string | undefined;
   let stagingPath: string | undefined;
+  let publicationLease: EnginePublicationLease | undefined;
+  let compilerLock: SymbolCompilerLockHandle | undefined;
+  let operationFailure: { readonly error: unknown } | undefined;
 
   const getCurrentCommit = (): string | undefined => {
     try {
       return execSync("git rev-parse HEAD", {
-        cwd: process.cwd(),
+        cwd: workspaceRoot,
         encoding: "utf8",
         timeout: 5000,
         stdio: ["pipe", "pipe", "pipe"],
@@ -248,8 +433,14 @@ export async function syncCommand(
     commit !== undefined ? { ...value, commit } : value;
 
   try {
+    if (!validateOnly) {
+      compilerLock = await (
+        runtime.acquireSymbolCompilerLock ?? acquireSymbolCompilerLock
+      )(workspaceRoot);
+    }
+    assertNoUnresolvedGitConflicts(workspaceRoot);
     // Branch resolution
-    const branchResult = resolveActiveBranch(process.cwd());
+    const branchResult = resolveBranchAttachment(workspaceRoot);
 
     if ("error" in branchResult) {
       const diagnostic = branchErrorToDiagnostic(
@@ -263,29 +454,62 @@ export async function syncCommand(
       );
     }
 
-    currentBranch = branchResult.branch;
+    if (branchResult.migrationRequired && !validateOnly) {
+      throw new SyncError(
+        `Sync blocked: KB is attached through legacy branch storage for '${branchResult.gitBranch}'. Run 'kibi branch migrate --from ${branchResult.kbBranch} --to ${branchResult.gitBranch} --apply' first.`,
+      );
+    }
+
+    currentBranch = branchResult.kbBranch;
 
     // Cut over legacy branches before creating a staging copy.  If another
     // CLI/MCP operation has an engine attached, stop that single writer so the
     // atomic publish below cannot race its RDF lock.
-    const livePathForEngine = path.join(
-      process.cwd(),
-      `.kb/branches/${currentBranch}`,
-    );
-    if (!validateOnly) {
+    const livePathForEngine = branchStorePath(workspaceRoot, currentBranch);
+    if (!validateOnly && recoveryBackupPath === undefined) {
+      ensureBranchStoreManifest(workspaceRoot, currentBranch);
       await ensureJournaledBranchStoreAsync(livePathForEngine);
+    }
+    const needsExclusiveGenerationPublish =
+      !validateOnly && (rebuild || recoveryBackupPath !== undefined);
+    if (needsExclusiveGenerationPublish) {
+      // Recovery intentionally avoids attaching the broken live store. The
+      // clean rebuild is compiled into staging and published only after it
+      // can be reopened successfully.
       const existingEngine = new EngineClient({
-        workspaceRoot: process.cwd(),
+        workspaceRoot,
         branch: currentBranch,
         timeout: 2_000,
+        allowPublicationLock: true,
       });
-      const needsExclusiveGenerationPublish =
-        rebuild || runtime.createProlog !== undefined;
-      if (
-        needsExclusiveGenerationPublish &&
-        existsSync(engineSocketPath(process.cwd(), currentBranch))
-      ) {
-        await existingEngine.stop(false).catch(() => undefined);
+      const engineSocketExists = existsSync(
+        engineSocketPath(workspaceRoot, currentBranch),
+      );
+      try {
+        publicationLease = acquireEnginePublicationLease(
+          workspaceRoot,
+          currentBranch,
+        );
+        // This client is explicitly allowed to attach under its own lease so
+        // a daemon that appeared between the socket probe and lease creation
+        // is still stopped before publication.
+        if (
+          engineSocketExists ||
+          existsSync(engineSocketPath(workspaceRoot, currentBranch))
+        ) {
+          await existingEngine.start(false);
+        }
+        if (existingEngine.isRunning()) {
+          await existingEngine.stop(false);
+        } else if (
+          engineSocketExists ||
+          existsSync(engineSocketPath(workspaceRoot, currentBranch))
+        ) {
+          throw new SyncError(
+            `Kibi engine socket remains present but is not reachable: ${engineSocketPath(workspaceRoot, currentBranch)}`,
+          );
+        }
+      } finally {
         await existingEngine.terminate();
       }
     }
@@ -295,11 +519,17 @@ export async function syncCommand(
       console.log("[kibi-debug] currentBranch:", currentBranch);
     }
 
-    const config = loadSyncConfig(process.cwd());
-    const paths = config.paths;
+    const paths = loadEntityPaths(workspaceRoot);
 
-    const { markdownFiles, manifestFiles, relationshipsDir } =
-      await discoverSourceFiles(process.cwd(), paths);
+    const {
+      markdownFiles,
+      manifestFiles,
+      relationshipsDir,
+      recoveredPendingReceiptPaths,
+    } = await discoverSourceFiles(workspaceRoot, {
+      trackedOnly: true,
+      recoverMissingPendingSources: recoveryBackupPath !== undefined,
+    });
 
     if (isCliDebugEnabled()) {
       // eslint-disable-next-line no-console
@@ -309,34 +539,51 @@ export async function syncCommand(
     }
 
     const sourceFiles = [...markdownFiles, ...manifestFiles].sort();
-    const cachePath = path.join(
-      process.cwd(),
-      `.kb/branches/${currentBranch}/sync-cache.json`,
-    );
+    const cachePath = path.join(livePathForEngine, "sync-cache.json");
     const syncCache = readSyncCache(cachePath);
     const nowIso = new Date().toISOString();
     const nowMs = Date.now();
-    const currentSourceKeys = new Set(sourceFiles.map(toCacheKey));
+    const currentSourceKeys = new Set(
+      sourceFiles.map((file) => toCacheKey(workspaceRoot, file)),
+    );
     const relationshipShardFiles = existsSync(relationshipsDir)
-      ? readdirSync(relationshipsDir)
-          .filter((file) => file.endsWith(".yaml") || file.endsWith(".yml"))
-          .map((file) => path.join(relationshipsDir, file))
-          .sort()
+      ? trackedRelationshipFiles(
+          workspaceRoot,
+          relationshipsDir,
+          recoveryBackupPath !== undefined,
+          recoveredPendingReceiptPaths,
+        )
       : [];
 
     // No-op is a first-class compiler result. Hashing the configured inputs is
     // sufficient when normalized entity/shard inventories are already fresh;
     // avoid rebuilding maps and rediscovering RDF state for the common path.
+    // Symbol manifests hash together with their generated coordinate artifact
+    // so artifact-only changes never masquerade as no-ops.
+    const fastPathSourceHashOf = (file: string): string =>
+      manifestFiles.includes(file)
+        ? hashManifestWithCoordinates(
+            workspaceRoot,
+            file,
+            path.join(path.dirname(file), "symbol-coordinates.yaml"),
+          )
+        : hashFile(workspaceRoot, file);
     if (
       !validateOnly &&
       !rebuild &&
       !options.refreshSymbolCoordinates &&
       runtime.createProlog === undefined &&
       compilerCacheHasEntityDelta(syncCache) &&
-      compilerCacheIsFresh(syncCache, sourceFiles, nowMs) &&
-      compilerCacheFilesMatch(syncCache, sourceFiles, relationshipShardFiles)
+      compilerCacheIsFresh(syncCache, workspaceRoot, sourceFiles, nowMs) &&
+      compilerCacheFilesMatch(
+        syncCache,
+        workspaceRoot,
+        sourceFiles,
+        relationshipShardFiles,
+        fastPathSourceHashOf,
+      )
     ) {
-      await checkpointNoopSync(process.cwd(), currentBranch);
+      await checkpointNoopSync(workspaceRoot, currentBranch);
       console.log("✓ Imported 0 entities, 0 relationships (no changes)");
       return withOptionalCommit(
         {
@@ -354,10 +601,38 @@ export async function syncCommand(
       );
     }
 
+    // Explicit coordinate refresh must precede fingerprinting so the manifest
+    // overlay that is persisted into RDF observes the newly generated
+    // coordinates. Refresh failures are fatal: cache state may never advance
+    // on a partially published compiler dependency.
+    const refreshedManifestKeys = new Set<string>();
+    if (!validateOnly && options.refreshSymbolCoordinates) {
+      for (const file of manifestFiles) {
+        await refreshManifestCoordinates(file, workspaceRoot, {
+          refreshSymbolCoordinates: options.refreshSymbolCoordinates,
+        });
+        refreshedManifestKeys.add(toCacheKey(workspaceRoot, file));
+      }
+    }
+
+    // The generated coordinate artifact is a compiler dependency of every
+    // symbol manifest: its existence, emptiness, content, and deletion must
+    // all change the effective source hash even when authored YAML is stable.
+    const coordinatesPathForManifest = (manifestFile: string): string =>
+      path.join(path.dirname(manifestFile), "symbol-coordinates.yaml");
+    const effectiveSourceHash = (file: string): string =>
+      manifestFiles.includes(file)
+        ? hashManifestWithCoordinates(
+            workspaceRoot,
+            file,
+            coordinatesPathForManifest(file),
+          )
+        : hashFile(workspaceRoot, file);
+
     const changedSourceHashes = new Map<string, string>();
     for (const file of sourceFiles) {
-      const key = toCacheKey(file);
-      const hash = hashFile(file);
+      const key = toCacheKey(workspaceRoot, file);
+      const hash = effectiveSourceHash(file);
       if (syncCache.hashes[key] !== hash) changedSourceHashes.set(key, hash);
     }
 
@@ -385,15 +660,15 @@ export async function syncCommand(
     // sync rather than deleting their last known-good entities.
     const deletedSourceFiles = Object.keys(syncCache.hashes)
       .filter((key) => !currentSourceKeys.has(key))
-      .map((key) => path.resolve(process.cwd(), key));
+      .map((key) => path.resolve(workspaceRoot, key));
 
     const currentRelationshipKeys = new Set<string>();
     for (const shardPath of relationshipShardFiles) {
-      const key = toCacheKey(shardPath);
+      const key = toCacheKey(workspaceRoot, shardPath);
       currentRelationshipKeys.add(key);
       let hash: string | undefined;
       try {
-        hash = hashFile(shardPath);
+        hash = hashFile(workspaceRoot, shardPath);
         nextRelationshipHashes[key] = hash;
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -441,7 +716,7 @@ export async function syncCommand(
 
     for (const file of sourceFiles) {
       try {
-        const key = toCacheKey(file);
+        const key = toCacheKey(workspaceRoot, file);
         const hash = changedSourceHashes.get(key) ?? syncCache.hashes[key];
         if (hash === undefined) continue;
         const lastSeen = syncCache.seenAt[key];
@@ -487,27 +762,20 @@ export async function syncCommand(
       }
     }
 
-    // Coordinate refresh must precede extraction so the manifest overlay that
-    // is persisted into RDF observes the newly generated coordinates. Force
-    // each refreshed manifest through extraction even when its authored YAML
-    // hash is unchanged; the generated coordinate artifact is an input too.
-    if (!validateOnly && options.refreshSymbolCoordinates) {
-      for (const file of manifestFiles) {
-        try {
-          await refreshManifestCoordinates(file, process.cwd(), {
-            refreshSymbolCoordinates: options.refreshSymbolCoordinates,
-          });
-          if (!changedManifestFiles.includes(file)) {
-            changedManifestFiles.push(file);
-          }
-        } catch (error) {
-          const message =
-            error instanceof Error ? error.message : String(error);
-          console.warn(
-            `Warning: Failed to refresh symbol coordinates in ${file}: ${message}`,
-          );
-        }
+    // Explicitly requested refreshes force coordinate-bearing symbols through
+    // extraction and RDF persistence even when normalized entity hashes match
+    // the cached state, repairing warm-cache RDF divergence.
+    for (const file of manifestFiles) {
+      if (
+        !refreshedManifestKeys.has(toCacheKey(workspaceRoot, file)) ||
+        changedManifestFiles.includes(file)
+      ) {
+        continue;
       }
+      changedManifestFiles.push(file);
+    }
+    for (const key of refreshedManifestKeys) {
+      forceEntitySourceKeys.add(key);
     }
 
     const performedFullReindex =
@@ -518,9 +786,13 @@ export async function syncCommand(
       changedMarkdownFiles,
       changedManifestFiles,
       validateOnly,
+      workspaceRoot,
     );
     const { failedCacheKeys, errors } = extraction;
-    const extractedResults = extraction.results;
+    const extractedResults = normalizeExtractionSources(
+      extraction.results,
+      workspaceRoot,
+    );
     const nextEntityHashes: Record<string, string> = {
       ...(syncCache.entityHashes ?? {}),
     };
@@ -537,14 +809,22 @@ export async function syncCommand(
       !validateOnly &&
       !rebuild &&
       runtime.createProlog === undefined;
+    // Re-materialize every authored shard edge whenever a source entity is
+    // refreshed. Entity-delta sync retracts outgoing relationships for changed
+    // entities before persisting their extracted relationships. Manifest
+    // entities commonly carry no inline links, so a manifest-only edit (for
+    // example, a generated coordinate refresh) would otherwise drop valid
+    // shard-only edges and leave the cache claiming they were already synced.
     const materializeAllRelationships =
-      !useEntityDelta || changedMarkdownFiles.length > 0;
+      !useEntityDelta ||
+      changedMarkdownFiles.length > 0 ||
+      changedManifestFiles.length > 0;
     const allRelationships = materializeAllRelationships
       ? Object.values(nextShardRelationships).flat().map(relationshipFromKey)
       : [...addedShardRelationships, ...removedShardRelationships];
 
     for (const deletedSource of deletedSourceFiles) {
-      const sourceKey = toCacheKey(deletedSource);
+      const sourceKey = toCacheKey(workspaceRoot, deletedSource);
       for (const id of nextSourceEntityIds[sourceKey] ?? []) {
         removedEntityIds.add(id);
         delete nextEntityHashes[id];
@@ -554,7 +834,7 @@ export async function syncCommand(
 
     const resultsBySource = new Map<string, ExtractionResult[]>();
     for (const result of extractedResults) {
-      const sourceKey = toCacheKey(result.entity.source);
+      const sourceKey = toCacheKey(workspaceRoot, result.entity.source);
       const sourceResults = resultsBySource.get(sourceKey) ?? [];
       sourceResults.push(result);
       resultsBySource.set(sourceKey, sourceResults);
@@ -563,7 +843,7 @@ export async function syncCommand(
       ...changedMarkdownFiles,
       ...changedManifestFiles,
     ]) {
-      const sourceKey = toCacheKey(changedSource);
+      const sourceKey = toCacheKey(workspaceRoot, changedSource);
       if (failedCacheKeys.has(sourceKey)) continue;
       const sourceResults = resultsBySource.get(sourceKey) ?? [];
       const previousIds = new Set(nextSourceEntityIds[sourceKey] ?? []);
@@ -594,17 +874,21 @@ export async function syncCommand(
 
     for (const result of extractedResults) {
       if (result.entity.type !== "req") continue;
-      const key = toCacheKey(result.entity.source);
+      const key = toCacheKey(workspaceRoot, result.entity.source);
+      const relationships = semanticBoundaryRelationships(
+        result,
+        allRelationships,
+      );
       const payload = {
         type: result.entity.type,
         id: result.entity.id,
         properties: result.entity,
-        relationships: result.relationships,
+        relationships,
       };
       const semantic = analyzeSemanticAdvisorInput({ payload });
       const boundary = validateSemanticInventoryBoundary(
         payload,
-        result.relationships,
+        relationships,
         semantic.receipt,
       );
       const previousSemanticHash = syncCache.semanticHashes[key];
@@ -698,6 +982,13 @@ export async function syncCommand(
         }
       }
 
+      // The durable KB checkpoint must precede the cache write: if the
+      // checkpoint fails, cached fingerprints must stay stale so the next
+      // sync recompiles instead of trusting uncommitted compiler output.
+      if (runtime.createProlog === undefined) {
+        await checkpointNoopSync(workspaceRoot, currentBranch);
+      }
+
       writeSyncCache(cachePath, {
         version: SYNC_CACHE_VERSION,
         hashes: evictedHashes,
@@ -709,10 +1000,6 @@ export async function syncCommand(
         semanticHashes: evictedSemanticHashes,
         semanticContracts: evictedSemanticContracts,
       });
-
-      if (runtime.createProlog === undefined) {
-        await checkpointNoopSync(process.cwd(), currentBranch);
-      }
 
       console.log("✓ Imported 0 entities, 0 relationships (no changes)");
       return withOptionalCommit(
@@ -731,7 +1018,7 @@ export async function syncCommand(
       );
     }
 
-    const livePath = path.join(process.cwd(), `.kb/branches/${currentBranch}`);
+    const livePath = branchStorePath(workspaceRoot, currentBranch);
     const kbExists = existsSync(livePath);
     if (!kbExists && !rebuild) {
       diagnostics.push(createKbMissingDiagnostic(currentBranch, livePath));
@@ -745,7 +1032,7 @@ export async function syncCommand(
     // for a one-symbol or relationship-only change.
     if (!validateOnly && !rebuild && runtime.createProlog === undefined) {
       const engine = new EngineClient({
-        workspaceRoot: process.cwd(),
+        workspaceRoot,
         branch: currentBranch,
         timeout: 120_000,
       });
@@ -756,7 +1043,9 @@ export async function syncCommand(
         const successfulChangedSources = [
           ...changedMarkdownFiles,
           ...changedManifestFiles,
-        ].filter((file) => !failedCacheKeys.has(toCacheKey(file)));
+        ].filter(
+          (file) => !failedCacheKeys.has(toCacheKey(workspaceRoot, file)),
+        );
         const removedCount = useEntityDelta
           ? await retractEntitiesById(engineProlog, [...removedEntityIds])
           : await retractEntitiesForSources(engineProlog, [
@@ -808,14 +1097,15 @@ export async function syncCommand(
           ),
         );
         const shardDeltaByKey = new Map<string, ExtractedRelationship>();
-        const shardCandidates = useEntityDelta
-          ? [
-              ...addedShardRelationships,
-              ...allRelationships.filter((relationship) =>
-                changedEntityIds.has(relationship.from),
-              ),
-            ]
-          : allRelationships;
+        const shardCandidates =
+          useEntityDelta && !materializeAllRelationships
+            ? [
+                ...addedShardRelationships,
+                ...allRelationships.filter((relationship) =>
+                  changedEntityIds.has(relationship.from),
+                ),
+              ]
+            : allRelationships;
         for (const relationship of shardCandidates) {
           if (
             !danglingKeys.has(
@@ -902,7 +1192,7 @@ export async function syncCommand(
       }
     }
 
-    stagingPath = createUniqueStagingPath(currentBranch, process.cwd());
+    stagingPath = createUniqueStagingPath(currentBranch, workspaceRoot);
     const runtimeContext: SyncCommandRuntimeContext = {
       currentBranch,
       livePath,
@@ -912,6 +1202,16 @@ export async function syncCommand(
     };
 
     await prepareStagingEnvironment(stagingPath, livePath, rebuild);
+    // Staging is a new compiled artifact, so install the exact identity fence
+    // before the engine attaches. The manifest is published with the staged
+    // store during the atomic swap.
+    if (!existsSync(branchStoreManifestPath(stagingPath))) {
+      writeFileSync(
+        branchStoreManifestPath(stagingPath),
+        `${JSON.stringify(expectedBranchStoreManifest(currentBranch), null, 2)}\n`,
+        { mode: 0o600 },
+      );
+    }
 
     try {
       const prolog =
@@ -944,7 +1244,9 @@ export async function syncCommand(
           ...changedMarkdownFiles,
           ...changedManifestFiles,
           ...deletedSourceFiles,
-        ].filter((file) => !failedCacheKeys.has(toCacheKey(file))),
+        ].filter(
+          (file) => !failedCacheKeys.has(toCacheKey(workspaceRoot, file)),
+        ),
       );
 
       if (relationshipChanged) {
@@ -1049,13 +1351,50 @@ export async function syncCommand(
       await prolog.terminate();
 
       const journaledLive = existsSync(path.join(livePath, "storage.json"));
-      if (rebuild && journaledLive) {
+      if (recoveryBackupPath !== undefined) {
+        if (!existsSync(livePath)) {
+          throw new SyncError(
+            `Recovery target disappeared before publication: ${livePath}`,
+          );
+        }
+        if (existsSync(recoveryBackupPath)) {
+          throw new SyncError(
+            `Recovery backup path already exists: ${recoveryBackupPath}`,
+          );
+        }
+        mkdirSync(path.dirname(recoveryBackupPath), { recursive: true });
+        // Same-filesystem renames give us a recoverable two-step publication:
+        // the original bytes stay at the reported backup path if anything
+        // later needs forensic inspection.
+        renameSync(livePath, recoveryBackupPath);
+        try {
+          renameSync(stagingPath, livePath);
+        } catch (error) {
+          renameSync(recoveryBackupPath, livePath);
+          throw error;
+        }
+      } else if (rebuild && journaledLive) {
         atomicPublishGeneration(stagingPath, livePath);
       } else {
         atomicPublish(stagingPath, livePath);
       }
       fsyncJournaledBranchStore(livePath);
-      cleanupStaging(stagingPath);
+      try {
+        if (
+          recoveryBackupPath !== undefined &&
+          recoveredPendingReceiptPaths.length > 0
+        ) {
+          clearRecoveredPendingSourceReceipts(
+            workspaceRoot,
+            recoveredPendingReceiptPaths,
+          );
+        }
+      } finally {
+        // Receipt compare-and-delete can fail closed after publication when a
+        // newer receipt wins a race.  Staging bytes are still disposable;
+        // leave the published store and surface the pending intent error.
+        cleanupStaging(stagingPath);
+      }
 
       const evictedHashes: Record<string, string> = {};
       const evictedSeenAt: Record<string, string> = {};
@@ -1125,6 +1464,7 @@ export async function syncCommand(
       throw error;
     }
   } catch (error) {
+    operationFailure = { error };
     if (stagingPath) {
       cleanupStaging(stagingPath);
     }
@@ -1154,6 +1494,9 @@ export async function syncCommand(
     }
 
     throw error;
+  } finally {
+    publicationLease?.release();
+    releaseSymbolCompilerLock(compilerLock, operationFailure);
   }
 }
 

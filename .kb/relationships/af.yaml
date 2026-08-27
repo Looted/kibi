@@ -1,0 +1,29 @@
+relationships:
+  - id: rel-bba53c014b72
+    type: covered_by
+    from: SYM-cli-engine-start-lock-path
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: "2026-08-16T19:47:37.109Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-SuggestPredicatesArgs
+    to: REQ-002
+    created_at: 2026-08-23T22:10:33.368Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53d6646f6f2a
+  - type: covered_by
+    from: SYM-SuggestPredicatesArgs
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:10:33.392Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eac20a0aa28a
+  - type: implements
+    from: SYM-skillopt-bundle-gate-result-type
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-26T09:18:32.795Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48db9e59b8e6

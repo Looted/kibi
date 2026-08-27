@@ -50,14 +50,14 @@ if (RUN_NODE_TEST_SUITE) {
 
           createMarkdownFile(
             sandbox,
-            "documentation/requirements/REQ-001.md",
+            ".kb/requirements/REQ-001.md",
             {
               id: "REQ-001",
               title: "E2E requirement",
               status: "open",
               created_at: "2026-01-01T00:00:00Z",
               updated_at: "2026-01-01T00:00:00Z",
-              source: "documentation/requirements/REQ-001.md",
+              source: ".kb/requirements/REQ-001.md",
               tags: ["e2e"],
             },
             "Placeholder requirement for regression test",
@@ -125,14 +125,14 @@ if (RUN_NODE_TEST_SUITE) {
           // Create another entity type and ensure querying a different type returns empty while req still returns data
           createMarkdownFile(
             sandbox,
-            "documentation/tests/TEST-001.md",
+            ".kb/tests/TEST-001.md",
             {
               id: "TEST-001",
               title: "E2E test entity",
               status: "open",
               created_at: "2026-01-01T00:00:00Z",
               updated_at: "2026-01-01T00:00:00Z",
-              source: "documentation/tests/TEST-001.md",
+              source: ".kb/tests/TEST-001.md",
             },
             "Test entity",
           );

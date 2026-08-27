@@ -175,8 +175,8 @@ function makeContext() {
 function setupKbRoot(root: string): void {
   fs.mkdirSync(path.join(root, ".kb"), { recursive: true });
   fs.writeFileSync(
-    path.join(root, ".kb", "config.json"),
-    JSON.stringify({ paths: { symbols: "documentation/symbols.yaml" } }),
+    path.join(root, ".kb", "manifest.json"),
+    JSON.stringify({ paths: { symbols: ".kb/symbols.yaml" } }),
   );
   fs.mkdirSync(path.join(root, ".kb", "branches", "develop"), {
     recursive: true,
@@ -185,11 +185,7 @@ function setupKbRoot(root: string): void {
     path.join(root, ".kb", "branches", "develop", "kb.rdf"),
     '<?xml version="1.0"?><rdf:RDF></rdf:RDF>',
   );
-  fs.mkdirSync(path.join(root, "documentation"), { recursive: true });
-  fs.writeFileSync(
-    path.join(root, "documentation", "symbols.yaml"),
-    "symbols: []\n",
-  );
+  fs.writeFileSync(path.join(root, ".kb", "symbols.yaml"), "symbols: []\n");
 }
 
 beforeEach(() => {
@@ -243,11 +239,11 @@ describe("activation/workspace coverage", () => {
     expect(output.appendLine).toHaveBeenCalledWith(`Workspace root: ${root}`);
   });
 
-  test("resolveWorkspaceRoot uses KIBI_WORKSPACE_ROOT fallback when .kb/config.json exists", () => {
+  test("resolveWorkspaceRoot uses KIBI_WORKSPACE_ROOT fallback when .kb/manifest.json exists", () => {
     workspaceNamespace.workspaceFolders = undefined;
     const fallbackRoot = path.join(tmpDir, "fallback");
     fs.mkdirSync(path.join(fallbackRoot, ".kb"), { recursive: true });
-    fs.writeFileSync(path.join(fallbackRoot, ".kb", "config.json"), "{}");
+    fs.writeFileSync(path.join(fallbackRoot, ".kb", "manifest.json"), "{}");
     process.env.KIBI_WORKSPACE_ROOT = fallbackRoot;
 
     const output = makeOutput();
@@ -259,7 +255,7 @@ describe("activation/workspace coverage", () => {
     );
   });
 
-  test("resolveWorkspaceRoot reports missing .kb/config.json and returns undefined", () => {
+  test("resolveWorkspaceRoot reports missing .kb/manifest.json and returns undefined", () => {
     workspaceNamespace.workspaceFolders = undefined;
     const fallbackRoot = path.join(tmpDir, "no-kb");
     fs.mkdirSync(fallbackRoot, { recursive: true });
@@ -268,7 +264,7 @@ describe("activation/workspace coverage", () => {
     const output = makeOutput();
     expect(workspaceMod.resolveWorkspaceRoot(output as never)).toBeUndefined();
     expect(output.appendLine).toHaveBeenCalledWith(
-      expect.stringContaining("missing .kb/config.json"),
+      expect.stringContaining("missing .kb/manifest.json"),
     );
     expect(output.appendLine).toHaveBeenCalledWith(
       "No workspace folder found; activation skipped.",

@@ -17,3 +17,66 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/adr/ADR-007.md
+  - type: implements
+    from: SYM-auto-5D3498497C5F
+    to: REQ-kibi-html-health-report
+    created_at: 2026-08-15T22:20:07.470Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8538a0cb4cd
+  - type: implements
+    from: SYM-auto-6AE190B50290
+    to: REQ-kibi-html-health-report
+    created_at: 2026-08-15T22:20:11.223Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de34a8a15131
+  - type: implements
+    from: SYM-skillopt-bridge-visibility-error
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-15T23:12:42.365Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9bb1e0eda9b
+  - type: covered_by
+    from: SYM-skillopt-bridge-visibility-error
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-15T23:12:42.376Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3092a39d0b8b
+  - type: covered_by
+    from: SYM-auto-5D3498497C5F
+    to: TEST-kibi-html-health-report
+    created_at: 2026-08-16T07:53:41.894Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c16b83240555
+  - type: covered_by
+    from: SYM-auto-6AE190B50290
+    to: TEST-kibi-html-health-report
+    created_at: 2026-08-16T07:53:44.329Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c49b79b8bb88
+  - type: covered_by
+    from: SYM-reqcompiler-parity-capability-result
+    to: TEST-kibi-distribution-parity-matrix
+    created_at: 2026-08-16T18:51:45.108Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb88851e6d88
+  - type: covered_by
+    from: SYM-cli-engine-status-command
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.165Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2896213d7e1
+  - type: covered_by
+    from: SYM-cli-PrologProcess-invalidateCache
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-26T07:16:39.025Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b19cf945afa

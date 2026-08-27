@@ -125,8 +125,7 @@ export async function runMcpOperation(
       executeNamed("kb_model_requirement", args),
     handleKbSuggestPredicates: (_prolog, args) =>
       executeNamed("kb_suggest_predicates", args),
-    handleKbAutopilotGenerate: (args) =>
-      executeNamed("kb_autopilot_generate", args),
+    handleKbPlanBootstrap: (args) => executeNamed("kb_plan_bootstrap", args),
   };
 
   const server = new McpServer({ name: "kibi-parity", version: "1.0.0" });

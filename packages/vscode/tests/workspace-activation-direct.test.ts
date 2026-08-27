@@ -74,7 +74,7 @@ describe("activation/workspace direct", () => {
     process.env.KIBI_WORKSPACE_ROOT = fallbackRoot;
     workspaceModule._setWorkspaceFsDepsForTests({
       existsSync: (candidate: fs.PathLike) =>
-        String(candidate) === path.join(fallbackRoot, ".kb", "config.json"),
+        String(candidate) === path.join(fallbackRoot, ".kb", "manifest.json"),
     });
     expect(workspaceModule.resolveWorkspaceRoot(output as never)).toBe(
       fallbackRoot,
@@ -86,7 +86,7 @@ describe("activation/workspace direct", () => {
       workspaceModule.resolveWorkspaceRoot(invalidOutput as never),
     ).toBeUndefined();
     expect(invalidOutput.appendLine).toHaveBeenCalledWith(
-      `KIBI_WORKSPACE_ROOT is set but missing .kb/config.json: ${fallbackRoot}`,
+      `KIBI_WORKSPACE_ROOT is set but missing .kb/manifest.json: ${fallbackRoot}`,
     );
     expect(invalidOutput.appendLine).toHaveBeenCalledWith(
       "No workspace folder found; activation skipped.",

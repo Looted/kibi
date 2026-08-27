@@ -1,12 +1,8 @@
-import { upsertSpec } from "kibi-cli/operations";
-import { setSymbolRefreshForTests } from "kibi-cli/operations/mutation/symbol-refresh";
-import type {
-  UpsertInput,
-  UpsertPayload,
-  ValidatedUpsert,
-} from "kibi-cli/operations/mutation/types";
-import { validateUpsertInput } from "kibi-cli/operations/mutation/validation";
-import type { PrologProcess } from "kibi-cli/prolog";
+import { upsertSpec } from "kibi-runtime";
+import { setSymbolRefreshForTests } from "kibi-runtime";
+import type { UpsertInput, UpsertPayload, ValidatedUpsert } from "kibi-runtime";
+import { validateUpsertInput } from "kibi-runtime";
+import type { PrologProcess } from "kibi-runtime";
 import { isMcpDebugEnabled } from "../env.js";
 import { createMutationContext } from "./mutation-context.js";
 import type { refreshCoordinatesForSymbolId } from "./symbols.js";

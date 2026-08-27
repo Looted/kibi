@@ -44,7 +44,7 @@ describe("classifyMeaningfulChange", () => {
 
     it("returns requires-kb-evidence for symbol files", () => {
       const result = classifyMeaningfulChange({
-        normalizedPath: "documentation/symbols.yaml",
+        normalizedPath: ".kb/symbols.yaml",
         pathKind: "symbol",
         lifecycle: "edited",
       });
@@ -173,10 +173,19 @@ describe("classifyMeaningfulChange", () => {
       expect(result).toBe("ignored");
     });
 
-    it("returns ignored for paths under .kb/", () => {
+    it("returns ignored for derived .kb/ runtime paths", () => {
       const result = classifyMeaningfulChange({
         normalizedPath: ".kb/config.json",
         pathKind: "unknown",
+        lifecycle: "edited",
+      });
+      expect(result).toBe("ignored");
+    });
+
+    it("returns ignored for compiled branch stores under .kb/branches/", () => {
+      const result = classifyMeaningfulChange({
+        normalizedPath: ".kb/branches/main/store.pl",
+        pathKind: "kb",
         lifecycle: "edited",
       });
       expect(result).toBe("ignored");

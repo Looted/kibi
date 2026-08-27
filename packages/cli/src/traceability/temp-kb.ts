@@ -255,6 +255,11 @@ function buildEntityAssertionGoal(
         `verification_perspective=${toPrologAtom(entity.verification_perspective)}`,
       );
     }
+    if (entity.verification_contract !== undefined) {
+      props.push(
+        `verification_contract=${toPrologString(JSON.stringify(entity.verification_contract))}`,
+      );
+    }
   }
 
   return `kb_assert_entity_no_audit(${entity.type}, [${props.join(", ")}])`;

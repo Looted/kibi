@@ -1,9 +1,10 @@
+import { spawnSync } from "node:child_process";
 import { escapeAtom, toPrologAtom } from "../../prolog/codec.js";
 import type { PrologPort } from "../../public/operations/runtime-types.js";
 import { parsePrologList } from "./serialization.js";
 import type { RelationshipInput } from "./types.js";
 
-const RELATIONSHIP_TYPES = [
+export const RELATIONSHIP_TYPES = [
   "depends_on",
   "specified_by",
   "verified_by",
@@ -22,6 +23,7 @@ const RELATIONSHIP_TYPES = [
   "supersedes",
   "relates_to",
 ] as const;
+export type RelationshipType = (typeof RELATIONSHIP_TYPES)[number];
 
 export function dependentRelationshipsGoal(entityId: string): string {
   return `findall([RelType,From], (member(RelType, [${RELATIONSHIP_TYPES.join(", ")}]), kb_relationship(RelType, From, '${escapeAtom(entityId)}')), Dependents)`;
@@ -92,6 +94,136 @@ export function validateRelationshipSources(
   for (const relationship of relationships) {
     if (relationship.from !== entityId) {
       throw new Error(formatRelationshipSourceMismatch(entityId, relationship));
+    }
+  }
+}
+
+type SupersedesHistory = "valid" | "reversed" | "unknown";
+
+type SupersedesHistoryDeps = Readonly<{
+  firstAdditionCommit: (workspaceRoot: string, source: string) => string | null;
+  isAncestor: (
+    workspaceRoot: string,
+    ancestor: string,
+    descendant: string,
+  ) => boolean | null;
+}>;
+
+function trackedSource(source: string): boolean {
+  return source.length > 0 && !source.includes("://");
+}
+
+export function firstGitAdditionCommit(
+  workspaceRoot: string,
+  source: string,
+): string | null {
+  if (!trackedSource(source)) return null;
+  const result = spawnSync(
+    "git",
+    ["log", "--follow", "--diff-filter=A", "--format=%H", "--", source],
+    { cwd: workspaceRoot, encoding: "utf8" },
+  );
+  if (result.status !== 0) return null;
+  return (
+    result.stdout
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .at(-1) ?? null
+  );
+}
+
+function gitIsAncestor(
+  workspaceRoot: string,
+  ancestor: string,
+  descendant: string,
+): boolean | null {
+  const result = spawnSync(
+    "git",
+    ["merge-base", "--is-ancestor", ancestor, descendant],
+    { cwd: workspaceRoot, encoding: "utf8" },
+  );
+  if (result.status === 0) return true;
+  if (result.status === 1) return false;
+  return null;
+}
+
+const DEFAULT_SUPERSEDES_HISTORY_DEPS: SupersedesHistoryDeps = {
+  firstAdditionCommit: firstGitAdditionCommit,
+  isAncestor: gitIsAncestor,
+};
+
+export function classifySupersedesHistory(
+  workspaceRoot: string,
+  sourceCommit: string | null,
+  targetCommit: string | null,
+  deps: Pick<
+    SupersedesHistoryDeps,
+    "isAncestor"
+  > = DEFAULT_SUPERSEDES_HISTORY_DEPS,
+): SupersedesHistory {
+  if (sourceCommit === null || targetCommit === null) return "unknown";
+  if (sourceCommit === targetCommit) return "valid";
+  const targetBeforeSource = deps.isAncestor(
+    workspaceRoot,
+    targetCommit,
+    sourceCommit,
+  );
+  if (targetBeforeSource === true) return "valid";
+  const sourceBeforeTarget = deps.isAncestor(
+    workspaceRoot,
+    sourceCommit,
+    targetCommit,
+  );
+  return sourceBeforeTarget === true ? "reversed" : "unknown";
+}
+
+// implements REQ-011
+export async function validateSupersedesSourceHistory(
+  prolog: PrologPort,
+  entity: Readonly<Record<string, unknown>>,
+  relationships: readonly RelationshipInput[],
+  workspaceRoot: string,
+  deps: SupersedesHistoryDeps = DEFAULT_SUPERSEDES_HISTORY_DEPS,
+): Promise<void> {
+  const sourceId = typeof entity.id === "string" ? entity.id : "";
+  const source = typeof entity.source === "string" ? entity.source : "";
+  const sourceCommit = deps.firstAdditionCommit(workspaceRoot, source);
+  for (const relationship of relationships) {
+    if (relationship.type !== "supersedes") continue;
+    const targetId = stringField(relationship, "to");
+    let targetSource = "";
+    if (prolog.queryEntities) {
+      const targetPage = await prolog.queryEntities({
+        id: targetId,
+        limit: 1,
+        offset: 0,
+      });
+      const indexedSource = targetPage.entities[0]?.source;
+      targetSource = typeof indexedSource === "string" ? indexedSource : "";
+    } else {
+      const targetResult = await prolog.query(
+        `once((kb_entity('${escapeAtom(targetId)}', _, _SupTargetProps), memberchk(source=_SupTargetRaw, _SupTargetProps), normalize_term_atom(_SupTargetRaw, TargetSource)))`,
+      );
+      targetSource = targetResult.success
+        ? String(targetResult.bindings.TargetSource ?? "").replace(
+            /^['"]|['"]$/g,
+            "",
+          )
+        : "";
+    }
+    const targetCommit = deps.firstAdditionCommit(workspaceRoot, targetSource);
+    if (
+      classifySupersedesHistory(
+        workspaceRoot,
+        sourceCommit,
+        targetCommit,
+        deps,
+      ) === "reversed"
+    ) {
+      throw new Error(
+        `Invalid supersedes direction: tracked source history proves ${sourceId} predates ${targetId}. The replacement must point to the older requirement (new -> old).`,
+      );
     }
   }
 }

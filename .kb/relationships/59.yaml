@@ -1,0 +1,71 @@
+relationships:
+  - id: rel-8559e7659ca5
+    type: verified_by
+    from: SCEN-kibi-telemetry-remediation-evidence
+    to: TEST-kibi-telemetry-remediation-evidence
+    created_at: "2026-08-16T18:52:17.673Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: validates
+    from: TEST-cli-canonical-runtime
+    to: SCEN-cli-canonical-runtime
+    created_at: 2026-08-18T16:39:36.586Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c060fa10112
+  - type: validates
+    from: TEST-cli-canonical-runtime
+    to: REQ-cli-canonical-runtime
+    created_at: 2026-08-18T16:39:36.606Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5cbf4b13062
+  - type: implements
+    from: SYM-canonical-SchemaVersionSource
+    to: REQ-cli-schema-migration
+    created_at: 2026-08-18T17:03:54.898Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-001fbc5c179a
+  - type: covered_by
+    from: SYM-canonical-SchemaVersionSource
+    to: TEST-cli-config-schema
+    created_at: 2026-08-18T17:03:54.905Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3bbac920993f
+  - type: implements
+    from: SYM-operation-node-network
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:30:11.830Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-581406761cc2
+  - type: covered_by
+    from: SYM-operation-node-network
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:30:11.845Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89df84981d7f
+  - type: covered_by
+    from: SYM-operation-node-network
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:30:11.851Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f44716bf657f
+  - type: implements
+    from: SYM-skillopt-cursor-parsed-args
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:28:44.503Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c92ae31953f
+  - type: covered_by
+    from: SYM-skillopt-cursor-parsed-args
+    to: TEST-skillopt-cursor-compat
+    created_at: 2026-08-25T19:51:34.962Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49ded2c14629

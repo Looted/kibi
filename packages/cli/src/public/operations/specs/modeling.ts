@@ -27,7 +27,7 @@ export const modelRequirementSpec = {
       source: {
         type: "string",
         description:
-          "Optional primary source path or provenance root used for stable IDs and text refs. Example: 'documentation/requirements/customer-retention.md'.",
+          "Optional primary source path or provenance root used for stable IDs and text refs. Example: '.kb/requirements/customer-retention.md'.",
       },
       sourceFiles: {
         type: "array",
@@ -66,7 +66,7 @@ export const modelRequirementSpec = {
       provenance: {
         type: "string",
         description:
-          "Optional extracted text reference. Falls back to source when omitted. Example: 'documentation/requirements/customer-retention.md#L1'.",
+          "Optional extracted text reference. Falls back to source when omitted. Example: '.kb/requirements/customer-retention.md#L1'.",
       },
       existingLogicClaims: {
         type: "array",
@@ -109,7 +109,7 @@ export const suggestPredicatesSpec = {
   name: "kb_suggest_predicates",
   cliName: "suggest-predicates",
   description:
-    "Suggest ontology predicate schemas for prose requirements before agents write facts. Read-only guidance returns ranked candidates, an applicable predicate-fact plan only when every ordered argument is bound, a separate requires_predicate relationship plan when a requirement ID is supplied, or an explicit ontology-gap observation when no predicate fits.",
+    "Suggest ontology predicate schemas for prose requirements before agents write facts. Retrieval/ranking is followed by a semantic applicability gate and conservative binding review; complete-looking generic placeholders never trigger application. Read-only guidance returns additive candidate diagnostics, an applicable predicate-fact plan only for a semantically eligible candidate with reviewed bindings, or an explicit ontology-gap observation plus a deterministic review-only predicate schema draft when no schema fits.",
   businessInputSchema: {
     type: "object",
     required: ["text"],

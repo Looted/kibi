@@ -1,6 +1,6 @@
-import { deleteSpec } from "kibi-cli/operations";
-import type { DeleteInput } from "kibi-cli/operations/mutation/types";
-import type { PrologProcess } from "kibi-cli/prolog";
+import { deleteSpec } from "kibi-runtime";
+import type { DeleteInput } from "kibi-runtime";
+import type { PrologProcess } from "kibi-runtime";
 
 import { createMutationContext } from "./mutation-context.js";
 

@@ -1,9 +1,9 @@
 // @ts-nocheck
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
-import { execSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { execSync } from "./helpers/isolated-env.js";
 
 describe("Git hooks", () => {
   let tmpDir: string;
@@ -27,12 +27,10 @@ describe("Git hooks", () => {
     expect((stats.mode & 0o111) !== 0).toBe(true);
     const content = fs.readFileSync(hookPath, "utf-8");
     expect(content).toContain("kibi sync");
-    // Should gate on branch_flag and attempt to resolve old branch (name-rev may be stripped in some builds)
+    // Branch checkout hooks compile the current checkout; they never clone a
+    // previous branch's compiled store.
     expect(content).toMatch(/branch_flag is 1 for branch checkout/);
-    expect(
-      /git name-rev --name-only/.test(content) ||
-        /kibi branch ensure --from/.test(content),
-    ).toBe(true);
+    expect(content).not.toContain("branch ensure --from");
   });
 
   it("should install pre-commit hook as the hard enforcement boundary", () => {
@@ -43,7 +41,7 @@ describe("Git hooks", () => {
     const content = fs.readFileSync(hookPath, "utf-8");
     expect(content).toContain("kibi check");
     expect(content).toContain("Hard enforcement boundary");
-    expect(content).toContain("documentation/symbols.yaml");
+    expect(content).toContain(".kb/symbols.yaml");
     expect(content).toContain("kibi sync --refresh-symbol-coordinates");
   });
 
@@ -79,15 +77,10 @@ describe("Git hooks", () => {
     expect(content).toBe(legacyContent);
   });
 
-  it("should install post-checkout hook with literal-caret sed expression (not line-anchor)", () => {
+  it("should install post-checkout hook without legacy branch-copy sed logic", () => {
     const hookPath = path.join(tmpDir, ".git/hooks/post-checkout");
     const content = fs.readFileSync(hookPath, "utf-8");
-    // The sed expression must strip LITERAL '^' decorations from git name-rev output
-    // (e.g. "develop^0" → "develop") so --from is correctly passed to branch ensure.
-    // Without the backslash, sed uses '^' as a start-of-line anchor and empties old_branch
-    // entirely — causing every new branch to get an empty KB instead of copying from source.
-    // In the installed shell script this must read: sed 's/\^.*//'
-    expect(content).toContain("sed 's/\\^.*//'");
+    expect(content).not.toContain("sed 's/\\^.*//'");
   });
 
   it("should not update hook with full branch logic if already correct", () => {

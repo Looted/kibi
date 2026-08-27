@@ -1,6 +1,6 @@
 # GitHub Copilot Instructions
 
-This repository uses **Kibi** - a repo-local, per-branch, queryable long-term memory for software projects. Kibi stores requirements, BDD scenarios, tests, architecture decisions (ADRs), feature flags, events, code symbols, and facts with typed relationships between them. Agents use visible Kibi MCP tools when available, or the trusted project-local CLI's dedicated JSON routes (`--input`) when MCP is unavailable; both surfaces expose the same 18 operations.
+This repository uses **Kibi** - a repo-local, per-branch, queryable long-term memory for software projects. Kibi stores requirements, BDD scenarios, tests, architecture decisions (ADRs), feature flags, events, code symbols, and facts with typed relationships between them. Agents use visible Kibi MCP tools when available, or the trusted project-local CLI's dedicated JSON routes (`--input`) when MCP is unavailable; both surfaces expose the shared operation contracts.
 
 Please follow the comprehensive guidelines and rules defined in [AGENTS.md](../AGENTS.md).
 
@@ -109,8 +109,8 @@ When working on this codebase:
 2. **Document intent** - Route explanations to KB entities via `kb_upsert`, not inline comments
 3. **Link during work** - Create relationships: `implements` (symbol→req ownership), `covered_by` (symbol→test coverage), `executable_for` (test symbol→test identity), `specified_by` (req→scenario)
 4. **Validate** - Run `kb_check` after KB mutations to catch violations
-5. **Use `/init-kibi`** - For initial repository setup, use the `/init-kibi` slash command in OpenCode
-6. **Escalate setup issues** - If the KB needs setup or repair beyond `/init-kibi`, ask the user/operator to handle it
+5. **Use `/kibi-bootstrap`** - For initial repository setup, use the `/kibi-bootstrap` slash command in OpenCode
+6. **Escalate setup issues** - If the KB needs setup or repair beyond `/kibi-bootstrap`, ask the user/operator to handle it
 
 ### OpenCode Smart-Enforcement Notes
 

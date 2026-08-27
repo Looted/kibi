@@ -62,7 +62,7 @@ describe("check CLI and MCP parity", () => {
 
       // Then: the JSON result preserves the impact request and diagnostics shape.
       expect(cli.exitCode).toBe(0);
-      const result = JSON.parse(cli.stdout) as {
+      const result = JSON.parse(cli.stdout).data as {
         readonly violations: readonly unknown[];
         readonly sourceFiles: readonly string[];
         readonly impactDiagnostics: readonly unknown[];

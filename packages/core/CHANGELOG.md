@@ -1,5 +1,79 @@
 # kibi-core
 
+## 0.11.0
+
+### Minor Changes
+
+- 1ca62af: Kibi's public requirement-health report now makes its proof claims inspectable and trustworthy after the page has been sitting on disk or GitHub Pages. Proven no longer shares a card with blocking proof gaps, evidence ages stay honest in a static file, and the report header identifies the repository, branch, and commit when that metadata is available.
+
+  - Classify extra verification-receipt issues as `proofAdvisories` when strict proof already exists; `proofGaps` remain blocking-only.
+  - Preserve absolute evidence and generation timestamps, compute relative ages in the viewer, and link proof-chain sources from structured coordinates.
+  - Present strict proof coverage, unmapped production symbols, requirements without implementation, proof-gate filtering, filter counts, a Kibi favicon, and a subtle getting-started CTA without loading network assets.
+
+### Patch Changes
+
+- 7654339: Predicate suggestions now abstain more safely when relevance is weak or bindings are unreviewed, while explaining candidate eligibility and rejection reasons.
+
+  When a genuine ontology gap remains, agents receive a reviewable schema draft instead of an empty recommendation. Reusable launcher schemas and regression coverage improve guidance for consumer-local package resolution and process execution.
+
+  - Add public applicability, binding-provenance, score diagnostics, abstention, and recommended-schema draft fields.
+  - Add five launcher-oriented schemas, Cursor launcher coverage, MCP assertions, and reference documentation.
+  - Preserve `requires_rule` relationship shards during source-first extraction and sync.
+  - Compose multi-entity authored deletions targeting one source file into a single hash-bound write.
+  - Fail packed E2E bootstrap immediately when shared npm installation exits unsuccessfully, preserving command output for diagnosis.
+  - Scope explicit `kb_check --rules` diagnostics in the Prolog check path instead of evaluating the full rule aggregate first.
+  - Fix Logic IR dependency extraction so positive stored rules remain ground and stratification checks terminate.
+  - Normalize RDF-typed `rule_schema_id` references before rule verifiability lookup and cover the repair with Prolog regressions.
+
+- 400e88c: Supersession writes now enforce tracked source history when Kibi is running through the journaled engine. Conservative proof also distinguishes executable production behavior from structurally tested TypeScript type shapes, keeping exported types traceable without pretending that erased declarations receive runtime E2E coverage.
+
+  - Read target requirement provenance through the engine's typed entity projection.
+  - Retain the raw Prolog fallback for compatible embedded callers.
+  - Require E2E `covered_by` and runtime coordinates only for behavioral production symbols; retain type-shape ownership through real unit import contracts.
+
+## 0.10.3
+
+### Patch Changes
+
+- Existing Kibi installations now receive an agent-guided migration workflow instead of opaque repair advice. Status, checks, and coverage expose one deterministic, hash-bound action plan; agents can safely apply only explicitly approved automatic repairs while semantic, proof, package, and operator work remains visible for review. This makes damaged or legacy KBs recoverable without direct `.kb` edits and gives every run an auditable post-application readback.
+
+  - Add `kibi.migration-plan.v2` fragments to the 21-operation surfaces and support hash/action authorization in `kb_apply_plan` and `kibi migrate --apply-safe`.
+  - Add lazy status/planning and deterministic schema, branch, storage, coordinate, and recovery action execution with workspace-root-safe CLI/MCP parity.
+  - Refresh agent skills, traceability fixtures, and SkillOpt coverage for migration safety boundaries and five-axis closeout reporting.
+
+## 0.10.2
+
+### Patch Changes
+
+- de7b85a: Verification contracts can now evolve without forcing projects to erase valid historical test evidence. Kibi preserves every earlier receipt, accepts a newly appended receipt for the current contract, and only treats evidence matching both the current contract and live code snapshot as proof.
+
+  - Separate immutable receipt-history validation from current-contract binding during verification ingest.
+  - Report `verification_contract_mismatch` as an explicit proof gap until current-contract evidence is appended.
+  - Teach the usage skill and SkillOpt evaluator to preserve older-contract receipts and forbid history rewrites.
+
+- 584336b: Agents now get consistent guidance when execution proof, structural coverage, and KB freshness disagree. Current-contract E2E evidence is recorded as v2 without rewriting history, and full checks no longer report a contradictory weak-depth warning when the same live receipt already proves the scenario-backed test. Receipt freshness repairs also identify the affected requirements and tests so agents can rerun the exact contract.
+
+  - Share snapshot-bound proof evidence with full quality diagnostics.
+  - Add bounded receipt-gap telemetry and v2-native remediation guidance.
+  - Document and test the new receipt and proof-aware diagnostic requirements.
+  - Refresh the mirrored usage skills and dogfood-derived SkillOpt expectations.
+  - Keep the MCP package contract verifier self-contained with an explicit semver development dependency and matching workspace lock ranges.
+
+## 0.10.1
+
+### Patch Changes
+
+- Dogfood projects now get branch-local knowledge bases that follow the exact Git ref, actionable stale-source diagnostics, and a sanctioned relationship cleanup path. Verification receipts and packed package provenance are stricter and reproducible, while agents receive conservative symbol-recovery guidance and explicit interim-state signals. This prevents silent `master`/`main` drift and makes passing E2E evidence distinguishable from complete semantic proof.
+
+  - Remove implicit branch-name normalization and add previewed legacy branch migration.
+  - Add exact relationship deletion, v2 receipt/schema parity, status diagnostics, dogfood package manifests, and SkillOpt cases.
+
+- 7ddbaff: Dogfood projects can now resume proof work without losing their declared test intent. Test entities persist a typed verification contract, workspace snapshots ignore receipt-only churn consistently, and the sync guard no longer mistakes quoted requirement prose for executable escape hatches. Explicit ontology gaps remain unresolved rather than being reported as missing logical proof.
+
+  - Persist and validate `verification_contract.v1` through extraction, mutation, sync, and staged traceability KBs.
+  - Version the receipt-stable workspace snapshot as `kibi.workspace-snapshot.v2`.
+  - Make logic coverage inventory-aware and support Prolog-encoded semantic inventories.
+
 ## 0.10.0
 
 ### Minor Changes
@@ -132,7 +206,7 @@
   - Enrich MCP diagnostic usage fields for `kb_semantic_advisor`, `kb_suggest_predicates`, and `kb_upsert`.
   - Classify requirement contradiction errors as `semantic_contradiction` validation failures with actionable hints.
   - Preserve semantic context in CLI sync/rebuild validation errors instead of reducing Prolog failures to `Query returned false`.
-  - Extend prose coverage with real Align annotation time-key and merge-policy requirements.
+  - Extend prose coverage with real dogfood project A annotation time-key and merge-policy requirements.
   - Refresh changed Prolog check modules through the MCP aggregated check loader.
 
 - cb8d977: Kibi sync no longer treats README files inside configured entity directories as entities. This prevents human documentation such as fixture READMEs from producing missing-frontmatter warnings or failed background syncs while preserving normal entity markdown discovery.

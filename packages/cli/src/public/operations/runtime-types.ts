@@ -1,3 +1,4 @@
+import type { BranchAttachment } from "../../utils/branch-resolver.js";
 import type { OperationEffect } from "./types.js";
 
 export type { OperationEffect } from "./types.js";
@@ -35,20 +36,79 @@ export type PrologSearchQueryResult = Readonly<{
   count: number;
 }>;
 
+/** Goal-free, versioned commands accepted by the journaled engine. */
+export type EngineCommandV1 =
+  | Readonly<{ version: 1; kind: "status" }>
+  | Readonly<{
+      version: 1;
+      kind: "entities";
+      type?: string;
+      id?: string;
+      tags?: readonly string[];
+      sourceFile?: string;
+      limit: number;
+      offset: number;
+    }>
+  | Readonly<{
+      version: 1;
+      kind: "search";
+      query: string;
+      type?: string;
+      limit: number;
+      offset: number;
+    }>
+  | Readonly<{ version: 1; kind: "checkpoint" }>
+  | Readonly<{ version: 1; kind: "compact" }>
+  | Readonly<{ version: 1; kind: "save" }>
+  | Readonly<{ version: 1; kind: "check"; rule?: string }>
+  | Readonly<{
+      version: 1;
+      kind: "relationship";
+      action: "assert" | "retract";
+      type: string;
+      from: string;
+      to: string;
+    }>
+  | Readonly<{
+      version: 1;
+      kind: "persistence";
+      action: "checkpoint" | "compact" | "save" | "export";
+      targetDirectory?: string;
+    }>
+  | Readonly<{
+      version: 1;
+      kind: "lifecycle";
+      action: "stop" | "cancel";
+      requestId?: number;
+    }>
+  | Readonly<{ version: 1; kind: "stop" }>
+  | Readonly<{ version: 1; kind: "cancel"; requestId: number }>;
+
+export interface EnginePort {
+  execute<T = PrologQueryResult>(
+    command: EngineCommandV1,
+    signal?: AbortSignal,
+  ): Promise<T>;
+}
+
 // implements REQ-kibi-operation-interface-parity
 export interface PrologPort {
-  query(goal: string): Promise<PrologQueryResult>;
+  query(goal: string, signal?: AbortSignal): Promise<PrologQueryResult>;
+  /** True when each query is isolated and must include its module load. */
+  oneShotMode?: boolean;
   /** Optional index-backed page query supplied by the journaled engine. */
   queryEntities?(
     input: PrologEntityQueryInput,
+    signal?: AbortSignal,
   ): Promise<PrologEntityQueryResult>;
   /** Optional normalized-token candidate lookup supplied by the engine. */
   searchEntities?(
     input: PrologSearchQueryInput,
+    signal?: AbortSignal,
   ): Promise<PrologSearchQueryResult>;
   nextSolution(): Promise<PrologQueryResult | null>;
   invalidateCache?(): void;
-  save(): Promise<PrologQueryResult>;
+  save(signal?: AbortSignal): Promise<PrologQueryResult>;
   /** Present on the journaled engine; used to distinguish a persistent port from one-shot SWI. */
   storageStatus?(): Promise<PrologQueryResult>;
   /** Typed public freshness query; avoids exposing module loading over RPC. */
@@ -63,21 +123,39 @@ export type FilesystemStat = {
 export interface FilesystemPort {
   readFile(path: string): Promise<string>;
   writeFile(path: string, data: string): Promise<void>;
+  /** Optional workspace globbing used by source-posture classifiers. */
+  glob?(
+    patterns: readonly string[],
+    options: { readonly cwd: string; readonly includeIgnored?: boolean },
+  ): Promise<readonly string[]>;
+  /** Replace a file atomically when the host filesystem supports it. */
+  rename?(from: string, to: string): Promise<void>;
   mkdir(path: string): Promise<void>;
   stat(path: string): Promise<FilesystemStat>;
+  /** Optional destructive primitive used only to roll back newly-created files. */
+  unlink?(path: string): Promise<void>;
 }
 
 export interface GitPort {
-  revParse(...args: readonly string[]): Promise<string>;
-  showToplevel(): Promise<string>;
+  /** Optional low-level Git probes; the journaled runtime may provide them. */
+  revParse?(...args: readonly string[]): Promise<string>;
+  showToplevel?(): Promise<string>;
   workspaceSnapshot?(workspaceRoot: string): Promise<WorkspaceSnapshot>;
 }
 
 export type WorkspaceSnapshot = Readonly<{
-  version: "kibi.workspace-snapshot.v1";
+  version: "kibi.workspace-snapshot.v2";
   hash: string;
+  /** True only when at least one change can alter the verification snapshot. */
   dirty: boolean;
   fileCount: number;
+  readonly changes?: readonly {
+    readonly path: string;
+    readonly status: string;
+    readonly snapshotRelevant: boolean;
+  }[];
+  readonly changeCount?: number;
+  readonly changesTruncated?: boolean;
 }>;
 
 export interface NetworkPort {
@@ -101,9 +179,17 @@ export type OperationContext = {
   readonly signal: AbortSignal;
   readonly clock: Clock;
   readonly prolog?: PrologPort;
+  readonly engine?: EnginePort;
+  /** Lazily acquire the branch engine for operations that may start without Prolog. */
+  readonly ensureProlog?: () => Promise<PrologPort>;
   readonly fs?: FilesystemPort;
+  /** Whether filesystem-capable mutations must author tracked source files. */
+  readonly sourceFirst?: boolean;
+  /** Internal apply-plan capability: source bytes were already approved/published. */
+  readonly sourcePlanApplication?: boolean;
   readonly git?: GitPort;
   readonly net?: NetworkPort;
+  readonly branchAttachment?: BranchAttachment;
 };
 
 export interface RuntimeOperationSpec<TInput = unknown, TResult = unknown> {

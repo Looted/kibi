@@ -1,0 +1,29 @@
+relationships:
+  - id: rel-082037264bf6
+    type: covered_by
+    from: SYM-reqcompiler-diagnostic-mutation-fingerprint
+    to: TEST-kibi-telemetry-remediation-evidence
+    created_at: "2026-08-16T18:52:17.721Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-KbFreshnessEvidenceStore
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:50:33.212Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4a8340bbfb53
+  - type: covered_by
+    from: SYM-KbFreshnessEvidenceStore
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:50:33.222Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3ef48d1f3ac
+  - type: covered_by
+    from: SYM-KbFreshnessEvidenceStore
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:50:33.226Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-efe1650f9e8c

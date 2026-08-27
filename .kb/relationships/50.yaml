@@ -1,0 +1,71 @@
+relationships:
+  - id: rel-04d6f357eff9
+    type: covered_by
+    from: SYM-core-kb-literal-to-value
+    to: TEST-kibi-conservative-requirement-proof
+    created_at: "2026-08-16T18:51:34.253Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrap-provider-order
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:49:28.601Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be2a19867eed
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrap-provider-order
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:49:28.605Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ca6a9d7bba0
+  - type: implements
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-activation-classifyactivation
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-08-20T13:54:26.002Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7351dbbfbd29
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-activation-classifyactivation
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-08-20T13:54:26.008Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b0f19885e038
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-activation-classifyactivation
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:16:18.905Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e6f9eed5f65
+  - type: covered_by
+    from: SYM-kibi-bootstrap-cli-src-operations-bootstrap-types-bootstrap-provider-order
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:16:25.267Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-814343e840d9
+  - type: implements
+    from: SYM-cli-discovery-load-entities
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:24:29.626Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bfc358d85172
+  - type: covered_by
+    from: SYM-cli-discovery-load-entities
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:24:29.643Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-757e4e90e114
+  - type: covered_by
+    from: SYM-cli-discovery-load-entities
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:24:29.651Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89037d48017c

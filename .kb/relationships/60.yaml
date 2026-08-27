@@ -1,0 +1,8 @@
+relationships:
+  - id: rel-19cb3655103f
+    type: covered_by
+    from: SYM-cli-github-list-remotes
+    to: TEST-kibi-github-report-e2e
+    created_at: "2026-08-19T20:54:58.758Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert

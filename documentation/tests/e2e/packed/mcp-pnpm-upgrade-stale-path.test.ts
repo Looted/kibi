@@ -71,6 +71,10 @@ function pinLocalKibiTransitives(
   sandbox: PnpmUpgradeSandbox,
   tarballs: Tarballs,
 ): void {
+  // This is a deliberate upgrade fixture: pin the transitive package versions
+  // while simulating the consumer's old-to-new MCP transition. The ordinary
+  // packed-install path has no overrides and exercises resolver behavior as
+  // an end user would see it.
   writeFileSync(
     join(sandbox.projectDir, "package.json"),
     JSON.stringify(
@@ -90,6 +94,7 @@ function pinLocalKibiTransitives(
       "  - .",
       "overrides:",
       `  kibi-cli: ${JSON.stringify(tarballs.cli)}`,
+      `  kibi-runtime: ${JSON.stringify(tarballs.runtime)}`,
       `  kibi-core: ${JSON.stringify(tarballs.core)}`,
       "",
     ].join("\n"),
@@ -205,6 +210,7 @@ if (RUN_NODE_TEST_SUITE) {
         const upgrade = await installTarballsWithPnpm(sandbox, [
           tarballs.core,
           tarballs.cli,
+          tarballs.runtime,
           tarballs.mcp,
         ]);
         assertInstallSucceeded("current packed kibi pnpm upgrade", upgrade);

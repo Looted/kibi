@@ -1,11 +1,36 @@
+import { EngineClient } from "../../engine.js";
+import {
+  type IntentSearchAnalysis,
+  type IntentSearchFacets,
+  type IntentSearchMatch,
+  type SourceLocation,
+  executeIntentSearch,
+  validateIntentSearchInput,
+} from "../../intent-search.js";
+import { classifyActivation } from "../../operations/bootstrap/activation.js";
 import { rankEntities } from "../../search-ranking.js";
 import type { SearchMatch } from "../../search-ranking.js";
+import { resolveBranchAttachment } from "../../utils/branch-resolver.js";
+import {
+  type BranchStoreInspection,
+  branchStoreReason,
+  inspectBranchStore,
+} from "../../utils/branch-store.js";
 import {
   loadEntities,
   paginateResults,
   validateEntityType,
 } from "./discovery-entities.js";
-import { runOperationJsonQuery } from "./prolog-json.js";
+import {
+  type MigrationConfigStatus,
+  type MigrationPlan,
+  buildActionsFromStatus,
+  readMigrationConfigStatus,
+} from "./migration-plan.js";
+import {
+  OperationJsonDecodeError,
+  runOperationJsonQuery,
+} from "./prolog-json.js";
 import type { OperationContext, PrologPort } from "./runtime-types.js";
 import type { OperationResult } from "./types.js";
 import { readWorkspaceSnapshot } from "./workspace-snapshot.js";
@@ -29,11 +54,16 @@ export type SearchInput = {
   readonly type?: string;
   readonly limit?: number;
   readonly offset?: number;
+  readonly rankingMode?: "legacy" | "intent-v1";
+  readonly semanticFacets?: IntentSearchFacets;
+  readonly sourceLocations?: readonly SourceLocation[];
+  readonly minScore?: number;
 };
 
 export type SearchPayload = {
-  readonly results: readonly SearchMatch[];
+  readonly results: readonly (SearchMatch | IntentSearchMatch)[];
   readonly count: number;
+  readonly queryAnalysis?: IntentSearchAnalysis;
 };
 
 export type StatusInput = Readonly<Record<string, never>>;
@@ -52,6 +82,34 @@ export type StatusPayload = {
   readonly verificationSnapshotFileCount?: number;
   readonly verificationSnapshotVersion?: string;
   readonly verificationSnapshotError?: string;
+  readonly staleReasons?: readonly Record<string, unknown>[];
+  readonly staleReasonCount?: number;
+  readonly staleReasonsTruncated?: boolean;
+  readonly branchAttachment?: {
+    readonly gitBranch: string;
+    readonly kbBranch: string;
+    readonly kind: "exact" | "explicit_override" | "legacy_compat";
+    readonly migrationRequired: boolean;
+  };
+  readonly verificationSnapshotChanges?: readonly Record<string, unknown>[];
+  readonly verificationSnapshotChangeCount?: number;
+  readonly verificationSnapshotChangesTruncated?: boolean;
+  readonly branchStore?: BranchStoreInspection;
+  readonly engineStatus?: {
+    readonly state: "healthy" | "unavailable";
+    readonly errorCode?: string;
+    readonly detail?: string;
+    readonly recoveryRequired: boolean;
+  };
+  readonly schemaStatus?: MigrationConfigStatus;
+  readonly migrationPlan?: MigrationPlan;
+  readonly bootstrap?: {
+    readonly activationState: string;
+    readonly activationMode: string;
+    readonly planEligible: boolean;
+    readonly reason: string;
+    readonly nextAction?: Readonly<Record<string, unknown>>;
+  };
 };
 
 function requireProlog(context: OperationContext): PrologPort {
@@ -144,7 +202,16 @@ export async function executeSearch(
   context: OperationContext,
 ): Promise<OperationResult<SearchPayload>> {
   // implements REQ-kibi-operation-interface-parity, REQ-mcp-search-discovery
-  const { query, type, limit = 20, offset = 0 } = input;
+  const {
+    query,
+    type,
+    limit = 20,
+    offset = 0,
+    rankingMode = "legacy",
+    semanticFacets,
+    sourceLocations,
+    minScore,
+  } = input;
   const trimmedQuery = query.trim();
   if (!trimmedQuery) {
     throw new Error(
@@ -154,6 +221,43 @@ export async function executeSearch(
   validateEntityType(type);
   try {
     const prolog = requireProlog(context);
+    const intentMode =
+      rankingMode === "intent-v1" ||
+      semanticFacets !== undefined ||
+      sourceLocations !== undefined;
+    if (intentMode) {
+      const intentInput = {
+        query: trimmedQuery,
+        ...(type !== undefined ? { type } : {}),
+        ...(semanticFacets !== undefined ? { semanticFacets } : {}),
+        ...(sourceLocations !== undefined ? { sourceLocations } : {}),
+        ...(minScore !== undefined ? { minScore } : {}),
+      } as const;
+      validateIntentSearchInput(intentInput);
+      const intentResult = await executeIntentSearch(
+        intentInput,
+        prolog,
+        context.workspaceRoot,
+      );
+      const paginated = paginateResults(intentResult.matches, limit, offset);
+      const text =
+        intentResult.matches.length === 0
+          ? `No intent search results for '${trimmedQuery}' (abstained).`
+          : `Found ${intentResult.matches.length} intent search results for '${trimmedQuery}'. Showing ${paginated.length} (offset ${offset}, limit ${limit}): ${paginated
+              .map(
+                (match) =>
+                  `${String(match.entity.id ?? "")} [${match.reasons.join(", ")}]`,
+              )
+              .join(", ")}`;
+      return {
+        content: [{ type: "text", text }],
+        structuredContent: {
+          results: paginated,
+          count: intentResult.matches.length,
+          queryAnalysis: intentResult.analysis,
+        },
+      };
+    }
     const indexedCandidates = prolog.searchEntities
       ? await prolog.searchEntities({
           query: trimmedQuery,
@@ -199,18 +303,117 @@ export async function executeStatus(
 ): Promise<OperationResult<StatusPayload>> {
   // implements REQ-kibi-operation-interface-parity, REQ-cli-status-pre-first-sync
   try {
-    const payload = await runOperationJsonQuery<StatusPayload>(
-      requireProlog(context),
-      "status.pl",
-      "status:kb_status_json(JsonString)",
-      "Status execution",
-    );
-    if (!isStatusPayload(payload)) {
-      throw new Error("Status execution query returned an invalid payload");
+    const attachment =
+      context.branchAttachment ??
+      resolveBranchAttachment(context.workspaceRoot);
+    if ("error" in attachment) {
+      throw new Error(`Failed to resolve active branch: ${attachment.error}`);
     }
+    let payload: StatusPayload;
+    const store = inspectBranchStore(
+      context.workspaceRoot,
+      attachment.kbBranch,
+    );
+    let engineStatus: StatusPayload["engineStatus"];
+    let ownedEngine: EngineClient | undefined;
+    if (store.state !== "healthy") {
+      // Status is deliberately safe before first sync and during recovery. Starting
+      // EngineClient would initialise (or attempt to repair) the store, which turns
+      // a diagnostic read into an accidental mutation.
+      payload = {
+        branch: attachment.kbBranch,
+        snapshotId: store.state === "missing" ? "missing" : "unavailable",
+        syncedAt: null,
+        dirty: true,
+        syncState: "unknown",
+        kbPath: store.path,
+        lastSyncSource: "unavailable",
+        staleReasons: [],
+        staleReasonCount: 0,
+        staleReasonsTruncated: false,
+      };
+    } else
+      try {
+        const prolog =
+          context.prolog ??
+          (() => {
+            ownedEngine = new EngineClient({
+              workspaceRoot: context.workspaceRoot,
+              branch: attachment.kbBranch,
+              timeout: 15_000,
+            });
+            return ownedEngine;
+          })();
+        payload = await runOperationJsonQuery<StatusPayload>(
+          prolog,
+          "status.pl",
+          "status:kb_status_json(JsonString)",
+          "Status execution",
+        );
+        if (!isStatusPayload(payload)) {
+          throw new Error("Status execution query returned an invalid payload");
+        }
+        // The Prolog status module sees the compiled directory key. The public
+        // contract exposes the exact Git branch identity instead.
+        payload = { ...payload, branch: attachment.kbBranch };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        engineStatus = {
+          state: "unavailable",
+          errorCode:
+            error instanceof OperationJsonDecodeError
+              ? error.code
+              : "engine_status_unavailable",
+          detail: message,
+          recoveryRequired: false,
+        };
+        payload = {
+          branch: attachment.kbBranch,
+          snapshotId: "unavailable",
+          syncedAt: null,
+          dirty: true,
+          syncState: "unknown",
+          kbPath: store.path,
+          lastSyncSource: "unavailable",
+          staleReasons: [],
+          staleReasonCount: 0,
+          staleReasonsTruncated: false,
+        };
+      } finally {
+        await ownedEngine?.terminate();
+      }
     const snapshotEvidence = await readWorkspaceSnapshot(context);
+    const existingReasons = payload.staleReasons ?? [];
+    const storeReason = branchStoreReason(store);
+    const engineReason = engineStatus
+      ? {
+          code: engineStatus.errorCode ?? "engine_status_unavailable",
+          path: store.path,
+          entityIds: [],
+          detail:
+            engineStatus.detail ??
+            "The branch store is structurally readable but the engine status response is unavailable.",
+          remediation: {
+            command_argv: ["kibi", "engine", "stop"],
+            applyRequired: false,
+          },
+        }
+      : null;
+    const staleReasons = [
+      ...existingReasons,
+      ...(storeReason ? [storeReason] : []),
+      ...(engineReason ? [engineReason] : []),
+    ].sort((left, right) =>
+      String(left.path ?? "").localeCompare(String(right.path ?? "")),
+    );
     const enrichedPayload: StatusPayload = {
       ...payload,
+      branchAttachment: attachment,
+      branchStore: store,
+      ...(engineStatus ? { engineStatus } : {}),
+      staleReasons,
+      staleReasonCount: staleReasons.length,
+      staleReasonsTruncated: false,
       verificationSnapshot: snapshotEvidence.available
         ? snapshotEvidence.snapshot.hash
         : "unknown",
@@ -220,8 +423,92 @@ export async function executeStatus(
             verificationSnapshotDirty: snapshotEvidence.snapshot.dirty,
             verificationSnapshotFileCount: snapshotEvidence.snapshot.fileCount,
             verificationSnapshotVersion: snapshotEvidence.snapshot.version,
+            verificationSnapshotChanges:
+              snapshotEvidence.snapshot.changes ?? [],
+            verificationSnapshotChangeCount:
+              snapshotEvidence.snapshot.changeCount ?? 0,
+            verificationSnapshotChangesTruncated:
+              snapshotEvidence.snapshot.changesTruncated ?? false,
           }
         : { verificationSnapshotError: snapshotEvidence.error }),
+    };
+    const schemaStatus = readMigrationConfigStatus(context.workspaceRoot);
+    const migrationPlan = buildActionsFromStatus({
+      workspaceRoot: context.workspaceRoot,
+      branchAttachment: attachment,
+      branchStore: store,
+      staleReasons,
+      verificationSnapshotAvailable: snapshotEvidence.available,
+      ...(snapshotEvidence.available
+        ? { verificationSnapshotDirty: snapshotEvidence.snapshot.dirty }
+        : {}),
+      kbSnapshotId: payload.snapshotId,
+      workspaceSnapshot: snapshotEvidence.available
+        ? snapshotEvidence.snapshot.hash
+        : null,
+      configStatus: schemaStatus,
+    });
+    const bootstrapSourceFiles = context.fs?.glob
+      ? await context.fs.glob(
+          [
+            ".kb/requirements/**/*.md",
+            ".kb/scenarios/**/*.md",
+            ".kb/tests/**/*.md",
+            ".kb/adrs/**/*.md",
+            ".kb/adr/**/*.md",
+            ".kb/flags/**/*.md",
+            ".kb/events/**/*.md",
+            ".kb/facts/**/*.md",
+          ],
+          { cwd: context.workspaceRoot },
+        )
+      : [];
+    const bootstrapActivation = await classifyActivation(
+      context,
+      bootstrapSourceFiles,
+    );
+    const statusWithPlan: StatusPayload = {
+      ...enrichedPayload,
+      schemaStatus,
+      migrationPlan,
+      bootstrap: {
+        activationState: bootstrapActivation.activationState,
+        activationMode: bootstrapActivation.activationMode,
+        planEligible:
+          bootstrapActivation.activationState === "root_active_thin" &&
+          !bootstrapActivation.applyBlocked,
+        reason: bootstrapActivation.reason,
+        nextAction:
+          bootstrapActivation.activationState === "root_uninitialized"
+            ? {
+                operation: "kibi init",
+                reason: bootstrapActivation.reason,
+                required: true,
+              }
+            : bootstrapActivation.activationState === "root_partial"
+              ? {
+                  operation: "kibi doctor",
+                  reason: bootstrapActivation.reason,
+                  required: true,
+                }
+              : bootstrapActivation.activationState === "vendored_only"
+                ? {
+                    operation: "move-to-project-root",
+                    reason: bootstrapActivation.reason,
+                    required: true,
+                  }
+                : bootstrapActivation.activationState === "root_active_thin"
+                  ? {
+                      operation: "kb_plan_bootstrap",
+                      reason: bootstrapActivation.reason,
+                      required: true,
+                    }
+                  : {
+                      operation: "continue-kibi-workflow",
+                      reason: bootstrapActivation.reason,
+                      required: false,
+                    },
+      },
     };
     return {
       content: [
@@ -230,7 +517,7 @@ export async function executeStatus(
           text: `Branch ${payload.branch} is ${payload.syncState} (snapshot ${payload.snapshotId}, dirty=${payload.dirty}, verificationSnapshot=${enrichedPayload.verificationSnapshot})`,
         },
       ],
-      structuredContent: enrichedPayload,
+      structuredContent: statusWithPlan,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

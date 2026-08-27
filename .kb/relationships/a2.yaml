@@ -1,0 +1,78 @@
+relationships:
+  - id: rel-551f6c0edf29
+    type: relates_to
+    from: SCEN-cli-canonical-runtime
+    to: REQ-cli-canonical-runtime
+    created_at: "2026-08-18T16:39:35.130Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: verified_by
+    from: SCEN-cli-canonical-runtime
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-08-18T16:39:46.246Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a6fe262a27b
+  - type: verified_by
+    from: SCEN-cli-canonical-runtime
+    to: TEST-mcp-canonical-activation
+    created_at: 2026-08-18T16:39:46.261Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10534dd9e360
+  - type: verified_by
+    from: SCEN-cli-canonical-runtime
+    to: TEST-cursor-canonical-manifest
+    created_at: 2026-08-18T16:39:46.264Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-912e7e057577
+  - type: implements
+    from: SYM-codex-mcp-registration-config
+    to: REQ-codex-consumer-local-mcp-registration-v1
+    created_at: 2026-08-20T20:43:35.433Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-413dc298ca8b
+  - type: covered_by
+    from: SYM-codex-mcp-registration-config
+    to: TEST-codex-consumer-local-mcp-registration-v1
+    created_at: 2026-08-20T20:43:35.449Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76c2f3f0b15e
+  - type: implements
+    from: SYM-ReconcileResult
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:53:53.831Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-455ee098db27
+  - type: covered_by
+    from: SYM-ReconcileResult
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:53:53.844Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99a51c7facba
+  - type: covered_by
+    from: SYM-ReconcileResult
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:53:53.849Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3fb7eef9ebb
+  - type: implements
+    from: SYM-BRIDGE-BWRAP-EXECUTABLE-ENV
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-23T23:30:15.935Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b479182ef00
+  - type: covered_by
+    from: SYM-BRIDGE-BWRAP-EXECUTABLE-ENV
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-23T23:30:15.947Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d405260a1c8

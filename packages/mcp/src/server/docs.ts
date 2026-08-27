@@ -18,6 +18,7 @@
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { TOOLS } from "../tools-config.js";
+import { KIBI_ICONS } from "./icons.js";
 
 interface ToolConfig {
   name: string;
@@ -29,6 +30,7 @@ const ACTIVE_TOOLS: readonly ToolConfig[] = TOOLS;
 export interface DocResource {
   uri: string;
   name: string;
+  title: string;
   description: string;
   mimeType: "text/markdown";
   text: string;
@@ -68,59 +70,33 @@ function renderToolsDoc(): string {
 export const PROMPTS = [
   // implements REQ-002, REQ-013, REQ-mcp-search-discovery
   {
-    name: "init-kibi",
+    name: "kibi-bootstrap",
+    title: "Bootstrap Kibi knowledge",
     description:
-      "Activation workflow to populate a new or empty Kibi KB from an existing repository.",
+      "Bootstrap Kibi knowledge for an existing repository through the canonical planner and apply operation.",
     text: [
-      "# Kibi Interactive Activation Workflow",
+      "# Kibi Bootstrap",
       "",
-      "Use this post-hoc workflow to onboard a new or empty repository into Kibi through interactive discovery.",
+      "Route an explicit bootstrap request to the canonical `kibi-bootstrap` skill and planner.",
       "",
-      "## Step 1: Gather Declared Context",
+      "## Route",
       "",
-      "The agent must ask at most 4 bounded questions to gather declared intent from the user:",
-      "1. **Project Summary**: What is the core purpose of this project?",
-      "2. **Source of Truth**: Where is the primary documentation (canonical requirements, ADRs)?",
-      "3. **Priority Root**: In a monorepo, which package should be prioritized?",
-      "4. **Verification Anchors**: Where are the primary tests or verification configs located?",
+      "Inspect `kb_status.bootstrap` and follow its typed `nextAction`. If infrastructure is missing, run `kibi init` before planning.",
       "",
-      "## Step 2: Synthesize Candidates (read-only)",
+      "## Preview and Approval",
       "",
-      "Call `kb_autopilot_generate` with the gathered context to synthesize candidate entities.",
+      "Call `kb_plan_bootstrap` read-only. Ask only the bounded questions returned when its status is `needs_context`; do not invent a questionnaire.",
       "",
-      "This tool is **read-only**. It returns additive `structuredContent` with:",
-      "- `promptBlock`: review text that must be surfaced before writes",
-      "- `recommendedActions`: agent-facing next steps, including any REQ/SCEN/TEST authoring routed for manual handling",
-      "- `declaredContext`: the user-provided bootstrap context",
-      "- `confidence`: confidence summary for the generated output",
-      "- `bootstrapMode`: current KB state (e.g., `root_uninitialized`)",
-      "- `candidates`: synthesized entities grounded in declared context and source evidence",
-      "- `applyPlan`: exact sequential `kb_upsert` payloads for approved candidates",
-      "- `discoverySummary`: source-backed discovery notes",
+      "Show the exact returned `structuredContent.plan`, its actions, and canonical hash. Get explicit user approval, then pass that plan object unchanged to `kb_apply_plan`.",
       "",
-      "## Step 3: Preview and Approval",
+      "## Verify and repair",
       "",
-      "Surface the `promptBlock`, a summary of `candidates`, and the exact `structuredContent.applyPlan` payloads. Wait for explicit user approval before proceeding to writes.",
-      "",
-      "## Step 4: Apply Candidates",
-      "",
-      "Apply candidates sequentially using `kb_upsert`.",
-      "1. Execute `structuredContent.applyPlan` sequentially in listed order.",
-      "2. Confirm success of each `kb_upsert` before moving to the next.",
-      "3. Run `kb_check` after the batch to verify KB integrity.",
-      "",
-      "## Rules",
-      "- Never apply bootstrap writes without user-facing preview and explicit approval.",
-      "- `kb_autopilot_generate` is strictly read-only; synthesis is the backend, not the actor.",
-      "- MCP tools and the trusted project-local CLI are peer surfaces; choose by what is visible and approved here.",
-      "- If Kibi MCP tools are visible and approved, use MCP.",
-      "- Otherwise, in a trusted workspace, use the project-local CLI's dedicated JSON routes with `--input <file|->`.",
-      "- If neither interface is available, Kibi operation is blocked; tell the operator to enable MCP or the trusted project-local CLI. Do not infer MCP availability from config file existence.",
-      "- Do not read or edit `.kb/` files directly. Query before mutate. Run `kb_upsert` sequentially. Run `kb_check` before completion.",
+      "Inspect the typed `kb_apply_plan` result, follow any `nextActions` for recovery, and finish with `kb_check` and `kb_status`. Never read or edit `.kb` directly or reconstruct a plan.",
     ].join("\n"),
   },
   {
     name: "kibi_overview",
+    title: "Kibi usage overview",
     description: "High-level model for using kibi-mcp safely and effectively.",
     text: [
       "# kibi-mcp Overview",
@@ -141,7 +117,7 @@ export const PROMPTS = [
       "Core modeling principles:",
       "- Kibi has eight entity types: common authoring (req, scenario, test, fact) and supporting/system (adr, flag, event, symbol).",
       "- Encode requirements as linked facts: `req --constrains--> fact` plus `req --requires_property--> fact`.",
-      "- High-confidence `kb_model_requirement` output is deterministic; `/init-kibi` bootstrap writes still require preview and explicit approval.",
+      "- High-confidence `kb_model_requirement` output is deterministic; `/kibi-bootstrap` bootstrap writes still require preview and explicit approval.",
       "- Low-confidence claims (< 0.7) are downgraded to `observation` facts to prevent false-positive contradictions.",
       "- Only strict domain facts participate in contradiction inference; observation and meta facts are non-blocking notes.",
       "- v1 contradictions are limited to exact-value, boolean/enum, numeric range, and polarity conflicts.",
@@ -155,6 +131,7 @@ export const PROMPTS = [
   },
   {
     name: "kibi_workflow",
+    title: "Kibi workflow steps",
     description:
       "Step-by-step call order for discovery, mutation, and verification.",
     text: [
@@ -178,6 +155,7 @@ export const PROMPTS = [
   },
   {
     name: "kibi_constraints",
+    title: "Kibi constraints",
     description: "Operational limits, validation rules, and mutation gotchas.",
     text: [
       "# kibi-mcp Constraints",
@@ -269,6 +247,7 @@ function registerDocResources(): DocResource[] {
     {
       uri: "kibi://docs/overview",
       name: "kibi docs overview",
+      title: "Kibi server overview",
       description: "Full server description, purpose, and scope.",
       mimeType: "text/markdown",
       text: overview,
@@ -276,6 +255,7 @@ function registerDocResources(): DocResource[] {
     {
       uri: "kibi://docs/tools",
       name: "kibi docs tools",
+      title: "Kibi tools reference",
       description: "Available tools with summaries and required parameters.",
       mimeType: "text/markdown",
       text: renderToolsDoc(),
@@ -283,6 +263,7 @@ function registerDocResources(): DocResource[] {
     {
       uri: "kibi://docs/errors",
       name: "kibi docs errors",
+      title: "Kibi error guide",
       description: "Common error modes and suggested recovery actions.",
       mimeType: "text/markdown",
       text: errors,
@@ -290,6 +271,7 @@ function registerDocResources(): DocResource[] {
     {
       uri: "kibi://docs/examples",
       name: "kibi docs examples",
+      title: "Kibi usage examples",
       description: "Concrete tool call sequences for common tasks.",
       mimeType: "text/markdown",
       text: examples,
@@ -301,21 +283,33 @@ export const DOC_RESOURCES = registerDocResources();
 
 export function setupDocsAndPrompts(server: McpServer): void {
   for (const prompt of PROMPTS) {
-    server.prompt(prompt.name, prompt.description, async () => ({
-      messages: [
-        {
-          role: "user" as const,
-          content: { type: "text" as const, text: prompt.text },
-        },
-      ],
-    }));
+    server.registerPrompt(
+      prompt.name,
+      {
+        title: prompt.title,
+        description: prompt.description,
+      },
+      async () => ({
+        messages: [
+          {
+            role: "user" as const,
+            content: { type: "text" as const, text: prompt.text },
+          },
+        ],
+      }),
+    );
   }
 
   for (const resource of DOC_RESOURCES) {
-    server.resource(
+    server.registerResource(
       resource.name,
       resource.uri,
-      { description: resource.description, mimeType: resource.mimeType },
+      {
+        title: resource.title,
+        description: resource.description,
+        mimeType: resource.mimeType,
+        icons: KIBI_ICONS,
+      },
       async () => ({
         contents: [
           {

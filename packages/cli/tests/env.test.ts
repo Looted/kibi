@@ -14,15 +14,21 @@ afterEach(() => {
   process.env = { ...originalEnv };
 });
 
+/** Bun >=1.4 coerces undefined assignments into the string "undefined". */
+function unsetEnv(key: string) {
+  const { [key]: _omitted, ...rest } = process.env;
+  process.env = rest;
+}
+
 describe("cli env helpers", () => {
-  test("getBranchOverride returns trimmed branch override", () => {
+  test("getBranchOverride preserves the exact branch override", () => {
     process.env.KIBI_BRANCH = "  feature/test  ";
-    expect(getBranchOverride()).toBe("feature/test");
+    expect(getBranchOverride()).toBe("  feature/test  ");
 
     process.env.KIBI_BRANCH = " ";
-    expect(getBranchOverride()).toBeUndefined();
+    expect(getBranchOverride()).toBe(" ");
 
-    process.env.KIBI_BRANCH = undefined;
+    unsetEnv("KIBI_BRANCH");
     expect(getBranchOverride()).toBeUndefined();
   });
 
@@ -33,7 +39,7 @@ describe("cli env helpers", () => {
     process.env.KIBI_KB_PL_PATH = "";
     expect(getKbPlPathOverride()).toBe("");
 
-    process.env.KIBI_KB_PL_PATH = undefined;
+    unsetEnv("KIBI_KB_PL_PATH");
     expect(getKbPlPathOverride()).toBeUndefined();
   });
 

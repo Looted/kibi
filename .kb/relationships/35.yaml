@@ -1,0 +1,148 @@
+relationships:
+  - id: rel-6e700a0fd6c9
+    type: implements
+    from: SYM-auto-92BF4F1E0EC1
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:17:00.821Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-auto-92BF4F1E0EC1
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:50:36.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2751f516937a
+  - type: covered_by
+    from: SYM-core-rule-contradiction-witness
+    to: TEST-kibi-ontology-convergence-witnesses
+    created_at: 2026-08-16T18:51:59.955Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-090d016749d6
+  - type: covered_by
+    from: SYM-kibi-cli-src-intent-search-ts-intentgraphpath
+    to: TEST-kibi-intent-aware-source-discovery
+    created_at: 2026-08-16T19:46:36.849Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c2d9fbdc8af
+  - type: validates
+    from: TEST-runtime-packed-engine-daemon
+    to: SCEN-runtime-packed-engine-daemon
+    created_at: 2026-08-21T09:46:18.740Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ac913d13956
+  - type: implements
+    from: SYM-skillopt-contract-source-lock
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-21T19:52:32.089Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84532d722cfb
+  - type: covered_by
+    from: SYM-skillopt-contract-source-lock
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-21T19:52:32.112Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a332a23d72d
+  - type: implements
+    from: SYM-writeSetPrimaryEntityId
+    to: REQ-002
+    created_at: 2026-08-22T20:11:35.481Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-085b28894b4e
+  - type: covered_by
+    from: SYM-writeSetPrimaryEntityId
+    to: TEST-005
+    created_at: 2026-08-22T20:11:35.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14fcc9f8b55c
+  - type: covered_by
+    from: SYM-writeSetPrimaryEntityId
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:11:35.497Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37a0e809a893
+  - type: implements
+    from: SYM-operation-skills-list-spec
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:30:36.983Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f89a1554fe3
+  - type: covered_by
+    from: SYM-operation-skills-list-spec
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:30:36.996Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2cc3e5a08f88
+  - type: covered_by
+    from: SYM-operation-skills-list-spec
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:30:37.002Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa714366da65
+  - type: covered_by
+    from: SYM-auto-92BF4F1E0EC1
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:35:28.042Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd3a1cfbd904
+  - type: implements
+    from: SYM-PolicyLinkedEntityResult
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:53:39.958Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7375b07de0f
+  - type: covered_by
+    from: SYM-PolicyLinkedEntityResult
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:53:39.975Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7bd2cc8a7e2
+  - type: covered_by
+    from: SYM-PolicyLinkedEntityResult
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:53:39.981Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d6c383afa562
+  - type: covered_by
+    from: SYM-cli-discovery-entity-query-input
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:36:13.052Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80985b2adc29
+  - type: implements
+    from: SYM-cli-discovery-entity-query-input
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:58:45.979Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-005fe92f8e50
+  - type: covered_by
+    from: SYM-cli-discovery-entity-query-input
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:58:46.006Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0eafac11eb62
+  - type: implements
+    from: SYM-skillopt-bundle-evaluate-verdict
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-26T09:17:10.091Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-891073074288

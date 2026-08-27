@@ -58,8 +58,8 @@ describe("reconcile-engine", () => {
         entityId: "REQ-020",
         changeKind: "updated",
         title: "Existing requirement",
-        source: "documentation/requirements/REQ-020.md",
-        textRef: "documentation/requirements/REQ-020.md#L20",
+        source: ".kb/requirements/REQ-020.md",
+        textRef: ".kb/requirements/REQ-020.md#L20",
       }),
     ]);
 
@@ -69,8 +69,8 @@ describe("reconcile-engine", () => {
         id: "REQ-020",
         type: "req",
         title: "Existing requirement",
-        source: "documentation/requirements/REQ-020.md",
-        textRef: "documentation/requirements/REQ-020.md#L20",
+        source: ".kb/requirements/REQ-020.md",
+        textRef: ".kb/requirements/REQ-020.md#L20",
       },
     ]);
     expect(result.removed).toEqual([]);
@@ -110,7 +110,7 @@ describe("reconcile-engine", () => {
         timestamp: "2026-05-01T10:00:00Z",
         changeKind: "updated",
         title: "Existing requirement",
-        source: "documentation/requirements/REQ-022.md",
+        source: ".kb/requirements/REQ-022.md",
       }),
       createEntityEntry({
         entityId: "REQ-022",
@@ -127,7 +127,7 @@ describe("reconcile-engine", () => {
         id: "REQ-022",
         type: "req",
         title: "Existing requirement",
-        source: "documentation/requirements/REQ-022.md",
+        source: ".kb/requirements/REQ-022.md",
       },
     ]);
   });

@@ -106,13 +106,13 @@ run_e2e_tests() {
         fi
         
         # Build packages if needed
-        if [ ! -f "/workspace/packages/cli/dist/cli.js" ]; then
+        if [ ! -f "/workspace/packages/cli/dist/cli.js" ] || \
+           [ ! -f "/workspace/packages/runtime/dist/index.js" ]; then
             echo "🔨 Building packages..."
             bun run build
         fi
     fi
     
-    # Compile TypeScript tests
     # Compile TypeScript tests
     compile_e2e_tests
     
@@ -123,11 +123,10 @@ run_e2e_tests() {
         # Pre-pack packages to avoid npm execution issues in test environment
         echo "📦 Pre-packing packages..."
         mkdir -p /tmp/kibi-tarballs
-        for pkg in core cli mcp; do
+        for pkg in core cli runtime mcp opencode codex cursor; do
             pkg_dir="/workspace/packages/$pkg"
-            tarball=$(cd "$pkg_dir" && /usr/bin/npm pack 2>/dev/null | tail -1)
+            tarball=$(cd "$pkg_dir" && /usr/bin/npm pack --pack-destination /tmp/kibi-tarballs 2>/dev/null | tail -1)
             if [ -n "$tarball" ]; then
-                mv "$pkg_dir/$tarball" "/tmp/kibi-tarballs/"
                 echo "  ✓ Packed $pkg -> $tarball"
             fi
         done
@@ -138,15 +137,19 @@ run_e2e_tests() {
     # Enable source maps for better debugging
     export NODE_OPTIONS="--enable-source-maps"
     
-    # Pass tarball location to tests via environment
+    # Use the packed runner so one immutable prefix is shared by all Node
+    # test-file workers in this container.
     if [ -n "$test_file" ]; then
         # Convert .ts path to .js path in dist/
-        local test_basename=$(basename "$test_file" .ts)
+        local test_basename=$(basename "$test_file")
+        test_basename="${test_basename%.ts}"
         echo "  File: $test_file (compiled: $test_basename.js)"
-        node --test --test-concurrency=1 "$dist_dir/$test_basename.js"
+        node /workspace/scripts/run-packed-e2e.mjs \
+            "$dist_dir" "$dist_dir/$test_basename.js"
     else
         echo "  Running all E2E tests..."
-        node --test --test-concurrency=1 "$dist_dir"/*.test.js
+        node /workspace/scripts/run-packed-e2e.mjs \
+            "$dist_dir" "$dist_dir"/*.test.js
     fi
 }
 

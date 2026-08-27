@@ -10,6 +10,7 @@ import {
   createSandbox,
   kibi,
   packAll,
+  stageSourceFile,
 } from "./helpers.js";
 
 const RUN_NODE_TEST_SUITE =
@@ -22,7 +23,8 @@ async function cliJson<T>(sandbox: TestSandbox, args: readonly string[]) {
     0,
     `${args.join(" ")} failed: ${result.stdout}${result.stderr}`,
   );
-  return JSON.parse(result.stdout) as T;
+  const parsed = JSON.parse(result.stdout) as { data?: T };
+  return (parsed.data ?? parsed) as T;
 }
 
 function writeInput(
@@ -76,14 +78,11 @@ if (RUN_NODE_TEST_SUITE) {
       { timeout: 300_000 },
       async () => {
         if (!hasProlog) return;
-        mkdirSync(join(sandbox.repoDir, "documentation", "facts"), {
+        mkdirSync(join(sandbox.repoDir, ".kb", "facts"), {
           recursive: true,
         });
         writeFileSync(
-          join(
-            sandbox.repoDir,
-            "documentation/facts/FACT-SCHEMA-PACKED-BINDING.md",
-          ),
+          join(sandbox.repoDir, ".kb/facts/FACT-SCHEMA-PACKED-BINDING.md"),
           `---
 id: FACT-SCHEMA-PACKED-BINDING
 title: Packed binding rule schema
@@ -101,6 +100,7 @@ tags: [packed, convergence, binding]
 Defines the packed convergence binding relation.
 `,
         );
+        stageSourceFile(sandbox, ".kb/facts/FACT-SCHEMA-PACKED-BINDING.md");
         assert.strictEqual((await kibi(sandbox, ["sync"])).exitCode, 0);
 
         const prose =
@@ -150,11 +150,11 @@ Defines the packed convergence binding relation.
         }>(sandbox, ["suggest-predicates", "--input", exactInput]);
         assertExactPredicatePlan(exact);
 
-        mkdirSync(join(sandbox.repoDir, "documentation", "requirements"), {
+        mkdirSync(join(sandbox.repoDir, ".kb", "requirements"), {
           recursive: true,
         });
         writeFileSync(
-          join(sandbox.repoDir, "documentation/facts/FACT-PACKED-SUBJECT.md"),
+          join(sandbox.repoDir, ".kb/facts/FACT-PACKED-SUBJECT.md"),
           `---
 id: FACT-PACKED-SUBJECT
 title: Packed quota subject
@@ -182,10 +182,7 @@ Fixture subject.
           ],
         ] as const) {
           writeFileSync(
-            join(
-              sandbox.repoDir,
-              `documentation/facts/FACT-PACKED-${suffix}.md`,
-            ),
+            join(sandbox.repoDir, `.kb/facts/FACT-PACKED-${suffix}.md`),
             `---
 id: FACT-PACKED-${suffix}
 title: Packed quota ${suffix}
@@ -207,10 +204,7 @@ Fixture value ${suffix}.
 `,
           );
           writeFileSync(
-            join(
-              sandbox.repoDir,
-              `documentation/requirements/REQ-PACKED-${suffix}.md`,
-            ),
+            join(sandbox.repoDir, `.kb/requirements/REQ-PACKED-${suffix}.md`),
             `---
 id: REQ-PACKED-${suffix}
 title: Packed contradiction ${suffix}
@@ -238,6 +232,15 @@ Packed quota must equal ${value}
 `,
           );
         }
+        for (const sourcePath of [
+          ".kb/facts/FACT-PACKED-SUBJECT.md",
+          ".kb/facts/FACT-PACKED-A.md",
+          ".kb/facts/FACT-PACKED-B.md",
+          ".kb/requirements/REQ-PACKED-A.md",
+          ".kb/requirements/REQ-PACKED-B.md",
+        ]) {
+          stageSourceFile(sandbox, sourcePath);
+        }
         const conflictSync = await kibi(sandbox, ["sync"]);
         assert.strictEqual(
           conflictSync.exitCode,
@@ -254,6 +257,21 @@ Packed quota must equal ${value}
         ]);
         assert.notStrictEqual(check.exitCode, 0);
         const checked = JSON.parse(check.stdout) as {
+          data?: {
+            structuredContent: {
+              violations: Array<{
+                evidence?: {
+                  witnesses?: Array<{
+                    kind: string;
+                    left: { factId: string; claimKey: string };
+                    right: { factId: string; claimKey: string };
+                  }>;
+                };
+              }>;
+            };
+          };
+        };
+        const checkedData = (checked.data ?? checked) as {
           structuredContent: {
             violations: Array<{
               evidence?: {
@@ -267,7 +285,7 @@ Packed quota must equal ${value}
           };
         };
         const witness =
-          checked.structuredContent.violations[0]?.evidence?.witnesses?.[0];
+          checkedData.structuredContent.violations[0]?.evidence?.witnesses?.[0];
         assert.strictEqual(witness?.kind, "strict_property");
         assert.deepStrictEqual(
           [witness?.left.factId, witness?.right.factId],

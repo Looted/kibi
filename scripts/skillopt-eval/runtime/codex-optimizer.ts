@@ -53,6 +53,18 @@ const REQUIRED_BODY_GUIDANCE = [
   "rule-verifiability",
   "semantic-completeness",
   "logic-coverage",
+  "taskOutcome",
+  "kbState",
+  "verificationState",
+  "proofState",
+  "limitationDisposition",
+  "quality diagnostic",
+  "fixed",
+  "accepted",
+  "deferred",
+  "contract hash",
+  "freshness window",
+  "temporary",
 ] as const;
 const REPOSITORY_POLICY_LEAKS = [
   /bun run version-packages/i,
@@ -150,6 +162,7 @@ function promptFor(request: SkillOptStepRequest): string {
     "Preserve hard lane gates: advisor `nonlogical`/`subjective` propositions remain one observation without a logic claim; `ambiguous` remains an ambiguity observation; `ontology_gap` is unresolved unless an approved schema or validated IR exists. When authorized input supplies `projectLocalSchemas`, create its minimal schema endpoint and rerun predicate lookup after an empty pre-schema lookup; do not let a lookup miss override the supplied schema. Use one complete relation and one claim key, and map `must not`, `never`, `cannot`, and `forbidden` to `polarity: deny` on the positive schema. Never split schema arguments or subjective prose into synthetic clauses, and never downgrade a fitting declared schema to an observation.",
     "Include at least one concise, domain-portable relational example that shows the prose, declared schema roles, ground predicate term, stored predicate fields, and requirement-to-fact edge. Also state when ambiguity, a false positive, or a missing schema must remain an observation or ontology gap.",
     "Prefer precise decision rules and ordered recovery steps that generalize across the four public task families. Require exact readback of every repeated relationship target, including array-valued query fields, and require an unfiltered final check after the last write. Preserve useful existing guidance that is not contradicted by evidence.",
+    "Require a structured five-axis closeout with taskOutcome, kbState, verificationState, proofState, and limitationDisposition. Keep zero blocking separate from stale/dirty/legacy KB state, and keep unresolved proof separate from whether the requested maintenance task completed. Require an ID-specific fixed, accepted, or deferred disposition with rationale for every quality diagnostic. Reuse receipts only when live snapshot, contract hash, freshness window, and required case results are unchanged. Treat same-version export drift as a release defect requiring a new package version; project dependency overrides are temporary. Never select a package manager or edit dependency configuration.",
     "Return a complete replacement body whose wording directly addresses the evidence. Do not merely rephrase headings or add generic reminders.",
     `Current body:\n${request.currentBody}`,
     `Public training trajectories:\n${JSON.stringify(request.trainTrajectories)}`,
@@ -277,7 +290,10 @@ export async function runCodexSkillOptStep(
       stdin: promptFor(options.request),
     });
     if (result.exitCode !== 0) {
-      throw new CodexOptimizerError(`optimizer_exit:${result.exitCode}`);
+      const stderrTail = result.stderr.trim().split("\n").slice(-6).join(" | ");
+      throw new CodexOptimizerError(
+        `optimizer_exit:${result.exitCode}${stderrTail ? `:${stderrTail.slice(0, 600)}` : ""}`,
+      );
     }
     const output = await readFile(outputLastMessage, "utf8");
     let body: string;

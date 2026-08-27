@@ -1,9 +1,10 @@
 import { sep } from "node:path";
 import { z } from "zod";
+import { CANONICAL_SKILLS } from "./catalog";
 
 const CliSchema = z
   .object({
-    skill: z.literal("kibi-usage"),
+    skill: z.enum(CANONICAL_SKILLS),
     runId: z.uuid(),
     artifactRoot: z.string().min(1),
     targetRoot: z.string().min(1),

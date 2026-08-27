@@ -1,0 +1,155 @@
+relationships:
+  - id: rel-36271f634f97
+    type: implements
+    from: SYM-auto-5EDA4085C185
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:19:33.979Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-auto-5EDA4085C185
+    to: REQ-mcp-relationship-preflight
+    created_at: 2026-08-16T07:53:20.660Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-255321587f1f
+  - type: covered_by
+    from: SYM-auto-5EDA4085C185
+    to: TEST-mcp-relationship-preflight
+    created_at: 2026-08-16T07:53:20.662Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d755a1c86f4b
+  - type: executable_for
+    from: SYM-test-kibi-change-to-proof-plan-compiler
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-16T19:37:19.126Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f7a2fb3cc13
+  - type: covered_by
+    from: SYM-kibi-cli-src-intent-search-ts-sourcelocation
+    to: TEST-kibi-intent-aware-source-discovery
+    created_at: 2026-08-16T19:46:36.822Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-379612df3c39
+  - type: implements
+    from: SYM-cursor-agentPluginRoot
+    to: REQ-cursor-agent-plugin-standard-v1
+    created_at: 2026-08-20T14:05:19.064Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06708496f102
+  - type: covered_by
+    from: SYM-cursor-agentPluginRoot
+    to: TEST-cursor-agent-plugin-v1
+    created_at: 2026-08-20T14:05:19.070Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-140a3d3d3b9c
+  - type: relates_to
+    from: SCEN-remove-briefs-v1
+    to: REQ-remove-briefs-v1
+    created_at: 2026-08-22T12:18:29.735Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d838a2003ef
+  - type: verified_by
+    from: SCEN-opencode-kibi-plugin-v1-coverage
+    to: TEST-opencode-kibi-plugin-v1-coverage
+    created_at: 2026-08-22T20:00:46.921Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89e98dcc70ab
+  - type: verified_by
+    from: SCEN-opencode-kibi-plugin-v1-coverage
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:00:46.964Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9d724e141f7
+  - type: relates_to
+    from: SCEN-opencode-kibi-plugin-v1-coverage
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:00:46.973Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c74f94ef0e2
+  - type: implements
+    from: SYM-semantic-advisor-strictSuggestion
+    to: REQ-mcp-semantic-advisor-preflight
+    created_at: 2026-08-22T20:20:49.287Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b90f5ca1c17
+  - type: implements
+    from: SYM-semantic-advisor-strictSuggestion
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:20:49.300Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f1fb362d349
+  - type: covered_by
+    from: SYM-semantic-advisor-strictSuggestion
+    to: TEST-mcp-semantic-advisor-preflight
+    created_at: 2026-08-22T20:20:49.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9210f142649
+  - type: covered_by
+    from: SYM-semantic-advisor-strictSuggestion
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-22T20:20:49.312Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84178a9368e3
+  - type: covered_by
+    from: SYM-semantic-advisor-strictSuggestion
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:20:49.317Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b99781085604
+  - type: implements
+    from: SYM-cli-discovery-resolve-kb-path
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:24:02.446Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ed08d532c7d
+  - type: covered_by
+    from: SYM-cli-discovery-resolve-kb-path
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:24:02.463Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25553ff49b50
+  - type: covered_by
+    from: SYM-cli-discovery-resolve-kb-path
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:24:02.473Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06859e04009d
+  - type: covered_by
+    from: SYM-auto-5EDA4085C185
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:34:01.970Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d555e7529a51
+  - type: implements
+    from: SYM-skillopt-cursor-qualification-deps
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:24:49.469Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-351b7cd9376a
+  - type: covered_by
+    from: SYM-skillopt-cursor-qualification-deps
+    to: TEST-skillopt-cursor-compat
+    created_at: 2026-08-25T19:51:47.096Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f657c165a21

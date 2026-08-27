@@ -17,3 +17,66 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/events/EVT-003.md
+  - type: relates_to
+    from: EVT-003
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-08-17T07:12:40.833Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f97c36750d7e
+  - type: relates_to
+    from: EVT-003
+    to: SCEN-branch-store-recovery
+    created_at: 2026-08-17T07:12:40.852Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-efc440494c58
+  - type: implements
+    from: SYM-canonical-PathKind
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-18T17:37:15.741Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c738ef7d45f8
+  - type: covered_by
+    from: SYM-canonical-PathKind
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-18T17:37:15.751Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3f83d424427
+  - type: executable_for
+    from: SYM-cli-isolated-sandbox-env
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-19T19:25:17.181Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81ef81f4115d
+  - type: covered_by
+    from: SYM-cli-context-type
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:35:39.685Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ceb5ccaf54c
+  - type: implements
+    from: SYM-cli-context-type
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T21:57:30.519Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8eb03d7a922d
+  - type: covered_by
+    from: SYM-cli-context-type
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T21:57:30.524Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65f0ec63ddab
+  - type: covered_by
+    from: SYM-canonical-PathKind
+    to: TEST-opencode-bootstrap-paths
+    created_at: 2026-08-24T06:19:50.732Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7e589754bf1

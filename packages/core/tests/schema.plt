@@ -70,6 +70,11 @@ test(test_entity_with_verification_fields_valid) :-
     Props = [id='TEST-TYPED', title="Typed test", status=passing, created_at="2024-01-01", updated_at="2024-01-01", source="tests/TEST-TYPED.md", verification_scope=integration, verification_perspective=consumer],
     validate_entity(test, Props).
 
+test(test_entity_with_verification_contract_valid) :-
+    Contract = "{\"version\":\"kibi.verification-contract.v1\",\"runner\":\"pnpm\",\"command_argv\":[\"pnpm\",\"run\",\"e2e\"],\"required_case_symbols\":[\"SYM-CASE\"],\"required_projects\":[\"chromium\"],\"success_policy\":\"all_required_cases_first_attempt\"}",
+    Props = [id='TEST-CONTRACT', title="Contracted test", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="tests/TEST-CONTRACT.md", verification_scope=end_to_end, verification_contract=Contract],
+    validate_entity(test, Props).
+
 test(test_entity_with_invalid_verification_scope_invalid) :-
     Props = [id='TEST-BAD-SCOPE', title="Bad scope", status=passing, created_at="2024-01-01", updated_at="2024-01-01", source="tests/TEST-BAD-SCOPE.md", verification_scope=e2e],
     \+ validate_entity(test, Props).

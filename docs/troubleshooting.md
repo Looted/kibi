@@ -24,18 +24,18 @@ If `kibi check --staged` or the pre-commit hook fails with errors about unstaged
 
 **Symptom:**
 - Commit blocked due to modified code symbols not being reflected in the manifest.
-- Error message indicates `documentation/symbol-coordinates.yaml` is out of sync.
+- Error message indicates `.kb/symbol-coordinates.yaml` is out of sync.
 
 **Resolution:**
 1. **Refresh the coordinates:**
    ```bash
    kibi sync --refresh-symbol-coordinates
    ```
-   This command rescans your source code and updates the line/character coordinates in `documentation/symbol-coordinates.yaml`.
+   This command rescans your source code and updates the line/character coordinates in `.kb/symbol-coordinates.yaml`.
 
 2. **Stage the changes:**
    ```bash
-   git add documentation/symbol-coordinates.yaml
+   git add .kb/symbol-coordinates.yaml
    ```
 
 3. **Retry the commit.**
@@ -149,11 +149,11 @@ If `kibi sync` or `kibi query` produce errors:
    ```
    Ensure SWI-Prolog is installed and at correct version (9.0+).
 
-2. **Validate config:**
+2. **Validate the lifecycle manifest:**
    ```bash
-   cat .kb/config.json
+   cat .kb/manifest.json
    ```
-   Check for syntax errors (valid JSON).
+   Check for syntax errors (valid JSON). Leftover `.kb/config.json` is not read for paths or checks; run `kibi migrate --yes` to retire it.
 
 3. **Rebuild KB:**
    ```bash
@@ -169,27 +169,13 @@ If `kibi sync` or `kibi query` produce errors:
 
 ## Configuration Issues
 
-### Document Path Configuration
+Kibi does not accept user-configured entity paths or persistent check disabling. Knowledge lives under canonical `.kb/` lanes (`requirements/`, `scenarios/`, `tests/`, `facts/`, `adr/`, `flags/`, `events/`, plus `symbols.yaml`).
 
 If `kibi sync` doesn't find your documents:
 
-1. **Check your config:**
-   ```bash
-   cat .kb/config.json
-   ```
-   The `include` and `exclude` patterns specify which files are scanned.
-
-2. **Test patterns:**
-   Ensure your Markdown files match the patterns in `include`.
-   Default patterns are typically:
-   - `documentation/**/*.md`
-   - `docs/**/*.md`
-
-3. **Verify file paths:**
-   ```bash
-   ls documentation/requirements/  # or your actual doc directory
-   ```
-   Ensure files exist at the configured paths.
+1. Confirm they are under `.kb/<lane>/`, not a relocated `documentation/` tree. Legacy `documentation/` knowledge is migrated with `kibi migrate --yes`.
+2. Executable e2e harnesses stay outside the knowledge lanes (for example `documentation/tests/e2e/`). Only `TEST-*.md` belongs in `.kb/tests/`.
+3. `--rules` on `kibi check` is an invocation-time diagnostic filter only; it does not persist.
 
 ## Environment Diagnostics
 
@@ -202,7 +188,8 @@ kibi doctor
 This checks:
 - SWI-Prolog installation
 - `.kb/` directory existence
-- `config.json` validity
+- `.kb/manifest.json` validity
+- leftover `.kb/config.json` that still needs migration
 - Git repository presence
 - Git hooks installation
 
@@ -217,22 +204,14 @@ The dedicated CLI JSON routes are peer operation access for agents that do not h
 Use a project-local binary (`npm exec -- kibi`, `pnpm exec kibi`, or `yarn exec kibi`) so CLI and MCP resolve the same package versions.
 
 ## OpenCode shows "workspace needs Kibi bootstrap" before the TUI
-## OpenCode shows "workspace needs Kibi bootstrap" before the TUI
 
 ### Symptom
 
-When launching OpenCode in a workspace that already has `.kb/config.json` pointing at relocated `kibi-docs/*` paths, you see a red error message saying "workspace needs Kibi bootstrap" before the TUI appears.
+When launching OpenCode in a workspace that already has a canonical `.kb/` layout, you see a red error message saying "workspace needs Kibi bootstrap" before the TUI appears.
 
 ### Root Cause
 
-Your workspace is healthy—it has:
-- `.kb/config.json` with `kibi-docs/*` paths
-- Populated `kibi-docs/` directories
-- Non-empty `.kb/` directory
-
-The false positive occurs when the **cached `kibi-opencode` plugin** still uses old hardcoded `documentation/*` checks instead of reading your `.kb/config.json`. This happens when:
-1. The published `kibi-opencode` npm package was built before the config-aware fix
-2. OpenCode's plugin cache hasn't been refreshed with the fixed version
+Health is determined by `.kb/manifest.json` plus the canonical knowledge lanes under `.kb/`. Relocated `kibi-docs/*` paths in leftover `.kb/config.json` are ignored. The false positive usually means the cached `kibi-opencode` plugin is older than the canonical-layout build, or the repo still needs `kibi migrate --yes`.
 
 ### Inspection Commands
 
@@ -241,20 +220,15 @@ Check the cache plugin version:
 cat ~/.cache/opencode/node_modules/kibi-opencode/package.json
 ```
 
-Check if the cached plugin has the config-aware code:
-```bash
-grep -l "getKbExistenceTargets" ~/.cache/opencode/node_modules/kibi-opencode/dist/workspace-health.js
-```
-If this returns nothing, the cache is stale.
-
 ### Recovery
 
-Clear only the `kibi-opencode` plugin cache (not the entire cache):
+Run `kibi migrate --yes` if knowledge still lives under `documentation/` or leftover `.kb/config.json` is present. Then clear only the `kibi-opencode` plugin cache:
+
 ```bash
 rm -rf "$HOME/.cache/opencode/node_modules/kibi-opencode" "$HOME/.cache/opencode/bun.lock"
 ```
 
-Then restart OpenCode. The plugin will reinstall from npm. If the published version is still old, you'll need to wait for a patch release or pin a specific version.
+Then restart OpenCode.
 
 ### Verification
 
@@ -352,7 +326,7 @@ For installation issues, see [install guide](install.md).
 | KB corruption on upgrade | `kibi doctor` | Delete `.kb/branches` and `kibi sync` |
 | Dangling references | Update source files with correct IDs | Verify and `kibi sync` |
 | Hooks not working | `kibi doctor` | `kibi init` |
-| Sync finds no docs | Check `config.json` paths | Verify files exist at paths |
+| Sync finds no docs | Confirm knowledge lives under `.kb/<lane>/` | Run `kibi migrate --yes` if leftover `documentation/` still holds knowledge |
 | SWI-Prolog errors | Check version | Reinstall SWI-Prolog per [install guide](install.md) |
 
 ---

@@ -9,6 +9,7 @@ import {
   test,
 } from "bun:test";
 import type { PrologProcess } from "../../src/prolog.js";
+import { resolveBranchAttachment } from "../../src/utils/branch-resolver.js";
 
 type QueryResult = {
   success: boolean;
@@ -27,6 +28,12 @@ type MockPrologInstance = {
   query: ReturnType<typeof mock>;
   terminate: ReturnType<typeof mock>;
 };
+
+function expectedStorePath(): string {
+  const attachment = resolveBranchAttachment(process.cwd());
+  if ("error" in attachment) throw new Error(attachment.error);
+  return attachment.storePath;
+}
 
 const state = {
   currentBranch: "feature/test-branch",
@@ -102,7 +109,7 @@ describe("discovery-shared", () => {
 
   beforeEach(() => {
     resetState();
-    setBranch();
+    setBranch("feature/test-branch");
     logSpy = spyOn(console, "log").mockImplementation(() => undefined);
   });
 
@@ -114,7 +121,6 @@ describe("discovery-shared", () => {
   test("withAttachedBranchProlog starts prolog, attaches branch KB, invokes callback, and cleans up", async () => {
     process.env.KIBI_BRANCH = "feat/search";
     state.queryResponses = [
-      { success: true },
       { success: true },
       { success: true, bindings: { ok: true } },
     ];
@@ -128,10 +134,9 @@ describe("discovery-shared", () => {
     expect(state.createdPrologs).toHaveLength(1);
     expect(state.createdPrologs[0]?.options).toEqual({ timeout: 120000 });
     expect(state.createdPrologs[0]?.start).toHaveBeenCalledTimes(1);
-    expect(state.queries[0]).toContain("set_prolog_flag(answer_write_options");
-    expect(state.queries[1]).toContain("kb_attach('");
-    expect(state.queries[1]).toContain(".kb/branches/feat/search");
-    expect(state.queries[2]).toBe("user_goal");
+    expect(state.queries[0]).toContain("kb_attach('");
+    expect(state.queries[0]).toContain(expectedStorePath());
+    expect(state.queries[1]).toBe("user_goal");
     expect(state.cleanups).toEqual([state.createdPrologs[0]]);
   });
 
@@ -141,7 +146,7 @@ describe("discovery-shared", () => {
     state.queryResponses = [{ success: true }, { success: true }];
 
     await discovery.withAttachedBranchProlog(async () => "done", mockDeps);
-    expect(state.queries[1]).toContain(".kb/branches/env-branch");
+    expect(state.queries[0]).toContain(expectedStorePath());
 
     setBranch();
     resetState();
@@ -150,14 +155,11 @@ describe("discovery-shared", () => {
     state.queryResponses = [{ success: true }, { success: true }];
 
     await discovery.withAttachedBranchProlog(async () => "done", mockDeps);
-    expect(state.queries[1]).toContain(".kb/branches/main");
+    expect(state.queries[0]).toContain(expectedStorePath());
   });
 
   test("withAttachedBranchProlog throws attach failures and still cleans up", async () => {
-    state.queryResponses = [
-      { success: true },
-      { success: false, error: "attach exploded" },
-    ];
+    state.queryResponses = [{ success: false, error: "attach exploded" }];
 
     await expect(
       discovery.withAttachedBranchProlog(async () => "never", mockDeps),
@@ -167,7 +169,7 @@ describe("discovery-shared", () => {
   });
 
   test("withAttachedBranchProlog cleans up prolog when callback throws", async () => {
-    state.queryResponses = [{ success: true }, { success: true }];
+    state.queryResponses = [{ success: true }];
 
     await expect(
       discovery.withAttachedBranchProlog(async () => {
@@ -178,23 +180,15 @@ describe("discovery-shared", () => {
     expect(state.createdPrologs).toHaveLength(1);
     expect(state.createdPrologs[0]?.options).toEqual({ timeout: 120000 });
     expect(state.createdPrologs[0]?.start).toHaveBeenCalledTimes(1);
-    expect(state.queries[0]).toContain("set_prolog_flag(answer_write_options");
-    expect(state.queries[1]).toContain("kb_attach('");
+    expect(state.queries[0]).toContain("kb_attach('");
     expect(state.cleanups).toEqual([state.createdPrologs[0]]);
   });
 
-  test("resolveCurrentKbPath uses current branch or main fallback", async () => {
-    // Use env var to control branch instead of mocking
+  test("resolveCurrentKbPath uses the exact branch identity", async () => {
     process.env.KIBI_BRANCH = "topic/x";
     await expect(discovery.resolveCurrentKbPath()).resolves.toBe(
-      `${process.cwd()}/.kb/branches/topic/x`,
+      expectedStorePath(),
     );
-
-    // Test fallback: clear env var and expect main
-    process.env.KIBI_BRANCH = undefined;
-    // Note: actual branch depends on git state, so we just verify it returns a path
-    const result = await discovery.resolveCurrentKbPath();
-    expect(result).toMatch(/\.kb\/branches\//);
   });
 
   test("resolveCoreModulePath joins the requested file next to kb.pl", () => {

@@ -1,0 +1,36 @@
+relationships:
+  - id: rel-d6f2de0706f7
+    type: verified_by
+    from: SCEN-core-journaled-engine-delta-sync
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: "2026-08-16T19:49:09.928Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-cli-engine-publication-lease-type
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-08-16T21:08:59.362Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa29ce5b2458
+  - type: covered_by
+    from: SYM-cli-engine-publication-lease-type
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-08-16T22:22:15.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b2c600789b6
+  - type: covered_by
+    from: SYM-cli-github-detect-readme
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-19T20:54:27.780Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5bf7c63aff7
+  - type: relates_to
+    from: SCEN-opencode-agent-mcp-only
+    to: REQ-agent-kibi-interface-selection
+    created_at: 2026-08-20T14:39:23.274Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-089988472f2d

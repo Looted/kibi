@@ -1,3 +1,4 @@
+import "../helpers/ensure-test-branch.js";
 import { describe, expect, mock, test } from "bun:test";
 import type { PrologProcess } from "kibi-cli/prolog";
 import { handleKbDelete } from "../../src/tools/delete.js";
@@ -40,7 +41,7 @@ describe("handleKbDelete", () => {
     const { prolog } = createMockProlog(async () => ({ success: true }));
 
     await expect(handleKbDelete(prolog, { ids: [] })).rejects.toThrow(
-      "At least one ID required for delete",
+      "Delete requires exactly one non-empty input: ids or relationships",
     );
   });
 

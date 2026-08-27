@@ -1,5 +1,5 @@
-import type { OperationContext } from "kibi-cli/operations/runtime-types";
-import type { PrologProcess } from "kibi-cli/prolog";
+import type { OperationContext } from "kibi-runtime";
+import type { PrologProcess } from "kibi-runtime";
 import type { McpOperationRuntime } from "../runtime/mcp-runtime.js";
 
 import type {
@@ -8,13 +8,13 @@ import type {
   deriveDiagnosticFields,
   extractToolCallPayload,
 } from "../diagnostics.js";
-import type { AutopilotGenerateArgs } from "../tools/autopilot-generate.js";
 import type { CheckArgs } from "../tools/check.js";
 import type { CoverageArgs } from "../tools/coverage.js";
 import type { DeleteArgs } from "../tools/delete.js";
 import type { FindGapsArgs } from "../tools/find-gaps.js";
 import type { GraphArgs } from "../tools/graph.js";
 import type { ModelRequirementArgs } from "../tools/model-requirement.js";
+import type { PlanBootstrapArgs } from "../tools/plan-bootstrap.js";
 import type { QueryArgs } from "../tools/query.js";
 import type { SearchArgs } from "../tools/search.js";
 import type { SemanticAdvisorArgs } from "../tools/semantic-advisor.js";
@@ -94,8 +94,21 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
     prolog: TProlog,
     args: SuggestPredicatesArgs,
   ) => Promise<unknown>;
-  handleKbAutopilotGenerate: (
-    args: AutopilotGenerateArgs,
+  handleKbPlanBootstrap: (
+    args: PlanBootstrapArgs,
+    context: OperationContext,
+  ) => Promise<unknown>;
+  /** Optional test/host override; production falls back to the shared executor. */
+  handleKbCompileIntent?: (
+    args: Record<string, unknown>,
+    context: OperationContext,
+  ) => Promise<unknown>;
+  handleKbApplyPlan?: (
+    args: Record<string, unknown>,
+    context: OperationContext,
+  ) => Promise<unknown>;
+  handleKbIngestVerification?: (
+    args: Record<string, unknown>,
     context: OperationContext,
   ) => Promise<unknown>;
 }

@@ -3,7 +3,7 @@ import * as path from "node:path";
 import { extractFromManifest } from "../../extractors/manifest.js";
 import type { ExtractionResult } from "../../extractors/markdown.js";
 import type { ManifestLookup } from "../../traceability/symbol-extract.js";
-import { loadConfig } from "../../utils/config.js";
+import { CANONICAL_ENTITY_PATHS } from "../../utils/kb-paths.js";
 import { isTraceabilityRelationshipType } from "../symbol-granularity.js";
 import { normalizeSourceFile } from "./source-changes.js";
 import type { TraceabilityRelationship } from "./types.js";
@@ -19,9 +19,7 @@ function toTraceabilityRelationships(
 export function readImpactManifestResults(
   workspaceRoot: string,
 ): readonly ExtractionResult[] {
-  const config = loadConfig(workspaceRoot);
-  const symbolsPath = config.paths.symbols;
-  if (!symbolsPath) return [];
+  const symbolsPath = CANONICAL_ENTITY_PATHS.symbols;
 
   const absolutePath = path.isAbsolute(symbolsPath)
     ? symbolsPath

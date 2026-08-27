@@ -1,0 +1,120 @@
+relationships:
+  - id: rel-87f8bb8f7cee
+    type: executable_for
+    from: SYM-auto-02DDBEE0B7C8
+    to: TEST-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:14:45.466Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-reqcompiler-repair-plan-batch
+    to: TEST-kibi-dependency-ordered-repair-plan
+    created_at: 2026-08-16T18:51:39.489Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-899f4b332c84
+  - type: specified_by
+    from: REQ-002
+    to: SCEN-002
+    created_at: 2026-08-16T22:52:45.816Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae7865006a75
+  - type: specified_by
+    from: REQ-002
+    to: SCEN-mcp-model-requirement-v1
+    created_at: 2026-08-16T22:52:45.833Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5bac329e845
+  - type: verified_by
+    from: REQ-002
+    to: TEST-005
+    created_at: 2026-08-16T22:52:45.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1af11d06f17
+  - type: verified_by
+    from: REQ-002
+    to: TEST-mcp-model-requirement
+    created_at: 2026-08-16T22:52:45.841Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-071efa22e7a2
+  - type: constrains
+    from: REQ-002
+    to: FACT-MCP-SERVER-INTERFACE
+    created_at: 2026-08-17T08:16:19.670Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8082eb89ae06
+  - type: requires_property
+    from: REQ-002
+    to: FACT-TRANSPORT-STDIO
+    created_at: 2026-08-17T08:16:19.681Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ff322156f04
+  - type: requires_predicate
+    from: REQ-002
+    to: FACT-MCP-PUBLIC-SURFACE-POLICY
+    created_at: 2026-08-17T08:16:19.683Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-441056cdaec1
+  - type: requires_predicate
+    from: REQ-002
+    to: FACT-MCP-PUBLIC-CAPABILITY-POLICY
+    created_at: 2026-08-17T08:16:19.686Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c88c348a175e
+  - type: requires_predicate
+    from: REQ-002
+    to: FACT-MCP-ANNOTATION-TRUTH-POLICY
+    created_at: 2026-08-17T08:16:19.689Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b80f9b0442a
+  - type: requires_predicate
+    from: REQ-002
+    to: FACT-KB-STATUS-ANNOTATION-POLICY
+    created_at: 2026-08-17T08:16:19.693Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b148d1a268a4
+  - type: implements
+    from: SYM-cli-github-parse-remote
+    to: REQ-kibi-github-report-integration
+    created_at: 2026-08-18T12:03:06.557Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49577ab42299
+  - type: covered_by
+    from: SYM-cli-github-parse-remote
+    to: TEST-kibi-github-report-integration
+    created_at: 2026-08-18T12:03:06.562Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bedcda4d6a35
+  - type: covered_by
+    from: SYM-cli-github-parse-remote
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-19T20:55:30.231Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89c9e512c3c9
+  - type: implements
+    from: SYM-CoordinateArtifactError-name
+    to: REQ-generated-coordinate-persistence
+    created_at: 2026-08-23T20:30:45.483Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1742c984b5e
+  - type: covered_by
+    from: SYM-CoordinateArtifactError-name
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-08-23T20:30:45.495Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a477be273ca

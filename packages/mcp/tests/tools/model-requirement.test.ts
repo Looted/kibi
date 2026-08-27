@@ -41,7 +41,9 @@ describe("kb_model_requirement", () => {
 
   afterEach(async () => {
     await fs.rm(tmp, { recursive: true, force: true });
-    process.env.KIBI_WORKSPACE = undefined;
+    for (const key of ["KIBI_WORKSPACE"]) {
+      delete process.env[key];
+    }
   });
 
   async function loadModule(): Promise<ModelRequirementModule> {
@@ -50,7 +52,7 @@ describe("kb_model_requirement", () => {
     ) as unknown as Promise<ModelRequirementModule>;
   }
 
-  test("high-confidence inputs return a strict write-set, sequential applyPlan, and migrationWarning for legacy config", async () => {
+  test("high-confidence inputs return a strict write-set, sequential applyPlan, and migrationWarning when the lifecycle manifest is missing", async () => {
     await fs.mkdir(path.join(tmp, ".kb"), { recursive: true });
     await fs.writeFile(
       path.join(tmp, ".kb", "config.json"),
@@ -60,14 +62,14 @@ describe("kb_model_requirement", () => {
     const { handleKbModelRequirement } = await loadModule();
     const result = await handleKbModelRequirement(null, {
       text: "Customer data must be retained for 7 years.",
-      source: "documentation/requirements/customer-retention.md",
+      source: ".kb/requirements/customer-retention.md",
       sourceFiles: ["README.md"],
       confidence: 0.92,
       subjectKey: "Customer.Data",
       propertyKey: "Retention Years",
       operator: "eq",
       value: 7,
-      provenance: "documentation/requirements/customer-retention.md#L1",
+      provenance: ".kb/requirements/customer-retention.md#L1",
       existingLogicClaims: ["CLAIM-AAAAAAAAAAAAAAAA"],
     });
 
@@ -78,7 +80,7 @@ describe("kb_model_requirement", () => {
 
     expect(structured.isStrict).toBe(true);
     expect(structured.migrationWarning).toEqual(
-      expect.stringMatching(/schemaVersion/i),
+      expect.stringMatching(/lifecycle manifest is missing/i),
     );
     expect("applyBlocked" in structured).toBe(false);
     expect(applyPlan).toHaveLength(3);
@@ -116,13 +118,13 @@ describe("kb_model_requirement", () => {
     const { handleKbModelRequirement } = await loadModule();
     const result = await handleKbModelRequirement(null, {
       text: "Customer data must be retained for 7 years.",
-      source: "documentation/requirements/customer-retention.md",
+      source: ".kb/requirements/customer-retention.md",
       confidence: 0.42,
       subjectKey: "Customer.Data",
       propertyKey: "Retention Years",
       operator: "eq",
       value: 7,
-      provenance: "documentation/requirements/customer-retention.md#L1",
+      provenance: ".kb/requirements/customer-retention.md#L1",
     });
 
     const structured = result.structuredContent;
@@ -131,7 +133,9 @@ describe("kb_model_requirement", () => {
     const writeSet = structured.writeSet as Record<string, unknown>;
 
     expect(structured.isStrict).toBe(false);
-    expect(structured.migrationWarning).toBeNull();
+    expect(structured.migrationWarning).toEqual(
+      expect.stringMatching(/lifecycle manifest is missing/i),
+    );
     expect(applyPlan).toHaveLength(1);
     expect(observationStep).toMatchObject({
       type: "fact",
@@ -418,17 +422,21 @@ describe("kb_model_requirement", () => {
     );
   });
 
-  test("getWorkspaceMigrationWarning returns null for missing config and warning for invalid JSON", async () => {
+  test("getWorkspaceMigrationWarning reports missing or invalid lifecycle manifests", async () => {
     const { getWorkspaceMigrationWarning } = await loadModule();
 
-    expect(await getWorkspaceMigrationWarning(tmp)).toBeNull();
+    expect(await getWorkspaceMigrationWarning(tmp)).toMatch(
+      /lifecycle manifest is missing/i,
+    );
 
     await fs.mkdir(path.join(tmp, ".kb"), { recursive: true });
     await fs.writeFile(path.join(tmp, ".kb", "config.json"), "{invalid json");
-
     expect(await getWorkspaceMigrationWarning(tmp)).toMatch(
-      /could not be read/,
+      /lifecycle manifest is missing/i,
     );
+
+    await fs.writeFile(path.join(tmp, ".kb", "manifest.json"), "{invalid json");
+    expect(await getWorkspaceMigrationWarning(tmp)).toMatch(/not valid JSON/i);
   });
 
   test("handleKbModelRequirement returns fallback observation for low-confidence non-matching input", async () => {

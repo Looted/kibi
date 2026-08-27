@@ -28,11 +28,20 @@ import {
   analyzeKbCheckImpact,
   collectQueryPlanSafetyViolations,
   getEffectiveRules,
-  loadChecksConfig,
+  partitionCheckFindings,
   qualityDiagnosticsFromImpact,
+  resolveCheckRules,
 } from "./check-helpers.js";
+import { executeStatus } from "./discovery-executors.js";
+import {
+  buildActionsFromCheck,
+  buildMigrationPlan,
+  mergeMigrationPlans,
+} from "./migration-plan.js";
 import type { OperationContext, PrologPort } from "./runtime-types.js";
+import { collectSourceRelationshipParityViolations } from "./source-relationship-parity.js";
 import type { OperationResult } from "./types.js";
+import { readWorkspaceSnapshot } from "./workspace-snapshot.js";
 
 // implements REQ-kibi-operation-interface-parity, REQ-002
 export type CheckInput = {
@@ -51,7 +60,7 @@ export {
   buildStructuredContent,
   buildSummary,
   getEffectiveRules,
-  loadChecksConfig,
+  resolveCheckRules,
 };
 
 export type CheckExecutionOptions = {
@@ -69,6 +78,45 @@ function invalidatePrologCache(prolog: PrologPort): void {
   prolog.invalidateCache?.();
 }
 
+async function migrationPlanForCheck(
+  context: OperationContext,
+  violations: readonly Violation[],
+  qualityDiagnostics: readonly Readonly<Record<string, unknown>>[],
+  statusPlan?: ReturnType<typeof buildMigrationPlan>,
+) {
+  const checkPlan = buildMigrationPlan({
+    expected: {
+      branch: context.branchAttachment?.gitBranch ?? null,
+      kbBranch: context.branchAttachment?.kbBranch ?? null,
+    },
+    evaluatedDomains: ["quality"],
+    actions: buildActionsFromCheck({
+      violations: violations as unknown as readonly Readonly<
+        Record<string, unknown>
+      >[],
+      qualityDiagnostics,
+    }),
+  });
+  return statusPlan ? mergeMigrationPlans([statusPlan, checkPlan]) : checkPlan;
+}
+
+async function readStatusMigrationPlan(
+  context: OperationContext,
+): Promise<ReturnType<typeof buildMigrationPlan> | undefined> {
+  try {
+    const statusResult = await executeStatus({}, context);
+    return statusResult.structuredContent?.migrationPlan;
+  } catch (error) {
+    // A check can still provide a complete quality-domain plan in a detached
+    // or synthetic workspace used by an agent/test harness. Status remains a
+    // separately actionable domain; preserve the check result rather than
+    // turning a missing Git attachment into a check failure.
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes("Failed to resolve active branch")) return undefined;
+    throw error;
+  }
+}
+
 // implements REQ-kibi-operation-interface-parity, REQ-002
 export async function executeCheck(
   args: CheckInput,
@@ -78,13 +126,14 @@ export async function executeCheck(
   try {
     const workspaceRoot = args.workspaceRoot ?? context.workspaceRoot;
     const prolog = requireProlog(context);
-    const checksConfig = await loadChecksConfig(workspaceRoot);
-    const rulesAllowlist =
-      args.rules === undefined
-        ? getEffectiveRules(checksConfig.rules)
-        : args.rules.length === 0
-          ? new Set<string>()
-          : getEffectiveRules(undefined, args.rules.join(","));
+    const snapshotEvidence = await readWorkspaceSnapshot(context);
+    const verificationSnapshot = snapshotEvidence.available
+      ? snapshotEvidence.snapshot.hash
+      : undefined;
+    const checkedAt = context.clock().toISOString();
+    // Enforcement policy is Kibi-owned and deterministic from the installed
+    // version. `args.rules` is an invocation-time diagnostic selector only.
+    const rulesAllowlist = resolveCheckRules(args);
     const hasExplicitRules = args.rules !== undefined;
     const impactResult = analyzeKbCheckImpact(workspaceRoot, args);
     const impactQualityDiagnostics = qualityDiagnosticsFromImpact(impactResult);
@@ -103,9 +152,22 @@ export async function executeCheck(
             : await collectFullKbQualityDiagnostics({
                 prolog,
                 workspaceRoot,
+                ...(verificationSnapshot !== undefined
+                  ? { verificationSnapshot }
+                  : {}),
+                checkedAt,
                 now: context.clock(),
                 ...maxDiagnosticsOption,
               });
+      const statusPlan = await readStatusMigrationPlan(context);
+      const migrationPlan = await migrationPlanForCheck(
+        context,
+        [],
+        qualityDiagnostics as unknown as readonly Readonly<
+          Record<string, unknown>
+        >[],
+        statusPlan,
+      );
       return {
         content: [
           {
@@ -122,24 +184,31 @@ export async function executeCheck(
           diagnostics: [],
           qualityDiagnostics,
           impactResult,
+          migrationPlan,
         }),
       };
     }
 
     invalidatePrologCache(prolog);
 
-    const aggregatedViolations = await runAggregatedChecks(
+    const aggregatedFindings = await runAggregatedChecks(
       prolog,
       rulesAllowlist,
-      checksConfig.symbolTraceability.requireAdr,
     );
     const queryPlanViolations = rulesAllowlist.has("query-plan-safety")
       ? collectQueryPlanSafetyViolations()
       : [];
-    const violations: Violation[] = [
-      ...aggregatedViolations,
+    const sourceRelationshipParityViolations = rulesAllowlist.has(
+      "source-relationship-parity",
+    )
+      ? await collectSourceRelationshipParityViolations(workspaceRoot, prolog)
+      : [];
+    const partitioned = partitionCheckFindings([
+      ...aggregatedFindings,
       ...queryPlanViolations,
-    ];
+      ...sourceRelationshipParityViolations,
+    ]);
+    const violations: Violation[] = partitioned.violations;
 
     const diagnostics: CheckDiagnostic[] = violations.map((v) => ({
       category: "SYNC_ERROR",
@@ -152,7 +221,7 @@ export async function executeCheck(
     const collectFullQualityDiagnostics =
       !hasExplicitRules ||
       options.collectFullQualityDiagnosticsForExplicitRules === true;
-    const qualityDiagnostics = !collectFullQualityDiagnostics
+    const extraQualityDiagnostics = !collectFullQualityDiagnostics
       ? impactQualityDiagnostics
       : impactResult
         ? impactQualityDiagnostics
@@ -160,10 +229,27 @@ export async function executeCheck(
             prolog,
             hardViolationEntityIds: new Set(violations.map((v) => v.entityId)),
             workspaceRoot,
+            ...(verificationSnapshot !== undefined
+              ? { verificationSnapshot }
+              : {}),
+            checkedAt,
             now: context.clock(),
             ...maxDiagnosticsOption,
           });
+    const qualityDiagnostics = [
+      ...partitioned.qualityDiagnostics,
+      ...extraQualityDiagnostics,
+    ];
 
+    const statusPlan = await readStatusMigrationPlan(context);
+    const migrationPlan = await migrationPlanForCheck(
+      context,
+      violations,
+      qualityDiagnostics as unknown as readonly Readonly<
+        Record<string, unknown>
+      >[],
+      statusPlan,
+    );
     return {
       content: [
         {
@@ -180,6 +266,7 @@ export async function executeCheck(
         diagnostics,
         qualityDiagnostics,
         impactResult,
+        migrationPlan,
       }),
     };
   } catch (error) {

@@ -1,19 +1,16 @@
-import {
-  type OperationContext,
-  modelRequirementSpec,
-} from "kibi-cli/operations";
+import { type OperationContext, modelRequirementSpec } from "kibi-runtime";
 import {
   estimateNormativeSignalConfidence,
   extractRequirementClaim,
   getWorkspaceMigrationWarning,
   strictWriteSetToApplyPlan,
   writeSetPrimaryEntityId,
-} from "kibi-cli/operations/modeling/model-requirement";
+} from "kibi-runtime";
 import type {
   ModelRequirementArgs,
   ModelRequirementResult,
-} from "kibi-cli/operations/modeling/model-requirement";
-import type { PrologProcess } from "kibi-cli/prolog";
+} from "kibi-runtime";
+import type { PrologProcess } from "kibi-runtime";
 import { resolveWorkspaceRoot } from "../workspace.js";
 
 export type { ModelRequirementArgs, ModelRequirementResult };

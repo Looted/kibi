@@ -1,4 +1,4 @@
-import { checkSpec } from "kibi-cli/operations";
+import { checkSpec } from "kibi-runtime";
 /*
  Kibi — repo-local, per-branch, queryable long-term memory for software projects
  Copyright (C) 2026 Piotr Franczyk
@@ -16,7 +16,7 @@ import { checkSpec } from "kibi-cli/operations";
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import type { PrologProcess } from "kibi-cli/prolog";
+import type { PrologProcess } from "kibi-runtime";
 import { resolveWorkspaceRoot } from "../workspace.js";
 import type { CheckArgs, CheckResult } from "./check-types.js";
 

@@ -16,16 +16,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { execSync as rawExecSync } from "node:child_process";
+import {
+  execFileSync as rawExecFileSync,
+  execSync as rawExecSync,
+} from "node:child_process";
 import {
   copyFileSync,
   existsSync,
   mkdirSync,
+  readFileSync,
   readdirSync,
   statSync,
 } from "node:fs";
 import * as path from "node:path";
 import { getBranchOverride } from "../env.js";
+import {
+  branchStoreManifestMatches,
+  branchStorePath,
+  legacyBranchStorePath,
+} from "./branch-store-locator.js";
 
 export type BranchResolutionSuccess = { branch: string };
 export type BranchResolutionError = { error: string; code: BranchErrorCode };
@@ -33,25 +42,41 @@ export type BranchResolutionResult =
   | BranchResolutionSuccess
   | BranchResolutionError;
 
+export type BranchAttachment = {
+  gitBranch: string;
+  kbBranch: string;
+  /** The resolved compiled-store path. Never derive this path at call sites. */
+  storePath: string;
+  kind: "exact" | "explicit_override" | "legacy_compat";
+  migrationRequired: boolean;
+};
+
 export type BranchErrorCode =
   | "ENV_OVERRIDE"
   | "DETACHED_HEAD"
   | "UNBORN_BRANCH"
   | "GIT_NOT_AVAILABLE"
   | "NOT_A_GIT_REPO"
+  | "AMBIGUOUS_ATTACHMENT"
+  | "MIGRATION_RECOVERY_REQUIRED"
   | "UNKNOWN_ERROR";
 
 export interface BranchResolverDeps {
   execSync: typeof import("node:child_process").execSync;
+  execFileSync: typeof import("node:child_process").execFileSync;
 }
 
-const defaultDeps: BranchResolverDeps = { execSync: rawExecSync };
+const defaultDeps: BranchResolverDeps = {
+  execSync: rawExecSync,
+  execFileSync: rawExecFileSync,
+};
 
 export function _setBranchResolverDepsForTests(
   deps: Partial<BranchResolverDeps>,
 ): void {
   // implements REQ-008
   defaultDeps.execSync = deps.execSync ?? rawExecSync;
+  defaultDeps.execFileSync = deps.execFileSync ?? rawExecFileSync;
 }
 
 // Files to exclude when copying branch snapshots (volatile artifacts)
@@ -135,10 +160,9 @@ export function resolveActiveBranch(
       };
     }
 
-    // Normalize 'master' to 'main' for consistency
-    const normalizedBranch = branch === "master" ? "main" : branch;
-
-    return { branch: normalizedBranch };
+    // Git branch names are the branch identity.  Do not normalize master,
+    // main, or any other branch name: the KB is branch-local state.
+    return { branch };
   } catch (error) {
     // Try alternative: git rev-parse --abbrev-ref HEAD
     try {
@@ -178,10 +202,7 @@ export function resolveActiveBranch(
         };
       }
 
-      // Normalize 'master' to 'main' for consistency
-      const normalizedBranch = branch === "master" ? "main" : branch;
-
-      return { branch: normalizedBranch };
+      return { branch };
     } catch {
       // Determine specific error type
       const errorMessage =
@@ -213,6 +234,83 @@ export function resolveActiveBranch(
       };
     }
   }
+}
+
+/**
+ * Resolve the storage namespace without treating any branch as canonical.
+ * Literal branch-named stores are read-compatible legacy storage only. The
+ * active Git identity always remains the exact branch name.
+ */
+export function resolveBranchAttachment(
+  workspaceRoot: string = process.cwd(),
+): BranchAttachment | BranchResolutionError {
+  const active = resolveActiveBranch(workspaceRoot);
+  if ("error" in active) return active;
+  const explicit = Boolean(getBranchOverride());
+  const migrationRoot = path.join(
+    path.resolve(workspaceRoot),
+    ".kb",
+    "recovery",
+    "branch-migrations",
+  );
+  if (existsSync(migrationRoot)) {
+    for (const journalName of readdirSync(migrationRoot)) {
+      if (!journalName.endsWith(".json")) continue;
+      try {
+        const journal = JSON.parse(
+          readFileSync(path.join(migrationRoot, journalName), "utf8"),
+        ) as { state?: unknown };
+        if (journal.state !== "committed" && journal.state !== "rolled_back") {
+          const id = journalName.slice(0, -5);
+          return {
+            error: `Incomplete branch migration journal '${id}' blocks attachment. Preview recovery with 'kibi branch migrate --recover-journal ${id}', then apply that exact recovery action.`,
+            code: "MIGRATION_RECOVERY_REQUIRED",
+          };
+        }
+      } catch {
+        return {
+          error: `Unreadable branch migration journal '${journalName}' blocks attachment; recover it explicitly before continuing.`,
+          code: "MIGRATION_RECOVERY_REQUIRED",
+        };
+      }
+    }
+  }
+  const exactPath = branchStorePath(workspaceRoot, active.branch);
+  const legacyPath = legacyBranchStorePath(workspaceRoot, active.branch);
+  if (existsSync(exactPath) && existsSync(legacyPath)) {
+    return {
+      error: `Ambiguous branch storage: both the hashed store ${exactPath} and legacy store ${legacyPath} exist for '${active.branch}'. Preview an explicit migration before continuing.`,
+      code: "AMBIGUOUS_ATTACHMENT",
+    };
+  }
+  if (existsSync(legacyPath)) {
+    return {
+      gitBranch: active.branch,
+      kbBranch: active.branch,
+      storePath: legacyPath,
+      kind: "legacy_compat",
+      migrationRequired: true,
+    };
+  }
+  // An exact hash directory is an identity fence, not merely a convenient
+  // pathname. A missing, malformed, or mismatched manifest must never be
+  // silently attached to the active Git ref.
+  if (
+    existsSync(exactPath) &&
+    !branchStoreManifestMatches(exactPath, active.branch)
+  ) {
+    return {
+      error: `Branch store identity manifest mismatch at ${exactPath}; refusing to attach it to '${active.branch}'.`,
+      code: "AMBIGUOUS_ATTACHMENT",
+    };
+  }
+  return {
+    gitBranch: active.branch,
+    kbBranch: active.branch,
+    storePath: exactPath,
+    kind: explicit ? "explicit_override" : "exact",
+    migrationRequired: false,
+  };
 }
 
 /**
@@ -283,13 +381,15 @@ export function getBranchDiagnostic(
 export function isValidBranchName(name: string): boolean {
   if (!name || name.length === 0 || name.length > 255) return false;
 
+  const hasControlCharacter = [...name].some((character) => {
+    const codePoint = character.codePointAt(0) ?? 0;
+    return codePoint <= 0x20 || codePoint === 0x7f;
+  });
+
   // Reject path traversal attempts
   if (name.includes("..") || path.isAbsolute(name) || name.startsWith("/")) {
     return false;
   }
-
-  // Only allow safe characters
-  if (!/^[a-zA-Z0-9._\-/+]+$/.test(name)) return false;
 
   // Reject problematic patterns
   if (
@@ -297,12 +397,37 @@ export function isValidBranchName(name: string): boolean {
     name.endsWith("/") ||
     name.endsWith(".") ||
     name.includes("\\") ||
-    name.startsWith("-")
+    name.startsWith("-") ||
+    name.includes("@{") ||
+    name.includes("..") ||
+    hasControlCharacter ||
+    /[~^:?*\[\]]/.test(name)
   ) {
     return false;
   }
 
-  return true;
+  // Git rejects a ref component that starts with a dot or ends in `.lock`.
+  // Keep this check local (rather than shelling out for every validation) so
+  // env/config validation remains deterministic while matching the relevant
+  // `git check-ref-format --branch` rules.
+  const components = name.split("/");
+  if (
+    components.some(
+      (component) => component.startsWith(".") || component.endsWith(".lock"),
+    )
+  ) {
+    return false;
+  }
+
+  try {
+    defaultDeps.execFileSync("git", ["check-ref-format", "--branch", name], {
+      stdio: ["ignore", "ignore", "ignore"],
+      timeout: 5000,
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -370,41 +495,28 @@ export function getVolatileArtifactPatterns(): string[] {
 }
 
 /**
- * @deprecated defaultBranch is deprecated. Branch lifecycle now follows git naturally
- * without requiring a configured default. This function is kept for backward compatibility
- * but should not be used for new code.
+ * @deprecated Branch lifecycle follows Git naturally. This helper remains for
+ * callers that need informational remote-default discovery, but it never
+ * invents a `main` branch.
  *
- * Resolve the default branch using the following precedence:
- * 1. Configured defaultBranch from config (if set and valid)
- * 2. Git remote HEAD (refs/remotes/origin/HEAD)
- * 3. Fallback to "main"
+ * Resolve a remote default branch for informational display only. It must not
+ * be used to attach a KB or initialize a branch. Legacy migration callers must
+ * supply explicit old and new identities.
  *
  * Unlike resolveActiveBranch, this does NOT normalize branch names.
  * Configured names are returned verbatim.
  *
  * @param cwd - The working directory to resolve the default branch
- * @param config - Optional config with defaultBranch
+ * @param _config - Retained for source compatibility; ignored.
  * @returns BranchResolutionResult with either the branch name or an error
  */
 export function resolveDefaultBranch(
   cwd: string = process.cwd(),
-  config?: { defaultBranch?: string },
+  _config?: { defaultBranch?: string },
 ): { branch: string } | { error: string; code: string } {
   // implements REQ-012
-  // 1. Check config.defaultBranch first (highest precedence)
-  const configuredBranch = config?.defaultBranch?.trim();
-  if (configuredBranch) {
-    if (!isValidBranchName(configuredBranch)) {
-      return {
-        error: `Invalid defaultBranch configured in .kb/config.json: '${configuredBranch}'`,
-        code: "INVALID_CONFIG",
-      };
-    }
-    // Return configured branch verbatim (no normalization)
-    return { branch: configuredBranch };
-  }
-
-  // 2. Try to get the remote default branch from origin/HEAD
+  // Try to get the remote default branch from origin/HEAD. This is only
+  // informational; attachment always follows the active Git branch.
   try {
     const remoteHead = defaultDeps
       .execSync("git symbolic-ref refs/remotes/origin/HEAD", {
@@ -427,6 +539,9 @@ export function resolveDefaultBranch(
     // origin/HEAD doesn't exist or command failed, fall through to fallback
   }
 
-  // 3. Final fallback to "main"
-  return { branch: "main" };
+  return {
+    error:
+      "No remote default branch is configured; provide explicit migration identities.",
+    code: "NO_DEFAULT_BRANCH",
+  };
 }

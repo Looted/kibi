@@ -1,3 +1,4 @@
+import "../helpers/ensure-test-branch.js";
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
@@ -121,8 +122,15 @@ describe("MCP coverage tool handler", () => {
       includeTransitive: false,
     });
 
-    expect(query).toHaveBeenCalledTimes(1);
-    const firstCall = query.mock.calls[0] as unknown[];
+    // Coverage now appends the status-derived migration fragment when the
+    // workspace attachment is available, so the Prolog query is followed by
+    // a read-only status query. Assert the coverage invocation itself.
+    expect(query.mock.calls.length).toBeGreaterThanOrEqual(1);
+    const coverageCall = query.mock.calls.find((call) =>
+      String((call as unknown[])[0]).includes("coverage_report_json"),
+    );
+    expect(coverageCall).toBeDefined();
+    const firstCall = coverageCall as unknown as unknown[];
     expect(String(firstCall[0])).toContain(
       ", false, false, 100, 0, 'unknown', ",
     );
@@ -241,8 +249,8 @@ describe("kb_coverage isolated-core regression (issue #118)", () => {
       path.join(os.tmpdir(), "kibi-mcp-migration-preview-"),
     );
     try {
-      const source = "documentation/requirements/REQ-MCP-MIGRATION.md";
-      mkdirSync(path.join(workspaceRoot, "documentation/requirements"), {
+      const source = ".kb/requirements/REQ-MCP-MIGRATION.md";
+      mkdirSync(path.join(workspaceRoot, ".kb/requirements"), {
         recursive: true,
       });
       writeFileSync(

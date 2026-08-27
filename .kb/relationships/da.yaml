@@ -17,3 +17,80 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/adr/ADR-annotation-strategy.md
+  - type: covered_by
+    from: SYM-cli-register-reporting-commands
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-16T18:52:30.423Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d0008d3fce1
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compileplanhash
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-16T19:45:30.452Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63589a57664b
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanresult
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-16T19:45:30.460Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce370e512bb6
+  - type: implements
+    from: SYM-branchRecoverCommand
+    to: REQ-branch-store-recovery-v3
+    created_at: 2026-08-17T08:37:46.005Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50d4d724bcf0
+  - type: implements
+    from: SYM-ToolCallPayload
+    to: REQ-002
+    created_at: 2026-08-22T20:10:48.812Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0013b3936726
+  - type: covered_by
+    from: SYM-ToolCallPayload
+    to: TEST-005
+    created_at: 2026-08-22T20:10:48.824Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9e37c397355
+  - type: covered_by
+    from: SYM-ToolCallPayload
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:10:48.827Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4628f2b373a
+  - type: implements
+    from: SYM-cli-register-reporting-commands
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:26:11.765Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7786c36d8833
+  - type: implements
+    from: SYM-cli-register-reporting-commands
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-08-22T20:26:11.780Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-055c12eb4600
+  - type: covered_by
+    from: SYM-cli-register-reporting-commands
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:26:11.787Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b4a767dface
+  - type: covered_by
+    from: SYM-cli-register-reporting-commands
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:26:11.796Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9efdae82500

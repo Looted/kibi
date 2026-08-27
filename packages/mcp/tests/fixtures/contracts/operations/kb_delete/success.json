@@ -20,16 +20,59 @@
   "tool": {
     "description": "Delete entities by ID. Use only for intentional removals after dependency checks. Do not use as a bulk cleanup shortcut. Side effects: mutates and saves KB; skips entities with dependents.",
     "inputSchema": {
+      "oneOf": [
+        {
+          "not": {
+            "required": ["relationships"]
+          },
+          "required": ["ids"]
+        },
+        {
+          "not": {
+            "required": ["ids"]
+          },
+          "required": ["relationships"]
+        }
+      ],
       "properties": {
+        "approvedPlanHash": {
+          "description": "Exact hash returned by a prior authored-entity deletion plan.",
+          "pattern": "^[a-fA-F0-9]{64}$",
+          "type": "string"
+        },
         "ids": {
-          "description": "Required list of entity IDs to delete. Example: ['REQ-001','TEST-002']. At least one ID is required.",
+          "description": "Entity IDs to delete after dependency checks.",
           "items": {
             "type": "string"
           },
+          "minItems": 1,
+          "type": "array"
+        },
+        "relationships": {
+          "description": "Exact relationship triples to retract, including legacy shard records.",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "from": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "to": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "type": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": ["type", "from", "to"],
+            "type": "object"
+          },
+          "minItems": 1,
           "type": "array"
         }
       },
-      "required": ["ids"],
       "type": "object"
     },
     "name": "kb_delete"

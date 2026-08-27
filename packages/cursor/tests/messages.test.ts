@@ -13,6 +13,7 @@ function state(overrides: Partial<HookState> = {}): HookState {
     kbCheckRun: false,
     impactCheckRun: false,
     impactCheckedPaths: [],
+    planDelivered: false,
     ...overrides,
   };
 }
@@ -24,9 +25,7 @@ describe("stopFollowupMessage", () => {
 
   test("returns a short freshness nudge for documentation paths without KB activity", () => {
     expect(
-      stopFollowupMessage(
-        state({ dirtyPaths: ["documentation/symbols.yaml"] }),
-      ),
+      stopFollowupMessage(state({ dirtyPaths: [".kb/symbols.yaml"] })),
     ).toBe("Kibi: sync or record no-impact after 1 edited file.");
   });
 
@@ -85,6 +84,32 @@ describe("stopFollowupMessage", () => {
       stopFollowupMessage(
         state({
           kbMutationTools: ["kb_upsert", "kb_upsert"],
+        }),
+      ),
+    ).toBe("Kibi KB updated (kb_upsert).");
+  });
+
+  test("stays silent after plan delivery without edits or KB mutations", () => {
+    expect(stopFollowupMessage(state({ planDelivered: true }))).toBeUndefined();
+  });
+
+  test("still prompts after plan delivery when source was edited", () => {
+    expect(
+      stopFollowupMessage(
+        state({
+          planDelivered: true,
+          dirtyPaths: ["packages/core/src/kb.pl"],
+        }),
+      ),
+    ).toContain("impact-enabled kb_check");
+  });
+
+  test("still summarizes KB mutations after plan delivery", () => {
+    expect(
+      stopFollowupMessage(
+        state({
+          planDelivered: true,
+          kbMutationTools: ["kb_upsert"],
         }),
       ),
     ).toBe("Kibi KB updated (kb_upsert).");

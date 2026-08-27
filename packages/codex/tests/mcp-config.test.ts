@@ -15,7 +15,7 @@ type McpServerConfig = {
 };
 
 type McpConfig = {
-  mcp_servers?: Record<string, McpServerConfig>;
+  mcpServers?: Record<string, McpServerConfig>;
 };
 
 function findPackageRoot(startDir: string): string {
@@ -80,9 +80,11 @@ describe("kibi-codex MCP config", () => {
     const { config } = readMcpConfig(baseDir);
 
     expect(typeof config).toBe("object");
-    expect(config).toHaveProperty("mcp_servers");
+    expect(config).toHaveProperty("mcpServers");
+    expect(config).not.toHaveProperty("mcp_servers");
+    expect(Object.keys(config)).toEqual(["mcpServers"]);
 
-    const servers = config.mcp_servers;
+    const servers = config.mcpServers;
     expect(servers).toBeTruthy();
     expect(typeof servers).toBe("object");
 
@@ -103,6 +105,9 @@ describe("kibi-codex MCP config", () => {
     } as const);
 
     expect(kibiServer?.args).not.toContain("--diagnostic-mode");
+    expect(kibiServer?.args).not.toContain("--install");
+    expect(kibiServer?.args).not.toContain("--yes");
+    expect(kibiServer).not.toHaveProperty("cwd");
 
     expect(Object.keys(kibiServer ?? {}).sort()).toEqual([
       "args",

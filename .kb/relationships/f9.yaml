@@ -10,3 +10,94 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/flags/FLAG-003.md
+  - type: implements
+    from: SYM-auto-2E8B94C6ABB2
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-15T22:16:14.477Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2851462fb36c
+  - type: executable_for
+    from: SYM-auto-F6D9F411400B
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-15T22:21:36.410Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-089b9ccc5654
+  - type: implements
+    from: SYM-auto-2E8B94C6ABB2
+    to: REQ-core-atomic-upsert-persistence
+    created_at: 2026-08-16T07:50:00.216Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5a9215c41e8
+  - type: covered_by
+    from: SYM-auto-2E8B94C6ABB2
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T07:50:00.221Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f2a7e4d6f80
+  - type: covered_by
+    from: SYM-markdown-ExtractedEntity
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-16T18:52:06.508Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b3350ca4e8e
+  - type: implements
+    from: SYM-cli-prolog-json-operation-decode-error-stage
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-16T21:04:34.122Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-057e5938572c
+  - type: covered_by
+    from: SYM-cli-prolog-json-operation-decode-error-stage
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-16T21:04:34.132Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1241559e693
+  - type: implements
+    from: SYM-cursor-recordPlanDelivered
+    to: REQ-cursor-stop-job-vs-plan
+    created_at: 2026-08-18T11:56:50.097Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8fce21ea82e8
+  - type: covered_by
+    from: SYM-cursor-recordPlanDelivered
+    to: TEST-cursor-stop-job-vs-plan
+    created_at: 2026-08-18T11:56:50.103Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5671711d351
+  - type: implements
+    from: SYM-canonical-KibiTreeDataProvider-getEntityCount
+    to: REQ-vscode-traceability
+    created_at: 2026-08-18T17:37:44.291Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8a1f5520b73
+  - type: covered_by
+    from: SYM-canonical-KibiTreeDataProvider-getEntityCount
+    to: TEST-vscode-traceability
+    created_at: 2026-08-18T17:37:44.302Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ecae43ae9198
+  - type: covered_by
+    from: SYM-auto-2E8B94C6ABB2
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:43:28.457Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-597a60bca2bd
+  - type: covered_by
+    from: SYM-cli-prolog-json-operation-decode-error-stage
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:43:36.521Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81819b33a06c

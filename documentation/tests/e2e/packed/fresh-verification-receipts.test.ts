@@ -10,6 +10,7 @@ import {
   createSandbox,
   kibi,
   packAll,
+  stageSourceFile,
 } from "./helpers.js";
 import {
   sendMcpRequest,
@@ -76,7 +77,8 @@ async function cliJson<T>(sandbox: TestSandbox, args: readonly string[]) {
     0,
     `${args.join(" ")} failed: ${result.stdout}${result.stderr}`,
   );
-  return JSON.parse(result.stdout) as T;
+  const parsed = JSON.parse(result.stdout) as { data?: T };
+  return (parsed.data ?? parsed) as T;
 }
 
 function receiptRow(payload: { readonly rows: readonly CoverageRow[] }) {
@@ -106,23 +108,18 @@ if (RUN_NODE_TEST_SUITE) {
       await sandbox.initGitRepo();
       await kibi(sandbox, ["init"]);
 
-      mkdirSync(join(sandbox.repoDir, "documentation", "requirements"), {
+      mkdirSync(join(sandbox.repoDir, ".kb", "requirements"), {
         recursive: true,
       });
-      mkdirSync(join(sandbox.repoDir, "documentation", "scenarios"), {
+      mkdirSync(join(sandbox.repoDir, ".kb", "scenarios"), {
         recursive: true,
       });
-      mkdirSync(join(sandbox.repoDir, "documentation", "tests"), {
+      mkdirSync(join(sandbox.repoDir, ".kb", "tests"), {
         recursive: true,
       });
       mkdirSync(join(sandbox.repoDir, "tests", "e2e"), { recursive: true });
       writeFileSync(
-        join(
-          sandbox.repoDir,
-          "documentation",
-          "requirements",
-          "REQ-PACKED-RECEIPT.md",
-        ),
+        join(sandbox.repoDir, ".kb", "requirements", "REQ-PACKED-RECEIPT.md"),
         `---
 id: REQ-PACKED-RECEIPT
 title: Packed receipt fixture
@@ -137,12 +134,7 @@ Packed receipt fixture.
 `,
       );
       writeFileSync(
-        join(
-          sandbox.repoDir,
-          "documentation",
-          "scenarios",
-          "SCEN-PACKED-RECEIPT.md",
-        ),
+        join(sandbox.repoDir, ".kb", "scenarios", "SCEN-PACKED-RECEIPT.md"),
         `---
 id: SCEN-PACKED-RECEIPT
 title: Packed receipt scenario
@@ -156,18 +148,21 @@ Given a packed runtime, when receipt evidence is evaluated, then it is bound to 
 `,
       );
       writeFileSync(
-        join(
-          sandbox.repoDir,
-          "documentation",
-          "tests",
-          "TEST-PACKED-RECEIPT.md",
-        ),
+        join(sandbox.repoDir, ".kb", "tests", "TEST-PACKED-RECEIPT.md"),
         testDocument(),
       );
       writeFileSync(
         join(sandbox.repoDir, "tests", "e2e", "receipt.test.ts"),
         "export const receiptBehavior = 'v1';\n",
       );
+      for (const sourcePath of [
+        ".kb/requirements/REQ-PACKED-RECEIPT.md",
+        ".kb/scenarios/SCEN-PACKED-RECEIPT.md",
+        ".kb/tests/TEST-PACKED-RECEIPT.md",
+        "tests/e2e/receipt.test.ts",
+      ]) {
+        stageSourceFile(sandbox, sourcePath);
+      }
       const sync = await kibi(sandbox, ["sync"]);
       assert.strictEqual(sync.exitCode, 0, `${sync.stdout}${sync.stderr}`);
     });
@@ -201,12 +196,7 @@ Given a packed runtime, when receipt evidence is evaluated, then it is bound to 
         const finishedAt = new Date();
         const startedAt = new Date(finishedAt.getTime() - 1_000);
         writeFileSync(
-          join(
-            sandbox.repoDir,
-            "documentation",
-            "tests",
-            "TEST-PACKED-RECEIPT.md",
-          ),
+          join(sandbox.repoDir, ".kb", "tests", "TEST-PACKED-RECEIPT.md"),
           testDocument({
             snapshot: initialStatus.verificationSnapshot,
             startedAt: startedAt.toISOString(),
@@ -257,12 +247,12 @@ Given a packed runtime, when receipt evidence is evaluated, then it is bound to 
             arguments: {},
           });
           assert.ifError(mcpStatus.error);
+          const mcpStatusEnvelope = mcpStatus.result?.structuredContent as {
+            data?: { verificationSnapshot?: string };
+            verificationSnapshot?: string;
+          };
           assert.strictEqual(
-            (
-              mcpStatus.result?.structuredContent as {
-                verificationSnapshot?: string;
-              }
-            )?.verificationSnapshot,
+            (mcpStatusEnvelope.data ?? mcpStatusEnvelope).verificationSnapshot,
             initialStatus.verificationSnapshot,
           );
           const mcpCoverage = await sendMcpRequest(mcp, 3, "tools/call", {
@@ -270,10 +260,12 @@ Given a packed runtime, when receipt evidence is evaluated, then it is bound to 
             arguments: { by: "req", includePassing: true },
           });
           assert.ifError(mcpCoverage.error);
-          const mcpPayload = mcpCoverage.result?.structuredContent as
-            | { rows: CoverageRow[] }
+          const mcpCoverageEnvelope = mcpCoverage.result?.structuredContent as
+            | { data?: { rows: CoverageRow[] }; rows?: CoverageRow[] }
             | undefined;
-          assert.ok(mcpPayload);
+          const mcpPayload = (mcpCoverageEnvelope?.data ??
+            mcpCoverageEnvelope) as { rows: CoverageRow[] } | undefined;
+          if (!mcpPayload) throw new Error("MCP coverage payload missing");
           assert.strictEqual(
             receiptRow(mcpPayload).proofStages.passingE2e.status,
             "passed",

@@ -1,0 +1,85 @@
+relationships:
+  - id: rel-3a302412983b
+    type: covered_by
+    from: SYM-kibi-script-change-to-proof-eval-ts-readjsonl
+    to: TEST-kibi-change-to-proof-evaluation
+    created_at: "2026-08-16T19:43:54.878Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-core-expression-dependency
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-08-21T08:28:50.780Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c4ff7651db8
+  - type: covered_by
+    from: SYM-core-expression-dependency
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-08-21T08:28:50.792Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e670fb4d03a
+  - type: covered_by
+    from: SYM-core-expression-dependency
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: 2026-08-22T20:23:43.180Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4bdbeae89763
+  - type: implements
+    from: SYM-DeriveFileOperationReminderParams
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:47:05.280Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f282d2a9321d
+  - type: covered_by
+    from: SYM-DeriveFileOperationReminderParams
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:47:05.294Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97bf3780adb5
+  - type: covered_by
+    from: SYM-DeriveFileOperationReminderParams
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:47:05.297Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa58568fc4a6
+  - type: covered_by
+    from: SYM-operation-sparql-remote-output
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:38:45.699Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d1958fcecb1
+  - type: implements
+    from: SYM-operation-sparql-remote-output
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:04:23.333Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0eb5bf4d182a
+  - type: covered_by
+    from: SYM-operation-sparql-remote-output
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:04:23.337Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed4aec9555a5
+  - type: implements
+    from: SYM-skillopt-cursor-gate-input
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:27:05.889Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c7b0966baa4
+  - type: covered_by
+    from: SYM-skillopt-cursor-gate-input
+    to: TEST-skillopt-cursor-compat
+    created_at: 2026-08-25T19:51:26.108Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1edc2e2e6837

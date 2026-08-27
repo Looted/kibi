@@ -1,0 +1,111 @@
+relationships:
+  [
+    {
+        type: covered_by,
+        from: SYM-operation-coverage-spec,
+        to: TEST-kibi-conservative-requirement-proof,
+        created_at: 2026-08-16T18:51:34.256Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-861b74302558
+      },
+    {
+        type: covered_by,
+        from: SYM-operation-coverage-spec,
+        to: TEST-kibi-dependency-ordered-repair-plan,
+        created_at: 2026-08-16T18:51:39.472Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-469ce3c7df84
+      },
+    {
+        type: covered_by,
+        from: SYM-reqcompiler-repair-plan-version,
+        to: TEST-kibi-dependency-ordered-repair-plan,
+        created_at: 2026-08-16T18:51:39.493Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-39ec42eedcaa
+      },
+    {
+        type: covered_by,
+        from: SYM-cli-is-operation-name,
+        to: TEST-test-journaled-engine-harness,
+        created_at: 2026-08-16T18:52:30.395Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-7748f9203591
+      },
+    {
+        type: implements,
+        from: SYM-operation-coverage-spec,
+        to: REQ-kibi-operation-interface-parity,
+        created_at: 2026-08-22T21:00:29.295Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-397d0404b241
+      },
+    {
+        type: implements,
+        from: SYM-operation-coverage-spec,
+        to: REQ-kibi-conservative-requirement-proof,
+        created_at: 2026-08-22T21:00:29.312Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-bad09cb9a0b2
+      },
+    {
+        type: implements,
+        from: SYM-operation-coverage-spec,
+        to: REQ-kibi-dependency-ordered-repair-plan,
+        created_at: 2026-08-22T21:00:29.316Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-7a9eb7407252
+      },
+    {
+        type: covered_by,
+        from: SYM-operation-coverage-spec,
+        to: TEST-kibi-operation-interface-parity,
+        created_at: 2026-08-22T21:00:29.322Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-94c0c1ea9d2c
+      },
+    {
+        type: covered_by,
+        from: SYM-operation-coverage-spec,
+        to: TEST-kibi-change-to-proof-plan-compiler,
+        created_at: 2026-08-22T21:00:29.330Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-d628cd1f6c2c
+      },
+    {
+        type: implements,
+        from: SYM-skillopt-cursor-cell-receipt,
+        to: REQ-skillopt-codex-optimization,
+        created_at: 2026-08-24T17:22:33.006Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-41f1e91bdcdc
+      },
+    {
+        type: covered_by,
+        from: SYM-skillopt-cursor-cell-receipt,
+        to: TEST-skillopt-cursor-compat,
+        created_at: 2026-08-25T19:51:02.344Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-8b06d0947991
+      },
+    {
+        type: covered_by,
+        from: SYM-cli-PrologProcess-terminateProcessTree,
+        to: TEST-kibi-change-to-proof-plan-compiler,
+        created_at: 2026-08-26T07:17:02.273Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-fae01ea4d260
+      }
+  ]

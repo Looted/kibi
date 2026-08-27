@@ -1,5 +1,6 @@
 export const REQUIRED_KIBI_TOOLS = [
-  "kb_autopilot_generate",
+  "kb_plan_bootstrap",
+  "kb_apply_plan",
   "kb_search",
   "kb_query",
   "kb_status",
@@ -10,6 +11,12 @@ export const REQUIRED_KIBI_TOOLS = [
   "kb_check",
   "kb_graph",
   "kb_upsert",
+  "kb_delete",
+  "kb_ingest_verification",
+  "kb_coverage",
+  "kb_skills_list",
+  "kb_skills_load",
+  "kb_skills_read",
 ] as const;
 
 type ToolDescriptor = Readonly<{ name: string } & Record<string, unknown>>;

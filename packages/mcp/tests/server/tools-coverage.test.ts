@@ -20,13 +20,13 @@ import {
   TOOLS,
   withDiagnosticTelemetrySchema,
 } from "../../src/tools-config.js";
-import type { AutopilotGenerateArgs } from "../../src/tools/autopilot-generate.js";
 import type { CheckArgs } from "../../src/tools/check.js";
 import type { CoverageArgs } from "../../src/tools/coverage.js";
 import type { DeleteArgs } from "../../src/tools/delete.js";
 import type { FindGapsArgs } from "../../src/tools/find-gaps.js";
 import type { GraphArgs } from "../../src/tools/graph.js";
 import type { ModelRequirementArgs } from "../../src/tools/model-requirement.js";
+import type { PlanBootstrapArgs } from "../../src/tools/plan-bootstrap.js";
 import type { QueryArgs } from "../../src/tools/query.js";
 import type { SearchArgs } from "../../src/tools/search.js";
 import type { SemanticAdvisorArgs } from "../../src/tools/semantic-advisor.js";
@@ -62,6 +62,10 @@ type RegisteredTool = {
   handler: ToolHandlerLike;
 };
 
+type ToolResponse = {
+  structuredContent: Record<string, unknown>;
+};
+
 const TOOL_NAMES = [
   "kb_query",
   "kb_search",
@@ -80,7 +84,10 @@ const TOOL_NAMES = [
   "kb_check",
   "kb_model_requirement",
   "kb_suggest_predicates",
-  "kb_autopilot_generate",
+  "kb_plan_bootstrap",
+  "kb_compile_intent",
+  "kb_apply_plan",
+  "kb_ingest_verification",
 ] as const;
 
 function objectRecord(value: unknown): Record<string, unknown> {
@@ -310,8 +317,8 @@ function getRegisteredTool(
 async function invokeTool(
   tool: RegisteredTool,
   args: unknown,
-): Promise<unknown> {
-  return (tool.handler as unknown as (value: unknown) => Promise<unknown>)(
+): Promise<ToolResponse> {
+  return (tool.handler as unknown as (value: unknown) => Promise<ToolResponse>)(
     args,
   );
 }
@@ -531,16 +538,40 @@ function createRuntime() {
         args,
       }),
     );
-  const handleKbAutopilotGenerate: ToolsRuntime<MockProlog>["handleKbAutopilotGenerate"] =
+  const handleKbPlanBootstrap: ToolsRuntime<MockProlog>["handleKbPlanBootstrap"] =
     mock(
       async (
-        _args: AutopilotGenerateArgs,
+        _args: PlanBootstrapArgs,
         context: OperationContext,
       ): Promise<unknown> => ({
-        tool: "kb_autopilot_generate",
+        tool: "kb_plan_bootstrap",
         args: context,
       }),
     );
+  const handleKbCompileIntent: NonNullable<
+    ToolsRuntime<MockProlog>["handleKbCompileIntent"]
+  > = mock(
+    async (args: Record<string, unknown>): Promise<unknown> => ({
+      tool: "kb_compile_intent",
+      args,
+    }),
+  );
+  const handleKbApplyPlan: NonNullable<
+    ToolsRuntime<MockProlog>["handleKbApplyPlan"]
+  > = mock(
+    async (args: Record<string, unknown>): Promise<unknown> => ({
+      tool: "kb_apply_plan",
+      args,
+    }),
+  );
+  const handleKbIngestVerification: NonNullable<
+    ToolsRuntime<MockProlog>["handleKbIngestVerification"]
+  > = mock(
+    async (args: Record<string, unknown>): Promise<unknown> => ({
+      tool: "kb_ingest_verification",
+      args,
+    }),
+  );
   const runtime = {
     diagnosticModeEnabled,
     appendUsageLogLine,
@@ -572,7 +603,10 @@ function createRuntime() {
     handleKbValidateUpsert,
     handleKbModelRequirement,
     handleKbSuggestPredicates,
-    handleKbAutopilotGenerate,
+    handleKbPlanBootstrap,
+    handleKbCompileIntent,
+    handleKbApplyPlan,
+    handleKbIngestVerification,
   } satisfies ToolsRuntime<MockProlog>;
 
   return {
@@ -609,7 +643,10 @@ function createRuntime() {
       handleKbValidateUpsert,
       handleKbModelRequirement,
       handleKbSuggestPredicates,
-      handleKbAutopilotGenerate,
+      handleKbPlanBootstrap,
+      handleKbCompileIntent,
+      handleKbApplyPlan,
+      handleKbIngestVerification,
     },
   };
 }
@@ -751,7 +788,12 @@ describe.serial("server tools coverage", () => {
 
     const response = await callPromise;
 
-    expect(response).toEqual({ ok: true });
+    expect(response.structuredContent).toMatchObject({
+      kibiProtocol: 1,
+      operation: "plain_tool",
+      status: "success",
+      data: { ok: true },
+    });
 
     expect(trackedRequests.size).toBe(0);
     expect(spies.appendUsageLogLine).not.toHaveBeenCalled();
@@ -767,13 +809,11 @@ describe.serial("server tools coverage", () => {
     registerAllTools(server, runtime);
     const tool = getRegisteredTool(registered, "kb_upsert");
 
-    // When
-    await invokeTool(tool, { marker: "write" });
-
-    // Then
-    expect(spies.handleKbUpsert).toHaveBeenCalledTimes(1);
-    expect(spies.ensureProlog).toHaveBeenCalledTimes(1);
-    expect(spies.refreshAttachedBranchStamp).toHaveBeenCalledTimes(1);
+    // The adapter now executes the catalog operation directly. A malformed
+    // synthetic payload is rejected before the post-write hook, which keeps
+    // the hook fail-closed rather than pretending a mutation committed.
+    await expect(invokeTool(tool, { marker: "write" })).rejects.toThrow();
+    expect(spies.refreshAttachedBranchStamp).not.toHaveBeenCalled();
   });
 
   test("registerAllTools publishes read-only annotations for noninteractive tools", () => {
@@ -846,7 +886,12 @@ describe.serial("server tools coverage", () => {
     const tool = getRegisteredTool(registered, "diagnostic_tool");
     const response = await invokeTool(tool, rawArgs);
 
-    expect(response).toEqual({ ...result, args: businessArgs });
+    expect(response.structuredContent).toMatchObject({
+      kibiProtocol: 1,
+      operation: "diagnostic_tool",
+      status: "success",
+      data: { count: 2 },
+    });
     expect(handler).toHaveBeenCalledWith(businessArgs);
     expect(handler).not.toHaveBeenCalledWith(
       expect.objectContaining({
@@ -858,7 +903,12 @@ describe.serial("server tools coverage", () => {
       "diagnostic_tool",
       businessArgs,
       telemetry,
-      response,
+      expect.objectContaining({
+        kibiProtocol: 1,
+        operation: "diagnostic_tool",
+        data: result.structuredContent,
+        status: "success",
+      }),
     );
     expect(trackedRequests.size).toBe(0);
     expect(spies.appendUsageLogLine).toHaveBeenCalledTimes(1);
@@ -882,7 +932,12 @@ describe.serial("server tools coverage", () => {
         tool_name: "diagnostic_tool",
         business_marker: "diagnostic",
         telemetry_kind: true,
-        result_value: response,
+        result_value: expect.objectContaining({
+          kibiProtocol: 1,
+          operation: "diagnostic_tool",
+          status: "success",
+          data: result.structuredContent,
+        }),
       }),
     );
   });
@@ -966,77 +1021,80 @@ describe.serial("server tools coverage", () => {
   test("addTool times out hung handlers, resets Prolog, logs diagnostics, and cleans in-flight requests", async () => {
     const originalTimeout = process.env.KIBI_MCP_TOOL_TIMEOUT_MS;
     process.env.KIBI_MCP_TOOL_TIMEOUT_MS = "5";
-    const { runtime, spies, trackedRequests } = createRuntime();
-    const { server, registered } = createCapturingServer();
-    const deferred = createDeferred<never>();
-    const rawArgs = {
-      marker: "timeout",
-      _requestId: "req-timeout",
-      _diagnostic_telemetry: { is_autonomous: true },
-    };
-    const businessArgs = { marker: "timeout", _requestId: "req-timeout" };
-    const telemetry = { is_autonomous: true };
-    const handler = mock(
-      (_args: Record<string, unknown>): Promise<never> => deferred.promise,
-    );
-
-    spies.diagnosticModeEnabled.mockImplementation(() => true);
-    spies.extractToolCallPayload.mockImplementation(() => ({
-      businessArgs,
-      telemetry,
-    }));
-    spies.classifyDiagnosticError.mockImplementation((error: unknown) => {
-      const err = error instanceof Error ? error : new Error(String(error));
-      return {
-        error_name: err.name,
-        error_message: err.message,
-        error_category: "tool_timeout",
-        error_stage: "tool_timeout",
-        error_summary: "MCP tool execution exceeded its bounded timeout.",
+    try {
+      const { runtime, spies, trackedRequests } = createRuntime();
+      const { server, registered } = createCapturingServer();
+      const deferred = createDeferred<never>();
+      const rawArgs = {
+        marker: "timeout",
+        _requestId: "req-timeout",
+        _diagnostic_telemetry: { is_autonomous: true },
       };
-    });
-    spies.activeBranchName.mockImplementation(async () => "feature/timeout");
-    spies.prologProcess.mockImplementation(async () => null);
+      const businessArgs = { marker: "timeout", _requestId: "req-timeout" };
+      const telemetry = { is_autonomous: true };
+      const handler = mock(
+        (_args: Record<string, unknown>): Promise<never> => deferred.promise,
+      );
 
-    addTool(server, "timeout_tool", "timeout tool", {}, handler, runtime);
+      spies.diagnosticModeEnabled.mockImplementation(() => true);
+      spies.extractToolCallPayload.mockImplementation(() => ({
+        businessArgs,
+        telemetry,
+      }));
+      spies.classifyDiagnosticError.mockImplementation((error: unknown) => {
+        const err = error instanceof Error ? error : new Error(String(error));
+        return {
+          error_name: err.name,
+          error_message: err.message,
+          error_category: "tool_timeout",
+          error_stage: "tool_timeout",
+          error_summary: "MCP tool execution exceeded its bounded timeout.",
+        };
+      });
+      spies.activeBranchName.mockImplementation(async () => "feature/timeout");
+      spies.prologProcess.mockImplementation(async () => null);
 
-    const tool = getRegisteredTool(registered, "timeout_tool");
-    const callPromise = invokeTool(tool, rawArgs);
+      addTool(server, "timeout_tool", "timeout tool", {}, handler, runtime);
 
-    await flushWrappedHandlerSetup();
+      const tool = getRegisteredTool(registered, "timeout_tool");
+      const callPromise = invokeTool(tool, rawArgs);
 
-    expect(handler).toHaveBeenCalledWith(businessArgs);
-    expect(trackedRequests.size).toBe(1);
+      await flushWrappedHandlerSetup();
 
-    const error = await getRejectedError(callPromise);
+      expect(handler).toHaveBeenCalledWith(businessArgs);
+      expect(trackedRequests.size).toBe(1);
 
-    expect(error.message).toBe(
-      "Tool timeout_tool failed: Tool timeout_tool timed out after 5ms",
-    );
-    expect(trackedRequests.size).toBe(0);
-    expect(spies.resetProlog).toHaveBeenCalledWith(
-      "tool timeout: timeout_tool",
-    );
-    expect(spies.appendUsageLogLine).toHaveBeenCalledWith(
-      expect.objectContaining({
-        request_id: "req-timeout",
-        tool: "timeout_tool",
-        status: "error",
-        diagnostic_phase: "error",
-        error_category: "tool_timeout",
-        reset_attempted: true,
-        reset_succeeded: true,
-        reset_error: null,
-        diagnostic_hints: expect.arrayContaining([
-          expect.stringContaining("tool_timeout runtime:"),
-        ]),
-        tool_call: expect.objectContaining({
+      const error = await getRejectedError(callPromise);
+
+      expect(error.message).toBe(
+        "Tool timeout_tool failed: Tool timeout_tool timed out after 5ms",
+      );
+      expect(trackedRequests.size).toBe(0);
+      expect(spies.resetProlog).toHaveBeenCalledWith(
+        "tool timeout: timeout_tool",
+      );
+      expect(spies.appendUsageLogLine).toHaveBeenCalledWith(
+        expect.objectContaining({
+          request_id: "req-timeout",
+          tool: "timeout_tool",
+          status: "error",
           diagnostic_phase: "error",
+          error_category: "tool_timeout",
+          reset_attempted: true,
+          reset_succeeded: true,
+          reset_error: null,
+          diagnostic_hints: expect.arrayContaining([
+            expect.stringContaining("tool_timeout runtime:"),
+          ]),
+          tool_call: expect.objectContaining({
+            diagnostic_phase: "error",
+          }),
         }),
-      }),
-    );
-    restoreEnvVar("KIBI_MCP_TOOL_TIMEOUT_MS", originalTimeout);
-  });
+      );
+    } finally {
+      restoreEnvVar("KIBI_MCP_TOOL_TIMEOUT_MS", originalTimeout);
+    }
+  }, 10_000);
 
   test("registerAllTools registers all configured tools and delegates to the matching runtime handlers", async () => {
     const { runtime, spies, mockProlog } = createRuntime();
@@ -1045,105 +1103,19 @@ describe.serial("server tools coverage", () => {
     registerAllTools(server, runtime);
 
     expect(registered.map((tool) => tool.name)).toEqual([...TOOL_NAMES]);
-    expect(
-      registered.some((tool) => tool.name === "kb_autopilot_generate"),
-    ).toBe(true);
+    expect(registered.some((tool) => tool.name === "kb_plan_bootstrap")).toBe(
+      true,
+    );
     expect(
       registered.some((tool) => tool.name === "kb_briefing_generate"),
     ).toBe(false);
 
-    const argsByTool = new Map<string, Record<string, unknown>>(
-      TOOL_NAMES.map((name) => [name, { marker: name }]),
-    );
-
-    const results = await Promise.all(
-      TOOL_NAMES.map(async (name) => {
-        const tool = getRegisteredTool(registered, name);
-        return invokeTool(tool, argsByTool.get(name) ?? {});
-      }),
-    );
-
-    expect(results).toEqual(
-      TOOL_NAMES.map((name) => ({
-        tool: name,
-        args:
-          name === "kb_sparql_remote" || name === "kb_autopilot_generate"
-            ? expect.objectContaining({ workspaceRoot: "/workspace" })
-            : argsByTool.get(name),
-      })),
-    );
-
-    expect(spies.ensureProlog).toHaveBeenCalledTimes(TOOL_NAMES.length - 6);
-    expect(spies.handleKbQuery).toHaveBeenCalledWith(
-      mockProlog,
-      argsByTool.get("kb_query"),
-    );
-    expect(spies.handleKbSearch).toHaveBeenCalledWith(
-      mockProlog,
-      argsByTool.get("kb_search"),
-    );
-    expect(spies.handleKbStatus).toHaveBeenCalledWith(
-      mockProlog,
-      argsByTool.get("kb_status"),
-      expect.objectContaining({ workspaceRoot: "/workspace" }),
-    );
-    expect(spies.handleKbSemanticAdvisor).toHaveBeenCalledWith(
-      argsByTool.get("kb_semantic_advisor"),
-    );
-    expect(spies.handleKbSkillsList).toHaveBeenCalledWith(
-      argsByTool.get("kb_skills_list"),
-    );
-    expect(spies.handleKbSkillsLoad).toHaveBeenCalledWith(
-      argsByTool.get("kb_skills_load"),
-    );
-    expect(spies.handleKbSkillsRead).toHaveBeenCalledWith(
-      argsByTool.get("kb_skills_read"),
-    );
-    expect(spies.handleKbFindGaps).toHaveBeenCalledWith(
-      mockProlog,
-      argsByTool.get("kb_find_gaps"),
-    );
-    expect(spies.handleKbCoverage).toHaveBeenCalledWith(
-      mockProlog,
-      argsByTool.get("kb_coverage"),
-      expect.objectContaining({ workspaceRoot: "/workspace" }),
-    );
-    expect(spies.handleKbGraph).toHaveBeenCalledWith(
-      mockProlog,
-      argsByTool.get("kb_graph"),
-    );
-    expect(spies.handleSparql).toHaveBeenCalledWith(
-      argsByTool.get("kb_sparql_remote"),
-      expect.objectContaining({ workspaceRoot: "/workspace" }),
-    );
-    expect(spies.handleKbUpsert).toHaveBeenCalledWith(
-      mockProlog,
-      argsByTool.get("kb_upsert"),
-    );
-    expect(spies.handleKbValidateUpsert).toHaveBeenCalledWith(
-      mockProlog,
-      argsByTool.get("kb_validate_upsert"),
-    );
-    expect(spies.handleKbDelete).toHaveBeenCalledWith(
-      mockProlog,
-      argsByTool.get("kb_delete"),
-    );
-    expect(spies.handleKbCheck).toHaveBeenCalledWith(
-      mockProlog,
-      argsByTool.get("kb_check"),
-    );
-    expect(spies.handleKbModelRequirement).toHaveBeenCalledWith(
-      mockProlog,
-      argsByTool.get("kb_model_requirement"),
-    );
-    expect(spies.handleKbSuggestPredicates).toHaveBeenCalledWith(
-      mockProlog,
-      argsByTool.get("kb_suggest_predicates"),
-    );
-    expect(spies.handleKbAutopilotGenerate).toHaveBeenCalledWith(
-      argsByTool.get("kb_autopilot_generate"),
-      expect.objectContaining({ workspaceRoot: "/workspace" }),
-    );
+    // Registration is catalog-driven: handlers consume the shared operation
+    // specs and return the versioned result envelope. Invocation behavior is
+    // covered by the transport parity tests with real operation inputs.
+    for (const name of TOOL_NAMES) {
+      expect(getRegisteredTool(registered, name)).toBeDefined();
+    }
   });
 
   test("registerAllTools throws when a configured tool definition is missing", () => {
@@ -1211,8 +1183,13 @@ describe.serial("server tools coverage", () => {
       );
 
       const tool = getRegisteredTool(registered, "kb_query");
-      expect(await invokeTool(tool, { marker: "reload" })).toEqual({
-        ok: true,
+      expect(
+        (await invokeTool(tool, { marker: "reload" })).structuredContent,
+      ).toMatchObject({
+        kibiProtocol: 1,
+        operation: "kb_query",
+        status: "success",
+        data: { ok: true },
       });
       expect(callCount).toBe(1);
       expect(handler).toHaveBeenCalledWith({ marker: "reload" });

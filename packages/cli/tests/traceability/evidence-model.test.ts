@@ -44,7 +44,7 @@ describe("evidence-model", () => {
         kbArtifacts: [
           {
             kind: "entity_markdown",
-            path: "documentation/requirements/REQ-cli-check.md",
+            path: ".kb/requirements/REQ-cli-check.md",
             sourcePaths: ["packages/cli/src/traceability/check.ts"],
             entityTypes: ["req", "test"],
             entityIds: [],
@@ -54,7 +54,7 @@ describe("evidence-model", () => {
     });
 
     expect(getKbEvidencePaths(evidence)).toEqual([
-      "documentation/requirements/REQ-cli-check.md",
+      ".kb/requirements/REQ-cli-check.md",
       KIBI_SYMBOL_COORDINATES_PATH,
     ]);
     expect(getMissingBehaviorSourcePaths(evidence)).toEqual([]);
@@ -75,12 +75,12 @@ describe("evidence-model", () => {
         message:
           "Behavior-changing staged files are missing staged Kibi impact evidence (see docs/cli-reference.md#staged-impact-evidence): packages/cli/src/traceability/check.ts",
         suggestion:
-          "Query Kibi via MCP before deciding. MCP writes update KB state but do not stage tracked evidence; also stage requirement/scenario/test/fact/symbol markdown, authored documentation/symbols.yaml metadata, or refreshed documentation/symbol-coordinates.yaml. Re-run kibi check --staged after staging tracked evidence.",
+          "Query Kibi via MCP before deciding. MCP writes update KB state but do not stage tracked evidence; also stage requirement/scenario/test/fact/symbol markdown, authored .kb/symbols.yaml metadata, or refreshed .kb/symbol-coordinates.yaml. Re-run kibi check --staged after staging tracked evidence.",
       },
     ]);
   });
 
-  it("emits symbols_manifest_stale when documentation/symbol-coordinates.yaml is stale for staged source files", () => {
+  it("emits symbols_manifest_stale when .kb/symbol-coordinates.yaml is stale for staged source files", () => {
     const evidence = makeEvidence({
       symbolsManifest: {
         path: KIBI_SYMBOL_COORDINATES_PATH,
@@ -100,13 +100,13 @@ describe("evidence-model", () => {
       ],
       docs: [KIBI_STAGED_IMPACT_EVIDENCE_DOC],
       message:
-        "documentation/symbol-coordinates.yaml is stale or missing for staged source files: packages/cli/src/traceability/check.ts",
+        ".kb/symbol-coordinates.yaml is stale or missing for staged source files: packages/cli/src/traceability/check.ts",
       suggestion:
-        "Run kibi sync --refresh-symbol-coordinates && git add documentation/symbol-coordinates.yaml documentation/symbols.yaml, then re-run kibi check --staged.",
+        "Run kibi sync --refresh-symbol-coordinates && git add .kb/symbol-coordinates.yaml .kb/symbols.yaml, then re-run kibi check --staged.",
     });
   });
 
-  it("emits symbols_manifest_stale when documentation/symbol-coordinates.yaml is missing for staged source files", () => {
+  it("emits symbols_manifest_stale when .kb/symbol-coordinates.yaml is missing for staged source files", () => {
     const evidence = makeEvidence({
       symbolsManifest: {
         path: KIBI_SYMBOL_COORDINATES_PATH,
@@ -126,9 +126,9 @@ describe("evidence-model", () => {
       ],
       docs: [KIBI_STAGED_IMPACT_EVIDENCE_DOC],
       message:
-        "documentation/symbol-coordinates.yaml is stale or missing for staged source files: packages/cli/src/traceability/check.ts",
+        ".kb/symbol-coordinates.yaml is stale or missing for staged source files: packages/cli/src/traceability/check.ts",
       suggestion:
-        "Run kibi sync --refresh-symbol-coordinates && git add documentation/symbol-coordinates.yaml documentation/symbols.yaml, then re-run kibi check --staged.",
+        "Run kibi sync --refresh-symbol-coordinates && git add .kb/symbol-coordinates.yaml .kb/symbols.yaml, then re-run kibi check --staged.",
     });
   });
 
@@ -197,7 +197,7 @@ describe("evidence-model", () => {
         kind: "no_impact_override",
         override: {
           declaration: KIBI_NO_IMPACT_DECLARATION,
-          path: "documentation/facts/FACT-kibi-impact-none.md",
+          path: ".kb/facts/FACT-kibi-impact-none.md",
           sourcePaths: ["packages/cli/src/traceability/comments.ts"],
           reason: "non_behavioral_source_edit",
           rationale: "   ",
@@ -213,7 +213,7 @@ describe("evidence-model", () => {
         blocking: true,
         category: "fact",
         files: [
-          "documentation/facts/FACT-kibi-impact-none.md",
+          ".kb/facts/FACT-kibi-impact-none.md",
           "packages/cli/src/traceability/comments.ts",
         ],
         docs: [KIBI_STAGED_IMPACT_EVIDENCE_DOC],
@@ -237,7 +237,7 @@ describe("evidence-model", () => {
         kind: "no_impact_override",
         override: {
           declaration: KIBI_NO_IMPACT_DECLARATION,
-          path: "documentation/facts/FACT-kibi-impact-none.md",
+          path: ".kb/facts/FACT-kibi-impact-none.md",
           sourcePaths: ["packages/cli/src/traceability/comments.ts"],
           reason: "false_positive",
           rationale:
@@ -256,7 +256,7 @@ describe("evidence-model", () => {
         kind: "no_impact_override",
         override: {
           declaration: KIBI_NO_IMPACT_DECLARATION,
-          path: "documentation/facts/FACT-kibi-impact-none.md",
+          path: ".kb/facts/FACT-kibi-impact-none.md",
           sourcePaths: ["packages/cli/src/traceability/check.ts"],
           reason: "false_positive",
           rationale: "This text should not waive a real behavior change.",
@@ -277,7 +277,7 @@ describe("evidence-model", () => {
       message:
         "Behavior-changing staged files are missing staged Kibi impact evidence (see docs/cli-reference.md#staged-impact-evidence): packages/cli/src/traceability/check.ts",
       suggestion:
-        "Query Kibi via MCP before deciding. MCP writes update KB state but do not stage tracked evidence; also stage requirement/scenario/test/fact/symbol markdown, authored documentation/symbols.yaml metadata, or refreshed documentation/symbol-coordinates.yaml. Re-run kibi check --staged after staging tracked evidence.",
+        "Query Kibi via MCP before deciding. MCP writes update KB state but do not stage tracked evidence; also stage requirement/scenario/test/fact/symbol markdown, authored .kb/symbols.yaml metadata, or refreshed .kb/symbol-coordinates.yaml. Re-run kibi check --staged after staging tracked evidence.",
     });
   });
 });

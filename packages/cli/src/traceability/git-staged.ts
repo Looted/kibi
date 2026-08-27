@@ -1,6 +1,6 @@
 import { execSync } from "node:child_process";
 import { isCliTraceOrDebugEnabled } from "../env.js";
-import { loadConfig } from "../utils/config.js";
+import { isEntityLanePath, isSymbolsManifestPath } from "../utils/kb-paths.js";
 
 export type Status = "A" | "M" | "R" | "D";
 
@@ -19,6 +19,15 @@ export interface StagedFile {
 }
 
 type ExecFn = (cmd: string, opts: { encoding: "utf8" }) => string;
+
+// Staged manifests (e.g., .kb/symbols.yaml) can exceed Node's default 1 MiB
+// exec buffer; without a larger bound the staged file is silently skipped and
+// freshness checks compare against stale HEAD state.
+const GIT_EXEC_MAX_BUFFER = 64 * 1024 * 1024;
+
+function defaultExec(cmd: string, opts: { encoding: "utf8" }): string {
+  return execSync(cmd, { ...opts, maxBuffer: GIT_EXEC_MAX_BUFFER });
+}
 
 function runGit(cmd: string, exec: ExecFn): string {
   try {
@@ -75,20 +84,10 @@ const SUPPORTED_EXT = new Set([
 ]);
 
 const SUPPORTED_MANIFEST = new Set([
-  "symbols.yaml",
-  "symbols.yml",
-  "symbol-coordinates.yaml",
+  ".kb/symbols.yaml",
+  ".kb/symbols.yml",
+  ".kb/symbol-coordinates.yaml",
 ]);
-
-const ENTITY_MARKDOWN_DIRS = [
-  "/requirements/",
-  "/scenarios/",
-  "/tests/",
-  "/facts/",
-  "/adr/",
-  "/flags/",
-  "/events/",
-];
 
 function shouldLogTraceDebug(): boolean {
   return isCliTraceOrDebugEnabled();
@@ -106,29 +105,12 @@ function hasSupportedExt(p: string): boolean {
 }
 
 function isEntityMarkdown(p: string): boolean {
-  if (!p.endsWith(".md")) return false;
-  for (const dir of ENTITY_MARKDOWN_DIRS) {
-    if (p.includes(dir)) return true;
-  }
-  return false;
+  return p.endsWith(".md") && isEntityLanePath(p);
 }
 
 function isManifestFile(p: string): boolean {
-  const base = p.split(/[\\/]/).pop();
-  if (!base) return false;
-  for (const name of SUPPORTED_MANIFEST) {
-    if (base === name) return true;
-  }
-  try {
-    const config = loadConfig(process.cwd());
-    if (config.paths.symbols) {
-      const configuredBase = config.paths.symbols.split(/[\\/]/).pop();
-      if (configuredBase && base === configuredBase) return true;
-    }
-  } catch {
-    // ignore config read errors
-  }
-  return false;
+  const posix = p.replaceAll("\\", "/");
+  return SUPPORTED_MANIFEST.has(posix) || isSymbolsManifestPath(posix);
 }
 
 /**
@@ -167,7 +149,7 @@ export function parseHunksFromDiff(
  * Get staged files with statuses, hunks and content.
  */
 // implements REQ-014
-export function getStagedFiles(exec: ExecFn = execSync): StagedFile[] {
+export function getStagedFiles(exec: ExecFn = defaultExec): StagedFile[] {
   // 1. get staged name-status -z
   let nameStatus: string;
   try {

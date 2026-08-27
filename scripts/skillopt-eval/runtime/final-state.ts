@@ -18,6 +18,7 @@ const FINAL_STATE_TOOLS = [
   "kb_query",
   "kb_status",
   "kb_check",
+  "kb_coverage",
   "kb_graph",
 ] as const;
 const FinalStateToolSchema = z.enum(FINAL_STATE_TOOLS);
@@ -35,6 +36,8 @@ const FinalStateOptionsSchema = z
         args: z.array(z.string()),
         cwd: z.string().min(1),
         env: z.record(z.string(), z.string()).optional(),
+        // Evaluator-only staged CLI root; never forwarded to the model.
+        cliRoot: z.string().min(1).optional(),
       })
       .strict(),
     receiptPath: z.string().min(1),
@@ -76,7 +79,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function structuredContent(value: unknown): Record<string, unknown> | null {
   if (!isRecord(value)) return null;
   const content = value.structuredContent ?? value.structured_content;
-  return isRecord(content) ? content : null;
+  if (!isRecord(content)) return null;
+  if (content.kibiProtocol === 1 && isRecord(content.data)) {
+    return content.data;
+  }
+  return content;
 }
 
 function entityIdFromReference(value: string): string {

@@ -1,0 +1,127 @@
+relationships:
+  - id: rel-3555046e72e5
+    type: implements
+    from: SYM-auto-61AB23FEF699
+    to: REQ-kibi-operation-interface-parity
+    created_at: "2026-08-15T22:22:32.826Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: implements
+    from: SYM-auto-61AB23FEF699
+    to: REQ-reusable-skill-subsystem
+    created_at: 2026-08-16T07:55:14.260Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a55a8b984f7
+  - type: covered_by
+    from: SYM-auto-61AB23FEF699
+    to: TEST-mcp-skills-resource-discoverability
+    created_at: 2026-08-16T07:55:14.264Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eadb5a109f3d
+  - type: covered_by
+    from: SYM-core-discovery-symbolCoverageRow
+    to: TEST-kibi-conservative-requirement-proof
+    created_at: 2026-08-16T18:51:34.271Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8c2e7e57d54
+  - type: verified_by
+    from: REQ-kibi-intent-aware-source-discovery
+    to: TEST-kibi-intent-aware-source-discovery
+    created_at: 2026-08-16T19:46:36.815Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f26adcda8afb
+  - type: covered_by
+    from: SYM-cli-engine-client-next-solution
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.154Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-811aa5c3d568
+  - type: covered_by
+    from: SYM-auto-61AB23FEF699
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:39:19.977Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3bc27ae06b3
+  - type: implements
+    from: SYM-skillopt-fixture-entity-ids
+    to: REQ-skillopt-logical-evidence-fidelity
+    created_at: 2026-08-22T20:58:16.340Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a471a9c3ff88
+  - type: covered_by
+    from: SYM-skillopt-fixture-entity-ids
+    to: TEST-skillopt-logical-evidence-fidelity
+    created_at: 2026-08-22T20:58:16.354Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0bec3fff89d2
+  - type: covered_by
+    from: SYM-skillopt-fixture-entity-ids
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:58:16.359Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c2d983da6f70
+  - type: implements
+    from: SYM-cli-parse-property-list
+    to: REQ-009
+    created_at: 2026-08-22T20:58:29.580Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0958b22a149
+  - type: implements
+    from: SYM-cli-parse-property-list
+    to: REQ-skillopt-logical-evidence-fidelity
+    created_at: 2026-08-22T20:58:29.592Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-111cb6ebf560
+  - type: covered_by
+    from: SYM-cli-parse-property-list
+    to: TEST-skillopt-logical-evidence-fidelity
+    created_at: 2026-08-22T20:58:29.597Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28dd29a88f70
+  - type: covered_by
+    from: SYM-cli-parse-property-list
+    to: TEST-cli-prolog-codec
+    created_at: 2026-08-22T20:58:29.602Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc893791baaa
+  - type: covered_by
+    from: SYM-cli-parse-property-list
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:58:29.607Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb05d0fff3de
+  - type: covered_by
+    from: SYM-runtime-RuntimeOptions
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:40:50.840Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ff553a994eb
+  - type: implements
+    from: SYM-runtime-RuntimeOptions
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:09:28.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30b5fe7bcc64
+  - type: covered_by
+    from: SYM-runtime-RuntimeOptions
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:09:28.966Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82c24466864a

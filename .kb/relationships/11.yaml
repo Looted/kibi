@@ -1,0 +1,190 @@
+relationships:
+  - id: rel-633012d550b1
+    type: covered_by
+    from: SYM-semantic-source-hash
+    to: TEST-kibi-proposition-complete-ingestion
+    created_at: "2026-08-16T18:52:06.532Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-verification-ingest-verification-ts-ingestverificationresult
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-16T18:52:23.855Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abbd91eac28e
+  - type: covered_by
+    from: SYM-cli-build-program
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-16T18:52:30.404Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1929751f93d4
+  - type: implements
+    from: SYM-cli-rule-registry-getRuleDefinition
+    to: REQ-cli-check
+    created_at: 2026-08-18T17:03:35.652Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ff02bb3b8fe
+  - type: covered_by
+    from: SYM-cli-rule-registry-getRuleDefinition
+    to: TEST-004
+    created_at: 2026-08-18T17:03:35.661Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b446959a06b4
+  - type: implements
+    from: SYM-canonical-PostureResult
+    to: REQ-opencode-posture-detection
+    created_at: 2026-08-18T17:37:24.228Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74f6ee065d61
+  - type: covered_by
+    from: SYM-canonical-PostureResult
+    to: TEST-opencode-smart-enforcement
+    created_at: 2026-08-18T17:37:24.237Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e732185bacb4
+  - type: executable_for
+    from: SYM-cursor-packed-launcher-e2e
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-08-20T12:41:13.941Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-176e1e8b8165
+  - type: executable_for
+    from: SYM-cursor-packed-launcher-e2e
+    to: TEST-cursor-consumer-local-mcp-launcher-v1
+    created_at: 2026-08-20T13:01:04.538Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8dabe88e6a4
+  - type: executable_for
+    from: SYM-cursor-packed-launcher-e2e
+    to: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    created_at: 2026-08-20T22:16:43.311Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82cf0ebd1a12
+  - type: implements
+    from: SYM-mcp-handle-sparql
+    to: REQ-prolog-library-adoption
+    created_at: 2026-08-22T20:07:43.713Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ee9ab886017
+  - type: implements
+    from: SYM-mcp-handle-sparql
+    to: REQ-002
+    created_at: 2026-08-22T20:07:43.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17b09980d8e6
+  - type: covered_by
+    from: SYM-mcp-handle-sparql
+    to: TEST-prolog-library-adoption-mcp
+    created_at: 2026-08-22T20:07:43.731Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53ce7a87586a
+  - type: covered_by
+    from: SYM-mcp-handle-sparql
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:07:43.736Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4055aaabb1f4
+  - type: implements
+    from: SYM-cli-build-program
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:25:02.128Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c347b2fa8b42
+  - type: implements
+    from: SYM-cli-build-program
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-08-22T20:25:02.142Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9dfa027c972
+  - type: covered_by
+    from: SYM-cli-build-program
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-22T20:25:02.153Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8bd02fa64996
+  - type: covered_by
+    from: SYM-cli-build-program
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:25:02.162Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e253346699b0
+  - type: implements
+    from: SYM-KbFreshnessScope
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:50:40.467Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f82baad2fb57
+  - type: covered_by
+    from: SYM-KbFreshnessScope
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-08-22T20:50:40.482Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c09039fc5b4
+  - type: covered_by
+    from: SYM-KbFreshnessScope
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-08-22T20:50:40.489Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84b36edd2a61
+  - type: covered_by
+    from: SYM-runtime-PrologPort
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-08-23T18:40:37.521Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2007b6c02bef
+  - type: implements
+    from: SYM-runtime-PrologPort
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-08-23T22:08:53.581Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7313911967f
+  - type: covered_by
+    from: SYM-runtime-PrologPort
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-23T22:08:53.611Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-695fa2d3a930
+  - type: implements
+    from: SYM-skillopt-receipt-inspect-objectives
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-24T17:21:17.850Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18f210831de2
+  - type: verified_by
+    from: SCEN-cli-doctor-packed-provenance
+    to: TEST-cli-doctor-packed-provenance
+    created_at: 2026-08-25T19:01:02.358Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52ffe584b8cd
+  - type: covered_by
+    from: SYM-skillopt-receipt-inspect-objectives
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-25T19:53:04.793Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5132dfbb16a

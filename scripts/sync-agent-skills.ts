@@ -3,7 +3,7 @@
  *
  * Canonical agent skill bundle generator.
  *
- * Reads the canonical skill source from `packages/cli/src/public/skills/`,
+ * Reads the canonical skill source from `packages/runtime/src/skills/`,
  * generates committed mirrors under `packages/cursor/skills/` and
  * `packages/codex/skills/`, and emits a SHA-256 hash manifest at
  * `<target>/.canon-hash.json` so drift can be detected deterministically.
@@ -36,7 +36,7 @@ import {
 } from "./skillopt-eval/adoption-lock";
 
 const EXPECTED_SKILL_IDS = [
-  "init-kibi",
+  "kibi-bootstrap",
   "kibi-freshness",
   "kibi-traceability",
   "kibi-usage",
@@ -107,7 +107,7 @@ function repoRootFromScript(): string {
 }
 
 function canonicalSkillsDir(repoRoot: string): string {
-  return resolve(repoRoot, "packages/cli/src/public/skills");
+  return resolve(repoRoot, "packages/runtime/src/skills");
 }
 
 function mirrorSkillsDir(repoRoot: string, target: Target): string {
@@ -163,7 +163,7 @@ function walkFiles(rootDir: string): string[] {
 }
 
 interface PlannedFile {
-  /** Path relative to the mirror root (e.g. `init-kibi/SKILL.md`). */
+  /** Path relative to the mirror root (e.g. `kibi-bootstrap/SKILL.md`). */
   relPath: string;
   absoluteSource: string;
   content: Buffer;

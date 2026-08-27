@@ -83,4 +83,52 @@ describe("mergeLcovContents", () => {
     );
     expect(merged.match(/end_of_record/g)).toHaveLength(2);
   });
+
+  test("merges branch records and function identities across shards", () => {
+    const merged = mergeLcovContents([
+      [
+        "TN:",
+        "SF:src/branch.ts",
+        "FN:1,first",
+        "FNDA:0,first",
+        "FNF:1",
+        "FNH:0",
+        "BRDA:2,0,0,0",
+        "BRDA:2,0,1,-",
+        "BRF:2",
+        "BRH:1",
+        "DA:1,0",
+        "DA:2,1",
+        "LF:2",
+        "LH:1",
+        "end_of_record",
+      ].join("\n"),
+      [
+        "TN:",
+        "SF:src/branch.ts",
+        "FN:1,first",
+        "FNDA:3,first",
+        "FN:4,second",
+        "FNDA:1,second",
+        "FNF:2",
+        "FNH:2",
+        "BRDA:2,0,0,4",
+        "BRDA:2,0,1,2",
+        "BRF:2",
+        "BRH:2",
+        "DA:1,2",
+        "DA:2,0",
+        "LF:2",
+        "LH:1",
+        "end_of_record",
+      ].join("\n"),
+    ]);
+
+    expect(merged).toContain("FN:1,first");
+    expect(merged).toContain("FN:4,second");
+    expect(merged).toContain("FNF:2\nFNH:2");
+    expect(merged).toContain("BRDA:2,0,0,4");
+    expect(merged).toContain("BRDA:2,0,1,2");
+    expect(merged).toContain("BRF:2\nBRH:2");
+  });
 });

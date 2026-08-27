@@ -1,0 +1,106 @@
+relationships:
+  - id: rel-57eef5ea5739
+    type: requires_predicate
+    from: REQ-skillopt-logical-evidence-fidelity
+    to: FACT-PRED-SKILLOPT-CLAIM-0587E4B2168FD2B6
+    created_at: "2026-08-15T16:36:12.444Z"
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+  - type: requires_predicate
+    from: REQ-skillopt-logical-evidence-fidelity
+    to: FACT-PRED-SKILLOPT-CLAIM-D593FEA65D7C463C
+    created_at: 2026-08-15T16:36:31.656Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e3e5891030f
+  - type: requires_predicate
+    from: REQ-skillopt-logical-evidence-fidelity
+    to: FACT-PRED-SKILLOPT-CLAIM-87DBE563B1D0DDDC
+    created_at: 2026-08-15T16:36:33.960Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a21541802a6e
+  - type: requires_predicate
+    from: REQ-skillopt-logical-evidence-fidelity
+    to: FACT-PRED-SKILLOPT-CLAIM-368FEE750F2FC6BA
+    created_at: 2026-08-15T16:36:37.854Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f614d2135af
+  - type: requires_predicate
+    from: REQ-skillopt-logical-evidence-fidelity
+    to: FACT-PRED-SKILLOPT-CLAIM-7D9BC2D21690A9A7
+    created_at: 2026-08-15T16:36:40.142Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d436197bbdf5
+  - type: requires_predicate
+    from: REQ-skillopt-logical-evidence-fidelity
+    to: FACT-PRED-SKILLOPT-CLAIM-34B395C24CBD6107
+    created_at: 2026-08-15T16:36:42.455Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-014009d34052
+  - type: requires_predicate
+    from: REQ-skillopt-logical-evidence-fidelity
+    to: FACT-PRED-SKILLOPT-CLAIM-DE4082419A031E05
+    created_at: 2026-08-15T16:36:44.734Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-08e58dbac043
+  - type: executable_for
+    from: SYM-test-core-journaled-engine-delta-sync
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-08-16T19:38:23.850Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a80ee1fbba4
+  - type: covered_by
+    from: SYM-cli-prolog-search-query-input
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-08-16T19:47:37.145Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5475fa77713
+  - type: implements
+    from: SYM-requirement-normalize-text
+    to: REQ-002
+    created_at: 2026-08-22T20:09:21.164Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa4b076cc9f3
+  - type: covered_by
+    from: SYM-requirement-normalize-text
+    to: TEST-005
+    created_at: 2026-08-22T20:09:21.179Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92b077cabd38
+  - type: covered_by
+    from: SYM-requirement-normalize-text
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:09:21.183Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4619ecda905b
+  - type: implements
+    from: SYM-SkillsListResult
+    to: REQ-002
+    created_at: 2026-08-22T20:09:52.973Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d22dbaa62e55
+  - type: covered_by
+    from: SYM-SkillsListResult
+    to: TEST-005
+    created_at: 2026-08-22T20:09:52.994Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f120b9aff7b
+  - type: covered_by
+    from: SYM-SkillsListResult
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-22T20:09:53.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-adc7c68f228d

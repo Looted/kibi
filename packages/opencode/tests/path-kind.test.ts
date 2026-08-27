@@ -29,19 +29,19 @@ describe("path-kind analyzePath", () => {
   });
 
   it("classifies requirement files", () => {
-    const result = analyzePath("documentation/requirements/REQ-001.md", cwd);
+    const result = analyzePath(".kb/requirements/REQ-001.md", cwd);
     assert.equal(result.kind, "requirement");
     assert.equal(result.isKibiDocRelevant, true);
   });
 
   it("classifies scenario files", () => {
-    const result = analyzePath("documentation/scenarios/SCEN-001.md", cwd);
+    const result = analyzePath(".kb/scenarios/SCEN-001.md", cwd);
     assert.equal(result.kind, "scenario");
     assert.equal(result.isKibiDocRelevant, true);
   });
 
   it("classifies test files", () => {
-    const result = analyzePath("documentation/tests/TEST-001.md", cwd);
+    const result = analyzePath(".kb/tests/TEST-001.md", cwd);
     assert.equal(result.kind, "test");
     assert.equal(result.isKibiDocRelevant, true);
   });
@@ -59,31 +59,37 @@ describe("path-kind analyzePath", () => {
   });
 
   it("classifies ADR files", () => {
-    const result = analyzePath("documentation/adr/ADR-001.md", cwd);
+    const result = analyzePath(".kb/adr/ADR-001.md", cwd);
     assert.equal(result.kind, "adr");
     assert.equal(result.isKibiDocRelevant, true);
   });
 
   it("classifies fact files", () => {
-    const result = analyzePath("documentation/facts/FACT-001.md", cwd);
+    const result = analyzePath(".kb/facts/FACT-001.md", cwd);
     assert.equal(result.kind, "fact");
     assert.equal(result.isKibiDocRelevant, true);
   });
 
   it("classifies event files as fact", () => {
-    const result = analyzePath("documentation/events/EVT-001.md", cwd);
+    const result = analyzePath(".kb/events/EVT-001.md", cwd);
     assert.equal(result.kind, "event");
     assert.equal(result.isKibiDocRelevant, true);
   });
 
   it("classifies flag files as flag", () => {
-    const result = analyzePath("documentation/flags/FLAG-001.md", cwd);
+    const result = analyzePath(".kb/flags/FLAG-001.md", cwd);
     assert.equal(result.kind, "flag");
     assert.equal(result.isKibiDocRelevant, true);
   });
 
   it("classifies symbols manifest as symbol", () => {
-    const result = analyzePath("documentation/symbols.yaml", cwd);
+    const result = analyzePath(".kb/symbols.yaml", cwd);
+    assert.equal(result.kind, "symbol");
+    assert.equal(result.isKibiDocRelevant, true);
+  });
+
+  it("classifies symbol coordinates as symbol", () => {
+    const result = analyzePath(".kb/symbol-coordinates.yaml", cwd);
     assert.equal(result.kind, "symbol");
     assert.equal(result.isKibiDocRelevant, true);
   });
@@ -103,7 +109,7 @@ describe("path-kind analyzePath", () => {
 
   it("handles absolute paths", () => {
     const result = analyzePath(
-      "/home/project/documentation/requirements/REQ-001.md",
+      "/home/project/.kb/requirements/REQ-001.md",
       cwd,
     );
     assert.equal(result.kind, "requirement");

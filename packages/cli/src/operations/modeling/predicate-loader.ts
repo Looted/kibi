@@ -24,6 +24,9 @@ export function schemaForCandidate(schema: PredicateSchemaCandidate): Omit<
     description: schema.description,
     argument_names: schema.argument_names,
     argument_types: schema.argument_types,
+    ...(schema.argument_descriptions
+      ? { argument_descriptions: schema.argument_descriptions }
+      : {}),
     ...(schema.aliases ? { aliases: schema.aliases } : {}),
     ...(schema.paraphrase_templates
       ? { paraphrase_templates: schema.paraphrase_templates }
@@ -80,6 +83,7 @@ export function predicateSchemaFromEntity(
   );
   if (!predicateName) return [];
   const usageHints = usageHintsFromEntity(entity);
+  const argumentDescriptions = stringArray(entity.argument_descriptions);
 
   return [
     {
@@ -92,6 +96,9 @@ export function predicateSchemaFromEntity(
       ),
       argument_names: stringArray(entity.argument_names),
       argument_types: stringArray(entity.argument_types),
+      ...(argumentDescriptions.length > 0
+        ? { argument_descriptions: argumentDescriptions }
+        : {}),
       keywords: [
         predicateName,
         ...stringArray(entity.aliases),

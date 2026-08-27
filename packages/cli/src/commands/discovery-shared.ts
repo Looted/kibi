@@ -1,6 +1,5 @@
 import path from "node:path";
 import { EngineClient } from "../engine.js";
-import { getBranchOverride } from "../env.js";
 import { PrologProcess, resolveKbPlPath } from "../prolog.js";
 import { escapeAtom } from "../prolog/codec.js";
 import {
@@ -9,9 +8,9 @@ import {
 } from "../public/operations/runtime-types.js";
 import type { OperationSpec } from "../public/operations/types.js";
 import { createCliRuntime } from "../runtime/cli-runtime.js";
+import { resolveBranchAttachment } from "../utils/branch-resolver.js";
 import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
 import { renderDiscoveryTable } from "./discovery-table.js";
-import { getCurrentBranch } from "./init-helpers.js";
 
 export { renderCoverageTable } from "./discovery-table.js";
 
@@ -48,12 +47,9 @@ export async function withAttachedBranchProlog<T>(
   let branchName: string;
 
   try {
-    try {
-      branchName =
-        getBranchOverride() || (await getCurrentBranch(process.cwd()));
-    } catch {
-      branchName = getBranchOverride() || "main";
-    }
+    const attachment = resolveBranchAttachment(process.cwd());
+    if ("error" in attachment) throw new Error(attachment.error);
+    branchName = attachment.kbBranch;
 
     if (usesEngine) {
       engine = new EngineClient({
@@ -67,12 +63,8 @@ export async function withAttachedBranchProlog<T>(
       prolog = createProlog({ timeout: 120000 });
       await prolog.start();
     }
-    await prolog.query(
-      "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
-    );
-
     if (!usesEngine) {
-      const kbPath = path.join(process.cwd(), ".kb/branches", branchName);
+      const kbPath = attachment.storePath;
       const attachResult = await prolog.query(
         `kb_attach('${escapeAtom(kbPath)}')`,
       );
@@ -97,14 +89,9 @@ export async function withAttachedBranchProlog<T>(
 // implements REQ-003
 // implements REQ-003
 export async function resolveCurrentKbPath(): Promise<string> {
-  let branch: string;
-  try {
-    branch = getBranchOverride() || (await getCurrentBranch(process.cwd()));
-  } catch {
-    branch = getBranchOverride() || "main";
-  }
-
-  return path.join(process.cwd(), ".kb/branches", branch);
+  const attachment = resolveBranchAttachment(process.cwd());
+  if ("error" in attachment) throw new Error(attachment.error);
+  return attachment.storePath;
 }
 
 // implements REQ-003

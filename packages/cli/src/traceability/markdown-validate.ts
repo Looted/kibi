@@ -3,6 +3,7 @@ import {
   FrontmatterError,
   detectEmbeddedEntities,
 } from "../extractors/markdown.js";
+import { entityLaneForPath } from "../utils/kb-paths.js";
 
 export interface MarkdownValidationResult {
   filePath: string;
@@ -47,8 +48,15 @@ export function validateStagedMarkdown(
 }
 
 function inferTypeFromPath(filePath: string): string | null {
-  if (filePath.includes("/requirements/")) return "req";
-  if (filePath.includes("/scenarios/")) return "scenario";
-  if (filePath.includes("/tests/")) return "test";
-  return null;
+  const lane = entityLaneForPath(filePath);
+  switch (lane) {
+    case "requirements":
+      return "req";
+    case "scenarios":
+      return "scenario";
+    case "tests":
+      return "test";
+    default:
+      return null;
+  }
 }

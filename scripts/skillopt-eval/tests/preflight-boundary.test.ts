@@ -90,7 +90,13 @@ test("preflight validates repository-relative locks before external handoff", as
   ]);
   expect(await child.exited).not.toBe(0);
   const receipt = ResultSchema.parse(await Bun.file(output).json());
-  expect(receipt.code).toBe("EXTERNAL_PREREQUISITE_MISSING");
+  // A developer host may already have the external prerequisite tree. The
+  // purpose of this case is to prove repository-relative locks were resolved
+  // and hashed before external-host qualification, whose valid terminal state
+  // is either absent or present-but-not-qualified.
+  expect(["EXTERNAL_PREREQUISITE_MISSING", "PREFLIGHT_NO_GO"]).toContain(
+    receipt.code,
+  );
   expect(
     Object.values(receipt.lockDigests).every((value) => value.length === 64),
   ).toBe(true);
