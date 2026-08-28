@@ -961,6 +961,30 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 73527
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-c7e13defb1c98d8a0a379a31
+    test_id: TEST-kibi-fresh-verification-receipts
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-fresh-verification-receipts
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-fresh-verification-receipts
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 91109af11cd1ef36564e3117094f1d32bd300f0d0681d3edc9c6d93bd6bed504
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-28T10:24:12.207Z'
+    finished_at: '2026-08-28T10:25:18.301Z'
+    artifact_digest: 9c444ec80abe368f6e626f19e63b0c990fb3e289a4fa2d415600cff62044bac7
+    contract_hash: ba7a57dd4bc9730259c37651822020009939343e59aa4a3496c80e2baf4f423d
+    case_results:
+      - symbol_id: SYM-test-packed-fresh-verification-receipts
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 66094
 id: TEST-kibi-fresh-verification-receipts
 type: test
 verification_contract:

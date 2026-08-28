@@ -1045,6 +1045,35 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 80635
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-ab864a529cc0189d04af4cef
+    test_id: TEST-006
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-006
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-006
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 91109af11cd1ef36564e3117094f1d32bd300f0d0681d3edc9c6d93bd6bed504
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-28T10:19:14.069Z'
+    finished_at: '2026-08-28T10:20:30.150Z'
+    artifact_digest: 3b75bff4b0a2253700a8552eba44bbec16a45d7dd841186fbb357a29061743e1
+    contract_hash: ed20e82f89da5234627d62ae72162872c2adc38b2f320e49c0ecba7150f14f3c
+    case_results:
+      - symbol_id: SYM-test-packed-default-branch-sync-hooks
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 76081
+      - symbol_id: SYM-test-packed-post-merge-sync
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 76081
 ---
 
 In a temp git repo with hooks installed:
