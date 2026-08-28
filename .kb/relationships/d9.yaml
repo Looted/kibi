@@ -76,3 +76,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-33b9b1fc6d3a
+  - type: executable_for
+    from: SYM-test-skillopt-bundle-workflow
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-28T10:03:21.302Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba7ea239a8dc

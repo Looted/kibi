@@ -41,3 +41,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-97f2bd574294
+  - type: covered_by
+    from: SYM-skillopt-bundle-summarize-arm
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-28T10:04:25.776Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a3b25267e6d

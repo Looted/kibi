@@ -4044,6 +4044,8 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-kibi-github-report-integration
@@ -4053,6 +4055,8 @@ symbols:
     sourceFile: packages/cli/src/commands/github-init.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
@@ -4064,6 +4068,8 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-kibi-github-report-integration
@@ -4073,6 +4079,8 @@ symbols:
     sourceFile: packages/cli/src/commands/github-init.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
@@ -4084,6 +4092,8 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-kibi-github-report-integration
@@ -4093,6 +4103,8 @@ symbols:
     sourceFile: packages/cli/src/commands/github-init.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
@@ -4104,6 +4116,8 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-kibi-github-report-integration
@@ -4113,6 +4127,8 @@ symbols:
     sourceFile: packages/cli/src/commands/github-init.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
@@ -4124,6 +4140,8 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-kibi-github-report-integration
@@ -4133,6 +4151,8 @@ symbols:
     sourceFile: packages/cli/src/commands/github-init.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
@@ -6032,7 +6052,11 @@ symbols:
     sourceFile: scripts/verify-publish-metadata.ts
     links:
       - REQ-020
+    status: active
+    symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-014
       - type: implements
         target: REQ-020
   - id: SYM-normalizeRepositoryUrl
@@ -6040,7 +6064,11 @@ symbols:
     sourceFile: scripts/verify-publish-metadata.ts
     links:
       - REQ-020
+    status: active
+    symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-014
       - type: implements
         target: REQ-020
   - id: SYM-repositoryMatches
@@ -6048,7 +6076,11 @@ symbols:
     sourceFile: scripts/verify-publish-metadata.ts
     links:
       - REQ-020
+    status: active
+    symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-014
       - type: implements
         target: REQ-020
   - id: SYM-verifyPublishMetadata
@@ -6056,7 +6088,11 @@ symbols:
     sourceFile: scripts/verify-publish-metadata.ts
     links:
       - REQ-020
+    status: active
+    symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-014
       - type: implements
         target: REQ-020
   - id: SYM-DIAGNOSTIC_MODE_ENABLED
@@ -29441,6 +29477,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: config
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bundle-candidates-resolver
@@ -29450,6 +29488,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bundle-resolve-candidates-dir
@@ -29458,6 +29498,8 @@ symbols:
     sourceFile: scripts/skillopt-eval/bundle-workflow.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bundle-cell-summary-type
@@ -29467,6 +29509,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bundle-summarize-arm
@@ -29476,6 +29520,8 @@ symbols:
     granularity_reason: module-level-behavior
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bundle-evaluate-verdict
@@ -29484,6 +29530,8 @@ symbols:
     sourceFile: scripts/skillopt-eval/bundle-workflow.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bundle-gate-options-type
@@ -29493,6 +29541,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bundle-gate-result-type
@@ -29502,6 +29552,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bundle-run-paid-gate
@@ -29511,6 +29563,8 @@ symbols:
     granularity_reason: module-level-behavior
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bundle-evaluation-branch
@@ -29520,6 +29574,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: config
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bundle-arm-type
@@ -29529,6 +29585,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bundle-arm-summary-type
@@ -29538,6 +29596,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bundle-cell-runner-type
@@ -29547,6 +29607,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-setup-seeded-fresh-kb
@@ -29555,6 +29617,8 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-setup-seeded-stale-kb
@@ -29563,6 +29627,8 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-setup-thin-root-kb
@@ -29571,6 +29637,8 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-init-fixture-repository
@@ -29579,6 +29647,8 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-kibi-bootstrap-plan-expected-snapshots
@@ -29588,6 +29658,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: module-level-behavior
     relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-skillopt-stop-fixture-engine
@@ -29596,6 +29670,8 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-test-core-adr-supersession
@@ -29672,3 +29748,31 @@ symbols:
         target: TEST-013
       - type: implements
         target: REQ-016
+  - id: SYM-test-skillopt-bundle-workflow
+    title: paid bundle gate
+    status: active
+    tags:
+      - skillopt
+      - bundle
+      - evaluation
+      - test
+    sourceFile: scripts/skillopt-eval/tests/bundle-workflow.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-test-publish-metadata-verifier
+    title: publish metadata verifier tests
+    status: active
+    tags:
+      - release
+      - provenance
+      - metadata
+      - test
+    sourceFile: scripts/tests/verify-publish-metadata.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-014

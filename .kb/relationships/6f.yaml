@@ -83,3 +83,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-06399db95e3f
+  - type: covered_by
+    from: SYM-skillopt-stop-fixture-engine
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-28T10:09:17.678Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12b1d5e54872

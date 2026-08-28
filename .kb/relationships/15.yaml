@@ -76,3 +76,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0a4bf6d803ce
+  - type: covered_by
+    from: SYM-cli-github-remote
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-28T10:09:44.639Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9cda9867279

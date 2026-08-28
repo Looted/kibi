@@ -118,3 +118,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fa44a2fb4ca1
+  - type: covered_by
+    from: SYM-skillopt-init-fixture-repository
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-28T10:09:07.177Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e381cbb2d6d8

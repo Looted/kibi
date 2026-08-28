@@ -22459,6 +22459,14 @@ coordinates:
     sourceEndLine: 257
     sourceFile: packages/cli/tests/traceability/predicate-first.test.ts
     sourceLine: 1
+  SYM-test-publish-metadata-verifier:
+    identityHash: 77e0bc68bd3fbdb65448bce75a071032dd16bb664c04bd4eb8d70bc5fddf7609
+    sourceHash: 8d349ddfe8292453d1544c4580d8d2a77df4eb323d5b45746f2fb76c7c627ff4
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 142
+    sourceFile: scripts/tests/verify-publish-metadata.test.ts
+    sourceLine: 1
   SYM-test-root-batch-concurrency:
     identityHash: 1b350dbbe342b5b9de2f433899a639eb0761dac135c3d6aa71ad3d0f4f3035b0
     sourceHash: 4ab234bbd020860d78059542ece37c25456a25c1b39eb6ef6566c11e2a3fa6ed
@@ -22547,6 +22555,14 @@ coordinates:
     sourceEndLine: 77
     sourceFile: documentation/tests/e2e/packed/runtime-engine-daemon.test.ts
     sourceLine: 20
+  SYM-test-skillopt-bundle-workflow:
+    identityHash: f86c12a16ffc7c5bd13f332fb0dbae3736ebf3d23f607b7e0f58657722d2fd96
+    sourceHash: cbdd98fd5cf4c701a7536f5530a744ae9f6541a8c55a4dbf75153defd34b7448
+    sourceColumn: 10
+    sourceEndColumn: 26
+    sourceEndLine: 36
+    sourceFile: scripts/skillopt-eval/tests/bundle-workflow.test.ts
+    sourceLine: 36
   SYM-test-sparql-fixture-request:
     identityHash: 1ade4b48dbaf8958f532c0c84e9e02cbdfea224580dea10c99edb45eb8c0bd0d
     sourceHash: bd0b8ebe20deb74152efc12931c687bd282d5669e182a32da78dc44cd9990f2b

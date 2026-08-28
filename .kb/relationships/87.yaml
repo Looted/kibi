@@ -195,3 +195,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4b461679d995
+  - type: covered_by
+    from: SYM-cli-github-init-deps
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-28T10:09:00.031Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7efa54301e72

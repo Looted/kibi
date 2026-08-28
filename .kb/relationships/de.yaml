@@ -178,3 +178,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d23579b0b362
+  - type: covered_by
+    from: SYM-skillopt-bundle-candidates-resolver
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-28T10:03:53.402Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f70f04df3967

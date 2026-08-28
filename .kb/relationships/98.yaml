@@ -55,3 +55,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6bd12b48220c
+  - type: executable_for
+    from: SYM-test-publish-metadata-verifier
+    to: TEST-014
+    created_at: 2026-08-28T10:10:26.439Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f2f412eb6ded

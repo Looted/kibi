@@ -90,3 +90,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8b8acfd9e1a0
+  - type: covered_by
+    from: SYM-skillopt-bundle-cell-summary-type
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-28T10:04:17.220Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb21ae7c2e91

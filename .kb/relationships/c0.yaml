@@ -118,3 +118,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-874ec9532a40
+  - type: covered_by
+    from: SYM-skillopt-bundle-cell-runner-type
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-28T10:05:47.439Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d64b1917dfc8

@@ -111,3 +111,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-df36aa647696
+  - type: covered_by
+    from: SYM-skillopt-bundle-default-timeout
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-28T10:03:44.879Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d1344b13e91
+  - type: covered_by
+    from: SYM-skillopt-setup-seeded-fresh-kb
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-28T10:08:24.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-803f2c30f989
