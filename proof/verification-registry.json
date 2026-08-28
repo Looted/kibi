@@ -824,6 +824,37 @@
       ]
     },
     {
+      "test_id": "TEST-013",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-013"
+        ],
+        "required_case_symbols": [
+          "SYM-test-core-adr-supersession"
+        ],
+        "required_projects": [
+          "default"
+        ],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        [
+          "swipl",
+          "-q",
+          "-g",
+          "load_test_files([]),run_tests(checks_coverage_gaps),halt",
+          "-t",
+          "halt",
+          "packages/core/tests/kb.plt"
+        ]
+      ]
+    },
+    {
       "test_id": "TEST-opencode-bootstrap-paths",
       "contract": {
         "version": "kibi.verification-contract.v1",

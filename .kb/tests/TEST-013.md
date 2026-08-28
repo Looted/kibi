@@ -2,8 +2,8 @@
 id: TEST-013
 title: supersedes relationship traversal and current_adr inference
 status: active
-created_at: 2026-02-20T10:35:09Z
-updated_at: 2026-02-20T10:35:09Z
+created_at: 2026-02-20T10:35:09.000Z
+updated_at: 2026-02-20T10:35:09.000Z
 source: brief.md
 priority: must
 tags:
@@ -13,6 +13,47 @@ tags:
 links:
   - type: validates
     target: SCEN-011
+verification_scope: end_to_end
+verification_perspective: internal
+verification_contract:
+  version: kibi.verification-contract.v1
+  runner: node
+  command_argv:
+    - node
+    - scripts/run-proof-contract.mjs
+    - '--test-id'
+    - TEST-013
+  required_case_symbols:
+    - SYM-test-core-adr-supersession
+  required_projects:
+    - default
+  success_policy: all_required_cases_first_attempt
+type: test
+verification_receipts:
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-7769b1aea816e9cd0b9296d3
+    test_id: TEST-013
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-013
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-013
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 7e2cb1e6e8924609e957172e653ee99955405aba25fe942da5d8deaa660aa428
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-28T06:26:58.448Z'
+    finished_at: '2026-08-28T06:26:58.884Z'
+    artifact_digest: ebfd9ded887fea179b97aa46106a13caa58a1ad9a909b8223baf8c64fcad5706
+    contract_hash: 06a2bb72e347f0c35988c065b80001fad57d323177d0975c11af311330ef2273
+    case_results:
+      - symbol_id: SYM-test-core-adr-supersession
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 436
 ---
 
 ## Test Cases

@@ -4413,7 +4413,8 @@ symbols:
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable resource examples
+    title: predicate guidance loads a canonical decision tree with immutable
+      resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -29597,3 +29598,77 @@ symbols:
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
+  - id: SYM-test-core-adr-supersession
+    title: adr_chain_and_current_adr_follow_supersession
+    status: active
+    tags:
+      - adr
+      - inference
+      - temporal
+      - test
+    sourceFile: packages/core/tests/kb.plt
+    granularity_reason: extractor-miss
+    symbol_role: unknown
+    relationships:
+      - type: executable_for
+        target: TEST-013
+  - id: SYM-core-adr-current-adr
+    title: current_adr
+    status: active
+    tags:
+      - adr
+      - temporal
+      - inference
+      - core
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-013
+      - type: implements
+        target: REQ-016
+  - id: SYM-core-adr-superseded-by
+    title: superseded_by
+    status: active
+    tags:
+      - adr
+      - temporal
+      - inference
+      - core
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-013
+      - type: implements
+        target: REQ-016
+  - id: SYM-core-adr-chain
+    title: adr_chain
+    status: active
+    tags:
+      - adr
+      - temporal
+      - inference
+      - core
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-013
+      - type: implements
+        target: REQ-016
+  - id: SYM-core-adr-deprecated-no-successor
+    title: deprecated_no_successor
+    status: active
+    tags:
+      - adr
+      - temporal
+      - check
+      - core
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-013
+      - type: implements
+        target: REQ-016

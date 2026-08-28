@@ -5619,6 +5619,38 @@ coordinates:
     sourceEndLine: 235
     sourceFile: packages/cli/src/commands/init-helpers.ts
     sourceLine: 220
+  SYM-core-adr-chain:
+    identityHash: be2b6a368feeee2c0a3f0238f634a11c2d2575e8c1892d9dda210549bfbd4679
+    sourceHash: 179f4622819faec8f81f73bbd20ee25b743b92cd82252b4486604419e6e6251e
+    sourceColumn: 4
+    sourceEndColumn: 13
+    sourceEndLine: 54
+    sourceFile: packages/core/src/kb.pl
+    sourceLine: 54
+  SYM-core-adr-current-adr:
+    identityHash: c8515dbba0e562740d50850536d67b49635f0f1188f0cee7ef78e2b606948e8b
+    sourceHash: 179f4622819faec8f81f73bbd20ee25b743b92cd82252b4486604419e6e6251e
+    sourceColumn: 4
+    sourceEndColumn: 15
+    sourceEndLine: 52
+    sourceFile: packages/core/src/kb.pl
+    sourceLine: 52
+  SYM-core-adr-deprecated-no-successor:
+    identityHash: bb98be3ccb0b15aa561e9c9f8ad98c7411254d500f5583c68370785e1fc1ea15
+    sourceHash: 179f4622819faec8f81f73bbd20ee25b743b92cd82252b4486604419e6e6251e
+    sourceColumn: 4
+    sourceEndColumn: 27
+    sourceEndLine: 55
+    sourceFile: packages/core/src/kb.pl
+    sourceLine: 55
+  SYM-core-adr-superseded-by:
+    identityHash: 68865782b09cfc36b880f5ddcb8b2e5f6fff9a9b413d0a816c17f28338f4b2ad
+    sourceHash: 179f4622819faec8f81f73bbd20ee25b743b92cd82252b4486604419e6e6251e
+    sourceColumn: 4
+    sourceEndColumn: 17
+    sourceEndLine: 53
+    sourceFile: packages/core/src/kb.pl
+    sourceLine: 53
   SYM-core-check-logic-coverage:
     identityHash: 7edaa0ca4741f3c87af436f228970ea7884ee9db9d085ff5519e3837d24d4fc6
     sourceHash: b4e1d1db0878cadb459d8036cda975fd5d30b79ddcf42f49ea6349d5aacec053
@@ -22203,6 +22235,14 @@ coordinates:
     sourceEndLine: 1658
     sourceFile: packages/core/tests/kb.plt
     sourceLine: 1658
+  SYM-test-core-adr-supersession:
+    identityHash: 2d2229dd7624aed8e431f0b93da271a86a8689e2ab48fd8791fd6804ff477ff1
+    sourceHash: 447ce48b7c09ec04c21358bd60801b0c8313ec879e508f163847c13c02e5ab95
+    sourceColumn: 5
+    sourceEndColumn: 50
+    sourceEndLine: 3218
+    sourceFile: packages/core/tests/kb.plt
+    sourceLine: 3218
   SYM-test-core-journaled-engine-delta-sync:
     identityHash: a8e2250c6d86ce6f0bb4f55c684bcd6b8fa3dd6657db6033ec92d4504db337c2
     sourceHash: 6b760cfdff16b3921167c6a69c26f7ed5043c41111d51d35013958518d0f4791

@@ -104,3 +104,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-063e57e2c354
+  - type: implements
+    from: SYM-core-adr-superseded-by
+    to: REQ-016
+    created_at: 2026-08-28T06:25:53.356Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56777ec58585
+  - type: covered_by
+    from: SYM-core-adr-superseded-by
+    to: TEST-013
+    created_at: 2026-08-28T06:25:53.361Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d77a4ef6acc1

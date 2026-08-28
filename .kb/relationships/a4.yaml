@@ -125,3 +125,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eb46caf3bba1
+  - type: implements
+    from: SYM-core-adr-deprecated-no-successor
+    to: REQ-016
+    created_at: 2026-08-28T06:26:11.803Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7bb6fe4884a6
+  - type: covered_by
+    from: SYM-core-adr-deprecated-no-successor
+    to: TEST-013
+    created_at: 2026-08-28T06:26:11.809Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-034d769ea3aa
