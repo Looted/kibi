@@ -1205,4 +1205,28 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 62335
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-1bed049010df19c72c535266
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 91109af11cd1ef36564e3117094f1d32bd300f0d0681d3edc9c6d93bd6bed504
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-28T10:14:13.376Z'
+    finished_at: '2026-08-28T10:15:16.212Z'
+    artifact_digest: 79712234bc177e153c3a92a11b489d2f50b34a4eaac061dc6064228a938f3575
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 62836
 ---
