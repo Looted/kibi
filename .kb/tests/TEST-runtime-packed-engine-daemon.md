@@ -26,30 +26,6 @@ id: TEST-runtime-packed-engine-daemon
 type: test
 verification_receipts:
   - version: kibi.verification-receipt.v2
-    receipt_id: VR-79e5eb07dcfb8e8dd9a73672
-    test_id: TEST-runtime-packed-engine-daemon
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-runtime-packed-engine-daemon
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-runtime-packed-engine-daemon
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 94f9e8c4ffc1d15bb89aa0bc45fe0fc920d6343d426e8182198e696832604f20
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-22T13:02:54.122Z'
-    finished_at: '2026-08-22T13:03:00.306Z'
-    artifact_digest: 898ab380cdf0ec29ae862e053bdeaee8d4028ded710bf2728fe94b70a971d8ee
-    contract_hash: f55723ff2baef6d83352cd00e187c51a79823a7db8bcd85e961d8fef91c0a0d1
-    case_results:
-      - symbol_id: SYM-test-runtime-engine-daemon
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 6184
-  - version: kibi.verification-receipt.v2
     receipt_id: VR-409ea64d685ed9bc3ff6d510
     test_id: TEST-runtime-packed-engine-daemon
     runner: node
@@ -1225,4 +1201,28 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 35693
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-dd8bc434146375035e298a04
+    test_id: TEST-runtime-packed-engine-daemon
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-runtime-packed-engine-daemon
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-runtime-packed-engine-daemon
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 4dcb52daacd2e6301cb225622dbda1c10a95ea1252b73faa3a34235c61fe9d71
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T11:17:28.281Z'
+    finished_at: '2026-08-29T11:18:03.135Z'
+    artifact_digest: 27f8e37656a2fb54f67ed513f4705f54bc6da47b9fd502d7262ac5f8dbb5747a
+    contract_hash: f55723ff2baef6d83352cd00e187c51a79823a7db8bcd85e961d8fef91c0a0d1
+    case_results:
+      - symbol_id: SYM-test-runtime-engine-daemon
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 34854
 ---

@@ -16,18 +16,6 @@ verification_scope: end_to_end
 verification_perspective: consumer
 verification_receipts:
   - version: kibi.verification-receipt.v1
-    receipt_id: VR-KIBI-CONSERVATIVE-20260810-01
-    test_id: TEST-kibi-conservative-requirement-proof
-    runner: bash
-    command: swipl -q -g "load_test_files([]),run_tests,halt" -t halt packages/core/tests/kb.plt && bun test --timeout 15000 packages/cli/tests/commands/coverage.test.ts packages/cli/tests/commands/status.test.ts packages/cli/tests/operations/discovery.test.ts packages/cli/tests/operations/reporting.test.ts packages/mcp/tests/tools/coverage.test.ts packages/mcp/tests/tools/status.test.ts packages/mcp/tests/server/tools.test.ts
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 3575856c125e0c295553661a049c7eafef56a740e5a03c667dbf6da4b5bea2d4
-    environment_hash: 6e6bbcb607fdce2e1a5d110e1105c16eb85b14725f9323fa0fa5b372428db14e
-    started_at: '2026-08-10T15:55:32.132Z'
-    finished_at: '2026-08-10T15:56:09.566Z'
-    artifact_digest: f4a6c9a83f1c333fda595f4a81fad506b07a8596d35218981fdd705ed5bc01d9
-  - version: kibi.verification-receipt.v1
     receipt_id: VR-KIBI-CONSERVATIVE-20260810-02
     test_id: TEST-kibi-conservative-requirement-proof
     runner: bash
@@ -1191,6 +1179,30 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 23425
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-bfd29926f8e96e42477aeb4b
+    test_id: TEST-kibi-conservative-requirement-proof
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-conservative-requirement-proof
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-conservative-requirement-proof
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 4dcb52daacd2e6301cb225622dbda1c10a95ea1252b73faa3a34235c61fe9d71
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T11:19:43.361Z'
+    finished_at: '2026-08-29T11:20:06.123Z'
+    artifact_digest: 5b5d1bc90cd1bf3ad4d5953a25ef2f453b65f1fa9e533b18450c9e18591d7afa
+    contract_hash: 5b768b87a0fd1fc6d2971d082e9a22507a107f32b139249e4257e2136f6a7985
+    case_results:
+      - symbol_id: SYM-test-conservative-requirement-proof-chain
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 22762
 links:
   - type: validates
     target: SCEN-kibi-conservative-requirement-proof

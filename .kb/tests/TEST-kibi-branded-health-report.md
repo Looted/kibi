@@ -1081,5 +1081,29 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 39439
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-ee88be7ff3b3519b7c1e22c2
+    test_id: TEST-kibi-branded-health-report
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-branded-health-report
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-branded-health-report
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 4dcb52daacd2e6301cb225622dbda1c10a95ea1252b73faa3a34235c61fe9d71
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T11:04:11.117Z'
+    finished_at: '2026-08-29T11:04:51.157Z'
+    artifact_digest: 00fe25459ef8c1227b5e1950cf185837e711bdb0dc236b677acb61939c0c5ea4
+    contract_hash: 4c47a01ae9011db1d2a38b83cb448f40a3e631aa3066672b187bf455a3cea625
+    case_results:
+      - symbol_id: SYM-e2e-packed-cli-html-report
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 40040
 ---
 Covers canonical inline marks and tokens, exact proof ratio semantics, sequential earliest-blocker gate counts, accessible status text, responsive and print styling, self-contained output, and the generated branded SVG badge with Codecov-style chrome and a compact kibi label beside the logo.

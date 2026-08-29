@@ -71,4 +71,28 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 44791
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-3f0c761774d594ec62270bde
+    test_id: TEST-cli-doctor-workflows
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cli-doctor-workflows
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cli-doctor-workflows
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 4dcb52daacd2e6301cb225622dbda1c10a95ea1252b73faa3a34235c61fe9d71
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T11:00:32.011Z'
+    finished_at: '2026-08-29T11:01:13.184Z'
+    artifact_digest: c5a999e21e0ad1ed96a184fd94c577251b87ef490bff7ce4a398d8c3267e16df
+    contract_hash: e94a83cf34a93d7a250eb40a62761867770cf0a9087aabdb7871cd11ef89a5c4
+    case_results:
+      - symbol_id: SYM-e2e-packed-cli-doctor
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 41173
 ---

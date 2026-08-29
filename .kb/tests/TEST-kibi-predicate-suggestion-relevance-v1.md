@@ -29,30 +29,6 @@ id: TEST-kibi-predicate-suggestion-relevance-v1
 type: test
 verification_receipts:
   - version: kibi.verification-receipt.v2
-    receipt_id: VR-d31241598fa1384d12650d87
-    test_id: TEST-kibi-predicate-suggestion-relevance-v1
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-predicate-suggestion-relevance-v1
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-kibi-predicate-suggestion-relevance-v1
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 12adc5e3689eb40ec518ae0a74655e7e1148d20ad8b8ca2a031cc3f4401d04f6
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-22T10:10:05.939Z'
-    finished_at: '2026-08-22T10:10:22.958Z'
-    artifact_digest: 840796e78bcd7165e48b99cc01926ec4171517ecb506f3c6c833041bf6eeb659
-    contract_hash: f33ef1a4ef5bbfd7e106c5190bce217fd74cc7498fa7a8f03af406c17ff8f843
-    case_results:
-      - symbol_id: SYM-kibi-predicate-suggestion-relevance-e2e
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 17019
-  - version: kibi.verification-receipt.v2
     receipt_id: VR-b38043483372efc284804984
     test_id: TEST-kibi-predicate-suggestion-relevance-v1
     runner: node
@@ -1228,4 +1204,28 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 40670
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-7515c96eef1ab87961c69343
+    test_id: TEST-kibi-predicate-suggestion-relevance-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-predicate-suggestion-relevance-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-predicate-suggestion-relevance-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 4dcb52daacd2e6301cb225622dbda1c10a95ea1252b73faa3a34235c61fe9d71
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T11:11:33.594Z'
+    finished_at: '2026-08-29T11:12:16.005Z'
+    artifact_digest: 8375c6820feb853c4221bff6d44d40ad23ea16acfd2eeac801bba58ac7d0ad2a
+    contract_hash: f33ef1a4ef5bbfd7e106c5190bce217fd74cc7498fa7a8f03af406c17ff8f843
+    case_results:
+      - symbol_id: SYM-kibi-predicate-suggestion-relevance-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 42411
 ---
