@@ -1052,6 +1052,30 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 36586
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-f60ba45cac35b05bd885e3c1
+    test_id: TEST-kibi-telemetry-remediation-evidence
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-telemetry-remediation-evidence
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-telemetry-remediation-evidence
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ccec27cd614806a8cebd0544ee4fae8bb17851102771d068fa1272c21213eee7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T09:32:55.484Z'
+    finished_at: '2026-08-29T09:33:28.682Z'
+    artifact_digest: 879ed65709565b0462ec19503dee919e9ca296634b73688618f48e5265c4bc8d
+    contract_hash: 7fb18056888e77d85b1c92e819b830e050be47210c4e89f236319b4e0099f153
+    case_results:
+      - symbol_id: SYM-test-packed-telemetry-remediation
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 33198
 tags:
   - telemetry
   - diagnostics

@@ -1569,6 +1569,45 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 511417
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-cc97a30a356779a33c29e3f5
+    test_id: TEST-test-journaled-engine-harness
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-test-journaled-engine-harness
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-test-journaled-engine-harness
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ccec27cd614806a8cebd0544ee4fae8bb17851102771d068fa1272c21213eee7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T09:38:23.964Z'
+    finished_at: '2026-08-29T09:46:42.961Z'
+    artifact_digest: edc76bfac4c1afa1b3db6eb1fb3fafe3c0a0e91d325bd3160a70e053447c3a2a
+    contract_hash: 974c93beee9ee76c06aba5714815029673cd0f234d2c4ce3ee5a383aa622e1bd
+    case_results:
+      - symbol_id: SYM-test-owned-engine-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 498997
+      - symbol_id: SYM-packed-e2e-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 498997
+      - symbol_id: SYM-proof-runner
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 498997
+      - symbol_id: SYM-shared-npm-cache-resolution
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 498997
 ---
 
 The harness tests verify graceful signal-driven journal flush and replay,

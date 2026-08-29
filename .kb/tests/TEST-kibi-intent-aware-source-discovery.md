@@ -967,6 +967,30 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 41505
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-d9ecefdcecc89c4439486d55
+    test_id: TEST-kibi-intent-aware-source-discovery
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-intent-aware-source-discovery
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-intent-aware-source-discovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ccec27cd614806a8cebd0544ee4fae8bb17851102771d068fa1272c21213eee7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T09:28:39.515Z'
+    finished_at: '2026-08-29T09:29:21.485Z'
+    artifact_digest: 4c269066eb2a82fed6807fc627357563776c5d83284f2880b953e85695c2e24c
+    contract_hash: 9ff77301c476e0962c5534b44d4bbbb046053837c3e6551db603fad8d291d21f
+    case_results:
+      - symbol_id: SYM-test-kibi-intent-aware-source-discovery
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 41970
 ---
 
 The CLI and MCP search contracts accept natural-language intent, return stable ranked entities, include source-linked evidence and graph paths, and preserve explicit zero-result behavior. Unit and operation parity tests cover lexical fallback, source filters, relationship filters, and deterministic ordering.

@@ -30,30 +30,6 @@ verification_contract:
   success_policy: all_required_cases_first_attempt
 verification_receipts:
   - version: kibi.verification-receipt.v2
-    receipt_id: VR-a4aa10f1bd1b248ef7a4ff6d
-    test_id: TEST-codex-consumer-local-mcp-registration-v1
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-codex-consumer-local-mcp-registration-v1
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-codex-consumer-local-mcp-registration-v1
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 12adc5e3689eb40ec518ae0a74655e7e1148d20ad8b8ca2a031cc3f4401d04f6
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-22T10:09:55.078Z'
-    finished_at: '2026-08-22T10:09:59.388Z'
-    artifact_digest: cc9230034d372fbd878195d7268493e67047c62d264d5d735a40a1c513531c44
-    contract_hash: b61976658f1d49e6cfc44dc3bff701c6b47da2d8ef43ec94c427917a4bb3898b
-    case_results:
-      - symbol_id: SYM-codex-packed-plugin-e2e
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 4310
-  - version: kibi.verification-receipt.v2
     receipt_id: VR-6c5af4d4d2ca9387decfcc24
     test_id: TEST-codex-consumer-local-mcp-registration-v1
     runner: node
@@ -1229,4 +1205,28 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 34852
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-ff8a6fc3347859089e4c1cf7
+    test_id: TEST-codex-consumer-local-mcp-registration-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-codex-consumer-local-mcp-registration-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-codex-consumer-local-mcp-registration-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ccec27cd614806a8cebd0544ee4fae8bb17851102771d068fa1272c21213eee7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T09:21:36.227Z'
+    finished_at: '2026-08-29T09:22:10.058Z'
+    artifact_digest: 5fe8ae94d7f831e33d04555098d46363cff017df936a90abac97d417f7613224
+    contract_hash: b61976658f1d49e6cfc44dc3bff701c6b47da2d8ef43ec94c427917a4bb3898b
+    case_results:
+      - symbol_id: SYM-codex-packed-plugin-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 33831
 ---

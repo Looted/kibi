@@ -198,6 +198,30 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 229
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-6d03a9d8b388bd86215a7ee4
+    test_id: TEST-013
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-013
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-013
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ccec27cd614806a8cebd0544ee4fae8bb17851102771d068fa1272c21213eee7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T09:19:54.450Z'
+    finished_at: '2026-08-29T09:19:54.689Z'
+    artifact_digest: de0862ce54e891851a15b505d980f5223797f502045fac0e298c50795f8964df
+    contract_hash: 06a2bb72e347f0c35988c065b80001fad57d323177d0975c11af311330ef2273
+    case_results:
+      - symbol_id: SYM-test-core-adr-supersession
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 239
 ---
 
 ## Test Cases
