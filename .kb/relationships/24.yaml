@@ -188,3 +188,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8560daf59971
+  - type: covered_by
+    from: SYM-normalizeMarkdownPath
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-28T13:19:51.494Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f90fc25242d

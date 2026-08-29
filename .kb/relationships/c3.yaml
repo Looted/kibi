@@ -146,3 +146,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0661a4127448
+  - type: covered_by
+    from: SYM-markdown-detectEmbeddedEntities
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-28T13:19:18.711Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3463740280a3

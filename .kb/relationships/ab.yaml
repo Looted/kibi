@@ -171,3 +171,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3fa71594aa22
+  - type: covered_by
+    from: SYM-refreshManifestCoordinates
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-28T13:20:13.583Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-467c497de202

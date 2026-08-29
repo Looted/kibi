@@ -920,6 +920,54 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 114620
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-71525034f278cfebde638b0d
+    test_id: TEST-kibi-change-to-proof-plan-compiler
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-plan-compiler
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-plan-compiler
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 91109af11cd1ef36564e3117094f1d32bd300f0d0681d3edc9c6d93bd6bed504
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-28T13:08:08.761Z'
+    finished_at: '2026-08-28T13:09:39.365Z'
+    artifact_digest: b8c2e411fd018df5f97169fabe697ee306b494c56a2d96154b026bf0ef113bb7
+    contract_hash: c1f7a009aef05413f810222cdf76b7c6cc8b9e90b37c9ed7484ca9166030e232
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-plan-compiler
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 90604
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-042f71d71d5b8473f7449dfc
+    test_id: TEST-kibi-change-to-proof-plan-compiler
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-change-to-proof-plan-compiler
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-change-to-proof-plan-compiler
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 2a9a4a2399988f15d636abf26dce96e72aeb3afa439e03a5fcb39b9a984fdfff
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-28T14:01:30.443Z'
+    finished_at: '2026-08-28T14:03:12.544Z'
+    artifact_digest: b010b60054cbae5b12d8eb038bd57e9418c3407675fff1a846e7c14e7f13b442
+    contract_hash: c1f7a009aef05413f810222cdf76b7c6cc8b9e90b37c9ed7484ca9166030e232
+    case_results:
+      - symbol_id: SYM-test-kibi-change-to-proof-plan-compiler
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 102101
 ---
 
 Operation tests verify deterministic plan hashes, one disposition per assertive clause, contradiction and ontology-gap abstentions, dependency ordering, sequential apply behavior, and rejection of stale plan hashes. MCP and CLI fixtures assert the same planning and mutation contracts.

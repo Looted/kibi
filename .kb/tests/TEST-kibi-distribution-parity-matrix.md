@@ -932,6 +932,30 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 96606
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-5fb48812564de2623580839e
+    test_id: TEST-kibi-distribution-parity-matrix
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-distribution-parity-matrix
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-distribution-parity-matrix
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: f86facfbbb7c23a7050b4299d1074859fdcb81065130a17ae1e05c0a9b655aca
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-28T13:28:04.470Z'
+    finished_at: '2026-08-28T13:29:39.592Z'
+    artifact_digest: a9f80c2a386e3c13b5d0704b7e73e3ae99752f782dd9fecdba9fa8d413191518
+    contract_hash: 2352f1749e43e20f35cb64c265e7f3db698be2699a73b547b7cb9dec5887aadf
+    case_results:
+      - symbol_id: SYM-test-packed-distribution-parity
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 95122
 tags:
   - parity
   - distribution

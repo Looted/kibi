@@ -927,6 +927,54 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 75409
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-5650d0cfb18a86c39399bd79
+    test_id: TEST-kibi-proposition-complete-ingestion
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-proposition-complete-ingestion
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-proposition-complete-ingestion
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 91109af11cd1ef36564e3117094f1d32bd300f0d0681d3edc9c6d93bd6bed504
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-28T10:30:33.667Z'
+    finished_at: '2026-08-28T10:31:37.170Z'
+    artifact_digest: 021dd02ef3741533085d584a235b04ac4ed5347c618aeefb39a585fd976714ca
+    contract_hash: 353c39ebe4b854eecf90f7f33da796e589fac9bf9cecf6a25aaad57fcbcc4d9a
+    case_results:
+      - symbol_id: SYM-test-packed-proposition-ingestion
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 63503
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-029ec19f1f0ef169e056b7ed
+    test_id: TEST-kibi-proposition-complete-ingestion
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-proposition-complete-ingestion
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-proposition-complete-ingestion
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: f86facfbbb7c23a7050b4299d1074859fdcb81065130a17ae1e05c0a9b655aca
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-28T13:37:23.964Z'
+    finished_at: '2026-08-28T13:38:23.547Z'
+    artifact_digest: 3e81c9d03f4a8518a2842fc516b888f6d8a779068cc9ce176d878329036c0ee8
+    contract_hash: 353c39ebe4b854eecf90f7f33da796e589fac9bf9cecf6a25aaad57fcbcc4d9a
+    case_results:
+      - symbol_id: SYM-test-packed-proposition-ingestion
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 59583
 links:
   - type: validates
     target: SCEN-kibi-proposition-complete-ingestion

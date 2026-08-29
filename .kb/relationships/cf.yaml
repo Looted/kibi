@@ -90,3 +90,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-55f3be8c9799
+  - type: covered_by
+    from: SYM-kibi-icons
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-28T13:20:30.088Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c31ae0cbe49

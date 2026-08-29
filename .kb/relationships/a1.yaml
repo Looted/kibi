@@ -195,3 +195,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-82dd980a7275
+  - type: covered_by
+    from: SYM-isCoarseGranularityAnchor
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-28T13:18:23.085Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-820898e525e7

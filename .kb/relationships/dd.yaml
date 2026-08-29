@@ -167,3 +167,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5e99dd0421f1
+  - type: covered_by
+    from: SYM-markdown-FrontmatterError-toString
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-28T13:19:14.472Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9330396e30c7

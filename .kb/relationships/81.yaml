@@ -90,3 +90,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-903334dcb3cf
+  - type: covered_by
+    from: SYM-enrichSymbolCoordinates
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-28T13:17:49.471Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eeb4578bc4e2

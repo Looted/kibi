@@ -83,3 +83,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-09d067497110
+  - type: covered_by
+    from: SYM-cleanupAbandonedStagingDirectories
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-28T13:17:08.999Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a36f97f7cbc6

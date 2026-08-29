@@ -41,3 +41,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e8545722f576
+  - type: covered_by
+    from: SYM-extractFromManifestString
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-28T13:18:07.041Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-652a6cd70153

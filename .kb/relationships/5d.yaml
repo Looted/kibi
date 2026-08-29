@@ -167,3 +167,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-513746b64a47
+  - type: covered_by
+    from: SYM-markdown-ExtractedRelationship
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-28T13:18:44.808Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9979c541cb03

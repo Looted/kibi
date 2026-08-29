@@ -975,6 +975,54 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 36923
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-09d3db5e621f2fbdaaa887f8
+    test_id: TEST-kibi-conservative-requirement-proof
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-conservative-requirement-proof
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-conservative-requirement-proof
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 91109af11cd1ef36564e3117094f1d32bd300f0d0681d3edc9c6d93bd6bed504
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-28T12:59:17.575Z'
+    finished_at: '2026-08-28T12:59:39.150Z'
+    artifact_digest: 67f9aa08daeebc14011a3e1ffb94174a456493c1b5474d80e2d3e6610353d615
+    contract_hash: 5b768b87a0fd1fc6d2971d082e9a22507a107f32b139249e4257e2136f6a7985
+    case_results:
+      - symbol_id: SYM-test-conservative-requirement-proof-chain
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 21575
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-8089690de0c22fcfa888aa4a
+    test_id: TEST-kibi-conservative-requirement-proof
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-conservative-requirement-proof
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-conservative-requirement-proof
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: f86facfbbb7c23a7050b4299d1074859fdcb81065130a17ae1e05c0a9b655aca
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-28T13:48:44.649Z'
+    finished_at: '2026-08-28T13:49:18.308Z'
+    artifact_digest: 2ababdd63e0cdad8d34592191c54b267022bc6c4db4ce7931d1cf39da4992c4b
+    contract_hash: 5b768b87a0fd1fc6d2971d082e9a22507a107f32b139249e4257e2136f6a7985
+    case_results:
+      - symbol_id: SYM-test-conservative-requirement-proof-chain
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 33659
 links:
   - type: validates
     target: SCEN-kibi-conservative-requirement-proof

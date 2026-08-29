@@ -1252,4 +1252,28 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 71575
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-124adb319dd77575c4bbb1b7
+    test_id: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: f86facfbbb7c23a7050b4299d1074859fdcb81065130a17ae1e05c0a9b655aca
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-28T13:25:28.731Z'
+    finished_at: '2026-08-28T13:26:39.461Z'
+    artifact_digest: 2b394980deb8865b36be40a73182535f792fff578944cfd5bac3d9cb674a56ff
+    contract_hash: 4756e25292dbad76f28ebf29da8f8435dffbbd5b376d7eab696609dd1a84006b
+    case_results:
+      - symbol_id: SYM-kibi-consumer-local-plugin-launcher-ontology-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 70730
 ---

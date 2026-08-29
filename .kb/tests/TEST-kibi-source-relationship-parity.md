@@ -912,5 +912,53 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 88656
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-f886ba92c9b298bca7f3c611
+    test_id: TEST-kibi-source-relationship-parity
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-source-relationship-parity
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-source-relationship-parity
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 91109af11cd1ef36564e3117094f1d32bd300f0d0681d3edc9c6d93bd6bed504
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-28T10:31:42.613Z'
+    finished_at: '2026-08-28T10:32:51.163Z'
+    artifact_digest: e3f8e97c0a5c61d921b0740fe399bceb2fcfcba24ec6859153a610906a4758c2
+    contract_hash: d4bbf523c5d8016f234101c4278f46566f9afe52cfb52565359fca9f1633fa49
+    case_results:
+      - symbol_id: SYM-test-packed-source-relationship-parity
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 68550
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-153a803e42061d40fef8344e
+    test_id: TEST-kibi-source-relationship-parity
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-source-relationship-parity
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-source-relationship-parity
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: f86facfbbb7c23a7050b4299d1074859fdcb81065130a17ae1e05c0a9b655aca
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-28T13:38:28.994Z'
+    finished_at: '2026-08-28T13:39:38.799Z'
+    artifact_digest: 89b768851ae84f6dff4575a0c8e357a47cd95671236beae302410e185dde2ad7
+    contract_hash: d4bbf523c5d8016f234101c4278f46566f9afe52cfb52565359fca9f1633fa49
+    case_results:
+      - symbol_id: SYM-test-packed-source-relationship-parity
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 69805
 ---
 The packed consumer test creates a tracked authored relationship after the initial compile, proves the scoped parity rule blocks on the exact missing edge, syncs, and proves the scoped check passes. Unit coverage separately proves runtime-only reverse ownership does not weaken authored-to-compiled detection.
