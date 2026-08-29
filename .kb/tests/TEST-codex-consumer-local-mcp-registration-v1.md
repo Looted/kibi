@@ -1253,4 +1253,28 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 57598
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-7803f38305c4e048457c9f73
+    test_id: TEST-codex-consumer-local-mcp-registration-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-codex-consumer-local-mcp-registration-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-codex-consumer-local-mcp-registration-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 33d4b9dffe76a9a1d3f539114dacfdf1ef1f729074c06875b6ce811201d1d344
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T00:57:23.854Z'
+    finished_at: '2026-08-29T00:58:39.986Z'
+    artifact_digest: a7473c21ce81c353985dca99badad395514ef40fa276eaf057719b5a712f0809
+    contract_hash: b61976658f1d49e6cfc44dc3bff701c6b47da2d8ef43ec94c427917a4bb3898b
+    case_results:
+      - symbol_id: SYM-codex-packed-plugin-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 76132
 ---
