@@ -26,126 +26,6 @@ id: TEST-runtime-packed-engine-daemon
 type: test
 verification_receipts:
   - version: kibi.verification-receipt.v2
-    receipt_id: VR-bf51245666b2f4450374003d
-    test_id: TEST-runtime-packed-engine-daemon
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-runtime-packed-engine-daemon
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-runtime-packed-engine-daemon
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: cb77b2b695d4e466bfedb16fac2a3bddb249966b53ae473aedbb13445862aee8
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-21T23:52:15.466Z'
-    finished_at: '2026-08-21T23:52:24.913Z'
-    artifact_digest: 03f4910e486af5a6728334af9b07ccb90241a0a74d9c795b07a3ff8634df2101
-    contract_hash: f55723ff2baef6d83352cd00e187c51a79823a7db8bcd85e961d8fef91c0a0d1
-    case_results:
-      - symbol_id: SYM-test-runtime-engine-daemon
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 9447
-  - version: kibi.verification-receipt.v2
-    receipt_id: VR-77ac279c8c14031b2180c043
-    test_id: TEST-runtime-packed-engine-daemon
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-runtime-packed-engine-daemon
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-runtime-packed-engine-daemon
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: cb77b2b695d4e466bfedb16fac2a3bddb249966b53ae473aedbb13445862aee8
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-21T23:53:06.392Z'
-    finished_at: '2026-08-21T23:53:14.836Z'
-    artifact_digest: b9c52569fdc0b908eb2f1e09ac3044d45713c4c5e102630d340d1979c1cefc6a
-    contract_hash: f55723ff2baef6d83352cd00e187c51a79823a7db8bcd85e961d8fef91c0a0d1
-    case_results:
-      - symbol_id: SYM-test-runtime-engine-daemon
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 8444
-  - version: kibi.verification-receipt.v2
-    receipt_id: VR-170a585018f361694d6dc313
-    test_id: TEST-runtime-packed-engine-daemon
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-runtime-packed-engine-daemon
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-runtime-packed-engine-daemon
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: cb77b2b695d4e466bfedb16fac2a3bddb249966b53ae473aedbb13445862aee8
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-22T07:06:32.923Z'
-    finished_at: '2026-08-22T07:06:41.167Z'
-    artifact_digest: aa1c042749e398ae288a106b7a3f2b5e62b8a3f1e938be6177ed20233f214b20
-    contract_hash: f55723ff2baef6d83352cd00e187c51a79823a7db8bcd85e961d8fef91c0a0d1
-    case_results:
-      - symbol_id: SYM-test-runtime-engine-daemon
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 8244
-  - version: kibi.verification-receipt.v2
-    receipt_id: VR-7e338ab7461d14729db7a81b
-    test_id: TEST-runtime-packed-engine-daemon
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-runtime-packed-engine-daemon
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-runtime-packed-engine-daemon
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: cb77b2b695d4e466bfedb16fac2a3bddb249966b53ae473aedbb13445862aee8
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-22T07:08:10.008Z'
-    finished_at: '2026-08-22T07:08:16.881Z'
-    artifact_digest: 4a6b7e229d907c5cdff3c368fc96e17549a8b48858fa2d93feb43ee8de989edd
-    contract_hash: f55723ff2baef6d83352cd00e187c51a79823a7db8bcd85e961d8fef91c0a0d1
-    case_results:
-      - symbol_id: SYM-test-runtime-engine-daemon
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 6873
-  - version: kibi.verification-receipt.v2
-    receipt_id: VR-547c85defeca58838caf7211
-    test_id: TEST-runtime-packed-engine-daemon
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-runtime-packed-engine-daemon
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-runtime-packed-engine-daemon
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 9c04636c66570b14fd6e890c541ae0005a88c3b77ec6727c1e1c80e61f7f80b6
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-22T09:25:48.361Z'
-    finished_at: '2026-08-22T09:25:55.128Z'
-    artifact_digest: 9d497bce131586b39a7fe745de53bdefa1b23552acb4e03a8c8bbffa53ea171e
-    contract_hash: f55723ff2baef6d83352cd00e187c51a79823a7db8bcd85e961d8fef91c0a0d1
-    case_results:
-      - symbol_id: SYM-test-runtime-engine-daemon
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 6767
-  - version: kibi.verification-receipt.v2
     receipt_id: VR-3ada1b14848020316b1d9646
     test_id: TEST-runtime-packed-engine-daemon
     runner: node
@@ -1225,4 +1105,124 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 60386
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-cc3cf98f56c4daa4cf01f886
+    test_id: TEST-runtime-packed-engine-daemon
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-runtime-packed-engine-daemon
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-runtime-packed-engine-daemon
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 0749287725d05ae61492545fe48b3476fb7435520056d5fca1a8d407c10fe22a
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T01:28:13.880Z'
+    finished_at: '2026-08-29T01:29:17.545Z'
+    artifact_digest: 1def1b21be983b9e18acca4cd8722fc375681ebeec8954471a816550f6ac2999
+    contract_hash: f55723ff2baef6d83352cd00e187c51a79823a7db8bcd85e961d8fef91c0a0d1
+    case_results:
+      - symbol_id: SYM-test-runtime-engine-daemon
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 63665
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-f3d6c97b61cbb6c8eb151e9f
+    test_id: TEST-runtime-packed-engine-daemon
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-runtime-packed-engine-daemon
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-runtime-packed-engine-daemon
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: d2df506c1ba2d8efef1a4de347c51c009735441dfab330c40280b8b0713686ad
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T07:31:18.090Z'
+    finished_at: '2026-08-29T07:31:55.244Z'
+    artifact_digest: 8656c3e92cbf66070fc0818e1d12db2434d1cb8ea6245a53b24ab6c8619cd8b0
+    contract_hash: f55723ff2baef6d83352cd00e187c51a79823a7db8bcd85e961d8fef91c0a0d1
+    case_results:
+      - symbol_id: SYM-test-runtime-engine-daemon
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 37154
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-583acda4c7de5beb620d7f74
+    test_id: TEST-runtime-packed-engine-daemon
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-runtime-packed-engine-daemon
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-runtime-packed-engine-daemon
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: d2df506c1ba2d8efef1a4de347c51c009735441dfab330c40280b8b0713686ad
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T07:45:35.343Z'
+    finished_at: '2026-08-29T07:46:12.015Z'
+    artifact_digest: fa10b8aadc0df587242e4483660d1addd164c9dc7cea618cd84f4f9c68eebe75
+    contract_hash: f55723ff2baef6d83352cd00e187c51a79823a7db8bcd85e961d8fef91c0a0d1
+    case_results:
+      - symbol_id: SYM-test-runtime-engine-daemon
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 36672
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-94bfa683b24551c0b10dda1d
+    test_id: TEST-runtime-packed-engine-daemon
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-runtime-packed-engine-daemon
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-runtime-packed-engine-daemon
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 7ceda44cecf972c003132506e79557beee5eab748de731605f0fc50cf75ab2b4
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T08:15:24.708Z'
+    finished_at: '2026-08-29T08:16:00.175Z'
+    artifact_digest: 482f973e0524e8847ad6421d97471ee9e040f1a75bcd9fe25812ee7c41f0cbc2
+    contract_hash: f55723ff2baef6d83352cd00e187c51a79823a7db8bcd85e961d8fef91c0a0d1
+    case_results:
+      - symbol_id: SYM-test-runtime-engine-daemon
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 35467
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-6000a5472fe407f0fef8ee70
+    test_id: TEST-runtime-packed-engine-daemon
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-runtime-packed-engine-daemon
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-runtime-packed-engine-daemon
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 63a489a58fd839d7993492cb197c7567bc3903325471cd321f0c68d40af09ab7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T08:46:46.792Z'
+    finished_at: '2026-08-29T08:47:22.436Z'
+    artifact_digest: ec6d60476766a4713df015c8d05fda3d2f994a03b1c9ee5af33f515b209310a3
+    contract_hash: f55723ff2baef6d83352cd00e187c51a79823a7db8bcd85e961d8fef91c0a0d1
+    case_results:
+      - symbol_id: SYM-test-runtime-engine-daemon
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 35644
 ---

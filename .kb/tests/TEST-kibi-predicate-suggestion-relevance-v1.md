@@ -29,150 +29,6 @@ id: TEST-kibi-predicate-suggestion-relevance-v1
 type: test
 verification_receipts:
   - version: kibi.verification-receipt.v2
-    receipt_id: VR-58486d4d8eb94abb97c68702
-    test_id: TEST-kibi-predicate-suggestion-relevance-v1
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-predicate-suggestion-relevance-v1
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-kibi-predicate-suggestion-relevance-v1
-    scope: end_to_end
-    outcome: failed
-    code_snapshot: 8f81440c4148370ea92ac86c92621a66379a0902dc013befb9a9af69a883e19a
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-21T08:04:36.353Z'
-    finished_at: '2026-08-21T08:04:37.770Z'
-    artifact_digest: 02a68e51cc19eb0e71ebdbba338ecc1b4494fa60810be815a267930ba69421fa
-    contract_hash: f33ef1a4ef5bbfd7e106c5190bce217fd74cc7498fa7a8f03af406c17ff8f843
-    case_results:
-      - symbol_id: SYM-kibi-predicate-suggestion-relevance-e2e
-        project: default
-        outcome: failed
-        retries: 0
-        duration_ms: 1417
-  - version: kibi.verification-receipt.v2
-    receipt_id: VR-f82d1499e0ba9492712f6fdc
-    test_id: TEST-kibi-predicate-suggestion-relevance-v1
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-predicate-suggestion-relevance-v1
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-kibi-predicate-suggestion-relevance-v1
-    scope: end_to_end
-    outcome: failed
-    code_snapshot: 8f81440c4148370ea92ac86c92621a66379a0902dc013befb9a9af69a883e19a
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-21T08:04:58.277Z'
-    finished_at: '2026-08-21T08:07:44.533Z'
-    artifact_digest: 72e17d33a1bbd4bfb04df65293f5cc75dc850328c449779b4661ca35fe4dd7b5
-    contract_hash: f33ef1a4ef5bbfd7e106c5190bce217fd74cc7498fa7a8f03af406c17ff8f843
-    case_results:
-      - symbol_id: SYM-kibi-predicate-suggestion-relevance-e2e
-        project: default
-        outcome: failed
-        retries: 0
-        duration_ms: 166256
-  - version: kibi.verification-receipt.v2
-    receipt_id: VR-b3899c39e9a1987b069073eb
-    test_id: TEST-kibi-predicate-suggestion-relevance-v1
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-predicate-suggestion-relevance-v1
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-kibi-predicate-suggestion-relevance-v1
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 8f81440c4148370ea92ac86c92621a66379a0902dc013befb9a9af69a883e19a
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-21T08:08:08.538Z'
-    finished_at: '2026-08-21T08:11:12.603Z'
-    artifact_digest: 23502bc4a7d4e589ad5e6eb2c3bfea2175bb0ca14be807d93f116823a447576a
-    contract_hash: f33ef1a4ef5bbfd7e106c5190bce217fd74cc7498fa7a8f03af406c17ff8f843
-    case_results:
-      - symbol_id: SYM-kibi-predicate-suggestion-relevance-e2e
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 184065
-  - version: kibi.verification-receipt.v2
-    receipt_id: VR-97a5b97afbfed733ca73fe8c
-    test_id: TEST-kibi-predicate-suggestion-relevance-v1
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-predicate-suggestion-relevance-v1
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-kibi-predicate-suggestion-relevance-v1
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: c48e4e5e6bf1e08e5f59b2d6c88d4da1b32d4eb2707fb99badee3b2402808829
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-21T23:30:42.684Z'
-    finished_at: '2026-08-21T23:31:14.449Z'
-    artifact_digest: 76d9055becf72d05570f4c0186c45d59118b6b316eb0e6601b156a08fae47439
-    contract_hash: f33ef1a4ef5bbfd7e106c5190bce217fd74cc7498fa7a8f03af406c17ff8f843
-    case_results:
-      - symbol_id: SYM-kibi-predicate-suggestion-relevance-e2e
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 31765
-  - version: kibi.verification-receipt.v2
-    receipt_id: VR-a387d32aa65fb6845241ecb6
-    test_id: TEST-kibi-predicate-suggestion-relevance-v1
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-predicate-suggestion-relevance-v1
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-kibi-predicate-suggestion-relevance-v1
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: cb77b2b695d4e466bfedb16fac2a3bddb249966b53ae473aedbb13445862aee8
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-22T07:05:35.216Z'
-    finished_at: '2026-08-22T07:05:56.470Z'
-    artifact_digest: fcf19ef86e963aa8cf9c7a0276ee578f571a6c2190754c6aa3344260b3413e75
-    contract_hash: f33ef1a4ef5bbfd7e106c5190bce217fd74cc7498fa7a8f03af406c17ff8f843
-    case_results:
-      - symbol_id: SYM-kibi-predicate-suggestion-relevance-e2e
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 21254
-  - version: kibi.verification-receipt.v2
-    receipt_id: VR-132aeab78e982c6797e0986e
-    test_id: TEST-kibi-predicate-suggestion-relevance-v1
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-predicate-suggestion-relevance-v1
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-kibi-predicate-suggestion-relevance-v1
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: cb77b2b695d4e466bfedb16fac2a3bddb249966b53ae473aedbb13445862aee8
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-22T07:07:14.395Z'
-    finished_at: '2026-08-22T07:07:34.455Z'
-    artifact_digest: f9a726007521b180ecdfca75c50fb73dee2a308225f67275f6c410755a758716
-    contract_hash: f33ef1a4ef5bbfd7e106c5190bce217fd74cc7498fa7a8f03af406c17ff8f843
-    case_results:
-      - symbol_id: SYM-kibi-predicate-suggestion-relevance-e2e
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 20060
-  - version: kibi.verification-receipt.v2
     receipt_id: VR-2a57ad58935430de6b3e6272
     test_id: TEST-kibi-predicate-suggestion-relevance-v1
     runner: node
@@ -1276,4 +1132,100 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 67436
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-89da58c2cbd2c390436d9767
+    test_id: TEST-kibi-predicate-suggestion-relevance-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-predicate-suggestion-relevance-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-predicate-suggestion-relevance-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 0749287725d05ae61492545fe48b3476fb7435520056d5fca1a8d407c10fe22a
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T01:20:02.471Z'
+    finished_at: '2026-08-29T01:21:10.166Z'
+    artifact_digest: 076f9b0aeca2c5d3a7117daa57a7a9e9ab0f7231188a8097413d7e9707b5083e
+    contract_hash: f33ef1a4ef5bbfd7e106c5190bce217fd74cc7498fa7a8f03af406c17ff8f843
+    case_results:
+      - symbol_id: SYM-kibi-predicate-suggestion-relevance-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 67695
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-7e91a684a6c0719d7c8b3462
+    test_id: TEST-kibi-predicate-suggestion-relevance-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-predicate-suggestion-relevance-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-predicate-suggestion-relevance-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: d2df506c1ba2d8efef1a4de347c51c009735441dfab330c40280b8b0713686ad
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T07:30:33.131Z'
+    finished_at: '2026-08-29T07:31:14.216Z'
+    artifact_digest: 8f34f6c20baff9ca6c6d3681c33f5b6dec19484419f5f28984cd3c11f33a0297
+    contract_hash: f33ef1a4ef5bbfd7e106c5190bce217fd74cc7498fa7a8f03af406c17ff8f843
+    case_results:
+      - symbol_id: SYM-kibi-predicate-suggestion-relevance-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 41085
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-ddb54934b44f5ba8706b21ab
+    test_id: TEST-kibi-predicate-suggestion-relevance-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-predicate-suggestion-relevance-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-predicate-suggestion-relevance-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 7ceda44cecf972c003132506e79557beee5eab748de731605f0fc50cf75ab2b4
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T08:09:21.883Z'
+    finished_at: '2026-08-29T08:10:07.575Z'
+    artifact_digest: 4a19f9e195cedbd3c689e2366c06153c1b97ffdb9da2ff899d6651a290f55cce
+    contract_hash: f33ef1a4ef5bbfd7e106c5190bce217fd74cc7498fa7a8f03af406c17ff8f843
+    case_results:
+      - symbol_id: SYM-kibi-predicate-suggestion-relevance-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 45692
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-76148224d1252f5835fb081d
+    test_id: TEST-kibi-predicate-suggestion-relevance-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-predicate-suggestion-relevance-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-predicate-suggestion-relevance-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 63a489a58fd839d7993492cb197c7567bc3903325471cd321f0c68d40af09ab7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T08:40:57.449Z'
+    finished_at: '2026-08-29T08:41:37.860Z'
+    artifact_digest: fcb965634344cc7831746996760fb8ea88598b076c2130ae31b5fe0f52b3ded2
+    contract_hash: f33ef1a4ef5bbfd7e106c5190bce217fd74cc7498fa7a8f03af406c17ff8f843
+    case_results:
+      - symbol_id: SYM-kibi-predicate-suggestion-relevance-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 40411
 ---
