@@ -58,6 +58,48 @@ interface CliResult {
   readonly stderr: string;
 }
 
+interface CliRetryOptions {
+  readonly retryOnInteractivePrologTimeout?: boolean;
+  readonly retryDelayMs?: number;
+}
+
+const INTERACTIVE_PROLOG_ENTITY_TIMEOUT =
+  /Query timeout after \d+(?:\.\d+)?s \(stage=[^,\s]+, pid=\d+, killed=(?:yes|no), exitCode=(?:null|\d+), goal=kb_assert_entity\)/;
+
+function isInteractivePrologEntityTimeout(result: CliResult): boolean {
+  return INTERACTIVE_PROLOG_ENTITY_TIMEOUT.test(result.stderr || result.stdout);
+}
+
+// Safe only for this sync failure because publication has not happened and the
+// failed sync cleans its staging path before returning.
+// runStagedCli also terminates the timed-out process and fixture engine first.
+// implements REQ-skillopt-codex-optimization
+// covered_by TEST-skillopt-codex-optimization
+export async function runCliWithRetry(
+  command: () => Promise<CliResult>,
+  label: string,
+  options: CliRetryOptions = {},
+): Promise<string> {
+  let result = await command();
+  let attempts = 1;
+  if (
+    options.retryOnInteractivePrologTimeout === true &&
+    !result.ok &&
+    isInteractivePrologEntityTimeout(result)
+  ) {
+    await Bun.sleep(options.retryDelayMs ?? 100);
+    result = await command();
+    attempts = 2;
+  }
+  if (!result.ok) {
+    const attemptSuffix = attempts === 2 ? " after 2 attempts" : "";
+    throw new FixtureSetupError(
+      `${label} failed${attemptSuffix}: ${result.stderr.slice(0, 500) || result.stdout.slice(0, 200)}`,
+    );
+  }
+  return result.stdout;
+}
+
 async function runStagedCli(
   cliRoot: string,
   workspaceTarget: string,
@@ -378,19 +420,17 @@ export async function setupThinRootKb(
  * source-linked symbol pair so discovery/query signals have real content.
  */
 // implements REQ-skillopt-codex-optimization
+// covered_by TEST-skillopt-codex-optimization
 export async function setupSeededFreshKb(
   workspaceTarget: string,
   cliRoot: string,
 ): Promise<void> {
   await initFixtureRepository(workspaceTarget);
   const expectOk = async (args: readonly string[], label: string) => {
-    const result = await runStagedCli(cliRoot, workspaceTarget, args);
-    if (!result.ok) {
-      throw new FixtureSetupError(
-        `${label} failed: ${result.stderr.slice(0, 500) || result.stdout.slice(0, 200)}`,
-      );
-    }
-    return result.stdout;
+    return runCliWithRetry(
+      () => runStagedCli(cliRoot, workspaceTarget, args),
+      label,
+    );
   };
   await expectOk(["init"], "kibi init");
   await mkdir(join(workspaceTarget, ".kb", "requirements"), {
@@ -428,7 +468,11 @@ export async function setupSeededFreshKb(
   // Sync discovers tracked source files. Commit the evaluator-owned seed before
   // importing it so the branch snapshot contains the two authored entities.
   await stageCommitAll(workspaceTarget);
-  await expectOk(["sync"], "import sync");
+  await runCliWithRetry(
+    () => runStagedCli(cliRoot, workspaceTarget, ["sync"]),
+    "import sync",
+    { retryOnInteractivePrologTimeout: true },
+  );
 }
 
 /**
