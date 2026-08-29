@@ -360,6 +360,30 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 41697
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-9391fd75362922e3b588ec23
+    test_id: TEST-opencode-bootstrap-paths
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-opencode-bootstrap-paths
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-opencode-bootstrap-paths
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 802b5d58ebedd99d952c8baca270c08e187b9d0a2eb556bb99f7e1d776045487
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T10:04:42.111Z'
+    finished_at: '2026-08-29T10:05:25.342Z'
+    artifact_digest: 958c96f31d286a6ae26b1956fcdd97365a5ce55de0e38671dcad99596cd57e00
+    contract_hash: 5c674cf3569b0b2ed34b605c3049caa5a6235a948b8e9dd7bb77115a31f07ab5
+    case_results:
+      - symbol_id: SYM-test-opencode-bootstrap-paths
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 43231
 ---
 Verifies the packed kibi-opencode plugin's bootstrap path behavior against the canonical .kb/ layout through an isolated npm install of the real tarball.
 
