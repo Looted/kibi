@@ -30,30 +30,6 @@ verification_contract:
   success_policy: all_required_cases_first_attempt
 verification_receipts:
   - version: kibi.verification-receipt.v2
-    receipt_id: VR-17f420ed997df89d2d266df9
-    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-cursor-consumer-local-mcp-launcher-v1
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 94f9e8c4ffc1d15bb89aa0bc45fe0fc920d6343d426e8182198e696832604f20
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-22T13:03:06.039Z'
-    finished_at: '2026-08-22T13:03:08.932Z'
-    artifact_digest: 3d83bce0f1c793a1f6de6c7d991b91a28ffcefd6afbe5169f83407bdb914e50f
-    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
-    case_results:
-      - symbol_id: SYM-cursor-packed-launcher-e2e
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 2893
-  - version: kibi.verification-receipt.v2
     receipt_id: VR-65e6d92f46e6df143786d18f
     test_id: TEST-cursor-consumer-local-mcp-launcher-v1
     runner: node
@@ -1229,4 +1205,28 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 31729
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-14c3c74d018ab5d21180c334
+    test_id: TEST-cursor-consumer-local-mcp-launcher-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-cursor-consumer-local-mcp-launcher-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-cursor-consumer-local-mcp-launcher-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a1e8acca6edb3d4c59ea790f4840a75a26e642ecbbda1fffd13b67ec89f60df2
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T10:31:55.627Z'
+    finished_at: '2026-08-29T10:32:28.654Z'
+    artifact_digest: 268d63338adfb81b98bedef5ca836f16c943abb820c86266b3eeea3eacfed8a4
+    contract_hash: 2ef3e3c6afb2b4be70e13f430aba14e01effd215e7435c61a7b332a23d3f7b96
+    case_results:
+      - symbol_id: SYM-cursor-packed-launcher-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 33027
 ---

@@ -200,6 +200,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
       - type: implements
         target: REQ-agent-guided-migration-orchestration
       - type: implements
@@ -4454,7 +4456,8 @@ symbols:
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable resource examples
+    title: predicate guidance loads a canonical decision tree with immutable
+      resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -30056,3 +30059,16 @@ symbols:
         target: TEST-kibi-verification-evidence-contract
       - type: implements
         target: REQ-kibi-verification-evidence-contract
+  - id: SYM-e2e-packed-cli-doctor
+    title: should run kibi doctor before init (diagnostic mode)
+    status: active
+    tags:
+      - cli
+      - doctor
+      - e2e
+    sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-cli-doctor-workflows

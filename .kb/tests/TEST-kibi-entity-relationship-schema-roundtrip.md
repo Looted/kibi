@@ -1280,6 +1280,35 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 52705
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-8835a167dbd0102e21547e65
+    test_id: TEST-kibi-entity-relationship-schema-roundtrip
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-entity-relationship-schema-roundtrip
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-entity-relationship-schema-roundtrip
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a1e8acca6edb3d4c59ea790f4840a75a26e642ecbbda1fffd13b67ec89f60df2
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T10:36:04.820Z'
+    finished_at: '2026-08-29T10:36:55.744Z'
+    artifact_digest: 74372bdadbed4ec7067f84122782d9714ceab1495187a0c9968781b4b10d1f51
+    contract_hash: 639cec8caf7c418fcf0af268fe5f77ef2aca798443fa404ac99f2e48e61c6e68
+    case_results:
+      - symbol_id: SYM-test-packed-eight-entity-schema-roundtrip
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 50924
+      - symbol_id: SYM-test-packed-typed-relationship-roundtrip
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 50924
 ---
 
 Asserts that:

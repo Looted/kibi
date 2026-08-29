@@ -1119,6 +1119,30 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 36528
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-c47a3424646820e2557b975e
+    test_id: TEST-kibi-proposition-complete-ingestion
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-proposition-complete-ingestion
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-proposition-complete-ingestion
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a1e8acca6edb3d4c59ea790f4840a75a26e642ecbbda1fffd13b67ec89f60df2
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T10:40:55.848Z'
+    finished_at: '2026-08-29T10:41:33.704Z'
+    artifact_digest: 100601e9b62f79121784bd74e7b5723752a230029e7a1503fdf9ae4d74132e25
+    contract_hash: 353c39ebe4b854eecf90f7f33da796e589fac9bf9cecf6a25aaad57fcbcc4d9a
+    case_results:
+      - symbol_id: SYM-test-packed-proposition-ingestion
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 37856
 links:
   - type: validates
     target: SCEN-kibi-proposition-complete-ingestion

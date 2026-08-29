@@ -1039,6 +1039,30 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 6729
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-ba56b1a81eb0482b1db2eee2
+    test_id: TEST-core-journaled-engine-persistence
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-core-journaled-engine-persistence
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-core-journaled-engine-persistence
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a1e8acca6edb3d4c59ea790f4840a75a26e642ecbbda1fffd13b67ec89f60df2
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T10:46:47.102Z'
+    finished_at: '2026-08-29T10:46:55.567Z'
+    artifact_digest: a5fd26d167ae7983e890f43c6ec13db72cf5fa3bd1f2640a94885f59f2f989bd
+    contract_hash: c8501a74965a49669d0969698cd1691dab9a7fc0be1d11e3b248679f38802bc0
+    case_results:
+      - symbol_id: SYM-test-core-journaled-engine-persistence
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 8465
 ---
 
 The persistence suite attaches a journaled branch, verifies journal replay after

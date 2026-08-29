@@ -6947,6 +6947,14 @@ coordinates:
     sourceEndLine: 37
     sourceFile: packages/mcp/src/server/docs.ts
     sourceLine: 30
+  SYM-e2e-packed-cli-doctor:
+    identityHash: 66f7aa30f0a7b33f91292a1422518bc9382bf8d4c2455f708e4b8d3403d6fbb1
+    sourceHash: b1c24fd4cf0207f2352baefe15e75c0144e9d092b5c143fed245ce7ea251e81e
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 577
+    sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
+    sourceLine: 1
   SYM-e2e-packed-cli-github-report:
     identityHash: 02f3600d2f99d541ef9ec07937d072ad691e63c3206390eabd2688cb00ea8750
     sourceHash: 7f39f8c4c1356db37c0b6006f7ade7fa1d6f24631f6ff76337896e8425b34f8a

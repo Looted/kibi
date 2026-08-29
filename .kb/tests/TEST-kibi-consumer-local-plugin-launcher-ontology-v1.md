@@ -29,30 +29,6 @@ id: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
 type: test
 verification_receipts:
   - version: kibi.verification-receipt.v2
-    receipt_id: VR-82b549474fc867ee0a7672e3
-    test_id: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-consumer-local-plugin-launcher-ontology-v1
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-kibi-consumer-local-plugin-launcher-ontology-v1
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 12adc5e3689eb40ec518ae0a74655e7e1148d20ad8b8ca2a031cc3f4401d04f6
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-22T10:10:29.037Z'
-    finished_at: '2026-08-22T10:10:45.528Z'
-    artifact_digest: 6cd818c95eb190a26beb38f7510f912846f1ef7513822d379ff3ab3aff456150
-    contract_hash: 4756e25292dbad76f28ebf29da8f8435dffbbd5b376d7eab696609dd1a84006b
-    case_results:
-      - symbol_id: SYM-kibi-consumer-local-plugin-launcher-ontology-e2e
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 16491
-  - version: kibi.verification-receipt.v2
     receipt_id: VR-9156e2c0b45a3115766bb2e6
     test_id: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
     runner: node
@@ -1228,4 +1204,28 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 38838
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-b711afe6cd153a6832342891
+    test_id: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-consumer-local-plugin-launcher-ontology-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a1e8acca6edb3d4c59ea790f4840a75a26e642ecbbda1fffd13b67ec89f60df2
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T10:33:17.221Z'
+    finished_at: '2026-08-29T10:33:57.430Z'
+    artifact_digest: d40afce054dd0550db7a5c589530b62f5e313d5020dc0c4480918d44b2c3e340
+    contract_hash: 4756e25292dbad76f28ebf29da8f8435dffbbd5b376d7eab696609dd1a84006b
+    case_results:
+      - symbol_id: SYM-kibi-consumer-local-plugin-launcher-ontology-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 40209
 ---

@@ -1104,5 +1104,29 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 42027
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-b611165681311082b951d809
+    test_id: TEST-kibi-source-relationship-parity
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-source-relationship-parity
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-source-relationship-parity
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a1e8acca6edb3d4c59ea790f4840a75a26e642ecbbda1fffd13b67ec89f60df2
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T10:41:37.446Z'
+    finished_at: '2026-08-29T10:42:17.502Z'
+    artifact_digest: 709514d3abc5440da927a15838218e2e3a903f762546ab26510c696e85d9ddfa
+    contract_hash: d4bbf523c5d8016f234101c4278f46566f9afe52cfb52565359fca9f1633fa49
+    case_results:
+      - symbol_id: SYM-test-packed-source-relationship-parity
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 40056
 ---
 The packed consumer test creates a tracked authored relationship after the initial compile, proves the scoped parity rule blocks on the exact missing edge, syncs, and proves the scoped check passes. Unit coverage separately proves runtime-only reverse ownership does not weaken authored-to-compiled detection.

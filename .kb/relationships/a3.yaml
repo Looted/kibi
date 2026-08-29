@@ -97,3 +97,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b0ae73f9d871
+  - type: specified_by
+    from: REQ-cli-doctor
+    to: SCEN-cli-doctor
+    created_at: 2026-08-29T10:26:27.438Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e084e82d4b0

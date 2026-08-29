@@ -1136,6 +1136,30 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 39922
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-a41141ab55d2d19a68310cb1
+    test_id: TEST-kibi-ontology-convergence-witnesses
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-kibi-ontology-convergence-witnesses
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-kibi-ontology-convergence-witnesses
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a1e8acca6edb3d4c59ea790f4840a75a26e642ecbbda1fffd13b67ec89f60df2
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T10:39:12.214Z'
+    finished_at: '2026-08-29T10:39:54.932Z'
+    artifact_digest: 2d702c63ef4a775433339213788bc2195ad146359b3e42c76c68a64a9d5517e6
+    contract_hash: 8d613b550ceb1c1a07871a02082b3c852b93cda190bdf5e126f1aa3e79e84299
+    case_results:
+      - symbol_id: SYM-test-packed-ontology-convergence-witnesses
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 42718
 tags:
   - requirements
   - ontology

@@ -90,3 +90,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a36f97f7cbc6
+  - type: covered_by
+    from: SYM-kibi-doctor-command
+    to: TEST-cli-doctor-workflows
+    created_at: 2026-08-29T10:23:15.628Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce38bf6aa2bb
