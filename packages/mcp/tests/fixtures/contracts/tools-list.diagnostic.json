@@ -2926,7 +2926,7 @@
                 "type": "string"
               },
               "verification_receipts": {
-                "description": "Append-only test execution evidence. Proof accepts only the newest valid passed receipt bound to the current code snapshot and within the seven-day freshness window.",
+                "description": "Append-only test execution evidence. Proof accepts only the newest valid passed receipt bound to the current code snapshot and within the seven-day freshness window. Ingest rotates the oldest entries at the cap.",
                 "items": {
                   "oneOf": [
                     {

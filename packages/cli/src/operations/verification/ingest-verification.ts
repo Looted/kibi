@@ -4,6 +4,7 @@ import { loadEntities } from "../../public/operations/discovery-entities.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import { readWorkspaceSnapshot } from "../../public/operations/workspace-snapshot.js";
 import {
+  MAX_VERIFICATION_RECEIPTS,
   VERIFICATION_CONTRACT_VERSION,
   VERIFICATION_RECEIPT_V2_VERSION,
   verificationContractHash,
@@ -258,7 +259,11 @@ export async function executeIngestVerification(
     contract_hash: contractHash,
     case_results: cases,
   };
-  const nextReceipts = [...existingReceipts(test), receipt];
+  // Append-only history, rotated at the hard schema cap so the newest
+  // evidence always stays bound to the test without exceeding maxItems.
+  const nextReceipts = [...existingReceipts(test), receipt].slice(
+    -MAX_VERIFICATION_RECEIPTS,
+  );
   const bindingErrors = verificationReceiptCurrentBindingErrors(
     testId,
     test.verification_scope,
