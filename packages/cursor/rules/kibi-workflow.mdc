@@ -3,7 +3,22 @@ description: Kibi capability-based discovery-first workflow and KB mutation disc
 alwaysApply: true
 ---
 
-Use Kibi via MCP tools when available, or via CLI JSON routes when MCP is unavailable. If MCP tools are visible, use MCP. If MCP availability is unknown and a trusted project-local CLI is available, use `kibi <route> --input <file|->`. If neither interface is available, stop and tell the operator. Do not infer MCP availability from config file existence. Do not read or edit `.kb/` files directly.
+Use Kibi via MCP tools when available, or via CLI JSON routes when MCP is unavailable.
+
+Interface selection:
+1. If any `kb_*` or `kibi_kb_*` tool is in the tool list, use MCP only. Do not use the CLI path.
+2. Else if Shell (or equivalent) is available and the project-local CLI is trusted, run the non-installing JSON recipe below. Missing MCP tools does not mean Kibi is unavailable.
+3. Else stop and tell the operator. Do not probe the CLI, do not install packages, and do not infer MCP availability from config file existence.
+4. Shell is in-policy only for the trusted project-local `npx --no-install kibi ...` (or `bunx --no-install kibi ...`) command when step 2 applies.
+5. Never use a global fallback, an installing runner, or an unapproved route. Do not read or edit `.kb/` files directly.
+
+CLI JSON recipe (stdin is one UTF-8 JSON object):
+
+```bash
+printf '%s\n' '{"query":"checkout","limit":10}' | npx --no-install kibi search --input -
+```
+
+Map canonical MCP names to CLI routes by dropping the `kb_` prefix and replacing `_` with `-` (`kb_search` → `search`, `kb_find_gaps` → `find-gaps`, `kb_query` → `query`, `kb_status` → `status`, `kb_check` → `check`, `kb_upsert` → `upsert`).
 
 Discovery workflow:
 - Start with `kb_search` for broad discovery.

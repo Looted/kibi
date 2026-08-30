@@ -135,6 +135,21 @@ Per the thin-adapter architecture, `kibi-cursor` does not:
 - **Editor-specific value**: Cursor hooks for read/write reminders and session freshness follow-ups
 - **Foundation**: `kibi-core`, `kibi-cli`, and `kibi-mcp` remain required for project-local operations
 
+## CLI fallback when MCP is unavailable
+
+The always-on `kibi-workflow` rule selects the trusted project-local CLI when Kibi MCP tools are not in the tool list. Hooks stay advisory and never execute that CLI themselves.
+
+For the agent to actually run the fallback, the Cursor session needs:
+
+- Agent mode with Shell enabled (Ask mode cannot run the CLI)
+- A trusted workspace, or explicit operator approval of the project-local CLI
+- Project-local `kibi-cli` (use `npx --no-install kibi` or `bunx --no-install kibi`; never a global or installing runner)
+- Plugin rules loaded in the Cursor harness
+
+If MCP tools are visible, use MCP and do not use this CLI path. If Shell is unavailable or the workspace is untrusted, stop and ask the operator; do not probe the CLI.
+
+A Cursor model invoked outside Cursor's plugin harness will not load this rule. Inject the same always-on guidance into that host's system prompt or `AGENTS.md`.
+
 ## License
 
 AGPL-3.0-or-later

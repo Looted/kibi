@@ -1,5 +1,15 @@
 # kibi-cursor
 
+## 1.0.1
+
+### Patch Changes
+
+- Cursor agents now get an always-on CLI recipe when Kibi MCP tools are missing, instead of treating Kibi as unavailable.
+
+  - Put the exact `npx --no-install kibi <route> --input -` command, MCP-to-CLI name mapping, and Shell-approval language in the always-applied workflow rule.
+  - Keep published plugin hooks advisory and untrusted by default; dogfood still opts into `--trusted-workspace` locally.
+  - Document the operator prerequisites (Agent mode, Shell, trusted workspace, project-local CLI) for the fallback to run.
+
 ## 1.0.0
 
 ### Major Changes
