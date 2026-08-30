@@ -146,3 +146,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1e7971fe6d80
+  - type: covered_by
+    from: SYM-cli-github-scaffold-options
+    to: TEST-kibi-github-report-e2e
+    created_at: 2026-08-28T10:10:11.040Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfef4bd1304f

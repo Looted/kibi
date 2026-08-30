@@ -62,3 +62,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8e8ca3b6ca51
+  - type: covered_by
+    from: SYM-SourceAnalysisProvider
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-28T13:15:59.200Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33246378f84e

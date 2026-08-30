@@ -195,3 +195,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1e8d8ac0b0a2
+  - type: covered_by
+    from: SYM-skillopt-bundle-evaluation-branch
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-28T10:05:16.188Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df5962c327bd

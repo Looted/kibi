@@ -200,6 +200,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
       - type: implements
         target: REQ-agent-guided-migration-orchestration
       - type: implements
@@ -2199,19 +2201,25 @@ symbols:
   - id: SYM-analyzeSourceText
     title: analyzeSourceText
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-AnalyzeSourceTextOptions
     title: AnalyzeSourceTextOptions
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-appendDiagnosticErrorUsage
     title: appendDiagnosticErrorUsage
     status: active
@@ -2403,15 +2411,18 @@ symbols:
   - id: SYM-atomicPublish
     title: atomicPublish
     sourceFile: packages/cli/src/commands/sync/staging.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
-      - type: implements
-        target: REQ-core-journaled-engine-persistence
       - type: covered_by
         target: TEST-007
       - type: covered_by
         target: TEST-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
   - id: SYM-atomicPublishGeneration
     title: atomicPublishGeneration
     sourceFile: packages/cli/src/commands/sync/staging.ts
@@ -2790,19 +2801,25 @@ symbols:
   - id: SYM-cleanupAbandonedStagingDirectories
     title: cleanupAbandonedStagingDirectories
     sourceFile: packages/cli/src/commands/sync/staging.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-cleanupStaging
     title: cleanupStaging
     sourceFile: packages/cli/src/commands/sync/staging.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-cleanupTempKb
     title: cleanupTempKb
     sourceFile: packages/cli/src/traceability/temp-kb.ts
@@ -2980,11 +2997,14 @@ symbols:
     title: ExtractionOutput
     sourceFile: packages/cli/src/commands/sync/extraction.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-cli-Fact
     title: Fact
     sourceFile: packages/cli/src/types/entities.ts
@@ -3553,11 +3573,14 @@ symbols:
     title: processExtractions
     sourceFile: packages/cli/src/commands/sync/extraction.ts
     symbol_role: behavioral
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-cli-PrologProcess-getPid
     title: PrologProcess.getPid
     sourceFile: packages/cli/src/prolog.ts
@@ -4044,6 +4067,8 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-kibi-github-report-integration
@@ -4053,6 +4078,8 @@ symbols:
     sourceFile: packages/cli/src/commands/github-init.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
@@ -4064,6 +4091,8 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-kibi-github-report-integration
@@ -4073,6 +4102,8 @@ symbols:
     sourceFile: packages/cli/src/commands/github-init.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
@@ -4084,6 +4115,8 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-kibi-github-report-integration
@@ -4093,6 +4126,8 @@ symbols:
     sourceFile: packages/cli/src/commands/github-init.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
@@ -4104,6 +4139,8 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-kibi-github-report-integration
@@ -4113,6 +4150,8 @@ symbols:
     sourceFile: packages/cli/src/commands/github-init.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
@@ -4124,6 +4163,8 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-kibi-github-report-e2e
+      - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
         target: REQ-kibi-github-report-integration
@@ -4133,6 +4174,8 @@ symbols:
     sourceFile: packages/cli/src/commands/github-init.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-kibi-github-report-e2e
       - type: covered_by
         target: TEST-kibi-github-report-integration
       - type: implements
@@ -4413,7 +4456,8 @@ symbols:
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable resource examples
+    title: predicate guidance loads a canonical decision tree with immutable
+      resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -5111,19 +5155,25 @@ symbols:
   - id: SYM-createTsMorphSourceAnalysisProvider
     title: createTsMorphSourceAnalysisProvider
     sourceFile: packages/cli/src/extractors/symbols-ts.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-createUniqueStagingPath
     title: createUniqueStagingPath
     sourceFile: packages/cli/src/commands/sync/staging.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-CURRENT_CHANGED_PATHS
     title: CURRENT_CHANGED_PATHS
     sourceFile: packages/cli/tests/traceability/release-audit-fixture.ts
@@ -6026,6 +6076,54 @@ symbols:
         target: REQ-020
       - type: covered_by
         target: TEST-014
+  - id: SYM-expectedRepositoryUrl
+    title: expectedRepositoryUrl
+    sourceFile: scripts/verify-publish-metadata.ts
+    links:
+      - REQ-020
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
+  - id: SYM-normalizeRepositoryUrl
+    title: normalizeRepositoryUrl
+    sourceFile: scripts/verify-publish-metadata.ts
+    links:
+      - REQ-020
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
+  - id: SYM-repositoryMatches
+    title: repositoryMatches
+    sourceFile: scripts/verify-publish-metadata.ts
+    links:
+      - REQ-020
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
+  - id: SYM-verifyPublishMetadata
+    title: verifyPublishMetadata
+    sourceFile: scripts/verify-publish-metadata.ts
+    links:
+      - REQ-020
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
   - id: SYM-DIAGNOSTIC_MODE_ENABLED
     title: DIAGNOSTIC_MODE_ENABLED
     status: active
@@ -6094,6 +6192,8 @@ symbols:
         target: TEST-cli-canonical-runtime
       - type: covered_by
         target: TEST-cli-sync-discovery-readme-ignore
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-cli-canonical-runtime
       - type: implements
@@ -6332,19 +6432,25 @@ symbols:
   - id: SYM-enrichSymbolCoordinates
     title: enrichSymbolCoordinates
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-enrichSymbolCoordinatesWithTsMorph
     title: enrichSymbolCoordinatesWithTsMorph
     sourceFile: packages/cli/src/extractors/symbols-ts.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-ensureSymbolsManifestFile
     title: ensureSymbolsManifestFile
     sourceFile: packages/cli/src/commands/init-helpers.ts
@@ -6595,19 +6701,25 @@ symbols:
   - id: SYM-ExtractedEntity
     title: ExtractedEntity
     sourceFile: packages/cli/src/extractors/manifest.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-ExtractedRelationship
     title: ExtractedRelationship
     sourceFile: packages/cli/src/extractors/manifest.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-ExtractedRequirementClaim
     title: ExtractedRequirementClaim
     status: active
@@ -6638,35 +6750,47 @@ symbols:
   - id: SYM-extractFromManifest
     title: extractFromManifest
     sourceFile: packages/cli/src/extractors/manifest.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-extractFromManifestString
     title: extractFromManifestString
     sourceFile: packages/cli/src/extractors/manifest.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-ExtractionResult
     title: ExtractionResult
     sourceFile: packages/cli/src/extractors/manifest.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-extractManifestSymbolRecordsString
     title: extractManifestSymbolRecordsString
     sourceFile: packages/cli/src/extractors/manifest.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-extractRequirementClaim
     title: extractRequirementClaim
     status: active
@@ -7265,11 +7389,14 @@ symbols:
   - id: SYM-hasAllGeneratedCoordinates
     title: hasAllGeneratedCoordinates
     sourceFile: packages/cli/src/commands/sync/manifest.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-hashFixtureClaimRoot
     title: hashFixtureClaimRoot
     sourceFile: scripts/skillopt-eval/fixtures/fixture-claim.ts
@@ -7622,19 +7749,25 @@ symbols:
   - id: SYM-isCoarseGranularityAnchor
     title: isCoarseGranularityAnchor
     sourceFile: packages/cli/src/commands/sync/manifest.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-isEligibleForCoordinateRefresh
     title: isEligibleForCoordinateRefresh
     sourceFile: packages/cli/src/commands/sync/manifest.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-isErrno
     title: isErrno
     sourceFile: scripts/skillopt-eval/held-out-receipt-io.ts
@@ -7647,11 +7780,14 @@ symbols:
   - id: SYM-isOperationalArtifactPath
     title: isOperationalArtifactPath
     sourceFile: packages/cli/src/public/operational-artifacts.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-isPathOutOfBounds
     title: isPathOutOfBounds
     sourceFile: packages/cli/src/public/skill-system/paths.ts
@@ -8370,11 +8506,14 @@ symbols:
   - id: SYM-ManifestError
     title: ManifestError
     sourceFile: packages/cli/src/extractors/manifest.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-ManifestLookup
     title: ManifestLookup
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
@@ -8394,160 +8533,205 @@ symbols:
   - id: SYM-ManifestSymbolEntry
     title: ManifestSymbolEntry
     sourceFile: packages/cli/src/extractors/symbols-ts.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-ManifestSymbolRecord
     title: ManifestSymbolRecord
     sourceFile: packages/cli/src/extractors/manifest.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-markdown-detectEmbeddedEntities
     title: detectEmbeddedEntities
     sourceFile: packages/cli/src/extractors/markdown.ts
     symbol_role: behavioral
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-markdown-ExtractedEntity
     title: ExtractedEntity
     sourceFile: packages/cli/src/extractors/markdown.ts
+    status: active
     relationships:
+      - type: covered_by
+        target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-core-extractors
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
       - type: implements
         target: REQ-kibi-proposition-complete-ingestion
-      - type: covered_by
-        target: TEST-007
-      - type: covered_by
-        target: TEST-kibi-logical-requirement-coverage
-      - type: covered_by
-        target: TEST-kibi-proposition-complete-ingestion
   - id: SYM-markdown-ExtractedRelationship
     title: ExtractedRelationship
     sourceFile: packages/cli/src/extractors/markdown.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-markdown-extractFromMarkdown
     title: extractFromMarkdown
     sourceFile: packages/cli/src/extractors/markdown.ts
     symbol_role: behavioral
+    status: active
     relationships:
+      - type: covered_by
+        target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-core-extractors
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
       - type: implements
         target: REQ-kibi-proposition-complete-ingestion
-      - type: covered_by
-        target: TEST-007
-      - type: covered_by
-        target: TEST-kibi-logical-requirement-coverage
-      - type: covered_by
-        target: TEST-kibi-proposition-complete-ingestion
   - id: SYM-markdown-extractFromMarkdownString
     title: extractFromMarkdownString
     sourceFile: packages/cli/src/extractors/markdown.ts
     symbol_role: behavioral
+    status: active
     relationships:
+      - type: covered_by
+        target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+      - type: covered_by
+        target: TEST-kibi-proposition-complete-ingestion
       - type: implements
         target: REQ-core-extractors
       - type: implements
         target: REQ-kibi-logical-requirement-coverage
       - type: implements
         target: REQ-kibi-proposition-complete-ingestion
-      - type: covered_by
-        target: TEST-007
-      - type: covered_by
-        target: TEST-kibi-logical-requirement-coverage
-      - type: covered_by
-        target: TEST-kibi-proposition-complete-ingestion
   - id: SYM-markdown-ExtractionResult
     title: ExtractionResult
     sourceFile: packages/cli/src/extractors/markdown.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-markdown-FrontmatterError
     title: FrontmatterError
     sourceFile: packages/cli/src/extractors/markdown.ts
     symbol_role: behavioral
     granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-markdown-FrontmatterError-classification
     title: FrontmatterError.classification
     sourceFile: packages/cli/src/extractors/markdown.ts
     symbol_role: structural
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-markdown-FrontmatterError-hint
     title: FrontmatterError.hint
     sourceFile: packages/cli/src/extractors/markdown.ts
     symbol_role: structural
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-markdown-FrontmatterError-originalError
     title: FrontmatterError.originalError
     sourceFile: packages/cli/src/extractors/markdown.ts
     symbol_role: structural
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-markdown-FrontmatterError-toString
     title: FrontmatterError.toString
     sourceFile: packages/cli/src/extractors/markdown.ts
     symbol_role: behavioral
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-markdown-inferTypeFromPath
     title: inferTypeFromPath
     sourceFile: packages/cli/src/extractors/markdown.ts
     symbol_role: behavioral
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-markdown-normalizeDateLike
     title: normalizeDateLike
     sourceFile: packages/cli/src/extractors/markdown.ts
     symbol_role: behavioral
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-MatrixVariant
     title: MatrixVariant
     sourceFile: scripts/skillopt-eval/held-out-cell-binding.ts
@@ -9111,11 +9295,14 @@ symbols:
   - id: SYM-mergeCoordinatesWithManifest
     title: mergeCoordinatesWithManifest
     sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-migrateCommand
     title: migrateCommand
     status: active
@@ -10023,11 +10210,14 @@ symbols:
     title: normalizeMarkdownPath
     sourceFile: packages/cli/src/commands/sync/discovery.ts
     granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-cli-sync-discovery-readme-ignore
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-normalizePropertyKey
     title: normalizePropertyKey
     status: active
@@ -11462,11 +11652,14 @@ symbols:
   - id: SYM-prepareStagingEnvironment
     title: prepareStagingEnvironment
     sourceFile: packages/cli/src/commands/sync/staging.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-processTarget
     title: processTarget
     sourceFile: scripts/sync-agent-skills.ts
@@ -11684,19 +11877,25 @@ symbols:
   - id: SYM-readCoordinateArtifact
     title: readCoordinateArtifact
     sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-readManifestWithCoordinateOverlay
     title: readManifestWithCoordinateOverlay
     sourceFile: packages/cli/src/extractors/manifest.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-readNoFollow
     title: readNoFollow
     sourceFile: scripts/skillopt-eval/held-out-receipt-io.ts
@@ -11808,11 +12007,14 @@ symbols:
   - id: SYM-refreshManifestCoordinates
     title: refreshManifestCoordinates
     sourceFile: packages/cli/src/commands/sync/manifest.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-registerAllTools
     title: registerAllTools
     status: active
@@ -13039,10 +13241,12 @@ symbols:
     sourceFile: packages/mcp/src/server/icons.ts
     symbol_role: config
     relationships:
-      - type: implements
-        target: REQ-002
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-002
   - id: SYM-setWorkspaceFsDepsForTests
     title: _setWorkspaceFsDepsForTests
     sourceFile: packages/vscode/src/activation/workspace.ts
@@ -20244,27 +20448,36 @@ symbols:
   - id: SYM-SourceAnalysisMode
     title: SourceAnalysisMode
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-SourceAnalysisProvider
     title: SourceAnalysisProvider
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-SourceAnalysisResult
     title: SourceAnalysisResult
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-SourceChangeKind
     title: SourceChangeKind
     sourceFile: packages/cli/src/traceability/evidence-model.ts
@@ -20276,32 +20489,41 @@ symbols:
   - id: SYM-SourceModuleAnalysis
     title: SourceModuleAnalysis
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-SourceSymbolAnalysis
     title: SourceSymbolAnalysis
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-SourceSymbolKind
     title: SourceSymbolKind
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
     links:
       - REQ-core-extractors
       - REQ-symbol-granularity
+    status: active
     relationships:
+      - type: covered_by
+        target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-core-extractors
       - type: implements
         target: REQ-symbol-granularity
-      - type: covered_by
-        target: TEST-007
   - id: SYM-SourceTreeHash
     title: SourceTreeHash
     sourceFile: scripts/skillopt-eval/source-tree-hash.ts
@@ -20552,27 +20774,36 @@ symbols:
   - id: SYM-SymbolCoordinates
     title: SymbolCoordinates
     sourceFile: packages/cli/src/extractors/symbols-ts.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-SymbolCoordinatesArtifact
     title: SymbolCoordinatesArtifact
     sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-SymbolCoordinatesRecord
     title: SymbolCoordinatesRecord
     sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-SymbolEntry
     title: SymbolEntry
     sourceFile: packages/vscode/src/symbolIndex.ts
@@ -20621,11 +20852,14 @@ symbols:
   - id: SYM-SYMBOLS-MANIFEST-COMMENT-BLOCK
     title: SYMBOLS_MANIFEST_COMMENT_BLOCK
     sourceFile: packages/cli/src/commands/sync/manifest.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-SymbolsManifestRow
     title: SymbolsManifestRow
     status: active
@@ -20689,6 +20923,8 @@ symbols:
         target: TEST-cli-branch-store-recovery
       - type: covered_by
         target: TEST-core-journaled-engine-delta-sync
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
       - type: covered_by
@@ -20810,11 +21046,14 @@ symbols:
   - id: SYM-SyncError
     title: SyncError
     sourceFile: packages/cli/src/commands/sync.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-SyncOptions
     title: SyncOptions
     sourceFile: scripts/sync-agent-skills.ts
@@ -20844,11 +21083,14 @@ symbols:
   - id: SYM-SyncResult
     title: SyncResult
     sourceFile: packages/cli/src/commands/sync.ts
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-SyncRunMetadata
     title: SyncRunMetadata
     status: active
@@ -21480,10 +21722,12 @@ symbols:
     sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
     status: active
     relationships:
-      - type: implements
-        target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-core-extractors
   - id: SYM-writeSetPrimaryEntityId
     title: writeSetPrimaryEntityId
     status: active
@@ -29408,6 +29652,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: config
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bundle-candidates-resolver
@@ -29417,6 +29663,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bundle-resolve-candidates-dir
@@ -29425,6 +29673,8 @@ symbols:
     sourceFile: scripts/skillopt-eval/bundle-workflow.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bundle-cell-summary-type
@@ -29434,6 +29684,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bundle-summarize-arm
@@ -29443,6 +29695,8 @@ symbols:
     granularity_reason: module-level-behavior
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bundle-evaluate-verdict
@@ -29451,6 +29705,8 @@ symbols:
     sourceFile: scripts/skillopt-eval/bundle-workflow.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bundle-gate-options-type
@@ -29460,6 +29716,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bundle-gate-result-type
@@ -29469,6 +29727,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bundle-run-paid-gate
@@ -29478,6 +29738,8 @@ symbols:
     granularity_reason: module-level-behavior
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bundle-evaluation-branch
@@ -29487,6 +29749,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: config
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bundle-arm-type
@@ -29496,6 +29760,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bundle-arm-summary-type
@@ -29505,6 +29771,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bundle-cell-runner-type
@@ -29514,6 +29782,8 @@ symbols:
     granularity_reason: config-artifact
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-setup-seeded-fresh-kb
@@ -29522,6 +29792,8 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-setup-seeded-stale-kb
@@ -29530,6 +29802,8 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-setup-thin-root-kb
@@ -29538,6 +29812,8 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-init-fixture-repository
@@ -29546,6 +29822,8 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
   - id: SYM-kibi-bootstrap-plan-expected-snapshots
@@ -29555,6 +29833,10 @@ symbols:
     symbol_role: behavioral
     granularity_reason: module-level-behavior
     relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-KIBI-BOOTSTRAP-PLAN
   - id: SYM-skillopt-stop-fixture-engine
@@ -29563,5 +29845,230 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
+  - id: SYM-test-core-adr-supersession
+    title: adr_chain_and_current_adr_follow_supersession
+    status: active
+    tags:
+      - adr
+      - inference
+      - temporal
+      - test
+    sourceFile: packages/core/tests/kb.plt
+    granularity_reason: extractor-miss
+    symbol_role: unknown
+    relationships:
+      - type: executable_for
+        target: TEST-013
+  - id: SYM-core-adr-current-adr
+    title: current_adr
+    status: active
+    tags:
+      - adr
+      - temporal
+      - inference
+      - core
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-013
+      - type: implements
+        target: REQ-016
+  - id: SYM-core-adr-superseded-by
+    title: superseded_by
+    status: active
+    tags:
+      - adr
+      - temporal
+      - inference
+      - core
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-013
+      - type: implements
+        target: REQ-016
+  - id: SYM-core-adr-chain
+    title: adr_chain
+    status: active
+    tags:
+      - adr
+      - temporal
+      - inference
+      - core
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-013
+      - type: implements
+        target: REQ-016
+  - id: SYM-core-adr-deprecated-no-successor
+    title: deprecated_no_successor
+    status: active
+    tags:
+      - adr
+      - temporal
+      - check
+      - core
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-013
+      - type: implements
+        target: REQ-016
+  - id: SYM-test-skillopt-bundle-workflow
+    title: paid bundle gate
+    status: active
+    tags:
+      - skillopt
+      - bundle
+      - evaluation
+      - test
+    sourceFile: scripts/skillopt-eval/tests/bundle-workflow.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-test-publish-metadata-verifier
+    title: publish metadata verifier tests
+    status: active
+    tags:
+      - release
+      - provenance
+      - metadata
+      - test
+    sourceFile: scripts/tests/verify-publish-metadata.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-014
+  - id: SYM-skillopt-run-cli-with-retry
+    title: runCliWithRetry
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-kibi-cli-src-public-verification-receipt-ts-appendonlyverificationreceipthistoryerrors
+    title: appendOnlyVerificationReceiptHistoryErrors
+    status: active
+    tags:
+      - verification
+      - receipts
+      - cli
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-public-verification-receipt-ts-maxverificationreceipts
+    title: MAX_VERIFICATION_RECEIPTS
+    status: active
+    tags:
+      - verification
+      - receipts
+      - cli
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-public-verification-receipt-ts-verificationreceipthistoryerrors
+    title: verificationReceiptHistoryErrors
+    status: active
+    tags:
+      - verification
+      - receipts
+      - cli
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-public-verification-receipt-ts-verificationreceipt
+    title: VerificationReceipt
+    status: active
+    tags:
+      - verification
+      - receipts
+      - cli
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-public-verification-receipt-ts-verification-receipt-version
+    title: VERIFICATION_RECEIPT_VERSION
+    status: active
+    tags:
+      - verification
+      - receipts
+      - cli
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-public-verification-receipt-ts-verification-receipt-outcomes
+    title: VERIFICATION_RECEIPT_OUTCOMES
+    status: active
+    tags:
+      - verification
+      - receipts
+      - cli
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-public-verification-receipt-ts-verification-receipt-schema
+    title: VERIFICATION_RECEIPT_SCHEMA
+    status: active
+    tags:
+      - verification
+      - receipts
+      - cli
+    sourceFile: packages/cli/src/public/verification-receipt.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-e2e-packed-cli-doctor
+    title: should run kibi doctor before init (diagnostic mode)
+    status: active
+    tags:
+      - cli
+      - doctor
+      - e2e
+    sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-cli-doctor-workflows

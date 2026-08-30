@@ -386,6 +386,41 @@ export function verificationContractHash(
   return createHash("sha256").update(canonicalJson(contract)).digest("hex");
 }
 
+/**
+ * Hard schema cap on stored receipts per test (see the mutation schema
+ * `verification_receipts.maxItems`). When ingest appends past this cap it must
+ * rotate: drop exactly the oldest receipts so the newest evidence stays bound
+ * to the test without ever exceeding the cap.
+ */
+// implements REQ-kibi-verification-evidence-contract
+export const MAX_VERIFICATION_RECEIPTS = 50;
+
+/**
+ * Cap rotation is valid only when the next history is exactly the schema-cap
+ * width, the previous history was already at or past the cap, and the only
+ * change is appending exactly ONE new receipt after dropping the minimum
+ * number of oldest receipts required to stay within the cap: the preserved
+ * previous tail (49 entries) must reappear verbatim at the head of the next
+ * history.
+ */
+function isCapRotation(
+  previous: readonly Readonly<Record<string, unknown>>[],
+  next: readonly Readonly<Record<string, unknown>>[],
+): boolean {
+  if (next.length !== MAX_VERIFICATION_RECEIPTS) return false;
+  if (previous.length < MAX_VERIFICATION_RECEIPTS) return false;
+  const preserved = MAX_VERIFICATION_RECEIPTS - 1;
+  for (let index = 0; index < preserved; index++) {
+    if (
+      canonicalJson(previous[previous.length - preserved + index]) !==
+      canonicalJson(next[index])
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export function appendOnlyVerificationReceiptHistoryErrors(
   previous: readonly Readonly<Record<string, unknown>>[],
   next: readonly Readonly<Record<string, unknown>>[] | undefined,
@@ -396,6 +431,7 @@ export function appendOnlyVerificationReceiptHistoryErrors(
       "verification_receipts is append-only and cannot be removed from an existing test",
     ];
   }
+  if (isCapRotation(previous, next)) return [];
   if (next.length < previous.length) {
     return [
       `verification_receipts is append-only: expected at least ${previous.length} historical receipt(s), received ${next.length}`,

@@ -83,3 +83,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-06399db95e3f
+  - type: covered_by
+    from: SYM-skillopt-stop-fixture-engine
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-28T10:09:17.678Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12b1d5e54872
+  - type: covered_by
+    from: SYM-atomicPublish
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-28T13:17:02.094Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b65e64230d6
+  - type: implements
+    from: SYM-kibi-cli-src-public-verification-receipt-ts-maxverificationreceipts
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-08-29T09:05:28.213Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ff795605f235
+  - type: covered_by
+    from: SYM-kibi-cli-src-public-verification-receipt-ts-maxverificationreceipts
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-29T09:05:28.215Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce7b42f9ef82

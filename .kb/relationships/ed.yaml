@@ -83,3 +83,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c7e441171e00
+  - type: implements
+    from: SYM-skillopt-run-cli-with-retry
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-08-29T01:01:11.418Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9eaca8a1cf08
+  - type: covered_by
+    from: SYM-skillopt-run-cli-with-retry
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-29T01:01:11.428Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40d9e7bd0069

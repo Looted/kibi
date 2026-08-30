@@ -76,3 +76,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ee84d96fecd0
+  - type: executable_for
+    from: SYM-e2e-packed-cli-doctor
+    to: TEST-cli-doctor-workflows
+    created_at: 2026-08-29T10:23:07.892Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11fece47f270

@@ -48,3 +48,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e72325bae2fa
+  - type: covered_by
+    from: SYM-hasAllGeneratedCoordinates
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-28T13:18:17.593Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-254a59e10b14

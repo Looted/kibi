@@ -118,3 +118,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fa44a2fb4ca1
+  - type: covered_by
+    from: SYM-skillopt-init-fixture-repository
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-08-28T10:09:07.177Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e381cbb2d6d8
+  - type: implements
+    from: SYM-kibi-cli-src-public-verification-receipt-ts-verificationreceipthistoryerrors
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-08-29T09:15:30.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f81d24cea0b0
+  - type: covered_by
+    from: SYM-kibi-cli-src-public-verification-receipt-ts-verificationreceipthistoryerrors
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-29T09:15:30.658Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a5cc35cef0b

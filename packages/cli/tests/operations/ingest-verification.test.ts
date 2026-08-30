@@ -17,6 +17,32 @@ const contract = {
   success_policy: "all_required_cases_first_attempt",
 };
 
+const historicalReceipt = {
+  version: "kibi.verification-receipt.v2",
+  receipt_id: "VR-historical-contract-001",
+  test_id: "TEST-001",
+  runner: "playwright",
+  command: "pnpm exec playwright test",
+  command_argv: contract.command_argv,
+  scope: "end_to_end",
+  outcome: "passed",
+  code_snapshot: "a".repeat(64),
+  environment_hash: "b".repeat(64),
+  started_at: "2026-08-12T00:00:00Z",
+  finished_at: "2026-08-12T00:00:01Z",
+  artifact_digest: "c".repeat(64),
+  contract_hash: "d".repeat(64),
+  case_results: [
+    {
+      symbol_id: "SYM-CASE-1",
+      project: "chromium",
+      outcome: "passed",
+      retries: 0,
+      duration_ms: 1000,
+    },
+  ],
+};
+
 function context(query: PrologPort["query"]): OperationContext {
   return {
     workspaceRoot: process.cwd(),
@@ -102,31 +128,6 @@ describe("kb_ingest_verification", () => {
   });
 
   test("appends current-contract evidence without rewriting earlier-contract receipts", async () => {
-    const historicalReceipt = {
-      version: "kibi.verification-receipt.v2",
-      receipt_id: "VR-historical-contract-001",
-      test_id: "TEST-001",
-      runner: "playwright",
-      command: "pnpm exec playwright test",
-      command_argv: contract.command_argv,
-      scope: "end_to_end",
-      outcome: "passed",
-      code_snapshot: "a".repeat(64),
-      environment_hash: "b".repeat(64),
-      started_at: "2026-08-12T00:00:00Z",
-      finished_at: "2026-08-12T00:00:01Z",
-      artifact_digest: "c".repeat(64),
-      contract_hash: "d".repeat(64),
-      case_results: [
-        {
-          symbol_id: "SYM-CASE-1",
-          project: "chromium",
-          outcome: "passed",
-          retries: 0,
-          duration_ms: 1000,
-        },
-      ],
-    };
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
       if (goal.includes("kb_entity('TEST-001'")) {
         return {
@@ -177,6 +178,68 @@ describe("kb_ingest_verification", () => {
       .find((goal) => goal.includes("kb_commit_upsert"));
     expect(commitGoal).toContain(historicalReceipt.receipt_id);
     expect(commitGoal).toContain(historicalReceipt.contract_hash);
+  });
+
+  test("rotates the oldest receipts at the schema cap while appending", async () => {
+    const cap = 50;
+    const historical = Array.from({ length: cap }, (_, index) => ({
+      ...historicalReceipt,
+      receipt_id: `VR-rotation-${String(index).padStart(3, "0")}`,
+      started_at: `2026-08-10T00:00:${String(index % 60).padStart(2, "0")}Z`,
+      finished_at: `2026-08-10T00:00:${String(index % 60).padStart(2, "0")}Z`,
+    }));
+    const query = mock(async (goal: string): Promise<PrologQueryResult> => {
+      if (goal.includes("kb_entity('TEST-001'")) {
+        return {
+          success: true,
+          bindings: {
+            Results: `[[TEST-001,test,[title="Contracted flow",status=active,source="tests/flow.spec.ts",created_at="2026-08-13T00:00:00Z",updated_at="2026-08-13T00:00:00Z",verification_scope=end_to_end,verification_perspective=consumer,verification_contract=${JSON.stringify(JSON.stringify(contract))},verification_receipts=${JSON.stringify(JSON.stringify(historical))}]]]`,
+          },
+        };
+      }
+      if (goal.includes("kb_commit_upsert"))
+        return { success: true, bindings: { ChangeKind: "updated" } };
+      return { success: true, bindings: { Results: "[]" } };
+    });
+
+    const result = await executeIngestVerification(
+      {
+        testId: "TEST-001",
+        snapshot: "a".repeat(64),
+        artifact: {
+          version: "kibi.playwright-run.v1",
+          runner: "playwright",
+          command_argv: contract.command_argv,
+          code_snapshot: "a".repeat(64),
+          environment_hash: "b".repeat(64),
+          started_at: "2026-08-13T00:00:00Z",
+          finished_at: "2026-08-13T00:00:01Z",
+          process_exit_code: 0,
+          cases: [
+            {
+              symbol_id: "SYM-CASE-1",
+              project: "chromium",
+              outcome: "passed",
+              retries: 0,
+              duration_ms: 1000,
+            },
+          ],
+        },
+      },
+      context(query),
+    );
+
+    expect(result.structuredContent.receiptCount).toBe(cap);
+    const commitGoal = query.mock.calls
+      .map(([goal]) => String(goal))
+      .find((goal) => goal.includes("kb_commit_upsert"));
+    expect(commitGoal).toBeDefined();
+    const newestHistorical = historical[historical.length - 1];
+    expect(commitGoal).toContain(newestHistorical.receipt_id);
+    expect(commitGoal).not.toContain(historical[0].receipt_id);
+    expect(commitGoal).toContain(
+      String(result.structuredContent.receipt.receipt_id),
+    );
   });
 
   test("rejects a changed live snapshot before loading or mutating the test", async () => {

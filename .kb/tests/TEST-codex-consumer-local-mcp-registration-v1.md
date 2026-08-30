@@ -30,246 +30,6 @@ verification_contract:
   success_policy: all_required_cases_first_attempt
 verification_receipts:
   - version: kibi.verification-receipt.v2
-    receipt_id: VR-f0f0d665346a688ae4415baf
-    test_id: TEST-codex-consumer-local-mcp-registration-v1
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-codex-consumer-local-mcp-registration-v1
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-codex-consumer-local-mcp-registration-v1
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: c48e4e5e6bf1e08e5f59b2d6c88d4da1b32d4eb2707fb99badee3b2402808829
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-21T23:30:23.935Z'
-    finished_at: '2026-08-21T23:30:32.104Z'
-    artifact_digest: ec0c2b10b642fd70b335d42fac0974e4392f2e9f6f984bc95e701c5522fc3940
-    contract_hash: b61976658f1d49e6cfc44dc3bff701c6b47da2d8ef43ec94c427917a4bb3898b
-    case_results:
-      - symbol_id: SYM-codex-packed-plugin-e2e
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 8169
-  - version: kibi.verification-receipt.v2
-    receipt_id: VR-7b55b1b795a3511596836fc5
-    test_id: TEST-codex-consumer-local-mcp-registration-v1
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-codex-consumer-local-mcp-registration-v1
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-codex-consumer-local-mcp-registration-v1
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: cb77b2b695d4e466bfedb16fac2a3bddb249966b53ae473aedbb13445862aee8
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-22T07:05:20.951Z'
-    finished_at: '2026-08-22T07:05:26.900Z'
-    artifact_digest: 1c0c07b2d3738928d9e9413763b92ef7e16d708e6f0fdf1fc26b552ba16683cd
-    contract_hash: b61976658f1d49e6cfc44dc3bff701c6b47da2d8ef43ec94c427917a4bb3898b
-    case_results:
-      - symbol_id: SYM-codex-packed-plugin-e2e
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 5949
-  - version: kibi.verification-receipt.v2
-    receipt_id: VR-1ee07e410b1a70aa2320f96a
-    test_id: TEST-codex-consumer-local-mcp-registration-v1
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-codex-consumer-local-mcp-registration-v1
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-codex-consumer-local-mcp-registration-v1
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: cb77b2b695d4e466bfedb16fac2a3bddb249966b53ae473aedbb13445862aee8
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-22T07:07:00.966Z'
-    finished_at: '2026-08-22T07:07:06.205Z'
-    artifact_digest: 479d5b2119bd7b4c354ebadd7ac28cf2b5b6b91bd11f809d8b9fe3e45f0da5b7
-    contract_hash: b61976658f1d49e6cfc44dc3bff701c6b47da2d8ef43ec94c427917a4bb3898b
-    case_results:
-      - symbol_id: SYM-codex-packed-plugin-e2e
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 5239
-  - version: kibi.verification-receipt.v2
-    receipt_id: VR-4d55170da284264c2a309cb8
-    test_id: TEST-codex-consumer-local-mcp-registration-v1
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-codex-consumer-local-mcp-registration-v1
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-codex-consumer-local-mcp-registration-v1
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 9c04636c66570b14fd6e890c541ae0005a88c3b77ec6727c1e1c80e61f7f80b6
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-22T09:24:48.330Z'
-    finished_at: '2026-08-22T09:24:52.753Z'
-    artifact_digest: 041a808dbb39bb4472ce16d581ef0f4d47ce0f582cac21f93e3a4dceebe99076
-    contract_hash: b61976658f1d49e6cfc44dc3bff701c6b47da2d8ef43ec94c427917a4bb3898b
-    case_results:
-      - symbol_id: SYM-codex-packed-plugin-e2e
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 4423
-  - version: kibi.verification-receipt.v2
-    receipt_id: VR-b82e7284f31f8a167d25bf72
-    test_id: TEST-codex-consumer-local-mcp-registration-v1
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-codex-consumer-local-mcp-registration-v1
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-codex-consumer-local-mcp-registration-v1
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 9c04636c66570b14fd6e890c541ae0005a88c3b77ec6727c1e1c80e61f7f80b6
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-22T09:26:11.767Z'
-    finished_at: '2026-08-22T09:26:16.119Z'
-    artifact_digest: a7c7f63a0f98d876b11c62d2dab2064c3fbc50b3a6363f041a775b35544c5bb3
-    contract_hash: b61976658f1d49e6cfc44dc3bff701c6b47da2d8ef43ec94c427917a4bb3898b
-    case_results:
-      - symbol_id: SYM-codex-packed-plugin-e2e
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 4352
-  - version: kibi.verification-receipt.v2
-    receipt_id: VR-e83e1ca4df3f3fb1ed658cd9
-    test_id: TEST-codex-consumer-local-mcp-registration-v1
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-codex-consumer-local-mcp-registration-v1
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-codex-consumer-local-mcp-registration-v1
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 12adc5e3689eb40ec518ae0a74655e7e1148d20ad8b8ca2a031cc3f4401d04f6
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-22T10:08:33.598Z'
-    finished_at: '2026-08-22T10:08:37.957Z'
-    artifact_digest: b855a14cc9fce357f93b5f5be2552880bbaee36dc46c5b003b11e9d0fab8aae7
-    contract_hash: b61976658f1d49e6cfc44dc3bff701c6b47da2d8ef43ec94c427917a4bb3898b
-    case_results:
-      - symbol_id: SYM-codex-packed-plugin-e2e
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 4359
-  - version: kibi.verification-receipt.v2
-    receipt_id: VR-a4aa10f1bd1b248ef7a4ff6d
-    test_id: TEST-codex-consumer-local-mcp-registration-v1
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-codex-consumer-local-mcp-registration-v1
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-codex-consumer-local-mcp-registration-v1
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 12adc5e3689eb40ec518ae0a74655e7e1148d20ad8b8ca2a031cc3f4401d04f6
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-22T10:09:55.078Z'
-    finished_at: '2026-08-22T10:09:59.388Z'
-    artifact_digest: cc9230034d372fbd878195d7268493e67047c62d264d5d735a40a1c513531c44
-    contract_hash: b61976658f1d49e6cfc44dc3bff701c6b47da2d8ef43ec94c427917a4bb3898b
-    case_results:
-      - symbol_id: SYM-codex-packed-plugin-e2e
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 4310
-  - version: kibi.verification-receipt.v2
-    receipt_id: VR-6c5af4d4d2ca9387decfcc24
-    test_id: TEST-codex-consumer-local-mcp-registration-v1
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-codex-consumer-local-mcp-registration-v1
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-codex-consumer-local-mcp-registration-v1
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 94f9e8c4ffc1d15bb89aa0bc45fe0fc920d6343d426e8182198e696832604f20
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-22T13:02:02.301Z'
-    finished_at: '2026-08-22T13:02:06.253Z'
-    artifact_digest: 54cb708aee2cff33b722b0aee4e5274cb0bd46f807e56c81ec20f2b91b44375a
-    contract_hash: b61976658f1d49e6cfc44dc3bff701c6b47da2d8ef43ec94c427917a4bb3898b
-    case_results:
-      - symbol_id: SYM-codex-packed-plugin-e2e
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 3952
-  - version: kibi.verification-receipt.v2
-    receipt_id: VR-02453403117338c2ec17bad4
-    test_id: TEST-codex-consumer-local-mcp-registration-v1
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-codex-consumer-local-mcp-registration-v1
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-codex-consumer-local-mcp-registration-v1
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 94f9e8c4ffc1d15bb89aa0bc45fe0fc920d6343d426e8182198e696832604f20
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-22T13:03:14.558Z'
-    finished_at: '2026-08-22T13:03:18.431Z'
-    artifact_digest: 70b840f02bd7fccb6d29639a697903d8ebc4749d9d38a282d564897dcd5341e9
-    contract_hash: b61976658f1d49e6cfc44dc3bff701c6b47da2d8ef43ec94c427917a4bb3898b
-    case_results:
-      - symbol_id: SYM-codex-packed-plugin-e2e
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 3873
-  - version: kibi.verification-receipt.v2
-    receipt_id: VR-f9ef85d23fcb61c379332cbc
-    test_id: TEST-codex-consumer-local-mcp-registration-v1
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-codex-consumer-local-mcp-registration-v1
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-codex-consumer-local-mcp-registration-v1
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 25a181eaaaadfb8fd67f705eb6860d38519058426fc314fdea1f5e390367a49b
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-22T21:46:08.552Z'
-    finished_at: '2026-08-22T21:46:11.666Z'
-    artifact_digest: 1b5c4163f6a8b881cd3e26b4c60fccf9b240242e329ab9c4e201fa3bc85e7818
-    contract_hash: b61976658f1d49e6cfc44dc3bff701c6b47da2d8ef43ec94c427917a4bb3898b
-    case_results:
-      - symbol_id: SYM-codex-packed-plugin-e2e
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 3114
-  - version: kibi.verification-receipt.v2
     receipt_id: VR-2994b6b28c2a12c5784553a1
     test_id: TEST-codex-consumer-local-mcp-registration-v1
     runner: node
@@ -1205,4 +965,268 @@ verification_receipts:
         outcome: passed
         retries: 0
         duration_ms: 65785
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-7c621c05ec3118359a358c2f
+    test_id: TEST-codex-consumer-local-mcp-registration-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-codex-consumer-local-mcp-registration-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-codex-consumer-local-mcp-registration-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 91109af11cd1ef36564e3117094f1d32bd300f0d0681d3edc9c6d93bd6bed504
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-28T10:12:59.832Z'
+    finished_at: '2026-08-28T10:14:07.909Z'
+    artifact_digest: 926dcfff17e6bcdc3f910becd67c2a8f7e31ac4517aec05ffd6cb03c79f14430
+    contract_hash: b61976658f1d49e6cfc44dc3bff701c6b47da2d8ef43ec94c427917a4bb3898b
+    case_results:
+      - symbol_id: SYM-codex-packed-plugin-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 68077
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-b795b57cbbf6bbe5d1b6fa87
+    test_id: TEST-codex-consumer-local-mcp-registration-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-codex-consumer-local-mcp-registration-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-codex-consumer-local-mcp-registration-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: f86facfbbb7c23a7050b4299d1074859fdcb81065130a17ae1e05c0a9b655aca
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-28T13:22:09.181Z'
+    finished_at: '2026-08-28T13:23:06.779Z'
+    artifact_digest: 9fb3f3bd68c107fcbe1c9a11e20728b56ce4cb70576a4bae477476e29a9a5263
+    contract_hash: b61976658f1d49e6cfc44dc3bff701c6b47da2d8ef43ec94c427917a4bb3898b
+    case_results:
+      - symbol_id: SYM-codex-packed-plugin-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 57598
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-7803f38305c4e048457c9f73
+    test_id: TEST-codex-consumer-local-mcp-registration-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-codex-consumer-local-mcp-registration-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-codex-consumer-local-mcp-registration-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 33d4b9dffe76a9a1d3f539114dacfdf1ef1f729074c06875b6ce811201d1d344
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T00:57:23.854Z'
+    finished_at: '2026-08-29T00:58:39.986Z'
+    artifact_digest: a7473c21ce81c353985dca99badad395514ef40fa276eaf057719b5a712f0809
+    contract_hash: b61976658f1d49e6cfc44dc3bff701c6b47da2d8ef43ec94c427917a4bb3898b
+    case_results:
+      - symbol_id: SYM-codex-packed-plugin-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 76132
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-73da5d943c3b5d5fd24d5f1e
+    test_id: TEST-codex-consumer-local-mcp-registration-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-codex-consumer-local-mcp-registration-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-codex-consumer-local-mcp-registration-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 0749287725d05ae61492545fe48b3476fb7435520056d5fca1a8d407c10fe22a
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T01:10:59.687Z'
+    finished_at: '2026-08-29T01:12:01.693Z'
+    artifact_digest: 4f6983d4eed9b1b91d1cc05537f65d496c248951218fb7051c9886bc54fe4952
+    contract_hash: b61976658f1d49e6cfc44dc3bff701c6b47da2d8ef43ec94c427917a4bb3898b
+    case_results:
+      - symbol_id: SYM-codex-packed-plugin-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 62006
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-b0c6a6cddc6a69cb451d2c55
+    test_id: TEST-codex-consumer-local-mcp-registration-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-codex-consumer-local-mcp-registration-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-codex-consumer-local-mcp-registration-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: d2df506c1ba2d8efef1a4de347c51c009735441dfab330c40280b8b0713686ad
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T07:28:28.687Z'
+    finished_at: '2026-08-29T07:29:05.516Z'
+    artifact_digest: 9cd41ba924a9933a40e3c30c633125ff06f32323439141d7381890b2b0198359
+    contract_hash: b61976658f1d49e6cfc44dc3bff701c6b47da2d8ef43ec94c427917a4bb3898b
+    case_results:
+      - symbol_id: SYM-codex-packed-plugin-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 36829
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-a9d3c2745eeac20159c66ccc
+    test_id: TEST-codex-consumer-local-mcp-registration-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-codex-consumer-local-mcp-registration-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-codex-consumer-local-mcp-registration-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 7ceda44cecf972c003132506e79557beee5eab748de731605f0fc50cf75ab2b4
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T08:00:34.714Z'
+    finished_at: '2026-08-29T08:01:08.357Z'
+    artifact_digest: d23e6a2a218a040fec17c56563339cdc28fef294d9e1c3324aeeb17336e5abf3
+    contract_hash: b61976658f1d49e6cfc44dc3bff701c6b47da2d8ef43ec94c427917a4bb3898b
+    case_results:
+      - symbol_id: SYM-codex-packed-plugin-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 33643
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-0fd1eee9575bf59a727bb25f
+    test_id: TEST-codex-consumer-local-mcp-registration-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-codex-consumer-local-mcp-registration-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-codex-consumer-local-mcp-registration-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 63a489a58fd839d7993492cb197c7567bc3903325471cd321f0c68d40af09ab7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T08:32:13.453Z'
+    finished_at: '2026-08-29T08:32:48.305Z'
+    artifact_digest: 7603763a851808e219577fd18b3f7c23a76fb78365f5c5bee277b7a468b7e98a
+    contract_hash: b61976658f1d49e6cfc44dc3bff701c6b47da2d8ef43ec94c427917a4bb3898b
+    case_results:
+      - symbol_id: SYM-codex-packed-plugin-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 34852
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-ff8a6fc3347859089e4c1cf7
+    test_id: TEST-codex-consumer-local-mcp-registration-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-codex-consumer-local-mcp-registration-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-codex-consumer-local-mcp-registration-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ccec27cd614806a8cebd0544ee4fae8bb17851102771d068fa1272c21213eee7
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T09:21:36.227Z'
+    finished_at: '2026-08-29T09:22:10.058Z'
+    artifact_digest: 5fe8ae94d7f831e33d04555098d46363cff017df936a90abac97d417f7613224
+    contract_hash: b61976658f1d49e6cfc44dc3bff701c6b47da2d8ef43ec94c427917a4bb3898b
+    case_results:
+      - symbol_id: SYM-codex-packed-plugin-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 33831
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-7be796a37a878e37f523f45a
+    test_id: TEST-codex-consumer-local-mcp-registration-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-codex-consumer-local-mcp-registration-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-codex-consumer-local-mcp-registration-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 802b5d58ebedd99d952c8baca270c08e187b9d0a2eb556bb99f7e1d776045487
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T09:51:40.098Z'
+    finished_at: '2026-08-29T09:52:18.180Z'
+    artifact_digest: 5d51037bfaacd80fc794ff944af4c95bf902ef62d6f2d4a1d03c4910b6af8791
+    contract_hash: b61976658f1d49e6cfc44dc3bff701c6b47da2d8ef43ec94c427917a4bb3898b
+    case_results:
+      - symbol_id: SYM-codex-packed-plugin-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 38082
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-0cca89a26fe7261b7174f064
+    test_id: TEST-codex-consumer-local-mcp-registration-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-codex-consumer-local-mcp-registration-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-codex-consumer-local-mcp-registration-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a1e8acca6edb3d4c59ea790f4840a75a26e642ecbbda1fffd13b67ec89f60df2
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T10:31:18.607Z'
+    finished_at: '2026-08-29T10:31:51.968Z'
+    artifact_digest: 70aff71c18960cbc8cfac89025db8727e948be0f8db4efdcf696a9cee021fda9
+    contract_hash: b61976658f1d49e6cfc44dc3bff701c6b47da2d8ef43ec94c427917a4bb3898b
+    case_results:
+      - symbol_id: SYM-codex-packed-plugin-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 33361
+  - version: kibi.verification-receipt.v2
+    receipt_id: VR-1057ba9836d53e6eeae37c13
+    test_id: TEST-codex-consumer-local-mcp-registration-v1
+    runner: node
+    command: node scripts/run-proof-contract.mjs --test-id TEST-codex-consumer-local-mcp-registration-v1
+    command_argv:
+      - node
+      - scripts/run-proof-contract.mjs
+      - '--test-id'
+      - TEST-codex-consumer-local-mcp-registration-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 4dcb52daacd2e6301cb225622dbda1c10a95ea1252b73faa3a34235c61fe9d71
+    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
+    started_at: '2026-08-29T11:02:57.293Z'
+    finished_at: '2026-08-29T11:03:30.873Z'
+    artifact_digest: 526485491f2a57968333a82adc65417faae738fd01489cb794669ff7cf020036
+    contract_hash: b61976658f1d49e6cfc44dc3bff701c6b47da2d8ef43ec94c427917a4bb3898b
+    case_results:
+      - symbol_id: SYM-codex-packed-plugin-e2e
+        project: default
+        outcome: passed
+        retries: 0
+        duration_ms: 33580
 ---

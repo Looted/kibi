@@ -76,3 +76,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-55044520b0b7
+  - type: implements
+    from: SYM-core-adr-current-adr
+    to: REQ-016
+    created_at: 2026-08-28T06:25:43.094Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbcb9226ee61
+  - type: covered_by
+    from: SYM-core-adr-current-adr
+    to: TEST-013
+    created_at: 2026-08-28T06:25:43.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01720356973f

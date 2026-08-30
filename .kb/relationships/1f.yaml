@@ -146,3 +146,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-79508e85aa2e
+  - type: covered_by
+    from: SYM-expectedRepositoryUrl
+    to: TEST-014
+    created_at: 2026-08-28T10:10:35.889Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-188dba42bf91
+  - type: implements
+    from: SYM-kibi-cli-src-public-verification-receipt-ts-verification-receipt-schema
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-08-29T09:16:19.331Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf35bc35ab14
+  - type: covered_by
+    from: SYM-kibi-cli-src-public-verification-receipt-ts-verification-receipt-schema
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-29T09:16:19.334Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87741d4618a4

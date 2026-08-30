@@ -3,6 +3,8 @@ import { describe, expect, test } from "bun:test";
 import { validateAgainstSchema } from "../src/cli-validate.js";
 import entitySchema from "../src/public/schemas/entity.js";
 import {
+  MAX_VERIFICATION_RECEIPTS,
+  appendOnlyVerificationReceiptHistoryErrors,
   verificationContractHash,
   verificationReceiptCurrentBindingErrors,
   verificationReceiptHistoryErrors,
@@ -100,5 +102,97 @@ describe("verification contract and receipt v2", () => {
         contract,
       ),
     ).toEqual([]);
+  });
+});
+
+describe("append-only verification receipt history", () => {
+  function numberedReceipt(index: number) {
+    return {
+      ...receipt,
+      receipt_id: `VR-rotation-${String(index).padStart(3, "0")}`,
+      started_at: `2026-08-13T00:00:${String(index % 60).padStart(2, "0")}Z`,
+      finished_at: `2026-08-13T00:00:${String(index % 60).padStart(2, "0")}Z`,
+    };
+  }
+
+  test("allows strict prefix extension", () => {
+    const previous = [numberedReceipt(0), numberedReceipt(1)];
+    const next = [...previous, numberedReceipt(2)];
+    expect(appendOnlyVerificationReceiptHistoryErrors(previous, next)).toEqual(
+      [],
+    );
+  });
+
+  test("allows cap rotation that appends one receipt and drops only the oldest", () => {
+    const previous = Array.from(
+      { length: MAX_VERIFICATION_RECEIPTS + 3 },
+      (_, index) => numberedReceipt(index),
+    );
+    const expectedNext = [
+      ...previous.slice(-(MAX_VERIFICATION_RECEIPTS - 1)),
+      numberedReceipt(previous.length),
+    ];
+    expect(expectedNext).toHaveLength(MAX_VERIFICATION_RECEIPTS);
+    expect(
+      appendOnlyVerificationReceiptHistoryErrors(previous, expectedNext),
+    ).toEqual([]);
+  });
+
+  test("allows cap rotation when the previous history is exactly at the cap", () => {
+    const previous = Array.from(
+      { length: MAX_VERIFICATION_RECEIPTS },
+      (_, index) => numberedReceipt(index),
+    );
+    const next = [...previous.slice(1), numberedReceipt(previous.length)];
+    expect(appendOnlyVerificationReceiptHistoryErrors(previous, next)).toEqual(
+      [],
+    );
+  });
+
+  test("rejects pure pruning without an appended receipt", () => {
+    const previous = Array.from(
+      { length: MAX_VERIFICATION_RECEIPTS + 2 },
+      (_, index) => numberedReceipt(index),
+    );
+    const next = previous.slice(-MAX_VERIFICATION_RECEIPTS);
+    expect(appendOnlyVerificationReceiptHistoryErrors(previous, next)).toEqual([
+      `verification_receipts is append-only: expected at least ${previous.length} historical receipt(s), received ${next.length}`,
+    ]);
+  });
+
+  test("rejects rotation that replaces several historical receipts at once", () => {
+    const previous = Array.from(
+      { length: MAX_VERIFICATION_RECEIPTS + 3 },
+      (_, index) => numberedReceipt(index),
+    );
+    const next = [
+      ...previous.slice(-(MAX_VERIFICATION_RECEIPTS - 2)),
+      numberedReceipt(previous.length),
+      numberedReceipt(previous.length + 1),
+    ];
+    expect(
+      appendOnlyVerificationReceiptHistoryErrors(previous, next).length,
+    ).toBeGreaterThan(0);
+  });
+
+  test("rejects rotation below the cap", () => {
+    const previous = Array.from(
+      { length: MAX_VERIFICATION_RECEIPTS + 3 },
+      (_, index) => numberedReceipt(index),
+    );
+    const next = [...previous.slice(-45), numberedReceipt(previous.length)];
+    expect(next.length).toBeLessThan(MAX_VERIFICATION_RECEIPTS);
+    expect(appendOnlyVerificationReceiptHistoryErrors(previous, next)).toEqual([
+      `verification_receipts is append-only: expected at least ${previous.length} historical receipt(s), received ${next.length}`,
+    ]);
+  });
+
+  test("rejects removal without replacement", () => {
+    const previous = [numberedReceipt(0), numberedReceipt(1)];
+    expect(
+      appendOnlyVerificationReceiptHistoryErrors(previous, undefined),
+    ).toEqual([
+      "verification_receipts is append-only and cannot be removed from an existing test",
+    ]);
   });
 });

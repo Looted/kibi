@@ -160,3 +160,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3a282ac4e27f
+  - type: relates_to
+    from: SCEN-cli-doctor
+    to: REQ-cli-doctor
+    created_at: 2026-08-29T10:25:31.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd91799bf6e3

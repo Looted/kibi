@@ -125,3 +125,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-34c52b68eb9b
+  - type: covered_by
+    from: SYM-repositoryMatches
+    to: TEST-014
+    created_at: 2026-08-28T10:11:02.341Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b44dbe6304c

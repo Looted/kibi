@@ -27,3 +27,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-de4bbb3988e8
+  - type: covered_by
+    from: SYM-verifyPublishMetadata
+    to: TEST-014
+    created_at: 2026-08-28T10:11:13.371Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4227f3e6e7c

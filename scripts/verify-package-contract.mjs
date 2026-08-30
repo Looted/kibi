@@ -57,6 +57,12 @@ if (packageName === "kibi-mcp") {
   if (!existsSync(serverPath)) {
     throw new Error(`Missing packed kibi-mcp server entrypoint: ${serverPath}`);
   }
+  const sessionPath = resolvePackagePath("./dist/server/session.js");
+  if (!existsSync(sessionPath)) {
+    throw new Error(
+      `Missing packed kibi-mcp server module: ${sessionPath}`,
+    );
+  }
   const launcherPath = resolvePackagePath(packageJson.bin?.["kibi-mcp"] ?? "");
   const launcherSource = readFileSync(launcherPath, "utf8");
   if (launcherSource.includes("../src/server.ts")) {

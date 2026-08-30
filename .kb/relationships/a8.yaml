@@ -90,3 +90,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-152f88abd433
+  - type: covered_by
+    from: SYM-ManifestSymbolRecord
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-28T13:15:42.497Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62274df73d8a

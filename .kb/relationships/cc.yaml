@@ -83,3 +83,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0a70751d12db
+  - type: covered_by
+    from: SYM-SYMBOLS-MANIFEST-COMMENT-BLOCK
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-28T13:15:48.059Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f3296117b818

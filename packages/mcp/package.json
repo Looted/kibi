@@ -24,7 +24,8 @@
   "scripts": {
     "test": "bun test",
     "dev": "bun run bin/kibi-mcp",
-    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist",
+    "build": "npm run clean && tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prepack": "npm run build && node ../../scripts/verify-package-contract.mjs kibi-mcp"
   },

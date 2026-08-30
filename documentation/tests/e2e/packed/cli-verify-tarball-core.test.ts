@@ -126,7 +126,7 @@ if (RUN_NODE_TEST_SUITE) {
         }
       });
 
-      it("kibi-mcp tarball must contain bin/kibi-mcp and dist/server.js", () => {
+      it("kibi-mcp tarball must contain bin/kibi-mcp, dist/server.js and dist/server/session.js", () => {
         const tgz = tarballs.mcp;
         assert.ok(
           tgz.endsWith(".tgz"),
@@ -136,7 +136,11 @@ if (RUN_NODE_TEST_SUITE) {
         const out = execFileSync("tar", ["-tzf", tgz], { encoding: "utf8" });
         const entries = out.split("\n").map((l) => l.replace(/^package\//, ""));
 
-        const required = ["bin/kibi-mcp", "dist/server.js"];
+        const required = [
+          "bin/kibi-mcp",
+          "dist/server.js",
+          "dist/server/session.js",
+        ];
         for (const r of required) {
           if (!entries.includes(r)) {
             throw new Error(

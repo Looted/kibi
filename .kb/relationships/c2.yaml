@@ -157,3 +157,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-71da851053ea
+  - type: covered_by
+    from: SYM-cleanupStaging
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-28T13:17:15.018Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11f55a25ae62

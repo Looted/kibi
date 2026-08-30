@@ -87,3 +87,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9c3d3322f498
+  - type: covered_by
+    from: SYM-enrichSymbolCoordinatesWithTsMorph
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-28T13:17:55.045Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23f2f2b70699

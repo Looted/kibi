@@ -83,3 +83,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8eb8960472d7
+  - type: covered_by
+    from: SYM-discoverSourceFiles
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-28T13:17:43.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6fc14f214cf

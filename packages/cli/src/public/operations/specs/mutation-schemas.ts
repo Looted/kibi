@@ -1,4 +1,5 @@
 import {
+  MAX_VERIFICATION_RECEIPTS,
   VERIFICATION_CONTRACT_SCHEMA,
   VERIFICATION_RECEIPT_SCHEMA,
 } from "../../verification-receipt.js";
@@ -155,10 +156,10 @@ export const ENTITY_PROPERTIES_SCHEMA = {
     verification_contract: VERIFICATION_CONTRACT_SCHEMA,
     verification_receipts: {
       type: "array",
-      maxItems: 50,
+      maxItems: MAX_VERIFICATION_RECEIPTS,
       items: VERIFICATION_RECEIPT_SCHEMA,
       description:
-        "Append-only test execution evidence. Proof accepts only the newest valid passed receipt bound to the current code snapshot and within the seven-day freshness window.",
+        "Append-only test execution evidence. Proof accepts only the newest valid passed receipt bound to the current code snapshot and within the seven-day freshness window. Ingest rotates the oldest entries at the cap.",
     },
     fact_kind: {
       type: "string",

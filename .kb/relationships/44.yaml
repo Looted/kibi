@@ -76,3 +76,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cb3161bd9728
+  - type: covered_by
+    from: SYM-markdown-normalizeDateLike
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-28T13:19:41.010Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5cb1c30d784b

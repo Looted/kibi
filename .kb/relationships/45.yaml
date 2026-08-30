@@ -83,3 +83,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e3d223d64eb2
+  - type: implements
+    from: SYM-kibi-cli-src-public-verification-receipt-ts-appendonlyverificationreceipthistoryerrors
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-08-29T09:05:17.777Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c87039b3d50
+  - type: covered_by
+    from: SYM-kibi-cli-src-public-verification-receipt-ts-appendonlyverificationreceipthistoryerrors
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-29T09:05:17.781Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11d0bc5b824f

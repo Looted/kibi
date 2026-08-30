@@ -125,3 +125,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-74c5c2d10ffe
+  - type: covered_by
+    from: SYM-createUniqueStagingPath
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-08-28T13:17:37.922Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c05e13d99f7
