@@ -65,6 +65,7 @@ documentation/tests/e2e/packed/.compiled/
 .kb/branches/*/sync-cache.json
 .kb/recovery/
 .kb/proof/runs/
+.kb/.symbol-compiler.lock/
 .kb/usage.log
 .kb/briefs/
 .kb/migrations/

@@ -170,7 +170,7 @@
     "test_id": "TEST-test-journaled-engine-harness",
     "steps": [
       ["node", "--test", "scripts/tests/run-packed-e2e.test.mjs"],
-      ["node", "--test", "scripts/tests/run-proof-runner.test.mjs"],
+      ["bun", "test", "--timeout", "15000", "./scripts/tests/proof-workflow-contract.test.ts"],
       [
         "bun",
         "test",
