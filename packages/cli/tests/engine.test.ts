@@ -5,7 +5,9 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  renameSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import * as net from "node:net";
@@ -15,9 +17,12 @@ import {
   ENGINE_PROTOCOL_VERSION,
   EngineClient,
   acquireEnginePublicationLease,
+  engineAttachmentsMatch,
   enginePublicationLockPath,
   engineSocketPath,
   ensureJournaledBranchStoreAsync,
+  parseEngineAttachmentIdentity,
+  readEngineAttachmentIdentity,
 } from "../dist/engine.js";
 import { PrologProcess } from "../dist/prolog.js";
 import {
@@ -482,6 +487,45 @@ describe("journaled engine", () => {
       await client.stop().catch(() => undefined);
     }
   });
+
+  test("replaces a daemon still attached to a moved branch store", async () => {
+    const root = tempRoot();
+    const livePath = branchStorePath(root, "main");
+    const first = new EngineClient({ workspaceRoot: root, branch: "main" });
+    try {
+      await first.start();
+      const originalPid = first.getPid();
+      const originalIno = statSync(livePath).ino;
+      const originalStatus = await first.queryStatusJson();
+      expect(
+        parseEngineAttachmentIdentity(originalStatus.bindings.JsonString)?.ino,
+      ).toBe(originalIno);
+      await first.terminate();
+
+      const quarantine = `${livePath}.stale-${Date.now()}`;
+      renameSync(livePath, quarantine);
+      ensureBranchStoreManifest(root, "main");
+      await ensureJournaledBranchStoreAsync(livePath);
+      expect(statSync(livePath).ino).not.toBe(originalIno);
+
+      const second = new EngineClient({ workspaceRoot: root, branch: "main" });
+      try {
+        await second.start();
+        expect(second.getPid()).not.toBe(originalPid);
+        const status = await second.queryStatusJson();
+        const attached = parseEngineAttachmentIdentity(
+          status.bindings.JsonString,
+        );
+        const live = readEngineAttachmentIdentity(livePath);
+        expect(engineAttachmentsMatch(live, attached)).toBe(true);
+        expect((await second.save()).success).toBe(true);
+      } finally {
+        await second.stop().catch(() => undefined);
+      }
+    } finally {
+      await first.stop().catch(() => undefined);
+    }
+  }, 30_000);
 
   test("leaves corrupt legacy input usable after migration failure", async () => {
     const root = tempRoot();

@@ -1107,6 +1107,7 @@ symbols:
     title: PLAYWRIGHT_RUN_VERSION
     sourceFile: packages/cli/src/verification/playwright-reporter.ts
     symbol_role: config
+    granularity_reason: config-artifact
     relationships:
       - type: implements
         target: REQ-kibi-verification-evidence-contract
@@ -1546,6 +1547,60 @@ symbols:
     title: ENGINE_PACKAGE_VERSIONS
     sourceFile: packages/cli/src/engine.ts
     symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-attachment-identity
+    title: EngineAttachmentIdentity
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-read-journal-generation
+    title: readJournalGeneration
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-read-attachment-identity
+    title: readEngineAttachmentIdentity
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-parse-attachment-identity
+    title: parseEngineAttachmentIdentity
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-attachments-match
+    title: engineAttachmentsMatch
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-format-attachment-mismatch
+    title: formatEngineAttachmentMismatch
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
     relationships:
       - type: implements
         target: REQ-core-journaled-engine-persistence

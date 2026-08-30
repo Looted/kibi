@@ -8,6 +8,7 @@ import {
   openSync,
   readFileSync,
   readdirSync,
+  renameSync,
   rmSync,
   statSync,
   writeFileSync,
@@ -23,6 +24,7 @@ import {
 } from "../../src/operations/semantic-advisor/clauses.js";
 import { semanticSourceHash } from "../../src/operations/semantic-advisor/shared.js";
 import { PrologProcess, type QueryResult } from "../../src/prolog.js";
+import { branchStorePath } from "../../src/utils/branch-store-locator.js";
 import { execFileSync, execSync, spawnSync } from "../helpers/isolated-env.js";
 
 interface Deferred<T> {
@@ -1026,6 +1028,57 @@ claim_text: System must support OAuth2 authentication
     },
     TEST_TIMEOUT_MS,
   );
+
+  test("self-heals relationship deletion after the branch store is recreated under a live daemon", async () => {
+    execSync(`bun ${kibiBin} sync`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+      stdio: "pipe",
+    });
+
+    const relationshipsDir = path.join(tmpDir, ".kb/relationships");
+    mkdirSync(relationshipsDir, { recursive: true });
+    writeFileSync(
+      path.join(relationshipsDir, "a1.yaml"),
+      `relationships:
+  - id: rel-abc123def456
+    type: relates_to
+    from: req1
+    to: scenario1
+    created_at: "2026-03-16T11:45:00Z"
+    created_by: agent/test
+    source: test://sync-test`,
+    );
+    stageSources(tmpDir, ".kb/relationships/a1.yaml");
+    execSync(`bun ${kibiBin} sync`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+      stdio: "pipe",
+    });
+
+    const livePath = branchStorePath(tmpDir, "main");
+    renameSync(livePath, `${livePath}.stale-${Date.now()}`);
+    execSync(`bun ${kibiBin} branch ensure`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+      stdio: "pipe",
+    });
+
+    writeFileSync(
+      path.join(relationshipsDir, "a1.yaml"),
+      "relationships: []\n",
+    );
+    stageSources(tmpDir, ".kb/relationships/a1.yaml");
+    const deletion = execSync(`bun ${kibiBin} sync`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+    });
+    expect(deletion).toMatch(/Imported/);
+    expect(deletion).not.toContain("Query returned false");
+    expect(deletion).not.toContain(
+      "Failed to clear changed relationship shards",
+    );
+  }, 40_000);
 
   test(
     "re-materializes shard relationships after a manifest-only entity edit",
