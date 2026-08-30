@@ -3,6 +3,7 @@ import {
   type IngestVerificationResult,
   executeIngestVerification,
 } from "../../../operations/verification/ingest-verification.js";
+import { PLAYWRIGHT_RUN_ARTIFACT_SCHEMA } from "../../verification-artifact.js";
 import type { OperationSpec } from "../types.js";
 
 export type {
@@ -16,7 +17,7 @@ export const ingestVerificationSpec = {
   name: "kb_ingest_verification",
   cliName: "ingest-verification",
   description:
-    "Ingest a reporter-produced kibi.playwright-run.v1 artifact for a contracted test. Revalidates the live workspace snapshot, runner/command contract, required case/project coverage, and append-only receipt history before deriving and appending a kibi.verification-receipt.v2. It never accepts a caller-authored receipt or trusted outcome.",
+    "Ingest a reporter-produced kibi.playwright-run.v1 artifact for a contracted test. Revalidates the live workspace snapshot, runner/command contract, required case/project coverage, and append-only receipt history before deriving and appending a kibi.verification-receipt.v2. It never accepts a caller-authored receipt or trusted outcome. Each artifact.cases entry requires symbol_id, project, outcome (passed|failed|timed_out|skipped|interrupted), retries, and duration_ms. Produce artifacts with the bundled Playwright reporter via `kibi verify TEST-ID -- <exact contract command>`; direct ingestion is an integration path for reporters and agents.",
   businessInputSchema: {
     type: "object",
     required: ["testId", "snapshot", "artifact"],
@@ -32,41 +33,7 @@ export const ingestVerificationSpec = {
         description:
           "Workspace verification snapshot captured immediately before the run.",
       },
-      artifact: {
-        type: "object",
-        required: [
-          "version",
-          "runner",
-          "command_argv",
-          "code_snapshot",
-          "environment_hash",
-          "started_at",
-          "finished_at",
-          "process_exit_code",
-          "cases",
-        ],
-        properties: {
-          version: { type: "string", const: "kibi.playwright-run.v1" },
-          runner: { type: "string", minLength: 1 },
-          command_argv: {
-            type: "array",
-            minItems: 1,
-            items: { type: "string", minLength: 1 },
-          },
-          code_snapshot: { type: "string", pattern: "^[a-f0-9]{64}$" },
-          environment_hash: { type: "string", pattern: "^[a-f0-9]{64}$" },
-          started_at: { type: "string", minLength: 1 },
-          finished_at: { type: "string", minLength: 1 },
-          process_exit_code: { type: "integer" },
-          cases: {
-            type: "array",
-            minItems: 1,
-            maxItems: 1000,
-            items: { type: "object" },
-          },
-        },
-        additionalProperties: true,
-      },
+      artifact: PLAYWRIGHT_RUN_ARTIFACT_SCHEMA,
     },
   },
   requiresProlog: true,

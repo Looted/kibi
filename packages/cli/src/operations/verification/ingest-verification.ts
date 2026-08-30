@@ -4,6 +4,11 @@ import { loadEntities } from "../../public/operations/discovery-entities.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import { readWorkspaceSnapshot } from "../../public/operations/workspace-snapshot.js";
 import {
+  PLAYWRIGHT_RUN_VERSION,
+  type VerificationCaseArtifact,
+  playwrightRunArtifactErrors,
+} from "../../public/verification-artifact.js";
+import {
   MAX_VERIFICATION_RECEIPTS,
   VERIFICATION_CONTRACT_VERSION,
   VERIFICATION_RECEIPT_V2_VERSION,
@@ -15,16 +20,7 @@ import { projectEntityProperties } from "../mutation/entity-projection.js";
 import { executeUpsert } from "../mutation/upsert.js";
 
 // implements REQ-kibi-verification-evidence-contract
-export const PLAYWRIGHT_RUN_VERSION = "kibi.playwright-run.v1" as const;
-
-// implements REQ-kibi-verification-evidence-contract
-export type VerificationCaseArtifact = Readonly<{
-  symbol_id: string;
-  project: string;
-  outcome: "passed" | "failed" | "timed_out" | "skipped" | "interrupted";
-  retries: number;
-  duration_ms: number;
-}>;
+export { PLAYWRIGHT_RUN_VERSION };
 
 // implements REQ-kibi-verification-evidence-contract
 export type IngestVerificationArgs = Readonly<{
@@ -81,13 +77,13 @@ function parseCases(
   const raw = artifact.cases;
   if (!Array.isArray(raw) || raw.length === 0)
     throw new Error(
-      "Verification ingest failed: artifact.cases must be non-empty",
+      "Verification ingest failed: artifact.cases must be a non-empty array of case results with symbol_id, project, outcome, retries, and duration_ms",
     );
   return raw.map((value, index) => {
     const row = record(value);
     if (!row)
       throw new Error(
-        `Verification ingest failed: artifact.cases[${index}] must be an object`,
+        `Verification ingest failed: artifact.cases[${index}] must be an object with symbol_id, project, outcome, retries, and duration_ms`,
       );
     const outcome = text(row.outcome) as VerificationCaseArtifact["outcome"];
     if (
@@ -96,15 +92,15 @@ function parseCases(
       )
     )
       throw new Error(
-        `Verification ingest failed: unsupported case outcome at index ${index}`,
+        `Verification ingest failed: artifact.cases[${index}].outcome must be one of: passed, failed, timed_out, skipped, interrupted; received ${JSON.stringify(row.outcome ?? null)}`,
       );
     if (!Number.isInteger(row.retries) || Number(row.retries) < 0)
       throw new Error(
-        `Verification ingest failed: artifact.cases[${index}].retries must be non-negative`,
+        `Verification ingest failed: artifact.cases[${index}].retries must be a non-negative integer; received ${JSON.stringify(row.retries ?? null)}`,
       );
     if (!Number.isInteger(row.duration_ms) || Number(row.duration_ms) < 0)
       throw new Error(
-        `Verification ingest failed: artifact.cases[${index}].duration_ms must be non-negative`,
+        `Verification ingest failed: artifact.cases[${index}].duration_ms must be a non-negative integer; received ${JSON.stringify(row.duration_ms ?? null)}`,
       );
     return {
       symbol_id: requiredString(
@@ -190,9 +186,9 @@ export async function executeIngestVerification(
   const testId = requiredString(args.testId, "testId");
   const snapshot = requiredString(args.snapshot, "snapshot");
   const artifact = record(args.artifact);
-  if (!artifact || artifact.version !== PLAYWRIGHT_RUN_VERSION)
+  if (!artifact)
     throw new Error(
-      `Verification ingest failed: artifact.version must be ${PLAYWRIGHT_RUN_VERSION}`,
+      "Verification ingest failed: artifact must be an object with version, runner, command_argv, code_snapshot, environment_hash, started_at, finished_at, process_exit_code, and cases",
     );
   const workspace = await readWorkspaceSnapshot(context);
   if (!workspace.available)
@@ -204,6 +200,13 @@ export async function executeIngestVerification(
   if (text(artifact.code_snapshot) !== snapshot)
     throw new Error(
       "Verification ingest failed: artifact code_snapshot does not match captured snapshot",
+    );
+  // Snapshot binding is validated above; structural validation reports every
+  // remaining artifact problem at once with expected vs received values.
+  const artifactErrors = playwrightRunArtifactErrors(artifact);
+  if (artifactErrors.length > 0)
+    throw new Error(
+      `Verification ingest failed: ${artifactErrors.join("; ")}`,
     );
   const tests = await loadEntities(context.prolog, {
     id: testId,

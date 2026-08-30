@@ -181,3 +181,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c21ceaae8fd6
+  - type: covered_by
+    from: SYM-checkCommand
+    to: TEST-004
+    created_at: 2026-08-29T11:39:53.647Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e60ad85ec2cd

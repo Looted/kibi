@@ -63,6 +63,10 @@
       "types": "./dist/public/verification-receipt.d.ts",
       "default": "./dist/public/verification-receipt.js"
     },
+    "./verification-artifact": {
+      "types": "./dist/public/verification-artifact.d.ts",
+      "default": "./dist/public/verification-artifact.js"
+    },
     "./operations/semantic-advisor/analyze-prose": {
       "types": "./dist/operations/semantic-advisor/analyze-prose.d.ts",
       "default": "./dist/operations/semantic-advisor/analyze-prose.js"

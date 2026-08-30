@@ -132,3 +132,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b81fabea5309
+  - type: covered_by
+    from: SYM-cli-rule-registry-getRuleEnforcementClass
+    to: TEST-004
+    created_at: 2026-08-29T11:40:14.017Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-067ce6be9fbc

@@ -5,9 +5,13 @@ import {
   normalizePlaywrightSourceFile,
   playwrightCaseId,
 } from "../public/playwright-case-id.js";
+import {
+  type VerificationCaseArtifact,
+  PLAYWRIGHT_RUN_VERSION,
+} from "../public/verification-artifact.js";
 
 // implements REQ-kibi-verification-evidence-contract
-export const PLAYWRIGHT_RUN_VERSION = "kibi.playwright-run.v1" as const;
+export { PLAYWRIGHT_RUN_VERSION };
 
 // implements REQ-kibi-verification-evidence-contract
 export type KibiPlaywrightReporterOptions = Readonly<{
@@ -19,13 +23,7 @@ export type KibiPlaywrightReporterOptions = Readonly<{
   now?: () => Date;
 }>;
 
-type CaseResult = {
-  symbol_id: string;
-  project: string;
-  outcome: "passed" | "failed" | "timed_out" | "skipped" | "interrupted";
-  retries: number;
-  duration_ms: number;
-};
+type CaseResult = VerificationCaseArtifact;
 
 function envHash(): string {
   const lockfile = process.env.KIBI_LOCKFILE_DIGEST ?? "unknown";

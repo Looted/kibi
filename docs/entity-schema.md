@@ -321,6 +321,8 @@ tags:
 | verification_perspective | No | enum     | `internal` or `consumer`                         |
 | verification_receipts | No | array[object] | Append-only verification-receipt execution history; new evidence is `kibi.verification-receipt.v2`, while v1 entries remain historical compatibility data; requires `verification_scope` |
 
+`verification_receipts` is append-only: never remove or rewrite existing entries, and include the full history when authoring a test file directly. Receipts are engine-derived from `kibi.playwright-run.v1` reporter artifacts — see [proving requirements](proving-requirements.md) for contracts, the `kibi verify` workflow, and the artifact reference.
+
 `tags` remain metadata only. They do not alias or replace typed verification fields.
 
 Coverage-depth reporting uses typed verification fields before legacy hints. A test with `status: passing` and `verification_scope: end_to_end` supplies structural depth evidence even if it has no `e2e` tag; tag or path heuristics are only fallback evidence for older records. Durable status never supplies conservative proof evidence by itself. Requirement coverage rows can therefore report deterministic depth labels without changing the underlying covered/uncovered decision:

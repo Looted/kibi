@@ -3141,7 +3141,7 @@ coordinates:
     sourceLine: 91
   SYM-cli-get-operation-metadata:
     identityHash: 8386e831b198124a5dd8353b0e2ab1fec51c6ed3ce25870ee2e817fc877d6c89
-    sourceHash: bd8e84a2b4fc6b63ac1267b48ab0d6f7619a3d3086aeac4766dfe24bf01a7f7b
+    sourceHash: 4b0fa5f88f99b78c0d33ab54d074462ea3cbf2bec4c57e17f3c0f3203d14923c
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 153
@@ -3733,7 +3733,7 @@ coordinates:
     sourceLine: 2
   SYM-cli-is-operation-name:
     identityHash: 5c74ec387d5a90d1f5a3ec2ac1768ca121672e6f5d4e8c407030bd1f5db4f951
-    sourceHash: bd8e84a2b4fc6b63ac1267b48ab0d6f7619a3d3086aeac4766dfe24bf01a7f7b
+    sourceHash: 4b0fa5f88f99b78c0d33ab54d074462ea3cbf2bec4c57e17f3c0f3203d14923c
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 157
@@ -4077,7 +4077,7 @@ coordinates:
     sourceLine: 16
   SYM-cli-operation-metadata:
     identityHash: 24ab40858b1ca913159bbf3ca25eea974c61fa1303fa0460f07ad8eb6956ef88
-    sourceHash: bd8e84a2b4fc6b63ac1267b48ab0d6f7619a3d3086aeac4766dfe24bf01a7f7b
+    sourceHash: 4b0fa5f88f99b78c0d33ab54d074462ea3cbf2bec4c57e17f3c0f3203d14923c
     sourceColumn: 13
     sourceEndColumn: 52
     sourceEndLine: 139
@@ -4093,7 +4093,7 @@ coordinates:
     sourceLine: 7
   SYM-cli-operation-metadata-type:
     identityHash: 79082988b3b69a466b7b9d6aed556e5f0401b0adb0dac9b24b522fe365202280
-    sourceHash: bd8e84a2b4fc6b63ac1267b48ab0d6f7619a3d3086aeac4766dfe24bf01a7f7b
+    sourceHash: 4b0fa5f88f99b78c0d33ab54d074462ea3cbf2bec4c57e17f3c0f3203d14923c
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 7
@@ -6947,6 +6947,14 @@ coordinates:
     sourceEndLine: 37
     sourceFile: packages/mcp/src/server/docs.ts
     sourceLine: 30
+  SYM-e2e-packed-cli-check:
+    identityHash: 95f3694ebc0ae2a3723c3d6905286887a271a02eaebf2da22e673065cc017b25
+    sourceHash: b1c24fd4cf0207f2352baefe15e75c0144e9d092b5c143fed245ce7ea251e81e
+    sourceColumn: 8
+    sourceEndColumn: 40
+    sourceEndLine: 516
+    sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
+    sourceLine: 516
   SYM-e2e-packed-cli-doctor:
     identityHash: 66f7aa30f0a7b33f91292a1422518bc9382bf8d4c2455f708e4b8d3403d6fbb1
     sourceHash: b1c24fd4cf0207f2352baefe15e75c0144e9d092b5c143fed245ce7ea251e81e
@@ -9053,44 +9061,28 @@ coordinates:
     sourceLine: 74
   SYM-kibi-cli-src-operations-verification-ingest-verification-ts-executeingestverification:
     identityHash: be2c573833384c862152de6e4c66ae96b0dd8b533635952b3edc407f5118a239
-    sourceHash: 5694a17030a65ef9c122a003850ca8d6986fdbe569e89ce6535a645c4c7b123f
+    sourceHash: d501da003dfea590072271472b8c9265f7092e1bb00c50f2959180936a8600a7
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 306
+    sourceEndLine: 309
     sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
-    sourceLine: 181
+    sourceLine: 177
   SYM-kibi-cli-src-operations-verification-ingest-verification-ts-ingestverificationargs:
     identityHash: e4404305ca08ad7e09a62ca18b308c24dc1a4e733951a1c790747bb6f13f9fc0
-    sourceHash: 5694a17030a65ef9c122a003850ca8d6986fdbe569e89ce6535a645c4c7b123f
+    sourceHash: d501da003dfea590072271472b8c9265f7092e1bb00c50f2959180936a8600a7
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 34
+    sourceEndLine: 30
     sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
-    sourceLine: 30
+    sourceLine: 26
   SYM-kibi-cli-src-operations-verification-ingest-verification-ts-ingestverificationresult:
     identityHash: 9d753b09e54a8dd114c9c434771e802b6a0fd5e16c69d4d6e9778085bc4101d1
-    sourceHash: 5694a17030a65ef9c122a003850ca8d6986fdbe569e89ce6535a645c4c7b123f
+    sourceHash: d501da003dfea590072271472b8c9265f7092e1bb00c50f2959180936a8600a7
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 43
+    sourceEndLine: 39
     sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
-    sourceLine: 37
-  SYM-kibi-cli-src-operations-verification-ingest-verification-ts-playwright-run-version:
-    identityHash: 367eb670d0631d9f3b766f4c9fdca44d13cef14e2877d93602d4e218bcb64bc7
-    sourceHash: 5694a17030a65ef9c122a003850ca8d6986fdbe569e89ce6535a645c4c7b123f
-    sourceColumn: 13
-    sourceEndColumn: 71
-    sourceEndLine: 18
-    sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
-    sourceLine: 18
-  SYM-kibi-cli-src-operations-verification-ingest-verification-ts-verificationcaseartifact:
-    identityHash: 3ef15cf7d495e8164bc0cf0f0276db94c6f843751195723703e86c0022748460
-    sourceHash: 5694a17030a65ef9c122a003850ca8d6986fdbe569e89ce6535a645c4c7b123f
-    sourceColumn: 12
-    sourceEndColumn: 3
-    sourceEndLine: 27
-    sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
-    sourceLine: 21
+    sourceLine: 33
   SYM-kibi-cli-src-public-operations-specs-planning-ts-applyplanspec:
     identityHash: 92d2cc588070af5b6d1506dd077b15ea0d2df85ce1623113b16ed3be99c2abcd
     sourceHash: 8a6237794bf0f2d4e8aa146541fce901d443cbdae0561d907c82662d9e8ce588
@@ -9109,12 +9101,12 @@ coordinates:
     sourceLine: 31
   SYM-kibi-cli-src-public-operations-specs-verification-ts-ingestverificationspec:
     identityHash: 69b577969f1e81e6a94bd74f2717b0c09b40963ef690c3059d5563a17f0da6c3
-    sourceHash: e32a0035280fe3f3667949ada0070c9fee74320fa7ab3e5b9d9cc5b731015e7d
+    sourceHash: 2615096dcd462dc46eee1882712bd8f0a60ddbc69902ebcf0fd6238b0f89935c
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 78
+    sourceEndLine: 45
     sourceFile: packages/cli/src/public/operations/specs/verification.ts
-    sourceLine: 15
+    sourceLine: 16
   SYM-kibi-cli-src-public-playwright-case-id-ts-normalizeplaywrightsourcefile:
     identityHash: 4d2b233de339637c8f49ecddf5154119e78f7608092d6bc53c835d1f68b52fd9
     sourceHash: ade70cd816ab09c8852bccf3583dfa3ad587831423e60e76f57fa7d7ecb18b0f
@@ -9131,6 +9123,70 @@ coordinates:
     sourceEndLine: 20
     sourceFile: packages/cli/src/public/playwright-case-id.ts
     sourceLine: 10
+  SYM-kibi-cli-src-public-verification-artifact-ts-playwright-run-artifact-errors:
+    identityHash: 14c2299a9f0f47f7bdc720978d8848804b69962149c4a059534b6bb4f478dbd3
+    sourceHash: 9bdd27c0bc2b30618e537f30fef2a436eee7853c86f5681d45c1ca4e1729978e
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 186
+    sourceFile: packages/cli/src/public/verification-artifact.ts
+    sourceLine: 141
+  SYM-kibi-cli-src-public-verification-artifact-ts-playwright-run-artifact-schema:
+    identityHash: de4741bbfa5816796dab1d78c5ec359f6923fb1875c55a40aa80a651d8deb6ac
+    sourceHash: 9bdd27c0bc2b30618e537f30fef2a436eee7853c86f5681d45c1ca4e1729978e
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 89
+    sourceFile: packages/cli/src/public/verification-artifact.ts
+    sourceLine: 53
+  SYM-kibi-cli-src-public-verification-artifact-ts-playwright-run-case-outcome:
+    identityHash: 5751559bcef522f86e776bdc270041c3b2c964714a95061bfa848fd8b75a0101
+    sourceHash: 9bdd27c0bc2b30618e537f30fef2a436eee7853c86f5681d45c1ca4e1729978e
+    sourceColumn: 12
+    sourceEndColumn: 85
+    sourceEndLine: 15
+    sourceFile: packages/cli/src/public/verification-artifact.ts
+    sourceLine: 15
+  SYM-kibi-cli-src-public-verification-artifact-ts-playwright-run-case-outcomes:
+    identityHash: dd9043cab9377c7fde6785eee80a62fab33914f9e055a9aab32e0692c926a963
+    sourceHash: 9bdd27c0bc2b30618e537f30fef2a436eee7853c86f5681d45c1ca4e1729978e
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 12
+    sourceFile: packages/cli/src/public/verification-artifact.ts
+    sourceLine: 6
+  SYM-kibi-cli-src-public-verification-artifact-ts-playwright-run-version:
+    identityHash: ee00c253dfd708a638a3f22f8e56b08e0f0ae62b967767e11677f54f35ab4e73
+    sourceHash: 9bdd27c0bc2b30618e537f30fef2a436eee7853c86f5681d45c1ca4e1729978e
+    sourceColumn: 13
+    sourceEndColumn: 71
+    sourceEndLine: 2
+    sourceFile: packages/cli/src/public/verification-artifact.ts
+    sourceLine: 2
+  SYM-kibi-cli-src-public-verification-artifact-ts-verification-case-artifact:
+    identityHash: 176fcf885964ab238eb81caf3481e91ba88bba45269878b9d84a90875eb2687d
+    sourceHash: 9bdd27c0bc2b30618e537f30fef2a436eee7853c86f5681d45c1ca4e1729978e
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 24
+    sourceFile: packages/cli/src/public/verification-artifact.ts
+    sourceLine: 18
+  SYM-kibi-cli-src-public-verification-artifact-ts-verification-case-artifact-errors:
+    identityHash: adf55a0678429014565325f7cc29bb8c8bba0835579995c82778e46fe5bc00a9
+    sourceHash: 9bdd27c0bc2b30618e537f30fef2a436eee7853c86f5681d45c1ca4e1729978e
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 137
+    sourceFile: packages/cli/src/public/verification-artifact.ts
+    sourceLine: 110
+  SYM-kibi-cli-src-public-verification-artifact-ts-verification-case-artifact-schema:
+    identityHash: 560a57f57b0ea9a7fd141904d30069428b42e40fd19ec6920afd784772a7fa62
+    sourceHash: 9bdd27c0bc2b30618e537f30fef2a436eee7853c86f5681d45c1ca4e1729978e
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 45
+    sourceFile: packages/cli/src/public/verification-artifact.ts
+    sourceLine: 28
   SYM-kibi-cli-src-public-verification-receipt-ts-appendonlyverificationreceipthistoryerrors:
     identityHash: d9990857944420f574654f574486f81734e42c91dbd75e91aa09e64d25ea4488
     sourceHash: 27b2709be5915a2dfd4f829fc2e80140dd8ed1bb8c9470cc75c1ebd06841a389
@@ -9245,52 +9301,44 @@ coordinates:
     sourceLine: 157
   SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporter:
     identityHash: 0169a9dc4054fc133c1c992449edd2f8afa1dfadbc7dd71e29f5cc1fa2075c23
-    sourceHash: 3343e7e4df66d30ed6af72254ce343256db8b19c6fc645935c2edc5f230d76e9
+    sourceHash: 20e12ca63ff04a7f7dc7e3ff64022eb005e5e0b9042650cefef98ec9f35fc320
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 154
+    sourceEndLine: 152
     sourceFile: packages/cli/src/verification/playwright-reporter.ts
-    sourceLine: 76
+    sourceLine: 74
   SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporter-onbegin:
     identityHash: 315ebba89a155402afa91aff796029cd4831e48f2d24561e82d06255de948db2
-    sourceHash: 3343e7e4df66d30ed6af72254ce343256db8b19c6fc645935c2edc5f230d76e9
+    sourceHash: 20e12ca63ff04a7f7dc7e3ff64022eb005e5e0b9042650cefef98ec9f35fc320
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 89
+    sourceEndLine: 87
     sourceFile: packages/cli/src/verification/playwright-reporter.ts
-    sourceLine: 87
+    sourceLine: 85
   SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporter-onend:
     identityHash: 1209eb01eef55ecad849959fda532daca1a91e331e9be71248462c90e367ac32
-    sourceHash: 3343e7e4df66d30ed6af72254ce343256db8b19c6fc645935c2edc5f230d76e9
+    sourceHash: 20e12ca63ff04a7f7dc7e3ff64022eb005e5e0b9042650cefef98ec9f35fc320
     sourceColumn: 8
     sourceEndColumn: 3
-    sourceEndLine: 153
+    sourceEndLine: 151
     sourceFile: packages/cli/src/verification/playwright-reporter.ts
-    sourceLine: 128
+    sourceLine: 126
   SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporter-ontestend:
     identityHash: 706a5e3b00692d21ec233ff69624c83938a6e90d7a72df48fde78c97e2ac5dd1
-    sourceHash: 3343e7e4df66d30ed6af72254ce343256db8b19c6fc645935c2edc5f230d76e9
+    sourceHash: 20e12ca63ff04a7f7dc7e3ff64022eb005e5e0b9042650cefef98ec9f35fc320
     sourceColumn: 2
     sourceEndColumn: 3
-    sourceEndLine: 125
+    sourceEndLine: 123
     sourceFile: packages/cli/src/verification/playwright-reporter.ts
-    sourceLine: 92
+    sourceLine: 90
   SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporteroptions:
     identityHash: 3210361b3a518170c8c2deabff67f5c54da87a7d2aefa9b7413c8db8e8657025
-    sourceHash: 3343e7e4df66d30ed6af72254ce343256db8b19c6fc645935c2edc5f230d76e9
+    sourceHash: 20e12ca63ff04a7f7dc7e3ff64022eb005e5e0b9042650cefef98ec9f35fc320
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 20
+    sourceEndLine: 24
     sourceFile: packages/cli/src/verification/playwright-reporter.ts
-    sourceLine: 13
-  SYM-kibi-cli-src-verification-playwright-reporter-ts-playwright-run-version:
-    identityHash: d342b6b3ec8ce04f583a766d84922b9e6c52ef9129d61f542e43ea75e33d3470
-    sourceHash: 3343e7e4df66d30ed6af72254ce343256db8b19c6fc645935c2edc5f230d76e9
-    sourceColumn: 13
-    sourceEndColumn: 71
-    sourceEndLine: 10
-    sourceFile: packages/cli/src/verification/playwright-reporter.ts
-    sourceLine: 10
+    sourceLine: 17
   SYM-kibi-consumer-local-plugin-launcher-ontology-e2e:
     identityHash: b8c2d37003a3724274c6af7f736b360136f8762527993cbbb5dbf3804d1a8838
     sourceHash: 494c9ac05200eaebd39cb336edc9379a7780ef0597b6cb15a8e39dd6834b1b14
@@ -9693,7 +9741,7 @@ coordinates:
     sourceLine: 1
   SYM-kibi-usage-skill-guidance:
     identityHash: 4596b4770fa6eca3c0b31b8c58f21cc8c076ffe4dc4e76b6252e9984eb6c5857
-    sourceHash: 3d347a430cb8be2017df34d22d151355abc5083173988dafb4c8433ee81281da
+    sourceHash: dc499d7b4b9be4ae7a6361991a7b8bfebd032923aaead27bf945cf337ef9a6b7
     sourceColumn: 6
     sourceEndColumn: 16
     sourceEndLine: 3

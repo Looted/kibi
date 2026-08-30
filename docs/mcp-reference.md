@@ -268,10 +268,12 @@ Ingest a reporter-produced `kibi.playwright-run.v1` artifact for a contracted te
 **Parameters:**
 - `testId` (required): Existing test entity with `verification_contract.v1`.
 - `snapshot` (required): Workspace snapshot captured immediately before execution.
-- `artifact` (required): Reporter artifact containing runner, command argv, code snapshot, environment hash, timestamps, process exit code, and case results.
+- `artifact` (required): Reporter artifact containing `version` (`kibi.playwright-run.v1`), `runner`, `command_argv`, `code_snapshot` (64-hex), `environment_hash` (64-hex), `started_at`, `finished_at`, `process_exit_code`, and `cases`. Each case requires `symbol_id`, `project`, `outcome` (one of `passed`, `failed`, `timed_out`, `skipped`, `interrupted`), `retries`, and `duration_ms`.
 
 **Returns:**
 Derived receipt, proof outcome, receipt count, and the shared upsert result. A changed snapshot, missing contracted case, command drift, duplicate case, or append-only violation fails before mutation.
+
+The published input schema exposes the full nested artifact contract. Prefer `kibi verify` (see [proving requirements](proving-requirements.md)) so the bundled reporter produces the artifact automatically; direct ingestion is an integration path for custom runners and agents.
 
 ### `kb_status`
 

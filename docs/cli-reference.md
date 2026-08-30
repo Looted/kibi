@@ -149,6 +149,10 @@ The reporter is available as `kibi-cli/playwright-reporter`. Set
 partial, retried, stale, or contract-drifted artifact is rejected by the same
 `kb_ingest_verification` executor used by MCP and JSON CLI callers.
 
+See [proving requirements](proving-requirements.md) for the full workflow:
+contract authoring, reporter setup, stable case symbols, and the
+`kibi.playwright-run.v1` artifact reference.
+
 ## `kibi query [type]`
 
 Queries entities from the knowledge base.

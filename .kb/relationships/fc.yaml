@@ -160,3 +160,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0da30eb10e00
+  - type: implements
+    from: SYM-kibi-cli-src-public-verification-artifact-ts-playwright-run-artifact-errors
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-08-30T04:41:02.718Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40eb8bc81fab
+  - type: covered_by
+    from: SYM-kibi-cli-src-public-verification-artifact-ts-playwright-run-artifact-errors
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-08-30T04:41:02.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-550640783c40

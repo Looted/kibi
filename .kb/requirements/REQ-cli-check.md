@@ -8,7 +8,7 @@ source: REQ-003
 priority: must
 tags:
   - cli
-  - check
+  - validation
 links:
   - type: supersedes
     target: REQ-003
@@ -31,31 +31,31 @@ logic_claims:
 semantic_inventory:
   - claim_key: CLAIM-16F84736A1B01D5B
     claim_text: The `kibi check` command runs validation rules against the branch KB to ensure structural integrity and requirement coverage
-    role: descriptive
-    status: ontology_gap
-    span:
-      start: 0
-      end: 124
     payload_hash: 747c70a1f4cb53d49d3379547d4570150768dc4cf9d5d8abdab1e343fdbb3b16
-    reason: No approved domain predicate schema expresses this clause; generic logical_requirement_rule grounding was removed.
+    reason: Grounded by FACT-PROP-CHECK-RULES-ENFORCED via requires_property.
+    role: descriptive
+    span:
+      end: 124
+      start: 0
+    status: modeled
   - claim_key: CLAIM-5E64EE51B2FCE374
     claim_text: It can be restricted to specific rules or focused on staged changes (used in pre-commit hooks)
-    role: descriptive
-    status: ontology_gap
-    span:
-      start: 126
-      end: 220
     payload_hash: 747c70a1f4cb53d49d3379547d4570150768dc4cf9d5d8abdab1e343fdbb3b16
-    reason: No approved domain predicate schema expresses this clause; generic logical_requirement_rule grounding was removed.
+    reason: Grounded by FACT-PROP-CHECK-RULE-SELECTION via requires_property.
+    role: descriptive
+    span:
+      end: 220
+      start: 126
+    status: modeled
   - claim_key: CLAIM-F0BB0D90E442DB1A
     claim_text: Failure results in a non-zero exit code and descriptive violation logs
-    role: descriptive
-    status: ontology_gap
-    span:
-      start: 222
-      end: 292
     payload_hash: 747c70a1f4cb53d49d3379547d4570150768dc4cf9d5d8abdab1e343fdbb3b16
-    reason: No approved domain predicate schema expresses this clause; generic logical_requirement_rule grounding was removed.
+    reason: Grounded by FACT-PROP-CHECK-FAILURE-EXIT-CODE via requires_property.
+    role: descriptive
+    span:
+      end: 292
+      start: 222
+    status: modeled
 type: req
 ---
 

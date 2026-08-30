@@ -855,6 +855,42 @@
       ]
     },
     {
+      "test_id": "TEST-004",
+      "contract": {
+        "version": "kibi.verification-contract.v1",
+        "runner": "node",
+        "command_argv": [
+          "node",
+          "scripts/run-proof-contract.mjs",
+          "--test-id",
+          "TEST-004"
+        ],
+        "required_case_symbols": [
+          "SYM-e2e-packed-cli-check"
+        ],
+        "required_projects": [
+          "default"
+        ],
+        "success_policy": "all_required_cases_first_attempt"
+      },
+      "steps": [
+        [
+          "node",
+          "scripts/run-proof-packed-e2e.mjs",
+          "documentation/tests/e2e/packed/cli-workflows.test.ts"
+        ],
+        [
+          "bun",
+          "test",
+          "--timeout",
+          "15000",
+          "./packages/cli/tests/commands/check.test.ts",
+          "./packages/cli/tests/public/operations/check-helpers.test.ts",
+          "./packages/cli/tests/commands/check-impact-contract.test.ts"
+        ]
+      ]
+    },
+    {
       "test_id": "TEST-cli-doctor-workflows",
       "contract": {
         "version": "kibi.verification-contract.v1",

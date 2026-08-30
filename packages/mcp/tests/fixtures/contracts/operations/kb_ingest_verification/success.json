@@ -21,14 +21,53 @@
     }
   },
   "tool": {
-    "description": "Ingest a reporter-produced kibi.playwright-run.v1 artifact for a contracted test. Revalidates the live workspace snapshot, runner/command contract, required case/project coverage, and append-only receipt history before deriving and appending a kibi.verification-receipt.v2. It never accepts a caller-authored receipt or trusted outcome.",
+    "description": "Ingest a reporter-produced kibi.playwright-run.v1 artifact for a contracted test. Revalidates the live workspace snapshot, runner/command contract, required case/project coverage, and append-only receipt history before deriving and appending a kibi.verification-receipt.v2. It never accepts a caller-authored receipt or trusted outcome. Each artifact.cases entry requires symbol_id, project, outcome (passed|failed|timed_out|skipped|interrupted), retries, and duration_ms. Produce artifacts with the bundled Playwright reporter via `kibi verify TEST-ID -- <exact contract command>`; direct ingestion is an integration path for reporters and agents.",
     "inputSchema": {
       "properties": {
         "artifact": {
           "additionalProperties": true,
+          "description": "Reporter-produced kibi.playwright-run.v1 run artifact. Produce it with the bundled Playwright reporter via `kibi verify TEST-ID -- <contract command>`.",
           "properties": {
             "cases": {
               "items": {
+                "additionalProperties": true,
+                "description": "One stable end-to-end case result. symbol_id must match a SYM-* case symbol; outcome must be one of: passed, failed, timed_out, skipped, interrupted.",
+                "properties": {
+                  "duration_ms": {
+                    "minimum": 0,
+                    "type": "number"
+                  },
+                  "outcome": {
+                    "enum": [
+                      "passed",
+                      "failed",
+                      "timed_out",
+                      "skipped",
+                      "interrupted"
+                    ],
+                    "type": "string"
+                  },
+                  "project": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "retries": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "symbol_id": {
+                    "description": "Stable case symbol ID (SYM-*) derived from the test title.",
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "symbol_id",
+                  "project",
+                  "outcome",
+                  "retries",
+                  "duration_ms"
+                ],
                 "type": "object"
               },
               "maxItems": 1000,

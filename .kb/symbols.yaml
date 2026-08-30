@@ -931,15 +931,6 @@ symbols:
         target: REQ-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-operations-verification-ingest-verification-ts-verificationcaseartifact
-    title: VerificationCaseArtifact
-    sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
   - id: SYM-kibi-cli-src-operations-verification-ingest-verification-ts-ingestverificationargs
     title: IngestVerificationArgs
     sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
@@ -953,15 +944,6 @@ symbols:
     title: IngestVerificationResult
     sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
     symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-operations-verification-ingest-verification-ts-playwright-run-version
-    title: PLAYWRIGHT_RUN_VERSION
-    sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
-    symbol_role: config
     relationships:
       - type: implements
         target: REQ-kibi-verification-evidence-contract
@@ -2692,20 +2674,22 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     granularity_reason: legacy-link
     symbol_role: behavioral
+    status: active
     relationships:
-      - type: implements
-        target: REQ-cli-check
       - type: covered_by
         target: TEST-004
+      - type: implements
+        target: REQ-cli-check
   - id: SYM-CheckOptions
     title: CheckOptions
     sourceFile: packages/cli/src/commands/check.ts
     granularity_reason: legacy-link
+    status: active
     relationships:
-      - type: implements
-        target: REQ-cli-check
       - type: covered_by
         target: TEST-004
+      - type: implements
+        target: REQ-cli-check
   - id: SYM-CheckpointEvidence
     title: CheckpointEvidence
     status: active
@@ -4456,8 +4440,7 @@ symbols:
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable
-      resource examples
+    title: predicate guidance loads a canonical decision tree with immutable resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -26982,6 +26965,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-004
+      - type: covered_by
         target: TEST-cli-quality-diagnostics-contract
       - type: implements
         target: REQ-cli-check
@@ -26992,6 +26977,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-004
+      - type: covered_by
         target: TEST-cli-quality-diagnostics-contract
       - type: implements
         target: REQ-cli-check
@@ -27001,6 +26988,8 @@ symbols:
     sourceFile: packages/cli/src/utils/rule-registry.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-004
       - type: covered_by
         target: TEST-cli-quality-diagnostics-contract
       - type: implements
@@ -30072,3 +30061,96 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-cli-doctor-workflows
+  - id: SYM-e2e-packed-cli-check
+    title: should run kibi check after sync
+    status: active
+    tags:
+      - cli
+      - check
+      - e2e
+    sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-004
+  - id: SYM-kibi-cli-src-public-verification-artifact-ts-playwright-run-version
+    title: PLAYWRIGHT_RUN_VERSION
+    status: active
+    sourceFile: packages/cli/src/public/verification-artifact.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-public-verification-artifact-ts-playwright-run-case-outcomes
+    title: PLAYWRIGHT_RUN_CASE_OUTCOMES
+    status: active
+    sourceFile: packages/cli/src/public/verification-artifact.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-public-verification-artifact-ts-playwright-run-case-outcome
+    title: PlaywrightRunCaseOutcome
+    status: active
+    sourceFile: packages/cli/src/public/verification-artifact.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-public-verification-artifact-ts-verification-case-artifact
+    title: VerificationCaseArtifact
+    status: active
+    sourceFile: packages/cli/src/public/verification-artifact.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-public-verification-artifact-ts-verification-case-artifact-schema
+    title: VERIFICATION_CASE_ARTIFACT_SCHEMA
+    status: active
+    sourceFile: packages/cli/src/public/verification-artifact.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-public-verification-artifact-ts-playwright-run-artifact-schema
+    title: PLAYWRIGHT_RUN_ARTIFACT_SCHEMA
+    status: active
+    sourceFile: packages/cli/src/public/verification-artifact.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-public-verification-artifact-ts-verification-case-artifact-errors
+    title: verificationCaseArtifactErrors
+    status: active
+    sourceFile: packages/cli/src/public/verification-artifact.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-kibi-cli-src-public-verification-artifact-ts-playwright-run-artifact-errors
+    title: playwrightRunArtifactErrors
+    status: active
+    sourceFile: packages/cli/src/public/verification-artifact.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract

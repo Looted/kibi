@@ -134,7 +134,7 @@ export const CLI_OPERATION_METADATA = [
     name: "kb_ingest_verification",
     cliName: "ingest-verification",
     description:
-      "Ingest a reporter-produced kibi.playwright-run.v1 artifact for a contracted test. Revalidates the live workspace snapshot, runner/command contract, required case/project coverage, and append-only receipt history before deriving and appending a kibi.verification-receipt.v2. It never accepts a caller-authored receipt or trusted outcome.",
+      "Ingest a reporter-produced kibi.playwright-run.v1 artifact for a contracted test. Revalidates the live workspace snapshot, runner/command contract, required case/project coverage, and append-only receipt history before deriving and appending a kibi.verification-receipt.v2. It never accepts a caller-authored receipt or trusted outcome. Each artifact.cases entry requires symbol_id, project, outcome (passed|failed|timed_out|skipped|interrupted), retries, and duration_ms. Produce artifacts with the bundled Playwright reporter via `kibi verify TEST-ID -- <exact contract command>`; direct ingestion is an integration path for reporters and agents.",
   },
 ] as const satisfies readonly CliOperationMetadata[];
 

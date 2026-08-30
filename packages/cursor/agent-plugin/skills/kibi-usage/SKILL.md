@@ -22,6 +22,7 @@ resources:
   - resources/ui-requirements.md
   - resources/logic-ir.md
   - resources/kb-improvement.md
+  - resources/proof-verification.md
 ---
 # Kibi Usage
 
@@ -114,7 +115,7 @@ safe normative claims; use `observation` or `meta` for bug/workaround notes and
 `flag` only for actual runtime/config gates. Requirements require scenarios,
 tests, symbol ownership, and fresh proof-bearing receipts before claiming proof.
 For an existing product KB that needs semantic backfill, read
-`resources/kb-improvement.md`.
+`resources/kb-improvement.md`, and `resources/proof-verification.md` for the proof workflow.
 
 ## Predicate Ontology Decision Tree
 
