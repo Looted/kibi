@@ -10,10 +10,10 @@ tags: [requirements, diagnostics, coverage, proof, receipts, telemetry]
 logic_claims:
   - CLAIM-33DAF370A02DCC89
   - CLAIM-ABCF552AF7013256
-  - CLAIM-9E171C8660175B4B
+  - CLAIM-DAD987CB98C79901
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: e269b19a6b1a1fd2ca51d015513918f284470847a03d4f0a77a569dd1c3a786d
+semantic_source_hash: 4bb30360585205e2d2a31e0480dbf249b0e9bdae92e0fb89ecd467c4bb57689b
 semantic_inventory:
   - claim_key: CLAIM-33DAF370A02DCC89
     claim_text: Full checks must use the same live snapshot-bound receipt evidence as requirement coverage when deciding whether to emit coverage-depth diagnostics
@@ -25,11 +25,11 @@ semantic_inventory:
     role: normative
     status: ontology_gap
     span: {start: 149, end: 273}
-  - claim_key: CLAIM-9E171C8660175B4B
-    claim_text: Receipt freshness diagnostics must identify affected requirements and tests and direct agents to kibi verify with v2 receipts
+  - claim_key: CLAIM-DAD987CB98C79901
+    claim_text: Receipt freshness diagnostics must identify affected requirements and tests and direct agents to kibi prove with current proof receipts
     role: normative
     status: ontology_gap
-    span: {start: 275, end: 400}
+    span: {start: 275, end: 410}
 links:
   - type: depends_on
     target: REQ-kibi-conservative-requirement-proof
@@ -39,4 +39,4 @@ links:
     target: TEST-kibi-proof-aware-quality-diagnostics
 ---
 
-Full checks must use the same live snapshot-bound receipt evidence as requirement coverage when deciding whether to emit coverage-depth diagnostics. A fresh passing scenario-backed E2E receipt must not produce a contradictory weak-depth warning when other proof gaps remain. Receipt freshness diagnostics must identify affected requirements and tests and direct agents to kibi verify with v2 receipts.
+Full checks must use the same live snapshot-bound receipt evidence as requirement coverage when deciding whether to emit coverage-depth diagnostics. A fresh passing scenario-backed E2E receipt must not produce a contradictory weak-depth warning when other proof gaps remain. Receipt freshness diagnostics must identify affected requirements and tests and direct agents to kibi prove with current proof receipts.

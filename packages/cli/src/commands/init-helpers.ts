@@ -162,7 +162,7 @@ export function updateGitIgnore(cwd: string): void {
 const CANONICAL_DERIVED_GITIGNORE_ENTRIES = [
   ".kb/branches/",
   ".kb/recovery/",
-  ".kb/verification/",
+  ".kb/proof/runs/",
   ".kb/briefs/",
   ".kb/migrations/",
   ".kb/usage.log",

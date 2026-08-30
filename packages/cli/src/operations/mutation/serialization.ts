@@ -33,8 +33,9 @@ function serializeValue(key: string, value: unknown): string {
   if (
     key === "rule_ir" ||
     key === "semantic_inventory" ||
-    key === "verification_contract" ||
-    key === "verification_receipts"
+    key === "proof_contract" ||
+    key === "proof_bindings" ||
+    key === "proof_receipts"
   ) {
     return toPrologString(JSON.stringify(value));
   }

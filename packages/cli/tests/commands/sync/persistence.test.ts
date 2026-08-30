@@ -556,7 +556,7 @@ describe("persistEntities", () => {
       type: "test",
       status: "active",
       verification_scope: "end_to_end",
-      verification_contract: {
+      proof_contract: {
         version: "kibi.verification-contract.v1",
         runner: "pnpm",
         command_argv: ["pnpm", "run", "e2e", "--", "e2e/contract.spec.ts"],
@@ -582,7 +582,7 @@ describe("persistEntities", () => {
       g.includes("kb_assert_entity"),
     );
     expect(assertCall).toContain(
-      'verification_contract="{\\"version\\":\\"kibi.verification-contract.v1\\"',
+      'proof_contract="{\\"version\\":\\"kibi.verification-contract.v1\\"',
     );
   });
 
@@ -592,7 +592,7 @@ describe("persistEntities", () => {
       type: "test",
       status: "passing",
       verification_scope: "end_to_end",
-      verification_receipts: [
+      proof_receipts: [
         {
           version: "kibi.verification-receipt.v1",
           receipt_id: "VR-PERSISTENCE-0001",
@@ -626,7 +626,7 @@ describe("persistEntities", () => {
       g.includes("kb_assert_entity"),
     );
     expect(assertCall).toContain(
-      'verification_receipts="[{\\"version\\":\\"kibi.verification-receipt.v1\\"',
+      'proof_receipts="[{\\"version\\":\\"kibi.verification-receipt.v1\\"',
     );
     expect(assertCall).toContain('\\"receipt_id\\":\\"VR-PERSISTENCE-0001\\"');
   });
@@ -662,7 +662,7 @@ describe("persistEntities", () => {
         {
           success: true,
           bindings: {
-            Results: `[['TEST-RECEIPT',test,[verification_receipts=${JSON.stringify(previousJson)}]]]`,
+            Results: `[['TEST-RECEIPT',test,[proof_receipts=${JSON.stringify(previousJson)}]]]`,
           },
         },
     });
@@ -673,7 +673,7 @@ describe("persistEntities", () => {
         [{ entity, relationships: [] }],
         new Set(),
       ),
-    ).rejects.toThrow("verification_receipts is append-only");
+    ).rejects.toThrow("proof_receipts is append-only");
   });
 
   test("adds absolute source and missing fact value context to entity failures", async () => {

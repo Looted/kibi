@@ -28,7 +28,7 @@ const SNAPSHOT_EXCLUDED_PREFIXES = [
   ".changeset/",
   ".kb/branches/",
   ".kb/recovery/",
-  ".kb/verification/",
+  ".kb/proof/runs/",
   ".kb/briefs/",
   ".kb/migrations/",
   "docs/",
@@ -37,7 +37,7 @@ const ALWAYS_IGNORED_GLOBS = [
   "**/.git/**",
   "**/.kb/branches/**",
   "**/.kb/recovery/**",
-  "**/.kb/verification/**",
+  "**/.kb/proof/runs/**",
   "**/.kb/briefs/**",
   "**/.kb/migrations/**",
   "**/node_modules/**",
@@ -58,7 +58,7 @@ function includedSnapshotPath(relativePath: string): boolean {
   );
 }
 
-function withoutVerificationReceiptFrontmatter(content: string): string {
+function withoutProofReceiptFrontmatter(content: string): string {
   const lines = content.match(/[^\n]*\n|[^\n]+$/g) ?? [];
   if (lines[0]?.trim() !== "---") return content;
   let inFrontmatter = true;
@@ -72,7 +72,7 @@ function withoutVerificationReceiptFrontmatter(content: string): string {
       retained.push(line);
       continue;
     }
-    if (inFrontmatter && /^verification_receipts\s*:/.test(line)) {
+    if (inFrontmatter && /^proof_receipts\s*:/.test(line)) {
       skippingReceipts = true;
       continue;
     }
@@ -91,14 +91,14 @@ function withoutVerificationReceiptFrontmatter(content: string): string {
 function snapshotFileContent(relativePath: string, content: Buffer): Buffer {
   if (relativePath.endsWith(".md")) {
     return Buffer.from(
-      withoutVerificationReceiptFrontmatter(content.toString("utf8")),
+      withoutProofReceiptFrontmatter(content.toString("utf8")),
     );
   }
   return content;
 }
 
 /**
- * A tracked markdown file whose only change is verification-receipt frontmatter
+ * A tracked markdown file whose only change is proof-receipt frontmatter
  * cannot alter the snapshot hash (receipts are stripped before hashing), so it
  * must not mark the workspace dirty either. CI proof runs append receipts to
  * tracked proof documents before reporting, and would otherwise always surface

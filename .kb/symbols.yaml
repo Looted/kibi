@@ -594,33 +594,6 @@ symbols:
         target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-operation-interface-parity
-  - id: SYM-kibi-cli-src-cli-register-verification-ts-registerverificationcommand
-    title: registerVerificationCommand
-    sourceFile: packages/cli/src/cli-register-verification.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-commands-verify-ts-verifycommand
-    title: verifyCommand
-    sourceFile: packages/cli/src/commands/verify.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-commands-verify-ts-verifycommandoptions
-    title: VerifyCommandOptions
-    sourceFile: packages/cli/src/commands/verify.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
   - id: SYM-kibi-cli-src-extractors-playwright-cases-ts-extractplaywrightcases
     title: extractPlaywrightCases
     sourceFile: packages/cli/src/extractors/playwright-cases.ts
@@ -922,51 +895,6 @@ symbols:
         target: REQ-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
-  - id: SYM-kibi-cli-src-operations-verification-ingest-verification-ts-executeingestverification
-    title: executeIngestVerification
-    sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-operations-verification-ingest-verification-ts-verificationcaseartifact
-    title: VerificationCaseArtifact
-    sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-operations-verification-ingest-verification-ts-ingestverificationargs
-    title: IngestVerificationArgs
-    sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-operations-verification-ingest-verification-ts-ingestverificationresult
-    title: IngestVerificationResult
-    sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-operations-verification-ingest-verification-ts-playwright-run-version
-    title: PLAYWRIGHT_RUN_VERSION
-    sourceFile: packages/cli/src/operations/verification/ingest-verification.ts
-    symbol_role: config
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
   - id: SYM-kibi-cli-src-public-operations-specs-planning-ts-compileintentspec
     title: compileIntentSpec
     sourceFile: packages/cli/src/public/operations/specs/planning.ts
@@ -985,151 +913,6 @@ symbols:
         target: REQ-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
-  - id: SYM-kibi-cli-src-public-operations-specs-verification-ts-ingestverificationspec
-    title: ingestVerificationSpec
-    sourceFile: packages/cli/src/public/operations/specs/verification.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-public-playwright-case-id-ts-playwrightcaseid
-    title: playwrightCaseId
-    sourceFile: packages/cli/src/public/playwright-case-id.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-public-playwright-case-id-ts-normalizeplaywrightsourcefile
-    title: normalizePlaywrightSourceFile
-    sourceFile: packages/cli/src/public/playwright-case-id.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-public-verification-receipt-ts-verificationcontracthash
-    title: verificationContractHash
-    sourceFile: packages/cli/src/public/verification-receipt.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-public-verification-receipt-ts-verificationreceiptcurrentbindingerrors
-    title: verificationReceiptCurrentBindingErrors
-    sourceFile: packages/cli/src/public/verification-receipt.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-public-verification-receipt-ts-verificationreceiptv2
-    title: VerificationReceiptV2
-    sourceFile: packages/cli/src/public/verification-receipt.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-public-verification-receipt-ts-verificationcontract
-    title: VerificationContract
-    sourceFile: packages/cli/src/public/verification-receipt.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-public-verification-receipt-ts-verification-receipt-v2-version
-    title: VERIFICATION_RECEIPT_V2_VERSION
-    sourceFile: packages/cli/src/public/verification-receipt.ts
-    symbol_role: config
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-public-verification-receipt-ts-verification-contract-version
-    title: VERIFICATION_CONTRACT_VERSION
-    sourceFile: packages/cli/src/public/verification-receipt.ts
-    symbol_role: config
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-public-verification-receipt-ts-verification-contract-schema
-    title: VERIFICATION_CONTRACT_SCHEMA
-    sourceFile: packages/cli/src/public/verification-receipt.ts
-    symbol_role: config
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporter
-    title: KibiPlaywrightReporter
-    sourceFile: packages/cli/src/verification/playwright-reporter.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporter-onbegin
-    title: KibiPlaywrightReporter.onBegin
-    sourceFile: packages/cli/src/verification/playwright-reporter.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporter-ontestend
-    title: KibiPlaywrightReporter.onTestEnd
-    sourceFile: packages/cli/src/verification/playwright-reporter.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporter-onend
-    title: KibiPlaywrightReporter.onEnd
-    sourceFile: packages/cli/src/verification/playwright-reporter.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporteroptions
-    title: KibiPlaywrightReporterOptions
-    sourceFile: packages/cli/src/verification/playwright-reporter.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-verification-playwright-reporter-ts-playwright-run-version
-    title: PLAYWRIGHT_RUN_VERSION
-    sourceFile: packages/cli/src/verification/playwright-reporter.ts
-    symbol_role: config
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
   - id: SYM-kibi-script-change-to-proof-eval-ts-readjsonl
     title: readJsonl
     sourceFile: scripts/change-to-proof-eval.ts
@@ -4456,8 +4239,7 @@ symbols:
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable
-      resource examples
+    title: predicate guidance loads a canonical decision tree with immutable resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -16700,7 +16482,7 @@ symbols:
     status: active
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker.ts
     symbol_role: behavioral
-    granularity_reason: module-level-behavior
+    granularity_reason: legacy-link
     relationships:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
@@ -23531,7 +23313,7 @@ symbols:
       - type: covered_by
         target: TEST-kibi-telemetry-remediation-evidence
   - id: SYM-reqcompiler-receipt-append-only-validation
-    title: validateAppendOnlyVerificationReceipts
+    title: validateAppendOnlyProofReceipts
     status: active
   - id: SYM-reqcompiler-ingestion-boundary-result
     title: SemanticInventoryBoundaryResult
@@ -23985,15 +23767,6 @@ symbols:
   - id: SYM-reqcompiler-verification-receipt-version
     title: VERIFICATION_RECEIPT_VERSION
     status: active
-  - id: SYM-reqcompiler-verification-receipt-max-age
-    title: VERIFICATION_RECEIPT_MAX_AGE_SECONDS
-    sourceFile: packages/cli/src/public/verification-receipt.ts
-    symbol_role: config
-    relationships:
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts
-      - type: covered_by
-        target: TEST-kibi-fresh-verification-receipts
   - id: SYM-reqcompiler-verification-receipt-outcomes
     title: VERIFICATION_RECEIPT_OUTCOMES
     status: active
@@ -24278,6 +24051,15 @@ symbols:
         target: TEST-kibi-html-health-report
       - type: implements
         target: REQ-kibi-html-health-report
+  - id: SYM-e2e-packed-cli-check
+    title: runKibiCheckAfterSync
+    status: active
+    sourceFile: documentation/tests/e2e/packed/cli-workflows.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-004
   - id: SYM-e2e-packed-cli-html-report
     title: verifyHtmlRequirementHealthReport
     status: active
@@ -24690,7 +24472,7 @@ symbols:
       - type: implements
         target: REQ-kibi-operation-interface-parity
   - id: SYM-auto-5E0D46927248
-    title: validateAppendOnlyVerificationReceipts
+    title: validateAppendOnlyProofReceipts
     status: active
     sourceFile: packages/cli/src/operations/mutation/upsert.ts
     symbol_role: behavioral
@@ -24699,10 +24481,14 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-verification-receipts-v2
       - type: implements
         target: REQ-core-atomic-upsert-persistence
       - type: implements
         target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
   - id: SYM-auto-F6E934B6698C
     title: EntityDeletionPlan
     status: active
@@ -28593,16 +28379,6 @@ symbols:
         target: TEST-runtime-packed-engine-daemon
       - type: implements
         target: REQ-runtime-packed-engine-daemon
-  - id: SYM-proof-runner
-    title: runProofContracts
-    status: active
-    sourceFile: scripts/run-proof-runner.mjs
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-test-journaled-engine-harness
-      - type: implements
-        target: REQ-test-journaled-engine-harness
   - id: SYM-shared-npm-cache-resolution
     title: resolveSharedNpmCache
     status: active
@@ -28677,16 +28453,6 @@ symbols:
         target: REQ-core-atomic-upsert-persistence
       - type: implements
         target: REQ-kibi-operation-interface-parity
-  - id: SYM-proof-packed-compiled-directory
-    title: findPackedCompiledDirectory
-    status: active
-    sourceFile: scripts/run-proof-runner.mjs
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-test-journaled-engine-harness
-      - type: implements
-        target: REQ-test-journaled-engine-harness
   - id: SYM-test-opencode-bootstrap-paths
     title: opencode bootstrap paths e2e
     status: active
@@ -29961,104 +29727,6 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
-  - id: SYM-kibi-cli-src-public-verification-receipt-ts-appendonlyverificationreceipthistoryerrors
-    title: appendOnlyVerificationReceiptHistoryErrors
-    status: active
-    tags:
-      - verification
-      - receipts
-      - cli
-    sourceFile: packages/cli/src/public/verification-receipt.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-public-verification-receipt-ts-maxverificationreceipts
-    title: MAX_VERIFICATION_RECEIPTS
-    status: active
-    tags:
-      - verification
-      - receipts
-      - cli
-    sourceFile: packages/cli/src/public/verification-receipt.ts
-    symbol_role: config
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-public-verification-receipt-ts-verificationreceipthistoryerrors
-    title: verificationReceiptHistoryErrors
-    status: active
-    tags:
-      - verification
-      - receipts
-      - cli
-    sourceFile: packages/cli/src/public/verification-receipt.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-public-verification-receipt-ts-verificationreceipt
-    title: VerificationReceipt
-    status: active
-    tags:
-      - verification
-      - receipts
-      - cli
-    sourceFile: packages/cli/src/public/verification-receipt.ts
-    symbol_role: type-shape
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-public-verification-receipt-ts-verification-receipt-version
-    title: VERIFICATION_RECEIPT_VERSION
-    status: active
-    tags:
-      - verification
-      - receipts
-      - cli
-    sourceFile: packages/cli/src/public/verification-receipt.ts
-    symbol_role: config
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-public-verification-receipt-ts-verification-receipt-outcomes
-    title: VERIFICATION_RECEIPT_OUTCOMES
-    status: active
-    tags:
-      - verification
-      - receipts
-      - cli
-    sourceFile: packages/cli/src/public/verification-receipt.ts
-    symbol_role: config
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-kibi-cli-src-public-verification-receipt-ts-verification-receipt-schema
-    title: VERIFICATION_RECEIPT_SCHEMA
-    status: active
-    tags:
-      - verification
-      - receipts
-      - cli
-    sourceFile: packages/cli/src/public/verification-receipt.ts
-    symbol_role: config
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-verification-evidence-contract
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
   - id: SYM-e2e-packed-cli-doctor
     title: should run kibi doctor before init (diagnostic mode)
     status: active
@@ -30072,3 +29740,1018 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-cli-doctor-workflows
+  - id: SYM-register-proof-command
+    title: registerProofCommand
+    sourceFile: packages/cli/src/cli-register-proof.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-prove-command
+    title: proveCommand
+    sourceFile: packages/cli/src/commands/prove.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-prove-command-options
+    title: ProveCommandOptions
+    sourceFile: packages/cli/src/commands/prove.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-execute-ingest-proof
+    title: executeIngestProof
+    sourceFile: packages/cli/src/operations/proof/ingest-proof.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-verification-receipts-v2
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-ingest-proof-args
+    title: IngestProofArgs
+    sourceFile: packages/cli/src/operations/proof/ingest-proof.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-verification-receipts-v2
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-ingest-proof-test-result
+    title: IngestProofTestResult
+    sourceFile: packages/cli/src/operations/proof/ingest-proof.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-verification-receipts-v2
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-ingest-proof-result
+    title: IngestProofResult
+    sourceFile: packages/cli/src/operations/proof/ingest-proof.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-verification-receipts-v2
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-evaluate-contract-against-run
+    title: evaluateContractAgainstRun
+    sourceFile: packages/cli/src/proof/evaluate.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-gap
+    title: ProofGap
+    sourceFile: packages/cli/src/proof/evaluate.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-contract-evaluation
+    title: ContractEvaluation
+    sourceFile: packages/cli/src/proof/evaluate.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-inspect-proof-environment
+    title: inspectProofEnvironment
+    sourceFile: packages/cli/src/proof/inspect.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-inspection
+    title: ProofInspection
+    sourceFile: packages/cli/src/proof/inspect.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-integrations-path
+    title: integrationsPath
+    sourceFile: packages/cli/src/proof/integrations.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-integration-errors
+    title: proofIntegrationErrors
+    sourceFile: packages/cli/src/proof/integrations.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-load-proof-integrations
+    title: loadProofIntegrations
+    sourceFile: packages/cli/src/proof/integrations.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-resolve-integration
+    title: resolveIntegration
+    sourceFile: packages/cli/src/proof/integrations.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-to-execution
+    title: toExecution
+    sourceFile: packages/cli/src/proof/integrations.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-producer-kind
+    title: ProducerKind
+    sourceFile: packages/cli/src/proof/integrations.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-integration
+    title: ProofIntegration
+    sourceFile: packages/cli/src/proof/integrations.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-integrations-file
+    title: ProofIntegrationsFile
+    sourceFile: packages/cli/src/proof/integrations.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-loaded-proof-integrations
+    title: LoadedProofIntegrations
+    sourceFile: packages/cli/src/proof/integrations.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-integrations-path
+    title: PROOF_INTEGRATIONS_PATH
+    sourceFile: packages/cli/src/proof/integrations.ts
+    status: active
+    symbol_role: unknown
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-runs-dir
+    title: PROOF_RUNS_DIR
+    sourceFile: packages/cli/src/proof/integrations.ts
+    status: active
+    symbol_role: unknown
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-producer-kinds
+    title: PRODUCER_KINDS
+    sourceFile: packages/cli/src/proof/integrations.ts
+    status: active
+    symbol_role: unknown
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-receipt-outcome
+    title: ProofReceiptOutcome
+    sourceFile: packages/cli/src/proof/receipt-outcome.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-verification-receipts-v2
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-strip-cosmetic
+    title: stripCosmetic
+    sourceFile: packages/cli/src/public/proof-fingerprint.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-canonical-json
+    title: canonicalJson
+    sourceFile: packages/cli/src/public/proof-fingerprint.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-json-digest
+    title: jsonDigest
+    sourceFile: packages/cli/src/public/proof-fingerprint.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-environment-hash
+    title: environmentHash
+    sourceFile: packages/cli/src/public/proof-fingerprint.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-contract-hash
+    title: proofContractHash
+    sourceFile: packages/cli/src/public/proof-fingerprint.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-effective-proof-fingerprint
+    title: effectiveProofFingerprint
+    sourceFile: packages/cli/src/public/proof-fingerprint.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-fingerprint-drift
+    title: fingerprintDrift
+    sourceFile: packages/cli/src/public/proof-fingerprint.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-integration-execution
+    title: ProofIntegrationExecution
+    sourceFile: packages/cli/src/public/proof-fingerprint.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-fingerprint-components
+    title: ProofFingerprintComponents
+    sourceFile: packages/cli/src/public/proof-fingerprint.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-fingerprint
+    title: ProofFingerprint
+    sourceFile: packages/cli/src/public/proof-fingerprint.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-fingerprint-component-names
+    title: FINGERPRINT_COMPONENT_NAMES
+    sourceFile: packages/cli/src/public/proof-fingerprint.ts
+    status: active
+    symbol_role: unknown
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-result-errors
+    title: proofResultErrors
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-run-artifact-errors
+    title: proofRunArtifactErrors
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-contract-errors
+    title: proofContractErrors
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-bindings-errors
+    title: proofBindingsErrors
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-run-outcome
+    title: ProofRunOutcome
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-result-outcome
+    title: ProofResultOutcome
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-binding-kind
+    title: ProofBindingKind
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-attempts-status
+    title: AttemptsStatus
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-run-failure-phase
+    title: RunFailurePhase
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-success-policy
+    title: SuccessPolicy
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-attempt
+    title: ProofAttempt
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-attempts
+    title: ProofAttempts
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-result
+    title: ProofResult
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-producer-provenance
+    title: ProducerProvenance
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-environment
+    title: ProofEnvironment
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-run
+    title: ProofRun
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-run-artifact
+    title: ProofRunArtifact
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-obligation
+    title: ProofObligation
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-contract
+    title: ProofContract
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-binding
+    title: ProofBinding
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-run-version
+    title: PROOF_RUN_VERSION
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: unknown
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-contract-version
+    title: PROOF_CONTRACT_VERSION
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: unknown
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-receipt-version
+    title: PROOF_RECEIPT_VERSION
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: unknown
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-integration-version
+    title: PROOF_INTEGRATION_VERSION
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: unknown
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-run-outcomes
+    title: PROOF_RUN_OUTCOMES
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: unknown
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-result-outcomes
+    title: PROOF_RESULT_OUTCOMES
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: unknown
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-binding-kinds
+    title: PROOF_BINDING_KINDS
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: unknown
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-attempts-status-2
+    title: ATTEMPTS_STATUS
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: unknown
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-run-failure-phases
+    title: RUN_FAILURE_PHASES
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: unknown
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-success-policies
+    title: SUCCESS_POLICIES
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: unknown
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-result-schema
+    title: PROOF_RESULT_SCHEMA
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: unknown
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-run-artifact-schema
+    title: PROOF_RUN_ARTIFACT_SCHEMA
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: unknown
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-contract-schema
+    title: PROOF_CONTRACT_SCHEMA
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: unknown
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-proof-bindings-schema
+    title: PROOF_BINDINGS_SCHEMA
+    sourceFile: packages/cli/src/public/proof-protocol.ts
+    status: active
+    symbol_role: unknown
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-valid-proof-receipt-shape
+    title: validProofReceiptShape
+    sourceFile: packages/cli/src/public/proof-receipt.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-verification-receipts-v2
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-proof-receipt-history-errors
+    title: proofReceiptHistoryErrors
+    sourceFile: packages/cli/src/public/proof-receipt.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-verification-receipts-v2
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-proof-receipt-current-binding-errors
+    title: proofReceiptCurrentBindingErrors
+    sourceFile: packages/cli/src/public/proof-receipt.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-verification-receipts-v2
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-append-only-proof-receipt-history-errors
+    title: appendOnlyProofReceiptHistoryErrors
+    sourceFile: packages/cli/src/public/proof-receipt.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-verification-receipts-v2
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-proof-receipt
+    title: ProofReceipt
+    sourceFile: packages/cli/src/public/proof-receipt.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-verification-receipts-v2
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-proof-receipt-max-age-seconds
+    title: PROOF_RECEIPT_MAX_AGE_SECONDS
+    sourceFile: packages/cli/src/public/proof-receipt.ts
+    status: active
+    symbol_role: unknown
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-verification-receipts-v2
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-proof-receipt-outcomes
+    title: PROOF_RECEIPT_OUTCOMES
+    sourceFile: packages/cli/src/public/proof-receipt.ts
+    status: active
+    symbol_role: unknown
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-verification-receipts-v2
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-proof-receipt-schema
+    title: PROOF_RECEIPT_SCHEMA
+    sourceFile: packages/cli/src/public/proof-receipt.ts
+    status: active
+    symbol_role: unknown
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-verification-receipts-v2
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-max-proof-receipts
+    title: MAX_PROOF_RECEIPTS
+    sourceFile: packages/cli/src/public/proof-receipt.ts
+    status: active
+    symbol_role: unknown
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-verification-receipts-v2
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+  - id: SYM-ingest-proof-spec
+    title: ingestProofSpec
+    sourceFile: packages/cli/src/public/operations/specs/proof.ts
+    status: active
+    symbol_role: unknown
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-binding-lookup
+    title: bindingLookup
+    sourceFile: packages/cli/src/proof/producers/junit-adapter.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-convert-junit-xml
+    title: convertJUnitXml
+    sourceFile: packages/cli/src/proof/producers/junit-adapter.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-native-binding
+    title: NativeBinding
+    sourceFile: packages/cli/src/proof/producers/junit-adapter.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-native-conversion
+    title: NativeConversion
+    sourceFile: packages/cli/src/proof/producers/junit-adapter.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-playwright-producer
+    title: KibiPlaywrightProducer
+    sourceFile: packages/cli/src/proof/producers/playwright-reporter.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-playwright-producer-on-begin
+    title: KibiPlaywrightProducer.onBegin
+    sourceFile: packages/cli/src/proof/producers/playwright-reporter.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-playwright-producer-on-test-end
+    title: KibiPlaywrightProducer.onTestEnd
+    sourceFile: packages/cli/src/proof/producers/playwright-reporter.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-playwright-producer-on-end
+    title: KibiPlaywrightProducer.onEnd
+    sourceFile: packages/cli/src/proof/producers/playwright-reporter.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-kibi-playwright-producer-options
+    title: KibiPlaywrightProducerOptions
+    sourceFile: packages/cli/src/proof/producers/playwright-reporter.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-convert-tap
+    title: convertTap
+    sourceFile: packages/cli/src/proof/producers/tap-adapter.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-playwright-case-id
+    title: playwrightCaseId
+    sourceFile: packages/cli/src/proof/producers/playwright-case-id.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-normalize-playwright-source-file
+    title: normalizePlaywrightSourceFile
+    sourceFile: packages/cli/src/proof/producers/playwright-case-id.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-test-ingest-proof
+    title: ingest proof tests
+    sourceFile: packages/cli/tests/operations/ingest-proof.test.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-verification-receipts-v2
+  - id: SYM-test-playwright-producer
+    title: playwright producer tests
+    sourceFile: packages/cli/tests/proof/playwright-producer.test.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-test-proof-protocol
+    title: proof protocol tests
+    sourceFile: packages/cli/tests/public/proof-protocol.test.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-run-proof-producer
+    title: run-proof-producer
+    sourceFile: scripts/run-proof-producer.mjs
+    status: active
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract

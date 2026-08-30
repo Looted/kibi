@@ -16,33 +16,13 @@ links:
     target: SCEN-kibi-github-report-integration
 type: test
 text_ref: packages/cli/tests/commands/github-init.test.ts
-verification_contract:
-  version: kibi.verification-contract.v1
-  runner: node
-  command_argv:
-    - node
-    - scripts/run-proof-contract.mjs
-    - '--test-id'
-    - TEST-kibi-github-report-integration
-  required_case_symbols:
-    - SYM-e2e-packed-cli-github-report
-  required_projects:
-    - default
-  success_policy: all_required_cases_first_attempt
----
----
-id: TEST-kibi-github-report-integration
-type: test
-title: GitHub badge, report init, and PR-vs-Pages workflow tests
-status: active
-tags:
-  - cli
-  - github
-  - report
-  - badge
-  - init
-  - unit
-text_ref: packages/cli/tests/commands/github-init.test.ts
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-e2e-packed-cli-github-report
+      target: default
+  success_policy: all_required_first_attempt
 ---
 
 # GitHub badge, report init, and PR-vs-Pages workflow tests

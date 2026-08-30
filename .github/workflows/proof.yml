@@ -79,8 +79,8 @@ jobs:
           bun packages/cli/bin/kibi sync --refresh-symbol-coordinates
           bun packages/cli/bin/kibi check --format json --rules no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness
 
-      - name: Run every contracted proof command through Kibi
-        run: node scripts/run-proof-runner.mjs
+      - name: Prove every contracted test through Kibi
+        run: bun packages/cli/bin/kibi prove --all
 
       - name: Enforce proof baseline and clean snapshot
         run: node scripts/check-proof-baseline.mjs

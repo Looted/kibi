@@ -89,9 +89,9 @@ export async function loadOperationSpec(
       spec = (await import("./public/operations/specs/planning.js"))
         .applyPlanSpec;
       break;
-    case "kb_ingest_verification":
-      spec = (await import("./public/operations/specs/verification.js"))
-        .ingestVerificationSpec;
+    case "kb_ingest_proof":
+      spec = (await import("./public/operations/specs/proof.js"))
+        .ingestProofSpec;
       break;
   }
   return withContractDefaults(spec);

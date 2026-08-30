@@ -330,10 +330,7 @@ describe("deriveDiagnosticFields", () => {
             { id: "REQ-1", proofGaps: [] },
             {
               id: "REQ-2",
-              proofGaps: [
-                "missing_logic_grounding",
-                "stale_verification_receipt",
-              ],
+              proofGaps: ["missing_logic_grounding", "stale_proof_receipt"],
               proofStages: {
                 passingE2e: {
                   staleReceiptTests: ["TEST-2"],
@@ -342,7 +339,7 @@ describe("deriveDiagnosticFields", () => {
             },
           ],
           repairPlan: { scope: { complete: true } },
-          meta: { verificationSnapshot: "c".repeat(64) },
+          meta: { proofSnapshot: "c".repeat(64) },
         },
       },
     );
@@ -357,18 +354,18 @@ describe("deriveDiagnosticFields", () => {
       coverage_receipt_gap_total: 1,
       coverage_receipt_gaps_truncated: false,
       coverage_scope_complete: true,
-      coverage_verification_snapshot: "c".repeat(64),
+      coverage_proof_snapshot: "c".repeat(64),
       result_summary: "1 proven; 2 proof gaps",
     });
     expect(result.coverage_gap_codes).toEqual([
       "missing_logic_grounding",
-      "stale_verification_receipt",
+      "stale_proof_receipt",
     ]);
     expect(result.coverage_receipt_gaps).toEqual([
       {
         requirementId: "REQ-2",
         testIds: ["TEST-2"],
-        codes: ["stale_verification_receipt"],
+        codes: ["stale_proof_receipt"],
       },
     ]);
   });

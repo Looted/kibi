@@ -10,14 +10,7 @@
   "bin": {
     "kibi": "bin/kibi"
   },
-  "files": [
-    "dist",
-    "bin",
-    "schema",
-    "src/schemas",
-    "src/public",
-    "templates"
-  ],
+  "files": ["dist", "bin", "schema", "src/schemas", "src/public", "templates"],
   "scripts": {
     "build": "tsc -p tsconfig.json && rm -rf dist/public/skills && mkdir -p dist/public/skills && cp -r src/public/skills/. dist/public/skills/ && node ../../scripts/generate-entity-schema.mjs --check",
     "test": "node ../../scripts/run-owned-engine-tests.mjs -- bun test --timeout 15000 .",

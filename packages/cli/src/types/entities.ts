@@ -16,10 +16,8 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import type {
-  VerificationContract,
-  VerificationReceipt,
-} from "../public/verification-receipt.js";
+import type { ProofBinding, ProofContract } from "../public/proof-protocol.js";
+import type { ProofReceipt } from "../public/proof-receipt.js";
 
 export interface BaseEntity {
   id: string;
@@ -76,8 +74,9 @@ export interface FactFields {
 export interface TestVerificationFields {
   verification_scope?: "unit" | "integration" | "end_to_end";
   verification_perspective?: "internal" | "consumer";
-  verification_contract?: VerificationContract;
-  verification_receipts?: readonly VerificationReceipt[];
+  proof_contract?: ProofContract;
+  proof_bindings?: readonly ProofBinding[];
+  proof_receipts?: readonly ProofReceipt[];
 }
 
 export type Requirement = BaseEntity & {

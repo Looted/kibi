@@ -1,4 +1,4 @@
-import { VERIFICATION_RECEIPT_MAX_AGE_SECONDS } from "../../verification-receipt.js";
+import { PROOF_RECEIPT_MAX_AGE_SECONDS } from "../../proof-receipt.js";
 import { executeStatus } from "../discovery-executors.js";
 import {
   type LegacyMigrationPlan,
@@ -174,7 +174,7 @@ export async function executeCoverage(
     const payload = await runOperationJsonQuery<CoveragePayload>(
       requireProlog(context),
       "discovery.pl",
-      `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${input.includeTransitive ?? true}, ${input.limit ?? 100}, ${input.offset ?? 0}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${VERIFICATION_RECEIPT_MAX_AGE_SECONDS}, JsonString)`,
+      `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${input.includeTransitive ?? true}, ${input.limit ?? 100}, ${input.offset ?? 0}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`,
       "Coverage execution",
     );
     const repairPlan = buildRepairPlan(payload, input, codeSnapshot);
@@ -212,7 +212,7 @@ export async function executeCoverage(
           : {}),
         workspaceSnapshot: codeSnapshot,
       },
-      evaluatedDomains: ["semantic", "verification", "symbol"],
+      evaluatedDomains: ["semantic", "proof", "symbol"],
       incompleteDomains:
         payload.meta?.scopeComplete === false ? ["coverage"] : [],
       actions: buildActionsFromCoverage({
@@ -237,17 +237,16 @@ export async function executeCoverage(
       migrationPlan,
       meta: {
         ...(payload.meta ?? {}),
-        verificationReceiptMaxAgeSeconds: VERIFICATION_RECEIPT_MAX_AGE_SECONDS,
-        verificationSnapshot: codeSnapshot,
-        verificationSnapshotAvailable: snapshotEvidence.available,
+        proofReceiptMaxAgeSeconds: PROOF_RECEIPT_MAX_AGE_SECONDS,
+        proofSnapshot: codeSnapshot,
+        proofSnapshotAvailable: snapshotEvidence.available,
         ...(snapshotEvidence.available
           ? {
-              verificationSnapshotDirty: snapshotEvidence.snapshot.dirty,
-              verificationSnapshotFileCount:
-                snapshotEvidence.snapshot.fileCount,
-              verificationSnapshotVersion: snapshotEvidence.snapshot.version,
+              proofSnapshotDirty: snapshotEvidence.snapshot.dirty,
+              proofSnapshotFileCount: snapshotEvidence.snapshot.fileCount,
+              proofSnapshotVersion: snapshotEvidence.snapshot.version,
             }
-          : { verificationSnapshotError: snapshotEvidence.error }),
+          : { proofSnapshotError: snapshotEvidence.error }),
       },
     };
     const fullyCovered = Number(enrichedPayload.summary?.fullyCovered ?? 0);

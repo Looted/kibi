@@ -15,7 +15,7 @@ import { validateSymbolGranularity } from "./symbol-granularity.js";
 import type { UpsertInput, ValidateUpsertPayload } from "./types.js";
 import {
   effectiveRelationships,
-  validateAppendOnlyVerificationReceipts,
+  validateAppendOnlyProofReceipts,
 } from "./upsert.js";
 import { validateUpsertInput } from "./validation.js";
 
@@ -25,7 +25,7 @@ export async function executeValidateUpsert(
 ): Promise<OperationResult<ValidateUpsertPayload>> {
   try {
     const validated = validateUpsertInput(input, context.clock());
-    await validateAppendOnlyVerificationReceipts(validated.entity, context);
+    await validateAppendOnlyProofReceipts(validated.entity, context);
     validateRelationshipSources(input.id, validated.relationships);
     await validateSymbolGranularity(
       validated.entity,

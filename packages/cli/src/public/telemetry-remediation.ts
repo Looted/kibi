@@ -393,7 +393,7 @@ export function buildTelemetryRemediationReport(
             latestCoverage,
             "coverage:req",
             `The latest complete report has ${latestCoverage.event.coverage_receipt_gap_count} receipt gaps.`,
-            "Query the cited tests and run each exact current verification contract through kibi verify; preserve receipt history, append the generated v2 receipts, sync, and rerun coverage.",
+            "Run `kibi prove` for the cited requirements or integrations; receipts append idempotently with preserved history, then sync and rerun coverage.",
           )
         : reportItem(
             "e2e_receipt_freshness",

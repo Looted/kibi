@@ -3,16 +3,9 @@ relationships:
     type: executable_for
     from: SYM-auto-01A7A4554EF9
     to: TEST-kibi-operation-interface-parity
-    created_at: "2026-08-15T22:14:56.536Z"
+    created_at: 2026-08-15T22:14:56.536Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-  - type: covered_by
-    from: SYM-kibi-cli-src-public-verification-receipt-ts-verification-contract-schema
-    to: TEST-kibi-verification-evidence-contract
-    created_at: 2026-08-16T18:52:23.866Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-01701aa0691f
   - type: implements
     from: SYM-createRepoIgnorePolicy
     to: REQ-cli-canonical-runtime

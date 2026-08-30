@@ -202,3 +202,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f7370bc3af0a
+  - type: covered_by
+    from: SYM-CheckOptions
+    to: TEST-004
+    created_at: 2026-08-29T11:39:22.297Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f620cc35eabb

@@ -76,12 +76,12 @@ export type StatusPayload = {
   readonly syncState: string;
   readonly kbPath?: string;
   readonly lastSyncSource?: string;
-  readonly verificationSnapshot?: string;
-  readonly verificationSnapshotAvailable?: boolean;
-  readonly verificationSnapshotDirty?: boolean;
-  readonly verificationSnapshotFileCount?: number;
-  readonly verificationSnapshotVersion?: string;
-  readonly verificationSnapshotError?: string;
+  readonly proofSnapshot?: string;
+  readonly proofSnapshotAvailable?: boolean;
+  readonly proofSnapshotDirty?: boolean;
+  readonly proofSnapshotFileCount?: number;
+  readonly proofSnapshotVersion?: string;
+  readonly proofSnapshotError?: string;
   readonly staleReasons?: readonly Record<string, unknown>[];
   readonly staleReasonCount?: number;
   readonly staleReasonsTruncated?: boolean;
@@ -91,9 +91,9 @@ export type StatusPayload = {
     readonly kind: "exact" | "explicit_override" | "legacy_compat";
     readonly migrationRequired: boolean;
   };
-  readonly verificationSnapshotChanges?: readonly Record<string, unknown>[];
-  readonly verificationSnapshotChangeCount?: number;
-  readonly verificationSnapshotChangesTruncated?: boolean;
+  readonly proofSnapshotChanges?: readonly Record<string, unknown>[];
+  readonly proofSnapshotChangeCount?: number;
+  readonly proofSnapshotChangesTruncated?: boolean;
   readonly branchStore?: BranchStoreInspection;
   readonly engineStatus?: {
     readonly state: "healthy" | "unavailable";
@@ -414,23 +414,22 @@ export async function executeStatus(
       staleReasons,
       staleReasonCount: staleReasons.length,
       staleReasonsTruncated: false,
-      verificationSnapshot: snapshotEvidence.available
+      proofSnapshot: snapshotEvidence.available
         ? snapshotEvidence.snapshot.hash
         : "unknown",
-      verificationSnapshotAvailable: snapshotEvidence.available,
+      proofSnapshotAvailable: snapshotEvidence.available,
       ...(snapshotEvidence.available
         ? {
-            verificationSnapshotDirty: snapshotEvidence.snapshot.dirty,
-            verificationSnapshotFileCount: snapshotEvidence.snapshot.fileCount,
-            verificationSnapshotVersion: snapshotEvidence.snapshot.version,
-            verificationSnapshotChanges:
-              snapshotEvidence.snapshot.changes ?? [],
-            verificationSnapshotChangeCount:
+            proofSnapshotDirty: snapshotEvidence.snapshot.dirty,
+            proofSnapshotFileCount: snapshotEvidence.snapshot.fileCount,
+            proofSnapshotVersion: snapshotEvidence.snapshot.version,
+            proofSnapshotChanges: snapshotEvidence.snapshot.changes ?? [],
+            proofSnapshotChangeCount:
               snapshotEvidence.snapshot.changeCount ?? 0,
-            verificationSnapshotChangesTruncated:
+            proofSnapshotChangesTruncated:
               snapshotEvidence.snapshot.changesTruncated ?? false,
           }
-        : { verificationSnapshotError: snapshotEvidence.error }),
+        : { proofSnapshotError: snapshotEvidence.error }),
     };
     const schemaStatus = readMigrationConfigStatus(context.workspaceRoot);
     const migrationPlan = buildActionsFromStatus({
@@ -438,9 +437,9 @@ export async function executeStatus(
       branchAttachment: attachment,
       branchStore: store,
       staleReasons,
-      verificationSnapshotAvailable: snapshotEvidence.available,
+      proofSnapshotAvailable: snapshotEvidence.available,
       ...(snapshotEvidence.available
-        ? { verificationSnapshotDirty: snapshotEvidence.snapshot.dirty }
+        ? { proofSnapshotDirty: snapshotEvidence.snapshot.dirty }
         : {}),
       kbSnapshotId: payload.snapshotId,
       workspaceSnapshot: snapshotEvidence.available
@@ -514,7 +513,7 @@ export async function executeStatus(
       content: [
         {
           type: "text",
-          text: `Branch ${payload.branch} is ${payload.syncState} (snapshot ${payload.snapshotId}, dirty=${payload.dirty}, verificationSnapshot=${enrichedPayload.verificationSnapshot})`,
+          text: `Branch ${payload.branch} is ${payload.syncState} (snapshot ${payload.snapshotId}, dirty=${payload.dirty}, proofSnapshot=${enrichedPayload.proofSnapshot})`,
         },
       ],
       structuredContent: statusWithPlan,

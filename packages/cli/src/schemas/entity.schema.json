@@ -628,280 +628,392 @@
         "consumer"
       ]
     },
-    "verification_contract": {
+    "proof_contract": {
       "type": "object",
+      "description": "Semantic proof contract binding a test to explicit proof obligations executed by a configured integration.",
       "required": [
         "version",
-        "runner",
-        "command_argv",
-        "required_case_symbols",
-        "required_projects",
+        "integration",
+        "required_proofs",
         "success_policy"
       ],
       "properties": {
         "version": {
           "type": "string",
-          "const": "kibi.verification-contract.v1"
+          "const": "kibi.proof-contract.v1"
         },
-        "runner": {
+        "integration": {
           "type": "string",
           "minLength": 1
         },
-        "command_argv": {
+        "required_proofs": {
           "type": "array",
           "minItems": 1,
+          "maxItems": 1000,
           "items": {
-            "type": "string",
-            "minLength": 1
+            "type": "object",
+            "required": [
+              "symbol_id",
+              "target"
+            ],
+            "properties": {
+              "symbol_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "target": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false
           }
-        },
-        "required_case_symbols": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          },
-          "uniqueItems": true
-        },
-        "required_projects": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          },
-          "uniqueItems": true
         },
         "success_policy": {
           "type": "string",
-          "const": "all_required_cases_first_attempt"
+          "enum": [
+            "all_required_first_attempt"
+          ]
         }
       },
       "additionalProperties": false
     },
-    "verification_receipts": {
+    "proof_bindings": {
+      "type": "array",
+      "description": "Optional native-runner bindings for proof obligations. Bindings are provenance metadata; they never replace the semantic proof contract.",
+      "items": {
+        "type": "object",
+        "required": [
+          "symbol_id",
+          "target"
+        ],
+        "properties": {
+          "symbol_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target": {
+            "type": "string",
+            "minLength": 1
+          },
+          "native_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "source_file": {
+            "type": "string",
+            "minLength": 1
+          },
+          "line": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "proof_receipts": {
       "type": "array",
       "items": {
-        "oneOf": [
-          {
+        "type": "object",
+        "description": "Kibi-derived kibi.proof-receipt.v1. Receipts are never caller-authored; kb_ingest_proof derives them from kibi.proof-run.v1 artifacts.",
+        "required": [
+          "version",
+          "receipt_id",
+          "test_id",
+          "scope",
+          "outcome",
+          "code_snapshot",
+          "environment_hash",
+          "started_at",
+          "finished_at",
+          "artifact_digest",
+          "contract_hash",
+          "fingerprint",
+          "fingerprint_components",
+          "integration_id",
+          "producer",
+          "command_argv",
+          "run_outcome",
+          "proof_results"
+        ],
+        "properties": {
+          "version": {
+            "type": "string",
+            "const": "kibi.proof-receipt.v1"
+          },
+          "receipt_id": {
+            "type": "string",
+            "pattern": "^PR-[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$"
+          },
+          "test_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "unit",
+              "integration",
+              "end_to_end"
+            ]
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "passed",
+              "failed",
+              "errored",
+              "cancelled",
+              "skipped",
+              "timed_out",
+              "interrupted"
+            ]
+          },
+          "code_snapshot": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "environment_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "started_at": {
+            "type": "string",
+            "minLength": 1
+          },
+          "finished_at": {
+            "type": "string",
+            "minLength": 1
+          },
+          "artifact_digest": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "contract_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "fingerprint": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "fingerprint_components": {
             "type": "object",
             "required": [
-              "version",
-              "receipt_id",
-              "test_id",
-              "runner",
+              "contract",
+              "integration",
               "command",
-              "scope",
-              "outcome",
-              "code_snapshot",
-              "environment_hash",
-              "started_at",
-              "finished_at",
-              "artifact_digest"
+              "bindings",
+              "producer"
             ],
+            "additionalProperties": false,
             "properties": {
-              "version": {
+              "contract": {
                 "type": "string",
-                "const": "kibi.verification-receipt.v1"
+                "pattern": "^[a-f0-9]{64}$"
               },
-              "receipt_id": {
+              "integration": {
                 "type": "string",
-                "pattern": "^VR-[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$"
-              },
-              "test_id": {
-                "type": "string",
-                "minLength": 1
-              },
-              "runner": {
-                "type": "string",
-                "minLength": 1
+                "pattern": "^[a-f0-9]{64}$"
               },
               "command": {
                 "type": "string",
-                "minLength": 1
+                "pattern": "^[a-f0-9]{64}$"
               },
-              "scope": {
-                "type": "string",
-                "enum": [
-                  "unit",
-                  "integration",
-                  "end_to_end"
-                ]
-              },
-              "outcome": {
-                "type": "string",
-                "enum": [
-                  "passed",
-                  "failed",
-                  "errored",
-                  "cancelled",
-                  "skipped",
-                  "timed_out",
-                  "interrupted"
-                ]
-              },
-              "code_snapshot": {
+              "bindings": {
                 "type": "string",
                 "pattern": "^[a-f0-9]{64}$"
               },
-              "environment_hash": {
+              "producer": {
                 "type": "string",
                 "pattern": "^[a-f0-9]{64}$"
-              },
-              "started_at": {
+              }
+            }
+          },
+          "integration_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "producer": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
                 "type": "string",
                 "minLength": 1
               },
-              "finished_at": {
+              "version": {
                 "type": "string",
                 "minLength": 1
-              },
-              "artifact_digest": {
-                "type": "string",
-                "pattern": "^[a-f0-9]{64}$"
               }
             },
             "additionalProperties": false
           },
-          {
-            "type": "object",
-            "required": [
-              "version",
-              "receipt_id",
-              "test_id",
-              "runner",
-              "command",
-              "scope",
-              "outcome",
-              "code_snapshot",
-              "environment_hash",
-              "started_at",
-              "finished_at",
-              "artifact_digest",
-              "command_argv",
-              "contract_hash",
-              "case_results"
-            ],
-            "properties": {
-              "version": {
-                "type": "string",
-                "const": "kibi.verification-receipt.v2"
+          "command_argv": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "run_outcome": {
+            "type": "string",
+            "enum": [
+              "passed",
+              "failed",
+              "errored",
+              "cancelled",
+              "timed_out",
+              "interrupted",
+              "no_results"
+            ]
+          },
+          "proof_results": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 1000,
+            "items": {
+              "type": "object",
+              "required": [
+                "symbol_id",
+                "target",
+                "outcome",
+                "binding",
+                "attempts"
+              ],
+              "properties": {
+                "symbol_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "target": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "outcome": {
+                  "type": "string",
+                  "enum": [
+                    "passed",
+                    "failed",
+                    "timed_out",
+                    "skipped",
+                    "interrupted",
+                    "errored"
+                  ]
+                },
+                "binding": {
+                  "type": "string",
+                  "enum": [
+                    "native_case",
+                    "aggregate_run"
+                  ]
+                },
+                "native_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "attempts": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "status",
+                        "entries"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "const": "complete"
+                        },
+                        "entries": {
+                          "type": "array",
+                          "minItems": 1,
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "outcome"
+                            ],
+                            "properties": {
+                              "outcome": {
+                                "type": "string",
+                                "enum": [
+                                  "passed",
+                                  "failed",
+                                  "timed_out",
+                                  "skipped",
+                                  "interrupted",
+                                  "errored"
+                                ]
+                              },
+                              "duration_ms": {
+                                "type": "number",
+                                "minimum": 0
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "status"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "const": "unavailable"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                }
               },
-              "receipt_id": {
-                "type": "string",
-                "pattern": "^VR-[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$"
-              },
-              "test_id": {
-                "type": "string",
-                "minLength": 1
-              },
-              "runner": {
-                "type": "string",
-                "minLength": 1
-              },
-              "command": {
-                "type": "string",
-                "minLength": 1
-              },
-              "scope": {
-                "type": "string",
-                "enum": [
-                  "unit",
-                  "integration",
-                  "end_to_end"
-                ]
-              },
-              "outcome": {
-                "type": "string",
-                "enum": [
-                  "passed",
-                  "failed",
-                  "errored",
-                  "cancelled",
-                  "skipped",
-                  "timed_out",
-                  "interrupted"
-                ]
-              },
-              "code_snapshot": {
-                "type": "string",
-                "pattern": "^[a-f0-9]{64}$"
-              },
-              "environment_hash": {
-                "type": "string",
-                "pattern": "^[a-f0-9]{64}$"
-              },
-              "started_at": {
-                "type": "string",
-                "minLength": 1
-              },
-              "finished_at": {
-                "type": "string",
-                "minLength": 1
-              },
-              "artifact_digest": {
-                "type": "string",
-                "pattern": "^[a-f0-9]{64}$"
-              },
-              "command_argv": {
-                "type": "array",
-                "minItems": 1,
-                "items": {
+              "additionalProperties": false
+            }
+          },
+          "gaps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "symbol_id",
+                "target",
+                "reason"
+              ],
+              "properties": {
+                "symbol_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "target": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "reason": {
                   "type": "string",
                   "minLength": 1
                 }
               },
-              "contract_hash": {
-                "type": "string",
-                "pattern": "^[a-f0-9]{64}$"
-              },
-              "case_results": {
-                "type": "array",
-                "minItems": 1,
-                "maxItems": 1000,
-                "items": {
-                  "type": "object",
-                  "required": [
-                    "symbol_id",
-                    "project",
-                    "outcome",
-                    "retries",
-                    "duration_ms"
-                  ],
-                  "properties": {
-                    "symbol_id": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "project": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "outcome": {
-                      "type": "string",
-                      "enum": [
-                        "passed",
-                        "failed",
-                        "timed_out",
-                        "skipped",
-                        "interrupted"
-                      ]
-                    },
-                    "retries": {
-                      "type": "integer",
-                      "minimum": 0
-                    },
-                    "duration_ms": {
-                      "type": "integer",
-                      "minimum": 0
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              }
-            },
-            "additionalProperties": false
+              "additionalProperties": false
+            }
           }
-        ]
+        },
+        "additionalProperties": false
       }
     },
     "type": {
@@ -1310,12 +1422,17 @@
             },
             {
               "required": [
-                "verification_contract"
+                "proof_contract"
               ]
             },
             {
               "required": [
-                "verification_receipts"
+                "proof_bindings"
+              ]
+            },
+            {
+              "required": [
+                "proof_receipts"
               ]
             }
           ]
@@ -1325,7 +1442,7 @@
     {
       "if": {
         "required": [
-          "verification_receipts"
+          "proof_receipts"
         ]
       },
       "then": {

@@ -24,8 +24,8 @@ function reportCoverage(total = 1, rowCount = 1) {
       },
       meta: {
         branch: "feature/report",
-        verificationSnapshot: "abc123",
-        verificationSnapshotDirty: false,
+        proofSnapshot: "abc123",
+        proofSnapshotDirty: false,
       },
       rows: Array.from({ length: rowCount }, (_, index) => ({
         id: `REQ-${index + 1}`,
@@ -139,7 +139,7 @@ describe("kibi report", () => {
   test("renders conservative badge states from the report snapshot", async () => {
     const coverage = reportCoverage(2, 2);
     coverage.requirements.summary.proofProven = 1;
-    coverage.requirements.meta.verificationSnapshotDirty = true;
+    coverage.requirements.meta.proofSnapshotDirty = true;
     coverage.requirements.rows[0].proofGaps = ["blocking_contradiction"];
 
     await reportCommand(

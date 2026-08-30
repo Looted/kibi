@@ -121,13 +121,11 @@ describe("Entity Schema", () => {
       updated_at: "2026-08-10T00:00:00Z",
       source: ".kb/tests/TEST-RECEIPT-SCHEMA.md",
       verification_scope: "end_to_end",
-      verification_receipts: [
+      proof_receipts: [
         {
-          version: "kibi.verification-receipt.v1",
-          receipt_id: "VR-SCHEMA-00000001",
+          version: "kibi.proof-receipt.v1",
+          receipt_id: "PR-SCHEMA-000000001",
           test_id: "TEST-RECEIPT-SCHEMA",
-          runner: "bun:test",
-          command: "bun test receipt.test.ts",
           scope: "end_to_end",
           outcome: "passed",
           code_snapshot:
@@ -138,6 +136,30 @@ describe("Entity Schema", () => {
           finished_at: "2026-08-10T12:01:00Z",
           artifact_digest:
             "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          contract_hash:
+            "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          fingerprint:
+            "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          fingerprint_components: {
+            contract: "1a".repeat(32),
+            integration: "2a".repeat(32),
+            command: "3a".repeat(32),
+            bindings: "4a".repeat(32),
+            producer: "5a".repeat(32),
+          },
+          integration_id: "self-proof",
+          producer: { name: "kibi-command-producer" },
+          command_argv: ["node", "scripts/proof.mjs"],
+          run_outcome: "passed",
+          proof_results: [
+            {
+              symbol_id: "SYM-RECEIPT-CASE",
+              target: "default",
+              outcome: "passed",
+              binding: "aggregate_run",
+              attempts: { status: "unavailable" },
+            },
+          ],
         },
       ],
     };
@@ -147,9 +169,9 @@ describe("Entity Schema", () => {
       validate({
         ...base,
         type: "test",
-        verification_receipts: Array.from({ length: 51 }, (_, index) => ({
-          ...base.verification_receipts[0],
-          receipt_id: `VR-SCHEMA-${String(index).padStart(8, "0")}`,
+        proof_receipts: Array.from({ length: 51 }, (_, index) => ({
+          ...base.proof_receipts[0],
+          receipt_id: `PR-SCHEMA-${String(index).padStart(9, "0")}`,
         })),
       }),
     ).toBe(true);

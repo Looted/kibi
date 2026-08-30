@@ -127,7 +127,7 @@ export async function executeCheck(
     const workspaceRoot = args.workspaceRoot ?? context.workspaceRoot;
     const prolog = requireProlog(context);
     const snapshotEvidence = await readWorkspaceSnapshot(context);
-    const verificationSnapshot = snapshotEvidence.available
+    const proofSnapshot = snapshotEvidence.available
       ? snapshotEvidence.snapshot.hash
       : undefined;
     const checkedAt = context.clock().toISOString();
@@ -152,9 +152,7 @@ export async function executeCheck(
             : await collectFullKbQualityDiagnostics({
                 prolog,
                 workspaceRoot,
-                ...(verificationSnapshot !== undefined
-                  ? { verificationSnapshot }
-                  : {}),
+                ...(proofSnapshot !== undefined ? { proofSnapshot } : {}),
                 checkedAt,
                 now: context.clock(),
                 ...maxDiagnosticsOption,
@@ -229,9 +227,7 @@ export async function executeCheck(
             prolog,
             hardViolationEntityIds: new Set(violations.map((v) => v.entityId)),
             workspaceRoot,
-            ...(verificationSnapshot !== undefined
-              ? { verificationSnapshot }
-              : {}),
+            ...(proofSnapshot !== undefined ? { proofSnapshot } : {}),
             checkedAt,
             now: context.clock(),
             ...maxDiagnosticsOption,

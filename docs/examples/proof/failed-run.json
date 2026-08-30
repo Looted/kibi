@@ -1,0 +1,29 @@
+{
+  "version": "kibi.proof-run.v1",
+  "producer": { "name": "kibi-junit-adapter" },
+  "integration": "api-tests",
+  "command_argv": ["pytest", "--junitxml=.kb/proof/runs/api-junit.xml"],
+  "code_snapshot": "9ec6c613d9d4f1b522e04e3d85ab215ff882f1750fc6c3dbe2ba06de258572ec",
+  "environment": {
+    "os": "linux",
+    "arch": "x86_64",
+    "runtime": { "name": "python", "version": "3.13.1" }
+  },
+  "run": {
+    "outcome": "failed",
+    "exit_code": 1,
+    "started_at": "2026-08-30T09:00:00.000Z",
+    "finished_at": "2026-08-30T09:00:41.000Z",
+    "failure_phase": "teardown"
+  },
+  "proof_results": [
+    {
+      "symbol_id": "SYM-create-user",
+      "target": "postgres-16",
+      "outcome": "passed",
+      "binding": "native_case",
+      "native_id": "tests/api/test_users.py::test_create_user",
+      "attempts": { "status": "unavailable" }
+    }
+  ]
+}

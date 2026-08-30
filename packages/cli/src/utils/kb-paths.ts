@@ -76,7 +76,7 @@ export const KB_PATHS = {
 export const DERIVED_KB_PREFIXES = [
   ".kb/branches",
   ".kb/recovery",
-  ".kb/verification",
+  ".kb/proof/runs",
   ".kb/briefs",
   ".kb/migrations",
 ] as const;

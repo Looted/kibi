@@ -3,23 +3,16 @@ relationships:
     type: relates_to
     from: EVT-005
     to: REQ-003
-    created_at: "2026-03-16T12:57:51.090Z"
+    created_at: 2026-03-16T12:57:51.090Z
     created_by: migration/adr-017
     source: documentation/events/EVT-005.md
   - id: rel-a3f3c1c5d784
     type: relates_to
     from: EVT-005
     to: SCEN-006
-    created_at: "2026-03-16T12:57:51.090Z"
+    created_at: 2026-03-16T12:57:51.090Z
     created_by: migration/adr-017
     source: documentation/events/EVT-005.md
-  - id: rel-6e0ff143c00a
-    type: covered_by
-    from: SYM-reqcompiler-verification-receipt-max-age
-    to: TEST-kibi-fresh-verification-receipts
-    created_at: "2026-08-15T12:41:40.307Z"
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
   - type: covered_by
     from: SYM-reqcompiler-parity-runtime-provenance
     to: TEST-kibi-distribution-parity-matrix

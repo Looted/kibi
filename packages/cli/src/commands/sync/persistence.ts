@@ -25,7 +25,7 @@ import type {
 import type { PrologProcess } from "../../prolog.js";
 import { toPrologAtom, toPrologString } from "../../prolog/codec.js";
 import { loadEntities } from "../../public/operations/discovery-entities.js";
-import { appendOnlyVerificationReceiptHistoryErrors } from "../../public/verification-receipt.js";
+import { appendOnlyProofReceiptHistoryErrors } from "../../public/proof-receipt.js";
 
 // Field categorization for typed fact serialization
 // NOTE: base entity fields (status, owner, priority, severity) are NOT listed here —
@@ -384,18 +384,18 @@ export async function persistEntities(
           id: entity.id,
           type: "test",
         });
-        const previous = Array.isArray(existing[0]?.verification_receipts)
-          ? existing[0].verification_receipts.filter(
+        const previous = Array.isArray(existing[0]?.proof_receipts)
+          ? existing[0].proof_receipts.filter(
               (receipt): receipt is Readonly<Record<string, unknown>> =>
                 receipt !== null &&
                 typeof receipt === "object" &&
                 !Array.isArray(receipt),
             )
           : [];
-        const next = Array.isArray(entity.verification_receipts)
-          ? entity.verification_receipts
+        const next = Array.isArray(entity.proof_receipts)
+          ? entity.proof_receipts
           : undefined;
-        const receiptErrors = appendOnlyVerificationReceiptHistoryErrors(
+        const receiptErrors = appendOnlyProofReceiptHistoryErrors(
           previous,
           next,
         );
@@ -493,14 +493,19 @@ export async function persistEntities(
             `verification_perspective=${toPrologAtom(entity.verification_perspective)}`,
           );
         }
-        if (entity.verification_contract !== undefined) {
+        if (entity.proof_contract !== undefined) {
           props.push(
-            `verification_contract=${toPrologString(JSON.stringify(entity.verification_contract))}`,
+            `proof_contract=${toPrologString(JSON.stringify(entity.proof_contract))}`,
           );
         }
-        if (entity.verification_receipts !== undefined) {
+        if (entity.proof_bindings !== undefined) {
           props.push(
-            `verification_receipts=${toPrologString(JSON.stringify(entity.verification_receipts))}`,
+            `proof_bindings=${toPrologString(JSON.stringify(entity.proof_bindings))}`,
+          );
+        }
+        if (entity.proof_receipts !== undefined) {
+          props.push(
+            `proof_receipts=${toPrologString(JSON.stringify(entity.proof_receipts))}`,
           );
         }
       }

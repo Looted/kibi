@@ -261,28 +261,28 @@ Apply an approved `kibi.compile-plan.v1` after revalidating its canonical hash, 
 **Returns:**
 `kibi.plan-apply-result.v1` with applied entity/relationship counts, final snapshots, validation counts, changed paths, and explicit notes about the current sequential boundary. It also accepts `kibi.migration-plan.v2`; migration application requires `approvedActionIds`, an exact `approvedPlanHash`, and rejects blocked or non-automatic actions. Migration results report per-action outcomes and reconciliation failures.
 
-### `kb_ingest_verification`
+### `kb_ingest_proof`
 
-Ingest a reporter-produced `kibi.playwright-run.v1` artifact for a contracted test. Kibi rechecks the live workspace snapshot, runner/command contract, required case/project coverage, and append-only history, then derives and appends a `kibi.verification-receipt.v2`. Caller-authored receipts and trusted outcomes are rejected.
+Ingest a producer-emitted `kibi.proof-run.v1` artifact and evaluate it against each selected test's `kibi.proof-contract.v1` proof obligations. Kibi rechecks the live workspace snapshot, integration command binding, run-level outcome, attempt history, success policy, and append-only proof history, then derives and appends idempotent `kibi.proof-receipt.v1` receipts. Producers report what happened; Kibi evaluates proof. Caller-authored receipts and trusted outcomes are rejected.
 
 **Parameters:**
-- `testId` (required): Existing test entity with `verification_contract.v1`.
 - `snapshot` (required): Workspace snapshot captured immediately before execution.
-- `artifact` (required): Reporter artifact containing runner, command argv, code snapshot, environment hash, timestamps, process exit code, and case results.
+- `artifact` (required): Producer artifact containing `version`, `producer`, `integration`, `command_argv`, `code_snapshot`, typed `environment`, run-level `run` outcome, and `proof_results` (each with `symbol_id`, `target`, `outcome`, `binding`, and factual `attempts`).
+- `testIds` (optional): Existing test entities with `kibi.proof-contract.v1`. Omit to evaluate every test contracted to the artifact's integration.
 
 **Returns:**
-Derived receipt, proof outcome, receipt count, and the shared upsert result. A changed snapshot, missing contracted case, command drift, duplicate case, or append-only violation fails before mutation.
+Per-test outcomes, receipt ids, applied/duplicate flags, receipt counts, expected-versus-received gap reports, plus the artifact digest and Kibi-derived environment hash. A changed snapshot, unknown integration, command drift, run-level failure, failed success policy, or append-only violation fails before mutation.
 
 ### `kb_status`
 
 Return branch, snapshot, and freshness metadata for the attached KB, plus the deterministic workspace snapshot used to validate execution receipts.
 
 **Returns:**
-Branch name, KB snapshot ID, sync state, dirty flag, KB path metadata, and `verificationSnapshot` evidence (`available`, `dirty`, file count, and `kibi.workspace-snapshot.v2` version). An unavailable workspace snapshot is reported as `unknown` and cannot prove an E2E stage. Receipt-only frontmatter edits do not change the v2 hash.
+Branch name, KB snapshot ID, sync state, dirty flag, KB path metadata, and `proofSnapshot` evidence (`available`, `dirty`, file count, and `kibi.workspace-snapshot.v2` version). An unavailable workspace snapshot is reported as `unknown` and cannot prove the proof stage. Receipt-only frontmatter edits do not change the v2 hash.
 
 The response also includes exact `branchAttachment` metadata, bounded sorted
 `staleReasons` (with affected entity IDs and truncation totals), and
-`verificationSnapshotChanges`. Editor/config paths are reported as ordinary
+`proofSnapshotChanges`. Editor/config paths are reported as ordinary
 workspace changes; they are not silently ignored.
 
 When migration is needed, the response includes `schemaStatus` and a typed
@@ -402,7 +402,7 @@ For requirement coverage, summaries distinguish evaluated must-priority requirem
 
 With `includeMigrationPreview: true`, `legacyMigrationPlan` adds the versioned `kibi.legacy-migration-plan.v1` review surface. It selects only ready semantic-inventory repair batches, defaults to one requirement, binds normalized authored Markdown to an exact SHA-256 hash and UTF-8 spans, and gives every proposition one recommended lane or explicit unresolved disposition. Ranked candidates preserve exact schema identity, signature, origin, polarity, binding status, and unbound arguments, but never produce an applicable write. Authored prose is previewed in requirement-only `semantic_text`, while an independent `text_ref` remains unchanged; a differing pre-existing `semantic_text` blocks the batch as semantic source drift.
 
-The passing-E2E stage evaluates append-only verification-receipt history. New evidence is produced by `kibi verify` as `kibi.verification-receipt.v2`; older `v1` entries remain readable historical compatibility data. A current receipt must bind the test and its typed scope, runner command argv, contract hash, deterministic current code snapshot, environment hash, timestamps, outcome, artifact digest, and required case results. The newest receipt for the live snapshot and current contract must be passing and no older than seven days. Missing, wrong-snapshot, stale, failed, malformed, mismatched, future-dated, or snapshot-unavailable evidence cannot prove the requirement; durable test status remains structural metadata.
+The passing-E2E stage evaluates append-only proof-receipt history. New evidence is produced by `kibi prove` as `kibi.proof-receipt.v1`. A current receipt must bind the test and its typed scope, integration command argv, contract hash, execution fingerprint, deterministic current code snapshot, canonical environment hash, timestamps, outcome, artifact digest, and observed proof results. The newest receipt for the live snapshot, current contract hash, and current fingerprint must be passing and no older than seven days. Missing, wrong-snapshot, stale, failed, malformed, mismatched, future-dated, or snapshot-unavailable evidence cannot prove the requirement; durable test status remains structural metadata.
 
 Symbol rows distinguish production symbols from executable test symbols. Executable-only symbols are not applicable to production coverage; mixed-role symbols are uncovered and carry an explicit role error.
 
@@ -495,7 +495,7 @@ Confirmation of entity creation/update and relationship creation counts. Success
 
 Validate a `kb_upsert` payload without mutating the KB. This read-only preflight returns `valid`, `errors`, `warnings`, `semanticAdvisor`, and `normalizedPreview`, including the same proposition-completeness and exact grounding-identity checks used by `kb_upsert`.
 
-`semanticAdvisor` includes a version, payload hash, source-bound inventory contract, proposition ledger, logic readiness, candidate lane, detected signals, ambiguity witnesses, modeling suggestions, and suggested next tools. A valid preflight proves source accounting at the ingestion boundary; contradiction checks and verification evidence are still separate proof stages.
+`semanticAdvisor` includes a version, payload hash, source-bound inventory contract, proposition ledger, logic readiness, candidate lane, detected signals, ambiguity witnesses, modeling suggestions, and suggested next tools. A valid preflight proves source accounting at the ingestion boundary; contradiction checks and proof evidence are still separate proof stages.
 
 When invoked through MCP, `kb_validate_upsert` also attaches to Prolog and validates live relationship endpoint types before mutation. Invalid tuples such as `verified_by fact -> test` are rejected in preflight with the same relationship guidance `kb_upsert` would return.
 

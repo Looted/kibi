@@ -1,4 +1,4 @@
-import { playwrightCaseId } from "../public/playwright-case-id.js";
+import { playwrightCaseId } from "../proof/producers/playwright-case-id.js";
 
 // implements REQ-kibi-verification-evidence-contract
 export type PlaywrightCaseSymbol = Readonly<{

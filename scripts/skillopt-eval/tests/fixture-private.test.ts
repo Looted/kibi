@@ -192,7 +192,7 @@ describe("private SkillOpt fixture corpus", () => {
       "kb_search",
       "kb_query",
       "kb_status",
-      "kb_ingest_verification",
+      "kb_ingest_proof",
       "kb_coverage",
       "kb_check",
     ]);

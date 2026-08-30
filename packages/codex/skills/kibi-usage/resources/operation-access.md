@@ -26,7 +26,7 @@ per operation. Effects are authoritative for mutability and adapter annotations.
 | `kb_sparql_remote` | `sparql-remote` | --input JSON | read | no | network-read | peer; capability-selected | kibi.kb_sparql_remote.v1 | no | safe | yes | yes |
 | `kb_compile_intent` | `compile-intent` | --input JSON | read | yes | kb-read, workspace-read | peer; capability-selected | kibi.kb_compile_intent.v1 | no | safe | no | yes |
 | `kb_apply_plan` | `apply-plan` | --input JSON | write | yes | kb-read, kb-write, workspace-read, workspace-write | peer; capability-selected | kibi.kb_apply_plan.v1 | yes | unsafe | no | yes |
-| `kb_ingest_verification` | `ingest-verification` | --input JSON | write | yes | kb-read, kb-write, workspace-read | peer; capability-selected | kibi.kb_ingest_verification.v1 | yes | unsafe | no | yes |
+| `kb_ingest_proof` | `ingest-proof` | --input JSON | write | yes | kb-read, kb-write, workspace-read | peer; capability-selected | kibi.kb_ingest_proof.v1 | yes | unsafe | no | yes |
 
 ## JSON execution recipe
 

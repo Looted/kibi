@@ -12,8 +12,8 @@ predicate_name: verification_receipt_rule
 predicate_args: [current_code_snapshot, newest_receipt, fresh_passing_within_seven_days]
 canonical_key: verification_receipt_rule(current_code_snapshot,newest_receipt,fresh_passing_within_seven_days)
 polarity: assert
-claim_key: CLAIM-1A6090A64DDC891E
-claim_text: The newest receipt for the current code snapshot must be passing and no older than seven days
+claim_key: CLAIM-A3834334B2DFAF17
+claim_text: The newest proof receipt for the current code snapshot must be passing and no older than seven days.
 ---
 
 Ground predicate for the current-snapshot freshness window.

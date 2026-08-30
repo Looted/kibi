@@ -8,12 +8,22 @@ priority: must
 tags:
   - cli
   - check
-  - unit
+  - validation
 links:
   - type: validates
     target: REQ-cli-check
   - type: validates
     target: SCEN-005
+verification_scope: end_to_end
+verification_perspective: consumer
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-e2e-packed-cli-check
+      target: default
+  success_policy: all_required_first_attempt
+type: test
 ---
 
 Seeds KB with a `must`-priority requirement that has no linked scenario or test.

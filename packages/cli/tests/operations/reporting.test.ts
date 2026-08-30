@@ -78,12 +78,12 @@ describe("shared reporting operation executors", () => {
       `coverage_report_json('req', [], false, true, 100, 0, '${"a".repeat(64)}', '1970-01-01T00:00:00.000Z', 604800, JsonString)`,
     );
     expect(result.structuredContent?.meta).toMatchObject({
-      verificationReceiptMaxAgeSeconds: 604800,
-      verificationSnapshot: "a".repeat(64),
-      verificationSnapshotAvailable: true,
-      verificationSnapshotDirty: true,
-      verificationSnapshotFileCount: 42,
-      verificationSnapshotVersion: "kibi.workspace-snapshot.v2",
+      proofReceiptMaxAgeSeconds: 604800,
+      proofSnapshot: "a".repeat(64),
+      proofSnapshotAvailable: true,
+      proofSnapshotDirty: true,
+      proofSnapshotFileCount: 42,
+      proofSnapshotVersion: "kibi.workspace-snapshot.v2",
     });
   });
 
@@ -100,9 +100,9 @@ describe("shared reporting operation executors", () => {
       "100, 0, 'unknown', '1970-01-01T00:00:00.000Z', 604800, JsonString)",
     );
     expect(result.structuredContent?.meta).toMatchObject({
-      verificationSnapshot: "unknown",
-      verificationSnapshotAvailable: false,
-      verificationSnapshotError:
+      proofSnapshot: "unknown",
+      proofSnapshotAvailable: false,
+      proofSnapshotError:
         "The active operation runtime does not expose workspace snapshots.",
     });
   });

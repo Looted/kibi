@@ -254,7 +254,7 @@ if (RUN_NODE_TEST_SUITE) {
                       "kb_plan_bootstrap",
                       "kb_compile_intent",
                       "kb_apply_plan",
-                      "kb_ingest_verification",
+                      "kb_ingest_proof",
                     ]);
                     assert.ok(
                       !toolNames.includes("kb_briefing_generate"),

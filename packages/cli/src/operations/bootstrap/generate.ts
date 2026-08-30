@@ -144,9 +144,7 @@ async function expectedSnapshots(
         try {
           const resolved = path.resolve(context.workspaceRoot, relative);
           if (!(await context.fs.stat(resolved)).isFile()) continue;
-          sourceHashes[relative] = sha256(
-            await context.fs.readFile(resolved),
-          );
+          sourceHashes[relative] = sha256(await context.fs.readFile(resolved));
         } catch {
           sourceHashes[relative] = null;
           diagnostics.push(

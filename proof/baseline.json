@@ -12,7 +12,7 @@
     "missing_production_symbol": 12,
     "missing_production_symbol_coverage": 46,
     "missing_semantic_inventory": 38,
-    "missing_verification_receipt": 3,
-    "unresolved_semantic_proposition": 14
+    "unresolved_semantic_proposition": 14,
+    "missing_proof_receipt": 3
   }
 }

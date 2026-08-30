@@ -3,7 +3,7 @@ relationships:
     type: implements
     from: SYM-auto-897151BA8338
     to: REQ-kibi-operation-interface-parity
-    created_at: "2026-08-15T22:16:21.959Z"
+    created_at: 2026-08-15T22:16:21.959Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
   - type: executable_for
@@ -41,13 +41,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-da9e27dab95c
-  - type: covered_by
-    from: SYM-kibi-cli-src-verification-playwright-reporter-ts-kibiplaywrightreporter-onbegin
-    to: TEST-kibi-verification-evidence-contract
-    created_at: 2026-08-16T18:52:23.889Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f178e52d1677
   - type: implements
     from: SYM-canonical-PathAnalysis
     to: REQ-opencode-kibi-plugin-v1

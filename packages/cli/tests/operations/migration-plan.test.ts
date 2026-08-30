@@ -187,7 +187,7 @@ describe("kibi.migration-plan.v2", () => {
       executeApplyPlan(
         {
           plan,
-          approvedPlanHash: "0".repeat(64),
+          approvedPlanHash: "0a".repeat(32),
           approvedActionIds: ["review-contradiction"],
         },
         context,

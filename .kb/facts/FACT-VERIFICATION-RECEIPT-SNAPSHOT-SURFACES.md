@@ -13,7 +13,7 @@ predicate_args: [cli_and_mcp_reporting, current_code_snapshot, exposed_determini
 canonical_key: verification_receipt_rule(cli_and_mcp_reporting,current_code_snapshot,exposed_deterministically)
 polarity: assert
 claim_key: CLAIM-BCCEE9616D8F0A33
-claim_text: Coverage and status must expose the deterministic current code snapshot through CLI and MCP
+claim_text: Coverage and status must expose the deterministic current code snapshot through CLI and MCP.
 ---
 
 Ground predicate for reporting-surface snapshot parity.

@@ -128,7 +128,7 @@ describe("kibi init", () => {
 
     expect(content).toContain(".kb/branches/");
     expect(content).toContain(".kb/recovery/");
-    expect(content).toContain(".kb/verification/");
+    expect(content).toContain(".kb/proof/runs/");
     expect(content).toContain(".kb/briefs/");
     expect(content).toContain(".kb/migrations/");
     expect(content).toContain(".kb/usage.log");

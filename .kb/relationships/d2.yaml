@@ -3,7 +3,7 @@ relationships:
     type: covered_by
     from: SYM-node-workspace-snapshot
     to: TEST-kibi-fresh-verification-receipts
-    created_at: "2026-08-15T12:41:40.306Z"
+    created_at: 2026-08-15T12:41:40.306Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
   - type: implements
@@ -69,13 +69,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e219c74eedfa
-  - type: covered_by
-    from: SYM-kibi-cli-src-public-verification-receipt-ts-verificationcontracthash
-    to: TEST-kibi-verification-evidence-contract
-    created_at: 2026-08-16T18:52:23.893Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-639a2ca8e5f8
   - type: covered_by
     from: SYM-cli-engine-client-export-storage
     to: TEST-core-journaled-engine-persistence

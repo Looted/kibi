@@ -153,7 +153,7 @@ tags: [authentication, session]
     expect(req1Row?.scenarioTests).toEqual([]);
     expect(req1Row?.testStatuses).toEqual([]);
     expect(req1Row?.verificationScopes).toEqual([]);
-    expect(req1Row?.proofVersion).toBe("kibi.requirement-proof.v2");
+    expect(req1Row?.proofVersion).toBe("kibi.requirement-proof.v3");
     expect(req1Row?.proofStatus).toBe("missing");
     expect(req1Row?.proofGaps).toContain("missing_semantic_inventory");
     expect(req1Row?.proofAdvisories).toEqual([]);

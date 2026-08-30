@@ -70,8 +70,9 @@ describe("server docs coverage", () => {
       expect((call as { config: { title: string } }).config.title).toBe(
         prompt.title,
       );
-      expect((call as { config: { description: string } }).config.description)
-        .toBe(prompt.description);
+      expect(
+        (call as { config: { description: string } }).config.description,
+      ).toBe(prompt.description);
     }
   });
 

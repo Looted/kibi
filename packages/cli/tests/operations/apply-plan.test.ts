@@ -245,7 +245,7 @@ describe("kb_apply_plan", () => {
   test("rejects a stale or tampered approval hash before opening mutation", async () => {
     const plan = { ...basePlan, planHash: compilePlanHash(basePlan) };
     await expect(
-      executeApplyPlan({ plan, approvedPlanHash: "0".repeat(64) }, context()),
+      executeApplyPlan({ plan, approvedPlanHash: "0a".repeat(32) }, context()),
     ).rejects.toThrow("does not match");
   });
 

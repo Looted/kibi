@@ -1,0 +1,13 @@
+{
+  "version": "kibi.proof-integration.v1",
+  "integrations": [
+    {
+      "id": "self-proof",
+      "producer": "command",
+      "command": ["node", "scripts/run-proof-producer.mjs"],
+      "artifact": ".kb/proof/runs/self-proof.json",
+      "targets": ["default"],
+      "description": "Repository self-proof: packed end-to-step commands selected by kibi prove."
+    }
+  ]
+}

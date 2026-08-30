@@ -28,10 +28,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prepack": "npm run build && node ../../scripts/verify-package-contract.mjs kibi-mcp"
   },
-  "files": [
-    "dist",
-    "bin"
-  ],
+  "files": ["dist", "bin"],
   "engines": {
     "node": ">=22"
   },
