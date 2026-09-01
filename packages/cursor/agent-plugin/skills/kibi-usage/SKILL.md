@@ -19,6 +19,7 @@ resources:
   - resources/relationship-directions.md
   - resources/fact-lanes.md
   - resources/workflows.md
+  - resources/proof.md
   - resources/ui-requirements.md
   - resources/logic-ir.md
   - resources/kb-improvement.md
