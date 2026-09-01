@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 
 import {
   effectiveProofFingerprint,
@@ -69,6 +71,16 @@ const validArtifact = () => ({
 describe("kibi.proof-run.v1", () => {
   test("accepts a complete canonical artifact", () => {
     expect(proofRunArtifactErrors(validArtifact())).toEqual([]);
+  });
+
+  test("accepts docs/examples/proof artifacts", () => {
+    const dir = join(import.meta.dir, "../../../../docs/examples/proof");
+    const files = readdirSync(dir).filter((name) => name.endsWith(".json"));
+    expect(files.length).toBeGreaterThan(0);
+    for (const file of files) {
+      const artifact = JSON.parse(readFileSync(join(dir, file), "utf8"));
+      expect(proofRunArtifactErrors(artifact), file).toEqual([]);
+    }
   });
 
   test("rejects wrong version, missing fields, duplicate results", () => {

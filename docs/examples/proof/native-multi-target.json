@@ -1,0 +1,43 @@
+{
+  "version": "kibi.proof-run.v1",
+  "producer": { "name": "kibi-playwright-producer" },
+  "executor": { "name": "playwright" },
+  "integration": "web-e2e",
+  "command_argv": ["npx", "playwright", "test"],
+  "code_snapshot": "9ec6c613d9d4f1b522e04e3d85ab215ff882f1750fc6c3dbe2ba06de258572ec",
+  "environment": {
+    "os": "linux",
+    "arch": "x86_64",
+    "runtime": { "name": "node", "version": "v24.15.0" }
+  },
+  "run": {
+    "outcome": "passed",
+    "exit_code": 0,
+    "started_at": "2026-08-30T09:00:00.000Z",
+    "finished_at": "2026-08-30T09:02:03.000Z"
+  },
+  "proof_results": [
+    {
+      "symbol_id": "SYM-PW-4F2A9C61B7D03E85",
+      "target": "chromium",
+      "outcome": "passed",
+      "binding": "native_case",
+      "native_id": "tests/checkout.spec.ts:4:5 › checkout › accepts a card",
+      "attempts": {
+        "status": "complete",
+        "entries": [{ "outcome": "passed", "duration_ms": 3120 }]
+      }
+    },
+    {
+      "symbol_id": "SYM-PW-4F2A9C61B7D03E85",
+      "target": "firefox",
+      "outcome": "passed",
+      "binding": "native_case",
+      "native_id": "tests/checkout.spec.ts:4:5 › checkout › accepts a card",
+      "attempts": {
+        "status": "complete",
+        "entries": [{ "outcome": "passed", "duration_ms": 4387 }]
+      }
+    }
+  ]
+}

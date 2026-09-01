@@ -323,7 +323,7 @@ tags:
 | proof_bindings | No | array[object] | Optional native-runner bindings (`native_id`, aliases, source coordinates) for proof obligations; provenance metadata, never a contract replacement |
 | proof_receipts | No | array[object] | Append-only proof-receipt execution history; evidence is `kibi.proof-receipt.v1`; requires `verification_scope` |
 
-`verification_receipts` is append-only: never remove or rewrite existing entries, and include the full history when authoring a test file directly. Receipts are engine-derived from `kibi.playwright-run.v1` reporter artifacts — see [proving requirements](proving-requirements.md) for contracts, the `kibi verify` workflow, and the artifact reference.
+`proof_receipts` is append-only: never remove or rewrite existing entries, and include the full history when authoring a test file directly. Receipts are engine-derived from `kibi.proof-run.v1` producer artifacts — see [proving requirements](proving-requirements.md) for contracts, the `kibi prove` workflow, and the artifact reference.
 
 `tags` remain metadata only. They do not alias or replace typed verification fields.
 
@@ -336,7 +336,7 @@ Coverage-depth reporting uses typed verification fields before legacy hints. A t
 - `scenario_only_no_test` — scenarios exist without executable test evidence.
 - `no_test_evidence` — no scenario or test evidence is linked.
 
-Conservative requirement proof uses receipt history instead. Each receipt binds `receipt_id`, `test_id`, `runner`, `command`, typed `scope`, `outcome`, `code_snapshot`, `environment_hash`, `started_at`, `finished_at`, and `artifact_digest`. History is capped at 50 entries, receipt IDs are unique, finish times increase strictly, and existing entries cannot be removed, changed, or reordered through upsert or incremental sync. Proof accepts only the newest receipt for the deterministic current workspace snapshot when it passed, is not future-dated, and is at most seven days old. Missing, wrong-snapshot, stale, failed, malformed, or future-dated evidence produces explicit proof gaps.
+Conservative requirement proof uses receipt history instead. Each `kibi.proof-receipt.v1` binds `receipt_id`, `test_id`, typed `scope`, `outcome`, `code_snapshot`, `environment_hash`, `started_at`, `finished_at`, `artifact_digest`, `contract_hash`, execution `fingerprint`, `integration_id`, `producer`, and `command_argv`. History is capped at 50 entries, receipt IDs are unique, finish times increase strictly, and existing entries cannot be removed, changed, or reordered through upsert or incremental sync. Proof accepts only the newest receipt for the deterministic current workspace snapshot when it passed, is not future-dated, and is at most seven days old. Missing, wrong-snapshot, stale, failed, malformed, or future-dated evidence produces explicit proof gaps.
 
 `kibi.workspace-snapshot.v2` hashes current versionable code plus requirement, scenario, fact, test-contract, and symbol-manifest inputs. It excludes `.kb/` derived runtime trees, release changesets, general `docs/`, and the `proof_receipts` frontmatter field inside every tracked Markdown file, preventing a receipt from invalidating its own code hash without hiding changes to the surrounding test contract. The v2 algorithm invalidates v1 snapshot-bound receipts once; they must be rerun.
 

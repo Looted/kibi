@@ -164,11 +164,8 @@ kibi proof inspect --json
 
 See [proving requirements](proving-requirements.md) for the full workflow:
 proof contracts, integration configuration, the artifact reference, adapter
-authoring, and troubleshooting.
-
-See [proving requirements](proving-requirements.md) for the full workflow:
-contract authoring, reporter setup, stable case symbols, and the
-`kibi.playwright-run.v1` artifact reference.
+authoring, and troubleshooting. Playwright is an optional first-party
+producer (`kibi-cli/playwright-reporter`); Kibi itself is runner-neutral.
 
 ## `kibi query [type]`
 

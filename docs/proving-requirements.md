@@ -35,7 +35,7 @@ has a floor.
 
 | Level | Mechanism | Fidelity | Example |
 | --- | --- | --- | --- |
-| 1 | Native producer | Complete attempt history, native IDs, per-target results | Playwright with `kibi-cli/playwright-producer` |
+| 1 | Native producer | Complete attempt history, native IDs, per-target results | Playwright with `kibi-cli/playwright-reporter` |
 | 2 | Standard-format adapter | Native-case outcomes; retry history per source format | pytest/JUnit XML, Go/TAP |
 | 3 | Command proof | Aggregate process outcome bound to contracted obligations | `cargo test`, custom scripts |
 
@@ -251,9 +251,11 @@ signatures, or attestations can be added later.
 
 ## Representative recipes
 
-- **Web UI (Playwright, native producer):** register
-  `kibi-cli/playwright-producer` in `playwright.config.ts`; add a
-  `playwright` integration; obligations map to `SYM-PW-*` case symbols.
+- **Web UI (Playwright, optional native producer):** register
+  `kibi-cli/playwright-reporter` in `playwright.config.ts`; add a
+  `playwright` integration; the reporter emits `kibi.proof-run.v1` with
+  producer name `kibi-playwright-producer`. Obligations map to `SYM-PW-*`
+  case symbols. Kibi does not depend on Playwright.
 - **API (pytest via JUnit XML):** run `pytest --junitxml=…` with a `junit`
   integration; author `proof_bindings` mapping native test ids to symbols;
   attempt history is `unavailable` (standard JUnit XML has no retry data).

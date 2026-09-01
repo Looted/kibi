@@ -60,7 +60,7 @@ Kibi-managed configuration describing evidence production only:
   outcome; obligations are bound with `aggregate_run` provenance and the
   single process invocation counts as the known first attempt.
 - `producer: playwright` (or custom) — the child emits `kibi.proof-run.v1`
-  itself (bundled producer: `kibi-cli/playwright-producer`).
+  itself (bundled reporter: `kibi-cli/playwright-reporter`).
 - `producer: junit` / `tap` — Kibi converts the native report at `artifact`
   using each test's `proof_bindings`; standard formats carry no retry
   history, so attempts are reported as `unavailable` and fail the strict
