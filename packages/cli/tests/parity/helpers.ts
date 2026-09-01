@@ -48,6 +48,9 @@ const VOLATILE_KEYS = new Set([
   "prologPid",
   "pid",
   "uuid",
+  // Per-workspace filesystem identity; CLI and MCP parity runs use two temp trees.
+  "attachedIno",
+  "attachedDev",
 ]);
 
 async function runWorkspaceCommand(

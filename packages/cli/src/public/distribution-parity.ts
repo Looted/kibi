@@ -171,6 +171,9 @@ const DEFAULT_VOLATILE_KEYS = new Set([
   "updatedAt",
   "usageLogLineNumber",
   "proofSnapshot",
+  // Per-workspace filesystem identity; CLI and MCP parity runs use two temp trees.
+  "attachedIno",
+  "attachedDev",
 ]);
 
 type PackageManifest = {

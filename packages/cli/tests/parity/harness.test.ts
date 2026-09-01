@@ -59,6 +59,8 @@ function assertNormalizerContract(): void {
         branch: "volatile",
         requestId: "volatile",
         _diagnostic_telemetry: { reasoning: "volatile" },
+        attachedIno: 1499331,
+        attachedDev: 2128,
         source: `${root}/requirements/REQ-001.md`,
         message: "Prolog pid=4321",
       },

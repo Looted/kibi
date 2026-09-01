@@ -10,6 +10,9 @@
 
 :- use_module(library(http/json)).
 :- use_module(library(aggregate)).
+:- use_module(library(apply)).
+:- use_module(library(lists)).
+:- use_module(library(pairs)).
 :- use_module('kb.pl').
 :- use_module('requirement_proof.pl', [requirement_proof_context/1, requirement_proof_context/4, requirement_proof/4]).
 :- use_module('status.pl', [status_meta_dict/1]).

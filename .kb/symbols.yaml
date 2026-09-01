@@ -1691,6 +1691,60 @@ symbols:
         target: REQ-test-journaled-engine-harness
       - type: covered_by
         target: TEST-test-journaled-engine-harness
+  - id: SYM-cli-engine-attachment-identity
+    title: EngineAttachmentIdentity
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-attachments-match
+    title: engineAttachmentsMatch
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-format-attachment-mismatch
+    title: formatEngineAttachmentMismatch
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-parse-attachment-identity
+    title: parseEngineAttachmentIdentity
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-read-attachment-identity
+    title: readEngineAttachmentIdentity
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-cli-engine-read-journal-generation
+    title: readJournalGeneration
+    sourceFile: packages/cli/src/engine.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
   - id: SYM-cli-engine-migration
     title: ensureJournaledBranchStoreAsync
     sourceFile: packages/cli/src/engine.ts

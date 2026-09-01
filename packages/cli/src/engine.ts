@@ -1559,15 +1559,20 @@ export async function runEngineDaemon(options: {
   if (!attached.success)
     throw new Error(attached.error ?? "Failed to attach branch KB");
   const attachedIdentity = readEngineAttachmentIdentity(branchPath);
-  const statusModulePath = path.join(
-    path.dirname(resolveKbPlPath()),
-    "status.pl",
-  );
-  const statusLoaded = await prolog.query(
-    `use_module('${quoteProlog(statusModulePath.replaceAll("\\", "/"))}')`,
-  );
-  if (!statusLoaded.success) {
-    throw new Error(statusLoaded.error ?? "Failed to load Kibi status module");
+  const coreModuleDir = path.dirname(resolveKbPlPath());
+  for (const [fileName, label] of [
+    ["status.pl", "status"],
+    ["discovery.pl", "discovery"],
+  ] as const) {
+    const modulePath = path.join(coreModuleDir, fileName);
+    const loaded = await prolog.query(
+      `use_module('${quoteProlog(modulePath.replaceAll("\\", "/"))}')`,
+    );
+    if (!loaded.success) {
+      throw new Error(
+        loaded.error ?? `Failed to load Kibi ${label} module`,
+      );
+    }
   }
 
   mkdirSync(path.dirname(options.socketPath), { recursive: true, mode: 0o700 });

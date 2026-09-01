@@ -189,6 +189,26 @@ describe("journaled engine", () => {
     }
   });
 
+  test("preloads discovery coverage and graph predicates", async () => {
+    const root = tempRoot();
+    const client = new EngineClient({ workspaceRoot: root, branch: "main" });
+    try {
+      await client.start();
+      const coverage = await client.query(
+        "discovery:coverage_report_json(type, [], true, false, 10, 0, unknown, '1970-01-01T00:00:00Z', 604800, JsonString)",
+      );
+      expect(coverage.success).toBe(true);
+      expect(coverage.bindings.JsonString).toBeDefined();
+      const graph = await client.query(
+        "discovery:graph_expand_json([], [], 'outgoing', 1, [], 10, 10, JsonString)",
+      );
+      expect(graph.success).toBe(true);
+      expect(graph.bindings.JsonString).toBeDefined();
+    } finally {
+      await client.stop().catch(() => undefined);
+    }
+  });
+
   test("creates journal metadata and supports explicit compaction", async () => {
     const root = tempRoot();
     await ensureJournaledBranchStoreAsync(
