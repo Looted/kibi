@@ -556,6 +556,8 @@ describe("persistEntities", () => {
       type: "test",
       status: "active",
       verification_scope: "end_to_end",
+      // Legacy pre-proof-architecture blob: persistence must pass stored JSON
+      // through unchanged, so the old version string is intentional here.
       proof_contract: {
         version: "kibi.verification-contract.v1",
         runner: "pnpm",
@@ -563,7 +565,7 @@ describe("persistEntities", () => {
         required_case_symbols: ["SYM-CONTRACT-CASE"],
         required_projects: ["chromium"],
         success_policy: "all_required_cases_first_attempt",
-      },
+      } as unknown as ExtractedEntity["proof_contract"],
     });
     const prolog = makeProlog({
       "findall(Id, kb_entity(Id, _, _), ExistingIds)": {
@@ -607,7 +609,7 @@ describe("persistEntities", () => {
           finished_at: "2026-08-10T12:00:00.000Z",
           artifact_digest: "c".repeat(64),
         },
-      ],
+      ] as unknown as ExtractedEntity["proof_receipts"],
     });
     const prolog = makeProlog({
       "findall(Id, kb_entity(Id, _, _), ExistingIds)": {

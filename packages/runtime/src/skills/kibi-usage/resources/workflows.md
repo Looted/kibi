@@ -101,7 +101,7 @@ Do not create a test-fact pair. Facts describe invariants; requirements or scena
 ## Fresh E2E Receipt Workflow
 
 1. Confirm the exact `REQ -> SCEN -> TEST` path and require typed `verification_scope: end_to_end`; direct requirement-to-test links do not satisfy the conservative scenario stage.
-2. Read `kb_status` and retain its available `verificationSnapshot`. Stop if the runtime reports `unknown`; proof must fail closed when the code identity cannot be computed.
+2. Read `kb_status` and retain its available `proofSnapshot`. Stop if the runtime reports `unknown`; proof must fail closed when the code identity cannot be computed.
 3. Run the exact E2E command against that snapshot. Record runner, command, start/finish timestamps, outcome, an environment SHA-256, and an artifact/output SHA-256. Do not mint a passed receipt from an authored test status or from an unexecuted assertion.
 4. Preserve every existing receipt byte-for-byte and append the derived `kibi.proof-receipt.v1` object with strictly later `finished_at`. Earlier receipts may bind older contracts or fingerprints; they remain audit history but cannot prove the current contract. Mutation and incremental sync reject history removal, rewriting, and reordering.
 5. Re-read `kb_status`; if the snapshot changed during the run, discard the candidate as proof and rerun against the new snapshot. Then run `kb_coverage` and inspect `proofStages.passingE2e.receiptEvidence` plus gap codes.

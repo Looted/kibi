@@ -88,7 +88,9 @@ describe("kibi.proof-run.v1", () => {
       "artifact must be an object",
     );
     const artifact = validArtifact();
-    artifact.version = "kibi.playwright-run.v1";
+    // Legacy pre-proof-architecture version must be rejected by the validator.
+    artifact.version =
+      "kibi.playwright-run.v1" as unknown as typeof artifact.version;
     expect(proofRunArtifactErrors(artifact)[0]).toContain(
       "artifact.version must be kibi.proof-run.v1",
     );
@@ -216,7 +218,8 @@ describe("effective proof fingerprint", () => {
     const a = effectiveProofFingerprint({ contract, integration, bindings });
     const cosmetic = effectiveProofFingerprint({
       contract,
-      integration: { ...integration, description: "Changed description" },
+      // Unknown extra key must be ignored by the fingerprint normalizer.
+      integration: { ...integration, description: "Changed description" } as typeof integration,
       bindings,
     });
     expect(a.fingerprint).toBe(cosmetic.fingerprint);

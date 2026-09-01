@@ -108,10 +108,10 @@ if (baseline.mode === "equality") {
   if (
     status.syncState !== "fresh" ||
     status.dirty !== false ||
-    status.verificationSnapshotDirty !== false
+    status.proofSnapshotDirty !== false
   ) {
     failures.push(
-      "strict equality requires a clean, fresh Kibi status and verification snapshot",
+      "strict equality requires a clean, fresh Kibi status and proof snapshot",
     );
   }
 }
@@ -127,9 +127,9 @@ const report = {
   status: {
     syncState: status.syncState,
     dirty: status.dirty,
-    verificationSnapshot: status.verificationSnapshot,
-    verificationSnapshotAvailable: status.verificationSnapshotAvailable,
-    verificationSnapshotDirty: status.verificationSnapshotDirty,
+    proofSnapshot: status.proofSnapshot,
+    proofSnapshotAvailable: status.proofSnapshotAvailable,
+    proofSnapshotDirty: status.proofSnapshotDirty,
   },
   failures,
 };

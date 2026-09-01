@@ -125,17 +125,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-db49d494cdaa
-  - type: implements
-    from: SYM-kibi-cli-src-public-verification-artifact-ts-playwright-run-case-outcome
-    to: REQ-kibi-verification-evidence-contract
-    created_at: 2026-08-30T04:13:53.139Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a747ed20c543
-  - type: covered_by
-    from: SYM-kibi-cli-src-public-verification-artifact-ts-playwright-run-case-outcome
-    to: TEST-kibi-verification-evidence-contract
-    created_at: 2026-08-30T04:21:02.639Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e489974c1768

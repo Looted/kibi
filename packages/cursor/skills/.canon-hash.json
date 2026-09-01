@@ -4,7 +4,7 @@
   "kibi-bootstrap/resources/branch-lifecycle.md": "c854264ce888439140883a3fc636db5e522f020dd27b30a5c1ecc4105b64ed13",
   "kibi-bootstrap/resources/operation-access.md": "b5a6a59e72d800c376e7fad79132897623c32a0ce152a1e8d73f9628b444db51",
   "kibi-bootstrap/resources/source-authoring.md": "bf296e62f69474e01797d6cb9469bf624551dca834dd188abb6e705bd96fa586",
-  "kibi-freshness/SKILL.md": "67c3eda1c7c12bbbc320e84119bd7a179d2dfc0189964d2f052e032b21a8af10",
+  "kibi-freshness/SKILL.md": "fa90d34663ddd6f03468008fb26e4417211f7b7d46ffde082291747743464c54",
   "kibi-freshness/resources/branch-lifecycle.md": "ebc01b19fe3dca8df5fc0175978963f6f1204f71f7c805cb2a5fb1b277ac78e4",
   "kibi-freshness/resources/operation-access.md": "4e1db9294ee540cd29b8b3a2532a81e7894d5b4228b39e99ba48b37212f489f3",
   "kibi-freshness/resources/source-authoring.md": "41a0547ce4d2a112a0f3671d36720f07c447864db3b473e94eb88a8ce2d371ff",
@@ -19,9 +19,9 @@
   "kibi-usage/resources/kb-improvement.md": "17e8b6cf6a0dd43b443a2bfd92e7205d099647a5f1c75fe85413a6cea63d86c6",
   "kibi-usage/resources/logic-ir.md": "151675d0ffa813cb9e271084102a3af42de369b8f9a0c64866af0cdc4d924063",
   "kibi-usage/resources/operation-access.md": "e8b4a3676892d2f7e2cfd708ec4ad1f41b6f296e1eb3a5ecc047f43322b4a92a",
-  "kibi-usage/resources/proof.md": "b49e44ac7a33c82bc2f4d7926c456ffa6719eb778d0eab131a2533f50c11efa5",
+  "kibi-usage/resources/proof.md": "e1a44ea4bf342afebb0aaa7800221067a511f6607c687ac38db6392b7e3d9f9a",
   "kibi-usage/resources/relationship-directions.md": "a357072d3370db9b7d80e505795f952909a68778cc18b1d089970de91e4fda46",
   "kibi-usage/resources/source-authoring.md": "ac4f1a9b5785462f8c3530bdcdb82ad9a0ee1f4049454ae28bf4df09ff267ebd",
   "kibi-usage/resources/ui-requirements.md": "b7c31ab1affa3ab25ae5242d8fd8c4d546532d1cafc65d84088375317c1682cc",
-  "kibi-usage/resources/workflows.md": "e584b8a642bac30c1063ad4d431050b4b6c5c4ffece8a6d9a63fb8cceba8920e"
+  "kibi-usage/resources/workflows.md": "776b97a794325e7012a230d2b9fc32fc89b2a51df45dfd8498cad49170bdc43d"
 }

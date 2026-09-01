@@ -55,17 +55,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-90e102ae8416
-  - type: implements
-    from: SYM-kibi-cli-src-public-verification-artifact-ts-playwright-run-version
-    to: REQ-kibi-verification-evidence-contract
-    created_at: 2026-08-30T04:10:29.913Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8d0cd290d040
-  - type: covered_by
-    from: SYM-kibi-cli-src-public-verification-artifact-ts-playwright-run-version
-    to: TEST-kibi-verification-evidence-contract
-    created_at: 2026-08-30T04:20:37.840Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-305153f3a18a

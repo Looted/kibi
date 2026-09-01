@@ -122,17 +122,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7476ecd6be6d
-  - type: implements
-    from: SYM-kibi-cli-src-public-verification-artifact-ts-verification-case-artifact-schema
-    to: REQ-kibi-verification-evidence-contract
-    created_at: 2026-08-30T04:14:14.942Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-929dea0b78cd
-  - type: covered_by
-    from: SYM-kibi-cli-src-public-verification-artifact-ts-verification-case-artifact-schema
-    to: TEST-kibi-verification-evidence-contract
-    created_at: 2026-08-30T04:21:26.368Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3d12fe3db364

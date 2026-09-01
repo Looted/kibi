@@ -220,7 +220,7 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
   },
   "kibi-freshness/completion-outcome/held-out/1": {
     prompt:
-      "The KB check is clean, but verificationSnapshotChanges identifies a dirty editor configuration. Report the exact path and classify the task independently from that verification state.",
+      "The KB check is clean, but proofSnapshotChanges identifies a dirty editor configuration. Report the exact path and classify the task independently from that proof state.",
     objectiveCode: "dirty_editor_config",
     kb: "fresh",
     worktree: "dirty",

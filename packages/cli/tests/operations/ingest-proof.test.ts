@@ -27,7 +27,7 @@ const contract = {
   integration: "self-proof",
   required_proofs: [{ symbol_id: "SYM-CASE-1", target: "default" }],
   success_policy: "all_required_first_attempt",
-};
+} as const;
 
 const secondContract = {
   version: "kibi.proof-contract.v1",
@@ -37,7 +37,7 @@ const secondContract = {
     { symbol_id: "SYM-CASE-3", target: "postgres-16" },
   ],
   success_policy: "all_required_first_attempt",
-};
+} as const;
 
 const command = ["node", "scripts/run-proof-step.mjs"];
 
@@ -283,7 +283,9 @@ describe("kb_ingest_proof", () => {
         }),
       );
       const ctx = context(dir, query);
-      ctx.git.workspaceSnapshot = async () => ({
+      const git = ctx.git;
+      if (!git) throw new Error("context helper must provide git port");
+      git.workspaceSnapshot = async () => ({
         version: "kibi.workspace-snapshot.v2",
         hash: "b".repeat(64),
         dirty: false,

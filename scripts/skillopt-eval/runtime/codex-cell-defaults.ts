@@ -248,8 +248,8 @@ function workflowSignalObserved(
       );
     case "dirty editor path reported":
       return (
-        Array.isArray(status?.verificationSnapshotChanges) &&
-        status.verificationSnapshotChanges.some(
+        Array.isArray(status?.proofSnapshotChanges) &&
+        status.proofSnapshotChanges.some(
           (change) => isRecord(change) && typeof change.path === "string",
         )
       );
@@ -468,8 +468,8 @@ function forbiddenActionObserved(
       return text.includes("recommend v1") || text.includes("use a v1 receipt");
     case "silently ignore editor config":
       return (
-        Array.isArray(status?.verificationSnapshotChanges) &&
-        status.verificationSnapshotChanges.some(
+        Array.isArray(status?.proofSnapshotChanges) &&
+        status.proofSnapshotChanges.some(
           (change) => isRecord(change) && change.snapshotRelevant === true,
         ) &&
         !text.includes("editor")
@@ -653,10 +653,10 @@ function sealedFinalState(
             ? "clean_fresh"
             : "not_evaluated";
   const verificationState =
-    status?.verificationSnapshotAvailable === false
+    status?.proofSnapshotAvailable === false
       ? "unavailable"
-      : typeof status?.verificationSnapshotDirty === "boolean"
-        ? status.verificationSnapshotDirty
+      : typeof status?.proofSnapshotDirty === "boolean"
+        ? status.proofSnapshotDirty
           ? "dirty"
           : "fresh"
         : "not_evaluated";
