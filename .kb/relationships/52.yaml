@@ -3,7 +3,7 @@ relationships:
     type: implements
     from: SYM-cli-prolog-json-operation-decode-error-code
     to: REQ-kibi-operation-interface-parity
-    created_at: "2026-08-16T21:04:28.350Z"
+    created_at: 2026-08-16T21:04:28.350Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
   - type: covered_by
@@ -27,20 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-30ccdc360ecf
-  - type: implements
-    from: SYM-proof-runner
-    to: REQ-test-journaled-engine-harness
-    created_at: 2026-08-21T19:57:00.262Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-48f29437dd35
-  - type: covered_by
-    from: SYM-proof-runner
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-21T19:57:00.299Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0b0d8f9789be
   - type: implements
     from: SYM-cli-logic-ir-LOGIC_RULE_MAX_ATOMS
     to: REQ-kibi-logical-requirement-coverage

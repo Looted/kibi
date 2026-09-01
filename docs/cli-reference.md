@@ -33,7 +33,7 @@ The input root must be a JSON object that matches the corresponding operation sc
 | `kb_plan_bootstrap` | `kibi plan-bootstrap --input <file|->` |
 | `kb_compile_intent` | `kibi compile-intent --input <file|->` |
 | `kb_apply_plan` | `kibi apply-plan --input <file|->` |
-| `kb_ingest_verification` | `kibi ingest-verification --input <file|->` |
+| `kb_ingest_proof` | `kibi ingest-proof --input <file|->` |
 | `kb_validate_upsert` | `kibi validate-upsert --input <file|->` |
 | `kb_upsert` | `kibi upsert --input <file|->` |
 | `kb_delete` | `kibi delete --input <file|->` |
@@ -58,7 +58,7 @@ not infer or write product knowledge.
 **Behavior:**
 - Creates `.kb/` directory structure with canonical knowledge lanes (`requirements/`, `scenarios/`, `tests/`, `facts/`, `adr/`, `flags/`, `events/`)
 - Installs git hooks (pre-commit, post-checkout, post-merge, post-rewrite) by default
-- Ignores derived `.kb/` runtime state in `.gitignore` (`.kb/branches/`, `.kb/recovery/`, `.kb/verification/`, `.kb/briefs/`, `.kb/migrations/`, `.kb/usage.log`). Authored knowledge under `.kb/` stays tracked. `kibi migrate` also removes the pre-canonical blanket `.kb/` ignore stanza so migrated knowledge files are not left Git-ignored.
+- Ignores derived `.kb/` runtime state in `.gitignore` (`.kb/branches/`, `.kb/recovery/`, `.kb/proof/runs/`, `.kb/briefs/`, `.kb/migrations/`, `.kb/usage.log`). Authored knowledge under `.kb/` stays tracked. `kibi migrate` also removes the pre-canonical blanket `.kb/` ignore stanza so migrated knowledge files are not left Git-ignored.
 - Creates Kibi-owned `.kb/manifest.json` (lifecycle metadata only; not a user configuration file)
 - Creates `.kb/symbols.yaml` and `.kb/symbol-coordinates.yaml` when they do not already exist
 
@@ -133,21 +133,38 @@ Node.js 22 or newer is required for both the CLI/MCP clients and the engine.
 Bun remains a repository build/test tool, but is not a supported runtime for
 the published Kibi packages.
 
-## `kibi verify`
+## `kibi prove`
 
-Runs an explicit command against a test's current verification contract and
-ingests the raw `kibi.playwright-run.v1` reporter artifact. The command is
-never taken from the KB implicitly: argv after `--` must exactly match the
-contract, and the child process is spawned with `shell: false`.
+Runs the configured proof producers and ingests valid
+`kibi.proof-run.v1` evidence. For each integration, the producer executes
+once (`shell: false`), the workspace snapshot is revalidated before and after,
+and the artifact is evaluated independently against every selected test's
+`kibi.proof-contract.v1` obligations. Derived `kibi.proof-receipt.v1`
+receipts append idempotently; history is never rewritten.
 
 ```bash
-kibi verify --test-id TEST-checkout -- pnpm exec playwright test --project=chromium
+kibi prove --all
+kibi prove --test TEST-checkout
+kibi prove --requirement REQ-checkout
+kibi prove --integration web-e2e
 ```
 
-The reporter is available as `kibi-cli/playwright-reporter`. Set
-`KIBI_VERIFICATION_OUTPUT` when running Playwright directly. A missing,
-partial, retried, stale, or contract-drifted artifact is rejected by the same
-`kb_ingest_verification` executor used by MCP and JSON CLI callers.
+Selectors: `--test`, `--requirement`, `--integration`, `--all` (default).
+The exit code is non-zero when any proof fails or a producer errors.
+
+## `kibi proof inspect`
+
+Detects languages, build systems, test frameworks, CI workflows, configured
+integrations, and the recommended integration level. Deterministic output for
+agents; bootstrap consumes this instead of reinventing detection.
+
+```bash
+kibi proof inspect --json
+```
+
+See [proving requirements](proving-requirements.md) for the full workflow:
+proof contracts, integration configuration, the artifact reference, adapter
+authoring, and troubleshooting.
 
 See [proving requirements](proving-requirements.md) for the full workflow:
 contract authoring, reporter setup, stable case symbols, and the
@@ -235,11 +252,11 @@ Reports the current KB snapshot, branch, and freshness state.
 kibi status [--format json|table]
 ```
 
-JSON output also exposes `verificationSnapshot`, availability, dirty state, file count, and `kibi.workspace-snapshot.v2` version. This deterministic snapshot is the identity coverage uses to accept or reject verification receipts; an unavailable snapshot fails proof closed. Receipt-only frontmatter changes are excluded from the hash so ingesting a receipt cannot invalidate its own proof.
+JSON output also exposes `proofSnapshot`, availability, dirty state, file count, and `kibi.workspace-snapshot.v2` version. This deterministic snapshot is the identity coverage uses to accept or reject proof receipts; an unavailable snapshot fails proof closed. Receipt-only frontmatter changes are excluded from the hash so ingesting a receipt cannot invalidate its own proof.
 
 Status also reports the exact `branchAttachment` (`gitBranch`, `kbBranch`,
 `kind`, and `migrationRequired`), bounded `staleReasons`, and
-`verificationSnapshotChanges`. A legacy attachment is read-compatible only;
+`proofSnapshotChanges`. A legacy attachment is read-compatible only;
 writes and sync are blocked until the sanctioned migration is applied. Dirty
 editor/config paths are reported rather than silently ignored.
 
@@ -287,13 +304,13 @@ kibi coverage [--by req|symbol|type] [--tag TAGS] [--include-passing] [--no-incl
 - `--include-passing` adds rows with a proven or not-applicable proof outcome back into requirement results; compatibility-oriented structural coverage remains visible on every returned row.
 - Requirement coverage rows include coverage-depth labels when evidence can be classified: `direct_passing_e2e`, `scenario_passing_e2e`, `unit_only`, `open_or_nonpassing_tests_only`, `scenario_only_no_test`, or `no_test_evidence`.
 - Coverage-depth labels are informational. They do not change existing covered/uncovered pass-fail semantics, and typed test fields (`verification_scope`, then `verification_perspective`) take precedence over legacy `e2e` tags or `/e2e/` path heuristics.
-- Requirement rows also expose the additive `kibi.requirement-proof.v2` contract. `proofStatus` is `proven`, `unresolved`, `missing`, or `not_applicable` for a non-current requirement, and is intentionally independent from compatibility-oriented `coverageStatus`.
+- Requirement rows also expose the additive `kibi.requirement-proof.v3` contract. `proofStatus` is `proven`, `unresolved`, `missing`, or `not_applicable` for a non-current requirement, and is intentionally independent from compatibility-oriented `coverageStatus`.
 - `proofStages` records semantic inventory, logical grounding, contradiction, scenario, scenario-test, passing E2E, executable-symbol, production-symbol, and exact source-coordinate evidence. `proofGaps` lists only blocking issues that prevent `proven`. `proofAdvisories` lists non-blocking extra-evidence issues, such as additional scenario-backed tests that still lack a receipt after strict proof already exists. `proofRepairs` ranks concrete recovery actions for blocking gaps only.
 - Requirement reports also include `repairPlan` (`kibi.repair-plan.v1`). It groups gaps into one small batch per requirement and dependency phase, marks only the earliest unresolved batch `ready`, and links later batches through `dependsOn`. Every batch is read-only guidance with `autoApplicable: false`, a reviewed `workflowSteps` sequence, targeted `validationRules`, and a sequential-write policy.
 - Requirement and symbol reports also include the shared `migrationPlan` (`kibi.migration-plan.v2`). Apply only ready automatic actions after explicitly approving its exact hash and action IDs; review, operator, and E2E execution actions remain agent/operator work.
 - `repairPlan.scope.complete` is false and `status` is `partial` whenever `limit`/`offset` exclude actionable requirements. Increase the limit and reset the offset before using a plan as a project-wide migration inventory. The plan ID is stable for the same snapshot, filters, evidence, and gaps; receipt ages and check timestamps do not churn it.
 - `--include-migration-preview` adds `kibi.legacy-migration-plan.v1` for ready semantic-inventory batches. It defaults to one requirement, reconstructs normalized authored Markdown with exact SHA-256 source identity and UTF-8 proposition spans, ranks project-local schemas before built-ins, and emits review-only property patches. The patch stores authored prose in requirement-only `semantic_text` and never replaces an independent `text_ref`; only an existing `semantic_text` that differs from the current normalized Markdown blocks the batch as source drift. All candidates remain `writeEligible: false` and all batches `autoApplicable: false`.
-- The passing-E2E stage requires append-only verification-receipt history on a scenario-backed test. New evidence is produced by `kibi verify` as `kibi.verification-receipt.v2`; older `v1` entries remain readable historical compatibility data. Only a fresh passed receipt bound to the live `verificationSnapshot` and current contract qualifies; authored `status: passing` remains structural metadata.
+- The passing-E2E stage requires append-only proof-receipt history on a scenario-backed test. New evidence is produced by `kibi prove` as `kibi.proof-receipt.v1`. Only a fresh passed receipt bound to the live `proofSnapshot`, current contract hash, and effective execution fingerprint qualifies; authored `status: passing` remains structural metadata.
 - Symbol rows classify `traceabilityRole` as `production`, `executable_test`, or `mixed`. Executable-only test symbols are `not_applicable` to production coverage instead of being counted as fully covered.
 
 ## `kibi report`

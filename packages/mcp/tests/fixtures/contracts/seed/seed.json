@@ -20,7 +20,11 @@
   },
   "operations": {
     "kb_query": {
-      "input": { "type": "req", "limit": 1, "offset": 0 },
+      "input": {
+        "type": "req",
+        "limit": 1,
+        "offset": 0
+      },
       "success": {
         "structuredContent": {
           "entities": [
@@ -98,7 +102,9 @@
       }
     },
     "kb_skills_load": {
-      "input": { "id": "kibi-contract-fixture" },
+      "input": {
+        "id": "kibi-contract-fixture"
+      },
       "success": {
         "structuredContent": {
           "skill": {
@@ -135,7 +141,10 @@
           "receipt": {
             "summary": "One reviewable suggestion produced.",
             "suggestions": [
-              { "kind": "strict-property", "label": "commit_action" }
+              {
+                "kind": "strict-property",
+                "label": "commit_action"
+              }
             ]
           },
           "warnings": []
@@ -167,7 +176,11 @@
             }
           ],
           "count": 1,
-          "meta": { "type": "req", "limit": 25, "offset": 0 }
+          "meta": {
+            "type": "req",
+            "limit": 25,
+            "offset": 0
+          }
         }
       },
       "failure": {
@@ -266,7 +279,9 @@
                     "proofPriority": 10,
                     "proofStage": "semantic_inventory",
                     "action": "Run kb_semantic_advisor and persist its complete proposition ledger.",
-                    "evidence": { "status": "missing" }
+                    "evidence": {
+                      "status": "missing"
+                    }
                   }
                 ]
               }
@@ -335,7 +350,10 @@
       }
     },
     "kb_check": {
-      "input": { "rules": [], "workspaceRoot": "contracts/seed/workspace" },
+      "input": {
+        "rules": [],
+        "workspaceRoot": "contracts/seed/workspace"
+      },
       "success": {
         "structuredContent": {
           "summary": "No violations in seeded contract workspace.",
@@ -370,7 +388,11 @@
           "warnings": [],
           "semanticAdvisor": {
             "summary": "Requirement can be modeled as a strict fact set.",
-            "suggestions": [{ "kind": "strict-lane" }]
+            "suggestions": [
+              {
+                "kind": "strict-lane"
+              }
+            ]
           },
           "normalizedPreview": {
             "type": "req",
@@ -416,7 +438,11 @@
           "warnings": [],
           "semanticAdvisor": {
             "summary": "Strict upsert preview ready.",
-            "suggestions": [{ "kind": "strict-property" }]
+            "suggestions": [
+              {
+                "kind": "strict-property"
+              }
+            ]
           },
           "contradictionCheck": {
             "outcome": "no-conflict",
@@ -425,7 +451,10 @@
           }
         },
         "sideEffects": {
-          "entities": { "created": ["REQ-CONTRACT-002"], "updated": [] },
+          "entities": {
+            "created": ["REQ-CONTRACT-002"],
+            "updated": []
+          },
           "relationships": {
             "created": [
               {
@@ -452,11 +481,19 @@
       }
     },
     "kb_delete": {
-      "input": { "ids": ["REQ-CONTRACT-001"] },
+      "input": {
+        "ids": ["REQ-CONTRACT-001"]
+      },
       "success": {
-        "structuredContent": { "deleted": 1, "skipped": 0, "errors": [] },
+        "structuredContent": {
+          "deleted": 1,
+          "skipped": 0,
+          "errors": []
+        },
         "sideEffects": {
-          "entities": { "deleted": ["REQ-CONTRACT-001"] },
+          "entities": {
+            "deleted": ["REQ-CONTRACT-001"]
+          },
           "auditLog": {
             "action": "delete",
             "entityId": "REQ-CONTRACT-001",
@@ -533,7 +570,11 @@
               "action": "upsert",
               "id": "FACT-CONTRACT-RETENTION-PROPERTY"
             },
-            { "step": 3, "action": "upsert", "id": "REQ-CONTRACT-RETENTION" }
+            {
+              "step": 3,
+              "action": "upsert",
+              "id": "REQ-CONTRACT-RETENTION"
+            }
           ],
           "isStrict": true,
           "confidence": 0.8,
@@ -679,9 +720,15 @@
           },
           "discoverySummary": {
             "sourceCount": 1,
-            "entityCounts": { "req": 1, "symbol": 1, "fact": 1 },
+            "entityCounts": {
+              "req": 1,
+              "symbol": 1,
+              "fact": 1
+            },
             "activationReasons": ["seed workspace present"],
-            "sourceCoverage": { "documentation": 1 }
+            "sourceCoverage": {
+              "documentation": 1
+            }
           },
           "candidates": [
             {
@@ -691,18 +738,32 @@
               "sourcePath": "contracts/seed/requirements/REQ-CONTRACT-002.md",
               "sourceKind": "markdown",
               "applyPlan": [
-                { "step": 1, "action": "upsert", "id": "REQ-CONTRACT-002" }
+                {
+                  "step": 1,
+                  "action": "upsert",
+                  "id": "REQ-CONTRACT-002"
+                }
               ]
             }
           ],
           "applyPlan": [
-            { "step": 1, "action": "upsert", "id": "REQ-CONTRACT-002" }
+            {
+              "step": 1,
+              "action": "upsert",
+              "id": "REQ-CONTRACT-002"
+            }
           ],
           "suppressedCandidates": [],
           "payoffSummary": {
-            "current": { "req": 1 },
-            "projectedIfAllApplied": { "req": 2 },
-            "delta": { "req": 1 }
+            "current": {
+              "req": 1
+            },
+            "projectedIfAllApplied": {
+              "req": 2
+            },
+            "delta": {
+              "req": 1
+            }
           }
         }
       },
@@ -750,9 +811,15 @@
             "requirementId": "REQ-test",
             "selectionReason": "fixture"
           },
-          "discovery": { "candidates": [], "abstained": true },
+          "discovery": {
+            "candidates": [],
+            "abstained": true
+          },
           "propositions": [],
-          "contradictionAnalysis": { "outcome": "unresolved", "witnesses": [] },
+          "contradictionAnalysis": {
+            "outcome": "unresolved",
+            "witnesses": []
+          },
           "proposals": [],
           "steps": [],
           "sourceWrites": [],
@@ -774,36 +841,6 @@
         }
       }
     },
-    "kb_ingest_verification": {
-      "input": {
-        "testId": "TEST-001",
-        "snapshot": "0000000000000000000000000000000000000000000000000000000000000000",
-        "artifact": {
-          "version": "kibi.playwright-run.v1",
-          "runner": "playwright",
-          "command_argv": ["pnpm", "exec", "playwright", "test"],
-          "code_snapshot": "0000000000000000000000000000000000000000000000000000000000000000",
-          "environment_hash": "1111111111111111111111111111111111111111111111111111111111111111",
-          "started_at": "2026-08-13T00:00:00Z",
-          "finished_at": "2026-08-13T00:00:01Z",
-          "process_exit_code": 0,
-          "cases": []
-        }
-      },
-      "success": {
-        "structuredContent": {
-          "receipt": { "version": "kibi.verification-receipt.v2" },
-          "proofOutcome": "passed"
-        }
-      },
-      "failure": {
-        "error": {
-          "class": "JSONRPCError",
-          "code": -32602,
-          "message": "artifact.cases must be non-empty"
-        }
-      }
-    },
     "kb_sparql_remote": {
       "input": {
         "endpoint": "http://127.0.0.1:40123/sparql",
@@ -812,7 +849,12 @@
       },
       "success": {
         "structuredContent": {
-          "rows": [{ "subject": "REQ-CONTRACT-001", "label": "Seed row" }]
+          "rows": [
+            {
+              "subject": "REQ-CONTRACT-001",
+              "label": "Seed row"
+            }
+          ]
         }
       },
       "failure": {
@@ -820,6 +862,57 @@
           "class": "JSONRPCError",
           "code": -32602,
           "message": "SPARQL endpoint must target a public remote host"
+        }
+      }
+    },
+    "kb_ingest_proof": {
+      "input": {
+        "snapshot": "0000000000000000000000000000000000000000000000000000000000000000",
+        "artifact": {
+          "version": "kibi.proof-run.v1",
+          "command_argv": ["node", "scripts/proof.mjs"],
+          "code_snapshot": "0000000000000000000000000000000000000000000000000000000000000000",
+          "producer": {
+            "name": "kibi-command-producer"
+          },
+          "integration": "self-proof",
+          "environment": {
+            "os": "linux",
+            "arch": "x86_64"
+          },
+          "run": {
+            "outcome": "passed",
+            "exit_code": 0,
+            "started_at": "2026-08-13T00:00:00Z",
+            "finished_at": "2026-08-13T00:00:01Z"
+          },
+          "proof_results": [
+            {
+              "symbol_id": "SYM-CASE-1",
+              "target": "default",
+              "outcome": "passed",
+              "binding": "aggregate_run",
+              "attempts": {
+                "status": "unavailable"
+              }
+            }
+          ]
+        },
+        "testIds": ["TEST-001"]
+      },
+      "success": {
+        "structuredContent": {
+          "receipt": {
+            "version": "kibi.verification-receipt.v2"
+          },
+          "proofOutcome": "passed"
+        }
+      },
+      "failure": {
+        "error": {
+          "class": "JSONRPCError",
+          "code": -32602,
+          "message": "artifact.cases must be non-empty"
         }
       }
     }

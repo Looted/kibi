@@ -319,7 +319,9 @@ tags:
 | text_ref     | No       | string         | Markdown/doc pointer                             |
 | verification_scope | No | enum           | `unit`, `integration`, or `end_to_end`           |
 | verification_perspective | No | enum     | `internal` or `consumer`                         |
-| verification_receipts | No | array[object] | Append-only verification-receipt execution history; new evidence is `kibi.verification-receipt.v2`, while v1 entries remain historical compatibility data; requires `verification_scope` |
+| proof_contract | No | object | `kibi.proof-contract.v1`: explicit `required_proofs` obligations (`symbol_id` + ecosystem-neutral `target`) executed by one configured integration; requires `verification_scope` |
+| proof_bindings | No | array[object] | Optional native-runner bindings (`native_id`, aliases, source coordinates) for proof obligations; provenance metadata, never a contract replacement |
+| proof_receipts | No | array[object] | Append-only proof-receipt execution history; evidence is `kibi.proof-receipt.v1`; requires `verification_scope` |
 
 `verification_receipts` is append-only: never remove or rewrite existing entries, and include the full history when authoring a test file directly. Receipts are engine-derived from `kibi.playwright-run.v1` reporter artifacts — see [proving requirements](proving-requirements.md) for contracts, the `kibi verify` workflow, and the artifact reference.
 
@@ -336,7 +338,7 @@ Coverage-depth reporting uses typed verification fields before legacy hints. A t
 
 Conservative requirement proof uses receipt history instead. Each receipt binds `receipt_id`, `test_id`, `runner`, `command`, typed `scope`, `outcome`, `code_snapshot`, `environment_hash`, `started_at`, `finished_at`, and `artifact_digest`. History is capped at 50 entries, receipt IDs are unique, finish times increase strictly, and existing entries cannot be removed, changed, or reordered through upsert or incremental sync. Proof accepts only the newest receipt for the deterministic current workspace snapshot when it passed, is not future-dated, and is at most seven days old. Missing, wrong-snapshot, stale, failed, malformed, or future-dated evidence produces explicit proof gaps.
 
-`kibi.workspace-snapshot.v2` hashes current versionable code plus requirement, scenario, fact, test-contract, and symbol-manifest inputs. It excludes `.kb/`, release changesets, general `docs/`, and the `verification_receipts` frontmatter field inside every tracked Markdown file, preventing a receipt from invalidating its own code hash without hiding changes to the surrounding test contract. The v2 algorithm invalidates v1 snapshot-bound receipts once; they must be rerun.
+`kibi.workspace-snapshot.v2` hashes current versionable code plus requirement, scenario, fact, test-contract, and symbol-manifest inputs. It excludes `.kb/` derived runtime trees, release changesets, general `docs/`, and the `proof_receipts` frontmatter field inside every tracked Markdown file, preventing a receipt from invalidating its own code hash without hiding changes to the surrounding test contract. The v2 algorithm invalidates v1 snapshot-bound receipts once; they must be rerun.
 
 #### Check output diagnostics
 
@@ -360,13 +362,17 @@ tags:
   - sample
 verification_scope: end_to_end
 verification_perspective: consumer
-verification_receipts:
-  - version: kibi.verification-receipt.v2
-    receipt_id: VR-TEST-001-20260217T130500Z
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-TEST-001
+      target: default
+  success_policy: all_required_first_attempt
+proof_receipts:
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-TEST-001-20260217T1305
     test_id: TEST-001
-    runner: bun
-    command: bun test ./tests/e2e/sample.test.ts
-    command_argv: [bun, test, ./tests/e2e/sample.test.ts]
     scope: end_to_end
     outcome: passed
     code_snapshot: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
@@ -375,12 +381,25 @@ verification_receipts:
     finished_at: 2026-02-17T13:05:00Z
     artifact_digest: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
     contract_hash: dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
-    case_results:
+    fingerprint: eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    fingerprint_components:
+      contract: 111111111111111111111111111111111111111111111111111111111111111a
+      integration: 222222222222222222222222222222222222222222222222222222222222222a
+      command: 333333333333333333333333333333333333333333333333333333333333333a
+      bindings: 4444444444444444444444444444444444444444444444444444444444444444a
+      producer: 5555555555555555555555555555555555555555555555555555555555555555a
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv: [node, scripts/run-proof-producer.mjs]
+    run_outcome: passed
+    proof_results:
       - symbol_id: SYM-TEST-001
-        project: default
+        target: default
         outcome: passed
-        retries: 0
-        duration_ms: 300000
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 ```
 

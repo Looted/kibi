@@ -3,7 +3,7 @@ relationships:
     type: implements
     from: SYM-skillopt-file-bridge-read-public
     to: REQ-skillopt-codex-optimization
-    created_at: "2026-08-16T07:13:49.827Z"
+    created_at: 2026-08-16T07:13:49.827Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
   - type: covered_by
@@ -20,13 +20,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-110f50119910
-  - type: covered_by
-    from: SYM-kibi-cli-src-cli-register-verification-ts-registerverificationcommand
-    to: TEST-kibi-verification-evidence-contract
-    created_at: 2026-08-16T18:52:23.884Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5c114d7b5640
   - type: covered_by
     from: SYM-cli-engine-socket-path
     to: TEST-core-journaled-engine-lifecycle

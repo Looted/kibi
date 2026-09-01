@@ -1,8 +1,11 @@
 import {
-  MAX_VERIFICATION_RECEIPTS,
-  VERIFICATION_CONTRACT_SCHEMA,
-  VERIFICATION_RECEIPT_SCHEMA,
-} from "../../verification-receipt.js";
+  PROOF_BINDINGS_SCHEMA,
+  PROOF_CONTRACT_SCHEMA,
+} from "../../proof-protocol.js";
+import {
+  MAX_PROOF_RECEIPTS,
+  PROOF_RECEIPT_SCHEMA,
+} from "../../proof-receipt.js";
 
 export const ENTITY_TYPES = [
   "req",
@@ -153,13 +156,22 @@ export const ENTITY_PROPERTIES_SCHEMA = {
       description:
         "Optional typed verification perspective for test entities. Example: 'consumer'.",
     },
-    verification_contract: VERIFICATION_CONTRACT_SCHEMA,
-    verification_receipts: {
-      type: "array",
-      maxItems: MAX_VERIFICATION_RECEIPTS,
-      items: VERIFICATION_RECEIPT_SCHEMA,
+    proof_contract: {
+      ...PROOF_CONTRACT_SCHEMA,
       description:
-        "Append-only test execution evidence. Proof accepts only the newest valid passed receipt bound to the current code snapshot and within the seven-day freshness window. Ingest rotates the oldest entries at the cap.",
+        "Semantic proof contract binding this test to explicit proof obligations executed by one configured integration.",
+    },
+    proof_bindings: {
+      ...PROOF_BINDINGS_SCHEMA,
+      description:
+        "Optional native-runner bindings (native ids, aliases, source coordinates) for proof obligations. Bindings are provenance metadata and never replace the semantic contract.",
+    },
+    proof_receipts: {
+      type: "array",
+      maxItems: MAX_PROOF_RECEIPTS,
+      items: PROOF_RECEIPT_SCHEMA,
+      description:
+        "Append-only proof evidence. Proof accepts only the newest valid passed receipt bound to the current code snapshot, current contract hash, and effective execution fingerprint within the seven-day freshness window. Ingest rotates the oldest entries at the cap.",
     },
     fact_kind: {
       type: "string",
@@ -324,7 +336,7 @@ export const ENTITY_PROPERTIES_SCHEMA = {
   allOf: [
     CLAIM_PROVENANCE_CONDITIONAL,
     {
-      if: { required: ["verification_receipts"] },
+      if: { required: ["proof_receipts"] },
       // biome-ignore lint/suspicious/noThenProperty: JSON Schema conditional keyword.
       then: { required: ["verification_scope"] },
     },

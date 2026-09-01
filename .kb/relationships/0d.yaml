@@ -3,7 +3,7 @@ relationships:
     type: covered_by
     from: SYM-reqcompiler-ingestion-boundary-result
     to: TEST-kibi-proposition-complete-ingestion
-    created_at: "2026-08-16T18:52:06.550Z"
+    created_at: 2026-08-16T18:52:06.550Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
   - type: executable_for
@@ -41,20 +41,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3d4432a70f8a
-  - type: implements
-    from: SYM-proof-packed-compiled-directory
-    to: REQ-test-journaled-engine-harness
-    created_at: 2026-08-21T21:07:55.430Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-558ac7559450
-  - type: covered_by
-    from: SYM-proof-packed-compiled-directory
-    to: TEST-test-journaled-engine-harness
-    created_at: 2026-08-21T21:07:55.443Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3b9275ecb69d
   - type: covered_by
     from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-template
     to: TEST-kibi-change-to-proof-plan-compiler

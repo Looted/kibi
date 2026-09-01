@@ -87,7 +87,7 @@ const TOOL_NAMES = [
   "kb_plan_bootstrap",
   "kb_compile_intent",
   "kb_apply_plan",
-  "kb_ingest_verification",
+  "kb_ingest_proof",
 ] as const;
 
 function objectRecord(value: unknown): Record<string, unknown> {
@@ -564,11 +564,11 @@ function createRuntime() {
       args,
     }),
   );
-  const handleKbIngestVerification: NonNullable<
-    ToolsRuntime<MockProlog>["handleKbIngestVerification"]
+  const handleKbIngestProof: NonNullable<
+    ToolsRuntime<MockProlog>["handleKbIngestProof"]
   > = mock(
     async (args: Record<string, unknown>): Promise<unknown> => ({
-      tool: "kb_ingest_verification",
+      tool: "kb_ingest_proof",
       args,
     }),
   );
@@ -606,7 +606,7 @@ function createRuntime() {
     handleKbPlanBootstrap,
     handleKbCompileIntent,
     handleKbApplyPlan,
-    handleKbIngestVerification,
+    handleKbIngestProof,
   } satisfies ToolsRuntime<MockProlog>;
 
   return {
@@ -646,7 +646,7 @@ function createRuntime() {
       handleKbPlanBootstrap,
       handleKbCompileIntent,
       handleKbApplyPlan,
-      handleKbIngestVerification,
+      handleKbIngestProof,
     },
   };
 }

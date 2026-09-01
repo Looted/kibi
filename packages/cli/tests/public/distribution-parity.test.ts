@@ -277,10 +277,7 @@ describe("distribution parity matrix", () => {
         capability: (typeof REQUIREMENT_COMPILER_CAPABILITIES)[number],
       ) => {
         calls.push(`${candidate.id}:${capability}`);
-        if (
-          candidate.id === "packed-mcp" &&
-          capability === "verification_receipts"
-        ) {
+        if (candidate.id === "packed-mcp" && capability === "proof_receipts") {
           throw new Error("fixture process exited 1");
         }
         return resultFor(candidate.id, capability);
@@ -300,7 +297,7 @@ describe("distribution parity matrix", () => {
       expect.objectContaining({
         code: "capability_execution_failed",
         runtimeId: "packed-mcp",
-        capability: "verification_receipts",
+        capability: "proof_receipts",
       }),
     );
   });

@@ -11,6 +11,6 @@ links:
     target: TEST-kibi-proof-aware-quality-diagnostics
 ---
 
-Given a requirement with a scenario-backed E2E test whose current v2 receipt passes for the live snapshot, when full checks and complete coverage run, then both surfaces use the same proof evidence and full checks do not emit a contradictory `coverage_depth_review`. Independent ontology, symbol, coordinate, or receipt gaps remain visible.
+Given a requirement with a scenario-backed E2E test whose current proof receipt passes for the live snapshot, when full checks and complete coverage run, then both surfaces use the same proof evidence and full checks do not emit a contradictory `coverage_depth_review`. Independent ontology, symbol, coordinate, or receipt gaps remain visible.
 
-Given receipt freshness gaps, when diagnostics are emitted, then each bounded record identifies the affected requirement and test IDs and directs the agent to the exact current contract through `kibi verify` rather than to hand-author or rewrite historical receipts.
+Given receipt freshness gaps, when diagnostics are emitted, then each bounded record identifies the affected requirement and test IDs and directs the agent to the exact current contract through `kibi prove` rather than to hand-author or rewrite historical receipts.

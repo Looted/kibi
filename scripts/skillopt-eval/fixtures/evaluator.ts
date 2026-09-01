@@ -182,7 +182,7 @@ function requiredTools(task: FixtureTaskSpec): readonly string[] {
       "kb_search",
       "kb_query",
       "kb_status",
-      "kb_ingest_verification",
+      "kb_ingest_proof",
       "kb_coverage",
       "kb_check",
     ];
@@ -191,7 +191,7 @@ function requiredTools(task: FixtureTaskSpec): readonly string[] {
     return dedupe([
       ...READ_TOOLS[task.skill],
       "kb_status",
-      "kb_ingest_verification",
+      "kb_ingest_proof",
       "kb_coverage",
       "kb_check",
     ]);
@@ -431,7 +431,7 @@ export function buildPrivateManifest(input: {
             forbiddenTools: [
               "kb_upsert",
               "kb_delete",
-              "kb_ingest_verification",
+              "kb_ingest_proof",
               "kb_model_requirement",
               "kb_validate_upsert",
             ],

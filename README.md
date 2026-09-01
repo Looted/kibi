@@ -352,7 +352,7 @@ See [generic-agent onboarding](docs/generic-agent-onboarding.md) for the copy-pa
 ## Documentation
 
 - [Installation guide](docs/install.md) — Prerequisites, package managers, client setup, and verification
-- [Proving requirements](docs/proving-requirements.md) — Verification contracts, `kibi verify`, reporter artifacts, and receipts
+- [Proving requirements](docs/proving-requirements.md) — Proof contracts, `kibi prove`, producer artifacts, and receipts
 - [GitHub badge + report](docs/github-integration.md) — Publish requirement health on GitHub Pages
 - [CLI reference](docs/cli-reference.md) — Commands, flags, and structured JSON routes
 - [MCP reference](docs/mcp-reference.md) — Tools, schemas, examples, and agent onboarding

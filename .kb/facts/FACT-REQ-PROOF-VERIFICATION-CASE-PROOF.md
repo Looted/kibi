@@ -13,8 +13,8 @@ operator: eq
 value_type: bool
 value_bool: true
 polarity: require
-claim_key: CLAIM-B82AFD45D25355EB
-claim_text: Kibi must give each discovered end-to-end case a stable source-and-title identity, connect executable test symbols to that case, and accept proof only from a fresh, passed verification receipt bound to the current verification contract and snapshot
+claim_key: CLAIM-90DA2167F7920924
+claim_text: Kibi must give each proof obligation a stable symbol identity, connect executable test symbols to that obligation, and accept proof only from fresh, passed proof receipts bound to the current proof contract, execution fingerprint, and snapshot
 claim_span_start: 0
 claim_span_end: 248
 ---

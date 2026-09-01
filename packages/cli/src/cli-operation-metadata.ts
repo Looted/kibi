@@ -131,10 +131,10 @@ export const CLI_OPERATION_METADATA = [
       "Apply an explicitly approved kibi.bootstrap-plan.v1, kibi.compile-plan.v1, kibi.migration-plan.v2, or entity-deletion plan after revalidating its canonical hash and live snapshots. Bootstrap actions are dependency-ordered, sequential, source-first, and recoverable from a typed journal.",
   },
   {
-    name: "kb_ingest_verification",
-    cliName: "ingest-verification",
+    name: "kb_ingest_proof",
+    cliName: "ingest-proof",
     description:
-      "Ingest a reporter-produced kibi.playwright-run.v1 artifact for a contracted test. Revalidates the live workspace snapshot, runner/command contract, required case/project coverage, and append-only receipt history before deriving and appending a kibi.verification-receipt.v2. It never accepts a caller-authored receipt or trusted outcome. Each artifact.cases entry requires symbol_id, project, outcome (passed|failed|timed_out|skipped|interrupted), retries, and duration_ms. Produce artifacts with the bundled Playwright reporter via `kibi verify TEST-ID -- <exact contract command>`; direct ingestion is an integration path for reporters and agents.",
+      "Ingest a producer-emitted kibi.proof-run.v1 artifact and evaluate it against each selected test's kibi.proof-contract.v1 proof obligations. Revalidates the live workspace snapshot, integration command binding, run-level outcome, attempt history, success policy, and append-only proof-receipt history before deriving and appending idempotent kibi.proof-receipt.v1 receipts. Producers report what happened; Kibi evaluates proof. Prefer `kibi prove` so the configured producer runs automatically; direct ingestion is an integration path for custom producers and agents.",
   },
 ] as const satisfies readonly CliOperationMetadata[];
 

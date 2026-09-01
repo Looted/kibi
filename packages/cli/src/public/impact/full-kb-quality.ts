@@ -15,12 +15,12 @@ import {
   toPrologList,
 } from "../operations/prolog-json.js";
 import type { PrologPort } from "../operations/runtime-types.js";
+import { PROOF_RECEIPT_MAX_AGE_SECONDS } from "../proof-receipt.js";
 import {
   analyzeTelemetryAcceptance,
   createTelemetryAcceptanceDiagnostics,
   parseTelemetryUsageLog,
 } from "../telemetry-acceptance.js";
-import { VERIFICATION_RECEIPT_MAX_AGE_SECONDS } from "../verification-receipt.js";
 import { createCoverageDepthQualityDiagnostics } from "./coverage-depth-quality.js";
 import { createRequirementQualityDiagnostics } from "./requirement-quality.js";
 import { createSymbolQualityDiagnostics } from "./symbol-quality.js";
@@ -51,7 +51,7 @@ type FullKbQualityDiagnosticsOptions = {
   readonly maxDiagnostics?: number;
   readonly workspaceRoot?: string;
   readonly now?: Date;
-  readonly verificationSnapshot?: string;
+  readonly proofSnapshot?: string;
   readonly checkedAt?: string;
 };
 
@@ -242,7 +242,7 @@ function proofStage(
 async function loadCoverageProofEvidence(
   prolog: Pick<PrologPort, "query">,
   requirementCount: number,
-  verificationSnapshot: string | undefined,
+  proofSnapshot: string | undefined,
   checkedAt: string | undefined,
 ): Promise<
   ReadonlyMap<
@@ -256,7 +256,7 @@ async function loadCoverageProofEvidence(
   >
 > {
   if (
-    verificationSnapshot === undefined ||
+    proofSnapshot === undefined ||
     checkedAt === undefined ||
     requirementCount === 0
   ) {
@@ -267,7 +267,7 @@ async function loadCoverageProofEvidence(
     payload = await runOperationJsonQuery<CoveragePayload>(
       prolog as PrologPort,
       "discovery.pl",
-      `discovery:coverage_report_json('req', ${toPrologList([])}, true, true, ${requirementCount}, 0, ${toPrologAtom(verificationSnapshot)}, ${toPrologAtom(checkedAt)}, ${VERIFICATION_RECEIPT_MAX_AGE_SECONDS}, JsonString)`,
+      `discovery:coverage_report_json('req', ${toPrologList([])}, true, true, ${requirementCount}, 0, ${toPrologAtom(proofSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`,
       "Quality diagnostic coverage evidence",
     );
   } catch {
@@ -302,9 +302,9 @@ async function loadCoverageProofEvidence(
         ? {
             receiptGapCodes: proofGaps.filter(
               (gap) =>
-                gap.includes("verification_receipt") ||
-                gap.includes("verification_contract") ||
-                gap.includes("verification_snapshot"),
+                gap.includes("proof_receipt") ||
+                gap.includes("proof_contract") ||
+                gap.includes("proof_snapshot"),
             ),
           }
         : {}),
@@ -390,7 +390,7 @@ export async function collectFullKbQualityDiagnostics(
   const proofEvidence = await loadCoverageProofEvidence(
     options.prolog,
     manifestResults.filter((result) => result.entity.type === "req").length,
-    options.verificationSnapshot,
+    options.proofSnapshot,
     options.checkedAt,
   );
   const coverageDepthDiagnostics = createCoverageDepthQualityDiagnostics(

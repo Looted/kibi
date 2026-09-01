@@ -13,7 +13,7 @@ export * from "./specs/check.js";
 export * from "./specs/discovery.js";
 export * from "./specs/modeling.js";
 export * from "./specs/planning.js";
-export * from "./specs/verification.js";
+export * from "./specs/proof.js";
 export * from "./specs/mutation.js";
 export * from "./specs/reporting.js";
 export * from "./specs/semantic.js";

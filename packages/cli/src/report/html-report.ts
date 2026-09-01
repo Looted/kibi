@@ -496,7 +496,7 @@ function renderContradiction(conflict: UnknownRecord): string {
 function rowSeverity(row: UnknownRecord): number {
   const gaps = strings(row.proofGaps);
   if (gaps.includes("blocking_contradiction")) return 0;
-  if (gaps.includes("stale_verification_receipt")) return 1;
+  if (gaps.includes("stale_proof_receipt")) return 1;
   if (row.proofStatus !== "proven") return 2;
   return 3;
 }
@@ -506,7 +506,7 @@ function rowStates(row: UnknownRecord): string {
   const gaps = strings(row.proofGaps);
   if (row.proofStatus === "proven") states.add("proven");
   else states.add("attention");
-  if (gaps.includes("stale_verification_receipt")) states.add("stale");
+  if (gaps.includes("stale_proof_receipt")) states.add("stale");
   if (gaps.includes("blocking_contradiction")) states.add("contradiction");
   return [...states].join(" ");
 }
@@ -595,7 +595,7 @@ function reportNotice(input: HtmlReportInput): string {
   const notices: string[] = [];
   if (meta.dirty === true)
     notices.push("The Kibi knowledge snapshot is stale.");
-  if (meta.verificationSnapshotDirty === true) {
+  if (meta.proofSnapshotDirty === true) {
     notices.push("Proof was evaluated against a dirty workspace.");
   }
   if (notices.length === 0) return "";
@@ -669,7 +669,7 @@ export function renderHtmlReport(input: HtmlReportInput): string {
     strings(row.proofGaps).includes("missing_scenario"),
   ).length;
   const staleEvidence = currentRows.filter((row) =>
-    strings(row.proofGaps).includes("stale_verification_receipt"),
+    strings(row.proofGaps).includes("stale_proof_receipt"),
   ).length;
   const withoutImplementation = currentRows.filter((row) =>
     strings(row.proofGaps).includes("missing_production_symbol"),
@@ -680,7 +680,7 @@ export function renderHtmlReport(input: HtmlReportInput): string {
     count(symbolSummary.uncovered) - count(symbolSummary.mixedRole),
   );
   const generatedAt = input.generatedAt.toISOString();
-  const snapshot = text(input.requirements.meta?.verificationSnapshot);
+  const snapshot = text(input.requirements.meta?.proofSnapshot);
   const branch = text(input.branch, "unknown");
   const repository = {
     ...input.repository,

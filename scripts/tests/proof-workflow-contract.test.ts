@@ -1,22 +1,22 @@
 import { describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const ROOT = join(import.meta.dir, "..", "..");
-const registry = JSON.parse(
-  readFileSync(join(ROOT, "proof", "verification-registry.json"), "utf8"),
+const integrations = JSON.parse(
+  readFileSync(join(ROOT, ".kb", "proof", "integrations.json"), "utf8"),
 ) as {
   version: string;
-  contracts: Array<{
-    test_id: string;
-    contract: {
-      command_argv: string[];
-      required_case_symbols: string[];
-      required_projects: string[];
-    };
-    steps: string[][];
+  integrations: Array<{
+    id: string;
+    producer: string;
+    command: string[];
+    artifact?: string;
   }>;
 };
+const steps = JSON.parse(
+  readFileSync(join(ROOT, "proof", "steps.json"), "utf8"),
+) as Array<{ test_id: string; steps: string[][] }>;
 const baseline = JSON.parse(
   readFileSync(join(ROOT, "proof", "baseline.json"), "utf8"),
 ) as {
@@ -40,19 +40,24 @@ const proofPackedRunner = readFileSync(
 );
 
 describe("strict proof workflow contract", () => {
-  test("registry entries execute through the real Kibi verify adapter", () => {
-    expect(registry.version).toBe("kibi.proof-registry.v1");
-    expect(registry.contracts.length).toBeGreaterThan(0);
+  test("integrations execute through kibi prove with declarative steps", () => {
+    expect(integrations.version).toBe("kibi.proof-integration.v1");
+    expect(integrations.integrations.length).toBeGreaterThan(0);
+    const ids = new Set<string>();
+    for (const integration of integrations.integrations) {
+      expect(ids.has(integration.id)).toBe(false);
+      ids.add(integration.id);
+      expect(integration.producer).toBe("command");
+      expect(integration.command.length).toBeGreaterThan(0);
+      expect(integration.command[0]).not.toBe("sh");
+      expect(integration.command[0]).not.toBe("bash");
+    }
 
-    for (const entry of registry.contracts) {
-      expect(entry.contract.command_argv).toEqual([
-        "node",
-        "scripts/run-proof-contract.mjs",
-        "--test-id",
-        entry.test_id,
-      ]);
-      expect(entry.contract.required_case_symbols.length).toBeGreaterThan(0);
-      expect(entry.contract.required_projects.length).toBeGreaterThan(0);
+    expect(steps.length).toBeGreaterThan(0);
+    for (const entry of steps) {
+      expect(
+        existsSync(join(ROOT, ".kb", "tests", `${entry.test_id}.md`)),
+      ).toBe(true);
       expect(entry.steps.length).toBeGreaterThan(0);
       for (const step of entry.steps) {
         expect(step.length).toBeGreaterThan(0);
@@ -67,17 +72,42 @@ describe("strict proof workflow contract", () => {
       const frontmatter = markdown.match(/^---\n([\s\S]*?)\n---/)?.[1];
       expect(frontmatter).toBeTruthy();
       const parsed = Bun.YAML.parse(frontmatter ?? "") as {
-        verification_contract?: { command_argv?: string[] };
+        proof_contract?: {
+          integration?: string;
+          required_proofs?: Array<{ symbol_id?: string; target?: string }>;
+          success_policy?: string;
+        };
       };
-      expect(parsed.verification_contract?.command_argv).toEqual(
-        entry.contract.command_argv,
+      expect(parsed.proof_contract?.integration).toBe("self-proof");
+      expect(parsed.proof_contract?.success_policy).toBe(
+        "all_required_first_attempt",
       );
+      expect(parsed.proof_contract?.required_proofs?.length).toBeGreaterThan(0);
+      for (const obligation of parsed.proof_contract?.required_proofs ?? []) {
+        expect(obligation.symbol_id).toMatch(/^SYM-/);
+        expect(obligation.target).toBe("default");
+      }
     }
+  });
+
+  test("no old verification architecture remains in the workflow", () => {
+    expect(existsSync(join(ROOT, "proof", "verification-registry.json"))).toBe(
+      false,
+    );
+    expect(existsSync(join(ROOT, "scripts", "run-proof-contract.mjs"))).toBe(
+      false,
+    );
+    expect(existsSync(join(ROOT, "scripts", "run-proof-runner.mjs"))).toBe(
+      false,
+    );
+    expect(proofWorkflow).not.toContain("run-proof-contract.mjs");
+    expect(proofWorkflow).not.toContain("kibi verify");
+    expect(proofWorkflow).toContain("kibi prove --all");
   });
 
   test("proof runs before baseline enforcement and report generation", () => {
     const runner = proofWorkflow.indexOf(
-      "Run every contracted proof command through Kibi",
+      "Prove every contracted test through Kibi",
     );
     const baselineCheck = proofWorkflow.indexOf(
       "Enforce proof baseline and clean snapshot",
@@ -92,8 +122,8 @@ describe("strict proof workflow contract", () => {
     expect(ciWorkflow).not.toContain("Generate Kibi requirement health report");
   });
 
-  test("packed proof contracts isolate compilation and cleanup", () => {
-    const packedSteps = registry.contracts.flatMap((entry) =>
+  test("packed proof steps isolate compilation and cleanup", () => {
+    const packedSteps = steps.flatMap((entry) =>
       entry.steps.filter(
         (step) => step[1] === "scripts/run-proof-packed-e2e.mjs",
       ),
@@ -126,8 +156,8 @@ describe("strict proof workflow contract", () => {
       "missing_passing_e2e",
       "missing_production_symbol",
       "missing_production_symbol_coverage",
+      "missing_proof_receipt",
       "missing_semantic_inventory",
-      "missing_verification_receipt",
       "unresolved_semantic_proposition",
     ]);
   });

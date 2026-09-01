@@ -62,7 +62,7 @@ describe("executeOperation", () => {
         data: expect.objectContaining({
           branch: "develop",
           snapshotId: expect.any(String),
-          verificationSnapshot: "a".repeat(64),
+          proofSnapshot: "a".repeat(64),
           migrationPlan: expect.objectContaining({
             version: "kibi.migration-plan.v2",
           }),

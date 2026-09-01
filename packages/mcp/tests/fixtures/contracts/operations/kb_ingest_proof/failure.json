@@ -1,0 +1,290 @@
+{
+  "error": {
+    "class": "JSONRPCError",
+    "code": -32602,
+    "message": "artifact.cases must be non-empty"
+  },
+  "input": {
+    "artifact": {
+      "code_snapshot": "0000000000000000000000000000000000000000000000000000000000000000",
+      "command_argv": ["node", "scripts/proof.mjs"],
+      "environment": {
+        "arch": "x86_64",
+        "os": "linux"
+      },
+      "integration": "self-proof",
+      "producer": {
+        "name": "kibi-command-producer"
+      },
+      "proof_results": [
+        {
+          "attempts": {
+            "status": "unavailable"
+          },
+          "binding": "aggregate_run",
+          "outcome": "passed",
+          "symbol_id": "SYM-CASE-1",
+          "target": "default"
+        }
+      ],
+      "run": {
+        "exit_code": 0,
+        "finished_at": "2026-08-13T00:00:01Z",
+        "outcome": "passed",
+        "started_at": "2026-08-13T00:00:00Z"
+      },
+      "version": "kibi.proof-run.v1"
+    },
+    "snapshot": "0000000000000000000000000000000000000000000000000000000000000000",
+    "testIds": ["TEST-001"]
+  },
+  "tool": {
+    "description": "Ingest a producer-emitted kibi.proof-run.v1 artifact and evaluate it against each selected test's kibi.proof-contract.v1 proof obligations. Revalidates the live workspace snapshot, integration command binding, run-level outcome, attempt history, success policy, and append-only proof-receipt history before deriving and appending idempotent kibi.proof-receipt.v1 receipts. Producers report what happened; Kibi evaluates proof. Prefer `kibi prove` so the configured producer runs automatically; direct ingestion is an integration path for custom producers and agents.",
+    "inputSchema": {
+      "properties": {
+        "artifact": {
+          "additionalProperties": false,
+          "description": "Producer-emitted kibi.proof-run.v1 proof artifact. Producers report what happened; Kibi evaluates proof obligations and policies. Produce it via `kibi prove` or direct kb_ingest_proof calls.",
+          "properties": {
+            "code_snapshot": {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            "command_argv": {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            "diagnostics": {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "environment": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "executor": {
+              "additionalProperties": false,
+              "properties": {
+                "name": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "version": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": ["name"],
+              "type": "object"
+            },
+            "integration": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "producer": {
+              "additionalProperties": false,
+              "properties": {
+                "name": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "version": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": ["name"],
+              "type": "object"
+            },
+            "proof_results": {
+              "items": {
+                "additionalProperties": false,
+                "description": "One observed proof result. binding distinguishes native-case observations from aggregate-run bindings; attempts must report facts only.",
+                "properties": {
+                  "attempts": {
+                    "oneOf": [
+                      {
+                        "additionalProperties": false,
+                        "properties": {
+                          "entries": {
+                            "items": {
+                              "additionalProperties": false,
+                              "properties": {
+                                "duration_ms": {
+                                  "minimum": 0,
+                                  "type": "number"
+                                },
+                                "outcome": {
+                                  "enum": [
+                                    "passed",
+                                    "failed",
+                                    "timed_out",
+                                    "skipped",
+                                    "interrupted",
+                                    "errored"
+                                  ],
+                                  "type": "string"
+                                }
+                              },
+                              "required": ["outcome"],
+                              "type": "object"
+                            },
+                            "maxItems": 100,
+                            "minItems": 1,
+                            "type": "array"
+                          },
+                          "status": {
+                            "const": "complete",
+                            "type": "string"
+                          }
+                        },
+                        "required": ["status", "entries"],
+                        "type": "object"
+                      },
+                      {
+                        "additionalProperties": false,
+                        "properties": {
+                          "status": {
+                            "const": "unavailable",
+                            "type": "string"
+                          }
+                        },
+                        "required": ["status"],
+                        "type": "object"
+                      }
+                    ]
+                  },
+                  "binding": {
+                    "enum": ["native_case", "aggregate_run"],
+                    "type": "string"
+                  },
+                  "diagnostics": {
+                    "items": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "native_id": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "outcome": {
+                    "enum": [
+                      "passed",
+                      "failed",
+                      "timed_out",
+                      "skipped",
+                      "interrupted",
+                      "errored"
+                    ],
+                    "type": "string"
+                  },
+                  "symbol_id": {
+                    "description": "Stable proof symbol ID (SYM-*).",
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "target": {
+                    "description": "Ecosystem-neutral execution target (browser, runtime, database, device, deployment, or default).",
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "symbol_id",
+                  "target",
+                  "outcome",
+                  "binding",
+                  "attempts"
+                ],
+                "type": "object"
+              },
+              "maxItems": 1000,
+              "minItems": 1,
+              "type": "array"
+            },
+            "run": {
+              "additionalProperties": false,
+              "properties": {
+                "exit_code": {
+                  "type": "integer"
+                },
+                "failure_phase": {
+                  "enum": [
+                    "setup",
+                    "collection",
+                    "execution",
+                    "teardown",
+                    "infrastructure"
+                  ],
+                  "type": "string"
+                },
+                "finished_at": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "outcome": {
+                  "enum": [
+                    "passed",
+                    "failed",
+                    "errored",
+                    "cancelled",
+                    "timed_out",
+                    "interrupted",
+                    "no_results"
+                  ],
+                  "type": "string"
+                },
+                "started_at": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": ["outcome", "exit_code", "started_at", "finished_at"],
+              "type": "object"
+            },
+            "version": {
+              "const": "kibi.proof-run.v1",
+              "type": "string"
+            }
+          },
+          "required": [
+            "version",
+            "producer",
+            "command_argv",
+            "code_snapshot",
+            "environment",
+            "run",
+            "proof_results"
+          ],
+          "type": "object"
+        },
+        "snapshot": {
+          "description": "Workspace snapshot captured immediately before the run.",
+          "pattern": "^[a-f0-9]{64}$",
+          "type": "string"
+        },
+        "testIds": {
+          "description": "Existing test entities with proof_contract.v1. Omit to evaluate every test contracted to the artifact's integration.",
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        }
+      },
+      "required": ["snapshot", "artifact"],
+      "type": "object"
+    },
+    "name": "kb_ingest_proof"
+  }
+}

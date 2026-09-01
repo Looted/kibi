@@ -173,24 +173,19 @@ status: failing
 source: tests/e2e/matrix-receipt.test.ts
 verification_scope: end_to_end
 verification_perspective: consumer
-verification_contract:
-  version: kibi.verification-contract.v1
-  runner: playwright
-  command_argv:
-    - pnpm
-    - exec
-    - playwright
-    - test
-  required_case_symbols: []
-  required_projects:
-    - chromium
-  success_policy: all_required_cases_first_attempt
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: command
+  required_proofs:
+    - symbol_id: SYM-MATRIX-RECEIPT
+      target: default
+  success_policy: all_required_first_attempt
 links:
   - type: validates
     target: SCEN-MATRIX-RECEIPT
 ---
 
-Intentionally has no verification receipt.
+Intentionally has no proof receipt.
 `,
     "tests/e2e/matrix-receipt.test.ts":
       "export const matrixReceiptFixture = 'missing';\n",
@@ -324,28 +319,26 @@ function coverageOutcome(value: JsonRecord, capability: string): unknown {
     };
   }
   const row = rows.find((candidate) =>
-    capability === "verification_receipts"
+    capability === "proof_receipts"
       ? candidate.id === "REQ-MATRIX-RECEIPT"
       : candidate.id === "REQ-MATRIX-INCOMPLETE",
   );
   assert.ok(row, `Coverage omitted fixture row for ${capability}.`);
-  if (capability === "verification_receipts") {
+  if (capability === "proof_receipts") {
     const stages = row.proofStages as JsonRecord | undefined;
     if (!stages?.passingE2e || !Array.isArray(row.proofGaps)) {
-      throw new CapabilityUnavailableError(
-        "verification receipt proof evidence is absent",
-      );
+      throw new CapabilityUnavailableError("proof receipt evidence is absent");
     }
     return {
       receiptGaps: (row.proofGaps as readonly string[]).filter((gap) =>
-        gap.includes("verification_receipt"),
+        gap.includes("proof_receipt"),
       ),
       passingE2e: stages.passingE2e,
     };
   }
   if (typeof row.proofStatus !== "string" || !row.proofStages) {
     throw new CapabilityUnavailableError(
-      "kibi.requirement-proof.v2 evidence is absent",
+      "kibi.requirement-proof.v3 evidence is absent",
     );
   }
   return {
@@ -465,13 +458,13 @@ function capabilityInput(capability: RequirementCompilerCapability): {
       };
     case "conservative_proof":
     case "repair_plan":
-    case "verification_receipts":
+    case "proof_receipts":
       return {
         tool: "kb_coverage",
         route: "coverage",
         input: { by: "req", includePassing: true, limit: 100 },
       };
-    case "verification_contract":
+    case "proof_contract":
       return {
         tool: "kb_query",
         route: "query",
@@ -498,26 +491,25 @@ function extractOutcome(
       return contradictionOutcome(value);
     case "conservative_proof":
     case "repair_plan":
-    case "verification_receipts":
+    case "proof_receipts":
       return coverageOutcome(value, capability);
-    case "verification_contract": {
+    case "proof_contract": {
       const entity = (value.entities as readonly JsonRecord[] | undefined)?.[0];
-      const contract = entity?.verification_contract as JsonRecord | undefined;
+      const contract = entity?.proof_contract as JsonRecord | undefined;
       if (
         !contract ||
-        contract.version !== "kibi.verification-contract.v1" ||
-        !Array.isArray(contract.required_projects)
+        contract.version !== "kibi.proof-contract.v1" ||
+        !Array.isArray(contract.required_proofs)
       ) {
         throw new CapabilityUnavailableError(
-          "kibi.verification-contract.v1 is absent",
+          "kibi.proof-contract.v1 is absent",
         );
       }
       return {
         version: contract.version,
-        runner: contract.runner,
-        requiredProjects: contract.required_projects,
-        requiredCaseCount:
-          (contract.required_case_symbols as readonly unknown[])?.length ?? 0,
+        integration: contract.integration,
+        requiredProofCount:
+          (contract.required_proofs as readonly unknown[])?.length ?? 0,
       };
     }
     case "telemetry_acceptance":
@@ -819,13 +811,13 @@ if (RUN_NODE_TEST_SUITE) {
           );
           assert.ok(
             (
-              (sourceOutcome("verification_receipts") as JsonRecord)
+              (sourceOutcome("proof_receipts") as JsonRecord)
                 .receiptGaps as readonly string[]
-            ).includes("missing_verification_receipt"),
+            ).includes("missing_proof_receipt"),
           );
           assert.strictEqual(
-            (sourceOutcome("verification_contract") as JsonRecord).version,
-            "kibi.verification-contract.v1",
+            (sourceOutcome("proof_contract") as JsonRecord).version,
+            "kibi.proof-contract.v1",
           );
           assert.strictEqual(
             (sourceOutcome("telemetry_acceptance") as JsonRecord).status,

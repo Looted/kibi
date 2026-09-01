@@ -9,7 +9,7 @@
     "test": "bun run test:unit && bun run test:e2e:local",
     "test:unit": "bun test --timeout 15000 ./test/root.test.ts",
     "test:coverage:unit": "bun run scripts/run-unit-coverage.ts",
-    "proof:run": "node scripts/run-proof-runner.mjs",
+    "proof:run": "bun packages/cli/bin/kibi prove --all",
     "proof:baseline": "node scripts/check-proof-baseline.mjs",
     "test:coverage:prolog": "swipl -q -s scripts/run-prolog-coverage.pl -- --source-root packages/core/src --test packages/core/tests/kb.plt --output-dir coverage/prolog --summary-json coverage/prolog/summary.json --summary-text coverage/prolog/summary.txt --fail-under 50",
     "test:coverage:manifest": "bun run scripts/coverage-manifest.ts . coverage/unit",

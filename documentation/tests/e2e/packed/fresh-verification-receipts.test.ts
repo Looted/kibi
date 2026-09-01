@@ -46,12 +46,10 @@ verification_scope: end_to_end
 verification_perspective: consumer
 ${
   receipt
-    ? `verification_receipts:
-  - version: kibi.verification-receipt.v1
-    receipt_id: VR-PACKED-RECEIPT-0001
+    ? `proof_receipts:
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-PACKED-RECEIPT-0001
     test_id: TEST-PACKED-RECEIPT
-    runner: node
-    command: node --test tests/e2e/receipt.test.ts
     scope: end_to_end
     outcome: passed
     code_snapshot: ${receipt.snapshot}
@@ -59,6 +57,29 @@ ${
     started_at: ${receipt.startedAt}
     finished_at: ${receipt.finishedAt}
     artifact_digest: ${"c".repeat(64)}
+    contract_hash: ${"d".repeat(64)}
+    fingerprint: ${"e".repeat(64)}
+    fingerprint_components:
+      contract: ${"1a".repeat(32)}
+      integration: ${"2a".repeat(32)}
+      command: ${"3a".repeat(32)}
+      bindings: ${"4a".repeat(32)}
+      producer: ${"5a".repeat(32)}
+    integration_id: command
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - --test
+      - tests/e2e/receipt.test.ts
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-PACKED-RECEIPT
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 `
     : ""
 }links:
@@ -90,7 +111,7 @@ function receiptRow(payload: { readonly rows: readonly CoverageRow[] }) {
 }
 
 if (RUN_NODE_TEST_SUITE) {
-  describe("E2E: fresh verification receipts", { concurrency: false }, () => {
+  describe("E2E: fresh proof receipts", { concurrency: false }, () => {
     let tarballs: Tarballs;
     let sandbox: TestSandbox;
     let hasProlog = false;
@@ -177,11 +198,11 @@ Given a packed runtime, when receipt evidence is evaluated, then it is bound to 
       async () => {
         if (!hasProlog) return;
         const initialStatus = await cliJson<{
-          verificationSnapshot: string;
-          verificationSnapshotAvailable: boolean;
+          proofSnapshot: string;
+          proofSnapshotAvailable: boolean;
         }>(sandbox, ["status", "--format", "json"]);
-        assert.strictEqual(initialStatus.verificationSnapshotAvailable, true);
-        assert.match(initialStatus.verificationSnapshot, /^[a-f0-9]{64}$/);
+        assert.strictEqual(initialStatus.proofSnapshotAvailable, true);
+        assert.match(initialStatus.proofSnapshot, /^[a-f0-9]{64}$/);
 
         const missingCoverage = await cliJson<{ rows: CoverageRow[] }>(
           sandbox,
@@ -189,7 +210,7 @@ Given a packed runtime, when receipt evidence is evaluated, then it is bound to 
         );
         assert.ok(
           receiptRow(missingCoverage).proofGaps.includes(
-            "missing_verification_receipt",
+            "missing_proof_receipt",
           ),
         );
 
@@ -198,7 +219,7 @@ Given a packed runtime, when receipt evidence is evaluated, then it is bound to 
         writeFileSync(
           join(sandbox.repoDir, ".kb", "tests", "TEST-PACKED-RECEIPT.md"),
           testDocument({
-            snapshot: initialStatus.verificationSnapshot,
+            snapshot: initialStatus.proofSnapshot,
             startedAt: startedAt.toISOString(),
             finishedAt: finishedAt.toISOString(),
           }),
@@ -211,11 +232,11 @@ Given a packed runtime, when receipt evidence is evaluated, then it is bound to 
         );
 
         const receiptStatus = await cliJson<{
-          verificationSnapshot: string;
+          proofSnapshot: string;
         }>(sandbox, ["status", "--format", "json"]);
         assert.strictEqual(
-          receiptStatus.verificationSnapshot,
-          initialStatus.verificationSnapshot,
+          receiptStatus.proofSnapshot,
+          initialStatus.proofSnapshot,
           "recording a receipt changed its own snapshot",
         );
         const currentCoverage = await cliJson<{ rows: CoverageRow[] }>(
@@ -229,7 +250,7 @@ Given a packed runtime, when receipt evidence is evaluated, then it is bound to 
         ]);
         assert.strictEqual(
           currentRow.proofStages.passingE2e.currentCodeSnapshot,
-          initialStatus.verificationSnapshot,
+          initialStatus.proofSnapshot,
         );
 
         const mcp = startMcpServer(sandbox);
@@ -248,12 +269,12 @@ Given a packed runtime, when receipt evidence is evaluated, then it is bound to 
           });
           assert.ifError(mcpStatus.error);
           const mcpStatusEnvelope = mcpStatus.result?.structuredContent as {
-            data?: { verificationSnapshot?: string };
-            verificationSnapshot?: string;
+            data?: { proofSnapshot?: string };
+            proofSnapshot?: string;
           };
           assert.strictEqual(
-            (mcpStatusEnvelope.data ?? mcpStatusEnvelope).verificationSnapshot,
-            initialStatus.verificationSnapshot,
+            (mcpStatusEnvelope.data ?? mcpStatusEnvelope).proofSnapshot,
+            initialStatus.proofSnapshot,
           );
           const mcpCoverage = await sendMcpRequest(mcp, 3, "tools/call", {
             name: "kb_coverage",
@@ -278,13 +299,14 @@ Given a packed runtime, when receipt evidence is evaluated, then it is bound to 
           join(sandbox.repoDir, "tests", "e2e", "receipt.test.ts"),
           "export const receiptBehavior = 'v2';\n",
         );
-        const driftStatus = await cliJson<{ verificationSnapshot: string }>(
-          sandbox,
-          ["status", "--format", "json"],
-        );
+        const driftStatus = await cliJson<{ proofSnapshot: string }>(sandbox, [
+          "status",
+          "--format",
+          "json",
+        ]);
         assert.notStrictEqual(
-          driftStatus.verificationSnapshot,
-          initialStatus.verificationSnapshot,
+          driftStatus.proofSnapshot,
+          initialStatus.proofSnapshot,
         );
         const staleCoverage = await cliJson<{ rows: CoverageRow[] }>(sandbox, [
           "coverage",
@@ -296,7 +318,7 @@ Given a packed runtime, when receipt evidence is evaluated, then it is bound to 
         ]);
         const staleRow = receiptRow(staleCoverage);
         assert.strictEqual(staleRow.proofStages.passingE2e.status, "missing");
-        assert.ok(staleRow.proofGaps.includes("stale_verification_receipt"));
+        assert.ok(staleRow.proofGaps.includes("stale_proof_receipt"));
       },
     );
   });

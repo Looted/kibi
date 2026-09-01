@@ -41,7 +41,7 @@ export type MigrationAction = Readonly<{
     | "relationship"
     | "symbol"
     | "semantic"
-    | "verification"
+    | "proof"
     | "quality";
   state: MigrationActionState;
   safety: MigrationSafety;
@@ -392,12 +392,11 @@ export function buildActionsFromCoverage(input: {
       migrationAction({
         id: `coverage-${id}`,
         code: `coverage_${phase}`,
-        category:
-          phase === "verification_evidence" ? "verification" : "semantic",
+        category: phase === "proof_evidence" ? "proof" : "semantic",
         state: ready ? "ready" : "blocked",
         safety: automatic
           ? "automatic"
-          : phase === "verification_evidence"
+          : phase === "proof_evidence"
             ? "execution"
             : "review",
         invocation: automatic
@@ -527,8 +526,8 @@ export function buildActionsFromStatus(input: {
   branchAttachment?: Readonly<Record<string, unknown>>;
   branchStore?: Readonly<Record<string, unknown>>;
   staleReasons?: readonly Readonly<Record<string, unknown>>[];
-  verificationSnapshotAvailable?: boolean;
-  verificationSnapshotDirty?: boolean;
+  proofSnapshotAvailable?: boolean;
+  proofSnapshotDirty?: boolean;
   kbSnapshotId?: string | null;
   workspaceSnapshot?: string | null;
   configStatus?: MigrationConfigStatus;
@@ -673,35 +672,35 @@ export function buildActionsFromStatus(input: {
       }),
     );
   }
-  if (input.verificationSnapshotAvailable === false) {
+  if (input.proofSnapshotAvailable === false) {
     actions.push(
       migrationAction({
         id: "verification-snapshot-unavailable",
-        code: "verification_snapshot_unavailable",
-        category: "verification",
+        code: "proof_snapshot_unavailable",
+        category: "proof",
         safety: "operator",
         invocation: {
           kind: "review",
           instruction:
             "Use a runtime that can compute a workspace verification snapshot before claiming proof.",
         },
-        evidence: { verificationSnapshotAvailable: false },
+        evidence: { proofSnapshotAvailable: false },
         dispositionRequired: true,
       }),
     );
-  } else if (input.verificationSnapshotDirty === true) {
+  } else if (input.proofSnapshotDirty === true) {
     actions.push(
       migrationAction({
         id: "verification-snapshot-dirty",
-        code: "verification_snapshot_dirty",
-        category: "verification",
+        code: "proof_snapshot_dirty",
+        category: "proof",
         safety: "review",
         invocation: {
           kind: "review",
           instruction:
             "Resolve or intentionally record the listed dirty workspace paths before reusing or creating proof receipts.",
         },
-        evidence: { verificationSnapshotDirty: true },
+        evidence: { proofSnapshotDirty: true },
         dispositionRequired: true,
       }),
     );
@@ -732,7 +731,7 @@ export function buildActionsFromStatus(input: {
       "storage",
       "schema",
       "freshness",
-      "verification",
+      "proof",
     ],
     incompleteDomains,
     actions,

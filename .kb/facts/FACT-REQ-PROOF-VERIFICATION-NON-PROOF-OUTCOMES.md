@@ -18,8 +18,8 @@ predicate_args:
   - non_proof_outcome
 canonical_key: logical_requirement_rule(verification_outcome,retry_skip_stale_partial_or_contract_mismatch,non_proof_outcome)
 polarity: require
-claim_key: CLAIM-6C829C8424C2387C
-claim_text: Retries, skips, stale receipts, partial runs, and mismatched contracts must remain non-proof outcomes
+claim_key: CLAIM-25FBD776F3705A82
+claim_text: Unknown attempt histories, retries, skips, failed runs, stale receipts, and mismatched contracts or fingerprints must remain non-proof outcomes
 claim_span_start: 250
 claim_span_end: 351
 subject_key: kibi

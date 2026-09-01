@@ -32,9 +32,9 @@ describe("node workspace snapshot", () => {
       `---
 id: TEST-RECEIPT
 title: Receipt test
-verification_receipts:
+proof_receipts:
   - receipt_id: VR-ONE
-verification_contract:
+proof_contract:
   version: kibi.verification-contract.v1
   runner: pnpm
   command_argv: [pnpm, run, e2e]
@@ -55,9 +55,9 @@ Body
       `---
 id: TEST-RECEIPT
 title: Receipt test
-verification_receipts:
+proof_receipts:
   - receipt_id: VR-TWO
-verification_contract:
+proof_contract:
   version: kibi.verification-contract.v1
   runner: pnpm
   command_argv: [pnpm, run, e2e]
@@ -86,9 +86,9 @@ Body
       `---
 id: TEST-RECEIPT
 title: Changed test contract
-verification_receipts:
+proof_receipts:
   - receipt_id: VR-TWO
-verification_contract:
+proof_contract:
   version: kibi.verification-contract.v1
   runner: pnpm
   command_argv: [pnpm, run, e2e, --, e2e/changed.spec.ts]
@@ -201,7 +201,7 @@ Body
 id: TEST-DEMO
 title: Demo proof test
 verification_scope: end_to_end
-verification_receipts:
+proof_receipts:
   - version: kibi.verification-receipt.v2
     receipt_id: VR-ONE
     test_id: TEST-DEMO
@@ -210,7 +210,7 @@ verification_receipts:
     receipt_id: ${receiptId}
     test_id: TEST-DEMO
     outcome: passed
-verification_contract:
+proof_contract:
   version: kibi.verification-contract.v1
   command_argv: [node, scripts/run-proof-contract.mjs]
 ---

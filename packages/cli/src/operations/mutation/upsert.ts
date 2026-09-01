@@ -15,7 +15,7 @@ import { loadEntities } from "../../public/operations/discovery-entities.js";
 // implements REQ-kibi-operation-interface-parity
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import type { OperationResult } from "../../public/operations/types.js";
-import { appendOnlyVerificationReceiptHistoryErrors } from "../../public/verification-receipt.js";
+import { appendOnlyProofReceiptHistoryErrors } from "../../public/proof-receipt.js";
 import {
   appendRelationship,
   computeShardPath,
@@ -146,7 +146,7 @@ function restoreRelationshipShard(
   writeFileSync(shardPath, before, "utf8");
 }
 
-export async function validateAppendOnlyVerificationReceipts(
+export async function validateAppendOnlyProofReceipts(
   entity: Readonly<Record<string, unknown>>,
   context: OperationContext,
 ): Promise<void> {
@@ -155,10 +155,10 @@ export async function validateAppendOnlyVerificationReceipts(
     id: String(entity.id),
     type: "test",
   });
-  const previous = receiptRecords(existing[0]?.verification_receipts);
+  const previous = receiptRecords(existing[0]?.proof_receipts);
   if (!previous || previous.length === 0) return;
-  const next = receiptRecords(entity.verification_receipts);
-  const errors = appendOnlyVerificationReceiptHistoryErrors(previous, next);
+  const next = receiptRecords(entity.proof_receipts);
+  const errors = appendOnlyProofReceiptHistoryErrors(previous, next);
   if (errors.length > 0) {
     throw new Error(`Entity validation failed: ${errors.join("; ")}`);
   }
@@ -269,7 +269,7 @@ export async function executeUpsert(
       compilerLock = await acquireSymbolCompilerLock(context.workspaceRoot);
     }
     const validated = validateUpsertInput(input, context.clock());
-    await validateAppendOnlyVerificationReceipts(validated.entity, context);
+    await validateAppendOnlyProofReceipts(validated.entity, context);
     validateRelationshipSources(input.id, validated.relationships);
     await validateSymbolGranularity(
       validated.entity,

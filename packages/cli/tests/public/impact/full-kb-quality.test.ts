@@ -124,7 +124,7 @@ describe("collectFullKbQualityDiagnostics", () => {
   it("uses the same live receipt proof as coverage to suppress stale depth review", async () => {
     const diagnostics = await collectFullKbQualityDiagnostics({
       prolog: makeProlog({ coverageProof: true }),
-      verificationSnapshot: "a".repeat(64),
+      proofSnapshot: "a".repeat(64),
       checkedAt: "2026-08-14T12:00:00.000Z",
     });
 

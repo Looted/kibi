@@ -3,7 +3,7 @@ relationships:
     type: implements
     from: SYM-auto-479CCD24D41F
     to: REQ-kibi-operation-interface-parity
-    created_at: "2026-08-15T22:21:20.248Z"
+    created_at: 2026-08-15T22:21:20.248Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
   - type: implements
@@ -34,13 +34,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4e34840a551d
-  - type: covered_by
-    from: SYM-kibi-cli-src-public-playwright-case-id-ts-normalizeplaywrightsourcefile
-    to: TEST-kibi-verification-evidence-contract
-    created_at: 2026-08-16T18:52:23.899Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d636802067fd
   - type: covered_by
     from: SYM-kibi-cli-src-intent-search-ts-intentsearchevidence
     to: TEST-kibi-intent-aware-source-discovery

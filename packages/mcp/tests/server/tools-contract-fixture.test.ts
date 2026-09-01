@@ -65,7 +65,7 @@ const OPERATION_NAMES = [
   "kb_sparql_remote",
   "kb_compile_intent",
   "kb_apply_plan",
-  "kb_ingest_verification",
+  "kb_ingest_proof",
 ] as const;
 
 const VOLATILE_KEYS = new Set([

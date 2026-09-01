@@ -249,7 +249,7 @@ export async function reportCommand(
   );
   const snapshotStale =
     coverage.requirements.meta?.dirty === true ||
-    coverage.requirements.meta?.verificationSnapshotDirty === true;
+    coverage.requirements.meta?.proofSnapshotDirty === true;
   const badgeMessage =
     currentRequirements === 0 ? "no requirements" : `${proofPercent}% proven`;
   const badgeColor =

@@ -184,8 +184,8 @@ export function parsePropertyList(propsStr: string): Record<string, unknown> {
     if (
       (key === "rule_ir" ||
         key === "semantic_inventory" ||
-        key === "verification_receipts" ||
-        key === "verification_contract") &&
+        key === "proof_receipts" ||
+        key === "proof_contract") &&
       typeof parsed === "string"
     ) {
       try {

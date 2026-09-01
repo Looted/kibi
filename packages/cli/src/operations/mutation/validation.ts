@@ -1,4 +1,5 @@
 import Ajv, { type ErrorObject } from "ajv";
+import { proofReceiptHistoryErrors } from "../../public/proof-receipt.js";
 import entitySchema from "../../public/schemas/entity.js";
 import relationshipSchema from "../../public/schemas/relationship.js";
 // implements REQ-kibi-operation-interface-parity
@@ -6,7 +7,6 @@ import {
   SYMBOL_ROLES,
   isAllowedGranularityReason,
 } from "../../public/symbol-granularity.js";
-import { verificationReceiptHistoryErrors } from "../../public/verification-receipt.js";
 import { semanticClaimKey } from "../semantic-advisor/clauses.js";
 import {
   factKindShapeHints,
@@ -115,12 +115,12 @@ export function validateUpsertInput(
       `Entity validation failed: ${formatEntityErrors(entity, validateEntity.errors ?? [])}`,
     );
   }
-  if (entity.type === "test" && Array.isArray(entity.verification_receipts)) {
-    const receipts = entity.verification_receipts.filter(
+  if (entity.type === "test" && Array.isArray(entity.proof_receipts)) {
+    const receipts = entity.proof_receipts.filter(
       (value): value is Record<string, unknown> =>
         typeof value === "object" && value !== null && !Array.isArray(value),
     );
-    const receiptErrors = verificationReceiptHistoryErrors(
+    const receiptErrors = proofReceiptHistoryErrors(
       input.id,
       entity.verification_scope,
       receipts,

@@ -202,7 +202,7 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
   },
   "kibi-traceability/executable-coverage/held-out/0": {
     prompt:
-      "Use the exact verification contract through kibi verify to append a passing v2 E2E receipt. Mark the task complete while keeping overall proof unresolved when ontology gaps remain, and do not accept a contradictory coverage-depth warning when current passingE2e evidence is present.",
+      "Use the exact proof contract through kibi prove to append a passing kibi.proof-receipt.v1. Mark the task complete while keeping overall proof unresolved when ontology gaps remain, and do not accept a contradictory coverage-depth warning when current passingE2e evidence is present.",
     objectiveCode: "contracted_e2e_with_ontology_gap",
     kb: "fresh",
     worktree: "clean",
@@ -248,7 +248,7 @@ const DOGFOOD_CASES: Readonly<Record<string, DogfoodCase>> = {
   },
   "kibi-usage/validation-recovery/held-out/1": {
     prompt:
-      "Review every quality diagnostic by ID and record fixed, accepted, or deferred with rationale. Preserve accepted ontology and telemetry limitations without claiming proof. For receipt freshness, identify affected requirement/test IDs and direct the agent to kibi verify with v2 receipts; distinguish a stale coverage-depth heuristic from an independent proof gap.",
+      "Review every quality diagnostic by ID and record fixed, accepted, or deferred with rationale. Preserve accepted ontology and telemetry limitations without claiming proof. For receipt freshness, identify affected requirement/test IDs and direct the agent to kibi prove with current proof receipts; distinguish a stale coverage-depth heuristic from an independent proof gap.",
     objectiveCode: "quality_diagnostic_disposition",
     kb: "fresh",
     worktree: "clean",

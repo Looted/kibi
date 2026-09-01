@@ -354,12 +354,12 @@ describe("SkillOpt corpus executability invariants", () => {
   test("receipt and migration objectives sequence their dedicated operations", () => {
     const expectations: Readonly<Record<string, readonly string[]>> = {
       contracted_e2e_with_ontology_gap: [
-        "kb_ingest_verification",
+        "kb_ingest_proof",
         "kb_coverage",
         "kb_check",
       ],
       final_integration_invalidates_receipts: [
-        "kb_ingest_verification",
+        "kb_ingest_proof",
         "kb_coverage",
         "kb_check",
       ],
@@ -413,9 +413,12 @@ describe("fixture KB staging modes", () => {
     const task = catalog.find(
       (candidate) => candidate.taskData.objectiveCode === objectiveCode,
     );
-    if (task === undefined) throw new Error(`fixture missing: ${objectiveCode}`);
+    if (task === undefined)
+      throw new Error(`fixture missing: ${objectiveCode}`);
     return buildPrivateManifest({
-      task: task as unknown as Parameters<typeof buildPrivateManifest>[0]["task"],
+      task: task as unknown as Parameters<
+        typeof buildPrivateManifest
+      >[0]["task"],
       publicManifestHash: "a".repeat(64),
       workspaceHash: "b".repeat(64),
     });
@@ -441,22 +444,22 @@ describe("fixture KB staging modes", () => {
 
   test("keeps divergence precedence over generic staging", () => {
     expect(
-      manifestFor("generated_only_symbol_coordinate_repair")
-        .fixtureSetup,
+      manifestFor("generated_only_symbol_coordinate_repair").fixtureSetup,
     ).toBe("generated_coordinate_divergence");
   });
 
   test("bundle tasks stage KBs instead of running on empty workspaces", () => {
     const bundle = buildBundleCatalog();
     const modes = new Set(
-      bundle.map((task) =>
-        buildPrivateManifest({
-          task: task as unknown as Parameters<
-            typeof buildPrivateManifest
-          >[0]["task"],
-          publicManifestHash: "a".repeat(64),
-          workspaceHash: "b".repeat(64),
-        }).fixtureSetup,
+      bundle.map(
+        (task) =>
+          buildPrivateManifest({
+            task: task as unknown as Parameters<
+              typeof buildPrivateManifest
+            >[0]["task"],
+            publicManifestHash: "a".repeat(64),
+            workspaceHash: "b".repeat(64),
+          }).fixtureSetup,
       ),
     );
     expect(modes.has("seeded_fresh_kb")).toBe(true);

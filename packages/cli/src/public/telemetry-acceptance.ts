@@ -780,7 +780,7 @@ const METRIC_DIAGNOSTICS: Readonly<
     severity: "warning",
     rank: 40,
     suggestion:
-      "Query the affected tests and run each exact current verification contract through kibi verify against the live snapshot; preserve history, append the generated kibi.verification-receipt.v2, and rerun complete coverage.",
+      "Run the configured proof integrations with kibi prove against the live snapshot; receipts append idempotently with preserved history, then rerun complete coverage.",
   },
   repeated_mutation_failures: {
     id: "repeated_mutation_failures",

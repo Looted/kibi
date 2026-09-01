@@ -24,9 +24,9 @@ import { Command } from "commander";
 import { registerFoundationCommands } from "./cli-register-foundation.js";
 import { registerJsonOnlyCommands } from "./cli-register-json.js";
 import { registerMaintenanceCommands } from "./cli-register-maintenance.js";
+import { registerProofCommand } from "./cli-register-proof.js";
 import { registerReportingCommands } from "./cli-register-reporting.js";
 import { registerSkillsCommands } from "./cli-register-skills.js";
-import { registerVerificationCommand } from "./cli-register-verification.js";
 
 export type { CommandResult } from "./cli-command.js";
 
@@ -61,7 +61,7 @@ export function buildProgram(): Command {
   registerReportingCommands(program);
   registerMaintenanceCommands(program);
   registerSkillsCommands(program);
-  registerVerificationCommand(program);
+  registerProofCommand(program);
   registerJsonOnlyCommands(program);
   return program;
 }

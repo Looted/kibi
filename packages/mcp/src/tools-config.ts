@@ -54,7 +54,7 @@ const MCP_TOOL_ORDER = [
   "kb_plan_bootstrap",
   "kb_compile_intent",
   "kb_apply_plan",
-  "kb_ingest_verification",
+  "kb_ingest_proof",
 ] as const satisfies readonly OperationName[];
 
 // implements REQ-002
@@ -151,8 +151,8 @@ const TOOL_ANNOTATIONS: Partial<Record<OperationName, ToolAnnotations>> = {
     idempotentHint: false,
     openWorldHint: false,
   },
-  kb_ingest_verification: {
-    title: "Ingest contracted verification evidence",
+  kb_ingest_proof: {
+    title: "Ingest proof-run evidence",
     readOnlyHint: false,
     destructiveHint: false,
     idempotentHint: false,

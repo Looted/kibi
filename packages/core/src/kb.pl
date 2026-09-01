@@ -1836,10 +1836,13 @@ integer_property_key(Key) :-
 literal_to_value(semantic_inventory, Literal, Value) :-
     !,
     structured_literal_value(Literal, Value).
-literal_to_value(verification_receipts, Literal, Value) :-
+literal_to_value(proof_receipts, Literal, Value) :-
     !,
     structured_literal_value(Literal, Value).
-literal_to_value(verification_contract, Literal, Value) :-
+literal_to_value(proof_contract, Literal, Value) :-
+    !,
+    structured_literal_value(Literal, Value).
+literal_to_value(proof_bindings, Literal, Value) :-
     !,
     structured_literal_value(Literal, Value).
 literal_to_value(_Key, Literal, Value) :-

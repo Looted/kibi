@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { extractPlaywrightCases } from "../../src/extractors/playwright-cases.js";
-import { playwrightCaseId } from "../../src/public/playwright-case-id.js";
+import { playwrightCaseId } from "../../src/proof/producers/playwright-case-id.js";
 
 describe("Playwright case extraction", () => {
   test("extracts stable nested case symbols", () => {

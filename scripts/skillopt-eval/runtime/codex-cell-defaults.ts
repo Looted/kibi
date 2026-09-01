@@ -264,17 +264,15 @@ function workflowSignalObserved(
         text.includes("fresh")
       );
     case "historical contract receipt preserved":
-      return (
-        text.includes("verification_receipts") && text.includes("contract_hash")
-      );
+      return text.includes("proof_receipts") && text.includes("contract_hash");
     case "current contract receipt appended":
       return (
-        text.includes("verification-receipt.v2") &&
+        text.includes("proof-receipt.v1") &&
         text.includes("currentcontracthash")
       );
     case "contract mismatch remains non-proof":
       return (
-        text.includes("verification_contract_mismatch") ||
+        text.includes("proof_contract_mismatch") ||
         text.includes("contract_mismatch")
       );
     case "diagnostic IDs with dispositions":
