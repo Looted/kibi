@@ -16589,7 +16589,7 @@ coordinates:
     sourceLine: 71
   SYM-skillopt-codex-events-tests:
     identityHash: 65d6a62db84a8b1f3dc0667730894fa406c88cea3615aca41bf86dbd429f272f
-    sourceHash: e53120e20a34773ecad73c0fdebbb11768713c59a2bcd247efcce2cf587ffbce
+    sourceHash: 4ea81fc65f8067fda3b7bb8824962b37e3904dabac3699ae6314a1a3fede6778
     sourceColumn: 10
     sourceEndColumn: 35
     sourceEndLine: 7
@@ -16597,7 +16597,7 @@ coordinates:
     sourceLine: 7
   SYM-skillopt-codex-normalization-options-type:
     identityHash: 8440f767ea10a6c2e38c5be5a633ff4e2d507dc69b1670fb77a7491ef2d3814b
-    sourceHash: 17683e128c2df6711b43fce86943930a15232cede36869c45e9fa65f5343968b
+    sourceHash: 94e0846e038afde7491a5531531d20b44a3d419dc5e321d5be209431aaba5e47
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 43
@@ -16605,7 +16605,7 @@ coordinates:
     sourceLine: 40
   SYM-skillopt-codex-normalization-type:
     identityHash: 3aa78de0ed64b482643f1445fe81cdeca2461491322ea0b4eaff3a7553433365
-    sourceHash: 17683e128c2df6711b43fce86943930a15232cede36869c45e9fa65f5343968b
+    sourceHash: 94e0846e038afde7491a5531531d20b44a3d419dc5e321d5be209431aaba5e47
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 38
@@ -16677,7 +16677,7 @@ coordinates:
     sourceLine: 25
   SYM-skillopt-codex-violation-type:
     identityHash: 2e987d8ae751fe7ed63ed08993666c26e349931151fb3caee66216eadbf4520a
-    sourceHash: 17683e128c2df6711b43fce86943930a15232cede36869c45e9fa65f5343968b
+    sourceHash: 94e0846e038afde7491a5531531d20b44a3d419dc5e321d5be209431aaba5e47
     sourceColumn: 12
     sourceEndColumn: 63
     sourceEndLine: 20
@@ -16685,7 +16685,7 @@ coordinates:
     sourceLine: 20
   SYM-skillopt-codex-violations:
     identityHash: c5f2157e1c8e4a988dac3340f91dcd7390805d4e76da7f4959d08422f5fa6396
-    sourceHash: 17683e128c2df6711b43fce86943930a15232cede36869c45e9fa65f5343968b
+    sourceHash: 94e0846e038afde7491a5531531d20b44a3d419dc5e321d5be209431aaba5e47
     sourceColumn: 13
     sourceEndColumn: 10
     sourceEndLine: 19
@@ -17549,12 +17549,12 @@ coordinates:
     sourceLine: 75
   SYM-skillopt-deterministic-variant-label:
     identityHash: bf7d67fc04587a6bb0d11d7daef9a66755a0019cd1770498938ab920b619d6b8
-    sourceHash: 17683e128c2df6711b43fce86943930a15232cede36869c45e9fa65f5343968b
+    sourceHash: 94e0846e038afde7491a5531531d20b44a3d419dc5e321d5be209431aaba5e47
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 272
+    sourceEndLine: 285
     sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
-    sourceLine: 262
+    sourceLine: 275
   SYM-skillopt-development-admission-gate:
     identityHash: 1ffb56f6813b36658f14b2388403c05f24bd79f019de010e31232db4a5244a5f
     sourceHash: bc26e25fd1cac6debd20db837250275b41f7ee083efb24dcc2e13841c4e9dd19
@@ -18213,20 +18213,20 @@ coordinates:
     sourceLine: 52
   SYM-skillopt-fixture-build-bundle-payload:
     identityHash: 8348e332313e3675389d7072d6ab60a685b73863cd8228fd339f4a62883074a3
-    sourceHash: d9a86c44dedc73183b082f081da7bce061076dbd8588556b50ace0328b9fd668
+    sourceHash: 00554a21e2605ff5724de9cf878641703c318222695b00f2f634588e15c3f042
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 603
+    sourceEndLine: 607
     sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
-    sourceLine: 594
+    sourceLine: 598
   SYM-skillopt-fixture-build-family-payload:
     identityHash: fce340b56e38d49173801981933c35f9cb90b080e63caf2754f985af34dbb812
-    sourceHash: d9a86c44dedc73183b082f081da7bce061076dbd8588556b50ace0328b9fd668
+    sourceHash: 00554a21e2605ff5724de9cf878641703c318222695b00f2f634588e15c3f042
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 591
+    sourceEndLine: 595
     sourceFile: scripts/skillopt-eval/fixtures/task-builders.ts
-    sourceLine: 579
+    sourceLine: 583
   SYM-skillopt-fixture-build-index:
     identityHash: fa866d7f728d5be8d744f3d5dd32a1f28d2d6f46af1c43ea60e7b9cad0fb2e70
     sourceHash: cf8e2ace9d461987c36748d3663c1c0fee24a60be1e6c2c57b4ef5fa1d0fd516
@@ -18269,7 +18269,7 @@ coordinates:
     sourceLine: 121
   SYM-skillopt-fixture-family-payload-type:
     identityHash: 0b736071d997442ee5cd1e7c48afca4cdff9cb6e941dce38b1b12664d543af23
-    sourceHash: d9a86c44dedc73183b082f081da7bce061076dbd8588556b50ace0328b9fd668
+    sourceHash: 00554a21e2605ff5724de9cf878641703c318222695b00f2f634588e15c3f042
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 57
@@ -18277,7 +18277,7 @@ coordinates:
     sourceLine: 40
   SYM-skillopt-fixture-freshness-definitions:
     identityHash: 4a4e3587dcd577641a44146c8884ffe02a62574dcbf249e4025858d94c8cbdeb
-    sourceHash: b7d4f1c21d266f6829bfa781107c1c9eb3857239e96b1a578587a3006c716cc2
+    sourceHash: 699f92c573d1a572c2060e88059f38729ef58645c541891deb7a9f57248e3766
     sourceColumn: 13
     sourceEndColumn: 1
     sourceEndLine: 111
@@ -18517,7 +18517,7 @@ coordinates:
     sourceLine: 3
   SYM-skillopt-fixture-usage-definitions:
     identityHash: dc68ee4446d2461b599e92c985c094d28e27a86b17645f4aba4eb14c86fba17e
-    sourceHash: b7d4f1c21d266f6829bfa781107c1c9eb3857239e96b1a578587a3006c716cc2
+    sourceHash: 699f92c573d1a572c2060e88059f38729ef58645c541891deb7a9f57248e3766
     sourceColumn: 13
     sourceEndColumn: 1
     sourceEndLine: 56
@@ -18941,15 +18941,15 @@ coordinates:
     sourceLine: 50
   SYM-skillopt-normalize-codex-jsonl:
     identityHash: a3bcda45b7473c5bf5c7389b3dcc3d670b72ccf8ec41a0bdd29e6a863576a706
-    sourceHash: 17683e128c2df6711b43fce86943930a15232cede36869c45e9fa65f5343968b
+    sourceHash: 94e0846e038afde7491a5531531d20b44a3d419dc5e321d5be209431aaba5e47
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 259
+    sourceEndLine: 272
     sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
-    sourceLine: 209
+    sourceLine: 222
   SYM-skillopt-normalized-codex-event-type:
     identityHash: 520b5bfa8cf1ce277e4b559e95b8ec76efb336f249737942c63abc08871ae106
-    sourceHash: 17683e128c2df6711b43fce86943930a15232cede36869c45e9fa65f5343968b
+    sourceHash: 94e0846e038afde7491a5531531d20b44a3d419dc5e321d5be209431aaba5e47
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 26

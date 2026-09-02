@@ -92,6 +92,15 @@ describe("Codex JSONL normalization", () => {
     // Given: kb_apply_plan arguments legitimately embed .kb store paths.
     const transcript = [
       JSON.stringify({
+        type: "item.started",
+        item: {
+          type: "mcp_tool_call",
+          server: "kibi",
+          tool: "kb_upsert",
+          arguments: { properties: { text_ref: ".kb/requirements/x.md" } },
+        },
+      }),
+      JSON.stringify({
         type: "item.completed",
         item: {
           type: "mcp_tool_call",
@@ -126,6 +135,20 @@ describe("Codex JSONL normalization", () => {
 
     // Then
     expect(normalized.violations).toEqual([]);
+  });
+
+  test("Given item.started shell access to the KB When normalized Then direct access is still reported", () => {
+    const transcript = JSON.stringify({
+      type: "item.started",
+      item: { type: "command_execution", command: "cat .kb/usage.log" },
+    });
+
+    const normalized = normalizeCodexJsonl(transcript, {
+      hiddenMarkers: [],
+      forbiddenRoots: [],
+    });
+
+    expect(normalized.violations).toContain("direct_kb_access");
   });
 
   test("Given a hidden marker inside brokered MCP arguments When normalized Then leakage is still reported", () => {

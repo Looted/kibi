@@ -124,7 +124,7 @@ const BUNDLE_DEFINITIONS: Readonly<Record<string, Definition>> = {
     "post-approval",
   ),
   "mutation-to-validation-01": bundle(
-    "Apply a typed source-first mutation then validate its final state. If the envelope is committed_with_repairs, follow its recovery nextAction and never retry the original mutation.",
+    "Search then query, apply a typed source-first mutation, then validate its final state. If the envelope is committed_with_repairs, follow its recovery nextAction and never retry the original mutation.",
     "bundle_mutation_validation",
     "post-approval",
   ),
@@ -149,7 +149,7 @@ const BUNDLE_DEFINITIONS: Readonly<Record<string, Definition>> = {
     "post-approval",
   ),
   "semantic-to-test-02": bundle(
-    "Select a predicate then validate its test chain.",
+    "Search then query the existing claim, select a predicate, then validate its test chain.",
     "bundle_predicate_test",
     "post-approval",
   ),
@@ -455,7 +455,7 @@ function predicatePayload(
   index: number,
 ): FamilyPayload {
   const semanticCase = predicateCaseBySplitIndex(split, index);
-  const claimPrompt = `Model the complete normative claim through Kibi's clause-complete logical workflow using only the public MCP surface. Claim: "${semanticCase.publicClaim.claimText}" Decompose every atomic obligation, preserve each advisor-issued claim key on its ground fact, and merge the complete logic_claims manifest; one correct fact is not sufficient for compound prose. Treat structured projectLocalSchemas in predicate-claim.json as approved ontology declarations; when a declared schema endpoint is absent, create that schema before its ground predicate fact. Relationship types remain graph edges, not predicate names.`;
+  const claimPrompt = `Model the complete normative claim through Kibi's clause-complete logical workflow using only the public MCP surface. Before kb_validate_upsert or kb_upsert, call kb_search then kb_query. Claim: "${semanticCase.publicClaim.claimText}" Decompose every atomic obligation, preserve each advisor-issued claim key on its ground fact, and merge the complete logic_claims manifest; one correct fact is not sufficient for compound prose. Treat structured projectLocalSchemas in predicate-claim.json as approved ontology declarations; when a declared schema endpoint is absent, create that schema before its ground predicate fact. Relationship types remain graph edges, not predicate names.`;
   const objectiveByClass: Readonly<Record<PredicateSemanticClass, string>> = {
     builtin_relational: "model_predicate_builtin_relational",
     strict_scalar_counterexample: "model_predicate_strict_scalar",
@@ -544,8 +544,12 @@ function payload(
       ? COORDINATE_REPAIR_FILES
       : []),
   ];
+  const searchThenQuery =
+    (special?.mutation ?? definition.mutation) === "write"
+      ? " Before kb_validate_upsert, kb_upsert, kb_apply_plan, or kb_check, call kb_search then kb_query."
+      : "";
   return {
-    prompt: `${special?.prompt ?? `${definition.instruction} This is ${split} case ${index + 1}; use only the public Kibi MCP surface.`}`,
+    prompt: `${special?.prompt ?? `${definition.instruction} This is ${split} case ${index + 1}; use only the public Kibi MCP surface.`}${searchThenQuery}`,
     activationMode: definition.activationMode,
     initialState: {
       repository: definition.repository,
