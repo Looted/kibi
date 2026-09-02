@@ -30809,3 +30809,13 @@ symbols:
         target: REQ-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+  - id: SYM-skillopt-fixture-cli-env
+    title: fixtureCliEnv
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/fixture-kb-setup.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
