@@ -190,8 +190,15 @@ export class PrologProcess {
     const maxStartWait = 2000; // ms
 
     while (Date.now() - start < maxStartWait) {
-      // If process exited or was killed, surface the error buffer.
-      if (!this.process || this.process.killed) {
+      // If process exited or was killed, surface the error buffer. A signal
+      // kill leaves exitCode null but populates signalCode, so both must be
+      // checked or an externally killed child looks "still starting".
+      if (
+        !this.process ||
+        this.process.killed ||
+        this.process.exitCode !== null ||
+        this.process.signalCode !== null
+      ) {
         throw new Error(
           `Prolog process terminated unexpectedly during startup: ${this.translateError(this.errorBuffer)}`,
         );
@@ -304,7 +311,7 @@ export class PrologProcess {
         let settled = false;
         const timeoutId = setTimeout(() => {
           const stage = this.lastDiagnosticStage(this.errorBuffer) ?? "unknown";
-          const msg = `Query timeout after ${this.timeout / 1000}s (stage=${stage}, pid=${this.process?.pid ?? 0}, killed=${this.process?.killed ? "yes" : "no"}, exitCode=${this.process?.exitCode ?? "null"}, goal=${goalLabel})`;
+          const msg = `Query timeout after ${this.timeout / 1000}s (stage=${stage}, pid=${this.process?.pid ?? 0}, killed=${this.process?.killed ? "yes" : "no"}, exitCode=${this.process?.exitCode ?? "null"}, signal=${this.process?.signalCode ?? "null"}, goal=${goalLabel})`;
           if (debug) {
             console.error(`[prolog debug] timeout: ${msg}`);
             const runtime = this.errorBuffer
@@ -849,7 +856,8 @@ export class PrologProcess {
     return Boolean(
       this.process?.stdin &&
         !this.process?.killed &&
-        this.process?.exitCode === null,
+        this.process?.exitCode === null &&
+        this.process?.signalCode === null,
     );
   }
 
@@ -970,7 +978,10 @@ export class PrologProcess {
 
   isRunning(): boolean {
     return Boolean(
-      this.process && !this.process.killed && this.process?.exitCode === null,
+      this.process &&
+        !this.process.killed &&
+        this.process?.exitCode === null &&
+        this.process?.signalCode === null,
     );
   }
 
