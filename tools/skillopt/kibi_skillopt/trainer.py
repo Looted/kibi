@@ -7,6 +7,7 @@ from skillopt.engine.trainer import ReflACTTrainer
 
 from .adapter import EnvAdapter
 from .common import JsonValue, contract_hash, parse_json_value
+from .gate import patched_hard_primary_gate
 from .run_lock import load_skillopt_source_lock
 
 
@@ -46,10 +47,10 @@ def build_training_config(out_root: Path, *, max_steps: int = 4) -> dict[str, Js
         "min_edit_budget": 2,
         "lr_scheduler": "constant",
         "use_gate": True,
-        # Admission is based on hard passes and a worst-family floor. Keep
-        # the trainer's selection gate aligned with that contract so a soft
-        # partial-credit improvement cannot displace a candidate that is
-        # more likely to satisfy the paid development gate.
+        # Admission is based on hard passes and a worst-family floor, so the
+        # published gate_metric stays "hard": a soft-only gain cannot beat a
+        # hard regression. Upstream still rejects exact hard ties; run_training
+        # patches select_gate_score to break those ties with soft.
         "gate_metric": "hard",
         "use_slow_update": False,
         "use_meta_skill": False,
@@ -127,8 +128,9 @@ def run_training(
     if resumed is not None:
         return resumed
     config = build_training_config(out_root, max_steps=max_steps)
-    trainer = ReflACTTrainer(config, adapter)
-    result = trainer.train()
+    with patched_hard_primary_gate():
+        trainer = ReflACTTrainer(config, adapter)
+        result = trainer.train()
     normalized_result = {str(key): value for key, value in result.items()}
     trajectories = _trajectory_payloads(adapter)
     if not trajectories:
