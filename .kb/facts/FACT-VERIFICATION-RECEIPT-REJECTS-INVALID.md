@@ -13,7 +13,7 @@ predicate_args: [requirement_proof, unfresh_or_invalid_receipt, not_proven]
 canonical_key: verification_receipt_rule(requirement_proof,unfresh_or_invalid_receipt,not_proven)
 polarity: assert
 claim_key: CLAIM-BB50FABD208405B7
-claim_text: A missing, stale, failed, malformed, mismatched, or future-dated proof receipt must not prove the requirement.
+claim_text: A missing, stale, failed, malformed, mismatched, or future-dated proof receipt must not prove the requirement
 ---
 
 Ground predicate for conservative rejection of unusable evidence.
