@@ -242,10 +242,10 @@ describe("session-tracker SessionTracker", () => {
 
     it("accepts custom interval parameter", () => {
       const tracker = new SessionTracker();
-      // Test with various intervals
-      assert.equal(tracker.isSessionExpired(0), false); // Just created
-      assert.equal(tracker.isSessionExpired(1), false); // 1ms interval
-      assert.equal(tracker.isSessionExpired(10000), false); // 10s interval
+      // interval 0 expires as soon as the clock ticks, so it is not a
+      // valid "fresh session" assertion under coverage/isolate load.
+      assert.equal(tracker.isSessionExpired(1), false);
+      assert.equal(tracker.isSessionExpired(10000), false);
     });
   });
 

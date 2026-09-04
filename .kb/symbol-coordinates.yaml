@@ -2541,7 +2541,7 @@ coordinates:
     sourceLine: 50
   SYM-cli-codec-escape-atom:
     identityHash: 1260b2ac2246ca1eeb73d6d1f8bd91fa7fe2eb47fb6a1109f7b4a779ef5f203a
-    sourceHash: 0acb49d55c5e10f0b7d162995c0a10d33fabd5619930ce7383eb621023d3ecab
+    sourceHash: fdcac5f702d79a78b3602103b589b92a589f9bb0e3b67536f9a0f14eb188849f
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 23
@@ -2549,7 +2549,7 @@ coordinates:
     sourceLine: 20
   SYM-cli-codec-escape-atom-content:
     identityHash: c9a981727b10f0703db3f49ca4f62181a0947537f5be5a8a3492b96f3ca347c5
-    sourceHash: 0acb49d55c5e10f0b7d162995c0a10d33fabd5619930ce7383eb621023d3ecab
+    sourceHash: fdcac5f702d79a78b3602103b589b92a589f9bb0e3b67536f9a0f14eb188849f
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 60
@@ -2557,15 +2557,15 @@ coordinates:
     sourceLine: 57
   SYM-cli-codec-parse-atom-list:
     identityHash: 28e0efd2cac08fcd7bf3267f14a05e796efedde330b8095eae4f4f524f103693
-    sourceHash: 0acb49d55c5e10f0b7d162995c0a10d33fabd5619930ce7383eb621023d3ecab
+    sourceHash: fdcac5f702d79a78b3602103b589b92a589f9bb0e3b67536f9a0f14eb188849f
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 404
+    sourceEndLine: 405
     sourceFile: packages/cli/src/prolog/codec.ts
-    sourceLine: 389
+    sourceLine: 390
   SYM-cli-codec-parse-entity-from-binding:
     identityHash: f31c6d227c99c89dfbf04af76c871537f0f483d1369e7bf614a4487011199f53
-    sourceHash: 0acb49d55c5e10f0b7d162995c0a10d33fabd5619930ce7383eb621023d3ecab
+    sourceHash: fdcac5f702d79a78b3602103b589b92a589f9bb0e3b67536f9a0f14eb188849f
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 133
@@ -2573,7 +2573,7 @@ coordinates:
     sourceLine: 110
   SYM-cli-codec-parse-entity-from-list:
     identityHash: 277e181537d5fddea51d0206ba7885e8f8b0befad228cfdf3a6185d116d81810
-    sourceHash: 0acb49d55c5e10f0b7d162995c0a10d33fabd5619930ce7383eb621023d3ecab
+    sourceHash: fdcac5f702d79a78b3602103b589b92a589f9bb0e3b67536f9a0f14eb188849f
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 156
@@ -2581,7 +2581,7 @@ coordinates:
     sourceLine: 135
   SYM-cli-codec-parse-list-of-lists:
     identityHash: dbd231b79a2d170d46dc798dc0dcfc3254abc50fe3eb6698fc343a8d88b86a16
-    sourceHash: 0acb49d55c5e10f0b7d162995c0a10d33fabd5619930ce7383eb621023d3ecab
+    sourceHash: fdcac5f702d79a78b3602103b589b92a589f9bb0e3b67536f9a0f14eb188849f
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 108
@@ -2589,63 +2589,63 @@ coordinates:
     sourceLine: 62
   SYM-cli-codec-parse-pair-list:
     identityHash: 71d7cc5b8d0e541a95a908948c1280277a6736712abce8baa493d887b178dc56
-    sourceHash: 0acb49d55c5e10f0b7d162995c0a10d33fabd5619930ce7383eb621023d3ecab
+    sourceHash: fdcac5f702d79a78b3602103b589b92a589f9bb0e3b67536f9a0f14eb188849f
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 425
+    sourceEndLine: 426
     sourceFile: packages/cli/src/prolog/codec.ts
-    sourceLine: 406
+    sourceLine: 407
   SYM-cli-codec-parse-prolog-value:
     identityHash: a0d352dc09c67dd48dffb761db6ab8f9f497a7db44c8d4e9cdb35eb50fd97aea
-    sourceHash: 0acb49d55c5e10f0b7d162995c0a10d33fabd5619930ce7383eb621023d3ecab
+    sourceHash: fdcac5f702d79a78b3602103b589b92a589f9bb0e3b67536f9a0f14eb188849f
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 309
+    sourceEndLine: 310
     sourceFile: packages/cli/src/prolog/codec.ts
-    sourceLine: 211
+    sourceLine: 212
   SYM-cli-codec-parse-triples:
     identityHash: c9f5d3636276ee82f44a5a1ed8b55cfc23d5ef995364baed567854b08cb7baa4
-    sourceHash: 0acb49d55c5e10f0b7d162995c0a10d33fabd5619930ce7383eb621023d3ecab
+    sourceHash: fdcac5f702d79a78b3602103b589b92a589f9bb0e3b67536f9a0f14eb188849f
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 447
+    sourceEndLine: 448
     sourceFile: packages/cli/src/prolog/codec.ts
-    sourceLine: 427
+    sourceLine: 428
   SYM-cli-codec-parse-violation-rows:
     identityHash: 4653f25ee7023371c99d474019e64c5451cc08d72037c0b9fdfd97bedd838c62
-    sourceHash: 0acb49d55c5e10f0b7d162995c0a10d33fabd5619930ce7383eb621023d3ecab
+    sourceHash: fdcac5f702d79a78b3602103b589b92a589f9bb0e3b67536f9a0f14eb188849f
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 574
+    sourceEndLine: 575
     sourceFile: packages/cli/src/prolog/codec.ts
-    sourceLine: 513
+    sourceLine: 514
   SYM-cli-codec-parsed-violation:
     identityHash: 11a669c3ad497ef7720e6a1c4fc9fc8a7ae42a9adeeaca48c25bf2dbb49520dc
-    sourceHash: 0acb49d55c5e10f0b7d162995c0a10d33fabd5619930ce7383eb621023d3ecab
+    sourceHash: fdcac5f702d79a78b3602103b589b92a589f9bb0e3b67536f9a0f14eb188849f
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 511
+    sourceEndLine: 512
     sourceFile: packages/cli/src/prolog/codec.ts
-    sourceLine: 505
+    sourceLine: 506
   SYM-cli-codec-split-top-level:
     identityHash: 03a335f08d3533de8373abce27100d4113cb9cd21f072c4404782d7095416d6d
-    sourceHash: 0acb49d55c5e10f0b7d162995c0a10d33fabd5619930ce7383eb621023d3ecab
+    sourceHash: fdcac5f702d79a78b3602103b589b92a589f9bb0e3b67536f9a0f14eb188849f
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 368
+    sourceEndLine: 369
     sourceFile: packages/cli/src/prolog/codec.ts
-    sourceLine: 365
+    sourceLine: 366
   SYM-cli-codec-split-top-level-general:
     identityHash: bca873d6df1b6ae6607d36c0852a8ea496c5cb53ce93b7688356bf2032b93801
-    sourceHash: 0acb49d55c5e10f0b7d162995c0a10d33fabd5619930ce7383eb621023d3ecab
+    sourceHash: fdcac5f702d79a78b3602103b589b92a589f9bb0e3b67536f9a0f14eb188849f
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 363
+    sourceEndLine: 364
     sourceFile: packages/cli/src/prolog/codec.ts
-    sourceLine: 311
+    sourceLine: 312
   SYM-cli-codec-to-prolog-atom:
     identityHash: 33a9b428d378e89371b1d6d2237676adb2e21bea39a5165ca10490656ca6cea8
-    sourceHash: 0acb49d55c5e10f0b7d162995c0a10d33fabd5619930ce7383eb621023d3ecab
+    sourceHash: fdcac5f702d79a78b3602103b589b92a589f9bb0e3b67536f9a0f14eb188849f
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 35
@@ -2653,7 +2653,7 @@ coordinates:
     sourceLine: 29
   SYM-cli-codec-to-prolog-string:
     identityHash: 6d27c65bb3dab20e1987e3a1796caa243a63cd6ae994b002dd5fc8c618bb3cfd
-    sourceHash: 0acb49d55c5e10f0b7d162995c0a10d33fabd5619930ce7383eb621023d3ecab
+    sourceHash: fdcac5f702d79a78b3602103b589b92a589f9bb0e3b67536f9a0f14eb188849f
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 51
@@ -4237,10 +4237,10 @@ coordinates:
     sourceLine: 20
   SYM-cli-parse-property-list:
     identityHash: 582f1840f027979724cc9b4cf198f86083da3467ab1fc5105802a3631bed62e6
-    sourceHash: 0acb49d55c5e10f0b7d162995c0a10d33fabd5619930ce7383eb621023d3ecab
+    sourceHash: fdcac5f702d79a78b3602103b589b92a589f9bb0e3b67536f9a0f14eb188849f
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 209
+    sourceEndLine: 210
     sourceFile: packages/cli/src/prolog/codec.ts
     sourceLine: 158
   SYM-cli-PersistenceResult:
@@ -5613,12 +5613,12 @@ coordinates:
     sourceLine: 115
   SYM-command-environment:
     identityHash: fc1c04cbce5e90f8c5b38ac32eee0f9d2e6fcb893351a84a8b586014db67260b
-    sourceHash: 5e1f92ebc527d6e25764af8f14f9562d42a0185d4e0a437bc26a56de7b35680b
+    sourceHash: 9b8035dc002e6f1c290c0e5c627e8399caa83f5fa1a2607b82405c87dc9154f9
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 122
+    sourceEndLine: 131
     sourceFile: packages/cli/src/commands/prove.ts
-    sourceLine: 104
+    sourceLine: 113
   SYM-compareRelationshipParity:
     identityHash: e4fd5157adc36a37215071a8d35ae243178a57870f8e0ee287fdc4d3d4dc2f8e
     sourceHash: a09fc7e0d9733500de49cb2cb01d4d3a2908bb338e0bdd1221f0af9a6c07f998
@@ -12453,12 +12453,12 @@ coordinates:
     sourceLine: 23
   SYM-parse-integration-selector:
     identityHash: a12eda22ad6e24440af21f6204728a55b3aa747c88cad4c74737c5b76b9af03a
-    sourceHash: 5e1f92ebc527d6e25764af8f14f9562d42a0185d4e0a437bc26a56de7b35680b
+    sourceHash: 9b8035dc002e6f1c290c0e5c627e8399caa83f5fa1a2607b82405c87dc9154f9
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 60
+    sourceEndLine: 69
     sourceFile: packages/cli/src/commands/prove.ts
-    sourceLine: 47
+    sourceLine: 56
   SYM-parseArgs:
     identityHash: 348150e3b108dd35bb405014902970b8c6fbf7e7b8243ed1e7fd2c1654e33fe4
     sourceHash: 8ce1332531148db71f6a9248bc9070fa8f4233ebd34095fdb5830f0767954450
@@ -13469,20 +13469,28 @@ coordinates:
     sourceLine: 24
   SYM-prove-command:
     identityHash: 5b5d873d0cc879f57a12a1141eda7b4fc95dc20f06470385081e5dbeb7429fce
-    sourceHash: 5e1f92ebc527d6e25764af8f14f9562d42a0185d4e0a437bc26a56de7b35680b
+    sourceHash: 9b8035dc002e6f1c290c0e5c627e8399caa83f5fa1a2607b82405c87dc9154f9
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 451
+    sourceEndLine: 464
     sourceFile: packages/cli/src/commands/prove.ts
-    sourceLine: 281
-  SYM-prove-command-options:
-    identityHash: d0482515995bcdbc422a1c76703c7c79e33b457a64da23ed3fd1c3d3aa69a1c9
-    sourceHash: 5e1f92ebc527d6e25764af8f14f9562d42a0185d4e0a437bc26a56de7b35680b
+    sourceLine: 290
+  SYM-prove-command-dependencies:
+    identityHash: 781a489d79f6873f94a0566e5d132d6df343dd7297d000dc6f6668b8a90a61cb
+    sourceHash: 9b8035dc002e6f1c290c0e5c627e8399caa83f5fa1a2607b82405c87dc9154f9
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 37
+    sourceEndLine: 46
     sourceFile: packages/cli/src/commands/prove.ts
-    sourceLine: 30
+    sourceLine: 43
+  SYM-prove-command-options:
+    identityHash: d0482515995bcdbc422a1c76703c7c79e33b457a64da23ed3fd1c3d3aa69a1c9
+    sourceHash: 9b8035dc002e6f1c290c0e5c627e8399caa83f5fa1a2607b82405c87dc9154f9
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 40
+    sourceFile: packages/cli/src/commands/prove.ts
+    sourceLine: 33
   SYM-publicSkillDescriptors:
     identityHash: af33ef983b96e23667edc2acac95d427871b381487d2280c56827c503bbeca3c
     sourceHash: d29826e6b86819a85295458d1c0f7ecb7e931378da41d6afdba6f13f7f08b4bd

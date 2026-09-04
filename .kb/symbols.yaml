@@ -29842,6 +29842,16 @@ symbols:
         target: REQ-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+  - id: SYM-prove-command-dependencies
+    title: ProveCommandDependencies
+    sourceFile: packages/cli/src/commands/prove.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
   - id: SYM-parse-integration-selector
     title: parseIntegrationSelector
     sourceFile: packages/cli/src/commands/prove.ts

@@ -13,7 +13,10 @@ import {
 import { convertJUnitXml } from "../proof/producers/junit-adapter.js";
 import { convertTap } from "../proof/producers/tap-adapter.js";
 import { loadEntities } from "../public/operations/discovery-entities.js";
-import type { OperationContext } from "../public/operations/runtime-types.js";
+import type {
+  OperationContext,
+  OperationRuntime,
+} from "../public/operations/runtime-types.js";
 import { ingestProofSpec } from "../public/operations/specs/proof.js";
 import { readWorkspaceSnapshot } from "../public/operations/workspace-snapshot.js";
 import {
@@ -34,6 +37,12 @@ export type ProveCommandOptions = Readonly<{
   integrationExcept?: string;
   all?: boolean;
   workspaceRoot?: string;
+}>;
+
+// implements REQ-kibi-proof-evidence-protocol
+export type ProveCommandDependencies = Readonly<{
+  runtime?: OperationRuntime;
+  ingestProof?: typeof executeIngestProof;
 }>;
 
 type SelectedTest = Record<string, unknown>;
@@ -280,11 +289,15 @@ function summarize(result: IngestProofResult): string {
 // implements REQ-kibi-proof-evidence-protocol
 export async function proveCommand(
   options: ProveCommandOptions,
+  deps: ProveCommandDependencies = {},
 ): Promise<{ exitCode: number }> {
   const workspaceRoot = options.workspaceRoot ?? process.cwd();
-  const runtime = createCliRuntime(
-    options.workspaceRoot === undefined ? {} : { workspaceRoot },
-  );
+  const ingestProof = deps.ingestProof ?? executeIngestProof;
+  const runtime =
+    deps.runtime ??
+    createCliRuntime(
+      options.workspaceRoot === undefined ? {} : { workspaceRoot },
+    );
   const context = await runtime.open(ingestProofSpec, {
     ...(options.workspaceRoot === undefined ? {} : { workspaceRoot }),
   });
@@ -396,7 +409,7 @@ export async function proveCommand(
         );
         continue;
       }
-      const ingested = await executeIngestProof(
+      const ingested = await ingestProof(
         {
           snapshot,
           artifact: artifact as unknown as Record<string, unknown>,
