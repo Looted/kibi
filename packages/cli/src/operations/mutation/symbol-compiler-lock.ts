@@ -56,6 +56,7 @@ export interface SymbolCompilerLockOptions {
   readonly now?: () => number;
   readonly sleep?: (ms: number) => Promise<void>;
   readonly fileSystem?: SymbolCompilerLockFileSystem;
+  readonly isProcessAlive?: (pid: number) => boolean;
 }
 
 // implements REQ-generated-coordinate-persistence
@@ -203,6 +204,65 @@ function existingLockDescription(
   }
 }
 
+function defaultIsProcessAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return !(
+      error instanceof Error &&
+      "code" in error &&
+      (error as NodeJS.ErrnoException).code === "ESRCH"
+    );
+  }
+}
+
+type StaleLockOutcome = "stolen" | "live" | "unknown";
+
+/**
+ * Read the current lock owner record and steal the lock only when the
+ * recorded holder pid is provably dead. A readable owner.json identifies a
+ * directory lock; a readable lock path itself identifies a legacy file lock.
+ * Corrupt, missing, or unreadable metadata stays fail-closed: an
+ * initializing writer must never be stolen from, and a live holder (or an
+ * unverifiable pid) keeps the mutex.
+ */
+function stealStaleLockIfHolderIsDead(
+  fileSystem: SymbolCompilerLockFileSystem,
+  target: string,
+  ownerPath: string,
+  isProcessAlive: (pid: number) => boolean,
+): StaleLockOutcome {
+  let record: LockRecord | null = null;
+  let legacyFileLock = false;
+  try {
+    record = readLockRecord(fileSystem.readFileSync(ownerPath));
+  } catch {
+    try {
+      record = readLockRecord(fileSystem.readFileSync(target));
+      legacyFileLock = true;
+    } catch {
+      return "unknown";
+    }
+  }
+  if (record === null) return "unknown";
+  if (isProcessAlive(record.pid)) return "live";
+  try {
+    if (legacyFileLock) {
+      const removal = retryTransientFilesystemOperation(() =>
+        fileSystem.unlinkSync(target),
+      );
+      if (!removal.ok) return "unknown";
+      return "stolen";
+    }
+    removeLockOwner(fileSystem, target, ownerPath, true);
+    removeLockDirectory(fileSystem, target);
+  } catch {
+    return "unknown";
+  }
+  return "stolen";
+}
+
 async function defaultSleep(ms: number): Promise<void> {
   await new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
 }
@@ -252,6 +312,7 @@ export async function acquireSymbolCompilerLock(
   const now = options.now ?? Date.now;
   const sleep = options.sleep ?? defaultSleep;
   const fileSystem = options.fileSystem ?? NODE_FILE_SYSTEM;
+  const isProcessAlive = options.isProcessAlive ?? defaultIsProcessAlive;
 
   const target = lockPath(workspaceRoot);
   const ownerPath = path.join(target, OWNER_FILE);
@@ -285,6 +346,17 @@ export async function acquireSymbolCompilerLock(
       );
     }
     lastBlocker = existingLockDescription(fileSystem, target, ownerPath);
+
+    if (
+      stealStaleLockIfHolderIsDead(
+        fileSystem,
+        target,
+        ownerPath,
+        isProcessAlive,
+      ) === "stolen"
+    ) {
+      continue;
+    }
 
     await sleep(RETRY_INTERVAL_MS);
   }
@@ -382,7 +454,9 @@ export async function acquireSymbolCompilerLock(
  * Atomic directory creation is the lock authority. Owner metadata is
  * release authorization and diagnostics: every existing target, including a
  * legacy file or a directory with missing/corrupt metadata, blocks contenders
- * until timeout.
+ * until timeout. A well-formed owner record whose holder pid is provably
+ * dead is stolen immediately instead of blocking for the full timeout;
+ * corrupt metadata and live holders stay fail-closed.
  * Release failures propagate so successful work is never reported unlocked.
  */
 // implements REQ-generated-coordinate-persistence

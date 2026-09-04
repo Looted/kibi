@@ -13,7 +13,14 @@ export function registerProofCommand(program: Command): void {
       "--requirement <id>",
       "Prove every proof-bearing test behind a requirement",
     )
-    .option("--integration <id>", "Prove only tests bound to one integration")
+    .option(
+      "--integration <ids>",
+      "Prove only tests bound to these integrations (comma-separated)",
+    )
+    .option(
+      "--integration-except <ids>",
+      "With --all (or another selector), skip tests bound to these integrations (comma-separated)",
+    )
     .option("--all", "Prove every proof-bearing test in the knowledge base")
     .action(
       withExitCode(
@@ -21,6 +28,7 @@ export function registerProofCommand(program: Command): void {
           test?: string;
           requirement?: string;
           integration?: string;
+          integrationExcept?: string;
           all?: boolean;
         }) => {
           const mode = [
@@ -33,6 +41,10 @@ export function registerProofCommand(program: Command): void {
             throw new Error(
               "prove: choose exactly one selector: --test, --requirement, --integration, or --all",
             );
+          if (options.integrationExcept && mode === 0)
+            throw new Error(
+              "prove: --integration-except requires a selector such as --all",
+            );
           return await (await import("./commands/prove.js")).proveCommand({
             ...(options.test === undefined ? {} : { testId: options.test }),
             ...(options.requirement === undefined
@@ -41,6 +53,9 @@ export function registerProofCommand(program: Command): void {
             ...(options.integration === undefined
               ? {}
               : { integration: options.integration }),
+            ...(options.integrationExcept === undefined
+              ? {}
+              : { integrationExcept: options.integrationExcept }),
             all: mode === 0,
           });
         },

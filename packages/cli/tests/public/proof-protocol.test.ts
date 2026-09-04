@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 import {
@@ -219,7 +219,10 @@ describe("effective proof fingerprint", () => {
     const cosmetic = effectiveProofFingerprint({
       contract,
       // Unknown extra key must be ignored by the fingerprint normalizer.
-      integration: { ...integration, description: "Changed description" } as typeof integration,
+      integration: {
+        ...integration,
+        description: "Changed description",
+      } as typeof integration,
       bindings,
     });
     expect(a.fingerprint).toBe(cosmetic.fingerprint);

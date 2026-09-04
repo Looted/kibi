@@ -147,9 +147,15 @@ kibi prove --all
 kibi prove --test TEST-checkout
 kibi prove --requirement REQ-checkout
 kibi prove --integration web-e2e
+kibi prove --integration web-e2e,api-tests
+kibi prove --all --integration-except heavy-suite
 ```
 
 Selectors: `--test`, `--requirement`, `--integration`, `--all` (default).
+`--integration` accepts one or more comma-separated integration ids.
+`--integration-except` is a modifier (it requires a selector such as `--all`)
+that skips tests bound to the listed integrations. A selector that matches no
+proof-bearing test is an error, so a typo cannot silently prove nothing.
 The exit code is non-zero when any proof fails or a producer errors.
 
 ## `kibi proof inspect`

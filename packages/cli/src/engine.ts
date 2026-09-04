@@ -1569,9 +1569,7 @@ export async function runEngineDaemon(options: {
       `use_module('${quoteProlog(modulePath.replaceAll("\\", "/"))}')`,
     );
     if (!loaded.success) {
-      throw new Error(
-        loaded.error ?? `Failed to load Kibi ${label} module`,
-      );
+      throw new Error(loaded.error ?? `Failed to load Kibi ${label} module`);
     }
   }
 

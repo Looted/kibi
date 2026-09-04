@@ -112,7 +112,12 @@ export const PREDICATE_CATALOG_2: PredicateSchemaCandidate[] = [
       "Legacy data or APIs may only be used for migration or compatibility input.",
     argument_names: ["subject", "allowed_action", "scope"],
     argument_types: ["entity", "action", "scope"],
-    keywords: ["legacy", "migration input", "only be read"],
+    keywords: ["legacy", "migration input", "only be read", "canonical-only"],
+    aliases: [
+      "canonical data only",
+      "never fall back to legacy",
+      "read canonical only",
+    ],
     examples: [
       "migration_boundary_rule(legacy_fabricdata, read, migration_input)",
     ],
@@ -191,7 +196,18 @@ export const PREDICATE_CATALOG_2: PredicateSchemaCandidate[] = [
       "Persisted data, APIs, or contracts must stay neutral to a renderer, vendor, runtime, or implementation detail.",
     argument_names: ["subject", "relation", "contract"],
     argument_types: ["entity", "relation", "contract"],
-    keywords: ["renderer-neutral", "contract", "runtime snapshots", "vendor"],
+    keywords: [
+      "renderer-neutral",
+      "contract",
+      "runtime snapshots",
+      "vendor",
+      "renderer replacements",
+      "swappable",
+    ],
+    aliases: [
+      "renderer-neutral persistence",
+      "loadable across renderer replacements",
+    ],
     examples: [
       "abstraction_boundary_rule(annotation_drawing_data, persisted_as, renderer-neutral_scene_contract)",
     ],

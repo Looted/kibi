@@ -305,7 +305,7 @@ describe("kb_suggest_predicates", () => {
 
   test("emits an ontology-gap observation when no built-in predicate is confident enough", async () => {
     const result = await suggest({
-      text: "The product should feel delightful and magical.",
+      text: "The system should fribulate the widget against the quux registry.",
       requirementId: "REQ-BRAND-001",
       source: "requirements/brand.md#L3",
       minScore: 0.8,
@@ -1218,6 +1218,90 @@ describe("kb_suggest_predicates", () => {
     expect(result.structuredContent.warnings).toEqual([
       "Existing predicate_schema facts could not be loaded: boom",
     ]);
+  });
+
+  test("covers consumer-escalated predicate families from real claim phrasings", async () => {
+    const { handleKbSuggestPredicates } = await loadModule();
+    const cases = [
+      {
+        text: "Profile fetches must complete in < 500ms",
+        expectedName: "resource_constraint",
+      },
+      {
+        text: "Canvas operations must stay at 60fps with throttled high-frequency handlers and efficient object serialization",
+        expectedName: "throttle_policy_rule",
+      },
+      {
+        text: "Profile fetch must be deduplicated to prevent parallel requests for the same user",
+        expectedName: "request_deduplication_rule",
+      },
+      {
+        text: "The onAuthStateChange callback must return synchronously and must not await Supabase client operations",
+        expectedName: "async_boundary_rule",
+      },
+      {
+        text: "Notifications must be read-only for the client",
+        expectedName: "mutation_authority_rule",
+      },
+      {
+        text: "Authenticated review routes and messaging must resolve against a canonical videoId",
+        expectedName: "canonical_identifier_rule",
+      },
+      {
+        text: "Treat phone landscape as mobile when height stays below 768px even if width exceeds the breakpoint",
+        expectedName: "responsive_breakpoint_rule",
+      },
+      {
+        text: "Invalid or missing fallback roles must fail closed without creating a currentUser",
+        expectedName: "fail_closed_authorization_rule",
+      },
+      {
+        text: "Deployment must hold when unsupported legacy data is detected instead of converting it",
+        expectedName: "deployment_precondition_rule",
+      },
+      {
+        text: "Legacy renderer payloads must be converted once with no data loss before the canonical-only runtime reads begin",
+        expectedName: "data_migration_rule",
+      },
+      {
+        text: "After verification, the runtime must read canonical AnnotationScene data only and never fall back to legacy fabricData reads",
+        expectedName: "migration_boundary_rule",
+      },
+      {
+        text: "Renderer-neutral persistence must keep saved annotation scenes loadable across renderer replacements",
+        expectedName: "abstraction_boundary_rule",
+      },
+      {
+        text: "Raw transport and processing-backend details (tus payloads, HTTP status lines, request URLs, worker/ffmpeg errors) must be logged and must not be shown in the upload UI",
+        expectedName: "diagnostic_visibility_rule",
+      },
+    ];
+
+    for (const testCase of cases) {
+      const result = await handleKbSuggestPredicates(null, {
+        text: testCase.text,
+        includeExistingSchemas: false,
+        maxCandidates: 1,
+      });
+      const structured = result.structuredContent as {
+        candidates: Array<{
+          eligibility: string;
+          predicate_name: string;
+        }>;
+        recommendedAction: string;
+      };
+      const eligible = structured.candidates.filter(
+        (candidate) => candidate.eligibility === "eligible",
+      );
+      expect(
+        eligible[0]?.predicate_name,
+        `top eligible candidate for: ${testCase.text}`,
+      ).toBe(testCase.expectedName);
+      expect(
+        ["apply_requires_predicate", "provide_argument_bindings"],
+        `recommended action for: ${testCase.text}`,
+      ).toContain(structured.recommendedAction);
+    }
   });
 
   test("skips existing schema loading when disabled", async () => {

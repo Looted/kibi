@@ -45,17 +45,14 @@ const NON_ASSERTIVE_PROPOSITION_ROLES = new Set([
   "subjective",
 ]);
 
-function assertivePropositionCount(text: string): number {
-  const analysis = analyzeSemanticAdvisorInput({
+function analyzeInputPropositions(text: string) {
+  return analyzeSemanticAdvisorInput({
     payload: {
       type: "req",
       id: "REQ-KIBI-PREDICATE-SUGGESTION-INPUT",
       properties: { semantic_text: text },
     },
-  });
-  return analysis.receipt.propositions.filter(
-    (proposition) => !NON_ASSERTIVE_PROPOSITION_ROLES.has(proposition.role),
-  ).length;
+  }).receipt.propositions;
 }
 
 function compoundInputAbstention(
@@ -83,6 +80,40 @@ function compoundInputAbstention(
       subject,
       candidates: [],
       recommendedAction: "record_ontology_gap",
+      recommendedPredicateSchema: null,
+      applyPlan,
+      relationshipPlan: null,
+      warnings: [warning],
+    },
+    applyPlan,
+  };
+}
+
+function nonlogicalInputRouting(
+  args: SuggestPredicatesArgs,
+  text: string,
+  subject: string,
+): SuggestPredicatesResult {
+  const claimKey = semanticClaimKey(text);
+  const warning =
+    "The semantic advisor classifies this prose as nonlogical (rationale, example, or subjective context); it does not assert a verifiable domain proposition. Advisor routing wins: no predicate candidates, schema draft, or write plan were generated, and the claim was not added to logic_claims.";
+  const applyPlan: Array<Record<string, unknown>> = [];
+  return {
+    content: [
+      {
+        type: "text",
+        text: "Predicate suggestion abstained because the semantic advisor classifies this prose as nonlogical (rationale, example, or subjective context). Keep it outside logic_claims; no candidate, ontology-gap observation, or schema draft was generated.",
+      },
+    ],
+    structuredContent: {
+      text,
+      claimKey,
+      logicClaims: Array.from(new Set(args.existingLogicClaims ?? [])),
+      source: args.source ?? null,
+      requirementId: args.requirementId ?? null,
+      subject,
+      candidates: [],
+      recommendedAction: "review_nonlogical",
       recommendedPredicateSchema: null,
       applyPlan,
       relationshipPlan: null,
@@ -149,9 +180,20 @@ export async function handleKbSuggestPredicates(
 ): Promise<SuggestPredicatesResult> {
   const text = normalizeText(args.text);
   const subject = inferSubject(text, args.subjectHint);
-  const propositionCount = assertivePropositionCount(text);
-  if (propositionCount > 1) {
-    return compoundInputAbstention(args, text, subject, propositionCount);
+  const propositions = analyzeInputPropositions(text);
+  const assertivePropositionCount = propositions.filter(
+    (proposition) => !NON_ASSERTIVE_PROPOSITION_ROLES.has(proposition.role),
+  ).length;
+  if (propositions.length > 0 && assertivePropositionCount === 0) {
+    return nonlogicalInputRouting(args, text, subject);
+  }
+  if (assertivePropositionCount > 1) {
+    return compoundInputAbstention(
+      args,
+      text,
+      subject,
+      assertivePropositionCount,
+    );
   }
   const maxCandidates = clampInteger(
     args.maxCandidates,

@@ -31,11 +31,33 @@ export type ProveCommandOptions = Readonly<{
   testId?: string;
   requirement?: string;
   integration?: string;
+  integrationExcept?: string;
   all?: boolean;
   workspaceRoot?: string;
 }>;
 
 type SelectedTest = Record<string, unknown>;
+
+/**
+ * Parse a comma-separated integration selector ("a", "a,b,c") into a set of
+ * trimmed, non-empty ids. Empty selectors yield an empty set; blank items
+ * fail fast instead of silently narrowing the selection.
+ */
+// implements REQ-kibi-proof-evidence-protocol
+export function parseIntegrationSelector(
+  value: string | undefined,
+  flagName: string,
+): Set<string> {
+  if (value === undefined || value.trim() === "") return new Set();
+  const ids = new Set<string>();
+  for (const raw of value.split(",")) {
+    const id = raw.trim();
+    if (id === "")
+      throw new Error(`prove: ${flagName} contains an empty integration id`);
+    ids.add(id);
+  }
+  return ids;
+}
 
 function withId(entity: Record<string, unknown>): SelectedTest {
   if (typeof entity.id !== "string" || entity.id === "")
@@ -78,7 +100,8 @@ async function runChild(
   });
 }
 
-function commandEnvironment(
+// implements REQ-kibi-proof-evidence-protocol
+export function commandEnvironment(
   integration: ProofIntegration,
   commandArgv: readonly string[],
   snapshot: string,
@@ -88,6 +111,7 @@ function commandEnvironment(
 ): NodeJS.ProcessEnv {
   return {
     ...process.env,
+    KIBI_PROOF_RUN: "1",
     KIBI_PROOF_OUTPUT: outputPath,
     KIBI_PROOF_SNAPSHOT: snapshot,
     KIBI_PROOF_COMMAND_ARGV: JSON.stringify(commandArgv),
@@ -213,12 +237,38 @@ async function selectTests(
   const selected = candidates.filter(
     (entity) => parseContract(entity) !== null,
   );
-  if (options.integration) {
-    return selected.filter(
-      (entity) => parseContract(entity)?.integration === options.integration,
+  const includeIds = parseIntegrationSelector(
+    options.integration,
+    "--integration",
+  );
+  const excludeIds = parseIntegrationSelector(
+    options.integrationExcept,
+    "--integration-except",
+  );
+  if (includeIds.size === 0 && excludeIds.size === 0) return selected;
+  const filtered = selected.filter((entity) => {
+    const contract = parseContract(entity);
+    if (!contract) return false;
+    if (includeIds.size > 0 && !includeIds.has(contract.integration))
+      return false;
+    if (excludeIds.size > 0 && excludeIds.has(contract.integration))
+      return false;
+    return true;
+  });
+  if (filtered.length === 0 && includeIds.size + excludeIds.size > 0) {
+    const requested = [
+      ...(includeIds.size > 0
+        ? [`integrations: ${[...includeIds].sort().join(", ")}`]
+        : []),
+      ...(excludeIds.size > 0
+        ? [`excluding: ${[...excludeIds].sort().join(", ")}`]
+        : []),
+    ].join("; ");
+    throw new Error(
+      `prove: no proof-bearing tests match the integration selector (${requested})`,
     );
   }
-  return selected;
+  return filtered;
 }
 
 function summarize(result: IngestProofResult): string {

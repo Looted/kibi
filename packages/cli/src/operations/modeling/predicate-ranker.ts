@@ -212,8 +212,11 @@ export function rankSchema(
   const specificity = specificityBonus(schema);
 
   let total: number;
-  if (exact !== null) {
+  if (exact !== null && exact > 0) {
     // Exact structural matches retain the established deterministic score.
+    // An exact score of 0 means the predicate's rigid pattern did not match;
+    // it is a miss, not a veto: lexical evidence still competes for
+    // retrieval and the semantic applicability gate remains the authority.
     total = exact;
   } else if (
     keywordHits === 0 &&

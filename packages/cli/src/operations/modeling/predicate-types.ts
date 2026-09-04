@@ -114,7 +114,8 @@ export interface SuggestPredicatesResult {
       | "apply_requires_predicate"
       | "provide_argument_bindings"
       | "resolve_schema_reference"
-      | "record_ontology_gap";
+      | "record_ontology_gap"
+      | "review_nonlogical";
     recommendedPredicateSchema: RecommendedPredicateSchema | null;
     applyPlan: Array<Record<string, unknown>>;
     relationshipPlan: Record<string, unknown> | null;

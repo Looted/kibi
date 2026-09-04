@@ -476,6 +476,18 @@
           "data": {
             "additionalProperties": false,
             "properties": {
+              "attachedDev": {
+                "type": "integer"
+              },
+              "attachedGeneration": {
+                "type": "string"
+              },
+              "attachedIno": {
+                "type": "integer"
+              },
+              "attachedPath": {
+                "type": "string"
+              },
               "bootstrap": {
                 "additionalProperties": true,
                 "type": "object"

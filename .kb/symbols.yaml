@@ -11155,6 +11155,15 @@ symbols:
         target: REQ-mcp-suggest-predicates
       - type: covered_by
         target: TEST-mcp-suggest-predicates
+  - id: SYM-predicate-catalog-part-5
+    title: PREDICATE_CATALOG_5
+    sourceFile: packages/cli/src/operations/modeling/predicate-catalog-5.ts
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-mcp-suggest-predicates
   - id: SYM-predicate-default-usage-hints
     title: DEFAULT_USAGE_HINTS
     sourceFile: packages/cli/src/operations/modeling/predicate-catalog.ts
@@ -11284,6 +11293,15 @@ symbols:
   - id: SYM-predicate-usage-hints-part-3
     title: PREDICATE_USAGE_HINTS_3
     sourceFile: packages/cli/src/operations/modeling/predicate-usage-hints-3.ts
+    symbol_role: structural
+    relationships:
+      - type: implements
+        target: REQ-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-mcp-suggest-predicates
+  - id: SYM-predicate-usage-hints-part-4
+    title: PREDICATE_USAGE_HINTS_4
+    sourceFile: packages/cli/src/operations/modeling/predicate-usage-hints-4.ts
     symbol_role: structural
     relationships:
       - type: implements
@@ -29819,6 +29837,26 @@ symbols:
     sourceFile: packages/cli/src/commands/prove.ts
     status: active
     symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-parse-integration-selector
+    title: parseIntegrationSelector
+    sourceFile: packages/cli/src/commands/prove.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+  - id: SYM-command-environment
+    title: commandEnvironment
+    sourceFile: packages/cli/src/commands/prove.ts
+    status: active
+    symbol_role: behavioral
     relationships:
       - type: implements
         target: REQ-kibi-verification-evidence-contract

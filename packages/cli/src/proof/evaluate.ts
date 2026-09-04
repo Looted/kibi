@@ -38,6 +38,49 @@ function mapRunOutcome(
   }
 }
 
+const MAX_ATTRIBUTED_MEMBERS = 5;
+
+/**
+ * When a run fails, attribute the failure to the individual proof results
+ * that did not pass. Consumers prove domain contracts through aggregate
+ * bindings, so a single slow member would otherwise refuse every contract
+ * with an opaque "run did not pass" even though each obligation's own result
+ * passed. Diagnostics only: attribution never changes pass/fail semantics.
+ */
+function failingMemberSummary(
+  artifact: ProofRunArtifact,
+  observed: ProofResult | undefined,
+): string {
+  const failing = artifact.proof_results.filter(
+    (result) => result.outcome !== "passed",
+  );
+  if (failing.length === 0) return "";
+  const ownOutcome =
+    observed === undefined
+      ? undefined
+      : observed.outcome === "passed"
+        ? "passed"
+        : observed.outcome;
+  const others = failing.filter((result) => result !== observed);
+  const parts: string[] = [];
+  if (ownOutcome !== undefined && ownOutcome !== "passed") {
+    parts.push(`this obligation's own result outcome is '${ownOutcome}'`);
+  } else if (ownOutcome === "passed") {
+    parts.push("this obligation's own result passed");
+  }
+  if (others.length > 0) {
+    const listed = others
+      .slice(0, MAX_ATTRIBUTED_MEMBERS)
+      .map((result) => `${result.symbol_id} (${result.outcome})`);
+    const overflow =
+      others.length > MAX_ATTRIBUTED_MEMBERS
+        ? ` +${others.length - MAX_ATTRIBUTED_MEMBERS} more`
+        : "";
+    parts.push(`failing member result(s): ${listed.join(", ")}${overflow}`);
+  }
+  return parts.length === 0 ? "" : `; ${parts.join("; ")}`;
+}
+
 /**
  * Kibi evaluates proof. Producers only report what happened.
  *
@@ -65,13 +108,14 @@ export function evaluateContractAgainstRun(
     );
     if (observed) projectedResults.push(observed);
     if (!runPassed) {
+      const attribution = failingMemberSummary(artifact, observed);
       gaps.push({
         symbol_id: obligation.symbol_id,
         target: obligation.target,
         reason:
           artifact.run.outcome === "no_results"
             ? `run produced no results (outcome: no_results${artifact.run.failure_phase ? `, phase: ${artifact.run.failure_phase}` : ""})`
-            : `run did not pass (outcome: ${artifact.run.outcome}${artifact.run.failure_phase ? `, phase: ${artifact.run.failure_phase}` : ""})`,
+            : `run did not pass (outcome: ${artifact.run.outcome}${artifact.run.failure_phase ? `, phase: ${artifact.run.failure_phase}` : ""})${attribution}`,
       });
       continue;
     }

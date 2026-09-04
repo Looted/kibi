@@ -187,6 +187,42 @@ describe("shared modeling operation executors", () => {
     expect(result.applyPlan).toEqual([]);
   });
 
+  test("nonlogical rationale prose routes to advisor nonlogical handling", async () => {
+    const result = await handleKbSuggestPredicates(null, {
+      text: "This design exists because the legacy renderer made zoom flicker visible during playback.",
+      includeExistingSchemas: false,
+      existingLogicClaims: ["CLAIM-1111111111111111"],
+    });
+
+    expect(result.structuredContent).toMatchObject({
+      logicClaims: ["CLAIM-1111111111111111"],
+      candidates: [],
+      recommendedAction: "review_nonlogical",
+      recommendedPredicateSchema: null,
+      applyPlan: [],
+      relationshipPlan: null,
+      warnings: [
+        expect.stringContaining("classifies this prose as nonlogical"),
+      ],
+    });
+    expect(result.applyPlan).toEqual([]);
+  });
+
+  test("subjective prose routes to advisor nonlogical handling without a schema draft", async () => {
+    const result = await handleKbSuggestPredicates(null, {
+      text: "The landing page should feel welcoming and energetic to new climbers.",
+      includeExistingSchemas: false,
+    });
+
+    expect(result.structuredContent).toMatchObject({
+      candidates: [],
+      recommendedAction: "review_nonlogical",
+      recommendedPredicateSchema: null,
+      applyPlan: [],
+      relationshipPlan: null,
+    });
+  });
+
   test("package-manager context alone does not imply an exception rule", async () => {
     const result = await handleKbSuggestPredicates(null, {
       text: "The package manager installs and resolves dependencies in the workspace.",
