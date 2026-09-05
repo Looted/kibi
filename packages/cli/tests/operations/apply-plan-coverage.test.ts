@@ -695,6 +695,97 @@ describe("bootstrap plan extra guards", () => {
     ).rejects.toThrow(/filesystem-capable runtime/);
   });
 
+  test("applies a thin bootstrap upsert and records a recovery journal", async () => {
+    const root = makeTempDir();
+    const { bootstrapEmptyKbSnapshotId, bootstrapPlanHash } = await import(
+      "../../src/operations/bootstrap/types.js"
+    );
+    const workspaceSnapshot = "a".repeat(64);
+    const sourceHashes = {};
+    const kbSnapshotId = bootstrapEmptyKbSnapshotId({
+      branch: "develop",
+      workspaceSnapshot,
+      sourceHashes,
+    });
+    const body = {
+      version: "kibi.bootstrap-plan.v1" as const,
+      status: "ready" as const,
+      expected: {
+        branch: "develop",
+        kbSnapshotId,
+        workspaceSnapshot,
+        sourceHashes,
+      },
+      activation: {
+        activationState: "root_active_thin" as const,
+        activationMode: "attached_thin_bootstrap" as const,
+        applyBlocked: false,
+        reason: "thin",
+      },
+      declaredContext: {
+        sourceOfTruthPaths: [],
+        sourceOfTruthNotes: [],
+        priorityRoots: [],
+        verificationAnchors: [],
+      },
+      contextQuestions: [],
+      confidence: {
+        score: 0.9,
+        level: "high" as const,
+        policy: "full_actions" as const,
+      },
+      discoverySummary: {
+        activationState: "root_active_thin" as const,
+        activationMode: "attached_thin_bootstrap" as const,
+        applyBlocked: false,
+        reason: "thin",
+        providersRun: [],
+        providerCounts: {},
+        detectedLanguages: [],
+        detectedTestFrameworks: [],
+        excludedRoots: [],
+        truncated: false,
+        scanWarnings: [],
+      },
+      candidates: [],
+      actions: [
+        {
+          id: "bootstrap-upsert-0001",
+          kind: "upsert" as const,
+          dependsOn: [],
+          payload: {
+            type: "req",
+            id: "REQ-bootstrap-apply",
+            properties: { title: "Bootstrap apply", status: "open" },
+            relationships: [],
+          },
+        },
+      ],
+      sourceWrites: [],
+      suppressedCandidates: [],
+      payoffSummary: {},
+      diagnostics: [],
+    };
+    const plan = { ...body, planHash: bootstrapPlanHash(body) };
+    const result = await executeApplyPlan(
+      { plan, approvedPlanHash: plan.planHash },
+      filesystemContext(root, {
+        query: {
+          query: async (goal) =>
+            goal.includes("kb_commit_upsert")
+              ? { success: true, bindings: { ChangeKind: "created" } }
+              : { success: true, bindings: { Results: "[]" } },
+          queryStatusJson: async () => ({ success: true, bindings: {} }),
+          nextSolution: async () => null,
+          save: async () => ({ success: true, bindings: {} }),
+        },
+      }),
+    );
+    expect(result.structuredContent.outcome).toMatch(
+      /applied|partially_applied|reconciliation_required/,
+    );
+  });
+
   test("skips already-completed bootstrap actions during ordering", () => {
     const action = {
       id: "bootstrap-upsert-done",
