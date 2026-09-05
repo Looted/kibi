@@ -6085,10 +6085,10 @@ coordinates:
     sourceLine: 462
   SYM-COVERAGE_SHARDS:
     identityHash: a85045cd5ad8cac175a632809ca7b95f87d288d8bb58c3154c5d4864f49e51aa
-    sourceHash: e4c47360d7b8c42ab5eac25b60f500a36222bd112bf53aa1df4ac4fba7fd412e
+    sourceHash: 40dfa667bd073ea06d7cdeba7792418b3efdbe97dd52d4ee3ff6c41146da857a
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 135
+    sourceEndLine: 139
     sourceFile: scripts/run-unit-coverage.ts
     sourceLine: 58
   SYM-createAtomically:
@@ -9283,9 +9283,17 @@ coordinates:
     sourceEndLine: 15
     sourceFile: packages/opencode/src/kibi-bootstrap-alias.ts
     sourceLine: 3
+  SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-_resetkibibootstrapcapabilitycachefortests:
+    identityHash: 9adf1060d7c22e08120fd637141917f19a1d035002c1bc9e6958147664d3b412
+    sourceHash: 106a27a68cbb3200a213c53232bbe94dc9dc9d679911f4e907ccb85c4ee48d6f
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 318
+    sourceFile: packages/opencode/src/kibi-bootstrap-capability.ts
+    sourceLine: 316
   SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-detectkibibootstrapcommandcapability:
     identityHash: 873b0f698e46b3b193740512b8aa3670340710a01a85f0a77f68a7fd75d973c2
-    sourceHash: 5b7c4a2d5087d8d3a53f66d7f4eebaf3816af12a09dc21a624617d9704238f98
+    sourceHash: 106a27a68cbb3200a213c53232bbe94dc9dc9d679911f4e907ccb85c4ee48d6f
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 302
@@ -9293,7 +9301,7 @@ coordinates:
     sourceLine: 265
   SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-findsdkpackagejsonforpluginroot:
     identityHash: fccf28b6b06471846e5b6eeba4d4119cf1d76f6bd4b517b1581458c083db0477
-    sourceHash: 5b7c4a2d5087d8d3a53f66d7f4eebaf3816af12a09dc21a624617d9704238f98
+    sourceHash: 106a27a68cbb3200a213c53232bbe94dc9dc9d679911f4e907ccb85c4ee48d6f
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 194
@@ -9301,7 +9309,7 @@ coordinates:
     sourceLine: 178
   SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-getkibibootstrapcommandcapability:
     identityHash: aee06af0d823ae2c481a53123b4d4a6db91ed41a9afa63ea013bbfe8744ab44c
-    sourceHash: 5b7c4a2d5087d8d3a53f66d7f4eebaf3816af12a09dc21a624617d9704238f98
+    sourceHash: 106a27a68cbb3200a213c53232bbe94dc9dc9d679911f4e907ccb85c4ee48d6f
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 313
@@ -9309,7 +9317,7 @@ coordinates:
     sourceLine: 304
   SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-description:
     identityHash: e28df8e50cbcc5652b6c1f4259005188c391b42b24e09c28c1959b30d9d2187d
-    sourceHash: 5b7c4a2d5087d8d3a53f66d7f4eebaf3816af12a09dc21a624617d9704238f98
+    sourceHash: 106a27a68cbb3200a213c53232bbe94dc9dc9d679911f4e907ccb85c4ee48d6f
     sourceColumn: 13
     sourceEndColumn: 56
     sourceEndLine: 10
@@ -9317,7 +9325,7 @@ coordinates:
     sourceLine: 9
   SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-name:
     identityHash: 214d4a28e5eaff039d928bcb3fe4b86f514909725938d7ea292c0ef88a5dd12b
-    sourceHash: 5b7c4a2d5087d8d3a53f66d7f4eebaf3816af12a09dc21a624617d9704238f98
+    sourceHash: 106a27a68cbb3200a213c53232bbe94dc9dc9d679911f4e907ccb85c4ee48d6f
     sourceColumn: 13
     sourceEndColumn: 59
     sourceEndLine: 7
@@ -9325,7 +9333,7 @@ coordinates:
     sourceLine: 7
   SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibi-bootstrap-command-template:
     identityHash: 06149d69ce224b2a98c97c81e5620cde182bd1f33c8ebe9f3174d8f4289e5818
-    sourceHash: 5b7c4a2d5087d8d3a53f66d7f4eebaf3816af12a09dc21a624617d9704238f98
+    sourceHash: 106a27a68cbb3200a213c53232bbe94dc9dc9d679911f4e907ccb85c4ee48d6f
     sourceColumn: 13
     sourceEndColumn: 72
     sourceEndLine: 8
@@ -9333,7 +9341,7 @@ coordinates:
     sourceLine: 8
   SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-kibibootstrapcommandcapability:
     identityHash: 859509a6fed20521ce2f6808e7b54bb013111903e96c5b8e271ee0fd15567a6d
-    sourceHash: 5b7c4a2d5087d8d3a53f66d7f4eebaf3816af12a09dc21a624617d9704238f98
+    sourceHash: 106a27a68cbb3200a213c53232bbe94dc9dc9d679911f4e907ccb85c4ee48d6f
     sourceColumn: 12
     sourceEndColumn: 6
     sourceEndLine: 34
@@ -9341,7 +9349,7 @@ coordinates:
     sourceLine: 25
   SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-opencodecommanddefinition:
     identityHash: a531c6ff1b8d2b77090f31cd8c0e817af19b749f830bfe395c503263ed95f683
-    sourceHash: 5b7c4a2d5087d8d3a53f66d7f4eebaf3816af12a09dc21a624617d9704238f98
+    sourceHash: 106a27a68cbb3200a213c53232bbe94dc9dc9d679911f4e907ccb85c4ee48d6f
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 18
@@ -9349,7 +9357,7 @@ coordinates:
     sourceLine: 12
   SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-opencodeconfighookinput:
     identityHash: 492eb517c9a4c2bda59191ce9c2f3dbebe31b187dc9ccb33c90982bcfc52ba20
-    sourceHash: 5b7c4a2d5087d8d3a53f66d7f4eebaf3816af12a09dc21a624617d9704238f98
+    sourceHash: 106a27a68cbb3200a213c53232bbe94dc9dc9d679911f4e907ccb85c4ee48d6f
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 23
@@ -9357,12 +9365,12 @@ coordinates:
     sourceLine: 20
   SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-registerkibibootstrapcommand:
     identityHash: 474792308fa02e8143ec9c1dac4ba1693dce506da65abf48e4ddd731750426b2
-    sourceHash: 5b7c4a2d5087d8d3a53f66d7f4eebaf3816af12a09dc21a624617d9704238f98
+    sourceHash: 106a27a68cbb3200a213c53232bbe94dc9dc9d679911f4e907ccb85c4ee48d6f
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 348
+    sourceEndLine: 353
     sourceFile: packages/opencode/src/kibi-bootstrap-capability.ts
-    sourceLine: 316
+    sourceLine: 321
   SYM-kibi-bootstrap-plan-executor:
     identityHash: 8b252ffaf52ece4454dfee9317f81eb9090d64fa027a1abbb21d2217383cebb2
     sourceHash: 7a09af594f4e7548885fc8982324800f45ce13ff2e6203ea090c8cee08079c8c
@@ -15301,12 +15309,12 @@ coordinates:
     sourceLine: 241
   SYM-scripts-runUnitCoverage:
     identityHash: 0a45c2accda0d8883b93684564d0b93a415b99a57df65b9e95b13bbd99484197
-    sourceHash: e4c47360d7b8c42ab5eac25b60f500a36222bd112bf53aa1df4ac4fba7fd412e
+    sourceHash: 40dfa667bd073ea06d7cdeba7792418b3efdbe97dd52d4ee3ff6c41146da857a
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 261
+    sourceEndLine: 265
     sourceFile: scripts/run-unit-coverage.ts
-    sourceLine: 173
+    sourceLine: 177
   SYM-scripts-skillopt-eval-scoring-held-out-predicate-PredicateVariant:
     identityHash: c6dc8fabae506a1b9a264ba37e1a306b5be1a7ad79cd5868fa59028d6ad4ed45
     sourceHash: 5ccd52c4ed95f251cdd24b198169d25b4b26a27a3a7d281e45e166f7cc03c7c0

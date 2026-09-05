@@ -512,5 +512,226 @@ describe("telemetry acceptance", () => {
     );
     expect(staleDiagnostics[0]?.message).toContain("latest");
   });
+
+  test("covers DEFAULT policy, inferred telemetry, advisor/target fallbacks, and remaining metric branches", () => {
+    // implements REQ-kibi-telemetry-acceptance-gate
+    expect(
+      parseTelemetryUsageLog(
+        `${JSON.stringify({ tool: "kb_status" })}\r\n  \r\n${JSON.stringify({
+          tool: "kb_query",
+        })}\r\n`,
+      ),
+    ).toHaveLength(2);
+
+    const now = NOW;
+    const events: TelemetryUsageEvent[] = [
+      {
+        timestamp: timestamp(90),
+        tool: "kb_status",
+        success: true,
+      },
+      {
+        timestamp: timestamp(80),
+        tool: "kb_semantic_advisor",
+        status: "success",
+        telemetry: { session_id: "sess-fallback", actor_id: "act-fallback" },
+        args: { requirementId: "REQ-NO-ID-FIELD" },
+      },
+      {
+        timestamp: timestamp(79),
+        tool: "kb_validate_upsert",
+        status: "success",
+        args: { type: "req", extra: { nested: [1, { keep: true }] } },
+      },
+      {
+        timestamp: timestamp(12),
+        tool: "kb_upsert",
+        status: "success",
+        telemetry: { session_id: "sess-fallback", actor_id: "act-fallback" },
+        args: { type: "req" },
+      },
+      {
+        timestamp: timestamp(11),
+        tool: "kb_query",
+        status: "error",
+        args: { sourceFile: "src/ignored-failed.ts" },
+      },
+      {
+        timestamp: timestamp(10),
+        tool: "kb_search",
+        status: "success",
+        args: { query: "no-source" },
+      },
+      {
+        timestamp: timestamp(9),
+        tool: "kb_coverage",
+        status: "success",
+        coverage_by: "test",
+        coverage_scope_complete: true,
+        coverage_proof_gap_count: 9,
+      },
+      {
+        timestamp: timestamp(8),
+        tool: "kb_coverage",
+        status: "success",
+        coverage_by: "req",
+        coverage_scope_complete: false,
+        coverage_proof_gap_count: 8,
+      },
+      {
+        timestamp: timestamp(7),
+        tool: "kb_coverage",
+        status: "success",
+        coverage_by: "req",
+        coverage_scope_complete: true,
+        coverage_proof_gap_count: 0,
+        coverage_receipt_gaps: [
+          {
+            requirementId: "REQ-RECEIPT",
+            testIds: ["TEST-1"],
+            codes: ["stale"],
+          },
+        ],
+      },
+      {
+        timestamp: timestamp(6),
+        tool: "kb_coverage",
+        status: "success",
+        coverage_by: "req",
+        coverage_scope_complete: true,
+        coverage_proof_gap_count: 0,
+        coverage_receipt_gap_count: 0,
+      },
+      {
+        timestamp: timestamp(5),
+        tool: "kb_upsert",
+        success: false,
+        args: { type: "flag" },
+      },
+      {
+        timestamp: timestamp(4),
+        tool: "kb_upsert",
+        status: "success",
+        args: { type: "flag" },
+      },
+    ];
+
+    const report = analyzeTelemetryAcceptance(events, now);
+    expect(report.policy).toEqual(DEFAULT_TELEMETRY_ACCEPTANCE_POLICY);
+    expect(
+      report.metrics.find((metric) => metric.id === "proof_gap_recovery")
+        ?.status,
+    ).toBe("passed");
+    expect(
+      report.metrics.find((metric) => metric.id === "e2e_receipt_freshness")
+        ?.status,
+    ).toBe("passed");
+    expect(
+      report.metrics.find((metric) => metric.id === "repeated_mutation_failures")
+        ?.status,
+    ).toBe("passed");
+    expect(
+      report.metrics.find(
+        (metric) => metric.id === "source_lookup_zero_result_rate",
+      )?.status,
+    ).toBe("not_applicable");
+
+    const zeroPrevious = analyzeTelemetryAcceptance(
+      [
+        {
+          timestamp: timestamp(3),
+          tool: "kb_coverage",
+          status: "success",
+          telemetry_status: "provided",
+          coverage_by: "req",
+          coverage_scope_complete: true,
+          coverage_proof_gap_count: 0,
+          coverage_receipt_gap_count: 2,
+        },
+        {
+          timestamp: timestamp(2),
+          tool: "kb_coverage",
+          status: "success",
+          telemetry_status: "provided",
+          coverage_by: "req",
+          coverage_scope_complete: true,
+          coverage_proof_gap_count: 2,
+          coverage_receipt_gap_count: 2,
+        },
+      ],
+      now,
+      { ...DEFAULT_TELEMETRY_ACCEPTANCE_POLICY, minimumEvents: 1 },
+    );
+    const recovery = zeroPrevious.metrics.find(
+      (metric) => metric.id === "proof_gap_recovery",
+    );
+    expect(recovery?.status).toBe("failed");
+    expect(recovery?.rate).toBe(0);
+    expect(
+      createTelemetryAcceptanceDiagnostics(zeroPrevious).some(
+        (item) => item.id === "proof_gap_recovery_stalled",
+      ),
+    ).toBe(true);
+
+    const receiptDefaults = analyzeTelemetryAcceptance(
+      [
+        {
+          timestamp: timestamp(1),
+          tool: "kb_coverage",
+          status: "success",
+          telemetry_status: "provided",
+          coverage_by: "req",
+          coverage_scope_complete: true,
+          coverage_proof_gap_count: 1,
+          coverage_receipt_gap_count: 3,
+        },
+      ],
+      now,
+      { ...DEFAULT_TELEMETRY_ACCEPTANCE_POLICY, minimumEvents: 1 },
+    );
+    expect(
+      receiptDefaults.metrics.find(
+        (metric) => metric.id === "e2e_receipt_freshness",
+      )?.evidence,
+    ).toMatchObject({
+      receiptGaps: [],
+      receiptGapTotal: 0,
+      receiptGapsTruncated: false,
+    });
+
+    const staleUntimed = analyzeTelemetryAcceptance(
+      [{ tool: "kb_status" }],
+      now,
+      { ...DEFAULT_TELEMETRY_ACCEPTANCE_POLICY, minimumEvents: 1 },
+    );
+    expect(staleUntimed.scope.fresh).toBe(false);
+    expect(
+      createTelemetryAcceptanceDiagnostics(staleUntimed)[0]?.message,
+    ).toContain("no valid timestamped evidence");
+
+    const lateAdvisor = analyzeTelemetryAcceptance(
+      [
+        {
+          timestamp: timestamp(1),
+          tool: "kb_upsert",
+          status: "success",
+          business_args: { type: "req", id: "REQ-LATE" },
+        },
+        {
+          timestamp: timestamp(0),
+          tool: "kb_semantic_advisor",
+          status: "success",
+          business_args: { id: "REQ-LATE" },
+        },
+      ],
+      now,
+      { ...DEFAULT_TELEMETRY_ACCEPTANCE_POLICY, minimumEvents: 1 },
+    );
+    expect(
+      lateAdvisor.metrics.find(
+        (metric) => metric.id === "advisor_before_requirement_write",
+      )?.status,
+    ).toBe("failed");
+  });
 });
 

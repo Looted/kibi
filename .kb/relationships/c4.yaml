@@ -55,3 +55,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-24223e509c1c
+  - type: implements
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-_resetkibibootstrapcapabilitycachefortests
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-09-05T20:43:10.741Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f13bed2c5274
+  - type: covered_by
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-_resetkibibootstrapcapabilitycachefortests
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-09-05T20:43:10.746Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78ba4139c79e

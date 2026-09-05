@@ -313,6 +313,11 @@ export function getKibiBootstrapCommandCapability(): KibiBootstrapCommandCapabil
 }
 
 // implements REQ-KIBI-BOOTSTRAP-PLAN
+export function _resetKibiBootstrapCapabilityCacheForTests(): void {
+  cachedCapability = null;
+}
+
+// implements REQ-KIBI-BOOTSTRAP-PLAN
 export function registerKibiBootstrapCommand(
   configInput: unknown,
   capability: KibiBootstrapCommandCapability = getKibiBootstrapCommandCapability(),

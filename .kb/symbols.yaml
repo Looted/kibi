@@ -33964,3 +33964,13 @@ symbols:
         target: TEST-core-journaled-engine-lifecycle
       - type: implements
         target: REQ-core-journaled-engine-persistence
+  - id: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-_resetkibibootstrapcapabilitycachefortests
+    title: _resetKibiBootstrapCapabilityCacheForTests
+    status: active
+    sourceFile: packages/opencode/src/kibi-bootstrap-capability.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
