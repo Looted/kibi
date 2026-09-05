@@ -49,6 +49,7 @@ afterEach(() => {
   for (const root of roots.splice(0)) {
     removeTempDir(root);
   }
+  process.exitCode = 0;
 });
 
 function preparedWorkspace(): string {
@@ -741,5 +742,94 @@ describe("proveCommand remaining runtime branches", () => {
     );
     expect(result.exitCode).toBe(1);
     expect(stdout.output()).toContain("requires an artifact path");
+  });
+
+  test("converts a failed TAP report from a relative artifact path", async () => {
+    const cwd = preparedWorkspace();
+    const tap = "not ok 1 LoginTest::acceptsValidPassword\nok 2 unbound case\n";
+    writeIntegrations(cwd, [
+      {
+        id: "unit",
+        producer: "tap",
+        command: [
+          "node",
+          "-e",
+          `require("fs").writeFileSync("results.tap", ${JSON.stringify(tap)})`,
+        ],
+        artifact: "results.tap",
+        description: "TAP",
+      },
+    ]);
+    const tapContract = { ...contract, integration: "unit" };
+    const extra = `,proof_contract=${JSON.stringify(JSON.stringify(tapContract))},proof_bindings=${JSON.stringify(
+      JSON.stringify([
+        {
+          symbol_id: "SYM-CASE-1",
+          target: "default",
+          native_id: "LoginTest::acceptsValidPassword",
+          aliases: ["acceptsValidPassword"],
+        },
+      ]),
+    )}`;
+    const stdout = captureStdout();
+    restores.push(stdout.restore);
+    const result = await withCwd(cwd, () =>
+      proveCommand(
+        { all: true, workspaceRoot: cwd },
+        {
+          runtime: fakeRuntime(cwd, async () =>
+            resultsFor([entityRow("TEST-001", extra)]),
+          ),
+          ingestProof: async () =>
+            ingestResult({ integration: "unit", passed: 0, failed: 1 }),
+        },
+      ),
+    );
+    expect(result.exitCode).toBe(1);
+  });
+
+  test("accepts a self-emitted failed outcome when the process also fails", async () => {
+    const cwd = preparedWorkspace();
+    const artifact = validArtifact({
+      run: {
+        outcome: "failed",
+        exit_code: 1,
+        started_at: "2026-08-13T00:00:00Z",
+        finished_at: "2026-08-13T00:00:01Z",
+      },
+      proof_results: [
+        {
+          symbol_id: "SYM-CASE-1",
+          target: "default",
+          outcome: "failed",
+          binding: "native_case",
+          attempts: { status: "unavailable" },
+        },
+      ],
+    });
+    writeIntegrations(cwd, [
+      {
+        id: "self-proof",
+        producer: "playwright",
+        command: [
+          "node",
+          "-e",
+          `require("fs").writeFileSync(process.env.KIBI_PROOF_OUTPUT, ${JSON.stringify(JSON.stringify(artifact))}); process.exit(1)`,
+        ],
+        description: "Playwright",
+      },
+    ]);
+    const stdout = captureStdout();
+    restores.push(stdout.restore);
+    const result = await proveCommand(
+      { all: true, workspaceRoot: cwd },
+      {
+        runtime: fakeRuntime(cwd, async () =>
+          resultsFor([entityRow("TEST-001", extraContract)]),
+        ),
+        ingestProof: async () => ingestResult({ passed: 0, failed: 1 }),
+      },
+    );
+    expect(result.exitCode).toBe(1);
   });
 });

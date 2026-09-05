@@ -1,7 +1,10 @@
 // implements REQ-mcp-suggest-predicates
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import * as applicability from "../../src/operations/modeling/predicate-applicability.js";
 import { BUILT_IN_PREDICATE_SCHEMAS } from "../../src/operations/modeling/predicate-catalog.js";
 import * as loader from "../../src/operations/modeling/predicate-loader.js";
+import * as ranker from "../../src/operations/modeling/predicate-ranker.js";
+import type { PredicateScoreComponents } from "../../src/operations/modeling/predicate-types.js";
 import {
   executeSuggestPredicates,
   handleKbSuggestPredicates,
@@ -15,6 +18,7 @@ afterEach(() => {
   for (const spy of spies.splice(0)) spy.mockRestore();
   restoreEnv?.();
   restoreEnv = undefined;
+  if (process.exitCode === 1) process.exitCode = 0;
 });
 
 describe("suggest-predicates remaining routing and ranking branches", () => {
@@ -91,6 +95,96 @@ describe("suggest-predicates remaining routing and ranking branches", () => {
     expect(result.structuredContent.candidates).toHaveLength(1);
     expect(result.structuredContent.candidates[0]?.eligibility).toBe("rejected");
     expect(result.structuredContent.recommendedAction).toBe(
+      "record_ontology_gap",
+    );
+  });
+
+  test("rejects a weak two-way eligibility tie and keeps name-stable ranking", async () => {
+    restoreEnv = isolateKibiEnv();
+    const components: PredicateScoreComponents = {
+      exact_pattern: 0.5,
+      keyword_hits: 1,
+      descriptor_overlap: 0.2,
+      usage_match: 0.2,
+      negative_evidence: 0,
+      broad_token_penalty: 0,
+      specificity_bonus: 0,
+      total: 0.5,
+    };
+    const rank = spyOn(ranker, "rankSchema").mockImplementation((schema) => ({
+      schema,
+      score: 0.5,
+      components,
+    }));
+    spies.push(rank);
+    const named = new Set<string>();
+    const apply = spyOn(
+      applicability,
+      "evaluateSemanticApplicability",
+    ).mockImplementation((ranked) => {
+      const name = ranked.schema.predicate_name;
+      if (named.size < 3) named.add(name);
+      const [first, second, third] = [...named];
+      if (name === first) {
+        return { eligible: true, reasons: [], applicabilityScore: 0.72 };
+      }
+      if (name === second) {
+        return { eligible: true, reasons: [], applicabilityScore: 0.7 };
+      }
+      if (name === third) {
+        return { eligible: true, reasons: [], applicabilityScore: 0.5 };
+      }
+      return { eligible: false, reasons: ["unrelated"], applicabilityScore: 0.1 };
+    });
+    spies.push(apply);
+
+    const tied = await handleKbSuggestPredicates(null, {
+      text: "The editor must save changes automatically when the user navigates away.",
+      includeExistingSchemas: false,
+      maxCandidates: 8,
+      minScore: 0,
+    });
+    expect(
+      tied.structuredContent.candidates.some((candidate) =>
+        candidate.rejection_reasons.some((reason) =>
+          reason.includes("weak-candidate margin abstention"),
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      tied.structuredContent.candidates.some(
+        (candidate) => candidate.eligibility === "eligible",
+      ),
+    ).toBe(true);
+
+    named.clear();
+    apply.mockImplementation((ranked) => {
+      const name = ranked.schema.predicate_name;
+      if (named.size < 3) named.add(name);
+      const [first, second, third] = [...named];
+      if (name === first) {
+        return { eligible: true, reasons: [], applicabilityScore: 0.85 };
+      }
+      if (name === second) {
+        return { eligible: true, reasons: [], applicabilityScore: 0.7 };
+      }
+      if (name === third) {
+        return { eligible: true, reasons: [], applicabilityScore: 0.65 };
+      }
+      return { eligible: false, reasons: ["unrelated"], applicabilityScore: 0.1 };
+    });
+    const strong = await handleKbSuggestPredicates(null, {
+      text: "The editor must save changes automatically when the user navigates away.",
+      includeExistingSchemas: false,
+      maxCandidates: 8,
+      minScore: 0,
+    });
+    expect(
+      strong.structuredContent.candidates.filter(
+        (candidate) => candidate.eligibility === "eligible",
+      ).length,
+    ).toBeGreaterThan(1);
+    expect(strong.structuredContent.recommendedAction).not.toBe(
       "record_ontology_gap",
     );
   });

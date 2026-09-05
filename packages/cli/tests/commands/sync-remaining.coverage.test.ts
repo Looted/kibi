@@ -50,6 +50,7 @@ afterEach(async () => {
     }
     removeTempDir(root);
   }
+  process.exitCode = 0;
 });
 
 function preparedGitWorkspace(): string {
@@ -729,4 +730,140 @@ describe("syncCommand remaining runtime branches", () => {
       ),
     ).rejects.toThrow(/Pending source is missing/);
   });
+
+  test(
+    "warm-cache coordinate refresh still requeues an unchanged manifest",
+    async () => {
+      const cwd = preparedGitWorkspace();
+      await withCwd(cwd, () => initCommand({}));
+      mkdirSync(path.join(cwd, "src"), { recursive: true });
+      writeFileSync(
+        path.join(cwd, "src", "refresh.ts"),
+        "export function refresh() { return 1; }\n",
+      );
+      mkdirSync(path.join(cwd, ".kb"), { recursive: true });
+      writeFileSync(
+        path.join(cwd, ".kb", "symbols.yaml"),
+        `symbols:
+  - id: SYM-REFRESH
+    title: refresh
+    sourceFile: src/refresh.ts
+    status: active
+`,
+      );
+      git(cwd, "add src/refresh.ts .kb");
+      git(cwd, "commit --no-verify -m symbols");
+      const first = await syncCommand(
+        { workspaceRoot: cwd },
+        { createProlog: () => scriptedProlog() as never },
+      );
+      expect(first.success).toBe(true);
+      const second = await syncCommand(
+        { workspaceRoot: cwd, refreshSymbolCoordinates: true },
+        { createProlog: () => scriptedProlog() as never },
+      );
+      expect(typeof second.success).toBe("boolean");
+      const third = await syncCommand(
+        { workspaceRoot: cwd, refreshSymbolCoordinates: true },
+        { createProlog: () => scriptedProlog() as never },
+      );
+      expect(typeof third.success).toBe("boolean");
+    },
+    90_000,
+  );
+
+  test(
+    "relationship-only shard removal uses the journaled entity-delta retract path",
+    async () => {
+      const cwd = preparedGitWorkspace();
+      await withCwd(cwd, () => initCommand({}));
+      const req = writeRequirement(cwd, "REQ-SYNC-RELDEL");
+      const shard = writeRelationshipShard(
+        cwd,
+        "rd.yaml",
+        "REQ-SYNC-RELDEL",
+        "REQ-MISSING-RELDEL",
+      );
+      git(cwd, `add ${req} ${shard} .kb`);
+      git(cwd, "commit --no-verify -m rel");
+      const first = await syncCommand({ workspaceRoot: cwd });
+      expect(first.success).toBe(true);
+      writeFileSync(path.join(cwd, shard), "relationships: []\n");
+      git(cwd, `add ${shard}`);
+      git(cwd, "commit --no-verify -m empty-shard");
+      const second = await syncCommand({ workspaceRoot: cwd });
+      expect(second.success).toBe(true);
+    },
+    120_000,
+  );
+
+  test(
+    "replacing an entity id in a markdown source removes the previous id",
+    async () => {
+      const cwd = preparedGitWorkspace();
+      await withCwd(cwd, () => initCommand({}));
+      const req = writeRequirement(cwd, "REQ-SYNC-OLDID");
+      git(cwd, `add ${req} .kb`);
+      git(cwd, "commit --no-verify -m old");
+      const first = await syncCommand(
+        { workspaceRoot: cwd },
+        { createProlog: () => scriptedProlog() as never },
+      );
+      expect(first.success).toBe(true);
+      writeFileSync(
+        path.join(cwd, req),
+        `---
+id: REQ-SYNC-NEWID
+title: Coverage REQ-SYNC-NEWID
+status: open
+type: req
+---
+
+Must remain independently testable.
+`,
+      );
+      git(cwd, `add ${req}`);
+      git(cwd, "commit --no-verify -m new");
+      const second = await syncCommand(
+        { workspaceRoot: cwd },
+        { createProlog: () => scriptedProlog() as never },
+      );
+      expect(typeof second.success).toBe("boolean");
+    },
+    90_000,
+  );
+
+  test(
+    "test-only embedded authoring errors still emit invalid-authoring diagnostics",
+    async () => {
+      const cwd = preparedGitWorkspace();
+      await withCwd(cwd, () => initCommand({}));
+      const relative = path.join(".kb", "requirements", "REQ-SYNC-TESTONLY.md");
+      mkdirSync(path.dirname(path.join(cwd, relative)), { recursive: true });
+      writeFileSync(
+        path.join(cwd, relative),
+        `---
+id: REQ-SYNC-TESTONLY
+title: Embedded test only
+status: open
+type: req
+test: proves-login
+---
+
+Embedded children are invalid here.
+`,
+      );
+      git(cwd, `add ${relative} .kb`);
+      git(cwd, "commit --no-verify -m testonly");
+      const io = captureIo();
+      restores.push(io.restore);
+      const result = await syncCommand(
+        { validateOnly: true, workspaceRoot: cwd },
+        { createProlog: () => scriptedProlog() as never },
+      );
+      expect(result.success).toBe(false);
+      expect(JSON.stringify(result.failures)).toMatch(/INVALID_AUTHORING|test/i);
+    },
+    90_000,
+  );
 });

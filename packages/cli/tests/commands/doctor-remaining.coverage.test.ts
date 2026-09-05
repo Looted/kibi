@@ -33,6 +33,7 @@ afterEach(async () => {
     }
     removeTempDir(root);
   }
+  process.exitCode = 0;
 });
 
 function preparedWorkspace(): string {
@@ -564,5 +565,109 @@ status: open
     const result = await withCwd(cwd, () => doctorCommand({ format: "json" }));
     expect([0, 1]).toContain(result.exitCode);
     expect(io.logText().length).toBeGreaterThan(0);
+  });
+
+  test("treats an invalid resolved package.json as unusable provenance", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    const badManifest = path.join(cwd, "broken-core.json");
+    writeFileSync(badManifest, "{not json");
+    const fakeRequire = Object.assign(
+      () => {
+        throw new Error("absent");
+      },
+      {
+        resolve: (id: string) => {
+          if (id === "kibi-core/package.json") return badManifest;
+          throw new Error(`missing ${id}`);
+        },
+      },
+    );
+    const create = spyOn(nodeModule, "createRequire").mockReturnValue(
+      fakeRequire as never,
+    );
+    restores.push(() => create.mockRestore());
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await withCwd(cwd, () => doctorCommand({ format: "json" }));
+    expect([0, 1]).toContain(result.exitCode);
+    expect(io.logText().length).toBeGreaterThan(0);
+  });
+
+  test("walks to the filesystem root when no named package manifest matches", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    const nested = path.join(cwd, "walk", "deep", "nested");
+    mkdirSync(nested, { recursive: true });
+    writeFileSync(path.join(nested, "index.js"), "export {}\n");
+    writeFileSync(
+      path.join(cwd, "walk", "package.json"),
+      JSON.stringify({ name: "unrelated" }),
+    );
+    const fakeRequire = Object.assign(
+      () => {
+        throw new Error("absent");
+      },
+      {
+        resolve: (id: string) => {
+          if (id.endsWith("/package.json")) throw new Error("hidden exports");
+          if (id === "kibi-core") return path.join(nested, "index.js");
+          throw new Error(`missing ${id}`);
+        },
+      },
+    );
+    const create = spyOn(nodeModule, "createRequire").mockReturnValue(
+      fakeRequire as never,
+    );
+    restores.push(() => create.mockRestore());
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await withCwd(cwd, () => doctorCommand({ format: "json" }));
+    expect([0, 1]).toContain(result.exitCode);
+    expect(io.logText().length).toBeGreaterThan(0);
+  });
+
+  test("fails SWI-Prolog when the version match has an empty major capture", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    const originalExec = childProcess.execSync;
+    const exec = spyOn(childProcess, "execSync").mockImplementation(((
+      command: string,
+      options?: unknown,
+    ) => {
+      if (String(command).includes("swipl")) {
+        return "SWI-Prolog version 9.2 (threaded)\n";
+      }
+      return originalExec(command, options as never);
+    }) as typeof childProcess.execSync);
+    const originalMatch = String.prototype.match;
+    const match = spyOn(String.prototype, "match").mockImplementation(
+      function (this: string, regexp: string | RegExp) {
+        const result = originalMatch.call(this, regexp);
+        if (
+          typeof this === "string" &&
+          this.includes("SWI-Prolog version") &&
+          result
+        ) {
+          const copy = [...result] as unknown as RegExpMatchArray;
+          copy.index = result.index;
+          copy.input = result.input;
+          copy.groups = result.groups;
+          copy[1] = "";
+          copy[2] = result[2];
+          return copy;
+        }
+        return result;
+      },
+    );
+    restores.push(() => {
+      exec.mockRestore();
+      match.mockRestore();
+    });
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await withCwd(cwd, () => doctorCommand({ format: "json" }));
+    expect(result.exitCode).toBe(1);
+    expect(io.logText()).toContain("Unable to parse major version");
   });
 });

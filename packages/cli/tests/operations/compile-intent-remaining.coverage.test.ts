@@ -1,12 +1,14 @@
 // implements REQ-kibi-change-to-proof-plan-compiler
-import { afterEach, describe, expect, mock, test } from "bun:test";
+import { afterEach, describe, expect, mock, spyOn, test } from "bun:test";
 import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import * as intentSearch from "../../src/intent-search.js";
 import {
   executeCompileIntent,
 } from "../../src/operations/planning/compile-intent.js";
 import { semanticClaimKey } from "../../src/operations/semantic-advisor/clauses.js";
+import * as discovery from "../../src/public/operations/discovery-executors.js";
 import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
 import type {
   OperationContext,
@@ -273,5 +275,208 @@ describe("executeCompileIntent leftover planning branches", () => {
       plan.sourceWrites.length === 0 ||
         plan.sourceWrites[0]?.path === "docs/REQ.md",
     ).toBe(true);
+  });
+
+  test("classifies rationale, example, and subjective clauses as nonlogical", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-roles-"));
+    workspaces.push(root);
+    const plan = (
+      await executeCompileIntent(
+        {
+          intent:
+            "The editor must persist drafts. This exists because operators asked for it. For example, a mid-edit crash. Reviewers prefer the current layout.",
+          mode: "create",
+          clauses: [
+            "This exists because operators asked for it.",
+            "For example, a mid-edit crash.",
+            "Reviewers prefer the current layout.",
+          ],
+        },
+        contextFor(root, quietQuery()),
+      )
+    ).structuredContent;
+    expect(
+      plan.propositions.some((proposition) => proposition.status === "nonlogical"),
+    ).toBe(true);
+  });
+
+  test("skips source writes when the existing entity source escapes the workspace", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-dotdot-"));
+    workspaces.push(root);
+    const query = mock(async (goal: string): Promise<PrologQueryResult> => {
+      if (goal.includes("findall([A,B,Reason]"))
+        return { success: true, bindings: { Rows: "[]" } };
+      if (goal.includes("kb_entity('REQ-KEEP'"))
+        return {
+          success: true,
+          bindings: {
+            Results:
+              '[[REQ-KEEP,req,[title="Keep",status=open,source="../outside.md"]]]',
+          },
+        };
+      if (goal.includes("kb_relationship"))
+        return { success: true, bindings: { Edges: "[]" } };
+      return { success: true, bindings: { Results: "[]" } };
+    });
+    const plan = (
+      await executeCompileIntent(
+        {
+          intent: "Customer data must be retained for 7 years.",
+          mode: "update",
+          requirementId: "REQ-KEEP",
+        },
+        contextFor(root, query),
+      )
+    ).structuredContent;
+    expect(plan.sourceWrites).toEqual([]);
+  });
+
+  test("auto-selects a high-margin update target and accepts mixed proposals", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-propose-"));
+    workspaces.push(root);
+    const search = spyOn(intentSearch, "executeIntentSearch").mockResolvedValue({
+      matches: [
+        {
+          entity: { id: "REQ-KEEP", type: "req", title: "Keep" },
+          score: 0.95,
+          reasons: ["title"],
+          evidence: {
+            normalizedScore: 0.95,
+            matchedFacets: [],
+            sourceMatches: [],
+            graphPaths: [],
+            abstentionEligible: false,
+          },
+        },
+        {
+          entity: { id: "SCEN-KEEP", type: "scenario", title: "Scene" },
+          score: 0.7,
+          reasons: ["body"],
+          evidence: {
+            normalizedScore: 0.7,
+            matchedFacets: [],
+            sourceMatches: [],
+            graphPaths: [],
+            abstentionEligible: false,
+          },
+        },
+        {
+          entity: { id: "SYM-KEEP", type: "symbol", title: "sym" },
+          score: 0.6,
+          reasons: ["name"],
+          evidence: {
+            normalizedScore: 0.6,
+            matchedFacets: [],
+            sourceMatches: [],
+            graphPaths: [],
+            abstentionEligible: false,
+          },
+        },
+        {
+          entity: { id: "TEST-KEEP", type: "test", title: "test" },
+          score: 0.5,
+          reasons: ["body"],
+          evidence: {
+            normalizedScore: 0.5,
+            matchedFacets: [],
+            sourceMatches: [],
+            graphPaths: [],
+            abstentionEligible: false,
+          },
+        },
+        {
+          entity: { id: "ADR-KEEP", type: "adr", title: "adr" },
+          score: 0.4,
+          reasons: ["title"],
+          evidence: {
+            normalizedScore: 0.4,
+            matchedFacets: [],
+            sourceMatches: [],
+            graphPaths: [],
+            abstentionEligible: false,
+          },
+        },
+      ],
+      analysis: {
+        rankingMode: "intent-v1",
+        candidateCount: 5,
+        acceptedCount: 5,
+        topScore: 0.95,
+        topTwoMargin: 0.25,
+        abstained: false,
+      },
+    } as never);
+    restores.push(() => search.mockRestore());
+    const plan = (
+      await executeCompileIntent(
+        {
+          intent: "Customer data must be retained for 7 years.",
+          mode: "update",
+          proposalDecisions: [
+            {
+              proposalId: "pending",
+              decision: "accept",
+            },
+          ],
+        },
+        contextFor(root, quietQuery()),
+      )
+    ).structuredContent;
+    expect(plan.target.requirementId).toBe("REQ-KEEP");
+    expect(plan.proposals.length).toBeGreaterThan(0);
+    const accepted = plan.proposals.map((proposal) => ({
+      ...proposal,
+      decision: "accept" as const,
+    }));
+    const withDecisions = (
+      await executeCompileIntent(
+        {
+          intent: "Customer data must be retained for 7 years.",
+          mode: "update",
+          requirementId: "REQ-KEEP",
+          proposalDecisions: accepted.map((proposal) => ({
+            proposalId: proposal.proposalId,
+            decision: proposal.decision,
+          })),
+        },
+        contextFor(root, quietQuery()),
+      )
+    ).structuredContent;
+    expect(
+      withDecisions.proposals.some((proposal) => proposal.decision === "accept"),
+    ).toBe(true);
+  });
+
+  test("uses an unknown workspace snapshot when status omits proof evidence", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-status-"));
+    workspaces.push(root);
+    const status = spyOn(discovery, "executeStatus").mockResolvedValue({
+      structuredContent: {
+        branch: "develop",
+        snapshotId: "stamp:test",
+        syncedAt: "2026-09-05T00:00:00Z",
+        dirty: false,
+        syncState: "fresh",
+      },
+    } as never);
+    restores.push(() => status.mockRestore());
+    const plan = (
+      await executeCompileIntent(
+        {
+          intent: "Customer data must be retained for 7 years.",
+          mode: "create",
+        },
+        contextFor(root, quietQuery()),
+      )
+    ).structuredContent;
+    expect(plan.expected.workspaceSnapshot).toBe("unknown");
   });
 });

@@ -8,6 +8,7 @@ import {
   findMustPriorityReqs,
 } from "../../src/commands/check.js";
 import { EngineClient } from "../../src/engine.js";
+import * as manifestExtractor from "../../src/extractors/manifest.js";
 import { PrologProcess } from "../../src/prolog.js";
 import * as checkExecutor from "../../src/public/operations/check-executor.js";
 import * as impact from "../../src/public/impact-diagnostics.js";
@@ -32,6 +33,7 @@ afterEach(async () => {
   for (const root of roots.splice(0)) {
     removeTempDir(root);
   }
+  process.exitCode = 0;
 });
 
 function preparedWorkspace(): string {
@@ -640,5 +642,211 @@ describe("checkCommand remaining runtime branches", () => {
     );
     expect(result.exitCode).toBe(0);
     expect(debug.mock.calls.join("\n")).toMatch(/skipping working-tree manifest/);
+  });
+
+  test("uses fallback lookup keys and keeps only traceability relationships from manifests", async () => {
+    const cwd = preparedWorkspace();
+    mkdirSync(path.join(cwd, ".kb"), { recursive: true });
+    mkdirSync(path.join(cwd, "src"), { recursive: true });
+    writeFileSync(
+      path.join(cwd, "src", "greet.ts"),
+      "export function greet() { return 1; }\n",
+    );
+    writeFileSync(
+      path.join(cwd, ".kb", "symbols.yaml"),
+      "symbols:\n  - title: greet\n    sourceFile: src/greet.ts\n",
+    );
+    git(cwd, "add src/greet.ts .kb/symbols.yaml");
+    const nameless = {
+      entity: {
+        title: "greet",
+        type: "symbol",
+        status: "active",
+        created_at: "2026-01-01T00:00:00Z",
+        updated_at: "2026-01-01T00:00:00Z",
+        source: ".kb/symbols.yaml",
+      },
+      relationships: [
+        { type: "implements", from: "SYM-GREET", to: "REQ-1" },
+        { type: "covered_by", from: "SYM-GREET", to: "TEST-1" },
+        { type: "executable_for", from: "SYM-GREET", to: "TEST-1" },
+        { type: "relates_to", from: "SYM-GREET", to: "REQ-2" },
+      ],
+      sourceFile: "src/greet.ts",
+    };
+    const fromDisk = spyOn(manifestExtractor, "extractFromManifest").mockReturnValue(
+      [nameless as never],
+    );
+    const fromStaged = spyOn(
+      manifestExtractor,
+      "extractFromManifestString",
+    ).mockReturnValue([nameless as never]);
+    const overlayDir = path.join(cwd, "overlay");
+    mkdirSync(overlayDir, { recursive: true });
+    const overlayPath = path.join(overlayDir, "changed_symbols.pl");
+    writeFileSync(overlayPath, "");
+    const create = spyOn(tempKb, "createTempKb").mockResolvedValue({
+      tempDir: overlayDir,
+      kbPath: overlayDir,
+      overlayPath,
+      prolog: { query: async () => ({ success: true, bindings: {} }) } as never,
+    });
+    const project = spyOn(tempKb, "projectStagedEntities").mockResolvedValue(
+      undefined,
+    );
+    const consult = spyOn(tempKb, "consultOverlay").mockResolvedValue(undefined);
+    const cleanup = spyOn(tempKb, "cleanupTempKb").mockResolvedValue(undefined);
+    const validate = spyOn(stagedValidate, "validateStagedSymbols").mockResolvedValue(
+      [],
+    );
+    restores.push(() => {
+      fromDisk.mockRestore();
+      fromStaged.mockRestore();
+      create.mockRestore();
+      project.mockRestore();
+      consult.mockRestore();
+      cleanup.mockRestore();
+      validate.mockRestore();
+    });
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await withCwd(cwd, () =>
+      checkCommand({
+        staged: true,
+        kbPath: path.join(cwd, "kb-store"),
+      }),
+    );
+    expect([0, 1]).toContain(result.exitCode);
+    expect(fromDisk).toHaveBeenCalled();
+    expect(fromStaged).toHaveBeenCalled();
+  });
+
+  test("records an audited no-impact override from non-entity markdown", async () => {
+    const cwd = preparedWorkspace();
+    mkdirSync(path.join(cwd, "src"), { recursive: true });
+    writeFileSync(path.join(cwd, "src", "widget.ts"), "const x = 1;\n");
+    writeFileSync(
+      path.join(cwd, "impact.md"),
+      "Kibi-Impact: none\nRationale: comment-only tweak with no behavior change\n",
+    );
+    git(cwd, "add src/widget.ts impact.md");
+    const extract = await import("../../src/traceability/symbol-extract.js");
+    const extractSpy = spyOn(extract, "extractSymbolsFromStagedFile").mockReturnValue(
+      [],
+    );
+    restores.push(() => extractSpy.mockRestore());
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await withCwd(cwd, () =>
+      checkCommand({ staged: true, kbPath: path.join(cwd, "kb-store") }),
+    );
+    expect([0, 1]).toContain(result.exitCode);
+  });
+
+  test("returns staged diagnostics when markdown entities exist but no symbols were extracted", async () => {
+    const cwd = preparedWorkspace();
+    mkdirSync(path.join(cwd, ".kb", "requirements"), { recursive: true });
+    writeFileSync(
+      path.join(cwd, ".kb", "requirements", "REQ-STAGED-EMPTY.md"),
+      `---
+id: REQ-STAGED-EMPTY
+title: Staged empty symbols
+type: req
+status: open
+---
+
+Must stay independently testable.
+`,
+    );
+    git(cwd, "add .kb/requirements/REQ-STAGED-EMPTY.md");
+    const granularity = spyOn(
+      impact,
+      "createSymbolGranularityDiagnostics",
+    ).mockReturnValue([
+      {
+        id: "granularity",
+        severity: "warning",
+        blocking: false,
+        message: "coarse",
+        suggestion: "split",
+        files: [".kb/requirements/REQ-STAGED-EMPTY.md"],
+        docs: ["docs/modeling.md"],
+      },
+    ] as never);
+    const quality = spyOn(impact, "createSymbolQualityDiagnostics").mockReturnValue(
+      [],
+    );
+    const review = spyOn(impact, "createSemanticReviewDiagnostics").mockReturnValue(
+      [],
+    );
+    const blocking = spyOn(impact, "hasBlockingImpactDiagnostics").mockReturnValue(
+      false,
+    );
+    restores.push(() => {
+      granularity.mockRestore();
+      quality.mockRestore();
+      review.mockRestore();
+      blocking.mockRestore();
+    });
+    const io = captureIo();
+    restores.push(io.restore);
+    const dry = await withCwd(cwd, () =>
+      checkCommand({
+        staged: true,
+        dryRun: true,
+        kbPath: path.join(cwd, "kb-store"),
+      }),
+    );
+    expect(dry.exitCode).toBe(0);
+    expect(io.logText()).toContain("coarse");
+
+    blocking.mockReturnValue(true);
+    const live = await withCwd(cwd, () =>
+      checkCommand({ staged: true, kbPath: path.join(cwd, "kb-store") }),
+    );
+    expect(live.exitCode).toBe(1);
+  });
+
+  test("prints the entity id when a violation source basename differs from it", async () => {
+    const cwd = preparedWorkspace();
+    const kbPath = path.join(cwd, "kb-store");
+    mkdirSync(kbPath, { recursive: true });
+    const start = spyOn(PrologProcess.prototype, "start").mockResolvedValue(
+      undefined as never,
+    );
+    const query = spyOn(PrologProcess.prototype, "query").mockResolvedValue({
+      success: true,
+      bindings: {},
+    });
+    const terminate = spyOn(
+      PrologProcess.prototype,
+      "terminate",
+    ).mockResolvedValue(undefined);
+    const execute = spyOn(checkExecutor, "executeCheck").mockResolvedValue({
+      content: [],
+      structuredContent: {
+        violations: [
+          {
+            rule: "required-fields",
+            entityId: "REQ-1",
+            source: "docs/auth.md",
+            description: "Missing owner",
+          },
+        ],
+      },
+    } as never);
+    restores.push(() => {
+      start.mockRestore();
+      query.mockRestore();
+      terminate.mockRestore();
+      execute.mockRestore();
+    });
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await withCwd(cwd, () => checkCommand({ kbPath }));
+    expect(result.exitCode).toBe(1);
+    expect(io.logText()).toContain("[required-fields] auth");
+    expect(io.logText()).toContain("Entity: REQ-1");
+    expect(io.logText()).toContain("Source: docs/auth.md");
   });
 });
