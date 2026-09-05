@@ -21,6 +21,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   expectedRepositoryUrl,
+  main,
   normalizeRepositoryUrl,
   repositoryMatches,
   verifyPublishMetadata,
@@ -126,6 +127,57 @@ describe("verifyPublishMetadata", () => {
     expect(issues.some((issue) => issue.problem.includes("private"))).toBe(
       true,
     );
+  });
+
+  test("rejects missing, unnamed, versionless, and string-repository manifests", () => {
+    const original = readFileSync(
+      join(packagesRoot, "runtime", "package.json"),
+      "utf8",
+    );
+    expect(
+      verifyWithTempManifest(
+        "runtime",
+        original,
+        JSON.stringify({ repository: "https://github.com/Looted/kibi.git" }),
+      ).map((issue) => issue.problem),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("does not match expected"),
+        expect.stringContaining("version is missing"),
+      ]),
+    );
+    const missingDir = join(packagesRoot, "definitely-not-a-package");
+    expect(
+      verifyPublishMetadata(missingDir, {}).some((issue) =>
+        issue.problem.includes("missing or unreadable"),
+      ),
+    ).toBe(true);
+  });
+
+  test("main reports success for the current repository and fails when a manifest is broken", () => {
+    const logs: string[] = [];
+    const errors: string[] = [];
+    const log = console.log.bind(console);
+    const err = console.error.bind(console);
+    console.log = ((chunk: unknown) => {
+      logs.push(String(chunk));
+    }) as typeof console.log;
+    console.error = ((chunk: unknown) => {
+      errors.push(String(chunk));
+    }) as typeof console.error;
+    const manifestPath = join(packagesRoot, "runtime", "package.json");
+    const original = readFileSync(manifestPath, "utf8");
+    try {
+      expect(main()).toBe(0);
+      expect(logs.join("\n")).toContain("Publish metadata OK");
+      writeFileSync(manifestPath, JSON.stringify({ name: "kibi-runtime" }));
+      expect(main()).toBe(1);
+      expect(errors.join("\n")).toContain("Publish metadata verification failed");
+    } finally {
+      writeFileSync(manifestPath, original);
+      console.log = log;
+      console.error = err;
+    }
   });
 });
 

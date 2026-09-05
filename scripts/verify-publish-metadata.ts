@@ -154,7 +154,7 @@ export function verifyPublishMetadata(
   return issues;
 }
 
-function main(): number {
+export function main(): number {
   const packagesRoot = join(process.cwd(), "packages");
   const issues = verifyPublishMetadata(packagesRoot);
 
