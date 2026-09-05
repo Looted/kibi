@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 
+import * as discoveryExecutors from "../../src/public/operations/discovery-executors.js";
 import { executeApplyPlan } from "../../src/operations/planning/apply-plan.js";
 import {
   type CompilePlanV1,
@@ -703,5 +704,50 @@ describe("compile plan snapshot and derived-commit failures", () => {
     );
     expect(result.structuredContent.status).toBe("committed_with_repairs");
     expect(result.structuredContent.recoveryJournalId).toMatch(/^source-writes-/);
+  });
+
+  test("keeps a compile apply committed when final status readback fails", async () => {
+    const root = makeTempDir();
+    const body = "readback source\n";
+    const plan = compilePlan({
+      sourceWrites: [
+        {
+          path: "docs/readback.md",
+          mode: "write",
+          beforeHash: null,
+          afterHash: sha(body),
+          body,
+        },
+      ],
+    });
+    const originalStatus = discoveryExecutors.executeStatus.bind(discoveryExecutors);
+    let statusCalls = 0;
+    const statusSpy = spyOn(
+      discoveryExecutors,
+      "executeStatus",
+    ).mockImplementation(async (args, ctx) => {
+      statusCalls += 1;
+      if (statusCalls === 1) {
+        return originalStatus(args, ctx);
+      }
+      throw new Error("status unavailable");
+    });
+    try {
+      const result = await executeApplyPlan(
+        { plan, approvedPlanHash: plan.planHash },
+        filesystemContext(root),
+      );
+      expect(result.structuredContent.status).toBe("committed_with_repairs");
+      expect(
+        result.structuredContent.effectFailures?.some(
+          (failure) => failure.kind === "post-commit-readback",
+        ),
+      ).toBe(true);
+      expect(result.structuredContent.nextActions?.some((action) => action.operation === "kb_status")).toBe(
+        true,
+      );
+    } finally {
+      statusSpy.mockRestore();
+    }
   });
 });
