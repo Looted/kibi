@@ -23,7 +23,7 @@ import { join } from "node:path";
 
 // We test the exported helpers directly rather than exec'ing the script,
 // because the script's REPO_ROOT is hard-coded to the real repo root.
-import { findTarballs, isDryRun } from "../clean-package-tarballs";
+import { findTarballs, isDryRun, main } from "../clean-package-tarballs";
 
 const tempRoots: string[] = [];
 
@@ -143,5 +143,16 @@ describe("clean-package-tarballs", () => {
 
     const tarballs = findTarballs(root);
     expect(tarballs.length).toBe(0);
+  });
+
+  test("main dry-run lists or reports no stale tarballs without deleting", () => {
+    const previous = process.argv.slice();
+    process.argv = ["bun", "scripts/clean-package-tarballs.ts", "--dry-run"];
+    try {
+      main();
+    } finally {
+      process.argv = previous;
+    }
+    expect(isDryRun(["--dry-run"])).toBe(true);
   });
 });

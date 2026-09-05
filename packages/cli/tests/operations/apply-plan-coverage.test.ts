@@ -786,6 +786,92 @@ describe("bootstrap plan extra guards", () => {
     );
   });
 
+  test("refuses a second original bootstrap apply when a journal already exists", async () => {
+    const root = makeTempDir();
+    const { bootstrapEmptyKbSnapshotId, bootstrapPlanHash } = await import(
+      "../../src/operations/bootstrap/types.js"
+    );
+    const workspaceSnapshot = "a".repeat(64);
+    const sourceHashes = {};
+    const kbSnapshotId = bootstrapEmptyKbSnapshotId({
+      branch: "develop",
+      workspaceSnapshot,
+      sourceHashes,
+    });
+    const body = {
+      version: "kibi.bootstrap-plan.v1" as const,
+      status: "ready" as const,
+      expected: {
+        branch: "develop",
+        kbSnapshotId,
+        workspaceSnapshot,
+        sourceHashes,
+      },
+      activation: {
+        activationState: "root_active_thin" as const,
+        activationMode: "attached_thin_bootstrap" as const,
+        applyBlocked: false,
+        reason: "thin",
+      },
+      declaredContext: {
+        sourceOfTruthPaths: [],
+        sourceOfTruthNotes: [],
+        priorityRoots: [],
+        verificationAnchors: [],
+      },
+      contextQuestions: [],
+      confidence: {
+        score: 0.9,
+        level: "high" as const,
+        policy: "full_actions" as const,
+      },
+      discoverySummary: {
+        activationState: "root_active_thin" as const,
+        activationMode: "attached_thin_bootstrap" as const,
+        applyBlocked: false,
+        reason: "thin",
+        providersRun: [],
+        providerCounts: {},
+        detectedLanguages: [],
+        detectedTestFrameworks: [],
+        excludedRoots: [],
+        truncated: false,
+        scanWarnings: [],
+      },
+      candidates: [],
+      actions: [
+        {
+          id: "bootstrap-upsert-0001",
+          kind: "upsert" as const,
+          dependsOn: [],
+          payload: {
+            type: "req",
+            id: "REQ-bootstrap-apply",
+            properties: { title: "Bootstrap apply", status: "open" },
+            relationships: [],
+          },
+        },
+      ],
+      sourceWrites: [],
+      suppressedCandidates: [],
+      payoffSummary: {},
+      diagnostics: [],
+    };
+    const plan = { ...body, planHash: bootstrapPlanHash(body) };
+    const journalId = `bootstrap-${plan.planHash.slice(0, 16)}`;
+    mkdirSync(path.join(root, ".kb", "recovery"), { recursive: true });
+    writeFileSync(
+      path.join(root, ".kb", "recovery", `${journalId}.json`),
+      `${JSON.stringify({ version: 2, kind: "bootstrap", state: "applying" })}\n`,
+    );
+    await expect(
+      executeApplyPlan(
+        { plan, approvedPlanHash: plan.planHash },
+        filesystemContext(root),
+      ),
+    ).rejects.toThrow(/already exists/);
+  });
+
   test("skips already-completed bootstrap actions during ordering", () => {
     const action = {
       id: "bootstrap-upsert-done",
