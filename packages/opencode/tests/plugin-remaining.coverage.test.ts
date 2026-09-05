@@ -1,19 +1,34 @@
 // implements REQ-opencode-kibi-plugin-v1
 // implements REQ-opencode-file-context-guidance-v1
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import { execSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { _setConsoleError } from "../src/logger.js";
+import * as autoUpdate from "../src/auto-update.js";
+import * as reminders from "../src/file-operation-reminders.js";
+import { GuidanceCache } from "../src/guidance-cache.js";
+import {
+  KibiCheckpointRunner,
+  type KibiCheckpointRunnerOptions,
+} from "../src/kibi-checkpoint-runner.js";
+import * as checkpointModule from "../src/kibi-checkpoint-runner.js";
 import * as freshness from "../src/kb-freshness-state.js";
+import { _setConsoleError } from "../src/logger.js";
+import * as logger from "../src/logger.js";
 import kibiOpencodePlugin from "../src/plugin.js";
 import type { PluginInput } from "../src/plugin.js";
-import type { SchedulerOptions, SyncScheduler } from "../src/scheduler.js";
+import type {
+  SchedulerOptions,
+  SyncRunMetadata,
+  SyncScheduler,
+} from "../src/scheduler.js";
 import {
   getSessionTracker,
   resetSessionTracker,
 } from "../src/session-tracker.js";
+import * as versions from "../src/version-metadata.js";
 
 type ToastPayload = {
   variant?: "info" | "success" | "warning" | "error";
@@ -316,6 +331,289 @@ describe("plugin remaining event, lint, and hook branches", () => {
         output,
       );
       expect(output.system.join("\n")).toContain("<!-- kibi-opencode -->");
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("plugin remaining scheduler, cache, checkpoint, and auto-update branches", () => {
+  test("records session edits, cache hits, comment misses, and scheduler factory failures", async () => {
+    const tmpDir = makeTempWorkspace("kibi-plugin-cache-");
+    const other = makeTempWorkspace("kibi-plugin-other-wt-");
+    execSync("git init -b main --template=", { cwd: other, stdio: "ignore" });
+    const captured = makeClient();
+    let secondaryOnComplete: ((meta: SyncRunMetadata) => void) | undefined;
+    globals.__kibi_test_scheduler_factory = (options) => {
+      if (path.resolve(options.worktree) !== path.resolve(tmpDir)) {
+        secondaryOnComplete = options.onRunComplete;
+        options.onRunComplete?.({
+          reason: "file.edited",
+          worktree: options.worktree,
+          debounceWindowMs: 0,
+          durationMs: 1,
+          exitCode: 1,
+          checkExitCode: 2,
+        });
+        throw new Error("scheduler unavailable");
+      }
+      return {
+        scheduleSync: () => {},
+        onFileEdited: () => {},
+        onToolExecuteAfter: () => {},
+        flush: async () => {},
+        dispose: () => {},
+      };
+    };
+    globals.__kibi_test_schedule_startup_notify = () => {};
+    const cacheHit = spyOn(GuidanceCache.prototype, "isSatisfied").mockReturnValue(
+      true,
+    );
+    spies.push(cacheHit);
+    try {
+      fs.writeFileSync(
+        path.join(tmpDir, "src", "edit.ts"),
+        "export function first() {}\n",
+      );
+      fs.writeFileSync(
+        path.join(tmpDir, ".kb", "requirements", "REQ-policy.md"),
+        "---\npriority: must\n---\n# Policy\nThe system must keep sessions isolated.\n",
+      );
+      fs.writeFileSync(
+        path.join(other, "src", "remote.ts"),
+        "export const remote = 1;\n",
+      );
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+        client: captured.client,
+      });
+      await hooks.event?.({
+        event: { type: "file.edited", properties: { file: "src/edit.ts" } },
+      });
+      fs.writeFileSync(
+        path.join(tmpDir, "src", "edit.ts"),
+        "export function first() { return 1; }\n",
+      );
+      await hooks.event?.({
+        event: { type: "file.edited", properties: { file: "src/edit.ts" } },
+      });
+      await hooks.event?.({
+        event: {
+          type: "file.edited",
+          properties: { file: ".kb/requirements/REQ-policy.md" },
+        },
+      });
+      await hooks.event?.({
+        event: {
+          type: "file.edited",
+          properties: { file: path.join(other, "src", "remote.ts") },
+        },
+      });
+      expect(secondaryOnComplete).toBeTypeOf("function");
+      expect(cacheHit).toHaveBeenCalled();
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+      fs.rmSync(other, { recursive: true, force: true });
+    }
+  });
+
+  test("copies precomputed comment suggestions and logs checkpoint failures", async () => {
+    const tmpDir = makeTempWorkspace("kibi-plugin-checkpoint-");
+    const captured = makeClient();
+    installSchedulerStub();
+    globals.__kibi_test_schedule_startup_notify = () => {};
+    writePluginConfig(tmpDir, {
+      prompt: { enabled: true, hookMode: "system-transform" },
+      guidance: {
+        commentDetection: { enabled: true, minLines: 3 },
+        smartEnforcement: { mode: "hard" },
+      },
+    });
+    let capturedComplete:
+      | ((meta: SyncRunMetadata) => void)
+      | undefined;
+    const OriginalRunner = checkpointModule.KibiCheckpointRunner;
+    const requestSpy = spyOn(
+      OriginalRunner.prototype,
+      "requestCheckpoint",
+    ).mockReturnValue({
+      kind: "requested",
+      metadata: {
+        fingerprint: "fp",
+        scopeKey: "scope",
+        worktree: tmpDir,
+        branch: "main",
+        agentIdentity: "agent",
+      },
+    });
+    const runSpy = spyOn(
+      OriginalRunner.prototype,
+      "runCheckpoint",
+    ).mockRejectedValue(new Error("checkpoint exploded"));
+    const ctorSpy = spyOn(
+      checkpointModule,
+      "KibiCheckpointRunner",
+    ).mockImplementation(function MockRunner(
+      this: unknown,
+      options: KibiCheckpointRunnerOptions = {},
+    ) {
+      capturedComplete = options.onRunComplete;
+      return new OriginalRunner(options);
+    } as unknown as typeof KibiCheckpointRunner);
+    const reminderSpy = spyOn(
+      reminders,
+      "deriveFileOperationReminder",
+    ).mockReturnValue({
+      lifecycleReminder: "Run a hard checkpoint before completing.",
+      e2eReminder: null,
+      reminderKindsToMark: ["kibi_write"],
+      policyDecision: "hard_block",
+      policyResult: {
+        kind: "hard_block",
+        text: "Run a hard checkpoint before completing.",
+        shownPaths: ["src/commented.ts"],
+        remainingCount: 0,
+        affectedPaths: ["src/commented.ts"],
+        dirtyFileCount: 1,
+        e2eReminder: null,
+        reminderKindsToMark: ["kibi_write"],
+      },
+    } as ReturnType<typeof reminders.deriveFileOperationReminder>);
+    const errorSpy = spyOn(logger, "errorStructuredOnly").mockImplementation(
+      () => {},
+    );
+    spies.push(ctorSpy, requestSpy, runSpy, reminderSpy, errorSpy);
+    try {
+      fs.writeFileSync(
+        path.join(tmpDir, "src", "commented.ts"),
+        `// User email must be unique across the entire system.
+// This is enforced at the database level with a unique index.
+// Each user can have at most 5 active sessions at any time.
+
+export function validateUser(user: { email: string }) {
+  return user.email.length > 0;
+}
+`,
+      );
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+        client: captured.client,
+      });
+      await hooks.event?.({
+        event: { type: "file.edited", properties: { file: "src/commented.ts" } },
+      });
+      fs.writeFileSync(
+        path.join(tmpDir, "src", "traced.ts"),
+        "// implements REQ-1\nexport function traced() {}\n",
+      );
+      await hooks.event?.({
+        event: { type: "file.edited", properties: { file: "src/traced.ts" } },
+      });
+      const output = { system: [] as string[] };
+      await hooks["experimental.chat.system.transform"]?.(
+        { file: "src/commented.ts" },
+        output,
+      );
+      capturedComplete?.({
+        reason: "file.edited",
+        worktree: tmpDir,
+        debounceWindowMs: 0,
+        durationMs: 1,
+        exitCode: 1,
+        checkExitCode: 2,
+      });
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(runSpy).toHaveBeenCalled();
+      expect(errorSpy).toHaveBeenCalled();
+      expect(output.system.join("\n")).toContain("<!-- kibi-opencode -->");
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test("invokes auto-update notify with startup toasts enabled", async () => {
+    const tmpDir = makeTempWorkspace("kibi-plugin-autoupdate-");
+    const captured = makeClient();
+    installSchedulerStub();
+    let release!: () => void;
+    const notified = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    globals.__kibi_test_schedule_startup_notify = (callback) => {
+      callback();
+    };
+    const versionSpy = spyOn(versions, "readKibiPackageVersions").mockReturnValue({
+      opencode: "1.2.3",
+      mcp: "1.0.0",
+      cli: "1.0.0",
+      core: "1.0.0",
+      source: "generated-dist",
+      missing: [],
+    });
+    const runnerSpy = spyOn(autoUpdate, "createAutoUpdateRunner").mockImplementation(
+      (deps) => {
+        expect(deps.getCurrentVersion()).toBe("1.2.3");
+        return async () => {
+          await deps.notify("plugin updated");
+          release();
+          return { status: "updated" };
+        };
+      },
+    );
+    spies.push(versionSpy, runnerSpy);
+    try {
+      await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+        client: captured.client,
+      });
+      await notified;
+      expect(captured.toasts.some((toast) => toast.message === "plugin updated")).toBe(
+        true,
+      );
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test("maps unknown plugin versions to a null current version", async () => {
+    const tmpDir = makeTempWorkspace("kibi-plugin-unknown-ver-");
+    installSchedulerStub();
+    let release!: () => void;
+    const notified = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    globals.__kibi_test_schedule_startup_notify = (callback) => {
+      callback();
+    };
+    const versionSpy = spyOn(versions, "readKibiPackageVersions").mockReturnValue({
+      opencode: "unknown",
+      mcp: "unknown",
+      cli: "unknown",
+      core: "unknown",
+      source: "unknown",
+      missing: ["opencode"],
+    });
+    const runnerSpy = spyOn(autoUpdate, "createAutoUpdateRunner").mockImplementation(
+      (deps) => {
+        expect(deps.getCurrentVersion()).toBeNull();
+        return async () => {
+          release();
+          return { status: "current-version-unknown" };
+        };
+      },
+    );
+    spies.push(versionSpy, runnerSpy);
+    try {
+      await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+        client: makeClient().client,
+      });
+      await notified;
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
