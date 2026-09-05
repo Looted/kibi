@@ -77,5 +77,38 @@ describe(changeToProofEvaluationSuite(), () => {
 
   test("rejects malformed JSONL with a line location", async () => {
     await expect(readJsonl("/tmp/does-not-exist.jsonl")).rejects.toThrow();
+    const bad = "/tmp/kibi-change-to-proof-bad.jsonl";
+    await Bun.write(bad, "{ok:true}\n");
+    await expect(readJsonl(bad)).rejects.toThrow(/Invalid JSONL/);
+  });
+
+  test("empty gold sets and unused abstention branches stay defined", async () => {
+    expect(await evaluateSearch([], async () => ({ results: [], abstained: false }))).toEqual({
+      caseCount: 0,
+      recallAt5: 0,
+      sourceRecallAt5: 0,
+      mrr: 0,
+      abstentionPrecision: 0,
+      abstentionCount: 0,
+    });
+    expect(
+      await evaluateSearch(
+        [{ id: "none", query: "x", expectedIds: ["REQ-1"] }],
+        async () => ({ results: [], abstained: true }),
+      ),
+    ).toMatchObject({
+      abstentionPrecision: 0,
+      sourceRecallAt5: 0,
+    });
+    expect(
+      await evaluateCompile([], async () => ({
+        propositionCount: 0,
+        status: "ready",
+      })),
+    ).toEqual({
+      caseCount: 0,
+      propositionAccounting: 0,
+      statusAccuracy: 0,
+    });
   });
 });
