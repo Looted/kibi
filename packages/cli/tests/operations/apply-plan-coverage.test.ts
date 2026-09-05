@@ -938,3 +938,133 @@ describe("source hash and source-write guards", () => {
   });
 });
 
+describe("migration action executors", () => {
+  test("applies missing_exact_branch_store and reports malformed CLI invocations", async () => {
+    const { createGitWorkspace, isolateKibiEnv, removeTempDir } = await import(
+      "../helpers/in-process-workspace.js"
+    );
+    const restore = isolateKibiEnv();
+    const cwd = createGitWorkspace();
+    try {
+      const ctx: OperationContext = {
+        ...filesystemContext(cwd),
+        branchAttachment: {
+          gitBranch: "main",
+          kbBranch: "main",
+          storePath: path.join(cwd, ".kb", "branches", "main"),
+          kind: "exact",
+          migrationRequired: false,
+        },
+      };
+
+      const missingFrom = buildMigrationPlan({
+        actions: [
+          automaticAction({
+            id: "mig-legacy-argv",
+            code: "legacy_branch_storage",
+            category: "branch",
+            invocation: {
+              kind: "cli",
+              command_argv: ["kibi", "branch", "migrate"],
+            },
+          }),
+        ],
+      });
+      const missingFromResult = await executeApplyPlan(
+        {
+          plan: missingFrom,
+          approvedPlanHash: missingFrom.planHash,
+          approvedActionIds: ["mig-legacy-argv"],
+        },
+        ctx,
+      );
+      expect(missingFromResult.structuredContent.outcome).toBe(
+        "reconciliation_required",
+      );
+
+      const reviewInvocation = buildMigrationPlan({
+        actions: [
+          automaticAction({
+            id: "mig-legacy-review",
+            code: "legacy_branch_storage",
+            category: "branch",
+            invocation: { kind: "review", instruction: "manual" },
+          }),
+        ],
+      });
+      const reviewResult = await executeApplyPlan(
+        {
+          plan: reviewInvocation,
+          approvedPlanHash: reviewInvocation.planHash,
+          approvedActionIds: ["mig-legacy-review"],
+        },
+        ctx,
+      );
+      expect(reviewResult.structuredContent.outcome).toBe(
+        "reconciliation_required",
+      );
+
+      const ensure = buildMigrationPlan({
+        actions: [
+          automaticAction({
+            id: "mig-ensure",
+            code: "missing_exact_branch_store",
+            category: "branch",
+          }),
+        ],
+      });
+      const ensured = await executeApplyPlan(
+        {
+          plan: ensure,
+          approvedPlanHash: ensure.planHash,
+          approvedActionIds: ["mig-ensure"],
+        },
+        ctx,
+      );
+      expect(
+        (ensured.structuredContent as { actionResults: { outcome: string }[] })
+          .actionResults[0]?.outcome,
+      ).toBe("applied");
+    } finally {
+      restore();
+      removeTempDir(cwd);
+    }
+  });
+
+  test("schema and coordinate migration actions surface executor failures", async () => {
+    const root = makeTempDir();
+    const ctx = filesystemContext(root);
+    const plan = buildMigrationPlan({
+      actions: [
+        automaticAction({
+          id: "mig-schema",
+          code: "schema_version_upgrade",
+          category: "schema",
+        }),
+        automaticAction({
+          id: "mig-coords",
+          code: "symbol_refresh_coordinates",
+          category: "symbol",
+          dependsOn: ["mig-schema"],
+        }),
+      ],
+    });
+    const result = await executeApplyPlan(
+      {
+        plan,
+        approvedPlanHash: plan.planHash,
+        approvedActionIds: ["mig-schema", "mig-coords"],
+      },
+      ctx,
+    );
+    expect(result.structuredContent.outcome).toBe("reconciliation_required");
+    const rows = (
+      result.structuredContent as {
+        actionResults: readonly { actionId: string; outcome: string }[];
+      }
+    ).actionResults;
+    expect(rows[0]?.outcome).toMatch(/applied|failed/);
+    expect(rows[1]?.outcome).toMatch(/applied|failed|skipped/);
+  });
+});
+

@@ -134,6 +134,40 @@ describe("DEFAULT_TOOLS_RUNTIME session wiring", () => {
     }
   });
 
+  test("adaptProlog works when optional indexed methods are absent", async () => {
+    const query = mock(async (goal: string) => ({
+      success: true,
+      bindings: { goal },
+    }));
+    const prolog = { query };
+    const session = {
+      activeBranchName: "minimal",
+      attachedBranchKbPath: null,
+      ensureProlog: async () => prolog,
+      resetProlog: async (_reason: string) => {},
+      inFlightRequests: new Map<string, Promise<unknown>>(),
+      isShuttingDown: false,
+      prologProcess: { getPid: () => 7 },
+      updateAttachedBranchStamp: mock(),
+    };
+    _setToolsServerDepsForTests(
+      { getSessionModule: async () => session as never },
+      true,
+    );
+    const context = await DEFAULT_TOOLS_RUNTIME.operationRuntime.open(
+      {
+        name: "kb_status",
+        requiresProlog: true,
+        effects: ["local-read"],
+      } as never,
+      {},
+    );
+    expect(context.prolog?.queryEntities).toBeUndefined();
+    expect(await context.prolog?.query("kb_status")).toMatchObject({
+      success: true,
+    });
+  });
+
   test("handleSparql delegates to the shared spec", async () => {
     const { session } = createSession();
     _setToolsServerDepsForTests(

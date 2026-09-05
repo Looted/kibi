@@ -168,4 +168,115 @@ describe("launch-kibi-mcp remaining branches", () => {
     });
     expect(code).toBe(11);
   });
+
+  test("resolveWorkspaceRoot accepts KIBI_WORKSPACE, comma lists, and cwd project markers", () => {
+    const root = createRoot();
+    mkdirSync(path.join(root, ".git"), { recursive: true });
+    writeFileSync(
+      path.join(root, "package.json"),
+      JSON.stringify({
+        name: "consumer",
+        peerDependencies: { "kibi-mcp": "*" },
+      }),
+    );
+    const pkg = path.join(root, "node_modules", "kibi-mcp");
+    mkdirSync(path.join(pkg, "bin"), { recursive: true });
+    writeFileSync(
+      path.join(pkg, "package.json"),
+      JSON.stringify({
+        name: "kibi-mcp",
+        version: "1.0.0",
+        bin: { "kibi-mcp": "bin/kibi-mcp.mjs" },
+      }),
+    );
+    writeFileSync(path.join(pkg, "bin", "kibi-mcp.mjs"), "export {}\n");
+
+    expect(
+      resolveWorkspaceRoot("${workspaceFolder}", {
+        cwd: path.join(root, "plugin"),
+        env: { KIBI_WORKSPACE: root },
+      }),
+    ).toBe(path.resolve(root));
+
+    expect(
+      resolveWorkspaceRoot(undefined, {
+        cwd: path.join(root, "plugin"),
+        env: { WORKSPACE_FOLDER_PATHS: `${root},/definitely-missing` },
+      }),
+    ).toBe(path.resolve(root));
+
+    expect(
+      resolveWorkspaceRoot(undefined, {
+        cwd: root,
+        env: {},
+      }),
+    ).toBe(path.resolve(root));
+
+    const other = createRoot();
+    mkdirSync(path.join(other, ".git"), { recursive: true });
+    writeFileSync(
+      path.join(other, "package.json"),
+      JSON.stringify({ name: "other", dependencies: { "kibi-mcp": "*" } }),
+    );
+    const otherPkg = path.join(other, "node_modules", "kibi-mcp");
+    mkdirSync(path.join(otherPkg, "bin"), { recursive: true });
+    writeFileSync(
+      path.join(otherPkg, "package.json"),
+      JSON.stringify({
+        name: "kibi-mcp",
+        version: "1.0.0",
+        bin: { "kibi-mcp": "bin/kibi-mcp.mjs" },
+      }),
+    );
+    writeFileSync(path.join(otherPkg, "bin", "kibi-mcp.mjs"), "export {}\n");
+    expect(() =>
+      resolveWorkspaceRoot(undefined, {
+        cwd: path.join(root, "plugin"),
+        env: { WORKSPACE_FOLDER_PATHS: JSON.stringify([root, other]) },
+      }),
+    ).toThrow("multiple workspaces");
+  });
+
+  test("malformed consumer package.json still fails closed without a local MCP", () => {
+    const root = createRoot();
+    mkdirSync(path.join(root, ".git"), { recursive: true });
+    writeFileSync(path.join(root, "package.json"), "{not-json");
+    expect(() =>
+      resolveWorkspaceRoot(undefined, {
+        cwd: root,
+        env: {},
+      }),
+    ).toThrow(/Unable to determine a consumer workspace/);
+  });
+
+  test("launchKibiMcp maps child signal exits", async () => {
+    const root = createRoot();
+    mkdirSync(path.join(root, ".git"), { recursive: true });
+    writeFileSync(
+      path.join(root, "package.json"),
+      JSON.stringify({ name: "consumer", dependencies: { "kibi-mcp": "*" } }),
+    );
+    const pkg = path.join(root, "node_modules", "kibi-mcp");
+    mkdirSync(path.join(pkg, "bin"), { recursive: true });
+    writeFileSync(
+      path.join(pkg, "package.json"),
+      JSON.stringify({
+        name: "kibi-mcp",
+        version: "1.0.0",
+        type: "module",
+        bin: { "kibi-mcp": "bin/kibi-mcp.mjs" },
+      }),
+    );
+    writeFileSync(
+      path.join(pkg, "bin", "kibi-mcp.mjs"),
+      "process.kill(process.pid, 'SIGTERM');\n",
+    );
+    const code = await launchKibiMcp([root], {
+      ...process.env,
+      WORKSPACE_FOLDER_PATHS: undefined,
+      KIBI_WORKSPACE: undefined,
+      CURSOR_WORKSPACE: undefined,
+    });
+    expect(code).toBe(143);
+  });
 });
