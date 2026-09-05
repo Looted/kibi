@@ -125,4 +125,41 @@ describe("runEngineDaemonCli", () => {
     expect(process.exitCode).toBe(1);
     process.exitCode = previousExit;
   });
+
+  test("stringifies a non-Error daemon failure when all arguments are present", async () => {
+    const daemonSpy = spyOn(engine, "runEngineDaemon").mockRejectedValue(
+      "raw failure",
+    );
+    const previousExit = process.exitCode;
+    const errors: string[] = [];
+    const errorSpy = spyOn(console, "error").mockImplementation(
+      (...args: unknown[]) => {
+        errors.push(args.map(String).join(" "));
+      },
+    );
+
+    await runEngineDaemonCli([
+      "--workspace",
+      "/tmp/kibi-ws",
+      "--branch",
+      "main",
+      "--socket",
+      "/tmp/kibi.sock",
+    ]);
+
+    daemonSpy.mockRestore();
+    errorSpy.mockRestore();
+    expect(errors.join("\n")).toContain("raw failure");
+    expect(process.exitCode).toBe(1);
+    process.exitCode = previousExit;
+  });
+
+  test("skips the socket error file when --socket is omitted", async () => {
+    const previousExit = process.exitCode;
+    const errorSpy = spyOn(console, "error").mockImplementation(() => undefined);
+    await runEngineDaemonCli(["--workspace", "/tmp/kibi-ws", "--branch", "main"]);
+    errorSpy.mockRestore();
+    expect(process.exitCode).toBe(1);
+    process.exitCode = previousExit;
+  });
 });
