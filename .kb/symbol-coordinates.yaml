@@ -869,12 +869,12 @@ coordinates:
     sourceLine: 381
   SYM-auto-5D3498497C5F:
     identityHash: 1f8ea03ea06369326a431557730d19dcc1a37e58af5415f3ef3729713b000a09
-    sourceHash: a279403723a91aec81611d65d16069a4f4bc9e44d328f0cc5bfb9df9017ea6ed
+    sourceHash: 20e485b9e1232dbcdd400eecdaa99d50a9ad800ca087d160492bc82ea43b5a52
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 36
+    sourceEndLine: 56
     sourceFile: packages/cli/src/report/html-report.ts
-    sourceLine: 32
+    sourceLine: 52
   SYM-auto-5E0D46927248:
     identityHash: 11a4843c20b738551ff8963027f959992bbf2730a514c506516a189d98bd7afd
     sourceHash: 2c45eb1b1c321fd95c5b7cf404330a3a4d4a557f4b3278bb32147d7c7412b248
@@ -917,12 +917,12 @@ coordinates:
     sourceLine: 111
   SYM-auto-6AE190B50290:
     identityHash: a5ef20a56041fe553985186a6a1717038ba98b3dee6f12442468898e66dfa80d
-    sourceHash: a279403723a91aec81611d65d16069a4f4bc9e44d328f0cc5bfb9df9017ea6ed
+    sourceHash: 20e485b9e1232dbcdd400eecdaa99d50a9ad800ca087d160492bc82ea43b5a52
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 44
+    sourceEndLine: 64
     sourceFile: packages/cli/src/report/html-report.ts
-    sourceLine: 38
+    sourceLine: 58
   SYM-auto-6B36EF51595B:
     identityHash: 8ca53a6952528d7e58873a951d9976aa8a2b6e2620499e855a16f85684ee48a5
     sourceHash: 7c57086e06046c166c4bbb1491e79048f8410c3af200dc6cf867382b6f3555c5
@@ -4645,12 +4645,12 @@ coordinates:
     sourceLine: 163
   SYM-cli-report-csp:
     identityHash: e4ee00ab32f5ca89104c6180678c5aa8dcc01819f2abbfa032e37a424e8c56dc
-    sourceHash: a279403723a91aec81611d65d16069a4f4bc9e44d328f0cc5bfb9df9017ea6ed
+    sourceHash: 20e485b9e1232dbcdd400eecdaa99d50a9ad800ca087d160492bc82ea43b5a52
     sourceColumn: 13
     sourceEndColumn: 92
-    sourceEndLine: 26
+    sourceEndLine: 46
     sourceFile: packages/cli/src/report/html-report.ts
-    sourceLine: 25
+    sourceLine: 45
   SYM-cli-report-favicon:
     identityHash: bc9f475e731106dfac49cda36747fe7bc771fa2e449ece1fcf66635c246ba4b8
     sourceHash: c11ed6384ba2342c7ea448447a9c199bb133c876a4f2318b43b145b1dbf99213
@@ -4709,12 +4709,12 @@ coordinates:
     sourceLine: 201
   SYM-cli-report-getting-started-url:
     identityHash: ae5f14858e724986690e209550b51355f27b998d1530816b077393383bc0452f
-    sourceHash: a279403723a91aec81611d65d16069a4f4bc9e44d328f0cc5bfb9df9017ea6ed
+    sourceHash: 20e485b9e1232dbcdd400eecdaa99d50a9ad800ca087d160492bc82ea43b5a52
     sourceColumn: 13
     sourceEndColumn: 63
-    sourceEndLine: 30
+    sourceEndLine: 50
     sourceFile: packages/cli/src/report/html-report.ts
-    sourceLine: 29
+    sourceLine: 49
   SYM-cli-report-git-remote:
     identityHash: 5d90a0d24a0a0b9575267c5e12b3852eacabbc3597bd875cbecd56f30e621a55
     sourceHash: ff5428bd260828cf203baa17e1884ecc8e0970c0a01e0e228ebd70549461b9d9
@@ -4773,12 +4773,12 @@ coordinates:
     sourceLine: 11
   SYM-cli-report-proof-gates:
     identityHash: fcb963d395305138ee1f5b1c4e44d4def0d3ee52fc154c219b662a031c5a8097
-    sourceHash: a279403723a91aec81611d65d16069a4f4bc9e44d328f0cc5bfb9df9017ea6ed
+    sourceHash: 20e485b9e1232dbcdd400eecdaa99d50a9ad800ca087d160492bc82ea43b5a52
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 238
+    sourceEndLine: 258
     sourceFile: packages/cli/src/report/html-report.ts
-    sourceLine: 209
+    sourceLine: 229
   SYM-cli-report-relative-time:
     identityHash: 5acf531d5e958eec736a6d3983a9523c4f913a66855b2aeb68b9311f37765bb9
     sourceHash: d6ff39c7cbdf8aafa633f30f82e254bfef50388610730809524d5a61c1d95199
@@ -4789,12 +4789,12 @@ coordinates:
     sourceLine: 23
   SYM-cli-report-render-html:
     identityHash: 30c27b7060a7e9188b03fc2a8f63729f7530ed770e5e67a088653a8f626b7f62
-    sourceHash: a279403723a91aec81611d65d16069a4f4bc9e44d328f0cc5bfb9df9017ea6ed
+    sourceHash: 20e485b9e1232dbcdd400eecdaa99d50a9ad800ca087d160492bc82ea43b5a52
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 1132
+    sourceEndLine: 869
     sourceFile: packages/cli/src/report/html-report.ts
-    sourceLine: 650
+    sourceLine: 670
   SYM-cli-report-repository:
     identityHash: 08e91fa5c7d1a0649aa0b84e3877f7d97d5106f085bee507aeb42eb97871543f
     sourceHash: ff5428bd260828cf203baa17e1884ecc8e0970c0a01e0e228ebd70549461b9d9
