@@ -1,7 +1,7 @@
 // implements REQ-cursor-kibi-plugin-v1
 // implements REQ-cursor-stop-job-vs-plan
-import { afterEach, describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from "node:fs";
+import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import fs, { mkdirSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {
@@ -82,5 +82,41 @@ describe("cursor hook-state storage", () => {
       planDelivered: true,
     }));
     expect(fallback.planDelivered).toBe(true);
+  });
+
+  test("rethrows a non-Error from closeSync while releasing the lock", () => {
+    const dir = mkdtempSync(path.join(os.tmpdir(), "kibi-hook-close-"));
+    dirs.push(dir);
+    const close = spyOn(fs, "closeSync").mockImplementation(() => {
+      throw "close-failed";
+    });
+    try {
+      expect(() =>
+        updateHookState(dir, (state) => ({
+          ...state,
+          kbCheckRun: true,
+        })),
+      ).toThrow("close-failed");
+    } finally {
+      close.mockRestore();
+    }
+  });
+
+  test("rethrows a non-Error from unlinkSync while releasing the lock", () => {
+    const dir = mkdtempSync(path.join(os.tmpdir(), "kibi-hook-unlink-"));
+    dirs.push(dir);
+    const unlink = spyOn(fs, "unlinkSync").mockImplementation(() => {
+      throw "unlink-failed";
+    });
+    try {
+      expect(() =>
+        updateHookState(dir, (state) => ({
+          ...state,
+          impactCheckRun: true,
+        })),
+      ).toThrow("unlink-failed");
+    } finally {
+      unlink.mockRestore();
+    }
   });
 });

@@ -5,8 +5,10 @@ import {
   beforeEach,
   describe,
   expect,
+  spyOn,
   test,
 } from "bun:test";
+import * as fs from "node:fs";
 import {
   existsSync,
   mkdirSync,
@@ -377,6 +379,28 @@ describe("skill-system loader and validation", () => {
     } finally {
       setBundledSkillsDir(bundledSkillsDir);
       rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test("reports a realpath failure on the SKILL.md parent", () => {
+    const rootDir = writeSkill("valid-skill", {
+      id: "valid-skill",
+      name: "Valid Skill",
+      description: "Loads a valid skill bundle",
+      version: "1.0.0",
+      kibiCompatibility: ">=0.11.0",
+    });
+    const realpath = spyOn(fs, "realpathSync").mockImplementation(() => {
+      throw new Error("broken realpath");
+    });
+    try {
+      const result = validateSkillBundle(rootDir);
+      expect(result.valid).toBe(false);
+      expect(result.errors.map((error) => error.message).join(" ")).toContain(
+        "broken realpath",
+      );
+    } finally {
+      realpath.mockRestore();
     }
   });
 

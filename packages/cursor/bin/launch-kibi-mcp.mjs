@@ -86,7 +86,7 @@ export function parseWorkspaceFolderPaths(value) {
     .filter(Boolean);
 }
 
-function packageJsonForResolvedFile(startPath) {
+export function packageJsonForResolvedFile(startPath) {
   let current = resolve(startPath);
   try {
     if (!statSync(current).isDirectory()) current = dirname(current);
@@ -120,7 +120,7 @@ function isWithinRoot(rootPath, candidatePath) {
   );
 }
 
-function hasConsumerNodeModulesLink(workspaceRoot, packageRoot) {
+export function hasConsumerNodeModulesLink(workspaceRoot, packageRoot) {
   try {
     const linkPath = join(workspaceRoot, "node_modules", PACKAGE_NAME);
     const linkedRoot = realpathSync(linkPath);
@@ -133,7 +133,7 @@ function hasConsumerNodeModulesLink(workspaceRoot, packageRoot) {
   }
 }
 
-function isProjectScopedPackage(workspaceRoot, packageRoot) {
+export function isProjectScopedPackage(workspaceRoot, packageRoot) {
   if (isWithinRoot(workspaceRoot, packageRoot)) return true;
 
   // pnpm can expose a package through a symlink whose realpath is outside the
@@ -211,7 +211,7 @@ export function resolveProjectLocalMcp(workspaceRoot) {
   };
 }
 
-function hasDeclaredProjectDependency(workspaceRoot) {
+export function hasDeclaredProjectDependency(workspaceRoot) {
   const packageJsonPath = join(workspaceRoot, "package.json");
   if (!existsSync(packageJsonPath)) return false;
   try {
@@ -311,12 +311,30 @@ export function resolveWorkspaceRoot(explicitWorkspace, options = {}) {
   );
 }
 
-function signalExitCode(signal) {
+export function signalExitCode(signal) {
   return SIGNAL_EXIT_CODES[signal] ?? 1;
 }
 
+export function isLaunchEntrypoint(argv1, moduleUrl) {
+  const entrypoint = argv1 ? resolve(argv1) : undefined;
+  return entrypoint === resolve(fileURLToPath(moduleUrl));
+}
+
+export async function runLaunchEntrypoint(
+  argv = process.argv.slice(2),
+  env = process.env,
+) {
+  const exitCode = await launchKibiMcp(argv, env);
+  process.exitCode = exitCode;
+  return exitCode;
+}
+
 /** Spawn the project-local MCP server and mirror its transport and exit state. */
-export function launchKibiMcp(argv = process.argv.slice(2), env = process.env) {
+export function launchKibiMcp(
+  argv = process.argv.slice(2),
+  env = process.env,
+  spawnImpl = spawn,
+) {
   const [explicitWorkspace, ...childArgs] = argv;
   let workspaceRoot;
   let projectLocal;
@@ -332,7 +350,7 @@ export function launchKibiMcp(argv = process.argv.slice(2), env = process.env) {
     return Promise.resolve(1);
   }
 
-  const child = spawn(process.execPath, [projectLocal.binPath, ...childArgs], {
+  const child = spawnImpl(process.execPath, [projectLocal.binPath, ...childArgs], {
     cwd: workspaceRoot,
     env: { ...env, KIBI_WORKSPACE: workspaceRoot },
     stdio: ["inherit", "inherit", "inherit"],
@@ -371,8 +389,6 @@ export function launchKibiMcp(argv = process.argv.slice(2), env = process.env) {
   });
 }
 
-const entrypoint = process.argv[1] ? resolve(process.argv[1]) : undefined;
-if (entrypoint === resolve(fileURLToPath(import.meta.url))) {
-  const exitCode = await launchKibiMcp(process.argv.slice(2));
-  process.exitCode = exitCode;
+if (isLaunchEntrypoint(process.argv[1], import.meta.url)) {
+  await runLaunchEntrypoint(process.argv.slice(2));
 }

@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, realpathSync, statSync } from "node:fs";
+import * as fs from "node:fs";
 import { dirname, resolve } from "node:path";
 import matter from "gray-matter";
 import { SkillOversizeError, SkillValidationError } from "./errors.js";
@@ -13,13 +13,13 @@ import type { SkillBundle, SkillManifest } from "./types.js";
 const SKILL_MARKDOWN_MAX_BYTES = 256 * 1024;
 export const RESOURCE_MAX_BYTES = 128 * 1024;
 export function assertMaxBytes(pathLike: string, maxBytes: number): void {
-  const size = statSync(pathLike).size;
+  const size = fs.statSync(pathLike).size;
   if (size > maxBytes) throw new SkillOversizeError(pathLike, maxBytes, size);
 }
 export function parseSkillBundle(rootDir: string): SkillBundle {
   const path = resolve(rootDir, SKILL_FILE_NAME);
   assertMaxBytes(path, SKILL_MARKDOWN_MAX_BYTES);
-  const parsed = matter(readFileSync(path, "utf8"));
+  const parsed = matter(fs.readFileSync(path, "utf8"));
   const [error] = validateManifestData(parsed.data);
   if (error) throw error;
   return {
@@ -34,14 +34,14 @@ export function validateSkillBundle(pathLike: string): {
 } {
   const path = resolveSkillFilePath(pathLike);
   const errors: SkillValidationError[] = [];
-  if (!existsSync(path))
+  if (!fs.existsSync(path))
     return {
       valid: false,
       errors: [
         new SkillValidationError("SKILL.md", `Missing ${SKILL_FILE_NAME}`),
       ],
     };
-  const parsed = matter(readFileSync(path, "utf8"));
+  const parsed = matter(fs.readFileSync(path, "utf8"));
   errors.push(...validateManifestData(parsed.data));
   if (errors.length === 0)
     validateBundleContents(path, coerceManifest(parsed.data), errors);
@@ -64,7 +64,7 @@ function validateBundleContents(
   }
   let root: string;
   try {
-    root = realpathSync(dirname(path));
+    root = fs.realpathSync(dirname(path));
   } catch (error) {
     errors.push(
       new SkillValidationError(
@@ -77,7 +77,7 @@ function validateBundleContents(
   for (const resource of manifest.resources ?? []) {
     const resourcePath = resolve(dirname(path), resource);
     try {
-      if (!existsSync(resourcePath)) {
+      if (!fs.existsSync(resourcePath)) {
         errors.push(
           new SkillValidationError(
             "resources",
@@ -86,7 +86,7 @@ function validateBundleContents(
         );
         continue;
       }
-      const real = realpathSync(resourcePath);
+      const real = fs.realpathSync(resourcePath);
       if (!isWithinRoot(root, real)) {
         errors.push(
           new SkillValidationError(
