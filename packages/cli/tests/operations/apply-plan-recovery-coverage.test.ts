@@ -571,4 +571,30 @@ describe("bootstrap recovery journals", () => {
     );
     expect(result.structuredContent.recoveryJournalId).toBe(journalId);
   });
+
+  test("records a repair journal when a bootstrap action fails", async () => {
+    const root = makeTempDir();
+    const plan = await thinPlan();
+    const ctx = filesystemContext(root);
+    ctx.prolog = {
+      query: async (goal: string): Promise<PrologQueryResult> => {
+        if (goal.includes("REQ-bootstrap-recover-2")) {
+          return { success: false, bindings: {}, error: "upsert failed" };
+        }
+        if (goal.includes("kb_commit_upsert")) {
+          return { success: true, bindings: { ChangeKind: "created" } };
+        }
+        return { success: true, bindings: { Results: "[]" } };
+      },
+      queryStatusJson: async () => ({ success: true, bindings: {} }),
+      nextSolution: async () => null,
+      save: async () => ({ success: true, bindings: {} }),
+    };
+    const result = await executeApplyPlan(
+      { plan, approvedPlanHash: plan.planHash },
+      ctx,
+    );
+    expect(result.structuredContent.outcome).toBe("partially_applied");
+    expect(result.structuredContent.recoveryJournalId).toMatch(/^bootstrap-/);
+  });
 });
