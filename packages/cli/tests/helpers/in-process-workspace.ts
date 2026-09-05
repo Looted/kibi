@@ -97,17 +97,29 @@ export function isolateKibiEnv(): () => void {
   const previousProject = process.env.KIBI_PROJECT_ROOT;
   const previousRoot = process.env.KIBI_ROOT;
   const previousDiagnostic = process.env.KIBI_CLI_DIAGNOSTIC_MODE;
+  const previousKbPl = process.env.KIBI_KB_PL_PATH;
+  const previousDebug = process.env.KIBI_DEBUG;
+  const previousTrace = process.env.KIBI_TRACE;
+  const previousPrologDebug = process.env.KIBI_PROLOG_DEBUG;
   Reflect.deleteProperty(process.env, "KIBI_BRANCH");
   Reflect.deleteProperty(process.env, "KIBI_WORKSPACE");
   Reflect.deleteProperty(process.env, "KIBI_PROJECT_ROOT");
   Reflect.deleteProperty(process.env, "KIBI_ROOT");
   Reflect.deleteProperty(process.env, "KIBI_CLI_DIAGNOSTIC_MODE");
+  Reflect.deleteProperty(process.env, "KIBI_KB_PL_PATH");
+  Reflect.deleteProperty(process.env, "KIBI_DEBUG");
+  Reflect.deleteProperty(process.env, "KIBI_TRACE");
+  Reflect.deleteProperty(process.env, "KIBI_PROLOG_DEBUG");
   return () => {
     restoreEnv("KIBI_BRANCH", previousBranch);
     restoreEnv("KIBI_WORKSPACE", previousWorkspace);
     restoreEnv("KIBI_PROJECT_ROOT", previousProject);
     restoreEnv("KIBI_ROOT", previousRoot);
     restoreEnv("KIBI_CLI_DIAGNOSTIC_MODE", previousDiagnostic);
+    restoreEnv("KIBI_KB_PL_PATH", previousKbPl);
+    restoreEnv("KIBI_DEBUG", previousDebug);
+    restoreEnv("KIBI_TRACE", previousTrace);
+    restoreEnv("KIBI_PROLOG_DEBUG", previousPrologDebug);
   };
 }
 

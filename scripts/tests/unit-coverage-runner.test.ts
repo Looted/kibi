@@ -13,6 +13,12 @@ describe("unit coverage runner contract", () => {
     expect(runnerSource).toContain("isolatedUnitBatchEnv(runtimeDirectory)");
     expect(runnerSource).toContain("kibi-unit-coverage-runtime-");
     expect(runnerSource).toContain("stopTestEngines(runtimeDirectory)");
+    const rootSource = readFileSync(
+      join(import.meta.dir, "..", "..", "test", "root.test.ts"),
+      "utf8",
+    );
+    expect(rootSource).toContain("KIBI_KB_PL_PATH");
+    expect(rootSource).toContain("/^KIBI_.+_PATH$/");
   });
 
   test("owns SkillOpt and scripts tests in dedicated coverage shards", () => {

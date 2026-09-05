@@ -141,10 +141,10 @@ describe("coverage gaps: env helpers", () => {
     expect(isPrologDebugEnabled()).toBe(false);
 
     process.env.KIBI_BRANCH = "feature/exact";
-    process.env.KIBI_KB_PL_PATH = "/tmp/kb.pl";
+    process.env.KIBI_KB_PL_PATH = "/tmp/kibi-env-override-kb.pl";
     process.env.KIBI_DEBUG = "1";
     expect(getBranchOverride()).toBe("feature/exact");
-    expect(getKbPlPathOverride()).toBe("/tmp/kb.pl");
+    expect(getKbPlPathOverride()).toBe("/tmp/kibi-env-override-kb.pl");
     expect(isCliDebugEnabled()).toBe(true);
     expect(isCliTraceOrDebugEnabled()).toBe(true);
 

@@ -36,6 +36,19 @@ export function isolatedUnitBatchEnv(
   for (const key of ["KIBI_WORKSPACE", "KIBI_PROJECT_ROOT", "KIBI_ROOT"]) {
     Reflect.deleteProperty(env, key);
   }
+  // In-process env tests may leave KIBI_*_PATH overrides on process.env when
+  // Bun isolate is not a hard process boundary. Those overrides make every
+  // later Prolog/daemon start look for /tmp/kb.pl and fail closed.
+  for (const key of Object.keys(env)) {
+    if (
+      key === "KIBI_KB_PL_PATH" ||
+      key === "KIBI_KB_PATH" ||
+      key === "KB_PATH" ||
+      /^KIBI_.+_PATH$/.test(key)
+    ) {
+      Reflect.deleteProperty(env, key);
+    }
+  }
   return env;
 }
 
