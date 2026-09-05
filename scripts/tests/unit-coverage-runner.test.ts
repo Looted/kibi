@@ -62,12 +62,11 @@ describe("unit coverage runner contract", () => {
         ?.mergeLcov,
     ).toBe(false);
     expect(
-      COVERAGE_SHARDS.find((shard) => shard.label === "vscode.core")?.paths,
-    ).toEqual(
-      expect.arrayContaining([
-        "./packages/vscode/tests/coverage-completion.test.ts",
-        "./packages/vscode/tests/workspace-resolve.coverage.test.ts",
-      ]),
-    );
+      COVERAGE_SHARDS.find((shard) => shard.label === "vscode.activation-coverage")
+        ?.paths,
+    ).toEqual([
+      "./packages/vscode/tests/coverage-completion.test.ts",
+      "./packages/vscode/tests/workspace-resolve.coverage.test.ts",
+    ]);
   });
 });

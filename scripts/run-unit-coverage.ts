@@ -233,6 +233,14 @@ export const COVERAGE_SHARDS: readonly {
     ],
   },
   {
+    label: "vscode.activation-coverage",
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+    paths: [
+      "./packages/vscode/tests/coverage-completion.test.ts",
+      "./packages/vscode/tests/workspace-resolve.coverage.test.ts",
+    ],
+  },
+  {
     label: "vscode.core",
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
     paths: [
@@ -249,8 +257,6 @@ export const COVERAGE_SHARDS: readonly {
       "./packages/vscode/tests/traceability.test.ts",
       "./packages/vscode/tests/treeProvider.test.ts",
       "./packages/vscode/tests/vscodeMock.test.ts",
-      "./packages/vscode/tests/coverage-completion.test.ts",
-      "./packages/vscode/tests/workspace-resolve.coverage.test.ts",
     ],
   },
   {
