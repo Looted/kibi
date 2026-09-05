@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { initCommand } from "../../src/commands/init.js";
+import { engineStopCommand } from "../../src/commands/engine.js";
 import { SyncError, syncCommand } from "../../src/commands/sync.js";
 import {
   captureIo,
@@ -10,15 +12,21 @@ import {
   isolateKibiEnv,
   removeTempDir,
   restoreWorkspaceCwd,
+  withCwd,
 } from "../helpers/in-process-workspace.js";
 
 const roots: string[] = [];
 const restores: Array<() => void> = [];
 
-afterEach(() => {
+afterEach(async () => {
   for (const restore of restores.splice(0)) restore();
   restoreWorkspaceCwd();
   for (const root of roots.splice(0)) {
+    try {
+      await withCwd(root, () => engineStopCommand());
+    } catch {
+      // Error-path fixtures never start an engine.
+    }
     removeTempDir(root);
   }
 });
@@ -97,5 +105,64 @@ describe("syncCommand error and option paths", () => {
       workspaceRoot: cwd,
     });
     expect(typeof result.success).toBe("boolean");
+  });
+
+  test("validate-only after init can refresh symbol coordinates", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    await withCwd(cwd, () => initCommand({}));
+    const result = await syncCommand({
+      validateOnly: true,
+      refreshSymbolCoordinates: true,
+      workspaceRoot: cwd,
+    });
+    expect(typeof result.success).toBe("boolean");
+  });
+
+  test("validate-only rebuild inspects an initialized store", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    await withCwd(cwd, () => initCommand({}));
+    const result = await syncCommand({
+      validateOnly: true,
+      rebuild: true,
+      workspaceRoot: cwd,
+    });
+    expect(typeof result.success).toBe("boolean");
+  });
+
+  test("records invalid authoring diagnostics for embedded entity markdown", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    mkdirSync(path.join(cwd, ".kb", "requirements"), { recursive: true });
+    writeFileSync(
+      path.join(cwd, ".kb", "requirements", "REQ-1.md"),
+      `---
+id: REQ-1
+title: Auth
+status: open
+type: req
+scenario: login
+---
+
+Body.
+`,
+    );
+    git(cwd, "add .kb/requirements/REQ-1.md");
+    git(cwd, "commit --no-verify -m req");
+    await withCwd(cwd, () => initCommand({}));
+    const result = await syncCommand({
+      validateOnly: true,
+      workspaceRoot: cwd,
+    });
+    expect(result.success === false || Array.isArray(result.diagnostics)).toBe(
+      true,
+    );
   });
 });

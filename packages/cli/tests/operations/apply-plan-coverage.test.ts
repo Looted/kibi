@@ -839,4 +839,102 @@ describe("source hash and source-write guards", () => {
     );
     expect(result.structuredContent.changedPaths).toEqual(["gone.md"]);
   });
+
+  test("rolls back a prepared crash journal and refuses outside-hash recovery", async () => {
+    const root = makeTempDir();
+    const before = "before body\n";
+    const after = "after body\n";
+    const writes = [
+      {
+        path: "docs/crash.md",
+        mode: "write" as const,
+        beforeHash: sha(before),
+        afterHash: sha(after),
+        body: after,
+      },
+    ];
+    const plan = compilePlan({ sourceWrites: writes });
+    const journalId = `source-writes-${plan.planHash.slice(0, 16)}`;
+    const recoveryDir = path.join(root, ".kb", "recovery");
+    mkdirSync(recoveryDir, { recursive: true });
+    mkdirSync(path.join(root, "docs"), { recursive: true });
+    writeFileSync(path.join(root, "docs", "crash.md"), after);
+    const beforeStage = path.join(recoveryDir, `${journalId}-0.before`);
+    const afterStage = path.join(recoveryDir, `${journalId}-0.after`);
+    writeFileSync(beforeStage, before);
+    writeFileSync(afterStage, after);
+    writeFileSync(
+      path.join(recoveryDir, `${journalId}.json`),
+      `${JSON.stringify({
+        version: 1,
+        planHash: plan.planHash,
+        state: "prepared",
+        entries: [
+          {
+            path: "docs/crash.md",
+            mode: "write",
+            beforeHash: sha(before),
+            afterHash: sha(after),
+            beforeExisted: true,
+            beforeStage,
+            afterStage,
+          },
+        ],
+      }, null, 2)}\n`,
+    );
+    const recovered = await executeApplyPlan(
+      { plan, approvedPlanHash: plan.planHash },
+      filesystemContext(root),
+    );
+    expect(recovered.structuredContent.outcome).toBe("applied");
+
+    const drifted = compilePlan({
+      steps: [
+        {
+          type: "req",
+          id: "REQ-drift",
+          properties: { title: "Drift", status: "open" },
+          relationships: [],
+        },
+      ],
+      sourceWrites: [
+        {
+          path: "docs/drift.md",
+          mode: "write",
+          beforeHash: sha("old\n"),
+          afterHash: sha("new\n"),
+          body: "new\n",
+        },
+      ],
+    });
+    const driftId = `source-writes-${drifted.planHash.slice(0, 16)}`;
+    mkdirSync(path.join(root, "docs"), { recursive: true });
+    writeFileSync(path.join(root, "docs", "drift.md"), "outside\n");
+    writeFileSync(
+      path.join(root, ".kb", "recovery", `${driftId}.json`),
+      `${JSON.stringify({
+        version: 1,
+        planHash: drifted.planHash,
+        state: "publishing_sources",
+        entries: [
+          {
+            path: "docs/drift.md",
+            mode: "write",
+            beforeHash: sha("old\n"),
+            afterHash: sha("new\n"),
+            beforeExisted: true,
+            beforeStage: path.join(root, ".kb", "recovery", `${driftId}-0.before`),
+            afterStage: path.join(root, ".kb", "recovery", `${driftId}-0.after`),
+          },
+        ],
+      }, null, 2)}\n`,
+    );
+    await expect(
+      executeApplyPlan(
+        { plan: drifted, approvedPlanHash: drifted.planHash },
+        filesystemContext(root),
+      ),
+    ).rejects.toThrow(/changed outside its journal/);
+  });
 });
+

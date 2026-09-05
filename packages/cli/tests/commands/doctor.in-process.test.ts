@@ -1,4 +1,5 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import * as childProcess from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { doctorCommand } from "../../src/commands/doctor.js";
@@ -163,5 +164,104 @@ describe("doctorCommand", () => {
     makeExecutable(path.join(cwd, ".git", "hooks", "post-rewrite"));
     const ready = await withCwd(cwd, () => doctorCommand({ format: "json" }));
     expect(ready.exitCode).toBe(0);
+  });
+
+  test("prints the all-checks-passed table after init", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    await withCwd(cwd, () => initCommand({}));
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await withCwd(cwd, () => doctorCommand({ format: "table" }));
+    expect(result.exitCode).toBe(0);
+    expect(io.logText()).toContain("All checks passed");
+  });
+
+  test("detects malformed legacy config, missing git, and unparseable swipl", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    mkdirSync(path.join(cwd, ".kb"), { recursive: true });
+    writeFileSync(
+      path.join(cwd, ".kb", "manifest.json"),
+      JSON.stringify({
+        manifestVersion: 1,
+        schemaVersion: 5,
+        semanticAdvisorBackfill: "not_applicable",
+      }),
+    );
+    writeFileSync(path.join(cwd, ".kb", "config.json"), "{not json", "utf8");
+    const io = captureIo();
+    restores.push(io.restore);
+    const malformed = await withCwd(cwd, () => doctorCommand({ format: "json" }));
+    expect(malformed.exitCode).toBe(1);
+    expect(io.logText()).toContain("malformed");
+
+    const originalExec = childProcess.execSync;
+    const exec = spyOn(childProcess, "execSync").mockImplementation(((
+      command: string,
+      options?: unknown,
+    ) => {
+      if (String(command).includes("swipl")) {
+        return "SWI-Prolog threaded\n";
+      }
+      return originalExec(command, options as never);
+    }) as typeof childProcess.execSync);
+    restores.push(() => exec.mockRestore());
+    await withCwd(cwd, () => doctorCommand({ format: "json" }));
+    expect(io.logText()).toContain("Unable to parse version");
+
+    exec.mockImplementation(((command: string, options?: unknown) => {
+      if (String(command).includes("swipl")) {
+        return "SWI-Prolog version 8.2\n";
+      }
+      return originalExec(command, options as never);
+    }) as typeof childProcess.execSync);
+    await withCwd(cwd, () => doctorCommand({ format: "json" }));
+    expect(io.logText()).toContain("requires ≥9.0");
+
+    exec.mockImplementation((() => {
+      throw new Error("not found");
+    }) as typeof childProcess.execSync);
+    await withCwd(cwd, () => doctorCommand({ format: "json" }));
+    expect(io.logText()).toContain("Not installed or not in PATH");
+    expect(io.logText()).toContain("Not a git repository");
+  });
+
+  test("reports missing optional hook companions", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    mkdirSync(path.join(cwd, ".kb"), { recursive: true });
+    writeFileSync(
+      path.join(cwd, ".kb", "manifest.json"),
+      JSON.stringify({
+        manifestVersion: 1,
+        schemaVersion: 5,
+        semanticAdvisorBackfill: "not_applicable",
+      }),
+    );
+    writeHook(cwd, "post-checkout", "#!/bin/sh\nkibi sync\n");
+    writeHook(cwd, "post-merge", "#!/bin/sh\nkibi sync\n");
+    makeExecutable(path.join(cwd, ".git", "hooks", "post-checkout"));
+    makeExecutable(path.join(cwd, ".git", "hooks", "post-merge"));
+    const io = captureIo();
+    restores.push(io.restore);
+    const missing = await withCwd(cwd, () => doctorCommand({ format: "json" }));
+    expect(missing.exitCode).toBe(1);
+    expect(io.logText()).toContain("Not installed");
+
+    writeHook(cwd, "pre-commit", "#!/bin/sh\nkibi check\n");
+    makeExecutable(path.join(cwd, ".git", "hooks", "pre-commit"));
+    writeHook(cwd, "post-rewrite", "#!/bin/sh\nkibi sync\n");
+    const rewriteNotExec = await withCwd(cwd, () =>
+      doctorCommand({ format: "json" }),
+    );
+    expect(rewriteNotExec.exitCode).toBe(1);
+    expect(io.logText()).toContain("not executable");
   });
 });

@@ -214,4 +214,177 @@ describe("branch commands", () => {
     await branchRecoverCommand({ workspaceRoot: cwd });
     expect(io.logText()).toContain("Preview only");
   });
+
+  test("ensure is blocked by legacy storage", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    mkdirSync(path.join(cwd, ".kb", "branches", "main"), { recursive: true });
+    writeFileSync(path.join(cwd, ".kb", "branches", "main", "kb.rdf"), "legacy\n");
+    await expect(branchEnsureCommand({ workspaceRoot: cwd })).rejects.toThrow(
+      /legacy storage/,
+    );
+  });
+
+  test("migrate refuses missing sources, existing targets, and journal defects", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    await expect(
+      branchMigrateCommand({
+        workspaceRoot: cwd,
+        from: "main",
+        to: "main",
+      }),
+    ).rejects.toThrow("Legacy source KB does not exist");
+
+    const source = path.join(cwd, ".kb", "branches", "main");
+    mkdirSync(source, { recursive: true });
+    writeFileSync(path.join(source, "kb.rdf"), "legacy\n");
+    mkdirSync(branchStorePath(cwd, "main"), { recursive: true });
+    await expect(
+      branchMigrateCommand({
+        workspaceRoot: cwd,
+        from: "main",
+        to: "main",
+      }),
+    ).rejects.toThrow("Target branch KB already exists");
+
+    await expect(
+      branchMigrateCommand({
+        workspaceRoot: cwd,
+        recoverJournal: "missing",
+      }),
+    ).rejects.toThrow();
+
+    const journalDir = path.join(cwd, ".kb", "recovery", "branch-migrations");
+    mkdirSync(journalDir, { recursive: true });
+    writeFileSync(
+      path.join(journalDir, "old.json"),
+      JSON.stringify({ version: 1, state: "prepared" }),
+    );
+    await expect(
+      branchMigrateCommand({
+        workspaceRoot: cwd,
+        recoverJournal: "old",
+        apply: true,
+      }),
+    ).rejects.toThrow("Unsupported branch migration journal version");
+
+    writeFileSync(
+      path.join(journalDir, "escape.json"),
+      JSON.stringify({
+        version: 2,
+        state: "prepared",
+        to: "main",
+        sourcePath: "../escape",
+        targetPath: ".kb/branches/target",
+        stagingPath: ".kb/branches/staging",
+        backupPath: ".kb/recovery/backup",
+      }),
+    );
+    await expect(
+      branchMigrateCommand({
+        workspaceRoot: cwd,
+        recoverJournal: "escape",
+        apply: true,
+      }),
+    ).rejects.toThrow("escapes workspace");
+  });
+
+  test("recover journal apply moves prepared staging into the target", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    const source = path.join(cwd, ".kb", "branches", "main");
+    const target = branchStorePath(cwd, "main");
+    const staging = `${target}.staging`;
+    const backup = path.join(cwd, ".kb", "recovery", "backup");
+    mkdirSync(source, { recursive: true });
+    mkdirSync(staging, { recursive: true });
+    writeFileSync(path.join(source, "kb.rdf"), "legacy\n");
+    writeFileSync(
+      path.join(staging, "branch.json"),
+      `${JSON.stringify(expectedBranchStoreManifest("main"), null, 2)}\n`,
+    );
+    const journalDir = path.join(cwd, ".kb", "recovery", "branch-migrations");
+    mkdirSync(journalDir, { recursive: true });
+    writeFileSync(
+      path.join(journalDir, "apply.json"),
+      JSON.stringify({
+        version: 2,
+        state: "prepared",
+        to: "main",
+        sourcePath: path.relative(cwd, source),
+        targetPath: path.relative(cwd, target),
+        stagingPath: path.relative(cwd, staging),
+        backupPath: path.relative(cwd, backup),
+      }),
+    );
+    const io = captureIo();
+    restores.push(io.restore);
+    await branchMigrateCommand({
+      workspaceRoot: cwd,
+      recoverJournal: "apply",
+      apply: true,
+    });
+    expect(existsSync(target)).toBe(true);
+    expect(existsSync(backup)).toBe(true);
+    expect(io.logText()).toContain("recovery preview");
+  });
+
+  test("restore apply publishes a quarantined store", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    const hashed = path.basename(branchStorePath(cwd, "main"));
+    const keyRoot = path.join(cwd, ".kb", "quarantine", "branches", hashed);
+    const source = path.join(keyRoot, hashed);
+    mkdirSync(source, { recursive: true });
+    writeFileSync(
+      path.join(source, "quarantine.json"),
+      JSON.stringify({ branch: "main" }),
+    );
+    writeFileSync(
+      path.join(source, "branch.json"),
+      `${JSON.stringify(expectedBranchStoreManifest("main"), null, 2)}\n`,
+    );
+    const io = captureIo();
+    restores.push(io.restore);
+    await branchRestoreCommand({
+      workspaceRoot: cwd,
+      branch: "main",
+      apply: true,
+    });
+    expect(existsSync(branchStorePath(cwd, "main"))).toBe(true);
+    expect(io.logText()).toContain("Restored exact branch store");
+
+    await expect(
+      branchRestoreCommand({
+        workspaceRoot: cwd,
+        branch: "main",
+        apply: true,
+      }),
+    ).rejects.toThrow("already exists");
+  });
+
+  test("recover refuses missing and legacy attachments", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    await expect(
+      branchRecoverCommand({ workspaceRoot: cwd }),
+    ).rejects.toThrow("Branch KB is missing");
+
+    mkdirSync(path.join(cwd, ".kb", "branches", "main"), { recursive: true });
+    writeFileSync(path.join(cwd, ".kb", "branches", "main", "kb.rdf"), "legacy\n");
+    await expect(
+      branchRecoverCommand({ workspaceRoot: cwd }),
+    ).rejects.toThrow(/exact Git\/KB attachment|migrate legacy/);
+  });
 });

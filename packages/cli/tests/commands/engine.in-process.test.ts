@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import {
   engineStatusCommand,
@@ -76,5 +77,17 @@ describe("engine commands", () => {
     });
     expect(io.logText()).toContain("Kibi storage compacted");
     expect(io.logText()).toContain("Exported Kibi storage");
+  });
+
+  test("compact is blocked by a legacy branch attachment", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    mkdirSync(path.join(cwd, ".kb", "branches", "main"), { recursive: true });
+    writeFileSync(path.join(cwd, ".kb", "branches", "main", "kb.rdf"), "legacy\n");
+    await expect(
+      withCwd(cwd, () => storageCompactCommand()),
+    ).rejects.toThrow(/Storage compaction blocked by legacy attachment/);
   });
 });

@@ -10,6 +10,8 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 import {
+  ENGINE_IDLE_TIMEOUT_MS,
+  ENGINE_PROTOCOL_VERSION,
   EngineClient,
   acquireEnginePublicationLease,
   engineAttachmentsMatch,
@@ -226,4 +228,44 @@ describe("EngineClient from source", () => {
       await client.terminate();
     }
   });
+
+  test("start respects publication locks and allowSpawn=false, and exportStorage round-trips", async () => {
+    expect(ENGINE_PROTOCOL_VERSION).toBe(1);
+    expect(ENGINE_IDLE_TIMEOUT_MS).toBeGreaterThan(0);
+    const root = tempRoot();
+    const lease = acquireEnginePublicationLease(root, "main");
+    const locked = new EngineClient({
+      workspaceRoot: root,
+      branch: "main",
+      timeout: 2000,
+    });
+    await expect(locked.start()).rejects.toThrow(/publication is in progress/);
+    lease.release();
+
+    const missing = new EngineClient({
+      workspaceRoot: root,
+      branch: "main",
+      timeout: 2000,
+    });
+    await missing.start(false);
+    expect(missing.isRunning()).toBe(false);
+    await missing.stop(false);
+    await missing.terminate();
+
+    const client = new EngineClient({
+      workspaceRoot: root,
+      branch: "main",
+      timeout: 15000,
+    });
+    try {
+      await client.start();
+      const exportDir = path.join(root, "export-out");
+      const exported = await client.exportStorage(exportDir);
+      expect(exported).toMatchObject({ success: true });
+    } finally {
+      await client.stop(false).catch(() => undefined);
+      await client.terminate();
+    }
+  });
 });
+

@@ -2,7 +2,11 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { gcCommand } from "../../src/commands/gc.js";
-import { branchStoreKey } from "../../src/utils/branch-store-locator.js";
+import {
+  branchStoreKey,
+  branchStorePath,
+  expectedBranchStoreManifest,
+} from "../../src/utils/branch-store-locator.js";
 import {
   captureIo,
   createGitWorkspace,
@@ -116,5 +120,26 @@ describe("gcCommand", () => {
     restores.push(io.restore);
     await withCwd(cwd, () => gcCommand({ purge: true, retentionDays: 0 }));
     expect(io.logText()).toContain("Purged 1");
+  });
+
+  test("enumerates hashed branch stores from their identity manifest", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace("keep-branch");
+    roots.push(cwd);
+    writeLegacyStore(cwd, "keep-branch");
+    const hashed = branchStorePath(cwd, "stale-hashed");
+    mkdirSync(hashed, { recursive: true });
+    writeFileSync(
+      path.join(hashed, "branch.json"),
+      `${JSON.stringify(expectedBranchStoreManifest("stale-hashed"), null, 2)}\n`,
+    );
+    writeFileSync(path.join(hashed, "kb.rdf"), "hashed\n");
+    writeFileSync(path.join(cwd, ".kb", "branches", "not-a-dir"), "file\n");
+    const io = captureIo();
+    restores.push(io.restore);
+    await withCwd(cwd, () => gcCommand({}));
+    expect(io.logText()).toContain("stale-hashed");
+    expect(io.logText()).toContain(hashed);
   });
 });

@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import {
   type TelemetryUsageEvent,
+  DEFAULT_TELEMETRY_ACCEPTANCE_POLICY,
+  TELEMETRY_ACCEPTANCE_VERSION,
   analyzeTelemetryAcceptance,
   createTelemetryAcceptanceDiagnostics,
   parseTelemetryUsageLog,
@@ -262,5 +264,60 @@ describe("telemetry acceptance", () => {
       "Failed to parse .kb/usage.log line 1",
     );
     expect(() => parseTelemetryUsageLog("42\n")).toThrow("expected object");
+    expect(parseTelemetryUsageLog("\n\n")).toEqual([]);
+    expect(
+      parseTelemetryUsageLog(`${JSON.stringify({ tool: "kb_status" })}\n`),
+    ).toHaveLength(1);
+  });
+
+  test("uses args fallback, success booleans, inferred telemetry, and future-dated logs", () => {
+    const future = new Date(NOW.getTime() + 30 * 60_000).toISOString();
+    const events: TelemetryUsageEvent[] = [
+      {
+        timestamp: timestamp(1),
+        tool: "kb_upsert",
+        success: false,
+        args: { type: "req", id: "REQ-FAIL" },
+        telemetry_status: "missing",
+      },
+      {
+        timestamp: future,
+        tool: "kb_query",
+        success: true,
+        args: { sourceFile: "src/a.ts" },
+        zero_results: false,
+        result_count: 1,
+        telemetry: { is_autonomous: true },
+      },
+    ];
+    const report = analyzeTelemetryAcceptance(events, NOW, {
+      ...DEFAULT_TELEMETRY_ACCEPTANCE_POLICY,
+      minimumEvents: 1,
+      eventLimit: 200,
+      maxFutureSkewSeconds: 60,
+    });
+    expect(report.version).toBe(TELEMETRY_ACCEPTANCE_VERSION);
+    expect(report.diagnostics).toContain("usage_log_future_dated");
+    expect(createTelemetryAcceptanceDiagnostics(report).map((d) => d.id)).toContain(
+      "telemetry_evidence_stale",
+    );
+  });
+
+  test("reports unavailable timestamps and empty logs", () => {
+    const empty = analyzeTelemetryAcceptance([]);
+    expect(empty.diagnostics).toContain("usage_log_empty");
+    const untimed = analyzeTelemetryAcceptance([
+      { tool: "kb_status", telemetry_status: "provided", telemetry: {} },
+    ]);
+    expect(untimed.diagnostics).toContain("usage_log_timestamps_unavailable");
+    expect(untimed.scope.lastTimestamp).toBeNull();
+    const diagnostics = createTelemetryAcceptanceDiagnostics(untimed);
+    expect(diagnostics.some((item) => item.id === "telemetry_evidence_stale")).toBe(
+      true,
+    );
+    expect(diagnostics.some((item) => item.message.includes("no valid timestamped"))).toBe(
+      true,
+    );
   });
 });
+
