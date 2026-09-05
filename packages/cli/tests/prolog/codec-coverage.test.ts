@@ -144,5 +144,11 @@ describe("prolog codec leftover branches", () => {
         suggestion: "s2",
       },
     ]);
+    expect(parseViolationRows("[not_violation('rule','REQ-1')]")).toEqual([]);
+    expect(parsePropertyList("dup=1,dup=2,plain")).toMatchObject({
+      dup: ["1", "2"],
+    });
+    expect(parsePrologValue('"\\u0041"')).toBe("A");
+    expect(parsePrologValue("typed(")).toBe("typed(");
   });
 });

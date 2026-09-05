@@ -53,6 +53,19 @@ type ProviderInternals = {
     type?: string,
   ) => string | undefined;
   inferEntityTypeFromId: (id: string) => string | undefined;
+  normalizeTags: (tags: unknown) => string;
+  parseFrontmatterLinks: (
+    fromId: string,
+    links: unknown,
+  ) => Array<{ relType: string; fromId: string; toId: string }>;
+  buildRelationshipChildren: (
+    entityId: string,
+    entityIndex: Map<string, Record<string, unknown>>,
+  ) => Array<{ label: string; targetId?: string }>;
+  getNavigationTargetForEntity: (
+    id: string,
+  ) => { localPath: string; line?: number } | undefined;
+  getEntityCount: (type: string) => number;
   entities: Array<Record<string, unknown>>;
   relationships: Array<{ relType: string; fromId: string; toId: string }>;
   symbolIndex: {
@@ -443,5 +456,121 @@ describe("treeProvider remaining runtime branches", () => {
       new Map(),
     );
     expect(relItem.tooltip).toContain("REQ-1");
+  });
+
+  test("refresh, tree items, inbound relationships, and navigation cover leftover APIs", async () => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-tree-nav-"));
+    initGitRepo(tmpDir, "develop");
+    const sourceFile = path.join(tmpDir, "src", "owned.ts");
+    writeFile(sourceFile, "export const owned = 1;\n");
+    writeFile(
+      path.join(tmpDir, ".kb", "requirements", "REQ-OWNED.md"),
+      [
+        "---",
+        "id: REQ-OWNED",
+        "title: Owned",
+        "tags: owned-tag",
+        "links:",
+        "  - type: specified_by",
+        "    target: SCEN-OWNED",
+        "  - to: TEST-OWNED",
+        "  - 12",
+        "---",
+        "body",
+      ].join("\n"),
+    );
+
+    const logs: string[] = [];
+    const provider = new KibiTreeDataProvider(tmpDir, {
+      appendLine(message: string) {
+        logs.push(message);
+      },
+    } as never);
+    await provider.getChildren();
+    const internals = provider as unknown as ProviderInternals;
+
+    expect(internals.normalizeTags("owned-tag")).toBe("owned-tag");
+    expect(internals.normalizeTags(["a", "b"])).toBe("[a, b]");
+    expect(internals.normalizeTags(12)).toBe("");
+    expect(internals.parseFrontmatterLinks("REQ-OWNED", "nope")).toEqual([]);
+    expect(
+      internals.parseFrontmatterLinks("REQ-OWNED", [
+        { type: "specified_by", target: "SCEN-OWNED" },
+        { to: "TEST-OWNED" },
+        { type: "broken" },
+        9,
+      ]),
+    ).toEqual([
+      { relType: "specified_by", fromId: "REQ-OWNED", toId: "SCEN-OWNED" },
+      { relType: "relates_to", fromId: "REQ-OWNED", toId: "TEST-OWNED" },
+    ]);
+
+    internals.relationships = [
+      { relType: "specified_by", fromId: "REQ-OWNED", toId: "SCEN-OWNED" },
+      { relType: "validates", fromId: "TEST-OWNED", toId: "REQ-OWNED" },
+    ];
+    const inbound = internals.buildRelationshipChildren(
+      "REQ-OWNED",
+      new Map([
+        ["SCEN-OWNED", { id: "SCEN-OWNED", title: "Scene", type: "scenario" }],
+        ["TEST-OWNED", { id: "TEST-OWNED", title: "Test", type: "test" }],
+      ]),
+    );
+    expect(inbound.some((item) => item.label.startsWith("→"))).toBe(true);
+    expect(inbound.some((item) => item.label.startsWith("←"))).toBe(true);
+
+    const fileItem = provider.getTreeItem({
+      label: "Owned",
+      description: "src/owned.ts",
+      iconPath: "file",
+      contextValue: "kibi-req",
+      tooltip: "open me",
+      localPath: sourceFile,
+      sourceLine: 1,
+      collapsibleState: 0,
+    } as never);
+    expect(fileItem.command?.command).toBe("kibi.openEntity");
+    expect(fileItem.description).toBe("src/owned.ts");
+
+    const relItem = provider.getTreeItem({
+      label: "→ specified_by",
+      targetId: "SCEN-OWNED",
+      collapsibleState: 0,
+    } as never);
+    expect(relItem.command?.command).toBe("kibi.openEntityById");
+
+    internals.entities = [
+      {
+        id: "REQ-STALE",
+        type: "req",
+        title: "Stale",
+        localPath: path.join(tmpDir, "missing.md"),
+      },
+      { id: "REQ-OWNED", type: "req", title: "Owned", localPath: sourceFile },
+    ];
+    internals.symbolIndex = {
+      byId: new Map([
+        [
+          "SYM-OWNED",
+          { id: "SYM-OWNED", title: "owned", sourceFile, sourceLine: 1 },
+        ],
+      ]),
+    };
+    expect(internals.getNavigationTargetForEntity("REQ-STALE")).toBeUndefined();
+    expect(logs.some((line) => line.includes("REQ-STALE"))).toBe(true);
+    expect(internals.getNavigationTargetForEntity("REQ-OWNED")?.localPath).toBe(
+      sourceFile,
+    );
+    expect(internals.getNavigationTargetForEntity("SYM-OWNED")?.localPath).toBe(
+      sourceFile,
+    );
+    expect(internals.getEntityCount("req")).toBe(2);
+
+    provider.refresh();
+    expect(internals.entities).toEqual([]);
+    expect(internals.getEntityCount("req")).toBe(0);
+
+    const empty = new KibiTreeDataProvider("");
+    expect(await empty.getChildren()).toEqual([]);
   });
 });

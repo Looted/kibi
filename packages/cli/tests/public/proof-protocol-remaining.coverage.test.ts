@@ -215,4 +215,27 @@ describe("proof-protocol leftover validator and constant branches", () => {
       ]).join(" "),
     ).toMatch(/native_id|source_file|line|duplicates/);
   });
+
+  test("rejects unavailable attempts with leftover entries and oversized contracts", () => {
+    expect(
+      proofResultErrors({
+        symbol_id: "SYM-1",
+        target: "default",
+        outcome: "passed",
+        binding: "aggregate_run",
+        attempts: { status: "unavailable", entries: [] },
+      }).join(" "),
+    ).toMatch(/entries|unavailable/);
+    expect(
+      proofContractErrors({
+        version: PROOF_CONTRACT_VERSION,
+        integration: "self-proof",
+        required_proofs: Array.from({ length: 1001 }, (_, index) => ({
+          symbol_id: `SYM-${index}`,
+          target: "default",
+        })),
+        success_policy: SUCCESS_POLICIES[0],
+      }).join(" "),
+    ).toMatch(/1000|too many|length/);
+  });
 });
