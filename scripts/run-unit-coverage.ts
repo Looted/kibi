@@ -130,7 +130,34 @@ export const COVERAGE_SHARDS: readonly {
     ],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
   },
-  { label: "mcp", paths: ["./packages/mcp"] },
+  {
+    label: "cli.report",
+    paths: ["./packages/cli/tests/report"],
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+  },
+  {
+    label: "cli.parity",
+    paths: ["./packages/cli/tests/parity"],
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+  },
+  {
+    label: "cli.query",
+    paths: ["./packages/cli/tests/query"],
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+  },
+  {
+    label: "cli.integration",
+    paths: [
+      "./packages/cli/tests/integration",
+      "./packages/cli/tests/fixtures",
+    ],
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+  },
+  {
+    label: "mcp",
+    paths: ["./packages/mcp"],
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+  },
   { label: "opencode", paths: ["./packages/opencode"] },
   { label: "codex", paths: ["./packages/codex"] },
   { label: "cursor", paths: ["./packages/cursor"] },

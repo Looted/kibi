@@ -12,6 +12,14 @@ import {
 
 const restorers: Array<() => void> = [];
 
+function restoreEnv(name: string, value: string | undefined): void {
+  if (value === undefined) {
+    Reflect.deleteProperty(process.env, name);
+  } else {
+    process.env[name] = value;
+  }
+}
+
 afterEach(() => {
   initializeDiagnosticMode(false);
   for (const restore of restorers.splice(0)) restore();
@@ -184,10 +192,18 @@ describe("deriveDiagnosticFields remaining protocol and coverage branches", () =
   });
 
   test("initializeDiagnosticMode defaults to the process-argv flag and can isolate logs", () => {
+    const previousWorkspace = process.env.KIBI_WORKSPACE;
+    const previousUsageLog = process.env.KIBI_MCP_DIAGNOSTIC_USAGE_LOG_PATH;
+    const previousMode = process.env.KIBI_MCP_DIAGNOSTIC_MODE;
     const workspaceRoot = mkdtempSync(
       path.join(tmpdir(), "kibi-mcp-diag-remaining-"),
     );
-    restorers.push(() => rmSync(workspaceRoot, { recursive: true, force: true }));
+    restorers.push(() => {
+      rmSync(workspaceRoot, { recursive: true, force: true });
+      restoreEnv("KIBI_WORKSPACE", previousWorkspace);
+      restoreEnv("KIBI_MCP_DIAGNOSTIC_USAGE_LOG_PATH", previousUsageLog);
+      restoreEnv("KIBI_MCP_DIAGNOSTIC_MODE", previousMode);
+    });
     process.env.KIBI_WORKSPACE = workspaceRoot;
     initializeDiagnosticMode();
     appendUsageLogLine({ tool: "kb_status" });
