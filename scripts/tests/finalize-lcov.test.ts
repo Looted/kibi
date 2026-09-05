@@ -36,6 +36,11 @@ describe("finalizeLcov", () => {
     expect(existsSync(temporaryPath)).toBe(false);
     expect(readFileSync(lcovPath, "utf8")).toBe("TN:\nSF:example.ts\n");
   });
+
+  test("throws when neither lcov.info nor a temporary file exists", async () => {
+    const coverageDir = mkdtempSync(join(tmpdir(), "kibi-lcov-finalize-"));
+    await expect(finalizeLcov(coverageDir)).rejects.toThrow(/No lcov.info/);
+  });
 });
 
 describe("mergeLcovContents", () => {

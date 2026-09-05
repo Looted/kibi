@@ -50,4 +50,32 @@ describe("coverage manifest", () => {
       rmSync(root, { recursive: true, force: true });
     }
   });
+
+  test("skips missing package trees and records a complete LCOV audit", () => {
+    const root = mkdtempSync(join(tmpdir(), "kibi-coverage-manifest-"));
+    const coverageDir = join(root, "coverage");
+    try {
+      expect(collectProductionSourceFiles(root)).toEqual([]);
+      mkdirSync(join(root, "packages"), { recursive: true });
+      writeFileSync(join(root, "packages", "not-a-package"), "");
+      mkdirSync(join(root, "packages", "empty-src"), { recursive: true });
+      mkdirSync(join(root, "packages", "file-src"), { recursive: true });
+      writeFileSync(join(root, "packages", "file-src", "src"), "not-a-dir");
+      mkdirSync(join(root, "packages", "demo", "src"), { recursive: true });
+      writeFileSync(join(root, "packages", "demo", "src", "main.ts"), "");
+      mkdirSync(coverageDir, { recursive: true });
+      expect(collectProductionSourceFiles(root)).toEqual([
+        "packages/demo/src/main.ts",
+      ]);
+      expect(
+        writeCoverageManifestAudit(
+          root,
+          coverageDir,
+          "TN:\nSF:packages/demo/src/main.ts\nend_of_record\n",
+        ),
+      ).toEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
 });

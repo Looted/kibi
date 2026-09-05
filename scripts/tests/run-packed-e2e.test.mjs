@@ -88,3 +88,63 @@ test("packed runner cleans up after child failure and spawn error", async () => 
     assert.equal(cleanupCount, 1);
   }
 });
+
+test("packed runner rejects missing inputs, helpers, and invalid environments", async () => {
+  await assert.rejects(
+    () => runPackedE2E({ compiledDirectory: "", testFiles: [] }),
+    /Usage:/,
+  );
+  await assert.rejects(
+    () =>
+      runPackedE2E({
+        compiledDirectory: "/tmp/compiled-missing-helpers",
+        testFiles: ["/tmp/one.test.js"],
+      }),
+    /Packed E2E helper is missing/,
+  );
+  await assert.rejects(
+    () =>
+      runPackedE2E({
+        compiledDirectory: "/tmp/compiled",
+        testFiles: ["/tmp/one.test.js"],
+        importHelpers: async () => ({
+          prepareSharedPackedEnvironment: async () => ({ prefix: 1 }),
+          cleanupSharedPackedInstallation: () => undefined,
+        }),
+      }),
+    /invalid shared environment/,
+  );
+});
+
+test("packed runner maps signal exits and forwards SIGINT/SIGTERM", async () => {
+  const signalTarget = fakeSignalTarget();
+  let killed = [];
+  const result = await runPackedE2E({
+    compiledDirectory: "/tmp/compiled",
+    testFiles: ["/tmp/one.test.js"],
+    signalTarget,
+    importHelpers: async () => ({
+      prepareSharedPackedEnvironment: async () => ({
+        prefix: "/tmp/prefix",
+        tarballsRoot: "/tmp/tarballs",
+      }),
+      cleanupSharedPackedInstallation: () => undefined,
+    }),
+    spawnProcess: () => {
+      const child = new EventEmitter();
+      child.kill = (signal) => {
+        killed.push(signal);
+        queueMicrotask(() => child.emit("exit", null, signal));
+        return true;
+      };
+      queueMicrotask(() => {
+        signalTarget.emit("SIGINT");
+        signalTarget.emit("SIGTERM");
+      });
+      return child;
+    },
+  });
+  assert.equal(result, 128);
+  assert.ok(killed.includes("SIGINT"));
+  assert.ok(killed.includes("SIGTERM"));
+});
