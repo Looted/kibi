@@ -11,8 +11,10 @@ import * as os from "node:os";
 import * as path from "node:path";
 import {
   applyLegacyStorageMigration,
+  missingCanonicalLanes,
   needsLegacyStorageMigration,
   planLegacyStorageMigration,
+  rewritePendingSourceReceiptPaths,
 } from "../../src/commands/legacy-storage-migration.js";
 import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
 
@@ -224,5 +226,69 @@ describe("legacy storage migration", () => {
     ]);
     applyLegacyStorageMigration(tmpDir, plan);
     expect(existsSync(path.join(tmpDir, ".kb/facts/FACT-ONE.md"))).toBe(true);
+  });
+
+  test("rewrites pending-source receipts and reports missing canonical lanes", () => {
+    expect(rewritePendingSourceReceiptPaths(tmpDir, [])).toBe(0);
+    expect(missingCanonicalLanes(tmpDir).length).toBeGreaterThan(0);
+
+    mkdirSync(path.join(tmpDir, ".kb", "recovery", "pending-sources"), {
+      recursive: true,
+    });
+    mkdirSync(path.join(tmpDir, ".kb", "requirements"), { recursive: true });
+    writeFileSync(path.join(tmpDir, ".kb", "requirements", "REQ-ONE.md"), "body\n");
+    writeFileSync(
+      path.join(tmpDir, ".kb", "recovery", "pending-sources", "skip.txt"),
+      "ignore",
+    );
+    writeFileSync(
+      path.join(tmpDir, ".kb", "recovery", "pending-sources", "bad.json"),
+      "{not-json",
+    );
+    writeFileSync(
+      path.join(tmpDir, ".kb", "recovery", "pending-sources", "nopath.json"),
+      JSON.stringify({ afterHash: "a".repeat(64) }),
+    );
+    writeFileSync(
+      path.join(tmpDir, ".kb", "recovery", "pending-sources", "same.json"),
+      JSON.stringify({
+        path: ".kb/requirements/REQ-ONE.md",
+        afterHash: "b".repeat(64),
+      }),
+    );
+    writeFileSync(
+      path.join(tmpDir, ".kb", "recovery", "pending-sources", "legacy.json"),
+      JSON.stringify({
+        path: "documentation/requirements/REQ-ONE.md",
+        afterHash: "not-a-hash",
+      }),
+    );
+    writeFileSync(
+      path.join(tmpDir, ".kb", "recovery", "pending-sources", "explicit.json"),
+      JSON.stringify({
+        path: "old/REQ-ONE.md",
+        afterHash: "c".repeat(64),
+      }),
+    );
+
+    const rewritten = rewritePendingSourceReceiptPaths(tmpDir, [
+      { from: "old/REQ-ONE.md", to: ".kb/requirements/REQ-ONE.md" },
+    ]);
+    expect(rewritten).toBe(2);
+    const legacy = JSON.parse(
+      readFileSync(
+        path.join(tmpDir, ".kb", "recovery", "pending-sources", "legacy.json"),
+        "utf8",
+      ),
+    ) as { path: string; afterHash: string };
+    expect(legacy.path).toBe(".kb/requirements/REQ-ONE.md");
+    expect(legacy.afterHash).toHaveLength(64);
+    const explicit = JSON.parse(
+      readFileSync(
+        path.join(tmpDir, ".kb", "recovery", "pending-sources", "explicit.json"),
+        "utf8",
+      ),
+    ) as { path: string };
+    expect(explicit.path).toBe(".kb/requirements/REQ-ONE.md");
   });
 });
