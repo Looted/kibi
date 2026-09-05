@@ -99,10 +99,14 @@ describe("env loading", () => {
 
   test("loadDefaultEnvFile resolves workspace root and env file name from environment", () => {
     fs.mkdirSync(path.join(tmpDir, ".git"), { recursive: true });
+    fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
     fs.writeFileSync(
       path.join(tmpDir, ".env.custom"),
       "DEFAULT_KEY=from-default\n",
     );
+    delete process.env.KIBI_WORKSPACE;
+    delete process.env.KIBI_PROJECT_ROOT;
+    delete process.env.KIBI_ROOT;
     process.env.KIBI_ENV_FILE = " .env.custom ";
     process.chdir(tmpDir);
 

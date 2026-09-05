@@ -120,13 +120,16 @@ function sourceCoverageState(files: readonly string[]): ActivationState {
 // implements REQ-KIBI-BOOTSTRAP-PLAN
 export async function classifyActivation(
   context: OperationContext,
-  files: readonly string[],
+  files: readonly string[] = [],
 ): Promise<ActivationPolicy> {
   // Discovery callers do not all use the same path base.  The CLI globber
   // returns workspace-relative paths, while host adapters may pass absolute
   // paths.  Normalize before source-lane classification so a seeded source
   // KB has the same posture on every peer surface.
-  const normalizedFiles = files.map((file) => {
+  // Hosts (and leaked fast-glob mocks) may omit or return a non-array; treat
+  // that as "no source files" rather than crashing status/bootstrap.
+  const sourceFiles = Array.isArray(files) ? files : [];
+  const normalizedFiles = sourceFiles.map((file) => {
     const relative = path.isAbsolute(file)
       ? path.relative(context.workspaceRoot, file)
       : file;

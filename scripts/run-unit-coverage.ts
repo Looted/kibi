@@ -9,7 +9,7 @@
  * (at your option) any later version.
  */
 
-import { spawnSync } from "node:child_process";
+import * as childProcess from "node:child_process";
 import {
   cpSync,
   existsSync,
@@ -148,7 +148,7 @@ async function runBunTest(
     join(tmpdir(), "kibi-unit-coverage-runtime-"),
   );
   try {
-    const result = spawnSync("bun", [...args, ...paths], {
+    const result = childProcess.spawnSync("bun", [...args, ...paths], {
       stdio: "inherit",
       env: isolatedUnitBatchEnv(runtimeDirectory),
     });

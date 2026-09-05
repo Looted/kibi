@@ -130,13 +130,19 @@ export async function stageKibiMcpRuntime(
     stagedCommand,
   );
   await chmod(stagedCommand, 0o500);
-  await writeFile(
-    bundlePath,
-    new TextDecoder()
-      .decode(await runtimeBundle(sourceWorktree, workspace.privateEvidence))
-      .replaceAll(sourceWorktree, stagedRoot),
-    { encoding: "utf8", mode: 0o400 },
+  const sourceRoots = new Set<string>([sourceWorktree, resolve(sourceWorktree)]);
+  try {
+    sourceRoots.add(await realpath(sourceWorktree));
+  } catch {
+    // Replacement still runs for the unresolved worktree path.
+  }
+  let bundled = new TextDecoder().decode(
+    await runtimeBundle(sourceWorktree, workspace.privateEvidence),
   );
+  for (const root of sourceRoots) {
+    bundled = bundled.replaceAll(root, stagedRoot);
+  }
+  await writeFile(bundlePath, bundled, { encoding: "utf8", mode: 0o400 });
   await copyRuntimeResources(sourceWorktree, stagedRoot);
   return {
     command: stagedCommand,

@@ -1,12 +1,8 @@
 // implements REQ-002
 // implements REQ-013
 // implements REQ-mcp-suggest-predicates
-import { afterEach, describe, expect, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { withExitCode } from "../src/cli-command.js";
-
-afterEach(() => {
-  process.exitCode = undefined;
-});
 import {
   recordEntityAudit,
   recordRelationshipAudits,
@@ -384,13 +380,15 @@ describe("audit and CLI exit helpers", () => {
   test("withExitCode assigns process.exitCode only when provided", async () => {
     const previous = process.exitCode;
     try {
-      process.exitCode = undefined;
+      // Bun coerces `process.exitCode = undefined` to 0, so the no-op path
+      // must be asserted as "still the success/default code", not undefined.
+      process.exitCode = 0;
       await withExitCode(async () => undefined)();
-      expect(process.exitCode).toBeUndefined();
+      expect(process.exitCode ?? 0).toBe(0);
       await withExitCode(async () => ({ exitCode: 7 }))();
       expect(process.exitCode).toBe(7);
     } finally {
-      process.exitCode = previous;
+      process.exitCode = previous ?? 0;
     }
   });
 });

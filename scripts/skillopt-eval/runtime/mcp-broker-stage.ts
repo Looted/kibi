@@ -75,10 +75,16 @@ export async function stageKibiMcpBroker(
     sourcemap: "none",
   });
   if (!build.success) throw new McpBrokerError("startup");
-  let bundled = (await readFile(bundlePath, "utf8")).replaceAll(
-    sourceWorktree,
-    workspace.privateEvidence,
-  );
+  const sourceRoots = new Set<string>([sourceWorktree, resolve(sourceWorktree)]);
+  try {
+    sourceRoots.add(await realpath(sourceWorktree));
+  } catch {
+    // Replacement still runs for the unresolved worktree path.
+  }
+  let bundled = await readFile(bundlePath, "utf8");
+  for (const root of sourceRoots) {
+    bundled = bundled.replaceAll(root, workspace.privateEvidence);
+  }
   for (const [index, stagedPath] of stagedPaths.entries()) {
     bundled = bundled.replaceAll(stagedPathTokens[index] ?? "", stagedPath);
   }

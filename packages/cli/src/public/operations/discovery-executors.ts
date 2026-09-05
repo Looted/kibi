@@ -447,7 +447,7 @@ export async function executeStatus(
         : null,
       configStatus: schemaStatus,
     });
-    const bootstrapSourceFiles = context.fs?.glob
+    const listed = context.fs?.glob
       ? await context.fs.glob(
           [
             ".kb/requirements/**/*.md",
@@ -462,6 +462,7 @@ export async function executeStatus(
           { cwd: context.workspaceRoot },
         )
       : [];
+    const bootstrapSourceFiles = Array.isArray(listed) ? listed : [];
     const bootstrapActivation = await classifyActivation(
       context,
       bootstrapSourceFiles,

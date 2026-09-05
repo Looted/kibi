@@ -158,6 +158,10 @@ describe("discovery executors", () => {
             nextSolution: async () => null,
             save: async () => ({ success: true, bindings: {} }),
           },
+          fs: {
+            ...nodeFilesystem,
+            glob: async () => undefined as unknown as string[],
+          },
         }),
       );
       expect(missing.structuredContent.snapshotId).toBe("missing");

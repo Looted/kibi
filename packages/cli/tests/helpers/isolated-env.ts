@@ -23,6 +23,9 @@ export function isolatedCliSandboxEnv(
 ): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = { ...process.env, ...overrides };
   Reflect.deleteProperty(env, "KIBI_BRANCH");
+  for (const key of ["KIBI_WORKSPACE", "KIBI_PROJECT_ROOT", "KIBI_ROOT"]) {
+    Reflect.deleteProperty(env, key);
+  }
   // Proof producer env must not leak into sandbox CLIs (workspace identity,
   // snapshot, or the selected test list).
   for (const key of Object.keys(env)) {
@@ -45,6 +48,16 @@ export function isolatedCliSandboxEnv(
     explicit !== process.env.KIBI_BRANCH
   ) {
     env.KIBI_BRANCH = explicit;
+  }
+  for (const key of ["KIBI_WORKSPACE", "KIBI_PROJECT_ROOT", "KIBI_ROOT"] as const) {
+    const value = overrides[key];
+    if (
+      typeof value === "string" &&
+      value.length > 0 &&
+      value !== process.env[key]
+    ) {
+      env[key] = value;
+    }
   }
   return env;
 }
