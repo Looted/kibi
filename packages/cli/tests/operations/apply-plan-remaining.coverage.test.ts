@@ -1897,11 +1897,15 @@ describe("apply-plan leftover recovery and bootstrap catch", () => {
       ),
     );
     const base = nodeFilesystem;
+    let repairWrites = 0;
     const fs = {
       ...base,
       writeFile: async (target: string, contents: string) => {
         if (contents.includes('"state": "repair_required"')) {
-          throw new Error("journal write boom");
+          repairWrites += 1;
+          if (repairWrites === 1) {
+            throw new Error("journal write boom");
+          }
         }
         return base.writeFile(target, contents);
       },

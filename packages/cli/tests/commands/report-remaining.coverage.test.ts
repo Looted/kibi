@@ -224,11 +224,16 @@ describe("reportCommand remaining executeCoverageInContext path", () => {
 	url = https://github.com/Acme/Widgets.git
 `,
     );
+    const warningRows = Array.from({ length: 10 }, (_, index) => ({
+      id: `REQ-${index + 1}`,
+      proofStatus: index < 8 ? "proven" : "missing",
+      proofGaps: [] as string[],
+    }));
     const warning = coverageRows({
       requirements: {
         summary: { total: 10, proofNotApplicable: 0, proofProven: 8 },
         meta: { dirty: true, proofSnapshotDirty: false, branch: "main" },
-        rows: [{ id: "REQ-1", proofStatus: "missing", proofGaps: [] }],
+        rows: warningRows,
       },
     });
     const io = captureIo();
@@ -241,11 +246,16 @@ describe("reportCommand remaining executeCoverageInContext path", () => {
     );
     expect(existsSync(path.join(cwd, "warn.badge.svg"))).toBe(true);
 
+    const signalRows = Array.from({ length: 10 }, (_, index) => ({
+      id: `REQ-S${index + 1}`,
+      proofStatus: index < 9 ? "proven" : "missing",
+      proofGaps: [] as string[],
+    }));
     const signal = coverageRows({
       requirements: {
         summary: { total: 10, proofNotApplicable: 0, proofProven: 9 },
         meta: { dirty: false, proofSnapshotDirty: false },
-        rows: [{ id: "REQ-1", proofStatus: "missing", proofGaps: [] }],
+        rows: signalRows,
       },
     });
     await withCwd(cwd, () =>

@@ -633,7 +633,7 @@ describe("prolog remaining isRunning and stderr-less start", () => {
     restores.push(restoreEnvFn);
     const children: FakeChild[] = [];
     const spawn = spyOn(childProcess, "spawn").mockImplementation(() => {
-      const created = fakeChild({ echoTrue: true, stderr: false });
+      const created = fakeChild({ echoTrue: true });
       children.push(created);
       return created as unknown as ChildProcess;
     });

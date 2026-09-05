@@ -676,7 +676,7 @@ describe("syncCommand remaining runtime branches", () => {
     );
     writePendingSourceReceipt(
       cwd,
-      ".kb/relationships/../../outside.yaml",
+      ".kb/relationships/../../../outside.yaml",
       "a".repeat(64),
     );
     await expect(
@@ -685,7 +685,15 @@ describe("syncCommand remaining runtime branches", () => {
         { createProlog: () => scriptedProlog() as never },
       ),
     ).rejects.toThrow(/escapes workspace/);
+    rmSync(
+      path.join(
+        pendingRoot,
+        `${createHash("sha256").update(".kb/relationships/../../../outside.yaml").digest("hex")}.json`,
+      ),
+      { force: true },
+    );
 
+    mkdirSync(path.join(cwd, ".kb", "relationships"), { recursive: true });
     writeFileSync(
       path.join(cwd, ".kb", "relationships", "aa.yaml"),
       "relationships: []\n",
@@ -701,6 +709,13 @@ describe("syncCommand remaining runtime branches", () => {
         { createProlog: () => scriptedProlog() as never },
       ),
     ).rejects.toThrow(/hash drift/);
+    rmSync(
+      path.join(
+        pendingRoot,
+        `${createHash("sha256").update(".kb/relationships/aa.yaml").digest("hex")}.json`,
+      ),
+      { force: true },
+    );
 
     writePendingSourceReceipt(
       cwd,

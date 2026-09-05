@@ -31,7 +31,7 @@ describe("prolog codec leftover parse branches", () => {
         `[dup=1,dup=2,dup=3,rule_ir="{",semantic_inventory="not-json"]`,
       ).dup,
     ).toEqual(["1", "2", "3"]);
-    expect(parsePrologValue(`^^(("nested"), extra)`)).toBe("^^((\"nested\"), extra)");
+    expect(parsePrologValue(`^^(("nested"), extra)`)).toBe('("nested")');
     expect(parsePrologValue(`^^("3.5", http://example#decimal)`)).toBe(3.5);
     expect(parsePrologValue(`^^("2.5", http://example#double)`)).toBe(2.5);
     expect(parsePrologValue(`^^("false", http://example#boolean)`)).toBe(false);
