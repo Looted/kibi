@@ -116,6 +116,12 @@ export function _resetSessionDepsForTests(): void {
   sessionDeps = { ...defaultSessionDeps };
 }
 
+export function _setPrologProcessForTests(
+  process: PrologProcess | null,
+): void {
+  prologProcess = process;
+}
+
 function debugLog(...args: Parameters<typeof console.error>): void {
   if (isMcpDebugEnabled()) {
     console.error(...args);

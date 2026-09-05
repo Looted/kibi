@@ -287,6 +287,55 @@ describe("refreshCoordinatesForSymbolId remaining legacy and cleanup branches", 
     mkdirSync(path.join(root, ".kb", "symbol-coordinates.yaml"));
     await expect(handleKbSymbolsRefresh({ workspaceRoot: root })).rejects.toThrow();
   });
+
+  test("refuses to publish a legacy artifact that contains an invalid leftover record", async () => {
+    const root = tempWorkspace();
+    writeFileSync(
+      path.join(root, "src", "keep.ts"),
+      "export function keepSymbol() {}\n",
+    );
+    writeManifest(
+      root,
+      "symbols:\n  - id: SYM-KEEP\n    title: keepSymbol\n    sourceFile: src/keep.ts\n",
+    );
+    writeFileSync(
+      path.join(root, ".kb", "symbol-coordinates.yaml"),
+      [
+        "coordinates:",
+        "  SYM-KEEP:",
+        "    sourceFile: src/keep.ts",
+        "    sourceLine: 1",
+        "    sourceColumn: 16",
+        "    sourceEndLine: 1",
+        "    sourceEndColumn: 26",
+        "",
+      ].join("\n"),
+    );
+    const originalKeys = Object.keys.bind(Object);
+    const spy = spyOn(Object, "keys").mockImplementation((value: object) => {
+      const keys = originalKeys(value);
+      const first = keys[0];
+      const record = first
+        ? (value as Record<string, { sourceFile?: unknown; identityHash?: unknown }>)[
+            first
+          ]
+        : undefined;
+      if (
+        keys.includes("SYM-KEEP") &&
+        record &&
+        typeof record === "object" &&
+        typeof record.sourceFile === "string" &&
+        record.identityHash === undefined
+      ) {
+        return [...keys, "SYM-BOGUS"];
+      }
+      return keys;
+    });
+    spies.push(spy);
+    await expect(refreshCoordinatesForSymbolId("SYM-KEEP", root)).rejects.toThrow(
+      /Invalid legacy coordinate record for SYM-BOGUS/,
+    );
+  });
 });
 
 describe("handleKbSymbolsRefresh fillMissingCoordinates leftover branches", () => {
@@ -455,5 +504,157 @@ describe("refreshCoordinatesForSymbolId leftover not-found and delete branches",
     expect(result.found).toBe(true);
     expect(result.refreshed).toBe(false);
     expect(coordinates(root)["SYM-DROP"]).toBeUndefined();
+  });
+});
+
+describe("handleKbSymbolsRefresh fillMissingCoordinates DA:0 leftovers", () => {
+  test("strips stale generated coords, fills coarse title spans, and uses before.title", async () => {
+    const root = tempWorkspace();
+    const runtime = await import("kibi-runtime");
+    writeFileSync(
+      path.join(root, "src", "stale.ts"),
+      "export function liveName() {}\n",
+    );
+    writeFileSync(
+      path.join(root, "src", "coarse.ts"),
+      "\n\nexport function coarseTitle() {}\n",
+    );
+    writeFileSync(
+      path.join(root, "src", "from-before.ts"),
+      "export function beforeTitle() {}\n",
+    );
+    writeManifest(
+      root,
+      [
+        "symbols:",
+        "  - id: SYM-STALE-STRIP",
+        "    title: liveName",
+        "    sourceFile: src/stale.ts",
+        "    sourceLine: 9",
+        "    sourceColumn: 0",
+        "    sourceEndLine: 9",
+        "    sourceEndColumn: 4",
+        "  - id: SYM-COARSE-HIT",
+        "    title: coarseTitle",
+        "    sourceFile: src/coarse.ts",
+        "    granularity_reason: module-level-behavior",
+        "  - id: SYM-BEFORE-TITLE",
+        "    title: beforeTitle",
+        "    sourceFile: src/from-before.ts",
+      ].join("\n"),
+    );
+    const enrich = spyOn(runtime, "enrichSymbolCoordinates").mockImplementation(
+      async (entries) =>
+        entries.map((entry) => {
+          if (entry.id === "SYM-STALE-STRIP") {
+            return {
+              ...entry,
+              sourceLine: 9,
+              sourceColumn: 0,
+              sourceEndLine: 9,
+              sourceEndColumn: 4,
+            };
+          }
+          if (entry.id === "SYM-BEFORE-TITLE") {
+            const { title: _ignored, ...rest } = entry;
+            return rest as typeof entry;
+          }
+          const next = { ...entry };
+          delete next.sourceLine;
+          delete next.sourceColumn;
+          delete next.sourceEndLine;
+          delete next.sourceEndColumn;
+          return next;
+        }),
+    );
+    spies.push(enrich);
+
+    const result = await handleKbSymbolsRefresh({ workspaceRoot: root });
+    expect(result.structuredContent?.refreshed).toBeGreaterThanOrEqual(1);
+    expect(coordinates(root)["SYM-COARSE-HIT"]).toEqual(
+      expect.objectContaining({ sourceLine: 3, sourceFile: "src/coarse.ts" }),
+    );
+    expect(coordinates(root)["SYM-BEFORE-TITLE"]).toEqual(
+      expect.objectContaining({ sourceFile: "src/from-before.ts" }),
+    );
+  });
+
+  test("treats empty titles and unreadable sources as non-matching generated coords", async () => {
+    const root = tempWorkspace();
+    const runtime = await import("kibi-runtime");
+    mkdirSync(path.join(root, "src", "dir-src"));
+    writeFileSync(path.join(root, "src", "empty-title.ts"), "export const x = 1;\n");
+    writeManifest(
+      root,
+      [
+        "symbols:",
+        "  - id: SYM-EMPTY-TITLE",
+        "    title: \"\"",
+        "    sourceFile: src/empty-title.ts",
+        "    sourceLine: 1",
+        "    sourceColumn: 0",
+        "    sourceEndLine: 1",
+        "    sourceEndColumn: 1",
+        "  - id: SYM-UNREADABLE",
+        "    title: ghost",
+        "    sourceFile: src/dir-src",
+        "    sourceLine: 1",
+        "    sourceColumn: 0",
+        "    sourceEndLine: 1",
+        "    sourceEndColumn: 1",
+      ].join("\n"),
+    );
+    const enrich = spyOn(runtime, "enrichSymbolCoordinates").mockImplementation(
+      async (entries) => entries,
+    );
+    spies.push(enrich);
+    const result = await handleKbSymbolsRefresh({ workspaceRoot: root });
+    expect(result.structuredContent?.failed).toBeGreaterThanOrEqual(0);
+    expect(coordinates(root)["SYM-EMPTY-TITLE"]).toBeUndefined();
+  });
+
+  test("refuses to publish bound coordinates whose hashes are not sha256", async () => {
+    const root = tempWorkspace();
+    writeFileSync(path.join(root, "src", "hash.ts"), "export function hashed() {}\n");
+    writeManifest(
+      root,
+      "symbols:\n  - id: SYM-HASH\n    title: hashed\n    sourceFile: src/hash.ts\n",
+    );
+    const crypto = await import("node:crypto");
+    const originalCreateHash = crypto.createHash;
+    const hashSpy = spyOn(crypto, "createHash").mockImplementation(
+      ((algorithm: string, options?: unknown) => {
+        const hash = originalCreateHash(
+          algorithm as Parameters<typeof originalCreateHash>[0],
+          options as Parameters<typeof originalCreateHash>[1],
+        );
+        const originalDigest = hash.digest.bind(hash);
+        hash.digest = ((encoding?: crypto.BinaryToTextEncoding) => {
+          if (encoding === "hex") return "not-a-sha256-digest";
+          return originalDigest(encoding);
+        }) as typeof hash.digest;
+        return hash;
+      }) as typeof crypto.createHash,
+    );
+    spies.push(hashSpy);
+    await expect(handleKbSymbolsRefresh({ workspaceRoot: root })).rejects.toThrow(
+      /Invalid bound coordinate record/,
+    );
+  });
+
+  test("cleans up a failed publish when unlink of the temp file also fails", async () => {
+    const root = tempWorkspace();
+    writeFileSync(path.join(root, "src", "pub.ts"), "export function pubSymbol() {}\n");
+    writeManifest(
+      root,
+      "symbols:\n  - id: SYM-PUB2\n    title: pubSymbol\n    sourceFile: src/pub.ts\n",
+    );
+    const fsp = await import("node:fs/promises");
+    const renameSpy = spyOn(fsp, "rename").mockRejectedValue(new Error("rename denied"));
+    const unlinkSpy = spyOn(fsp, "unlink").mockRejectedValue(new Error("unlink denied"));
+    spies.push(renameSpy, unlinkSpy);
+    await expect(handleKbSymbolsRefresh({ workspaceRoot: root })).rejects.toThrow(
+      /rename denied/,
+    );
   });
 });
