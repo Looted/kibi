@@ -30,4 +30,25 @@ describe("isolatedCliSandboxEnv", () => {
       }
     }
   });
+
+  test("strips leaked proof-producer env unless the caller sets it", () => {
+    const original = process.env.KIBI_PROOF_RUN;
+    process.env.KIBI_PROOF_RUN = "1";
+    process.env.KIBI_PROOF_WORKSPACE = "/workspace";
+    try {
+      const stripped = isolatedCliSandboxEnv();
+      expect(stripped.KIBI_PROOF_RUN).toBeUndefined();
+      expect(stripped.KIBI_PROOF_WORKSPACE).toBeUndefined();
+      expect(
+        isolatedCliSandboxEnv({ KIBI_PROOF_RUN: "sandbox" }).KIBI_PROOF_RUN,
+      ).toBe("sandbox");
+    } finally {
+      if (original === undefined) {
+        Reflect.deleteProperty(process.env, "KIBI_PROOF_RUN");
+      } else {
+        process.env.KIBI_PROOF_RUN = original;
+      }
+      Reflect.deleteProperty(process.env, "KIBI_PROOF_WORKSPACE");
+    }
+  });
 });

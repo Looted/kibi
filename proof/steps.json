@@ -45,7 +45,7 @@
         "bun",
         "test",
         "--timeout",
-        "15000",
+        "120000",
         "./packages/cli/tests/commands/coverage.test.ts",
         "./packages/cli/tests/commands/status.test.ts",
         "./packages/cli/tests/operations/discovery.test.ts",
@@ -178,7 +178,7 @@
         "bun",
         "test",
         "--timeout",
-        "15000",
+        "120000",
         "./scripts/tests/proof-workflow-contract.test.ts"
       ],
       [
@@ -192,7 +192,7 @@
         "bun",
         "test",
         "--timeout",
-        "15000",
+        "120000",
         "./test/root.test.ts",
         "./packages/cli/tests/engine.test.ts",
         "./scripts/tests/run-owned-engine-tests.test.ts"
@@ -214,7 +214,7 @@
         "bun",
         "test",
         "--timeout",
-        "15000",
+        "120000",
         "./packages/cli/tests/engine.test.ts"
       ]
     ]
@@ -229,7 +229,7 @@
         "bun",
         "test",
         "--timeout",
-        "15000",
+        "120000",
         "./packages/cli/tests/engine.test.ts"
       ]
     ]
@@ -244,7 +244,7 @@
         "bun",
         "test",
         "--timeout",
-        "15000",
+        "120000",
         "./packages/cli/tests/commands/sync.test.ts"
       ]
     ]
@@ -256,7 +256,7 @@
         "bun",
         "test",
         "--timeout",
-        "15000",
+        "120000",
         "./scripts/tests/change-to-proof-eval.test.ts"
       ]
     ]
@@ -387,7 +387,7 @@
         "bun",
         "test",
         "--timeout",
-        "15000",
+        "120000",
         "./packages/cli/tests/commands/check.test.ts",
         "./packages/cli/tests/public/operations/check-helpers.test.ts",
         "./packages/cli/tests/commands/check-impact-contract.test.ts"

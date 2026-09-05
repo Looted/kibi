@@ -2,6 +2,7 @@ import { describe, expect, it } from "bun:test";
 import {
   BATCH_CONCURRENCY,
   BATCH_TIMEOUT_MINUTES,
+  CLI_ENGINE_BATCH_TIMEOUT_MS,
   type SuiteSummary,
   getBatchFailureMessage,
   isolatedUnitBatchEnv,
@@ -12,6 +13,10 @@ import {
 describe("getBatchFailureMessage", () => {
   it("bounds package-process parallelism", () => {
     expect(BATCH_CONCURRENCY).toBe(2);
+  });
+
+  it("gives journaled-engine and SkillOpt batches 120s isolates", () => {
+    expect(CLI_ENGINE_BATCH_TIMEOUT_MS).toBe(120_000);
   });
 
   it("strips host KIBI_BRANCH from unit-batch child env", () => {

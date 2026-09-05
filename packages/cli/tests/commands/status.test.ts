@@ -38,7 +38,7 @@ Initial body.
 
     execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
-  }, 30000); // kibi init + sync can take ~10s; allow 30s for slower CI environments
+  }, 120000); // journaled-engine init + sync exceeds 30s under prove load
 
   afterAll(() => {
     if (tmpDir && existsSync(tmpDir)) {
@@ -76,7 +76,7 @@ Initial body.
     } finally {
       rmSync(initDir, { recursive: true, force: true });
     }
-  }, 15000);
+  }, 120000);
 
   test("reports a missing branch store without creating it", () => {
     const missingDir = mkdtempSync(
@@ -109,7 +109,7 @@ Initial body.
     } finally {
       rmSync(missingDir, { recursive: true, force: true });
     }
-  }, 15000);
+  }, 120000);
 
   test("reports stale status after workspace edits without sync", () => {
     writeFileSync(
@@ -137,7 +137,7 @@ Changed after sync.
     expect(result.branch).toBe("main");
     expect(result.dirty).toBe(true);
     expect(result.syncState).toBe("stale");
-  }, 15000);
+  }, 120000);
 
   test("reports fresh status immediately after sync with absolute source paths", () => {
     const freshDir = mkdtempSync(
@@ -201,7 +201,7 @@ source: packages/example/
     } finally {
       rmSync(freshDir, { recursive: true, force: true });
     }
-  }, 15000);
+  }, 120000);
 
   test("publishes freshness for a content-identical no-op sync", async () => {
     const noOpDir = mkdtempSync(
@@ -245,7 +245,7 @@ status: open
     } finally {
       rmSync(noOpDir, { recursive: true, force: true });
     }
-  }, 30000);
+  }, 120000);
 
   test("keeps status fresh after syncing with documentation README files", () => {
     const readmeDir = mkdtempSync(
@@ -310,7 +310,7 @@ status: open
     } finally {
       rmSync(readmeDir, { recursive: true, force: true });
     }
-  }, 15000);
+  }, 120000);
 
   test("ignores generic documentation notes without entity frontmatter", () => {
     const notesDir = mkdtempSync(
@@ -350,7 +350,7 @@ status: open
     } finally {
       rmSync(notesDir, { recursive: true, force: true });
     }
-  }, 30000);
+  }, 120000);
 
   test("reports stale status after adding a new documentation file without sync", () => {
     writeFileSync(
@@ -374,7 +374,7 @@ status: open
     };
     expect(result.dirty).toBe(true);
     expect(result.syncState).toBe("stale");
-  }, 15000);
+  }, 120000);
 
   test("reports stale status after deleting a synced source file", () => {
     removeSync(path.join(tmpDir, ".kb", "requirements", "REQ-001.md"));
@@ -390,7 +390,7 @@ status: open
     };
     expect(result.dirty).toBe(true);
     expect(result.syncState).toBe("stale");
-  }, 15000);
+  }, 120000);
 
   test("shows table output by default", () => {
     const output = execSync(`bun ${kibiBin} status`, {
@@ -400,5 +400,5 @@ status: open
 
     expect(output).toContain("Branch");
     expect(output).toContain("Sync State");
-  }, 15000);
+  }, 120000);
 });

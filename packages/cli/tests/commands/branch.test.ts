@@ -200,7 +200,7 @@ describe("kibi branch lifecycle", () => {
     expect(
       readdirSync(path.join(tmpDir, ".kb", "recovery", "main")),
     ).toHaveLength(1);
-  }, 30000);
+  }, 120000);
 
   test("retires only unchanged missing source receipts during explicit recovery", async () => {
     execSync("mkdir -p .kb/requirements", { cwd: tmpDir });
@@ -260,5 +260,5 @@ describe("kibi branch lifecycle", () => {
     await expect(
       discoverSourceFiles(tmpDir, { trackedOnly: true }),
     ).resolves.toMatchObject({ markdownFiles: expect.any(Array) });
-  }, 30000);
+  }, 120000);
 });

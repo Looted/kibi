@@ -33947,3 +33947,11 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-skillopt-external-adoption-verdict
+  - id: SYM-test-root-cli-engine-batch-timeout
+    title: CLI_ENGINE_BATCH_TIMEOUT_MS
+    status: active
+    sourceFile: test/root.test.ts
+    symbol_role: config
+    relationships:
+      - type: executable_for
+        target: TEST-test-journaled-engine-harness

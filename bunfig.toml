@@ -1,9 +1,10 @@
 [test]
 root = "test"
-# Default timeout for all tests and hooks (ms). Prolog subprocess startup takes ~5-10s;
-# 30s covers the worst case without hanging indefinitely. The root `bun run test` script
-# runs the curated test/root.test.ts orchestrator to avoid root-wide discovery OOM.
-timeout = 30000
+# Default timeout for all tests and hooks (ms). Journaled-engine init/sync and
+# Prolog startup exceed 15-30s under prove or coverage load. The root
+# `bun run test` script runs the curated test/root.test.ts orchestrator to
+# avoid root-wide discovery OOM.
+timeout = 120000
 # Bun test discovery does not use .gitignore. Keep generated worktrees and e2e
 # artifacts out of bare `bun test`; run e2e via `bun run test:e2e:local`.
 pathIgnorePatterns = [

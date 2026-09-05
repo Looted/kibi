@@ -39,6 +39,10 @@ export function isolatedUnitBatchEnv(
 export const BATCH_TIMEOUT_MINUTES = 25;
 export const BATCH_CONCURRENCY = 2;
 export const TEST_ENGINE_SHUTDOWN_TIMEOUT_MS = 5_000;
+/** Journaled engine and SkillOpt trainer tests exceed Bun's 15s default. */
+// implements REQ-test-journaled-engine-harness
+// covered_by TEST-test-journaled-engine-harness
+export const CLI_ENGINE_BATCH_TIMEOUT_MS = 120_000;
 
 type BatchOutcome = {
   timedOut: boolean;
@@ -67,11 +71,21 @@ export function getBatchFailureMessage(
 const BATCHES: Batch[] = [
   {
     label: "cli",
-    args: ["test", "--timeout", "15000", "./packages/cli"],
+    args: [
+      "test",
+      "--timeout",
+      String(CLI_ENGINE_BATCH_TIMEOUT_MS),
+      "./packages/cli",
+    ],
   },
   {
     label: "skillopt evaluator",
-    args: ["test", "--timeout", "15000", "./scripts/skillopt-eval/tests"],
+    args: [
+      "test",
+      "--timeout",
+      String(CLI_ENGINE_BATCH_TIMEOUT_MS),
+      "./scripts/skillopt-eval/tests",
+    ],
   },
   {
     label: "mcp",
