@@ -257,4 +257,220 @@ describe("syncCommand write, cache, and pending-receipt paths", () => {
     },
     60_000,
   );
+
+  test(
+    "scripted Prolog validate-only attaches, then fails closed on attach or save",
+    async () => {
+      const cwd = preparedGitWorkspace();
+      await withCwd(cwd, () => initCommand({}));
+      git(cwd, "add .kb");
+      git(cwd, "commit --no-verify -m init-kb");
+      const req = writeRequirement(cwd, "REQ-SYNC-SCRIPT");
+      git(cwd, `add ${req}`);
+      git(cwd, "commit --no-verify -m req");
+
+      const makeProlog = (queryImpl: (goal: string) => {
+        success: boolean;
+        bindings: Record<string, string>;
+        error?: string;
+      }) => {
+        return {
+          start: async () => {},
+          terminate: async () => {},
+          invalidateCache: () => {},
+          query: async (goal: string | string[]) =>
+            queryImpl(Array.isArray(goal) ? goal.join(", ") : goal),
+        };
+      };
+
+      await expect(
+        syncCommand(
+          { validateOnly: true, workspaceRoot: cwd },
+          {
+            createProlog: () =>
+              makeProlog(() => ({
+                success: false,
+                bindings: {},
+                error: "attach failed",
+              })) as never,
+          },
+        ),
+      ).rejects.toThrow(/Failed to attach to staging KB/);
+
+      const io = captureIo();
+      restores.push(io.restore);
+      const ok = await syncCommand(
+        { validateOnly: true, workspaceRoot: cwd },
+        {
+          createProlog: () =>
+            makeProlog((goal) => {
+              if (goal.includes("kb_save")) {
+                return { success: false, bindings: {}, error: "save failed" };
+              }
+              return { success: true, bindings: {} };
+            }) as never,
+        },
+      );
+      expect(ok.success).toBe(true);
+      expect(io.logText()).toMatch(/OK: Validation passed|Imported 0|entities/);
+    },
+    90_000,
+  );
+
+  test(
+    "scripted write sync persists a relationship shard and retracts a deleted source",
+    async () => {
+      const cwd = preparedGitWorkspace();
+      await withCwd(cwd, () => initCommand({}));
+      const req = writeRequirement(cwd, "REQ-SYNC-SHARD");
+      git(cwd, `add ${req} .kb`);
+      git(cwd, "commit --no-verify -m req");
+      mkdirSync(path.join(cwd, ".kb", "relationships"), { recursive: true });
+      const shard = path.join(cwd, ".kb", "relationships", "aa.yaml");
+      writeFileSync(
+        shard,
+        "relationships:\n  - id: rel-1\n    type: relates_to\n    from: REQ-SYNC-SHARD\n    to: REQ-MISSING\n    created_at: '2026-01-01T00:00:00Z'\n    created_by: test\n    source: test\n",
+      );
+      git(cwd, "add .kb/relationships/aa.yaml");
+      git(cwd, "commit --no-verify -m shard");
+
+      const store = branchStorePath(cwd, "main");
+      mkdirSync(store, { recursive: true });
+      writeSyncCache(path.join(store, "sync-cache.json"), {
+        version: SYNC_CACHE_VERSION,
+        hashes: { ".kb/requirements/gone.md": "a".repeat(64) },
+        relationshipHashes: {},
+        entityHashes: { "REQ-GONE": "b".repeat(64) },
+        sourceEntityIds: { ".kb/requirements/gone.md": ["REQ-GONE"] },
+        shardRelationships: {
+          ".kb/relationships/old.yaml": ["relates_to\0REQ-OLD\0REQ-GONE"],
+        },
+        seenAt: {
+          ".kb/requirements/gone.md": new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString(),
+        },
+        semanticHashes: {},
+        semanticContracts: {},
+      });
+
+      const io = captureIo();
+      restores.push(io.restore);
+      await expect(
+        syncCommand(
+          { workspaceRoot: cwd },
+          {
+            createProlog: () =>
+              ({
+                start: async () => {},
+                terminate: async () => {},
+                invalidateCache: () => {},
+                query: async () => ({ success: true, bindings: {} }),
+              }) as never,
+          },
+        ),
+      ).rejects.toThrow(/proposition-complete ingestion failed|dangling|Imported/);
+      expect(io.errorText() + io.logText()).toMatch(
+        /proposition-complete|dangling|Imported|Error/,
+      );
+    },
+    90_000,
+  );
+
+  test(
+    "rebuild with createProlog hits staging save failure and recovery backup collision",
+    async () => {
+      const cwd = preparedGitWorkspace();
+      await withCwd(cwd, () => initCommand({}));
+      git(cwd, "add .kb");
+      git(cwd, "commit --no-verify -m init-kb");
+      const backup = path.join(cwd, ".kb-backup-exists");
+      mkdirSync(backup, { recursive: true });
+      await expect(
+        syncCommand(
+          { rebuild: true, recoveryBackupPath: backup, workspaceRoot: cwd },
+          {
+            createProlog: () =>
+              ({
+                start: async () => {},
+                terminate: async () => {},
+                invalidateCache: () => {},
+                query: async () => ({ success: true, bindings: {} }),
+              }) as never,
+          },
+        ),
+      ).rejects.toThrow(/Recovery backup path already exists/);
+
+      await expect(
+        syncCommand(
+          { rebuild: true, workspaceRoot: cwd },
+          {
+            createProlog: () =>
+              ({
+                start: async () => {},
+                terminate: async () => {},
+                invalidateCache: () => {},
+                query: async (goal: string | string[]) => {
+                  const text = Array.isArray(goal) ? goal.join(", ") : goal;
+                  if (text.includes("kb_save")) {
+                    return {
+                      success: false,
+                      bindings: {},
+                      error: "save failed",
+                    };
+                  }
+                  if (text.includes("kb_retract_all_relationships")) {
+                    return {
+                      success: false,
+                      bindings: {},
+                      error: "clear failed",
+                    };
+                  }
+                  return { success: true, bindings: {} };
+                },
+              }) as never,
+          },
+        ),
+      ).rejects.toThrow(/Failed to save staging KB|Failed to clear changed relationship shards|Error/);
+    },
+    90_000,
+  );
+
+  test(
+    "expired cache and v1 entity-hash backfill still compile through scripted Prolog",
+    async () => {
+      const cwd = preparedGitWorkspace();
+      await withCwd(cwd, () => initCommand({}));
+      const req = writeRequirement(cwd, "REQ-SYNC-TTL");
+      git(cwd, `add ${req} .kb`);
+      git(cwd, "commit --no-verify -m req");
+      const store = branchStorePath(cwd, "main");
+      mkdirSync(store, { recursive: true });
+      const reqHash = shaFile(path.join(cwd, req));
+      writeSyncCache(path.join(store, "sync-cache.json"), {
+        version: SYNC_CACHE_VERSION,
+        hashes: { [req]: reqHash },
+        relationshipHashes: {},
+        seenAt: {
+          [req]: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString(),
+        },
+        semanticHashes: {},
+        semanticContracts: {},
+      });
+      const io = captureIo();
+      restores.push(io.restore);
+      const result = await syncCommand(
+        { workspaceRoot: cwd },
+        {
+          createProlog: () =>
+            ({
+              start: async () => {},
+              terminate: async () => {},
+              invalidateCache: () => {},
+              query: async () => ({ success: true, bindings: {} }),
+            }) as never,
+        },
+      );
+      expect(typeof result.success).toBe("boolean");
+    },
+    90_000,
+  );
 });

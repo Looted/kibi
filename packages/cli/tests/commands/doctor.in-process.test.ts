@@ -264,4 +264,109 @@ describe("doctorCommand", () => {
     expect(rewriteNotExec.exitCode).toBe(1);
     expect(io.logText()).toContain("not executable");
   });
+
+  test("reports hook permission failures when statSync throws", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    mkdirSync(path.join(cwd, ".kb"), { recursive: true });
+    writeFileSync(
+      path.join(cwd, ".kb", "manifest.json"),
+      JSON.stringify({
+        manifestVersion: 1,
+        schemaVersion: 5,
+        semanticAdvisorBackfill: "not_applicable",
+      }),
+    );
+    writeHook(cwd, "post-checkout", "#!/bin/sh\nkibi sync\n");
+    writeHook(cwd, "post-merge", "#!/bin/sh\nkibi sync\n");
+    writeHook(cwd, "pre-commit", "#!/bin/sh\nkibi check --staged\n");
+    writeHook(cwd, "post-rewrite", "#!/bin/sh\nkibi sync\n");
+    makeExecutable(path.join(cwd, ".git", "hooks", "post-checkout"));
+    makeExecutable(path.join(cwd, ".git", "hooks", "post-merge"));
+    makeExecutable(path.join(cwd, ".git", "hooks", "pre-commit"));
+    makeExecutable(path.join(cwd, ".git", "hooks", "post-rewrite"));
+    const original = childProcess.execSync;
+    const fs = await import("node:fs");
+    const originalStat = fs.statSync;
+    const stat = spyOn(fs, "statSync").mockImplementation(((
+      target: fs.PathLike,
+      options?: unknown,
+    ) => {
+      if (String(target).includes(`${path.sep}.git${path.sep}hooks${path.sep}`)) {
+        throw new Error("EACCES");
+      }
+      return originalStat(target, options as never);
+    }) as typeof fs.statSync);
+    restores.push(() => stat.mockRestore());
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await withCwd(cwd, () => doctorCommand({ format: "json" }));
+    expect(result.exitCode).toBe(1);
+    expect(io.logText()).toContain("Unable to check hook permissions");
+    expect(original).toBeDefined();
+  });
+
+  test("passes a legacy pre-commit hook that invokes kibi check without --staged", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    await withCwd(cwd, () => initCommand({}));
+    writeHook(cwd, "post-checkout", "#!/bin/sh\nkibi sync\n");
+    writeHook(cwd, "post-merge", "#!/bin/sh\nkibi sync\n");
+    writeHook(cwd, "pre-commit", "#!/bin/sh\nkibi check\n");
+    writeHook(cwd, "post-rewrite", "#!/bin/sh\nkibi sync\n");
+    makeExecutable(path.join(cwd, ".git", "hooks", "post-checkout"));
+    makeExecutable(path.join(cwd, ".git", "hooks", "post-merge"));
+    makeExecutable(path.join(cwd, ".git", "hooks", "pre-commit"));
+    makeExecutable(path.join(cwd, ".git", "hooks", "post-rewrite"));
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await withCwd(cwd, () => doctorCommand({ format: "json" }));
+    expect(result.exitCode).toBe(0);
+    expect(io.logText()).toContain("legacy 'kibi check'");
+  });
+
+  test("emits package provenance actions when CLI metadata is unknown or mismatched", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    await withCwd(cwd, () => initCommand({}));
+    const fs = await import("node:fs");
+    const originalRead = fs.readFileSync;
+    const read = spyOn(fs, "readFileSync").mockImplementation(((
+      target: fs.PathOrFileDescriptor,
+      options?: unknown,
+    ) => {
+      const file = String(target);
+      if (file.endsWith(`${path.sep}packages${path.sep}cli${path.sep}package.json`)) {
+        return JSON.stringify({
+          name: "kibi-cli",
+          version: "dev",
+          dependencies: { "kibi-core": "^1.0.0" },
+        });
+      }
+      if (
+        file.includes(`${path.sep}mcp${path.sep}package.json`) ||
+        file.includes(`${path.sep}kibi-mcp${path.sep}package.json`)
+      ) {
+        return JSON.stringify({
+          name: "kibi-mcp",
+          version: "1.0.0",
+          main: "dist/server.js",
+          dependencies: { "kibi-cli": "^9.9.9" },
+        });
+      }
+      return originalRead(target, options as never);
+    }) as typeof fs.readFileSync);
+    restores.push(() => read.mockRestore());
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await withCwd(cwd, () => doctorCommand({ format: "json" }));
+    expect(result.exitCode).toBe(0);
+    expect(io.logText()).toMatch(/package-provenance-unresolved|package-mcp-cli-range-mismatch|dev/);
+  });
 });

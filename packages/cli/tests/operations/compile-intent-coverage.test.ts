@@ -304,4 +304,128 @@ describe("compile-intent validation and source planning", () => {
     expect(plan.target.requirementId).toBe("REQ-KEEP");
     expect(plan.contradictionAnalysis.witnesses.length).toBeGreaterThanOrEqual(0);
   });
+
+  test("uses proof snapshots, unresolved updates, missing ids, and test-only drafts", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-extra-"));
+    workspaces.push(root);
+    const query = mock(async (goal: string): Promise<PrologQueryResult> => {
+      if (goal.includes("findall([A,B,Reason]"))
+        return { success: false, bindings: {} };
+      if (goal.includes("kb_relationship"))
+        return { success: true, bindings: { Edges: "[]" } };
+      return { success: true, bindings: { Results: "[]" } };
+    });
+    const ctx = contextFor(root, query);
+    ctx.prolog = {
+      ...ctx.prolog!,
+      queryStatusJson: async () => ({
+        success: true,
+        bindings: {
+          JsonString: JSON.stringify({
+            branch: "develop",
+            snapshotId: "stamp:test",
+            syncedAt: "2026-09-05T00:00:00Z",
+            dirty: false,
+            syncState: "fresh",
+            proofSnapshot: "a".repeat(64),
+            proofSnapshotDirty: false,
+            proofSnapshotFileCount: 4,
+          }),
+        },
+      }),
+    };
+    const unresolved = (
+      await executeCompileIntent(
+        {
+          intent: "Customer data must be retained for 7 years.",
+          mode: "update",
+          testDrafts: [{ title: "Only test", body: "it retains" }],
+          sourceLocations: [{ path: ".kb/requirements/REQ.md" }],
+        },
+        ctx,
+      )
+    ).structuredContent;
+    expect(unresolved.diagnostics.join(" ")).toMatch(/unresolved|no scenario/);
+    expect(unresolved.sourceWrites).toEqual([]);
+
+    const missing = (
+      await executeCompileIntent(
+        {
+          intent: "Customer data must be retained for 7 years.",
+          mode: "update",
+          requirementId: "REQ-MISSING",
+        },
+        contextFor(root, quietQuery()),
+      )
+    ).structuredContent;
+    expect(missing.diagnostics.join(" ")).toContain("was not found");
+
+    const noFs = (
+      await executeCompileIntent(
+        {
+          intent: "Customer data must be retained for 7 years.",
+          mode: "create",
+          sourceLocations: [{ path: "docs/present.md" }],
+        },
+        contextFor(root, quietQuery(), { fs: undefined }),
+      )
+    ).structuredContent;
+    expect(noFs.expected.sourceHashes["docs/present.md"]).toBeNull();
+  });
+
+  test("emits proposals for scenarios, symbols, and tests and applies accepted ones", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-prop-"));
+    workspaces.push(root);
+    const query = mock(async (goal: string): Promise<PrologQueryResult> => {
+      if (goal.includes("findall([A,B,Reason]"))
+        return { success: true, bindings: { Rows: "[]" } };
+      if (goal.includes("kb_entity('REQ-KEEP'"))
+        return {
+          success: true,
+          bindings: {
+            Results:
+              '[[REQ-KEEP,req,[title="Keep",status=open,source="docs\\\\REQ.md"]]]',
+          },
+        };
+      if (goal.includes("kb_relationship"))
+        return { success: true, bindings: { Edges: "[]" } };
+      return {
+        success: true,
+        bindings: {
+          Results:
+            '[[REQ-KEEP,req,[title="Keep"]],[SCEN-KEEP,scenario,[title="Keep"]],[SYM-KEEP,symbol,[title="Keep"]],[TEST-KEEP,test,[title="Keep"]],[ADR-KEEP,adr,[title="Keep"]]]',
+        },
+      };
+    });
+    const first = (
+      await executeCompileIntent(
+        {
+          intent: "Customer data must be retained for 7 years.",
+          mode: "update",
+          requirementId: "REQ-KEEP",
+        },
+        contextFor(root, query),
+      )
+    ).structuredContent;
+    const accepted = first.proposals
+      .filter((proposal) => proposal.candidateType !== "req")
+      .map((proposal) => ({ proposalId: proposal.proposalId, decision: "accept" as const }));
+    const applied = (
+      await executeCompileIntent(
+        {
+          intent: "Customer data must be retained for 7 years.",
+          mode: "update",
+          requirementId: "REQ-KEEP",
+          proposalDecisions: [
+            ...accepted,
+            { proposalId: "PROP-UNKNOWN", decision: "reject" },
+          ],
+        },
+        contextFor(root, query),
+      )
+    ).structuredContent;
+    expect(Array.isArray(applied.proposals)).toBe(true);
+    expect(applied.target.requirementId).toBe("REQ-KEEP");
+  });
 });
+

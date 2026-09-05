@@ -1,9 +1,11 @@
+// implements REQ-014
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   existsSync,
   mkdirSync,
   mkdtempSync,
   rmSync,
+  utimesSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -216,12 +218,41 @@ describe("EngineClient from source", () => {
       await client.query("true");
       expect(await client.nextSolution()).toMatchObject({ success: true });
       client.invalidateCache();
+      await client.query("findall(X, member(X, [1,2]), Xs)");
+      await client.query("% comment\ntrue");
       await client.queryBatch(["true"]);
       await client.save();
       await client.storageStatus();
       await client.checkpoint();
       await client.queryStatusJson();
       await client.compact();
+      await client.command({
+        version: 1,
+        kind: "persistence",
+        action: "checkpoint",
+      });
+      await client.command({
+        version: 1,
+        kind: "persistence",
+        action: "compact",
+      });
+      await client.command({
+        version: 1,
+        kind: "lifecycle",
+        action: "cancel",
+        requestId: 99,
+      });
+      const untyped = await client.queryEntities({
+        limit: 5,
+        offset: 0,
+      });
+      expect(untyped.count).toBe(0);
+      const untypedSearch = await client.searchEntities({
+        query: "none",
+        limit: 5,
+        offset: 0,
+      });
+      expect(untypedSearch.count).toBe(0);
       client.cancel(1);
     } finally {
       await client.stop(false).catch(() => undefined);
@@ -267,5 +298,143 @@ describe("EngineClient from source", () => {
       await client.terminate();
     }
   });
+
+  test("covers stale publication locks, missing workspace, and extra commands", async () => {
+    const previousRuntime = process.env.KIBI_RUNTIME_DIR;
+    const runtime = tempRoot();
+    process.env.KIBI_RUNTIME_DIR = runtime;
+    try {
+      const missingRoot = path.join(tempRoot(), "does-not-exist-yet");
+      const client = new EngineClient({
+        workspaceRoot: missingRoot,
+        branch: "main",
+        timeout: 15000,
+      });
+      try {
+        await client.start();
+        expect(client.getPid()).toBeGreaterThan(0);
+        await client.command({
+          version: 1,
+          kind: "check",
+          rule: "orphan_entities",
+        });
+        await client.command({
+          version: 1,
+          kind: "relationship",
+          action: "assert",
+          type: "implements",
+          from: "SYM-NONE",
+          to: "REQ-NONE",
+        });
+        await client.command({
+          version: 1,
+          kind: "relationship",
+          action: "retract",
+          type: "implements",
+          from: "SYM-NONE",
+          to: "REQ-NONE",
+        });
+        await client.command({
+          version: 1,
+          kind: "persistence",
+          action: "save",
+        });
+        await client.command({
+          version: 1,
+          kind: "search",
+          query: "none",
+          limit: 5,
+          offset: 0,
+        });
+        await expect(client.query("halt(1)")).rejects.toThrow(
+          /typed Kibi predicates/,
+        );
+        await expect(
+          client.command({ version: 1, kind: "check", rule: "Bad-Rule" }),
+        ).rejects.toThrow(/lowercase rule name/);
+        await expect(
+          client.searchEntities({ query: "   ", limit: 1, offset: 0 }),
+        ).rejects.toThrow(/non-empty/);
+        await expect(
+          client.queryEntities({ limit: -1, offset: 0 }),
+        ).rejects.toThrow(/bounded integers/);
+        await expect(client.query("shell(true)")).rejects.toThrow(
+          /typed Kibi predicates/,
+        );
+        expect(client.isRunning()).toBe(true);
+      } finally {
+        await client.stop(false).catch(() => undefined);
+        await client.terminate();
+      }
+
+      const idle = new EngineClient({
+        workspaceRoot: tempRoot(),
+        branch: "main",
+        timeout: 2000,
+      });
+      expect(idle.getPid()).toBe(0);
+      await idle.stop(false);
+      await idle.terminate();
+
+      const staleWs = path.join(runtime, "ws-stale");
+      mkdirSync(staleWs, { recursive: true });
+      const lockPath = enginePublicationLockPath(staleWs, "main");
+      writeFileSync(lockPath, "999999:1\n");
+      const staleAt = (Date.now() - 15_000) / 1000;
+      utimesSync(lockPath, staleAt, staleAt);
+      const lease = acquireEnginePublicationLease(staleWs, "main");
+      lease.release();
+    } finally {
+      if (previousRuntime === undefined) {
+        Reflect.deleteProperty(process.env, "KIBI_RUNTIME_DIR");
+      } else {
+        process.env.KIBI_RUNTIME_DIR = previousRuntime;
+      }
+    }
+  });
+
+  test("ensureJournaledBranchStoreAsync recovers incomplete journals and stale locks", async () => {
+    const root = tempRoot();
+    const store = path.join(root, "journaled");
+    mkdirSync(store, { recursive: true });
+    writeFileSync(
+      path.join(store, "storage.json"),
+      '{"format":"kibi.rdf-journal.v1","schemaVersion":1}\n',
+    );
+    mkdirSync(path.join(store, "rdf.old.1"), { recursive: true });
+    writeFileSync(path.join(store, "rdf.old.1", "data"), "x");
+    writeFileSync(path.join(store, "CURRENT.old.1"), "generation-1:0\n");
+    writeFileSync(path.join(store, "audit.log"), "legacy audit");
+    writeFileSync(
+      path.join(store, "kb.rdf"),
+      "<rdf:RDF xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'></rdf:RDF>\n",
+    );
+    await ensureJournaledBranchStoreAsync(store);
+    expect(existsSync(path.join(store, "CURRENT"))).toBe(true);
+
+    const locked = path.join(root, "locked");
+    await ensureJournaledBranchStoreAsync(locked);
+    mkdirSync(path.join(locked, "rdf"), { recursive: true });
+    writeFileSync(path.join(locked, "rdf", "lock"), "pid(1)\n");
+    await ensureJournaledBranchStoreAsync(locked);
+
+    const incomplete = path.join(root, "incomplete");
+    mkdirSync(incomplete, { recursive: true });
+    writeFileSync(
+      path.join(incomplete, "storage.json"),
+      '{"format":"kibi.rdf-journal.v1"}\n',
+    );
+    await expect(ensureJournaledBranchStoreAsync(incomplete)).rejects.toThrow(
+      /incomplete/,
+    );
+
+    const corrupt = path.join(root, "corrupt");
+    mkdirSync(corrupt, { recursive: true });
+    writeFileSync(path.join(corrupt, "kb.rdf"), "not rdf");
+    await expect(ensureJournaledBranchStoreAsync(corrupt)).rejects.toThrow(
+      /corrupt/,
+    );
+  });
 });
+
 

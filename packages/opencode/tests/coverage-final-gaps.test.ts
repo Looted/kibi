@@ -267,6 +267,36 @@ describe("coverage final gaps for policy and work context", () => {
     expect(result.dirtyFileCount).toBe(0);
   });
 
+  test("Given only ignored advisory events When policy runs Then checkpoint-passed is returned after filtering", () => {
+    const result = computeEnforcementPolicy({
+      posture: "root_active",
+      effectiveMode: "advisory",
+      resolvedContext: {
+        worktreeRoot: "/repo",
+        kibiAuthorityRoot: "/repo",
+        branch: "main",
+        repoRelativePath: ".",
+        isLinkedWorktree: false,
+        isAuthoritative: true,
+        posture: "root_active",
+        sessionId: "session",
+        agentIdentity: "agent",
+      } satisfies WorkContext,
+      lifecycleEvents: [
+        { normalizedPath: "dist/out.bin", lifecycle: "created" },
+        { normalizedPath: "tmp/cache", lifecycle: "edited" },
+      ],
+      pathKinds: ["ignored", "unknown"],
+      linkedEntityResults: [],
+      e2eSignals: [],
+      checkpointEvidence: false,
+    });
+
+    expect(result.kind).toBe("checkpoint_passed");
+    expect(result.dirtyFileCount).toBe(0);
+    expect(result.text).toBeNull();
+  });
+
   test("Given empty linked gitdir file When resolving context Then non-git fallback context is returned", () => {
     const tmpDir = makeTempDir("kibi-final-work-context-empty-gitdir-");
     try {

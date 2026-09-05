@@ -11,6 +11,7 @@ import {
 import {
   ATTEMPTS_STATUS,
   PROOF_BINDING_KINDS,
+  PROOF_BINDINGS_SCHEMA,
   PROOF_CONTRACT_SCHEMA,
   PROOF_CONTRACT_VERSION,
   PROOF_INTEGRATION_VERSION,
@@ -196,6 +197,15 @@ describe("kibi.proof-run.v1", () => {
     expect(PROOF_RESULT_SCHEMA.type).toBe("object");
     expect(PROOF_RUN_ARTIFACT_SCHEMA.type).toBe("object");
     expect(PROOF_CONTRACT_SCHEMA.type).toBe("object");
+    expect(PROOF_BINDINGS_SCHEMA.type).toBe("array");
+    expect(PROOF_RESULT_SCHEMA.properties.attempts.oneOf).toHaveLength(2);
+    expect(PROOF_RUN_ARTIFACT_SCHEMA.properties.run.properties.failure_phase.enum).toEqual(
+      [...RUN_FAILURE_PHASES],
+    );
+    expect(PROOF_BINDINGS_SCHEMA.items.required).toEqual(["symbol_id", "target"]);
+    expect(PROOF_CONTRACT_SCHEMA.properties.success_policy.enum).toEqual([
+      ...SUCCESS_POLICIES,
+    ]);
   });
 
   test("proofResultErrors covers object, outcome, binding, native_id, and diagnostics", () => {
@@ -323,6 +333,52 @@ describe("kibi.proof-run.v1", () => {
         { symbol_id: "SYM-1", target: "t" },
       ]).join(" "),
     ).toMatch(/object|native_id|aliases|source_file|line|duplicates/);
+    expect(
+      proofBindingsErrors([
+        {
+          symbol_id: "SYM-1",
+          target: "t",
+          aliases: "not-array",
+          line: 1.5,
+        },
+      ]).join(" "),
+    ).toMatch(/aliases|line/);
+  });
+
+  test("proofRunArtifactErrors accepts optional executor and valid failure_phase", () => {
+    const artifact = validArtifact();
+    artifact.run.failure_phase = "execution";
+    delete artifact.executor;
+    expect(proofRunArtifactErrors(artifact)).toEqual([]);
+    expect(
+      proofResultErrors(
+        {
+          symbol_id: "SYM-1",
+          target: "default",
+          outcome: "passed",
+          binding: "native_case",
+          attempts: {
+            status: "complete",
+            entries: [{ outcome: "passed", duration_ms: 1.5 }],
+          },
+          diagnostics: "not-array",
+        },
+        "r",
+      ).join(" "),
+    ).toMatch(/duration_ms|diagnostics/);
+    expect(
+      proofRunArtifactErrors({
+        ...validArtifact(),
+        environment: { os: "linux", nested: [1, { ok: true }], undef: undefined },
+      } as never).join(" "),
+    ).toContain("JSON values");
+    expect(
+      proofRunArtifactErrors({
+        ...validArtifact(),
+        producer: { name: "ok" },
+        executor: undefined,
+      }),
+    ).toEqual([]);
   });
 });
 

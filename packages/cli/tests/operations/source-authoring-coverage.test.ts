@@ -374,4 +374,149 @@ describe("writeSourceForUpsert rollback and format branches", () => {
       ),
     ).rejects.toThrow(/YAML source authoring is supported only for symbol manifests/);
   });
+
+  test("normalizes absolute workspace paths and writes symbol manifests", async () => {
+    const root = await workspace();
+    const absolute = path.join(root, "docs", "REQ-ABS.md");
+    await mkdir(path.dirname(absolute), { recursive: true });
+    await writeFile(absolute, "---\nid: REQ-ABS\ntype: req\n---\nold\n");
+    const { normalizeAuthoredSourcePath } = await import(
+      "../../src/operations/mutation/source-authoring.js"
+    );
+    expect(normalizeAuthoredSourcePath(root, absolute)).toBe("docs/REQ-ABS.md");
+
+    const created = await writeSourceForUpsert(
+      {
+        type: "symbol",
+        id: "SYM-NEW",
+        properties: { title: "New", sourceFile: "src/a.ts" },
+        relationships: [
+          { type: "implements", from: "SYM-NEW", to: "REQ-1" },
+          { type: "implements", from: "OTHER", to: "REQ-2" },
+        ],
+      },
+      { id: "SYM-NEW", type: "symbol", title: "New", sourceFile: "src/a.ts" },
+      undefined,
+      context(root),
+    );
+    expect(created?.receipt.path).toBe(".kb/symbols.yaml");
+    const first = await readFile(path.join(root, ".kb", "symbols.yaml"), "utf8");
+    expect(first).toContain("SYM-NEW");
+
+    const updated = await writeSourceForUpsert(
+      {
+        type: "symbol",
+        id: "SYM-NEW",
+        properties: { title: "Renamed" },
+        relationships: [{ type: "covered_by", from: "SYM-NEW", to: "TEST-1" }],
+      },
+      { id: "SYM-NEW", type: "symbol", title: "Renamed" },
+      { id: "SYM-NEW", source: ".kb/symbols.yaml" },
+      context(root),
+    );
+    expect(updated?.receipt.created).toBe(false);
+    const after = await readFile(path.join(root, ".kb", "symbols.yaml"), "utf8");
+    expect(after).toContain("Renamed");
+    expect(after).toContain("TEST-1");
+
+    const sibling = await writeSourceForUpsert(
+      {
+        type: "symbol",
+        id: "SYM-OTHER",
+        properties: { title: "Other" },
+      },
+      { id: "SYM-OTHER", type: "symbol", title: "Other" },
+      { id: "SYM-OTHER", source: ".kb/symbols.yaml" },
+      context(root),
+    );
+    expect(sibling?.receipt.path).toBe(".kb/symbols.yaml");
+    expect(await readFile(path.join(root, ".kb", "symbols.yaml"), "utf8")).toContain(
+      "SYM-OTHER",
+    );
+  });
+
+  test("renderYamlRelationshipDeletion removes typed targets and ignores missing nodes", async () => {
+    const yaml = [
+      "symbols:",
+      "  - id: SYM-1",
+      "    relationships:",
+      "      - type: implements",
+      "        target: REQ-1",
+      "      - type: covered_by",
+      "        to: TEST-1",
+      "  - id: SYM-2",
+      "",
+    ].join("\n");
+    const removed = renderYamlRelationshipDeletion(".kb/symbols.yaml", yaml, {
+      type: "implements",
+      from: "SYM-1",
+      to: "REQ-1",
+    });
+    expect(removed.removed).toBe(true);
+    expect(removed.body).not.toContain("REQ-1");
+    expect(
+      renderYamlRelationshipDeletion(".kb/symbols.yaml", yaml, {
+        type: "implements",
+        from: "SYM-MISSING",
+        to: "REQ-1",
+      }).removed,
+    ).toBe(false);
+    expect(
+      renderYamlRelationshipDeletion(
+        ".kb/symbols.yaml",
+        "symbols:\n  - id: SYM-1\n",
+        { type: "implements", from: "SYM-1", to: "REQ-1" },
+      ).removed,
+    ).toBe(false);
+  });
+
+  test("writeSourceForUpsert rolls back without rename and without unlink", async () => {
+    const root = await workspace();
+    const { rename: _rename, unlink: _unlink, ...limited } = nodeFilesystem;
+    const created = await writeSourceForUpsert(
+      {
+        type: "req",
+        id: "REQ-LIMIT",
+        properties: { title: "Limit" },
+        document: { path: "docs/REQ-LIMIT.md", body: "new\n" },
+      },
+      { id: "REQ-LIMIT", type: "req", title: "Limit" },
+      undefined,
+      context(root, limited),
+    );
+    await created?.rollback();
+    expect(await readFile(path.join(root, "docs", "REQ-LIMIT.md"), "utf8")).toBe("");
+
+    await writeFile(
+      path.join(root, "docs", "REQ-LIMIT.md"),
+      "---\nid: REQ-LIMIT\ntype: req\n---\nold\n",
+    );
+    const updated = await writeSourceForUpsert(
+      {
+        type: "req",
+        id: "REQ-LIMIT",
+        properties: { title: "Next" },
+        document: { path: "docs/REQ-LIMIT.md" },
+      },
+      { id: "REQ-LIMIT", type: "req", title: "Next" },
+      { id: "REQ-LIMIT", source: "docs/REQ-LIMIT.md" },
+      context(root, limited),
+    );
+    await updated?.rollback();
+    expect(await readFile(path.join(root, "docs", "REQ-LIMIT.md"), "utf8")).toContain(
+      "old",
+    );
+  });
+
+  test("canonicalSourcePath and writeSourceForUpsert reject unknown types without a path", async () => {
+    const root = await workspace();
+    expect(() =>
+      canonicalSourcePath(
+        context(root),
+        { type: "note" as "req", id: "NOTE-1", properties: {} },
+        { id: "NOTE-1", type: "note" },
+      ),
+    ).toThrow(/No writable source target/);
+  });
 });
+

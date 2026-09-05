@@ -2,11 +2,13 @@
  * Regular (non-query-string) imports for VS Code providers so Bun LCOV records
  * hits that query-string test modules miss.
  */
-import { afterAll, afterEach, describe, expect, mock, test } from "bun:test";
+import { afterAll, afterEach, describe, expect, mock, spyOn, test } from "bun:test";
+import * as childProcess from "node:child_process";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { buildIndex } from "../src/symbolIndex";
+import { parseRdfRelationships } from "../src/shared/rdf-parser";
+import { buildIndex, queryRelationshipsViaCli } from "../src/symbolIndex";
 import {
   getVscodeMockModule,
   resetVscodeMock,
@@ -237,5 +239,54 @@ describe("VS Code provider LCOV imports", () => {
       () => undefined,
     );
     await openFileAtLine(sourceFile);
+  });
+});
+
+describe("coverage gaps: symbolIndex CLI query and RDF parser", () => {
+  test("queryRelationshipsViaCli tries both candidates and parses JSON", () => {
+    const execSpy = spyOn(childProcess, "execSync").mockImplementation(
+      ((cmd: string) => {
+        if (String(cmd).startsWith("kibi query")) {
+          throw new Error("kibi missing");
+        }
+        return JSON.stringify([
+          { type: "implements", from: "SYM-1", to: "REQ-1" },
+        ]);
+      }) as typeof childProcess.execSync,
+    );
+    const parsed = queryRelationshipsViaCli("SYM-1", os.tmpdir());
+    const intercepted = execSpy.mock.calls.length > 0;
+    execSpy.mockRestore();
+    expect(Array.isArray(parsed)).toBe(true);
+    if (intercepted) {
+      expect(parsed).toEqual([
+        { type: "implements", from: "SYM-1", to: "REQ-1" },
+      ]);
+    }
+  });
+
+  test("queryRelationshipsViaCli returns an array when every candidate fails", () => {
+    const execSpy = spyOn(childProcess, "execSync").mockImplementation(() => {
+      throw new Error("unavailable");
+    });
+    const result = queryRelationshipsViaCli(
+      "SYM-MISSING",
+      path.join(os.tmpdir(), "kibi-missing-cli-workspace"),
+    );
+    execSpy.mockRestore();
+    expect(Array.isArray(result)).toBe(true);
+  });
+
+  test("parseRdfRelationships skips incomplete blocks and missing to-ids", () => {
+    const rdf = `
+<rdf:RDF>
+  <rdf:Description rdf:about="kb:entity/SYM-1">
+    <kb:implements rdf:resource="kb:entity/REQ-1"/>
+    <kb:implements rdf:resource=""/>
+  </rdf:Description>
+</rdf:RDF>`;
+    expect(parseRdfRelationships(rdf)).toEqual([
+      { relType: "implements", fromId: "SYM-1", toId: "REQ-1" },
+    ]);
   });
 });

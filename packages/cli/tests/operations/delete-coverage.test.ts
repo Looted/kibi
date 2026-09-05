@@ -273,4 +273,163 @@ describe("executeDelete guards and relationship preflight", () => {
     expect(result.structuredContent?.relationships_deleted).toBe(0);
     expect(await readFile(absolute, "utf8")).not.toContain("TEST-MD");
   });
+
+  test("returns a supersession plan for authored requirements and a delete plan for other authored entities", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-del-plan-"));
+    workspaces.push(root);
+    const reqPath = ".kb/requirements/REQ-AUTH.md";
+    await mkdir(path.join(root, ".kb", "requirements"), { recursive: true });
+    await writeFile(
+      path.join(root, reqPath),
+      "---\nid: REQ-AUTH\ntype: req\n---\nbody\n",
+    );
+    const req = await executeDelete(
+      { ids: ["REQ-AUTH"] },
+      contextFor(
+        root,
+        (goal) => {
+          if (goal.startsWith("once(kb_entity(")) return { success: true, bindings: {} };
+          if (goal.includes("Dependents")) return { success: true, bindings: { Dependents: "[]" } };
+          if (goal.includes("findall(['REQ-AUTH'")) {
+            return {
+              success: true,
+              bindings: {
+                Results: `[['REQ-AUTH',req,[id='REQ-AUTH',type=req,source="${reqPath}"]]]`,
+              },
+            };
+          }
+          return { success: true, bindings: { Results: "[]" } };
+        },
+        { fs: nodeFilesystem },
+      ),
+    );
+    expect(req.structuredContent?.deletionPlan?.supersessionRequired).toBe(true);
+    expect(req.structuredContent?.errors[0]).toContain("supersession");
+
+    const factPath = ".kb/facts/FACT-AUTH.md";
+    await mkdir(path.join(root, ".kb", "facts"), { recursive: true });
+    await writeFile(
+      path.join(root, factPath),
+      "---\nid: FACT-AUTH\ntype: fact\n---\nbody\n",
+    );
+    const fact = await executeDelete(
+      { ids: ["FACT-AUTH"] },
+      contextFor(
+        root,
+        (goal) => {
+          if (goal.startsWith("once(kb_entity(")) return { success: true, bindings: {} };
+          if (goal.includes("Dependents")) return { success: true, bindings: { Dependents: "[]" } };
+          if (goal.includes("findall(['FACT-AUTH'")) {
+            return {
+              success: true,
+              bindings: {
+                Results: `[['FACT-AUTH',fact,[id='FACT-AUTH',type=fact,source="${factPath}"]]]`,
+              },
+            };
+          }
+          return { success: true, bindings: { Results: "[]" } };
+        },
+        { fs: nodeFilesystem },
+      ),
+    );
+    expect(fact.structuredContent?.deletionPlan?.supersessionRequired).toBe(false);
+    expect(fact.content[0]?.text).toContain("kb_apply_plan");
+  });
+
+  test("blocks dependents, skips protocol sources, and reports empty loadEntity rows", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-del-dep-"));
+    workspaces.push(root);
+    const blocked = await executeDelete(
+      { ids: ["REQ-DEP"] },
+      contextFor(root, (goal) => {
+        if (goal.startsWith("once(kb_entity(")) return { success: true, bindings: {} };
+        if (goal.includes("Dependents")) {
+          return { success: true, bindings: { Dependents: "[[verified_by,TEST-1]]" } };
+        }
+        return { success: true, bindings: { Results: "[]" } };
+      }),
+    );
+    expect(blocked.structuredContent?.errors.join(" ")).toContain("has dependents");
+
+    await expect(
+      executeDelete(
+        { ids: ["REQ-EMPTY"] },
+        contextFor(root, (goal) => {
+          if (goal.startsWith("once(kb_entity(")) return { success: true, bindings: {} };
+          if (goal.includes("Dependents")) return { success: true, bindings: { Dependents: "[]" } };
+          if (goal.includes("findall(['REQ-EMPTY'")) {
+            return { success: true, bindings: { Results: "[]" } };
+          }
+          return { success: true, bindings: { Results: "[]" } };
+        }),
+      ),
+    ).rejects.toThrow(/Entity not found/);
+
+    const proto = await executeDelete(
+      { ids: ["REQ-PROTO"] },
+      contextFor(
+        root,
+        (goal) => {
+          if (goal.startsWith("once(kb_entity(")) return { success: true, bindings: {} };
+          if (goal.includes("Dependents")) return { success: true, bindings: { Dependents: "[]" } };
+          if (goal.includes("findall(['REQ-PROTO'")) {
+            return {
+              success: true,
+              bindings: {
+                Results:
+                  "[['REQ-PROTO',req,[id='REQ-PROTO',type=req,source='mcp://kibi/upsert']]]",
+              },
+            };
+          }
+          if (goal.startsWith("rdf_transaction") || goal.includes("kb_save")) {
+            return { success: true, bindings: {} };
+          }
+          return { success: true, bindings: { Results: "[]" } };
+        },
+        { sourcePlanApplication: true },
+      ),
+    );
+    expect(proto.structuredContent?.deleted).toBe(1);
+  });
+
+  test("patches authored YAML symbol relationships and retracts live compiled edges", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-del-yaml-"));
+    workspaces.push(root);
+    const relative = ".kb/symbols.yaml";
+    await mkdir(path.join(root, ".kb"), { recursive: true });
+    await writeFile(
+      path.join(root, relative),
+      "symbols:\n  - id: SYM-1\n    relationships:\n      - type: implements\n        target: REQ-1\n",
+    );
+    const result = await executeDelete(
+      {
+        relationships: [{ type: "implements", from: "SYM-1", to: "REQ-1" }],
+      },
+      contextFor(
+        root,
+        (goal) => {
+          if (goal.includes("findall(['SYM-1'")) {
+            return {
+              success: true,
+              bindings: {
+                Results: `[['SYM-1',symbol,[id='SYM-1',source="${relative}"]]]`,
+              },
+            };
+          }
+          if (goal.includes("kb_relationship(implements")) {
+            return { success: true, bindings: {} };
+          }
+          if (goal.includes("kb_retract_relationship") || goal.includes("kb_save")) {
+            return { success: true, bindings: {} };
+          }
+          return { success: false, bindings: {} };
+        },
+        { fs: nodeFilesystem },
+      ),
+    );
+    expect(result.structuredContent?.relationships_deleted).toBe(1);
+    expect(result.structuredContent?.sync_required).toBe(true);
+    expect(await readFile(path.join(root, relative), "utf8")).not.toContain("REQ-1");
+  });
 });
+

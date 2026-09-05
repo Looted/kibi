@@ -125,6 +125,30 @@ describe("exported check helpers", () => {
     ).toEqual([]);
   });
 
+  test("checkNoCycles walks an acyclic graph and a second disconnected cycle", async () => {
+    const violations = await checkNoCycles(
+      prolog((goal) => {
+        if (goal.includes("kb_relationship(depends_on")) {
+          return {
+            success: true,
+            bindings: {
+              Deps: "[[REQ-A,REQ-B],[REQ-B,REQ-C],[REQ-X,REQ-Y],[REQ-Y,REQ-X]]",
+            },
+          };
+        }
+        if (goal.includes("kb_entity(")) {
+          return {
+            success: true,
+            bindings: { Props: 'source=^^("docs/entity.md")' },
+          };
+        }
+        return { success: false, bindings: {} };
+      }),
+    );
+    expect(violations[0]?.rule).toBe("no-cycles");
+    expect(violations[0]?.entityId).toBe("REQ-X");
+  });
+
   test("checkRequiredFields reports missing keys from the property list", async () => {
     const violations = await checkRequiredFields(
       prolog((goal) => {

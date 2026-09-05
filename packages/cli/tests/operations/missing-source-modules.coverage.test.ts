@@ -1,3 +1,4 @@
+// implements REQ-mcp-semantic-advisor-preflight
 import { describe, expect, test } from "bun:test";
 
 import { evaluateProseCoverageCorpus } from "../../src/operations/semantic-advisor/prose-coverage-evaluator.js";

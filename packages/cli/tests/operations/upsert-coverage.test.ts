@@ -478,4 +478,67 @@ describe("upsert helpers and executeUpsert guards", () => {
       readFileSync(path.join(relDir, shards[0] ?? ""), "utf8"),
     ).toContain("concurrent rewrite");
   });
+
+  test("executeUpsert writes existing markdown sources and skips contradiction checks", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-upsert-md-"));
+    workspaces.push(root);
+    const result = await executeUpsert(
+      {
+        type: "req",
+        id: "REQ-EXIST",
+        properties: { title: "Exist", status: "open" },
+        _skipContradictionCheck: true,
+      },
+      contextFor(
+        root,
+        async (goal) => {
+          if (goal.includes("findall(") && goal.includes("kb_entity(")) {
+            return {
+              success: true,
+              bindings: {
+                Results:
+                  "[['REQ-EXIST',req,[id='REQ-EXIST',type=req,title='Exist',status=open,source='docs/REQ-EXIST.md']]]",
+              },
+            };
+          }
+          if (goal.startsWith("kb_commit_upsert(")) {
+            return { success: true, bindings: { ChangeKind: "updated" } };
+          }
+          return { success: true, bindings: { Results: "[]" } };
+        },
+        { fs: nodeFilesystem },
+      ),
+    );
+    expect(result.structuredContent?.updated).toBe(1);
+    expect(result.structuredContent?.contradictionCheck?.outcome).toBe("skipped");
+    expect(existsSync(path.join(root, "docs", "REQ-EXIST.md"))).toBe(true);
+  });
+
+  test("executeUpsert skips incomplete relationship tuples and reports skip-contradiction for reqs", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-upsert-relskip-"));
+    workspaces.push(root);
+    const result = await executeUpsert(
+      {
+        type: "req",
+        id: "REQ-SKIP-REL",
+        properties: { title: "Skip rel", status: "open" },
+        relationships: [
+          { type: "relates_to", from: "REQ-SKIP-REL", to: "REQ-OTHER" },
+        ],
+      },
+      contextFor(
+        root,
+        async (goal) => {
+          if (goal.startsWith("kb_commit_upsert(")) {
+            return { success: true, bindings: { ChangeKind: "created" } };
+          }
+          return { success: true, bindings: { Results: "[]" } };
+        },
+        { fs: nodeFilesystem, sourceFirst: false },
+      ),
+    );
+    expect(result.structuredContent?.relationships_created).toBe(1);
+    expect(result.structuredContent?.sourceWrites?.length).toBeGreaterThan(0);
+  });
 });
+

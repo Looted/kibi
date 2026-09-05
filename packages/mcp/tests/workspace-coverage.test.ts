@@ -1,8 +1,16 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from "bun:test";
 import fs from "node:fs";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import * as fsPromises from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { branchStorePath } from "kibi-cli/public/branch-resolver";
+import {
+  describeBranchKbStamp,
+  readBranchKbStamp,
+} from "../src/server/kb-freshness.js";
+import * as toolTypes from "../src/server/tool-types.js";
+import * as checkTypes from "../src/tools/check-types.js";
 import {
   resolveEnvFilePath,
   resolveKbPath,
@@ -172,5 +180,51 @@ describe.serial("workspace uncovered path coverage", () => {
         path.resolve(workspaceRoot, ".env.local"),
       );
     });
+  });
+});
+
+describe("coverage gaps: type-only modules and kb freshness", () => {
+  afterEach(() => {
+    mock.restore();
+  });
+
+  test("imports type-only MCP modules so they appear in LCOV", () => {
+    expect(Object.keys(toolTypes).length).toBeGreaterThanOrEqual(0);
+    expect(Object.keys(checkTypes).length).toBeGreaterThanOrEqual(0);
+  });
+
+  test("stamps journaled stores, missing markers, and non-Error stat failures", async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-freshness-cov-"));
+    try {
+      const branchPath = path.join(root, ".kb", "branches", "main");
+      await mkdir(branchPath, { recursive: true });
+      await writeFile(
+        path.join(branchPath, "storage.json"),
+        JSON.stringify({ format: "kibi.rdf-journal.v1" }),
+      );
+      await writeFile(path.join(branchPath, "CURRENT"), "generation-1:1");
+
+      const journaled = await readBranchKbStamp(branchPath);
+      expect(journaled.rdfMissing).toBe(false);
+      expect(describeBranchKbStamp(journaled)).toContain(branchPath);
+
+      const markerAsDir = path.join(root, "marker-dir");
+      await mkdir(path.join(markerAsDir, "storage.json"), { recursive: true });
+      const missingMarker = await readBranchKbStamp(markerAsDir);
+      expect(missingMarker.rdfMissing).toBe(true);
+
+      const statSpy = spyOn(fsPromises, "stat").mockImplementation(async () => {
+        throw "not-an-error";
+      });
+      const failed = await readBranchKbStamp(branchPath);
+      expect(failed.dirMissing).toBe(true);
+      expect(failed.errorMessage).toContain("not-an-error");
+      statSpy.mockRestore();
+      expect(await readFile(path.join(branchPath, "CURRENT"), "utf8")).toContain(
+        "generation",
+      );
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
   });
 });

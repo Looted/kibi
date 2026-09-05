@@ -319,5 +319,198 @@ describe("telemetry acceptance", () => {
       true,
     );
   });
+
+  test("covers remaining metric, correlation, truncation, and recovery branches", () => {
+    const events: TelemetryUsageEvent[] = [];
+    for (let index = 0; index < 25; index += 1) {
+      events.push({
+        timestamp: timestamp(80 - index),
+        tool: "kb_status",
+        success: true,
+        telemetry: { is_autonomous: true, session_id: "sess-a", actor_id: "act-a" },
+        args: { _diagnostic_telemetry: { ignored: true }, keep: ["nested"] },
+      });
+    }
+    events.push(
+      {
+        timestamp: timestamp(50),
+        tool: "kb_semantic_advisor",
+        status: "success",
+        telemetry_status: "provided",
+        semantic_source_hash: "b".repeat(64),
+        business_args: { requirementId: "REQ-HASH" },
+        session_id: "sess-a",
+      },
+      {
+        timestamp: timestamp(49),
+        tool: "kb_upsert",
+        status: "success",
+        telemetry_status: "provided",
+        semantic_source_hash: "c".repeat(64),
+        mutation_target: "req:REQ-HASH",
+        mutation_fingerprint: '{"id":"REQ-HASH"}',
+        business_args: { type: "req", id: "REQ-HASH" },
+        session_id: "sess-a",
+      },
+      {
+        timestamp: timestamp(48),
+        tool: "kb_validate_upsert",
+        status: "success",
+        validation_valid: false,
+        business_args: { type: "req", id: "REQ-SKIP" },
+      },
+      {
+        timestamp: timestamp(47),
+        tool: "kb_validate_upsert",
+        status: "success",
+        telemetry_status: "provided",
+        business_args: { type: "req", id: "REQ-OK" },
+      },
+      {
+        timestamp: timestamp(46),
+        tool: "kb_upsert",
+        status: "success",
+        telemetry_status: "provided",
+        business_args: { type: "req", id: "REQ-OK" },
+      },
+      {
+        timestamp: timestamp(45),
+        tool: "kb_search",
+        status: "success",
+        telemetry_status: "provided",
+        zero_results: false,
+        result_count: 2,
+        business_args: { sourceFile: "src/b.ts" },
+      },
+      {
+        timestamp: timestamp(44),
+        tool: "kb_query",
+        status: "success",
+        telemetry_status: "provided",
+        zero_results: true,
+        result_count: 0,
+        business_args: { sourceFile: "src/a.ts" },
+      },
+      {
+        timestamp: timestamp(43),
+        tool: "kb_query",
+        status: "success",
+        telemetry_status: "provided",
+        zero_results: true,
+        result_count: 0,
+        business_args: { sourceFile: "src/z.ts" },
+      },
+      {
+        timestamp: timestamp(42),
+        tool: "kb_coverage",
+        status: "success",
+        telemetry_status: "provided",
+        coverage_scope_complete: true,
+        coverage_proof_gap_count: 4,
+        coverage_receipt_gap_count: 1,
+        business_args: { by: "req" },
+      },
+      {
+        timestamp: timestamp(41),
+        tool: "kb_coverage",
+        status: "success",
+        telemetry_status: "provided",
+        coverage_by: "req",
+        coverage_scope_complete: true,
+        coverage_proof_gap_count: 1,
+        coverage_receipt_gap_count: 0,
+        business_args: { by: "req" },
+      },
+      {
+        timestamp: "not-a-date",
+        tool: "kb_upsert",
+        status: "error",
+        error_category: "timeout",
+        business_args: { type: "flag", id: "FLAG-1" },
+      },
+      {
+        timestamp: timestamp(40),
+        tool: "kb_upsert",
+        status: "error",
+        error_category: "timeout",
+        business_args: { type: "flag", id: "FLAG-1" },
+      },
+      {
+        timestamp: timestamp(39),
+        tool: "kb_upsert",
+        status: "success",
+        telemetry_status: "provided",
+        business_args: { type: "flag", id: "FLAG-1" },
+      },
+    );
+    const report = analyzeTelemetryAcceptance(events, NOW, {
+      ...DEFAULT_TELEMETRY_ACCEPTANCE_POLICY,
+      eventLimit: 20,
+      minimumEvents: 5,
+      repeatedMutationFailureThreshold: 3,
+    });
+    expect(report.scope.truncated).toBe(true);
+    expect(
+      report.metrics.find((metric) => metric.id === "proof_gap_recovery")?.status,
+    ).toBe("passed");
+    expect(
+      report.metrics.find((metric) => metric.id === "e2e_receipt_freshness")
+        ?.status,
+    ).toBe("passed");
+    expect(
+      report.metrics.find(
+        (metric) => metric.id === "advisor_before_requirement_write",
+      )?.status,
+    ).toBe("failed");
+    expect(
+      report.metrics.find((metric) => metric.id === "source_lookup_zero_result_rate")
+        ?.evidence,
+    ).toMatchObject({
+      zeroResultSourceFiles: expect.arrayContaining([
+        { sourceFile: "src/a.ts", count: 1 },
+      ]),
+    });
+
+    const singleGap = analyzeTelemetryAcceptance(
+      [
+        {
+          timestamp: timestamp(1),
+          tool: "kb_coverage",
+          status: "success",
+          telemetry_status: "provided",
+          coverage_by: "req",
+          coverage_scope_complete: true,
+          coverage_proof_gap_count: 3,
+        },
+      ],
+      NOW,
+      { ...DEFAULT_TELEMETRY_ACCEPTANCE_POLICY, minimumEvents: 1 },
+    );
+    expect(
+      singleGap.metrics.find((metric) => metric.id === "proof_gap_recovery")
+        ?.status,
+    ).toBe("insufficient_evidence");
+    expect(createTelemetryAcceptanceDiagnostics(singleGap).map((d) => d.id)).toContain(
+      "telemetry_acceptance_incomplete",
+    );
+
+    const staleFreshMetrics = analyzeTelemetryAcceptance(
+      [
+        {
+          timestamp: timestamp(1),
+          tool: "kb_status",
+          telemetry_status: "provided",
+          telemetry: {},
+        },
+      ],
+      new Date("2026-08-20T12:00:00.000Z"),
+      { ...DEFAULT_TELEMETRY_ACCEPTANCE_POLICY, minimumEvents: 1 },
+    );
+    const staleDiagnostics = createTelemetryAcceptanceDiagnostics(staleFreshMetrics);
+    expect(staleDiagnostics.some((item) => item.id === "telemetry_evidence_stale")).toBe(
+      true,
+    );
+    expect(staleDiagnostics[0]?.message).toContain("latest");
+  });
 });
 

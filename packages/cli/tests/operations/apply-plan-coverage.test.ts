@@ -1303,3 +1303,309 @@ describe("migration action executors", () => {
   });
 });
 
+describe("remaining apply-plan shape and recovery branches", () => {
+  async function thinBody(overrides: Record<string, unknown> = {}) {
+    const { bootstrapEmptyKbSnapshotId, bootstrapPlanHash } = await import(
+      "../../src/operations/bootstrap/types.js"
+    );
+    const workspaceSnapshot = "a".repeat(64);
+    const sourceHashes = {};
+    const kbSnapshotId = bootstrapEmptyKbSnapshotId({
+      branch: "develop",
+      workspaceSnapshot,
+      sourceHashes,
+    });
+    const body = {
+      version: "kibi.bootstrap-plan.v1" as const,
+      status: "ready" as const,
+      expected: {
+        branch: "develop",
+        kbSnapshotId,
+        workspaceSnapshot,
+        sourceHashes,
+      },
+      activation: {
+        activationState: "root_active_thin" as const,
+        activationMode: "attached_thin_bootstrap" as const,
+        applyBlocked: false,
+        reason: "thin",
+      },
+      declaredContext: {
+        sourceOfTruthPaths: [],
+        sourceOfTruthNotes: [],
+        priorityRoots: [],
+        verificationAnchors: [],
+      },
+      contextQuestions: [],
+      confidence: {
+        score: 0.9,
+        level: "high" as const,
+        policy: "full_actions" as const,
+      },
+      discoverySummary: {
+        activationState: "root_active_thin" as const,
+        activationMode: "attached_thin_bootstrap" as const,
+        applyBlocked: false,
+        reason: "thin",
+        providersRun: [],
+        providerCounts: {},
+        detectedLanguages: [],
+        detectedTestFrameworks: [],
+        excludedRoots: [],
+        truncated: false,
+        scanWarnings: [],
+      },
+      candidates: [],
+      actions: [
+        {
+          id: "bootstrap-upsert-0001",
+          kind: "upsert" as const,
+          dependsOn: [],
+          payload: {
+            type: "req",
+            id: "REQ-bootstrap-apply",
+            properties: { title: "Bootstrap apply", status: "open" },
+            relationships: [],
+          },
+        },
+      ],
+      sourceWrites: [],
+      suppressedCandidates: [],
+      payoffSummary: {},
+      diagnostics: [],
+      ...overrides,
+    };
+    return { body, planHash: bootstrapPlanHash(body) };
+  }
+
+  test("rejects not-ready, hash, snapshot, empty-action, and cyclic bootstrap plans", async () => {
+    const root = makeTempDir();
+    const ctx = filesystemContext(root);
+    const { body, planHash } = await thinBody({ status: "needs_resolution" });
+    await expect(
+      executeApplyPlan(
+        { plan: { ...body, planHash }, approvedPlanHash: planHash },
+        ctx,
+      ),
+    ).rejects.toThrow(/only ready plans/);
+
+    const ready = await thinBody();
+    await expect(
+      executeApplyPlan(
+        { plan: { ...ready.body, planHash: ready.planHash }, approvedPlanHash: "not-hex" },
+        ctx,
+      ),
+    ).rejects.toThrow(/SHA-256/);
+    await expect(
+      executeApplyPlan(
+        {
+          plan: { ...ready.body, planHash: ready.planHash },
+          approvedPlanHash: "b".repeat(64),
+        },
+        ctx,
+      ),
+    ).rejects.toThrow(/does not match planHash/);
+    await expect(
+      executeApplyPlan(
+        {
+          plan: { ...ready.body, planHash: "c".repeat(64) },
+          approvedPlanHash: "c".repeat(64),
+        },
+        ctx,
+      ),
+    ).rejects.toThrow(/canonical plan body/);
+
+    const badSnap = await thinBody({
+      expected: {
+        branch: "develop",
+        kbSnapshotId: "not-a-snapshot",
+        workspaceSnapshot: "a".repeat(64),
+        sourceHashes: {},
+      },
+    });
+    await expect(
+      executeApplyPlan(
+        { plan: { ...badSnap.body, planHash: badSnap.planHash }, approvedPlanHash: badSnap.planHash },
+        ctx,
+      ),
+    ).rejects.toThrow(/exact KB snapshot/);
+
+    const empty = await thinBody({ actions: [] });
+    await expect(
+      executeApplyPlan(
+        { plan: { ...empty.body, planHash: empty.planHash }, approvedPlanHash: empty.planHash },
+        ctx,
+      ),
+    ).rejects.toThrow(/must contain actions/);
+
+    expect(() =>
+      orderBootstrapActions([
+        {
+          id: "bootstrap-upsert-a",
+          kind: "upsert",
+          dependsOn: ["bootstrap-upsert-b"],
+          payload: { type: "req", id: "REQ-a", properties: {}, relationships: [] },
+        },
+        {
+          id: "bootstrap-upsert-b",
+          kind: "upsert",
+          dependsOn: ["bootstrap-upsert-a"],
+          payload: { type: "req", id: "REQ-b", properties: {}, relationships: [] },
+        },
+      ]),
+    ).toThrow(/dependency cycle/);
+  });
+
+  test("rejects missing source files, missing filesystem, and bootstrap Prolog/status gaps", async () => {
+    const root = makeTempDir();
+    const missing = compilePlan({
+      expected: {
+        branch: "develop",
+        kbSnapshotId: "missing",
+        workspaceSnapshot: "a".repeat(64),
+        sourceHashes: { "docs/missing.md": "a".repeat(64) },
+      },
+    });
+    await expect(
+      executeApplyPlan(
+        { plan: missing, approvedPlanHash: missing.planHash },
+        filesystemContext(root),
+      ),
+    ).rejects.toThrow(/source hash changed/);
+
+    const hashed = compilePlan({
+      expected: {
+        branch: "develop",
+        kbSnapshotId: "missing",
+        workspaceSnapshot: "a".repeat(64),
+        sourceHashes: { "docs/a.md": "a".repeat(64) },
+      },
+    });
+    const { fs: _fs, ...noFs } = filesystemContext(root);
+    await expect(
+      executeApplyPlan({ plan: hashed, approvedPlanHash: hashed.planHash }, noFs),
+    ).rejects.toThrow(/filesystem-capable runtime/);
+
+    const { body, planHash } = await thinBody();
+    await expect(
+      executeApplyPlan(
+        { plan: { ...body, planHash }, approvedPlanHash: planHash },
+        filesystemContext(root, { omitProlog: true }),
+      ),
+    ).rejects.toThrow(/Prolog runtime/);
+  });
+
+  test("rolls back a prepared journal for a newly created file and ignores mismatched journals", async () => {
+    const root = makeTempDir();
+    const after = "after body\n";
+    const writes = [
+      {
+        path: "docs/new.md",
+        mode: "write" as const,
+        beforeHash: null,
+        afterHash: sha(after),
+        body: after,
+      },
+    ];
+    const plan = compilePlan({ sourceWrites: writes });
+    const journalId = `source-writes-${plan.planHash.slice(0, 16)}`;
+    const recoveryDir = path.join(root, ".kb", "recovery");
+    mkdirSync(recoveryDir, { recursive: true });
+    mkdirSync(path.join(root, "docs"), { recursive: true });
+    writeFileSync(path.join(root, "docs", "new.md"), after);
+    writeFileSync(path.join(recoveryDir, `${journalId}-0.after`), after);
+    writeFileSync(
+      path.join(recoveryDir, `${journalId}.json`),
+      `${JSON.stringify({
+        version: 1,
+        planHash: plan.planHash,
+        state: "prepared",
+        entries: [
+          {
+            path: "docs/new.md",
+            mode: "write",
+            beforeHash: null,
+            afterHash: sha(after),
+            beforeExisted: false,
+            beforeStage: path.join(recoveryDir, `${journalId}-0.before`),
+            afterStage: path.join(recoveryDir, `${journalId}-0.after`),
+          },
+        ],
+      }, null, 2)}\n`,
+    );
+    const recovered = await executeApplyPlan(
+      { plan, approvedPlanHash: plan.planHash },
+      filesystemContext(root),
+    );
+    expect(recovered.structuredContent.outcome).toBe("applied");
+
+    const mismatch = compilePlan({
+      sourceWrites: [
+        {
+          path: "docs/other.md",
+          mode: "write",
+          beforeHash: null,
+          afterHash: sha("x\n"),
+          body: "x\n",
+        },
+      ],
+    });
+    const mismatchId = `source-writes-${mismatch.planHash.slice(0, 16)}`;
+    writeFileSync(
+      path.join(recoveryDir, `${mismatchId}.json`),
+      `${JSON.stringify({
+        version: 1,
+        planHash: mismatch.planHash,
+        state: "prepared",
+        entries: [
+          {
+            path: "docs/different.md",
+            mode: "write",
+            beforeHash: null,
+            afterHash: sha("y\n"),
+            beforeExisted: false,
+            beforeStage: "x",
+            afterStage: "y",
+          },
+        ],
+      })}\n`,
+    );
+    const applied = await executeApplyPlan(
+      { plan: mismatch, approvedPlanHash: mismatch.planHash },
+      filesystemContext(root),
+    );
+    expect(applied.structuredContent.changedPaths).toEqual(["docs/other.md"]);
+  });
+
+  test("records committed_with_repairs when a bootstrap upsert returns repair status", async () => {
+    const root = makeTempDir();
+    const { body, planHash } = await thinBody();
+    const result = await executeApplyPlan(
+      { plan: { ...body, planHash }, approvedPlanHash: planHash },
+      filesystemContext(root, {
+        query: {
+          query: async (goal) =>
+            goal.includes("kb_commit_upsert")
+              ? { success: true, bindings: { ChangeKind: "mutated" } }
+              : { success: true, bindings: { Results: "[]" } },
+          queryStatusJson: async () => ({ success: true, bindings: {} }),
+          nextSolution: async () => null,
+          save: async () => ({ success: true, bindings: {} }),
+        },
+      }),
+    );
+    expect(result.structuredContent.outcome).toBe("partially_applied");
+    expect(result.structuredContent.status).toBe("committed_with_repairs");
+  });
+
+  test("rejects compile apply without Prolog after plan validation", async () => {
+    const root = makeTempDir();
+    const plan = compilePlan();
+    const { prolog: _prolog, ensureProlog: _ensure, ...ctx } = filesystemContext(root);
+    await expect(
+      executeApplyPlan({ plan, approvedPlanHash: plan.planHash }, ctx),
+    ).rejects.toThrow(/Prolog runtime/);
+  });
+});
+
+

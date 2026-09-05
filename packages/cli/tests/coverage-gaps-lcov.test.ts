@@ -200,6 +200,98 @@ describe("coverage gaps: discovery tables", () => {
       }),
     )?.toContain("REQ-1");
   });
+
+  test("renders requirement coverage plus repair and legacy migration plans", () => {
+    const rendered = renderDiscoveryTable({
+      summary: {
+        total: 1,
+        fullyCovered: 0,
+      },
+      rows: [
+        {
+          id: "REQ-1",
+          status: "open",
+          priority: "must",
+          coverageStatus: "partial",
+          coverageDepth: "scenario_only",
+          proofStatus: "missing",
+          scenarioCount: 1,
+          testCount: 0,
+          transitiveSymbolCount: 2,
+          gaps: ["missing_test"],
+          proofGaps: ["no_receipt"],
+        },
+        "not-an-object",
+      ],
+      repairPlan: {
+        version: "kibi.repair-plan.v1",
+        planId: "repair-1",
+        status: "ready",
+        scope: { complete: false },
+        summary: { requirementCount: 2, repairCount: 3, batchCount: 26 },
+        batches: Array.from({ length: 26 }, (_, index) => ({
+          order: index + 1,
+          requirementId: `REQ-${index + 1}`,
+          phase: "scenario",
+          state: "ready",
+          dependsOn: index === 0 ? [] : [`REQ-${index}`],
+          repairs: [{ gap: "missing_test" }, "skip"],
+        })),
+      },
+      legacyMigrationPlan: {
+        version: "kibi.legacy-migration.v1",
+        planId: "legacy-1",
+        status: "preview",
+        scope: {
+          repairPlanComplete: false,
+          candidateRequirements: 4,
+          selectedRequirements: 1,
+          nextOffset: 1,
+        },
+        summary: { propositionCount: 2, unresolvedPropositionCount: 1 },
+        batches: [
+          {
+            requirementId: "REQ-1",
+            state: "ready",
+            sourceBinding: { status: "bound" },
+            propositions: [
+              { predicateCandidates: [{ name: "owns" }, { name: "stores" }] },
+              { predicateCandidates: "not-array" },
+            ],
+            diagnostics: ["needs review"],
+          },
+          "skip-batch",
+        ],
+      },
+    });
+    expect(rendered).toContain("REQ-1");
+    expect(rendered).toContain("repair-1");
+    expect(rendered).toContain("legacy-1");
+    expect(rendered).toContain("Showing 25 of 26 repair batches");
+    expect(rendered).toContain("needs review");
+  });
+
+  test("renders non-requirement coverage details and empty helper cells", () => {
+    const rendered = renderDiscoveryTable({
+      summary: { total: 1 },
+      rows: [
+        {
+          id: "SYM-1",
+          type: "symbol",
+          coverageStatus: "uncovered",
+          directRequirementCount: 0,
+          testCount: 0,
+          executableTestCount: 0,
+          count: 1,
+          gaps: [],
+        },
+      ],
+      repairPlan: { status: "empty" },
+      legacyMigrationPlan: { status: "empty" },
+    });
+    expect(rendered).toContain("SYM-1");
+    expect(rendered).toContain("req=0");
+  });
 });
 
 describe("coverage gaps: CLI command registration", () => {

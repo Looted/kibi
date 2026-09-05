@@ -1,3 +1,4 @@
+// implements REQ-014
 import { afterEach, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { PrologProcess, resolveKbPlPath } from "../src/prolog.js";
@@ -121,3 +122,164 @@ describe("PrologProcess leftover query paths", () => {
     await prolog.terminate();
   });
 });
+
+describe("PrologProcess leftover interactive and translation paths", () => {
+  const previousDebug = process.env.KIBI_PROLOG_DEBUG;
+  afterEach(() => {
+    if (previousDebug === undefined) {
+      Reflect.deleteProperty(process.env, "KIBI_PROLOG_DEBUG");
+    } else {
+      process.env.KIBI_PROLOG_DEBUG = previousDebug;
+    }
+  });
+
+  test("interactive start, cache, batch, mutating goals, and terminate twice", async () => {
+    process.env.KIBI_PROLOG_DEBUG = "1";
+    const prolog = new PrologProcess({ oneShot: false, timeout: 15_000 });
+    await prolog.start();
+    expect(prolog.isRunning()).toBe(true);
+    expect(prolog.getPid()).toBeGreaterThan(0);
+    const first = await prolog.query("X = 3");
+    expect(first.success).toBe(true);
+    const cached = await prolog.query("X = 3");
+    expect(cached.bindings.X).toBe("3");
+    const failed = await prolog.query("fail");
+    expect(failed.success).toBe(false);
+    const batch = await prolog.query(["Y = 1", "Z is Y + 2"]);
+    expect(batch.success).toBe(true);
+    const save = await prolog.query("kb_save");
+    expect(typeof save.success).toBe("boolean");
+    const once = await prolog.query("once(true)");
+    expect(once.success).toBe(true);
+    const multiline = await prolog.query("Json = '{a:1}'");
+    expect(multiline.success).toBe(true);
+    await prolog.terminate();
+    await prolog.terminate();
+    expect(prolog.isRunning()).toBe(false);
+    expect(prolog.getPid()).toBe(0);
+  });
+
+  test("one-shot spawn failure, attach empty path, and error translation", async () => {
+    const missing = new PrologProcess({
+      swiplPath: "/definitely/missing/swipl-one-shot",
+      oneShot: true,
+    });
+    const spawned = await missing.query("true");
+    expect(spawned.success).toBe(false);
+    await missing.terminate();
+
+    const prolog = new PrologProcess({ oneShot: true, timeout: 15_000 });
+    const emptyAttach = await prolog.query("kb_attach('')");
+    expect(emptyAttach.success).toBe(false);
+    const detach = await prolog.query("kb_detach");
+    expect(detach.success).toBe(true);
+    const falseQuery = await prolog.query("fail");
+    expect(falseQuery.success).toBe(false);
+    const proto = Object.getPrototypeOf(prolog) as {
+      translateError(text: string): string;
+      extractBindings(output: string): Record<string, string>;
+      addDiagnosticStage(message: string, goal: string, diagnostics: string): string;
+    };
+    expect(proto.translateError.call(prolog, "stale_snapshot")).toContain(
+      "stale_snapshot",
+    );
+    expect(
+      proto.translateError.call(
+        prolog,
+        "audit.log lock permission Resource temporarily unavailable",
+      ),
+    ).toContain("Audit journal");
+    expect(
+      proto.translateError.call(
+        prolog,
+        "Target entity does not exist: `'REQ-TEST'` does not exist",
+      ),
+    ).toContain("Target entity");
+    expect(
+      proto.translateError.call(
+        prolog,
+        "Source entity does not exist: `'REQ-SRC'` does not exist",
+      ),
+    ).toContain("Source entity");
+    expect(
+      proto.translateError.call(prolog, "entity `'REQ-X'` does not exist"),
+    ).toContain("Entity does not exist");
+    expect(
+      proto.translateError.call(
+        prolog,
+        "Type error: `relationship' expected (Invalid relationship: foo)",
+      ),
+    ).toContain("Invalid relationship");
+    expect(
+      proto.translateError.call(prolog, "Type error: `relationship' expected"),
+    ).toContain("Invalid relationship type");
+    expect(proto.translateError.call(prolog, "existence_error")).toContain(
+      "Predicate or file not found",
+    );
+    expect(proto.translateError.call(prolog, "permission_error")).toContain(
+      "Access denied",
+    );
+    expect(proto.translateError.call(prolog, "syntax_error")).toContain(
+      "Invalid query syntax",
+    );
+    expect(proto.translateError.call(prolog, "timeout_error")).toContain(
+      "timeout",
+    );
+    expect(proto.translateError.call(prolog, "ERROR: mystery")).toContain(
+      "mystery",
+    );
+    expect(proto.translateError.call(prolog, "Unknown procedure")).toContain(
+      "Predicate or file not found",
+    );
+    expect(proto.translateError.call(prolog, "Operator expected")).toContain(
+      "Invalid query syntax",
+    );
+    expect(
+      proto.translateError.call(
+        prolog,
+        "__KIBI_STAGE__:commit\nERROR:   \n** banner **\n",
+      ),
+    ).toBe("Unknown error");
+    expect(proto.translateError.call(prolog, "")).toBe("Unknown error");
+    expect(
+      proto.extractBindings.call(prolog, "Json='{\n  \"a\": 1\n}'."),
+    ).toMatchObject({ Json: expect.stringContaining("{") });
+    expect(
+      proto.addDiagnosticStage.call(
+        prolog,
+        "msg",
+        "kb_commit_upsert(x)",
+        "__KIBI_STAGE__:commit\n",
+      ),
+    ).toContain("stage=commit");
+    expect(
+      proto.addDiagnosticStage.call(prolog, "msg", "true", "no-stage"),
+    ).toBe("msg");
+    await prolog.terminate();
+  });
+
+  test("interactive start fails when the child prints ERROR", async () => {
+    const { chmodSync, mkdtempSync, writeFileSync } = await import("node:fs");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+    const root = mkdtempSync(join(tmpdir(), "kibi-swipl-err-"));
+    const fake = join(root, "swipl");
+    writeFileSync(fake, "#!/bin/sh\necho ERROR: boom >&2\nexit 1\n");
+    chmodSync(fake, 0o755);
+    const prolog = new PrologProcess({
+      swiplPath: fake,
+      oneShot: false,
+      timeout: 2_000,
+    });
+    await expect(prolog.start()).rejects.toThrow(/kb module|terminated|ERROR/i);
+    await prolog.terminate();
+  });
+
+  test("interactive query times out on a sleeping goal", async () => {
+    const prolog = new PrologProcess({ oneShot: false, timeout: 200 });
+    await prolog.start();
+    await expect(prolog.query("sleep(2)")).rejects.toThrow(/timeout/i);
+    await prolog.terminate();
+  });
+});
+

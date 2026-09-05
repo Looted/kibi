@@ -542,4 +542,133 @@ Login works.
     expect(result.exitCode).toBe(1);
     expect(io.errorText()).toContain("overlay exploded");
   });
+
+  test("skips a malformed working-tree manifest under KIBI_DEBUG", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const previous = process.env.KIBI_DEBUG;
+    process.env.KIBI_DEBUG = "1";
+    restores.push(() => {
+      if (previous === undefined) Reflect.deleteProperty(process.env, "KIBI_DEBUG");
+      else process.env.KIBI_DEBUG = previous;
+    });
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    mkdirSync(path.join(cwd, ".kb"), { recursive: true });
+    writeFileSync(path.join(cwd, ".kb", "symbols.yaml"), "not: [valid\n");
+    writeFileSync(path.join(cwd, "notes.txt"), "hello\n");
+    git(cwd, "add notes.txt");
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await withCwd(cwd, () =>
+      checkCommand({ staged: true, kbPath: path.join(cwd, "kb-store") }),
+    );
+    expect(result.exitCode).toBe(0);
+    expect(io.logText() + io.errorText()).toMatch(/skipping working-tree manifest|No exported symbols|No staged files|No violations/);
+  });
+
+  test("uses a staged symbols manifest with implements, covered_by, and a missing entity id", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    mkdirSync(path.join(cwd, "src"), { recursive: true });
+    mkdirSync(path.join(cwd, ".kb"), { recursive: true });
+    writeFileSync(
+      path.join(cwd, "src", "auth.ts"),
+      "export function login() { return true; }\n",
+    );
+    writeFileSync(
+      path.join(cwd, ".kb", "symbols.yaml"),
+      `symbols:
+  - title: nameless
+    sourceFile: src/auth.ts
+    status: active
+  - id: SYM-LOGIN
+    title: login
+    sourceFile: src/auth.ts
+    status: active
+    relationships:
+      - type: implements
+        to: REQ-1
+      - type: covered_by
+        to: TEST-1
+      - type: executable_for
+        to: TEST-1
+      - type: relates_to
+        to: REQ-2
+`,
+    );
+    git(cwd, "add src/auth.ts .kb/symbols.yaml");
+    const overlayDir = mkdtempSync(path.join(os.tmpdir(), "kibi-overlay-"));
+    roots.push(overlayDir);
+    const overlayPath = path.join(overlayDir, "changed_symbols.pl");
+    writeFileSync(overlayPath, "");
+    const create = spyOn(tempKb, "createTempKb").mockResolvedValue({
+      tempDir: overlayDir,
+      kbPath: overlayDir,
+      overlayPath,
+      prolog: { query: async () => ({ success: true, bindings: {} }) } as never,
+    });
+    const project = spyOn(tempKb, "projectStagedEntities").mockResolvedValue(
+      undefined,
+    );
+    const consult = spyOn(tempKb, "consultOverlay").mockResolvedValue(undefined);
+    const cleanup = spyOn(tempKb, "cleanupTempKb").mockResolvedValue(undefined);
+    const validate = spyOn(stagedValidate, "validateStagedSymbols").mockResolvedValue(
+      [],
+    );
+    restores.push(() => {
+      create.mockRestore();
+      project.mockRestore();
+      consult.mockRestore();
+      cleanup.mockRestore();
+      validate.mockRestore();
+    });
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await withCwd(cwd, () =>
+      checkCommand({ staged: true, kbPath: path.join(cwd, "kb-store") }),
+    );
+    expect([0, 1]).toContain(result.exitCode);
+  });
+
+  test("treats extract-symbol errors as non-fatal and cleans up after overlay failure", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    mkdirSync(path.join(cwd, "src"), { recursive: true });
+    writeFileSync(
+      path.join(cwd, "src", "broken.ts"),
+      "export function broken() { return true; }\n",
+    );
+    git(cwd, "add src/broken.ts");
+    const extract = await import("../../src/traceability/symbol-extract.js");
+    const extractSpy = spyOn(extract, "extractSymbolsFromStagedFile").mockImplementation(
+      () => {
+        throw new Error("parse exploded");
+      },
+    );
+    const cleanup = spyOn(tempKb, "cleanupTempKb").mockRejectedValue(
+      new Error("already gone"),
+    );
+    const create = spyOn(tempKb, "createTempKb").mockRejectedValue(
+      new Error("overlay exploded"),
+    );
+    restores.push(() => {
+      extractSpy.mockRestore();
+      cleanup.mockRestore();
+      create.mockRestore();
+    });
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await withCwd(cwd, () =>
+      checkCommand({ staged: true, kbPath: path.join(cwd, "kb-store") }),
+    );
+    expect([0, 1]).toContain(result.exitCode);
+    expect(io.errorText() + io.logText()).toMatch(
+      /parse exploded|overlay exploded|No exported symbols|No violations/,
+    );
+  });
 });

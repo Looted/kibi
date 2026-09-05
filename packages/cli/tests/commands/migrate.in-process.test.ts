@@ -237,4 +237,142 @@ status: open
     expect(result.exitCode).toBe(1);
     expect(io.errorText()).toContain("Missing .kb/ lifecycle state");
   });
+
+  test("blocks legacy branch storage before schema migration", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    writeManifest(cwd, 4);
+    mkdirSync(path.join(cwd, ".kb", "branches", "main"), { recursive: true });
+    writeFileSync(path.join(cwd, ".kb", "branches", "main", "kb.rdf"), "legacy\n");
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await migrateCommand({ yes: true, workspaceRoot: cwd });
+    expect(result.exitCode).toBe(1);
+    expect(io.errorText()).toContain("Legacy branch attachment");
+  });
+
+  test("treats an invalid schemaVersion as missing and upgrades it", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    writeManifest(cwd, "not-a-number");
+    const io = captureIo();
+    restores.push(io.restore);
+    const preview = await migrateCommand({
+      dryRun: true,
+      yes: true,
+      workspaceRoot: cwd,
+    });
+    expect(preview.exitCode).toBe(0);
+    expect(io.logText()).toContain("invalid");
+    const applied = await migrateCommand({ yes: true, workspaceRoot: cwd });
+    expect(applied.exitCode).toBe(0);
+    expect(io.logText()).toContain("Migrated the KB");
+  });
+
+  test("reports an existing audit file when already current", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    await withCwd(cwd, () => initCommand({}));
+    mkdirSync(path.join(cwd, ".kb", "migrations"), { recursive: true });
+    writeFileSync(path.join(cwd, ".kb", "migrations", "main.json"), "{}\n");
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await migrateCommand({ yes: true, workspaceRoot: cwd });
+    expect(result.exitCode).toBe(0);
+    expect(io.logText()).toContain("No migration needed");
+    expect(io.logText()).toContain("Existing migration audit metadata");
+  });
+
+  test("marks coarse symbol links during a v1 schema upgrade", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    writeManifest(cwd, 1);
+    mkdirSync(path.join(cwd, "src"), { recursive: true });
+    writeFileSync(
+      path.join(cwd, "src", "auth.ts"),
+      "export function login() { return true; }\nexport function logout() { return false; }\n",
+    );
+    writeFileSync(
+      path.join(cwd, ".kb", "symbols.yaml"),
+      `symbols:
+  - id: SYM-auth
+    title: auth
+    sourceFile: src/auth.ts
+    status: active
+    relationships:
+      - type: implements
+        to: REQ-1
+  - id: SYM-login
+    title: login
+    sourceFile: src/auth.ts
+    status: active
+    links: [REQ-1]
+    granularity_reason: already-set
+  - not-an-object
+  - id: 12
+  - id: SYM-skip
+    title: skip
+    sourceFile: src/missing.ts
+    relationships:
+      - type: implements
+        to: REQ-1
+  - id: SYM-norel
+    title: norel
+    sourceFile: src/auth.ts
+  - id: SYM-badrel
+    title: badrel
+    sourceFile: src/auth.ts
+    relationships:
+      - null
+      - []
+      - { type: 1 }
+      - { type: relates_to }
+`,
+    );
+    writeFileSync(path.join(cwd, ".kb", "invalid-symbols.yaml"), "[]");
+    const io = captureIo();
+    restores.push(io.restore);
+    const preview = await migrateCommand({
+      dryRun: true,
+      yes: true,
+      workspaceRoot: cwd,
+    });
+    expect(preview.exitCode).toBe(0);
+    const applied = await migrateCommand({ yes: true, workspaceRoot: cwd });
+    expect(applied.exitCode).toBe(0);
+    expect(io.logText()).toMatch(/legacy-link|Migrated the KB/);
+  });
+
+  test("apply-safe with explicit action ids and json output stays deterministic", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    await withCwd(cwd, () => initCommand({}));
+    const io = captureIo();
+    restores.push(io.restore);
+    const preview = await migrateCommand({
+      format: "json",
+      workspaceRoot: cwd,
+    });
+    expect(preview.exitCode).toBe(0);
+    const plan = JSON.parse(io.logText());
+    await expect(
+      migrateCommand({
+        applySafe: true,
+        approvedPlanHash: plan.planHash,
+        approvedActionIds: ["missing-action"],
+        format: "json",
+        workspaceRoot: cwd,
+      }),
+    ).rejects.toThrow(/not present in the plan|approvedActionIds/);
+  });
 });

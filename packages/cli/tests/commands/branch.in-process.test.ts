@@ -16,6 +16,7 @@ import {
 import {
   captureIo,
   createGitWorkspace,
+  createTempDir,
   isolateKibiEnv,
   removeTempDir,
   restoreWorkspaceCwd,
@@ -386,5 +387,117 @@ describe("branch commands", () => {
     await expect(
       branchRecoverCommand({ workspaceRoot: cwd }),
     ).rejects.toThrow(/exact Git\/KB attachment|migrate legacy/);
+  });
+
+  test("recover journal apply covers committed, incomplete, and conflicting states", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    const journalDir = path.join(cwd, ".kb", "recovery", "branch-migrations");
+    mkdirSync(journalDir, { recursive: true });
+    writeFileSync(
+      path.join(journalDir, "done.json"),
+      JSON.stringify({
+        version: 2,
+        state: "committed",
+        to: "main",
+        sourcePath: ".kb/branches/main",
+        targetPath: ".kb/branches/target",
+        stagingPath: ".kb/branches/staging",
+        backupPath: ".kb/recovery/backup",
+      }),
+    );
+    await branchMigrateCommand({
+      workspaceRoot: cwd,
+      recoverJournal: "done",
+      apply: true,
+    });
+
+    writeFileSync(
+      path.join(journalDir, "incomplete.json"),
+      JSON.stringify({
+        version: 2,
+        state: "prepared",
+        to: "main",
+        sourcePath: ".kb/branches/missing-source",
+        targetPath: ".kb/branches/missing-target",
+        stagingPath: ".kb/branches/missing-staging",
+        backupPath: ".kb/recovery/missing-backup",
+      }),
+    );
+    await expect(
+      branchMigrateCommand({
+        workspaceRoot: cwd,
+        recoverJournal: "incomplete",
+        apply: true,
+      }),
+    ).rejects.toThrow(/remains incomplete/);
+
+    const source = path.join(cwd, ".kb", "branches", "main");
+    const target = branchStorePath(cwd, "main");
+    mkdirSync(source, { recursive: true });
+    mkdirSync(target, { recursive: true });
+    writeFileSync(path.join(source, "kb.rdf"), "legacy\n");
+    writeFileSync(path.join(target, "kb.rdf"), "hashed\n");
+    writeFileSync(
+      path.join(journalDir, "conflict.json"),
+      JSON.stringify({
+        version: 2,
+        state: "prepared",
+        to: "main",
+        sourcePath: path.relative(cwd, source),
+        targetPath: path.relative(cwd, target),
+        stagingPath: ".kb/branches/staging-conflict",
+        backupPath: ".kb/recovery/backup-conflict",
+      }),
+    );
+    await expect(
+      branchMigrateCommand({
+        workspaceRoot: cwd,
+        recoverJournal: "conflict",
+        apply: true,
+      }),
+    ).rejects.toThrow(/both legacy source and target/);
+  });
+
+  test("restore skips malformed quarantine metadata and rejects identity mismatch", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    const hashed = path.basename(branchStorePath(cwd, "main"));
+    const keyRoot = path.join(cwd, ".kb", "quarantine", "branches", hashed);
+    const bad = path.join(keyRoot, "bad");
+    const good = path.join(keyRoot, "good");
+    mkdirSync(bad, { recursive: true });
+    mkdirSync(good, { recursive: true });
+    writeFileSync(path.join(bad, "quarantine.json"), "{not json");
+    writeFileSync(
+      path.join(good, "quarantine.json"),
+      JSON.stringify({ branch: "main" }),
+    );
+    writeFileSync(path.join(good, "branch.json"), "{}\n");
+    const io = captureIo();
+    restores.push(io.restore);
+    await branchRestoreCommand({ workspaceRoot: cwd, branch: "main" });
+    expect(io.logText()).toContain("Preview only");
+    await expect(
+      branchRestoreCommand({
+        workspaceRoot: cwd,
+        branch: "main",
+        apply: true,
+      }),
+    ).rejects.toThrow(/identity mismatch/);
+  });
+
+  test("ensure fails outside git", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const nongit = createTempDir("kibi-branch-nongit-");
+    roots.push(nongit);
+    await expect(branchEnsureCommand({ workspaceRoot: nongit })).rejects.toThrow(
+      /Failed to resolve active branch/,
+    );
   });
 });
