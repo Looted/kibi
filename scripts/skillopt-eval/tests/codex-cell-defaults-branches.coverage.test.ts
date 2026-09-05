@@ -403,3 +403,173 @@ describe("defaultCodexCellDependencies leftover wiring", () => {
     expect(sealed.diagnostic.integrityValid).toBe(false);
   });
 });
+
+describe("sealDefaultCellEvidence protocol unwrap and targeted workflow signals", () => {
+  test("unwraps kibiProtocol v1 structuredContent and scores stale/recovery/dirty signals", () => {
+    const manifest = parsePrivateEvaluatorManifest(
+      JSON.stringify({
+        ...evaluatorManifest("predicate"),
+        expectedFinalState: [
+          {
+            key: "stale-reasons",
+            query: "workflow://signal/0",
+            expected: true,
+            critical: false,
+          },
+          {
+            key: "recovery-boundary",
+            query: "workflow://signal/1",
+            expected: true,
+            critical: false,
+          },
+          {
+            key: "dirty-worktree",
+            query: "workflow://signal/2",
+            expected: true,
+            critical: false,
+          },
+          {
+            key: "proof-state",
+            query: "workflow://closeout/proof-state",
+            expected: "mixed",
+            critical: false,
+          },
+        ],
+        workflowExpectation: {
+          expectedOutcome: "blocked",
+          expectedKbState: "dirty",
+          expectedVerificationState: "not_evaluated",
+          expectedProofState: "mixed",
+          expectedLimitationDisposition: "not_applicable",
+          requiredSignals: [
+            "stale reasons identified",
+            "recovery boundary reported",
+            "dirty worktree evidence preserved",
+          ],
+          forbiddenActions: [],
+          closeout: {
+            taskOutcome: "blocked",
+            kbState: "dirty",
+            verificationState: "not_evaluated",
+            proofState: "mixed",
+            limitationDisposition: "not_applicable",
+          },
+        },
+      }),
+    );
+    const query = {
+      isError: false,
+      structured_content: {
+        kibiProtocol: 1,
+        data: { entities: [{ id: "SYM-1" }], recover: true, migrate: true },
+      },
+    };
+    const status = {
+      structuredContent: {
+        kibiProtocol: 1,
+        data: {
+          dirty: true,
+          staleReasons: ["compiled-store-stale"],
+          sync: "needed",
+        },
+      },
+    };
+    const coverage = {
+      structuredContent: {
+        kibiProtocol: 1,
+        data: {
+          repairPlan: { scope: { complete: true } },
+          summary: { proofProven: "n/a", proofMissing: "n/a" },
+          rows: [
+            { proofStatus: "proven" },
+            "skip",
+            { proofStatus: "unresolved" },
+          ],
+        },
+      },
+    };
+    const sealed = sealDefaultCellEvidence(
+      {
+        evaluatorManifest: manifest,
+        finalStateRequests: [
+          { tool: "kb_query", args: {} },
+          { tool: "kb_status", args: {} },
+          { tool: "kb_coverage", args: { by: "req" } },
+        ],
+      },
+      {
+        finalState: `${JSON.stringify({
+          schemaVersion: "1.0.0",
+          workspaceRoot: "/isolated/workspace",
+          requests: [
+            [query, "kb_query"],
+            [status, "kb_status"],
+            [coverage, "kb_coverage"],
+          ].map(([result, tool]) => ({
+            tool,
+            args: tool === "kb_coverage" ? { by: "req" } : {},
+            result,
+            resultHash: resultHash(result),
+          })),
+        })}\n`,
+        brokerTrace: "",
+        diagnosticReceipt: "",
+      },
+    );
+    expect(sealed.finalState.closeout.kbState).toBe("stale");
+    expect(sealed.finalState.closeout.proofState).toBe("mixed");
+    expect(
+      sealed.finalState.claims.filter((claim) =>
+        ["stale-reasons", "recovery-boundary", "dirty-worktree"].includes(
+          claim.key,
+        ),
+      ),
+    ).toEqual([
+      { key: "stale-reasons", value: true },
+      { key: "recovery-boundary", value: true },
+      { key: "dirty-worktree", value: true },
+    ]);
+  });
+
+  test("falls back to unresolved proof when protocol data is not a record", () => {
+    const manifest = parsePrivateEvaluatorManifest(
+      JSON.stringify({
+        ...evaluatorManifest("predicate"),
+        expectedFinalState: [
+          {
+            key: "proof-state",
+            query: "workflow://closeout/proof-state",
+            expected: "unresolved",
+            critical: false,
+          },
+        ],
+      }),
+    );
+    const coverage = {
+      structuredContent: { kibiProtocol: 1, data: "not-a-record" },
+    };
+    const sealed = sealDefaultCellEvidence(
+      {
+        evaluatorManifest: manifest,
+        finalStateRequests: [{ tool: "kb_coverage", args: { by: "req" } }],
+      },
+      {
+        finalState: `${JSON.stringify({
+          schemaVersion: "1.0.0",
+          workspaceRoot: "/tmp",
+          requests: [
+            {
+              tool: "kb_coverage",
+              args: { by: "req" },
+              result: coverage,
+              resultHash: resultHash(coverage),
+            },
+          ],
+        })}\n`,
+        brokerTrace: "",
+        diagnosticReceipt: "",
+      },
+    );
+    expect(sealed.finalState.closeout.proofState).toBe("not_evaluated");
+  });
+});

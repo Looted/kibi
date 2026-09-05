@@ -288,3 +288,172 @@ describe("refreshCoordinatesForSymbolId remaining legacy and cleanup branches", 
     await expect(handleKbSymbolsRefresh({ workspaceRoot: root })).rejects.toThrow();
   });
 });
+
+describe("handleKbSymbolsRefresh fillMissingCoordinates leftover branches", () => {
+  test("misses a title regex, keeps matching generated coords, and strips invalid spans", async () => {
+    const root = tempWorkspace();
+    writeFileSync(
+      path.join(root, "src", "keep.ts"),
+      "export function keepMatch() {}\n",
+    );
+    writeFileSync(
+      path.join(root, "src", "miss.ts"),
+      "export function otherName() {}\n",
+    );
+    writeFileSync(path.join(root, "src", "notes.md"), "# notes\n");
+    writeManifest(
+      root,
+      [
+        "symbols:",
+        "  - not-a-record",
+        "  - id: SYM-KEEP",
+        "    title: keepMatch",
+        "    sourceFile: src/keep.ts",
+        "    sourceLine: 1",
+        "    sourceColumn: 16",
+        "    sourceEndLine: 1",
+        "    sourceEndColumn: 25",
+        "  - id: SYM-MISS",
+        "    title: noSuchTitle",
+        "    sourceFile: src/miss.ts",
+        "  - id: SYM-INVALID",
+        "    title: keepMatch",
+        "    sourceFile: src/keep.ts",
+        "    sourceLine: 0",
+        "    sourceColumn: 0",
+        "    sourceEndLine: 0",
+        "    sourceEndColumn: 0",
+        "  - id: SYM-MD",
+        "    title: notes",
+        "    sourceFile: src/notes.md",
+        "  - id: SYM-GONE",
+        "    title: missingFile",
+        "    sourceFile: src/does-not-exist.ts",
+        "  - id: SYM-NOSRC",
+        "    title: onlyTitle",
+        "  - id: SYM-NOTITLE",
+        "    sourceFile: src/miss.ts",
+      ].join("\n"),
+    );
+
+    const result = await handleKbSymbolsRefresh({ workspaceRoot: root });
+    expect(result.structuredContent?.failed).toBeGreaterThanOrEqual(1);
+    expect(result.structuredContent?.unchanged).toBeGreaterThanOrEqual(1);
+    expect(coordinates(root)["SYM-KEEP"]).toEqual(
+      expect.objectContaining({ sourceFile: "src/keep.ts", sourceLine: 1 }),
+    );
+    expect(coordinates(root)["SYM-MISS"]).toBeUndefined();
+    expect(coordinates(root)["SYM-INVALID"]).toEqual(
+      expect.objectContaining({ sourceFile: "src/keep.ts" }),
+    );
+    expect(coordinates(root)["SYM-MD"]).toBeUndefined();
+    expect(coordinates(root)["SYM-GONE"]).toBeUndefined();
+    expect(coordinates(root)["SYM-NOSRC"]).toBeUndefined();
+  });
+
+  test("fills coarse full-file spans when the title is absent and catches unreadable sources", async () => {
+    const root = tempWorkspace();
+    writeFileSync(
+      path.join(root, "src", "coarse-miss.ts"),
+      "line-one\nline-two\n",
+    );
+    mkdirSync(path.join(root, "src", "unreadable-dir"));
+    writeManifest(
+      root,
+      [
+        "symbols:",
+        "  - id: SYM-COARSE-EMPTY",
+        "    title: \"\"",
+        "    sourceFile: src/coarse-miss.ts",
+        "    granularity_reason: extractor-miss",
+        "  - id: SYM-COARSE-MISS",
+        "    title: absentTitle",
+        "    sourceFile: src/coarse-miss.ts",
+        "    granularity_reason: test-suite",
+        "  - id: SYM-READ-CATCH",
+        "    title: ghost",
+        "    sourceFile: src/unreadable-dir",
+        "    granularity_reason: config-artifact",
+      ].join("\n"),
+    );
+
+    const result = await handleKbSymbolsRefresh({ workspaceRoot: root });
+    expect(result.structuredContent?.refreshed).toBeGreaterThanOrEqual(1);
+    expect(coordinates(root)["SYM-COARSE-EMPTY"]).toEqual(
+      expect.objectContaining({
+        sourceFile: "src/coarse-miss.ts",
+        sourceLine: 1,
+        sourceEndLine: 2,
+      }),
+    );
+    expect(coordinates(root)["SYM-COARSE-MISS"]).toEqual(
+      expect.objectContaining({
+        sourceFile: "src/coarse-miss.ts",
+        sourceLine: 1,
+        sourceEndLine: 2,
+      }),
+    );
+    expect(coordinates(root)["SYM-READ-CATCH"]).toBeUndefined();
+  });
+
+  test("rejects a non-array symbols manifest and treats eligible title misses as failed", async () => {
+    const root = tempWorkspace();
+    writeManifest(root, "symbols: false\n");
+    await expect(handleKbSymbolsRefresh({ workspaceRoot: root })).rejects.toThrow(
+      /Invalid symbols manifest/,
+    );
+
+    writeFileSync(path.join(root, "src", "fail.ts"), "export const other = 1;\n");
+    writeManifest(
+      root,
+      "symbols:\n  - id: SYM-FAIL\n    title: neverHere\n    sourceFile: src/fail.ts\n",
+    );
+    const result = await handleKbSymbolsRefresh({ workspaceRoot: root });
+    expect(result.structuredContent?.failed).toBe(1);
+    expect(result.structuredContent?.refreshed).toBe(0);
+  });
+});
+
+describe("refreshCoordinatesForSymbolId leftover not-found and delete branches", () => {
+  test("returns not-found for invalid manifests and unknown ids", async () => {
+    const root = tempWorkspace();
+    writeManifest(root, "not: a-mapping\n");
+    expect(await refreshCoordinatesForSymbolId("SYM-X", root)).toEqual({
+      refreshed: false,
+      found: false,
+    });
+
+    writeManifest(root, "symbols:\n  - id: SYM-OTHER\n    title: other\n");
+    expect(await refreshCoordinatesForSymbolId("SYM-MISSING", root)).toEqual({
+      refreshed: false,
+      found: false,
+    });
+  });
+
+  test("deletes an existing artifact record when fill cannot recover coordinates", async () => {
+    const root = tempWorkspace();
+    writeFileSync(path.join(root, "src", "gone.ts"), "export function leftover() {}\n");
+    writeManifest(
+      root,
+      "symbols:\n  - id: SYM-DROP\n    title: neverHere\n    sourceFile: src/gone.ts\n",
+    );
+    writeFileSync(
+      path.join(root, ".kb", "symbol-coordinates.yaml"),
+      [
+        "coordinates:",
+        "  SYM-DROP:",
+        "    sourceFile: src/gone.ts",
+        "    sourceLine: 1",
+        "    sourceColumn: 0",
+        "    sourceEndLine: 1",
+        "    sourceEndColumn: 4",
+        "",
+      ].join("\n"),
+    );
+
+    const result = await refreshCoordinatesForSymbolId("SYM-DROP", root);
+    expect(result.found).toBe(true);
+    expect(result.refreshed).toBe(false);
+    expect(coordinates(root)["SYM-DROP"]).toBeUndefined();
+  });
+});

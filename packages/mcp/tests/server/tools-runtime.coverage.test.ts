@@ -1,3 +1,4 @@
+// implements REQ-008
 import { afterEach, describe, expect, mock, test } from "bun:test";
 import type { PrologProcess } from "kibi-runtime";
 
@@ -185,5 +186,91 @@ describe("DEFAULT_TOOLS_RUNTIME session wiring", () => {
     await expect(
       DEFAULT_TOOLS_RUNTIME.handleSparql({ query: "SELECT * WHERE {}" }, context),
     ).rejects.toThrow();
+  });
+
+  test("refreshAttachedBranchStamp skips a null path and swallows non-debug errors", async () => {
+    const previousDebug = process.env.KIBI_MCP_DEBUG;
+    Reflect.deleteProperty(process.env, "KIBI_MCP_DEBUG");
+    const warn = mock((..._args: unknown[]) => {});
+    const originalWarn = console.warn;
+    console.warn = warn as typeof console.warn;
+    const { session } = createSession(null);
+    const update = mock((_stamp: unknown) => {
+      throw "stamp exploded";
+    });
+    session.updateAttachedBranchStamp = update;
+    _setToolsServerDepsForTests(
+      { getSessionModule: async () => session as never },
+      true,
+    );
+    try {
+      const skipped = await DEFAULT_TOOLS_RUNTIME.operationRuntime.open(
+        {
+          name: "kb_skills_list",
+          requiresProlog: false,
+          effects: ["local-read"],
+        } as never,
+        {},
+      );
+      expect(skipped.workspaceRoot).toBeDefined();
+      expect(update).not.toHaveBeenCalled();
+    } finally {
+      console.warn = originalWarn;
+      if (previousDebug === undefined) {
+        Reflect.deleteProperty(process.env, "KIBI_MCP_DEBUG");
+      } else {
+        process.env.KIBI_MCP_DEBUG = previousDebug;
+      }
+    }
+  });
+
+  test("refreshAttachedBranchStamp records a real stamp and exposes diagnostic helpers", async () => {
+    const { mkdtempSync, rmSync } = await import("node:fs");
+    const { tmpdir } = await import("node:os");
+    const path = await import("node:path");
+    const kbPath = mkdtempSync(path.join(tmpdir(), "kibi-mcp-stamp-"));
+    const recorded: unknown[] = [];
+    const { session } = createSession(kbPath);
+    session.updateAttachedBranchStamp = mock((stamp: unknown) => {
+      recorded.push(stamp);
+    });
+    _setToolsServerDepsForTests(
+      { getSessionModule: async () => session as never },
+      true,
+    );
+    try {
+      await DEFAULT_TOOLS_RUNTIME.operationRuntime.open(
+        {
+          name: "kb_skills_list",
+          requiresProlog: false,
+          effects: ["local-read"],
+        } as never,
+        {},
+      );
+      expect(recorded[0]).toEqual(
+        expect.objectContaining({ branchPath: kbPath, dirMissing: false }),
+      );
+      expect(
+        DEFAULT_TOOLS_RUNTIME.classifyDiagnosticError(
+          new Error("Prolog query failed: boom"),
+        ).error_category,
+      ).toBe("prolog_query_failed");
+      expect(
+        DEFAULT_TOOLS_RUNTIME.extractToolCallPayload({
+          id: "REQ-1",
+          _diagnostic_telemetry: { attempt_number: 2 },
+        }).telemetry,
+      ).toEqual({ attempt_number: 2 });
+      expect(
+        DEFAULT_TOOLS_RUNTIME.deriveDiagnosticFields(
+          "kb_status",
+          {},
+          null,
+          {},
+        ).result_summary,
+      ).toBe("kb_status completed");
+    } finally {
+      rmSync(kbPath, { recursive: true, force: true });
+    }
   });
 });

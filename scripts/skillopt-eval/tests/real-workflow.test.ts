@@ -506,4 +506,93 @@ describe("real SkillOpt workflow", () => {
       await rm(root, { recursive: true, force: true });
     }
   });
+
+  test("rejects a dirty source worktree before any evaluation starts", async () => {
+    const root = await mkdtemp(join(tmpdir(), "skillopt-real-dirty-"));
+    try {
+      await expect(
+        runRealOptimization(
+          {
+            runId: RUN_ID,
+            artifactRoot: root,
+            sourceWorktree: process.cwd(),
+            skills: ["kibi-usage"],
+            maxSteps: 1,
+          },
+          { sourceClean: async () => false },
+        ),
+      ).rejects.toThrow("source_not_clean");
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  test("rejects an empty skill list and writes a blocked review through artifactPath", async () => {
+    const root = await mkdtemp(join(tmpdir(), "skillopt-real-empty-"));
+    try {
+      await expect(
+        runRealOptimization(
+          {
+            runId: RUN_ID,
+            artifactRoot: root,
+            sourceWorktree: process.cwd(),
+            skills: [],
+            maxSteps: 1,
+          },
+          { sourceClean: async () => true },
+        ),
+      ).rejects.toThrow("exactly one canonical skill");
+
+      let written = "";
+      const result = await runRealOptimization(
+        {
+          runId: RUN_ID,
+          artifactRoot: root,
+          sourceWorktree: process.cwd(),
+          skills: ["kibi-usage"],
+          maxSteps: 1,
+          artifactPath: {
+            writeText: async (_name: string, text: string) => {
+              written = text;
+            },
+          } as never,
+        },
+        {
+          sourceClean: async () => true,
+          oneShot: async (input) =>
+            freezeCandidateVariant({
+              skill: input.skill,
+              variant: "one-shot",
+              body: "Use Kibi through MCP.\n",
+              frontmatterHash: input.baseline.frontmatterHash,
+              resourcesHash: input.baseline.resourcesHash,
+              provenance: "codex-one-shot",
+            }),
+          evaluateDevelopment: async () => ({
+            mean: 0.5,
+            hardPasses: 2,
+            worstFamilyMean: 0.4,
+          }),
+          train: async (input) => {
+            expect(input.initialVariant?.variant).toBe("baseline");
+            return {
+              status: "frozen",
+              candidateBody: "Use Kibi through MCP.\n",
+              trainerCheckpointHash: "a".repeat(64),
+              trajectoryHashes: ["b".repeat(64)],
+            };
+          },
+          evaluateHeldOut: async () => ({
+            eligibility: "HELD_OUT_MATRIX_INELIGIBLE",
+            cellCount: 36,
+          }),
+        },
+      );
+      expect(result.status).toBe("blocked");
+      expect(result.heldOutEligibility).toBe("HELD_OUT_MATRIX_INELIGIBLE");
+      expect(written).toContain("\"status\": \"blocked\"");
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
 });

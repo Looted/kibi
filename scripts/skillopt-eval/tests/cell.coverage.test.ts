@@ -400,4 +400,140 @@ describe("scoreCell remaining integrity, protocol, and contract branches", () =>
   test("second pre-action failure stays incomplete rather than retryable", () => {
     expect(classifyPreActionInfrastructureFailure(2).retryable).toBe(false);
   });
+
+  test("covers apply-twice, hash mismatch, conflicts, sentinels, and incomplete sources", () => {
+    const contract = manifest.protocolContract!;
+    const evidenceFrom = (
+      rawCalls: NonNullable<CellEvidence["broker"]["rawCalls"]>,
+    ): CellEvidence =>
+      completeEvidence({
+        broker: {
+          complete: true,
+          integrityValid: true,
+          claims: [{ key: "shared-task-state", value: "complete" }],
+          orderedCalls: rawCalls.map((call, index) => ({
+            tool: call.tool,
+            predicate: `sequence=${index + 1}`,
+          })),
+          rawCalls,
+        },
+      });
+
+    expect(
+      migrationApplyContractViolations(
+        contract,
+        evidenceFrom([
+          {
+            tool: "kb_coverage",
+            args: {},
+            resultOk: true,
+            result: { structuredContent: { migrationPlan: PLAN } },
+          },
+          {
+            tool: "kb_apply_plan",
+            args: {
+              approvedPlanHash: "d".repeat(64),
+              approvedActionIds: ["wrong"],
+              plan: PLAN,
+            },
+            resultOk: true,
+            result: { data: { outcome: "applied" } },
+          },
+          {
+            tool: "kb_apply_plan",
+            args: {},
+            resultOk: false,
+            result: { data: { outcome: "applied" } },
+          },
+        ]),
+      ),
+    ).toEqual(
+      expect.arrayContaining([
+        "kb_apply_plan attempted more than once",
+        "approvedActionIds must equal exactly the selected action id",
+        "approvedPlanHash must equal the coverage planHash",
+      ]),
+    );
+
+    expect(
+      migrationApplyContractViolations(
+        { ...contract, exactMigrationApply: undefined, forbiddenTools: ["kb_upsert"] },
+        evidenceFrom([
+          { tool: "kb_apply_plan", args: {}, resultOk: true },
+          { tool: "kb_upsert", args: {}, resultOk: true },
+        ]),
+      ),
+    ).toEqual(
+      expect.arrayContaining([
+        "no kb_coverage before kb_apply_plan",
+        "forbidden tool attempted: kb_upsert",
+      ]),
+    );
+
+    expect(
+      scoreCell(
+        manifest,
+        completeEvidence({
+          broker: {
+            complete: false,
+            integrityValid: true,
+            claims: [{ key: "shared-task-state", value: "complete" }],
+            orderedCalls: [],
+          },
+        }),
+      ).terminalCategory,
+    ).toBe("incomplete_evidence");
+
+    expect(
+      scoreCell(
+        manifest,
+        completeEvidence({
+          broker: {
+            complete: true,
+            integrityValid: true,
+            claims: [{ key: "shared-task-state", value: "other" }],
+            orderedCalls: [
+              { tool: "kb_search", predicate: "sequence=1" },
+              { tool: "kb_query", predicate: "sequence=2" },
+            ],
+          },
+        }),
+      ),
+    ).toMatchObject({
+      terminalCategory: "evidence_conflict",
+      conflictKeys: ["shared-task-state"],
+    });
+
+    expect(
+      scoreCell(
+        manifest,
+        completeEvidence({
+          isolation: { observedSentinels: ["SECRET"], violations: [] },
+        }),
+      ).criticalFailures,
+    ).toEqual(["sentinel-1"]);
+
+    expect(
+      scoreCell(
+        {
+          ...manifest,
+          orderedMcpPredicates: {
+            required: [{ tool: "kb_search", predicate: "sequence=1" }],
+            forbidden: [{ tool: "kb_graph", predicate: "sequence=9" }],
+          },
+        },
+        completeEvidence({
+          broker: {
+            complete: true,
+            integrityValid: true,
+            claims: [{ key: "shared-task-state", value: "complete" }],
+            orderedCalls: [
+              { tool: "kb_search", predicate: "sequence=1" },
+              { tool: "kb_graph", predicate: "sequence=9" },
+            ],
+          },
+        }),
+      ).components.protocol,
+    ).toBe(0);
+  });
 });

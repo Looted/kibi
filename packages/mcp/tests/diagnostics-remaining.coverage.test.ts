@@ -6,6 +6,7 @@ import path from "node:path";
 
 import {
   appendUsageLogLine,
+  classifyDiagnosticError,
   deriveDiagnosticFields,
   initializeDiagnosticMode,
 } from "../src/diagnostics.js";
@@ -217,5 +218,100 @@ describe("deriveDiagnosticFields remaining protocol and coverage branches", () =
     initializeDiagnosticMode(true);
     appendUsageLogLine({ tool: "kb_query" });
     expect(readFileSync(isolated, "utf8")).toContain("kb_query");
+  });
+
+  test("classifies rare contradiction and timeout messages without captured ids", () => {
+    const contradiction = classifyDiagnosticError(
+      new Error("contradiction detected for requirement"),
+    );
+    expect(contradiction).toMatchObject({
+      error_category: "semantic_contradiction",
+      semantic_outcome: "conflict-blocked",
+    });
+    expect(contradiction.semantic_checked_req_id).toBeUndefined();
+    expect(contradiction.semantic_conflicting_req_ids).toBeUndefined();
+
+    expect(
+      classifyDiagnosticError(new Error("tool timeout while waiting")).error_category,
+    ).toBe("tool_timeout");
+    expect(
+      classifyDiagnosticError(
+        new Error("Status execution module load failed without option help"),
+      ).error_category,
+    ).toBe("prolog_module_load_failed");
+  });
+
+  test("records coverage snapshots, predicate tops, and updated upsert readiness", () => {
+    const coverage = deriveDiagnosticFields(
+      "kb_coverage",
+      { by: "req" },
+      { confidence_score: 0.2, attempt_number: 1 },
+      {
+        structuredContent: {
+          kibiProtocol: 1,
+          effects: "not-array",
+          data: {
+            rows: [
+              {
+                id: "REQ-1",
+                proofGaps: ["missing_proof_receipt"],
+                proofStages: {
+                  passingE2e: { missingReceiptTests: ["TEST-1"] },
+                },
+              },
+            ],
+            summary: { total: 1, proofProven: 0, proofMissing: 1 },
+            repairPlan: { scope: { complete: true } },
+            meta: { proofSnapshot: "snap-1" },
+          },
+        },
+      },
+    );
+    expect(coverage.coverage_scope_complete).toBe(true);
+    expect(coverage.coverage_proof_snapshot).toBe("snap-1");
+    expect(coverage.effect_failures).toEqual([]);
+
+    const predicates = deriveDiagnosticFields(
+      "kb_suggest_predicates",
+      {},
+      null,
+      {
+        structuredContent: {
+          candidates: [{ predicate_name: "held_out", score: 0.9 }],
+          recommendedAction: "apply",
+          relationshipPlan: { from: "REQ-1" },
+        },
+      },
+    );
+    expect(predicates.result_summary).toBe(
+      "1 predicate candidates; top=held_out",
+    );
+    expect(predicates.predicate_top_score).toBe(0.9);
+    expect(predicates.predicate_relationship_plan).toBe(true);
+
+    const upsert = deriveDiagnosticFields(
+      "kb_upsert",
+      { type: "req", id: "REQ-2" },
+      null,
+      {
+        structuredContent: {
+          created: 0,
+          updated: 1,
+          contradictionCheck: {
+            outcome: "no-conflict",
+            checked_req_id: "REQ-2",
+            strict_readiness: "ready",
+            subject_key: "auth",
+            property_key: "timeout",
+          },
+          semanticAdvisor: { logic_readiness: "ready", candidate_lane: "strict" },
+        },
+      },
+    );
+    expect(upsert.result_summary).toBe("upsert updated; semantic ready");
+    expect(upsert.semantic_contradiction_outcome).toBe("no-conflict");
+    expect(upsert.semantic_strict_readiness).toBe("ready");
+    expect(upsert.semantic_subject_key).toBe("auth");
+    expect(upsert.semantic_property_key).toBe("timeout");
   });
 });
