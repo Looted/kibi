@@ -10941,7 +10941,7 @@ coordinates:
     sourceLine: 9
   SYM-mcp-session-activeBranchName:
     identityHash: b656c77916523815c6a2617b2879c3bf5789183c0ce97b2ebe3b36e650617f44
-    sourceHash: 02a31ed1fbb45bdf3f7d22e078b26e8d854658b560a10374fa66297b550748c9
+    sourceHash: 5078f973968fa10ed0002aa5294086051c41bc8707e2931ad4e863377ac346c8
     sourceColumn: 11
     sourceEndColumn: 39
     sourceEndLine: 74
@@ -10949,7 +10949,7 @@ coordinates:
     sourceLine: 74
   SYM-mcp-session-attachedBranchKbPath:
     identityHash: 1667d5dc525d9db88a6234fde175731aad3db85155fd46d78ae3e00fda5e976d
-    sourceHash: 02a31ed1fbb45bdf3f7d22e078b26e8d854658b560a10374fa66297b550748c9
+    sourceHash: 5078f973968fa10ed0002aa5294086051c41bc8707e2931ad4e863377ac346c8
     sourceColumn: 11
     sourceEndColumn: 53
     sourceEndLine: 77
@@ -10957,23 +10957,23 @@ coordinates:
     sourceLine: 77
   SYM-mcp-session-ensureBranchKbExists:
     identityHash: 69ecf80f45741cec6ddfb3a95d9b1958a66602c33901e21f647ffaf7d1ace826
-    sourceHash: 02a31ed1fbb45bdf3f7d22e078b26e8d854658b560a10374fa66297b550748c9
+    sourceHash: 5078f973968fa10ed0002aa5294086051c41bc8707e2931ad4e863377ac346c8
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 153
+    sourceEndLine: 159
     sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 125
+    sourceLine: 131
   SYM-mcp-session-ensureProlog:
     identityHash: 9f1d460cca4eba7ad446f7d7341d6f75d3e56253dc840bc8f3acdee56aedcd98
-    sourceHash: 02a31ed1fbb45bdf3f7d22e078b26e8d854658b560a10374fa66297b550748c9
+    sourceHash: 5078f973968fa10ed0002aa5294086051c41bc8707e2931ad4e863377ac346c8
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 517
+    sourceEndLine: 523
     sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 504
+    sourceLine: 510
   SYM-mcp-session-inFlightRequests:
     identityHash: 54d84fd2b37cc676b619d877e837275436cc4e5998ed0c64d3e92ba1ad280906
-    sourceHash: 02a31ed1fbb45bdf3f7d22e078b26e8d854658b560a10374fa66297b550748c9
+    sourceHash: 5078f973968fa10ed0002aa5294086051c41bc8707e2931ad4e863377ac346c8
     sourceColumn: 13
     sourceEndColumn: 67
     sourceEndLine: 88
@@ -10981,15 +10981,15 @@ coordinates:
     sourceLine: 88
   SYM-mcp-session-initiateGracefulShutdown:
     identityHash: c8f4512ad270728abe284766bcc1c606811b7ab07f6bb01b467978bfadedf699
-    sourceHash: 02a31ed1fbb45bdf3f7d22e078b26e8d854658b560a10374fa66297b550748c9
+    sourceHash: 5078f973968fa10ed0002aa5294086051c41bc8707e2931ad4e863377ac346c8
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 205
+    sourceEndLine: 211
     sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 155
+    sourceLine: 161
   SYM-mcp-session-isShuttingDown:
     identityHash: 51995c6ec66c12ca3621732ad6a3f2b5e729fa87f22e3f0468dc176dbacb67b3
-    sourceHash: 02a31ed1fbb45bdf3f7d22e078b26e8d854658b560a10374fa66297b550748c9
+    sourceHash: 5078f973968fa10ed0002aa5294086051c41bc8707e2931ad4e863377ac346c8
     sourceColumn: 11
     sourceEndColumn: 33
     sourceEndLine: 86
@@ -10997,7 +10997,7 @@ coordinates:
     sourceLine: 86
   SYM-mcp-session-prologProcess:
     identityHash: e880954bfee6b9c297723a182927725feda3d38d23554087d5e4e65d7ec2c503
-    sourceHash: 02a31ed1fbb45bdf3f7d22e078b26e8d854658b560a10374fa66297b550748c9
+    sourceHash: 5078f973968fa10ed0002aa5294086051c41bc8707e2931ad4e863377ac346c8
     sourceColumn: 11
     sourceEndColumn: 53
     sourceEndLine: 72
@@ -11005,7 +11005,7 @@ coordinates:
     sourceLine: 72
   SYM-mcp-session-resetSessionDepsForTests:
     identityHash: 6e45d5b973f65737aa9759f49b415f0ac9ee6c33a48b036a84b9940e9ef5f8c2
-    sourceHash: 02a31ed1fbb45bdf3f7d22e078b26e8d854658b560a10374fa66297b550748c9
+    sourceHash: 5078f973968fa10ed0002aa5294086051c41bc8707e2931ad4e863377ac346c8
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 117
@@ -11013,7 +11013,7 @@ coordinates:
     sourceLine: 114
   SYM-mcp-session-resetSessionStateForTests:
     identityHash: 08ac3bb9e3e83bcd9218ebcadfcdf299569b4cc6e551bab9aa4d74aee557bcfa
-    sourceHash: 02a31ed1fbb45bdf3f7d22e078b26e8d854658b560a10374fa66297b550748c9
+    sourceHash: 5078f973968fa10ed0002aa5294086051c41bc8707e2931ad4e863377ac346c8
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 105
@@ -11021,7 +11021,7 @@ coordinates:
     sourceLine: 91
   SYM-mcp-session-setSessionDepsForTests:
     identityHash: ff8446aa973969d5e9a03488747253ddf9250f3b049246bd483a039a48683808
-    sourceHash: 02a31ed1fbb45bdf3f7d22e078b26e8d854658b560a10374fa66297b550748c9
+    sourceHash: 5078f973968fa10ed0002aa5294086051c41bc8707e2931ad4e863377ac346c8
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 112
@@ -11037,7 +11037,7 @@ coordinates:
     sourceLine: 1
   SYM-mcp-session-updateAttachedBranchStamp:
     identityHash: b47e228bd26d96e9f721be9478642350a065a776e59f4a76783d5d42da13e30a
-    sourceHash: 02a31ed1fbb45bdf3f7d22e078b26e8d854658b560a10374fa66297b550748c9
+    sourceHash: 5078f973968fa10ed0002aa5294086051c41bc8707e2931ad4e863377ac346c8
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 84
@@ -14701,12 +14701,12 @@ coordinates:
     sourceLine: 30
   SYM-resetProlog:
     identityHash: a1ccd20fbcef38176b5c571c11e83c27110fd0bc92e469b19f0548fc22c2df8f
-    sourceHash: 02a31ed1fbb45bdf3f7d22e078b26e8d854658b560a10374fa66297b550748c9
+    sourceHash: 5078f973968fa10ed0002aa5294086051c41bc8707e2931ad4e863377ac346c8
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 224
+    sourceEndLine: 230
     sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 208
+    sourceLine: 214
   SYM-resetSessionModulePromise:
     identityHash: 566cd155a22373d7116ad3f3f4cae78bb43bc8e436147b7193c92503d328e873
     sourceHash: 737f581da3d0e4e2a16ed8ef327d8639328ceab50b724f1c0bb2b315ac0fba5c
@@ -16197,7 +16197,7 @@ coordinates:
     sourceLine: 257
   SYM-skillopt-bridge-cli-main:
     identityHash: 2dbc6da0c65ea6000eb6f5ec2b26ae985a4dd8c3530ad2b6fea74a955d46bf1b
-    sourceHash: 281f69f7df5436361f88d9b124785c1697b9b750fbf984b676bc5fac880c835e
+    sourceHash: 71122b2680d4f7f01a6e89a882209295a8ea45dce3b0b667bcafacff2ed38ffd
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 52
