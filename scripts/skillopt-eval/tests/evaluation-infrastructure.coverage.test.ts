@@ -104,5 +104,30 @@ describe("evaluation infrastructure helpers", () => {
         })}`,
       ),
     ).toBeNull();
+    expect(
+      parseEvaluationInfrastructureMarker(
+        `${EVALUATION_INFRASTRUCTURE_MARKER}${JSON.stringify({
+          ...details,
+          stage: undefined,
+        })}`,
+      ),
+    ).toBeNull();
+    expect(
+      parseEvaluationInfrastructureMarker(
+        `${EVALUATION_INFRASTRUCTURE_MARKER}${JSON.stringify({
+          ...details,
+          receiptPath: 12,
+        })}`,
+      ),
+    ).toBeNull();
+    const withNullReceipt = {
+      ...details,
+      receiptPath: null,
+    };
+    expect(
+      parseEvaluationInfrastructureMarker(
+        `${EVALUATION_INFRASTRUCTURE_MARKER}${JSON.stringify(withNullReceipt)}`,
+      )?.details.receiptPath,
+    ).toBeNull();
   });
 });

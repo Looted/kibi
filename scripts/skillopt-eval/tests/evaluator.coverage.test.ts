@@ -2,11 +2,16 @@
 // implements REQ-skillopt-codex-optimization
 import { describe, expect, test } from "bun:test";
 import {
+  buildBundleCatalog,
   buildHeldOutCatalog,
   buildPublicCatalog,
   buildSkillCatalog,
 } from "../catalog";
-import { blindedVariantOrder, buildPrivateManifest } from "../fixtures/evaluator";
+import {
+  blindedVariantOrder,
+  buildPrivateManifest,
+  verifyPrivateManifestIntegrity,
+} from "../fixtures/evaluator";
 
 function manifestFor(objectiveCode: string) {
   const catalog = [
@@ -139,5 +144,83 @@ describe("buildPrivateManifest remaining required-tool and workflow branches", (
         ({ tool }) => tool === "kb_upsert",
       ),
     ).toBe(true);
+  });
+
+  test("covers leftover skill, receipt, delete, and fixture-setup builders", () => {
+    const approved = manifestFor("approved_plan_apply").manifest;
+    expect(approved.orderedMcpPredicates.required.map(({ tool }) => tool)).toEqual(
+      expect.arrayContaining(["kb_plan_bootstrap", "kb_apply_plan", "kb_check"]),
+    );
+    expect(approved.workflowExpectation?.expectedOutcome).toBe("complete");
+
+    const repair = manifestFor("repair_escalation").manifest;
+    expect(repair.workflowExpectation?.expectedOutcome).toBe("blocked");
+
+    const freshness = manifestFor("recover_stale_state").manifest;
+    expect(freshness.orderedMcpPredicates.required.map(({ tool }) => tool)).toEqual(
+      expect.arrayContaining(["kb_status", "kb_query", "kb_check"]),
+    );
+    expect(freshness.fixtureSetup).toBe("seeded_stale_kb");
+
+    const trace = manifestFor("discover_requirement").manifest;
+    expect(trace.orderedMcpPredicates.required.map(({ tool }) => tool)).toEqual(
+      expect.arrayContaining(["kb_search", "kb_query", "kb_graph"]),
+    );
+
+    const inspect = manifestFor("quality_diagnostic_disposition").manifest;
+    expect(
+      inspect.orderedMcpPredicates.required.some(
+        ({ tool }) => tool === "kb_ingest_proof",
+      ),
+    ).toBe(false);
+
+    const ingest = manifestFor("final_integration_invalidates_receipts").manifest;
+    expect(
+      ingest.orderedMcpPredicates.required.some(
+        ({ tool }) => tool === "kb_ingest_proof",
+      ),
+    ).toBe(true);
+
+    const deleted = manifestFor("legacy_shard_edge_cleanup").manifest;
+    expect(
+      deleted.orderedMcpPredicates.required.some(({ tool }) => tool === "kb_delete"),
+    ).toBe(true);
+
+    const bundle = buildBundleCatalog()[0];
+    if (bundle === undefined) throw new Error("bundle fixture missing");
+    const bundleManifest = buildPrivateManifest({
+      task: bundle as unknown as Parameters<typeof buildPrivateManifest>[0]["task"],
+      publicManifestHash: "a".repeat(64),
+      workspaceHash: "b".repeat(64),
+    });
+    expect(
+      bundleManifest.orderedMcpPredicates.required.map(({ tool }) => tool),
+    ).toEqual(expect.arrayContaining(["kb_plan_bootstrap", "kb_search"]));
+    expect(verifyPrivateManifestIntegrity(bundle as never, bundleManifest)).toBe(
+      true,
+    );
+
+    const predicate = [...buildPublicCatalog(), ...buildHeldOutCatalog()].find(
+      (task) => task.family === "fact-predicate-modeling",
+    );
+    if (!predicate) throw new Error("predicate fixture missing");
+    const predicateManifest = buildPrivateManifest({
+      task: predicate as unknown as Parameters<
+        typeof buildPrivateManifest
+      >[0]["task"],
+      publicManifestHash: "a".repeat(64),
+      workspaceHash: "b".repeat(64),
+    });
+    expect(predicateManifest.workflowExpectation).toBeNull();
+
+    const partial = buildPrivateManifest({
+      task: {
+        ...predicate,
+        initialState: { ...predicate.initialState, kb: "partial" },
+      } as never,
+      publicManifestHash: "a".repeat(64),
+      workspaceHash: "b".repeat(64),
+    });
+    expect(partial.fixtureSetup).toBeUndefined();
   });
 });

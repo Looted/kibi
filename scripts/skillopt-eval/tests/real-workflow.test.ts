@@ -2,7 +2,9 @@ import { describe, expect, test } from "bun:test";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { buildSkillCatalog } from "../catalog";
 import { main } from "../cli";
+import { materializeFixtureRun } from "../fixtures/private";
 import {
   type RealOptimizationDependencies,
   passesDevelopmentGate,
@@ -10,6 +12,7 @@ import {
 } from "../real-workflow";
 import { requireRuntime } from "../real-workflow-types";
 import { freezeCandidateVariant } from "../variants";
+import { CANONICAL_SKILL_ROOT } from "./fixture-test-helpers";
 
 const RUN_ID = "00000000-0000-4000-8000-000000000201";
 
@@ -591,6 +594,71 @@ describe("real SkillOpt workflow", () => {
       expect(result.heldOutEligibility).toBe("HELD_OUT_MATRIX_INELIGIBLE");
       expect(written).toContain("\"status\": \"blocked\"");
     } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  test("Given a materialized fixture run When cellRuntime is set Then descriptors stay task-scoped", async () => {
+    const root = await mkdtemp(join(tmpdir(), "skillopt-real-runtime-"));
+    const previousExit = process.exitCode;
+    try {
+      const publicTasks = buildSkillCatalog("kibi-usage").filter(
+        (task) => task.split !== "held-out",
+      );
+      const fixtureRun = materializeFixtureRun({
+        runRoot: join(root, "fixture-run"),
+        canonicalSkillRoot: CANONICAL_SKILL_ROOT,
+        publicTasks,
+        heldOutTasks: [],
+      });
+      const trainIds: string[] = [];
+      const result = await runRealOptimization(
+        {
+          runId: RUN_ID,
+          artifactRoot: join(root, "artifacts"),
+          sourceWorktree: process.cwd(),
+          skills: ["kibi-usage"],
+          maxSteps: 1,
+          cellRuntime: {
+            fixtureRunRoot: fixtureRun.roots.runRoot,
+            codexExecutable: "/staged/codex",
+            bwrapExecutable: "/staged/bwrap",
+          },
+        },
+        {
+          sourceClean: async () => true,
+          oneShot: async (input) => {
+            trainIds.push(...input.trainDescriptors.map((item) => item.id));
+            return freezeCandidateVariant({
+              skill: input.skill,
+              variant: "one-shot",
+              body: "Use Kibi through MCP.\n",
+              frontmatterHash: input.baseline.frontmatterHash,
+              resourcesHash: input.baseline.resourcesHash,
+              provenance: "codex-one-shot",
+            });
+          },
+          evaluateDevelopment: async ({ candidate }) =>
+            candidate.variant === "skillopt"
+              ? { mean: 0.9, hardPasses: 4, worstFamilyMean: 0.85 }
+              : { mean: 0.5, hardPasses: 2, worstFamilyMean: 0.4 },
+          train: async (input) => ({
+            status: "frozen",
+            candidateBody: "Use Kibi through MCP.\n",
+            trainerCheckpointHash: "a".repeat(64),
+            trajectoryHashes: ["b".repeat(64)],
+          }),
+          evaluateHeldOut: async () => ({
+            eligibility: "HELD_OUT_MATRIX_INELIGIBLE",
+            cellCount: 36,
+          }),
+        },
+      );
+      expect(result.status).toBe("blocked");
+      expect(trainIds.length).toBeGreaterThan(0);
+      expect(trainIds.every((id) => id.includes("kibi-usage"))).toBe(true);
+    } finally {
+      process.exitCode = previousExit;
       await rm(root, { recursive: true, force: true });
     }
   });

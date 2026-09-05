@@ -1,12 +1,15 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
-import { rmSync } from "node:fs";
+import { mkdirSync, rmSync, symlinkSync } from "node:fs";
 import { join } from "node:path";
 import {
   type PredicateMaterialization,
   materializePredicateCorpus,
 } from "../fixtures/predicate-corpus";
-import { HeldOutReceiptStore } from "../held-out-receipt-store";
+import {
+  HeldOutReceiptStore,
+  HeldOutReceiptStoreError,
+} from "../held-out-receipt-store";
 import { temporaryRoot } from "./fixture-test-helpers";
 
 const roots: string[] = [];
@@ -34,9 +37,14 @@ function store(
   root: string,
   corpus: PredicateMaterialization,
   candidate = "candidate",
+  extras: Readonly<{
+    skill?: "kibi-usage" | "kibi-freshness";
+    expectedPhysicalCellCount?: number;
+    artifactRoot?: string;
+  }> = {},
 ) {
   return new HeldOutReceiptStore({
-    artifactRoot: join(root, "run-artifacts"),
+    artifactRoot: extras.artifactRoot ?? join(root, "run-artifacts"),
     roots: corpus.roots,
     candidateHashes: {
       ...corpus.frozenCandidateHashes,
@@ -45,6 +53,10 @@ function store(
     heldOutCaseIds: corpus.heldOutCaseIds,
     runId: "00000000-0000-4000-8000-000000000096",
     fixtureClaimRoot: corpus.roots.corpus,
+    ...(extras.skill === undefined ? {} : { skill: extras.skill }),
+    ...(extras.expectedPhysicalCellCount === undefined
+      ? {}
+      : { expectedPhysicalCellCount: extras.expectedPhysicalCellCount }),
   });
 }
 
@@ -214,5 +226,195 @@ describe("held-out receipt store", () => {
     expect(
       await rejectionMessage(store(root, drifted).loadTerminal()),
     ).toContain("held_out_binding_mismatch");
+  });
+
+  test("Given no reservation When loadTerminal runs Then it returns undefined", async () => {
+    const root = temporaryRoot();
+    roots.push(root);
+    const corpus = materializePredicateCorpus({
+      artifactRoot: join(root, "predicate-corpus"),
+    });
+
+    expect(await store(root, corpus).loadTerminal()).toBeUndefined();
+  });
+
+  test("Given a reservation without a terminal When loadTerminal runs Then it returns undefined", async () => {
+    const root = temporaryRoot();
+    roots.push(root);
+    const corpus = materializePredicateCorpus({
+      artifactRoot: join(root, "predicate-corpus"),
+    });
+    const receiptStore = store(root, corpus, "candidate", {
+      skill: "kibi-freshness",
+    });
+    await receiptStore.reserve();
+    await receiptStore.reserve();
+
+    expect(await receiptStore.loadTerminal()).toBeUndefined();
+  });
+
+  test("Given no reservation When persistTerminal runs Then it requires the reservation", async () => {
+    const root = temporaryRoot();
+    roots.push(root);
+    const corpus = materializePredicateCorpus({
+      artifactRoot: join(root, "predicate-corpus"),
+    });
+    const receiptStore = store(root, corpus);
+    try {
+      await receiptStore.persistTerminal(
+        terminal({
+          reservationHash: "a".repeat(64),
+          authorizationRootHash: "b".repeat(64),
+        } as never),
+      );
+      throw new Error("expected reservation required");
+    } catch (error) {
+      expect(error).toBeInstanceOf(HeldOutReceiptStoreError);
+      expect((error as HeldOutReceiptStoreError).code).toBe(
+        "held_out_reservation_required",
+      );
+    }
+  });
+
+  test("Given a reserved matrix When the cell count is invalid Then persist fails closed", async () => {
+    const root = temporaryRoot();
+    roots.push(root);
+    const corpus = materializePredicateCorpus({
+      artifactRoot: join(root, "predicate-corpus"),
+    });
+    const receiptStore = store(root, corpus, "candidate", {
+      expectedPhysicalCellCount: 36,
+    });
+    const reservation = await receiptStore.reserve();
+
+    try {
+      await receiptStore.persistTerminal({
+        ...terminal(reservation),
+        physicalCellCount: 0,
+      });
+      throw new Error("expected cell count invalid");
+    } catch (error) {
+      expect(error).toBeInstanceOf(HeldOutReceiptStoreError);
+      expect((error as HeldOutReceiptStoreError).code).toBe(
+        "held_out_terminal_cell_count_invalid",
+      );
+    }
+
+    try {
+      await receiptStore.persistTerminal(terminal(reservation));
+      throw new Error("expected expected-count mismatch");
+    } catch (error) {
+      expect(error).toBeInstanceOf(HeldOutReceiptStoreError);
+      expect((error as HeldOutReceiptStoreError).code).toBe(
+        "held_out_terminal_cell_count_invalid",
+      );
+    }
+  });
+
+  test("Given a persisted terminal When a different receipt is retried Then the store reports a conflict", async () => {
+    const root = temporaryRoot();
+    roots.push(root);
+    const corpus = materializePredicateCorpus({
+      artifactRoot: join(root, "predicate-corpus"),
+    });
+    const receiptStore = store(root, corpus);
+    const reservation = await receiptStore.reserve();
+    await receiptStore.persistTerminal(terminal(reservation));
+
+    try {
+      await receiptStore.persistTerminal({
+        ...terminal(reservation),
+        physicalCellCount: 97,
+      });
+      throw new Error("expected terminal conflict");
+    } catch (error) {
+      expect(error).toBeInstanceOf(HeldOutReceiptStoreError);
+      expect((error as HeldOutReceiptStoreError).code).toBe(
+        "held_out_terminal_conflict",
+      );
+    }
+  });
+
+  test("Given a symlink artifact directory When the store opens Then the path is rejected", async () => {
+    const root = temporaryRoot();
+    roots.push(root);
+    const corpus = materializePredicateCorpus({
+      artifactRoot: join(root, "predicate-corpus"),
+    });
+    const realArtifacts = join(root, "real-artifacts");
+    mkdirSync(realArtifacts, { mode: 0o700 });
+    const artifactRoot = join(root, "run-artifacts");
+    symlinkSync(realArtifacts, artifactRoot);
+
+    try {
+      await store(root, corpus, "candidate", { artifactRoot }).reserve();
+      throw new Error("expected invalid artifact path");
+    } catch (error) {
+      expect(error).toBeInstanceOf(HeldOutReceiptStoreError);
+      expect((error as HeldOutReceiptStoreError).code).toBe(
+        "held_out_artifact_path_invalid",
+      );
+    }
+  });
+
+  test("Given a symlink named held-out-evidence When the store opens Then the path is rejected", async () => {
+    const root = temporaryRoot();
+    roots.push(root);
+    const corpus = materializePredicateCorpus({
+      artifactRoot: join(root, "predicate-corpus"),
+    });
+    const artifactRoot = join(root, "run-artifacts");
+    const realEvidence = join(root, "real-evidence");
+    mkdirSync(artifactRoot, { recursive: true, mode: 0o700 });
+    mkdirSync(realEvidence, { mode: 0o700 });
+    symlinkSync(realEvidence, join(artifactRoot, "held-out-evidence"));
+
+    try {
+      await store(root, corpus, "candidate", { artifactRoot }).loadTerminal();
+      throw new Error("expected invalid artifact path");
+    } catch (error) {
+      expect(error).toBeInstanceOf(HeldOutReceiptStoreError);
+      expect((error as HeldOutReceiptStoreError).code).toBe(
+        "held_out_artifact_path_invalid",
+      );
+    }
+  });
+
+  test("Given a directory named terminal.json When loadTerminal reads Then the IO error is rethrown", async () => {
+    const root = temporaryRoot();
+    roots.push(root);
+    const corpus = materializePredicateCorpus({
+      artifactRoot: join(root, "predicate-corpus"),
+    });
+    const receiptStore = store(root, corpus);
+    await receiptStore.reserve();
+    mkdirSync(join(root, "run-artifacts", "held-out-evidence", "terminal.json"));
+
+    await expect(receiptStore.loadTerminal()).rejects.toMatchObject({
+      code: "EISDIR",
+    });
+  });
+
+  test("Given a directory named reservation.json When persistTerminal reads Then the IO error is rethrown", async () => {
+    const root = temporaryRoot();
+    roots.push(root);
+    const corpus = materializePredicateCorpus({
+      artifactRoot: join(root, "predicate-corpus"),
+    });
+    const artifactRoot = join(root, "run-artifacts");
+    mkdirSync(join(artifactRoot, "held-out-evidence"), {
+      recursive: true,
+      mode: 0o700,
+    });
+    mkdirSync(join(artifactRoot, "held-out-evidence", "reservation.json"));
+
+    await expect(
+      store(root, corpus, "candidate", { artifactRoot }).persistTerminal(
+        terminal({
+          reservationHash: "a".repeat(64),
+          authorizationRootHash: "b".repeat(64),
+        } as never),
+      ),
+    ).rejects.toMatchObject({ code: "EISDIR" });
   });
 });
