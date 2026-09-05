@@ -2,8 +2,8 @@
 id: TEST-cursor-agent-plugin-v1
 title: Portable Agent Plugin Artifact Verification
 status: passing
-created_at: 2026-08-07T00:00:00Z
-updated_at: 2026-08-07T00:00:00Z
+created_at: 2026-08-07T00:00:00.000Z
+updated_at: 2026-08-07T00:00:00.000Z
 priority: must
 tags:
   - test
@@ -16,6 +16,16 @@ links:
     target: SCEN-cursor-agent-plugin-v1
   - type: relates_to
     target: REQ-cursor-agent-plugin-standard-v1
+verification_scope: end_to_end
+verification_perspective: consumer
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-e2e-test-cursor-agent-plugin-v1
+      target: default
+  success_policy: all_required_first_attempt
+type: test
 ---
 
 Verification for the portable Agent Plugin artifact (`packages/cursor/tests/agent-plugin.test.ts`) includes:

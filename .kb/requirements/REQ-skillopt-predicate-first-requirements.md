@@ -2,16 +2,76 @@
 id: REQ-skillopt-predicate-first-requirements
 title: Agents model suitable relational requirements as predicates without losing readable prose
 status: open
-created_at: 2026-07-26T00:00:00Z
-updated_at: 2026-08-04T00:00:00Z
+created_at: 2026-07-26T00:00:00.000Z
+updated_at: 2026-08-04T00:00:00.000Z
 source: .omo/plans/skillopt-predicate-requirements.md
 priority: must
-tags: [skillopt, agents, requirements, predicates, ontology, traceability, umbrella]
+tags:
+  - skillopt
+  - agents
+  - requirements
+  - predicates
+  - ontology
+  - traceability
+  - umbrella
 links:
   - type: specified_by
     target: SCEN-skillopt-predicate-first-requirements
   - type: verified_by
     target: TEST-skillopt-predicate-first-requirements
+semantic_text: Agents must preserve human-readable requirement prose while making supported semantics queryable. Normative relational claims must first go through kb_semantic_advisor and kb_suggest_predicates. When a returned built-in or project-local predicate is suitable, the agent must create the suggested predicate fact. The agent must link the requirement to that predicate fact with requires_predicate. Reusable guidance must explain the Prolog-shaped ground model including declared predicate schemas.
+logic_claims:
+  - CLAIM-9D332800597AB19E
+  - CLAIM-4E26B65389DA82B3
+  - CLAIM-46C68E5AFA82EA18
+  - CLAIM-33762534A2055364
+  - CLAIM-EC580A9E53F062DC
+semantic_clauses:
+  - Agents must preserve human-readable requirement prose while making supported semantics queryable
+  - Normative relational claims must first go through kb_semantic_advisor and kb_suggest_predicates
+  - When a returned built-in or project-local predicate is suitable, the agent must create the suggested predicate fact
+  - The agent must link the requirement to that predicate fact with requires_predicate
+  - Reusable guidance must explain the Prolog-shaped ground model including declared predicate schemas
+semantic_inventory_version: kibi.semantic-inventory.v1
+semantic_source_field: semantic_text
+semantic_source_hash: 02d19e714ae0689c71ae5df4ae59ec7593d0e98c29324fe66c2652af5ef0deb8
+semantic_inventory:
+  - claim_key: CLAIM-9D332800597AB19E
+    claim_text: Agents must preserve human-readable requirement prose while making supported semantics queryable
+    role: normative
+    status: modeled
+    span:
+      start: 0
+      end: 96
+  - claim_key: CLAIM-4E26B65389DA82B3
+    claim_text: Normative relational claims must first go through kb_semantic_advisor and kb_suggest_predicates
+    role: normative
+    status: modeled
+    span:
+      start: 98
+      end: 193
+  - claim_key: CLAIM-46C68E5AFA82EA18
+    claim_text: When a returned built-in or project-local predicate is suitable, the agent must create the suggested predicate fact
+    role: condition
+    status: modeled
+    span:
+      start: 195
+      end: 310
+  - claim_key: CLAIM-33762534A2055364
+    claim_text: The agent must link the requirement to that predicate fact with requires_predicate
+    role: normative
+    status: modeled
+    span:
+      start: 312
+      end: 394
+  - claim_key: CLAIM-EC580A9E53F062DC
+    claim_text: Reusable guidance must explain the Prolog-shaped ground model including declared predicate schemas
+    role: normative
+    status: modeled
+    span:
+      start: 396
+      end: 494
+type: req
 ---
 
 Agents must preserve human-readable requirement prose while making its supported semantics queryable. Normative relational claims first go through `kb_semantic_advisor` and `kb_suggest_predicates`. When the returned built-in or project-local predicate is suitable, the agent creates the suggested `fact_kind: predicate` fact and links this requirement to it with `requires_predicate`.

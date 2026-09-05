@@ -202,3 +202,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-df5962c327bd
+  - type: covered_by
+    from: SYM-cursor-packageName
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-09-05T15:39:21.791Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e66120c9f44
+  - type: executable_for
+    from: SYM-e2e-test-mcp-search-discovery
+    to: TEST-mcp-search-discovery
+    created_at: 2026-09-05T15:46:19.564Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1926eb27f425

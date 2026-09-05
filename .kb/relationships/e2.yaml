@@ -90,3 +90,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e6fc14f214cf
+  - type: covered_by
+    from: SYM-discoverSourceFiles
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:25:13.117Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23b32e1f3b6c

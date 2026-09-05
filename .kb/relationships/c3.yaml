@@ -153,3 +153,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3463740280a3
+  - type: covered_by
+    from: SYM-codex-impactCheckReminder
+    to: TEST-codex-kibi-plugin-v1
+    created_at: 2026-09-05T15:21:09.560Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5493d70607a5
+  - type: covered_by
+    from: SYM-markdown-detectEmbeddedEntities
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:26:37.525Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2432e2870bf

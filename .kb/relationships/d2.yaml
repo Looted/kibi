@@ -195,3 +195,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f762ad3f5da1
+  - type: covered_by
+    from: SYM-ExtractedRelationship
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:23:06.974Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a64a2f799b2
+  - type: covered_by
+    from: SYM-cli-engine-client-export-storage
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:28:38.151Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30ee0b781835
+  - type: covered_by
+    from: SYM-skillopt-runtime-stage-kibi-mcp
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:33:37.040Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b5873cc7bf4

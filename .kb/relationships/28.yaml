@@ -185,3 +185,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2de3fc5d36ff
+  - type: covered_by
+    from: SYM-buildPrompt
+    to: TEST-agent-kibi-interface-selection
+    created_at: 2026-09-05T15:01:57.789Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75673b7d4a08
+  - type: covered_by
+    from: SYM-cli-PrologProcess-start
+    to: TEST-001
+    created_at: 2026-09-05T15:34:22.736Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7be954fb614
+  - type: covered_by
+    from: SYM-cursor-buildAgentPluginMcpJson
+    to: TEST-cursor-agent-plugin-v1
+    created_at: 2026-09-05T15:36:08.057Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2cc6a9fa27bc
+  - type: covered_by
+    from: SYM-cursor-saveHookState
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-09-05T15:40:12.118Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-385aa1739173

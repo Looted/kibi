@@ -41,3 +41,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-306833012af1
+  - type: executable_for
+    from: SYM-e2e-test-skillopt-external-adoption-verdict
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T15:55:40.580Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4477ce6a4540

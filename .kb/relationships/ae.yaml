@@ -136,3 +136,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-24486596a71b
+  - type: covered_by
+    from: SYM-getSchemaVersionStatus
+    to: TEST-001
+    created_at: 2026-09-05T14:51:07.209Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6bbfb078bfab

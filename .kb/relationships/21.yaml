@@ -62,3 +62,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2ed138b64352
+  - type: covered_by
+    from: SYM-markdown-inferTypeFromPath
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:26:53.385Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b31f3ae64f6

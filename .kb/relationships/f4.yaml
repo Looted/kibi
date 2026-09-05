@@ -206,3 +206,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-120882c2db92
+  - type: constrains
+    from: REQ-cli-gc
+    to: FACT-SUBJ-REQ-CLI-GC
+    created_at: 2026-09-05T14:30:04.750Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a843fbe8dc9
+  - type: requires_property
+    from: REQ-cli-gc
+    to: FACT-PROP-REQ-CLI-GC-C01
+    created_at: 2026-09-05T14:30:04.774Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d74ed1bac883
+  - type: requires_property
+    from: REQ-cli-gc
+    to: FACT-PROP-REQ-CLI-GC-C02
+    created_at: 2026-09-05T14:30:04.782Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b8115c6dded
+  - type: covered_by
+    from: SYM-cli-impact-isModuleOrConfig
+    to: TEST-audit-quality-diagnostics-v1
+    created_at: 2026-09-05T15:03:37.999Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0763343421e0
+  - type: covered_by
+    from: SYM-core-kb-attach-audit-store
+    to: TEST-001
+    created_at: 2026-09-05T15:22:24.385Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c20e20dfc2c9
+  - type: covered_by
+    from: SYM-core-kb-attach-audit-store
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:33:09.393Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a2bdf28bd1a

@@ -3,6 +3,15 @@ title: Generated coordinate persistence and repair E2E
 status: passing
 id: TEST-generated-coordinate-repair
 type: test
+verification_scope: end_to_end
+verification_perspective: consumer
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-e2e-test-generated-coordinate-repair
+      target: default
+  success_policy: all_required_first_attempt
 ---
 # Generated coordinate persistence and repair E2E
 

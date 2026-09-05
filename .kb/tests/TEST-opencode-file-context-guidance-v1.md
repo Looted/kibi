@@ -3,8 +3,8 @@ id: TEST-opencode-file-context-guidance-v1
 title: Verification of Lifecycle Events and E2E Evidence
 type: test
 status: pending
-created_at: 2026-05-04T10:00:00Z
-updated_at: 2026-05-04T10:00:00Z
+created_at: 2026-05-04T10:00:00.000Z
+updated_at: 2026-05-04T10:00:00.000Z
 source: documentation/requirements/REQ-opencode-file-context-guidance-v1.md
 priority: must
 tags:
@@ -15,6 +15,15 @@ tags:
 links:
   - type: validates
     target: SCEN-opencode-file-context-guidance-v1
+verification_scope: end_to_end
+verification_perspective: consumer
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-e2e-test-opencode-file-context-guidance-v1
+      target: default
+  success_policy: all_required_first_attempt
 ---
 
 ## Test Coverage

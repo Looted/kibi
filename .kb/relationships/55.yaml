@@ -101,3 +101,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b4c71f57f83a
+  - type: covered_by
+    from: SYM-normalizePropertyKey
+    to: TEST-001
+    created_at: 2026-09-05T14:51:33.009Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dca2fc0eef2c

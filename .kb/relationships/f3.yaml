@@ -115,3 +115,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c7d3fc124336
+  - type: covered_by
+    from: SYM-syncPluginManifestVersions-result
+    to: TEST-014
+    created_at: 2026-09-05T14:54:56.164Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a83fd25719d0
+  - type: implements
+    from: SYM-kibiOpencodePlugin
+    to: REQ-opencode-comment-routing
+    created_at: 2026-09-05T15:57:51.438Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2523f5b826df
+  - type: covered_by
+    from: SYM-kibiOpencodePlugin
+    to: TEST-opencode-python-comment-routing
+    created_at: 2026-09-05T15:57:51.445Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8bd2eaa68cab
+  - type: implements
+    from: SYM-kibiOpencodePlugin
+    to: REQ-opencode-sync-feedback
+    created_at: 2026-09-05T15:57:56.590Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-948ddcf98b0c
+  - type: implements
+    from: SYM-kibiOpencodePlugin
+    to: REQ-opencode-smart-enforcement-v1
+    created_at: 2026-09-05T15:58:01.741Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b55381f2677
+  - type: covered_by
+    from: SYM-kibiOpencodePlugin
+    to: TEST-opencode-smart-enforcement-v1-coverage
+    created_at: 2026-09-05T15:58:01.748Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0de320737a25

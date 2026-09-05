@@ -2,8 +2,8 @@
 id: TEST-mcp-search-discovery
 title: Discovery bundle is verified across MCP, CLI, and packed E2E flows
 status: passing
-created_at: 2026-03-22T00:00:00Z
-updated_at: 2026-03-22T00:00:00Z
+created_at: 2026-03-22T00:00:00.000Z
+updated_at: 2026-03-22T00:00:00.000Z
 source: documentation/tests/e2e/packed/discovery-bundle.test.ts
 tags:
   - mcp
@@ -13,6 +13,16 @@ tags:
 links:
   - type: validates
     target: SCEN-mcp-search-discovery
+verification_scope: end_to_end
+verification_perspective: consumer
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-e2e-test-mcp-search-discovery
+      target: default
+  success_policy: all_required_first_attempt
+type: test
 ---
 
 Verification covers:

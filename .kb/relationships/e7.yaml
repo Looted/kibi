@@ -55,3 +55,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c204d5332ad8
+  - type: covered_by
+    from: SYM-KibiNoImpactOverride
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:14:30.545Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09cfd8a4de13
+  - type: covered_by
+    from: SYM-cursor-freshnessReminder
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-09-05T15:38:31.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8332db4a2e1
+  - type: implements
+    from: SYM-003
+    to: REQ-mcp-tag-filtering-server-side
+    created_at: 2026-09-05T15:58:06.938Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ff9a7ae77a7
+  - type: covered_by
+    from: SYM-003
+    to: TEST-mcp-tag-filtering-server-side
+    created_at: 2026-09-05T15:58:06.943Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef399b05228e

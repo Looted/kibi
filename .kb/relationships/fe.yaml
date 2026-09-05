@@ -146,3 +146,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-478b85a84ea0
+  - type: covered_by
+    from: SYM-createTempKb
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:17:31.913Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0147c72905f
+  - type: covered_by
+    from: SYM-cli-engine-client-cancel
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:28:23.686Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11693750ed80
+  - type: executable_for
+    from: SYM-e2e-test-vscode-traceability-coverage
+    to: TEST-vscode-traceability-coverage
+    created_at: 2026-09-05T15:51:05.490Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1345a25c4037

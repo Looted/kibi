@@ -132,3 +132,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f9c575bc968d
+  - type: covered_by
+    from: SYM-kibi-migration-merge
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-09-05T15:01:03.765Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a2ded8c05c6
+  - type: covered_by
+    from: SYM-cli-engine-idle-timeout
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:30:10.959Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a48f5111189e

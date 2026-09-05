@@ -118,3 +118,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d64b1917dfc8
+  - type: covered_by
+    from: SYM-cli-PrologQueryPlanSafetyViolation
+    to: TEST-001
+    created_at: 2026-09-05T15:34:53.880Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e60c04a2e1e8

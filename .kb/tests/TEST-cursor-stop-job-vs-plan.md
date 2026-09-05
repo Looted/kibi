@@ -7,7 +7,7 @@ created_at: 2026-08-18T00:00:00.000Z
 updated_at: 2026-08-18T00:00:00.000Z
 source: documentation/tests/TEST-cursor-stop-job-vs-plan.md
 priority: must
-verification_scope: unit
+verification_scope: end_to_end
 tags:
   - test
   - kibi
@@ -19,6 +19,14 @@ links:
     target: SCEN-cursor-stop-job-vs-plan
   - type: relates_to
     target: REQ-cursor-stop-job-vs-plan
+verification_perspective: consumer
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-e2e-test-cursor-stop-job-vs-plan
+      target: default
+  success_policy: all_required_first_attempt
 ---
 
 Verification for Cursor stop-hook plan-versus-job behavior lives in `packages/cursor` unit tests:

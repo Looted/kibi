@@ -83,3 +83,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c9cda9867279
+  - type: covered_by
+    from: SYM-KibiImpactDiagnosticId-contract
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:13:33.544Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eba8b26ff85d
+  - type: covered_by
+    from: SYM-cli-impact-createImpactManifestLookup
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:16:10.086Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-326a4e125557

@@ -80,3 +80,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-db2c6904c500
+  - type: executable_for
+    from: SYM-e2e-test-012
+    to: TEST-012
+    created_at: 2026-09-05T14:52:52.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57fb3dcdf5a0
+  - type: covered_by
+    from: SYM-createOverlayFacts
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:17:26.735Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-79f76122a3ea
+  - type: covered_by
+    from: SYM-cli-engine-publication-lease-acquire
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:30:41.898Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1b0cc5106f2

@@ -2,8 +2,8 @@
 id: TEST-mcp-upsert-coverage
 title: MCP upsert handler unit coverage exercises validation and failure paths
 status: active
-created_at: 2026-03-30T00:00:00Z
-updated_at: 2026-03-30T00:00:00Z
+created_at: 2026-03-30T00:00:00.000Z
+updated_at: 2026-03-30T00:00:00.000Z
 priority: must
 tags:
   - mcp
@@ -14,6 +14,16 @@ source: packages/mcp/tests/tools/upsert.test.ts
 links:
   - type: validates
     target: SCEN-001
+verification_scope: end_to_end
+verification_perspective: consumer
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-e2e-test-mcp-upsert-coverage
+      target: default
+  success_policy: all_required_first_attempt
+type: test
 ---
 
 Validation steps:

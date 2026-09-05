@@ -12,6 +12,16 @@ tags:
 links:
   - type: validates
     target: SCEN-001
+verification_scope: end_to_end
+verification_perspective: consumer
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-e2e-test-001
+      target: default
+  success_policy: all_required_first_attempt
+type: test
 ---
 
 Validates that `kibi init` creates `.kb/config.json`, `.kb/schema/`, and

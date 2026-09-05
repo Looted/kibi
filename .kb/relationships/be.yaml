@@ -97,3 +97,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6c2b2ee21ba8
+  - type: covered_by
+    from: SYM-cli-impact-hasMeaningfulSourceDiff
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:16:43.542Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f85ccafe1531
+  - type: executable_for
+    from: SYM-e2e-test-cli-status-pre-first-sync
+    to: TEST-cli-status-pre-first-sync
+    created_at: 2026-09-05T15:18:50.404Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-88403c8f78ba

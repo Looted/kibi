@@ -97,3 +97,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ad4dbc7eb9bf
+  - type: covered_by
+    from: SYM-ExtractedSymbol
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:12:31.940Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4bf8f45d1138
+  - type: covered_by
+    from: SYM-projectStagedEntities
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:18:32.624Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5142e7cee3f4

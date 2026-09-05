@@ -18,6 +18,49 @@ links:
   - type: relates_to
     target: REQ-002
 type: req
+semantic_text: kb_query must apply tag filters in the Prolog query path. Matching any provided tag must return the entity. Tag list representations must be normalized consistently so server-side filtering matches client-side filtering. MCP must not fall back to JavaScript tag filtering once tag normalization is reliable.
+logic_claims:
+  - CLAIM-AE25F6619F8E8F0A
+  - CLAIM-E9F7BACF455C22D5
+  - CLAIM-7DF8E6986A498C38
+  - CLAIM-1723C5882A71BA2F
+semantic_clauses:
+  - kb_query must apply tag filters in the Prolog query path
+  - Matching any provided tag must return the entity
+  - Tag list representations must be normalized consistently so server-side filtering matches client-side filtering
+  - MCP must not fall back to JavaScript tag filtering once tag normalization is reliable
+semantic_inventory_version: kibi.semantic-inventory.v1
+semantic_source_field: semantic_text
+semantic_source_hash: 71c10885481c275ce25fbf3be365f942c7149a582bbdd0298950cdbb4802ad0a
+semantic_inventory:
+  - claim_key: CLAIM-AE25F6619F8E8F0A
+    claim_text: kb_query must apply tag filters in the Prolog query path
+    role: normative
+    status: modeled
+    span:
+      start: 0
+      end: 56
+  - claim_key: CLAIM-E9F7BACF455C22D5
+    claim_text: Matching any provided tag must return the entity
+    role: normative
+    status: modeled
+    span:
+      start: 58
+      end: 106
+  - claim_key: CLAIM-7DF8E6986A498C38
+    claim_text: Tag list representations must be normalized consistently so server-side filtering matches client-side filtering
+    role: normative
+    status: modeled
+    span:
+      start: 108
+      end: 219
+  - claim_key: CLAIM-1723C5882A71BA2F
+    claim_text: MCP must not fall back to JavaScript tag filtering once tag normalization is reliable
+    role: normative
+    status: modeled
+    span:
+      start: 221
+      end: 306
 ---
 
 ## Overview

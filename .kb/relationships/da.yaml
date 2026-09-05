@@ -94,3 +94,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f9efdae82500
+  - type: covered_by
+    from: SYM-cursor-readGuidance
+    to: TEST-agent-kibi-interface-selection
+    created_at: 2026-09-05T15:02:18.980Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c86cc515308
+  - type: covered_by
+    from: SYM-branchRecoverCommand
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-09-05T15:04:44.247Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55d45027c7fa
+  - type: covered_by
+    from: SYM-cursor-readGuidance
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-09-05T15:39:37.569Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a826b58df762

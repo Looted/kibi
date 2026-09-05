@@ -146,3 +146,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b78417867861
+  - type: covered_by
+    from: SYM-KibiImpactDiagnostic
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:13:17.994Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cab819be84ad
+  - type: covered_by
+    from: SYM-KibiImpactSourceChange
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:14:20.420Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2cafba00a313
+  - type: covered_by
+    from: SYM-cli-engine-client-next-solution
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:28:57.380Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-766ea7b8181b

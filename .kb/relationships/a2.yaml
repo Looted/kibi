@@ -97,3 +97,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fc761c80740f
+  - type: executable_for
+    from: SYM-e2e-test-mcp-suggest-predicates
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T15:46:56.209Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee3cbffc86bd

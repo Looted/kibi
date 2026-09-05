@@ -167,3 +167,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eeca571383d6
+  - type: constrains
+    from: REQ-cursor-stop-job-vs-plan
+    to: FACT-SUBJ-REQ-CURSOR-STOP-JOB-VS-PLAN
+    created_at: 2026-09-05T14:30:49.651Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bbbefcd5a076
+  - type: requires_property
+    from: REQ-cursor-stop-job-vs-plan
+    to: FACT-PROP-REQ-CURSOR-STOP-JOB-VS-PLAN-C01
+    created_at: 2026-09-05T14:30:49.669Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1066bc2d39e1
+  - type: requires_property
+    from: REQ-cursor-stop-job-vs-plan
+    to: FACT-PROP-REQ-CURSOR-STOP-JOB-VS-PLAN-C02
+    created_at: 2026-09-05T14:30:49.675Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9103e327f0b
+  - type: requires_property
+    from: REQ-cursor-stop-job-vs-plan
+    to: FACT-PROP-REQ-CURSOR-STOP-JOB-VS-PLAN-C03
+    created_at: 2026-09-05T14:30:49.680Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0284d643ba22
+  - type: requires_property
+    from: REQ-cursor-stop-job-vs-plan
+    to: FACT-PROP-REQ-CURSOR-STOP-JOB-VS-PLAN-C04
+    created_at: 2026-09-05T14:30:49.686Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f3b8418acedb
+  - type: covered_by
+    from: SYM-KibiImpactMissingMode
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:14:04.897Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50096cfc40c0

@@ -132,3 +132,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5b44dbe6304c
+  - type: covered_by
+    from: SYM-collectStagedAuthoredSymbolsManifestEvidence
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:17:05.050Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-388307263be6
+  - type: covered_by
+    from: SYM-cli-engine-read-attachment-identity
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:30:53.310Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76a3ccef28e4
+  - type: covered_by
+    from: SYM-kb-status-json
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:33:22.790Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87bf9957a218

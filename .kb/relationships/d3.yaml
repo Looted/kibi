@@ -62,3 +62,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-081906d98b1c
+  - type: covered_by
+    from: SYM-core-discovery-requirementCoverageDepth
+    to: TEST-audit-quality-diagnostics-v1
+    created_at: 2026-09-05T15:04:04.128Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc0d2d1dfe4b
+  - type: covered_by
+    from: SYM-cli-prolog-json-operation-decode-error
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:31:31.349Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3987e6972ee1
+  - type: covered_by
+    from: SYM-cursor-buildAgentPluginUnlocked
+    to: TEST-cursor-agent-plugin-v1
+    created_at: 2026-09-05T15:36:13.176Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c2ad5da77c0
+  - type: executable_for
+    from: SYM-e2e-test-opencode-python-comment-routing
+    to: TEST-opencode-python-comment-routing
+    created_at: 2026-09-05T15:48:01.230Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42c4060c1871

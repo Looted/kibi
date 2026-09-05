@@ -90,3 +90,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-248e617d323e
+  - type: covered_by
+    from: SYM-KibiImpactEvidence
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:13:38.605Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b77127b6cc39

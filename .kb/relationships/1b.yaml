@@ -62,3 +62,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8d2a1ad7a4c2
+  - type: covered_by
+    from: SYM-kibi-migration-action-default
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-09-05T15:00:38.469Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c6719deae54
+  - type: covered_by
+    from: SYM-cli-engine-format-attachment-mismatch
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:30:05.576Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68b4cb495edc

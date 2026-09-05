@@ -107,5 +107,14 @@ relationships:
         created_by: kibi/upsert,
         source: mcp://kibi/upsert,
         id: rel-fae01ea4d260
+      },
+    {
+        type: covered_by,
+        from: SYM-cli-PrologProcess-terminateProcessTree,
+        to: TEST-001,
+        created_at: 2026-09-05T15:34:31.961Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-de690e716470
       }
   ]

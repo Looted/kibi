@@ -111,3 +111,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6d1511c482dc
+  - type: constrains
+    from: REQ-cli-canonical-runtime
+    to: FACT-SUBJ-REQ-CLI-CANONICAL-RUNTIME
+    created_at: 2026-09-05T14:29:41.608Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d0d168ba3cf
+  - type: requires_property
+    from: REQ-cli-canonical-runtime
+    to: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C01
+    created_at: 2026-09-05T14:29:41.626Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-221444d18b8b
+  - type: requires_property
+    from: REQ-cli-canonical-runtime
+    to: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C02
+    created_at: 2026-09-05T14:29:41.633Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c63eb49fb71f
+  - type: requires_property
+    from: REQ-cli-canonical-runtime
+    to: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C03
+    created_at: 2026-09-05T14:29:41.638Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf277286f2cf
+  - type: requires_property
+    from: REQ-cli-canonical-runtime
+    to: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C04
+    created_at: 2026-09-05T14:29:41.645Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7991f0078e6b
+  - type: requires_property
+    from: REQ-cli-canonical-runtime
+    to: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C05
+    created_at: 2026-09-05T14:29:41.650Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-820c3b18656d
+  - type: requires_property
+    from: REQ-cli-canonical-runtime
+    to: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C06
+    created_at: 2026-09-05T14:29:41.657Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-001723908531
+  - type: requires_property
+    from: REQ-cli-canonical-runtime
+    to: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C07
+    created_at: 2026-09-05T14:29:41.661Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae80d2936c08
+  - type: requires_property
+    from: REQ-cli-canonical-runtime
+    to: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C08
+    created_at: 2026-09-05T14:29:41.665Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-986f57ac67cf
+  - type: requires_property
+    from: REQ-cli-canonical-runtime
+    to: FACT-PROP-REQ-CLI-CANONICAL-RUNTIME-C09
+    created_at: 2026-09-05T14:29:41.670Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21e9ad50553e

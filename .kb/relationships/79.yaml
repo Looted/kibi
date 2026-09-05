@@ -83,3 +83,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1edc2e2e6837
+  - type: covered_by
+    from: SYM-cli-impact-hasBlockingImpactDiagnostics
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:16:37.789Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33f12ac2e793
+  - type: covered_by
+    from: SYM-getKbEvidencePaths
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:17:57.440Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8567752dec91

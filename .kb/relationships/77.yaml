@@ -167,3 +167,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bd91799bf6e3
+  - type: covered_by
+    from: SYM-cli-engine-client-query
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:29:02.950Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0457af9b8242
+  - type: covered_by
+    from: SYM-cursor-rememberGuidedPath
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-09-05T15:39:51.839Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7de7ed0c99a5

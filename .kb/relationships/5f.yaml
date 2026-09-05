@@ -69,3 +69,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dc3dd5cb189b
+  - type: covered_by
+    from: SYM-SyncError
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:24:25.196Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-88bd35bd6c65

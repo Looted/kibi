@@ -2,8 +2,8 @@
 id: TEST-mcp-cli-help
 title: kibi-mcp help exits cleanly in workspace and packed installs
 status: active
-created_at: 2026-04-17T12:00:00Z
-updated_at: 2026-04-17T12:00:00Z
+created_at: 2026-04-17T12:00:00.000Z
+updated_at: 2026-04-17T12:00:00.000Z
 source: documentation/tests/TEST-mcp-cli-help.md
 tags:
   - mcp
@@ -12,6 +12,16 @@ tags:
 links:
   - type: validates
     target: SCEN-mcp-cli-help
+verification_scope: end_to_end
+verification_perspective: consumer
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-e2e-test-mcp-cli-help
+      target: default
+  success_policy: all_required_first_attempt
+type: test
 ---
 
 The test verifies that the `kibi-mcp` binary correctly handles help requests without entering an interactive loop.

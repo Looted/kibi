@@ -97,3 +97,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6e10dc1d2117
+  - type: covered_by
+    from: SYM-cli-run-aggregated-checks
+    to: TEST-001
+    created_at: 2026-09-05T15:35:33.289Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ff9ca22b426
+  - type: executable_for
+    from: SYM-e2e-test-mcp-semantic-advisor-preflight
+    to: TEST-mcp-semantic-advisor-preflight
+    created_at: 2026-09-05T15:46:31.660Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82ea8f029606

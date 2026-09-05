@@ -34,3 +34,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6d4ecb8d6a29
+  - type: covered_by
+    from: SYM-isSupportedBehaviorSourcePath
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:18:22.571Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ee46982b4d6

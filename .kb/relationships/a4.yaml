@@ -139,3 +139,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-034d769ea3aa
+  - type: covered_by
+    from: SYM-ManifestLookup
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:14:40.841Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f8e1537b01d
+  - type: covered_by
+    from: SYM-cli-impact-formatExtractedSymbols
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:16:32.071Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-040a13960953
+  - type: covered_by
+    from: SYM-getKbCoveredSourcePaths
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:17:52.427Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc46a91b7380

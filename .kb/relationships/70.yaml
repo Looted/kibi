@@ -104,3 +104,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-944010200f3b
+  - type: executable_for
+    from: SYM-e2e-test-vscode-traceability
+    to: TEST-vscode-traceability
+    created_at: 2026-09-05T15:50:49.393Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16bd11fb9bc0

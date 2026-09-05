@@ -132,3 +132,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-82e13ed3c6b5
+  - type: covered_by
+    from: SYM-KibiNoImpactReason
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:14:35.670Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-239bed7d384c
+  - type: covered_by
+    from: SYM-resetModuleState
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:18:37.859Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-340a4301c818

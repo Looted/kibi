@@ -90,3 +90,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-032660c6eddc
+  - type: covered_by
+    from: SYM-cursor-toRepoRelativePath
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-09-05T15:40:22.194Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7fc0bc4e57e

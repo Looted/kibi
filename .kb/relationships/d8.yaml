@@ -230,3 +230,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-53c7f5ce081f
+  - type: constrains
+    from: REQ-audit-quality-diagnostics-v1
+    to: FACT-SUBJ-REQ-AUDIT-QUALITY-DIAGNOSTICS-V1
+    created_at: 2026-09-05T14:29:17.150Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bbdbceb14d66
+  - type: requires_property
+    from: REQ-audit-quality-diagnostics-v1
+    to: FACT-PROP-REQ-AUDIT-QUALITY-DIAGNOSTICS-V1-C01
+    created_at: 2026-09-05T14:29:17.172Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-414d0aa85bf6
+  - type: requires_property
+    from: REQ-audit-quality-diagnostics-v1
+    to: FACT-PROP-REQ-AUDIT-QUALITY-DIAGNOSTICS-V1-C02
+    created_at: 2026-09-05T14:29:17.181Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d04b9fad45c
+  - type: executable_for
+    from: SYM-e2e-test-cli-staged-impact-enforcement
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:12:09.780Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e380f0cc522
+  - type: covered_by
+    from: SYM-cursor-isDocumentationTrackedPath
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-09-05T15:38:56.012Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a33a3400029f

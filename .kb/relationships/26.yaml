@@ -76,3 +76,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-21f41c94f050
+  - type: covered_by
+    from: SYM-extractManifestSymbolRecordsString
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:25:39.347Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85ca83d01344
+  - type: covered_by
+    from: SYM-cursor-worktree-package-version
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-09-05T15:40:32.644Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc4b8c229bdb

@@ -83,3 +83,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b3b0ed91c2fd
+  - type: covered_by
+    from: SYM-cli-rule-registry-validateRuleName
+    to: TEST-001
+    created_at: 2026-09-05T15:35:28.098Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f96e8405375f

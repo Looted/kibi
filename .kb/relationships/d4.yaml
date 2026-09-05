@@ -83,3 +83,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fda81f41e6d3
+  - type: covered_by
+    from: SYM-getBehaviorSourcePaths
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:17:42.381Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b38842f3a1e
+  - type: covered_by
+    from: SYM-mcp-collectQueryPlanSafetyViolations
+    to: TEST-001
+    created_at: 2026-09-05T15:35:38.764Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e1cd3c21b6c

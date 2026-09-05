@@ -169,7 +169,11 @@
   {
     "test_id": "TEST-test-journaled-engine-harness",
     "steps": [
-      ["node", "--test", "scripts/tests/run-packed-e2e.test.mjs"],
+      [
+        "node",
+        "--test",
+        "scripts/tests/run-packed-e2e.test.mjs"
+      ],
       [
         "bun",
         "test",
@@ -387,6 +391,546 @@
         "./packages/cli/tests/commands/check.test.ts",
         "./packages/cli/tests/public/operations/check-helpers.test.ts",
         "./packages/cli/tests/commands/check-impact-contract.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-003",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cli-workflows.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-KIBI-BOOTSTRAP-PLAN-APPLY",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/init-sync-check.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-agent-guided-migration-orchestration",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/dependency-ordered-repair-plan.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-005",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/mcp.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-001",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cli-workflows.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-010",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/traceability-gate.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-011",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cli-workflows.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-012",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/init-sync-check.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-014",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/release-package-contract.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-agent-kibi-interface-selection",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/mcp-cli-operation-parity.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-audit-quality-diagnostics-v1",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cli-workflows.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-canonical-runtime",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/init-sync-check.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-doctor-packed-provenance",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/release-package-contract.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-canonical-init",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/init-sync-check.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-migrate",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/source-first-recovery.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-staged-impact-enforcement",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cli-workflows.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-status-pre-first-sync",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cli-status-pre-first-sync.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-usage-metrics-v1",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/telemetry-acceptance-gate.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-codex-kibi-plugin-v1",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/codex-plugin.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-sync-discovery-readme-ignore",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cli-status-pre-first-sync.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cursor-agent-plugin-v1",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cursor-plugin-launcher.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cursor-kibi-plugin-v1",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cursor-plugin-launcher.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cursor-stop-job-vs-plan",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cursor-plugin-launcher.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cursor-worktree-kibi-continuity",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cursor-plugin-launcher.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-generated-coordinate-repair",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/source-relationship-parity.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-logical-requirement-coverage",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cli-workflows.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-proof-aware-quality-diagnostics",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cli-workflows.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-mcp-cli-help",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/mcp-cli-help.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-mcp-kb-freshness",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/mcp-pnpm-upgrade-stale-path.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-mcp-relationship-preflight",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/mcp-crud.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-mcp-search-discovery",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/discovery-bundle.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-mcp-semantic-advisor-preflight",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/proposition-complete-ingestion.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-mcp-skills-resource-discoverability",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/mcp-cli-help.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-mcp-suggest-predicates",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/predicate-suggestion-relevance.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-mcp-tag-filtering-server-side",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/mcp-cli-operation-parity.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-mcp-tool-check-coverage",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cli-workflows.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-mcp-upsert-coverage",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/mcp-crud.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-opencode-kibi-plugin-v1",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/opencode-plugin.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-opencode-python-comment-routing",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/opencode-comment-guidance.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-opencode-file-context-guidance-v1",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/opencode-comment-guidance.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-opencode-smart-enforcement",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cli-workflows.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-opencode-smart-enforcement-v1-coverage",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/opencode-plugin.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-prolog-library-adoption-core",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cli-workflows.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-skill-cli-load-validate",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/mcp-cli-help.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-root-suite-batch-diagnostics",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/ci-artifact-only-smoke.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-skillopt-cursor-compat",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cursor-plugin-launcher.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-skillopt-logical-evidence-fidelity",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/ontology-convergence-witnesses.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-skillopt-paid-launch-accounting",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/telemetry-acceptance-gate.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-skillopt-predicate-first-requirements",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/predicate-suggestion-relevance.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-symbol-behavioral-anchors",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/source-relationship-parity.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-vscode-traceability",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/traceability-gate.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-vscode-traceability-coverage",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/traceability-gate.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-operation-interface-parity",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/mcp-cli-operation-parity.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-skillopt-external-adoption-verdict",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/ontology-convergence-witnesses.test.ts"
       ]
     ]
   }

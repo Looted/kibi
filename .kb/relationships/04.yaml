@@ -111,3 +111,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-23482b494a34
+  - type: covered_by
+    from: SYM-KibiImpactMode
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:14:10.326Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31d9e178ee1c

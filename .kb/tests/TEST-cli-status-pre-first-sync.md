@@ -2,8 +2,8 @@
 id: TEST-cli-status-pre-first-sync
 title: CLI status is valid before first sync in workspace and packed installs
 status: active
-created_at: 2026-04-17T12:00:00Z
-updated_at: 2026-04-17T12:00:00Z
+created_at: 2026-04-17T12:00:00.000Z
+updated_at: 2026-04-17T12:00:00.000Z
 source: documentation/tests/TEST-cli-status-pre-first-sync.md
 tags:
   - cli
@@ -12,6 +12,16 @@ tags:
 links:
   - type: validates
     target: SCEN-cli-status-pre-first-sync
+verification_scope: end_to_end
+verification_perspective: consumer
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-e2e-test-cli-status-pre-first-sync
+      target: default
+  success_policy: all_required_first_attempt
+type: test
 ---
 
 The test verifies that the `kibi status` command does not fail when executed in a newly initialized repository before any data has been synced, and that ignored documentation README files do not make a freshly synced workspace stale.

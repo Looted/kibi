@@ -2,14 +2,29 @@
 id: TEST-kibi-logical-requirement-coverage
 title: Clause-complete logical requirement modeling tests
 status: passing
-created_at: 2026-08-04T00:00:00Z
-updated_at: 2026-08-04T00:00:00Z
+created_at: 2026-08-04T00:00:00.000Z
+updated_at: 2026-08-04T00:00:00.000Z
 source: packages/core/tests/kb.plt
-tags: [requirements, prolog, semantic-advisor, skillopt, unit, integration]
+tags:
+  - requirements
+  - prolog
+  - semantic-advisor
+  - skillopt
+  - unit
+  - integration
 verification_scope: end_to_end
 links:
   - type: validates
     target: SCEN-kibi-logical-requirement-coverage
+verification_perspective: consumer
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-e2e-test-kibi-logical-requirement-coverage
+      target: default
+  success_policy: all_required_first_attempt
+type: test
 ---
 
 Verifies stable clause keys including trailing-punctuation normalization, compound semantic-advisor receipts, merged modeling manifests, paired and hash-consistent claim provenance, bijective manifest-to-ground-fact coverage, duplicate-term rejection, lossless repeated-relationship decoding, default rule activation, title-independent logical-debt diagnostics, exact predicate polarity contradictions, MCP contradiction rejection, MCP schema preservation of claim patterns, uniqueness, and conditional provenance, staged-overlay preservation of manifests, predicate fields, and verification metadata, final-state evidence normalization, and Skillopt logical-coverage scoring.

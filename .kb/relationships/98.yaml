@@ -69,3 +69,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-627ebda2b6db
+  - type: covered_by
+    from: SYM-isOperationalArtifactPath
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:26:01.269Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-007f7759b345
+  - type: covered_by
+    from: SYM-cli-PrologProcess-getPid
+    to: TEST-001
+    created_at: 2026-09-05T15:34:00.218Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76142113e5f5

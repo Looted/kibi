@@ -3,8 +3,8 @@ id: TEST-opencode-python-comment-routing
 title: OpenCode plugin verifies Python durable-comment routing
 type: test
 status: pending
-created_at: 2026-03-21T13:00:00Z
-updated_at: 2026-03-21T13:00:00Z
+created_at: 2026-03-21T13:00:00.000Z
+updated_at: 2026-03-21T13:00:00.000Z
 source: documentation/tests/TEST-opencode-python-comment-routing.md
 priority: should
 tags:
@@ -15,6 +15,15 @@ tags:
 links:
   - type: validates
     target: SCEN-opencode-python-comment-routing
+verification_scope: end_to_end
+verification_perspective: consumer
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-e2e-test-opencode-python-comment-routing
+      target: default
+  success_policy: all_required_first_attempt
 ---
 
 ## Test Coverage

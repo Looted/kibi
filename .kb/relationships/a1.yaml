@@ -202,3 +202,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-820898e525e7
+  - type: covered_by
+    from: SYM-isCoarseGranularityAnchor
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:25:49.970Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73d05f1ad8ec

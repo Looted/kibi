@@ -41,83 +41,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d5d4b690f0d8
-  - type: requires_property
-    from: REQ-opencode-file-context-guidance-v1
-    to: FACT-PROP-FCG-GUIDANCE-SOURCE
-    created_at: 2026-08-22T07:40:09.303Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c78c35c44b17
-  - type: requires_property
-    from: REQ-opencode-file-context-guidance-v1
-    to: FACT-PROP-FCG-HEURISTIC
-    created_at: 2026-08-22T07:40:09.309Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1dd232b3b120
-  - type: requires_property
-    from: REQ-opencode-file-context-guidance-v1
-    to: FACT-PROP-FCG-FILE-ACCESS
-    created_at: 2026-08-22T07:40:09.319Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-df690b5ccd70
-  - type: requires_property
-    from: REQ-opencode-file-context-guidance-v1
-    to: FACT-PROP-FCG-SINGLE-BLOCK
-    created_at: 2026-08-22T07:40:09.333Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-676d21335ad8
-  - type: constrains
-    from: REQ-opencode-file-context-guidance-v1
-    to: FACT-SUBJ-OPENCODE-PLUGIN
-    created_at: 2026-08-22T07:46:19.719Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-19c0c93a9850
-  - type: constrains
-    from: REQ-opencode-file-context-guidance-v1
-    to: FACT-SUBJ-PLUGIN-E2E-REMINDER
-    created_at: 2026-08-22T07:46:19.758Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-255343960f4d
-  - type: constrains
-    from: REQ-opencode-file-context-guidance-v1
-    to: FACT-SUBJ-PLUGIN-GUIDANCE-RENDERING
-    created_at: 2026-08-22T07:46:19.768Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-0f62cce46c90
-  - type: requires_property
-    from: REQ-opencode-file-context-guidance-v1
-    to: FACT-PROP-FCG-SCOPE
-    created_at: 2026-08-22T12:38:53.963Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-66d8c959c1a3
-  - type: requires_property
-    from: REQ-opencode-file-context-guidance-v1
-    to: FACT-PROP-FCG-MODIFIER
-    created_at: 2026-08-22T12:38:54.001Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-c9f914277992
-  - type: requires_property
-    from: REQ-opencode-file-context-guidance-v1
-    to: FACT-PROP-FCG-UMBRELLA-EXCLUSION
-    created_at: 2026-08-22T12:38:54.009Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-000f60822fad
-  - type: requires_property
-    from: REQ-opencode-file-context-guidance-v1
-    to: FACT-PROP-FCG-CURRENT-HOST
-    created_at: 2026-08-22T12:38:54.018Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-88e297b8d27a
   - type: implements
     from: SYM-TimeoutHandle
     to: REQ-opencode-kibi-plugin-v1
@@ -167,3 +90,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b31e1f18029
+  - type: constrains
+    from: REQ-opencode-file-context-guidance-v1
+    to: FACT-SUBJ-REQ-OPENCODE-FILE-CONTEXT-GUIDANCE-V1
+    created_at: 2026-09-05T14:36:14.548Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-843999bc6b40
+  - type: requires_property
+    from: REQ-opencode-file-context-guidance-v1
+    to: FACT-PROP-REQ-OPENCODE-FILE-CONTEXT-GUIDANCE-V1-N01
+    created_at: 2026-09-05T14:36:14.564Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b46cac1c97d
+  - type: requires_property
+    from: REQ-opencode-file-context-guidance-v1
+    to: FACT-PROP-REQ-OPENCODE-FILE-CONTEXT-GUIDANCE-V1-N02
+    created_at: 2026-09-05T14:36:14.569Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1fb14081222
+  - type: requires_property
+    from: REQ-opencode-file-context-guidance-v1
+    to: FACT-PROP-REQ-OPENCODE-FILE-CONTEXT-GUIDANCE-V1-N03
+    created_at: 2026-09-05T14:36:14.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17da6eb750f6
+  - type: requires_property
+    from: REQ-opencode-file-context-guidance-v1
+    to: FACT-PROP-REQ-OPENCODE-FILE-CONTEXT-GUIDANCE-V1-N04
+    created_at: 2026-09-05T14:36:14.578Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc2009a18cb3
+  - type: requires_property
+    from: REQ-opencode-file-context-guidance-v1
+    to: FACT-PROP-REQ-OPENCODE-FILE-CONTEXT-GUIDANCE-V1-N05
+    created_at: 2026-09-05T14:36:14.583Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07282929e22d
+  - type: requires_property
+    from: REQ-opencode-file-context-guidance-v1
+    to: FACT-PROP-REQ-OPENCODE-FILE-CONTEXT-GUIDANCE-V1-N06
+    created_at: 2026-09-05T14:36:14.588Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8db51eab22d
+  - type: requires_property
+    from: REQ-opencode-file-context-guidance-v1
+    to: FACT-PROP-REQ-OPENCODE-FILE-CONTEXT-GUIDANCE-V1-N07
+    created_at: 2026-09-05T14:36:14.592Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce0e9769a72f
+  - type: requires_property
+    from: REQ-opencode-file-context-guidance-v1
+    to: FACT-PROP-REQ-OPENCODE-FILE-CONTEXT-GUIDANCE-V1-N08
+    created_at: 2026-09-05T14:36:14.597Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b0d5941e942e
+  - type: requires_property
+    from: REQ-opencode-file-context-guidance-v1
+    to: FACT-PROP-REQ-OPENCODE-FILE-CONTEXT-GUIDANCE-V1-N09
+    created_at: 2026-09-05T14:36:14.602Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eea66a213d37
+  - type: executable_for
+    from: SYM-e2e-test-003
+    to: TEST-003
+    created_at: 2026-09-05T14:38:09.019Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a4a83e3c9b5
+  - type: covered_by
+    from: SYM-NpmFixtureMock
+    to: TEST-014
+    created_at: 2026-09-05T14:53:50.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f334034979aa

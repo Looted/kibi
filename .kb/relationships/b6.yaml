@@ -62,3 +62,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-59beda82d2d3
+  - type: executable_for
+    from: SYM-e2e-test-cursor-stop-job-vs-plan
+    to: TEST-cursor-stop-job-vs-plan
+    created_at: 2026-09-05T15:40:46.929Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd2da15ca0ff

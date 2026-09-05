@@ -174,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9d25624f391f
+  - type: covered_by
+    from: SYM-TOOLS
+    to: TEST-010
+    created_at: 2026-09-05T14:52:01.511Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c32e812f5f4
+  - type: covered_by
+    from: SYM-cli-impact-readImpactManifestResults
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:16:54.638Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd599a533751

@@ -160,3 +160,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-462f5f21c8f7
+  - type: covered_by
+    from: SYM-PROMPTS
+    to: TEST-agent-kibi-interface-selection
+    created_at: 2026-09-05T15:01:52.400Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78bcde79c354
+  - type: covered_by
+    from: SYM-cursor-runHook
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-09-05T15:06:32.429Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ac5ccf18620
+  - type: covered_by
+    from: SYM-cli-impact-createSemanticReviewDiagnostics
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:16:15.320Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-000a3a0abe6a
+  - type: covered_by
+    from: SYM-mcp-discovery-context
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:33:27.328Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8fb6594a10b1
+  - type: covered_by
+    from: SYM-cursor-runHook
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-09-05T15:40:06.879Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b0d5a68405fc
+  - type: covered_by
+    from: SYM-cursor-runHook
+    to: TEST-cursor-stop-job-vs-plan
+    created_at: 2026-09-05T15:41:24.669Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3b73ed1037f

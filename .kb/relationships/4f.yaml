@@ -185,3 +185,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2e75ce7acdff
+  - type: covered_by
+    from: SYM-codex-isSourceImpactRelevantPath
+    to: TEST-codex-kibi-plugin-v1
+    created_at: 2026-09-05T15:21:24.520Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1eda62586d7
+  - type: covered_by
+    from: SYM-atomicPublishGeneration
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:28:02.391Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bdbc8d54cf31

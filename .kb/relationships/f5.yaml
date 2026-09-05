@@ -69,3 +69,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-967adfba1291
+  - type: constrains
+    from: REQ-kibi-proof-aware-quality-diagnostics
+    to: FACT-SUBJ-REQ-KIBI-PROOF-AWARE-QUALITY-DIAGNOSTICS
+    created_at: 2026-09-05T14:31:22.380Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-165ab828c4f8
+  - type: requires_property
+    from: REQ-kibi-proof-aware-quality-diagnostics
+    to: FACT-PROP-REQ-KIBI-PROOF-AWARE-QUALITY-DIAGNOSTICS-C01
+    created_at: 2026-09-05T14:31:22.395Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-850631656692
+  - type: requires_property
+    from: REQ-kibi-proof-aware-quality-diagnostics
+    to: FACT-PROP-REQ-KIBI-PROOF-AWARE-QUALITY-DIAGNOSTICS-C02
+    created_at: 2026-09-05T14:31:22.399Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7c6c3acf96c
+  - type: requires_property
+    from: REQ-kibi-proof-aware-quality-diagnostics
+    to: FACT-PROP-REQ-KIBI-PROOF-AWARE-QUALITY-DIAGNOSTICS-C03
+    created_at: 2026-09-05T14:31:22.403Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a35b063590ee

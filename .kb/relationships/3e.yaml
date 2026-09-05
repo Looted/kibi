@@ -139,3 +139,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5f629f87096e
+  - type: covered_by
+    from: SYM-mcp-connectTransport
+    to: TEST-005
+    created_at: 2026-09-05T14:47:08.151Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33329cada455
+  - type: covered_by
+    from: SYM-discovery-execute-status
+    to: TEST-cli-status-pre-first-sync
+    created_at: 2026-09-05T15:19:07.747Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e4d229abdfa3

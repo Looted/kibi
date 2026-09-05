@@ -94,3 +94,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-edcb9ab6e5d2
+  - type: covered_by
+    from: SYM-SourceSymbolKind
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:24:04.484Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d80c8676e5fa

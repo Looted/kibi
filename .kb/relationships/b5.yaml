@@ -258,3 +258,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-95e477ce8072
+  - type: covered_by
+    from: SYM-cli-engine-client-search-entities
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:29:26.300Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d63303da25bb
+  - type: executable_for
+    from: SYM-e2e-test-mcp-cli-help
+    to: TEST-mcp-cli-help
+    created_at: 2026-09-05T15:45:37.730Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ceffc217093

@@ -153,3 +153,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e2cdb8135a02
+  - type: covered_by
+    from: SYM-syncCommand
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-09-05T15:05:11.109Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-471cf057e6d8
+  - type: covered_by
+    from: SYM-isBehaviorSourceEdit
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:18:17.578Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c257c9aa23fb
+  - type: covered_by
+    from: SYM-syncCommand
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:27:37.123Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0817851046ea

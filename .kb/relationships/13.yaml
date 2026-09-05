@@ -48,3 +48,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c6fd2e9603a3
+  - type: covered_by
+    from: SYM-ManifestSymbolEntry
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:23:22.450Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4460d49b00f

@@ -83,3 +83,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5cb1c30d784b
+  - type: covered_by
+    from: SYM-markdown-normalizeDateLike
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:26:58.891Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9b9981bcf93f

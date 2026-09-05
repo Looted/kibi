@@ -24,3 +24,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f6e8bbbe1506
+  - type: covered_by
+    from: SYM-cli-impact-createCoverageDepthQualityDiagnostics
+    to: TEST-audit-quality-diagnostics-v1
+    created_at: 2026-09-05T15:03:16.129Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-83a513ab29ce
+  - type: covered_by
+    from: SYM-mcp-startup-resolution-formatResolutionJson
+    to: TEST-cursor-agent-plugin-v1
+    created_at: 2026-09-05T15:36:31.066Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-176612305cbd

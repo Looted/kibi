@@ -3,7 +3,7 @@ id: TEST-005
 title: MCP server responds to the curated public tools with valid JSON-RPC format
 status: active
 created_at: 2026-02-18T13:12:25.000Z
-updated_at: 2026-08-02T00:00:00Z
+updated_at: 2026-08-02T00:00:00.000Z
 priority: must
 tags:
   - mcp
@@ -12,6 +12,16 @@ tags:
 links:
   - type: validates
     target: SCEN-001
+verification_scope: end_to_end
+verification_perspective: consumer
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-e2e-test-005
+      target: default
+  success_policy: all_required_first_attempt
+type: test
 ---
 
 Starts `kibi-mcp` in a test environment. Sends `tools/list` and asserts:

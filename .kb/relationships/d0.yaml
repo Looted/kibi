@@ -48,3 +48,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0a3b25267e6d
+  - type: covered_by
+    from: SYM-cli-PrologProcess-isRunning
+    to: TEST-001
+    created_at: 2026-09-05T15:34:09.121Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84aa2d088357

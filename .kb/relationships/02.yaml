@@ -118,3 +118,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b0f099a34e10
+  - type: covered_by
+    from: SYM-EntitySpec
+    to: TEST-001
+    created_at: 2026-09-05T14:50:11.557Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-350732cd3071

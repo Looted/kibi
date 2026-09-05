@@ -167,3 +167,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-899789f4ea63
+  - type: covered_by
+    from: SYM-cursor-HookEvent
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-09-05T15:37:45.456Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-702439186e09
+  - type: executable_for
+    from: SYM-e2e-test-kibi-proof-aware-quality-diagnostics
+    to: TEST-kibi-proof-aware-quality-diagnostics
+    created_at: 2026-09-05T15:45:15.311Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0d311fede85

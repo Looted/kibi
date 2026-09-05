@@ -48,3 +48,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3ef7d7565c40
+  - type: covered_by
+    from: SYM-KIBI-IMPACT-DIAGNOSTIC-IDS
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:12:42.210Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ca88bfb20b4

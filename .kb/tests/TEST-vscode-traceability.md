@@ -2,8 +2,8 @@
 id: TEST-vscode-traceability
 title: VS Code extension traceability feature tests
 status: active
-created_at: 2026-02-18T00:00:00Z
-updated_at: 2026-03-19T00:00:00Z
+created_at: 2026-02-18T00:00:00.000Z
+updated_at: 2026-03-19T00:00:00.000Z
 priority: must
 tags:
   - vscode
@@ -14,6 +14,16 @@ links:
     target: SCEN-vscode-open-entity
   - type: validates
     target: SCEN-vscode-code-action
+verification_scope: end_to_end
+verification_perspective: consumer
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-e2e-test-vscode-traceability
+      target: default
+  success_policy: all_required_first_attempt
+type: test
 ---
 
 6 unit tests in `packages/vscode/tests/traceability.test.ts`:

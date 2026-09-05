@@ -2,8 +2,8 @@
 id: TEST-cursor-kibi-plugin-v1
 title: Cursor Kibi Plugin v1 Verification
 status: active
-created_at: 2026-06-09T00:00:00Z
-updated_at: 2026-06-09T00:00:00Z
+created_at: 2026-06-09T00:00:00.000Z
+updated_at: 2026-06-09T00:00:00.000Z
 priority: must
 tags:
   - test
@@ -16,6 +16,16 @@ links:
     target: SCEN-cursor-kibi-plugin-v1
   - type: relates_to
     target: REQ-cursor-kibi-plugin-v1
+verification_scope: end_to_end
+verification_perspective: consumer
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-e2e-test-cursor-kibi-plugin-v1
+      target: default
+  success_policy: all_required_first_attempt
+type: test
 ---
 
 Verification for `kibi-cursor` documentation and plugin onboarding guidance includes:

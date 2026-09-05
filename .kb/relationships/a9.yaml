@@ -111,3 +111,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6cb9fac3b42d
+  - type: covered_by
+    from: SYM-branchEnsureCommand
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-09-05T15:04:33.189Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba5940eb95cf

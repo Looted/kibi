@@ -2,15 +2,29 @@
 id: TEST-skillopt-predicate-first-requirements
 title: Predicate-first requirement graph contract tests
 status: passing
-created_at: 2026-07-26T00:00:00Z
-updated_at: 2026-08-04T00:00:00Z
+created_at: 2026-07-26T00:00:00.000Z
+updated_at: 2026-08-04T00:00:00.000Z
 source: packages/cli/tests/traceability/predicate-first.test.ts
-tags: [skillopt, agents, requirements, predicates, traceability, integration]
-verification_scope: integration
+tags:
+  - skillopt
+  - agents
+  - requirements
+  - predicates
+  - traceability
+  - integration
+verification_scope: end_to_end
 verification_perspective: internal
 links:
   - type: validates
     target: REQ-skillopt-predicate-first-requirements
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-e2e-test-skillopt-predicate-first-requirements
+      target: default
+  success_policy: all_required_first_attempt
+type: test
 ---
 
 Verifies the exact typed requirement, scenario, test, and executable-symbol chain and rejects reversed, generic, dangling, or wrong executable-symbol relationships with structured diagnostics. The test surface also distinguishes required predicate, strict subject/property, and review-observation lanes so missing modeling outcomes fail independently.

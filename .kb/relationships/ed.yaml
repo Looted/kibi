@@ -97,3 +97,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-40d9e7bd0069
+  - type: executable_for
+    from: SYM-e2e-test-cli-sync-discovery-readme-ignore
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:22:44.520Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc476621149e

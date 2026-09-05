@@ -3,8 +3,8 @@ id: TEST-kibi-operation-interface-parity
 title: Kibi public operation parity verification plan
 type: test
 status: passing
-created_at: 2026-07-21T00:00:00Z
-updated_at: 2026-07-22T00:00:00Z
+created_at: 2026-07-21T00:00:00.000Z
+updated_at: 2026-07-22T00:00:00.000Z
 source: documentation/tests/TEST-kibi-operation-interface-parity.md
 priority: must
 verification_scope: end_to_end
@@ -20,6 +20,13 @@ links:
     target: SCEN-kibi-operation-interface-parity
   - type: relates_to
     target: ADR-022
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-e2e-test-kibi-operation-interface-parity
+      target: default
+  success_policy: all_required_first_attempt
 ---
 
 ## Test Coverage

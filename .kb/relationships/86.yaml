@@ -97,3 +97,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-56e413fd7731
+  - type: covered_by
+    from: SYM-cursor-hookRunnerPath
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-09-05T15:38:41.049Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52933930dc4d
+  - type: covered_by
+    from: SYM-cursor-parseHookInput
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-09-05T15:39:26.812Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d35845aecff8
+  - type: covered_by
+    from: SYM-cursor-parseHookInput
+    to: TEST-cursor-stop-job-vs-plan
+    created_at: 2026-09-05T15:41:15.232Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb7c30bbad6f

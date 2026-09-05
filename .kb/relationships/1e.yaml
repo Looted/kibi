@@ -34,3 +34,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-66dcf1de7bf4
+  - type: covered_by
+    from: SYM-PackageInfo
+    to: TEST-014
+    created_at: 2026-09-05T14:54:04.086Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea8832eef0e3
+  - type: covered_by
+    from: SYM-createManifestLookupSentinelKey
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:17:21.574Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17b403c8d5c5
+  - type: covered_by
+    from: SYM-parseKibiImpactOverride
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:18:27.579Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-618bbd329412
