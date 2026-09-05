@@ -398,3 +398,64 @@ describe("retract leftover list shapes", () => {
     expect(count).toBe(0);
   });
 });
+
+describe("persistEntities leftover typed fact serialization", () => {
+  test("serializes every typed fact field including a dropped non-integer value_int", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const goals: string[] = [];
+    const result = await persistEntities(
+      makeProlog((goal) => {
+        goals.push(goal);
+        if (goal.includes("findall(Id")) {
+          return { success: true, bindings: { ExistingIds: "[]" } };
+        }
+        return { success: true, bindings: {} };
+      }),
+      [
+        makeResult(
+          {
+            id: "FACT-TYPED",
+            type: "fact",
+            title: "Typed fact",
+            fact_kind: "property_value",
+            subject_key: "req.demo",
+            property_key: "retries",
+            operator: "eq",
+            value_type: "int",
+            value_string: "2",
+            value_int: 2.5,
+            value_number: 2.5,
+            value_bool: true,
+            unit: "times",
+            scope: "runtime",
+            polarity: "require",
+            closed_world: true,
+            valid_from: "2026-01-01",
+            valid_to: "2026-12-31",
+            canonical_key: "req.demo.retries.eq.2",
+            claim_key: "CLAIM-1",
+            claim_text: "retries equal 2",
+            predicate_name: "equals",
+            predicate_namespace: "kibi",
+            predicate_arity: 2,
+            argument_names: ["subject", "value"],
+            argument_types: ["string", "int"],
+            argument_descriptions: ["s", "v"],
+            aliases: ["eq"],
+            examples: ["retries=2"],
+            predicate_args: ["req.demo", "2"],
+            rule_ir: { kind: "eq" },
+          },
+          [],
+          ".kb/facts/FACT-TYPED.md",
+        ),
+      ],
+      new Set(),
+    );
+    expect(result.entityCount).toBeGreaterThanOrEqual(0);
+    expect(goals.some((goal) => goal.includes("fact_kind"))).toBe(true);
+    expect(goals.join("\n")).not.toMatch(/value_int=2\.5/);
+    expect(goals.join("\n")).toMatch(/value_bool=true|closed_world=true/);
+  });
+});

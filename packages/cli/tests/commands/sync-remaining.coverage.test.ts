@@ -661,4 +661,57 @@ describe("syncCommand remaining runtime branches", () => {
       /Sync blocked:.*legacy branch storage/,
     );
   });
+
+  test("pending relationship receipts reject escapes, drift, and missing shards", async () => {
+    const cwd = preparedGitWorkspace();
+    await withCwd(cwd, () => initCommand({}));
+    git(cwd, "add .kb");
+    git(cwd, "commit --no-verify -m init-kb");
+    const pendingRoot = path.join(cwd, ".kb", "recovery", "pending-sources");
+    mkdirSync(pendingRoot, { recursive: true });
+    writeFileSync(path.join(pendingRoot, "not-json.json"), "{not-json\n");
+    writeFileSync(
+      path.join(pendingRoot, "incomplete.json"),
+      `${JSON.stringify({ version: 1, path: ".kb/relationships/aa.yaml" })}\n`,
+    );
+    writePendingSourceReceipt(
+      cwd,
+      ".kb/relationships/../../outside.yaml",
+      "a".repeat(64),
+    );
+    await expect(
+      syncCommand(
+        { validateOnly: true, workspaceRoot: cwd },
+        { createProlog: () => scriptedProlog() as never },
+      ),
+    ).rejects.toThrow(/escapes workspace/);
+
+    writeFileSync(
+      path.join(cwd, ".kb", "relationships", "aa.yaml"),
+      "relationships: []\n",
+    );
+    writePendingSourceReceipt(
+      cwd,
+      ".kb/relationships/aa.yaml",
+      "b".repeat(64),
+    );
+    await expect(
+      syncCommand(
+        { validateOnly: true, workspaceRoot: cwd },
+        { createProlog: () => scriptedProlog() as never },
+      ),
+    ).rejects.toThrow(/hash drift/);
+
+    writePendingSourceReceipt(
+      cwd,
+      ".kb/relationships/missing-now.yaml",
+      "c".repeat(64),
+    );
+    await expect(
+      syncCommand(
+        { validateOnly: true, workspaceRoot: cwd },
+        { createProlog: () => scriptedProlog() as never },
+      ),
+    ).rejects.toThrow(/Pending source is missing/);
+  });
 });

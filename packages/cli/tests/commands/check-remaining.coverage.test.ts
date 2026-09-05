@@ -584,4 +584,61 @@ describe("checkCommand remaining runtime branches", () => {
     expect(violations[0]?.suggestion).toContain("Create test");
     expect(violations[0]?.source).toBe("docs/req.md");
   });
+
+  test("skips a corrupt working-tree manifest when debug is enabled", async () => {
+    const cwd = preparedWorkspace();
+    mkdirSync(path.join(cwd, ".kb"), { recursive: true });
+    mkdirSync(path.join(cwd, "src"), { recursive: true });
+    writeFileSync(path.join(cwd, ".kb", "symbols.yaml"), "symbols: [\n");
+    writeFileSync(
+      path.join(cwd, "src", "greet.ts"),
+      "export function greet() { return 1; }\n",
+    );
+    git(cwd, "add src/greet.ts");
+    process.env.KIBI_DEBUG = "1";
+    const debug = spyOn(console, "debug").mockImplementation(() => undefined);
+    restores.push(() => debug.mockRestore());
+    const overlayDir = path.join(cwd, "overlay");
+    mkdirSync(overlayDir, { recursive: true });
+    const overlayPath = path.join(overlayDir, "changed_symbols.pl");
+    writeFileSync(overlayPath, "");
+    const create = spyOn(tempKb, "createTempKb").mockResolvedValue({
+      tempDir: overlayDir,
+      kbPath: overlayDir,
+      overlayPath,
+      prolog: { query: async () => ({ success: true, bindings: {} }) } as never,
+    });
+    const project = spyOn(tempKb, "projectStagedEntities").mockResolvedValue(
+      undefined,
+    );
+    const consult = spyOn(tempKb, "consultOverlay").mockResolvedValue(undefined);
+    const cleanup = spyOn(tempKb, "cleanupTempKb").mockResolvedValue(undefined);
+    const validate = spyOn(stagedValidate, "validateStagedSymbols").mockResolvedValue(
+      [
+        {
+          rule: "symbol-coverage",
+          entityId: "SYM-GREET",
+          description: "unlinked",
+        },
+      ] as never,
+    );
+    restores.push(() => {
+      create.mockRestore();
+      project.mockRestore();
+      consult.mockRestore();
+      cleanup.mockRestore();
+      validate.mockRestore();
+    });
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await withCwd(cwd, () =>
+      checkCommand({
+        staged: true,
+        dryRun: true,
+        kbPath: path.join(cwd, "kb-store"),
+      }),
+    );
+    expect(result.exitCode).toBe(0);
+    expect(debug.mock.calls.join("\n")).toMatch(/skipping working-tree manifest/);
+  });
 });

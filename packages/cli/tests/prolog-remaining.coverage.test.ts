@@ -626,3 +626,35 @@ describe("prolog remaining: process-tree teardown and translators", () => {
     await prolog.terminate();
   });
 });
+
+describe("prolog remaining isRunning and stderr-less start", () => {
+  test("isRunning is false when the child is killed, exited, or signaled", async () => {
+    const restoreEnvFn = isolateKibiEnv();
+    restores.push(restoreEnvFn);
+    const children: FakeChild[] = [];
+    const spawn = spyOn(childProcess, "spawn").mockImplementation(() => {
+      const created = fakeChild({ echoTrue: true, stderr: false });
+      children.push(created);
+      return created as unknown as ChildProcess;
+    });
+    restores.push(() => spawn.mockRestore());
+    const prolog = new PrologProcess({
+      swiplPath: "/usr/bin/env",
+      oneShot: false,
+    });
+    expect(prolog.isRunning()).toBe(false);
+    await prolog.start();
+    expect(prolog.isRunning()).toBe(true);
+    const child = children.at(-1);
+    if (child === undefined) throw new Error("spawn was not called");
+    child.killed = true;
+    expect(prolog.isRunning()).toBe(false);
+    child.killed = false;
+    child.exitCode = 1;
+    expect(prolog.isRunning()).toBe(false);
+    child.exitCode = null;
+    child.signalCode = "SIGTERM";
+    expect(prolog.isRunning()).toBe(false);
+    await prolog.terminate();
+  });
+});

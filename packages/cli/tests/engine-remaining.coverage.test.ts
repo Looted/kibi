@@ -17,12 +17,15 @@ import {
   ENGINE_PROTOCOL_VERSION,
   EngineClient,
   acquireEnginePublicationLease,
+  engineAttachmentsMatch,
   enginePidPath,
   enginePublicationLockPath,
   engineSocketPath,
   engineStartLockPath,
   ensureJournaledBranchStoreAsync,
+  formatEngineAttachmentMismatch,
   fsyncJournaledBranchStore,
+  parseEngineAttachmentIdentity,
   readEngineAttachmentIdentity,
   runEngineDaemon,
 } from "../src/engine.js";
@@ -1175,4 +1178,55 @@ describe("engine remaining: in-process daemon error and signal paths", () => {
     },
     20_000,
   );
+});
+
+describe("engine remaining attachment identity helpers", () => {
+  test("parses, matches, and formats attachment identities", () => {
+    restores.push(isolateKibiEnv());
+    expect(parseEngineAttachmentIdentity(undefined)).toBeNull();
+    expect(parseEngineAttachmentIdentity("not-json")).toBeNull();
+    expect(
+      parseEngineAttachmentIdentity(JSON.stringify(JSON.stringify({}))),
+    ).toBeNull();
+    const identity = {
+      attachedPath: "/tmp/store",
+      attachedGeneration: "gen-1",
+      attachedDev: 1,
+      attachedIno: 2,
+    };
+    expect(
+      parseEngineAttachmentIdentity(JSON.stringify(JSON.stringify(identity))),
+    ).toEqual({
+      path: "/tmp/store",
+      generation: "gen-1",
+      dev: 1,
+      ino: 2,
+    });
+    expect(engineAttachmentsMatch(null, null)).toBe(false);
+    const left = {
+      path: "/tmp/store",
+      generation: "gen-1",
+      dev: 8,
+      ino: 9,
+    };
+    expect(
+      engineAttachmentsMatch(left, { ...left, path: "/tmp/other" }),
+    ).toBe(false);
+    expect(engineAttachmentsMatch(left, left)).toBe(true);
+    expect(
+      engineAttachmentsMatch(
+        { ...left, ino: 0 },
+        { ...left, ino: 0, dev: 99 },
+      ),
+    ).toBe(true);
+    expect(
+      engineAttachmentsMatch(
+        { ...left, ino: 0, generation: "" },
+        { ...left, ino: 0, generation: "" },
+      ),
+    ).toBe(false);
+    expect(
+      formatEngineAttachmentMismatch("kb_save", null, null),
+    ).toContain("branchStore=missing");
+  });
 });

@@ -522,4 +522,47 @@ status: open
     expect(result.exitCode).toBe(1);
     expect(io.logText()).toContain("Version 8.x found");
   });
+
+  test("fails SWI-Prolog when the version banner cannot be parsed", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    const originalExec = childProcess.execSync;
+    const exec = spyOn(childProcess, "execSync").mockImplementation(((
+      command: string,
+      options?: unknown,
+    ) => {
+      if (String(command).includes("swipl")) {
+        return "SWI-Prolog (threaded, 64 bits, version unknown)\n";
+      }
+      return originalExec(command, options as never);
+    }) as typeof childProcess.execSync);
+    restores.push(() => exec.mockRestore());
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await withCwd(cwd, () => doctorCommand({ format: "json" }));
+    expect(result.exitCode).toBe(1);
+    expect(io.logText()).toContain("Unable to parse version");
+  });
+
+  test("emits an export-surface review action when executeApplyPlan is not a function", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    const operations = await import("../../src/public/operations/index.js");
+    const original = operations.executeApplyPlan;
+    Object.defineProperty(operations, "executeApplyPlan", {
+      value: 1,
+      configurable: true,
+    });
+    restores.push(() => {
+      Object.defineProperty(operations, "executeApplyPlan", {
+        value: original,
+        configurable: true,
+      });
+    });
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await withCwd(cwd, () => doctorCommand({ format: "json" }));
+    expect(result.exitCode).toBe(0);
+    expect(io.logText()).toContain("package-cli-export-surface-drift");
+  });
 });

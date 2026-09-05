@@ -1798,3 +1798,122 @@ describe("migration apply remaining executors and closeout", () => {
     ).rejects.toThrow(/config changed since planning/);
   });
 });
+
+describe("apply-plan leftover recovery and bootstrap catch", () => {
+  test("treats an unreadable current file as missing during prepared recovery", async () => {
+    const root = makeTempDir();
+    const before = "before\n";
+    const after = "after\n";
+    mkdirSync(path.join(root, "docs"), { recursive: true });
+    writeFileSync(path.join(root, "docs", "recover.md"), before);
+    const plan = compilePlan({
+      sourceWrites: [
+        {
+          path: "docs/recover.md",
+          mode: "write",
+          beforeHash: sha(before),
+          afterHash: sha(after),
+          body: after,
+        },
+      ],
+    });
+    const journalId = `source-writes-${plan.planHash.slice(0, 16)}`;
+    plantJournal(root, journalId, {
+      version: 1,
+      planHash: plan.planHash,
+      state: "prepared",
+      entries: [
+        {
+          path: "docs/recover.md",
+          mode: "write",
+          beforeHash: sha(before),
+          afterHash: sha(after),
+          beforeExisted: true,
+          beforeStage: path.join(root, ".kb", "recovery", `${journalId}-0.before`),
+          afterStage: path.join(root, ".kb", "recovery", `${journalId}-0.after`),
+        },
+      ],
+    });
+    const base = nodeFilesystem;
+    const fs = {
+      ...base,
+      readFile: async (target: string) => {
+        if (target.endsWith("docs/recover.md")) {
+          throw new Error("EACCES");
+        }
+        return base.readFile(target);
+      },
+    };
+    await expect(
+      executeApplyPlan(
+        { plan, approvedPlanHash: plan.planHash },
+        filesystemContext(root, { fs }),
+      ),
+    ).rejects.toThrow(/changed outside its journal/);
+  });
+
+  test("rejects a source write that targets a derived .kb runtime tree", async () => {
+    const root = makeTempDir();
+    const body = "runtime\n";
+    const plan = compilePlan({
+      sourceWrites: [
+        {
+          path: ".kb/branches/develop/storage.json",
+          mode: "write",
+          beforeHash: null,
+          afterHash: sha(body),
+          body,
+        },
+      ],
+    });
+    await expect(
+      executeApplyPlan(
+        { plan, approvedPlanHash: plan.planHash },
+        filesystemContext(root),
+      ),
+    ).rejects.toThrow(/derived \.kb runtime trees/);
+  });
+
+  test("records an outer bootstrap catch when the repair journal cannot be written", async () => {
+    const root = makeTempDir();
+    const plan = await thinBootstrap({
+      actions: [
+        {
+          id: "bootstrap-upsert-0001",
+          kind: "upsert",
+          dependsOn: [],
+          payload: {
+            type: "req",
+            id: "REQ-outer",
+            properties: { title: "Outer", status: "open" },
+            relationships: [],
+          },
+        },
+      ],
+    });
+    track(
+      spyOn(upsertModule, "executeUpsert").mockRejectedValue(
+        new Error("upsert exploded"),
+      ),
+    );
+    const base = nodeFilesystem;
+    const fs = {
+      ...base,
+      writeFile: async (target: string, contents: string) => {
+        if (contents.includes('"state": "repair_required"')) {
+          throw new Error("journal write boom");
+        }
+        return base.writeFile(target, contents);
+      },
+    };
+    const result = await executeApplyPlan(
+      { plan, approvedPlanHash: plan.planHash },
+      filesystemContext(root, { fs }),
+    );
+    expect(result.structuredContent.outcome).toBe("partially_applied");
+    expect(result.structuredContent.status).toBe("committed_with_repairs");
+    expect(JSON.stringify(result.structuredContent.effectFailures)).toContain(
+      "journal write boom",
+    );
+  });
+});
