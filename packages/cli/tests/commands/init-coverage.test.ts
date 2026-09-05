@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { initCommand } from "../../src/commands/init.js";
 import {
@@ -88,10 +88,14 @@ describe("initCommand remaining branches", () => {
     const io = captureIo();
     restores.push(io.restore);
     const result = await withCwd(cwd, () =>
-      initCommand({ github: true, badgeOnly: true }),
+      initCommand({ github: true, badgeOnly: false }),
     );
     expect(result.exitCode).toBe(0);
     expect(io.logText()).toContain("Kibi initialized");
+    expect(io.logText()).toContain("Added .github/workflows/kibi-report.yml");
+    expect(readFileSync(path.join(cwd, "README.md"), "utf8")).toContain(
+      "https://acme.github.io/widgets/kibi-report/badge.svg",
+    );
   });
 
   test("returns exit 1 when initialization throws", async () => {

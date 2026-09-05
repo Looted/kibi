@@ -251,6 +251,68 @@ describe("runEngineDaemon in-process", () => {
             rule: "Not_a_rule",
           }),
         ).rejects.toThrow(/lowercase rule name/);
+        await client.command({ version: 1, kind: "check", rule: "integrity" });
+        await client.queryEntities({
+          type: "req",
+          id: "REQ-NONE",
+          tags: ["keep"],
+          sourceFile: "docs/none.md",
+          limit: 2,
+          offset: 0,
+        });
+        await client.searchEntities({
+          query: "keep",
+          type: "req",
+          limit: 2,
+          offset: 0,
+        });
+        await expect(
+          client.command({
+            version: 1,
+            kind: "relationship",
+            action: "assert",
+          } as never),
+        ).rejects.toThrow(/requires type, from, and to/);
+        await expect(
+          client.command({
+            version: 1,
+            kind: "persistence",
+            action: "export",
+          } as never),
+        ).rejects.toThrow(/targetDirectory/);
+        await expect(
+          client.command({
+            version: 1,
+            kind: "lifecycle",
+            action: "cancel",
+          } as never),
+        ).rejects.toThrow(/requestId/);
+        await expect(
+          client.command({
+            version: 1,
+            kind: "search",
+            query: "   ",
+            limit: 1,
+            offset: 0,
+          } as never),
+        ).rejects.toThrow(/non-empty/);
+        await expect(
+          client.command({
+            version: 1,
+            kind: "entities",
+            limit: -1,
+            offset: 0,
+          } as never),
+        ).rejects.toThrow(/bounded integers/);
+        await expect(
+          client.command({
+            version: 1,
+            kind: "search",
+            query: "keep",
+            limit: -1,
+            offset: 0,
+          } as never),
+        ).rejects.toThrow(/bounded integers/);
         await client.stop(false);
       } finally {
         await client.terminate();

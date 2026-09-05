@@ -111,7 +111,7 @@ export function parseGitHubRemote(url: string): GitHubRepo | undefined {
   }
 
   const patterns: RegExp[] = [
-    /^https?:\/\/(?:www\.)?github\.com\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/i,
+    /^https?:\/\/(?:[^/@]+@)?(?:www\.)?github\.com\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/i,
     /^git@github\.com:([^/]+)\/([^/]+?)(?:\.git)?\/?$/i,
     /^ssh:\/\/(?:git@)?github\.com(?::\d+)?\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/i,
     /^git:\/\/github\.com\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/i,

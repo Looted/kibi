@@ -67,6 +67,14 @@ describe("GitHub remote parsing", () => {
       owner: "owner",
       repo: "repo",
     });
+    expect(
+      parseGitHubRemote(
+        "https://x-access-token:placeholder@github.com/Acme/Widgets.git",
+      ),
+    ).toEqual({
+      owner: "Acme",
+      repo: "Widgets",
+    });
   });
 
   test("rejects malformed and non-GitHub remotes", () => {

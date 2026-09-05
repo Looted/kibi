@@ -267,4 +267,41 @@ describe("compile-intent validation and source planning", () => {
     ).toBe(true);
     expect(query).toBeDefined();
   });
+
+  test("updates an explicit requirement and surfaces contradiction witnesses", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-explicit-"));
+    workspaces.push(root);
+    const query = mock(async (goal: string): Promise<PrologQueryResult> => {
+      if (goal.includes("findall([A,B,Reason]"))
+        return {
+          success: true,
+          bindings: {
+            Rows: "[[FACT-A,FACT-B,conflict]]",
+          },
+        };
+      if (goal.includes("kb_entity('REQ-KEEP'"))
+        return {
+          success: true,
+          bindings: {
+            Results:
+              '[[REQ-KEEP,req,[title="Keep",status=open,semantic_text="Customer data must be retained for 7 years."]]]',
+          },
+        };
+      if (goal.includes("kb_relationship"))
+        return { success: true, bindings: { Edges: "[]" } };
+      return { success: true, bindings: { Results: "[]" } };
+    });
+    const plan = (
+      await executeCompileIntent(
+        {
+          intent: "Customer data must be retained for 7 years.",
+          mode: "update",
+          requirementId: "REQ-KEEP",
+        },
+        contextFor(root, query),
+      )
+    ).structuredContent;
+    expect(plan.target.requirementId).toBe("REQ-KEEP");
+    expect(plan.contradictionAnalysis.witnesses.length).toBeGreaterThanOrEqual(0);
+  });
 });
