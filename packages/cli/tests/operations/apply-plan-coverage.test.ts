@@ -1017,6 +1017,64 @@ describe("source hash and source-write guards", () => {
     expect(result.structuredContent.changedPaths).toEqual(["gone.md"]);
   });
 
+  test("writes without rename and refuses delete without unlink", async () => {
+    const root = makeTempDir();
+    const body = "compat write\n";
+    const plan = compilePlan({
+      sourceWrites: [
+        {
+          path: "docs/compat.md",
+          mode: "write",
+          beforeHash: null,
+          afterHash: sha(body),
+          body,
+        },
+      ],
+    });
+    const { rename: _rename, ...noRename } = nodeFilesystem;
+    const written = await executeApplyPlan(
+      { plan, approvedPlanHash: plan.planHash },
+      { ...filesystemContext(root), fs: noRename },
+    );
+    expect(written.structuredContent.changedPaths).toEqual(["docs/compat.md"]);
+
+    writeFileSync(path.join(root, "gone-no-unlink.md"), "x\n");
+    const del = compilePlan({
+      sourceWrites: [
+        {
+          path: "gone-no-unlink.md",
+          mode: "delete",
+          beforeHash: sha("x\n"),
+          afterHash: null,
+        },
+      ],
+    });
+    const { unlink: _unlink, ...noUnlink } = nodeFilesystem;
+    await expect(
+      executeApplyPlan(
+        { plan: del, approvedPlanHash: del.planHash },
+        { ...filesystemContext(root), fs: noUnlink },
+      ),
+    ).rejects.toThrow(/unlink support/);
+
+    const badDelete = compilePlan({
+      sourceWrites: [
+        {
+          path: "docs/compat.md",
+          mode: "delete",
+          beforeHash: sha(body),
+          afterHash: sha("not-null\n"),
+        },
+      ],
+    });
+    await expect(
+      executeApplyPlan(
+        { plan: badDelete, approvedPlanHash: badDelete.planHash },
+        filesystemContext(root),
+      ),
+    ).rejects.toThrow(/null afterHash/);
+  });
+
   test("rolls back a prepared crash journal and refuses outside-hash recovery", async () => {
     const root = makeTempDir();
     const before = "before body\n";
