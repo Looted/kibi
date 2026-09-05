@@ -77,6 +77,26 @@ describe("mergeLcovContents", () => {
     expect(merged.match(/SF:src\/example\.ts/g)).toHaveLength(1);
   });
 
+  test("does not union extra DA:0 rows from a poisoned map into a complete map", () => {
+    const completeLines = Array.from({ length: 20 }, (_, index) => `DA:${index + 1},1`);
+    const poisonedLines = [
+      ...completeLines.map((line) => line.replace(",1", ",0")),
+      "DA:154,0",
+      "DA:202,0",
+    ];
+    const merged = mergeLcovContents([
+      ["TN:", "SF:src/tree.ts", ...poisonedLines, "LF:22", "LH:0", "end_of_record"].join(
+        "\n",
+      ),
+      ["TN:", "SF:src/tree.ts", ...completeLines, "LF:20", "LH:20", "end_of_record"].join(
+        "\n",
+      ),
+    ]);
+    expect(merged).toContain("LF:20\nLH:20");
+    expect(merged).not.toContain("DA:154,0");
+    expect(merged).not.toContain("DA:202,0");
+  });
+
   test("keeps distinct source records in deterministic first-seen order", () => {
     const merged = mergeLcovContents([
       "TN:\nSF:src/b.ts\nDA:2,1\nLF:1\nLH:1\nend_of_record",

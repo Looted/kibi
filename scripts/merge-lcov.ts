@@ -134,6 +134,19 @@ function mergeBranch(
   };
 }
 
+function lineHitRate(lines: ReadonlyMap<number, LineCoverage>): number {
+  if (lines.size === 0) return 0;
+  let hits = 0;
+  for (const line of lines.values()) {
+    if (line.hits > 0) hits += 1;
+  }
+  return hits / lines.size;
+}
+
+function isCompleteLineMap(lines: ReadonlyMap<number, LineCoverage>): boolean {
+  return lines.size >= 20 && lineHitRate(lines) >= 0.95;
+}
+
 function mergeRecord(
   existing: LcovRecord | undefined,
   incoming: LcovRecord,
@@ -147,11 +160,27 @@ function mergeRecord(
     };
   }
 
+  const existingComplete = isCompleteLineMap(existing.lines);
+  const incomingComplete = isCompleteLineMap(incoming.lines);
   const lines = new Map(existing.lines);
   for (const [lineNumber, incomingLine] of incoming.lines) {
     const existingLine = lines.get(lineNumber);
-    if (existingLine === undefined || incomingLine.hits > existingLine.hits) {
+    if (existingLine === undefined) {
+      // Query-string / alternate import graphs can emit extra DA:0 rows for
+      // the same file. Do not union those zeros into an already-complete map.
+      if (incomingLine.hits === 0 && existingComplete) continue;
       lines.set(lineNumber, incomingLine);
+      continue;
+    }
+    if (incomingLine.hits > existingLine.hits) {
+      lines.set(lineNumber, incomingLine);
+    }
+  }
+  if (incomingComplete) {
+    for (const [lineNumber, existingLine] of [...lines.entries()]) {
+      if (existingLine.hits === 0 && !incoming.lines.has(lineNumber)) {
+        lines.delete(lineNumber);
+      }
     }
   }
 
