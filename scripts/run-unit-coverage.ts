@@ -95,8 +95,24 @@ export const COVERAGE_SHARDS: readonly {
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
   },
   {
+    label: "cli.engine",
+    paths: CLI_ROOT_TESTS.filter((path) =>
+      /\/(?:engine|prolog)/.test(path.split("/").pop() ?? ""),
+    ),
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+  },
+  {
     label: "cli.root",
-    paths: CLI_ROOT_TESTS,
+    paths: CLI_ROOT_TESTS.filter(
+      (path) => !/\/(?:engine|prolog)/.test(path.split("/").pop() ?? ""),
+    ),
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+  },
+  {
+    label: "cli.discovery-remaining",
+    paths: [
+      "./packages/cli/tests/coverage-isolates/discovery-remaining.coverage.test.ts",
+    ],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
   },
   { label: "mcp", paths: ["./packages/mcp"] },

@@ -44,7 +44,9 @@ describe("unit coverage runner contract", () => {
       "cli.operations",
       "cli.public",
       "cli.support",
+      "cli.engine",
       "cli.root",
+      "cli.discovery-remaining",
     ]);
     expect(
       COVERAGE_SHARDS.find((shard) => shard.label === "cli.commands")?.timeoutMs,

@@ -272,14 +272,17 @@ export async function discoverSourceFiles(
     absolute: true,
     ignore: [...MARKDOWN_DISCOVERY_IGNORE],
   });
-  let entityMarkdownFiles = markdownFiles.filter(
-    (file) => !file.endsWith("/README.md"),
-  );
+  let entityMarkdownFiles = (
+    Array.isArray(markdownFiles) ? markdownFiles : []
+  ).filter((file) => !file.endsWith("/README.md"));
 
   let manifestFiles = await fg(CANONICAL_ENTITY_PATHS.symbols, {
     cwd,
     absolute: true,
   });
+  if (!Array.isArray(manifestFiles)) {
+    manifestFiles = [];
+  }
   const recoveredPendingReceiptPaths: PendingSourceReceiptSnapshot[] = [];
 
   if (options.trackedOnly) {
