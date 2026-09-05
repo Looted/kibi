@@ -6085,10 +6085,10 @@ coordinates:
     sourceLine: 462
   SYM-COVERAGE_SHARDS:
     identityHash: a85045cd5ad8cac175a632809ca7b95f87d288d8bb58c3154c5d4864f49e51aa
-    sourceHash: 90a5b9069b8e6a17102b52ac82ec5d8a51e8815ab96d78f15c5eb17109561a60
+    sourceHash: 52f82dd22b1c48622ce9bb3e183529ee5627774aff2278e223e1c0d038b4f8ed
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 217
+    sourceEndLine: 261
     sourceFile: scripts/run-unit-coverage.ts
     sourceLine: 63
   SYM-createAtomically:
@@ -15309,12 +15309,12 @@ coordinates:
     sourceLine: 241
   SYM-scripts-runUnitCoverage:
     identityHash: 0a45c2accda0d8883b93684564d0b93a415b99a57df65b9e95b13bbd99484197
-    sourceHash: 90a5b9069b8e6a17102b52ac82ec5d8a51e8815ab96d78f15c5eb17109561a60
+    sourceHash: 52f82dd22b1c48622ce9bb3e183529ee5627774aff2278e223e1c0d038b4f8ed
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 343
+    sourceEndLine: 387
     sourceFile: scripts/run-unit-coverage.ts
-    sourceLine: 255
+    sourceLine: 299
   SYM-scripts-skillopt-eval-scoring-held-out-predicate-PredicateVariant:
     identityHash: c6dc8fabae506a1b9a264ba37e1a306b5be1a7ad79cd5868fa59028d6ad4ed45
     sourceHash: 5ccd52c4ed95f251cdd24b198169d25b4b26a27a3a7d281e45e166f7cc03c7c0
