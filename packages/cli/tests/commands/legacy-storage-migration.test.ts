@@ -272,7 +272,11 @@ describe("legacy storage migration", () => {
     );
 
     const rewritten = rewritePendingSourceReceiptPaths(tmpDir, [
-      { from: "old/REQ-ONE.md", to: ".kb/requirements/REQ-ONE.md" },
+      {
+        from: "old/REQ-ONE.md",
+        to: ".kb/requirements/REQ-ONE.md",
+        lane: "requirements",
+      },
     ]);
     expect(rewritten).toBe(2);
     const legacy = JSON.parse(
