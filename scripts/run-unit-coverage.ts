@@ -95,10 +95,21 @@ export const COVERAGE_SHARDS: readonly {
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
   },
   {
+    label: "cli.engine-remaining",
+    paths: [
+      "./packages/cli/tests/engine-remaining.coverage.test.ts",
+    ],
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+  },
+  {
     label: "cli.engine",
-    paths: CLI_ROOT_TESTS.filter((path) =>
-      /(?:^|\/)(?:engine|prolog)/.test(path.split("/").pop() ?? ""),
-    ),
+    paths: CLI_ROOT_TESTS.filter((path) => {
+      const name = path.split("/").pop() ?? "";
+      return (
+        /(?:^|\/)(?:engine|prolog)/.test(name) &&
+        !name.includes("engine-remaining")
+      );
+    }),
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
   },
   {
@@ -223,11 +234,9 @@ export const COVERAGE_SHARDS: readonly {
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
     paths: [
       "./packages/vscode/tests/code-action-provider.test.ts",
-      "./packages/vscode/tests/code-lens.coverage.test.ts",
       "./packages/vscode/tests/codeLens.test.ts",
       "./packages/vscode/tests/extension.test.ts",
       "./packages/vscode/tests/helpers.test.ts",
-      "./packages/vscode/tests/hover-provider.coverage.test.ts",
       "./packages/vscode/tests/hover-provider.test.ts",
       "./packages/vscode/tests/hover.test.ts",
       "./packages/vscode/tests/manifestContract.test.ts",
@@ -235,9 +244,17 @@ export const COVERAGE_SHARDS: readonly {
       "./packages/vscode/tests/relationshipCache.test.ts",
       "./packages/vscode/tests/symbolIndex.test.ts",
       "./packages/vscode/tests/traceability.test.ts",
-      "./packages/vscode/tests/tree-provider.coverage.test.ts",
       "./packages/vscode/tests/treeProvider.test.ts",
       "./packages/vscode/tests/vscodeMock.test.ts",
+    ],
+  },
+  {
+    label: "vscode.providers",
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+    paths: [
+      "./packages/vscode/tests/code-lens.coverage.test.ts",
+      "./packages/vscode/tests/hover-provider.coverage.test.ts",
+      "./packages/vscode/tests/tree-provider.coverage.test.ts",
       "./packages/vscode/tests/providers-lcov.coverage.test.ts",
     ],
   },

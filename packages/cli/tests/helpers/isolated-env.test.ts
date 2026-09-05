@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { isolateKibiEnv } from "./in-process-workspace.js";
 import { isolatedCliSandboxEnv } from "./isolated-env.js";
 
 describe("isolatedCliSandboxEnv", () => {
@@ -50,5 +51,15 @@ describe("isolatedCliSandboxEnv", () => {
       }
       Reflect.deleteProperty(process.env, "KIBI_PROOF_WORKSPACE");
     }
+  });
+});
+
+describe("isolateKibiEnv", () => {
+  test("clears KIBI_NODE_PATH set during the isolated region", () => {
+    const previous = process.env.KIBI_NODE_PATH;
+    const restore = isolateKibiEnv();
+    process.env.KIBI_NODE_PATH = "/tmp/missing-node";
+    restore();
+    expect(process.env.KIBI_NODE_PATH).toBe(previous);
   });
 });
