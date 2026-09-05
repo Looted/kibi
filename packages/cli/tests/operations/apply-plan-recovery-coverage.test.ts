@@ -346,3 +346,229 @@ describe("migration expected snapshot guards", () => {
     }
   });
 });
+
+describe("bootstrap recovery journals", () => {
+  async function thinPlan(workspaceSnapshot = "a".repeat(64)) {
+    const { bootstrapEmptyKbSnapshotId, bootstrapPlanHash } = await import(
+      "../../src/operations/bootstrap/types.js"
+    );
+    const sourceHashes = {};
+    const kbSnapshotId = bootstrapEmptyKbSnapshotId({
+      branch: "develop",
+      workspaceSnapshot,
+      sourceHashes,
+    });
+    const body = {
+      version: "kibi.bootstrap-plan.v1" as const,
+      status: "ready" as const,
+      expected: {
+        branch: "develop",
+        kbSnapshotId,
+        workspaceSnapshot,
+        sourceHashes,
+      },
+      activation: {
+        activationState: "root_active_thin" as const,
+        activationMode: "attached_thin_bootstrap" as const,
+        applyBlocked: false,
+        reason: "thin",
+      },
+      declaredContext: {
+        sourceOfTruthPaths: [],
+        sourceOfTruthNotes: [],
+        priorityRoots: [],
+        verificationAnchors: [],
+      },
+      contextQuestions: [],
+      confidence: {
+        score: 0.9,
+        level: "high" as const,
+        policy: "full_actions" as const,
+      },
+      discoverySummary: {
+        activationState: "root_active_thin" as const,
+        activationMode: "attached_thin_bootstrap" as const,
+        applyBlocked: false,
+        reason: "thin",
+        providersRun: [],
+        providerCounts: {},
+        detectedLanguages: [],
+        detectedTestFrameworks: [],
+        excludedRoots: [],
+        truncated: false,
+        scanWarnings: [],
+      },
+      candidates: [],
+      actions: [
+        {
+          id: "bootstrap-upsert-0001",
+          kind: "upsert" as const,
+          dependsOn: [],
+          payload: {
+            type: "req",
+            id: "REQ-bootstrap-recover",
+            properties: { title: "Recover", status: "open" },
+            relationships: [],
+          },
+        },
+        {
+          id: "bootstrap-upsert-0002",
+          kind: "upsert" as const,
+          dependsOn: ["bootstrap-upsert-0001"],
+          payload: {
+            type: "req",
+            id: "REQ-bootstrap-recover-2",
+            properties: { title: "Recover 2", status: "open" },
+            relationships: [],
+          },
+        },
+      ],
+      sourceWrites: [],
+      suppressedCandidates: [],
+      payoffSummary: {},
+      diagnostics: [],
+    };
+    return { ...body, planHash: bootstrapPlanHash(body) };
+  }
+
+  test("rejects invalid bootstrap recovery IDs and journal payloads", async () => {
+    const root = makeTempDir();
+    const ctx = filesystemContext(root);
+    await expect(
+      executeApplyPlan({ recoveryJournalId: "bootstrap-not-hex" }, ctx),
+    ).rejects.toThrow(/journal ID is invalid/);
+
+    const journalId = "bootstrap-aaaaaaaaaaaaaaaa";
+    mkdirSync(path.join(root, ".kb", "recovery"), { recursive: true });
+    writeFileSync(
+      path.join(root, ".kb", "recovery", `${journalId}.json`),
+      `${JSON.stringify({ version: 1, kind: "bootstrap" })}\n`,
+    );
+    await expect(
+      executeApplyPlan({ recoveryJournalId: journalId }, ctx),
+    ).rejects.toThrow(/journal is invalid/);
+
+    const plan = await thinPlan();
+    const badHashId = `bootstrap-${plan.planHash.slice(0, 16)}`;
+    writeFileSync(
+      path.join(root, ".kb", "recovery", `${badHashId}.json`),
+      `${JSON.stringify({
+        version: 2,
+        kind: "bootstrap",
+        plan: { ...plan, planHash: "0".repeat(64) },
+      })}\n`,
+    );
+    await expect(
+      executeApplyPlan({ recoveryJournalId: badHashId }, ctx),
+    ).rejects.toThrow(/plan hash is invalid/);
+
+    writeFileSync(
+      path.join(root, ".kb", "recovery", `${badHashId}.json`),
+      `${JSON.stringify({
+        version: 2,
+        kind: "bootstrap",
+        plan,
+      })}\n`,
+    );
+    await expect(
+      executeApplyPlan({ recoveryJournalId: badHashId }, ctx),
+    ).rejects.toThrow(/no state checkpoint/);
+  });
+
+  test("refuses bootstrap recovery when the checkpoint drifted or actions are unknown", async () => {
+    const root = makeTempDir();
+    const ctx = filesystemContext(root);
+    const plan = await thinPlan();
+    const journalId = `bootstrap-${plan.planHash.slice(0, 16)}`;
+    mkdirSync(path.join(root, ".kb", "recovery"), { recursive: true });
+    writeFileSync(
+      path.join(root, ".kb", "recovery", `${journalId}.json`),
+      `${JSON.stringify({
+        version: 2,
+        kind: "bootstrap",
+        plan,
+        checkpoint: {
+          branch: "other",
+          kbSnapshotId: "x",
+          workspaceSnapshot: "y",
+        },
+        results: [],
+      })}\n`,
+    );
+    await expect(
+      executeApplyPlan({ recoveryJournalId: journalId }, ctx),
+    ).rejects.toThrow(/state changed/);
+
+    const matching = await thinPlan();
+    const { bootstrapEmptyKbSnapshotId } = await import(
+      "../../src/operations/bootstrap/types.js"
+    );
+    const kbSnapshotId = bootstrapEmptyKbSnapshotId({
+      branch: "develop",
+      workspaceSnapshot: "a".repeat(64),
+      sourceHashes: {},
+    });
+    const matchId = `bootstrap-${matching.planHash.slice(0, 16)}`;
+    writeFileSync(
+      path.join(root, ".kb", "recovery", `${matchId}.json`),
+      `${JSON.stringify({
+        version: 2,
+        kind: "bootstrap",
+        plan: matching,
+        checkpoint: {
+          branch: "develop",
+          kbSnapshotId,
+          workspaceSnapshot: "a".repeat(64),
+        },
+        results: [{ actionId: "bootstrap-upsert-unknown", outcome: "applied" }],
+      })}\n`,
+    );
+    await expect(
+      executeApplyPlan({ recoveryJournalId: matchId }, ctx),
+    ).rejects.toThrow(/unknown action/);
+  });
+
+  test("resumes remaining bootstrap actions from a matching checkpoint", async () => {
+    const root = makeTempDir();
+    const ctx = filesystemContext(root);
+    const plan = await thinPlan();
+    const { bootstrapEmptyKbSnapshotId } = await import(
+      "../../src/operations/bootstrap/types.js"
+    );
+    const kbSnapshotId = bootstrapEmptyKbSnapshotId({
+      branch: "develop",
+      workspaceSnapshot: "a".repeat(64),
+      sourceHashes: {},
+    });
+    const journalId = `bootstrap-${plan.planHash.slice(0, 16)}`;
+    mkdirSync(path.join(root, ".kb", "recovery"), { recursive: true });
+    writeFileSync(
+      path.join(root, ".kb", "recovery", `${journalId}.json`),
+      `${JSON.stringify({
+        version: 2,
+        kind: "bootstrap",
+        plan,
+        checkpoint: {
+          branch: "develop",
+          kbSnapshotId,
+          workspaceSnapshot: "a".repeat(64),
+        },
+        results: [
+          {
+            actionId: "bootstrap-upsert-0001",
+            outcome: "applied",
+            detail: "done",
+          },
+        ],
+      })}\n`,
+    );
+    const result = await executeApplyPlan(
+      { recoveryJournalId: journalId },
+      ctx,
+    );
+    expect(result.structuredContent.outcome).toMatch(
+      /applied|partially_applied|reconciliation_required/,
+    );
+    expect(result.structuredContent.recoveryJournalId).toBe(journalId);
+  });
+});
