@@ -11,5 +11,9 @@ describe("unit coverage runner contract", () => {
       label: "scripts",
       paths: ["./scripts/tests"],
     });
+    expect(COVERAGE_SHARDS).toContainEqual({
+      label: "runtime",
+      paths: ["./packages/runtime"],
+    });
   });
 });

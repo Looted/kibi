@@ -55,7 +55,32 @@ export const COVERAGE_SHARDS: readonly {
   { label: "opencode", paths: ["./packages/opencode"] },
   { label: "codex", paths: ["./packages/codex"] },
   { label: "cursor", paths: ["./packages/cursor"] },
+  { label: "runtime", paths: ["./packages/runtime"] },
   { label: "skillopt", paths: ["./scripts/skillopt-eval/tests"] },
+  {
+    label: "skillopt.training-setup",
+    paths: [
+      "./scripts/skillopt-eval/coverage-isolates/training-setup.coverage.test.ts",
+    ],
+  },
+  {
+    label: "skillopt.optimizer",
+    paths: [
+      "./scripts/skillopt-eval/coverage-isolates/codex-optimizer-step.coverage.test.ts",
+    ],
+  },
+  {
+    label: "skillopt.cursor-runner",
+    paths: [
+      "./scripts/skillopt-eval/coverage-isolates/cursor-runner.coverage.test.ts",
+    ],
+  },
+  {
+    label: "skillopt.fixture-kb",
+    paths: [
+      "./scripts/skillopt-eval/coverage-isolates/fixture-kb-setup.coverage.test.ts",
+    ],
+  },
   { label: "scripts", paths: ["./scripts/tests"] },
   {
     label: "vscode.activation",
@@ -67,6 +92,7 @@ export const COVERAGE_SHARDS: readonly {
       "./packages/vscode/tests/activation/workspace.test.ts",
       "./packages/vscode/tests/activation-modules.test.ts",
       "./packages/vscode/tests/workspace-activation-direct.test.ts",
+      "./packages/vscode/tests/coverage-completion.test.ts",
     ],
   },
   {
@@ -85,6 +111,7 @@ export const COVERAGE_SHARDS: readonly {
       "./packages/vscode/tests/traceability.test.ts",
       "./packages/vscode/tests/treeProvider.test.ts",
       "./packages/vscode/tests/vscodeMock.test.ts",
+      "./packages/vscode/tests/providers-lcov.coverage.test.ts",
     ],
   },
 ] as const;
