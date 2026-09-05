@@ -1,3 +1,4 @@
+// implements REQ-core-journaled-engine-persistence
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import os from "node:os";
