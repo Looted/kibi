@@ -155,4 +155,27 @@ describe("clean-package-tarballs", () => {
     }
     expect(isDryRun(["--dry-run"])).toBe(true);
   });
+
+  test("main deletes package tarballs in a provided root and lists them on dry-run", () => {
+    const root = makeTempRepo();
+    makePackageTarballs(root);
+    const logs: string[] = [];
+    const log = console.log.bind(console);
+    console.log = ((chunk: unknown) => {
+      logs.push(String(chunk));
+    }) as typeof console.log;
+    try {
+      main(root, ["--dry-run"]);
+      expect(logs.join("\n")).toContain("[dry-run]");
+      logs.length = 0;
+      main(root, []);
+      expect(logs.join("\n")).toContain("Deleted:");
+      expect(findTarballs(root)).toEqual([]);
+      logs.length = 0;
+      main(root, []);
+      expect(logs.join("\n")).toContain("No stale tarballs found.");
+    } finally {
+      console.log = log;
+    }
+  });
 });

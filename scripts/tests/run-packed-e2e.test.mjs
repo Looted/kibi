@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
 import { test } from "node:test";
-import { runPackedE2E } from "../run-packed-e2e.mjs";
+import { main, runPackedE2E } from "../run-packed-e2e.mjs";
 
 function fakeSignalTarget() {
   return new EventEmitter();
@@ -147,4 +147,14 @@ test("packed runner maps signal exits and forwards SIGINT/SIGTERM", async () => 
   assert.equal(result, 128);
   assert.ok(killed.includes("SIGINT"));
   assert.ok(killed.includes("SIGTERM"));
+});
+
+test("packed runner main uses argv and surfaces usage errors", async () => {
+  const previous = process.argv.slice();
+  process.argv = ["node", "scripts/run-packed-e2e.mjs"];
+  try {
+    await assert.rejects(() => main(), /Usage:/);
+  } finally {
+    process.argv = previous;
+  }
 });

@@ -69,9 +69,11 @@ function findTarballs(root: string): string[] {
   return results;
 }
 
-function main(): void {
-  const root = REPO_ROOT;
-  const dryRun = isDryRun(process.argv.slice(2));
+function main(
+  root: string = REPO_ROOT,
+  argv: string[] = process.argv.slice(2),
+): void {
+  const dryRun = isDryRun(argv);
   const tarballs = findTarballs(root);
 
   if (tarballs.length === 0) {

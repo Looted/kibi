@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import {
   mkdirSync,
   mkdtempSync,
@@ -20,6 +20,7 @@ import {
   parseArgs,
   planSkillMirror,
   processTarget,
+  main,
   repoRootFromScript,
   syncAgentSkills,
   syncAgentSkillsUnlocked,
@@ -210,5 +211,16 @@ describe("sync-agent-skills planning and drift", () => {
     expect(
       readFileSync(join(root, "packages/codex/skills/kibi-usage/SKILL.md"), "utf8"),
     ).toContain("kibi-usage");
+  });
+
+  test("main exits 2 on invalid flags", async () => {
+    const exitSpy = spyOn(process, "exit").mockImplementation(((code?: number) => {
+      throw new Error(`exit ${code}`);
+    }) as typeof process.exit);
+    try {
+      await expect(main(["--nope"])).rejects.toThrow(/exit 2/);
+    } finally {
+      exitSpy.mockRestore();
+    }
   });
 });

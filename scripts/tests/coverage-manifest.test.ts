@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   collectProductionSourceFiles,
+  runCoverageManifestCli,
   sourceFilesInLcov,
   writeCoverageManifestAudit,
 } from "../coverage-manifest.ts";
@@ -51,7 +52,7 @@ describe("coverage manifest", () => {
     }
   });
 
-  test("skips missing package trees and records a complete LCOV audit", () => {
+  test("skips missing package trees and records a complete LCOV audit", async () => {
     const root = mkdtempSync(join(tmpdir(), "kibi-coverage-manifest-"));
     const coverageDir = join(root, "coverage");
     try {
@@ -74,6 +75,22 @@ describe("coverage manifest", () => {
           "TN:\nSF:packages/demo/src/main.ts\nend_of_record\n",
         ),
       ).toEqual([]);
+      writeFileSync(
+        join(coverageDir, "lcov.info"),
+        "TN:\nSF:packages/demo/src/other.ts\nend_of_record\n",
+      );
+      const previousExit = process.exitCode;
+      try {
+        await runCoverageManifestCli([
+          "bun",
+          "coverage-manifest.ts",
+          root,
+          coverageDir,
+        ]);
+        expect(process.exitCode).toBe(1);
+      } finally {
+        process.exitCode = previousExit;
+      }
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

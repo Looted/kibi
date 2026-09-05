@@ -388,7 +388,7 @@ export function syncAgentSkills(
   });
 }
 
-async function main(argv: string[]): Promise<void> {
+export async function main(argv: string[]): Promise<void> {
   let options: ParsedArgs;
   try {
     options = parseArgs(argv);

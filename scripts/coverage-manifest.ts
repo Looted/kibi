@@ -73,10 +73,12 @@ export function writeCoverageManifestAudit(
   return missingFiles;
 }
 
-if (import.meta.main) {
-  const workspaceRoot = process.argv[2] ?? process.cwd();
+export async function runCoverageManifestCli(
+  argv: string[] = process.argv,
+): Promise<void> {
+  const workspaceRoot = argv[2] ?? process.cwd();
   const coverageDir =
-    process.argv[3] ?? join(workspaceRoot, "coverage", "unit");
+    argv[3] ?? join(workspaceRoot, "coverage", "unit");
   const lcov = await Bun.file(join(coverageDir, "lcov.info")).text();
   const missingFiles = writeCoverageManifestAudit(
     workspaceRoot,
@@ -89,4 +91,8 @@ if (import.meta.main) {
     );
     process.exitCode = 1;
   }
+}
+
+if (import.meta.main) {
+  await runCoverageManifestCli();
 }

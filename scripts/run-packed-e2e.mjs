@@ -89,7 +89,7 @@ export async function runPackedE2E({
   }
 }
 
-async function main() {
+export async function main() {
   const [compiledDirectoryInput, ...testFiles] = process.argv.slice(2);
   return runPackedE2E({
     compiledDirectory:
