@@ -116,4 +116,16 @@ describe("skillopt adoption durable helpers", () => {
     expect(await durableNoReplace(root, created, "second\n", undefined)).toBe(false);
     expect(await readDurableText(root, created)).toBe("first\n");
   });
+
+  test("recovers a no-replace intent after a crash on link", async () => {
+    const root = privateRoot();
+    const target = path.join(root, "receipt.txt");
+    await expect(
+      durableNoReplace(root, target, "receipt\n", undefined, async (operation) => {
+        if (operation === "link") throw new Error("crash:link");
+      }),
+    ).rejects.toThrow("crash:link");
+    await recoverNoReplaceIntents(root);
+    expect(await readDurableText(root, target)).toBe("receipt\n");
+  });
 });
