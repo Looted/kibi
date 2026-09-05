@@ -40,12 +40,10 @@ describe("qualifySkillOptHost remaining lock and classification branches", () =>
   test("classifies invalid bundle JSON as a signature no-go after locks load", async () => {
     const fixture = await createPreflightFixture();
     roots.push(fixture.root);
-    await chmod(join(fixture.externalRoot, "verifier-bundle.lock"), 0o644);
-    await writeFile(
-      join(fixture.externalRoot, "verifier-bundle.lock"),
-      "{not-json\n",
-      { mode: 0o444 },
-    );
+    const lockPath = join(fixture.externalRoot, "verifier-bundle.lock");
+    await chmod(lockPath, 0o644);
+    await writeFile(lockPath, "{not-json\n");
+    await chmod(lockPath, 0o444);
     try {
       await qualifySkillOptHost({
         sandboxLock: fixture.sandboxLock,
