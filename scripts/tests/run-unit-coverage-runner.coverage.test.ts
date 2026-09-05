@@ -84,7 +84,7 @@ describe("runUnitCoverage mocked shards", () => {
       expect(process.exitCode).toBe(1);
     } finally {
       process.chdir(previousCwd);
-      process.exitCode = previousExit;
+      process.exitCode = previousExit ?? 0;
       spawnSpy.mockRestore();
     }
   }, 20_000);

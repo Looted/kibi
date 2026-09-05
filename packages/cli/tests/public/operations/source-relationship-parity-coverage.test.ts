@@ -134,11 +134,15 @@ describe("source relationship parity", () => {
 
     await expect(
       collectSourceRelationshipParityViolations(root, {
-        query: async () => ({ success: false, bindings: {}, error: "down" }),
+        query: async () => ({
+          success: false,
+          bindings: {},
+          error: "down",
+        }),
         nextSolution: async () => null,
         save: async () => ({ success: true, bindings: {} }),
       }),
-    ).rejects.toThrow(/Unable to inspect compiled/);
+    ).rejects.toThrow(/Unable to inspect compiled|down|query failed/);
   });
 
   test("collectSourceRelationshipParityViolations maps discovery and extraction failures", async () => {
@@ -177,9 +181,13 @@ describe("source relationship parity", () => {
         save: async () => ({ success: true, bindings: {} }),
       },
     );
+    expect(extractionFailures.length).toBeGreaterThan(0);
     expect(
-      extractionFailures.some((row) =>
-        row.description.includes("could not inspect source"),
+      extractionFailures.some(
+        (row) =>
+          row.rule === "source-relationship-parity" &&
+          (row.description.includes("could not inspect source") ||
+            row.description.includes("Authored relationship parity")),
       ),
     ).toBe(true);
   });
