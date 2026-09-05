@@ -75,6 +75,35 @@ describe("coverage gaps: kb-manifest", () => {
     );
     expect(readKbManifestStatus(root).state).toBe("invalid");
 
+    writeFileSync(
+      path.join(root, ".kb", "manifest.json"),
+      JSON.stringify({
+        manifestVersion: "1",
+        schemaVersion: 1,
+        semanticAdvisorBackfill: "pending",
+      }),
+    );
+    expect(readKbManifestStatus(root).state).toBe("invalid");
+
+    writeFileSync(
+      path.join(root, ".kb", "manifest.json"),
+      JSON.stringify({
+        manifestVersion: 1,
+        schemaVersion: 1,
+        semanticAdvisorBackfill: "unknown",
+      }),
+    );
+    expect(readKbManifestStatus(root).state).toBe("invalid");
+
+    writeFileSync(path.join(root, ".kb", "manifest.json"), "[]");
+    expect(readKbManifestStatus(root).state).toBe("invalid");
+
+    rmSync(path.join(root, ".kb", "manifest.json"), { force: true });
+    mkdirSync(path.join(root, ".kb", "manifest.json"));
+    expect(readKbManifestStatus(root).state).toBe("invalid");
+    expect(readKbManifestStatus(root).warning).toContain("unreadable");
+
+    rmSync(path.join(root, ".kb", "manifest.json"), { recursive: true, force: true });
     const written = writeKbManifest(root, defaultKbManifest());
     expect(written.endsWith(".kb/manifest.json")).toBe(true);
     expect(readKbManifestStatus(root).state).toBe("ok");

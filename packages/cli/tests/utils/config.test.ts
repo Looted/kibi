@@ -91,4 +91,65 @@ describe("config (canonical contract)", () => {
     const result = readLegacyKbConfig(tmpDir);
     expect(result.kind).toBe("malformed");
   });
+
+  test("readLegacyKbConfig reports non-object JSON and unreadable files", () => {
+    mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
+    writeFileSync(path.join(tmpDir, ".kb", "config.json"), "[]", "utf8");
+    expect(readLegacyKbConfig(tmpDir)).toEqual({
+      kind: "malformed",
+      error: "config.json must contain a JSON object",
+    });
+
+    rmSync(path.join(tmpDir, ".kb", "config.json"), { force: true });
+    mkdirSync(path.join(tmpDir, ".kb", "config.json"));
+    const unreadable = readLegacyKbConfig(tmpDir);
+    expect(unreadable.kind).toBe("malformed");
+  });
+
+  test("readLegacyKbConfig keeps recognized optional fields and path roots", () => {
+    mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
+    writeFileSync(
+      path.join(tmpDir, ".kb", "config.json"),
+      JSON.stringify({
+        schemaVersion: "4",
+        semanticAdvisorBackfill: "completed",
+        symbolsManifest: "custom/symbols.yaml",
+        defaultBranch: "develop",
+        checks: { extra: true },
+        paths: {
+          requirements: "docs/reqs",
+          scenarios: "docs/scen",
+          tests: "docs/tests",
+          adr: "docs/adr",
+          flags: "docs/flags",
+          events: "docs/events",
+          facts: "docs/facts",
+          symbols: "docs/symbols.yaml",
+          ignored: 1,
+        },
+      }),
+      "utf8",
+    );
+    const result = readLegacyKbConfig(tmpDir);
+    expect(result.kind).toBe("present");
+    if (result.kind !== "present") return;
+    expect(result.config.schemaVersion).toBe("4");
+    expect(result.config.semanticAdvisorBackfill).toBe("completed");
+    expect(result.config.symbolsManifest).toBe("custom/symbols.yaml");
+    expect(result.config.defaultBranch).toBe("develop");
+    expect(result.config.checks).toEqual({ extra: true });
+    expect(result.config.paths?.tests).toBe("docs/tests");
+
+    const resolved = resolveLegacyEntityPaths({
+      symbolsManifest: "from-manifest.yaml",
+      paths: { requirements: "  " },
+    });
+    expect(resolved.requirements).toBe(LEGACY_DEFAULT_ENTITY_PATHS.requirements);
+    expect(resolved.symbols).toBe("from-manifest.yaml");
+    const blankSymbols = resolveLegacyEntityPaths({
+      symbolsManifest: "from-manifest.yaml",
+      paths: { symbols: "  " },
+    });
+    expect(blankSymbols.symbols).toBe(LEGACY_DEFAULT_ENTITY_PATHS.symbols);
+  });
 });
