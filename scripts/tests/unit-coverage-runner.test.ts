@@ -45,6 +45,7 @@ describe("unit coverage runner contract", () => {
       "cli.public",
       "cli.support",
       "cli.engine",
+      "cli.root.lcov",
       "cli.root",
       "cli.discovery-remaining",
     ]);

@@ -97,15 +97,30 @@ export const COVERAGE_SHARDS: readonly {
   {
     label: "cli.engine",
     paths: CLI_ROOT_TESTS.filter((path) =>
-      /\/(?:engine|prolog)/.test(path.split("/").pop() ?? ""),
+      /(?:^|\/)(?:engine|prolog)/.test(path.split("/").pop() ?? ""),
     ),
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
   },
   {
+    label: "cli.root.lcov",
+    paths: CLI_ROOT_TESTS.filter((path) => {
+      const name = path.split("/").pop() ?? "";
+      return (
+        !/(?:^|\/)(?:engine|prolog)/.test(name) &&
+        /(?:lcov|gaps|remaining)/.test(name)
+      );
+    }),
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+  },
+  {
     label: "cli.root",
-    paths: CLI_ROOT_TESTS.filter(
-      (path) => !/\/(?:engine|prolog)/.test(path.split("/").pop() ?? ""),
-    ),
+    paths: CLI_ROOT_TESTS.filter((path) => {
+      const name = path.split("/").pop() ?? "";
+      return (
+        !/(?:^|\/)(?:engine|prolog)/.test(name) &&
+        !/(?:lcov|gaps|remaining)/.test(name)
+      );
+    }),
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
   },
   {
