@@ -174,3 +174,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3c6e25b576ce
+  - type: covered_by
+    from: SYM-auto-D4EC6552EDC9
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:20:37.995Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2ba4abede25
+  - type: covered_by
+    from: SYM-semantic-advisor-singularize
+    to: TEST-mcp-semantic-advisor-preflight
+    created_at: 2026-09-05T17:40:03.082Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cee7643e8327
+  - type: covered_by
+    from: SYM-predicate-score-exact-2
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:47:57.098Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b3f915a82b5
+  - type: covered_by
+    from: SYM-VerificationHarnessOptionsError
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:10:58.440Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbf267a1db5c
+  - type: covered_by
+    from: SYM-skillopt-held-out-evaluate-matrix
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:14:31.163Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c45e2fc18d5

@@ -111,3 +111,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5142e7cee3f4
+  - type: covered_by
+    from: SYM-projectStagedEntities
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-09-05T17:13:42.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9cb5b93768b6
+  - type: covered_by
+    from: SYM-auto-479CCD24D41F
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:17:05.179Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d72c54fda553
+  - type: covered_by
+    from: SYM-attempts-status-2
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:28:52.080Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1110aa08fafb
+  - type: covered_by
+    from: SYM-skillopt-parse-debit-subentry-receipt
+    to: TEST-skillopt-paid-launch-accounting
+    created_at: 2026-09-05T18:18:12.269Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5dcf3a880fa0

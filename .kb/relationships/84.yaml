@@ -146,3 +146,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4bef0abbf363
+  - type: covered_by
+    from: SYM-skillopt-predicate-case-by-id
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T18:20:01.827Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39a24931be16

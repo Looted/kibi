@@ -104,3 +104,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ee3cbffc86bd
+  - type: covered_by
+    from: SYM-proof-contract-hash
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:31:34.177Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-304b600a22fb
+  - type: covered_by
+    from: SYM-isWithinRoot
+    to: TEST-skill-cli-load-validate
+    created_at: 2026-09-05T18:04:13.290Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dba75eed340e
+  - type: covered_by
+    from: SYM-FixtureAuthorizationClaimSchema
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:07:35.554Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6955a0c08691
+  - type: covered_by
+    from: SYM-skillopt-held-out-receipt-store-reserve
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:14:49.591Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21e1d5036877
+  - type: covered_by
+    from: SYM-vscode-code-action-provider-provide-code-actions
+    to: TEST-vscode-traceability
+    created_at: 2026-09-05T18:25:24.469Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3710175f8044

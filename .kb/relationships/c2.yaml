@@ -192,3 +192,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-240888539d4a
+  - type: covered_by
+    from: SYM-semantic-advisor-normalizePredicateToken
+    to: TEST-mcp-semantic-advisor-preflight
+    created_at: 2026-09-05T17:39:31.316Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebd9492a10ae
+  - type: covered_by
+    from: SYM-ArtifactPath-create
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:06:50.234Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6340cac475e

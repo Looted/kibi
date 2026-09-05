@@ -69,3 +69,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eaedcf62385b
+  - type: covered_by
+    from: SYM-ArtifactRootRequiredError
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:07:18.946Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-992bab41e169
+  - type: covered_by
+    from: SYM-HeldOutExecutionLeaseError-name
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:08:21.256Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5002e32b6509
+  - type: covered_by
+    from: SYM-KIBI-FOCUS-KB-COMMAND
+    to: TEST-vscode-traceability-coverage
+    created_at: 2026-09-05T18:26:03.718Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7c4a64fa123
+  - type: covered_by
+    from: SYM-SymbolEntry
+    to: TEST-vscode-traceability-coverage
+    created_at: 2026-09-05T18:26:36.928Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a9ffaba14f8

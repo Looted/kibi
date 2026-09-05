@@ -97,3 +97,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d87c32ef1ff8
+  - type: covered_by
+    from: SYM-cursor-maxKbMutationTools
+    to: TEST-cursor-worktree-kibi-continuity
+    created_at: 2026-09-05T16:55:00.638Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a65b98cf1a09
+  - type: covered_by
+    from: SYM-proof-contract-schema
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:31:39.326Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98e5247c7e8e

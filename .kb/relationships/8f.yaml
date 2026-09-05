@@ -34,3 +34,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-089988472f2d
+  - type: covered_by
+    from: SYM-cli-report-brand-wordmark
+    to: TEST-kibi-branded-health-report
+    created_at: 2026-09-05T16:58:48.589Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ffa49d9a567f
+  - type: covered_by
+    from: SYM-handleKbSemanticAdvisor
+    to: TEST-mcp-semantic-advisor-preflight
+    created_at: 2026-09-05T17:38:14.383Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46932e33ed4b
+  - type: covered_by
+    from: SYM-skillopt-python-env-adapter
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:15:05.946Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e69834eeaabf

@@ -146,3 +146,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cab387c70bde
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-1-inferIdempotencyRuleArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:42:01.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d64ffe764150
+  - type: covered_by
+    from: SYM-predicate-infer-permission-rule
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:47:38.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e09e681d10ed
+  - type: covered_by
+    from: SYM-episodeHashes
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:11:40.520Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01c29f3ce509
+  - type: covered_by
+    from: SYM-skillopt-require-external-trust-plane
+    to: TEST-skillopt-paid-launch-accounting
+    created_at: 2026-09-05T18:18:49.999Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9678fba40f91
+  - type: covered_by
+    from: SYM-kibi-usage-skill-guidance
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T18:19:02.138Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c9c6cefce96

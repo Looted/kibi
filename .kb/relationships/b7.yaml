@@ -111,3 +111,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-82ea8f029606
+  - type: covered_by
+    from: SYM-mcp-setupTransportHandlers
+    to: TEST-mcp-search-discovery
+    created_at: 2026-09-05T17:37:22.342Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0c5b361c09d
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-1-inferConsentRuleArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:41:34.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9584e62475e2
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-2-inferRefreshPolicyRuleArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:43:27.498Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-157fd4653d4d
+  - type: covered_by
+    from: SYM-skillopt-evidence-binding-error
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T18:19:31.879Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb685f77b7fc

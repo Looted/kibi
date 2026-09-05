@@ -97,3 +97,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8567752dec91
+  - type: covered_by
+    from: SYM-cursor-maxDirtyPaths
+    to: TEST-cursor-worktree-kibi-continuity
+    created_at: 2026-09-05T16:54:50.390Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77a96c9ce808
+  - type: covered_by
+    from: SYM-canonical-json
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:29:02.639Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1b7075fa5ed
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-3-inferUniquenessArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:44:31.561Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d55c3b05d2d6

@@ -139,3 +139,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-986daee0700e
+  - type: covered_by
+    from: SYM-cli-PrologProcess-query
+    to: TEST-mcp-search-discovery
+    created_at: 2026-09-05T17:36:37.917Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d26072979c8b
+  - type: covered_by
+    from: SYM-semantic-advisor-POLICY_PREDICATE_RULES
+    to: TEST-mcp-semantic-advisor-preflight
+    created_at: 2026-09-05T17:38:34.659Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9ef9fe3ae689
+  - type: covered_by
+    from: SYM-skillopt-one-shot-variant
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:14:54.231Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4dad5c111330

@@ -111,3 +111,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-167b1014195a
+  - type: covered_by
+    from: SYM-proof-bindings-errors
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:31:17.089Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92bc2d505a3e

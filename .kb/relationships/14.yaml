@@ -146,3 +146,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a48f5111189e
+  - type: covered_by
+    from: SYM-vscode-code-action-provider-watch-manifest
+    to: TEST-vscode-traceability
+    created_at: 2026-09-05T18:25:28.974Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d22c85b535e9

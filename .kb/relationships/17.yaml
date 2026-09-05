@@ -115,3 +115,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-393580f06999
+  - type: covered_by
+    from: SYM-register-proof-command
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:33:10.508Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04d8c5c64cc0
+  - type: covered_by
+    from: SYM-modeling-predicate-utils-inferNumber
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:45:39.950Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fff6e420ecee

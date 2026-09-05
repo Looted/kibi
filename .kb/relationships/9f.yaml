@@ -80,3 +80,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b3ba8034617b
+  - type: covered_by
+    from: SYM-predicate-hash-id
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:47:24.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf80d2423d1f
+  - type: covered_by
+    from: SYM-isBehavioralSymbol
+    to: TEST-cli-symbol-behavioral-anchors
+    created_at: 2026-09-05T18:22:42.476Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4af5d1d35684

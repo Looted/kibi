@@ -146,3 +146,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6a5ffe1bfa83
+  - type: covered_by
+    from: SYM-proof-receipt-schema
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-09-05T17:05:03.571Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc5e2fb913a9
+  - type: covered_by
+    from: SYM-mcp-session-updateAttachedBranchStamp
+    to: TEST-mcp-kb-freshness
+    created_at: 2026-09-05T17:34:29.464Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24166da235ae
+  - type: covered_by
+    from: SYM-semantic-advisor-detectPredicateRules
+    to: TEST-mcp-semantic-advisor-preflight
+    created_at: 2026-09-05T17:39:12.476Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7c6161fc041
+  - type: covered_by
+    from: SYM-predicate-score-exact-1
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:47:52.553Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9117b53c194
+  - type: covered_by
+    from: SYM-HeldOutReceiptStoreError-name
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:08:52.547Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad821d4993fb

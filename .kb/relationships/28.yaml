@@ -213,3 +213,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-385aa1739173
+  - type: covered_by
+    from: SYM-ArtifactPublicationReceipt
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-09-05T16:55:24.307Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47bb939c28bc
+  - type: covered_by
+    from: SYM-inspect-proof-environment
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:29:54.689Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87eaac075c01

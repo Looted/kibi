@@ -118,3 +118,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-86552aa9a27d
+  - type: covered_by
+    from: SYM-skillopt-parse-supervisor-parent
+    to: TEST-skillopt-paid-launch-accounting
+    created_at: 2026-09-05T18:18:43.152Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36b4479a911a

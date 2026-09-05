@@ -48,3 +48,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a6c5267f7345
+  - type: covered_by
+    from: SYM-mcp-analyzeKbCheckImpact
+    to: TEST-mcp-tool-check-coverage
+    created_at: 2026-09-05T17:49:06.648Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-834a2b24ba47
+  - type: covered_by
+    from: SYM-mcp-formatQualityDiagnosticsText
+    to: TEST-mcp-tool-check-coverage
+    created_at: 2026-09-05T17:49:21.188Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d08319c41f34

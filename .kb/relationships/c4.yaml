@@ -48,3 +48,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4477ce6a4540
+  - type: covered_by
+    from: SYM-PreparedRootError-name
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:09:51.650Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24223e509c1c

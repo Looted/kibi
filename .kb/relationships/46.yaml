@@ -111,3 +111,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eaf989a718e8
+  - type: covered_by
+    from: SYM-cursor-emptyHookState
+    to: TEST-cursor-worktree-kibi-continuity
+    created_at: 2026-09-05T16:54:40.209Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9802240e2b21

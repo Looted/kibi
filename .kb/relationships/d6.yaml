@@ -136,3 +136,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e4a62d456a99
+  - type: covered_by
+    from: SYM-proof-receipt-max-age-seconds
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-09-05T17:04:52.468Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5385e054f17
+  - type: covered_by
+    from: SYM-modeling-predicate-utils-inferResource
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:45:50.198Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de4b423407de
+  - type: covered_by
+    from: SYM-HeldOutEvidenceBinding
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:08:00.569Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4cbc30e9879c
+  - type: covered_by
+    from: SYM-skillopt-fake-provider-execute-with-crash
+    to: TEST-skillopt-paid-launch-accounting
+    created_at: 2026-09-05T18:17:35.152Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa5d557e2a34

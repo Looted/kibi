@@ -104,3 +104,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8c654a943de6
+  - type: covered_by
+    from: SYM-KIBI-REFRESH-TREE-COMMAND
+    to: TEST-vscode-traceability-coverage
+    created_at: 2026-09-05T18:26:08.210Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b48ea7bf180

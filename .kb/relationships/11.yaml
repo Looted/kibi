@@ -195,3 +195,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b5c77d3995a0
+  - type: covered_by
+    from: SYM-kibi-playwright-producer-on-begin
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:30:23.008Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e411bc450758
+  - type: covered_by
+    from: SYM-mcp-handle-sparql
+    to: TEST-prolog-library-adoption-core
+    created_at: 2026-09-05T18:01:48.033Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d8bb10b21ac

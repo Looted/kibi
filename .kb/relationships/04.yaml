@@ -118,3 +118,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-31d9e178ee1c
+  - type: covered_by
+    from: SYM-HeldOutTerminalReceiptSchema
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:09:02.677Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9308c52baa0c
+  - type: covered_by
+    from: SYM-predicateGate
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:12:23.564Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eea9d6b7a282
+  - type: covered_by
+    from: SYM-SymbolIndex
+    to: TEST-vscode-traceability-coverage
+    created_at: 2026-09-05T18:26:41.977Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7fb32c4afc7b

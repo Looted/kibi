@@ -55,3 +55,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b4460d49b00f
+  - type: covered_by
+    from: SYM-convert-junit-xml
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:29:14.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f09a71c66a21
+  - type: covered_by
+    from: SYM-SearchMatch
+    to: TEST-mcp-search-discovery
+    created_at: 2026-09-05T17:36:31.220Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-42994a901a98
+  - type: covered_by
+    from: SYM-skillopt-default-evaluate-held-out
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:14:09.535Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf06a3345030
+  - type: covered_by
+    from: SYM-KibiCodeLensProvider
+    to: TEST-vscode-traceability-coverage
+    created_at: 2026-09-05T18:26:21.680Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e46589a87b8

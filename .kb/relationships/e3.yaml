@@ -90,3 +90,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f96e8405375f
+  - type: covered_by
+    from: SYM-cursor-mergeStringPaths
+    to: TEST-cursor-worktree-kibi-continuity
+    created_at: 2026-09-05T16:55:05.790Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ce6086de705
+  - type: covered_by
+    from: SYM-handleKbValidateUpsert
+    to: TEST-mcp-relationship-preflight
+    created_at: 2026-09-05T17:36:12.411Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e4cc8ad11184
+  - type: covered_by
+    from: SYM-handleKbValidateUpsert
+    to: TEST-mcp-semantic-advisor-preflight
+    created_at: 2026-09-05T17:38:18.927Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ddcdb7a423e
+  - type: covered_by
+    from: SYM-handleKbValidateUpsert
+    to: TEST-mcp-upsert-coverage
+    created_at: 2026-09-05T17:50:14.865Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c946a442071
+  - type: covered_by
+    from: SYM-skillopt-build-paid-launch-receipt-evidence
+    to: TEST-skillopt-paid-launch-accounting
+    created_at: 2026-09-05T18:17:08.991Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3833ce7645df

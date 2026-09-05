@@ -111,3 +111,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5cab7d51f169
+  - type: covered_by
+    from: SYM-proof-integration-errors
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:31:54.662Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3198785d0f93
+  - type: covered_by
+    from: SYM-modeling-predicate-utils-matchesKeyword
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:46:15.889Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-535a6221ecd5
+  - type: covered_by
+    from: SYM-canonical-KibiTreeDataProvider-getTreeItem
+    to: TEST-vscode-traceability-coverage
+    created_at: 2026-09-05T18:27:33.760Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c2e9b1ba7fd

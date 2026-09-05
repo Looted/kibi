@@ -118,3 +118,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eb7c30bbad6f
+  - type: covered_by
+    from: SYM-cli-logic-modeling-buildLogicApplyPlan
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-09-05T17:11:12.806Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9245c1e4276c

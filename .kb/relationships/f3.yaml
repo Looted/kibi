@@ -157,3 +157,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0de320737a25
+  - type: covered_by
+    from: SYM-bundleGate
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:11:29.619Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dfbcf1937ca9
+  - type: covered_by
+    from: SYM-queryRelationshipsViaCli
+    to: TEST-vscode-traceability-coverage
+    created_at: 2026-09-05T18:28:02.715Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2756667c07f0

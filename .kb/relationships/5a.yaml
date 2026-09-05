@@ -188,3 +188,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dd599a533751
+  - type: covered_by
+    from: SYM-to-execution
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:33:42.940Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-097170146dd5

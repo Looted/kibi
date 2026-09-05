@@ -97,3 +97,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-637428dabdfa
+  - type: covered_by
+    from: SYM-kibi-usage-fact-lanes-guidance
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T18:18:57.715Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-727b389f7bc3

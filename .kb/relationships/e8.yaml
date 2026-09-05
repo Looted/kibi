@@ -202,3 +202,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a100a681f816
+  - type: covered_by
+    from: SYM-isCoarseGranularityReason
+    to: TEST-cli-symbol-behavioral-anchors
+    created_at: 2026-09-05T18:22:47.595Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5fec2c01544c

@@ -118,3 +118,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4dd65f29f6f9
+  - type: covered_by
+    from: SYM-load-proof-integrations
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:30:37.588Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-182334843529
+  - type: covered_by
+    from: SYM-modeling-predicate-utils-clampInteger
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:45:03.733Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0aa504c7943a
+  - type: covered_by
+    from: SYM-GuidanceCache
+    to: TEST-opencode-smart-enforcement
+    created_at: 2026-09-05T17:51:23.561Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d46609ad5858

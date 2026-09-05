@@ -140,3 +140,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d549867b7146
+  - type: covered_by
+    from: SYM-modeling-predicate-utils-inferOperator
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:45:45.074Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9b3d48e8f6a
+  - type: covered_by
+    from: SYM-isSymbolRole
+    to: TEST-cli-symbol-behavioral-anchors
+    created_at: 2026-09-05T18:22:52.731Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69fc763c2027

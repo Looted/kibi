@@ -69,3 +69,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4b31f3ae64f6
+  - type: covered_by
+    from: SYM-resolve-integration
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:33:15.870Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-248630fa9d8f

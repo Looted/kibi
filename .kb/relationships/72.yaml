@@ -209,3 +209,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-50096cfc40c0
+  - type: covered_by
+    from: SYM-proof-integration-version
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:32:00.686Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-824f145ad206
+  - type: covered_by
+    from: SYM-skillopt-assert-terminal-receipt-binding
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:13:21.139Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97006721f48e

@@ -90,3 +90,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fc4b8c229bdb
+  - type: covered_by
+    from: SYM-assertPreparedRoot
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:11:13.359Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf2e3a1e525a
+  - type: covered_by
+    from: SYM-skillopt-adopt-skill-opt-candidate
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:13:15.650Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f18a25b38c6b
+  - type: covered_by
+    from: SYM-skillopt-held-out-receipt-store-load-terminal
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:14:40.406Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36e68e10505a
+  - type: covered_by
+    from: SYM-surface
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:15:47.558Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-adc29454ee50

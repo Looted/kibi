@@ -97,3 +97,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-23b32e1f3b6c
+  - type: covered_by
+    from: SYM-SkillResourceOutOfBoundsError
+    to: TEST-skill-cli-load-validate
+    created_at: 2026-09-05T18:02:42.453Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e4b0378b606
+  - type: covered_by
+    from: SYM-skillopt-predicate-case-by-split-index
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T18:20:06.972Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71566320152e

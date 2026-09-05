@@ -111,3 +111,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1199d7846af7
+  - type: covered_by
+    from: SYM-cli-discovery-renderDiscoveryTable
+    to: TEST-mcp-search-discovery
+    created_at: 2026-09-05T17:36:42.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25878dc23d43
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-2-inferOfflineBehaviorRuleArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:43:09.362Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01f36863e79d

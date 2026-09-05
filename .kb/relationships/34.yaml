@@ -48,3 +48,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4c2e71010c86
+  - type: covered_by
+    from: SYM-parse-integration-selector
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:30:50.151Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ce540816cca

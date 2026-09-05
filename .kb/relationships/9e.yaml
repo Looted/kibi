@@ -132,3 +132,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a4547ae8f101
+  - type: covered_by
+    from: SYM-auto-4EA730253252
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:17:15.850Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c08dc4351b60
+  - type: covered_by
+    from: SYM-mcp-describeBranchKbStamp
+    to: TEST-mcp-kb-freshness
+    created_at: 2026-09-05T17:34:08.865Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba03031ebe08
+  - type: covered_by
+    from: SYM-ArtifactRootMetadata
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:07:13.478Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3f516ce6ce6
+  - type: covered_by
+    from: SYM-sync-agent-skills-unlocked
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:15:58.279Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7571f0f56ee

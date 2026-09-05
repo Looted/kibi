@@ -76,3 +76,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-481543b204fe
+  - type: covered_by
+    from: SYM-ArtifactPath-readText
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:06:54.968Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39d03d2fe46c

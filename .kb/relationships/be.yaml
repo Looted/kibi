@@ -111,3 +111,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-88403c8f78ba
+  - type: covered_by
+    from: SYM-auto-13239C566F5C
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:15:38.915Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca135c8d8468
+  - type: covered_by
+    from: SYM-auto-13239C566F5C
+    to: TEST-skill-cli-load-validate
+    created_at: 2026-09-05T18:03:16.703Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed3ac4331f5a
+  - type: covered_by
+    from: SYM-parseHeldOutReservation
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:12:12.748Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce2479303a8f

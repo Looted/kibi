@@ -230,3 +230,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-725789870adb
+  - type: covered_by
+    from: SYM-cli-report-brand-logo
+    to: TEST-kibi-branded-health-report
+    created_at: 2026-09-05T16:58:38.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-972e699d992a
+  - type: covered_by
+    from: SYM-proof-receipt-history-errors
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-09-05T17:04:47.337Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33ad1972684a
+  - type: covered_by
+    from: SYM-VerificationHarnessError-name
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:10:48.129Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd1d580e547d

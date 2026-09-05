@@ -167,3 +167,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1345a25c4037
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-3-inferReconciliationRuleArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:44:08.509Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-656290dd9ee9
+  - type: covered_by
+    from: SYM-modeling-predicate-utils-normalizeText
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:46:36.708Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0190b94d86f9
+  - type: covered_by
+    from: SYM-vscode-code-lens-provider-resolve-code-lens
+    to: TEST-vscode-traceability
+    created_at: 2026-09-05T18:25:47.019Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c79b4966ee3

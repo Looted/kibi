@@ -146,3 +146,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-340a4301c818
+  - type: covered_by
+    from: SYM-proof-binding-kinds
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:31:11.820Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-548f7be79e17
+  - type: covered_by
+    from: SYM-ValidatedUpsertArgs
+    to: TEST-mcp-upsert-coverage
+    created_at: 2026-09-05T17:50:00.930Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05c05fd38ecc
+  - type: covered_by
+    from: SYM-vscode-code-lens-provider-provide-code-lenses
+    to: TEST-vscode-traceability
+    created_at: 2026-09-05T18:25:38.019Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b3a6095856b

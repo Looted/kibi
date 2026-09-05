@@ -104,3 +104,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4efd408d7314
+  - type: covered_by
+    from: SYM-max-proof-receipts
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-09-05T17:04:31.047Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81c39e10bd20
+  - type: covered_by
+    from: SYM-kibi-playwright-producer-on-end
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:30:27.604Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b68d612ad07c
+  - type: covered_by
+    from: SYM-predicate-usage-hints-part-2
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:48:20.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb8b9f48ec53

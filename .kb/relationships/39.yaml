@@ -62,3 +62,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-35d366ad9dd8
+  - type: covered_by
+    from: SYM-skillopt-parse-final-verdict-receipt
+    to: TEST-skillopt-paid-launch-accounting
+    created_at: 2026-09-05T18:18:22.523Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20663ff15903

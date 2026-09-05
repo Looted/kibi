@@ -97,3 +97,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6393d6736ed3
+  - type: covered_by
+    from: SYM-predicate-usage-hints-part-3
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:48:24.910Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0216ae6529a
+  - type: covered_by
+    from: SYM-VerificationHarnessCliOptions
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:10:37.459Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a48d5475b363

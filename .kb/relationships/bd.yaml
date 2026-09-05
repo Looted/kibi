@@ -139,3 +139,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8e5326f4ba02
+  - type: covered_by
+    from: SYM-mcp-formatImpactText
+    to: TEST-mcp-tool-check-coverage
+    created_at: 2026-09-05T17:49:16.195Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53064a7170f6
+  - type: covered_by
+    from: SYM-handleSparql
+    to: TEST-prolog-library-adoption-core
+    created_at: 2026-09-05T18:01:43.464Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6fc1fe1e9a9

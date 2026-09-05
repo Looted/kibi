@@ -111,3 +111,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f456291ee78b
+  - type: covered_by
+    from: SYM-integrations-path
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:29:59.820Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77ed057624b0
+  - type: covered_by
+    from: SYM-VerificationHarnessOptionsError-name
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:11:03.530Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c50616708da

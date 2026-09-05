@@ -48,3 +48,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2c93f6d93bf2
+  - type: covered_by
+    from: SYM-cursor-interfaceAdvisory
+    to: TEST-cursor-worktree-kibi-continuity
+    created_at: 2026-09-05T16:54:45.279Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f2609f4a014b
+  - type: covered_by
+    from: SYM-proof-receipt-current-binding-errors
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-09-05T17:04:42.164Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4e1f95377c8

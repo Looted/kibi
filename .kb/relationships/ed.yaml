@@ -104,3 +104,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fc476621149e
+  - type: covered_by
+    from: SYM-auto-1B73A7391533
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:16:00.666Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef5eba98f143
+  - type: covered_by
+    from: SYM-modeling-predicate-utils-inferDurationUnit
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:45:24.500Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53aad31fcdf4

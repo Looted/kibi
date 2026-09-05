@@ -146,3 +146,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a262406c3daa
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-2-inferSchemaInvariantRuleArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:43:36.455Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f2a58232f2cc
+  - type: covered_by
+    from: SYM-PreparedCandidateBodies
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:09:35.363Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b72c1f54a5de
+  - type: covered_by
+    from: SYM-KIBI-CONTAINER-ID
+    to: TEST-vscode-traceability-coverage
+    created_at: 2026-09-05T18:25:59.248Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-72e876d70763

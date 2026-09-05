@@ -272,3 +272,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8ceffc217093
+  - type: covered_by
+    from: SYM-evaluate-contract-against-run
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:29:34.779Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97d4f128880a
+  - type: covered_by
+    from: SYM-proof-result-errors
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:32:18.465Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85e7ea1c99a8
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-1-inferRetryPolicyArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:42:23.965Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8abf78e9507f
+  - type: covered_by
+    from: SYM-canonical-KibiTreeDataProvider-getEntityById
+    to: TEST-vscode-traceability-coverage
+    created_at: 2026-09-05T18:27:11.070Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fee1a53b71de

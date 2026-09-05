@@ -202,3 +202,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7564f0bd7cfa
+  - type: covered_by
+    from: SYM-cli-report-render-html
+    to: TEST-kibi-branded-health-report
+    created_at: 2026-09-05T16:59:14.575Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a4ec51b27900
+  - type: covered_by
+    from: SYM-auto-6B36EF51595B
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:17:58.190Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-485fc8a91ccc
+  - type: covered_by
+    from: SYM-predicate-usage-hints-catalog
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:48:11.327Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a94629af542
+  - type: covered_by
+    from: SYM-skillopt-fake-provider-forward
+    to: TEST-skillopt-paid-launch-accounting
+    created_at: 2026-09-05T18:17:39.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-755822d8705d

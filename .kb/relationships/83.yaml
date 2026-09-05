@@ -136,3 +136,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-76321f47cd9a
+  - type: covered_by
+    from: SYM-proof-run-outcomes
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:32:47.835Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2cd3a63ab448
+  - type: covered_by
+    from: SYM-predicateReplicateFor
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:12:29.021Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3168106a9fb2

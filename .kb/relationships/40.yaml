@@ -38,3 +38,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-176612305cbd
+  - type: covered_by
+    from: SYM-CoordinateArtifactRecord
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-09-05T16:55:41.991Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5036fdcf8b71
+  - type: covered_by
+    from: SYM-validateLiveRelationshipTargets
+    to: TEST-mcp-relationship-preflight
+    created_at: 2026-09-05T17:36:23.302Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-195f80ee22f0
+  - type: covered_by
+    from: SYM-semantic-advisor-propertiesOf
+    to: TEST-mcp-semantic-advisor-preflight
+    created_at: 2026-09-05T17:39:53.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eed762570d93
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-1-inferOwnershipRuleArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:42:19.465Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5e5ba49eb79
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-3-inferDefaultValueArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:43:50.089Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-361d36f56e2a
+  - type: covered_by
+    from: SYM-skillopt-predicate-assert-distinct-classes
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T18:19:50.731Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc4435f5e2a6

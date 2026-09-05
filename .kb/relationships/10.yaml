@@ -174,3 +174,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-748fda60c792
+  - type: covered_by
+    from: SYM-auto-87E4086AAAB1
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:18:39.104Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1f59427f038
+  - type: covered_by
+    from: SYM-predicate-infer-args
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:47:29.770Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1aece0d583c
+  - type: covered_by
+    from: SYM-auto-87E4086AAAB1
+    to: TEST-skill-cli-load-validate
+    created_at: 2026-09-05T18:03:37.144Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0605ce197fbf
+  - type: covered_by
+    from: SYM-PredicateMatrixCell
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:09:13.431Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be0804c2a78d
+  - type: covered_by
+    from: SYM-SourceTreeHashError
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:10:12.225Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3be911a445c
+  - type: covered_by
+    from: SYM-skillopt-predicate-held-out-case-ids
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T18:20:38.189Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da2911194bc1

@@ -167,3 +167,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-13b6083b2c1e
+  - type: covered_by
+    from: SYM-auto-5EDA4085C185
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:17:46.096Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20d96659f12b
+  - type: covered_by
+    from: SYM-readBundledSkillResourceFrom
+    to: TEST-skill-cli-load-validate
+    created_at: 2026-09-05T18:05:10.277Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17b2fbec2c50

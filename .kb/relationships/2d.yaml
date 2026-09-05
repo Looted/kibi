@@ -41,3 +41,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dd6925c561ba
+  - type: covered_by
+    from: SYM-modeling-predicate-loader-loadExistingPredicateSchemas
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:44:45.327Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-788ef35fd515
+  - type: covered_by
+    from: SYM-sha256Text
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:13:05.077Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc491d6222d6
+  - type: covered_by
+    from: SYM-skillopt-python-main-module
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:15:10.510Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4752c9d7c04c

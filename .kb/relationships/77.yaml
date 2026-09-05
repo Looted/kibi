@@ -181,3 +181,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7de7ed0c99a5
+  - type: covered_by
+    from: SYM-convert-tap
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:29:19.482Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b214d578917b
+  - type: covered_by
+    from: SYM-skillopt-fake-provider-reconcile
+    to: TEST-skillopt-paid-launch-accounting
+    created_at: 2026-09-05T18:17:46.582Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1f936903cef

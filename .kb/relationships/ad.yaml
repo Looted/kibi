@@ -108,3 +108,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9daf658b30f6
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-1-inferEscalationRuleArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:41:47.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bcf6ae2685c2
+  - type: covered_by
+    from: SYM-skillopt-decode-predicate-case-snapshot
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T18:19:21.487Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d464b42527d2

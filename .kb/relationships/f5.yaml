@@ -97,3 +97,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a35b063590ee
+  - type: covered_by
+    from: SYM-prove-command
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:33:03.248Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ca6f3dc2c74
+  - type: covered_by
+    from: SYM-skillopt-source-tree-hash-main
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:15:36.759Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab94ab843364

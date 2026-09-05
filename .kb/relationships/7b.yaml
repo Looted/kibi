@@ -76,3 +76,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6cf87088a07b
+  - type: covered_by
+    from: SYM-valid-proof-receipt-shape
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-09-05T17:05:14.094Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81b88e587001
+  - type: covered_by
+    from: SYM-proof-integrations-path
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:32:06.616Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3a2e2324831

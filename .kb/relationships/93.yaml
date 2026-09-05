@@ -55,3 +55,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f3617a23320d
+  - type: covered_by
+    from: SYM-auto-9AEF238324D1
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:19:38.509Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5eb48e48568
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-1-inferExceptionRuleArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:41:52.439Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-628fc0fbbc3b
+  - type: covered_by
+    from: SYM-parseSkillBundle
+    to: TEST-skill-cli-load-validate
+    created_at: 2026-09-05T18:04:49.242Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5498c8c7a31b
+  - type: covered_by
+    from: SYM-FixtureClaimError-name
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:07:46.109Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3305c9ceceb

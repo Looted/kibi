@@ -195,3 +195,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6f14db51289d
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-3-inferVisualLayoutRuleArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:44:36.243Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6477c0c8fee2
+  - type: covered_by
+    from: SYM-SkillBundle
+    to: TEST-skill-cli-load-validate
+    created_at: 2026-09-05T18:02:10.755Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a2cc120e2eb0
+  - type: covered_by
+    from: SYM-vscode-code-lens-provider-on-did-change-code-lenses
+    to: TEST-vscode-traceability
+    created_at: 2026-09-05T18:25:33.520Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c12421c17f5

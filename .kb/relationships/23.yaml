@@ -59,3 +59,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c9d2c8567180
+  - type: covered_by
+    from: SYM-resolveWorkspaceRoot
+    to: TEST-vscode-traceability-coverage
+    created_at: 2026-09-05T18:28:22.959Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86447682c283

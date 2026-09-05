@@ -90,3 +90,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-42c4060c1871
+  - type: covered_by
+    from: SYM-cli-report-brand-badge
+    to: TEST-kibi-branded-health-report
+    created_at: 2026-09-05T16:58:33.087Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5799f15493d

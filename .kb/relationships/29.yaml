@@ -97,3 +97,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5e85a5174fbc
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-2-inferCodingStandardRuleArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:42:46.605Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bc684700417
+  - type: covered_by
+    from: SYM-predicate-infer-conflict-resolution
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:47:34.309Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8761aece0f6b

@@ -48,3 +48,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-72044fa1db16
+  - type: covered_by
+    from: SYM-auto-7D6473217301
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:18:29.400Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9ff77842e91
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-2-inferConsistencyRuleArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:42:51.146Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-efe0b53085c8
+  - type: covered_by
+    from: SYM-predicate-infer-scoped-authorization
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:47:43.509Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-587e108989de

@@ -251,3 +251,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dec4174f98e4
+  - type: covered_by
+    from: SYM-auto-75AB1677E263
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:18:13.940Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-114c0eb17cbb

@@ -188,3 +188,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e60ad85ec2cd
+  - type: covered_by
+    from: SYM-auto-532D065248B0
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:17:30.925Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-608856390efd
+  - type: covered_by
+    from: SYM-ingest-proof-spec
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:29:50.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3505d49e0743
+  - type: covered_by
+    from: SYM-predicate-usage-hints-part-4
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:48:29.412Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8935cd791418

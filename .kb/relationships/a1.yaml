@@ -209,3 +209,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-73d05f1ad8ec
+  - type: covered_by
+    from: SYM-auto-4B78DAEF6C6B
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:17:09.680Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6788eabe1ee
+  - type: covered_by
+    from: SYM-auto-FF0B85426247
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:21:23.777Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3003ca31b8de
+  - type: covered_by
+    from: SYM-vscode-code-action-provider-action-kind
+    to: TEST-vscode-traceability
+    created_at: 2026-09-05T18:25:19.903Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4027ab1c8064

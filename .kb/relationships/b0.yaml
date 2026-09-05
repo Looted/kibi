@@ -41,3 +41,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2ee46982b4d6
+  - type: covered_by
+    from: SYM-auto-C77E34E6931A
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:20:12.012Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66080f53d5f4
+  - type: covered_by
+    from: SYM-SYMBOL_ROLES
+    to: TEST-cli-symbol-behavioral-anchors
+    created_at: 2026-09-05T18:21:47.390Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49860b6f62c6

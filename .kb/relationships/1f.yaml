@@ -153,3 +153,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-188dba42bf91
+  - type: covered_by
+    from: SYM-predicate-catalog-part-1
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:46:56.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc707a4e27f7
+  - type: covered_by
+    from: SYM-inferSymbolRoleFromKind
+    to: TEST-cli-symbol-behavioral-anchors
+    created_at: 2026-09-05T18:22:32.150Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49766ba7f648

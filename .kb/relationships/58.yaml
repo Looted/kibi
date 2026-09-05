@@ -108,3 +108,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a60d7932bbfe
+  - type: covered_by
+    from: SYM-fingerprint-component-names
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:29:39.919Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01b121dced3f
+  - type: covered_by
+    from: SYM-mcp-hasImpactOptions
+    to: TEST-mcp-tool-check-coverage
+    created_at: 2026-09-05T17:49:31.203Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf035c826ddd

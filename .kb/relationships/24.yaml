@@ -230,3 +230,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9ae97c165e2e
+  - type: covered_by
+    from: SYM-evaluateProseCoverageCorpus
+    to: TEST-mcp-semantic-advisor-preflight
+    created_at: 2026-09-05T17:38:09.269Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bb9c510efa5
+  - type: covered_by
+    from: SYM-buildUpsertTransaction
+    to: TEST-mcp-upsert-coverage
+    created_at: 2026-09-05T17:50:05.380Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5716dbaf6296
+  - type: covered_by
+    from: SYM-ArtifactPath-writeText
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:07:04.225Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43b0726aaa08

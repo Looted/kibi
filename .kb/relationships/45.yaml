@@ -83,3 +83,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e3d223d64eb2
+  - type: covered_by
+    from: SYM-proof-contract-version
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:31:44.407Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f3e9e7c9f02d

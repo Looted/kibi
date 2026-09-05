@@ -97,3 +97,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-326a4e125557
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-1-inferMutualExclusionArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:42:10.404Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-100efb99443d
+  - type: covered_by
+    from: SYM-StoredHeldOutTerminalReceipt
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:10:22.070Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-962aa501a575

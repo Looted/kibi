@@ -174,3 +174,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-66749f3091fe
+  - type: covered_by
+    from: SYM-releaseSymbolCompilerLock
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-09-05T16:57:42.802Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64784d7facfd
+  - type: covered_by
+    from: SYM-effective-proof-fingerprint
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:29:24.575Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36d195e69ce9
+  - type: covered_by
+    from: SYM-strip-cosmetic
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:33:31.882Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-842814f7c7f2
+  - type: covered_by
+    from: SYM-modeling-predicate-utils-normalizePredicateToken
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:46:26.046Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b0a21ad14629
+  - type: covered_by
+    from: SYM-KB_RELATIONSHIP_TYPES
+    to: TEST-vscode-traceability
+    created_at: 2026-09-05T18:25:00.625Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c9c5c0416dd
