@@ -3,7 +3,7 @@ id: REQ-skillopt-codex-optimization
 title: SkillOpt optimization must use Codex-only behavioral evidence
 status: open
 created_at: 2026-07-21T00:00:00Z
-updated_at: 2026-08-09T00:00:00Z
+updated_at: 2026-09-05T00:00:00Z
 source: documentation/facts/FACT-skillopt-methodology.md
 priority: must
 tags: [skillopt, codex, evaluation, security, umbrella]
@@ -32,7 +32,7 @@ Baseline and one-shot must both be scored on development before training, and th
 
 Versioned evaluation artifacts must enforce the same completion, identity, timestamp, uniqueness, size, source-pin, and approval-integrity rules in JSON Schema, TypeScript, and Python.
 
-The authenticated bridge must own a single POSIX process group spanning Bun, Codex, and MCP descendants; the TypeScript cell and MCP broker runtimes must inherit that group rather than detach. Timeout or interruption must terminate and reap the group. Copied ChatGPT auth must be mode `0600` and every private workspace root must remain cleanup-retryable until all removals succeed.
+The authenticated bridge must own a single POSIX process group spanning Bun, Codex, and MCP descendants; the TypeScript cell and MCP broker runtimes must inherit that group rather than detach. Timeout or interruption must terminate and reap the group. Copied ChatGPT auth must be mode `0600` and every private workspace root must remain cleanup-retryable until all removals succeed. After a canary, optimizer, or target cell refreshes ChatGPT tokens inside its private `CODEX_HOME`, the refreshed `auth.json` must be written back to the host auth file under an exclusive lock so the next cell does not reuse a spent refresh token. A missing or non-ChatGPT private copy must not replace the host credentials.
 
 Each paid optimization run must stage one private Codex/bwrap runtime lease under its artifact root and pass the same absolute executable paths to development, trainer-bridge, and held-out cells. Real target execution must not fall back to a bare `codex` command or the host bwrap path. The paid smoke must prove exactly one shell-isolation probe, one model-originated read-only `kb_semantic_advisor` call, one successful model-originated branch-dependent `kb_status` call, matching valid broker hash-chain entries, and successful diagnostic usage receipts. Expected permission denials inside the shell probe must be silenced before exact-output validation so a successful isolation check cannot become a false infrastructure no-go. Runtime, training, or evidence infrastructure failures must stop the matrix and return a structured no-go rather than produce an eligibility review.
 

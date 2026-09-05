@@ -20485,7 +20485,6 @@ symbols:
     title: EPISODE_OUTPUT_SCHEMA
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
     symbol_role: structural
-    granularity_reason: extractor-miss
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -20637,7 +20636,6 @@ symbols:
     title: assertExistingLoginEnvironment
     sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -20647,7 +20645,6 @@ symbols:
     title: CodexAuthError
     sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -20657,7 +20654,6 @@ symbols:
     title: CodexAuthError.name
     sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
     symbol_role: structural
-    granularity_reason: extractor-miss
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -20864,7 +20860,6 @@ symbols:
     title: isolatedCodexEnvironment
     sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -21054,6 +21049,42 @@ symbols:
         target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-runtime-prepare-existing-login
     title: prepareExistingLogin
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-login-auth-paths
+    title: LoginAuthPaths
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-persist-refreshed-login
+    title: persistRefreshedLogin
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-with-codex-auth-lease
+    title: withCodexAuthLease
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-with-prepared-login
+    title: withPreparedLogin
     sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
     symbol_role: behavioral
     relationships:
@@ -31986,16 +32017,6 @@ symbols:
   - id: SYM-BRIDGE-FIXTURE-RUN-ROOT-ENV
     title: BRIDGE_FIXTURE_RUN_ROOT_ENV
     sourceFile: scripts/skillopt-eval/training-setup.ts
-    status: active
-    symbol_role: config
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-EPISODE-OUTPUT-SCHEMA
-    title: EPISODE_OUTPUT_SCHEMA
-    sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
     status: active
     symbol_role: config
     relationships:

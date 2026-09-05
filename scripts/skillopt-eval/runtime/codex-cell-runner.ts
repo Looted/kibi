@@ -7,6 +7,10 @@ import { scoreCell } from "../scoring/cell";
 import { resolveIsolationArtifactRoot } from "./artifact-root";
 import { RequiredMcpStartupError } from "./canary-runtime";
 import {
+  persistRefreshedLogin,
+  withCodexAuthLease,
+} from "./codex-auth";
+import {
   persistCodexEpisode,
   readOptionalArtifact,
 } from "./codex-cell-artifacts";
@@ -117,11 +121,13 @@ export async function runCodexCell(
         ? {}
         : { candidates: options.bundleCandidates }),
     });
+    return await withCodexAuthLease(options.env, async () => {
     const login = await dependencies.prepareLogin({
       privateCodexHome: workspace.codexHome,
       sandboxHome: workspace.sandboxHome,
       env: options.env,
     });
+    try {
     const cellEnv = {
       ...login.env,
       KIBI_BRANCH: SKILLOPT_EVALUATION_BRANCH,
@@ -276,6 +282,14 @@ export async function runCodexCell(
       finalState,
     });
     return { receipt, artifactDirectory, receiptPath };
+    } finally {
+      await persistRefreshedLogin({
+        mode: login.mode,
+        realCodexHome: login.realCodexHome,
+        privateCodexHome: workspace.codexHome,
+      });
+    }
+    });
   } finally {
     await workspace.cleanup();
   }

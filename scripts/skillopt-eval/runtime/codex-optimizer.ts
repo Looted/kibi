@@ -9,7 +9,7 @@ import {
   RequiredMcpStartupError,
   stageCapabilityCanary,
 } from "./canary-runtime";
-import { prepareExistingLogin } from "./codex-auth";
+import { withPreparedLogin } from "./codex-auth";
 import { createIsolationWorkspace } from "./isolation-workspace";
 import { buildCodexConfig, buildCodexExecArgv } from "./permissions";
 import { runBoundedProcess } from "./process";
@@ -221,12 +221,14 @@ export async function runCodexSkillOptStep(
   try {
     const sourceWorktree = resolve(options.sourceWorktree);
     const env = options.env ?? process.env;
-    const auth = await prepareExistingLogin({
-      privateCodexHome: workspace.codexHome,
-      sandboxHome: workspace.sandboxHome,
-      env,
-      run: loginRunForSource(sourceWorktree),
-    });
+    return await withPreparedLogin(
+      {
+        privateCodexHome: workspace.codexHome,
+        sandboxHome: workspace.sandboxHome,
+        env,
+        run: loginRunForSource(sourceWorktree),
+      },
+      async (auth) => {
     const staged = await stageCapabilityCanary(workspace, sourceWorktree, {
       ...(options.codexExecutable === undefined
         ? {}
@@ -347,6 +349,8 @@ export async function runCodexSkillOptStep(
       body,
     });
     return { body, development: options.request.previousDevelopment };
+      },
+    );
   } catch (error) {
     if (error instanceof RequiredMcpStartupError) throw error;
     if (error instanceof CodexOptimizerError) throw error;

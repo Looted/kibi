@@ -4,7 +4,7 @@ title: Codex SkillOpt contract rejects stale hosts and gates
 type: test
 status: passing
 created_at: 2026-07-21T00:00:00.000Z
-updated_at: 2026-08-09T00:00:00.000Z
+updated_at: 2026-09-05T00:00:00.000Z
 source: scripts/skillopt-eval/tests/methodology-contract.test.ts
 priority: must
 tags:
@@ -33,6 +33,8 @@ Learning-loop regressions prove that behavioral misses retain partial score, the
 Optimizer-output regressions require a dedicated `--output-last-message` path, parse only its strict final JSON object, accept a substantive replacement with the canonical Kibi safety and operation guidance, and reject progress notes, malformed JSON, unsafe direct-`.kb` instructions, or incomplete bodies before evaluation. They also prove the accepted body and its hash receipt survive outside the cleaned ephemeral optimizer workspace.
 
 Optimizer-output tests also reject repository release-policy leakage and require complete predicate-modeling guidance. Operator and real-workflow tests verify explicit preserved-candidate seeding, exact seed-body propagation, and a durable seed hash/byte receipt. Python adapter tests verify that every rewrite receives compact cumulative public failure counts by family rather than only the latest rollout.
+
+Runtime configuration tests copy ChatGPT `auth.json` into a private Codex home at mode `0600`, write refreshed tokens back onto the host auth file, refuse to clobber the host file when the private copy is not a ChatGPT session, and persist refresh mutations through `withPreparedLogin`. Canary, optimizer, and cell-runner suites wrap those sessions in the same exclusive auth lease so sequential paid cells reuse the host file after write-back rather than a spent refresh token.
 
 The runtime and smoke suites additionally verify one private runtime staging lease, identical executable propagation through every real evaluation lane, cleanup on success and failure, explicit bridge flags with rejection of partial configuration, and smoke evidence for the shell probe, model-originated semantic-advisor and branch-status calls, broker hash chain, and matching diagnostic receipts. The generated probe is executed against a genuinely read-only `.runtime` directory to prove the expected denial produces no stderr and preserves the exact pass token. The evidence validator rejects a trace that omits the branch-dependent call. Workflow tests verify that infrastructure failures stop subsequent cells and emit exit code 1 with stage/task/variant/failure/receipt details, while behavioral failures remain eligible for ordinary gate evaluation.
 

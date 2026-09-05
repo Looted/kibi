@@ -1,8 +1,18 @@
 import { constants as fsConstants } from "node:fs";
-import { access, chmod, copyFile, readFile, stat } from "node:fs/promises";
+import {
+  access,
+  chmod,
+  copyFile,
+  mkdir,
+  readFile,
+  rename,
+  stat,
+  writeFile,
+} from "node:fs/promises";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { z } from "zod";
+import { withHeldOutExecutionLease } from "../held-out-execution-lease";
 import type { ProcessResult } from "./process";
 
 const FORBIDDEN_ENV = [
@@ -147,4 +157,80 @@ export async function prepareExistingLogin(
     privateCodexHome: options.privateCodexHome,
     env,
   };
+}
+
+export type LoginAuthPaths = Readonly<{
+  mode: AuthMode;
+  realCodexHome: string;
+  privateCodexHome: string;
+}>;
+
+function resolveRealCodexHome(env: NodeJS.ProcessEnv): string {
+  return resolve(env.CODEX_HOME ?? join(homedir(), ".codex"));
+}
+
+// ChatGPT refresh tokens are single-use. Isolated cells copy auth.json into a
+// private CODEX_HOME; without a write-back, the next cell retries the already
+// consumed host refresh token and Codex fails with refresh_token_reused.
+// implements REQ-skillopt-codex-optimization
+export async function persistRefreshedLogin(
+  auth: LoginAuthPaths,
+): Promise<void> {
+  if (auth.mode !== "file") return;
+  const privateAuth = join(auth.privateCodexHome, "auth.json");
+  const hostAuth = join(auth.realCodexHome, "auth.json");
+  if (!(await readableFile(privateAuth))) return;
+  let privateBody: string;
+  try {
+    privateBody = await readFile(privateAuth, "utf8");
+    ChatGptAuthFileSchema.parse(JSON.parse(privateBody));
+  } catch (error) {
+    throw new CodexAuthError("auth_file", { cause: error });
+  }
+  const hostBody = (await readableFile(hostAuth))
+    ? await readFile(hostAuth, "utf8")
+    : "";
+  if (privateBody === hostBody) return;
+  const tempPath = join(auth.realCodexHome, ".auth.json.skillopt-tmp");
+  await writeFile(tempPath, privateBody, { encoding: "utf8", mode: 0o600 });
+  await chmod(tempPath, 0o600);
+  await rename(tempPath, hostAuth);
+  await chmod(hostAuth, 0o600);
+}
+
+// implements REQ-skillopt-codex-optimization
+export async function withCodexAuthLease<T>(
+  env: NodeJS.ProcessEnv,
+  operation: () => Promise<T>,
+): Promise<T> {
+  const lockDir = join(resolveRealCodexHome(env), ".skillopt-auth-lock");
+  await mkdir(lockDir, { recursive: true, mode: 0o700 });
+  await chmod(lockDir, 0o700);
+  return await withHeldOutExecutionLease(lockDir, operation);
+}
+
+export async function withPreparedLogin<T>(
+  options: Readonly<{
+    privateCodexHome: string;
+    sandboxHome?: string;
+    env: NodeJS.ProcessEnv;
+    run: AuthProcessRunner;
+  }>,
+  operation: (auth: AuthPreparation) => Promise<T>,
+): Promise<T> {
+  return await withCodexAuthLease(options.env, async () => {
+    const auth = await prepareExistingLogin(options);
+    try {
+      const result = await operation(auth);
+      await persistRefreshedLogin(auth);
+      return result;
+    } catch (error) {
+      try {
+        await persistRefreshedLogin(auth);
+      } catch {
+        // Keep the original operation error.
+      }
+      throw error;
+    }
+  });
 }
