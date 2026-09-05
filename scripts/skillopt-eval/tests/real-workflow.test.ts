@@ -568,11 +568,10 @@ describe("real SkillOpt workflow", () => {
               resourcesHash: input.baseline.resourcesHash,
               provenance: "codex-one-shot",
             }),
-          evaluateDevelopment: async () => ({
-            mean: 0.5,
-            hardPasses: 2,
-            worstFamilyMean: 0.4,
-          }),
+          evaluateDevelopment: async ({ candidate }) =>
+            candidate.variant === "skillopt"
+              ? { mean: 0.9, hardPasses: 4, worstFamilyMean: 0.85 }
+              : { mean: 0.5, hardPasses: 2, worstFamilyMean: 0.4 },
           train: async (input) => {
             expect(input.initialVariant?.variant).toBe("baseline");
             return {

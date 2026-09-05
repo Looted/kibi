@@ -324,7 +324,7 @@ describe("handleKbSymbolsRefresh fillMissingCoordinates leftover branches", () =
         "    sourceEndLine: 0",
         "    sourceEndColumn: 0",
         "  - id: SYM-MD",
-        "    title: notes",
+        "    title: noMatchInMarkdown",
         "    sourceFile: src/notes.md",
         "  - id: SYM-GONE",
         "    title: missingFile",
@@ -383,14 +383,14 @@ describe("handleKbSymbolsRefresh fillMissingCoordinates leftover branches", () =
       expect.objectContaining({
         sourceFile: "src/coarse-miss.ts",
         sourceLine: 1,
-        sourceEndLine: 2,
+        sourceEndLine: 3,
       }),
     );
     expect(coordinates(root)["SYM-COARSE-MISS"]).toEqual(
       expect.objectContaining({
         sourceFile: "src/coarse-miss.ts",
         sourceLine: 1,
-        sourceEndLine: 2,
+        sourceEndLine: 3,
       }),
     );
     expect(coordinates(root)["SYM-READ-CATCH"]).toBeUndefined();

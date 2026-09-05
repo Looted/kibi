@@ -1,6 +1,6 @@
 // implements REQ-skillopt-codex-optimization
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
-import { rm, writeFile } from "node:fs/promises";
+import { chmod, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { PreflightNoGo, qualifySkillOptHost } from "../preflight-host";
 import { PreflightInputError } from "../preflight-io";
@@ -40,6 +40,7 @@ describe("qualifySkillOptHost remaining lock and classification branches", () =>
   test("classifies invalid bundle JSON as a signature no-go after locks load", async () => {
     const fixture = await createPreflightFixture();
     roots.push(fixture.root);
+    await chmod(join(fixture.externalRoot, "verifier-bundle.lock"), 0o644);
     await writeFile(
       join(fixture.externalRoot, "verifier-bundle.lock"),
       "{not-json\n",

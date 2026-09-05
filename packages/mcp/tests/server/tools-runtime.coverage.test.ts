@@ -188,39 +188,53 @@ describe("DEFAULT_TOOLS_RUNTIME session wiring", () => {
     ).rejects.toThrow();
   });
 
-  test("refreshAttachedBranchStamp skips a null path and swallows non-debug errors", async () => {
-    const previousDebug = process.env.KIBI_MCP_DEBUG;
+  test("refreshAttachedBranchStamp skips an empty path and swallows non-debug errors", async () => {
     Reflect.deleteProperty(process.env, "KIBI_MCP_DEBUG");
     const warn = mock((..._args: unknown[]) => {});
     const originalWarn = console.warn;
     console.warn = warn as typeof console.warn;
-    const { session } = createSession(null);
-    const update = mock((_stamp: unknown) => {
-      throw "stamp exploded";
-    });
-    session.updateAttachedBranchStamp = update;
+    const writeSpec = {
+      name: "kb_upsert",
+      requiresProlog: false,
+      effects: ["kb-write"],
+    } as never;
+    const emptySession = createSession("").session;
+    const emptyUpdate = mock();
+    emptySession.updateAttachedBranchStamp = emptyUpdate;
     _setToolsServerDepsForTests(
-      { getSessionModule: async () => session as never },
+      { getSessionModule: async () => emptySession as never },
       true,
     );
     try {
       const skipped = await DEFAULT_TOOLS_RUNTIME.operationRuntime.open(
-        {
-          name: "kb_skills_list",
-          requiresProlog: false,
-          effects: ["local-read"],
-        } as never,
+        writeSpec,
         {},
       );
-      expect(skipped.workspaceRoot).toBeDefined();
-      expect(update).not.toHaveBeenCalled();
+      await DEFAULT_TOOLS_RUNTIME.operationRuntime.afterSuccess(
+        writeSpec,
+        skipped,
+      );
+      expect(emptyUpdate).not.toHaveBeenCalled();
+
+      const throwing = createSession("/tmp/kibi-stamp-throw").session;
+      throwing.updateAttachedBranchStamp = mock(() => {
+        throw "stamp exploded";
+      });
+      _setToolsServerDepsForTests(
+        { getSessionModule: async () => throwing as never },
+        true,
+      );
+      const context = await DEFAULT_TOOLS_RUNTIME.operationRuntime.open(
+        writeSpec,
+        {},
+      );
+      await DEFAULT_TOOLS_RUNTIME.operationRuntime.afterSuccess(
+        writeSpec,
+        context,
+      );
+      expect(warn).not.toHaveBeenCalled();
     } finally {
       console.warn = originalWarn;
-      if (previousDebug === undefined) {
-        Reflect.deleteProperty(process.env, "KIBI_MCP_DEBUG");
-      } else {
-        process.env.KIBI_MCP_DEBUG = previousDebug;
-      }
     }
   });
 
@@ -238,14 +252,19 @@ describe("DEFAULT_TOOLS_RUNTIME session wiring", () => {
       { getSessionModule: async () => session as never },
       true,
     );
+    const writeSpec = {
+      name: "kb_upsert",
+      requiresProlog: false,
+      effects: ["kb-write"],
+    } as never;
     try {
-      await DEFAULT_TOOLS_RUNTIME.operationRuntime.open(
-        {
-          name: "kb_skills_list",
-          requiresProlog: false,
-          effects: ["local-read"],
-        } as never,
+      const context = await DEFAULT_TOOLS_RUNTIME.operationRuntime.open(
+        writeSpec,
         {},
+      );
+      await DEFAULT_TOOLS_RUNTIME.operationRuntime.afterSuccess(
+        writeSpec,
+        context,
       );
       expect(recorded[0]).toEqual(
         expect.objectContaining({ branchPath: kbPath, dirMissing: false }),
