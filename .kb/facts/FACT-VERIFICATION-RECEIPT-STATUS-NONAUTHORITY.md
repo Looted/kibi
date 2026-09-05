@@ -12,8 +12,8 @@ predicate_name: verification_receipt_rule
 predicate_args: [durable_test_status, requirement_proof, not_authoritative_without_receipt]
 canonical_key: verification_receipt_rule(durable_test_status,requirement_proof,not_authoritative_without_receipt)
 polarity: assert
-claim_key: CLAIM-8860B049C5D3055F
-claim_text: Durable test status remains structural metadata and cannot substitute for a receipt
+claim_key: CLAIM-0C6463BA2B3AA64B
+claim_text: Durable test status remains structural metadata and cannot substitute for proof receipts
 ---
 
 Ground predicate separating structural test metadata from execution proof.

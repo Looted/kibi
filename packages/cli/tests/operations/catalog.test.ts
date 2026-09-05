@@ -24,7 +24,7 @@ const EXPECTED_CLI_NAMES = {
   kb_sparql_remote: "sparql-remote",
   kb_compile_intent: "compile-intent",
   kb_apply_plan: "apply-plan",
-  kb_ingest_verification: "ingest-verification",
+  kb_ingest_proof: "ingest-proof",
 } as const;
 
 const PROLOG_FREE_OPERATIONS = new Set([

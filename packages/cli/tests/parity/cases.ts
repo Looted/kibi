@@ -73,12 +73,12 @@ const SEED_INPUTS = {
   kb_apply_plan: {
     plan: {
       version: "kibi.compile-plan.v1",
-      planHash: "0".repeat(64),
+      planHash: "0a".repeat(32),
       status: "needs_resolution",
       expected: {
         branch: "develop",
         kbSnapshotId: "stamp:test",
-        workspaceSnapshot: "0".repeat(64),
+        workspaceSnapshot: "0a".repeat(32),
         sourceHashes: {},
       },
       target: {
@@ -94,27 +94,31 @@ const SEED_INPUTS = {
       sourceWrites: [],
       diagnostics: [],
     },
-    approvedPlanHash: "0".repeat(64),
+    approvedPlanHash: "0a".repeat(32),
   },
-  kb_ingest_verification: {
-    testId: "TEST-001",
-    snapshot: "0".repeat(64),
+  kb_ingest_proof: {
+    snapshot: "0a".repeat(32),
+    testIds: ["TEST-001"],
     artifact: {
-      version: "kibi.playwright-run.v1",
-      runner: "playwright",
-      command_argv: ["pnpm", "exec", "playwright", "test"],
-      code_snapshot: "0".repeat(64),
-      environment_hash: "1".repeat(64),
-      started_at: "2026-08-13T00:00:00Z",
-      finished_at: "2026-08-13T00:00:01Z",
-      process_exit_code: 0,
-      cases: [
+      version: "kibi.proof-run.v1",
+      producer: { name: "kibi-command-producer" },
+      integration: "self-proof",
+      command_argv: ["node", "scripts/proof.mjs"],
+      code_snapshot: "0a".repeat(32),
+      environment: { os: "linux", arch: "x86_64" },
+      run: {
+        outcome: "passed",
+        exit_code: 0,
+        started_at: "2026-08-13T00:00:00Z",
+        finished_at: "2026-08-13T00:00:01Z",
+      },
+      proof_results: [
         {
           symbol_id: "SYM-CASE-1",
-          project: "chromium",
+          target: "default",
           outcome: "passed",
-          retries: 0,
-          duration_ms: 1,
+          binding: "aggregate_run",
+          attempts: { status: "unavailable" },
         },
       ],
     },

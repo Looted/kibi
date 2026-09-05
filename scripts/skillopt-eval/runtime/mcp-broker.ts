@@ -12,7 +12,7 @@ export const REQUIRED_KIBI_TOOLS = [
   "kb_graph",
   "kb_upsert",
   "kb_delete",
-  "kb_ingest_verification",
+  "kb_ingest_proof",
   "kb_coverage",
   "kb_skills_list",
   "kb_skills_load",

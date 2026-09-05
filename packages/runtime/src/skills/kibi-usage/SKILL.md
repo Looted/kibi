@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware operations safely across MCP or the trusted local CLI, including partial completion repair.
-version: 2.1.0
+version: 2.1.1
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -19,6 +19,7 @@ resources:
   - resources/relationship-directions.md
   - resources/fact-lanes.md
   - resources/workflows.md
+  - resources/proof.md
   - resources/ui-requirements.md
   - resources/logic-ir.md
   - resources/kb-improvement.md
@@ -67,12 +68,27 @@ mutability, and Prolog requirements of each operation.
    Kibi never Git-stages or commits those files. Do not read or edit `.kb`
    directly.
 5. Finish with targeted and final `kb_check`, then read status/coverage and
-   state freshness, verification, proof, and limitations separately.
+   report the five independent closeout fields (not one inferred success flag).
 
 Run `kb_check` with specific rules during iteration and the unfiltered final
 check. Never fire `kb_upsert` calls in parallel; create or confirm endpoint
 entities before linking them. The canonical MCP names are `kb_search`,
 `kb_query`, `kb_upsert`, and `kb_check`.
+
+## Closeout fields
+
+End every task with these five independent fields:
+
+```text
+taskOutcome: complete | interim | blocked
+kbState: clean_fresh | stale | dirty | legacy_compat | not_evaluated
+verificationState: fresh | dirty | unavailable | not_evaluated
+proofState: proven | mixed | unresolved | not_evaluated
+limitationDisposition: none | accepted | unaccepted | not_applicable
+```
+
+`taskOutcome` is whether the requested work finished. The other fields are
+observed system state. A clean check can coexist with unresolved proof.
 
 ## Exact Git attachment
 
@@ -114,22 +130,31 @@ safe normative claims; use `observation` or `meta` for bug/workaround notes and
 `flag` only for actual runtime/config gates. Requirements require scenarios,
 tests, symbol ownership, and fresh proof-bearing receipts before claiming proof.
 For an existing product KB that needs semantic backfill, read
-`resources/kb-improvement.md`.
+`resources/kb-improvement.md`, and `resources/proof.md` for the proof workflow.
 
 ## Predicate Ontology Decision Tree
 
-Call `kb_semantic_advisor`, `kb_model_requirement`, or `kb_suggest_predicates`
-before encoding a normative clause. Use `fact_kind: predicate` with
-`requires_predicate` when a suitable schema exists; use `fact_kind: observation`
-for an ontology gap. Keep the `REQ -> TEST` chain and use `verified_by` for
-proof-bearing links. Relationship direction is fixed, and every `from` in a
-relationship batch must equal the upserted entity ID.
+Call `kb_semantic_advisor` on the complete prose before encoding a clause.
+Set requirement `logic_claims` to exactly the assertive `claim_key` values.
+For each relational clause, call `kb_suggest_predicates` with that clause and
+`existingLogicClaims`. If lexical rank is a false positive, retry with the
+reviewed `schemaId`. If `binding_status` is `incomplete`, supply
+`argumentBindings` and retry. Persist `fact_kind: predicate` with the same
+`claim_key` / `claim_text`, then link `REQ -> fact` with `requires_predicate`.
+Use `kb_model_requirement` for strict scalar clauses. Use
+`fact_kind: observation` only for a true ontology gap. The manifest is not
+grounding: run `logic-coverage` so each key binds to one ground fact.
+Relationship direction is fixed, and every `from` in a relationship batch
+must equal the upserted entity ID.
 
 ## Symbol-First Traceability
 
-Represent implementation ownership with a `symbol` entity and an `implements`
-relationship from the symbol to the requirement. Do not rely on legacy
-`// implements REQ-xxx` comments as the traceability record.
+Represent implementation ownership with a `symbol` entity that has
+`sourceFile`, `implements` to the requirement, and `covered_by` to the test.
+Prolog `symbol-coverage` also requires the test to `validates` the requirement
+(or the requirement `verified_by` the test). `covered_by` alone is not
+enough. Do not rely on legacy `// implements REQ-xxx` comments as the
+traceability record.
 
 ## Complete Logical Coverage
 

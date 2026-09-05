@@ -32,30 +32,27 @@ semantic_inventory:
   - claim_key: CLAIM-16F84736A1B01D5B
     claim_text: The `kibi check` command runs validation rules against the branch KB to ensure structural integrity and requirement coverage
     role: descriptive
-    status: ontology_gap
+    status: modeled
     span:
       start: 0
       end: 124
     payload_hash: 747c70a1f4cb53d49d3379547d4570150768dc4cf9d5d8abdab1e343fdbb3b16
-    reason: No approved domain predicate schema expresses this clause; generic logical_requirement_rule grounding was removed.
   - claim_key: CLAIM-5E64EE51B2FCE374
     claim_text: It can be restricted to specific rules or focused on staged changes (used in pre-commit hooks)
     role: descriptive
-    status: ontology_gap
+    status: modeled
     span:
       start: 126
       end: 220
     payload_hash: 747c70a1f4cb53d49d3379547d4570150768dc4cf9d5d8abdab1e343fdbb3b16
-    reason: No approved domain predicate schema expresses this clause; generic logical_requirement_rule grounding was removed.
   - claim_key: CLAIM-F0BB0D90E442DB1A
     claim_text: Failure results in a non-zero exit code and descriptive violation logs
     role: descriptive
-    status: ontology_gap
+    status: modeled
     span:
       start: 222
       end: 292
     payload_hash: 747c70a1f4cb53d49d3379547d4570150768dc4cf9d5d8abdab1e343fdbb3b16
-    reason: No approved domain predicate schema expresses this clause; generic logical_requirement_rule grounding was removed.
 type: req
 ---
 

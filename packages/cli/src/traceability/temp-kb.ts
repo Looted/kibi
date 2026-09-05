@@ -255,9 +255,19 @@ function buildEntityAssertionGoal(
         `verification_perspective=${toPrologAtom(entity.verification_perspective)}`,
       );
     }
-    if (entity.verification_contract !== undefined) {
+    if (entity.proof_contract !== undefined) {
       props.push(
-        `verification_contract=${toPrologString(JSON.stringify(entity.verification_contract))}`,
+        `proof_contract=${toPrologString(JSON.stringify(entity.proof_contract))}`,
+      );
+    }
+    if (entity.proof_bindings !== undefined) {
+      props.push(
+        `proof_bindings=${toPrologString(JSON.stringify(entity.proof_bindings))}`,
+      );
+    }
+    if (entity.proof_receipts !== undefined) {
+      props.push(
+        `proof_receipts=${toPrologString(JSON.stringify(entity.proof_receipts))}`,
       );
     }
   }

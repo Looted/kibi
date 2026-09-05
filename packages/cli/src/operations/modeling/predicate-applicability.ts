@@ -79,13 +79,22 @@ const INTENT_RULES: Readonly<Record<string, IntentRule>> = {
   failure_behavior: {
     allOf: [
       [
-        /failure|fail|missing(?:\s+\S+){0,4}\s+dependenc|missing\s+(?:project[- ]local\s+)?(?:kibi[- ]mcp|package|module)|dependenc\w*\s+(?:is\s+)?missing|unavailable|exception|error\s+(?:behavior|outcome|handling)/i,
+        /failure|fail|missing(?:\s+\S+){0,4}\s+dependenc|missing\s+(?:project[- ]local\s+)?(?:kibi[- ]mcp|package|module)|dependenc\w*\s+(?:is\s+)?missing|unavailable|exception|error\s+(?:behavior|outcome|handling|occurs)|errors\s+(?:or|and)\s+(?:timeouts?|failures?)/i,
       ],
-      [/report|outcome|actionable|clear|return|surface|throw/i],
+      [/report|outcome|actionable|clear|return|surface|throw|leave|recover/i],
     ],
     prohibited: [
       /invalid\s+placeholder|ambiguous\s+root|ordered\s+source|child\s+process/i,
     ],
+  },
+  abstraction_boundary_rule: {
+    allOf: [
+      [
+        /renderer[- ]neutral|vendor[- ]neutral|implementation[- ]neutral|swappable|abstraction/i,
+      ],
+      [/persist|contract|api\b|data|scene|replace|storage/i],
+    ],
+    prohibited: [/permission|delete|export/i],
   },
   exception_rule: {
     // Package-manager wording can provide context for an exception, but it
@@ -108,15 +117,24 @@ const INTENT_RULES: Readonly<Record<string, IntentRule>> = {
   resource_constraint: {
     allOf: [
       [
-        /latency|timeout|throughput|quota|memory|cpu|size|resource|response\s+time|upload|download|payload|attachment|file/i,
+        /latency|timeout|throughput|quota|memory|cpu|size|resource|response\s+time|upload|download|payload|attachment|file|complete[sd]?\s+in\b|duration|frame\s+rate|\bfps\b/i,
       ],
       [
-        /at\s+most|at\s+least|not\s+exceed|maximum|minimum|under|below|above|within|limit|bounded|enforced|\b\d+(?:\.\d+)?\s*(?:ms|milliseconds?|s|seconds?|mb|gb|%)?\b/i,
+        /at\s+most|at\s+least|not\s+exceed|maximum|minimum|under|below|above|within|limit|bounded|enforced|<[=>]?\s*\d|\b\d+(?:\.\d+)?\s*(?:ms|milliseconds?|s|seconds?|mb|gb|fps|%)?\b/i,
       ],
     ],
     prohibited: [
       /only|allowed|denied|forbidden|permission|authorize|must\s+not\s+(?:delete|export|access|write|update|remove|manage)/i,
     ],
+  },
+  migration_boundary_rule: {
+    allOf: [
+      [/legacy|migration|fabricdata/i],
+      [
+        /canonical|migration\s+input|compatibility|only\s+(?:be\s+)?(?:read|used)|read\s+only/i,
+      ],
+    ],
+    prohibited: [/converted\s+once|no\s+data\s+loss|one[- ]time\s+conversion/i],
   },
   uniqueness_constraint: {
     allOf: [[/at\s+most\s+one|unique|uniqueness/i], [/\bper\b|scope|within/i]],
@@ -178,6 +196,87 @@ const INTENT_RULES: Readonly<Record<string, IntentRule>> = {
   },
   absence_requirement: {
     anyOf: [/\bno\b|absent|removed|not\s+exist|must\s+not\s+exist/i],
+  },
+  fail_closed_authorization_rule: {
+    allOf: [
+      [
+        /fail[- ]closed|deny|denied|reject|never\s+fall\s+back|without\s+(?:creating|falling)/i,
+      ],
+      [
+        /invalid|missing|unauthorized|unauthenticated|error|timeout|expired|fallback|role|credential/i,
+      ],
+    ],
+    prohibited: [
+      /defaults?\s+to\s+(?:a\s+)?(?:student|user|role|identity)\b(?!\s+must)/i,
+    ],
+  },
+  deployment_precondition_rule: {
+    allOf: [
+      [/deploy(?:ment|ed|ing)?|rollout|release/i],
+      [
+        /hold|block|abort|precondition|unsupported|before\s+(?:the\s+)?(?:release|deployment|rollout)/i,
+      ],
+    ],
+    prohibited: [/checkout|payment|fraud|workflow|capture/i],
+  },
+  data_migration_rule: {
+    allOf: [
+      [/conver(?:t|s(?:ion|ions))|migrat/i],
+      [/once|one[- ]time|no\s+data\s+loss|canonical|before/i],
+    ],
+    prohibited: [
+      /may\s+only\s+be\s+read|migration\s+input|never\s+fall\s+back|reads?\s+only/i,
+    ],
+  },
+  diagnostic_visibility_rule: {
+    allOf: [
+      [
+        /log(?:ged|ging)?|silent|not\s+shown|never\s+shown|internal\s+detail|raw/i,
+      ],
+      [/user|ui\b|friendly|actionable|shown|display|message|debugging/i],
+    ],
+    prohibited: [/audit\s+log|consent/i],
+  },
+  mutation_authority_rule: {
+    allOf: [
+      [/read[- ]only|server[- ]side|row[- ]level|\brls\b|trigger/i],
+      [/client|view|surface|api|table|service|notification|ui\b/i],
+    ],
+    prohibited: [/delete|export|remove|permission/i],
+  },
+  request_deduplication_rule: {
+    allOf: [
+      [/deduplicat|coalesc|in[- ]flight/i],
+      [/request|quer(?:y|ies)|fetch|call|parallel|redundant/i],
+    ],
+    prohibited: [/rate\s+limit|batch/i],
+  },
+  async_boundary_rule: {
+    allOf: [
+      [
+        /synchron(?:ous|ously)|not\s+await|defer|background|in\s+flight|non[- ]blocking/i,
+      ],
+      [/callback|handler|refresh|operation|work|action|ui\b/i],
+    ],
+    prohibited: [/timeout|rate\s+limit/i],
+  },
+  canonical_identifier_rule: {
+    allOf: [[/canonical/i], [/identifier|\bid\b|videoid|key|resolve/i]],
+    prohibited: [/renderer[- ]neutral|legacy/i],
+  },
+  responsive_breakpoint_rule: {
+    allOf: [
+      [/breakpoint|landscape|portrait|viewport|responsive/i],
+      [/mobile|desktop|tablet|width|height|px\b/i],
+    ],
+    prohibited: [/server|database/i],
+  },
+  operational_pause_rule: {
+    allOf: [
+      [/pause|halt|suspend|kill\s*switch|freeze/i],
+      [/block|new|preserve|existing|resumable|continue/i],
+    ],
+    prohibited: [/deletion|soft\s+delete/i],
   },
 };
 

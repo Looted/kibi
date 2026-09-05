@@ -32,7 +32,7 @@ describe("SkillOpt artifact root", () => {
     const root = resolveIsolationArtifactRoot(
       "/workspace/project/artifacts/skillopt/run-1",
       "/workspace/project",
-      "/tmp",
+      tmpdir(),
     );
 
     expect(root).toBe(join(tmpdir(), "kibi-skillopt", "isolation"));

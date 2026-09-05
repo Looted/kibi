@@ -250,7 +250,7 @@ if (RUN_NODE_TEST_SUITE) {
                 "kb_delete",
                 "kb_find_gaps",
                 "kb_graph",
-                "kb_ingest_verification",
+                "kb_ingest_proof",
                 "kb_model_requirement",
                 "kb_plan_bootstrap",
                 "kb_query",

@@ -107,7 +107,7 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
     args: Record<string, unknown>,
     context: OperationContext,
   ) => Promise<unknown>;
-  handleKbIngestVerification?: (
+  handleKbIngestProof?: (
     args: Record<string, unknown>,
     context: OperationContext,
   ) => Promise<unknown>;

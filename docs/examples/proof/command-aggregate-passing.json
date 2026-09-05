@@ -1,0 +1,27 @@
+{
+  "version": "kibi.proof-run.v1",
+  "producer": { "name": "kibi-command-producer" },
+  "integration": "self-proof",
+  "command_argv": ["node", "scripts/run-proof-producer.mjs"],
+  "code_snapshot": "9ec6c613d9d4f1b522e04e3d85ab215ff882f1750fc6c3dbe2ba06de258572ec",
+  "environment": {
+    "os": "linux",
+    "arch": "x86_64",
+    "runtime": { "name": "node", "version": "v24.15.0" }
+  },
+  "run": {
+    "outcome": "passed",
+    "exit_code": 0,
+    "started_at": "2026-08-30T09:00:00.000Z",
+    "finished_at": "2026-08-30T09:04:11.000Z"
+  },
+  "proof_results": [
+    {
+      "symbol_id": "SYM-e2e-packed-cli-check",
+      "target": "default",
+      "outcome": "passed",
+      "binding": "aggregate_run",
+      "attempts": { "status": "unavailable" }
+    }
+  ]
+}

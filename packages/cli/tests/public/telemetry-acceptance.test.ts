@@ -184,7 +184,7 @@ describe("telemetry acceptance", () => {
           {
             requirementId: "REQ-RECEIPT",
             testIds: ["TEST-RECEIPT"],
-            codes: ["verification_contract_mismatch"],
+            codes: ["proof_contract_mismatch"],
           },
         ],
         coverage_receipt_gap_total: 1,
@@ -211,12 +211,10 @@ describe("telemetry acceptance", () => {
     const receiptDiagnostic = diagnostics.find(
       (diagnostic) => diagnostic.id === "e2e_receipt_freshness_low",
     );
-    expect(receiptDiagnostic?.suggestion).toContain("kibi verify");
-    expect(receiptDiagnostic?.suggestion).toContain(
-      "kibi.verification-receipt.v2",
-    );
+    expect(receiptDiagnostic?.suggestion).toContain("kibi prove");
+    expect(receiptDiagnostic?.suggestion).toContain("idempotently");
     expect(receiptDiagnostic?.suggestion).not.toContain(
-      "kibi.verification-receipt.v1",
+      "kibi.verification-receipt",
     );
     expect(receiptDiagnostic?.evidence).toMatchObject({
       metric: {
@@ -225,7 +223,7 @@ describe("telemetry acceptance", () => {
             {
               requirementId: "REQ-RECEIPT",
               testIds: ["TEST-RECEIPT"],
-              codes: ["verification_contract_mismatch"],
+              codes: ["proof_contract_mismatch"],
             },
           ],
           receiptGapTotal: 1,

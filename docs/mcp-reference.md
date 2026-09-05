@@ -118,7 +118,7 @@ The modeling call is read-only. Applying its plan is a separate mutation and mus
 
 Suggest ontology predicate candidates for a prose requirement before an agent writes freeform ontology notes. Agents should spell out the requirement claim, call this tool, then either apply a returned `fact_kind: predicate` plan linked with `requires_predicate`, supply exact `argumentBindings` when a fitting schema still has unbound arguments, or record the returned `review:ontology-gap` observation when no predicate fits. Gap observations include a `relates_to` review anchor so unresolved ontology work remains queryable without entering the contradiction lane.
 
-The tool ranks project-local `fact_kind: predicate_schema` facts when available and falls back to Kibi's built-in predicate catalog covering state, transitions, guards, exceptions, mutual exclusion, dependencies, ownership, retry policies, escalation rules, availability SLAs, notification routing, idempotency, data residency, audit logging, consent, lifecycle actions, conflict resolution, fallback behavior, batch operations, consistency rules, build constraints, environment safety rules, schema invariants, coding standards, migration boundaries, absence/removal requirements, offline behavior, release gates, platform consistency, preservation rules, abstraction boundaries, security configuration, ordered strategies, refresh policies, scoped authorization, documentation standards, warmup policies, visual layout rules, enforcement-location rules, reconciliation rules, throttling policies, persistence/save/discard behavior, accessibility, retention, resource constraints, feature gates, events, permissions, defaults, uniqueness, state memberships, temporal ordering, conditional behavior, rate limits, acceptance outcomes, and reusable launcher contracts (`dependency_resolution_policy`, `ordered_resolution_strategy`, `resolution_failure_policy`, `process_delegation_contract`, and `failure_behavior`). Built-in candidates include usage hints (`use_when` / `do_not_use_when`) so agents can choose precise predicates instead of matching keywords blindly.
+The tool ranks project-local `fact_kind: predicate_schema` facts when available and falls back to Kibi's built-in predicate catalog covering state, transitions, guards, exceptions, mutual exclusion, dependencies, ownership, retry policies, escalation rules, availability SLAs, notification routing, idempotency, data residency, audit logging, consent, lifecycle actions, conflict resolution, fallback behavior, batch operations, consistency rules, build constraints, environment safety rules, schema invariants, coding standards, migration boundaries, absence/removal requirements, offline behavior, release gates, platform consistency, preservation rules, abstraction boundaries, security configuration, ordered strategies, refresh policies, scoped authorization, documentation standards, warmup policies, visual layout rules, enforcement-location rules, reconciliation rules, throttling policies, persistence/save/discard behavior, accessibility, retention, resource constraints, feature gates, events, permissions, defaults, uniqueness, state memberships, temporal ordering, conditional behavior, rate limits, acceptance outcomes, reusable launcher contracts (`dependency_resolution_policy`, `ordered_resolution_strategy`, `resolution_failure_policy`, `process_delegation_contract`, and `failure_behavior`), plus consumer-escalated families for fail-closed authorization, deployment preconditions, data-migration sequencing, diagnostic visibility, mutation authority, request deduplication, async boundaries, canonical identifiers, responsive breakpoints, and operational pauses. Built-in candidates include usage hints (`use_when` / `do_not_use_when`) so agents can choose precise predicates instead of matching keywords blindly.
 
 Candidate diagnostics are additive: each candidate may report `eligibility` (`eligible` or `rejected`), `rejection_reasons`, a conservative aggregate `binding_provenance` (the least-reviewable provenance across arguments), per-argument `binding_provenance_by_argument` (`explicit`, `extracted`, `inferred`, or `placeholder`), `applicability_score`, and deterministic score components. Retrieval and argument binding do not by themselves make a candidate applicable; negative evidence and margin-based abstention can reject weak or near-tied candidates. When no schema is genuinely eligible, the response uses `record_ontology_gap` and includes a non-null `recommendedPredicateSchema` draft with proposed name, ordered arguments, extracted bindings, unresolved bindings, rationale, and reuse scope for review. Draft schemas are never applied automatically.
 
@@ -137,7 +137,7 @@ Candidate diagnostics are additive: each candidate may report `eligibility` (`el
 
 **Returns:**
 - `candidates`: Ranked predicate suggestions with schema signature, usage hints, ordered `predicate_args`, `binding_status`, `unbound_arguments`, `canonical_key`, score, and rationale.
-- `recommendedAction`: `apply_requires_predicate` when the top or explicitly selected candidate fits and every argument is bound, `provide_argument_bindings` when its schema fits but exact values are missing, `resolve_schema_reference` when an explicitly selected schema is unavailable, otherwise `record_ontology_gap`.
+- `recommendedAction`: `apply_requires_predicate` when the top or explicitly selected candidate fits and every argument is bound, `provide_argument_bindings` when its schema fits but exact values are missing, `resolve_schema_reference` when an explicitly selected schema is unavailable, `review_nonlogical` when the semantic advisor classifies the input as nonlogical (rationale, example, or subjective context), otherwise `record_ontology_gap`.
 - `structuredContent.actions`: A ready-to-apply `kb_upsert` payload for a completely bound top predicate fact, an empty list for an incomplete binding, or an explicit `fact_kind: observation` tagged `review:ontology-gap` and `needs_schema_extension`, with a `relates_to` review anchor.
 - `structuredContent.relationshipPlan`: When `requirementId` is supplied and a predicate fits, the req -> fact `requires_predicate` link plus the merged `logicClaims` manifest to apply after querying/preserving the existing requirement entity. This is separate from `applyPlan` so the tool never emits a foreign-source relationship that `kb_upsert` would reject.
 
@@ -261,28 +261,28 @@ Apply an approved `kibi.compile-plan.v1` after revalidating its canonical hash, 
 **Returns:**
 `kibi.plan-apply-result.v1` with applied entity/relationship counts, final snapshots, validation counts, changed paths, and explicit notes about the current sequential boundary. It also accepts `kibi.migration-plan.v2`; migration application requires `approvedActionIds`, an exact `approvedPlanHash`, and rejects blocked or non-automatic actions. Migration results report per-action outcomes and reconciliation failures.
 
-### `kb_ingest_verification`
+### `kb_ingest_proof`
 
-Ingest a reporter-produced `kibi.playwright-run.v1` artifact for a contracted test. Kibi rechecks the live workspace snapshot, runner/command contract, required case/project coverage, and append-only history, then derives and appends a `kibi.verification-receipt.v2`. Caller-authored receipts and trusted outcomes are rejected.
+Ingest a producer-emitted `kibi.proof-run.v1` artifact and evaluate it against each selected test's `kibi.proof-contract.v1` proof obligations. Kibi rechecks the live workspace snapshot, integration command binding, run-level outcome, attempt history, success policy, and append-only proof history, then derives and appends idempotent `kibi.proof-receipt.v1` receipts. Producers report what happened; Kibi evaluates proof. Caller-authored receipts and trusted outcomes are rejected.
 
 **Parameters:**
-- `testId` (required): Existing test entity with `verification_contract.v1`.
 - `snapshot` (required): Workspace snapshot captured immediately before execution.
-- `artifact` (required): Reporter artifact containing runner, command argv, code snapshot, environment hash, timestamps, process exit code, and case results.
+- `artifact` (required): Producer artifact containing `version`, `producer`, `integration`, `command_argv`, `code_snapshot`, typed `environment`, run-level `run` outcome, and `proof_results` (each with `symbol_id`, `target`, `outcome`, `binding`, and factual `attempts`).
+- `testIds` (optional): Existing test entities with `kibi.proof-contract.v1`. Omit to evaluate every test contracted to the artifact's integration.
 
 **Returns:**
-Derived receipt, proof outcome, receipt count, and the shared upsert result. A changed snapshot, missing contracted case, command drift, duplicate case, or append-only violation fails before mutation.
+Per-test outcomes, receipt ids, applied/duplicate flags, receipt counts, expected-versus-received gap reports, plus the artifact digest and Kibi-derived environment hash. A changed snapshot, unknown integration, command drift, run-level failure, failed success policy, or append-only violation fails before mutation.
 
 ### `kb_status`
 
 Return branch, snapshot, and freshness metadata for the attached KB, plus the deterministic workspace snapshot used to validate execution receipts.
 
 **Returns:**
-Branch name, KB snapshot ID, sync state, dirty flag, KB path metadata, and `verificationSnapshot` evidence (`available`, `dirty`, file count, and `kibi.workspace-snapshot.v2` version). An unavailable workspace snapshot is reported as `unknown` and cannot prove an E2E stage. Receipt-only frontmatter edits do not change the v2 hash.
+Branch name, KB snapshot ID, sync state, dirty flag, KB path metadata, and `proofSnapshot` evidence (`available`, `dirty`, file count, and `kibi.workspace-snapshot.v2` version). An unavailable workspace snapshot is reported as `unknown` and cannot prove the proof stage. Receipt-only frontmatter edits do not change the v2 hash.
 
 The response also includes exact `branchAttachment` metadata, bounded sorted
 `staleReasons` (with affected entity IDs and truncation totals), and
-`verificationSnapshotChanges`. Editor/config paths are reported as ordinary
+`proofSnapshotChanges`. Editor/config paths are reported as ordinary
 workspace changes; they are not silently ignored.
 
 When migration is needed, the response includes `schemaStatus` and a typed
@@ -402,7 +402,7 @@ For requirement coverage, summaries distinguish evaluated must-priority requirem
 
 With `includeMigrationPreview: true`, `legacyMigrationPlan` adds the versioned `kibi.legacy-migration-plan.v1` review surface. It selects only ready semantic-inventory repair batches, defaults to one requirement, binds normalized authored Markdown to an exact SHA-256 hash and UTF-8 spans, and gives every proposition one recommended lane or explicit unresolved disposition. Ranked candidates preserve exact schema identity, signature, origin, polarity, binding status, and unbound arguments, but never produce an applicable write. Authored prose is previewed in requirement-only `semantic_text`, while an independent `text_ref` remains unchanged; a differing pre-existing `semantic_text` blocks the batch as semantic source drift.
 
-The passing-E2E stage evaluates append-only verification-receipt history. New evidence is produced by `kibi verify` as `kibi.verification-receipt.v2`; older `v1` entries remain readable historical compatibility data. A current receipt must bind the test and its typed scope, runner command argv, contract hash, deterministic current code snapshot, environment hash, timestamps, outcome, artifact digest, and required case results. The newest receipt for the live snapshot and current contract must be passing and no older than seven days. Missing, wrong-snapshot, stale, failed, malformed, mismatched, future-dated, or snapshot-unavailable evidence cannot prove the requirement; durable test status remains structural metadata.
+The passing-E2E stage evaluates append-only proof-receipt history. New evidence is produced by `kibi prove` as `kibi.proof-receipt.v1`. A current receipt must bind the test and its typed scope, integration command argv, contract hash, execution fingerprint, deterministic current code snapshot, canonical environment hash, timestamps, outcome, artifact digest, and observed proof results. The newest receipt for the live snapshot, current contract hash, and current fingerprint must be passing and no older than seven days. Missing, wrong-snapshot, stale, failed, malformed, mismatched, future-dated, or snapshot-unavailable evidence cannot prove the requirement; durable test status remains structural metadata.
 
 Symbol rows distinguish production symbols from executable test symbols. Executable-only symbols are not applicable to production coverage; mixed-role symbols are uncovered and carry an explicit role error.
 
@@ -495,7 +495,7 @@ Confirmation of entity creation/update and relationship creation counts. Success
 
 Validate a `kb_upsert` payload without mutating the KB. This read-only preflight returns `valid`, `errors`, `warnings`, `semanticAdvisor`, and `normalizedPreview`, including the same proposition-completeness and exact grounding-identity checks used by `kb_upsert`.
 
-`semanticAdvisor` includes a version, payload hash, source-bound inventory contract, proposition ledger, logic readiness, candidate lane, detected signals, ambiguity witnesses, modeling suggestions, and suggested next tools. A valid preflight proves source accounting at the ingestion boundary; contradiction checks and verification evidence are still separate proof stages.
+`semanticAdvisor` includes a version, payload hash, source-bound inventory contract, proposition ledger, logic readiness, candidate lane, detected signals, ambiguity witnesses, modeling suggestions, and suggested next tools. A valid preflight proves source accounting at the ingestion boundary; contradiction checks and proof evidence are still separate proof stages.
 
 When invoked through MCP, `kb_validate_upsert` also attaches to Prolog and validates live relationship endpoint types before mutation. Invalid tuples such as `verified_by fact -> test` are rejected in preflight with the same relationship guidance `kb_upsert` would return.
 

@@ -136,6 +136,10 @@ const MCP_ITEM_TYPES = new Set([
  * Brokered MCP tool calls are the sanctioned interface: their arguments and
  * results legitimately contain `.kb`-relative plan/journal paths. Filesystem
  * trust-plane scans only apply to shell/file-tool surfaces.
+ *
+ * Codex emits the same nested item on `item.started`, `item.updated`, and
+ * `item.completed`. Scoring only `item.completed` falsely flags mutation-phase
+ * `kb_upsert` / `kb_apply_plan` arguments as direct `.kb` access.
  */
 function mcpItemType(value: unknown): string | null {
   if (typeof value !== "object" || value === null) return null;
@@ -143,15 +147,24 @@ function mcpItemType(value: unknown): string | null {
   return typeof itemType === "string" ? itemType : null;
 }
 
+function nestedCodexItem(event: Readonly<Record<string, unknown>>): unknown {
+  if (event.item !== undefined) return event.item;
+  if (typeof event.payload !== "object" || event.payload === null) {
+    return undefined;
+  }
+  return (event.payload as Record<string, unknown>).item;
+}
+
 function isMcpToolCallItem(event: Readonly<Record<string, unknown>>): boolean {
   if (MCP_ITEM_TYPES.has(String(event.type ?? ""))) return true;
-  if (event.type !== "item.completed") return false;
-  // Raw stream items nest under `item`; normalized evidence nests under
-  // `payload.item`. Check both so pre-normalization scans are covered.
-  const candidates = [event.item, event.payload].map(mcpItemType);
-  return candidates.some(
-    (itemType) => itemType !== null && MCP_ITEM_TYPES.has(itemType),
-  );
+  if (typeof event.type !== "string" || !event.type.startsWith("item.")) {
+    return false;
+  }
+  const candidates = [event.item, event.payload, nestedCodexItem(event)];
+  return candidates.some((value) => {
+    const itemType = mcpItemType(value);
+    return itemType !== null && MCP_ITEM_TYPES.has(itemType);
+  });
 }
 
 function eventViolations(

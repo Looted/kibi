@@ -1,6 +1,6 @@
 ---
 id: REQ-kibi-verification-receipts-v2
-title: Proof-bearing E2E tests use current-contract verification receipts v2
+title: Proof-bearing E2E tests use current-contract proof receipts v2
 status: open
 created_at: 2026-08-14T00:00:00Z
 updated_at: 2026-08-14T00:00:00Z
@@ -8,34 +8,43 @@ source: documentation/requirements/REQ-kibi-verification-receipts-v2.md
 priority: must
 tags: [requirements, proof, verification, receipts, e2e, v2, append-only]
 logic_claims:
-  - CLAIM-446FFD09299A4CDF
-  - CLAIM-FF40133A7F6EE7ED
-  - CLAIM-EADB4467F0180C64
-  - CLAIM-B9954611D3BBD536
+  - CLAIM-A6734C6CCC68461C
+  - CLAIM-1B5C90C8255DC923
+  - CLAIM-8B06994E3CF38F57
+  - CLAIM-7759B4F299814C2C
+semantic_text: Proof-bearing tests must use kibi.proof-receipt.v1 evidence produced by kibi prove. Each proof receipt must bind exact integration command argv, the current proof contract hash, the effective execution fingerprint, complete required proof obligations, the live code snapshot, run-level outcome, timestamps, and artifact digest. Proof receipt history remains append-only with deterministic idempotent receipt identity. Only a current proof receipt matching the live snapshot, contract hash, and execution fingerprint may prove the test.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: 60bad4fdaf88babd8719bb6da3145e5fc565b91b3ba6fa771a64ae914f88295c
+semantic_source_hash: 06b7cacf07513fccbafb1079830006b16c719ea7be456f4bc733c2975f0dbb10
 semantic_inventory:
-  - claim_key: CLAIM-446FFD09299A4CDF
-    claim_text: Proof-bearing end-to-end tests must use kibi.verification-receipt.v2 evidence produced by kibi verify
+  - claim_key: CLAIM-A6734C6CCC68461C
+    claim_text: Proof-bearing tests must use kibi.proof-receipt.v1 evidence produced by kibi prove
     role: normative
     status: ontology_gap
-    span: {start: 0, end: 101}
-  - claim_key: CLAIM-FF40133A7F6EE7ED
-    claim_text: Each v2 receipt must bind exact command argv, the current verification contract hash, unique required case results, valid retry counts and durations, the live code snapshot, outcome, timestamps, and artifact digest
+    span:
+      start: 0
+      end: 82
+  - claim_key: CLAIM-1B5C90C8255DC923
+    claim_text: Each proof receipt must bind exact integration command argv, the current proof contract hash, the effective execution fingerprint, complete required proof obligations, the live code snapshot, run-level outcome, timestamps, and artifact digest
     role: normative
     status: ontology_gap
-    span: {start: 103, end: 317}
-  - claim_key: CLAIM-EADB4467F0180C64
-    claim_text: Receipt history remains append-only, and older v1 entries remain readable historical compatibility data
+    span:
+      start: 84
+      end: 326
+  - claim_key: CLAIM-8B06994E3CF38F57
+    claim_text: Proof receipt history remains append-only with deterministic idempotent receipt identity
     role: descriptive
     status: ontology_gap
-    span: {start: 319, end: 422}
-  - claim_key: CLAIM-B9954611D3BBD536
-    claim_text: Only a current-contract receipt matching the live snapshot may prove the test
+    span:
+      start: 328
+      end: 416
+  - claim_key: CLAIM-7759B4F299814C2C
+    claim_text: Only a current proof receipt matching the live snapshot, contract hash, and execution fingerprint may prove the test
     role: normative
     status: ontology_gap
-    span: {start: 424, end: 501}
+    span:
+      start: 418
+      end: 534
 links:
   - type: specified_by
     target: SCEN-kibi-verification-receipts-v2
@@ -43,4 +52,4 @@ links:
     target: TEST-kibi-verification-receipts-v2
 ---
 
-Proof-bearing end-to-end tests must use kibi.verification-receipt.v2 evidence produced by kibi verify. Each v2 receipt must bind exact command argv, the current verification contract hash, unique required case results, valid retry counts and durations, the live code snapshot, outcome, timestamps, and artifact digest. Receipt history remains append-only, and older v1 entries remain readable historical compatibility data. Only a current-contract receipt matching the live snapshot may prove the test.
+Proof-bearing tests must use kibi.proof-receipt.v1 evidence produced by kibi prove. Each proof receipt must bind exact integration command argv, the current proof contract hash, the effective execution fingerprint, complete required proof obligations, the live code snapshot, run-level outcome, timestamps, and artifact digest. Proof receipt history remains append-only with deterministic idempotent receipt identity. Only a current proof receipt matching the live snapshot, contract hash, and execution fingerprint may prove the test.

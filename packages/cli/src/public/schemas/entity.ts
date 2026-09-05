@@ -16,12 +16,13 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import {
+  PROOF_BINDINGS_SCHEMA,
+  PROOF_CONTRACT_SCHEMA,
+} from "../proof-protocol.js";
+import { PROOF_RECEIPT_SCHEMA } from "../proof-receipt.js";
 // Typed fact field enums per proposal
 import { SYMBOL_ROLES, type SymbolRole } from "../symbol-granularity.js";
-import {
-  VERIFICATION_CONTRACT_SCHEMA,
-  VERIFICATION_RECEIPT_SCHEMA,
-} from "../verification-receipt.js";
 
 type FactKind =
   | "subject"
@@ -457,10 +458,11 @@ const entitySchema: Record<string, unknown> = {
       type: "string",
       enum: ["internal", "consumer"] satisfies VerificationPerspective[],
     },
-    verification_contract: VERIFICATION_CONTRACT_SCHEMA,
-    verification_receipts: {
+    proof_contract: PROOF_CONTRACT_SCHEMA,
+    proof_bindings: PROOF_BINDINGS_SCHEMA,
+    proof_receipts: {
       type: "array",
-      items: VERIFICATION_RECEIPT_SCHEMA,
+      items: PROOF_RECEIPT_SCHEMA,
     },
     type: {
       type: "string",
@@ -601,14 +603,15 @@ const entitySchema: Record<string, unknown> = {
           anyOf: [
             { required: ["verification_scope"] },
             { required: ["verification_perspective"] },
-            { required: ["verification_contract"] },
-            { required: ["verification_receipts"] },
+            { required: ["proof_contract"] },
+            { required: ["proof_bindings"] },
+            { required: ["proof_receipts"] },
           ],
         },
       },
     },
     {
-      if: { required: ["verification_receipts"] },
+      if: { required: ["proof_receipts"] },
       // biome-ignore lint/suspicious/noThenProperty: JSON Schema conditional keyword.
       then: { required: ["verification_scope"] },
     },

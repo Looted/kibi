@@ -73,15 +73,27 @@ describe("buildProgram", () => {
     ).toBe(true);
   });
 
-  test("registers CLI-only verify orchestration with explicit argv", () => {
+  test("registers CLI-only prove orchestration with selectors", () => {
     const program = buildProgram();
-    const verify = program.commands.find(
-      (command) => command.name() === "verify",
+    const prove = program.commands.find(
+      (command) => command.name() === "prove",
     );
 
-    expect(verify).toBeDefined();
-    expect(verify?.options.some((option) => option.long === "--test-id")).toBe(
+    expect(prove).toBeDefined();
+    expect(prove?.options.some((option) => option.long === "--test")).toBe(
       true,
     );
+    expect(
+      prove?.options.some((option) => option.long === "--requirement"),
+    ).toBe(true);
+    expect(
+      prove?.options.some((option) => option.long === "--integration"),
+    ).toBe(true);
+    expect(prove?.options.some((option) => option.long === "--all")).toBe(true);
+
+    const proof = program.commands.find(
+      (command) => command.name() === "proof",
+    );
+    expect(proof).toBeDefined();
   });
 });

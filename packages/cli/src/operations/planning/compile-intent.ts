@@ -570,13 +570,13 @@ export async function executeCompileIntent(
   const status = statusResult.structuredContent;
   if (!status)
     throw new Error("Compile intent failed: status query returned no payload");
-  const snapshotEvidence = status?.verificationSnapshot;
+  const snapshotEvidence = status?.proofSnapshot;
   const workspaceSnapshot: WorkspaceSnapshot = snapshotEvidence
     ? {
         version: "kibi.workspace-snapshot.v2",
         hash: snapshotEvidence,
-        dirty: status?.verificationSnapshotDirty ?? false,
-        fileCount: status?.verificationSnapshotFileCount ?? 0,
+        dirty: status?.proofSnapshotDirty ?? false,
+        fileCount: status?.proofSnapshotFileCount ?? 0,
       }
     : {
         version: "kibi.workspace-snapshot.v2",

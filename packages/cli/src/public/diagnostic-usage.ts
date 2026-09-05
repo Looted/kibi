@@ -85,12 +85,12 @@ function appendSemanticFields(
 }
 
 const RECEIPT_GAP_CODES = new Set([
-  "missing_verification_receipt",
-  "stale_verification_receipt",
-  "failed_verification_receipt",
-  "invalid_verification_receipt",
-  "verification_contract_mismatch",
-  "verification_snapshot_unavailable",
+  "missing_proof_receipt",
+  "stale_proof_receipt",
+  "failed_proof_receipt",
+  "invalid_proof_receipt",
+  "proof_contract_mismatch",
+  "proof_snapshot_unavailable",
 ]);
 
 const MAX_COVERAGE_RECEIPT_GAPS = 50;

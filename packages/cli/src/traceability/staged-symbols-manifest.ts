@@ -100,9 +100,13 @@ function resolveRelativeManifestPaths(
 
 function readHeadFileContent(filePath: string): string | null {
   try {
+    // The manifest can exceed execSync's 1 MiB default maxBuffer; without the
+    // raised limit the read fails with ENOBUFS and is silently treated as
+    // missing, which permanently reports the coordinates manifest as stale.
     return execSync(`git show HEAD:${filePath}`, {
       encoding: "utf8",
       stdio: ["pipe", "pipe", "pipe"],
+      maxBuffer: 64 * 1024 * 1024,
     });
   } catch {
     return null;

@@ -88,8 +88,9 @@ entity_property(symbol, sourceEndColumn, integer).
 % Typed test verification fields - only valid for test entities
 entity_property(test, verification_scope, atom).
 entity_property(test, verification_perspective, atom).
-entity_property(test, verification_contract, list_or_json).
-entity_property(test, verification_receipts, string).
+entity_property(test, proof_contract, list_or_json).
+entity_property(test, proof_bindings, string).
+entity_property(test, proof_receipts, string).
 
 % Required properties for all entity types
 required_property(Type, id) :- entity_type(Type).
@@ -115,8 +116,9 @@ optional_property(req, semantic_source_hash).
 optional_property(req, semantic_inventory).
 optional_property(test, verification_scope).
 optional_property(test, verification_perspective).
-optional_property(test, verification_contract).
-optional_property(test, verification_receipts).
+optional_property(test, proof_contract).
+optional_property(test, proof_bindings).
+optional_property(test, proof_receipts).
 
 % Documentation helpers
 % list all entity types

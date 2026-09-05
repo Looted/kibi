@@ -1,0 +1,393 @@
+[
+  {
+    "test_id": "TEST-kibi-source-relationship-parity",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/source-relationship-parity.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-branch-store-recovery",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/branch-store-recovery.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-006",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/hook-integration.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-conservative-requirement-proof",
+    "steps": [
+      [
+        "swipl",
+        "-q",
+        "-g",
+        "load_test_files([]),run_tests,halt",
+        "-t",
+        "halt",
+        "packages/core/tests/kb.plt"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./packages/cli/tests/commands/coverage.test.ts",
+        "./packages/cli/tests/commands/status.test.ts",
+        "./packages/cli/tests/operations/discovery.test.ts",
+        "./packages/cli/tests/operations/reporting.test.ts",
+        "./packages/mcp/tests/tools/coverage.test.ts",
+        "./packages/mcp/tests/tools/status.test.ts",
+        "./packages/mcp/tests/server/tools.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-dependency-ordered-repair-plan",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/dependency-ordered-repair-plan.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-distribution-parity-matrix",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/distribution-parity-matrix.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-fresh-verification-receipts",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/fresh-verification-receipts.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-html-health-report",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cli-workflows.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-branded-health-report",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cli-workflows.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-entity-relationship-schema-roundtrip",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/schema-relationship-roundtrip.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-ontology-convergence-witnesses",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/ontology-convergence-witnesses.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-proposition-complete-ingestion",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/proposition-complete-ingestion.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-telemetry-acceptance-gate",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/telemetry-acceptance-gate.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-telemetry-remediation-evidence",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/telemetry-remediation-evidence.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-verification-evidence-contract",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/fresh-verification-receipts.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-test-journaled-engine-harness",
+    "steps": [
+      ["node", "--test", "scripts/tests/run-packed-e2e.test.mjs"],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./scripts/tests/proof-workflow-contract.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--cwd",
+        "documentation/tests/e2e/packed",
+        "shared-cache-resolution.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./test/root.test.ts",
+        "./packages/cli/tests/engine.test.ts",
+        "./scripts/tests/run-owned-engine-tests.test.ts"
+      ],
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cli-workflows.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-core-journaled-engine-persistence",
+    "steps": [
+      [
+        "node",
+        "scripts/run-owned-engine-tests.mjs",
+        "--",
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./packages/cli/tests/engine.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-core-journaled-engine-lifecycle",
+    "steps": [
+      [
+        "node",
+        "scripts/run-owned-engine-tests.mjs",
+        "--",
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./packages/cli/tests/engine.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-core-journaled-engine-delta-sync",
+    "steps": [
+      [
+        "node",
+        "scripts/run-owned-engine-tests.mjs",
+        "--",
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./packages/cli/tests/commands/sync.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-change-to-proof-evaluation",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./scripts/tests/change-to-proof-eval.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-change-to-proof-plan-compiler",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/mcp-cli-operation-parity.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-intent-aware-source-discovery",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/discovery-bundle.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-github-report-e2e",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/github-report-integration.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cursor-consumer-local-mcp-launcher-v1",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cursor-plugin-launcher.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-codex-consumer-local-mcp-registration-v1",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/codex-plugin.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-predicate-suggestion-relevance-v1",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/predicate-suggestion-relevance.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-kibi-consumer-local-plugin-launcher-ontology-v1",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/predicate-suggestion-relevance.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-runtime-packed-engine-daemon",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/runtime-engine-daemon.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-013",
+    "steps": [
+      [
+        "swipl",
+        "-q",
+        "-g",
+        "load_test_files([]),run_tests(checks_coverage_gaps),halt",
+        "-t",
+        "halt",
+        "packages/core/tests/kb.plt"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-cli-doctor-workflows",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cli-workflows.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-opencode-bootstrap-paths",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/opencode-bootstrap-paths.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-004",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/cli-workflows.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./packages/cli/tests/commands/check.test.ts",
+        "./packages/cli/tests/public/operations/check-helpers.test.ts",
+        "./packages/cli/tests/commands/check-impact-contract.test.ts"
+      ]
+    ]
+  }
+]

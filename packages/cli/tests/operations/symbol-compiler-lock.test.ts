@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { spawnSync } from "node:child_process";
 import * as fs from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -47,6 +48,18 @@ function lockRecord(token: string, acquiredAt = 0): string {
   return `${JSON.stringify({ pid: process.pid, token, acquiredAt })}\n`;
 }
 
+function deadPid(): number {
+  const probe = spawnSync("true");
+  const pid = probe.pid;
+  if (typeof pid !== "number")
+    throw new Error("liveness probe failed to start");
+  return pid;
+}
+
+function lockRecordForPid(pid: number, token: string, acquiredAt = 0): string {
+  return `${JSON.stringify({ pid, token, acquiredAt })}\n`;
+}
+
 function advancingClock(timeoutMs = 25): {
   timeoutMs: number;
   now: () => number;
@@ -84,7 +97,48 @@ function fileSystemError(code: string, message: string): NodeJS.ErrnoException {
 }
 
 describe("symbol compiler lock", () => {
-  test("does not steal the lock while owner metadata is initializing", async () => {
+  test("steals a directory lock whose recorded holder pid is dead", async () => {
+    const { workspace, lockPath, ownerPath } = emptyWorkspace();
+    fs.mkdirSync(lockPath);
+    fs.writeFileSync(
+      ownerPath,
+      lockRecordForPid(deadPid(), "dead-holder", 100),
+      "utf8",
+    );
+
+    const handle = await acquireSymbolCompilerLock(workspace, advancingClock());
+    try {
+      expect(JSON.parse(fs.readFileSync(ownerPath, "utf8"))).toMatchObject({
+        pid: process.pid,
+      });
+    } finally {
+      handle.release();
+    }
+    expect(fs.existsSync(lockPath)).toBe(false);
+  });
+
+  test("steals a legacy file lock whose recorded holder pid is dead", async () => {
+    const { workspace, lockPath } = workspaceWithLegacyLock(
+      lockRecordForPid(deadPid(), "legacy-dead", 100),
+    );
+
+    const handle = await acquireSymbolCompilerLock(workspace, advancingClock());
+    handle.release();
+    expect(fs.existsSync(lockPath)).toBe(false);
+  });
+
+  test("keeps refusing while the recorded holder pid is alive", async () => {
+    const { workspace, lockPath } = workspaceWithLegacyLock(
+      lockRecordForPid(process.pid, "live-holder", 100),
+    );
+
+    await expect(
+      acquireSymbolCompilerLock(workspace, advancingClock()),
+    ).rejects.toThrow("legacy lock held by pid");
+    expect(fs.existsSync(lockPath)).toBe(true);
+  });
+
+  test("never steals while owner metadata is initializing", async () => {
     const { workspace, lockPath, ownerPath } = emptyWorkspace();
     let contender: ReturnType<typeof acquireSymbolCompilerLock> | undefined;
     const dependencies = fileSystem({

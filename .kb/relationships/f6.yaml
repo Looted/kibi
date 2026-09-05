@@ -97,3 +97,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0170141c1b29
+  - type: constrains
+    from: REQ-cli-check
+    to: FACT-SUBJECT-KIBI-CHECK
+    created_at: 2026-08-29T11:38:08.520Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d92286382713
+  - type: requires_property
+    from: REQ-cli-check
+    to: FACT-PROP-CHECK-RULES-ENFORCED
+    created_at: 2026-08-29T11:38:08.524Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93c23ebdb6f0
+  - type: requires_property
+    from: REQ-cli-check
+    to: FACT-PROP-CHECK-RULE-SELECTION
+    created_at: 2026-08-29T11:38:08.526Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-288050ab69fc
+  - type: requires_property
+    from: REQ-cli-check
+    to: FACT-PROP-CHECK-FAILURE-EXIT-CODE
+    created_at: 2026-08-29T11:38:08.530Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d80bff8a6210

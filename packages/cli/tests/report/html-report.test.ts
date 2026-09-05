@@ -96,8 +96,8 @@ function coverageFixture(): {
       },
       meta: {
         branch: "main",
-        verificationSnapshot: "1234567890abcdef",
-        verificationSnapshotDirty: false,
+        proofSnapshot: "1234567890abcdef",
+        proofSnapshotDirty: false,
         dirty: false,
       },
       rows: [

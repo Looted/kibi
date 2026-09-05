@@ -169,7 +169,7 @@ function workflowFinalStateReceipt(): string {
     structuredContent: {
       syncState: "fresh",
       dirty: false,
-      verificationSnapshotDirty: false,
+      proofSnapshotDirty: false,
       branchAttachment: {
         gitBranch: "main",
         kbBranch: "main",
@@ -712,8 +712,8 @@ describe("pre-approval interim outcome scoring", () => {
           syncState: "fresh",
           snapshotId: "generation-1:0",
           staleReasons: [],
-          verificationSnapshotAvailable: true,
-          verificationSnapshotDirty: false,
+          proofSnapshotAvailable: true,
+          proofSnapshotDirty: false,
         },
       },
     };

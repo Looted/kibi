@@ -3,11 +3,16 @@ id: TEST-skillopt-codex-optimization
 title: Codex SkillOpt contract rejects stale hosts and gates
 type: test
 status: passing
-created_at: 2026-07-21T00:00:00Z
-updated_at: 2026-08-09T00:00:00Z
+created_at: 2026-07-21T00:00:00.000Z
+updated_at: 2026-08-09T00:00:00.000Z
 source: scripts/skillopt-eval/tests/methodology-contract.test.ts
 priority: must
-tags: [skillopt, codex, evaluation, integration, security]
+tags:
+  - skillopt
+  - codex
+  - evaluation
+  - integration
+  - security
 verification_scope: integration
 verification_perspective: internal
 links:

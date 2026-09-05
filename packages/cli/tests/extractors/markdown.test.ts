@@ -1005,25 +1005,29 @@ canonical_key: user.session.timeout_minutes.eq.30
       }
     });
 
-    test("extracts valid test verification fields", () => {
-      const tempFile = "/tmp/tests/test-verification-fields.md";
+    test("extracts valid test proof contract fields", () => {
+      const tempFile = "/tmp/tests/test-proof-contract-fields.md";
       mkdirSync("/tmp/tests", { recursive: true });
       writeFileSync(
         tempFile,
         `---
-title: Verification Field Test
+title: Proof Contract Field Test
 type: test
 verification_scope: integration
 verification_perspective: consumer
-verification_contract:
-  version: kibi.verification-contract.v1
-  runner: pnpm
-  command_argv: [pnpm, run, e2e, --, e2e/verification.spec.ts]
-  required_case_symbols: [SYM-VERIFICATION-CASE]
-  required_projects: [chromium]
-  success_policy: all_required_cases_first_attempt
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-PROOF-CASE
+      target: default
+  success_policy: all_required_first_attempt
+proof_bindings:
+  - symbol_id: SYM-PROOF-CASE
+    target: default
+    native_id: tests/e2e/proof.spec.ts::proof case
 ---
-# Verification Field Test
+# Proof Contract Field Test
 `,
       );
 
@@ -1031,11 +1035,11 @@ verification_contract:
         const result = extractFromMarkdown(tempFile);
         expect(result.entity.verification_scope).toBe("integration");
         expect(result.entity.verification_perspective).toBe("consumer");
-        expect(result.entity.verification_contract).toMatchObject({
-          version: "kibi.verification-contract.v1",
-          runner: "pnpm",
-          required_case_symbols: ["SYM-VERIFICATION-CASE"],
+        expect(result.entity.proof_contract).toMatchObject({
+          version: "kibi.proof-contract.v1",
+          integration: "self-proof",
         });
+        expect(result.entity.proof_bindings).toHaveLength(1);
       } finally {
         unlinkSync(tempFile);
       }
@@ -1051,12 +1055,10 @@ id: TEST-RECEIPT
 title: Receipt-backed Test
 type: test
 verification_scope: end_to_end
-verification_receipts:
-  - version: kibi.verification-receipt.v1
-    receipt_id: VR-EXTRACTOR-0001
+proof_receipts:
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-EXTRACTOR-000001
     test_id: TEST-RECEIPT
-    runner: bun
-    command: bun test ./tests/e2e/receipt.test.ts
     scope: end_to_end
     outcome: passed
     code_snapshot: ${"a".repeat(64)}
@@ -1064,6 +1066,26 @@ verification_receipts:
     started_at: 2026-08-10T11:55:00.000Z
     finished_at: 2026-08-10T12:00:00.000Z
     artifact_digest: ${"c".repeat(64)}
+    contract_hash: ${"d".repeat(64)}
+    fingerprint: ${"e".repeat(64)}
+    fingerprint_components:
+      contract: ${"1a".repeat(32)}
+      integration: ${"2a".repeat(32)}
+      command: ${"3a".repeat(32)}
+      bindings: ${"4a".repeat(32)}
+      producer: ${"5a".repeat(32)}
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv: [node, scripts/proof.mjs]
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-RECEIPT-CASE
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 # Receipt-backed Test
 `,
@@ -1071,10 +1093,10 @@ verification_receipts:
 
       try {
         const result = extractFromMarkdown(tempFile);
-        expect(result.entity.verification_receipts).toHaveLength(1);
-        expect(result.entity.verification_receipts?.[0]).toMatchObject({
-          version: "kibi.verification-receipt.v1",
-          receipt_id: "VR-EXTRACTOR-0001",
+        expect(result.entity.proof_receipts).toHaveLength(1);
+        expect(result.entity.proof_receipts?.[0]).toMatchObject({
+          version: "kibi.proof-receipt.v1",
+          receipt_id: "PR-EXTRACTOR-000001",
           test_id: "TEST-RECEIPT",
           scope: "end_to_end",
           outcome: "passed",
@@ -1094,12 +1116,10 @@ id: TEST-RECEIPT-MISMATCH
 title: Mismatched Receipt
 type: test
 verification_scope: end_to_end
-verification_receipts:
-  - version: kibi.verification-receipt.v1
-    receipt_id: VR-EXTRACTOR-0002
+proof_receipts:
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-EXTRACTOR-000002
     test_id: TEST-SOMEONE-ELSE
-    runner: bun
-    command: bun test ./tests/e2e/receipt.test.ts
     scope: end_to_end
     outcome: passed
     code_snapshot: ${"a".repeat(64)}
@@ -1107,6 +1127,26 @@ verification_receipts:
     started_at: 2026-08-10T11:55:00.000Z
     finished_at: 2026-08-10T12:00:00.000Z
     artifact_digest: ${"c".repeat(64)}
+    contract_hash: ${"d".repeat(64)}
+    fingerprint: ${"e".repeat(64)}
+    fingerprint_components:
+      contract: ${"1a".repeat(32)}
+      integration: ${"2a".repeat(32)}
+      command: ${"3a".repeat(32)}
+      bindings: ${"4a".repeat(32)}
+      producer: ${"5a".repeat(32)}
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv: [node, scripts/proof.mjs]
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-RECEIPT-CASE
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 # Mismatched Receipt
 `,

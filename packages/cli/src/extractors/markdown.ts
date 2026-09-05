@@ -22,11 +22,15 @@ import Ajv from "ajv";
 import { load as yamlLoad } from "js-yaml";
 import { semanticClaimKey } from "../operations/semantic-advisor/clauses.js";
 import {
-  VERIFICATION_CONTRACT_SCHEMA,
-  type VerificationContract,
-  type VerificationReceipt,
-  verificationReceiptHistoryErrors,
-} from "../public/verification-receipt.js";
+  PROOF_BINDINGS_SCHEMA,
+  PROOF_CONTRACT_SCHEMA,
+  type ProofBinding,
+  type ProofContract,
+} from "../public/proof-protocol.js";
+import {
+  type ProofReceipt,
+  proofReceiptHistoryErrors,
+} from "../public/proof-receipt.js";
 import entitySchema from "../schemas/entity.schema.json" with { type: "json" };
 
 // Typed fact field constants for extraction
@@ -80,8 +84,9 @@ const FACT_ONLY_FIELDS = [
 const TEST_ENUM_FIELDS = [
   "verification_scope",
   "verification_perspective",
-  "verification_contract",
-  "verification_receipts",
+  "proof_contract",
+  "proof_bindings",
+  "proof_receipts",
 ] as const;
 
 const ajv = new Ajv({ strict: false, allErrors: true });
@@ -115,8 +120,9 @@ export interface ExtractedEntity {
   sourceEndColumn?: number;
   verification_scope?: "unit" | "integration" | "end_to_end";
   verification_perspective?: "internal" | "consumer";
-  verification_contract?: VerificationContract;
-  verification_receipts?: readonly VerificationReceipt[];
+  proof_contract?: ProofContract;
+  proof_bindings?: readonly ProofBinding[];
+  proof_receipts?: readonly ProofReceipt[];
   // Typed fact fields - only present when type === 'fact'
   fact_kind?:
     | "subject"
@@ -722,44 +728,68 @@ function extractFromMarkdownContent(
         entity.verification_perspective = data.verification_perspective;
       }
 
-      if (data.verification_contract !== undefined) {
-        if (!isObjectRecord(data.verification_contract)) {
+      if (data.proof_contract !== undefined) {
+        if (!isObjectRecord(data.proof_contract)) {
           throw new FrontmatterError(
-            "Invalid verification_contract; expected an object",
+            "Invalid proof_contract; expected an object",
             filePath,
             {
-              classification: "Invalid Test Verification Contract",
-              hint: "Use the kibi.verification-contract.v1 object shape.",
+              classification: "Invalid Test Proof Contract",
+              hint: "Use the kibi.proof-contract.v1 object shape.",
             },
           );
         }
-        const validateContract = ajv.compile(VERIFICATION_CONTRACT_SCHEMA);
-        if (!validateContract(data.verification_contract)) {
+        const validateContract = ajv.compile(PROOF_CONTRACT_SCHEMA);
+        if (!validateContract(data.proof_contract)) {
           throw new FrontmatterError(
-            `Invalid verification_contract: ${ajv.errorsText(validateContract.errors)}`,
+            `Invalid proof_contract: ${ajv.errorsText(validateContract.errors)}`,
             filePath,
             {
-              classification: "Invalid Test Verification Contract",
-              hint: "Use the kibi.verification-contract.v1 object shape.",
+              classification: "Invalid Test Proof Contract",
+              hint: "Use the kibi.proof-contract.v1 object shape with explicit required_proofs obligations.",
             },
           );
         }
-        entity.verification_contract =
-          data.verification_contract as VerificationContract;
+        entity.proof_contract = data.proof_contract as ProofContract;
       }
 
-      if (data.verification_receipts !== undefined) {
-        if (!Array.isArray(data.verification_receipts)) {
+      if (data.proof_bindings !== undefined) {
+        if (!Array.isArray(data.proof_bindings)) {
           throw new FrontmatterError(
-            "Invalid verification_receipts; expected an array",
+            "Invalid proof_bindings; expected an array",
             filePath,
             {
-              classification: "Invalid Test Verification Receipts",
-              hint: "Use kibi verify to append kibi.verification-receipt.v2 objects; older v1 entries remain historical compatibility data.",
+              classification: "Invalid Test Proof Bindings",
+              hint: "Each binding requires symbol_id and target; native_id, aliases, source_file, and line are optional.",
             },
           );
         }
-        const normalizedReceipts = data.verification_receipts.map((value) => {
+        const validateBindings = ajv.compile(PROOF_BINDINGS_SCHEMA);
+        if (!validateBindings(data.proof_bindings)) {
+          throw new FrontmatterError(
+            `Invalid proof_bindings: ${ajv.errorsText(validateBindings.errors)}`,
+            filePath,
+            {
+              classification: "Invalid Test Proof Bindings",
+              hint: "Each binding requires symbol_id and target; native_id, aliases, source_file, and line are optional.",
+            },
+          );
+        }
+        entity.proof_bindings = data.proof_bindings as ProofBinding[];
+      }
+
+      if (data.proof_receipts !== undefined) {
+        if (!Array.isArray(data.proof_receipts)) {
+          throw new FrontmatterError(
+            "Invalid proof_receipts; expected an array",
+            filePath,
+            {
+              classification: "Invalid Test Proof Receipts",
+              hint: "Use kibi prove to append kibi.proof-receipt.v1 objects; receipts are engine-derived, never hand-authored.",
+            },
+          );
+        }
+        const normalizedReceipts = data.proof_receipts.map((value) => {
           if (
             typeof value !== "object" ||
             value === null ||
@@ -777,8 +807,8 @@ function extractFromMarkdownContent(
               : {}),
           };
         });
-        entity.verification_receipts = normalizedReceipts;
-        const errors = verificationReceiptHistoryErrors(
+        entity.proof_receipts = normalizedReceipts;
+        const errors = proofReceiptHistoryErrors(
           entity.id,
           entity.verification_scope,
           normalizedReceipts.filter(
@@ -790,7 +820,7 @@ function extractFromMarkdownContent(
         );
         if (errors.length > 0) {
           throw new FrontmatterError(errors.join("; "), filePath, {
-            classification: "Invalid Test Verification Receipts",
+            classification: "Invalid Test Proof Receipts",
             hint: "Bind every receipt to this test and its typed verification_scope, with unique IDs and ordered ISO-8601 timestamps.",
           });
         }

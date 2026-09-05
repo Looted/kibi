@@ -61,6 +61,22 @@ interface CliResult {
 interface CliRetryOptions {
   readonly retryOnInteractivePrologTimeout?: boolean;
   readonly retryDelayMs?: number;
+  readonly maxAttempts?: number;
+}
+
+const DEFAULT_IMPORT_RETRY_DELAY_MS = 2_000;
+const DEFAULT_IMPORT_RETRY_ATTEMPTS = 3;
+
+// implements REQ-skillopt-codex-optimization
+// covered_by TEST-skillopt-codex-optimization
+export function fixtureCliEnv(workspaceTarget: string): NodeJS.ProcessEnv {
+  return {
+    ...process.env,
+    KIBI_BRANCH: FIXTURE_BRANCH,
+    KIBI_WORKSPACE: workspaceTarget,
+    KIBI_PROJECT_ROOT: workspaceTarget,
+    KIBI_ROOT: workspaceTarget,
+  };
 }
 
 const INTERACTIVE_PROLOG_ENTITY_TIMEOUT =
@@ -80,19 +96,23 @@ export async function runCliWithRetry(
   label: string,
   options: CliRetryOptions = {},
 ): Promise<string> {
+  const maxAttempts =
+    options.retryOnInteractivePrologTimeout === true
+      ? (options.maxAttempts ?? DEFAULT_IMPORT_RETRY_ATTEMPTS)
+      : 1;
   let result = await command();
   let attempts = 1;
-  if (
-    options.retryOnInteractivePrologTimeout === true &&
+  while (
     !result.ok &&
+    attempts < maxAttempts &&
     isInteractivePrologEntityTimeout(result)
   ) {
-    await Bun.sleep(options.retryDelayMs ?? 100);
+    await Bun.sleep(options.retryDelayMs ?? DEFAULT_IMPORT_RETRY_DELAY_MS);
     result = await command();
-    attempts = 2;
+    attempts += 1;
   }
   if (!result.ok) {
-    const attemptSuffix = attempts === 2 ? " after 2 attempts" : "";
+    const attemptSuffix = attempts > 1 ? ` after ${attempts} attempts` : "";
     throw new FixtureSetupError(
       `${label} failed${attemptSuffix}: ${result.stderr.slice(0, 500) || result.stdout.slice(0, 200)}`,
     );
@@ -106,11 +126,12 @@ async function runStagedCli(
   args: readonly string[],
   stdin?: string,
 ): Promise<CliResult> {
+  await stopFixtureEngine(workspaceTarget);
   const child = Bun.spawn(
     [process.execPath, join(cliRoot, "dist", "cli.js"), ...args],
     {
       cwd: workspaceTarget,
-      env: { ...process.env, KIBI_BRANCH: FIXTURE_BRANCH },
+      env: fixtureCliEnv(workspaceTarget),
       ...(stdin === undefined ? {} : { stdin: new Blob([stdin]) }),
       stdout: "pipe",
       stderr: "pipe",

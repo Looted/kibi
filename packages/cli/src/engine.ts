@@ -38,7 +38,10 @@ import type {
   PrologSearchQueryResult,
 } from "./public/operations/runtime-types.js";
 import { isValidBranchName } from "./utils/branch-resolver.js";
-import { ensureBranchStoreManifest } from "./utils/branch-store-locator.js";
+import {
+  branchStorePath,
+  ensureBranchStoreManifest,
+} from "./utils/branch-store-locator.js";
 
 export const ENGINE_PROTOCOL_VERSION = 1;
 export const ENGINE_IDLE_TIMEOUT_MS = 10 * 60 * 1000;
@@ -48,6 +51,101 @@ const ENGINE_QUERY_CACHE_MAX_ENTRIES = 128;
 const ENGINE_QUERY_CACHE_MAX_RESULT_BYTES = 8 * 1024 * 1024;
 const ENGINE_FRESHNESS_CACHE_MS = 100;
 const ENGINE_PUBLICATION_LOCK_STALE_MS = 5_000;
+
+export type EngineAttachmentIdentity = Readonly<{
+  // implements REQ-core-journaled-engine-persistence
+  path: string;
+  generation: string;
+  dev: number;
+  ino: number;
+}>;
+
+export function readJournalGeneration(branchPath: string): string {
+  // implements REQ-core-journaled-engine-persistence
+  const currentPath = path.join(branchPath, "CURRENT");
+  if (!existsSync(currentPath)) return "";
+  return readFileSync(currentPath, "utf8").trim();
+}
+
+export function readEngineAttachmentIdentity(
+  branchPath: string,
+): EngineAttachmentIdentity | null {
+  // implements REQ-core-journaled-engine-persistence
+  if (!existsSync(branchPath)) return null;
+  const stats = statSync(branchPath);
+  let resolved = path.resolve(branchPath);
+  try {
+    resolved = realpathSync(branchPath);
+  } catch {
+    // The live path may be replaced between stat and realpath.
+  }
+  return {
+    path: resolved,
+    generation: readJournalGeneration(branchPath),
+    dev: stats.dev,
+    ino: stats.ino,
+  };
+}
+
+export function parseEngineAttachmentIdentity(
+  statusJson: string | undefined,
+): EngineAttachmentIdentity | null {
+  // implements REQ-core-journaled-engine-persistence
+  if (statusJson === undefined) return null;
+  try {
+    const decoded = JSON.parse(JSON.parse(statusJson)) as Record<
+      string,
+      unknown
+    >;
+    if (
+      typeof decoded.attachedPath !== "string" ||
+      typeof decoded.attachedGeneration !== "string" ||
+      typeof decoded.attachedDev !== "number" ||
+      typeof decoded.attachedIno !== "number"
+    ) {
+      return null;
+    }
+    return {
+      path: decoded.attachedPath,
+      generation: decoded.attachedGeneration,
+      dev: decoded.attachedDev,
+      ino: decoded.attachedIno,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function engineAttachmentsMatch(
+  expected: EngineAttachmentIdentity | null,
+  attached: EngineAttachmentIdentity | null,
+): boolean {
+  // implements REQ-core-journaled-engine-persistence
+  if (expected === null || attached === null) return false;
+  if (expected.path !== attached.path) return false;
+  if (expected.ino !== 0 && attached.ino !== 0) {
+    return expected.dev === attached.dev && expected.ino === attached.ino;
+  }
+  return (
+    expected.generation.length > 0 &&
+    expected.generation === attached.generation
+  );
+}
+
+export function formatEngineAttachmentMismatch(
+  operation: string,
+  expected: EngineAttachmentIdentity | null,
+  attached: EngineAttachmentIdentity | null,
+): string {
+  // implements REQ-core-journaled-engine-persistence
+  return [
+    `operation=${operation}`,
+    `branchStore=${expected?.path ?? "missing"}`,
+    `expectedGeneration=${expected?.generation || "missing"}`,
+    `attachedPath=${attached?.path ?? "missing"}`,
+    `attachedGeneration=${attached?.generation || "missing"}`,
+  ].join(" ");
+}
 
 function engineIdleTimeoutMs(): number {
   const configured = Number.parseInt(
@@ -751,6 +849,7 @@ export class EngineClient {
   private pending = new Map<number, PendingRequest>();
   private requestTail: Promise<void> = Promise.resolve();
   private lastResult: PrologQueryResult | null = null;
+  private replacingStaleDaemon = false;
 
   constructor(options: EngineClientOptions) {
     if (!isValidBranchName(options.branch)) {
@@ -768,6 +867,14 @@ export class EngineClient {
   }
 
   async start(allowSpawn = true): Promise<void> {
+    const wasConnected = this.socket !== null && !this.socket.destroyed;
+    await this.connect(allowSpawn);
+    if (!wasConnected && this.socket !== null) {
+      await this.reconcileAttachment();
+    }
+  }
+
+  private async connect(allowSpawn = true): Promise<void> {
     if (this.socket !== null && !this.socket.destroyed) return;
     const socketPath = engineSocketPath(this.workspaceRoot, this.branch);
     const publicationLockPath = enginePublicationLockPath(
@@ -1096,25 +1203,40 @@ export class EngineClient {
     return this.socket !== null && !this.socket.destroyed;
   }
 
-  getPid(): number {
-    const pidPath = enginePidPath(this.workspaceRoot, this.branch);
+  private async readAttachedIdentity(): Promise<EngineAttachmentIdentity | null> {
+    const status = await this.queryStatusJson();
+    if (!status.success) return null;
+    return parseEngineAttachmentIdentity(status.bindings.JsonString);
+  }
+
+  private async reconcileAttachment(): Promise<void> {
+    if (this.replacingStaleDaemon || this.socket === null) return;
+    const livePath = branchStorePath(this.workspaceRoot, this.branch);
+    const expected = readEngineAttachmentIdentity(livePath);
+    const attached = await this.readAttachedIdentity();
+    if (engineAttachmentsMatch(expected, attached)) return;
+    this.replacingStaleDaemon = true;
     try {
-      return Number.parseInt(readFileSync(pidPath, "utf8").trim(), 10) || 0;
-    } catch {
-      return 0;
+      await this.shutdownConnectedDaemon();
+      await this.connect(true);
+      const live = readEngineAttachmentIdentity(livePath);
+      const retried = await this.readAttachedIdentity();
+      if (!engineAttachmentsMatch(live, retried)) {
+        throw new Error(
+          `Kibi engine is attached to a stale branch generation: ${formatEngineAttachmentMismatch(
+            "attachment-handshake",
+            live,
+            retried,
+          )}`,
+        );
+      }
+    } finally {
+      this.replacingStaleDaemon = false;
     }
   }
 
-  async stop(startIfMissing = true): Promise<void> {
+  private async shutdownConnectedDaemon(): Promise<void> {
     const socketPath = engineSocketPath(this.workspaceRoot, this.branch);
-    if (!this.isRunning()) {
-      try {
-        await this.start(startIfMissing);
-      } catch {
-        if (!startIfMissing) return;
-        throw new Error("Unable to start Kibi engine for stop request");
-      }
-    }
     if (!this.isRunning()) {
       if (existsSync(socketPath)) {
         throw new Error(
@@ -1131,9 +1253,6 @@ export class EngineClient {
     }
     this.socket?.destroy();
     this.socket = null;
-    // The daemon acknowledges stop before its SWI child has flushed and the
-    // listening socket has closed. Do not let a following auto-start attach to
-    // that half-shutdown process.
     const deadline = Date.now() + 5_000;
     while (existsSync(socketPath) && Date.now() < deadline) {
       await new Promise((resolve) => setTimeout(resolve, 25));
@@ -1143,6 +1262,36 @@ export class EngineClient {
         requestError instanceof Error ? `: ${requestError.message}` : "";
       throw new Error(`Kibi engine did not stop within 5 seconds${detail}`);
     }
+  }
+
+  getPid(): number {
+    const pidPath = enginePidPath(this.workspaceRoot, this.branch);
+    try {
+      return Number.parseInt(readFileSync(pidPath, "utf8").trim(), 10) || 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  async stop(startIfMissing = true): Promise<void> {
+    const socketPath = engineSocketPath(this.workspaceRoot, this.branch);
+    if (!this.isRunning()) {
+      try {
+        await this.connect(startIfMissing);
+      } catch {
+        if (!startIfMissing) return;
+        throw new Error("Unable to start Kibi engine for stop request");
+      }
+    }
+    if (!this.isRunning()) {
+      if (existsSync(socketPath)) {
+        throw new Error(
+          `Kibi engine socket remains present but is not reachable: ${socketPath}`,
+        );
+      }
+      return;
+    }
+    await this.shutdownConnectedDaemon();
   }
 
   async terminate(): Promise<void> {
@@ -1409,15 +1558,19 @@ export async function runEngineDaemon(options: {
   );
   if (!attached.success)
     throw new Error(attached.error ?? "Failed to attach branch KB");
-  const statusModulePath = path.join(
-    path.dirname(resolveKbPlPath()),
-    "status.pl",
-  );
-  const statusLoaded = await prolog.query(
-    `use_module('${quoteProlog(statusModulePath.replaceAll("\\", "/"))}')`,
-  );
-  if (!statusLoaded.success) {
-    throw new Error(statusLoaded.error ?? "Failed to load Kibi status module");
+  const attachedIdentity = readEngineAttachmentIdentity(branchPath);
+  const coreModuleDir = path.dirname(resolveKbPlPath());
+  for (const [fileName, label] of [
+    ["status.pl", "status"],
+    ["discovery.pl", "discovery"],
+  ] as const) {
+    const modulePath = path.join(coreModuleDir, fileName);
+    const loaded = await prolog.query(
+      `use_module('${quoteProlog(modulePath.replaceAll("\\", "/"))}')`,
+    );
+    if (!loaded.success) {
+      throw new Error(loaded.error ?? `Failed to load Kibi ${label} module`);
+    }
   }
 
   mkdirSync(path.dirname(options.socketPath), { recursive: true, mode: 0o700 });
@@ -1469,6 +1622,12 @@ export async function runEngineDaemon(options: {
         JSON.parse(result.bindings.JsonString),
       ) as Record<string, unknown>;
       decoded.branch = options.branch;
+      if (attachedIdentity !== null) {
+        decoded.attachedPath = attachedIdentity.path;
+        decoded.attachedGeneration = attachedIdentity.generation;
+        decoded.attachedDev = attachedIdentity.dev;
+        decoded.attachedIno = attachedIdentity.ino;
+      }
       return {
         ...result,
         bindings: {

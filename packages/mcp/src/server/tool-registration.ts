@@ -5,7 +5,7 @@ import {
   executeApplyPlan,
   executeCompileIntent,
   executeDelete,
-  executeIngestVerification,
+  executeIngestProof,
   executeUpsert,
   validateUpsertSpec,
 } from "kibi-runtime";
@@ -229,10 +229,10 @@ export function registerConfiguredTools<TProlog>(
         : executeApplyPlan(args as never, context as never),
   });
   register({
-    name: "kb_ingest_verification",
+    name: "kb_ingest_proof",
     execute: async (context, args) =>
-      runtime.handleKbIngestVerification
-        ? runtime.handleKbIngestVerification(args, context)
-        : executeIngestVerification(args as never, context as never),
+      runtime.handleKbIngestProof
+        ? runtime.handleKbIngestProof(args, context)
+        : executeIngestProof(args as never, context as never),
   });
 }

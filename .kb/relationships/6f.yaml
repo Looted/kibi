@@ -3,7 +3,7 @@ relationships:
     type: covered_by
     from: SYM-core-entity-property-schema
     to: TEST-kibi-conservative-requirement-proof
-    created_at: "2026-08-16T18:51:34.273Z"
+    created_at: 2026-08-16T18:51:34.273Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
   - type: covered_by
@@ -97,17 +97,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b65e64230d6
-  - type: implements
-    from: SYM-kibi-cli-src-public-verification-receipt-ts-maxverificationreceipts
-    to: REQ-kibi-verification-evidence-contract
-    created_at: 2026-08-29T09:05:28.213Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ff795605f235
-  - type: covered_by
-    from: SYM-kibi-cli-src-public-verification-receipt-ts-maxverificationreceipts
-    to: TEST-kibi-verification-evidence-contract
-    created_at: 2026-08-29T09:05:28.215Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ce7b42f9ef82

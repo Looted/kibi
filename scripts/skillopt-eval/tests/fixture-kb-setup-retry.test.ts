@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import {
+  FIXTURE_BRANCH,
   FixtureSetupError,
+  fixtureCliEnv,
   runCliWithRetry,
 } from "../runtime/fixture-kb-setup";
 
@@ -52,7 +54,7 @@ describe("fixture CLI retry", () => {
     );
   });
 
-  test("stops after two exact timeout failures", async () => {
+  test("stops after three exact timeout failures", async () => {
     let calls = 0;
     const error = await runCliWithRetry(
       async () => {
@@ -63,10 +65,35 @@ describe("fixture CLI retry", () => {
       { retryOnInteractivePrologTimeout: true, retryDelayMs: 0 },
     ).catch((caught: unknown) => caught);
 
-    expect(calls).toBe(2);
+    expect(calls).toBe(3);
     expect(error).toBeInstanceOf(FixtureSetupError);
     expect((error as Error).message).toBe(
-      `import sync failed after 2 attempts: ${interactiveTimeout.stderr}`,
+      `import sync failed after 3 attempts: ${interactiveTimeout.stderr}`,
     );
+  });
+
+  test("pins workspace env so a parent KIBI_WORKSPACE cannot leak", () => {
+    const previousWorkspace = process.env.KIBI_WORKSPACE;
+    const previousRoot = process.env.KIBI_ROOT;
+    process.env.KIBI_WORKSPACE = "/tmp/parent-kibi";
+    process.env.KIBI_ROOT = "/tmp/parent-kibi";
+    try {
+      const env = fixtureCliEnv("/tmp/fixture-ws");
+      expect(env.KIBI_WORKSPACE).toBe("/tmp/fixture-ws");
+      expect(env.KIBI_PROJECT_ROOT).toBe("/tmp/fixture-ws");
+      expect(env.KIBI_ROOT).toBe("/tmp/fixture-ws");
+      expect(env.KIBI_BRANCH).toBe(FIXTURE_BRANCH);
+    } finally {
+      if (previousWorkspace === undefined) {
+        Reflect.deleteProperty(process.env, "KIBI_WORKSPACE");
+      } else {
+        process.env.KIBI_WORKSPACE = previousWorkspace;
+      }
+      if (previousRoot === undefined) {
+        Reflect.deleteProperty(process.env, "KIBI_ROOT");
+      } else {
+        process.env.KIBI_ROOT = previousRoot;
+      }
+    }
   });
 });

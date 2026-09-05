@@ -3,7 +3,7 @@ import type { Definition } from "./task-definition-types";
 export const USAGE_DEFINITIONS: Readonly<Record<string, Definition>> = {
   "discovery-exact-lookup": {
     instruction:
-      "Discover the relevant requirement before performing an exact source-linked lookup.",
+      "Discover the relevant requirement with kb_search, then exact-filter with kb_query, before performing an exact source-linked lookup.",
     objectiveCode: "discover_then_exact_lookup",
     sourceFile: "src/fixture.ts",
     mutation: "read-only",

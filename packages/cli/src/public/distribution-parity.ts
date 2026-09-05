@@ -19,8 +19,8 @@ export const REQUIREMENT_COMPILER_CAPABILITIES = [
   "contradiction_witnesses",
   "conservative_proof",
   "repair_plan",
-  "verification_receipts",
-  "verification_contract",
+  "proof_receipts",
+  "proof_contract",
   "telemetry_acceptance",
 ] as const;
 
@@ -170,7 +170,10 @@ const DEFAULT_VOLATILE_KEYS = new Set([
   "updated_at",
   "updatedAt",
   "usageLogLineNumber",
-  "verificationSnapshot",
+  "proofSnapshot",
+  // Per-workspace filesystem identity; CLI and MCP parity runs use two temp trees.
+  "attachedIno",
+  "attachedDev",
 ]);
 
 type PackageManifest = {

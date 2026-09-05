@@ -1552,7 +1552,7 @@ test(requirement_proof_rejects_structural_coverage_without_semantics_or_scenario
     json_string_dict(JsonString, Report),
     coverage_row(Report.rows, 'REQ-PROOF-STRUCTURAL-ONLY', Row),
     assertion(Row.coverageStatus == fully_covered),
-    assertion(Row.proofVersion == 'kibi.requirement-proof.v2'),
+    assertion(Row.proofVersion == 'kibi.requirement-proof.v3'),
     assertion(Row.proofStatus == missing),
     assertion(memberchk(missing_semantic_inventory, Row.proofGaps)),
     assertion(memberchk(missing_logic_claims, Row.proofGaps)),
@@ -1659,7 +1659,7 @@ test(requirement_proof_requires_the_complete_semantic_scenario_e2e_symbol_chain,
     ClaimKey = 'CLAIM-ABCDEF0123456789',
     ClaimKeyString = "CLAIM-ABCDEF0123456789",
     Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-    verification_receipt_json(
+    proof_receipt_json(
         'TEST-PROOF-COMPLETE-E2E',
         Snapshot,
         passed,
@@ -1696,7 +1696,7 @@ test(requirement_proof_requires_the_complete_semantic_scenario_e2e_symbol_chain,
     assert_fixture_entity(scenario, 'SCEN-PROOF-COMPLETE', "Inspect a requirement proof", active, []),
     assert_fixture_entity(test, 'TEST-PROOF-COMPLETE-E2E', "Requirement proof E2E", passing, [
         verification_scope=end_to_end,
-        verification_receipts=ReceiptJson
+        proof_receipts=ReceiptJson
     ]),
     assert_fixture_entity(symbol, 'SYM-PROOF-PRODUCTION', "requirement_proof", active, [
         sourceFile="packages/core/src/requirement_proof.pl",
@@ -1736,7 +1736,7 @@ test(requirement_proof_requires_the_complete_semantic_scenario_e2e_symbol_chain,
     Row.proofStages.passingE2e.receiptEvidence = [ReceiptEvidence],
     assertion(ReceiptEvidence.state == passed),
     assertion(ReceiptEvidence.codeSnapshot == Snapshot),
-    assertion(ReceiptEvidence.command == 'bun test packages/core/tests/kb.plt'),
+    assertion(ReceiptEvidence.receiptId == 'PR-TEST000000001'),
     assertion(Row.proofStages.executableSymbols.symbols == ['SYM-PROOF-E2E']),
     assertion(Row.proofStages.productionSymbols.symbols == ['SYM-PROOF-PRODUCTION']),
     assertion(Row.proofStages.sourceCoordinates.status == passed),
@@ -1762,7 +1762,7 @@ test(requirement_proof_extra_missing_receipts_are_advisories_when_strict_proof_e
     ClaimKey = 'CLAIM-ABCDEF0123456789',
     ClaimKeyString = "CLAIM-ABCDEF0123456789",
     Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-    verification_receipt_json(
+    proof_receipt_json(
         'TEST-PROOF-ADVISORY-E2E',
         Snapshot,
         passed,
@@ -1807,7 +1807,7 @@ test(requirement_proof_extra_missing_receipts_are_advisories_when_strict_proof_e
     ]),
     assert_fixture_entity(test, 'TEST-PROOF-ADVISORY-E2E', "Requirement proof E2E", passing, [
         verification_scope=end_to_end,
-        verification_receipts=ReceiptJson,
+        proof_receipts=ReceiptJson,
         source="documentation/tests/e2e/advisory.test.ts"
     ]),
     assert_fixture_entity(test, 'TEST-PROOF-ADVISORY-EXTRA', "Additional E2E without a receipt", passing, [
@@ -1842,8 +1842,8 @@ test(requirement_proof_extra_missing_receipts_are_advisories_when_strict_proof_e
     coverage_row(Report.rows, 'REQ-PROOF-ADVISORY', Row),
     assertion(Row.proofStatus == proven),
     assertion(Row.proofGaps == []),
-    assertion(memberchk(missing_verification_receipt, Row.proofAdvisories)),
-    assertion(\+ memberchk(missing_verification_receipt, Row.proofGaps)),
+    assertion(memberchk(missing_proof_receipt, Row.proofAdvisories)),
+    assertion(\+ memberchk(missing_proof_receipt, Row.proofGaps)),
     assertion(Row.source == '.kb/requirements/REQ-PROOF-ADVISORY.md'),
     assertion(Row.proofStages.sourceCoordinates.requirementPath == '.kb/requirements/REQ-PROOF-ADVISORY.md'),
     assertion(memberchk(_{id: 'SCEN-PROOF-ADVISORY', path: '.kb/scenarios/SCEN-PROOF-ADVISORY.md'}, Row.proofStages.scenarios.sources)),
@@ -1862,49 +1862,49 @@ test(requirement_proof_receipts_are_snapshot_bound_fresh_and_outcome_sensitive, 
     json_string_dict(MissingJson, MissingReport),
     coverage_row(MissingReport.rows, 'REQ-PROOF-RECEIPTS', MissingRow),
     assertion(MissingRow.proofStages.passingE2e.missingReceiptTests == ['TEST-PROOF-RECEIPTS']),
-    assertion(memberchk(missing_verification_receipt, MissingRow.proofGaps)),
-    assertion(\+ memberchk(missing_verification_receipt, MissingRow.proofAdvisories)),
+    assertion(memberchk(missing_proof_receipt, MissingRow.proofGaps)),
+    assertion(\+ memberchk(missing_proof_receipt, MissingRow.proofAdvisories)),
 
-    verification_receipt_json('TEST-PROOF-RECEIPTS', OtherSnapshot, passed, '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', StaleJson),
-    assert_fixture_entity(test, 'TEST-PROOF-RECEIPTS', "Receipt-sensitive E2E", passing, [verification_scope=end_to_end, verification_receipts=StaleJson]),
+    proof_receipt_json('TEST-PROOF-RECEIPTS', OtherSnapshot, passed, '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', StaleJson),
+    assert_fixture_entity(test, 'TEST-PROOF-RECEIPTS', "Receipt-sensitive E2E", passing, [verification_scope=end_to_end, proof_receipts=StaleJson]),
     coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, StaleReportJson),
     json_string_dict(StaleReportJson, StaleReport),
     coverage_row(StaleReport.rows, 'REQ-PROOF-RECEIPTS', StaleRow),
     assertion(StaleRow.proofStages.passingE2e.staleReceiptTests == ['TEST-PROOF-RECEIPTS']),
-    assertion(memberchk(stale_verification_receipt, StaleRow.proofGaps)),
+    assertion(memberchk(stale_proof_receipt, StaleRow.proofGaps)),
 
-    verification_receipt_json('TEST-PROOF-RECEIPTS', Snapshot, failed, '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', FailedJson),
-    assert_fixture_entity(test, 'TEST-PROOF-RECEIPTS', "Receipt-sensitive E2E", passing, [verification_scope=end_to_end, verification_receipts=FailedJson]),
+    proof_receipt_json('TEST-PROOF-RECEIPTS', Snapshot, failed, '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', FailedJson),
+    assert_fixture_entity(test, 'TEST-PROOF-RECEIPTS', "Receipt-sensitive E2E", passing, [verification_scope=end_to_end, proof_receipts=FailedJson]),
     coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, FailedReportJson),
     json_string_dict(FailedReportJson, FailedReport),
     coverage_row(FailedReport.rows, 'REQ-PROOF-RECEIPTS', FailedRow),
     assertion(FailedRow.proofStages.passingE2e.failedReceiptTests == ['TEST-PROOF-RECEIPTS']),
-    assertion(memberchk(failed_verification_receipt, FailedRow.proofGaps)),
+    assertion(memberchk(failed_proof_receipt, FailedRow.proofGaps)),
 
-    verification_receipt_json('TEST-PROOF-RECEIPTS', Snapshot, passed, '2026-08-10T12:15:00Z', '2026-08-10T12:20:01Z', FutureJson),
-    assert_fixture_entity(test, 'TEST-PROOF-RECEIPTS', "Receipt-sensitive E2E", passing, [verification_scope=end_to_end, verification_receipts=FutureJson]),
+    proof_receipt_json('TEST-PROOF-RECEIPTS', Snapshot, passed, '2026-08-10T12:15:00Z', '2026-08-10T12:20:01Z', FutureJson),
+    assert_fixture_entity(test, 'TEST-PROOF-RECEIPTS', "Receipt-sensitive E2E", passing, [verification_scope=end_to_end, proof_receipts=FutureJson]),
     coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, FutureReportJson),
     json_string_dict(FutureReportJson, FutureReport),
     coverage_row(FutureReport.rows, 'REQ-PROOF-RECEIPTS', FutureRow),
     assertion(FutureRow.proofStages.passingE2e.invalidReceiptTests == ['TEST-PROOF-RECEIPTS']),
-    assertion(memberchk(invalid_verification_receipt, FutureRow.proofGaps)),
+    assertion(memberchk(invalid_proof_receipt, FutureRow.proofGaps)),
 
-    verification_receipt_json('TEST-PROOF-RECEIPTS', Snapshot, passed, '2026-08-10', '2026-08-10', DateOnlyJson),
-    assert_fixture_entity(test, 'TEST-PROOF-RECEIPTS', "Receipt-sensitive E2E", passing, [verification_scope=end_to_end, verification_receipts=DateOnlyJson]),
+    proof_receipt_json('TEST-PROOF-RECEIPTS', Snapshot, passed, '2026-08-10', '2026-08-10', DateOnlyJson),
+    assert_fixture_entity(test, 'TEST-PROOF-RECEIPTS', "Receipt-sensitive E2E", passing, [verification_scope=end_to_end, proof_receipts=DateOnlyJson]),
     coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, DateOnlyReportJson),
     json_string_dict(DateOnlyReportJson, DateOnlyReport),
     coverage_row(DateOnlyReport.rows, 'REQ-PROOF-RECEIPTS', DateOnlyRow),
     assertion(DateOnlyRow.proofStages.passingE2e.invalidReceiptTests == ['TEST-PROOF-RECEIPTS']),
 
-    verification_receipt_json_with_id('bad-id', 'TEST-PROOF-RECEIPTS', Snapshot, passed, '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', BadIdJson),
-    assert_fixture_entity(test, 'TEST-PROOF-RECEIPTS', "Receipt-sensitive E2E", passing, [verification_scope=end_to_end, verification_receipts=BadIdJson]),
+    proof_receipt_json_with_id('bad-id', 'TEST-PROOF-RECEIPTS', Snapshot, passed, '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', BadIdJson),
+    assert_fixture_entity(test, 'TEST-PROOF-RECEIPTS', "Receipt-sensitive E2E", passing, [verification_scope=end_to_end, proof_receipts=BadIdJson]),
     coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, BadIdReportJson),
     json_string_dict(BadIdReportJson, BadIdReport),
     coverage_row(BadIdReport.rows, 'REQ-PROOF-RECEIPTS', BadIdRow),
     assertion(BadIdRow.proofStages.passingE2e.invalidReceiptTests == ['TEST-PROOF-RECEIPTS']),
 
-    verification_receipt_json('TEST-PROOF-RECEIPTS', Snapshot, passed, '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', PassedJson),
-    assert_fixture_entity(test, 'TEST-PROOF-RECEIPTS', "Receipt-sensitive E2E", failing, [verification_scope=end_to_end, verification_receipts=PassedJson]),
+    proof_receipt_json('TEST-PROOF-RECEIPTS', Snapshot, passed, '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', PassedJson),
+    assert_fixture_entity(test, 'TEST-PROOF-RECEIPTS', "Receipt-sensitive E2E", failing, [verification_scope=end_to_end, proof_receipts=PassedJson]),
     coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, PassedReportJson),
     json_string_dict(PassedReportJson, PassedReport),
     coverage_row(PassedReport.rows, 'REQ-PROOF-RECEIPTS', PassedRow),
@@ -1914,24 +1914,18 @@ test(requirement_proof_receipts_are_snapshot_bound_fresh_and_outcome_sensitive, 
 test(requirement_proof_preserves_old_contract_receipts_but_only_current_contract_proves, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     Contract = _{
-        version: 'kibi.verification-contract.v1',
-        runner: playwright,
-        command_argv: [pnpm, exec, playwright, test],
-        required_case_symbols: ['SYM-CASE-1'],
-        required_projects: [chromium],
-        success_policy: all_required_cases_first_attempt
+        version: 'kibi.proof-contract.v1',
+        integration: 'self-proof',
+        required_proofs: [_{symbol_id: 'SYM-PROOF-E2E', target: default}],
+        success_policy: all_required_first_attempt
     },
     atom_json_dict(ContractJsonAtom, Contract, []),
     atom_string(ContractJsonAtom, ContractJson),
-    requirement_proof:verification_contract_hash(ContractJson, ContractHash),
-    assertion(ContractHash == '4ef7f9eb930e4fe2b9b94809d7e8bd12935aeff8878b8caed01e505807d1d70a'),
+    requirement_proof:proof_contract_hash(ContractJson, ContractHash),
     OldReceipt = _{
-        version: 'kibi.verification-receipt.v2',
-        receipt_id: 'VR-OLD-CONTRACT-0001',
+        version: 'kibi.proof-receipt.v1',
+        receipt_id: 'PR-OLD-CONTRACT-0001',
         test_id: 'TEST-PROOF-CONTRACT-DRIFT',
-        runner: playwright,
-        command: 'pnpm exec playwright test',
-        command_argv: [pnpm, exec, playwright, test],
         scope: end_to_end,
         outcome: passed,
         code_snapshot: Snapshot,
@@ -1940,12 +1934,24 @@ test(requirement_proof_preserves_old_contract_receipts_but_only_current_contract
         finished_at: '2026-08-10T11:55:00Z',
         artifact_digest: 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
         contract_hash: 'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
-        case_results: [_{
-            symbol_id: 'SYM-CASE-1',
-            project: chromium,
+        fingerprint: 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+        fingerprint_components: _{
+            contract: 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+            integration: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab',
+            command: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaac',
+            bindings: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaad',
+            producer: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaae'
+        },
+        integration_id: 'self-proof',
+        producer: _{name: 'kibi-command-producer'},
+        command_argv: ['kibi', 'prove', '--all'],
+        run_outcome: passed,
+        proof_results: [_{
+            symbol_id: 'SYM-PROOF-E2E',
+            target: default,
             outcome: passed,
-            retries: 0,
-            duration_ms: 1000
+            binding: aggregate_run,
+            attempts: _{status: unavailable}
         }]
     },
     atom_json_dict(OldHistoryAtom, [OldReceipt], []),
@@ -1954,8 +1960,8 @@ test(requirement_proof_preserves_old_contract_receipts_but_only_current_contract
     assert_fixture_entity(scenario, 'SCEN-PROOF-CONTRACT-DRIFT', "Run the current contract", active, []),
     assert_fixture_entity(test, 'TEST-PROOF-CONTRACT-DRIFT', "Contract-drift E2E", passing, [
         verification_scope=end_to_end,
-        verification_contract=ContractJson,
-        verification_receipts=OldHistory
+        proof_contract=ContractJson,
+        proof_receipts=OldHistory
     ]),
     kb_assert_relationship(specified_by, 'REQ-PROOF-CONTRACT-DRIFT', 'SCEN-PROOF-CONTRACT-DRIFT', []),
     kb_assert_relationship(verified_by, 'SCEN-PROOF-CONTRACT-DRIFT', 'TEST-PROOF-CONTRACT-DRIFT', []),
@@ -1970,9 +1976,9 @@ test(requirement_proof_preserves_old_contract_receipts_but_only_current_contract
     assertion(MismatchEvidence.scope == end_to_end),
     assertion(MismatchEvidence.state == contract_mismatch),
     assertion(MismatchEvidence.testId == 'TEST-PROOF-CONTRACT-DRIFT'),
-    assertion(memberchk(verification_contract_mismatch, MismatchRow.proofGaps)),
+    assertion(memberchk(proof_contract_mismatch, MismatchRow.proofGaps)),
     CurrentReceipt = OldReceipt.put(_{
-        receipt_id: 'VR-CURRENT-CONTRACT-01',
+        receipt_id: 'PR-CURRENT-CONTRACT-01',
         started_at: '2026-08-10T11:56:00Z',
         finished_at: '2026-08-10T12:00:00Z',
         artifact_digest: 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
@@ -1982,15 +1988,15 @@ test(requirement_proof_preserves_old_contract_receipts_but_only_current_contract
     atom_string(CurrentHistoryAtom, CurrentHistory),
     assert_fixture_entity(test, 'TEST-PROOF-CONTRACT-DRIFT', "Contract-drift E2E", passing, [
         verification_scope=end_to_end,
-        verification_contract=ContractJson,
-        verification_receipts=CurrentHistory
+        proof_contract=ContractJson,
+        proof_receipts=CurrentHistory
     ]),
     coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, CurrentJson),
     json_string_dict(CurrentJson, CurrentReport),
     coverage_row(CurrentReport.rows, 'REQ-PROOF-CONTRACT-DRIFT', CurrentRow),
     assertion(CurrentRow.proofStages.passingE2e.tests == ['TEST-PROOF-CONTRACT-DRIFT']),
     assertion(CurrentRow.proofStages.passingE2e.status == passed),
-    assertion(\+ memberchk(verification_contract_mismatch, CurrentRow.proofGaps)).
+    assertion(\+ memberchk(proof_contract_mismatch, CurrentRow.proofGaps)).
 
 test(symbol_coverage_does_not_count_executable_test_symbols_as_production_coverage, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(test, 'TEST-SYMBOL-ROLE', "Executable symbol test", passing, [verification_scope=end_to_end]),
@@ -3507,23 +3513,41 @@ assert_fixture_entity(Type, Id, Title, Status, ExtraProps) :-
     ], ExtraProps, Props),
     kb_assert_entity(Type, Props).
 
-verification_receipt_json(TestId, Snapshot, Outcome, StartedAt, FinishedAt, Json) :-
-    verification_receipt_json_with_id('VR-TEST-00000001', TestId, Snapshot, Outcome, StartedAt, FinishedAt, Json).
+proof_receipt_json(TestId, Snapshot, Outcome, StartedAt, FinishedAt, Json) :-
+    proof_receipt_json_with_id('PR-TEST000000001', TestId, Snapshot, Outcome, StartedAt, FinishedAt, Json).
 
-verification_receipt_json_with_id(ReceiptId, TestId, Snapshot, Outcome, StartedAt, FinishedAt, Json) :-
+proof_receipt_json_with_id(ReceiptId, TestId, Snapshot, Outcome, StartedAt, FinishedAt, Json) :-
     Receipt = _{
-        version: 'kibi.verification-receipt.v1',
+        version: 'kibi.proof-receipt.v1',
         receipt_id: ReceiptId,
         test_id: TestId,
-        runner: 'plunit',
-        command: 'bun test packages/core/tests/kb.plt',
         scope: end_to_end,
         outcome: Outcome,
         code_snapshot: Snapshot,
         environment_hash: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
         started_at: StartedAt,
         finished_at: FinishedAt,
-        artifact_digest: 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc'
+        artifact_digest: 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+        contract_hash: 'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
+        fingerprint: 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+        fingerprint_components: _{
+            contract: 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+            integration: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab',
+            command: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaac',
+            bindings: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaad',
+            producer: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaae'
+        },
+        integration_id: 'self-proof',
+        producer: _{name: 'kibi-command-producer'},
+        command_argv: ['kibi', 'prove', '--all'],
+        run_outcome: Outcome,
+        proof_results: [_{
+            symbol_id: 'SYM-PROOF-E2E',
+            target: default,
+            outcome: Outcome,
+            binding: aggregate_run,
+            attempts: _{status: unavailable}
+        }]
     },
     atom_json_dict(JsonAtom, [Receipt], []),
     atom_string(JsonAtom, Json).

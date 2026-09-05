@@ -56,12 +56,10 @@ const payload = {
   },
 } as const;
 
-const verificationReceipt = {
-  version: "kibi.verification-receipt.v1",
-  receipt_id: "VR-MUTATION-0001",
+const proofReceipt = {
+  version: "kibi.proof-receipt.v1",
+  receipt_id: "PR-MUTATION-000001",
   test_id: "TEST-RECEIPT",
-  runner: "bun",
-  command: "bun test ./tests/e2e/receipt.test.ts",
   scope: "end_to_end",
   outcome: "passed",
   code_snapshot: "a".repeat(64),
@@ -69,15 +67,35 @@ const verificationReceipt = {
   started_at: "2026-07-21T11:55:00.000Z",
   finished_at: "2026-07-21T12:00:00.000Z",
   artifact_digest: "c".repeat(64),
+  contract_hash: "d".repeat(64),
+  fingerprint: "e".repeat(64),
+  fingerprint_components: {
+    contract: "1a".repeat(32),
+    integration: "2a".repeat(32),
+    command: "3a".repeat(32),
+    bindings: "4a".repeat(32),
+    producer: "5a".repeat(32),
+  },
+  integration_id: "self-proof",
+  producer: { name: "kibi-command-producer" },
+  command_argv: ["node", "scripts/proof.mjs"],
+  run_outcome: "passed",
+  proof_results: [
+    {
+      symbol_id: "SYM-RECEIPT-CASE",
+      target: "default",
+      outcome: "passed",
+      binding: "aggregate_run",
+      attempts: { status: "unavailable" },
+    },
+  ],
 } as const;
 
-const verificationContract = {
-  version: "kibi.verification-contract.v1",
-  runner: "pnpm",
-  command_argv: ["pnpm", "run", "e2e", "--", "e2e/receipt.spec.ts"],
-  required_case_symbols: ["SYM-RECEIPT-CASE"],
-  required_projects: ["chromium"],
-  success_policy: "all_required_cases_first_attempt",
+const proofContract = {
+  version: "kibi.proof-contract.v1",
+  integration: "self-proof",
+  required_proofs: [{ symbol_id: "SYM-RECEIPT-CASE", target: "default" }],
+  success_policy: "all_required_first_attempt",
 } as const;
 
 describe("shared mutation operation specs", () => {
@@ -221,29 +239,29 @@ describe("shared mutation operation specs", () => {
     const properties = buildPropertyList({
       id: "TEST-RECEIPT",
       type: "test",
-      verification_receipts: [verificationReceipt],
+      proof_receipts: [proofReceipt],
     });
 
     expect(properties).toContain(
-      'verification_receipts="[{\\"version\\":\\"kibi.verification-receipt.v1\\"',
+      'proof_receipts="[{\\"version\\":\\"kibi.proof-receipt.v1\\"',
     );
     expect(properties).not.toContain(
-      'verification_receipts=[{"version":"kibi.verification-receipt.v1"',
+      'proof_receipts=[{"version":"kibi.proof-receipt.v1"',
     );
   });
 
-  test("serializes verification contracts as one quoted JSON value", () => {
+  test("serializes proof contracts as one quoted JSON value", () => {
     const properties = buildPropertyList({
       id: "TEST-CONTRACT",
       type: "test",
-      verification_contract: verificationContract,
+      proof_contract: proofContract,
     });
 
     expect(properties).toContain(
-      'verification_contract="{\\"version\\":\\"kibi.verification-contract.v1\\"',
+      'proof_contract="{\\"version\\":\\"kibi.proof-contract.v1\\"',
     );
     expect(properties).not.toContain(
-      'verification_contract={"version":"kibi.verification-contract.v1"',
+      'proof_contract={"version":"kibi.proof-contract.v1"',
     );
   });
 
@@ -261,7 +279,7 @@ describe("shared mutation operation specs", () => {
           title: "Fresh receipt",
           status: "failing",
           verification_scope: "end_to_end",
-          verification_receipts: [verificationReceipt],
+          proof_receipts: [proofReceipt],
         },
       },
       context,
@@ -271,7 +289,7 @@ describe("shared mutation operation specs", () => {
       valid: true,
       normalizedPreview: {
         id: "TEST-RECEIPT",
-        verification_receipts: [verificationReceipt],
+        proof_receipts: [proofReceipt],
       },
     });
     expect(query).toHaveBeenCalledTimes(1);
@@ -292,7 +310,7 @@ describe("shared mutation operation specs", () => {
           title: "Mismatched receipt",
           status: "passing",
           verification_scope: "integration",
-          verification_receipts: [verificationReceipt, verificationReceipt],
+          proof_receipts: [proofReceipt, proofReceipt],
         },
       },
       context,
@@ -302,16 +320,16 @@ describe("shared mutation operation specs", () => {
     const errorText = result.structuredContent?.errors.join(" ") ?? "";
     expect(errorText).toContain("test_id must equal 'TEST-OTHER'");
     expect(errorText).not.toContain("scope must equal");
-    expect(errorText).toContain("receipt_id duplicates 'VR-MUTATION-0001'");
+    expect(errorText).toContain("receipt_id duplicates 'PR-MUTATION-000001'");
     expect(save).not.toHaveBeenCalled();
   });
 
   test("validate-upsert rejects changes to persisted receipt history", async () => {
-    const previousJson = JSON.stringify([verificationReceipt]);
+    const previousJson = JSON.stringify([proofReceipt]);
     const { context, save } = createContext(() => ({
       success: true,
       bindings: {
-        Results: `[['TEST-RECEIPT',test,[verification_receipts=${JSON.stringify(previousJson)}]]]`,
+        Results: `[['TEST-RECEIPT',test,[proof_receipts=${JSON.stringify(previousJson)}]]]`,
       },
     }));
 
@@ -323,9 +341,7 @@ describe("shared mutation operation specs", () => {
           title: "Mutated receipt",
           status: "passing",
           verification_scope: "end_to_end",
-          verification_receipts: [
-            { ...verificationReceipt, outcome: "failed" },
-          ],
+          proof_receipts: [{ ...proofReceipt, outcome: "failed" }],
         },
       },
       context,
@@ -333,7 +349,7 @@ describe("shared mutation operation specs", () => {
 
     expect(result.structuredContent).toMatchObject({ valid: false });
     expect(result.structuredContent?.errors.join(" ")).toContain(
-      "verification_receipts is append-only",
+      "proof_receipts is append-only",
     );
     expect(save).not.toHaveBeenCalled();
   });

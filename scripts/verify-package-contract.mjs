@@ -59,9 +59,7 @@ if (packageName === "kibi-mcp") {
   }
   const sessionPath = resolvePackagePath("./dist/server/session.js");
   if (!existsSync(sessionPath)) {
-    throw new Error(
-      `Missing packed kibi-mcp server module: ${sessionPath}`,
-    );
+    throw new Error(`Missing packed kibi-mcp server module: ${sessionPath}`);
   }
   const launcherPath = resolvePackagePath(packageJson.bin?.["kibi-mcp"] ?? "");
   const launcherSource = readFileSync(launcherPath, "utf8");

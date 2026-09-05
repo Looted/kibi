@@ -161,6 +161,11 @@ describe("Cursor hook state", () => {
     const originalOpenSync = fs.openSync;
     const originalStatSync = fs.statSync;
     const originalUnlinkSync = fs.unlinkSync;
+    // @types/node types default-export fs functions as read-only; stub
+    // statSync through a mutable view of the same runtime object.
+    const patchableFs = fs as unknown as {
+      statSync: typeof fs.statSync;
+    };
     class ExistingLockError extends Error {
       readonly code = "EEXIST";
     }
@@ -168,7 +173,7 @@ describe("Cursor hook state", () => {
     fs.openSync = () => {
       throw new ExistingLockError("lock exists");
     };
-    fs.statSync = () => {
+    patchableFs.statSync = () => {
       throw new Error("stat failed");
     };
 
@@ -177,7 +182,7 @@ describe("Cursor hook state", () => {
         addDirtyPaths(stateDir, ["src/stat-fallback.ts"]).dirtyPaths,
       ).toEqual(["src/existing.ts", "src/stat-fallback.ts"]);
 
-      fs.statSync = originalStatSync;
+      patchableFs.statSync = originalStatSync;
       const staleLockPath = path.join(stateDir, "hook-state.lock");
       fs.writeFileSync(staleLockPath, "stale-process");
       const staleDate = new Date(Date.now() - 60_000);
@@ -191,7 +196,7 @@ describe("Cursor hook state", () => {
       ).toEqual(["src/existing.ts", "src/unlink-fallback.ts"]);
     } finally {
       fs.openSync = originalOpenSync;
-      fs.statSync = originalStatSync;
+      patchableFs.statSync = originalStatSync;
       fs.unlinkSync = originalUnlinkSync;
     }
   });

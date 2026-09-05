@@ -163,7 +163,7 @@ export type ApplyPlanResult =
           | "dirty"
           | "legacy_compat"
           | "not_evaluated";
-        verificationState: "fresh" | "dirty" | "unavailable" | "not_evaluated";
+        snapshotState: "fresh" | "dirty" | "unavailable" | "not_evaluated";
         proofState: "proven" | "mixed" | "unresolved" | "not_evaluated";
         limitationDisposition:
           | "none"
@@ -1951,12 +1951,12 @@ async function applyMigrationPlan(
         : finalStatus.syncState === "fresh"
           ? "clean_fresh"
           : "not_evaluated";
-  const verificationState =
-    finalStatus.verificationSnapshotAvailable === false
+  const snapshotState =
+    finalStatus.proofSnapshotAvailable === false
       ? "unavailable"
-      : finalStatus.verificationSnapshotDirty === true
+      : finalStatus.proofSnapshotDirty === true
         ? "dirty"
-        : finalStatus.verificationSnapshotDirty === false
+        : finalStatus.proofSnapshotDirty === false
           ? "fresh"
           : "not_evaluated";
   const proven = coverageSummary?.proofProven;
@@ -1991,7 +1991,7 @@ async function applyMigrationPlan(
             ? "blocked"
             : "interim",
       kbState,
-      verificationState,
+      snapshotState,
       proofState,
       limitationDisposition: "not_applicable",
     },

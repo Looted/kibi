@@ -9,7 +9,7 @@ function row(overrides: Readonly<Record<string, unknown>> = {}) {
     proofGaps: [
       "missing_symbol_coordinates",
       "missing_logic_claims",
-      "missing_verification_receipt",
+      "missing_proof_receipt",
       "missing_semantic_inventory",
       "missing_logic_grounding",
       "missing_scenario",
@@ -40,7 +40,7 @@ function row(overrides: Readonly<Record<string, unknown>> = {}) {
         action: "Create a scenario.",
       },
       {
-        gap: "missing_verification_receipt",
+        gap: "missing_proof_receipt",
         priority: 53,
         stage: "passing_e2e",
         action: "Append a receipt.",
@@ -92,7 +92,7 @@ describe("dependency-ordered requirement repair plans", () => {
       "ground_endpoints",
       "manifest_links",
       "scenario_endpoints",
-      "verification_evidence",
+      "proof_evidence",
       "source_coordinates",
     ]);
     expect(plan.batches[0]?.state).toBe("ready");

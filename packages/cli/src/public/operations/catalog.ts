@@ -16,6 +16,7 @@ import {
   validateUpsertSpec,
 } from "./specs/mutation.js";
 import { applyPlanSpec, compileIntentSpec } from "./specs/planning.js";
+import { ingestProofSpec } from "./specs/proof.js";
 import { coverageSpec, findGapsSpec, graphSpec } from "./specs/reporting.js";
 import { semanticAdvisorSpec } from "./specs/semantic.js";
 import {
@@ -24,7 +25,6 @@ import {
   skillsReadSpec,
 } from "./specs/skills.js";
 import { sparqlRemoteSpec } from "./specs/sparql.js";
-import { ingestVerificationSpec } from "./specs/verification.js";
 import type {
   OperationName,
   OperationSpec,
@@ -52,7 +52,7 @@ export const OPERATION_CATALOG = [
   sparqlRemoteSpec,
   compileIntentSpec,
   applyPlanSpec,
-  ingestVerificationSpec,
+  ingestProofSpec,
 ] as const satisfies readonly OperationSpec[];
 
 function envelopeSchema(

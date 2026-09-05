@@ -90,3 +90,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-721ec71bea03
+  - type: covered_by
+    from: SYM-canonical-partitionCheckFindings
+    to: TEST-004
+    created_at: 2026-08-29T11:39:40.360Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5eda61d7595

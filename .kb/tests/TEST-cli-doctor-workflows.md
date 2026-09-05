@@ -7,92 +7,82 @@ tags:
   - e2e
 verification_scope: end_to_end
 verification_perspective: consumer
-verification_contract:
-  version: kibi.verification-contract.v1
-  runner: node
-  command_argv:
-    - node
-    - scripts/run-proof-contract.mjs
-    - '--test-id'
-    - TEST-cli-doctor-workflows
-  required_case_symbols:
-    - SYM-e2e-packed-cli-doctor
-  required_projects:
-    - default
-  success_policy: all_required_cases_first_attempt
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-e2e-packed-cli-doctor
+      target: default
+  success_policy: all_required_first_attempt
 id: TEST-cli-doctor-workflows
 type: test
-verification_receipts:
-  - version: kibi.verification-receipt.v2
-    receipt_id: VR-1c4ccfc3044cf5f36025fba1
+proof_receipts:
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-e916c6bcf71a11c6b07b7674
     test_id: TEST-cli-doctor-workflows
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-cli-doctor-workflows
+    scope: end_to_end
+    outcome: failed
+    code_snapshot: 3f8b48dd84116905859ff9ad9beb6f42472888fcc02de24d6ff6ef46c41cba7f
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-01T02:00:18.844Z'
+    finished_at: '2026-09-01T02:24:25.062Z'
+    artifact_digest: e0a3f7afc30f978f4299d03e9c4487f5048bf904f91509c6d0747dcbb0c5d1ea
+    contract_hash: e92ed821011bba8e755c5b874ed8db80c6d514ff109f21a96823e2d6f4366ddc
+    fingerprint: c418203058eb1c11804725525899d641d78f32c22bec0f91de340e8c1c7bed5f
+    fingerprint_components:
+      contract: e92ed821011bba8e755c5b874ed8db80c6d514ff109f21a96823e2d6f4366ddc
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
     command_argv:
       - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-cli-doctor-workflows
+      - scripts/run-proof-producer.mjs
+    run_outcome: failed
+    proof_results:
+      - symbol_id: SYM-e2e-packed-cli-doctor
+        target: default
+        outcome: failed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+    gaps:
+      - symbol_id: SYM-e2e-packed-cli-doctor
+        target: default
+        reason: 'run did not pass (outcome: failed)'
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-3da223fdf8c5c7fb3125d13d
+    test_id: TEST-cli-doctor-workflows
     scope: end_to_end
     outcome: passed
-    code_snapshot: 4a51872e077587a549ef89ebad33bf0c2c107ec7b47e19759f11e1748e81677a
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-29T10:23:32.416Z'
-    finished_at: '2026-08-29T10:24:16.022Z'
-    artifact_digest: 4c8c86555587e3158d67fb14f7c452220d025e74587ffb4b23a88817a8a8256e
-    contract_hash: e94a83cf34a93d7a250eb40a62761867770cf0a9087aabdb7871cd11ef89a5c4
-    case_results:
-      - symbol_id: SYM-e2e-packed-cli-doctor
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 43606
-  - version: kibi.verification-receipt.v2
-    receipt_id: VR-f265b783bb94565de562bcd9
-    test_id: TEST-cli-doctor-workflows
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-cli-doctor-workflows
+    code_snapshot: 72ab30da409f3a1d146a85cc81a6aaa3124fac328f92edc5b6fe99ed887d4ee1
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-01T04:29:39.954Z'
+    finished_at: '2026-09-01T05:13:15.667Z'
+    artifact_digest: 2a51d21e49186d14cacba8be3e4e03420e04acc7c3d53eb30168e286dce30b75
+    contract_hash: e92ed821011bba8e755c5b874ed8db80c6d514ff109f21a96823e2d6f4366ddc
+    fingerprint: c418203058eb1c11804725525899d641d78f32c22bec0f91de340e8c1c7bed5f
+    fingerprint_components:
+      contract: e92ed821011bba8e755c5b874ed8db80c6d514ff109f21a96823e2d6f4366ddc
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
     command_argv:
       - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-cli-doctor-workflows
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: a1e8acca6edb3d4c59ea790f4840a75a26e642ecbbda1fffd13b67ec89f60df2
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-29T10:28:53.475Z'
-    finished_at: '2026-08-29T10:29:38.266Z'
-    artifact_digest: 27cdcd3067bf2182c5f71614395fd8800f27ffbd349c7ebae3ce9b9ff5369fa8
-    contract_hash: e94a83cf34a93d7a250eb40a62761867770cf0a9087aabdb7871cd11ef89a5c4
-    case_results:
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
       - symbol_id: SYM-e2e-packed-cli-doctor
-        project: default
+        target: default
         outcome: passed
-        retries: 0
-        duration_ms: 44791
-  - version: kibi.verification-receipt.v2
-    receipt_id: VR-3f0c761774d594ec62270bde
-    test_id: TEST-cli-doctor-workflows
-    runner: node
-    command: node scripts/run-proof-contract.mjs --test-id TEST-cli-doctor-workflows
-    command_argv:
-      - node
-      - scripts/run-proof-contract.mjs
-      - '--test-id'
-      - TEST-cli-doctor-workflows
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 4dcb52daacd2e6301cb225622dbda1c10a95ea1252b73faa3a34235c61fe9d71
-    environment_hash: c36b8dbbf50f5f1dc835eff08feca6412c4cc52c2d5dc33d08066a4f77bd1d92
-    started_at: '2026-08-29T11:00:32.011Z'
-    finished_at: '2026-08-29T11:01:13.184Z'
-    artifact_digest: c5a999e21e0ad1ed96a184fd94c577251b87ef490bff7ce4a398d8c3267e16df
-    contract_hash: e94a83cf34a93d7a250eb40a62761867770cf0a9087aabdb7871cd11ef89a5c4
-    case_results:
-      - symbol_id: SYM-e2e-packed-cli-doctor
-        project: default
-        outcome: passed
-        retries: 0
-        duration_ms: 41173
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---

@@ -36,12 +36,16 @@ import {
   formatSyncSummary,
 } from "../diagnostics.js";
 import {
+  type EngineAttachmentIdentity,
   EngineClient,
   type EnginePublicationLease,
   acquireEnginePublicationLease,
   engineSocketPath,
   ensureJournaledBranchStoreAsync,
+  formatEngineAttachmentMismatch,
   fsyncJournaledBranchStore,
+  parseEngineAttachmentIdentity,
+  readEngineAttachmentIdentity,
 } from "../engine.js";
 import { isCliDebugEnabled } from "../env.js";
 import type {
@@ -1040,6 +1044,36 @@ export async function syncCommand(
       try {
         await engine.start();
 
+        const describeAttachment = async (): Promise<{
+          live: EngineAttachmentIdentity | null;
+          attached: EngineAttachmentIdentity | null;
+        }> => {
+          const live = readEngineAttachmentIdentity(livePath);
+          try {
+            const status = await engine.queryStatusJson();
+            return {
+              live,
+              attached: parseEngineAttachmentIdentity(
+                status.bindings.JsonString,
+              ),
+            };
+          } catch {
+            return { live, attached: null };
+          }
+        };
+
+        const mutationFailure = async (
+          operation: string,
+          cause: string,
+        ): Promise<string> => {
+          const { live, attached } = await describeAttachment();
+          return `${cause}; ${formatEngineAttachmentMismatch(
+            operation,
+            live,
+            attached,
+          )}`;
+        };
+
         const successfulChangedSources = [
           ...changedMarkdownFiles,
           ...changedManifestFiles,
@@ -1065,11 +1099,23 @@ export async function syncCommand(
           );
           await retractRelationships(engineProlog, exactRemovedEdges);
         } else if (relationshipChanged) {
-          const cleared = await engine.query("kb_retract_all_relationships");
-          if (!cleared.success) {
-            throw new SyncError(
-              `Failed to clear changed relationship shards: ${cleared.error || "Unknown error"}`,
-            );
+          const clearChangedShards = async (): Promise<void> => {
+            const cleared = await engine.query("kb_retract_all_relationships");
+            if (!cleared.success) {
+              throw new SyncError(
+                await mutationFailure(
+                  "kb_retract_all_relationships",
+                  `Failed to clear changed relationship shards: ${cleared.error || "Unknown error"}`,
+                ),
+              );
+            }
+          };
+          try {
+            await clearChangedShards();
+          } catch {
+            await engine.stop().catch(() => undefined);
+            await engine.start();
+            await clearChangedShards();
           }
         }
 
@@ -1129,7 +1175,10 @@ export async function syncCommand(
         const saveResult = await engine.save();
         if (!saveResult.success) {
           throw new SyncError(
-            `Failed to save journaled KB: ${saveResult.error || "Unknown error"}`,
+            await mutationFailure(
+              "kb_save",
+              `Failed to save journaled KB: ${saveResult.error || "Unknown error"}`,
+            ),
           );
         }
 
