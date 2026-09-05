@@ -51,31 +51,32 @@ export async function bridgeMain(
   return 0;
 }
 
-if (import.meta.main) {
-  bridgeMain(process.argv.slice(2)).then(
-    (exitCode) => {
-      process.exitCode = exitCode;
-    },
-    (error: unknown) => {
-      if (error instanceof EvaluationInfrastructureError) {
-        process.stderr.write(
-          `${EVALUATION_INFRASTRUCTURE_MARKER}${JSON.stringify(evaluationInfrastructurePayload(error))}\n`,
-        );
-        process.exitCode = 1;
-        return;
-      }
-      const cause =
-        error instanceof Error && error.cause instanceof Error
-          ? error.cause.message
-          : undefined;
+export async function finishBridgeCli(result: Promise<number>): Promise<void> {
+  try {
+    process.exitCode = await result;
+  } catch (error: unknown) {
+    if (error instanceof EvaluationInfrastructureError) {
       process.stderr.write(
-        `${JSON.stringify({
-          code: bridgeErrorCode(error),
-          message: error instanceof Error ? error.message : String(error),
-          ...(cause === undefined ? {} : { cause }),
-        })}\n`,
+        `${EVALUATION_INFRASTRUCTURE_MARKER}${JSON.stringify(evaluationInfrastructurePayload(error))}\n`,
       );
       process.exitCode = 1;
-    },
-  );
+      return;
+    }
+    const cause =
+      error instanceof Error && error.cause instanceof Error
+        ? error.cause.message
+        : undefined;
+    process.stderr.write(
+      `${JSON.stringify({
+        code: bridgeErrorCode(error),
+        message: error instanceof Error ? error.message : String(error),
+        ...(cause === undefined ? {} : { cause }),
+      })}\n`,
+    );
+    process.exitCode = 1;
+  }
+}
+
+if (import.meta.main) {
+  await finishBridgeCli(bridgeMain(process.argv.slice(2)));
 }
