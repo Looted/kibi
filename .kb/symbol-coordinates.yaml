@@ -861,12 +861,12 @@ coordinates:
     sourceLine: 381
   SYM-auto-5D3498497C5F:
     identityHash: 1f8ea03ea06369326a431557730d19dcc1a37e58af5415f3ef3729713b000a09
-    sourceHash: 20e485b9e1232dbcdd400eecdaa99d50a9ad800ca087d160492bc82ea43b5a52
+    sourceHash: 248e240e523bc508f217a3ed30c0a3f7d794af08080e367511aa07df34cf9a9d
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 56
+    sourceEndLine: 60
     sourceFile: packages/cli/src/report/html-report.ts
-    sourceLine: 52
+    sourceLine: 56
   SYM-auto-5E0D46927248:
     identityHash: 11a4843c20b738551ff8963027f959992bbf2730a514c506516a189d98bd7afd
     sourceHash: 2c45eb1b1c321fd95c5b7cf404330a3a4d4a557f4b3278bb32147d7c7412b248
@@ -909,12 +909,12 @@ coordinates:
     sourceLine: 111
   SYM-auto-6AE190B50290:
     identityHash: a5ef20a56041fe553985186a6a1717038ba98b3dee6f12442468898e66dfa80d
-    sourceHash: 20e485b9e1232dbcdd400eecdaa99d50a9ad800ca087d160492bc82ea43b5a52
+    sourceHash: 248e240e523bc508f217a3ed30c0a3f7d794af08080e367511aa07df34cf9a9d
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 64
+    sourceEndLine: 68
     sourceFile: packages/cli/src/report/html-report.ts
-    sourceLine: 58
+    sourceLine: 62
   SYM-auto-6B36EF51595B:
     identityHash: 8ca53a6952528d7e58873a951d9976aa8a2b6e2620499e855a16f85684ee48a5
     sourceHash: 7c57086e06046c166c4bbb1491e79048f8410c3af200dc6cf867382b6f3555c5
@@ -4605,12 +4605,12 @@ coordinates:
     sourceLine: 163
   SYM-cli-report-csp:
     identityHash: e4ee00ab32f5ca89104c6180678c5aa8dcc01819f2abbfa032e37a424e8c56dc
-    sourceHash: 20e485b9e1232dbcdd400eecdaa99d50a9ad800ca087d160492bc82ea43b5a52
+    sourceHash: 248e240e523bc508f217a3ed30c0a3f7d794af08080e367511aa07df34cf9a9d
     sourceColumn: 13
     sourceEndColumn: 92
-    sourceEndLine: 46
+    sourceEndLine: 50
     sourceFile: packages/cli/src/report/html-report.ts
-    sourceLine: 45
+    sourceLine: 49
   SYM-cli-report-favicon:
     identityHash: bc9f475e731106dfac49cda36747fe7bc771fa2e449ece1fcf66635c246ba4b8
     sourceHash: c11ed6384ba2342c7ea448447a9c199bb133c876a4f2318b43b145b1dbf99213
@@ -4669,12 +4669,12 @@ coordinates:
     sourceLine: 201
   SYM-cli-report-getting-started-url:
     identityHash: ae5f14858e724986690e209550b51355f27b998d1530816b077393383bc0452f
-    sourceHash: 20e485b9e1232dbcdd400eecdaa99d50a9ad800ca087d160492bc82ea43b5a52
+    sourceHash: 248e240e523bc508f217a3ed30c0a3f7d794af08080e367511aa07df34cf9a9d
     sourceColumn: 13
     sourceEndColumn: 63
-    sourceEndLine: 50
+    sourceEndLine: 54
     sourceFile: packages/cli/src/report/html-report.ts
-    sourceLine: 49
+    sourceLine: 53
   SYM-cli-report-git-remote:
     identityHash: 5d90a0d24a0a0b9575267c5e12b3852eacabbc3597bd875cbecd56f30e621a55
     sourceHash: ff5428bd260828cf203baa17e1884ecc8e0970c0a01e0e228ebd70549461b9d9
@@ -4733,12 +4733,12 @@ coordinates:
     sourceLine: 11
   SYM-cli-report-proof-gates:
     identityHash: fcb963d395305138ee1f5b1c4e44d4def0d3ee52fc154c219b662a031c5a8097
-    sourceHash: 20e485b9e1232dbcdd400eecdaa99d50a9ad800ca087d160492bc82ea43b5a52
+    sourceHash: 248e240e523bc508f217a3ed30c0a3f7d794af08080e367511aa07df34cf9a9d
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 258
+    sourceEndLine: 262
     sourceFile: packages/cli/src/report/html-report.ts
-    sourceLine: 229
+    sourceLine: 233
   SYM-cli-report-relative-time:
     identityHash: 5acf531d5e958eec736a6d3983a9523c4f913a66855b2aeb68b9311f37765bb9
     sourceHash: d6ff39c7cbdf8aafa633f30f82e254bfef50388610730809524d5a61c1d95199
@@ -4749,12 +4749,12 @@ coordinates:
     sourceLine: 23
   SYM-cli-report-render-html:
     identityHash: 30c27b7060a7e9188b03fc2a8f63729f7530ed770e5e67a088653a8f626b7f62
-    sourceHash: 20e485b9e1232dbcdd400eecdaa99d50a9ad800ca087d160492bc82ea43b5a52
+    sourceHash: 248e240e523bc508f217a3ed30c0a3f7d794af08080e367511aa07df34cf9a9d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 869
+    sourceEndLine: 873
     sourceFile: packages/cli/src/report/html-report.ts
-    sourceLine: 670
+    sourceLine: 674
   SYM-cli-report-repository:
     identityHash: 08e91fa5c7d1a0649aa0b84e3877f7d97d5106f085bee507aeb42eb97871543f
     sourceHash: ff5428bd260828cf203baa17e1884ecc8e0970c0a01e0e228ebd70549461b9d9
@@ -6045,10 +6045,10 @@ coordinates:
     sourceLine: 462
   SYM-COVERAGE_SHARDS:
     identityHash: a85045cd5ad8cac175a632809ca7b95f87d288d8bb58c3154c5d4864f49e51aa
-    sourceHash: 52f82dd22b1c48622ce9bb3e183529ee5627774aff2278e223e1c0d038b4f8ed
+    sourceHash: f792c1bc245fcaf8b7325f1c13b4d64ddc1f869a2aa2d64bf0ad3e57ce94e334
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 261
+    sourceEndLine: 266
     sourceFile: scripts/run-unit-coverage.ts
     sourceLine: 63
   SYM-createAtomically:
@@ -14581,20 +14581,20 @@ coordinates:
     sourceLine: 65
   SYM-reqcompiler-telemetry-acceptance-version:
     identityHash: c27213de643ad39fec0abc9e9f60463f1cf21bf95a86074f734675e40a3f0b70
-    sourceHash: e575580f9b7e60af446f17e4aba16d359880f7b81f0534a1ff644c2b618454cf
+    sourceHash: 678a39959f7ced2d0fef1e268c0d5b9aa1e0f5a2ab4dcaa27a0aebaf93d7e599
     sourceColumn: 13
     sourceEndColumn: 41
-    sourceEndLine: 20
-    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
-    sourceLine: 19
-  SYM-reqcompiler-telemetry-default-policy:
-    identityHash: c6840bda49d7d7a7156a699e1d3ae918d65ec5d908492db4c955ecdde5e13e74
-    sourceHash: e575580f9b7e60af446f17e4aba16d359880f7b81f0534a1ff644c2b618454cf
-    sourceColumn: 13
-    sourceEndColumn: 46
-    sourceEndLine: 34
+    sourceEndLine: 23
     sourceFile: packages/cli/src/public/telemetry-acceptance.ts
     sourceLine: 22
+  SYM-reqcompiler-telemetry-default-policy:
+    identityHash: c6840bda49d7d7a7156a699e1d3ae918d65ec5d908492db4c955ecdde5e13e74
+    sourceHash: 678a39959f7ced2d0fef1e268c0d5b9aa1e0f5a2ab4dcaa27a0aebaf93d7e599
+    sourceColumn: 13
+    sourceEndColumn: 46
+    sourceEndLine: 37
+    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    sourceLine: 25
   SYM-reqcompiler-usage-build-report:
     identityHash: 925a78a0a10d891dde803d98e705b3645965f94bc06daacfa0dcfac4754acae9
     sourceHash: c65b50c787c7b9e78c2c4862b79798e9ed77bc51d39c0eaa051cdd9fa7931c82
@@ -15085,12 +15085,12 @@ coordinates:
     sourceLine: 241
   SYM-scripts-runUnitCoverage:
     identityHash: 0a45c2accda0d8883b93684564d0b93a415b99a57df65b9e95b13bbd99484197
-    sourceHash: 52f82dd22b1c48622ce9bb3e183529ee5627774aff2278e223e1c0d038b4f8ed
+    sourceHash: f792c1bc245fcaf8b7325f1c13b4d64ddc1f869a2aa2d64bf0ad3e57ce94e334
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 387
+    sourceEndLine: 394
     sourceFile: scripts/run-unit-coverage.ts
-    sourceLine: 299
+    sourceLine: 304
   SYM-scripts-skillopt-eval-scoring-held-out-predicate-PredicateVariant:
     identityHash: c6dc8fabae506a1b9a264ba37e1a306b5be1a7ad79cd5868fa59028d6ad4ed45
     sourceHash: 5ccd52c4ed95f251cdd24b198169d25b4b26a27a3a7d281e45e166f7cc03c7c0
@@ -18117,10 +18117,10 @@ coordinates:
     sourceLine: 1
   SYM-skillopt-external-held-out-receipt-store-tests:
     identityHash: e6fab9fc0eab23ad9d2e6c53da4f200599711a99f862d7d0b8202a0b79efcc19
-    sourceHash: 8154faf7bd2aa45a958069cb2c492e5b84444783fc0363d18ba4726480ec076e
+    sourceHash: 97bd6606d7003ff642d66f893dc1d63b069348e392b1b0a4152ab1ec2dd1c7ef
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 219
+    sourceEndLine: 421
     sourceFile: scripts/skillopt-eval/tests/held-out-receipt-store.test.ts
     sourceLine: 1
   SYM-skillopt-external-python-adapter-contract-tests:
@@ -18173,10 +18173,10 @@ coordinates:
     sourceLine: 1
   SYM-skillopt-external-real-workflow-tests:
     identityHash: 6d04453e4ccc7ca1b2bd6cccd01448ab3159e1903cc8ebde47265687e49b0897
-    sourceHash: 95e8703c556e73280bc35b1a38410c8c56a07b8a837738402bb3b9e6e3eab36b
+    sourceHash: 078532a56e8b83d776401b002afd101e4d8bed82b4aa4ede1c0dbd7c6037a8b2
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 598
+    sourceEndLine: 666
     sourceFile: scripts/skillopt-eval/tests/real-workflow.test.ts
     sourceLine: 1
   SYM-skillopt-external-source-tree-hash-tests:
@@ -18205,10 +18205,10 @@ coordinates:
     sourceLine: 42
   SYM-skillopt-external-verify-harness-tests:
     identityHash: d5c13193bccbc5f3fb83744b3c03a8010559cd118f69227757748ba98a0ee2ad
-    sourceHash: 3e3041cf647a86decb8b0088b6bd26f37b3f6caa5826d511b76a9a7a71f31d82
+    sourceHash: 36222c6f25a8a4b34eccac49c8e681d415ddbf2d1827ad66b36400e6777c0b20
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 235
+    sourceEndLine: 438
     sourceFile: scripts/skillopt-eval/tests/verify-harness.test.ts
     sourceLine: 1
   SYM-skillopt-fake-provider-capability:
@@ -22981,28 +22981,28 @@ coordinates:
     sourceLine: 38
   SYM-telemetry-acceptance-analyze:
     identityHash: 4d81da58f0afee6de2f20a4e0189efc8bd93cb9e595ea6bbd123af07923f4d2a
-    sourceHash: e575580f9b7e60af446f17e4aba16d359880f7b81f0534a1ff644c2b618454cf
+    sourceHash: 678a39959f7ced2d0fef1e268c0d5b9aa1e0f5a2ab4dcaa27a0aebaf93d7e599
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 649
+    sourceEndLine: 652
     sourceFile: packages/cli/src/public/telemetry-acceptance.ts
-    sourceLine: 584
+    sourceLine: 587
   SYM-telemetry-acceptance-diagnostics:
     identityHash: d2849ae942263062b0d81c8eba98b15c515d23e40cad699c8fee41e7510bd032
-    sourceHash: e575580f9b7e60af446f17e4aba16d359880f7b81f0534a1ff644c2b618454cf
+    sourceHash: 678a39959f7ced2d0fef1e268c0d5b9aa1e0f5a2ab4dcaa27a0aebaf93d7e599
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 792
+    sourceEndLine: 796
     sourceFile: packages/cli/src/public/telemetry-acceptance.ts
-    sourceLine: 712
+    sourceLine: 715
   SYM-telemetry-acceptance-parse-log:
     identityHash: bb7056040d520ad81a6ed9a7ae0c2f42179746340af883afc81376fa5085fca1
-    sourceHash: e575580f9b7e60af446f17e4aba16d359880f7b81f0534a1ff644c2b618454cf
+    sourceHash: 678a39959f7ced2d0fef1e268c0d5b9aa1e0f5a2ab4dcaa27a0aebaf93d7e599
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 74
+    sourceEndLine: 77
     sourceFile: packages/cli/src/public/telemetry-acceptance.ts
-    sourceLine: 50
+    sourceLine: 53
   SYM-telemetry-diagnostic-append-cli:
     identityHash: bbc558a5d7dfb6b058d67562fe17f65a3412f2e2d4d0848d994b7135f30b3d62
     sourceHash: 3af2661afeca3357c4be9dd0f5ee4489d44aa90ae85113fa1a4903ef42349159
