@@ -14,14 +14,20 @@ import {
   cpSync,
   existsSync,
   mkdirSync,
+  mkdtempSync,
   readFileSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { writeCoverageManifestAudit } from "./coverage-manifest";
 import { finalizeLcov } from "./finalize-lcov";
 import { mergeLcovContents } from "./merge-lcov";
+import {
+  isolatedUnitBatchEnv,
+  stopTestEngines,
+} from "../test/root.test.ts";
 
 const COVERAGE_DIR = "coverage/unit";
 const LCOV_PATH = join(COVERAGE_DIR, "lcov.info");
@@ -128,20 +134,29 @@ export const COVERAGE_SHARDS: readonly {
   },
 ] as const;
 
-function runBunTest(
+async function runBunTest(
   paths: readonly string[],
   coverageDir: string,
   timeoutMs = DEFAULT_SHARD_TIMEOUT_MS,
-): number {
+): Promise<number> {
   const args: string[] = [...COVERAGE_ARGS];
   const coverageDirIndex = args.indexOf("--coverage-dir");
   args[coverageDirIndex + 1] = coverageDir;
   const timeoutIndex = args.indexOf("--timeout");
   args[timeoutIndex + 1] = String(timeoutMs);
-  const result = spawnSync("bun", [...args, ...paths], {
-    stdio: "inherit",
-  });
-  return result.status ?? 1;
+  const runtimeDirectory = mkdtempSync(
+    join(tmpdir(), "kibi-unit-coverage-runtime-"),
+  );
+  try {
+    const result = spawnSync("bun", [...args, ...paths], {
+      stdio: "inherit",
+      env: isolatedUnitBatchEnv(runtimeDirectory),
+    });
+    return result.status ?? 1;
+  } finally {
+    await stopTestEngines(runtimeDirectory);
+    rmSync(runtimeDirectory, { recursive: true, force: true });
+  }
 }
 
 function lineCoveragePercent(lcov: string): number {
@@ -173,7 +188,7 @@ export async function runUnitCoverage(): Promise<void> {
     // repository default. Remove that path before each shard so a fallback
     // capture cannot accidentally reuse the previous shard's report.
     rmSync(LCOV_PATH, { force: true });
-    const exitCode = runBunTest(
+    const exitCode = await runBunTest(
       shard.paths,
       shardCoverageDir,
       shard.timeoutMs ?? DEFAULT_SHARD_TIMEOUT_MS,

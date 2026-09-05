@@ -1,7 +1,12 @@
 // implements REQ-001
-import { describe, expect, test } from "bun:test";
+import { describe, expect, spyOn, test } from "bun:test";
+import { skillsListSpec, skillsLoadSpec } from "kibi-runtime";
 
-import { handleKbSkillsRead } from "../../src/tools/skills.js";
+import {
+  handleKbSkillsList,
+  handleKbSkillsLoad,
+  handleKbSkillsRead,
+} from "../../src/tools/skills.js";
 import { handleKbValidateUpsert } from "../../src/tools/validate-upsert.js";
 
 describe("MCP handler error wrappers", () => {
@@ -18,5 +23,31 @@ describe("MCP handler error wrappers", () => {
         resource: "resources/x.md",
       }),
     ).rejects.toThrow("Skills read failed");
+  });
+
+  test("skills list wraps executor failures", async () => {
+    const spy = spyOn(skillsListSpec, "execute").mockImplementation(async () => {
+      throw new Error("list down");
+    });
+    try {
+      await expect(handleKbSkillsList({})).rejects.toThrow(
+        "Skills list failed: list down",
+      );
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  test("skills load wraps non-Error executor failures", async () => {
+    const spy = spyOn(skillsLoadSpec, "execute").mockImplementation(async () => {
+      throw "load down";
+    });
+    try {
+      await expect(handleKbSkillsLoad({ id: "kibi-usage" })).rejects.toThrow(
+        "Skills load failed: load down",
+      );
+    } finally {
+      spy.mockRestore();
+    }
   });
 });
