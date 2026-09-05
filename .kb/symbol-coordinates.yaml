@@ -3837,36 +3837,36 @@ coordinates:
     sourceLine: 155
   SYM-cli-isolated-exec-file-sync:
     identityHash: 8192151b4cd86add79e165820b344faa3ed5490f7de13cf79d24cf6f5ba60881
-    sourceHash: 0270e700ae816ee9f59ffa604529257e80ffd00b73a426d7b5a5c205c150f7cd
+    sourceHash: 76df2b57f8d4977a859ceb45ab558589f9b7791bfb65385facabd57caaf7142d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 107
+    sourceEndLine: 130
     sourceFile: packages/cli/tests/helpers/isolated-env.ts
-    sourceLine: 98
+    sourceLine: 121
   SYM-cli-isolated-exec-sync:
     identityHash: 48d181ed69425fd255e0ef3c91f6e858310b0f51ba7ec8a6797c02f5875904ab
-    sourceHash: 0270e700ae816ee9f59ffa604529257e80ffd00b73a426d7b5a5c205c150f7cd
+    sourceHash: 76df2b57f8d4977a859ceb45ab558589f9b7791bfb65385facabd57caaf7142d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 65
+    sourceEndLine: 88
     sourceFile: packages/cli/tests/helpers/isolated-env.ts
-    sourceLine: 57
+    sourceLine: 80
   SYM-cli-isolated-sandbox-env:
     identityHash: 0e7e4a21d583c3df42ba289594b3bba6892ac5eb43c9e588e945841ec910952d
-    sourceHash: 0270e700ae816ee9f59ffa604529257e80ffd00b73a426d7b5a5c205c150f7cd
+    sourceHash: 76df2b57f8d4977a859ceb45ab558589f9b7791bfb65385facabd57caaf7142d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 50
+    sourceEndLine: 73
     sourceFile: packages/cli/tests/helpers/isolated-env.ts
     sourceLine: 21
   SYM-cli-isolated-spawn-sync:
     identityHash: dd85f4943cb76b385e71f58ae14cf8fd215f6c3f250016e35997bdc0586b09e3
-    sourceHash: 0270e700ae816ee9f59ffa604529257e80ffd00b73a426d7b5a5c205c150f7cd
+    sourceHash: 76df2b57f8d4977a859ceb45ab558589f9b7791bfb65385facabd57caaf7142d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 86
+    sourceEndLine: 109
     sourceFile: packages/cli/tests/helpers/isolated-env.ts
-    sourceLine: 77
+    sourceLine: 100
   SYM-cli-json-invocation-type:
     identityHash: 40f797811a53cc571ec05f58809cf64fb389a51aec60fceb41187ec36a9f652d
     sourceHash: 1578fa3d93e187585c5a3294a55348f65a89e89a97a69223339b92f4e4ba4fd3
@@ -6085,7 +6085,7 @@ coordinates:
     sourceLine: 462
   SYM-COVERAGE_SHARDS:
     identityHash: a85045cd5ad8cac175a632809ca7b95f87d288d8bb58c3154c5d4864f49e51aa
-    sourceHash: 72eb4a168128f764e2e7f990fe6f70f6cd882491f0b8f4726ea54b5f858a2d55
+    sourceHash: e4c47360d7b8c42ab5eac25b60f500a36222bd112bf53aa1df4ac4fba7fd412e
     sourceColumn: 13
     sourceEndColumn: 10
     sourceEndLine: 135
@@ -6957,7 +6957,7 @@ coordinates:
     sourceLine: 251
   SYM-discovery-execute-query:
     identityHash: bbbf3ac1aa54c02a33f540ec09474dd6e9613a0051fa3a1da4e9218fbf4a7265
-    sourceHash: dc61c9bedb88bf22c7f17a38fe7512505c119bb7eca013186706915ecc0c7cfa
+    sourceHash: 2911ca9cb03bbfb4c83ee9d5193cbd0b9f05503b3b16d807b5cb97a3af0ae9e8
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 198
@@ -6965,7 +6965,7 @@ coordinates:
     sourceLine: 134
   SYM-discovery-execute-search:
     identityHash: 5e0852ce502dd4c887b7b48c89f3625abd47aaad0a1dc34d64196207533f8660
-    sourceHash: dc61c9bedb88bf22c7f17a38fe7512505c119bb7eca013186706915ecc0c7cfa
+    sourceHash: 2911ca9cb03bbfb4c83ee9d5193cbd0b9f05503b3b16d807b5cb97a3af0ae9e8
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 298
@@ -6973,15 +6973,15 @@ coordinates:
     sourceLine: 200
   SYM-discovery-execute-status:
     identityHash: 67133c5cb52731046282e1e774e7c6500cafff0f3ab478fc8319d6fb2062ed71
-    sourceHash: dc61c9bedb88bf22c7f17a38fe7512505c119bb7eca013186706915ecc0c7cfa
+    sourceHash: 2911ca9cb03bbfb4c83ee9d5193cbd0b9f05503b3b16d807b5cb97a3af0ae9e8
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 525
+    sourceEndLine: 526
     sourceFile: packages/cli/src/public/operations/discovery-executors.ts
     sourceLine: 300
   SYM-discovery-query-input:
     identityHash: 80d41914c8ff319f9d49af1aed16ce710cc053d624f99d576de9b192d1969da9
-    sourceHash: dc61c9bedb88bf22c7f17a38fe7512505c119bb7eca013186706915ecc0c7cfa
+    sourceHash: 2911ca9cb03bbfb4c83ee9d5193cbd0b9f05503b3b16d807b5cb97a3af0ae9e8
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 45
@@ -6989,7 +6989,7 @@ coordinates:
     sourceLine: 38
   SYM-discovery-query-payload:
     identityHash: 8cae8939a7bea075c8d30984224de5a8ac75db17c945fccc6481871054963b19
-    sourceHash: dc61c9bedb88bf22c7f17a38fe7512505c119bb7eca013186706915ecc0c7cfa
+    sourceHash: 2911ca9cb03bbfb4c83ee9d5193cbd0b9f05503b3b16d807b5cb97a3af0ae9e8
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 50
@@ -6997,7 +6997,7 @@ coordinates:
     sourceLine: 47
   SYM-discovery-search-input:
     identityHash: 1c402bc17108f59434c6a541a2c614e4f75850d3be21a4f37a996da44e3e90aa
-    sourceHash: dc61c9bedb88bf22c7f17a38fe7512505c119bb7eca013186706915ecc0c7cfa
+    sourceHash: 2911ca9cb03bbfb4c83ee9d5193cbd0b9f05503b3b16d807b5cb97a3af0ae9e8
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 61
@@ -7005,7 +7005,7 @@ coordinates:
     sourceLine: 52
   SYM-discovery-search-payload:
     identityHash: a6821f026847763158f318cc2cd4feb0c7098a97cf67d6908a35b4e3b39d1e9b
-    sourceHash: dc61c9bedb88bf22c7f17a38fe7512505c119bb7eca013186706915ecc0c7cfa
+    sourceHash: 2911ca9cb03bbfb4c83ee9d5193cbd0b9f05503b3b16d807b5cb97a3af0ae9e8
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 67
@@ -7013,7 +7013,7 @@ coordinates:
     sourceLine: 63
   SYM-discovery-status-input:
     identityHash: 0da2077ac7056c84f1fcb878548e6ff98ab9099fdb82188e3a9e9ce4b9fb2075
-    sourceHash: dc61c9bedb88bf22c7f17a38fe7512505c119bb7eca013186706915ecc0c7cfa
+    sourceHash: 2911ca9cb03bbfb4c83ee9d5193cbd0b9f05503b3b16d807b5cb97a3af0ae9e8
     sourceColumn: 12
     sourceEndColumn: 58
     sourceEndLine: 69
@@ -7021,7 +7021,7 @@ coordinates:
     sourceLine: 69
   SYM-discovery-status-payload:
     identityHash: fadf77c95c6e4e51027d8d407e7b842d0e23afb51d94bdb8315e3666a132c470
-    sourceHash: dc61c9bedb88bf22c7f17a38fe7512505c119bb7eca013186706915ecc0c7cfa
+    sourceHash: 2911ca9cb03bbfb4c83ee9d5193cbd0b9f05503b3b16d807b5cb97a3af0ae9e8
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 113
@@ -8925,10 +8925,10 @@ coordinates:
     sourceLine: 16
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-activation-classifyactivation:
     identityHash: 6198afbf019942e03b2af6f6d8793517fd711f8983b304c2b270b7b1daa077af
-    sourceHash: 86996277c76c1448066ab9060433fd344c2ebb7ad66f5bc9df053a76b4fe7e70
+    sourceHash: 2ae80c0cd3334721325ab9f0c36209a63ffa3113587955bb1b06c927351e3878
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 196
+    sourceEndLine: 199
     sourceFile: packages/cli/src/operations/bootstrap/activation.ts
     sourceLine: 121
   SYM-kibi-bootstrap-cli-src-operations-bootstrap-candidate-helpers-confidenceband:
@@ -15301,7 +15301,7 @@ coordinates:
     sourceLine: 241
   SYM-scripts-runUnitCoverage:
     identityHash: 0a45c2accda0d8883b93684564d0b93a415b99a57df65b9e95b13bbd99484197
-    sourceHash: 72eb4a168128f764e2e7f990fe6f70f6cd882491f0b8f4726ea54b5f858a2d55
+    sourceHash: e4c47360d7b8c42ab5eac25b60f500a36222bd112bf53aa1df4ac4fba7fd412e
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 261
@@ -16541,7 +16541,7 @@ coordinates:
     sourceLine: 72
   SYM-skillopt-broker-stage-options:
     identityHash: fab8a81432db6559aa3af46afd9d7db0c8c7390e33c59c6cdc9cf049c8555bb1
-    sourceHash: c4652cebf8885e49bf1d313587cacd4e424ad184d5435de6ed321216d3ab9643
+    sourceHash: 42ad5a999484fe564ddb7465057ef2018d15ab27e7516e3147ad4cee84d271f6
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 19
@@ -19365,15 +19365,15 @@ coordinates:
     sourceLine: 81
   SYM-skillopt-mcp-broker-tests:
     identityHash: 6b2ed137912c1241f61f99ac440b434e1bd9ed41077b7eecd21eab9494d8429c
-    sourceHash: a784c9502ae5ae252eace100310c3f84b01d7264e3936b2e38f04a950ccb4f6d
+    sourceHash: 5037ee67787b5893b8caf4cb17b0e0e8cbcebbf57eb84a298f365a51bb038e7c
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 370
+    sourceEndLine: 372
     sourceFile: scripts/skillopt-eval/tests/mcp-broker.test.ts
     sourceLine: 1
   SYM-skillopt-mcp-startup-probe-tests:
     identityHash: a598711745ef51321876b0b5bc12872ca3e8c7f59470a95b784a4da5807853e5
-    sourceHash: 0700dfa9bf213f1a430818f0b71ab56f845a7d2d477288051400e583587c4fc0
+    sourceHash: db0d40a00923975a711fbc5edd0523c3b5f77544978d1c2d74686fbe357148c2
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 158
@@ -21781,10 +21781,10 @@ coordinates:
     sourceLine: 52
   SYM-skillopt-runtime-stage-kibi-mcp:
     identityHash: 6555a76f4b91494d40ac1b2d39d26193a7008ec4489539685552ea469aed7846
-    sourceHash: 957deeb7987d22bb7c4b9cafe9e3d0a5182e5c5b53a0eff5cd275f7ba94e8809
+    sourceHash: de86c6ee7615c51e709ca6cf6fb2f21013b0696829a10b8f3a76f0c1c1fd6743
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 147
+    sourceEndLine: 153
     sourceFile: scripts/skillopt-eval/runtime/staged-mcp.ts
     sourceLine: 107
   SYM-skillopt-runtime-staged-canary:
@@ -21797,7 +21797,7 @@ coordinates:
     sourceLine: 40
   SYM-skillopt-runtime-staged-mcp-launch:
     identityHash: 0b80fc5dd4b40c9c6de861d48a3a1e386c27cf6ca3f4093d57b62e6d268de01b
-    sourceHash: 957deeb7987d22bb7c4b9cafe9e3d0a5182e5c5b53a0eff5cd275f7ba94e8809
+    sourceHash: de86c6ee7615c51e709ca6cf6fb2f21013b0696829a10b8f3a76f0c1c1fd6743
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 19
@@ -22173,15 +22173,15 @@ coordinates:
     sourceLine: 44
   SYM-skillopt-stage-kibi-mcp-broker:
     identityHash: 5d05a703d2d4b4240d97be6bffa74949668ac550e1cc4a8b3ddd85ffd5757186
-    sourceHash: c4652cebf8885e49bf1d313587cacd4e424ad184d5435de6ed321216d3ab9643
+    sourceHash: 42ad5a999484fe564ddb7465057ef2018d15ab27e7516e3147ad4cee84d271f6
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 100
+    sourceEndLine: 106
     sourceFile: scripts/skillopt-eval/runtime/mcp-broker-stage.ts
     sourceLine: 22
   SYM-skillopt-staged-broker-launch:
     identityHash: 7b06d6d587a96e01c4df97bfd99640fdc2dda16b03338fdcba094279015bcc7d
-    sourceHash: c4652cebf8885e49bf1d313587cacd4e424ad184d5435de6ed321216d3ab9643
+    sourceHash: 42ad5a999484fe564ddb7465057ef2018d15ab27e7516e3147ad4cee84d271f6
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 15
@@ -22197,7 +22197,7 @@ coordinates:
     sourceLine: 14
   SYM-skillopt-staged-mcp-options:
     identityHash: 29e024efbab88f7a7533a206e7a1a2193b787f9af83e19a440de2e55e3043db7
-    sourceHash: 957deeb7987d22bb7c4b9cafe9e3d0a5182e5c5b53a0eff5cd275f7ba94e8809
+    sourceHash: de86c6ee7615c51e709ca6cf6fb2f21013b0696829a10b8f3a76f0c1c1fd6743
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 24
@@ -23549,10 +23549,10 @@ coordinates:
     sourceLine: 1
   SYM-test-proof-protocol:
     identityHash: 1c8ef63590374de37cc33074d7d9aaada02273a1261585e6579a0e63327a2ecc
-    sourceHash: 42214523c265bab3bee3a04c5c227a4fe8b22435aa747996c8139ebf17e43bbb
+    sourceHash: 326d6cde76b92e7b5f3286728859e224b1b8ce3fedc0eebe3a20583e12870ada
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 515
+    sourceEndLine: 571
     sourceFile: packages/cli/tests/public/proof-protocol.test.ts
     sourceLine: 1
   SYM-test-publish-metadata-verifier:
@@ -23565,68 +23565,68 @@ coordinates:
     sourceLine: 1
   SYM-test-root-batch-concurrency:
     identityHash: 1b350dbbe342b5b9de2f433899a639eb0761dac135c3d6aa71ad3d0f4f3035b0
-    sourceHash: 0d70e6a501b14df920fa383d3b355805452beb8c0556d7a9a32a4d7384dcbbdd
+    sourceHash: 65e7df927ee1c3760adc87378b60417a7f60530fde47654d5a40da730fb3aa1c
     sourceColumn: 13
     sourceEndColumn: 34
-    sourceEndLine: 40
+    sourceEndLine: 58
     sourceFile: test/root.test.ts
-    sourceLine: 40
+    sourceLine: 58
   SYM-test-root-batch-timeout-minutes:
     identityHash: 419e1f2874ae6af61de24368330a41c22dcf31a3df144b5fdefa0f239f707252
-    sourceHash: 0d70e6a501b14df920fa383d3b355805452beb8c0556d7a9a32a4d7384dcbbdd
+    sourceHash: 65e7df927ee1c3760adc87378b60417a7f60530fde47654d5a40da730fb3aa1c
     sourceColumn: 13
     sourceEndColumn: 39
-    sourceEndLine: 39
+    sourceEndLine: 57
     sourceFile: test/root.test.ts
-    sourceLine: 39
+    sourceLine: 57
   SYM-test-root-cli-engine-batch-timeout:
     identityHash: dc8b145b6e06765b54a74edefd0beda9f40ab59a9703c6582d8281fd9146b248
-    sourceHash: 0d70e6a501b14df920fa383d3b355805452beb8c0556d7a9a32a4d7384dcbbdd
+    sourceHash: 65e7df927ee1c3760adc87378b60417a7f60530fde47654d5a40da730fb3aa1c
     sourceColumn: 13
     sourceEndColumn: 50
-    sourceEndLine: 45
+    sourceEndLine: 63
     sourceFile: test/root.test.ts
-    sourceLine: 45
+    sourceLine: 63
   SYM-test-root-engine-shutdown-timeout:
     identityHash: 86dc4d6514b5b0a995a6da345a4719e18e3689b4b3c1215f86d838d5fbb6e25c
-    sourceHash: 0d70e6a501b14df920fa383d3b355805452beb8c0556d7a9a32a4d7384dcbbdd
+    sourceHash: 65e7df927ee1c3760adc87378b60417a7f60530fde47654d5a40da730fb3aa1c
     sourceColumn: 13
     sourceEndColumn: 52
-    sourceEndLine: 41
+    sourceEndLine: 59
     sourceFile: test/root.test.ts
-    sourceLine: 41
+    sourceLine: 59
   SYM-test-root-getBatchFailureMessage:
     identityHash: 856031a9fe762f1f995ef791d81f5cf88475794aa41bd1d943ee1fb5d5cab2de
-    sourceHash: 0d70e6a501b14df920fa383d3b355805452beb8c0556d7a9a32a4d7384dcbbdd
+    sourceHash: 65e7df927ee1c3760adc87378b60417a7f60530fde47654d5a40da730fb3aa1c
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 69
+    sourceEndLine: 87
     sourceFile: test/root.test.ts
-    sourceLine: 55
+    sourceLine: 73
   SYM-test-root-isolated-unit-batch-env:
     identityHash: 487365ed205c926435678d3f494c2e163b97324184ff7aa927f0e0f589cff2a0
-    sourceHash: 0d70e6a501b14df920fa383d3b355805452beb8c0556d7a9a32a4d7384dcbbdd
+    sourceHash: 65e7df927ee1c3760adc87378b60417a7f60530fde47654d5a40da730fb3aa1c
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 35
+    sourceEndLine: 53
     sourceFile: test/root.test.ts
     sourceLine: 23
   SYM-test-root-runBatch:
     identityHash: 8948f32a78a75a740dc69b7350c004fa013602ee03d3ddff225bafeed9d1cd8a
-    sourceHash: 0d70e6a501b14df920fa383d3b355805452beb8c0556d7a9a32a4d7384dcbbdd
+    sourceHash: 65e7df927ee1c3760adc87378b60417a7f60530fde47654d5a40da730fb3aa1c
     sourceColumn: 15
     sourceEndColumn: 1
-    sourceEndLine: 316
+    sourceEndLine: 334
     sourceFile: test/root.test.ts
-    sourceLine: 256
+    sourceLine: 274
   SYM-test-root-stop-engines:
     identityHash: 694f43748981754ef61b9eaf8f4362a7bc1dc955c3ddee4fb20800d8786196fd
-    sourceHash: 0d70e6a501b14df920fa383d3b355805452beb8c0556d7a9a32a4d7384dcbbdd
+    sourceHash: 65e7df927ee1c3760adc87378b60417a7f60530fde47654d5a40da730fb3aa1c
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 226
+    sourceEndLine: 244
     sourceFile: test/root.test.ts
-    sourceLine: 186
+    sourceLine: 204
   SYM-test-root-summary-timeout-diagnostic:
     identityHash: 2314e0d297634c8033ad2a748d3e8720642dffa0f77739939d66028c894e08f8
     sourceHash: 82a9b28580c2dd86e3faf0388ff4ed2249d845cd151495548642ca344db7f426
