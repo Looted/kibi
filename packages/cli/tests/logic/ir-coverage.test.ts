@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import {
   LOGIC_IR_VERSION,
   canonicalLogicJson,
+  renderLogicProlog,
   utf8Span,
   validateLogicIr,
 } from "../../src/logic/ir.js";
@@ -184,5 +185,91 @@ describe("utf8Span", () => {
   test("clamps inverted ranges and counts UTF-8 bytes", () => {
     expect(utf8Span("é", 0, 1)).toEqual({ start: 0, end: 2 });
     expect(utf8Span("abc", 4, 1)).toEqual({ start: 3, end: 3 });
+  });
+});
+
+describe("renderLogicProlog and remaining validators", () => {
+  test("renders atom-only and rule bodies", () => {
+    const atomOnly = validateLogicIr({
+      version: LOGIC_IR_VERSION,
+      kind: "atom",
+      modality: "assert",
+      head: atom("ready"),
+    });
+    expect(atomOnly.valid).toBe(true);
+    expect(renderLogicProlog(atomOnly.normalized!)).toContain("assert(");
+
+    const rule = validateLogicIr({
+      version: LOGIC_IR_VERSION,
+      kind: "rule",
+      modality: "oblige",
+      variables: [{ name: "X", type: "entity" }],
+      head: atom("keep", [{ kind: "var", name: "X", type: "entity" }], {
+        polarity: "negative",
+        namespace: "policy",
+      }),
+      body: {
+        kind: "all",
+        items: [
+          atom("subject", [{ kind: "var", name: "X", type: "entity" }]),
+          {
+            kind: "compare",
+            operator: "neq",
+            left: { kind: "var", name: "X", type: "entity" },
+            right: { kind: "const", value: "archived" },
+          },
+          {
+            kind: "temporal",
+            relation: "overlaps",
+            left: {
+              kind: "interval",
+              start: "2026-01-01T00:00:00Z",
+              end: "2026-06-01T00:00:00Z",
+            },
+            right: {
+              kind: "interval",
+              start: "2026-03-01T00:00:00Z",
+              end: "2026-09-01T00:00:00Z",
+            },
+          },
+        ],
+      },
+    });
+    expect(rule.valid).toBe(true);
+    expect(renderLogicProlog(rule.normalized!)).toContain(":-");
+  });
+
+  test("rejects incompatible units, invalid namespaces, and version drift", () => {
+    expect(
+      validateLogicIr({
+        version: "not-a-version",
+        kind: "constraint",
+        modality: "assert",
+        body: {
+          kind: "compare",
+          operator: "eq",
+          left: { kind: "number", value: 1, unit: "days" },
+          right: { kind: "number", value: 2, unit: "years" },
+        },
+      }).errors.join(" "),
+    ).toMatch(/version|incompatible units/);
+
+    expect(
+      validateLogicIr({
+        version: LOGIC_IR_VERSION,
+        kind: "constraint",
+        modality: "assert",
+        body: atom("ok", [], { namespace: "Bad_NS" }),
+      }).errors.join(" "),
+    ).toMatch(/namespace/);
+
+    expect(
+      validateLogicIr({
+        version: LOGIC_IR_VERSION,
+        kind: "constraint",
+        modality: "assert",
+        body: atom("ok", new Array(9).fill({ kind: "const", value: "x" })),
+      }).errors.join(" "),
+    ).toMatch(/at most 8/);
   });
 });
