@@ -644,4 +644,21 @@ describe("syncCommand remaining runtime branches", () => {
     },
     90_000,
   );
+
+  test("blocks writes when resolveBranchAttachment reports migrationRequired", async () => {
+    const cwd = preparedGitWorkspace();
+    await withCwd(cwd, () => initCommand({}));
+    const resolve = await import("../../src/utils/branch-resolver.js");
+    const attachment = spyOn(resolve, "resolveBranchAttachment").mockReturnValue({
+      gitBranch: "main",
+      kbBranch: "legacy",
+      storePath: path.join(cwd, ".kb", "branches", "legacy"),
+      kind: "legacy_compat",
+      migrationRequired: true,
+    });
+    restores.push(() => attachment.mockRestore());
+    await expect(syncCommand({ workspaceRoot: cwd })).rejects.toThrow(
+      /Sync blocked:.*legacy branch storage/,
+    );
+  });
 });

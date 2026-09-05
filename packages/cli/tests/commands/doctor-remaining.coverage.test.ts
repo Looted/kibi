@@ -473,4 +473,53 @@ status: open
     expect(result.exitCode).toBe(0);
     expect(io.logText()).toContain("version 9.2");
   });
+
+  test("reports json failure when only one of post-checkout or post-merge exists", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    writeHook(cwd, "post-merge", "#!/bin/sh\nkibi sync\n");
+    makeExecutable(path.join(cwd, ".git", "hooks", "post-merge"));
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await withCwd(cwd, () => doctorCommand({ format: "json" }));
+    expect(result.exitCode).toBe(1);
+    expect(io.logText()).toContain("Partially installed");
+  });
+
+  test("fails a pre-commit hook that does not mention kibi", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    writeHook(cwd, "post-checkout", "#!/bin/sh\nkibi sync\n");
+    writeHook(cwd, "post-merge", "#!/bin/sh\nkibi sync\n");
+    writeHook(cwd, "pre-commit", "#!/bin/sh\necho lint && exit 0\n");
+    makeExecutable(path.join(cwd, ".git", "hooks", "post-checkout"));
+    makeExecutable(path.join(cwd, ".git", "hooks", "post-merge"));
+    makeExecutable(path.join(cwd, ".git", "hooks", "pre-commit"));
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await withCwd(cwd, () => doctorCommand({ format: "json" }));
+    expect(result.exitCode).toBe(1);
+    expect(io.logText()).toContain("does not invoke kibi");
+  });
+
+  test("fails SWI-Prolog when execSync returns an 8.x banner", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    const originalExec = childProcess.execSync;
+    const exec = spyOn(childProcess, "execSync").mockImplementation(((
+      command: string,
+      options?: unknown,
+    ) => {
+      if (String(command).includes("swipl")) {
+        return "SWI-Prolog version 8.4 (threaded)\n";
+      }
+      return originalExec(command, options as never);
+    }) as typeof childProcess.execSync);
+    restores.push(() => exec.mockRestore());
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await withCwd(cwd, () => doctorCommand({ format: "json" }));
+    expect(result.exitCode).toBe(1);
+    expect(io.logText()).toContain("Version 8.x found");
+  });
 });

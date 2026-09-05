@@ -733,5 +733,40 @@ describe("telemetry acceptance", () => {
       )?.status,
     ).toBe("failed");
   });
+
+  test("rejects a JSON array usage-log line as a non-object", () => {
+    expect(() => parseTelemetryUsageLog("[1,2]\n")).toThrow("expected object");
+  });
+
+  test("reports insufficient_evidence when fewer than minimumEvents are present", () => {
+    const events: TelemetryUsageEvent[] = Array.from(
+      { length: 5 },
+      (_, index) => ({
+        ...baseEvent(4 - index),
+        tool: "kb_status",
+        business_args: {},
+      }),
+    );
+    const report = analyzeTelemetryAcceptance(events, NOW, {
+      ...DEFAULT_TELEMETRY_ACCEPTANCE_POLICY,
+      minimumEvents: 20,
+    });
+    expect(report.status).toBe("insufficient_evidence");
+    expect(
+      report.metrics.find((metric) => metric.id === "telemetry_completeness")
+        ?.status,
+    ).toBe("insufficient_evidence");
+    expect(report.scope.evaluatedEvents).toBe(5);
+  });
+
+  test("createTelemetryAcceptanceDiagnostics explains a null lastTimestamp", () => {
+    const report = analyzeTelemetryAcceptance([
+      { tool: "kb_status", telemetry_status: "provided", telemetry: {} },
+    ]);
+    expect(report.scope.lastTimestamp).toBeNull();
+    const diagnostics = createTelemetryAcceptanceDiagnostics(report);
+    expect(diagnostics[0]?.id).toBe("telemetry_evidence_stale");
+    expect(diagnostics[0]?.message).toContain("no valid timestamped evidence");
+  });
 });
 

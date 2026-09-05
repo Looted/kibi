@@ -1707,4 +1707,94 @@ describe("migration apply remaining executors and closeout", () => {
       ).actionResults[0]?.detail,
     ).toMatch(/Coordinate refresh did not complete/);
   });
+
+  test("rejects a compile plan relationship missing type, from, or to", async () => {
+    // implements REQ-014
+    const root = makeTempDir();
+    track(
+      spyOn(discoveryExecutors, "executeStatus").mockResolvedValue(
+        statusResult(),
+      ),
+    );
+    const missingTo = compilePlan({
+      steps: [
+        {
+          type: "req",
+          id: "REQ-apply",
+          properties: { title: "Apply", status: "open" },
+          relationships: [
+            { type: "specified_by", from: "REQ-apply" },
+          ],
+        },
+      ],
+    });
+    await expect(
+      executeApplyPlan(
+        { plan: missingTo, approvedPlanHash: missingTo.planHash },
+        filesystemContext(root),
+      ),
+    ).rejects.toThrow(/every relationship needs type, from, and to/);
+
+    const missingFrom = compilePlan({
+      steps: [
+        {
+          type: "req",
+          id: "REQ-apply",
+          properties: { title: "Apply", status: "open" },
+          relationships: [
+            { type: "specified_by", to: "SCEN-apply" },
+          ],
+        },
+      ],
+    });
+    await expect(
+      executeApplyPlan(
+        { plan: missingFrom, approvedPlanHash: missingFrom.planHash },
+        filesystemContext(root),
+      ),
+    ).rejects.toThrow(/every relationship needs type, from, and to/);
+
+    const missingType = compilePlan({
+      steps: [
+        {
+          type: "req",
+          id: "REQ-apply",
+          properties: { title: "Apply", status: "open" },
+          relationships: [
+            { from: "REQ-apply", to: "SCEN-apply" },
+          ],
+        },
+      ],
+    });
+    await expect(
+      executeApplyPlan(
+        { plan: missingType, approvedPlanHash: missingType.planHash },
+        filesystemContext(root),
+      ),
+    ).rejects.toThrow(/every relationship needs type, from, and to/);
+  });
+
+  test("rejects a migration plan when expected.configHash has drifted", async () => {
+    // implements REQ-014
+    const root = makeTempDir();
+    track(
+      spyOn(discoveryExecutors, "executeStatus").mockResolvedValue(
+        statusResult(),
+      ),
+    );
+    const plan = buildMigrationPlan({
+      expected: { configHash: "a".repeat(64) },
+      actions: [automaticAction({ id: "mig-config-drift" })],
+    });
+    await expect(
+      executeApplyPlan(
+        {
+          plan,
+          approvedPlanHash: plan.planHash,
+          approvedActionIds: ["mig-config-drift"],
+        },
+        filesystemContext(root),
+      ),
+    ).rejects.toThrow(/config changed since planning/);
+  });
 });

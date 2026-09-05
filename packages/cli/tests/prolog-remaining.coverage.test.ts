@@ -554,4 +554,75 @@ describe("prolog remaining: process-tree teardown and translators", () => {
     }
     await prolog.terminate();
   });
+
+  test("returns a cached result for a repeated interactive cacheable goal", async () => {
+    const restoreEnvFn = isolateKibiEnv();
+    restores.push(restoreEnvFn);
+    const children: FakeChild[] = [];
+    const spawn = spyOn(childProcess, "spawn").mockImplementation(() => {
+      const created = fakeChild({ echoTrue: true });
+      children.push(created);
+      return created as unknown as ChildProcess;
+    });
+    restores.push(() => spawn.mockRestore());
+    const last = (): FakeChild => {
+      const child = children.at(-1);
+      if (child === undefined) throw new Error("spawn was not called");
+      return child;
+    };
+    const prolog = new PrologProcess({
+      swiplPath: "/usr/bin/env",
+      oneShot: false,
+      timeout: 500,
+    });
+    await prolog.start();
+    let queryWrites = 0;
+    last().stdin!.write = (chunk: string) => {
+      queryWrites += 1;
+      last().stdout?.emit(
+        "data",
+        Buffer.from("X = 1.\n__KIBI_QUERY_FRAME_END__\n"),
+      );
+      return Boolean(chunk);
+    };
+    const first = await prolog.query("kb_entity('REQ-CACHE', req, Props)");
+    const second = await prolog.query("kb_entity('REQ-CACHE', req, Props)");
+    expect(first.success).toBe(true);
+    expect(second).toEqual(first);
+    expect(queryWrites).toBe(1);
+    await prolog.terminate();
+  });
+
+  test("appends kb_save when an interactive kb_assert goal mutates", async () => {
+    const restoreEnvFn = isolateKibiEnv();
+    restores.push(restoreEnvFn);
+    const children: FakeChild[] = [];
+    const spawn = spyOn(childProcess, "spawn").mockImplementation(() => {
+      const created = fakeChild({ echoTrue: true });
+      children.push(created);
+      return created as unknown as ChildProcess;
+    });
+    restores.push(() => spawn.mockRestore());
+    const last = (): FakeChild => {
+      const child = children.at(-1);
+      if (child === undefined) throw new Error("spawn was not called");
+      return child;
+    };
+    const prolog = new PrologProcess({
+      swiplPath: "/usr/bin/env",
+      oneShot: false,
+      timeout: 500,
+    });
+    await prolog.start();
+    const writes: string[] = [];
+    last().stdin!.write = (chunk: string) => {
+      writes.push(String(chunk));
+      last().stdout?.emit("data", Buffer.from("__KIBI_QUERY_FRAME_END__\n"));
+      return true;
+    };
+    const result = await prolog.query("kb_assert_entity(req, [])");
+    expect(result.success).toBe(true);
+    expect(writes.join("")).toMatch(/kb_assert_entity\(req, \[\]\), kb_save/);
+    await prolog.terminate();
+  });
 });

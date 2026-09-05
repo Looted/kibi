@@ -482,4 +482,106 @@ describe("checkCommand remaining runtime branches", () => {
       query: async () => ({ success: true, bindings: { Ids: "REQ-BARE" } }),
     } as never)).toEqual([]);
   });
+
+  test("returns exit 1 when kbPath attach fails in json mode", async () => {
+    const cwd = preparedWorkspace();
+    const kbPath = path.join(cwd, "missing-kb-store");
+    const start = spyOn(PrologProcess.prototype, "start").mockResolvedValue(
+      undefined as never,
+    );
+    const query = spyOn(PrologProcess.prototype, "query").mockResolvedValue({
+      success: false,
+      bindings: {},
+      error: "store missing",
+    });
+    const terminate = spyOn(
+      PrologProcess.prototype,
+      "terminate",
+    ).mockResolvedValue(undefined);
+    restores.push(() => {
+      start.mockRestore();
+      query.mockRestore();
+      terminate.mockRestore();
+    });
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await withCwd(cwd, () =>
+      checkCommand({ kbPath, format: "json" }),
+    );
+    expect(result.exitCode).toBe(1);
+    expect(io.errorText()).toContain("Failed to attach KB");
+    expect(terminate).toHaveBeenCalled();
+  });
+
+  test("prints a violation suggestion when --fix is set", async () => {
+    const cwd = preparedWorkspace();
+    const kbPath = path.join(cwd, "kb-store");
+    mkdirSync(kbPath, { recursive: true });
+    const start = spyOn(PrologProcess.prototype, "start").mockResolvedValue(
+      undefined as never,
+    );
+    const query = spyOn(PrologProcess.prototype, "query").mockResolvedValue({
+      success: true,
+      bindings: {},
+    });
+    const terminate = spyOn(
+      PrologProcess.prototype,
+      "terminate",
+    ).mockResolvedValue(undefined);
+    const execute = spyOn(checkExecutor, "executeCheck").mockResolvedValue({
+      content: [],
+      structuredContent: {
+        violations: [
+          {
+            rule: "required-fields",
+            entityId: "REQ-FIX",
+            description: "Missing title",
+            suggestion: "Add a title field",
+          },
+        ],
+      },
+    } as never);
+    restores.push(() => {
+      start.mockRestore();
+      query.mockRestore();
+      terminate.mockRestore();
+      execute.mockRestore();
+    });
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await withCwd(cwd, () =>
+      checkCommand({ kbPath, fix: true }),
+    );
+    expect(result.exitCode).toBe(1);
+    expect(io.logText()).toContain("Suggestion: Add a title field");
+  });
+
+  test("reports must-priority coverage when a scenario exists but no test", async () => {
+    const violations = await checkMustPriorityCoverage({
+      query: async (goal: string | string[]) => {
+        const text = Array.isArray(goal) ? goal.join(", ") : goal;
+        if (text.includes("findall(Id") && text.includes("priority")) {
+          return { success: true, bindings: { Ids: "['REQ-SCEN-ONLY']" } };
+        }
+        if (text.includes("kb_entity")) {
+          return {
+            success: true,
+            bindings: { Props: '[source=^^("docs/req.md")]' },
+          };
+        }
+        if (text.includes("specified_by")) {
+          return { success: true, bindings: { ScenarioId: "SCEN-1" } };
+        }
+        if (text.includes("validates")) {
+          return { success: false, bindings: {} };
+        }
+        return { success: false, bindings: {} };
+      },
+    } as never);
+    expect(violations).toHaveLength(1);
+    expect(violations[0]?.description).toContain("test coverage");
+    expect(violations[0]?.description).not.toContain("scenario");
+    expect(violations[0]?.suggestion).toContain("Create test");
+    expect(violations[0]?.source).toBe("docs/req.md");
+  });
 });
