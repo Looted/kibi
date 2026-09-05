@@ -6,6 +6,10 @@ import path from "node:path";
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 
 import { executeApplyPlan } from "../../src/operations/planning/apply-plan.js";
+import {
+  type CompilePlanV1,
+  compilePlanHash,
+} from "../../src/operations/planning/compile-intent.js";
 import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
 import { buildMigrationPlan } from "../../src/public/operations/migration-plan.js";
 import type {
@@ -596,5 +600,108 @@ describe("bootstrap recovery journals", () => {
     );
     expect(result.structuredContent.outcome).toBe("partially_applied");
     expect(result.structuredContent.recoveryJournalId).toMatch(/^bootstrap-/);
+  });
+});
+
+function compilePlan(overrides: Partial<CompilePlanV1> = {}): CompilePlanV1 {
+  const body = {
+    version: "kibi.compile-plan.v1" as const,
+    status: "ready" as const,
+    expected: {
+      branch: "develop",
+      kbSnapshotId: "missing",
+      workspaceSnapshot: "a".repeat(64),
+      sourceHashes: {},
+    },
+    target: {
+      mode: "create" as const,
+      requirementId: "REQ-compile",
+      selectionReason: "test",
+    },
+    discovery: { candidates: [], abstained: true },
+    propositions: [],
+    contradictionAnalysis: { outcome: "no_conflict" as const, witnesses: [] },
+    proposals: [],
+    steps: [
+      {
+        type: "req" as const,
+        id: "REQ-compile",
+        properties: { title: "Compile", status: "open" },
+        relationships: [],
+      },
+    ],
+    sourceWrites: [],
+    diagnostics: [],
+    ...overrides,
+  };
+  return { ...body, planHash: compilePlanHash(body) };
+}
+
+describe("compile plan snapshot and derived-commit failures", () => {
+  test("refuses compile apply when the live branch or workspace drifted", async () => {
+    const root = makeTempDir();
+    const plan = compilePlan();
+    const drifted = {
+      ...filesystemContext(root),
+      branchAttachment: {
+        gitBranch: "other",
+        kbBranch: "other",
+        storePath: path.join(root, ".kb", "branches", "other"),
+        kind: "exact" as const,
+        migrationRequired: false,
+      },
+    };
+    await expect(
+      executeApplyPlan({ plan, approvedPlanHash: plan.planHash }, drifted),
+    ).rejects.toThrow(/branch changed since compilation/);
+
+    const wrongWorkspace = compilePlan({
+      expected: {
+        branch: "develop",
+        kbSnapshotId: "missing",
+        workspaceSnapshot: "b".repeat(64),
+        sourceHashes: {},
+      },
+    });
+    await expect(
+      executeApplyPlan(
+        { plan: wrongWorkspace, approvedPlanHash: wrongWorkspace.planHash },
+        filesystemContext(root),
+      ),
+    ).rejects.toThrow(/workspace snapshot changed since compilation/);
+  });
+
+  test("journals derived-commit failure after authoritative source writes", async () => {
+    const root = makeTempDir();
+    const body = "compiled source\n";
+    const plan = compilePlan({
+      sourceWrites: [
+        {
+          path: "docs/compiled.md",
+          mode: "write",
+          beforeHash: null,
+          afterHash: sha(body),
+          body,
+        },
+      ],
+    });
+    const ctx = filesystemContext(root);
+    ctx.prolog = {
+      query: async (goal: string): Promise<PrologQueryResult> => {
+        if (goal.includes("kb_commit_upsert")) {
+          return { success: false, bindings: {}, error: "compiled failed" };
+        }
+        return { success: true, bindings: { Results: "[]" } };
+      },
+      queryStatusJson: async () => ({ success: true, bindings: {} }),
+      nextSolution: async () => null,
+      save: async () => ({ success: true, bindings: {} }),
+    };
+    const result = await executeApplyPlan(
+      { plan, approvedPlanHash: plan.planHash },
+      ctx,
+    );
+    expect(result.structuredContent.status).toBe("committed_with_repairs");
+    expect(result.structuredContent.recoveryJournalId).toMatch(/^source-writes-/);
   });
 });
