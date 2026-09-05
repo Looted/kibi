@@ -3027,6 +3027,14 @@ coordinates:
     sourceEndLine: 2115
     sourceFile: packages/cli/src/engine.ts
     sourceLine: 1541
+  SYM-cli-engine-daemon-entrypoint:
+    identityHash: c1c927bf1aa6fae90fe9068981f0855facd2079c37df9965619988f54cb59592
+    sourceHash: 2665880db13655ac89430ead790c1220ec2567ef55d482ef33f9c625f316f8b1
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 26
+    sourceFile: packages/cli/src/engine-daemon.ts
+    sourceLine: 12
   SYM-cli-engine-durable-fsync:
     identityHash: 30e3c50932d044ce93530fb947885bc20ef026fad3842a2e51238e0b2cf9a20c
     sourceHash: 51832db607cd64810ceae9e03ef5ecdfc4762537995875243a9df4e4214ecb36
@@ -6077,12 +6085,12 @@ coordinates:
     sourceLine: 462
   SYM-COVERAGE_SHARDS:
     identityHash: a85045cd5ad8cac175a632809ca7b95f87d288d8bb58c3154c5d4864f49e51aa
-    sourceHash: 31ca3e707169ce27970c6eacc90d4c0118c430ecec8118a683537680f3fb25ad
+    sourceHash: 72eb4a168128f764e2e7f990fe6f70f6cd882491f0b8f4726ea54b5f858a2d55
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 129
+    sourceEndLine: 135
     sourceFile: scripts/run-unit-coverage.ts
-    sourceLine: 52
+    sourceLine: 58
   SYM-createAtomically:
     identityHash: 948fafa62e117f281be0ffb8ee0b0e2770b160db79536f40dd2ac52f8b3e6772
     sourceHash: 94fe95a19cc6097100c7ab78eb13de92531f131f93fa044089af5ce40a8810bb
@@ -15293,12 +15301,12 @@ coordinates:
     sourceLine: 241
   SYM-scripts-runUnitCoverage:
     identityHash: 0a45c2accda0d8883b93684564d0b93a415b99a57df65b9e95b13bbd99484197
-    sourceHash: 31ca3e707169ce27970c6eacc90d4c0118c430ecec8118a683537680f3fb25ad
+    sourceHash: 72eb4a168128f764e2e7f990fe6f70f6cd882491f0b8f4726ea54b5f858a2d55
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 246
+    sourceEndLine: 261
     sourceFile: scripts/run-unit-coverage.ts
-    sourceLine: 158
+    sourceLine: 173
   SYM-scripts-skillopt-eval-scoring-held-out-predicate-PredicateVariant:
     identityHash: c6dc8fabae506a1b9a264ba37e1a306b5be1a7ad79cd5868fa59028d6ad4ed45
     sourceHash: 5ccd52c4ed95f251cdd24b198169d25b4b26a27a3a7d281e45e166f7cc03c7c0

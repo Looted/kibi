@@ -139,3 +139,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d64ab3a70d0c
+  - type: implements
+    from: SYM-cli-engine-daemon-entrypoint
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-05T19:01:45.453Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c36df3785c4
+  - type: covered_by
+    from: SYM-cli-engine-daemon-entrypoint
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-09-05T19:01:45.459Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc5d683e800d

@@ -1,8 +1,12 @@
 // implements REQ-002
 // implements REQ-013
 // implements REQ-mcp-suggest-predicates
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
 import { withExitCode } from "../src/cli-command.js";
+
+afterEach(() => {
+  process.exitCode = undefined;
+});
 import {
   recordEntityAudit,
   recordRelationshipAudits,

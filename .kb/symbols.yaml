@@ -33955,3 +33955,13 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-test-journaled-engine-harness
+  - id: SYM-cli-engine-daemon-entrypoint
+    title: isEngineDaemonEntrypoint
+    status: active
+    sourceFile: packages/cli/src/engine-daemon.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-core-journaled-engine-persistence

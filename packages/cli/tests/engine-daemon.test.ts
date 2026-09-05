@@ -4,7 +4,10 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import * as engine from "../src/engine.js";
-import { runEngineDaemonCli } from "../src/engine-daemon.js";
+import {
+  isEngineDaemonEntrypoint,
+  runEngineDaemonCli,
+} from "../src/engine-daemon.js";
 
 const roots: string[] = [];
 const initialExitCode = process.exitCode;
@@ -153,6 +156,20 @@ describe("runEngineDaemonCli", () => {
     expect(errors.join("\n")).toContain("raw failure");
     expect(process.exitCode).toBe(1);
     process.exitCode = previousExit;
+  });
+
+  test("detects the Node-hosted daemon entry without import.meta.main", () => {
+    const moduleUrl = "file:///workspace/packages/cli/dist/engine-daemon.js";
+    expect(
+      isEngineDaemonEntrypoint(
+        ["node", "/workspace/packages/cli/dist/engine-daemon.js", "--socket", "x"],
+        moduleUrl,
+      ),
+    ).toBe(true);
+    expect(
+      isEngineDaemonEntrypoint(["node", "test", "./engine-daemon.test.ts"], moduleUrl),
+    ).toBe(false);
+    expect(isEngineDaemonEntrypoint(["node"], moduleUrl)).toBe(false);
   });
 
   test("skips the socket error file when --socket is omitted", async () => {
