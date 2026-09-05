@@ -1,4 +1,12 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -264,5 +272,210 @@ describe("upsert helpers and executeUpsert guards", () => {
     );
     expect(kind.structuredContent?.status).toBe("committed_with_repairs");
     expect(kind.content[0]?.text).toContain("derived effect requires repair");
+  });
+
+  test("executeUpsert appends relationship shards and restores them when commit fails", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-upsert-shard-"));
+    workspaces.push(root);
+    await expect(
+      executeUpsert(
+        {
+          type: "req",
+          id: "REQ-SHARD-FAIL",
+          properties: { title: "Shard fail", status: "open" },
+          relationships: [
+            {
+              type: "relates_to",
+              from: "REQ-SHARD-FAIL",
+              to: "REQ-SHARD-TO",
+            },
+          ],
+        },
+        contextFor(
+          root,
+          async (goal) => {
+            if (goal.startsWith("kb_commit_upsert(")) {
+              return { success: false, bindings: {}, error: "rdf reject" };
+            }
+            return { success: true, bindings: { Results: "[]" } };
+          },
+          { fs: nodeFilesystem, sourceFirst: false },
+        ),
+      ),
+    ).rejects.toThrow(/rdf reject/);
+    const relDir = path.join(root, ".kb", "relationships");
+    const shards = existsSync(relDir)
+      ? readdirSync(relDir).filter((name) => name.endsWith(".yaml"))
+      : [];
+    expect(shards).toEqual([]);
+  });
+
+  test("executeUpsert keeps a concurrently rewritten shard and writes pending receipts on success", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-upsert-shard-ok-"));
+    workspaces.push(root);
+    const result = await executeUpsert(
+      {
+        type: "req",
+        id: "REQ-SHARD-OK",
+        properties: { title: "Shard ok", status: "open" },
+        relationships: [
+          {
+            type: "relates_to",
+            from: "REQ-SHARD-OK",
+            to: "REQ-SHARD-TO",
+          },
+        ],
+      },
+      contextFor(
+        root,
+        async (goal) => {
+          if (goal.startsWith("kb_commit_upsert(")) {
+            return { success: true, bindings: { ChangeKind: "created" } };
+          }
+          return { success: true, bindings: { Results: "[]" } };
+        },
+        { fs: nodeFilesystem, sourceFirst: false },
+      ),
+    );
+    expect(result.structuredContent?.relationships_created).toBe(1);
+    expect(result.structuredContent?.sourceWrites?.some((write) =>
+      write.path.startsWith(".kb/relationships/"),
+    )).toBe(true);
+    const pendingRoot = path.join(root, ".kb", "recovery", "pending-sources");
+    expect(existsSync(pendingRoot)).toBe(true);
+    expect(readdirSync(pendingRoot).some((name) => name.endsWith(".json"))).toBe(
+      true,
+    );
+  });
+
+  test("executeUpsert skips source writes when sourceFirst is false and when the live source is mcp://", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-upsert-srcfirst-"));
+    workspaces.push(root);
+    const skipped = await executeUpsert(
+      {
+        type: "req",
+        id: "REQ-SKIP-SRC",
+        properties: { title: "Skip", status: "open" },
+        document: { path: "docs/REQ-SKIP-SRC.md", body: "should not write\n" },
+      },
+      contextFor(
+        root,
+        async (goal) => {
+          if (goal.startsWith("kb_commit_upsert(")) {
+            return { success: true, bindings: { ChangeKind: "created" } };
+          }
+          return { success: true, bindings: { Results: "[]" } };
+        },
+        { fs: nodeFilesystem, sourceFirst: false },
+      ),
+    );
+    expect(skipped.structuredContent?.sourceWrites).toBeUndefined();
+    expect(existsSync(path.join(root, "docs", "REQ-SKIP-SRC.md"))).toBe(false);
+
+    const mcp = await executeUpsert(
+      {
+        type: "req",
+        id: "REQ-MCP",
+        properties: { title: "Mcp", status: "open" },
+      },
+      contextFor(
+        root,
+        async (goal) => {
+          if (goal.includes("findall(") && goal.includes("kb_entity(")) {
+            return {
+              success: true,
+              bindings: {
+                Results:
+                  "[['REQ-MCP',req,[id='REQ-MCP',type=req,title='Mcp',status=open,source='mcp://kibi/upsert']]]",
+              },
+            };
+          }
+          if (goal.startsWith("kb_commit_upsert(")) {
+            return { success: true, bindings: { ChangeKind: "updated" } };
+          }
+          return { success: true, bindings: { Results: "[]" } };
+        },
+        { fs: nodeFilesystem },
+      ),
+    );
+    expect(mcp.structuredContent?.updated).toBe(1);
+    expect(mcp.structuredContent?.sourceWrites).toBeUndefined();
+  });
+
+  test("executeUpsert rejects a relationship shard that follows a symlink outside the workspace", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-upsert-symlink-"));
+    workspaces.push(root);
+    const outside = await mkdtemp(path.join(tmpdir(), "kibi-upsert-outside-"));
+    workspaces.push(outside);
+    mkdirSync(path.join(root, ".kb"));
+    symlinkSync(outside, path.join(root, ".kb", "relationships"));
+    await expect(
+      executeUpsert(
+        {
+          type: "req",
+          id: "REQ-LINK",
+          properties: { title: "Link", status: "open" },
+          relationships: [
+            { type: "relates_to", from: "REQ-LINK", to: "REQ-LINK-TO" },
+          ],
+        },
+        contextFor(
+          root,
+          async (goal) => {
+            if (goal.startsWith("kb_commit_upsert(")) {
+              return { success: true, bindings: { ChangeKind: "created" } };
+            }
+            return { success: true, bindings: { Results: "[]" } };
+          },
+          { fs: nodeFilesystem, sourceFirst: false },
+        ),
+      ),
+    ).rejects.toThrow(/symlink outside the workspace/);
+  });
+
+  test("executeUpsert skips shard rollback when the file changed after the write", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-upsert-drift-"));
+    workspaces.push(root);
+    await expect(
+      executeUpsert(
+        {
+          type: "req",
+          id: "REQ-DRIFT",
+          properties: { title: "Drift", status: "open" },
+          relationships: [
+            { type: "relates_to", from: "REQ-DRIFT", to: "REQ-DRIFT-TO" },
+          ],
+        },
+        contextFor(
+          root,
+          async (goal) => {
+            if (goal.startsWith("kb_commit_upsert(")) {
+              const relDir = path.join(root, ".kb", "relationships");
+              if (existsSync(relDir)) {
+                for (const name of readdirSync(relDir)) {
+                  if (!name.endsWith(".yaml")) continue;
+                  const shardPath = path.join(relDir, name);
+                  writeFileSync(
+                    shardPath,
+                    `${readFileSync(shardPath, "utf8")}\n# concurrent rewrite\n`,
+                  );
+                }
+              }
+              return { success: false, bindings: {}, error: "commit lost" };
+            }
+            return { success: true, bindings: { Results: "[]" } };
+          },
+          { fs: nodeFilesystem, sourceFirst: false },
+        ),
+      ),
+    ).rejects.toThrow(/commit lost/);
+    const relDir = path.join(root, ".kb", "relationships");
+    const shards = existsSync(relDir)
+      ? readdirSync(relDir).filter((name) => name.endsWith(".yaml"))
+      : [];
+    expect(shards.length).toBe(1);
+    expect(
+      readFileSync(path.join(relDir, shards[0] ?? ""), "utf8"),
+    ).toContain("concurrent rewrite");
   });
 });
