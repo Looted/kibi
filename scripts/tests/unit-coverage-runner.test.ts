@@ -57,5 +57,17 @@ describe("unit coverage runner contract", () => {
     expect(
       COVERAGE_SHARDS.find((shard) => shard.label === "cli.commands")?.timeoutMs,
     ).toBe(120_000);
+    expect(
+      COVERAGE_SHARDS.find((shard) => shard.label === "vscode.activation")
+        ?.mergeLcov,
+    ).toBe(false);
+    expect(
+      COVERAGE_SHARDS.find((shard) => shard.label === "vscode.core")?.paths,
+    ).toEqual(
+      expect.arrayContaining([
+        "./packages/vscode/tests/coverage-completion.test.ts",
+        "./packages/vscode/tests/workspace-resolve.coverage.test.ts",
+      ]),
+    );
   });
 });

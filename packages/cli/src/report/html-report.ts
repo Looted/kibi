@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   KIBI_BRAND,
   renderKibiFaviconDataUri,
@@ -25,7 +26,10 @@ type UnknownRecord = Readonly<Record<string, unknown>>;
 
 // implements REQ-kibi-html-health-report
 function reportStyles(): string {
-  const raw = readFileSync(join(import.meta.dir, "html-report.css"), "utf8");
+  const raw = readFileSync(
+    join(fileURLToPath(new URL(".", import.meta.url)), "html-report.css"),
+    "utf8",
+  );
   return raw
     .replaceAll("__KIBI_CARBON__", KIBI_BRAND.carbon)
     .replaceAll("__KIBI_DEEP_CARBON__", KIBI_BRAND.deepCarbon)

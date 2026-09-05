@@ -3,6 +3,9 @@ import type {
   TelemetryAcceptanceMetric,
   TelemetryAcceptancePolicy,
   TelemetryAcceptanceReport,
+  TelemetryAcceptanceStatus,
+  TelemetryMetricId,
+  TelemetryMetricStatus,
   TelemetryUsageEvent,
 } from "./telemetry-acceptance-types.js";
 
@@ -765,6 +768,7 @@ export function createTelemetryAcceptanceDiagnostics(
   for (const metric of report.metrics) {
     if (metric.status !== "failed") continue;
     const definition = METRIC_DIAGNOSTICS[metric.id];
+    if (!definition) continue;
     diagnostics.push({
       id: definition.id,
       severity: definition.severity,

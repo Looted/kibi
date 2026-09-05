@@ -64,6 +64,8 @@ export const COVERAGE_SHARDS: readonly {
   readonly label: string;
   readonly paths: readonly string[];
   readonly timeoutMs?: number;
+  /** Query-string `?case=` imports poison Bun's line map; still run the tests. */
+  readonly mergeLcov?: boolean;
 }[] = [
   {
     label: "cli.commands",
@@ -217,6 +219,9 @@ export const COVERAGE_SHARDS: readonly {
   { label: "scripts", paths: ["./scripts/tests"] },
   {
     label: "vscode.activation",
+    // `?case=` cache-busting imports create a fatter DA map of zeros that
+    // mergeLcov would union into otherwise-complete vscode.core coverage.
+    mergeLcov: false,
     paths: [
       "./packages/vscode/tests/activation/contextOnOpen.test.ts",
       "./packages/vscode/tests/activation/extension.test.ts",
@@ -225,8 +230,6 @@ export const COVERAGE_SHARDS: readonly {
       "./packages/vscode/tests/activation/workspace.test.ts",
       "./packages/vscode/tests/activation-modules.test.ts",
       "./packages/vscode/tests/workspace-activation-direct.test.ts",
-      "./packages/vscode/tests/coverage-completion.test.ts",
-      "./packages/vscode/tests/workspace-resolve.coverage.test.ts",
     ],
   },
   {
@@ -246,6 +249,8 @@ export const COVERAGE_SHARDS: readonly {
       "./packages/vscode/tests/traceability.test.ts",
       "./packages/vscode/tests/treeProvider.test.ts",
       "./packages/vscode/tests/vscodeMock.test.ts",
+      "./packages/vscode/tests/coverage-completion.test.ts",
+      "./packages/vscode/tests/workspace-resolve.coverage.test.ts",
     ],
   },
   {
@@ -339,7 +344,9 @@ export async function runUnitCoverage(): Promise<void> {
     }
     const shardPath = join(COVERAGE_DIR, `lcov.${shard.label}.info`);
     cpSync(lcovPath, shardPath);
-    shardFiles.push(shardPath);
+    if (shard.mergeLcov !== false) {
+      shardFiles.push(shardPath);
+    }
   }
 
   // Some Bun versions flush the default report just after the test process
