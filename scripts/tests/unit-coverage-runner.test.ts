@@ -35,10 +35,19 @@ describe("unit coverage runner contract", () => {
       label: "runtime",
       paths: ["./packages/runtime"],
     });
-    expect(COVERAGE_SHARDS).toContainEqual({
-      label: "cli",
-      paths: ["./packages/cli"],
-      timeoutMs: 120_000,
-    });
+    expect(
+      COVERAGE_SHARDS.filter((shard) => shard.label.startsWith("cli.")).map(
+        (shard) => shard.label,
+      ),
+    ).toEqual([
+      "cli.commands",
+      "cli.operations",
+      "cli.public",
+      "cli.support",
+      "cli.root",
+    ]);
+    expect(
+      COVERAGE_SHARDS.find((shard) => shard.label === "cli.commands")?.timeoutMs,
+    ).toBe(120_000);
   });
 });

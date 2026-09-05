@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildHeldOutCatalog, buildSkillCatalog } from "../catalog";
 import type { CursorCellReceipt, CursorVariant } from "../cursor/types";
-import { evaluatorManifest } from "./fixtures/evaluator-authority-fixtures";
+import { evaluatorManifest } from "../tests/fixtures/evaluator-authority-fixtures";
 
 const HASH = "a".repeat(64);
 

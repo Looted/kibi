@@ -15,6 +15,7 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   rmSync,
   writeFileSync,
@@ -55,14 +56,47 @@ const COVERAGE_ARGS = [
 ] as const;
 
 // implements REQ-root-suite-batch-diagnostics
+const CLI_ROOT_TESTS = readdirSync("./packages/cli/tests")
+  .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
+  .map((entry) => `./packages/cli/tests/${entry}`);
+
 export const COVERAGE_SHARDS: readonly {
   readonly label: string;
   readonly paths: readonly string[];
   readonly timeoutMs?: number;
 }[] = [
   {
-    label: "cli",
-    paths: ["./packages/cli"],
+    label: "cli.commands",
+    paths: ["./packages/cli/tests/commands"],
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+  },
+  {
+    label: "cli.operations",
+    paths: ["./packages/cli/tests/operations"],
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+  },
+  {
+    label: "cli.public",
+    paths: ["./packages/cli/tests/public"],
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+  },
+  {
+    label: "cli.support",
+    paths: [
+      "./packages/cli/tests/extractors",
+      "./packages/cli/tests/utils",
+      "./packages/cli/tests/logic",
+      "./packages/cli/tests/proof",
+      "./packages/cli/tests/relationships",
+      "./packages/cli/tests/traceability",
+      "./packages/cli/tests/prolog",
+      "./packages/cli/tests/helpers",
+    ],
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+  },
+  {
+    label: "cli.root",
+    paths: CLI_ROOT_TESTS,
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
   },
   { label: "mcp", paths: ["./packages/mcp"] },
@@ -99,6 +133,18 @@ export const COVERAGE_SHARDS: readonly {
       "./scripts/skillopt-eval/coverage-isolates/fixture-kb-setup.coverage.test.ts",
     ],
   },
+  {
+    label: "skillopt.cli-workflow-remaining",
+    paths: [
+      "./scripts/skillopt-eval/coverage-isolates/cli-workflow-remaining.coverage.test.ts",
+    ],
+  },
+  {
+    label: "skillopt.cursor-suite-remaining",
+    paths: [
+      "./scripts/skillopt-eval/coverage-isolates/cursor-suite-remaining.coverage.test.ts",
+    ],
+  },
   { label: "scripts", paths: ["./scripts/tests"] },
   {
     label: "vscode.activation",
@@ -116,6 +162,7 @@ export const COVERAGE_SHARDS: readonly {
   },
   {
     label: "vscode.core",
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
     paths: [
       "./packages/vscode/tests/code-action-provider.test.ts",
       "./packages/vscode/tests/code-lens.coverage.test.ts",

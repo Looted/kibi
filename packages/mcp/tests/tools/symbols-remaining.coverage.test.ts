@@ -1,0 +1,290 @@
+// implements REQ-vscode-traceability
+// implements REQ-cli-canonical-runtime
+import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { unlink, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { load as parseYAML } from "js-yaml";
+
+import {
+  handleKbSymbolsRefresh,
+  refreshCoordinatesForSymbolId,
+} from "../../src/tools/symbols.js";
+import * as workspace from "../../src/workspace.js";
+
+const roots: string[] = [];
+const spies: Array<{ mockRestore: () => void }> = [];
+
+afterEach(() => {
+  for (const spy of spies.splice(0)) spy.mockRestore();
+  for (const root of roots.splice(0)) {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+function tempWorkspace(): string {
+  const root = mkdtempSync(path.join(tmpdir(), "kibi-mcp-symbols-remaining-"));
+  roots.push(root);
+  mkdirSync(path.join(root, ".kb"), { recursive: true });
+  mkdirSync(path.join(root, "src"), { recursive: true });
+  return root;
+}
+
+function writeManifest(root: string, body: string): void {
+  writeFileSync(path.join(root, ".kb", "symbols.yaml"), body, "utf8");
+}
+
+function coordinates(root: string): Record<string, Record<string, unknown>> {
+  const parsed = parseYAML(
+    readFileSync(path.join(root, ".kb", "symbol-coordinates.yaml"), "utf8"),
+  ) as { coordinates?: Record<string, Record<string, unknown>> };
+  return parsed.coordinates ?? {};
+}
+
+describe("handleKbSymbolsRefresh remaining artifact and fill branches", () => {
+  test("resolves workspaceRoot when omitted and reuses an existing bound artifact", async () => {
+    const root = tempWorkspace();
+    writeFileSync(
+      path.join(root, "src", "reuse.ts"),
+      "export function reuseSymbol() {}\n",
+    );
+    writeManifest(
+      root,
+      "symbols:\n  - id: SYM-REUSE\n    title: reuseSymbol\n    sourceFile: src/reuse.ts\n",
+    );
+    const first = await handleKbSymbolsRefresh({ workspaceRoot: root });
+    expect(first.structuredContent?.refreshed).toBe(1);
+    const spy = spyOn(workspace, "resolveWorkspaceRoot").mockReturnValue(root);
+    spies.push(spy);
+    const second = await handleKbSymbolsRefresh({ dryRun: false });
+    expect(spy).toHaveBeenCalled();
+    expect(second.structuredContent?.unchanged).toBeGreaterThanOrEqual(0);
+    expect(coordinates(root)["SYM-REUSE"]).toEqual(
+      expect.objectContaining({
+        sourceFile: "src/reuse.ts",
+        identityHash: expect.stringMatching(/^[a-f0-9]{64}$/),
+      }),
+    );
+  });
+
+  test("fills coarse title spans, strips stale generated coords, and skips empty lines", async () => {
+    const root = tempWorkspace();
+    writeFileSync(
+      path.join(root, "src", "coarse.ts"),
+      "\n\nexport function coarseTitle() {}\n",
+    );
+    writeFileSync(
+      path.join(root, "src", "stale.ts"),
+      "export function liveName() {}\n",
+    );
+    writeManifest(
+      root,
+      [
+        "symbols:",
+        "  - id: SYM-COARSE",
+        "    title: coarseTitle",
+        "    sourceFile: src/coarse.ts",
+        "    granularity_reason: module-level-behavior",
+        "  - id: SYM-STALE",
+        "    title: liveName",
+        "    sourceFile: src/stale.ts",
+        "    sourceLine: 9",
+        "    sourceColumn: 0",
+        "    sourceEndLine: 9",
+        "    sourceEndColumn: 4",
+      ].join("\n"),
+    );
+
+    const result = await handleKbSymbolsRefresh({ workspaceRoot: root });
+    expect(result.structuredContent?.refreshed).toBeGreaterThanOrEqual(1);
+    expect(coordinates(root)["SYM-COARSE"]).toEqual(
+      expect.objectContaining({
+        sourceLine: 3,
+        sourceColumn: expect.any(Number),
+      }),
+    );
+    expect(coordinates(root)["SYM-STALE"]).toEqual(
+      expect.objectContaining({ sourceFile: "src/stale.ts" }),
+    );
+  });
+
+  test("uses before-entry title/source, absolute paths, and treats unreadable sources as unchanged", async () => {
+    const root = tempWorkspace();
+    const absolute = path.join(root, "src", "abs.ts");
+    writeFileSync(absolute, "export function absSymbol() {}\n");
+    mkdirSync(path.join(root, "src", "dir-as-file"));
+    writeManifest(
+      root,
+      [
+        "symbols:",
+        "  - id: SYM-ABS",
+        "    title: absSymbol",
+        `    sourceFile: ${absolute}`,
+        "  - id: SYM-DIR",
+        "    title: missing",
+        "    sourceFile: src/dir-as-file",
+        "  - id: SYM-BEFORE",
+        "    sourceFile: src/abs.ts",
+      ].join("\n"),
+    );
+
+    const result = await handleKbSymbolsRefresh({ workspaceRoot: root });
+    expect(result.structuredContent?.failed).toBeGreaterThanOrEqual(0);
+    expect(coordinates(root)["SYM-ABS"]).toEqual(
+      expect.objectContaining({ sourceFile: absolute }),
+    );
+  });
+
+  test("rejects malformed and unsupported coordinate artifacts during full refresh", async () => {
+    const root = tempWorkspace();
+    writeManifest(root, "symbols:\n  - id: SYM-X\n    title: x\n");
+    writeFileSync(
+      path.join(root, ".kb", "symbol-coordinates.yaml"),
+      "coordinates: []\n",
+    );
+    await expect(handleKbSymbolsRefresh({ workspaceRoot: root })).rejects.toThrow(
+      /coordinates must be a mapping/,
+    );
+
+    writeFileSync(
+      path.join(root, ".kb", "symbol-coordinates.yaml"),
+      "not: [valid\n",
+    );
+    await expect(handleKbSymbolsRefresh({ workspaceRoot: root })).rejects.toThrow(
+      /Failed to parse coordinate artifact/,
+    );
+
+    writeFileSync(
+      path.join(root, ".kb", "symbol-coordinates.yaml"),
+      "version: 99\ncoordinates: {}\n",
+    );
+    await expect(handleKbSymbolsRefresh({ workspaceRoot: root })).rejects.toThrow(
+      /Unsupported coordinate artifact version/,
+    );
+
+    writeFileSync(path.join(root, ".kb", "symbol-coordinates.yaml"), "[]\n");
+    await expect(handleKbSymbolsRefresh({ workspaceRoot: root })).rejects.toThrow(
+      /root must be a mapping/,
+    );
+  });
+
+  test("treats empty YAML as a legacy artifact and publishes after a successful match", async () => {
+    const root = tempWorkspace();
+    writeFileSync(
+      path.join(root, "src", "empty.ts"),
+      "export function emptyArtifact() {}\n",
+    );
+    writeManifest(
+      root,
+      "symbols:\n  - id: SYM-EMPTY\n    title: emptyArtifact\n    sourceFile: src/empty.ts\n",
+    );
+    writeFileSync(path.join(root, ".kb", "symbol-coordinates.yaml"), "");
+    const result = await handleKbSymbolsRefresh({ workspaceRoot: root });
+    expect(result.structuredContent?.refreshed).toBe(1);
+    expect(coordinates(root)["SYM-EMPTY"]).toBeDefined();
+  });
+});
+
+describe("refreshCoordinatesForSymbolId remaining legacy and cleanup branches", () => {
+  test("drops unmatched legacy records and rewrites a legacy artifact", async () => {
+    const root = tempWorkspace();
+    writeFileSync(
+      path.join(root, "src", "keep.ts"),
+      "export function keepSymbol() {}\n",
+    );
+    writeManifest(
+      root,
+      [
+        "symbols:",
+        "  - id: SYM-KEEP",
+        "    title: keepSymbol",
+        "    sourceFile: src/keep.ts",
+        "  - id: SYM-GONE",
+        "    title: gone",
+        "    sourceFile: src/missing.ts",
+      ].join("\n"),
+    );
+    writeFileSync(
+      path.join(root, ".kb", "symbol-coordinates.yaml"),
+      [
+        "coordinates:",
+        "  SYM-KEEP:",
+        "    sourceFile: src/keep.ts",
+        "    sourceLine: 1",
+        "    sourceColumn: 16",
+        "    sourceEndLine: 1",
+        "    sourceEndColumn: 26",
+        "  SYM-STALE:",
+        "    sourceFile: src/other.ts",
+        "    sourceLine: 1",
+        "    sourceColumn: 0",
+        "    sourceEndLine: 1",
+        "    sourceEndColumn: 4",
+        "",
+      ].join("\n"),
+    );
+
+    const result = await refreshCoordinatesForSymbolId("SYM-KEEP", root);
+    expect(result.found).toBe(true);
+    const artifact = parseYAML(
+      readFileSync(path.join(root, ".kb", "symbol-coordinates.yaml"), "utf8"),
+    ) as Record<string, unknown>;
+    expect(artifact.version).toBeUndefined();
+    expect(coordinates(root)["SYM-STALE"]).toBeUndefined();
+    expect(coordinates(root)["SYM-KEEP"]).toEqual(
+      expect.objectContaining({ sourceFile: "src/keep.ts" }),
+    );
+  });
+
+  test("rejects versioned artifacts whose bound records lack hashes", async () => {
+    const root = tempWorkspace();
+    writeManifest(root, "symbols:\n  - id: SYM-BAD\n    title: missing\n");
+    writeFileSync(
+      path.join(root, ".kb", "symbol-coordinates.yaml"),
+      [
+        "version: 2",
+        "coordinates:",
+        "  SYM-BAD:",
+        "    sourceFile: src/bad.ts",
+        "    sourceLine: 1",
+        "    sourceColumn: 0",
+        "    sourceEndLine: 1",
+        "    sourceEndColumn: 3",
+      ].join("\n"),
+    );
+    await expect(refreshCoordinatesForSymbolId("SYM-BAD", root)).rejects.toThrow(
+      /identity\/source binding/,
+    );
+  });
+
+  test("cleans the temporary file even when unlink after a failed publish also fails", async () => {
+    const root = tempWorkspace();
+    writeFileSync(
+      path.join(root, "src", "pub.ts"),
+      "export function pubSymbol() {}\n",
+    );
+    writeManifest(
+      root,
+      "symbols:\n  - id: SYM-PUB\n    title: pubSymbol\n    sourceFile: src/pub.ts\n",
+    );
+    const writeSpy = spyOn(await import("node:fs/promises"), "writeFile");
+    writeSpy.mockImplementation(writeFile);
+    const unlinkSpy = spyOn(await import("node:fs/promises"), "unlink");
+    unlinkSpy.mockImplementation(async (target) => {
+      if (String(target).includes("kibi-tmp")) {
+        throw new Error("unlink denied");
+      }
+      return unlink(target);
+    });
+    spies.push(writeSpy, unlinkSpy);
+    mkdirSync(path.join(root, ".kb", "symbol-coordinates.yaml"));
+    await expect(handleKbSymbolsRefresh({ workspaceRoot: root })).rejects.toThrow();
+  });
+});
