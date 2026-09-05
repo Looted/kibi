@@ -30,6 +30,9 @@ const LCOV_PATH = join(COVERAGE_DIR, "lcov.info");
 // survive until the final merge.
 const SHARD_DIR = "coverage/.unit-shards";
 const UNIT_LINE_COVERAGE_FLOOR = 50;
+const DEFAULT_SHARD_TIMEOUT_MS = 15_000;
+/** Journaled engine and packed SkillOpt tests start Prolog/daemons; 15s isolate kills them. */
+const CLI_ENGINE_SHARD_TIMEOUT_MS = 120_000;
 const COVERAGE_ARGS = [
   "test",
   "--coverage",
@@ -40,7 +43,7 @@ const COVERAGE_ARGS = [
   "--coverage-dir",
   COVERAGE_DIR,
   "--timeout",
-  "15000",
+  String(DEFAULT_SHARD_TIMEOUT_MS),
   "--isolate",
   "--max-concurrency=1",
 ] as const;
@@ -49,14 +52,23 @@ const COVERAGE_ARGS = [
 export const COVERAGE_SHARDS: readonly {
   readonly label: string;
   readonly paths: readonly string[];
+  readonly timeoutMs?: number;
 }[] = [
-  { label: "cli", paths: ["./packages/cli"] },
+  {
+    label: "cli",
+    paths: ["./packages/cli"],
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+  },
   { label: "mcp", paths: ["./packages/mcp"] },
   { label: "opencode", paths: ["./packages/opencode"] },
   { label: "codex", paths: ["./packages/codex"] },
   { label: "cursor", paths: ["./packages/cursor"] },
   { label: "runtime", paths: ["./packages/runtime"] },
-  { label: "skillopt", paths: ["./scripts/skillopt-eval/tests"] },
+  {
+    label: "skillopt",
+    paths: ["./scripts/skillopt-eval/tests"],
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+  },
   {
     label: "skillopt.training-setup",
     paths: [
@@ -116,10 +128,16 @@ export const COVERAGE_SHARDS: readonly {
   },
 ] as const;
 
-function runBunTest(paths: readonly string[], coverageDir: string): number {
+function runBunTest(
+  paths: readonly string[],
+  coverageDir: string,
+  timeoutMs = DEFAULT_SHARD_TIMEOUT_MS,
+): number {
   const args: string[] = [...COVERAGE_ARGS];
   const coverageDirIndex = args.indexOf("--coverage-dir");
   args[coverageDirIndex + 1] = coverageDir;
+  const timeoutIndex = args.indexOf("--timeout");
+  args[timeoutIndex + 1] = String(timeoutMs);
   const result = spawnSync("bun", [...args, ...paths], {
     stdio: "inherit",
   });
@@ -155,7 +173,11 @@ export async function runUnitCoverage(): Promise<void> {
     // repository default. Remove that path before each shard so a fallback
     // capture cannot accidentally reuse the previous shard's report.
     rmSync(LCOV_PATH, { force: true });
-    const exitCode = runBunTest(shard.paths, shardCoverageDir);
+    const exitCode = runBunTest(
+      shard.paths,
+      shardCoverageDir,
+      shard.timeoutMs ?? DEFAULT_SHARD_TIMEOUT_MS,
+    );
     if (exitCode !== 0) failedShards.push(`${shard.label} (exit ${exitCode})`);
 
     let lcovPath: string;

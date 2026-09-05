@@ -6,6 +6,7 @@ describe("unit coverage runner contract", () => {
     expect(COVERAGE_SHARDS).toContainEqual({
       label: "skillopt",
       paths: ["./scripts/skillopt-eval/tests"],
+      timeoutMs: 120_000,
     });
     expect(COVERAGE_SHARDS).toContainEqual({
       label: "scripts",
@@ -14,6 +15,11 @@ describe("unit coverage runner contract", () => {
     expect(COVERAGE_SHARDS).toContainEqual({
       label: "runtime",
       paths: ["./packages/runtime"],
+    });
+    expect(COVERAGE_SHARDS).toContainEqual({
+      label: "cli",
+      paths: ["./packages/cli"],
+      timeoutMs: 120_000,
     });
   });
 });
