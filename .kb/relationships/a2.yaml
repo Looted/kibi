@@ -76,3 +76,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7d405260a1c8
+  - type: constrains
+    from: REQ-root-suite-batch-diagnostics
+    to: FACT-SUBJ-REQ-ROOT-SUITE-BATCH-DIAGNOSTICS
+    created_at: 2026-09-05T14:14:44.831Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd8d8f2475f4
+  - type: requires_property
+    from: REQ-root-suite-batch-diagnostics
+    to: FACT-PROP-REQ-ROOT-SUITE-BATCH-DIAGNOSTICS-C01
+    created_at: 2026-09-05T14:14:44.848Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbe1f1a53d8c
+  - type: requires_property
+    from: REQ-root-suite-batch-diagnostics
+    to: FACT-PROP-REQ-ROOT-SUITE-BATCH-DIAGNOSTICS-C02
+    created_at: 2026-09-05T14:14:44.853Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc761c80740f

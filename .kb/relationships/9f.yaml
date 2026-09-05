@@ -52,3 +52,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8bf966c45088
+  - type: constrains
+    from: REQ-skillopt-paid-launch-accounting
+    to: FACT-SUBJ-REQ-SKILLOPT-PAID-LAUNCH-ACCOUNTING
+    created_at: 2026-09-05T14:19:13.522Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a277ca0edf3
+  - type: requires_property
+    from: REQ-skillopt-paid-launch-accounting
+    to: FACT-PROP-REQ-SKILLOPT-PAID-LAUNCH-ACCOUNTING-C01
+    created_at: 2026-09-05T14:19:13.538Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b28aa8d77dae
+  - type: requires_property
+    from: REQ-skillopt-paid-launch-accounting
+    to: FACT-PROP-REQ-SKILLOPT-PAID-LAUNCH-ACCOUNTING-C02
+    created_at: 2026-09-05T14:19:13.541Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-967dc449b78b
+  - type: requires_property
+    from: REQ-skillopt-paid-launch-accounting
+    to: FACT-PROP-REQ-SKILLOPT-PAID-LAUNCH-ACCOUNTING-C04
+    created_at: 2026-09-05T14:19:13.545Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3ba8034617b

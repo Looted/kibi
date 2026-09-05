@@ -125,3 +125,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ebede7de1d8a
+  - type: constrains
+    from: REQ-opencode-risk-classification
+    to: FACT-SUBJ-REQ-OPENCODE-RISK-CLASSIFICATION
+    created_at: 2026-09-05T14:14:10.695Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df3ed54256d0
+  - type: requires_property
+    from: REQ-opencode-risk-classification
+    to: FACT-PROP-REQ-OPENCODE-RISK-CLASSIFICATION-C01
+    created_at: 2026-09-05T14:14:10.713Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66cd251c1aba

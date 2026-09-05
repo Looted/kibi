@@ -125,3 +125,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d80bff8a6210
+  - type: constrains
+    from: REQ-cli-staged-impact-enforcement
+    to: FACT-SUBJ-REQ-CLI-STAGED-IMPACT-ENFORCEMENT
+    created_at: 2026-09-05T14:11:32.971Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b2cfdb4ad88
+  - type: requires_property
+    from: REQ-cli-staged-impact-enforcement
+    to: FACT-PROP-REQ-CLI-STAGED-IMPACT-ENFORCEMENT-C01
+    created_at: 2026-09-05T14:11:32.988Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44c819477d40

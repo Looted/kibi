@@ -69,3 +69,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f11563cf2523
+  - type: constrains
+    from: REQ-opencode-guidance-caching
+    to: FACT-SUBJ-REQ-OPENCODE-GUIDANCE-CACHING
+    created_at: 2026-09-05T14:13:51.155Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b562ea0e133
+  - type: requires_property
+    from: REQ-opencode-guidance-caching
+    to: FACT-PROP-REQ-OPENCODE-GUIDANCE-CACHING-C01
+    created_at: 2026-09-05T14:13:51.170Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c2aa69bf7cc

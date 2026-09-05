@@ -48,3 +48,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-75be46401101
+  - type: constrains
+    from: REQ-reusable-skill-subsystem
+    to: FACT-SUBJ-REQ-REUSABLE-SKILL-SUBSYSTEM
+    created_at: 2026-09-05T14:14:37.171Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd155a93d58b
+  - type: requires_property
+    from: REQ-reusable-skill-subsystem
+    to: FACT-PROP-REQ-REUSABLE-SKILL-SUBSYSTEM-C01
+    created_at: 2026-09-05T14:14:37.187Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ed138b64352

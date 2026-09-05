@@ -55,3 +55,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-33246378f84e
+  - type: constrains
+    from: REQ-vscode-source-to-kb
+    to: FACT-SUBJ-REQ-VSCODE-SOURCE-TO-KB
+    created_at: 2026-09-05T14:15:25.963Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56a575d8c7e7
+  - type: requires_property
+    from: REQ-vscode-source-to-kb
+    to: FACT-PROP-REQ-VSCODE-SOURCE-TO-KB-C01
+    created_at: 2026-09-05T14:15:25.978Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d139b5850c0

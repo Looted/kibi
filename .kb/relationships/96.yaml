@@ -97,3 +97,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-79ae33a49105
+  - type: constrains
+    from: REQ-prolog-library-adoption
+    to: FACT-SUBJ-REQ-PROLOG-LIBRARY-ADOPTION
+    created_at: 2026-09-05T14:14:30.663Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e43c9457dbd7
+  - type: requires_property
+    from: REQ-prolog-library-adoption
+    to: FACT-PROP-REQ-PROLOG-LIBRARY-ADOPTION-C01
+    created_at: 2026-09-05T14:14:30.680Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d1511c482dc

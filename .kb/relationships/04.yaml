@@ -97,3 +97,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ea9bb4443b39
+  - type: constrains
+    from: REQ-mcp-semantic-advisor-preflight
+    to: FACT-SUBJ-REQ-MCP-SEMANTIC-ADVISOR-PREFLIGHT
+    created_at: 2026-09-05T14:12:56.391Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ed997c60674
+  - type: requires_property
+    from: REQ-mcp-semantic-advisor-preflight
+    to: FACT-PROP-REQ-MCP-SEMANTIC-ADVISOR-PREFLIGHT-C01
+    created_at: 2026-09-05T14:12:56.407Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23482b494a34

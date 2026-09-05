@@ -108,3 +108,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a682d048f29b
+  - type: constrains
+    from: REQ-cli-schema-migration
+    to: FACT-SUBJ-REQ-CLI-SCHEMA-MIGRATION
+    created_at: 2026-09-05T14:11:26.367Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b2bb12c04b0
+  - type: requires_property
+    from: REQ-cli-schema-migration
+    to: FACT-PROP-REQ-CLI-SCHEMA-MIGRATION-C01
+    created_at: 2026-09-05T14:11:26.384Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51071ab806b6

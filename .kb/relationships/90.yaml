@@ -125,3 +125,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-82c24466864a
+  - type: constrains
+    from: REQ-core-extractors
+    to: FACT-SUBJ-REQ-CORE-EXTRACTORS
+    created_at: 2026-09-05T14:12:01.487Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b782f0957593
+  - type: requires_property
+    from: REQ-core-extractors
+    to: FACT-PROP-REQ-CORE-EXTRACTORS-C01
+    created_at: 2026-09-05T14:12:01.505Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6553e23efe10
+  - type: requires_property
+    from: REQ-core-extractors
+    to: FACT-PROP-REQ-CORE-EXTRACTORS-C02
+    created_at: 2026-09-05T14:12:01.510Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b78417867861

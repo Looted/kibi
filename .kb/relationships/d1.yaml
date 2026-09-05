@@ -122,3 +122,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7476ecd6be6d
+  - type: constrains
+    from: REQ-cursor-worktree-kibi-continuity
+    to: FACT-SUBJ-REQ-CURSOR-WORKTREE-KIBI-CONTINUITY
+    created_at: 2026-09-05T14:12:20.703Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3ac8c8751ae
+  - type: requires_property
+    from: REQ-cursor-worktree-kibi-continuity
+    to: FACT-PROP-REQ-CURSOR-WORKTREE-KIBI-CONTINUITY-C01
+    created_at: 2026-09-05T14:12:20.720Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1040b0569208

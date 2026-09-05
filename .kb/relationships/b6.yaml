@@ -48,3 +48,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0237c72527e6
+  - type: constrains
+    from: REQ-mcp-tool-query
+    to: FACT-SUBJ-REQ-MCP-TOOL-QUERY
+    created_at: 2026-09-05T14:13:23.215Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75c3e8210adf
+  - type: requires_property
+    from: REQ-mcp-tool-query
+    to: FACT-PROP-REQ-MCP-TOOL-QUERY-C01
+    created_at: 2026-09-05T14:13:23.229Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59beda82d2d3

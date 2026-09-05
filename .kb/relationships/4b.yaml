@@ -118,3 +118,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4900ee915831
+  - type: constrains
+    from: REQ-skillopt-external-adoption-verdict
+    to: FACT-SUBJ-REQ-SKILLOPT-EXTERNAL-ADOPTION-VERDICT
+    created_at: 2026-09-05T14:14:54.795Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1c42ead23db
+  - type: requires_property
+    from: REQ-skillopt-external-adoption-verdict
+    to: FACT-PROP-REQ-SKILLOPT-EXTERNAL-ADOPTION-VERDICT-C01
+    created_at: 2026-09-05T14:14:54.814Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89c33fc7d507
+  - type: requires_property
+    from: REQ-skillopt-external-adoption-verdict
+    to: FACT-PROP-REQ-SKILLOPT-EXTERNAL-ADOPTION-VERDICT-C02
+    created_at: 2026-09-05T14:14:54.818Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64b5be7f9556
+  - type: requires_property
+    from: REQ-skillopt-external-adoption-verdict
+    to: FACT-PROP-REQ-SKILLOPT-EXTERNAL-ADOPTION-VERDICT-C03
+    created_at: 2026-09-05T14:14:54.823Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85b0b06a3bfc
+  - type: requires_property
+    from: REQ-skillopt-external-adoption-verdict
+    to: FACT-PROP-REQ-SKILLOPT-EXTERNAL-ADOPTION-VERDICT-C04
+    created_at: 2026-09-05T14:14:54.828Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2cdb8135a02

@@ -139,3 +139,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-067ce6be9fbc
+  - type: constrains
+    from: REQ-mcp-cli-help
+    to: FACT-SUBJ-REQ-MCP-CLI-HELP
+    created_at: 2026-09-05T14:12:30.385Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75db272145ff
+  - type: requires_property
+    from: REQ-mcp-cli-help
+    to: FACT-PROP-REQ-MCP-CLI-HELP-C01
+    created_at: 2026-09-05T14:12:30.406Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7dfcab7bd4b4
+  - type: requires_property
+    from: REQ-mcp-cli-help
+    to: FACT-PROP-REQ-MCP-CLI-HELP-C02
+    created_at: 2026-09-05T14:12:30.412Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e35db35c89fe
+  - type: requires_property
+    from: REQ-mcp-cli-help
+    to: FACT-PROP-REQ-MCP-CLI-HELP-C03
+    created_at: 2026-09-05T14:12:30.419Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a771d7064143

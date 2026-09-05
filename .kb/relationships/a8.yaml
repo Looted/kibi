@@ -97,3 +97,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-62274df73d8a
+  - type: constrains
+    from: REQ-opencode-guidance-injection
+    to: FACT-SUBJ-REQ-OPENCODE-GUIDANCE-INJECTION
+    created_at: 2026-09-05T14:13:57.630Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73648d2181a0
+  - type: requires_property
+    from: REQ-opencode-guidance-injection
+    to: FACT-PROP-REQ-OPENCODE-GUIDANCE-INJECTION-C01
+    created_at: 2026-09-05T14:13:57.647Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce0454c6c743

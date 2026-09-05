@@ -188,3 +188,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6f90fc25242d
+  - type: constrains
+    from: REQ-opencode-sync-feedback
+    to: FACT-SUBJ-REQ-OPENCODE-SYNC-FEEDBACK
+    created_at: 2026-09-05T14:14:24.016Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14bcfe064efa
+  - type: requires_property
+    from: REQ-opencode-sync-feedback
+    to: FACT-PROP-REQ-OPENCODE-SYNC-FEEDBACK-C01
+    created_at: 2026-09-05T14:14:24.037Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bcff001309da

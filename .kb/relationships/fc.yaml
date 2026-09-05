@@ -160,3 +160,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0da30eb10e00
+  - type: constrains
+    from: REQ-opencode-comment-routing
+    to: FACT-SUBJ-REQ-OPENCODE-COMMENT-ROUTING
+    created_at: 2026-09-05T14:18:49.203Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00b13e964dc5
+  - type: requires_property
+    from: REQ-opencode-comment-routing
+    to: FACT-PROP-REQ-OPENCODE-COMMENT-ROUTING-C01
+    created_at: 2026-09-05T14:18:49.224Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5da195e25d8d
+  - type: requires_property
+    from: REQ-opencode-comment-routing
+    to: FACT-PROP-REQ-OPENCODE-COMMENT-ROUTING-C03
+    created_at: 2026-09-05T14:18:49.230Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ccf0f53fccce
