@@ -219,9 +219,10 @@ export const COVERAGE_SHARDS: readonly {
   { label: "scripts", paths: ["./scripts/tests"] },
   {
     label: "vscode.activation",
-    // `?case=` cache-busting imports create a fatter DA map of zeros that
-    // mergeLcov would union into otherwise-complete vscode.core coverage.
-    mergeLcov: false,
+    // merge-lcov now drops extra DA:0 rows from lower-hit-rate maps, so the
+    // cache-busted activation shard can contribute its complete activation
+    // file maps without poisoning vscode.core.
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
     paths: [
       "./packages/vscode/tests/activation/contextOnOpen.test.ts",
       "./packages/vscode/tests/activation/extension.test.ts",

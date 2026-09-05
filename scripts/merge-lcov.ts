@@ -160,15 +160,19 @@ function mergeRecord(
     };
   }
 
+  const existingRate = lineHitRate(existing.lines);
+  const incomingRate = lineHitRate(incoming.lines);
   const existingComplete = isCompleteLineMap(existing.lines);
   const incomingComplete = isCompleteLineMap(incoming.lines);
+  const existingIsAuthority = existingComplete || existingRate > incomingRate;
+  const incomingIsAuthority = incomingComplete || incomingRate > existingRate;
   const lines = new Map(existing.lines);
   for (const [lineNumber, incomingLine] of incoming.lines) {
     const existingLine = lines.get(lineNumber);
     if (existingLine === undefined) {
       // Query-string / alternate import graphs can emit extra DA:0 rows for
-      // the same file. Do not union those zeros into an already-complete map.
-      if (incomingLine.hits === 0 && existingComplete) continue;
+      // the same file. Do not widen a better map with those zeros.
+      if (incomingLine.hits === 0 && existingIsAuthority) continue;
       lines.set(lineNumber, incomingLine);
       continue;
     }
@@ -176,7 +180,7 @@ function mergeRecord(
       lines.set(lineNumber, incomingLine);
     }
   }
-  if (incomingComplete) {
+  if (incomingIsAuthority) {
     for (const [lineNumber, existingLine] of [...lines.entries()]) {
       if (existingLine.hits === 0 && !incoming.lines.has(lineNumber)) {
         lines.delete(lineNumber);

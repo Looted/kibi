@@ -97,6 +97,29 @@ describe("mergeLcovContents", () => {
     expect(merged).not.toContain("DA:202,0");
   });
 
+  test("drops extra DA:0 rows when a higher-hit-rate map is not yet 95% complete", () => {
+    const betterLines = [
+      ...Array.from({ length: 12 }, (_, index) => `DA:${index + 1},1`),
+      ...Array.from({ length: 4 }, (_, index) => `DA:${index + 13},0`),
+    ];
+    const poisonedLines = [
+      ...Array.from({ length: 16 }, (_, index) => `DA:${index + 1},0`),
+      "DA:80,0",
+      "DA:81,0",
+    ];
+    const merged = mergeLcovContents([
+      ["TN:", "SF:src/runtime.ts", ...poisonedLines, "LF:18", "LH:0", "end_of_record"].join(
+        "\n",
+      ),
+      ["TN:", "SF:src/runtime.ts", ...betterLines, "LF:16", "LH:12", "end_of_record"].join(
+        "\n",
+      ),
+    ]);
+    expect(merged).toContain("LF:16\nLH:12");
+    expect(merged).not.toContain("DA:80,0");
+    expect(merged).not.toContain("DA:81,0");
+  });
+
   test("keeps distinct source records in deterministic first-seen order", () => {
     const merged = mergeLcovContents([
       "TN:\nSF:src/b.ts\nDA:2,1\nLF:1\nLH:1\nend_of_record",

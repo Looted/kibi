@@ -59,8 +59,12 @@ describe("unit coverage runner contract", () => {
     ).toBe(120_000);
     expect(
       COVERAGE_SHARDS.find((shard) => shard.label === "vscode.activation")
+        ?.timeoutMs,
+    ).toBe(120_000);
+    expect(
+      COVERAGE_SHARDS.find((shard) => shard.label === "vscode.activation")
         ?.mergeLcov,
-    ).toBe(false);
+    ).not.toBe(false);
     expect(
       COVERAGE_SHARDS.find((shard) => shard.label === "vscode.activation-coverage")
         ?.paths,
