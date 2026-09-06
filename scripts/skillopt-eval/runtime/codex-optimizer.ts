@@ -185,13 +185,16 @@ export type CodexOptimizerOptions = Readonly<{
 
 export function loginRunForSource(
   sourceWorktree: string,
-): (argv: string[], childEnv: NodeJS.ProcessEnv) => ReturnType<typeof runBoundedProcess> {
+): (
+  argv: readonly [string, ...string[]],
+  childEnv: NodeJS.ProcessEnv,
+) => ReturnType<typeof runBoundedProcess> {
   return (argv, childEnv) =>
     defaultCodexLoginRun(argv, childEnv, sourceWorktree);
 }
 
 export function defaultCodexLoginRun(
-  argv: string[],
+  argv: readonly [string, ...string[]],
   childEnv: NodeJS.ProcessEnv,
   sourceWorktree: string,
 ): ReturnType<typeof runBoundedProcess> {

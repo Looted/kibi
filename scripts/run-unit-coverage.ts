@@ -28,7 +28,7 @@ import { mergeLcovContents } from "./merge-lcov";
 import {
   isolatedUnitBatchEnv,
   stopTestEngines,
-} from "../test/root.test.ts";
+} from "../test/root.test.js";
 
 const COVERAGE_DIR = "coverage/unit";
 const LCOV_PATH = join(COVERAGE_DIR, "lcov.info");

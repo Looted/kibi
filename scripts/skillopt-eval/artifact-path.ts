@@ -248,7 +248,14 @@ export const ArtifactPath = class ArtifactPath {
   }
 };
 
-export type ArtifactPath = InstanceType<typeof ArtifactPath>;
+export type ArtifactPath = {
+  readonly path: string;
+  readText(name: string): Promise<string>;
+  appendText(name: string, text: string): Promise<void>;
+  remove(name: string): Promise<void>;
+  writeText(name: string, text: string): Promise<void>;
+  close(): Promise<void>;
+};
 
 // implements REQ-skillopt-codex-optimization
 export function prepareArtifactPath(
