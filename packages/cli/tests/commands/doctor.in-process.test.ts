@@ -291,7 +291,7 @@ describe("doctorCommand", () => {
     const fs = await import("node:fs");
     const originalStat = fs.statSync;
     const stat = spyOn(fs, "statSync").mockImplementation(((
-      target: fs.PathLike,
+      target: import("node:fs").PathLike,
       options?: unknown,
     ) => {
       if (String(target).includes(`${path.sep}.git${path.sep}hooks${path.sep}`)) {
@@ -338,7 +338,7 @@ describe("doctorCommand", () => {
     const fs = await import("node:fs");
     const originalRead = fs.readFileSync;
     const read = spyOn(fs, "readFileSync").mockImplementation(((
-      target: fs.PathOrFileDescriptor,
+      target: import("node:fs").PathOrFileDescriptor,
       options?: unknown,
     ) => {
       const file = String(target);

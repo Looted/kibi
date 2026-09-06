@@ -15,7 +15,7 @@ import type { PrologProcess } from "../../src/prolog.js";
 
 type QueryResult = {
   success: boolean;
-  bindings: Record<string, string>;
+  bindings: Record<string, string | undefined>;
   error?: string;
 };
 

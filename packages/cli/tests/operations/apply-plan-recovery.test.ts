@@ -16,6 +16,7 @@ import {
   compilePlanHash,
 } from "../../src/operations/planning/compile-intent.js";
 import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
+import { asApply } from "../helpers/coverage-casts.js";
 import type {
   OperationContext,
   PrologQueryResult,
@@ -163,8 +164,8 @@ describe("compile plan source recovery and write fallbacks", () => {
         },
       }),
     );
-    expect(result.structuredContent.status).toBe("committed_with_repairs");
-    const journalId = result.structuredContent.recoveryJournalId;
+    expect(asApply(result.structuredContent).status).toBe("committed_with_repairs");
+    const journalId = asApply(result.structuredContent).recoveryJournalId;
     expect(journalId).toBeString();
     const journal = JSON.parse(
       readFileSync(path.join(cwd, ".kb", "recovery", `${journalId}.json`), "utf8"),

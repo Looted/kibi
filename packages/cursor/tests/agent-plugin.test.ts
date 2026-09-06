@@ -184,7 +184,7 @@ describe("kibi-cursor portable Agent Plugin artifact", () => {
       repositoryUrl({ repository: { url: "https://example.com/object.git" } }),
     ).toBe("https://example.com/object.git");
     expect(repositoryUrl({})).toBe("https://github.com/Looted/kibi");
-    expect(buildPluginManifest({}).repository).toBe(
+    expect((buildPluginManifest({}) as { repository: string }).repository).toBe(
       "https://github.com/Looted/kibi",
     );
     expect(repoRootFromScript()).toBe(repoRoot);

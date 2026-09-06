@@ -1,5 +1,3 @@
-/// <reference types="bun" />
-
 import * as fsPromises from "node:fs/promises";
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { Readable } from "node:stream";

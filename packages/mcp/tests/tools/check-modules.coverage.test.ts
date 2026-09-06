@@ -297,6 +297,7 @@ describe("MCP check-format remaining branches", () => {
     const withoutImpact = buildStructuredContent({
       violations: [],
       diagnostics,
+      impactResult: undefined,
     });
     expect(withoutImpact.count).toBe(0);
     expect(withoutImpact.diagnostics[1]?.file).toBe("a.ts");

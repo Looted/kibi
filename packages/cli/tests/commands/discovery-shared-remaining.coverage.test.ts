@@ -45,8 +45,8 @@ describe("discovery-shared remaining runtime branches", () => {
       { workspaceRoot: process.cwd() },
     );
 
-    expect(result.structuredContent).toEqual({ rows: [] });
-    expect(execute).toHaveBeenCalledTimes(1);
+    expect(result.structuredContent as unknown).toEqual({ rows: [] });
+    expect(execute.mock.calls).toHaveLength(1);
     expect(execute.mock.calls[0]?.[1]).toBe(coverageSpec);
     expect(execute.mock.calls[0]?.[2]).toEqual({ by: "req" });
   });

@@ -53,7 +53,10 @@ describe("strict count remaining cap-at branches", () => {
       payload,
       "The pool capped at zero.",
     );
-    expect(wordZero?.claim).toMatchObject({ value_int: 0, operator: "lte" });
+    expect(
+      (wordZero as unknown as { claim?: { value_int: number; operator: string } })
+        .claim,
+    ).toMatchObject({ value_int: 0, operator: "lte" });
 
     expect(numberToken("eleven")).toBeNull();
     expect(numberToken("3")).toBe(3);

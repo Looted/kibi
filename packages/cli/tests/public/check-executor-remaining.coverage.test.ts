@@ -68,7 +68,13 @@ describe("check-executor remaining empty-rule and failure branches", () => {
       { collectFullQualityDiagnosticsForExplicitRules: true },
     );
     expect(collect).toHaveBeenCalled();
-    expect(result.structuredContent.qualityDiagnostics).toEqual([
+    expect(
+      (
+        result.structuredContent as unknown as {
+          qualityDiagnostics: unknown[];
+        }
+      ).qualityDiagnostics,
+    ).toEqual([
       expect.objectContaining({ id: "telemetry_acceptance_incomplete" }),
     ]);
     expect(result.content[0]?.text).toBeDefined();

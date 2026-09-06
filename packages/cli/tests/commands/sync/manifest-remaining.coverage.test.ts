@@ -41,6 +41,7 @@ describe("refreshManifestCoordinates leftover artifact and rollback branches", (
         existsSync: () => true,
         enrichSymbolCoordinates: async (rows) => rows,
         resolveSymbolsManifestPaths: () => ({
+          symbolsPath: "/workspace/.kb/symbols.yaml",
           coordinatesPath: "/workspace/.kb/symbol-coordinates.yaml",
         }),
         refreshSymbolCoordinates: true,
@@ -80,6 +81,7 @@ describe("refreshManifestCoordinates leftover artifact and rollback branches", (
         return "artifact\n";
       },
       resolveSymbolsManifestPaths: () => ({
+        symbolsPath: "/workspace/.kb/symbols.yaml",
         coordinatesPath: "/workspace/.kb/symbol-coordinates.yaml",
       }),
       refreshSymbolCoordinates: true,
@@ -118,6 +120,7 @@ describe("refreshManifestCoordinates leftover artifact and rollback branches", (
         unlinkSync: () => undefined,
         writeCoordinateArtifact: () => "artifact\n",
         resolveSymbolsManifestPaths: () => ({
+          symbolsPath: "/workspace/.kb/symbols.yaml",
           coordinatesPath: "/workspace/.kb/symbol-coordinates.yaml",
         }),
         refreshSymbolCoordinates: true,
@@ -130,7 +133,7 @@ describe("refreshManifestCoordinates leftover artifact and rollback branches", (
     restores.push(restoreEnv);
     await expect(
       refreshManifestCoordinates("/workspace/.kb/symbols.yaml", "/workspace", {
-        readFileSync: () => "original",
+        readFileSync: (() => "original") as never,
         parseYAML: () => ({ symbols: [entry()] }),
         existsSync: () => true,
         enrichSymbolCoordinates: async (rows) => rows,

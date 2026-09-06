@@ -1,5 +1,3 @@
-/// <reference types="bun" />
-
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import type {
   PrologPort,
@@ -36,21 +34,21 @@ function createManagedProlog(events: string[]): ManagedProlog {
     start: async () => {
       events.push("start");
     },
-    query: async (goal, signal): Promise<PrologQueryResult> => {
+    query: async (goal, signal?): Promise<PrologQueryResult> => {
       events.push(`query:${goal}:${signal === undefined ? "none" : "sig"}`);
       return { success: true, bindings: {} };
     },
-    queryEntities: async (input, signal) => {
+    queryEntities: async (input, signal?) => {
       events.push(
         `queryEntities:${JSON.stringify(input)}:${signal === undefined ? "none" : "sig"}`,
       );
-      return [];
+      return { entities: [], count: 0 };
     },
-    searchEntities: async (input, signal) => {
+    searchEntities: async (input, signal?) => {
       events.push(
         `searchEntities:${JSON.stringify(input)}:${signal === undefined ? "none" : "sig"}`,
       );
-      return [];
+      return { entities: [], count: 0 };
     },
     nextSolution: async () => null,
     save: async (signal) => {
@@ -92,15 +90,28 @@ describe("createCliRuntime leftover proxy and lazy-engine branches", () => {
       prolog: createManagedProlog(events),
     });
     const context = await runtime.open(readSpec);
-    expect(await context.prolog?.queryEntities?.({ type: "req" })).toEqual([]);
-    expect(await context.prolog?.searchEntities?.({ query: "retain" })).toEqual(
-      [],
-    );
+    expect(
+      await context.prolog?.queryEntities?.({
+        type: "req",
+        limit: 10,
+        offset: 0,
+      }),
+    ).toEqual({ entities: [], count: 0 });
+    expect(
+      await context.prolog?.searchEntities?.({
+        query: "retain",
+        limit: 10,
+        offset: 0,
+      }),
+    ).toEqual({ entities: [], count: 0 });
     expect(await context.prolog?.save()).toMatchObject({ success: true });
-    expect(await context.engine?.execute({ op: "ping" }, context.signal)).toEqual(
-      { ok: true },
-    );
-    await runtime.close(context);
+    expect(
+      await context.engine?.execute(
+        { version: 1, kind: "status" },
+        context.signal,
+      ) as unknown,
+    ).toEqual({ ok: true });
+    await runtime.close(context, { status: "success", result: undefined });
     expect(events.some((event) => event.startsWith("queryEntities:"))).toBe(
       true,
     );
@@ -150,7 +161,7 @@ describe("createCliRuntime leftover proxy and lazy-engine branches", () => {
     const context = await runtime.open(readSpec);
     expect(context.branchAttachment?.migrationRequired).toBe(true);
     expect(warnings.join(" ")).toMatch(/Legacy branch attachment/);
-    await runtime.close(context);
+    await runtime.close(context, { status: "success", result: undefined });
   });
 
   test("names the standalone workspace error when git is unavailable", async () => {
@@ -186,7 +197,7 @@ describe("createCliRuntime leftover proxy and lazy-engine branches", () => {
     });
     const context = await runtime.open(readSpec);
     expect(context.workspaceRoot).toBe("/tmp/kibi-workspace-from-env");
-    await runtime.close(context);
+    await runtime.close(context, { status: "success", result: undefined });
   });
 
   test("lazy ensureProlog starts the default engine and records ownership", async () => {
@@ -217,7 +228,7 @@ describe("createCliRuntime leftover proxy and lazy-engine branches", () => {
     const port = await context.ensureProlog?.();
     expect(start).toHaveBeenCalled();
     expect(port).toBeDefined();
-    await runtime.close(context);
+    await runtime.close(context, { status: "success", result: undefined });
     expect(terminate).toHaveBeenCalled();
   });
 
@@ -285,7 +296,7 @@ describe("createCliRuntime leftover proxy and lazy-engine branches", () => {
     _setBranchResolverDepsForTests({ execSync: fakeBranchExecSync("develop") });
     const events: string[] = [];
     const prolog = createManagedProlog(events);
-    prolog.start = async () => {
+    (prolog as { start: () => Promise<void> }).start = async () => {
       events.push("start");
       throw new Error("engine refused to start");
     };

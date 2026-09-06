@@ -96,7 +96,9 @@ describe("adoption-durable remaining identity, intent, and link failures", () =>
       return originalLink(from, to);
     });
     spies.push(link);
-    await expect(durableNoReplace(repoRoot, accessPath, "two\n")).rejects.toThrow();
+    await expect(
+      durableNoReplace(repoRoot, accessPath, "two\n", undefined as never),
+    ).rejects.toThrow();
     link.mockRestore();
 
     const existPath = join(repoRoot, "exist.json");
@@ -117,6 +119,8 @@ describe("adoption-durable remaining identity, intent, and link failures", () =>
       throw error;
     });
     spies.push(rewrite);
-    await expect(durableNoReplace(repoRoot, existPath, "three\n")).rejects.toThrow();
+    await expect(
+      durableNoReplace(repoRoot, existPath, "three\n", undefined as never),
+    ).rejects.toThrow();
   });
 });

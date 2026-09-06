@@ -43,9 +43,9 @@ describe("skill-system validation remaining missing, realpath, and type branches
         'kibiCompatibility: ">=0.11.0"',
       ].join("\n"),
     );
-    const realpath = spyOn(fs, "realpathSync").mockImplementation(() => {
+    const realpath = spyOn(fs, "realpathSync").mockImplementation((() => {
       throw new Error("broken skill root");
-    });
+    }) as unknown as typeof fs.realpathSync);
     spies.push(realpath);
     const result = validateSkillBundle(rootDir);
     expect(result.valid).toBe(false);

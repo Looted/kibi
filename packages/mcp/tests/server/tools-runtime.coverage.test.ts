@@ -28,8 +28,8 @@ function createSession(kbPath: string | null = "/tmp/kibi-branch") {
   const prolog = {
     query,
     invalidateCache: () => {},
-    queryEntities: async () => ({ entities: [] }),
-    searchEntities: async () => ({ entities: [] }),
+    queryEntities: async () => ({ entities: [], count: 0 }),
+    searchEntities: async () => ({ entities: [], count: 0 }),
     storageStatus: async () => ({ success: true, bindings: {} }),
     queryStatusJson: async () => ({ success: true, bindings: { Json: "{}" } }),
   };
@@ -59,7 +59,7 @@ describe("DEFAULT_TOOLS_RUNTIME session wiring", () => {
     expect(await DEFAULT_TOOLS_RUNTIME.activeBranchName()).toBe(
       "coverage-branch",
     );
-    expect(await DEFAULT_TOOLS_RUNTIME.ensureProlog()).toBe(prolog);
+    expect(await DEFAULT_TOOLS_RUNTIME.ensureProlog()).toBe(prolog as never);
     await DEFAULT_TOOLS_RUNTIME.resetProlog("test");
     expect(await DEFAULT_TOOLS_RUNTIME.inFlightRequests()).toBe(
       session.inFlightRequests,
@@ -90,11 +90,17 @@ describe("DEFAULT_TOOLS_RUNTIME session wiring", () => {
       } as never,
       {},
     );
-    expect(await again.prolog?.queryEntities?.({ type: "req" })).toEqual({
+    expect(
+      await again.prolog?.queryEntities?.({ type: "req", limit: 10, offset: 0 }),
+    ).toEqual({
       entities: [],
+      count: 0,
     });
-    expect(await again.prolog?.searchEntities?.({ query: "x" })).toEqual({
+    expect(
+      await again.prolog?.searchEntities?.({ query: "x", limit: 10, offset: 0 }),
+    ).toEqual({
       entities: [],
+      count: 0,
     });
     expect(await again.prolog?.storageStatus?.()).toMatchObject({
       success: true,
@@ -184,7 +190,10 @@ describe("DEFAULT_TOOLS_RUNTIME session wiring", () => {
       {},
     );
     await expect(
-      DEFAULT_TOOLS_RUNTIME.handleSparql({ query: "SELECT * WHERE {}" }, context),
+      DEFAULT_TOOLS_RUNTIME.handleSparql(
+        { query: "SELECT * WHERE {}" } as never,
+        context,
+      ),
     ).rejects.toThrow();
   });
 

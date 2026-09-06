@@ -460,7 +460,7 @@ describe("plugin remaining scheduler, cache, checkpoint, and auto-update branche
     ) {
       capturedComplete = options.onRunComplete;
       return new OriginalRunner(options);
-    } as unknown as typeof KibiCheckpointRunner);
+    } as never);
     const reminderSpy = spyOn(
       reminders,
       "deriveFileOperationReminder",

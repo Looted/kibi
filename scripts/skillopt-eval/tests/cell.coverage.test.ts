@@ -312,7 +312,7 @@ describe("scoreCell remaining integrity, protocol, and contract branches", () =>
             resultOk: true,
             result: { data: { outcome: "rejected" } },
           },
-        ]),
+        ] as never),
       ),
     ).toEqual(
       expect.arrayContaining([
@@ -354,7 +354,7 @@ describe("scoreCell remaining integrity, protocol, and contract branches", () =>
             resultOk: true,
             result: { structuredContent: "nope" },
           },
-        ]),
+        ] as never),
       ),
     ).toEqual(
       expect.arrayContaining([
@@ -392,7 +392,7 @@ describe("scoreCell remaining integrity, protocol, and contract branches", () =>
               },
             },
           },
-        ]),
+        ] as never),
       ),
     ).toEqual([]);
   });
@@ -445,7 +445,7 @@ describe("scoreCell remaining integrity, protocol, and contract branches", () =>
             resultOk: false,
             result: { data: { outcome: "applied" } },
           },
-        ]),
+        ] as never),
       ),
     ).toEqual(
       expect.arrayContaining([

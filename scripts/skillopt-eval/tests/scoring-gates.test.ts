@@ -66,11 +66,11 @@ describe("SkillOpt deterministic statistics", () => {
         [
           { taskId: "a", family: "x", score: 1, hard: 1, criticalFailureCount: 0 },
           { taskId: "a", family: "x", score: 2, hard: 1, criticalFailureCount: 0 },
-        ],
+        ] as never,
         [
           { taskId: "a", family: "x", score: 1, hard: 1, criticalFailureCount: 0 },
           { taskId: "b", family: "x", score: 2, hard: 1, criticalFailureCount: 0 },
-        ],
+        ] as never,
       ),
     ).toBeNull();
   });

@@ -60,17 +60,17 @@ describe("branch-resolver leftover validation, snapshot, and diagnostic branches
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);
     _setBranchResolverDepsForTests({
-      execSync: (() => "HEAD\n") as typeof execSync,
+      execSync: (() => "HEAD\n") as unknown as typeof execSync,
     });
     expect(isDetachedHead("/tmp")).toBe(true);
     _setBranchResolverDepsForTests({
-      execSync: (() => "develop\n") as typeof execSync,
+      execSync: (() => "develop\n") as unknown as typeof execSync,
     });
     expect(isDetachedHead("/tmp")).toBe(false);
     _setBranchResolverDepsForTests({
       execSync: (() => {
         throw new Error("git missing");
-      }) as typeof execSync,
+      }) as unknown as typeof execSync,
     });
     expect(isDetachedHead("/tmp")).toBe(true);
   });
@@ -109,7 +109,7 @@ describe("branch-resolver leftover validation, snapshot, and diagnostic branches
         if (command.includes("symbolic-ref"))
           return "refs/remotes/origin/develop\n";
         throw new Error("unused");
-      }) as typeof execSync,
+      }) as unknown as typeof execSync,
     });
     expect(resolveDefaultBranch("/tmp")).toEqual({ branch: "develop" });
   });
@@ -118,13 +118,13 @@ describe("branch-resolver leftover validation, snapshot, and diagnostic branches
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);
     _setBranchResolverDepsForTests({
-      execSync: (() => "bad name\n") as typeof execSync,
+      execSync: (() => "bad name\n") as unknown as typeof execSync,
     });
     expect(resolveActiveBranch("/tmp")).toMatchObject({ code: "UNKNOWN_ERROR" });
     _setBranchResolverDepsForTests({
       execSync: (() => {
         throw "not-an-error";
-      }) as typeof execSync,
+      }) as unknown as typeof execSync,
     });
     expect(resolveActiveBranch("/tmp")).toMatchObject({ code: "UNKNOWN_ERROR" });
   });
@@ -150,7 +150,7 @@ describe("branch-resolver leftover validation, snapshot, and diagnostic branches
           return "true\n";
         }
         return "develop\n";
-      }) as typeof execSync,
+      }) as unknown as typeof execSync,
     });
     expect(resolveBranchAttachment(root)).toMatchObject({
       code: "MIGRATION_RECOVERY_REQUIRED",
@@ -183,7 +183,7 @@ describe("branch-resolver leftover validation, snapshot, and diagnostic branches
           return "true\n";
         }
         return "develop\n";
-      }) as typeof execSync,
+      }) as unknown as typeof execSync,
     });
     const attachment = resolveBranchAttachment(root);
     expect("error" in attachment ? attachment.code : "ok").not.toBe(

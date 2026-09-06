@@ -86,19 +86,22 @@ describe("createMcpRuntime remaining branches", () => {
       effects: ["local-read"],
       execute: async () => ({}),
     };
-    const context = await runtime.open(spec);
+    const context = await runtime.open(spec as never);
     expect(await context.ensureProlog?.()).toBeDefined();
     expect(await context.ensureProlog?.()).toBeDefined();
     expect(ensure).toHaveBeenCalledTimes(1);
     expect(runtime.sessionProlog(context)).toBeDefined();
-    await runtime.close(context, { status: "success" });
+    await runtime.close(context, { status: "success", result: undefined });
     expect(cleanup).toHaveBeenCalled();
-    await runtime.afterSuccess({
-      name: "kb_upsert",
-      effects: ["kb-write"],
-      requiresProlog: true,
-      execute: async () => ({}),
-    });
+    await runtime.afterSuccess(
+      {
+        name: "kb_upsert",
+        effects: ["kb-write"],
+        requiresProlog: true,
+        execute: async () => ({}),
+      } as never,
+      context,
+    );
   });
 
   test("returns a provided Prolog port without starting the session engine", async () => {

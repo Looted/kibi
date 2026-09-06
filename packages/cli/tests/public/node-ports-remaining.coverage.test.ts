@@ -31,14 +31,17 @@ describe("node-ports remaining snapshot and git helpers", () => {
     writeFileSync(path.join(root, "tracked.ts"), "export const ok = 1;\n");
     execFileSync("git", ["add", "tracked.ts"], { cwd: root, stdio: "ignore" });
     const originalRead = fs.readFile.bind(fs);
-    const read = spyOn(fs, "readFile").mockImplementation(async (target, encoding) => {
+    const read = spyOn(fs, "readFile").mockImplementation(((
+      target: Parameters<typeof fs.readFile>[0],
+      encoding?: Parameters<typeof fs.readFile>[1],
+    ) => {
       if (String(target).endsWith("tracked.ts")) {
         const error = new Error("EACCES");
         (error as Error & { code: string }).code = "EACCES";
         throw error;
       }
-      return originalRead(target, encoding as BufferEncoding);
-    });
+      return originalRead(target, encoding as never);
+    }) as typeof fs.readFile);
     spies.push(read);
     const snapshot = await nodeGit.workspaceSnapshot?.(root);
     expect(snapshot?.fileCount).toBeGreaterThan(0);
@@ -52,10 +55,15 @@ describe("node-ports remaining snapshot and git helpers", () => {
     mkdirSync(path.join(root, "src"), { recursive: true });
     writeFileSync(path.join(root, "src", "main.ts"), "export {};\n");
     const branch = await withCwd(root, () =>
-      nodeGit.revParse("--abbrev-ref", "HEAD"),
+      (nodeGit.revParse as never as (...args: string[]) => Promise<string>)(
+        "--abbrev-ref",
+        "HEAD",
+      ),
     );
     expect(branch).toBe("main");
-    const toplevel = await withCwd(root, () => nodeGit.showToplevel());
+    const toplevel = await withCwd(root, () =>
+      (nodeGit.showToplevel as never as () => Promise<string>)(),
+    );
     expect(path.resolve(toplevel)).toBe(path.resolve(root));
     const ignored = await nodeGit.ignoredPaths(root, [
       "src/main.ts",

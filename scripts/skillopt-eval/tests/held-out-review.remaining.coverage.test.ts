@@ -53,6 +53,8 @@ describe("held-out review remaining eligible evaluation mapping", () => {
     });
     expect(review.eligibility).toBe("eligible");
     expect(review.cellCount).toBe(input.physicalCells.length);
-    expect(review.productionAdoption).toBe("external-verdict-required");
+    expect((review as { productionAdoption: string }).productionAdoption).toBe(
+      "external-verdict-required",
+    );
   });
 });

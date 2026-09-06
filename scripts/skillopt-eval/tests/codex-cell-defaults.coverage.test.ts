@@ -341,7 +341,9 @@ function finalStateFor(
   const check = {
     structuredContent: { kibiProtocol: 1, data: { count: 1, violations: [{}] } },
   };
-  const coverageWrapped = { structuredContent: { ...coverage, notes: extraText } };
+  const coverageWrapped = {
+    structuredContent: { ...(coverage as unknown as object), notes: extraText },
+  };
   const requests = [
     ["kb_query", {}, query],
     ["kb_check", {}, check],

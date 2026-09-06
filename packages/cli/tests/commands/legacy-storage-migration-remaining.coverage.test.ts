@@ -65,7 +65,7 @@ describe("legacy storage migration remaining glob and duplicate destinations", (
     );
     const originalSync = fg.sync.bind(fg);
     spies.push(
-      spyOn(fg, "sync").mockImplementation((patterns, options) => {
+      spyOn(fg, "sync").mockImplementation(((patterns: string | string[], options?: unknown) => {
         const glob = String(Array.isArray(patterns) ? patterns[0] : patterns);
         if (glob.includes("docs/reqs")) {
           return [path.join(root, "docs/reqs/REQ-GLOB.md")];
@@ -75,8 +75,8 @@ describe("legacy storage migration remaining glob and duplicate destinations", (
             path.join(root, "docs/tests", "..", "requirements", "REQ-GLOB.md"),
           ];
         }
-        return originalSync(patterns, options);
-      }),
+        return originalSync(patterns, options as never);
+      }) as typeof fg.sync),
     );
     const colliding = planLegacyStorageMigration(root);
     expect(

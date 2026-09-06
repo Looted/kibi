@@ -1,6 +1,6 @@
 // implements REQ-cursor-agent-plugin-standard-v1
 import { afterEach, describe, expect, test } from "bun:test";
-import { runBuildAgentPluginIfMain } from "../scripts/build-agent-plugin.ts";
+import { runBuildAgentPluginIfMain } from "../scripts/build-agent-plugin.js";
 
 afterEach(() => {
   process.exitCode = 0;

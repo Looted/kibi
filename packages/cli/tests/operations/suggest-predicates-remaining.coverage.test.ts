@@ -11,7 +11,7 @@ import {
   executeSuggestPredicates,
   handleKbSuggestPredicates,
 } from "../../src/operations/modeling/suggest-predicates.js";
-import { isolateKibiEnv } from "../helpers/in-process-workspace.ts";
+import { isolateKibiEnv } from "../helpers/in-process-workspace.js";
 
 const spies: Array<{ mockRestore: () => void }> = [];
 let restoreEnv: (() => void) | undefined;
@@ -35,7 +35,7 @@ describe("suggest-predicates remaining routing and ranking branches", () => {
         workspaceRoot: process.cwd(),
         signal: new AbortController().signal,
         clock: () => new Date(0),
-        prolog: null,
+        prolog: null as never,
       },
     );
     expect(result.structuredContent.recommendedAction).toBe("review_nonlogical");

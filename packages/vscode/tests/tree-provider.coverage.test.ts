@@ -9,7 +9,7 @@ import { getVscodeMockModule, resetVscodeMock } from "./shared/vscode-mock";
 resetVscodeMock();
 mock.module("vscode", () => getVscodeMockModule());
 
-const { KibiTreeDataProvider } = await import("../src/treeProvider.ts");
+const { KibiTreeDataProvider } = await import("../src/treeProvider.js");
 
 type ProviderInternals = {
   getCurrentBranch: () => Promise<string>;

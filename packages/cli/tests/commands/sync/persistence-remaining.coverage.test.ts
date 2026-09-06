@@ -50,7 +50,10 @@ function makeResult(
 }
 
 function makeProlog(
-  queryImpl?: (goal: string) => Promise<QueryResult> | QueryResult,
+  queryImpl?: (goal: string) =>
+    | Promise<QueryResult>
+    | QueryResult
+    | { success: boolean; bindings: Record<string, string | undefined>; error?: string },
 ): PrologProcess {
   return {
     query: async (goal: string | string[]) => {
@@ -129,7 +132,7 @@ describe("persistEntities leftover receipt and batch wrap branches", () => {
           type: "test",
           title: "Mixed receipts",
           verification_scope: "end_to_end",
-          proof_receipts: [previousReceipt, nextReceipt],
+          proof_receipts: [previousReceipt, nextReceipt] as never,
         }),
       ],
       new Set(),

@@ -64,14 +64,14 @@ describe("jsonrpc remaining parse and IO error branches", () => {
     roots.push(root);
     const originalRead = fsPromises.readFile.bind(fsPromises);
     const read = spyOn(fsPromises, "readFile").mockImplementation(
-      async (target, encoding) => {
+      (async (target: unknown, encoding: unknown) => {
         if (String(target).endsWith("trace.jsonl")) {
           const error = new Error("EACCES");
           (error as Error & { code: string }).code = "EACCES";
           throw error;
         }
-        return originalRead(target, encoding as BufferEncoding);
-      },
+        return originalRead(target as never, encoding as never);
+      }) as never,
     );
     spies.push(read);
     await expect(

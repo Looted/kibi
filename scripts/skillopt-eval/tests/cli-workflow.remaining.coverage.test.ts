@@ -61,7 +61,9 @@ describe("runWorkflowCommand remaining held-out cellRunner injection", () => {
           events: [],
         }) as never,
       runRealOptimization: async (_options, inner) => {
-        await inner.evaluateHeldOut({ variants: [] } as never);
+        await (
+          inner as { evaluateHeldOut(input: never): Promise<unknown> }
+        ).evaluateHeldOut({ variants: [] } as never);
         return {
           status: "evaluated",
           runId: "00000000-0000-4000-8000-000000000301",

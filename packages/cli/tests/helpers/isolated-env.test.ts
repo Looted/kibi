@@ -60,6 +60,6 @@ describe("isolateKibiEnv", () => {
     const restore = isolateKibiEnv();
     process.env.KIBI_NODE_PATH = "/tmp/missing-node";
     restore();
-    expect(process.env.KIBI_NODE_PATH).toBe(previous);
+    expect(process.env.KIBI_NODE_PATH).toBe(previous as never);
   });
 });

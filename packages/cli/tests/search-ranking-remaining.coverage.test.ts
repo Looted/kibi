@@ -4,7 +4,7 @@
 // implements REQ-007
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import fs from "node:fs/promises";
-import { isolateKibiEnv } from "./helpers/in-process-workspace.ts";
+import { isolateKibiEnv } from "./helpers/in-process-workspace.js";
 import {
   loadMarkdownBody,
   rankEntities,

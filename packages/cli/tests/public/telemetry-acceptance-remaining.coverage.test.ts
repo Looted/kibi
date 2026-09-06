@@ -73,7 +73,6 @@ describe("telemetry-acceptance remaining repeated-failure sort and proof-gap ope
           telemetry_status: "provided",
           telemetry: { is_autonomous: true },
           tool: "kb_coverage",
-          status: "success",
           coverage_scope_complete: true,
           coverage_proof_gap_count: 4,
         },

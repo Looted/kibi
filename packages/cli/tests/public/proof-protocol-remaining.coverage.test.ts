@@ -218,13 +218,16 @@ describe("proof-protocol leftover validator and constant branches", () => {
 
   test("rejects unavailable attempts with leftover entries and oversized contracts", () => {
     expect(
-      proofResultErrors({
-        symbol_id: "SYM-1",
-        target: "default",
-        outcome: "passed",
-        binding: "aggregate_run",
-        attempts: { status: "unavailable", entries: [] },
-      }).join(" "),
+      proofResultErrors(
+        {
+          symbol_id: "SYM-1",
+          target: "default",
+          outcome: "passed",
+          binding: "aggregate_run",
+          attempts: { status: "unavailable", entries: [] },
+        },
+        "r",
+      ).join(" "),
     ).toMatch(/entries|unavailable/);
     expect(
       proofContractErrors({

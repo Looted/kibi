@@ -148,7 +148,7 @@ describe("branch-resolver leftover attachment and validation", () => {
       execSync: ((command: string) => {
         if (command.includes("symbolic-ref")) return "refs/remotes/origin/\n";
         throw new Error("unused");
-      }) as typeof execSync,
+      }) as unknown as typeof execSync,
     });
     const empty = resolveDefaultBranch(root);
     expect("error" in empty).toBe(true);
@@ -158,7 +158,7 @@ describe("branch-resolver leftover attachment and validation", () => {
         if (command.includes("symbolic-ref"))
           return "refs/remotes/origin/-bad\n";
         throw new Error("unused");
-      }) as typeof execSync,
+      }) as unknown as typeof execSync,
     });
     const invalid = resolveDefaultBranch(root);
     expect("error" in invalid).toBe(true);
@@ -177,7 +177,7 @@ describe("branch-resolver leftover attachment and validation", () => {
     Reflect.deleteProperty(process.env, "KIBI_BRANCH");
 
     _setBranchResolverDepsForTests({
-      execSync: (() => "") as typeof execSync,
+      execSync: (() => "") as unknown as typeof execSync,
     });
     expect(resolveActiveBranch("/tmp")).toMatchObject({ code: "DETACHED_HEAD" });
 
@@ -185,7 +185,7 @@ describe("branch-resolver leftover attachment and validation", () => {
       execSync: ((command: string) => {
         if (command.includes("show-current")) throw new Error("fail");
         return "HEAD\n";
-      }) as typeof execSync,
+      }) as unknown as typeof execSync,
     });
     expect(resolveActiveBranch("/tmp")).toMatchObject({ code: "DETACHED_HEAD" });
 
@@ -193,7 +193,7 @@ describe("branch-resolver leftover attachment and validation", () => {
       execSync: ((command: string) => {
         if (command.includes("show-current")) throw new Error("fail");
         return "\n";
-      }) as typeof execSync,
+      }) as unknown as typeof execSync,
     });
     expect(resolveActiveBranch("/tmp")).toMatchObject({ code: "UNBORN_BRANCH" });
 
@@ -201,7 +201,7 @@ describe("branch-resolver leftover attachment and validation", () => {
       execSync: ((command: string) => {
         if (command.includes("show-current")) throw new Error("fail");
         return "bad name\n";
-      }) as typeof execSync,
+      }) as unknown as typeof execSync,
     });
     expect(resolveActiveBranch("/tmp")).toMatchObject({ code: "UNKNOWN_ERROR" });
 
@@ -209,14 +209,14 @@ describe("branch-resolver leftover attachment and validation", () => {
       execSync: ((command: string) => {
         if (command.includes("show-current")) throw new Error("fail");
         return "feature/ok\n";
-      }) as typeof execSync,
+      }) as unknown as typeof execSync,
     });
     expect(resolveActiveBranch("/tmp")).toEqual({ branch: "feature/ok" });
 
     _setBranchResolverDepsForTests({
       execSync: (() => {
         throw new Error("not a git repository");
-      }) as typeof execSync,
+      }) as unknown as typeof execSync,
     });
     expect(resolveActiveBranch("/tmp")).toMatchObject({ code: "NOT_A_GIT_REPO" });
 
@@ -225,7 +225,7 @@ describe("branch-resolver leftover attachment and validation", () => {
         if (command.includes("show-current"))
           throw new Error("command not found");
         throw new Error("ENOENT");
-      }) as typeof execSync,
+      }) as unknown as typeof execSync,
     });
     expect(resolveActiveBranch("/tmp")).toMatchObject({
       code: "GIT_NOT_AVAILABLE",
@@ -234,7 +234,7 @@ describe("branch-resolver leftover attachment and validation", () => {
     _setBranchResolverDepsForTests({
       execSync: (() => {
         throw new Error("mystery git failure");
-      }) as typeof execSync,
+      }) as unknown as typeof execSync,
     });
     expect(resolveActiveBranch("/tmp")).toMatchObject({ code: "UNKNOWN_ERROR" });
   });

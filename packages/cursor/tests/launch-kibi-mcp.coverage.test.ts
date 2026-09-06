@@ -467,7 +467,7 @@ describe("launch-kibi-mcp remaining branches", () => {
         KIBI_WORKSPACE: undefined,
         CURSOR_WORKSPACE: undefined,
       },
-      () => signaled,
+      (() => signaled) as never,
     );
     process.emit("SIGTERM");
     expect(await signaledExit).toBe(143);
@@ -486,10 +486,10 @@ describe("launch-kibi-mcp remaining branches", () => {
         KIBI_WORKSPACE: undefined,
         CURSOR_WORKSPACE: undefined,
       },
-      () => {
+      (() => {
         queueMicrotask(() => errored.emit("error", new Error("boom")));
         return errored;
-      },
+      }) as never,
     );
     expect(await errorExit).toBe(1);
 
@@ -507,10 +507,10 @@ describe("launch-kibi-mcp remaining branches", () => {
         KIBI_WORKSPACE: undefined,
         CURSOR_WORKSPACE: undefined,
       },
-      () => {
+      (() => {
         queueMicrotask(() => closed.emit("close", null, null));
         return closed;
-      },
+      }) as never,
     );
     expect(await nullClose).toBe(1);
 
@@ -534,10 +534,10 @@ describe("launch-kibi-mcp remaining branches", () => {
           KIBI_WORKSPACE: undefined,
           CURSOR_WORKSPACE: undefined,
         },
-        () => {
+        (() => {
           queueMicrotask(() => winChild.emit("close", 0, null));
           return winChild;
-        },
+        }) as never,
       );
       expect(await winExit).toBe(0);
     } finally {

@@ -629,9 +629,9 @@ describe("handleKbSymbolsRefresh fillMissingCoordinates DA:0 leftovers", () => {
           options as Parameters<typeof originalCreateHash>[1],
         );
         const originalDigest = hash.digest.bind(hash);
-        hash.digest = ((encoding?: crypto.BinaryToTextEncoding) => {
+        hash.digest = ((encoding?: import("node:crypto").BinaryToTextEncoding) => {
           if (encoding === "hex") return "not-a-sha256-digest";
-          return originalDigest(encoding);
+          return originalDigest(encoding as never);
         }) as typeof hash.digest;
         return hash;
       }) as typeof crypto.createHash,

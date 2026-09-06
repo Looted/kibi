@@ -35,13 +35,13 @@ describe("discovery command wrappers", () => {
     restores.push(restoreEnv);
     const calls: unknown[] = [];
     const specSpy = spyOn(discovery, "executeReportingSpec").mockImplementation(
-      async (_spec, input) => {
+      (async (_spec: unknown, input: unknown) => {
         calls.push(input);
         if (calls.length === 1) {
           return reportingResult("ignored", { rows: [] });
         }
         return reportingResult(undefined, { ok: true });
-      },
+      }) as never,
     );
     restores.push(() => specSpy.mockRestore());
     const io = captureIo();
@@ -76,10 +76,10 @@ describe("discovery command wrappers", () => {
     restores.push(restoreEnv);
     const calls: unknown[] = [];
     const specSpy = spyOn(discovery, "executeReportingSpec").mockImplementation(
-      async (_spec, input) => {
+      (async (_spec: unknown, input: unknown) => {
         calls.push(input);
         return reportingResult("gap table", { gaps: [] });
-      },
+      }) as never,
     );
     restores.push(() => specSpy.mockRestore());
     const io = captureIo();

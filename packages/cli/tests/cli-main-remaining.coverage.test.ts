@@ -1,5 +1,3 @@
-/// <reference types="bun" />
-
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";

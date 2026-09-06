@@ -140,7 +140,7 @@ describe("registerConfiguredTools", () => {
         handleKbQuery: async () => ({ ok: true }),
       } as never,
       (_server, name, _description, _schema, _handler, _runtime, spec) => {
-        if (name === "kb_query" && spec) captured = spec.execute;
+        if (name === "kb_query" && spec) captured = spec.execute as never;
       },
     );
     await expect(

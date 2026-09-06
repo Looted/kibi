@@ -52,7 +52,7 @@ describe("preflight-host-runtime remaining launcher and bound-output branches", 
       stderr: streamFrom(""),
       exited: Promise.resolve(0),
       kill() {},
-    })) as typeof Bun.spawn);
+    })) as never);
     spies.push(spawn);
 
     const stdout = await loadAttestation(dummyOptions());

@@ -10,7 +10,7 @@ import {
   utf8Span,
   validateLogicIr,
 } from "../../src/logic/ir.js";
-import { isolateKibiEnv } from "../helpers/in-process-workspace.ts";
+import { isolateKibiEnv } from "../helpers/in-process-workspace.js";
 
 let restoreEnv: (() => void) | undefined;
 

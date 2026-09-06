@@ -286,7 +286,7 @@ describe("coverage final gaps for policy and work context", () => {
         { normalizedPath: "dist/out.bin", lifecycle: "created" },
         { normalizedPath: "tmp/cache", lifecycle: "edited" },
       ],
-      pathKinds: ["ignored", "unknown"],
+      pathKinds: ["ignored", "unknown"] as never,
       linkedEntityResults: [],
       e2eSignals: [],
       checkpointEvidence: false,

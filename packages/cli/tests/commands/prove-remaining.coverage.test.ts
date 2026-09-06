@@ -665,7 +665,7 @@ describe("proveCommand remaining runtime branches", () => {
       child.stderr = null;
       queueMicrotask(() => child.emit("close", null));
       return child;
-    }) as typeof childProcess.spawn);
+    }) as unknown as typeof childProcess.spawn);
     restores.push(() => spawn.mockRestore());
     const stdout = captureStdout();
     restores.push(stdout.restore);

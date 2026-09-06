@@ -146,7 +146,7 @@ describe("scoreCell remaining protocol before-order and coverage lookup", () => 
                 args: {},
                 resultOk: true,
                 result: { data: { outcome: "applied" } },
-              },
+              } as never,
             ],
           },
         }),

@@ -25,8 +25,8 @@ mock.module("../src/symbolIndex", () => ({
     mockQueryImpl(symbolId, workspaceRoot),
 }));
 
-const { KibiCodeLensProvider } = await import("../src/codeLensProvider.ts");
-const { RelationshipCache } = await import("../src/relationshipCache.ts");
+const { KibiCodeLensProvider } = await import("../src/codeLensProvider.js");
+const { RelationshipCache } = await import("../src/relationshipCache.js");
 
 const vscodeWorkspace = (getVscodeMockModule() as Record<string, unknown>)
   .workspace as {
@@ -170,7 +170,7 @@ describe("codeLensProvider remaining runtime branches", () => {
     ).toBeNull();
 
     expect(
-      await provider.resolveCodeLens(new DefaultCodeLens({} as never), {
+      await provider.resolveCodeLens(new DefaultCodeLens({} as never) as never, {
         isCancellationRequested: false,
       } as never),
     ).toBeNull();

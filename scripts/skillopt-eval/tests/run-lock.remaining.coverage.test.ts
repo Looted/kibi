@@ -20,7 +20,7 @@ describe("run-lock remaining dirty and hash mismatch guards", () => {
       ...lock,
       dirtyState: { isDirty: true, diffHash: "c".repeat(64) },
     };
-    expect(() => assertRunLockMatches(dirty, lock)).toThrow(
+    expect(() => assertRunLockMatches(dirty as never, lock)).toThrow(
       ContractIntegrityError,
     );
   });

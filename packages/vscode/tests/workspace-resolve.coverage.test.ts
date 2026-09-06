@@ -8,7 +8,7 @@ import { getVscodeMockModule, resetVscodeMock } from "./shared/vscode-mock";
 resetVscodeMock({ workspace: { workspaceFolders: undefined } });
 mock.module("vscode", () => getVscodeMockModule());
 
-const workspaceModule = await import("../src/activation/workspace.ts");
+const workspaceModule = await import("../src/activation/workspace.js");
 
 const lines: string[] = [];
 const output = {
@@ -27,7 +27,7 @@ afterEach(() => {
 describe("vscode workspace resolution branches", () => {
   test("uses the first workspace folder when present", () => {
     const vscode = getVscodeMockModule();
-    const folder = { uri: { fsPath: "/workspace" } };
+    const folder = { uri: { fsPath: "/workspace" } as never };
     vscode.workspace.workspaceFolders = [folder];
     expect(workspaceModule.resolveWorkspaceRoot(output as never)).toBe(
       "/workspace",

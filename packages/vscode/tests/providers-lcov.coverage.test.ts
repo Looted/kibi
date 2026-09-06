@@ -111,7 +111,7 @@ describe("VS Code provider LCOV imports", () => {
       lenses[0],
       { isCancellationRequested: false } as never,
     );
-    expect(resolved.command?.command).toBe("kibi.browseLinkedEntities");
+    expect(resolved!.command?.command).toBe("kibi.browseLinkedEntities");
     const cancelledResolve = await provider.resolveCodeLens(lenses[0], {
       isCancellationRequested: true,
     } as never);
@@ -227,7 +227,7 @@ describe("VS Code provider LCOV imports", () => {
     );
     expect(actions.length).toBeGreaterThan(0);
 
-    const vscode = getVscodeMockModule() as {
+    const vscode = getVscodeMockModule() as unknown as {
       window: { showInformationMessage: ReturnType<typeof mock> };
     };
     await browseLinkedEntities("SYM-NONE", [], tmpDir, () => undefined);

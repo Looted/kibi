@@ -148,7 +148,7 @@ describe("training-setup default implementations", () => {
       corpusRoots,
       trajectoryHashes,
     });
-    processImpl.run = async (options: {
+    processImpl.run = (async (options: {
       argv: readonly string[];
     }) => {
       const resultIdx = options.argv.indexOf("--result");
@@ -176,7 +176,7 @@ describe("training-setup default implementations", () => {
         exitCode: 0,
         signal: null,
       };
-    };
+    }) as never;
     const output = await defaultTrain(trainingInput(artifactRoot));
     expect(output.candidateBody).toBe(body);
     expect(output.trainerCheckpointHash).toBe(trainerCheckpointHash);
@@ -256,7 +256,7 @@ describe("training-setup default implementations", () => {
         codexExecutable: "/tmp/fake-codex",
         bwrapExecutable: "/tmp/fake-bwrap",
       },
-      cellRunner: async () => ({
+      cellRunner: (async () => ({
         receipt: {
           result: {
             status: "completed",
@@ -266,7 +266,7 @@ describe("training-setup default implementations", () => {
           },
         },
         receiptPath: join(artifactRoot, "receipt.json"),
-      }),
+      })) as never,
     });
     expect(gate.hardPasses).toBe(2);
     expect(gate.mean).toBeCloseTo(0.8);
@@ -314,7 +314,7 @@ describe("training-setup default implementations", () => {
         codexExecutable: "/tmp/fake-codex",
         bwrapExecutable: "/tmp/fake-bwrap",
       },
-    });
+    } as never);
     expect(variant.variant).toBe("one-shot");
     expect(variant.body).toContain("one shot body");
   });

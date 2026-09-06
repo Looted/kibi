@@ -27,14 +27,14 @@ describe("check-format remaining branches", () => {
             files: [],
             message: "changed",
             suggestion: "review",
-          },
+          } as never,
           {
             id: "IMP-2",
             severity: "info",
             files: ["a.ts"],
             message: "linked",
             suggestion: "keep",
-          },
+          } as never,
         ],
         sourceFiles: ["a.ts"],
         extractedSymbols: [],
@@ -85,7 +85,7 @@ describe("check-format remaining branches", () => {
       buildStructuredContent({
         violations: [],
         diagnostics: [
-          { category: "check", severity: "info", message: "ok" },
+          { category: "check", severity: "info" as never, message: "ok" },
           {
             category: "check",
             severity: "warning",
@@ -125,12 +125,12 @@ describe("check-format remaining branches", () => {
             files: ["a.ts"],
             message: "changed",
             suggestion: "review",
-          },
+          } as never,
         ],
         sourceFiles: ["a.ts"],
-        extractedSymbols: ["SYM-1"],
-        linkedEntities: ["REQ-1"],
-        nextActions: [{ operation: "kb_check", required: false }],
+        extractedSymbols: ["SYM-1"] as never,
+        linkedEntities: ["REQ-1"] as never,
+        nextActions: [{ operation: "kb_check", required: false }] as never,
       },
     });
     expect(withImpact.qualityDiagnostics).toHaveLength(1);

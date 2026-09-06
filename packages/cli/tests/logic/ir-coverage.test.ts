@@ -122,7 +122,7 @@ describe("validateLogicIr term and expression coverage", () => {
       body: {
         kind: "all",
         items: [
-          atom("customer", [null]),
+          atom("customer", [null as never]),
           {
             kind: "compare",
             operator: "nope",

@@ -161,8 +161,9 @@ Body.
       validateOnly: true,
       workspaceRoot: cwd,
     });
-    expect(result.success === false || Array.isArray(result.diagnostics)).toBe(
-      true,
-    );
+    expect(
+      result.success === false ||
+        Array.isArray((result as { diagnostics?: unknown }).diagnostics),
+    ).toBe(true);
   });
 });

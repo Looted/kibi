@@ -39,7 +39,7 @@ describe("runPaidBundleGate", () => {
           skill === "kibi-usage" ? "# candidate\n" : undefined,
       },
       {
-        runCodexCell: async (options) => {
+        runCodexCell: (async (_options: unknown) => {
           cells += 1;
           const pass = cells % 3 !== 0;
           return {
@@ -53,7 +53,7 @@ describe("runPaidBundleGate", () => {
             },
             artifactDirectory: artifactRoot,
           };
-        },
+        }) as never,
       },
     );
     expect(cells).toBeGreaterThan(0);

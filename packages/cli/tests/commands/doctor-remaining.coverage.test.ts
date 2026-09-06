@@ -649,7 +649,10 @@ status: open
     const originalMatch = String.prototype.match;
     const match = spyOn(String.prototype, "match").mockImplementation(
       function (this: string, regexp: string | RegExp) {
-        const result = originalMatch.call(this, regexp);
+        const result = originalMatch.call(
+          this,
+          regexp as never,
+        );
         if (
           typeof this === "string" &&
           this.includes("SWI-Prolog version") &&
@@ -664,7 +667,7 @@ status: open
           return copy;
         }
         return result;
-      },
+      } as typeof String.prototype.match,
     );
     restores.push(() => {
       exec.mockRestore();

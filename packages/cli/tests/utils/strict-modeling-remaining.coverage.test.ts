@@ -6,7 +6,7 @@ import {
   modelRequirementClaims,
   normalizeTextRef,
 } from "../../src/utils/strict-modeling.js";
-import { isolateKibiEnv } from "../helpers/in-process-workspace.ts";
+import { isolateKibiEnv } from "../helpers/in-process-workspace.js";
 
 let restoreEnv: (() => void) | undefined;
 

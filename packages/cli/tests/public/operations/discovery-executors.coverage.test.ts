@@ -61,7 +61,9 @@ describe("discovery executors", () => {
           },
         }),
       );
-      expect(indexed.structuredContent.count).toBe(2);
+      expect(
+        (indexed.structuredContent as unknown as { count: number }).count,
+      ).toBe(2);
 
       const empty = await executeQuery(
         { type: "req" },
@@ -93,7 +95,9 @@ describe("discovery executors", () => {
           },
         }),
       );
-      expect(fallback.structuredContent.count).toBeGreaterThanOrEqual(0);
+      expect(
+        (fallback.structuredContent as unknown as { count: number }).count,
+      ).toBeGreaterThanOrEqual(0);
 
       await expect(
         executeQuery({}, context(root, { prolog: undefined })),
@@ -121,7 +125,9 @@ describe("discovery executors", () => {
           },
         }),
       );
-      expect(intentEmpty.structuredContent.count).toBe(0);
+      expect(
+        (intentEmpty.structuredContent as unknown as { count: number }).count,
+      ).toBe(0);
 
       const indexed = await executeSearch(
         { query: "download", type: "req", limit: 1 },
@@ -130,13 +136,16 @@ describe("discovery executors", () => {
             query: async () => ({ success: true, bindings: {} }),
             nextSolution: async () => null,
             save: async () => ({ success: true, bindings: {} }),
-            searchEntities: async () => ({
-              entities: [{ id: "REQ-1", title: "Download", status: "open" }],
-            }),
+            searchEntities: async () =>
+              ({
+                entities: [{ id: "REQ-1", title: "Download", status: "open" }],
+              }) as never,
           },
         }),
       );
-      expect(indexed.structuredContent.count).toBeGreaterThanOrEqual(0);
+      expect(
+        (indexed.structuredContent as unknown as { count: number }).count,
+      ).toBeGreaterThanOrEqual(0);
 
       await expect(
         executeSearch({ query: "x" }, context(root, { prolog: undefined })),
@@ -164,8 +173,17 @@ describe("discovery executors", () => {
           },
         }),
       );
-      expect(missing.structuredContent.snapshotId).toBe("missing");
-      expect(missing.structuredContent.bootstrap?.nextAction).toBeDefined();
+      expect(
+        (missing.structuredContent as unknown as { snapshotId: string })
+          .snapshotId,
+      ).toBe("missing");
+      expect(
+        (
+          missing.structuredContent as unknown as {
+            bootstrap?: { nextAction?: unknown };
+          }
+        ).bootstrap?.nextAction,
+      ).toBeDefined();
 
       await expect(
         executeStatus(

@@ -84,7 +84,7 @@ describe("Cursor hook runner CLI", () => {
     try {
       await import(`${new URL("../src/hook-runner.ts", import.meta.url).href}?cli=${Date.now()}`);
     } finally {
-      process.argv[1] = previousArgv;
+      if (previousArgv !== undefined) process.argv[1] = previousArgv;
       if (previousStdin) {
         Object.defineProperty(process, "stdin", previousStdin);
       }

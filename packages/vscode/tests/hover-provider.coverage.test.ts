@@ -9,7 +9,7 @@ import { getVscodeMockModule, resetVscodeMock } from "./shared/vscode-mock";
 resetVscodeMock();
 mock.module("vscode", () => getVscodeMockModule());
 
-const { KibiHoverProvider } = await import("../src/hoverProvider.ts");
+const { KibiHoverProvider } = await import("../src/hoverProvider.js");
 
 function writeManifest(dir: string, body: string): string {
   const manifestPath = path.join(dir, "symbols.yaml");

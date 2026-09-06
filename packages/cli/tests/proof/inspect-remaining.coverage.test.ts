@@ -28,7 +28,7 @@ describe("inspect remaining glob and directory existence catch paths", () => {
     const original = fs.readdirSync.bind(fs);
     const spy = spyOn(fs, "readdirSync").mockImplementation(((
       target: fs.PathLike,
-      options?: fs.ReaddirOptions,
+      options?: unknown,
     ) => {
       if (String(target).includes(`${path.sep}src`)) {
         throw new Error("unreadable src");

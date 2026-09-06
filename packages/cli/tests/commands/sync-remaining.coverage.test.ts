@@ -128,7 +128,7 @@ function writeRelationshipShard(
 
 function scriptedProlog(queryImpl?: (goal: string) => {
   success: boolean;
-  bindings: Record<string, string>;
+  bindings: Record<string, string | undefined>;
   error?: string;
 }) {
   return {

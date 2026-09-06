@@ -99,6 +99,7 @@ describe("skillopt remasure11 leftover helpers", () => {
       process.cwd(),
       process.env,
       5_000,
+      undefined as never,
     );
     expect(canary.exitCode).toBe(0);
     expect(CLI_OPTIONS_MODULE).toBe(true);

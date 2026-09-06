@@ -103,14 +103,17 @@ describe("discovery-executors remaining owned-engine and vendored status", () =>
     const result = await executeStatus({}, context(root));
     expect(queryStatusJson).toHaveBeenCalled();
     expect(terminate).toHaveBeenCalled();
-    expect(result.structuredContent.branch).toBe("main");
-    expect(result.structuredContent.staleReasons?.[0]).toEqual(
+    const structured = result.structuredContent as unknown as {
+      branch: string;
+      staleReasons?: { path: string }[];
+      bootstrap?: { activationState?: string; nextAction?: unknown };
+    };
+    expect(structured.branch).toBe("main");
+    expect(structured.staleReasons?.[0]).toEqual(
       expect.objectContaining({ path: "a.md" }),
     );
-    expect(result.structuredContent.bootstrap?.activationState).toBe(
-      "vendored_only",
-    );
-    expect(result.structuredContent.bootstrap?.nextAction).toEqual(
+    expect(structured.bootstrap?.activationState).toBe("vendored_only");
+    expect(structured.bootstrap?.nextAction).toEqual(
       expect.objectContaining({ operation: "move-to-project-root" }),
     );
   });

@@ -30,7 +30,7 @@ describe("e2e-coverage-signals remaining test-doc read failures", () => {
     let calls = 0;
     const readSpy = spyOn(fs, "readFileSync").mockImplementation(((
       target: fs.PathOrFileDescriptor,
-      encoding?: fs.BufferEncoding,
+      encoding?: BufferEncoding,
     ) => {
       if (String(target).includes("TEST-1.md")) {
         calls += 1;

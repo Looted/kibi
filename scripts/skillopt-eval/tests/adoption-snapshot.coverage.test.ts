@@ -52,7 +52,6 @@ function eligibilityFor(
     heldOutEligibility: "eligible" as const,
     candidateHash: input.candidate.bodyHash,
     authorizedRootSet: input.eligibility.authorizedRootSet,
-    lineage,
     ...overrides,
     lineage: {
       ...lineage,
@@ -72,7 +71,7 @@ function eligibilityFor(
 }
 
 function autoInput(): AutoAdoptionInput {
-  return automaticInput(approvalArtifacts("/unused")) as AutoAdoptionInput;
+  return automaticInput(approvalArtifacts("/unused")) as unknown as AutoAdoptionInput;
 }
 
 describe("adoption-snapshot leftover branches", () => {
@@ -166,7 +165,7 @@ describe("adoption-snapshot leftover branches", () => {
   test("validateExternalAdoptionVerdict covers required, mismatch, and reject paths", async () => {
     const repoRoot = await createRepo();
     const artifacts = approvalArtifacts(repoRoot);
-    const input = automaticInput(artifacts);
+    const input = automaticInput(artifacts) as unknown as AutoAdoptionInput;
     const snapshot = await loadCanonicalSurface({
       repoRoot,
       candidate: input.candidate,
@@ -385,7 +384,7 @@ describe("adoption-snapshot leftover branches", () => {
         "packages/cursor/skills",
       ].sort(),
     );
-    const input = automaticInput(artifacts);
+    const input = automaticInput(artifacts) as unknown as AutoAdoptionInput;
     const id = deriveAdoptionId(externalVerdict(input), [
       "packages/cursor/skills",
       "packages/cli/src/public/skills/kibi-usage/SKILL.md",

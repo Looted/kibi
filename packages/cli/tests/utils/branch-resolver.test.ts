@@ -605,7 +605,7 @@ describe("branch-resolver", () => {
             throw new Error("fatal: ref refs/remotes/origin/HEAD is not a symbolic ref");
           }
           return execSync(command, { cwd: tmpDir, encoding: "utf8" });
-        }) as typeof execSync,
+        }) as unknown as typeof execSync,
       });
 
       const result = resolveDefaultBranch(tmpDir, undefined);

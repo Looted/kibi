@@ -256,7 +256,23 @@ describe("kibi.proof-run.v1", () => {
   });
 
   test("proofRunArtifactErrors covers producer, argv, snapshot, environment, run, and result caps", () => {
-    const artifact = validArtifact();
+    const artifact = validArtifact() as unknown as {
+      producer: { name: string; version?: string };
+      executor?: { name: string; version: string };
+      command_argv: string[];
+      code_snapshot: string;
+      environment: unknown;
+      run: {
+        outcome: string;
+        exit_code: number;
+        started_at: string;
+        finished_at: string;
+        failure_phase?: string;
+      };
+      integration: string;
+      diagnostics?: string[];
+      proof_results: unknown[];
+    };
     artifact.producer = { name: "" };
     artifact.executor = { name: "node", version: "" };
     artifact.command_argv = [];
@@ -346,7 +362,10 @@ describe("kibi.proof-run.v1", () => {
   });
 
   test("proofRunArtifactErrors accepts optional executor and valid failure_phase", () => {
-    const artifact = validArtifact();
+    const artifact = validArtifact() as unknown as {
+      run: { failure_phase?: string };
+      executor?: { name: string; version: string };
+    };
     artifact.run.failure_phase = "execution";
     delete artifact.executor;
     expect(proofRunArtifactErrors(artifact)).toEqual([]);

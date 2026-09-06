@@ -101,7 +101,9 @@ describe("coverage gaps: kb-manifest", () => {
     rmSync(path.join(root, ".kb", "manifest.json"), { force: true });
     mkdirSync(path.join(root, ".kb", "manifest.json"));
     expect(readKbManifestStatus(root).state).toBe("invalid");
-    expect(readKbManifestStatus(root).warning).toContain("unreadable");
+    expect(
+      (readKbManifestStatus(root) as unknown as { warning?: string }).warning,
+    ).toContain("unreadable");
 
     rmSync(path.join(root, ".kb", "manifest.json"), { recursive: true, force: true });
     const written = writeKbManifest(root, defaultKbManifest());

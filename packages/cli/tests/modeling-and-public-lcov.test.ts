@@ -59,7 +59,16 @@ import {
 } from "../src/public/impact/symbol-quality-model.js";
 import type { ExtractionResult } from "../src/extractors/markdown.js";
 import type { StrictWriteSet } from "../src/public/check-types.js";
-import type { PrologQueryResult } from "../src/public/operations/runtime-types.js";
+import type {
+  PrologPort,
+  PrologQueryResult,
+} from "../src/public/operations/runtime-types.js";
+
+function asPort(
+  query: PrologPort["query"] | (() => Promise<unknown>),
+): PrologPort {
+  return { query } as unknown as PrologPort;
+}
 
 function entity(
   id: string,
@@ -77,7 +86,7 @@ function entity(
     },
     relationships: [],
     sourceFile: `${id}.md`,
-  } as ExtractionResult;
+  } as unknown as ExtractionResult;
 }
 
 describe("requirement modeling remaining branches", () => {
@@ -305,30 +314,26 @@ describe("predicate loader remaining branches", () => {
     const warnings: string[] = [];
     expect(
       await loadExistingPredicateSchemas(
-        { query: async () => ({ success: true, bindings: {} }) },
+        asPort(async () => ({ success: true, bindings: {} })),
         false,
         warnings,
       ),
     ).toEqual([]);
     const failed = await loadExistingPredicateSchemas(
-      {
-        query: async () => ({ success: false, error: "boom", bindings: {} }),
-      },
+      asPort(async () => ({ success: false, error: "boom", bindings: {} })),
       true,
       warnings,
     );
     expect(failed).toEqual([]);
     expect(warnings[0]).toContain("could not be loaded");
     const loaded = await loadExistingPredicateSchemas(
-      {
-        query: async () => ({
-          success: true,
-          bindings: {
-            Results:
-              "[[FACT-SCHEMA-1,fact,[fact_kind=predicate_schema,predicate_name=retains,title=Retains]]]",
-          },
-        }),
-      },
+      asPort(async () => ({
+        success: true,
+        bindings: {
+          Results:
+            "[[FACT-SCHEMA-1,fact,[fact_kind=predicate_schema,predicate_name=retains,title=Retains]]]",
+        },
+      })),
       true,
       [],
     );
@@ -339,12 +344,10 @@ describe("predicate loader remaining branches", () => {
 describe("audit and CLI exit helpers", () => {
   test("records entity and relationship audits and builds delete goals", async () => {
     const calls: string[] = [];
-    const prolog = {
-      query: async (goal: string): Promise<PrologQueryResult> => {
-        calls.push(goal);
-        return { success: true, bindings: {} };
-      },
-    };
+    const prolog = asPort(async (goal: string) => {
+      calls.push(goal);
+      return { success: true, bindings: {} };
+    });
     await recordEntityAudit(prolog, "created", {
       type: "req",
       id: "REQ-1",
@@ -356,14 +359,14 @@ describe("audit and CLI exit helpers", () => {
     expect(calls).toHaveLength(2);
     await expect(
       recordEntityAudit(
-        { query: async () => ({ success: false, bindings: {} }) },
+        asPort(async () => ({ success: false, bindings: {} })),
         "updated",
         { type: "req", id: "REQ-1" },
       ),
     ).rejects.toThrow(/Failed to record audit/);
     await expect(
       recordRelationshipAudits(
-        { query: async () => ({ success: false, bindings: {} }) },
+        asPort(async () => ({ success: false, bindings: {} })),
         [{ type: "constrains", from: "REQ-1", to: "FACT-1" }],
       ),
     ).rejects.toThrow(/relationship audit/);
@@ -456,7 +459,7 @@ describe("discovery entities and Prolog JSON helpers", () => {
     expect(toPrologList(["a", "b"])).toBe("['a','b']");
     await expect(
       runOperationJsonQuery(
-        { query: async () => ({ success: false, bindings: {} }) },
+        asPort(async () => ({ success: false, bindings: {} })),
         "status.pl",
         "goal",
         "status",
@@ -464,7 +467,7 @@ describe("discovery entities and Prolog JSON helpers", () => {
     ).rejects.toThrow(/query failed/);
     await expect(
       runOperationJsonQuery(
-        { query: async () => ({ success: true, bindings: {} }) },
+        asPort(async () => ({ success: true, bindings: {} })),
         "status.pl",
         "goal",
         "status",
@@ -477,7 +480,7 @@ describe("discovery entities and Prolog JSON helpers", () => {
             success: true,
             bindings: { JsonString: 12 },
           }),
-        },
+        } as never,
         "status.pl",
         "goal",
         "status",
@@ -490,7 +493,7 @@ describe("discovery entities and Prolog JSON helpers", () => {
             success: true,
             bindings: { JsonString: "{not-json" },
           }),
-        },
+        } as never,
         "status.pl",
         "goal",
         "status",
@@ -503,7 +506,7 @@ describe("discovery entities and Prolog JSON helpers", () => {
             success: true,
             bindings: { JsonString: '"not-object"' },
           }),
-        },
+        } as never,
         "status.pl",
         "goal",
         "status",
@@ -515,7 +518,7 @@ describe("discovery entities and Prolog JSON helpers", () => {
           success: true,
           bindings: { JsonString: '{"ok":true}' },
         }),
-      },
+      } as never,
       "status.pl",
       "goal",
       "status",
@@ -564,7 +567,7 @@ describe("requirement and symbol quality models", () => {
         ),
         ...symbols,
       ],
-    });
+    } as never);
     expect(diagnostics.some((item) => item.id === "broad_requirement_review")).toBe(
       true,
     );
@@ -580,7 +583,7 @@ describe("requirement and symbol quality models", () => {
           entity("REQ-OK", "req", { status: "open", logic_claims: ["C1"] }),
         ],
         hardViolationEntityIds: new Set(["REQ-OK"]),
-      }),
+      } as never),
     ).toEqual([]);
   });
 
@@ -599,7 +602,7 @@ describe("requirement and symbol quality models", () => {
     child.sourceFile = "src/widget.ts";
     const symbols = collectSymbols({
       manifestResults: [parent, child, entity("REQ-1", "req")],
-    });
+    } as never);
     expect(symbols).toHaveLength(2);
     expect(isModuleOrConfig(symbols[0]!)).toBe(true);
     expect(narrowerManifestSymbols(symbols[0]!, symbols).map((s) => s.id)).toEqual([
@@ -617,14 +620,14 @@ describe("requirement and symbol quality models", () => {
               { name: "other", role: "behavioral" },
             ],
           ],
-        ]),
+        ]) as never,
       ).map((item) => item.name),
     ).toEqual(["Widget.run"]);
     expect(
       collectSymbols({
         manifestResults: [parent],
         activeEntityIds: new Set(["missing"]),
-      }),
+      } as never),
     ).toEqual([]);
   });
 });

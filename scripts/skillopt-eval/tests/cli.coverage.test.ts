@@ -120,19 +120,20 @@ describe("cli.ts remaining command and error paths", () => {
         await main(
           ["preflight", "--run-id", "00000000-0000-4000-8000-000000000403"],
           dependencies({
-            runPreflight: async ({ runId }) => ({
-              verdict: "fail",
-              runId,
-              targetModel: TARGET_MODEL,
-              optimizerModel: OPTIMIZER_MODEL,
-              skilloptCommit: "b860a5cf88ce75e2bd02ca981ac21fb28cffba83",
-              codexVersion: "codex 1.0.0",
-              authMode: "file",
-              bwrap: true,
-              sourceClean: false,
-              configValid: true,
-              paidModelCalls: 0,
-            }),
+            runPreflight: async ({ runId }) =>
+              ({
+                verdict: "fail",
+                runId,
+                targetModel: TARGET_MODEL,
+                optimizerModel: OPTIMIZER_MODEL,
+                skilloptCommit: "b860a5cf88ce75e2bd02ca981ac21fb28cffba83",
+                codexVersion: "codex 1.0.0",
+                authMode: "file",
+                bwrap: true,
+                sourceClean: false,
+                configValid: true,
+                paidModelCalls: 0,
+              }) as never,
           }),
         ),
       ).toBe(1);
@@ -155,7 +156,7 @@ describe("cli.ts remaining command and error paths", () => {
                 paidModelCalls: 0,
                 modelRuns: [],
                 events: [],
-              }) satisfies CapabilityCanaryReceipt,
+              }) as never,
           }),
         ),
       ).toBe(1);

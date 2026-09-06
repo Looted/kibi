@@ -1978,10 +1978,10 @@ describe("persistEntities remaining serializer and batch paths", () => {
       type: "test",
       title: "login test",
       verification_scope: "unit",
-      verification_perspective: "behavior",
-      proof_contract: { kind: "unit" },
-      proof_bindings: { case: "login" },
-      proof_receipts: [{ id: "r1" }],
+      verification_perspective: "behavior" as never,
+      proof_contract: { kind: "unit" } as never,
+      proof_bindings: { case: "login" } as never,
+      proof_receipts: [{ id: "r1" }] as never,
     });
     const fact = makeEntity({
       id: "FACT-1",
@@ -2131,9 +2131,11 @@ describe("persistRelationships remaining retry and tip paths", () => {
         [makeResult({}, [{ type: "specified_by", from: "REQ-001", to: "SCEN-1" }])],
         [],
       );
-      expect(warn.mock.calls.some((call) => String(call[0]).includes("Tip"))).toBe(
-        true,
-      );
+      expect(
+        warn.mock.calls.some((call) =>
+          String((call as unknown[])[0]).includes("Tip"),
+        ),
+      ).toBe(true);
     } finally {
       console.warn = previous;
     }
@@ -2164,7 +2166,9 @@ describe("persistRelationships remaining retry and tip paths", () => {
         [],
         [{ type: "specified_by", from: "REQ-GONE", to: "SCEN-1" }],
       );
-      const text = warn.mock.calls.map((call) => String(call[0])).join("\n");
+      const text = warn.mock.calls
+        .map((call) => String((call as unknown[])[0]))
+        .join("\n");
       expect(text).toContain("missing entity");
     } finally {
       console.warn = previous;

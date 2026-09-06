@@ -6,7 +6,7 @@ import {
   assertCellInfrastructureHealthy,
   evaluationInfrastructurePayload,
   parseEvaluationInfrastructureMarker,
-} from "../evaluation-infrastructure.ts";
+} from "../evaluation-infrastructure.js";
 
 function completed(
   status: "passed" | "infrastructure-failure" | "interrupted" | "budget-exhausted" | "evidence-conflict",
@@ -17,7 +17,7 @@ function completed(
       result: { status, criticalFailures },
     },
     receiptPath: "/tmp/receipt.json",
-  };
+  } as never;
 }
 
 describe("evaluation infrastructure helpers", () => {

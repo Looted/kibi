@@ -284,7 +284,7 @@ describe("migrateCommand remaining runtime branches", () => {
     writeManifest(cwd, 5);
     const plan = readyPlan();
     const exec = spyOn(runtimeTypes, "executeOperation").mockImplementation(
-      (async (_runtime, spec: { name?: string }, _input?: unknown) => {
+      (async (_runtime: unknown, spec: { name?: string }, _input?: unknown) => {
         if (spec.name === "kb_status") {
           return {
             content: [],
@@ -323,7 +323,7 @@ describe("migrateCommand remaining runtime branches", () => {
     expect(json.exitCode).toBe(0);
     expect(io.logText()).toContain("applied");
 
-    exec.mockImplementation(async (_runtime, spec: { name?: string }) => {
+    exec.mockImplementation((async (_runtime: unknown, spec: { name?: string }) => {
       if (spec.name === "kb_status") {
         return {
           content: [],
@@ -342,7 +342,7 @@ describe("migrateCommand remaining runtime branches", () => {
         return { content: [], structuredContent: { outcome: "blocked" } };
       }
       return { content: [], structuredContent: {} };
-    });
+    }) as never);
     const blocked = await migrateCommand({
       applySafe: true,
       approvedPlanHash: plan.planHash,

@@ -196,7 +196,7 @@ describe("buildPrivateManifest remaining required-tool and workflow branches", (
     expect(
       bundleManifest.orderedMcpPredicates.required.map(({ tool }) => tool),
     ).toEqual(expect.arrayContaining(["kb_plan_bootstrap", "kb_search"]));
-    expect(verifyPrivateManifestIntegrity(bundle as never, bundleManifest)).toBe(
+    expect(verifyPrivateManifestIntegrity(bundle as never, bundleManifest as never)).toBe(
       true,
     );
 
