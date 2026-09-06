@@ -3,7 +3,11 @@ import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { engineStopCommand } from "../../src/commands/engine.js";
-import { formatSchemaVersion, migrateCommand } from "../../src/commands/migrate.js";
+import {
+  formatSchemaVersion,
+  migrateCommand,
+  warnMigrationRequiredWithoutYes,
+} from "../../src/commands/migrate.js";
 import {
   buildMigrationPlan,
   migrationAction,
@@ -431,5 +435,14 @@ describe("migrateCommand remaining runtime branches", () => {
     expect(io.logText()).toContain(
       "No approved automatic migration actions are ready.",
     );
+  });
+
+  test("warns and applies nothing when migration is required without --yes", () => {
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = warnMigrationRequiredWithoutYes();
+    expect(result.exitCode).toBe(0);
+    expect(io.logText()).toContain("No changes applied.");
+    expect(io.logText()).toContain("Use --dry-run to preview or --yes");
   });
 });

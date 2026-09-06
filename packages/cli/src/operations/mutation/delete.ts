@@ -88,7 +88,7 @@ function fileHash(pathname: string): string | null {
   return createHash("sha256").update(readFileSync(pathname)).digest("hex");
 }
 
-async function executeRelationshipDelete(
+export async function executeRelationshipDelete(
   selectors: readonly RelationshipSelector[],
   context: OperationContext,
 ): Promise<DeletePayload> {

@@ -1,8 +1,10 @@
 // implements REQ-test-journaled-engine-harness
 import { afterEach, describe, expect, test } from "bun:test";
 import { EventEmitter } from "node:events";
-import { fileURLToPath } from "node:url";
-import { main, runPackedE2E } from "../run-packed-e2e.mjs";
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { defaultImportHelpers, main, runPackedE2E } from "../run-packed-e2e.mjs";
 
 afterEach(() => {
   if (process.exitCode === 1) process.exitCode = 0;
@@ -16,6 +18,19 @@ describe("run-packed-e2e remaining helper-missing and main-guard branches", () =
         testFiles: ["/tmp/one.test.js"],
       }),
     ).rejects.toThrow(/Packed E2E helper is missing/);
+    await expect(
+      defaultImportHelpers("/tmp/compiled-missing-helpers-remain"),
+    ).rejects.toThrow(/Packed E2E helper is missing/);
+  });
+
+  test("defaultImportHelpers loads helpers.js when present", async () => {
+    const directory = mkdtempSync(join(tmpdir(), "kibi-packed-helpers-"));
+    writeFileSync(
+      join(directory, "helpers.js"),
+      "export const marker = 'packed-helpers';\n",
+    );
+    const helpers = await defaultImportHelpers(directory);
+    expect(helpers.marker).toBe("packed-helpers");
   });
 
   test("prepares once, maps spawn errors, invalid helpers, and forwarded signals", async () => {
@@ -101,19 +116,4 @@ describe("run-packed-e2e remaining helper-missing and main-guard branches", () =
     }
   });
 
-  test("evaluates the direct-invocation guard against this test process argv", async () => {
-    const scriptPath = fileURLToPath(
-      new URL("../run-packed-e2e.mjs", import.meta.url),
-    );
-    const previousArgv = process.argv.slice();
-    const previousExit = process.exitCode;
-    process.argv = ["bun", scriptPath];
-    try {
-      await import(`${scriptPath}?remaining=${Date.now()}`);
-      expect(process.exitCode).toBe(1);
-    } finally {
-      process.argv = previousArgv;
-      process.exitCode = previousExit ?? 0;
-    }
-  });
 });

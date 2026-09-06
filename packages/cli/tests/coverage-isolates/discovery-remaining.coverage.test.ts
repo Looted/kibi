@@ -176,5 +176,28 @@ describe("clearRecoveredPendingSourceReceipts leftover success and ENOENT inspec
         },
       ]),
     ).not.toThrow();
+
+    const unlinkTarget = path.join(pendingRoot, "unlink-race.json");
+    writeFileSync(unlinkTarget, body);
+    const originalUnlink = fs.unlinkSync;
+    const unlink = spyOn(fs, "unlinkSync").mockImplementation(((
+      target: fs.PathLike,
+    ) => {
+      if (String(target) === unlinkTarget) {
+        throw Object.assign(new Error("already gone"), { code: "ENOENT" });
+      }
+      return originalUnlink(target);
+    }) as typeof fs.unlinkSync);
+    restores.push(() => unlink.mockRestore());
+    expect(() =>
+      clearRecoveredPendingSourceReceipts(cwd, [
+        {
+          receiptPath: unlinkTarget,
+          path: "docs/REQ.md",
+          afterHash: "a".repeat(64),
+          rawHash: sha(body),
+        },
+      ]),
+    ).not.toThrow();
   });
 });

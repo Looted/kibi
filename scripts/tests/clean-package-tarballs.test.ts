@@ -23,7 +23,12 @@ import { join } from "node:path";
 
 // We test the exported helpers directly rather than exec'ing the script,
 // because the script's REPO_ROOT is hard-coded to the real repo root.
-import { findTarballs, isDryRun, main } from "../clean-package-tarballs";
+import {
+  findTarballs,
+  isDryRun,
+  main,
+  runCleanPackageTarballsIfMain,
+} from "../clean-package-tarballs";
 
 const tempRoots: string[] = [];
 
@@ -177,5 +182,21 @@ describe("clean-package-tarballs", () => {
     } finally {
       console.log = log;
     }
+  });
+
+  test("runCleanPackageTarballsIfMain only starts when argv matches the module", () => {
+    let started = 0;
+    runCleanPackageTarballsIfMain("file:///tmp/clean.ts", "/other", () => {
+      started += 1;
+    });
+    expect(started).toBe(0);
+    runCleanPackageTarballsIfMain("file:///tmp/clean.ts", "/tmp/clean.ts", () => {
+      started += 1;
+    });
+    expect(started).toBe(1);
+    runCleanPackageTarballsIfMain("file:///tmp/clean.ts", "file:///tmp/clean.ts", () => {
+      started += 1;
+    });
+    expect(started).toBe(2);
   });
 });

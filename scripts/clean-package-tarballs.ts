@@ -97,11 +97,16 @@ function main(
   console.log(`Removed ${tarballs.length} stale tarball(s).`);
 }
 
-if (
-  import.meta.url === process.argv[1] ||
-  import.meta.url === `file://${process.argv[1]}`
-) {
-  main();
+export function runCleanPackageTarballsIfMain(
+  moduleUrl = import.meta.url,
+  argv1 = process.argv[1],
+  start = main,
+): void {
+  if (moduleUrl === argv1 || moduleUrl === `file://${argv1}`) {
+    start();
+  }
 }
+
+runCleanPackageTarballsIfMain();
 
 export { findTarballs, isDryRun, main };

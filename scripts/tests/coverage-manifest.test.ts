@@ -5,6 +5,7 @@ import { join } from "node:path";
 import {
   collectProductionSourceFiles,
   runCoverageManifestCli,
+  runCoverageManifestIfMain,
   sourceFilesInLcov,
   writeCoverageManifestAudit,
 } from "../coverage-manifest.ts";
@@ -91,6 +92,7 @@ describe("coverage manifest", () => {
       } finally {
         process.exitCode = previousExit;
       }
+      await runCoverageManifestIfMain(false);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

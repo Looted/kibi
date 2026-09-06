@@ -94,6 +94,12 @@ export async function main(): Promise<never> {
   process.exit(exitCode);
 }
 
-if (isCliEntrypoint(process.argv[1], import.meta.url)) {
-  void main();
+export async function runCliIfEntrypoint(
+  isEntrypoint = isCliEntrypoint(process.argv[1], import.meta.url),
+  start = main,
+): Promise<void> {
+  if (!isEntrypoint) return;
+  await start();
 }
+
+void runCliIfEntrypoint();

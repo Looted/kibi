@@ -14,6 +14,7 @@ import path from "node:path";
 import {
   assertFilesystemCapableRuntime,
   executeDelete,
+  executeRelationshipDelete,
 } from "../../src/operations/mutation/delete.js";
 import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
 import type {
@@ -126,6 +127,19 @@ afterEach(() => {
 });
 
 describe("executeDelete relationship remaining branches", () => {
+  test("relationship delete blocks injected legacy attachments", async () => {
+    const root = makeTempDir();
+    await expect(
+      executeRelationshipDelete(
+        [{ type: "relates_to", from: "REQ-1", to: "REQ-2" }],
+        contextFor(root, () => ({ success: true, bindings: {} }), {
+          branchAttachment: attachment(root, true),
+          fs: nodeFilesystem,
+        }),
+      ),
+    ).rejects.toThrow(/Delete blocked: migrate legacy branch storage/);
+  });
+
   test("rejects non-selector relationship values including null and arrays", async () => {
     // implements REQ-011
     const root = makeTempDir();

@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { PassThrough } from "node:stream";
 import { McpBrokerError, REQUIRED_KIBI_TOOLS } from "../runtime/mcp-broker";
-import { runMcpBroker } from "../runtime/mcp-broker-process";
+import { runMcpBroker, terminateGroup } from "../runtime/mcp-broker-process";
 
 const roots: string[] = [];
 setDefaultTimeout(20_000);
@@ -108,5 +108,28 @@ describe("mcp-broker-process remaining protocol and ESRCH branches", () => {
     );
     await expect(incomplete).rejects.toBeInstanceOf(McpBrokerError);
     expect(REQUIRED_KIBI_TOOLS.length).toBeGreaterThan(0);
+  });
+
+  test("terminateGroup swallows ESRCH and rethrows other kill failures", () => {
+    const originalKill = process.kill;
+    process.kill = ((pid: number) => {
+      const error = new Error("gone") as Error & { code?: string };
+      error.code = "ESRCH";
+      throw error;
+    }) as typeof process.kill;
+    try {
+      expect(() => terminateGroup(9_999_991, "SIGTERM")).not.toThrow();
+    } finally {
+      process.kill = originalKill;
+    }
+
+    process.kill = (() => {
+      throw new Error("EPERM");
+    }) as typeof process.kill;
+    try {
+      expect(() => terminateGroup(9_999_992, "SIGTERM")).toThrow(/EPERM/);
+    } finally {
+      process.kill = originalKill;
+    }
   });
 });

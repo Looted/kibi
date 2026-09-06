@@ -93,6 +93,12 @@ export async function runCoverageManifestCli(
   }
 }
 
-if (import.meta.main) {
-  await runCoverageManifestCli();
+export async function runCoverageManifestIfMain(
+  isMain = import.meta.main,
+  argv: string[] = process.argv,
+): Promise<void> {
+  if (!isMain) return;
+  await runCoverageManifestCli(argv);
 }
+
+await runCoverageManifestIfMain();

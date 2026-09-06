@@ -5,26 +5,27 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+export async function defaultImportHelpers(directory) {
+  const helpersPath = path.join(directory, "helpers.js");
+  if (!existsSync(helpersPath)) {
+    throw new Error(`Packed E2E helper is missing: ${helpersPath}`);
+  }
+  return import(pathToFileURL(helpersPath).href);
+}
+
 /**
  * Prepare one immutable packed environment and run all selected Node test
  * files with bounded concurrency. Dependencies are injectable for focused
  * runner tests without a real npm pack.
  */
-export async function runPackedE2E({
-  compiledDirectory,
-  testFiles,
-  env = process.env,
-  spawnProcess = spawn,
-  importHelpers = async (directory) => {
-    const helpersPath = path.join(directory, "helpers.js");
-    if (!existsSync(helpersPath)) {
-      throw new Error(`Packed E2E helper is missing: ${helpersPath}`);
-    }
-    return import(pathToFileURL(helpersPath).href);
-  },
-  nodeExecutable = process.execPath,
-  signalTarget = process,
-} = {}) {
+export async function runPackedE2E(options = {}) {
+  const compiledDirectory = options.compiledDirectory;
+  const testFiles = options.testFiles;
+  const env = options.env ?? process.env;
+  const spawnProcess = options.spawnProcess ?? spawn;
+  const importHelpers = options.importHelpers ?? defaultImportHelpers;
+  const nodeExecutable = options.nodeExecutable ?? process.execPath;
+  const signalTarget = options.signalTarget ?? process;
   if (
     !compiledDirectory ||
     !Array.isArray(testFiles) ||

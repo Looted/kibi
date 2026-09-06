@@ -1,6 +1,6 @@
 // implements REQ-kibi-intent-aware-source-discovery
 import { afterEach, describe, expect, test } from "bun:test";
-import { executeIntentSearch } from "../src/intent-search.js";
+import { executeIntentSearch, graphGoal } from "../src/intent-search.js";
 import { isolateKibiEnv } from "./helpers/in-process-workspace.js";
 
 const restores: Array<() => void> = [];
@@ -122,5 +122,14 @@ describe("intent-search remaining candidate, graph, and related-id branches", ()
       "/tmp",
     );
     expect(capped.analysis.candidateCount).toBeLessThanOrEqual(10_000);
+  });
+
+  test("graphGoal emits both depth-1 and depth-2 findall goals", () => {
+    const depthOne = graphGoal(["REQ-A"], 1);
+    const depthTwo = graphGoal(["REQ-A"], 2);
+    expect(depthOne).toContain("findall");
+    expect(depthTwo).toContain("findall");
+    expect(depthOne).toContain("REQ-A");
+    expect(depthTwo).toContain("REQ-A");
   });
 });

@@ -4,7 +4,7 @@ import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { isCliEntrypoint, packageVersion } from "../src/cli.js";
+import { isCliEntrypoint, packageVersion, runCliIfEntrypoint } from "../src/cli.js";
 
 const restores: Array<() => void> = [];
 
@@ -48,21 +48,19 @@ describe("cli main leftover entry and drain branches", () => {
     );
   });
 
-  test("dynamic entry import invokes main when argv[1] matches the module url", async () => {
-    const cliPath = fileURLToPath(new URL("../src/cli.ts", import.meta.url));
-    const previousArgv = process.argv;
-    process.argv = ["bun", cliPath, "--help"];
-    restores.push(() => {
-      process.argv = previousArgv;
+  test("runCliIfEntrypoint skips or starts based on the injected flag", async () => {
+    let started = 0;
+    await runCliIfEntrypoint(false, async () => {
+      started += 1;
+      return undefined as never;
     });
-    const exit = spyOn(process, "exit").mockImplementation(((code?: number) => {
-      throw new Error(`exit:${code ?? 0}`);
-    }) as typeof process.exit);
-    restores.push(() => exit.mockRestore());
-    expect(pathToFileURL(resolve(cliPath)).href).toContain("cli.ts");
-    await expect(
-      import(`${pathToFileURL(cliPath).href}?entry=${Date.now()}`),
-    ).resolves.toBeDefined();
+    expect(started).toBe(0);
+    await runCliIfEntrypoint(true, async () => {
+      started += 1;
+      return undefined as never;
+    });
+    expect(started).toBe(1);
+    await runCliIfEntrypoint(false);
   });
 
   test("packageVersion falls back and isCliEntrypoint requires a matching argv path", () => {

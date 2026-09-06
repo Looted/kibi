@@ -150,7 +150,7 @@ function assertNoUnresolvedGitConflicts(workspaceRoot: string): void {
   }
 }
 
-function trackedRelationshipFiles(
+export function trackedRelationshipFiles(
   workspaceRoot: string,
   relationshipsDir: string,
   recoverMissingPendingSources = false,

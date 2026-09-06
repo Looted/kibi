@@ -12,7 +12,7 @@ import { describe, expect, test } from "bun:test";
 import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { finalizeLcov } from "../finalize-lcov.ts";
+import { finalizeLcov, finalizeLcovIfMain } from "../finalize-lcov.ts";
 import { mergeLcovContents } from "../merge-lcov.ts";
 
 describe("finalizeLcov", () => {
@@ -178,5 +178,59 @@ describe("mergeLcovContents", () => {
     expect(merged).toContain("BRDA:2,0,0,4");
     expect(merged).toContain("BRDA:2,0,1,2");
     expect(merged).toContain("BRF:2\nBRH:2");
+  });
+
+  test("keeps both unparsed branch-taken marks and skips extra DA:0 on an authority map", () => {
+    const mergedBranches = mergeLcovContents([
+      [
+        "TN:",
+        "SF:src/nan.ts",
+        "BRDA:1,0,0,-",
+        "BRDA:1,0,1,-",
+        "DA:1,1",
+        "LF:1",
+        "LH:1",
+        "end_of_record",
+      ].join("\n"),
+      [
+        "TN:",
+        "SF:src/nan.ts",
+        "BRDA:1,0,0,-",
+        "BRDA:1,0,1,-",
+        "DA:1,1",
+        "LF:1",
+        "LH:1",
+        "end_of_record",
+      ].join("\n"),
+    ]);
+    expect(mergedBranches).toContain("BRDA:1,0,0,-");
+
+    const completeLines = Array.from({ length: 20 }, (_, index) => `DA:${index + 1},1`);
+    const mergedAuthority = mergeLcovContents([
+      ["TN:", "SF:src/auth.ts", ...completeLines, "LF:20", "LH:20", "end_of_record"].join(
+        "\n",
+      ),
+      [
+        "TN:",
+        "SF:src/auth.ts",
+        ...completeLines.map((line) => line.replace(",1", ",0")),
+        "DA:21,0",
+        "DA:22,3",
+        "LF:22",
+        "LH:1",
+        "end_of_record",
+      ].join("\n"),
+    ]);
+    expect(mergedAuthority).not.toContain("DA:21,0");
+    expect(mergedAuthority).toContain("DA:22,3");
+  });
+});
+
+describe("finalizeLcovIfMain leftover entry guard", () => {
+  test("skips when not main and finalizes when main is injected", async () => {
+    await finalizeLcovIfMain(false);
+    const coverageDir = mkdtempSync(join(tmpdir(), "kibi-lcov-ifmain-"));
+    writeFileSync(join(coverageDir, "lcov.info"), "TN:\nend_of_record\n");
+    await finalizeLcovIfMain(true, ["bun", "finalize-lcov.ts", coverageDir]);
   });
 });

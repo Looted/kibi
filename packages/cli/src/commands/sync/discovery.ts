@@ -18,6 +18,7 @@
 
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
+import * as fs from "node:fs";
 import { existsSync, readFileSync, readdirSync, unlinkSync } from "node:fs";
 import * as path from "node:path";
 import { promisify } from "node:util";
@@ -161,7 +162,7 @@ export function clearRecoveredPendingSourceReceipts(
     // that pending intent was retired when a newer intent remains.
     let raw: string;
     try {
-      raw = readFileSync(absolute, "utf8");
+      raw = fs.readFileSync(absolute, "utf8");
     } catch (error) {
       if (
         error !== null &&
@@ -201,7 +202,7 @@ export function clearRecoveredPendingSourceReceipts(
       );
     }
     try {
-      unlinkSync(absolute);
+      fs.unlinkSync(absolute);
     } catch (error) {
       if (
         error !== null &&

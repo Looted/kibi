@@ -419,6 +419,13 @@ function migrateSymbolGranularity(options: {
   return { count, manifestPath };
 }
 
+export function warnMigrationRequiredWithoutYes(): { exitCode: number } {
+  printWarning("Migration required for this repository.");
+  console.log("No changes applied.");
+  console.log("Use --dry-run to preview or --yes to apply the migration.");
+  return { exitCode: 0 };
+}
+
 // implements REQ-003
 export async function migrateCommand(
   options: MigrateOptions = {},
@@ -576,10 +583,7 @@ export async function migrateCommand(
   }
 
   if (!options.yes) {
-    printWarning("Migration required for this repository.");
-    console.log("No changes applied.");
-    console.log("Use --dry-run to preview or --yes to apply the migration.");
-    return { exitCode: 0 };
+    return warnMigrationRequiredWithoutYes();
   }
 
   // One-way storage cutover first: files must reach the canonical layout
