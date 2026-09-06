@@ -125,3 +125,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d99ffd780d98
+  - type: covered_by
+    from: SYM-auto-B722155D82DD
+    to: TEST-mcp-search-discovery
+    created_at: 2026-09-06T09:06:01.047Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c16c4c5f88f

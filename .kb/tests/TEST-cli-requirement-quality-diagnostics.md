@@ -6,6 +6,8 @@ source: packages/cli/tests/traceability/impact-requirement-quality.test.ts
 links:
   - type: validates
     target: SCEN-audit-quality-diagnostics-v1
+verification_scope: unit
+type: test
 ---
 
 Validates broad requirement, requirement-status, and strict-fact modeling review diagnostics.

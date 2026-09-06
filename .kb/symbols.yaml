@@ -837,22 +837,24 @@ symbols:
         target: REQ-kibi-change-to-proof-plan-compiler
   - id: SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanargs
     title: ApplyPlanArgs
-    sourceFile: packages/cli/src/operations/planning/apply-plan.ts
+    sourceFile: packages/cli/src/operations/planning/apply-plan-types.d.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
   - id: SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanresult
     title: ApplyPlanResult
-    sourceFile: packages/cli/src/operations/planning/apply-plan.ts
+    sourceFile: packages/cli/src/operations/planning/apply-plan-types.d.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
   - id: SYM-kibi-cli-src-operations-planning-apply-plan-ts-plan-apply-result-version
     title: PLAN_APPLY_RESULT_VERSION
     sourceFile: packages/cli/src/operations/planning/apply-plan.ts
@@ -1940,13 +1942,14 @@ symbols:
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-engine-attachment-identity
     title: EngineAttachmentIdentity
-    sourceFile: packages/cli/src/engine.ts
+    sourceFile: packages/cli/src/engine-types.d.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-core-journaled-engine-persistence
       - type: covered_by
         target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
   - id: SYM-cli-engine-attachments-match
     title: engineAttachmentsMatch
     sourceFile: packages/cli/src/engine.ts
@@ -2448,7 +2451,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/artifact-path.ts
     symbol_role: behavioral
     status: active
-    granularity_reason: legacy-link
+    granularity_reason: extractor-miss
     relationships:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
@@ -2459,7 +2462,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/artifact-path.ts
     symbol_role: behavioral
     status: active
-    granularity_reason: legacy-link
+    granularity_reason: extractor-miss
     relationships:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
@@ -2470,7 +2473,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/artifact-path.ts
     symbol_role: behavioral
     status: active
-    granularity_reason: legacy-link
+    granularity_reason: extractor-miss
     relationships:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
@@ -2481,7 +2484,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/artifact-path.ts
     symbol_role: behavioral
     status: active
-    granularity_reason: legacy-link
+    granularity_reason: extractor-miss
     relationships:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
@@ -2492,7 +2495,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/artifact-path.ts
     symbol_role: behavioral
     status: active
-    granularity_reason: legacy-link
+    granularity_reason: extractor-miss
     relationships:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
@@ -2503,7 +2506,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/artifact-path.ts
     symbol_role: behavioral
     status: active
-    granularity_reason: legacy-link
+    granularity_reason: extractor-miss
     relationships:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
@@ -4871,7 +4874,8 @@ symbols:
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable resource examples
+    title: predicate guidance loads a canonical decision tree with immutable
+      resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -9815,22 +9819,28 @@ symbols:
     symbol_role: type-shape
     links:
       - REQ-mcp-tool-check
+    status: active
     relationships:
-      - type: implements
-        target: REQ-mcp-tool-check
       - type: covered_by
         target: TEST-001
+      - type: covered_by
+        target: TEST-mcp-tool-check-coverage
+      - type: implements
+        target: REQ-mcp-tool-check
   - id: SYM-mcp-CheckResult
     title: CheckResult
     sourceFile: packages/mcp/src/tools/check-types.ts
     symbol_role: type-shape
     links:
       - REQ-mcp-tool-check
+    status: active
     relationships:
-      - type: implements
-        target: REQ-mcp-tool-check
       - type: covered_by
         target: TEST-001
+      - type: covered_by
+        target: TEST-mcp-tool-check-coverage
+      - type: implements
+        target: REQ-mcp-tool-check
   - id: SYM-mcp-cli-help-test
     title: mcp cli help test
     sourceFile: packages/mcp/tests/cli-help.test.ts
@@ -9902,11 +9912,14 @@ symbols:
     symbol_role: type-shape
     links:
       - REQ-mcp-tool-check
+    status: active
     relationships:
-      - type: implements
-        target: REQ-mcp-tool-check
       - type: covered_by
         target: TEST-001
+      - type: covered_by
+        target: TEST-mcp-tool-check-coverage
+      - type: implements
+        target: REQ-mcp-tool-check
   - id: SYM-mcp-discovery-context
     title: createDiscoveryContext
     status: active
@@ -25871,67 +25884,74 @@ symbols:
     status: active
   - id: SYM-reqcompiler-telemetry-usage-event
     title: TelemetryUsageEvent
-    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    sourceFile: packages/cli/src/public/telemetry-acceptance-types.d.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-telemetry-acceptance-gate
       - type: covered_by
         target: TEST-kibi-telemetry-acceptance-gate
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
   - id: SYM-reqcompiler-telemetry-acceptance-policy
     title: TelemetryAcceptancePolicy
-    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    sourceFile: packages/cli/src/public/telemetry-acceptance-types.d.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-telemetry-acceptance-gate
       - type: covered_by
         target: TEST-kibi-telemetry-acceptance-gate
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
   - id: SYM-reqcompiler-telemetry-acceptance-metric
     title: TelemetryAcceptanceMetric
-    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    sourceFile: packages/cli/src/public/telemetry-acceptance-types.d.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-telemetry-acceptance-gate
       - type: covered_by
         target: TEST-kibi-telemetry-acceptance-gate
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
   - id: SYM-reqcompiler-telemetry-acceptance-report
     title: TelemetryAcceptanceReport
-    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    sourceFile: packages/cli/src/public/telemetry-acceptance-types.d.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-telemetry-acceptance-gate
       - type: covered_by
         target: TEST-kibi-telemetry-acceptance-gate
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
   - id: SYM-reqcompiler-telemetry-metric-status
     title: TelemetryMetricStatus
-    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    sourceFile: packages/cli/src/public/telemetry-acceptance-types.d.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-telemetry-acceptance-gate
       - type: covered_by
         target: TEST-kibi-telemetry-acceptance-gate
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
   - id: SYM-reqcompiler-telemetry-acceptance-status
     title: TelemetryAcceptanceStatus
-    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    sourceFile: packages/cli/src/public/telemetry-acceptance-types.d.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-telemetry-acceptance-gate
       - type: covered_by
         target: TEST-kibi-telemetry-acceptance-gate
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
   - id: SYM-reqcompiler-telemetry-metric-id
     title: TelemetryMetricId
-    sourceFile: packages/cli/src/public/telemetry-acceptance.ts
+    sourceFile: packages/cli/src/public/telemetry-acceptance-types.d.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-telemetry-acceptance-gate
       - type: covered_by
         target: TEST-kibi-telemetry-acceptance-gate
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
   - id: SYM-reqcompiler-telemetry-acceptance-version
     title: TELEMETRY_ACCEPTANCE_VERSION
     sourceFile: packages/cli/src/public/telemetry-acceptance.ts
@@ -26564,7 +26584,7 @@ symbols:
   - id: SYM-auto-8A6A1669C54A
     title: EngineCommandV1
     status: active
-    sourceFile: packages/cli/src/engine.ts
+    sourceFile: packages/cli/src/engine-types.d.ts
     symbol_role: type-shape
     relationships:
       - type: covered_by
@@ -26576,7 +26596,7 @@ symbols:
   - id: SYM-auto-9C1F333AEDAA
     title: EngineRequest
     status: active
-    sourceFile: packages/cli/src/engine.ts
+    sourceFile: packages/cli/src/engine-types.d.ts
     symbol_role: type-shape
     relationships:
       - type: covered_by
@@ -26764,7 +26784,7 @@ symbols:
   - id: SYM-auto-F6E934B6698C
     title: EntityDeletionPlan
     status: active
-    sourceFile: packages/cli/src/operations/planning/apply-plan.ts
+    sourceFile: packages/cli/src/operations/planning/apply-plan-types.d.ts
     symbol_role: type-shape
     relationships:
       - type: covered_by
@@ -27813,6 +27833,8 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-mcp-search-discovery
       - type: implements
         target: REQ-kibi-operation-interface-parity
       - type: implements
@@ -27827,6 +27849,8 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-mcp-search-discovery
       - type: implements
         target: REQ-kibi-operation-interface-parity
       - type: implements
@@ -28443,6 +28467,8 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-cli-canonical-status
+      - type: covered_by
         target: TEST-cli-migrate
       - type: implements
         target: REQ-cli-init-canonical
@@ -28453,6 +28479,8 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-cli-canonical-status
+      - type: covered_by
         target: TEST-cli-migrate
       - type: implements
         target: REQ-cli-init-canonical
@@ -28462,6 +28490,8 @@ symbols:
     sourceFile: packages/cli/src/commands/legacy-storage-migration.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-cli-canonical-status
       - type: covered_by
         target: TEST-cli-migrate
       - type: implements
@@ -32826,164 +32856,164 @@ symbols:
         target: REQ-kibi-verification-evidence-contract
   - id: SYM-proof-run-outcome
     title: ProofRunOutcome
-    sourceFile: packages/cli/src/public/proof-protocol.ts
+    sourceFile: packages/cli/src/public/proof-protocol-types.d.ts
     status: active
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
   - id: SYM-proof-result-outcome
     title: ProofResultOutcome
-    sourceFile: packages/cli/src/public/proof-protocol.ts
+    sourceFile: packages/cli/src/public/proof-protocol-types.d.ts
     status: active
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
   - id: SYM-proof-binding-kind
     title: ProofBindingKind
-    sourceFile: packages/cli/src/public/proof-protocol.ts
+    sourceFile: packages/cli/src/public/proof-protocol-types.d.ts
     status: active
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
   - id: SYM-attempts-status
     title: AttemptsStatus
-    sourceFile: packages/cli/src/public/proof-protocol.ts
+    sourceFile: packages/cli/src/public/proof-protocol-types.d.ts
     status: active
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
   - id: SYM-run-failure-phase
     title: RunFailurePhase
-    sourceFile: packages/cli/src/public/proof-protocol.ts
+    sourceFile: packages/cli/src/public/proof-protocol-types.d.ts
     status: active
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
   - id: SYM-success-policy
     title: SuccessPolicy
-    sourceFile: packages/cli/src/public/proof-protocol.ts
+    sourceFile: packages/cli/src/public/proof-protocol-types.d.ts
     status: active
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
   - id: SYM-proof-attempt
     title: ProofAttempt
-    sourceFile: packages/cli/src/public/proof-protocol.ts
+    sourceFile: packages/cli/src/public/proof-protocol-types.d.ts
     status: active
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
   - id: SYM-proof-attempts
     title: ProofAttempts
-    sourceFile: packages/cli/src/public/proof-protocol.ts
+    sourceFile: packages/cli/src/public/proof-protocol-types.d.ts
     status: active
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
   - id: SYM-proof-result
     title: ProofResult
-    sourceFile: packages/cli/src/public/proof-protocol.ts
+    sourceFile: packages/cli/src/public/proof-protocol-types.d.ts
     status: active
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
   - id: SYM-producer-provenance
     title: ProducerProvenance
-    sourceFile: packages/cli/src/public/proof-protocol.ts
+    sourceFile: packages/cli/src/public/proof-protocol-types.d.ts
     status: active
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
   - id: SYM-proof-environment
     title: ProofEnvironment
-    sourceFile: packages/cli/src/public/proof-protocol.ts
+    sourceFile: packages/cli/src/public/proof-protocol-types.d.ts
     status: active
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
   - id: SYM-proof-run
     title: ProofRun
-    sourceFile: packages/cli/src/public/proof-protocol.ts
+    sourceFile: packages/cli/src/public/proof-protocol-types.d.ts
     status: active
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
   - id: SYM-proof-run-artifact
     title: ProofRunArtifact
-    sourceFile: packages/cli/src/public/proof-protocol.ts
+    sourceFile: packages/cli/src/public/proof-protocol-types.d.ts
     status: active
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
   - id: SYM-proof-obligation
     title: ProofObligation
-    sourceFile: packages/cli/src/public/proof-protocol.ts
+    sourceFile: packages/cli/src/public/proof-protocol-types.d.ts
     status: active
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
   - id: SYM-proof-contract
     title: ProofContract
-    sourceFile: packages/cli/src/public/proof-protocol.ts
+    sourceFile: packages/cli/src/public/proof-protocol-types.d.ts
     status: active
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
   - id: SYM-proof-binding
     title: ProofBinding
-    sourceFile: packages/cli/src/public/proof-protocol.ts
+    sourceFile: packages/cli/src/public/proof-protocol-types.d.ts
     status: active
     symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
   - id: SYM-proof-run-version
     title: PROOF_RUN_VERSION
     sourceFile: packages/cli/src/public/proof-protocol.ts

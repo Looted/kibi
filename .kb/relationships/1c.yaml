@@ -132,3 +132,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-29078c3b45f3
+  - type: covered_by
+    from: SYM-auto-4682A3D1BEB4
+    to: TEST-mcp-search-discovery
+    created_at: 2026-09-06T09:05:57.227Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-679ecdf87456

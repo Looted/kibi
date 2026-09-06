@@ -143,3 +143,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-661ef75ae50f
+  - type: covered_by
+    from: SYM-canonical-StorageMigrationPlan
+    to: TEST-cli-canonical-status
+    created_at: 2026-09-06T09:05:48.146Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-367f8db22b9d
