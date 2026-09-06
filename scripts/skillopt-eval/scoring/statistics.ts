@@ -10,7 +10,7 @@ export type CellSummary = Readonly<{
   criticalFailures: number;
 }>;
 
-function sortedPairedDeltas(
+export function sortedPairedDeltas(
   candidate: readonly GateCell[],
   comparator: readonly GateCell[],
 ): readonly number[] | null {

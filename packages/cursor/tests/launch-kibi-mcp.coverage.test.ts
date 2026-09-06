@@ -23,6 +23,7 @@ import {
   resolveProjectLocalMcp,
   resolveWorkspaceRoot,
   runLaunchEntrypoint,
+  runLaunchIfEntrypoint,
   signalExitCode,
 } from "../bin/launch-kibi-mcp.mjs";
 
@@ -566,13 +567,15 @@ describe("launch-kibi-mcp remaining branches", () => {
       process.exitCode = previousExit;
     }
 
-    const previousArgv = process.argv.slice();
-    process.argv = [previousArgv[0] ?? "bun", fileURLToPath(launchUrl), empty];
-    try {
-      await import(`${launchUrl.href}?cli=${Date.now()}`);
-    } finally {
-      process.argv = previousArgv;
-      process.exitCode = previousExit;
-    }
+    expect(packageJsonForResolvedFile("/")).toBeNull();
+    let started = 0;
+    await runLaunchIfEntrypoint(false, async () => {
+      started += 1;
+    });
+    expect(started).toBe(0);
+    await runLaunchIfEntrypoint(true, async () => {
+      started += 1;
+    });
+    expect(started).toBe(1);
   });
 });

@@ -389,6 +389,12 @@ export function launchKibiMcp(
   });
 }
 
-if (isLaunchEntrypoint(process.argv[1], import.meta.url)) {
-  await runLaunchEntrypoint(process.argv.slice(2));
+export async function runLaunchIfEntrypoint(
+  isEntrypoint = isLaunchEntrypoint(process.argv[1], import.meta.url),
+  start = runLaunchEntrypoint,
+) {
+  if (!isEntrypoint) return;
+  await start();
 }
+
+await runLaunchIfEntrypoint();
