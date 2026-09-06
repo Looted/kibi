@@ -12445,12 +12445,12 @@ coordinates:
     sourceLine: 613
   SYM-packed-e2e-runner:
     identityHash: 65840edd48a86c9bad37dfd9d35e16ff4cc199b4224b0389240a0f7ec1d4f9f1
-    sourceHash: 8406034efd34c05953aecf074933eda7bff14e25e77369171781c155014c3f42
+    sourceHash: 80749c30675f41708a5e37c2917bb2dc40017b0e1eb52e07ab4f4d5f3beaa8b9
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 92
+    sourceEndLine: 105
     sourceFile: scripts/run-packed-e2e.mjs
-    sourceLine: 21
+    sourceLine: 33
   SYM-packed-environment-declaration:
     identityHash: dd1b7de9f500a17eff2a02f63c3be2a76571092633b7d13de5d0812777334a91
     sourceHash: 46bf82a278b7d1e870d539938baa9409cb0ccfc3f45c44c6140b665321473346

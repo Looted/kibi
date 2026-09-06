@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
 import { test } from "node:test";
-import { main, runPackedE2E } from "../run-packed-e2e.mjs";
+import {
+  main,
+  packedTestIsolationArg,
+  runPackedE2E,
+} from "../run-packed-e2e.mjs";
 
 function fakeSignalTarget() {
   return new EventEmitter();
@@ -47,6 +51,7 @@ test("packed runner prepares once, propagates both paths, and preserves bounded 
     "--test",
     "--test-concurrency=2",
     "--test-force-exit",
+    packedTestIsolationArg(),
     "/tmp/one.test.js",
     "/tmp/two.test.js",
   ]);
@@ -158,4 +163,10 @@ test("packed runner main uses argv and surfaces usage errors", async () => {
   } finally {
     process.argv = previous;
   }
+});
+
+test("packed runner picks the Node-version isolation flag that avoids worker IPC", () => {
+  assert.equal(packedTestIsolationArg("22.14.0"), "--experimental-test-isolation=none");
+  assert.equal(packedTestIsolationArg("24.0.0"), "--test-isolation=none");
+  assert.equal(packedTestIsolationArg("26.7.0"), "--test-isolation=none");
 });

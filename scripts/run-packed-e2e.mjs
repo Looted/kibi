@@ -5,6 +5,18 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+/**
+ * Node 22 only accepts the experimental isolation flag. Node 24+ stabilized
+ * `--test-isolation`. In-process isolation avoids worker IPC deserialize
+ * flakes (`Unable to deserialize cloned data`) that fail passing packed runs.
+ */
+export function packedTestIsolationArg(nodeVersion = process.versions.node) {
+  const major = Number.parseInt(String(nodeVersion).split(".")[0] ?? "0", 10);
+  return Number.isFinite(major) && major >= 24
+    ? "--test-isolation=none"
+    : "--experimental-test-isolation=none";
+}
+
 export async function defaultImportHelpers(directory) {
   const helpersPath = path.join(directory, "helpers.js");
   if (!existsSync(helpersPath)) {
@@ -61,6 +73,7 @@ export async function runPackedE2E(options = {}) {
         "--test",
         "--test-concurrency=2",
         "--test-force-exit",
+        packedTestIsolationArg(),
         ...testFiles.map((testFile) => path.resolve(testFile)),
       ],
       {
