@@ -5173,7 +5173,7 @@ coordinates:
     sourceLine: 188
   SYM-cli-sync-semantic-boundary-relationships:
     identityHash: 827074b151f0c2a077ae742a1b987172476ebdfe3a5abafefc02850ef7578718
-    sourceHash: 39b257b2b57b1b1d8ed852f66ed653b8a2c6aee7af6e93fb957a059184c827b5
+    sourceHash: 58366f49f23a4db4a4ccf45399fd0d24757cbfedf5faa074581356d1d0d64a87
     sourceColumn: 9
     sourceEndColumn: 1
     sourceEndLine: 287
@@ -22853,15 +22853,15 @@ coordinates:
     sourceLine: 43
   SYM-syncCommand:
     identityHash: 8ad312cd2670f84c0020a34abfd5c47491b6c016603eef600987de9df8ee1515
-    sourceHash: 39b257b2b57b1b1d8ed852f66ed653b8a2c6aee7af6e93fb957a059184c827b5
+    sourceHash: 58366f49f23a4db4a4ccf45399fd0d24757cbfedf5faa074581356d1d0d64a87
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1550
+    sourceEndLine: 1584
     sourceFile: packages/cli/src/commands/sync.ts
-    sourceLine: 394
+    sourceLine: 438
   SYM-SyncError:
     identityHash: 2447b985c46eebd5a5b3f954540d28bca59ffb6a6ac70e36301d0d0ad96fb21d
-    sourceHash: 39b257b2b57b1b1d8ed852f66ed653b8a2c6aee7af6e93fb957a059184c827b5
+    sourceHash: 58366f49f23a4db4a4ccf45399fd0d24757cbfedf5faa074581356d1d0d64a87
     sourceColumn: 13
     sourceEndColumn: 1
     sourceEndLine: 118
@@ -22893,7 +22893,7 @@ coordinates:
     sourceLine: 23
   SYM-SyncResult:
     identityHash: ce0c3289449ba6bca074bb505bab3aefccda0f53dd0a4de76de8e8ac69f1b0bd
-    sourceHash: 39b257b2b57b1b1d8ed852f66ed653b8a2c6aee7af6e93fb957a059184c827b5
+    sourceHash: 58366f49f23a4db4a4ccf45399fd0d24757cbfedf5faa074581356d1d0d64a87
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 314

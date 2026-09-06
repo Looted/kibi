@@ -383,11 +383,55 @@ function compilerCacheFilesMatch(
     if (
       cache.relationshipHashes?.[toCacheKey(workspaceRoot, file)] !==
       hashFile(workspaceRoot, file)
-    ) {
+    )
       return false;
-    }
   }
   return true;
+}
+
+export function warnFailedSourceHash(file: string, error: unknown): void {
+  const message = error instanceof Error ? error.message : String(error);
+  console.warn(`Warning: Failed to hash ${file}: ${message}`);
+}
+
+export function maybePushKbMissingDiagnostic(
+  diagnostics: Diagnostic[],
+  kbExists: boolean,
+  rebuild: boolean,
+  currentBranch: string,
+  livePath: string,
+): void {
+  if (!kbExists && !rebuild) {
+    diagnostics.push(createKbMissingDiagnostic(currentBranch, livePath));
+  }
+}
+
+export function assertRelationshipsCleared(result: {
+  success: boolean;
+  error?: string;
+}): void {
+  if (!result.success) {
+    throw new SyncError(
+      `Failed to clear changed relationship shards: ${result.error || "Unknown error"}`,
+    );
+  }
+}
+
+export function maybePushDocsNotIndexedDiagnostic(
+  diagnostics: Diagnostic[],
+  performedFullReindex: boolean,
+  markdownFileCount: number,
+  entityCount: number,
+): void {
+  if (
+    performedFullReindex &&
+    markdownFileCount > 0 &&
+    entityCount < markdownFileCount
+  ) {
+    diagnostics.push(
+      createDocsNotIndexedDiagnostic(markdownFileCount, entityCount),
+    );
+  }
 }
 
 // implements REQ-003, REQ-007
@@ -745,8 +789,7 @@ export async function syncCommand(
           }
         }
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.warn(`Warning: Failed to hash ${file}: ${message}`);
+        warnFailedSourceHash(file, error);
       }
     }
 
@@ -1024,9 +1067,7 @@ export async function syncCommand(
 
     const livePath = branchStorePath(workspaceRoot, currentBranch);
     const kbExists = existsSync(livePath);
-    if (!kbExists && !rebuild) {
-      diagnostics.push(createKbMissingDiagnostic(currentBranch, livePath));
-    }
+    maybePushKbMissingDiagnostic(diagnostics, kbExists, rebuild, currentBranch, livePath);
 
     // implements REQ-core-journaled-engine-delta-sync
     // Normal syncs are compiled directly into the long-lived single-writer
@@ -1302,11 +1343,7 @@ export async function syncCommand(
         const clearRelationships = await prolog.query(
           "kb_retract_all_relationships",
         );
-        if (!clearRelationships.success) {
-          throw new SyncError(
-            `Failed to clear changed relationship shards: ${clearRelationships.error || "Unknown error"}`,
-          );
-        }
+        assertRelationshipsCleared(clearRelationships);
       }
 
       const { entityCount, kbModified: entitiesModified } =
@@ -1477,15 +1514,12 @@ export async function syncCommand(
 
       published = true;
 
-      if (
-        performedFullReindex &&
-        markdownFiles.length > 0 &&
-        entityCount < markdownFiles.length
-      ) {
-        diagnostics.push(
-          createDocsNotIndexedDiagnostic(markdownFiles.length, entityCount),
-        );
-      }
+      maybePushDocsNotIndexedDiagnostic(
+        diagnostics,
+        performedFullReindex,
+        markdownFiles.length,
+        entityCount,
+      );
 
       console.log(
         `✓ Imported ${entityCount} entities, ${relationshipCount} relationships`,

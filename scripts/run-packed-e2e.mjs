@@ -99,13 +99,19 @@ export async function main() {
   });
 }
 
-const invokedPath = process.argv[1];
-if (
-  invokedPath &&
-  path.resolve(invokedPath) === fileURLToPath(import.meta.url)
+export async function runPackedE2EIfEntrypoint(
+  invokedPath = process.argv[1],
+  moduleUrl = import.meta.url,
+  start = main,
 ) {
+  if (
+    !invokedPath ||
+    path.resolve(invokedPath) !== fileURLToPath(moduleUrl)
+  ) {
+    return;
+  }
   try {
-    process.exitCode = await main();
+    process.exitCode = await start();
   } catch (error) {
     process.stderr.write(
       `${error instanceof Error ? error.message : String(error)}\n`,
@@ -113,3 +119,5 @@ if (
     process.exitCode = 1;
   }
 }
+
+await runPackedE2EIfEntrypoint();

@@ -43,23 +43,27 @@ export function detectCountStrictSuggestion(
   const cardinality = statement.match(
     /\b(?<operator>at\s+most|at\s+least|exactly|no\s+more\s+than|up\s+to)\s+(?<value>\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?<resource>[a-z][a-z\s_-]*?)\.?$/i,
   );
+  const cardinalityGroups = cardinality?.groups;
   if (
-    cardinality?.groups?.operator &&
-    cardinality.groups.value &&
-    cardinality.groups.resource
+    cardinalityGroups?.operator &&
+    cardinalityGroups.value &&
+    cardinalityGroups.resource
   ) {
-    const value = numberToken(cardinality.groups.value);
+    const operatorText = cardinalityGroups.operator;
+    const valueText = cardinalityGroups.value;
+    const resourceText = cardinalityGroups.resource;
+    const value = numberToken(valueText);
     const suggestion = whenParsedNumber(value, (parsed) => {
-      const normalized = normalizeKey(cardinality.groups.resource);
+      const normalized = normalizeKey(resourceText);
       const tail = singularize(normalized.split("_").at(-1) ?? normalized);
-      const operator = /at\s+least/i.test(cardinality.groups.operator)
+      const operator = /at\s+least/i.test(operatorText)
         ? "gte"
-        : /exactly/i.test(cardinality.groups.operator)
+        : /exactly/i.test(operatorText)
           ? "eq"
           : "lte";
       return strictSuggestion(
         payload,
-        `${cardinality.groups.operator} ${cardinality.groups.value}`,
+        `${operatorText} ${valueText}`,
         {
           subject_key:
             tail === "session" ? "user.session" : normalized.replace(/_/g, "."),
@@ -79,16 +83,20 @@ export function detectCountStrictSuggestion(
   const capped = statement.match(
     /^(?<subject>.+?)\s+cap(?:s|ped)?\s+at\s+(?:(?<property>[a-z][a-z\s_-]*?)\s+)?(?<value>\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten)\.?$/i,
   );
-  if (capped?.groups?.subject && capped.groups.value) {
-    const value = numberToken(capped.groups.value);
+  const cappedGroups = capped?.groups;
+  if (cappedGroups?.subject && cappedGroups.value) {
+    const subjectText = cappedGroups.subject;
+    const valueText = cappedGroups.value;
+    const propertyText = cappedGroups.property;
+    const value = numberToken(valueText);
     const suggestion = whenParsedNumber(value, (parsed) =>
       strictSuggestion(
         payload,
-        `cap at ${capped.groups.value}`,
+        `cap at ${valueText}`,
         {
-          subject_key: normalizeSubjectKey(capped.groups.subject),
-          property_key: capped.groups.property
-            ? `${normalizeKey(capped.groups.property)}_cap`
+          subject_key: normalizeSubjectKey(subjectText),
+          property_key: propertyText
+            ? `${normalizeKey(propertyText)}_cap`
             : "count",
           operator: "lte",
           value_type: "int",

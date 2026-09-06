@@ -4,7 +4,12 @@ import { EventEmitter } from "node:events";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { defaultImportHelpers, main, runPackedE2E } from "../run-packed-e2e.mjs";
+import {
+  defaultImportHelpers,
+  main,
+  runPackedE2E,
+  runPackedE2EIfEntrypoint,
+} from "../run-packed-e2e.mjs";
 
 afterEach(() => {
   if (process.exitCode === 1) process.exitCode = 0;
@@ -113,6 +118,19 @@ describe("run-packed-e2e remaining helper-missing and main-guard branches", () =
       await expect(main()).rejects.toThrow(/Usage:/);
     } finally {
       process.argv = previous;
+    }
+
+    const previousExit = process.exitCode;
+    try {
+      await runPackedE2EIfEntrypoint("/tmp/other.mjs", "file:///tmp/run.mjs");
+      await runPackedE2EIfEntrypoint("/tmp/run.mjs", "file:///tmp/run.mjs", async () => 0);
+      expect(process.exitCode).toBe(0);
+      await runPackedE2EIfEntrypoint("/tmp/run.mjs", "file:///tmp/run.mjs", async () => {
+        throw new Error("packed-entry-failed");
+      });
+      expect(process.exitCode).toBe(1);
+    } finally {
+      process.exitCode = previousExit ?? 0;
     }
   });
 

@@ -12,7 +12,10 @@ import path from "node:path";
 import {
   clearRecoveredPendingSourceReceipts,
   discoverSourceFiles,
+  isFsEnoent,
   normalizeMarkdownPath,
+  readTextOrEnoent,
+  unlinkOrEnoent,
 } from "../../src/commands/sync/discovery.js";
 import { writePendingSourceReceipt } from "../../src/operations/mutation/source-authoring.js";
 import {
@@ -199,5 +202,17 @@ describe("clearRecoveredPendingSourceReceipts leftover success and ENOENT inspec
         },
       ]),
     ).not.toThrow();
+  });
+
+  test("readTextOrEnoent and unlinkOrEnoent treat missing paths as absent", () => {
+    expect(isFsEnoent(Object.assign(new Error("gone"), { code: "ENOENT" }))).toBe(
+      true,
+    );
+    expect(isFsEnoent(new Error("nope"))).toBe(false);
+    expect(readTextOrEnoent("/tmp/kibi-missing-receipt-nope.json")).toBeNull();
+    expect(unlinkOrEnoent("/tmp/kibi-missing-receipt-nope.json")).toBe(false);
+    expect(() =>
+      readTextOrEnoent("/tmp"),
+    ).toThrow(/Failed to inspect pending source receipt/);
   });
 });

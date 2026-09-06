@@ -141,6 +141,38 @@ function pendingSourcePaths(
   return { paths, recoveredReceipts };
 }
 
+export function isFsEnoent(error: unknown): boolean {
+  return (
+    error !== null &&
+    typeof error === "object" &&
+    "code" in error &&
+    error.code === "ENOENT"
+  );
+}
+
+export function readTextOrEnoent(absolute: string): string | null {
+  try {
+    return fs.readFileSync(absolute, "utf8");
+  } catch (error) {
+    if (isFsEnoent(error)) return null;
+    throw new Error(
+      `Failed to inspect pending source receipt for ${absolute}: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+}
+
+export function unlinkOrEnoent(absolute: string): boolean {
+  try {
+    fs.unlinkSync(absolute);
+    return true;
+  } catch (error) {
+    if (isFsEnoent(error)) return false;
+    throw new Error(
+      `Failed to retire pending source receipt for ${absolute}: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+}
+
 export function clearRecoveredPendingSourceReceipts(
   cwd: string,
   receipts: readonly PendingSourceReceiptSnapshot[],
@@ -160,22 +192,8 @@ export function clearRecoveredPendingSourceReceipts(
     // because it has the same receipt filename.  Failing closed here is
     // important: publication may have completed, but recovery must not claim
     // that pending intent was retired when a newer intent remains.
-    let raw: string;
-    try {
-      raw = fs.readFileSync(absolute, "utf8");
-    } catch (error) {
-      if (
-        error !== null &&
-        typeof error === "object" &&
-        "code" in error &&
-        error.code === "ENOENT"
-      ) {
-        continue;
-      }
-      throw new Error(
-        `Failed to inspect pending source receipt for ${receipt.path}: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
+    const raw = readTextOrEnoent(absolute);
+    if (raw === null) continue;
     const rawHash = createHash("sha256").update(raw).digest("hex");
     if (rawHash !== receipt.rawHash) {
       throw new Error(
@@ -201,23 +219,7 @@ export function clearRecoveredPendingSourceReceipts(
         `Pending source receipt changed during recovery for ${receipt.path}; refusing to retire newer receipt`,
       );
     }
-    try {
-      fs.unlinkSync(absolute);
-    } catch (error) {
-      if (
-        error !== null &&
-        typeof error === "object" &&
-        "code" in error &&
-        error.code === "ENOENT"
-      ) {
-        // Another recovery or source publication may have consumed it
-        // already; cleanup is idempotent for that case.
-        continue;
-      }
-      throw new Error(
-        `Failed to retire pending source receipt for ${receipt.path}: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
+    unlinkOrEnoent(absolute);
   }
 }
 

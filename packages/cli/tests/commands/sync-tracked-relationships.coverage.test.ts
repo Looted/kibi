@@ -2,7 +2,14 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { mkdirSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { SyncError, trackedRelationshipFiles } from "../../src/commands/sync.js";
+import {
+  SyncError,
+  assertRelationshipsCleared,
+  maybePushDocsNotIndexedDiagnostic,
+  maybePushKbMissingDiagnostic,
+  trackedRelationshipFiles,
+  warnFailedSourceHash,
+} from "../../src/commands/sync.js";
 import {
   createGitWorkspace,
   git,
@@ -114,5 +121,47 @@ describe("trackedRelationshipFiles leftover pending-source branches", () => {
     expect(trackedRelationshipFiles(cwd, relDir).some((file) =>
       file.endsWith("REQ-A__implements__SYM-A.yaml"),
     )).toBe(true);
+  });
+});
+
+describe("sync leftover diagnostic and hash-warning helpers", () => {
+  test("warns hash failures and records missing-kb plus under-indexed docs", () => {
+    const warnings: string[] = [];
+    const warn = console.warn.bind(console);
+    console.warn = ((message?: unknown) => {
+      warnings.push(String(message));
+    }) as typeof console.warn;
+    try {
+      warnFailedSourceHash("docs/a.md", new Error("hash-broke"));
+      warnFailedSourceHash("docs/b.md", "plain");
+    } finally {
+      console.warn = warn;
+    }
+    expect(warnings.join("\n")).toContain("Failed to hash docs/a.md: hash-broke");
+    expect(warnings.join("\n")).toContain("Failed to hash docs/b.md: plain");
+
+    const missing: Array<{ category?: string }> = [];
+    maybePushKbMissingDiagnostic(missing as never, true, false, "main", "/tmp/kb");
+    expect(missing).toHaveLength(0);
+    maybePushKbMissingDiagnostic(missing as never, false, true, "main", "/tmp/kb");
+    expect(missing).toHaveLength(0);
+    maybePushKbMissingDiagnostic(missing as never, false, false, "main", "/tmp/kb");
+    expect(missing).toHaveLength(1);
+
+    const docs: Array<{ category?: string }> = [];
+    maybePushDocsNotIndexedDiagnostic(docs as never, false, 2, 1);
+    maybePushDocsNotIndexedDiagnostic(docs as never, true, 0, 0);
+    maybePushDocsNotIndexedDiagnostic(docs as never, true, 2, 2);
+    expect(docs).toHaveLength(0);
+    maybePushDocsNotIndexedDiagnostic(docs as never, true, 3, 1);
+    expect(docs).toHaveLength(1);
+
+    expect(() => assertRelationshipsCleared({ success: true })).not.toThrow();
+    expect(() =>
+      assertRelationshipsCleared({ success: false, error: "busy" }),
+    ).toThrow(/Failed to clear changed relationship shards: busy/);
+    expect(() => assertRelationshipsCleared({ success: false })).toThrow(
+      /Unknown error/,
+    );
   });
 });
