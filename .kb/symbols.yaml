@@ -20709,11 +20709,19 @@ symbols:
         target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-runtime-code-mode-host-path
+    title: stagedCodeModeHostExecutable
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-runtime-evaluation-branch
     title: SKILLOPT_EVALUATION_BRANCH
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
     symbol_role: config
-    granularity_reason: config-artifact
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -20928,7 +20936,6 @@ symbols:
     title: MCP_STARTUP_TIMEOUT_SECONDS
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
     symbol_role: config
-    granularity_reason: config-artifact
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -20938,7 +20945,6 @@ symbols:
     title: MCP_TOOL_TIMEOUT_SECONDS
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
     symbol_role: config
-    granularity_reason: config-artifact
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -20968,7 +20974,6 @@ symbols:
     title: OPTIMIZER_REASONING_EFFORT
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
     symbol_role: config
-    granularity_reason: config-artifact
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -20978,7 +20983,6 @@ symbols:
     title: TARGET_REASONING_EFFORT
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
     symbol_role: config
-    granularity_reason: config-artifact
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -20988,7 +20992,6 @@ symbols:
     title: OPTIMIZER_MODEL
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
     symbol_role: config
-    granularity_reason: config-artifact
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -21106,7 +21109,6 @@ symbols:
     title: RuntimePrerequisiteError.name
     sourceFile: scripts/skillopt-eval/runtime/canary-errors.ts
     symbol_role: structural
-    granularity_reason: extractor-miss
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -21207,7 +21209,6 @@ symbols:
     title: RequiredMcpStartupError.name
     sourceFile: scripts/skillopt-eval/runtime/canary-errors.ts
     symbol_role: structural
-    granularity_reason: extractor-miss
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -21327,7 +21328,6 @@ symbols:
     title: TARGET_MODEL
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
     symbol_role: config
-    granularity_reason: config-artifact
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization

@@ -459,6 +459,9 @@ describe("Codex evaluator-owned permissions", () => {
     expect(config).toContain(
       '"/run/work/.runtime/codex-resources/bwrap" = "read"',
     );
+    expect(config).toContain(
+      '"/run/work/.runtime/codex-code-mode-host" = "read"',
+    );
     expect(config).toContain('".kb" = "deny"');
     expect(config).toContain(`${JSON.stringify(paths.fixtureKb)} = "deny"`);
     expect(config).not.toContain(

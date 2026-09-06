@@ -1,6 +1,7 @@
 const PREREQUISITE_REASONS = {
   mcp_bundle_failed: "required_mcp_startup:bundle_failed",
   missing_bwrap: "missing_isolation:bwrap",
+  missing_code_mode_host: "missing_isolation:code_mode_host",
   sandbox_probe_failed: "isolation_probe_failed",
   source_isolation_probe_failed: "source_isolation_probe_failed",
 } as const;
