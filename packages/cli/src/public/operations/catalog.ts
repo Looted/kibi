@@ -183,12 +183,18 @@ const SPECS_BY_NAME: ReadonlyMap<OperationName, ResolvedOperationSpec> =
   );
 
 // implements REQ-kibi-operation-interface-parity
-export function getSpec(name: OperationName): ResolvedOperationSpec {
-  const spec = SPECS_BY_NAME.get(name);
+export function requireKnownSpec(
+  spec: ResolvedOperationSpec | undefined,
+  name: OperationName,
+): ResolvedOperationSpec {
   if (!spec) {
     throw new RangeError(`Unknown Kibi operation: ${name}`);
   }
   return spec;
+}
+
+export function getSpec(name: OperationName): ResolvedOperationSpec {
+  return requireKnownSpec(SPECS_BY_NAME.get(name), name);
 }
 
 // implements REQ-kibi-operation-interface-parity

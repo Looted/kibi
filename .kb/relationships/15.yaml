@@ -83,3 +83,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c9cda9867279
+  - type: covered_by
+    from: SYM-KibiImpactDiagnosticId-contract
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:13:33.544Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eba8b26ff85d
+  - type: covered_by
+    from: SYM-cli-impact-createImpactManifestLookup
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:16:10.086Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-326a4e125557
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-1-inferMutualExclusionArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:42:10.404Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-100efb99443d
+  - type: covered_by
+    from: SYM-StoredHeldOutTerminalReceipt
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:10:22.070Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-962aa501a575

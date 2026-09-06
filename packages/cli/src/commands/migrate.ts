@@ -194,7 +194,7 @@ function writeTextAtomically(filePath: string, content: string): void {
   renameSync(tempPath, filePath);
 }
 
-function formatSchemaVersion(
+export function formatSchemaVersion(
   rawSchemaVersion: unknown,
   normalized: number | null,
 ): string {
@@ -419,6 +419,13 @@ function migrateSymbolGranularity(options: {
   return { count, manifestPath };
 }
 
+export function warnMigrationRequiredWithoutYes(): { exitCode: number } {
+  printWarning("Migration required for this repository.");
+  console.log("No changes applied.");
+  console.log("Use --dry-run to preview or --yes to apply the migration.");
+  return { exitCode: 0 };
+}
+
 // implements REQ-003
 export async function migrateCommand(
   options: MigrateOptions = {},
@@ -572,13 +579,6 @@ export async function migrateCommand(
       `dry run: would write migration audit metadata to ${toRelativePath(cwd, auditPath)}.`,
     );
     console.log("Re-run with --yes to apply these changes.");
-    return { exitCode: 0 };
-  }
-
-  if (!options.yes) {
-    printWarning("Migration required for this repository.");
-    console.log("No changes applied.");
-    console.log("Use --dry-run to preview or --yes to apply the migration.");
     return { exitCode: 0 };
   }
 

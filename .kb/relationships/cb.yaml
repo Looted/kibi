@@ -55,3 +55,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-43096a3a1531
+  - type: covered_by
+    from: SYM-kibi-check-format-violation
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-09-05T14:41:12.009Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a210b6b614bf
+  - type: covered_by
+    from: SYM-hasTraversal
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:11:57.200Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbb2d9c7b16d
+  - type: covered_by
+    from: SYM-openFileAtLine
+    to: TEST-vscode-traceability-coverage
+    created_at: 2026-09-05T18:27:58.067Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fed54dcd62af

@@ -209,3 +209,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f1842a0a0d05
+  - type: covered_by
+    from: SYM-TempKbContext
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:15:11.999Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12a451920164
+  - type: covered_by
+    from: SYM-markdown-FrontmatterError
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:26:13.324Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-506836a794fe
+  - type: covered_by
+    from: SYM-cli-engine-client-query-entities
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:29:12.292Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-725789870adb
+  - type: covered_by
+    from: SYM-cli-report-brand-logo
+    to: TEST-kibi-branded-health-report
+    created_at: 2026-09-05T16:58:38.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-972e699d992a
+  - type: covered_by
+    from: SYM-proof-receipt-history-errors
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-09-05T17:04:47.337Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33ad1972684a
+  - type: covered_by
+    from: SYM-VerificationHarnessError-name
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:10:48.129Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd1d580e547d

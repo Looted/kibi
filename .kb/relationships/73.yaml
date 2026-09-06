@@ -146,3 +146,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bd3430acec82
+  - type: covered_by
+    from: SYM-scripts-coverageManifest-collectProductionSourceFiles
+    to: TEST-011
+    created_at: 2026-09-05T14:52:20.125Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b6d222a88931
+  - type: covered_by
+    from: SYM-cursor-hasGuidedPath
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-09-05T15:38:36.628Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e10ad9e979b
+  - type: covered_by
+    from: SYM-SymbolCompilerLockFileSystem
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-09-05T16:56:19.740Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-adf15ddbe087
+  - type: covered_by
+    from: SYM-cli-mutation-serialization-buildPropertyList
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-09-05T17:11:23.064Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1cc326cd8c27
+  - type: covered_by
+    from: SYM-GateMatrix
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:07:50.603Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-374bd25c143e
+  - type: covered_by
+    from: SYM-skillopt-bridge-cli-options-failure
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:13:42.646Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30d996b4070d

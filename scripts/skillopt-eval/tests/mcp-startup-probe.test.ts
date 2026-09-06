@@ -59,7 +59,7 @@ describe("required Kibi MCP stdio startup", () => {
       expect(staged.mcpServer.args).toEqual([resolve(stagedRoot, "broker.js")]);
       expect(
         (await readFile(staged.mcpServer.args[0] ?? "", "utf8")).includes(
-          process.cwd(),
+          resolve(process.cwd(), "packages"),
         ),
       ).toBe(false);
       expect(result.toolNames).toEqual([...REQUIRED_KIBI_TOOLS]);

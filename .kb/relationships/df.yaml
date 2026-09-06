@@ -104,3 +104,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4d9ed4d1ce8e
+  - type: covered_by
+    from: SYM-buildStableRequirementIds
+    to: TEST-001
+    created_at: 2026-09-05T14:50:56.794Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3970e85ea790
+  - type: executable_for
+    from: SYM-e2e-test-root-suite-batch-diagnostics
+    to: TEST-root-suite-batch-diagnostics
+    created_at: 2026-09-05T15:49:30.324Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b065d1b701ba
+  - type: covered_by
+    from: SYM-predicate-catalog-part-2
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:47:01.565Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-deb89b680b08

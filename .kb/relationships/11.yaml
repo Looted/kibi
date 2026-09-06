@@ -181,3 +181,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c5132dfbb16a
+  - type: covered_by
+    from: SYM-mcp-handle-sparql
+    to: TEST-005
+    created_at: 2026-09-05T14:47:13.616Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-930000905509
+  - type: covered_by
+    from: SYM-cli-impact-collectLinkedEntities
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:15:59.466Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5c77d3995a0
+  - type: covered_by
+    from: SYM-kibi-playwright-producer-on-begin
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:30:23.008Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e411bc450758
+  - type: covered_by
+    from: SYM-mcp-handle-sparql
+    to: TEST-prolog-library-adoption-core
+    created_at: 2026-09-05T18:01:48.033Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d8bb10b21ac

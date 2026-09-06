@@ -183,6 +183,29 @@ export type CodexOptimizerOptions = Readonly<{
   timeoutMs?: number;
 }>;
 
+export function loginRunForSource(
+  sourceWorktree: string,
+): (
+  argv: readonly [string, ...string[]],
+  childEnv: NodeJS.ProcessEnv,
+) => ReturnType<typeof runBoundedProcess> {
+  return (argv, childEnv) =>
+    defaultCodexLoginRun(argv, childEnv, sourceWorktree);
+}
+
+export function defaultCodexLoginRun(
+  argv: readonly [string, ...string[]],
+  childEnv: NodeJS.ProcessEnv,
+  sourceWorktree: string,
+): ReturnType<typeof runBoundedProcess> {
+  return runBoundedProcess({
+    argv,
+    cwd: sourceWorktree,
+    env: childEnv,
+    timeoutMs: 15_000,
+  });
+}
+
 // implements REQ-skillopt-codex-optimization
 export async function runCodexSkillOptStep(
   options: CodexOptimizerOptions,
@@ -202,13 +225,7 @@ export async function runCodexSkillOptStep(
       privateCodexHome: workspace.codexHome,
       sandboxHome: workspace.sandboxHome,
       env,
-      run: (argv, childEnv) =>
-        runBoundedProcess({
-          argv,
-          cwd: sourceWorktree,
-          env: childEnv,
-          timeoutMs: 15_000,
-        }),
+      run: loginRunForSource(sourceWorktree),
     });
     const staged = await stageCapabilityCanary(workspace, sourceWorktree, {
       ...(options.codexExecutable === undefined

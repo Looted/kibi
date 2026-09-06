@@ -76,3 +76,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-52e929e4e429
+  - type: covered_by
+    from: SYM-skillopt-predicate-train-case-ids
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T18:21:03.444Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7f9bd1dfcad

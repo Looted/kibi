@@ -59,3 +59,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e02be980711e
+  - type: covered_by
+    from: SYM-cli-engine-commands
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:29:49.570Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b4d17ab698e
+  - type: executable_for
+    from: SYM-e2e-test-mcp-kb-freshness
+    to: TEST-mcp-kb-freshness
+    created_at: 2026-09-05T15:45:54.749Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc6bf87dc17e
+  - type: covered_by
+    from: SYM-semantic-advisor-PRODUCT_TAIL_PREDICATE_RULES
+    to: TEST-mcp-semantic-advisor-preflight
+    created_at: 2026-09-05T17:38:43.898Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-831127a30937

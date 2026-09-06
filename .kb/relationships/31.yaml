@@ -101,3 +101,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d5dd31602b20
+  - type: covered_by
+    from: SYM-mcp-startup-resolution-readRunningPackageInfo
+    to: TEST-cursor-agent-plugin-v1
+    created_at: 2026-09-05T15:36:36.317Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18a501b5d500
+  - type: covered_by
+    from: SYM-skillopt-predicate-write-claim
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T18:21:08.559Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-27ffaf59fcdf

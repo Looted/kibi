@@ -156,7 +156,7 @@ export async function evaluateCompile(
   };
 }
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
   const searchPath = process.argv[2];
   const compilePath = process.argv[3];
   if (!searchPath || !compilePath) {

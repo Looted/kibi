@@ -174,3 +174,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9330396e30c7
+  - type: covered_by
+    from: SYM-normalizeSchemaVersion
+    to: TEST-001
+    created_at: 2026-09-05T14:51:38.279Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d93ca806851
+  - type: covered_by
+    from: SYM-markdown-FrontmatterError-toString
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:26:32.828Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8184d17274a1
+  - type: covered_by
+    from: SYM-auto-355E3C5D09BA
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:16:41.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e9d82d73192
+  - type: covered_by
+    from: SYM-core-derived-chr
+    to: TEST-prolog-library-adoption-core
+    created_at: 2026-09-05T18:01:34.428Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-234b0108716d
+  - type: covered_by
+    from: SYM-auto-355E3C5D09BA
+    to: TEST-skill-cli-load-validate
+    created_at: 2026-09-05T18:03:21.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7ec5142d795
+  - type: covered_by
+    from: SYM-skillopt-default-train
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:14:14.999Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11c340ddfda3
+  - type: covered_by
+    from: SYM-skillopt-real-optimization-run
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:15:15.872Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b8b55894988
+  - type: covered_by
+    from: SYM-writeAtomicTextFile
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:16:18.721Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f1f4d04bcfc

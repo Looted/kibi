@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, spyOn, test } from "bun:test";
 import fs from "node:fs";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import os from "node:os";
@@ -10,7 +10,14 @@ import {
   AGENT_PLUGIN_SCHEMA,
   EXPECTED_SKILL_IDS,
   agentPluginRoot,
+  assertCanonicalSourceComplete,
   buildAgentPluginUnlocked,
+  buildPluginManifest,
+  formatAgentJson,
+  formatAgentJsonDocument,
+  main,
+  repoRootFromScript,
+  repositoryUrl,
 } from "../scripts/build-agent-plugin";
 
 const testRoot = import.meta.dir;
@@ -152,5 +159,120 @@ describe("kibi-cursor portable Agent Plugin artifact", () => {
     ) as { version?: string };
 
     expect(manifest.version).toBe(packageJson.version);
+  });
+
+  test("formats wide JSON, repository URLs, and missing skill sources", () => {
+    expect(formatAgentJson(null, 0, 0)).toBe("null");
+    expect(formatAgentJson(["alpha", "beta"], 0, 0)).toBe('["alpha", "beta"]');
+    const wide = Array.from({ length: 12 }, (_, index) => `item-${index}-value`);
+    expect(formatAgentJson(wide, 0, 0)).toContain("\n");
+    expect(
+      formatAgentJson(
+        {
+          longKey: "a".repeat(40),
+          otherKey: "b".repeat(40),
+        },
+        0,
+        0,
+      ),
+    ).toContain("\n");
+    expect(formatAgentJsonDocument({ a: 1 })).toBe('{ "a": 1 }\n');
+    expect(repositoryUrl({ repository: "https://example.com/repo.git" })).toBe(
+      "https://example.com/repo.git",
+    );
+    expect(
+      repositoryUrl({ repository: { url: "https://example.com/object.git" } }),
+    ).toBe("https://example.com/object.git");
+    expect(repositoryUrl({})).toBe("https://github.com/Looted/kibi");
+    expect((buildPluginManifest({}) as { repository: string }).repository).toBe(
+      "https://github.com/Looted/kibi",
+    );
+    expect(repoRootFromScript()).toBe(repoRoot);
+
+    const missingRoot = path.join(os.tmpdir(), `kibi-missing-skills-${Date.now()}`);
+    expect(() => assertCanonicalSourceComplete(missingRoot)).toThrow(
+      "Canonical skills source missing",
+    );
+    const incomplete = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-partial-skills-"));
+    try {
+      fs.mkdirSync(path.join(incomplete, "kibi-bootstrap"), { recursive: true });
+      expect(() => assertCanonicalSourceComplete(incomplete)).toThrow(
+        "missing its SKILL.md",
+      );
+    } finally {
+      fs.rmSync(incomplete, { recursive: true, force: true });
+    }
+  });
+
+  test("CLI writes the artifact and rejects unknown flags", async () => {
+    const writes: string[] = [];
+    const stderrWrite = process.stderr.write.bind(process.stderr);
+    const stdoutWrite = process.stdout.write.bind(process.stdout);
+    process.stderr.write = ((chunk: string | Uint8Array) => {
+      writes.push(typeof chunk === "string" ? chunk : Buffer.from(chunk).toString());
+      return true;
+    }) as typeof process.stderr.write;
+    process.stdout.write = ((chunk: string | Uint8Array) => {
+      writes.push(typeof chunk === "string" ? chunk : Buffer.from(chunk).toString());
+      return true;
+    }) as typeof process.stdout.write;
+    const exit = spyOn(process, "exit").mockImplementation(((code?: number) => {
+      throw new Error(`exit:${code}`);
+    }) as typeof process.exit);
+    try {
+      await expect(main(["--nope"])).rejects.toThrow("exit:2");
+      expect(writes.some((chunk) => chunk.includes("unknown flag"))).toBe(true);
+      const fakeRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-agent-cli-"));
+      try {
+        for (const id of EXPECTED_SKILL_IDS) {
+          fs.mkdirSync(
+            path.join(fakeRoot, "packages/cli/src/public/skills", id),
+            { recursive: true },
+          );
+          fs.writeFileSync(
+            path.join(fakeRoot, "packages/cli/src/public/skills", id, "SKILL.md"),
+            `# ${id}\n`,
+          );
+        }
+        fs.mkdirSync(path.join(fakeRoot, "packages/cursor"), { recursive: true });
+        fs.writeFileSync(
+          path.join(fakeRoot, "packages/cursor", "package.json"),
+          JSON.stringify({
+            name: "kibi-cursor",
+            version: "0.0.0-test",
+            homepage: "https://example.com",
+            license: "MIT",
+          }),
+        );
+        await main(["--write"], fakeRoot);
+        expect(
+          writes.some((chunk) => chunk.includes("wrote Agent Plugin")),
+        ).toBe(true);
+        await expect(main([], path.join(fakeRoot, "missing"))).rejects.toThrow(
+          "exit:1",
+        );
+      } finally {
+        fs.rmSync(fakeRoot, { recursive: true, force: true });
+      }
+
+      const scriptPath = fileURLToPath(
+        new URL("../scripts/build-agent-plugin.ts", import.meta.url),
+      );
+      const previousArgv = process.argv.slice();
+      process.argv = [previousArgv[0] ?? "bun", scriptPath, "--nope"];
+      try {
+        await import(
+          `${new URL("../scripts/build-agent-plugin.ts", import.meta.url).href}?cli=${Date.now()}`
+        );
+      } catch (error) {
+        expect(String(error)).toContain("exit:2");
+      } finally {
+        process.argv = previousArgv;
+      }
+    } finally {
+      exit.mockRestore();
+      process.stderr.write = stderrWrite;
+      process.stdout.write = stdoutWrite;
+    }
   });
 });

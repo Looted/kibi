@@ -118,3 +118,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2f97348c960a
+  - type: covered_by
+    from: SYM-kibi-migration-plan-build
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-09-05T15:01:10.280Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0caf7992667
+  - type: covered_by
+    from: SYM-readManifestWithCoordinateOverlay
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:27:26.270Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-200b6652b26b
+  - type: covered_by
+    from: SYM-cli-engine-attachments-match
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:28:13.106Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef4c95fd0b15

@@ -48,3 +48,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2826be4c7d7e
+  - type: covered_by
+    from: SYM-resolveNpmFixture
+    to: TEST-014
+    created_at: 2026-09-05T14:54:46.158Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0958814a527
+  - type: covered_by
+    from: SYM-kibi-migration-plan-hash
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-09-05T15:01:15.720Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfe1bcd10ce8
+  - type: covered_by
+    from: SYM-PrepareArtifactPathOptions
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:09:29.646Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70a6139eb9d7
+  - type: covered_by
+    from: SYM-canonical-KibiTreeDataProvider-refresh
+    to: TEST-vscode-traceability-coverage
+    created_at: 2026-09-05T18:27:42.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70f7cf0cda9c

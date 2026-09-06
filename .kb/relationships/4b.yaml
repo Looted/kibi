@@ -118,3 +118,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4900ee915831
+  - type: constrains
+    from: REQ-skillopt-external-adoption-verdict
+    to: FACT-SUBJ-REQ-SKILLOPT-EXTERNAL-ADOPTION-VERDICT
+    created_at: 2026-09-05T14:14:54.795Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1c42ead23db
+  - type: requires_property
+    from: REQ-skillopt-external-adoption-verdict
+    to: FACT-PROP-REQ-SKILLOPT-EXTERNAL-ADOPTION-VERDICT-C01
+    created_at: 2026-09-05T14:14:54.814Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89c33fc7d507
+  - type: requires_property
+    from: REQ-skillopt-external-adoption-verdict
+    to: FACT-PROP-REQ-SKILLOPT-EXTERNAL-ADOPTION-VERDICT-C02
+    created_at: 2026-09-05T14:14:54.818Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64b5be7f9556
+  - type: requires_property
+    from: REQ-skillopt-external-adoption-verdict
+    to: FACT-PROP-REQ-SKILLOPT-EXTERNAL-ADOPTION-VERDICT-C03
+    created_at: 2026-09-05T14:14:54.823Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85b0b06a3bfc
+  - type: requires_property
+    from: REQ-skillopt-external-adoption-verdict
+    to: FACT-PROP-REQ-SKILLOPT-EXTERNAL-ADOPTION-VERDICT-C04
+    created_at: 2026-09-05T14:14:54.828Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2cdb8135a02
+  - type: covered_by
+    from: SYM-syncCommand
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-09-05T15:05:11.109Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-471cf057e6d8
+  - type: covered_by
+    from: SYM-isBehaviorSourceEdit
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:18:17.578Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c257c9aa23fb
+  - type: covered_by
+    from: SYM-syncCommand
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:27:37.123Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0817851046ea
+  - type: covered_by
+    from: SYM-cursor-maxGuidedPaths
+    to: TEST-cursor-worktree-kibi-continuity
+    created_at: 2026-09-05T16:54:55.480Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89a62aeabb51
+  - type: covered_by
+    from: SYM-auto-1ABE353EEDF1
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:15:50.982Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac05ba8219c2
+  - type: covered_by
+    from: SYM-skillopt-predicate-reserve-matrix
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T18:20:52.226Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d145fff7dd85

@@ -473,7 +473,20 @@ export async function executeUpsert(
     for (const [shardPath, before] of relationshipShardBefore) {
       const afterHash = fileHash(shardPath);
       const beforeHash = before === null ? null : textHash(before);
-      if (afterHash === null || afterHash === beforeHash) continue;
+      const expectedAfterHash =
+        relationshipShardAfterHash.get(shardPath) ?? null;
+      if (afterHash === null) {
+        if (expectedAfterHash !== null) {
+          const relative = path
+            .relative(context.workspaceRoot, shardPath)
+            .replaceAll("\\", "/");
+          shardWarnings.push(
+            `Relationship shard vanished after write: ${relative}`,
+          );
+        }
+        continue;
+      }
+      if (afterHash === beforeHash) continue;
       const relative = path
         .relative(context.workspaceRoot, shardPath)
         .replaceAll("\\", "/");

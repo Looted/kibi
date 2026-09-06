@@ -97,3 +97,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eee2400aff7f
+  - type: covered_by
+    from: SYM-KIBI-VIEW-ID
+    to: TEST-vscode-traceability-coverage
+    created_at: 2026-09-05T18:26:12.694Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ab87c4a36c1

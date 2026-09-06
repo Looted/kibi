@@ -479,4 +479,49 @@ describe.serial("session uncovered branch coverage", () => {
     );
     expect(mockPrologProcessInstance.start).toHaveBeenCalledTimes(1);
   });
+
+  test("initiateGracefulShutdown logs debug, skips a stopped Prolog, and settles rejected in-flight work", async () => {
+    setEnvVar("KIBI_MCP_DEBUG", "1");
+    const session = await importSessionModule("shutdown-reject-inflight");
+    session.resetSessionStateForTests();
+    const originalExit = process.exit;
+    const originalConsoleError = console.error;
+    const exitMock = mock(
+      (_code?: number | string | null | undefined) => undefined,
+    );
+    const consoleErrorMock = mock((..._args: unknown[]) => {});
+    process.exit = exitMock as unknown as typeof process.exit;
+    console.error = consoleErrorMock as typeof console.error;
+
+    try {
+      await session.initiateGracefulShutdown(0);
+      expect(exitMock).toHaveBeenCalledWith(0);
+      expect(
+        includesLog(
+          consoleErrorMock.mock.calls,
+          "Initiating graceful shutdown",
+        ),
+      ).toBe(true);
+
+      session.resetSessionStateForTests();
+      exitMock.mockClear();
+      mockPrologProcessInstance.isRunning.mockImplementation(() => false);
+      await session.ensureProlog();
+      expect(session.prologProcess).toBeDefined();
+      const rejected = Promise.reject(new Error("in-flight failed"));
+      rejected.catch(() => {});
+      session.inFlightRequests.set("rejected", rejected);
+      const shutdown = session.initiateGracefulShutdown(4);
+      await expect(shutdown).resolves.toBeUndefined();
+      expect(exitMock).toHaveBeenCalledWith(4);
+      expect(mockPrologProcessInstance.terminate).not.toHaveBeenCalled();
+
+      exitMock.mockClear();
+      await session.initiateGracefulShutdown(9);
+      expect(exitMock).not.toHaveBeenCalled();
+    } finally {
+      process.exit = originalExit;
+      console.error = originalConsoleError;
+    }
+  });
 });

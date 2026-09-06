@@ -18,7 +18,7 @@ export type ContractEvaluation = Readonly<{
   projectedResults: readonly ProofResult[];
 }>;
 
-function mapRunOutcome(
+export function mapRunOutcome(
   outcome: ProofRunArtifact["run"]["outcome"],
 ): ProofReceiptOutcome {
   switch (outcome) {

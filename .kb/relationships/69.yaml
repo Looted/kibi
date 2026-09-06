@@ -111,3 +111,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-271d672745de
+  - type: covered_by
+    from: SYM-kibi-migration-coverage-actions
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-09-05T15:00:56.169Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ff460a2dd2c
+  - type: covered_by
+    from: SYM-cli-engine-socket-path
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:31:03.651Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-974375d5b6f3

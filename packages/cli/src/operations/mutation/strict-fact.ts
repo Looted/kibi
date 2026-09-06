@@ -107,6 +107,21 @@ export function factKindShapeHints(
   return [];
 }
 
+export function assertRuleSchemaArity(
+  argumentNames: unknown,
+  argumentTypes: unknown,
+): void {
+  if (
+    !Array.isArray(argumentNames) ||
+    !Array.isArray(argumentTypes) ||
+    argumentNames.length !== argumentTypes.length
+  ) {
+    throw new Error(
+      "Entity validation failed: rule_schema argument_names and argument_types must have equal lengths",
+    );
+  }
+}
+
 // implements REQ-kibi-operation-interface-parity
 export function validateFactModelingShape(
   entity: Readonly<Record<string, unknown>>,
@@ -155,14 +170,6 @@ export function validateFactModelingShape(
         "Entity validation failed: fact_kind 'rule_schema' requires rule_name",
       );
     }
-    if (
-      !Array.isArray(entity.argument_names) ||
-      !Array.isArray(entity.argument_types) ||
-      entity.argument_names.length !== entity.argument_types.length
-    ) {
-      throw new Error(
-        "Entity validation failed: rule_schema argument_names and argument_types must have equal lengths",
-      );
-    }
+    assertRuleSchemaArity(entity.argument_names, entity.argument_types);
   }
 }

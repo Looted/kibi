@@ -41,3 +41,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ea630e670339
+  - type: covered_by
+    from: SYM-cli-impact-uniqueSorted
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:16:59.871Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-995a2a6fe689

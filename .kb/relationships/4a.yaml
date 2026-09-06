@@ -34,3 +34,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eeb812694784
+  - type: covered_by
+    from: SYM-kibi-check-build-summary
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-09-05T14:40:53.416Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c033a51df28
+  - type: covered_by
+    from: SYM-cli-engine-read-journal-generation
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:30:58.550Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1bd4f8e5d4a
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-1-inferDependencyRuleArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:41:43.490Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0049593ab94b
+  - type: covered_by
+    from: SYM-browseLinkedEntities
+    to: TEST-vscode-traceability-coverage
+    created_at: 2026-09-05T18:26:57.041Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47f928491e0b
+  - type: covered_by
+    from: SYM-resetWorkspaceFeaturesForTests
+    to: TEST-vscode-traceability-coverage
+    created_at: 2026-09-05T18:28:12.302Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30fe03168bdc

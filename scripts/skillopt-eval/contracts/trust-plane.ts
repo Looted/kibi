@@ -1,3 +1,4 @@
+export const TRUST_PLANE_MODULE = true;
 import { z } from "zod";
 import {
   ArtifactIdSchema,

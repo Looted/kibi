@@ -76,6 +76,26 @@ interface RecentEdit {
   timestamp: number;
 }
 
+export function resetCommentSuggestion(): null {
+  return null;
+}
+
+// implements REQ-opencode-file-context-guidance-v1
+export function nextRecentCommentSuggestion<T>(
+  inspectingCodeComments: boolean,
+  suggestion: T | null | undefined,
+): T | null {
+  if (inspectingCodeComments && suggestion) return suggestion;
+  return resetCommentSuggestion();
+}
+
+export function adoptPrecomputedSuggestion<T>(
+  recent: T | null,
+  precomputed: T | null | undefined,
+): T | null {
+  return recent ?? precomputed ?? null;
+}
+
 import * as fs from "node:fs";
 
 function deriveFileBucket(kind: PathKind): string {
@@ -1011,40 +1031,35 @@ const kibiOpencodePlugin: Plugin = async (
       effectiveRiskClass === "behavior_candidate" ||
       effectiveRiskClass === "traceability_candidate"
     ) {
-      if (
+      const inspectingCodeComments =
         pathAnalysis.kind === "code" &&
-        cfg.guidance.commentDetection.enabled
-      ) {
-        const suggestion = precomputedSuggestion;
+        cfg.guidance.commentDetection.enabled;
+      const suggestion = nextRecentCommentSuggestion(
+        inspectingCodeComments,
+        precomputedSuggestion,
+      );
+      recentCommentSuggestion = suggestion;
+      if (suggestion) {
+        const dedupeKey = `${buildRiskPathScopeKey(eventContext, normalizedFilePath)}:${suggestion.suggestionType}:${suggestion.fingerprint}`;
+        if (!seenFingerprints.has(dedupeKey)) {
+          seenFingerprints.add(dedupeKey);
 
-        if (suggestion) {
-          recentCommentSuggestion = suggestion;
+          const warningCategory: WarningCategory =
+            suggestion.suggestionType === "fact"
+              ? "long-comment-missed-fact"
+              : suggestion.suggestionType === "adr"
+                ? "long-comment-missed-adr"
+                : "missing-traceability";
 
-          const dedupeKey = `${buildRiskPathScopeKey(eventContext, normalizedFilePath)}:${suggestion.suggestionType}:${suggestion.fingerprint}`;
-          if (!seenFingerprints.has(dedupeKey)) {
-            seenFingerprints.add(dedupeKey);
-
-            const warningCategory: WarningCategory =
-              suggestion.suggestionType === "fact"
-                ? "long-comment-missed-fact"
-                : suggestion.suggestionType === "adr"
-                  ? "long-comment-missed-adr"
-                  : "missing-traceability";
-
-            logger.warn(
-              `kibi-opencode: detected durable ${suggestion.suggestionType} knowledge in ${normalizedFilePath}`,
-            );
-            getSessionTracker().recordWarning(
-              warningCategory,
-              normalizedFilePath,
-              `Consider routing this ${suggestion.suggestionType} knowledge to Kibi instead of inline comments: ${suggestion.reasoning}`,
-            );
-          }
-        } else {
-          recentCommentSuggestion = null;
+          logger.warn(
+            `kibi-opencode: detected durable ${suggestion.suggestionType} knowledge in ${normalizedFilePath}`,
+          );
+          getSessionTracker().recordWarning(
+            warningCategory,
+            normalizedFilePath,
+            `Consider routing this ${suggestion.suggestionType} knowledge to Kibi instead of inline comments: ${suggestion.reasoning}`,
+          );
         }
-      } else {
-        recentCommentSuggestion = null;
       }
     }
 
@@ -1123,9 +1138,10 @@ const kibiOpencodePlugin: Plugin = async (
             promptPathKindCache,
           );
           effectiveRiskClass = riskCtx.effectiveRiskClass;
-          if (!recentCommentSuggestion && riskCtx.precomputedSuggestion) {
-            recentCommentSuggestion = riskCtx.precomputedSuggestion;
-          }
+          recentCommentSuggestion = adoptPrecomputedSuggestion(
+            recentCommentSuggestion,
+            riskCtx.precomputedSuggestion,
+          );
         }
         if (effectiveRiskClass === null && lastRiskClass !== null) {
           effectiveRiskClass = lastRiskClass;

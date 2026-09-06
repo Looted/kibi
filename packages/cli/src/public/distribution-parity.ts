@@ -181,12 +181,17 @@ type PackageManifest = {
   readonly version?: string;
 };
 
-function nearestPackageInfo(entrypoint: string): {
+export function nextAncestorDirectory(current: string): string | undefined {
+  const parent = path.dirname(current);
+  return parent === current ? undefined : parent;
+}
+
+export function nearestPackageInfo(entrypoint: string): {
   readonly packageRoot?: string;
   readonly version?: string;
 } {
-  let current = path.dirname(entrypoint);
-  while (true) {
+  let current: string | undefined = path.dirname(entrypoint);
+  while (current !== undefined) {
     const manifestPath = path.join(current, "package.json");
     if (existsSync(manifestPath)) {
       try {
@@ -203,10 +208,9 @@ function nearestPackageInfo(entrypoint: string): {
         return { packageRoot: current };
       }
     }
-    const parent = path.dirname(current);
-    if (parent === current) return {};
-    current = parent;
+    current = nextAncestorDirectory(current);
   }
+  return {};
 }
 
 function declaredEntrypoint(contents: string): string | undefined {
@@ -308,7 +312,7 @@ function semanticFingerprint(value: unknown): string {
   return JSON.stringify(value);
 }
 
-function sortedUnique(values: readonly string[] | undefined): string[] {
+export function sortedUnique(values: readonly string[] | undefined): string[] {
   return [...new Set(values ?? [])].sort((left, right) =>
     left.localeCompare(right),
   );

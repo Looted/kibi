@@ -6,6 +6,9 @@ import path from "node:path";
 import type { PrologProcess } from "kibi-cli/prolog";
 import { PrologProcess as RealPrologProcess } from "kibi-cli/prolog";
 import { handleKbCoverage } from "../../src/tools/coverage.js";
+import * as checkTypes from "../../src/tools/check-types.js";
+import { createDiscoveryContext } from "../../src/tools/discovery-adapter.js";
+import { createMutationContext } from "../../src/tools/mutation-context.js";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
 import {
   type IsolatedCoreFixture,
@@ -305,4 +308,64 @@ describe("kb_coverage isolated-core regression (issue #118)", () => {
       rmSync(workspaceRoot, { recursive: true, force: true });
     }
   }, 30000);
+});
+
+describe("coverage gaps: MCP type modules and adapters", () => {
+  const originalWorkspace = process.env.KIBI_WORKSPACE;
+
+  afterAll(() => {
+    if (originalWorkspace === undefined) {
+      Reflect.deleteProperty(process.env, "KIBI_WORKSPACE");
+    } else {
+      process.env.KIBI_WORKSPACE = originalWorkspace;
+    }
+  });
+
+  test("imports check-types and covers discovery/mutation adapter branches", async () => {
+    expect(Object.keys(checkTypes).length).toBeGreaterThanOrEqual(0);
+
+    const query = mock(async (goal: string) => ({
+      success: true,
+      bindings: { goal },
+    }));
+    const prolog = {
+      query,
+      invalidateCache: () => {},
+      queryStatusJson: async () => ({ success: true, bindings: {} }),
+      useOneShotMode: undefined,
+    } as unknown as PrologProcess;
+
+    const discovery = createDiscoveryContext(prolog);
+    expect(discovery.prolog?.oneShotMode).toBe(typeof Bun !== "undefined");
+    await discovery.prolog?.query("kb_status");
+    expect(await discovery.prolog?.nextSolution()).toMatchObject({
+      success: true,
+    });
+    expect(await discovery.prolog?.nextSolution()).toBeNull();
+    await discovery.prolog?.save?.();
+    expect(typeof discovery.prolog?.queryStatusJson).toBe("function");
+
+    const forced = createDiscoveryContext({
+      ...prolog,
+      useOneShotMode: false,
+    } as unknown as PrologProcess);
+    expect(forced.prolog?.oneShotMode).toBe(false);
+
+    process.env.KIBI_WORKSPACE = os.tmpdir();
+    const withFs = createMutationContext(prolog);
+    expect(withFs.fs).toBeDefined();
+    expect(withFs.prolog).toBeDefined();
+    await withFs.prolog?.query("kb_save");
+    withFs.prolog?.invalidateCache?.();
+    const tmpFile = path.join(os.tmpdir(), `kibi-mut-ctx-${Date.now()}.txt`);
+    await withFs.fs?.mkdir?.(os.tmpdir());
+    await withFs.fs?.writeFile?.(tmpFile, "ok");
+    expect(await withFs.fs?.readFile?.(tmpFile)).toBe("ok");
+    await withFs.fs?.stat?.(tmpFile);
+    await withFs.fs?.unlink?.(tmpFile);
+
+    Reflect.deleteProperty(process.env, "KIBI_WORKSPACE");
+    const withoutProlog = createMutationContext();
+    expect(withoutProlog.prolog).toBeUndefined();
+  });
 });

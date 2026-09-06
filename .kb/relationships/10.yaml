@@ -146,3 +146,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-09e92a9f5431
+  - type: constrains
+    from: REQ-vscode-kb-to-source
+    to: FACT-SUBJ-REQ-VSCODE-KB-TO-SOURCE
+    created_at: 2026-09-05T14:34:39.427Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-027058bbf3a5
+  - type: requires_property
+    from: REQ-vscode-kb-to-source
+    to: FACT-PROP-REQ-VSCODE-KB-TO-SOURCE-C01
+    created_at: 2026-09-05T14:34:39.448Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f889be9237b7
+  - type: covered_by
+    from: SYM-KibiImpactDiagnosticId
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:13:28.325Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-adece3b7b7b7
+  - type: covered_by
+    from: SYM-cursor-clearSessionHookState
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-09-05T15:38:11.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-748fda60c792
+  - type: covered_by
+    from: SYM-auto-87E4086AAAB1
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:18:39.104Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1f59427f038
+  - type: covered_by
+    from: SYM-predicate-infer-args
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:47:29.770Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1aece0d583c
+  - type: covered_by
+    from: SYM-auto-87E4086AAAB1
+    to: TEST-skill-cli-load-validate
+    created_at: 2026-09-05T18:03:37.144Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0605ce197fbf
+  - type: covered_by
+    from: SYM-PredicateMatrixCell
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:09:13.431Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be0804c2a78d
+  - type: covered_by
+    from: SYM-SourceTreeHashError
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:10:12.225Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3be911a445c
+  - type: covered_by
+    from: SYM-skillopt-predicate-held-out-case-ids
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T18:20:38.189Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da2911194bc1

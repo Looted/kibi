@@ -88,7 +88,7 @@ function prompt(
   return selected.join(" ").replaceAll(" - ", "\n- ");
 }
 
-function confidence(
+export function confidence(
   activation: ActivationPolicy,
   declared: BootstrapDeclaredContext,
   candidates: readonly Candidate[],

@@ -167,3 +167,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-42b9d07795f1
+  - type: covered_by
+    from: SYM-kibi-check-build-structured-content
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-09-05T14:40:47.584Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-685c88e8da3a
+  - type: covered_by
+    from: SYM-determineReleaseAction
+    to: TEST-014
+    created_at: 2026-09-05T14:54:25.154Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6140d8168669
+  - type: covered_by
+    from: SYM-codex-directKbEditWarning
+    to: TEST-codex-kibi-plugin-v1
+    created_at: 2026-09-05T15:20:45.300Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ae5feedd533
+  - type: covered_by
+    from: SYM-codex-freshnessReminder
+    to: TEST-codex-kibi-plugin-v1
+    created_at: 2026-09-05T15:21:00.039Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5c02f791e4b
+  - type: covered_by
+    from: SYM-cli-engine-client-save
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:29:21.711Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1148551c0939
+  - type: covered_by
+    from: SYM-TraceabilityRegistrationResult
+    to: TEST-vscode-traceability-coverage
+    created_at: 2026-09-05T18:26:47.079Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b71532257e0

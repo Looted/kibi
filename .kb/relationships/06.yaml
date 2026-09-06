@@ -94,3 +94,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7b8538c84a2d
+  - type: covered_by
+    from: SYM-collectStagedKibiDiagnostics
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:17:10.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5ef108bf310
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-2-inferOrderedStrategyRuleArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:43:13.867Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b300b5d3a41b

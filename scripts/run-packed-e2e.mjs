@@ -6,25 +6,38 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 /**
+ * Node 22 only accepts the experimental isolation flag. Node 24+ stabilized
+ * `--test-isolation`. In-process isolation avoids worker IPC deserialize
+ * flakes (`Unable to deserialize cloned data`) that fail passing packed runs.
+ */
+export function packedTestIsolationArg(nodeVersion = process.versions.node) {
+  const major = Number.parseInt(String(nodeVersion).split(".")[0] ?? "0", 10);
+  return Number.isFinite(major) && major >= 24
+    ? "--test-isolation=none"
+    : "--experimental-test-isolation=none";
+}
+
+export async function defaultImportHelpers(directory) {
+  const helpersPath = path.join(directory, "helpers.js");
+  if (!existsSync(helpersPath)) {
+    throw new Error(`Packed E2E helper is missing: ${helpersPath}`);
+  }
+  return import(pathToFileURL(helpersPath).href);
+}
+
+/**
  * Prepare one immutable packed environment and run all selected Node test
  * files with bounded concurrency. Dependencies are injectable for focused
  * runner tests without a real npm pack.
  */
-export async function runPackedE2E({
-  compiledDirectory,
-  testFiles,
-  env = process.env,
-  spawnProcess = spawn,
-  importHelpers = async (directory) => {
-    const helpersPath = path.join(directory, "helpers.js");
-    if (!existsSync(helpersPath)) {
-      throw new Error(`Packed E2E helper is missing: ${helpersPath}`);
-    }
-    return import(pathToFileURL(helpersPath).href);
-  },
-  nodeExecutable = process.execPath,
-  signalTarget = process,
-} = {}) {
+export async function runPackedE2E(options = {}) {
+  const compiledDirectory = options.compiledDirectory;
+  const testFiles = options.testFiles;
+  const env = options.env ?? process.env;
+  const spawnProcess = options.spawnProcess ?? spawn;
+  const importHelpers = options.importHelpers ?? defaultImportHelpers;
+  const nodeExecutable = options.nodeExecutable ?? process.execPath;
+  const signalTarget = options.signalTarget ?? process;
   if (
     !compiledDirectory ||
     !Array.isArray(testFiles) ||
@@ -59,6 +72,8 @@ export async function runPackedE2E({
       [
         "--test",
         "--test-concurrency=2",
+        "--test-force-exit",
+        packedTestIsolationArg(),
         ...testFiles.map((testFile) => path.resolve(testFile)),
       ],
       {
@@ -89,7 +104,7 @@ export async function runPackedE2E({
   }
 }
 
-async function main() {
+export async function main() {
   const [compiledDirectoryInput, ...testFiles] = process.argv.slice(2);
   return runPackedE2E({
     compiledDirectory:
@@ -98,13 +113,19 @@ async function main() {
   });
 }
 
-const invokedPath = process.argv[1];
-if (
-  invokedPath &&
-  path.resolve(invokedPath) === fileURLToPath(import.meta.url)
+export async function runPackedE2EIfEntrypoint(
+  invokedPath = process.argv[1],
+  moduleUrl = import.meta.url,
+  start = main,
 ) {
+  if (
+    !invokedPath ||
+    path.resolve(invokedPath) !== fileURLToPath(moduleUrl)
+  ) {
+    return;
+  }
   try {
-    process.exitCode = await main();
+    process.exitCode = await start();
   } catch (error) {
     process.stderr.write(
       `${error instanceof Error ? error.message : String(error)}\n`,
@@ -112,3 +133,5 @@ if (
     process.exitCode = 1;
   }
 }
+
+await runPackedE2EIfEntrypoint();

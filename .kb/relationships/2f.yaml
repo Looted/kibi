@@ -90,3 +90,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d9de72e45dd5
+  - type: constrains
+    from: REQ-mcp-suggest-predicates
+    to: FACT-SUBJ-REQ-MCP-SUGGEST-PREDICATES
+    created_at: 2026-09-05T14:18:24.123Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5337f3c52c01
+  - type: requires_property
+    from: REQ-mcp-suggest-predicates
+    to: FACT-PROP-REQ-MCP-SUGGEST-PREDICATES-C01
+    created_at: 2026-09-05T14:18:24.139Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a371dee93778
+  - type: covered_by
+    from: SYM-codex-isDirectKbPath
+    to: TEST-codex-kibi-plugin-v1
+    created_at: 2026-09-05T15:21:14.040Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f456291ee78b
+  - type: covered_by
+    from: SYM-integrations-path
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:29:59.820Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77ed057624b0
+  - type: covered_by
+    from: SYM-VerificationHarnessOptionsError-name
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:11:03.530Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c50616708da

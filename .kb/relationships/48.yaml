@@ -48,3 +48,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-01bee5310219
+  - type: covered_by
+    from: SYM-cli-engine-client-terminate
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:29:44.748Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb5142c995a1
+  - type: covered_by
+    from: SYM-cursor-loadHookState
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-09-05T15:39:16.819Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4865643e2997
+  - type: executable_for
+    from: SYM-e2e-test-skillopt-logical-evidence-fidelity
+    to: TEST-skillopt-logical-evidence-fidelity
+    created_at: 2026-09-05T15:49:58.258Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eaedcf62385b
+  - type: covered_by
+    from: SYM-ArtifactRootRequiredError
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:07:18.946Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-992bab41e169
+  - type: covered_by
+    from: SYM-HeldOutExecutionLeaseError-name
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:08:21.256Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5002e32b6509
+  - type: covered_by
+    from: SYM-KIBI-FOCUS-KB-COMMAND
+    to: TEST-vscode-traceability-coverage
+    created_at: 2026-09-05T18:26:03.718Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7c4a64fa123
+  - type: covered_by
+    from: SYM-SymbolEntry
+    to: TEST-vscode-traceability-coverage
+    created_at: 2026-09-05T18:26:36.928Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a9ffaba14f8

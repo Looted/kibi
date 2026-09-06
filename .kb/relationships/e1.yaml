@@ -97,3 +97,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2581496307c0
+  - type: covered_by
+    from: SYM-inspectBranchStore
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-09-05T15:05:00.944Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d67730f44d90
+  - type: covered_by
+    from: SYM-auto-5133B22986F1
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:17:25.530Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26f734769264
+  - type: covered_by
+    from: SYM-auto-87FDC219E2F3
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:18:44.430Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7080ec680b7
+  - type: covered_by
+    from: SYM-MatrixVariant
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:09:08.067Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b5669b0ad3a

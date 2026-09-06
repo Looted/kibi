@@ -164,3 +164,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-11f55a25ae62
+  - type: constrains
+    from: REQ-cli-usage-metrics-v1
+    to: FACT-SUBJ-REQ-CLI-USAGE-METRICS-V1
+    created_at: 2026-09-05T14:11:47.274Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-96d8099822f4
+  - type: requires_property
+    from: REQ-cli-usage-metrics-v1
+    to: FACT-PROP-REQ-CLI-USAGE-METRICS-V1-C01
+    created_at: 2026-09-05T14:11:47.293Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc78f6138b76
+  - type: covered_by
+    from: SYM-cleanupStaging
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:24:51.764Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f64005e244d1
+  - type: covered_by
+    from: SYM-cli-engine-stop-command
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:31:19.200Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-240888539d4a
+  - type: covered_by
+    from: SYM-semantic-advisor-normalizePredicateToken
+    to: TEST-mcp-semantic-advisor-preflight
+    created_at: 2026-09-05T17:39:31.316Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebd9492a10ae
+  - type: covered_by
+    from: SYM-ArtifactPath-create
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:06:50.234Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6340cac475e

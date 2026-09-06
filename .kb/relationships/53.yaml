@@ -118,3 +118,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d77a4ef6acc1
+  - type: covered_by
+    from: SYM-core-journaled-tag-index
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:33:04.851Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-345b14752582

@@ -123,7 +123,19 @@ export async function doctorCommand(
   return { exitCode: 1 };
 }
 
-async function packageMigrationActions(
+export async function detectExecuteApplyPlanExport(
+  load: () => Promise<{ executeApplyPlan?: unknown }> = () =>
+    import("../public/operations/index.js"),
+): Promise<boolean> {
+  try {
+    const operations = await load();
+    return typeof operations.executeApplyPlan === "function";
+  } catch {
+    return false;
+  }
+}
+
+export async function packageMigrationActions(
   runtime: Readonly<Record<string, unknown>>,
 ) {
   const actions = [];
@@ -227,14 +239,7 @@ async function runtimeProvenance(): Promise<Record<string, unknown>> {
   }
   const core = resolveInstalledPackageInfo("kibi-core");
   const mcp = resolveInstalledPackageInfo("kibi-mcp");
-  let executeApplyPlanExported: boolean | undefined;
-  try {
-    const operations = await import("../public/operations/index.js");
-    executeApplyPlanExported =
-      typeof operations.executeApplyPlan === "function";
-  } catch {
-    executeApplyPlanExported = false;
-  }
+  const executeApplyPlanExported = await detectExecuteApplyPlanExport();
   return {
     cliVersion: typeof cli.version === "string" ? cli.version : "unknown",
     coreVersion: core.version,
@@ -295,12 +300,17 @@ function packageInfoFromManifest(
   };
 }
 
-function nearestNamedPackageManifest(
+export function nextAncestorDirectory(current: string): string | undefined {
+  const parent = path.dirname(current);
+  return parent === current ? undefined : parent;
+}
+
+export function nearestNamedPackageManifest(
   startDir: string,
   name: string,
 ): string | undefined {
-  let current = startDir;
-  while (true) {
+  let current: string | undefined = startDir;
+  while (current !== undefined) {
     const candidate = path.join(current, "package.json");
     try {
       const metadata = JSON.parse(readFileSync(candidate, "utf8")) as {
@@ -310,10 +320,9 @@ function nearestNamedPackageManifest(
     } catch {
       // Keep walking; an unrelated or absent manifest is not a match.
     }
-    const parent = path.dirname(current);
-    if (parent === current) return undefined;
-    current = parent;
+    current = nextAncestorDirectory(current);
   }
+  return undefined;
 }
 
 function resolveInstalledPackageInfo(name: string): InstalledPackageInfo {

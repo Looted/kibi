@@ -395,4 +395,87 @@ describe("renderHtmlReport", () => {
     });
     expect(full).toContain(">100<span>%</span>");
   });
+
+  test("covers count fallbacks, muted stages, and incomplete implementation ownership", () => {
+    const html = renderHtmlReport({
+      requirements: {
+        summary: {
+          total: "not-a-number",
+          proofNotApplicable: Number.NaN,
+          proofProven: Number.POSITIVE_INFINITY,
+        },
+        rows: [
+          {
+            id: "REQ-MUTED",
+            title: "Muted stage",
+            proofStatus: "missing",
+            proofGaps: ["stale_proof_receipt"],
+            proofAdvisories: [],
+            proofStages: {
+              semanticInventory: stage("passed"),
+              logicGrounding: stage("passed"),
+              contradictions: stage("not_applicable"),
+              scenarios: stage("passed", { scenarios: ["SCEN-MUTED"] }),
+              scenarioTests: stage("passed", { tests: ["TEST-MUTED"] }),
+              productionSymbols: stage("passed", { symbols: [] }),
+              executableSymbols: stage("passed", { symbols: [] }),
+              sourceCoordinates: stage("missing", {
+                requirementSource: "absent",
+                missingSymbols: ["SYM-MISSING"],
+                coordinates: [{ id: "SYM-NO-PATH" }, { path: "src/a.ts", line: 0 }],
+              }),
+              passingE2e: stage("passed", {
+                receiptEvidence: [{ state: "passed", scope: "unit" }],
+              }),
+            },
+          },
+          {
+            id: "REQ-OWNED",
+            title: "Partial ownership",
+            proofStatus: "missing",
+            proofGaps: ["missing_production_symbol"],
+            proofAdvisories: [],
+            proofStages: {
+              semanticInventory: stage("passed"),
+              logicGrounding: stage("passed"),
+              contradictions: stage("passed", { conflicts: [] }),
+              scenarios: stage("passed", { scenarios: ["SCEN-OWNED"] }),
+              scenarioTests: stage("passed", { tests: ["TEST-OWNED"] }),
+              productionSymbols: stage("passed", {
+                symbols: ["SYM-OWNED", "SYM-MISSING"],
+              }),
+              executableSymbols: stage("passed", { symbols: [] }),
+              sourceCoordinates: stage("passed", {
+                requirementSource: "present",
+                missingSymbols: ["SYM-MISSING"],
+                coordinates: [
+                  { path: "src/owned.ts", id: "SYM-OWNED", line: 4, endLine: 8 },
+                ],
+              }),
+              passingE2e: stage("passed", {
+                receiptEvidence: [
+                  { state: "passed", scope: "end_to_end", finishedAt: "bad" },
+                ],
+              }),
+            },
+          },
+        ],
+      },
+      symbols: { summary: { total: 2, uncovered: 3, mixedRole: 1 }, rows: [] },
+      branch: "  ",
+      generatedAt: new Date("2026-08-15T12:00:00.000Z"),
+      repository: {
+        provider: "github",
+        webUrl: "https://github.com/Looted/kibi",
+        commitSha: "abcdef1234567890",
+        branch: "feature/report",
+      },
+    });
+    expect(html).toContain("No current requirements");
+    expect(html).toContain("REQ-OWNED");
+    expect(html).toContain("stage--muted");
+    expect(html).toContain("Stale Proof Receipt");
+    expect(html).toContain("timestamp unavailable");
+    expect(html).toContain("--carbon:");
+  });
 });

@@ -31,6 +31,24 @@ export function isolatedUnitBatchEnv(
   // Proof CI sets KIBI_BRANCH for the dogfood detached HEAD. Unit batches are
   // independent Git sandboxes and must resolve their own branch identity.
   Reflect.deleteProperty(env, "KIBI_BRANCH");
+  // Host workspace identity must not leak into shard sandboxes (MCP env
+  // resolution walks KIBI_WORKSPACE before local .git/.kb markers).
+  for (const key of ["KIBI_WORKSPACE", "KIBI_PROJECT_ROOT", "KIBI_ROOT"]) {
+    Reflect.deleteProperty(env, key);
+  }
+  // In-process env tests may leave KIBI_*_PATH overrides on process.env when
+  // Bun isolate is not a hard process boundary. Those overrides make every
+  // later Prolog/daemon start look for /tmp/kb.pl and fail closed.
+  for (const key of Object.keys(env)) {
+    if (
+      key === "KIBI_KB_PL_PATH" ||
+      key === "KIBI_KB_PATH" ||
+      key === "KB_PATH" ||
+      /^KIBI_.+_PATH$/.test(key)
+    ) {
+      Reflect.deleteProperty(env, key);
+    }
+  }
   return env;
 }
 
@@ -39,6 +57,10 @@ export function isolatedUnitBatchEnv(
 export const BATCH_TIMEOUT_MINUTES = 25;
 export const BATCH_CONCURRENCY = 2;
 export const TEST_ENGINE_SHUTDOWN_TIMEOUT_MS = 5_000;
+/** Journaled engine and SkillOpt trainer tests exceed Bun's 15s default. */
+// implements REQ-test-journaled-engine-harness
+// covered_by TEST-test-journaled-engine-harness
+export const CLI_ENGINE_BATCH_TIMEOUT_MS = 120_000;
 
 type BatchOutcome = {
   timedOut: boolean;
@@ -67,11 +89,21 @@ export function getBatchFailureMessage(
 const BATCHES: Batch[] = [
   {
     label: "cli",
-    args: ["test", "--timeout", "15000", "./packages/cli"],
+    args: [
+      "test",
+      "--timeout",
+      String(CLI_ENGINE_BATCH_TIMEOUT_MS),
+      "./packages/cli",
+    ],
   },
   {
     label: "skillopt evaluator",
-    args: ["test", "--timeout", "15000", "./scripts/skillopt-eval/tests"],
+    args: [
+      "test",
+      "--timeout",
+      String(CLI_ENGINE_BATCH_TIMEOUT_MS),
+      "./scripts/skillopt-eval/tests",
+    ],
   },
   {
     label: "mcp",
@@ -324,10 +356,25 @@ async function runCuratedUnitSuite(): Promise<number> {
   return summaries.some((summary) => summary.fail > 0) ? 1 : 0;
 }
 
-const isEntryPoint =
-  process.argv.length >= 2 &&
-  process.argv[1] !== undefined &&
-  resolve(process.argv[1]) === import.meta.filename;
+// bun test can put this file on argv[1] without a "test" token. The curated
+// suite is a script entrypoint only (`bun ./test/root.test.ts`).
+// implements REQ-test-journaled-engine-harness
+// covered_by TEST-test-journaled-engine-harness
+export function isCuratedSuiteEntryPoint(
+  argv: readonly string[],
+  modulePath: string,
+  isMain: boolean,
+): boolean {
+  if (!isMain) return false;
+  if (argv.includes("test")) return false;
+  return argv[1] !== undefined && resolve(argv[1]) === resolve(modulePath);
+}
+
+const isEntryPoint = isCuratedSuiteEntryPoint(
+  process.argv,
+  import.meta.filename,
+  import.meta.main,
+);
 if (isEntryPoint) {
   try {
     process.exit(await runCuratedUnitSuite());

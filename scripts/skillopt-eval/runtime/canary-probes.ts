@@ -8,6 +8,14 @@ import type { ProcessResult } from "./process";
 const SANDBOX_PROBE_OUTPUT = "skillopt-sandbox-probe:pass";
 const STARTUP_TIMEOUT_MS = 15_000;
 
+export function sandboxProbeFailureCode(
+  hasCustomProbe: boolean,
+): "source_isolation_probe_failed" | "sandbox_probe_failed" {
+  return hasCustomProbe
+    ? "source_isolation_probe_failed"
+    : "sandbox_probe_failed";
+}
+
 export function sourceIsolationDeniedPaths(
   workspace: IsolationWorkspace,
   sourceWorktree: string,
@@ -75,9 +83,7 @@ export async function probeCodexSandbox(
   );
   const expectedOutput = options.probe?.expectedOutput ?? SANDBOX_PROBE_OUTPUT;
   if (result.exitCode !== 0 || result.stdout !== expectedOutput) {
-    throw new RuntimePrerequisiteError(
-      options.probe ? "source_isolation_probe_failed" : "sandbox_probe_failed",
-    );
+    throw new RuntimePrerequisiteError(sandboxProbeFailureCode(Boolean(options.probe)));
   }
 }
 

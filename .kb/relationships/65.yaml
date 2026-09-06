@@ -76,3 +76,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f152ed21e714
+  - type: executable_for
+    from: SYM-e2e-test-cursor-kibi-plugin-v1
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-09-05T15:37:12.770Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b56c04feaaa9
+  - type: covered_by
+    from: SYM-semantic-advisor-detectStrictSuggestion
+    to: TEST-mcp-semantic-advisor-preflight
+    created_at: 2026-09-05T17:39:17.007Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3c5f2648fd3
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-2-inferFallbackRuleArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:43:00.257Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e12551f9637a
+  - type: covered_by
+    from: SYM-TaskFixtureResolutionError-name
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:10:32.902Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e4e1d0fdf2a2

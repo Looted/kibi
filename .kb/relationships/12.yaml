@@ -97,3 +97,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ce38bf6aa2bb
+  - type: covered_by
+    from: SYM-StrictModelInput
+    to: TEST-001
+    created_at: 2026-09-05T14:50:46.689Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7baa0d43b47
+  - type: covered_by
+    from: SYM-kibi-doctor-command
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-09-05T15:00:25.478Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31110df5fa46
+  - type: covered_by
+    from: SYM-kibi-doctor-command
+    to: TEST-001
+    created_at: 2026-09-05T15:08:17.031Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ba5b4e0c6fe
+  - type: covered_by
+    from: SYM-kibi-doctor-command
+    to: TEST-cli-doctor-packed-provenance
+    created_at: 2026-09-05T15:08:35.790Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f773fd923d3d
+  - type: covered_by
+    from: SYM-cleanupAbandonedStagingDirectories
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:24:46.683Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dcb84d09744a
+  - type: covered_by
+    from: SYM-cursor-extractKbMcpToolName
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-09-05T15:38:26.731Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f765f22dbbfd

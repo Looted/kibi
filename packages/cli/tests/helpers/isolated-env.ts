@@ -23,6 +23,34 @@ export function isolatedCliSandboxEnv(
 ): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = { ...process.env, ...overrides };
   Reflect.deleteProperty(env, "KIBI_BRANCH");
+  for (const key of ["KIBI_WORKSPACE", "KIBI_PROJECT_ROOT", "KIBI_ROOT"]) {
+    Reflect.deleteProperty(env, key);
+  }
+  for (const key of Object.keys(env)) {
+    if (
+      key === "KIBI_KB_PL_PATH" ||
+      key === "KIBI_KB_PATH" ||
+      key === "KB_PATH" ||
+      /^KIBI_.+_PATH$/.test(key)
+    ) {
+      Reflect.deleteProperty(env, key);
+    }
+  }
+  // Proof producer env must not leak into sandbox CLIs (workspace identity,
+  // snapshot, or the selected test list).
+  for (const key of Object.keys(env)) {
+    if (key.startsWith("KIBI_PROOF_")) Reflect.deleteProperty(env, key);
+  }
+  for (const [key, value] of Object.entries(overrides)) {
+    if (
+      key.startsWith("KIBI_PROOF_") &&
+      typeof value === "string" &&
+      value.length > 0 &&
+      value !== process.env[key]
+    ) {
+      env[key] = value;
+    }
+  }
   const explicit = overrides.KIBI_BRANCH;
   if (
     typeof explicit === "string" &&
@@ -30,6 +58,16 @@ export function isolatedCliSandboxEnv(
     explicit !== process.env.KIBI_BRANCH
   ) {
     env.KIBI_BRANCH = explicit;
+  }
+  for (const key of ["KIBI_WORKSPACE", "KIBI_PROJECT_ROOT", "KIBI_ROOT"] as const) {
+    const value = overrides[key];
+    if (
+      typeof value === "string" &&
+      value.length > 0 &&
+      value !== process.env[key]
+    ) {
+      env[key] = value;
+    }
   }
   return env;
 }

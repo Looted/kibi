@@ -748,6 +748,34 @@ test("entity helpers and symbol fallbacks expose counts, lookup, and manifest-re
   });
 });
 
+test("getTreeItem copies optional fields and empty workspace returns no children", async () => {
+  const provider = makeProvider("");
+  const empty = await provider.getChildren();
+  expect(empty).toEqual([]);
+
+  const rooted = makeProvider();
+  const withPath = rooted.getTreeItem({
+    label: "REQ-1",
+    description: "open",
+    iconPath: "list-ordered",
+    contextValue: "entity",
+    tooltip: "a requirement",
+    collapsibleState: TreeItemCollapsibleState.None,
+    localPath: path.join(tmpDir, "src", "one.ts"),
+    sourceLine: 4,
+  });
+  expect(withPath.description).toBe("open");
+  expect(withPath.contextValue).toBe("entity");
+  expect(withPath.command?.command).toBe("kibi.openEntity");
+
+  const related = rooted.getTreeItem({
+    label: "implements",
+    collapsibleState: TreeItemCollapsibleState.None,
+    targetId: "REQ-001",
+  });
+  expect(related.command?.command).toBe("kibi.openEntityById");
+});
+
 afterAll(() => {
   mock.restore();
 });

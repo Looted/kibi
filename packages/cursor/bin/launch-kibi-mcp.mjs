@@ -14,7 +14,7 @@
  */
 
 import { spawn } from "node:child_process";
-import { existsSync, readFileSync, realpathSync, statSync } from "node:fs";
+import * as fs from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -29,12 +29,12 @@ const SIGNAL_EXIT_CODES = {
 };
 
 function readJson(path) {
-  return JSON.parse(readFileSync(path, "utf8"));
+  return JSON.parse(fs.readFileSync(path, "utf8"));
 }
 
 function isDirectory(path) {
   try {
-    return statSync(path).isDirectory();
+    return fs.statSync(path).isDirectory();
   } catch {
     return false;
   }
@@ -86,17 +86,22 @@ export function parseWorkspaceFolderPaths(value) {
     .filter(Boolean);
 }
 
-function packageJsonForResolvedFile(startPath) {
+export function nextAncestorDirectory(current) {
+  const parent = dirname(current);
+  return parent === current ? undefined : parent;
+}
+
+export function packageJsonForResolvedFile(startPath) {
   let current = resolve(startPath);
   try {
-    if (!statSync(current).isDirectory()) current = dirname(current);
+    if (!fs.statSync(current).isDirectory()) current = dirname(current);
   } catch {
     current = dirname(current);
   }
 
-  while (true) {
+  while (current !== undefined) {
     const packageJsonPath = join(current, "package.json");
-    if (existsSync(packageJsonPath)) {
+    if (fs.existsSync(packageJsonPath)) {
       try {
         const packageJson = readJson(packageJsonPath);
         if (packageJson.name === PACKAGE_NAME) {
@@ -106,10 +111,9 @@ function packageJsonForResolvedFile(startPath) {
         // Keep walking if a parent package manifest is malformed.
       }
     }
-    const parent = dirname(current);
-    if (parent === current) return null;
-    current = parent;
+    current = nextAncestorDirectory(current);
   }
+  return null;
 }
 
 function isWithinRoot(rootPath, candidatePath) {
@@ -120,10 +124,10 @@ function isWithinRoot(rootPath, candidatePath) {
   );
 }
 
-function hasConsumerNodeModulesLink(workspaceRoot, packageRoot) {
+export function hasConsumerNodeModulesLink(workspaceRoot, packageRoot) {
   try {
     const linkPath = join(workspaceRoot, "node_modules", PACKAGE_NAME);
-    const linkedRoot = realpathSync(linkPath);
+    const linkedRoot = fs.realpathSync(linkPath);
     return (
       isWithinRoot(linkedRoot, packageRoot) ||
       isWithinRoot(packageRoot, linkedRoot)
@@ -133,7 +137,7 @@ function hasConsumerNodeModulesLink(workspaceRoot, packageRoot) {
   }
 }
 
-function isProjectScopedPackage(workspaceRoot, packageRoot) {
+export function isProjectScopedPackage(workspaceRoot, packageRoot) {
   if (isWithinRoot(workspaceRoot, packageRoot)) return true;
 
   // pnpm can expose a package through a symlink whose realpath is outside the
@@ -197,7 +201,7 @@ export function resolveProjectLocalMcp(workspaceRoot) {
   }
 
   const binPath = resolve(packageInfo.packageRoot, binEntry);
-  if (!existsSync(binPath)) {
+  if (!fs.existsSync(binPath)) {
     throw new Error(
       `[KIBI-CURSOR] Project-local ${PACKAGE_NAME} declares a missing executable: ${binPath}. Reinstall the workspace dependency and reload Cursor.`,
     );
@@ -211,9 +215,9 @@ export function resolveProjectLocalMcp(workspaceRoot) {
   };
 }
 
-function hasDeclaredProjectDependency(workspaceRoot) {
+export function hasDeclaredProjectDependency(workspaceRoot) {
   const packageJsonPath = join(workspaceRoot, "package.json");
-  if (!existsSync(packageJsonPath)) return false;
+  if (!fs.existsSync(packageJsonPath)) return false;
   try {
     const packageJson = readJson(packageJsonPath);
     return [
@@ -235,8 +239,8 @@ function hasDeclaredProjectDependency(workspaceRoot) {
 
 function isDemonstrablyProjectWorkspace(workspaceRoot) {
   return (
-    existsSync(join(workspaceRoot, ".git")) ||
-    existsSync(join(workspaceRoot, ".kb")) ||
+    fs.existsSync(join(workspaceRoot, ".git")) ||
+    fs.existsSync(join(workspaceRoot, ".kb")) ||
     hasDeclaredProjectDependency(workspaceRoot)
   );
 }
@@ -311,12 +315,30 @@ export function resolveWorkspaceRoot(explicitWorkspace, options = {}) {
   );
 }
 
-function signalExitCode(signal) {
+export function signalExitCode(signal) {
   return SIGNAL_EXIT_CODES[signal] ?? 1;
 }
 
+export function isLaunchEntrypoint(argv1, moduleUrl) {
+  const entrypoint = argv1 ? resolve(argv1) : undefined;
+  return entrypoint === resolve(fileURLToPath(moduleUrl));
+}
+
+export async function runLaunchEntrypoint(
+  argv = process.argv.slice(2),
+  env = process.env,
+) {
+  const exitCode = await launchKibiMcp(argv, env);
+  process.exitCode = exitCode;
+  return exitCode;
+}
+
 /** Spawn the project-local MCP server and mirror its transport and exit state. */
-export function launchKibiMcp(argv = process.argv.slice(2), env = process.env) {
+export function launchKibiMcp(
+  argv = process.argv.slice(2),
+  env = process.env,
+  spawnImpl = spawn,
+) {
   const [explicitWorkspace, ...childArgs] = argv;
   let workspaceRoot;
   let projectLocal;
@@ -332,7 +354,7 @@ export function launchKibiMcp(argv = process.argv.slice(2), env = process.env) {
     return Promise.resolve(1);
   }
 
-  const child = spawn(process.execPath, [projectLocal.binPath, ...childArgs], {
+  const child = spawnImpl(process.execPath, [projectLocal.binPath, ...childArgs], {
     cwd: workspaceRoot,
     env: { ...env, KIBI_WORKSPACE: workspaceRoot },
     stdio: ["inherit", "inherit", "inherit"],
@@ -371,8 +393,12 @@ export function launchKibiMcp(argv = process.argv.slice(2), env = process.env) {
   });
 }
 
-const entrypoint = process.argv[1] ? resolve(process.argv[1]) : undefined;
-if (entrypoint === resolve(fileURLToPath(import.meta.url))) {
-  const exitCode = await launchKibiMcp(process.argv.slice(2));
-  process.exitCode = exitCode;
+export async function runLaunchIfEntrypoint(
+  isEntrypoint = isLaunchEntrypoint(process.argv[1], import.meta.url),
+  start = runLaunchEntrypoint,
+) {
+  if (!isEntrypoint) return;
+  await start();
 }
+
+await runLaunchIfEntrypoint();

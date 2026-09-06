@@ -23,7 +23,12 @@ import { join } from "node:path";
 
 // We test the exported helpers directly rather than exec'ing the script,
 // because the script's REPO_ROOT is hard-coded to the real repo root.
-import { findTarballs, isDryRun } from "../clean-package-tarballs";
+import {
+  findTarballs,
+  isDryRun,
+  main,
+  runCleanPackageTarballsIfMain,
+} from "../clean-package-tarballs";
 
 const tempRoots: string[] = [];
 
@@ -143,5 +148,55 @@ describe("clean-package-tarballs", () => {
 
     const tarballs = findTarballs(root);
     expect(tarballs.length).toBe(0);
+  });
+
+  test("main dry-run lists or reports no stale tarballs without deleting", () => {
+    const previous = process.argv.slice();
+    process.argv = ["bun", "scripts/clean-package-tarballs.ts", "--dry-run"];
+    try {
+      main();
+    } finally {
+      process.argv = previous;
+    }
+    expect(isDryRun(["--dry-run"])).toBe(true);
+  });
+
+  test("main deletes package tarballs in a provided root and lists them on dry-run", () => {
+    const root = makeTempRepo();
+    makePackageTarballs(root);
+    const logs: string[] = [];
+    const log = console.log.bind(console);
+    console.log = ((chunk: unknown) => {
+      logs.push(String(chunk));
+    }) as typeof console.log;
+    try {
+      main(root, ["--dry-run"]);
+      expect(logs.join("\n")).toContain("[dry-run]");
+      logs.length = 0;
+      main(root, []);
+      expect(logs.join("\n")).toContain("Deleted:");
+      expect(findTarballs(root)).toEqual([]);
+      logs.length = 0;
+      main(root, []);
+      expect(logs.join("\n")).toContain("No stale tarballs found.");
+    } finally {
+      console.log = log;
+    }
+  });
+
+  test("runCleanPackageTarballsIfMain only starts when argv matches the module", () => {
+    let started = 0;
+    runCleanPackageTarballsIfMain("file:///tmp/clean.ts", "/other", () => {
+      started += 1;
+    });
+    expect(started).toBe(0);
+    runCleanPackageTarballsIfMain("file:///tmp/clean.ts", "/tmp/clean.ts", () => {
+      started += 1;
+    });
+    expect(started).toBe(1);
+    runCleanPackageTarballsIfMain("file:///tmp/clean.ts", "file:///tmp/clean.ts", () => {
+      started += 1;
+    });
+    expect(started).toBe(2);
   });
 });

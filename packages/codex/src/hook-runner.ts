@@ -137,23 +137,41 @@ export async function runHook(
   }
 }
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
   const result = await runHook(parseStdinJson(await readStdin()));
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }
 
-const invokedPath = process.argv[1]
-  ? pathToFileURL(path.resolve(process.argv[1])).href
-  : "";
+export function isInvokedAsCli(
+  argv1: string | undefined,
+  moduleUrl: string,
+): boolean {
+  const invokedPath = argv1
+    ? pathToFileURL(path.resolve(argv1)).href
+    : "";
+  return moduleUrl === invokedPath;
+}
 
-if (import.meta.url === invokedPath) {
-  main().catch((error: unknown) => {
+export async function runHookCli(): Promise<void> {
+  try {
+    await main();
+  } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Unknown hook error";
     process.stdout.write(
       `${JSON.stringify({ continue: true, systemMessage: `Kibi hook runner error: ${message}` })}\n`,
     );
-  });
+  }
 }
+
+export async function runHookCliIfMain(
+  isMain = isInvokedAsCli(process.argv[1], import.meta.url),
+  start = runHookCli,
+): Promise<void> {
+  if (!isMain) return;
+  await start();
+}
+
+void runHookCliIfMain();
 
 export const hookRunnerPath = fileURLToPath(import.meta.url);

@@ -80,3 +80,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9b19cf945afa
+  - type: constrains
+    from: REQ-codex-kibi-plugin-v1
+    to: FACT-SUBJ-REQ-CODEX-KIBI-PLUGIN-V1
+    created_at: 2026-09-05T14:11:53.760Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95e3931ae6cd
+  - type: requires_property
+    from: REQ-codex-kibi-plugin-v1
+    to: FACT-PROP-REQ-CODEX-KIBI-PLUGIN-V1-C01
+    created_at: 2026-09-05T14:11:53.778Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5c3399ac2ed
+  - type: covered_by
+    from: SYM-cli-engine-status-command
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:31:13.935Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c90cdc212166
+  - type: covered_by
+    from: SYM-cli-PrologProcess-invalidateCache
+    to: TEST-001
+    created_at: 2026-09-05T15:34:04.668Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9daf658b30f6
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-1-inferEscalationRuleArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:41:47.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bcf6ae2685c2
+  - type: covered_by
+    from: SYM-skillopt-decode-predicate-case-snapshot
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T18:19:21.487Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d464b42527d2

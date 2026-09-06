@@ -8,6 +8,12 @@ import { appendCliDiagnosticUsage } from "./public/diagnostic-usage.js";
 import type { OperationName } from "./public/operations/types.js";
 import { createCliRuntime } from "./runtime/cli-runtime.js";
 
+export function writeOptionalStderr(stderr: string | undefined): void {
+  if (stderr !== undefined) {
+    process.stderr.write(stderr);
+  }
+}
+
 // implements REQ-kibi-operation-interface-parity
 export type JsonInvocation = {
   readonly operationName: OperationName;
@@ -162,8 +168,6 @@ export async function runJsonInvocation(
   if (result.stdout !== undefined) {
     process.stdout.write(result.stdout);
   }
-  if (result.stderr !== undefined) {
-    process.stderr.write(result.stderr);
-  }
+  writeOptionalStderr(result.stderr);
   process.exitCode = result.exitCode;
 }

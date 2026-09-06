@@ -69,3 +69,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e834d2b125d5
+  - type: covered_by
+    from: SYM-skillopt-fixture-symbol-id
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-09-05T16:57:58.529Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8c0745c2869
+  - type: covered_by
+    from: SYM-modeling-predicate-loader-stringArray
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:44:54.465Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2ed6fc15ebd
+  - type: covered_by
+    from: SYM-isTraceabilityRelationshipType
+    to: TEST-cli-symbol-behavioral-anchors
+    created_at: 2026-09-05T18:22:57.801Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38ba474a5e08

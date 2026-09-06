@@ -27,3 +27,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-94700b2aa551
+  - type: constrains
+    from: REQ-opencode-smart-enforcement-v1
+    to: FACT-SUBJ-REQ-OPENCODE-SMART-ENFORCEMENT-V1
+    created_at: 2026-09-05T14:14:17.227Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-407ca50910ca
+  - type: requires_property
+    from: REQ-opencode-smart-enforcement-v1
+    to: FACT-PROP-REQ-OPENCODE-SMART-ENFORCEMENT-V1-C01
+    created_at: 2026-09-05T14:14:17.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-306833012af1
+  - type: executable_for
+    from: SYM-e2e-test-skillopt-external-adoption-verdict
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T15:55:40.580Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4477ce6a4540
+  - type: covered_by
+    from: SYM-PreparedRootError-name
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:09:51.650Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-24223e509c1c
+  - type: implements
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-_resetkibibootstrapcapabilitycachefortests
+    to: REQ-KIBI-BOOTSTRAP-PLAN
+    created_at: 2026-09-05T20:43:10.741Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f13bed2c5274
+  - type: covered_by
+    from: SYM-kibi-bootstrap-opencode-src-kibi-bootstrap-capability-_resetkibibootstrapcapabilitycachefortests
+    to: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    created_at: 2026-09-05T20:43:10.746Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78ba4139c79e

@@ -5,6 +5,14 @@ import { readKbManifestStatus } from "../../utils/kb-manifest.js";
 import { KB_PATHS } from "../../utils/kb-paths.js";
 import type { ActivationPolicy, ActivationState } from "./types.js";
 
+export function missingManifestActivation(
+  vendored: boolean,
+  projectSignal: boolean,
+): ActivationPolicy {
+  return activationFor(
+    vendored && !projectSignal ? "vendored_only" : "root_uninitialized");
+}
+
 function activationFor(state: ActivationState): ActivationPolicy {
   switch (state) {
     case "root_uninitialized":
@@ -120,13 +128,16 @@ function sourceCoverageState(files: readonly string[]): ActivationState {
 // implements REQ-KIBI-BOOTSTRAP-PLAN
 export async function classifyActivation(
   context: OperationContext,
-  files: readonly string[],
+  files: readonly string[] = [],
 ): Promise<ActivationPolicy> {
   // Discovery callers do not all use the same path base.  The CLI globber
   // returns workspace-relative paths, while host adapters may pass absolute
   // paths.  Normalize before source-lane classification so a seeded source
   // KB has the same posture on every peer surface.
-  const normalizedFiles = files.map((file) => {
+  // Hosts (and leaked fast-glob mocks) may omit or return a non-array; treat
+  // that as "no source files" rather than crashing status/bootstrap.
+  const sourceFiles = Array.isArray(files) ? files : [];
+  const normalizedFiles = sourceFiles.map((file) => {
     const relative = path.isAbsolute(file)
       ? path.relative(context.workspaceRoot, file)
       : file;
@@ -148,9 +159,7 @@ export async function classifyActivation(
     );
     const projectSignal =
       projectSignalFromFiles || projectSignalFromDirectories.some(Boolean);
-    return activationFor(
-      vendored && !projectSignal ? "vendored_only" : "root_uninitialized",
-    );
+    return missingManifestActivation(vendored, projectSignal);
   }
   if (manifestStatus.state !== "ok") return activationFor("root_partial");
   const targets = [...Object.values(KB_PATHS.lanes), KB_PATHS.symbolsManifest];

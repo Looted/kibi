@@ -51,6 +51,12 @@ import type {
 export const SEMANTIC_ADVISOR_VERSION = "semantic-advisor-v2";
 export { semanticClaimKey } from "./clauses.js";
 
+export function stringLogicClaims(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((entry): entry is string => typeof entry === "string")
+    : [];
+}
+
 type SignalPattern = {
   readonly kind: SemanticSignalKind;
   readonly candidateLane: SemanticAdvisorLane;
@@ -467,11 +473,7 @@ function withClauseProvenance(
     const properties = isRecord(step.properties) ? step.properties : null;
     if (properties === null) return step;
     if (step.type === "req") {
-      const existing = Array.isArray(properties.logic_claims)
-        ? properties.logic_claims.filter(
-            (value): value is string => typeof value === "string",
-          )
-        : [];
+      const existing = stringLogicClaims(properties.logic_claims);
       return {
         ...step,
         properties: {

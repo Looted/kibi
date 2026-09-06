@@ -97,3 +97,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-31339371c4f3
+  - type: covered_by
+    from: SYM-scripts-finalizeLcov
+    to: TEST-011
+    created_at: 2026-09-05T14:52:35.830Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a833292c4c82
+  - type: covered_by
+    from: SYM-KibiImpactEvidenceInput
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:13:43.674Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-167b1014195a
+  - type: covered_by
+    from: SYM-proof-bindings-errors
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:31:17.089Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92bc2d505a3e

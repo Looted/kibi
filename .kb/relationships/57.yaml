@@ -34,3 +34,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b4227f3e6e7c
+  - type: executable_for
+    from: SYM-e2e-test-skill-cli-load-validate
+    to: TEST-skill-cli-load-validate
+    created_at: 2026-09-05T15:49:18.382Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2853671c96f3
+  - type: implements
+    from: SYM-auto-A4A826B82393
+    to: REQ-cli-gc
+    created_at: 2026-09-05T15:57:21.518Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c965f3cb948c
+  - type: covered_by
+    from: SYM-auto-A4A826B82393
+    to: TEST-003
+    created_at: 2026-09-05T15:57:21.523Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c7cb9033606

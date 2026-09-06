@@ -6,3 +6,31 @@ relationships:
     created_at: "2026-08-16T18:52:06.490Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-analyzeSemanticAdvisorInput
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-09-05T17:09:55.039Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf1e50015ddc
+  - type: covered_by
+    from: SYM-analyzeSemanticAdvisorInput
+    to: TEST-mcp-semantic-advisor-preflight
+    created_at: 2026-09-05T17:38:04.192Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90f81ef3254c
+  - type: covered_by
+    from: SYM-ReservedPredicateMatrix
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:10:01.624Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce8ba1b4c2e4
+  - type: covered_by
+    from: SYM-skillopt-predicate-freeze-materialization
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T18:20:31.053Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5db73356e94

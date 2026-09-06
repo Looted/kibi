@@ -475,7 +475,7 @@ export async function rankIntentEntities(
   };
 }
 
-function graphGoal(seedIds: readonly string[], depth: 1 | 2): string {
+export function graphGoal(seedIds: readonly string[], depth: 1 | 2): string {
   const ids = seedIds.map((id) => `'${escapeAtom(id)}'`).join(",");
   const relationships = GRAPH_RELATIONSHIPS.join(",");
   if (depth === 1) {

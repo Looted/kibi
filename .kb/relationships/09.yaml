@@ -97,3 +97,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2ad9033ffd5d
+  - type: constrains
+    from: REQ-opencode-background-sync
+    to: FACT-SUBJ-REQ-OPENCODE-BACKGROUND-SYNC
+    created_at: 2026-09-05T14:13:36.287Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d02fd6263bc
+  - type: requires_property
+    from: REQ-opencode-background-sync
+    to: FACT-PROP-REQ-OPENCODE-BACKGROUND-SYNC-C01
+    created_at: 2026-09-05T14:13:36.304Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a87fc7d94bb
+  - type: covered_by
+    from: SYM-mcp-runAggregatedChecks
+    to: TEST-001
+    created_at: 2026-09-05T15:35:43.805Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86552aa9a27d
+  - type: covered_by
+    from: SYM-skillopt-parse-supervisor-parent
+    to: TEST-skillopt-paid-launch-accounting
+    created_at: 2026-09-05T18:18:43.152Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36b4479a911a

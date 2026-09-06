@@ -41,3 +41,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-652a6cd70153
+  - type: constrains
+    from: REQ-opencode-posture-detection
+    to: FACT-SUBJ-REQ-OPENCODE-POSTURE-DETECTION
+    created_at: 2026-09-05T14:14:04.153Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98fee017eaef
+  - type: requires_property
+    from: REQ-opencode-posture-detection
+    to: FACT-PROP-REQ-OPENCODE-POSTURE-DETECTION-C01
+    created_at: 2026-09-05T14:14:04.168Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e501e50565d3
+  - type: covered_by
+    from: SYM-extractFromManifestString
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:25:33.970Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59a82caa7cd5
+  - type: covered_by
+    from: SYM-cursor-stopFollowupMessage
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-09-05T15:40:17.217Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28976c1241e1
+  - type: covered_by
+    from: SYM-cursor-stopFollowupMessage
+    to: TEST-cursor-stop-job-vs-plan
+    created_at: 2026-09-05T15:41:29.745Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-481543b204fe
+  - type: covered_by
+    from: SYM-ArtifactPath-readText
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:06:54.968Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39d03d2fe46c

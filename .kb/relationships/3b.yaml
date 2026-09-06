@@ -181,3 +181,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1b0bdd80f509
+  - type: covered_by
+    from: SYM-SchemaVersionStatus
+    to: TEST-001
+    created_at: 2026-09-05T14:50:31.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c23e8784db15
+  - type: covered_by
+    from: SYM-modeling-predicate-utils-inferTrigger
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:46:05.486Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25ce87849f93
+  - type: covered_by
+    from: SYM-classifyRisk
+    to: TEST-opencode-smart-enforcement
+    created_at: 2026-09-05T18:01:04.902Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c830aec0c29b

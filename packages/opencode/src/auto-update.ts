@@ -277,7 +277,7 @@ function readVersionFromPackageJson(packageJsonPath: string): string | null {
   return typeof parsed?.version === "string" ? parsed.version : null;
 }
 
-function findPackageJsonUp(startUrl: string): string | null {
+export function findPackageJsonUp(startUrl: string): string | null {
   let current = path.dirname(fileURLToPath(startUrl));
   while (true) {
     const packageJsonPath = path.join(current, "package.json");
@@ -532,13 +532,15 @@ export function createAutoUpdateRunner(deps: AutoUpdateRunnerDeps) {
   };
 }
 
+export async function notifyAutoUpdate(message: string): Promise<void> {
+  logger.info("auto-update.notification", { message });
+}
+
 export const runKibiOpencodeAutoUpdate = createAutoUpdateRunner({
   getCurrentVersion: getCachedPluginVersion,
   getLatestVersion: getLatestPluginVersion,
   invalidatePackage: invalidateKibiOpencodePackage,
   runInstall: runBunInstallForOpenCodePlugin,
-  notify: async (message) => {
-    logger.info("auto-update.notification", { message });
-  },
+  notify: notifyAutoUpdate,
   log: (message, metadata) => logger.info(message, metadata),
 });

@@ -611,6 +611,13 @@ function semanticEntityContext(
   return ` (${details.join("; ")})`;
 }
 
+export function relationshipFailureMessage(
+  singleError: string | undefined,
+  batchError: string | undefined,
+): string {
+  return singleError || batchError || "Unknown error";
+}
+
 // implements REQ-core-persistence
 export async function persistRelationships(
   prolog: PrologProcess,
@@ -717,10 +724,10 @@ export async function persistRelationships(
             rel: item.rel,
             fromId: item.fromId,
             toId: item.toId,
-            error:
-              single.error ||
-              (relationshipBatchRunner ? batch.error : undefined) ||
-              "Unknown error",
+            error: relationshipFailureMessage(
+              single.error,
+              relationshipBatchRunner ? batch.error : undefined,
+            ),
           });
         }
       } catch (error) {

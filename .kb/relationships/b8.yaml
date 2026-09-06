@@ -48,3 +48,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3a9a7aab474c
+  - type: constrains
+    from: REQ-mcp-skills-resource-discoverability
+    to: FACT-SUBJ-REQ-MCP-SKILLS-RESOURCE-DISCOVERABILITY
+    created_at: 2026-09-05T14:13:02.890Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3b40494af63
+  - type: requires_property
+    from: REQ-mcp-skills-resource-discoverability
+    to: FACT-PROP-REQ-MCP-SKILLS-RESOURCE-DISCOVERABILITY-C01
+    created_at: 2026-09-05T14:13:02.905Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d5d9acf2ce6
+  - type: executable_for
+    from: SYM-e2e-test-010
+    to: TEST-010
+    created_at: 2026-09-05T14:51:49.203Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f643afa0990
+  - type: covered_by
+    from: SYM-cli-impact-normalizeSourceFile
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:16:49.070Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a052529ae77
+  - type: covered_by
+    from: SYM-COARSE_GRANULARITY_REASONS
+    to: TEST-cli-symbol-behavioral-anchors
+    created_at: 2026-09-05T18:21:39.472Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a07cd3feb89

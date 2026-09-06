@@ -35,6 +35,61 @@ export {
   writeSetPrimaryEntityId,
 };
 
+export function annotateModelRequirementStep(
+  step: Record<string, unknown>,
+  context: {
+    claimKey: string;
+    statement: string;
+    logicClaims: string[];
+  },
+): Record<string, unknown> {
+  const properties =
+    step.properties !== null && typeof step.properties === "object"
+      ? (step.properties as Record<string, unknown>)
+      : {};
+  if (step.type === "fact") {
+    return {
+      ...step,
+      properties: {
+        ...properties,
+        claim_key: context.claimKey,
+        claim_text: context.statement,
+      },
+    };
+  }
+  if (step.type === "req") {
+    const claimText = context.statement.trim();
+    const normalizedClaimText = normalizeSemanticClause(claimText);
+    return {
+      ...step,
+      properties: {
+        ...properties,
+        semantic_text: claimText,
+        logic_claims: context.logicClaims,
+        semantic_clauses: [claimText],
+        semantic_inventory_version: "kibi.semantic-inventory.v1",
+        semantic_source_field: "semantic_text",
+        semantic_source_hash: semanticSourceHash(claimText),
+        semantic_inventory: [
+          {
+            claim_key: context.claimKey,
+            claim_text: normalizedClaimText,
+            role: /\b(?:must|shall|should|required|requires?)\b/i.test(claimText)
+              ? "normative"
+              : "descriptive",
+            status: "modeled",
+            span: {
+              start: 0,
+              end: Buffer.byteLength(normalizedClaimText, "utf8"),
+            },
+          },
+        ],
+      },
+    };
+  }
+  return step;
+}
+
 export async function getWorkspaceMigrationWarning(
   workspaceRoot: string,
 ): Promise<string | null> {
@@ -120,55 +175,13 @@ export async function handleKbModelRequirement(
   const logicClaims = Array.from(
     new Set([...(args.existingLogicClaims ?? []), claimKey]),
   );
-  const applyPlan = strictWriteSetToApplyPlan(writeSet).map((step) => {
-    const properties =
-      step.properties !== null && typeof step.properties === "object"
-        ? (step.properties as Record<string, unknown>)
-        : {};
-    if (step.type === "fact") {
-      return {
-        ...step,
-        properties: {
-          ...properties,
-          claim_key: claimKey,
-          claim_text: extracted.statement,
-        },
-      };
-    }
-    if (step.type === "req") {
-      const claimText = extracted.statement.trim();
-      const normalizedClaimText = normalizeSemanticClause(claimText);
-      return {
-        ...step,
-        properties: {
-          ...properties,
-          semantic_text: claimText,
-          logic_claims: logicClaims,
-          semantic_clauses: [claimText],
-          semantic_inventory_version: "kibi.semantic-inventory.v1",
-          semantic_source_field: "semantic_text",
-          semantic_source_hash: semanticSourceHash(claimText),
-          semantic_inventory: [
-            {
-              claim_key: claimKey,
-              claim_text: normalizedClaimText,
-              role: /\b(?:must|shall|should|required|requires?)\b/i.test(
-                claimText,
-              )
-                ? "normative"
-                : "descriptive",
-              status: "modeled",
-              span: {
-                start: 0,
-                end: Buffer.byteLength(normalizedClaimText, "utf8"),
-              },
-            },
-          ],
-        },
-      };
-    }
-    return step;
-  });
+  const applyPlan = strictWriteSetToApplyPlan(writeSet).map((step) =>
+    annotateModelRequirementStep(step, {
+      claimKey,
+      statement: extracted.statement,
+      logicClaims,
+    }),
+  );
   const migrationWarning = await getWorkspaceMigrationWarning(workspaceRoot);
   const warnings = writeSet.isStrict
     ? []

@@ -111,3 +111,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6cb9fac3b42d
+  - type: covered_by
+    from: SYM-branchEnsureCommand
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-09-05T15:04:33.189Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba5940eb95cf
+  - type: covered_by
+    from: SYM-auto-7AE5927FBDB9
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:18:19.004Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b2b8e11d6b4
+  - type: covered_by
+    from: SYM-mcp-KbRefreshError
+    to: TEST-mcp-kb-freshness
+    created_at: 2026-09-05T17:34:03.840Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4480b512005e
+  - type: covered_by
+    from: SYM-modeling-predicate-utils-inferUnit
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:46:10.597Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d64ab3a70d0c
+  - type: implements
+    from: SYM-cli-engine-daemon-entrypoint
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-05T19:01:45.453Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c36df3785c4
+  - type: covered_by
+    from: SYM-cli-engine-daemon-entrypoint
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-09-05T19:01:45.459Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc5d683e800d

@@ -104,3 +104,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-474d0cdd6cc0
+  - type: constrains
+    from: REQ-cli-doctor-packed-provenance
+    to: FACT-SUBJ-REQ-CLI-DOCTOR-PACKED-PROVENANCE
+    created_at: 2026-09-05T14:29:54.172Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e86e08cae73
+  - type: requires_property
+    from: REQ-cli-doctor-packed-provenance
+    to: FACT-PROP-REQ-CLI-DOCTOR-PACKED-PROVENANCE-C01
+    created_at: 2026-09-05T14:29:54.189Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-953f1db8df20
+  - type: requires_property
+    from: REQ-cli-doctor-packed-provenance
+    to: FACT-PROP-REQ-CLI-DOCTOR-PACKED-PROVENANCE-C02
+    created_at: 2026-09-05T14:29:54.193Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d951d190cfbe
+  - type: requires_property
+    from: REQ-cli-doctor-packed-provenance
+    to: FACT-PROP-REQ-CLI-DOCTOR-PACKED-PROVENANCE-C03
+    created_at: 2026-09-05T14:29:54.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4804f7fce52a
+  - type: covered_by
+    from: SYM-handleSparql
+    to: TEST-005
+    created_at: 2026-09-05T14:46:43.224Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e5326f4ba02
+  - type: covered_by
+    from: SYM-mcp-formatImpactText
+    to: TEST-mcp-tool-check-coverage
+    created_at: 2026-09-05T17:49:16.195Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53064a7170f6
+  - type: covered_by
+    from: SYM-handleSparql
+    to: TEST-prolog-library-adoption-core
+    created_at: 2026-09-05T18:01:43.464Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6fc1fe1e9a9

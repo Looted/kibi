@@ -599,15 +599,19 @@ describe("branch-resolver", () => {
     });
 
     test("returns an explicit error when origin/HEAD does not exist", () => {
-      // Initialize git repo without origin/HEAD
-      execSync("git init -b main", { cwd: tmpDir });
-      execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
-      execSync("git config user.name 'Test User'", { cwd: tmpDir });
-      execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
+      _setBranchResolverDepsForTests({
+        execSync: ((command: string) => {
+          if (command.includes("symbolic-ref")) {
+            throw new Error("fatal: ref refs/remotes/origin/HEAD is not a symbolic ref");
+          }
+          return execSync(command, { cwd: tmpDir, encoding: "utf8" });
+        }) as unknown as typeof execSync,
+      });
 
       const result = resolveDefaultBranch(tmpDir, undefined);
 
       expect("error" in result).toBe(true);
+      expect((result as { code: string }).code).toBe("NO_DEFAULT_BRANCH");
     });
 
     test("returns an explicit error when not in a git repo", () => {

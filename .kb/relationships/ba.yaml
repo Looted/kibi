@@ -125,3 +125,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2cd405e0570e
+  - type: covered_by
+    from: SYM-KibiImpactSymbolsManifest
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:14:25.484Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86223fde8d17
+  - type: covered_by
+    from: SYM-SymbolCoordinatesArtifact
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:24:15.009Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ee691cc9bad
+  - type: covered_by
+    from: SYM-semantic-advisor-CORE_PREDICATE_RULES
+    to: TEST-mcp-semantic-advisor-preflight
+    created_at: 2026-09-05T17:38:29.282Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a292a86ac19e

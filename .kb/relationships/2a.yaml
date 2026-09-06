@@ -83,3 +83,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-73dd95430883
+  - type: covered_by
+    from: SYM-cli-engine-client-stop
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:29:35.440Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b06ed49c863
+  - type: covered_by
+    from: SYM-skillopt-predicate-binding-failure
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T18:19:55.812Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85bb8893a7b4
+  - type: covered_by
+    from: SYM-KibiTreeItem
+    to: TEST-vscode-traceability-coverage
+    created_at: 2026-09-05T18:26:31.780Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f3a31f72fe62

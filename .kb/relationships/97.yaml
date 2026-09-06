@@ -139,3 +139,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-067ce6be9fbc
+  - type: constrains
+    from: REQ-mcp-cli-help
+    to: FACT-SUBJ-REQ-MCP-CLI-HELP
+    created_at: 2026-09-05T14:12:30.385Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75db272145ff
+  - type: requires_property
+    from: REQ-mcp-cli-help
+    to: FACT-PROP-REQ-MCP-CLI-HELP-C01
+    created_at: 2026-09-05T14:12:30.406Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7dfcab7bd4b4
+  - type: requires_property
+    from: REQ-mcp-cli-help
+    to: FACT-PROP-REQ-MCP-CLI-HELP-C02
+    created_at: 2026-09-05T14:12:30.412Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e35db35c89fe
+  - type: requires_property
+    from: REQ-mcp-cli-help
+    to: FACT-PROP-REQ-MCP-CLI-HELP-C03
+    created_at: 2026-09-05T14:12:30.419Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a771d7064143
+  - type: covered_by
+    from: SYM-parity-run-operation-json-query
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:33:31.911Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-975a0b6505b6
+  - type: executable_for
+    from: SYM-e2e-test-prolog-library-adoption-core
+    to: TEST-prolog-library-adoption-core
+    created_at: 2026-09-05T15:49:05.899Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-418952d95cb3
+  - type: covered_by
+    from: SYM-canonical-KibiTreeDataProvider-onDidChangeTreeData
+    to: TEST-vscode-traceability-coverage
+    created_at: 2026-09-05T18:27:38.300Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b0cb624816db

@@ -107,22 +107,82 @@ export function parseListOfLists(listStr: string): string[][] {
   return results;
 }
 
-export function parseEntityFromBinding(
-  // implements REQ-009
-  bindingStr: string,
-): Record<string, unknown> {
-  const cleaned = bindingStr.trim().replace(/^\[/, "").replace(/\]$/, "");
-  const parts = splitTopLevelGeneral(cleaned, ",");
+export function firstTwoDefinedParts(
+  parts: readonly (string | undefined)[],
+): [string, string] | undefined {
+  const first = parts[0];
+  const second = parts[1];
+  if (first === undefined || second === undefined) {
+    return undefined;
+  }
+  return [first, second];
+}
 
+export function fallbackWhenPairMissing<T>(
+  pair: [string, string] | undefined,
+  fallback: T,
+): T | null {
+  return pair === undefined ? fallback : null;
+}
+
+export function typedLiteralFromParts(
+  parts: readonly (string | undefined)[],
+  original: string,
+): unknown {
+  const pair = firstTwoDefinedParts(parts);
+  if (!pair) {
+    return original;
+  }
+  const [literalPart, datatypePart] = pair;
+
+  let literalValue = literalPart.trim();
+  const datatype = datatypePart.trim();
+
+  if (literalValue.startsWith('"') && literalValue.endsWith('"')) {
+    literalValue = literalValue.substring(1, literalValue.length - 1);
+  }
+
+  if (datatype.includes("#integer")) {
+    return Number.parseInt(literalValue, 10);
+  }
+  if (datatype.includes("#decimal") || datatype.includes("#double")) {
+    return Number.parseFloat(literalValue);
+  }
+  if (datatype.includes("#boolean")) {
+    return literalValue === "true";
+  }
+
+  if (literalValue.startsWith("[") && literalValue.endsWith("]")) {
+    const listContent = literalValue.substring(1, literalValue.length - 1);
+    if (listContent === "") {
+      return [];
+    }
+    return splitTopLevelGeneral(listContent, ",").map((item) => item.trim());
+  }
+
+  return literalValue;
+}
+
+export function fileUriLeaf(value: string): string {
+  const lastSlash = value.lastIndexOf("/");
+  if (lastSlash !== -1) {
+    return value.substring(lastSlash + 1);
+  }
+  return value;
+}
+
+export function entityFromBindingParts(
+  parts: readonly (string | undefined)[],
+): Record<string, unknown> {
   if (parts.length < 3) {
     return {};
   }
 
-  const idPart = parts[0];
-  const typePart = parts[1];
-  if (idPart === undefined || typePart === undefined) {
+  const pair = firstTwoDefinedParts(parts);
+  if (!pair) {
     return {};
   }
+  const [idPart, typePart] = pair;
 
   const id = idPart.trim();
   const type = typePart.trim();
@@ -130,6 +190,14 @@ export function parseEntityFromBinding(
 
   const props = parsePropertyList(propsStr);
   return { ...props, id: normalizeEntityId(stripOuterQuotes(id)), type };
+}
+
+export function parseEntityFromBinding(
+  // implements REQ-009
+  bindingStr: string,
+): Record<string, unknown> {
+  const cleaned = bindingStr.trim().replace(/^\[/, "").replace(/\]$/, "");
+  return entityFromBindingParts(splitTopLevelGeneral(cleaned, ","));
 }
 
 export function parseEntityFromList(data: string[]): Record<string, unknown> {
@@ -232,52 +300,13 @@ export function parsePrologValue(valueInput: string): unknown {
 
     const parts = splitTopLevelGeneral(innerContent, ",");
     if (parts.length >= 2) {
-      const literalPart = parts[0];
-      const datatypePart = parts[1];
-      if (literalPart === undefined || datatypePart === undefined) {
-        return value;
-      }
-
-      let literalValue = literalPart.trim();
-      const datatype = datatypePart.trim();
-
-      if (literalValue.startsWith('"') && literalValue.endsWith('"')) {
-        literalValue = literalValue.substring(1, literalValue.length - 1);
-      }
-
-      // Parse typed literals based on datatype
-      if (datatype.includes("#integer")) {
-        return Number.parseInt(literalValue, 10);
-      }
-      if (datatype.includes("#decimal") || datatype.includes("#double")) {
-        return Number.parseFloat(literalValue);
-      }
-      if (datatype.includes("#boolean")) {
-        return literalValue === "true";
-      }
-
-      // Handle array notation for string values
-      if (literalValue.startsWith("[") && literalValue.endsWith("]")) {
-        const listContent = literalValue.substring(1, literalValue.length - 1);
-        if (listContent === "") {
-          return [];
-        }
-        return splitTopLevelGeneral(listContent, ",").map((item) =>
-          item.trim(),
-        );
-      }
-
-      return literalValue;
+      return typedLiteralFromParts(parts, value);
     }
   }
 
   // Handle URI
   if (value.startsWith("file:///")) {
-    const lastSlash = value.lastIndexOf("/");
-    if (lastSlash !== -1) {
-      return value.substring(lastSlash + 1);
-    }
-    return value;
+    return fileUriLeaf(value);
   }
 
   // Handle quoted string

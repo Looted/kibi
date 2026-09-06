@@ -192,3 +192,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a8bb2e4f8146
+  - type: covered_by
+    from: SYM-SymbolCoordinatesRecord
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:24:20.036Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c33b0ca556fc
+  - type: covered_by
+    from: SYM-cli-analyzePrologQueryPlanSafety
+    to: TEST-001
+    created_at: 2026-09-05T15:34:58.859Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95dfdec2f4ef
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-3-inferRateLimitArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:44:03.853Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1cc54c9dc96
+  - type: covered_by
+    from: SYM-skillopt-run-verification-harness
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:15:31.248Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab3718ab437e
+  - type: covered_by
+    from: SYM-TRACEABILITY_RELATIONSHIP_TYPES
+    to: TEST-cli-symbol-behavioral-anchors
+    created_at: 2026-09-05T18:21:55.020Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fac197daa4fe

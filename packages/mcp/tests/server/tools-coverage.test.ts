@@ -277,6 +277,7 @@ function createSessionModuleMock(
     resetSessionStateForTests: (): void => {},
     attachedBranchKbPath: null,
     updateAttachedBranchStamp: (): void => {},
+    _setPrologProcessForTests: (): void => {},
   };
 }
 
@@ -1095,6 +1096,74 @@ describe.serial("server tools coverage", () => {
       restoreEnvVar("KIBI_MCP_TOOL_TIMEOUT_MS", originalTimeout);
     }
   }, 10_000);
+
+  test("addTool returns MUTATION_OUTCOME_UNKNOWN when a write tool times out", async () => {
+    const originalTimeout = process.env.KIBI_MCP_TOOL_TIMEOUT_MS;
+    process.env.KIBI_MCP_TOOL_TIMEOUT_MS = "5";
+    try {
+      const { runtime, spies, trackedRequests } = createRuntime();
+      const { server, registered } = createCapturingServer();
+      const deferred = createDeferred<never>();
+      const handler = mock(
+        (_args: Record<string, unknown>): Promise<never> => deferred.promise,
+      );
+      spies.resetProlog.mockImplementation(async () => {
+        throw new Error("reset failed");
+      });
+      addTool(
+        server,
+        "write_timeout_tool",
+        "write timeout",
+        {},
+        handler,
+        runtime,
+        {
+          name: "write_timeout_tool",
+          effects: ["kb-write"],
+          requiresProlog: false,
+          execute: async () => deferred.promise,
+        },
+      );
+      const tool = getRegisteredTool(registered, "write_timeout_tool");
+      const response = (await invokeTool(tool, {
+        _requestId: "req-write-timeout",
+      })) as ToolResponse;
+      expect(response.structuredContent).toMatchObject({
+        status: "error",
+        error: { code: "MUTATION_OUTCOME_UNKNOWN" },
+      });
+      expect(trackedRequests.size).toBe(0);
+      expect(spies.resetProlog).toHaveBeenCalled();
+    } finally {
+      restoreEnvVar("KIBI_MCP_TOOL_TIMEOUT_MS", originalTimeout);
+    }
+  }, 10_000);
+
+  test("addTool treats a non-positive timeout env as the default and still succeeds", async () => {
+    const originalTimeout = process.env.KIBI_MCP_TOOL_TIMEOUT_MS;
+    process.env.KIBI_MCP_TOOL_TIMEOUT_MS = "not-a-timeout";
+    try {
+      const { runtime } = createRuntime();
+      const { server, registered } = createCapturingServer();
+      addTool(
+        server,
+        "invalid_timeout_tool",
+        "invalid timeout",
+        {},
+        async () => ({ ok: true }),
+        runtime,
+      );
+      const tool = getRegisteredTool(registered, "invalid_timeout_tool");
+      const response = (await invokeTool(tool, {
+        marker: "ok",
+      })) as ToolResponse;
+      expect(response.structuredContent).toMatchObject({
+        status: "success",
+      });
+    } finally {
+      restoreEnvVar("KIBI_MCP_TOOL_TIMEOUT_MS", originalTimeout);
+    }
+  });
 
   test("registerAllTools registers all configured tools and delegates to the matching runtime handlers", async () => {
     const { runtime, spies, mockProlog } = createRuntime();

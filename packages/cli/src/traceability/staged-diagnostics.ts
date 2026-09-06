@@ -81,7 +81,7 @@ function createSymbolsManifestStaleDiagnostic(
   };
 }
 
-function createMissingOverrideRationaleDiagnostic(
+export function createMissingOverrideRationaleDiagnostic(
   evidence: KibiImpactEvidence,
 ): KibiImpactDiagnostic {
   if (evidence.mode.kind !== "no_impact_override") {

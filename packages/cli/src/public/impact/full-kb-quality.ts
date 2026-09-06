@@ -220,6 +220,16 @@ async function loadKbExtractionResults(
   });
 }
 
+export function passingE2eStage(
+  passingE2e: unknown,
+): Readonly<Record<string, unknown>> | undefined {
+  return passingE2e &&
+    typeof passingE2e === "object" &&
+    !Array.isArray(passingE2e)
+    ? (passingE2e as Readonly<Record<string, unknown>>)
+    : undefined;
+}
+
 function stringArrayField(value: unknown): readonly string[] | undefined {
   return Array.isArray(value) ? value.map(String) : undefined;
 }
@@ -232,11 +242,7 @@ function proofStage(
     return undefined;
   }
   const passingE2e = (stages as Record<string, unknown>).passingE2e;
-  return passingE2e &&
-    typeof passingE2e === "object" &&
-    !Array.isArray(passingE2e)
-    ? (passingE2e as Readonly<Record<string, unknown>>)
-    : undefined;
+  return passingE2eStage(passingE2e);
 }
 
 async function loadCoverageProofEvidence(

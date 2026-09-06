@@ -201,6 +201,13 @@ export type ProofReceipt = Readonly<{
   }[];
 }>;
 
+export function finishedAtPrecedesStartedAt(
+  startedAt: number | null,
+  finishedAt: number | null,
+): boolean {
+  return startedAt !== null && finishedAt !== null && finishedAt < startedAt;
+}
+
 function timestamp(value: unknown): number | null {
   if (typeof value !== "string") return null;
   if (
@@ -340,7 +347,7 @@ export function validProofReceiptShape(
   const startedAt = timestamp(row.started_at);
   const finishedAt = timestamp(row.finished_at);
   if (startedAt === null || finishedAt === null) return false;
-  return finishedAt >= startedAt;
+  return !finishedAtPrecedesStartedAt(startedAt, finishedAt);
 }
 
 /**
@@ -377,11 +384,7 @@ export function proofReceiptHistoryErrors(
       );
       continue;
     }
-    const startedAt = timestamp(receipt.started_at);
     const finishedAt = timestamp(receipt.finished_at);
-    if (startedAt !== null && finishedAt !== null && finishedAt < startedAt) {
-      errors.push(`${prefix}.finished_at must not precede started_at`);
-    }
     if (
       finishedAt !== null &&
       index > 0 &&

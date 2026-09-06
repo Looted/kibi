@@ -125,3 +125,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-803f2c30f989
+  - type: constrains
+    from: REQ-cli-init-canonical
+    to: FACT-SUBJ-REQ-CLI-INIT-CANONICAL
+    created_at: 2026-09-05T14:30:19.443Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b9d86b583656
+  - type: requires_property
+    from: REQ-cli-init-canonical
+    to: FACT-PROP-REQ-CLI-INIT-CANONICAL-C01
+    created_at: 2026-09-05T14:30:19.460Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-edab9bc01e06
+  - type: requires_property
+    from: REQ-cli-init-canonical
+    to: FACT-PROP-REQ-CLI-INIT-CANONICAL-C02
+    created_at: 2026-09-05T14:30:19.465Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bba95d224fa1
+  - type: requires_property
+    from: REQ-cli-init-canonical
+    to: FACT-PROP-REQ-CLI-INIT-CANONICAL-C03
+    created_at: 2026-09-05T14:30:19.470Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d29da0141ccf
+  - type: requires_property
+    from: REQ-cli-init-canonical
+    to: FACT-PROP-REQ-CLI-INIT-CANONICAL-C04
+    created_at: 2026-09-05T14:30:19.474Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df2af6adfb10
+  - type: covered_by
+    from: SYM-loadSyncConfig
+    to: TEST-001
+    created_at: 2026-09-05T14:51:17.034Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2f29bec8156a
+  - type: covered_by
+    from: SYM-validateKbUpsertArgs
+    to: TEST-mcp-upsert-coverage
+    created_at: 2026-09-05T17:50:19.918Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43d15d8f6366
+  - type: covered_by
+    from: SYM-validateArtifactRootMetadata
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:16:08.019Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e29476d38b3

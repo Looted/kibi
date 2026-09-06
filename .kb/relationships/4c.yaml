@@ -97,3 +97,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-70f2fc3460fe
+  - type: covered_by
+    from: SYM-cli-engine-publication-lock-path
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:30:48.200Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46fa896243d1
+  - type: covered_by
+    from: SYM-cursor-normalizePath
+    to: TEST-cursor-worktree-kibi-continuity
+    created_at: 2026-09-05T16:55:10.920Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba81065fc311
+  - type: covered_by
+    from: SYM-KibiTreeDataProvider
+    to: TEST-vscode-traceability-coverage
+    created_at: 2026-09-05T18:26:26.719Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee91373aaf2c

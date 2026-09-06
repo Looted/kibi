@@ -122,3 +122,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-861aa89d4d0b
+  - type: covered_by
+    from: SYM-cli-engine-package-versions
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:30:21.510Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-88906482d208
+  - type: executable_for
+    from: SYM-e2e-test-opencode-file-context-guidance-v1
+    to: TEST-opencode-file-context-guidance-v1
+    created_at: 2026-09-05T15:48:13.259Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76321f47cd9a
+  - type: covered_by
+    from: SYM-proof-run-outcomes
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:32:47.835Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2cd3a63ab448
+  - type: covered_by
+    from: SYM-predicateReplicateFor
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:12:29.021Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3168106a9fb2

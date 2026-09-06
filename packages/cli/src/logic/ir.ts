@@ -155,7 +155,7 @@ export function logicSemanticKey(ir: LogicRuleIR): string {
   return `SEM-${logicRuleHash(ir).slice(0, 24).toUpperCase()}`;
 }
 
-function termVariables(term: LogicTerm): Set<string> {
+export function termVariables(term: LogicTerm): Set<string> {
   return term.kind === "var" ? new Set([term.name]) : new Set();
 }
 

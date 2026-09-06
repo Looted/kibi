@@ -1,3 +1,17 @@
+export function isFreshnessLane(lane: string | undefined): boolean {
+  return (
+    lane === "requirements" ||
+    lane === "scenarios" ||
+    lane === "tests" ||
+    lane === "facts" ||
+    lane === "adr" ||
+    lane === "flags" ||
+    lane === "events" ||
+    lane === "symbols.yaml" ||
+    lane === "symbol-coordinates.yaml"
+  );
+}
+
 // implements REQ-cursor-kibi-plugin-v1
 const explicitPathKeys = new Set([
   "absolute_path",
@@ -178,19 +192,7 @@ export function isKbFreshnessRelevantPath(candidate: string): boolean {
 
   if (segments[0] === ".kb") {
     const lane = segments[1];
-    if (
-      lane === "requirements" ||
-      lane === "scenarios" ||
-      lane === "tests" ||
-      lane === "facts" ||
-      lane === "adr" ||
-      lane === "flags" ||
-      lane === "events" ||
-      lane === "symbols.yaml" ||
-      lane === "symbol-coordinates.yaml"
-    ) {
-      return true;
-    }
+    if (isFreshnessLane(lane)) return true;
   }
 
   // Legacy layout during migration

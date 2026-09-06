@@ -118,3 +118,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0ae6712d7186
+  - type: covered_by
+    from: SYM-SemanticClaim
+    to: TEST-001
+    created_at: 2026-09-05T14:50:36.279Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b37b2a1de46
+  - type: executable_for
+    from: SYM-e2e-test-cli-symbol-behavioral-anchors
+    to: TEST-cli-symbol-behavioral-anchors
+    created_at: 2026-09-05T15:50:34.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6534c19a3a0b
+  - type: covered_by
+    from: SYM-skillopt-predicate-deterministic-candidates
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T18:20:18.764Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0be5e1611fa7

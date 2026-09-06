@@ -154,7 +154,7 @@ export function verifyPublishMetadata(
   return issues;
 }
 
-function main(): number {
+export function main(): number {
   const packagesRoot = join(process.cwd(), "packages");
   const issues = verifyPublishMetadata(packagesRoot);
 
@@ -174,6 +174,17 @@ function main(): number {
   return 0;
 }
 
-if (import.meta.main) {
-  process.exit(main());
+export function defaultVerifyPublishExit(code: number): void {
+  process.exit(code);
 }
+
+export function runVerifyPublishMetadataIfMain(
+  isMain = import.meta.main,
+  start = main,
+  exit: (code: number) => never | void = defaultVerifyPublishExit,
+): void {
+  if (!isMain) return;
+  exit(start());
+}
+
+runVerifyPublishMetadataIfMain();

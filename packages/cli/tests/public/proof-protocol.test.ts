@@ -9,8 +9,20 @@ import {
   jsonDigest,
 } from "../../src/public/proof-fingerprint.js";
 import {
+  ATTEMPTS_STATUS,
+  PROOF_BINDING_KINDS,
+  PROOF_BINDINGS_SCHEMA,
+  PROOF_CONTRACT_SCHEMA,
   PROOF_CONTRACT_VERSION,
+  PROOF_INTEGRATION_VERSION,
+  PROOF_RECEIPT_VERSION,
+  PROOF_RESULT_OUTCOMES,
+  PROOF_RESULT_SCHEMA,
+  PROOF_RUN_ARTIFACT_SCHEMA,
+  PROOF_RUN_OUTCOMES,
   PROOF_RUN_VERSION,
+  RUN_FAILURE_PHASES,
+  SUCCESS_POLICIES,
   proofBindingsErrors,
   proofContractErrors,
   proofResultErrors,
@@ -170,6 +182,222 @@ describe("kibi.proof-run.v1", () => {
       ]),
     ).toEqual([]);
     expect(proofBindingsErrors("nope")[0]).toContain("array");
+  });
+
+  test("exports protocol constants and schema objects", () => {
+    expect(PROOF_RUN_VERSION).toBe("kibi.proof-run.v1");
+    expect(PROOF_RECEIPT_VERSION).toBe("kibi.proof-receipt.v1");
+    expect(PROOF_INTEGRATION_VERSION).toBe("kibi.proof-integration.v1");
+    expect(PROOF_RUN_OUTCOMES).toContain("timed_out");
+    expect(PROOF_RESULT_OUTCOMES).toContain("skipped");
+    expect(PROOF_BINDING_KINDS).toEqual(["native_case", "aggregate_run"]);
+    expect(ATTEMPTS_STATUS).toEqual(["complete", "unavailable"]);
+    expect(RUN_FAILURE_PHASES).toContain("infrastructure");
+    expect(SUCCESS_POLICIES).toEqual(["all_required_first_attempt"]);
+    expect(PROOF_RESULT_SCHEMA.type).toBe("object");
+    expect(PROOF_RUN_ARTIFACT_SCHEMA.type).toBe("object");
+    expect(PROOF_CONTRACT_SCHEMA.type).toBe("object");
+    expect(PROOF_BINDINGS_SCHEMA.type).toBe("array");
+    expect(PROOF_RESULT_SCHEMA.properties.attempts.oneOf).toHaveLength(2);
+    expect(PROOF_RUN_ARTIFACT_SCHEMA.properties.run.properties.failure_phase.enum).toEqual(
+      [...RUN_FAILURE_PHASES],
+    );
+    expect(PROOF_BINDINGS_SCHEMA.items.required).toEqual(["symbol_id", "target"]);
+    expect(PROOF_CONTRACT_SCHEMA.properties.success_policy.enum).toEqual([
+      ...SUCCESS_POLICIES,
+    ]);
+  });
+
+  test("proofResultErrors covers object, outcome, binding, native_id, and diagnostics", () => {
+    expect(proofResultErrors(null, "r")[0]).toContain("must be an object");
+    const errors = proofResultErrors(
+      {
+        symbol_id: "",
+        target: "",
+        outcome: "nope",
+        binding: "other",
+        native_id: "",
+        attempts: { status: "complete", entries: [{ outcome: "nope", duration_ms: -1 }, "bad"] },
+        diagnostics: ["ok", ""],
+      },
+      "r",
+    );
+    expect(errors.join(" ")).toContain("symbol_id");
+    expect(errors.join(" ")).toContain("target");
+    expect(errors.join(" ")).toContain("outcome");
+    expect(errors.join(" ")).toContain("binding");
+    expect(errors.join(" ")).toContain("native_id");
+    expect(errors.join(" ")).toContain("diagnostics");
+    expect(errors.join(" ")).toContain("duration_ms");
+    expect(
+      proofResultErrors(
+        {
+          symbol_id: "SYM-1",
+          target: "default",
+          outcome: "passed",
+          binding: "native_case",
+          attempts: { status: "weird" },
+        },
+        "r",
+      )[0],
+    ).toContain("status must be one of");
+    expect(
+      proofResultErrors(
+        {
+          symbol_id: "SYM-1",
+          target: "default",
+          outcome: "passed",
+          binding: "native_case",
+          attempts: null,
+        },
+        "r",
+      )[0],
+    ).toContain("must be an object");
+  });
+
+  test("proofRunArtifactErrors covers producer, argv, snapshot, environment, run, and result caps", () => {
+    const artifact = validArtifact() as unknown as {
+      producer: { name: string; version?: string };
+      executor?: { name: string; version: string };
+      command_argv: string[];
+      code_snapshot: string;
+      environment: unknown;
+      run: {
+        outcome: string;
+        exit_code: number;
+        started_at: string;
+        finished_at: string;
+        failure_phase?: string;
+      };
+      integration: string;
+      diagnostics?: string[];
+      proof_results: unknown[];
+    };
+    artifact.producer = { name: "" };
+    artifact.executor = { name: "node", version: "" };
+    artifact.command_argv = [];
+    artifact.code_snapshot = "short";
+    artifact.environment = null as unknown as typeof artifact.environment;
+    artifact.run = {
+      outcome: "nope",
+      exit_code: 1.5,
+      started_at: "",
+      finished_at: "",
+      failure_phase: "later",
+    } as unknown as typeof artifact.run;
+    artifact.integration = "";
+    artifact.diagnostics = [""];
+    const errors = proofRunArtifactErrors(artifact).join(" ");
+    expect(errors).toContain("producer.name");
+    expect(errors).toContain("command_argv");
+    expect(errors).toContain("code_snapshot");
+    expect(errors).toContain("environment");
+    expect(errors).toContain("run.outcome");
+    expect(errors).toContain("exit_code");
+    expect(errors).toContain("failure_phase");
+    expect(errors).toContain("integration");
+    expect(errors).toContain("diagnostics");
+
+    expect(
+      proofRunArtifactErrors({
+        ...validArtifact(),
+        environment: { os: "linux", nested: { fn: () => 1 } },
+      } as never).join(" "),
+    ).toContain("JSON values");
+    expect(proofRunArtifactErrors({ ...validArtifact(), run: null }).join(" ")).toContain(
+      "artifact.run must be an object",
+    );
+    const oversized = validArtifact();
+    oversized.proof_results = Array.from({ length: 1001 }, (_, index) => ({
+      symbol_id: `SYM-${index}`,
+      target: "default",
+      outcome: "passed",
+      binding: "aggregate_run",
+      attempts: { status: "unavailable" },
+    }));
+    expect(proofRunArtifactErrors(oversized).join(" ")).toContain("at most 1000");
+    expect(proofRunArtifactErrors({ ...validArtifact(), producer: null }).join(" ")).toContain(
+      "producer must be an object",
+    );
+  });
+
+  test("proofContractErrors and proofBindingsErrors cover duplicates and field shapes", () => {
+    expect(proofContractErrors(null)[0]).toContain("must be an object");
+    expect(
+      proofContractErrors({
+        version: "old",
+        integration: "",
+        required_proofs: [null, { symbol_id: "", target: "" }, { symbol_id: "SYM-1", target: "t" }, { symbol_id: "SYM-1", target: "t" }],
+        success_policy: "other",
+      }).join(" "),
+    ).toMatch(/version|integration|symbol_id|duplicates|success_policy/);
+    const oversized = {
+      version: PROOF_CONTRACT_VERSION,
+      integration: "self-proof",
+      required_proofs: Array.from({ length: 1001 }, (_, index) => ({
+        symbol_id: `SYM-${index}`,
+        target: "default",
+      })),
+      success_policy: "all_required_first_attempt",
+    };
+    expect(proofContractErrors(oversized)[0]).toContain("at most 1000");
+    expect(
+      proofBindingsErrors([
+        null,
+        { symbol_id: "", target: "", native_id: "", aliases: [""], source_file: "", line: 0 },
+        { symbol_id: "SYM-1", target: "t" },
+        { symbol_id: "SYM-1", target: "t" },
+      ]).join(" "),
+    ).toMatch(/object|native_id|aliases|source_file|line|duplicates/);
+    expect(
+      proofBindingsErrors([
+        {
+          symbol_id: "SYM-1",
+          target: "t",
+          aliases: "not-array",
+          line: 1.5,
+        },
+      ]).join(" "),
+    ).toMatch(/aliases|line/);
+  });
+
+  test("proofRunArtifactErrors accepts optional executor and valid failure_phase", () => {
+    const artifact = validArtifact() as unknown as {
+      run: { failure_phase?: string };
+      executor?: { name: string; version: string };
+    };
+    artifact.run.failure_phase = "execution";
+    delete artifact.executor;
+    expect(proofRunArtifactErrors(artifact)).toEqual([]);
+    expect(
+      proofResultErrors(
+        {
+          symbol_id: "SYM-1",
+          target: "default",
+          outcome: "passed",
+          binding: "native_case",
+          attempts: {
+            status: "complete",
+            entries: [{ outcome: "passed", duration_ms: 1.5 }],
+          },
+          diagnostics: "not-array",
+        },
+        "r",
+      ).join(" "),
+    ).toMatch(/duration_ms|diagnostics/);
+    expect(
+      proofRunArtifactErrors({
+        ...validArtifact(),
+        environment: { os: "linux", nested: [1, { ok: true }], undef: undefined },
+      } as never).join(" "),
+    ).toContain("JSON values");
+    expect(
+      proofRunArtifactErrors({
+        ...validArtifact(),
+        producer: { name: "ok" },
+        executor: undefined,
+      }),
+    ).toEqual([]);
   });
 });
 

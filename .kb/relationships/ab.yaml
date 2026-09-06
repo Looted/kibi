@@ -178,3 +178,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-467c497de202
+  - type: covered_by
+    from: SYM-classifyKibiImpactEvidence
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:15:28.680Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a38e2c6ff399
+  - type: covered_by
+    from: SYM-refreshManifestCoordinates
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:27:31.560Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a39e7704d68b
+  - type: covered_by
+    from: SYM-cli-symbol-granularity-validate
+    to: TEST-cli-symbol-behavioral-anchors
+    created_at: 2026-09-05T18:22:06.381Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dfca57681da4

@@ -22,10 +22,13 @@ import {
   githubTemplateDir,
   githubWorkflowTemplateFileName,
   hasKibiBadge,
+  ensureKibiReportGitIgnore,
   insertKibiBadge,
+  listGitRemotes,
   loadGitHubWorkflowTemplate,
   parseGitHubRemote,
   placeholderBadgeMarkdown,
+  placeholderPagesUrls,
   resolveGitHubRepo,
   scaffoldGitHubIntegration,
   writeGitHubWorkflow,
@@ -64,6 +67,14 @@ describe("GitHub remote parsing", () => {
       owner: "owner",
       repo: "repo",
     });
+    expect(
+      parseGitHubRemote(
+        "https://x-access-token:placeholder@github.com/Acme/Widgets.git",
+      ),
+    ).toEqual({
+      owner: "Acme",
+      repo: "Widgets",
+    });
   });
 
   test("rejects malformed and non-GitHub remotes", () => {
@@ -77,6 +88,12 @@ describe("GitHub remote parsing", () => {
       parseGitHubRemote("https://github.example.com/owner/repo.git"),
     ).toBeUndefined();
     expect(parseGitHubRemote("not a remote")).toBeUndefined();
+    expect(
+      parseGitHubRemote("https://github.com/own:er/repo.git"),
+    ).toBeUndefined();
+    expect(
+      parseGitHubRemote("https://github.com/owner/re po.git"),
+    ).toBeUndefined();
   });
 
   test("prefers origin when it is GitHub, otherwise the first github.com remote", () => {
@@ -106,6 +123,14 @@ describe("GitHub Pages URLs", () => {
       siteUrl: "https://looted.github.io/kibi/kibi-report/",
       badgeUrl: "https://looted.github.io/kibi/kibi-report/badge.svg",
     });
+  });
+
+  test("placeholder URLs use OWNER/REPOSITORY tokens", () => {
+    expect(placeholderPagesUrls()).toEqual({
+      siteUrl: "https://OWNER.github.io/REPOSITORY/kibi-report/",
+      badgeUrl: "https://OWNER.github.io/REPOSITORY/kibi-report/badge.svg",
+    });
+    expect(placeholderBadgeMarkdown(true)).toContain(KIBI_METRIC_DOCS_URL);
   });
 
   test("builds owner-site URLs without a repository segment", () => {
@@ -252,6 +277,22 @@ Hello
     expect(updated).toContain(badge);
     expect(updated).toContain("Intro");
     expect(updated.indexOf("[![CI]")).toBeLessThan(updated.indexOf(badge));
+  });
+
+  test("inserts a badge into empty and CRLF documents without a heading", () => {
+    const badge = formatKibiBadgeMarkdown(
+      "https://acme.github.io/app/badge.svg",
+      "https://acme.github.io/app/",
+    );
+    expect(insertKibiBadge("", badge)).toBe(`${badge}\n`);
+    expect(insertKibiBadge("Intro only\r\n", badge)).toContain("\r\n");
+    expect(insertKibiBadge("Intro only", badge)).toContain("Intro only");
+    expect(
+      insertKibiBadge(
+        "[![CI](https://example.com/ci.svg)](https://example.com)\n\nBody\n",
+        badge,
+      ),
+    ).toContain(badge);
   });
 });
 
@@ -455,5 +496,62 @@ describe("GitHub workflow and README scaffolding", () => {
     const template = loadGitHubWorkflowTemplate("report");
     expect(writeGitHubWorkflow(tmpDir, "report", template)).toBe("created");
     expect(writeGitHubWorkflow(tmpDir, "report", template)).toBe("unchanged");
+  });
+
+  test("ensureKibiReportGitIgnore is idempotent and creates a file when missing", () => {
+    expect(ensureKibiReportGitIgnore(tmpDir)).toBe("updated");
+    expect(readFileSync(path.join(tmpDir, ".gitignore"), "utf8")).toContain(
+      "kibi-report/",
+    );
+    expect(ensureKibiReportGitIgnore(tmpDir)).toBe("unchanged");
+    writeFileSync(path.join(tmpDir, ".gitignore"), "dist/\n");
+    expect(ensureKibiReportGitIgnore(tmpDir)).toBe("updated");
+    expect(readFileSync(path.join(tmpDir, ".gitignore"), "utf8")).toContain(
+      "dist/",
+    );
+    expect(readFileSync(path.join(tmpDir, ".gitignore"), "utf8")).toContain(
+      "kibi-report/",
+    );
+  });
+
+  test("listGitRemotes returns an empty list outside a git work tree", () => {
+    expect(listGitRemotes(tmpDir)).toEqual([]);
+  });
+
+  test("detects lowercase readme names and warns about sibling workflows", () => {
+    writeFileSync(path.join(tmpDir, "readme.md"), "# Widgets\n");
+    mkdirSync(path.join(tmpDir, ".github/workflows"), { recursive: true });
+    writeFileSync(
+      path.join(tmpDir, GITHUB_REPORT_WORKFLOW_RELPATH),
+      loadGitHubWorkflowTemplate("report"),
+    );
+    const errors: string[] = [];
+    const result = scaffoldGitHubIntegration(
+      { cwd: tmpDir, badgeOnly: true },
+      {
+        listRemotes: () => [
+          { name: "origin", url: "https://github.com/Acme/Widgets.git" },
+        ],
+        log: () => {},
+        error: (message) => errors.push(message),
+      },
+    );
+    expect(result.readme).toBe("updated");
+    expect(detectReadmePath(tmpDir)?.endsWith("readme.md")).toBe(true);
+    expect(errors.join("\n")).toContain("already exists");
+  });
+
+  test("prints placeholder badge Markdown when repo and README are both missing", () => {
+    const logs: string[] = [];
+    const result = scaffoldGitHubIntegration(
+      { cwd: tmpDir, badgeOnly: false },
+      {
+        listRemotes: () => [],
+        log: (message) => logs.push(message),
+        error: () => {},
+      },
+    );
+    expect(result.readme).toBe("printed");
+    expect(logs.join("\n")).toContain(placeholderBadgeMarkdown(false));
   });
 });

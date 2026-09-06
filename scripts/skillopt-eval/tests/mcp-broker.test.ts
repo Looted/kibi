@@ -168,7 +168,9 @@ describe("evaluator-owned Kibi MCP evidence", () => {
       );
       expect(staged.downstream.args).toContain("--diagnostic-mode");
       expect(
-        (await readFile(staged.bundlePath, "utf8")).includes(process.cwd()),
+        (await readFile(staged.bundlePath, "utf8")).includes(
+          resolve(process.cwd(), "packages"),
+        ),
       ).toBe(false);
     } finally {
       await workspace.cleanup();

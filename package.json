@@ -7,7 +7,7 @@
   "workspaces": ["packages/*"],
   "scripts": {
     "test": "bun run test:unit && bun run test:e2e:local",
-    "test:unit": "bun test --timeout 15000 ./test/root.test.ts",
+    "test:unit": "bun ./test/root.test.ts",
     "test:coverage:unit": "bun run scripts/run-unit-coverage.ts",
     "proof:run": "bun packages/cli/bin/kibi prove --all",
     "proof:baseline": "node scripts/check-proof-baseline.mjs",

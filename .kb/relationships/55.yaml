@@ -87,3 +87,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8294df5039de
+  - type: constrains
+    from: REQ-mcp-search-discovery
+    to: FACT-SUBJ-REQ-MCP-SEARCH-DISCOVERY
+    created_at: 2026-09-05T14:12:49.841Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-681c7f01b85e
+  - type: requires_property
+    from: REQ-mcp-search-discovery
+    to: FACT-PROP-REQ-MCP-SEARCH-DISCOVERY-C01
+    created_at: 2026-09-05T14:12:49.858Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4c71f57f83a
+  - type: covered_by
+    from: SYM-normalizePropertyKey
+    to: TEST-001
+    created_at: 2026-09-05T14:51:33.009Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dca2fc0eef2c
+  - type: covered_by
+    from: SYM-proof-run-artifact-errors
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:32:36.729Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54340c93a01e
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-1-inferDataResidencyRuleArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:41:38.964Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c13657dcf75
+  - type: covered_by
+    from: SYM-skillsReadCommand
+    to: TEST-skill-cli-load-validate
+    created_at: 2026-09-05T18:05:48.238Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8a3dd945a8f
+  - type: covered_by
+    from: SYM-skillopt-evidence-binding-error-name
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T18:19:36.944Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0f300fda9f12

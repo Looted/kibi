@@ -41,3 +41,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7bf29b29103f
+  - type: covered_by
+    from: SYM-getMissingBehaviorSourcePaths
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:18:02.460Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e610200d73c7

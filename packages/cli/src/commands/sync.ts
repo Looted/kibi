@@ -150,7 +150,7 @@ function assertNoUnresolvedGitConflicts(workspaceRoot: string): void {
   }
 }
 
-function trackedRelationshipFiles(
+export function trackedRelationshipFiles(
   workspaceRoot: string,
   relationshipsDir: string,
   recoverMissingPendingSources = false,
@@ -383,11 +383,67 @@ function compilerCacheFilesMatch(
     if (
       cache.relationshipHashes?.[toCacheKey(workspaceRoot, file)] !==
       hashFile(workspaceRoot, file)
-    ) {
+    )
       return false;
-    }
   }
   return true;
+}
+
+export function warnFailedSourceHash(file: string, error: unknown): void {
+  const message = error instanceof Error ? error.message : String(error);
+  console.warn(`Warning: Failed to hash ${file}: ${message}`);
+}
+
+// implements REQ-003, REQ-007
+export function rememberChangedSourceOrWarn(
+  file: string,
+  apply: () => void,
+): void {
+  try {
+    apply();
+  } catch (error) {
+    warnFailedSourceHash(file, error);
+  }
+}
+
+export function maybePushKbMissingDiagnostic(
+  diagnostics: Diagnostic[],
+  kbExists: boolean,
+  rebuild: boolean,
+  currentBranch: string,
+  livePath: string,
+): void {
+  if (!kbExists && !rebuild) {
+    diagnostics.push(createKbMissingDiagnostic(currentBranch, livePath));
+  }
+}
+
+export function assertRelationshipsCleared(result: {
+  success: boolean;
+  error?: string;
+}): void {
+  if (!result.success) {
+    throw new SyncError(
+      `Failed to clear changed relationship shards: ${result.error || "Unknown error"}`,
+    );
+  }
+}
+
+export function maybePushDocsNotIndexedDiagnostic(
+  diagnostics: Diagnostic[],
+  performedFullReindex: boolean,
+  markdownFileCount: number,
+  entityCount: number,
+): void {
+  if (
+    performedFullReindex &&
+    markdownFileCount > 0 &&
+    entityCount < markdownFileCount
+  ) {
+    diagnostics.push(
+      createDocsNotIndexedDiagnostic(markdownFileCount, entityCount),
+    );
+  }
 }
 
 // implements REQ-003, REQ-007
@@ -719,10 +775,10 @@ export async function syncCommand(
       removedShardRelationships.length > 0;
 
     for (const file of sourceFiles) {
-      try {
+      rememberChangedSourceOrWarn(file, () => {
         const key = toCacheKey(workspaceRoot, file);
         const hash = changedSourceHashes.get(key) ?? syncCache.hashes[key];
-        if (hash === undefined) continue;
+        if (hash === undefined) return;
         const lastSeen = syncCache.seenAt[key];
         const lastSeenMs = lastSeen ? Date.parse(lastSeen) : Number.NaN;
         const expired =
@@ -744,10 +800,7 @@ export async function syncCommand(
             changedManifestFiles.push(file);
           }
         }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.warn(`Warning: Failed to hash ${file}: ${message}`);
-      }
+      });
     }
 
     // A v1 cache has only whole-file hashes. Perform one compiler-metadata
@@ -1024,9 +1077,7 @@ export async function syncCommand(
 
     const livePath = branchStorePath(workspaceRoot, currentBranch);
     const kbExists = existsSync(livePath);
-    if (!kbExists && !rebuild) {
-      diagnostics.push(createKbMissingDiagnostic(currentBranch, livePath));
-    }
+    maybePushKbMissingDiagnostic(diagnostics, kbExists, rebuild, currentBranch, livePath);
 
     // implements REQ-core-journaled-engine-delta-sync
     // Normal syncs are compiled directly into the long-lived single-writer
@@ -1302,11 +1353,7 @@ export async function syncCommand(
         const clearRelationships = await prolog.query(
           "kb_retract_all_relationships",
         );
-        if (!clearRelationships.success) {
-          throw new SyncError(
-            `Failed to clear changed relationship shards: ${clearRelationships.error || "Unknown error"}`,
-          );
-        }
+        assertRelationshipsCleared(clearRelationships);
       }
 
       const { entityCount, kbModified: entitiesModified } =
@@ -1477,15 +1524,12 @@ export async function syncCommand(
 
       published = true;
 
-      if (
-        performedFullReindex &&
-        markdownFiles.length > 0 &&
-        entityCount < markdownFiles.length
-      ) {
-        diagnostics.push(
-          createDocsNotIndexedDiagnostic(markdownFiles.length, entityCount),
-        );
-      }
+      maybePushDocsNotIndexedDiagnostic(
+        diagnostics,
+        performedFullReindex,
+        markdownFiles.length,
+        entityCount,
+      );
 
       console.log(
         `✓ Imported ${entityCount} entities, ${relationshipCount} relationships`,

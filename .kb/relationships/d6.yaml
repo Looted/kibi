@@ -94,3 +94,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-23f2f2b70699
+  - type: covered_by
+    from: SYM-scripts-runUnitCoverage
+    to: TEST-011
+    created_at: 2026-09-05T14:52:46.048Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5893c3f8050
+  - type: covered_by
+    from: SYM-NpmFixtureLive
+    to: TEST-014
+    created_at: 2026-09-05T14:53:45.537Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c86cdd80818
+  - type: covered_by
+    from: SYM-cli-impact-collectSymbols
+    to: TEST-audit-quality-diagnostics-v1
+    created_at: 2026-09-05T15:03:10.748Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73dd369316a5
+  - type: covered_by
+    from: SYM-enrichSymbolCoordinatesWithTsMorph
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:25:23.520Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8920a7a0389c
+  - type: covered_by
+    from: SYM-core-journaled-search-index
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:32:55.760Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20d1148ac6a3
+  - type: covered_by
+    from: SYM-mcp-startup-resolution-compareMcpResolution
+    to: TEST-cursor-agent-plugin-v1
+    created_at: 2026-09-05T15:36:25.872Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e4a62d456a99
+  - type: covered_by
+    from: SYM-proof-receipt-max-age-seconds
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-09-05T17:04:52.468Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5385e054f17
+  - type: covered_by
+    from: SYM-modeling-predicate-utils-inferResource
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:45:50.198Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de4b423407de
+  - type: covered_by
+    from: SYM-HeldOutEvidenceBinding
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:08:00.569Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4cbc30e9879c
+  - type: covered_by
+    from: SYM-skillopt-fake-provider-execute-with-crash
+    to: TEST-skillopt-paid-launch-accounting
+    created_at: 2026-09-05T18:17:35.152Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa5d557e2a34

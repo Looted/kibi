@@ -42,6 +42,17 @@ import {
   branchStorePath,
   ensureBranchStoreManifest,
 } from "./utils/branch-store-locator.js";
+import type {
+  EngineAttachmentIdentity,
+  EngineCommandV1,
+  EngineRequest,
+} from "./engine-types.js";
+
+export type {
+  EngineAttachmentIdentity,
+  EngineCommandV1,
+  EngineRequest,
+} from "./engine-types.js";
 
 export const ENGINE_PROTOCOL_VERSION = 1;
 export const ENGINE_IDLE_TIMEOUT_MS = 10 * 60 * 1000;
@@ -52,13 +63,11 @@ const ENGINE_QUERY_CACHE_MAX_RESULT_BYTES = 8 * 1024 * 1024;
 const ENGINE_FRESHNESS_CACHE_MS = 100;
 const ENGINE_PUBLICATION_LOCK_STALE_MS = 5_000;
 
-export type EngineAttachmentIdentity = Readonly<{
-  // implements REQ-core-journaled-engine-persistence
-  path: string;
-  generation: string;
-  dev: number;
-  ino: number;
-}>;
+export function requestEngineSignalShutdown(shutdown: () => unknown): () => void {
+  return () => {
+    void shutdown();
+  };
+}
 
 export function readJournalGeneration(branchPath: string): string {
   // implements REQ-core-journaled-engine-persistence
@@ -156,84 +165,6 @@ function engineIdleTimeoutMs(): number {
     ? configured
     : ENGINE_IDLE_TIMEOUT_MS;
 }
-
-export type EngineCommandV1 =
-  | Readonly<{ version: 1; kind: "status" }>
-  | Readonly<{
-      version: 1;
-      kind: "entities";
-      type?: string;
-      id?: string;
-      tags?: readonly string[];
-      sourceFile?: string;
-      limit: number;
-      offset: number;
-    }>
-  | Readonly<{
-      version: 1;
-      kind: "search";
-      query: string;
-      type?: string;
-      limit: number;
-      offset: number;
-    }>
-  | Readonly<{ version: 1; kind: "checkpoint" }>
-  | Readonly<{ version: 1; kind: "compact" }>
-  | Readonly<{ version: 1; kind: "save" }>
-  | Readonly<{ version: 1; kind: "check"; rule?: string }>
-  | Readonly<{
-      version: 1;
-      kind: "relationship";
-      action: "assert" | "retract";
-      type: string;
-      from: string;
-      to: string;
-    }>
-  | Readonly<{
-      version: 1;
-      kind: "persistence";
-      action: "checkpoint" | "compact" | "save" | "export";
-      targetDirectory?: string;
-    }>
-  | Readonly<{
-      version: 1;
-      kind: "lifecycle";
-      action: "stop" | "cancel";
-      requestId?: number;
-    }>
-  | Readonly<{ version: 1; kind: "stop" }>
-  | Readonly<{ version: 1; kind: "cancel"; requestId: number }>;
-
-export type EngineRequest = {
-  readonly id: number;
-  readonly method:
-    | "query"
-    | "command"
-    | "entities"
-    | "search"
-    | "kbStatus"
-    | "status"
-    | "checkpoint"
-    | "compact"
-    | "export"
-    | "stop"
-    | "cancel";
-  readonly protocolVersion?: number;
-  readonly packageVersions?: string;
-  readonly workspaceRoot?: string;
-  readonly branch?: string;
-  readonly goal?: string;
-  readonly type?: string;
-  readonly entityId?: string;
-  readonly searchQuery?: string;
-  readonly tags?: readonly string[];
-  readonly sourceFile?: string;
-  readonly limit?: number;
-  readonly offset?: number;
-  readonly targetDirectory?: string;
-  readonly cancelOf?: number;
-  readonly command?: EngineCommandV1;
-};
 
 type EngineResponse = {
   readonly id: number;
@@ -2029,9 +1960,7 @@ export async function runEngineDaemon(options: {
   // Detached engines must cross the same durability boundary when a service
   // manager or a test harness terminates them as they do for an RPC stop.
   // implements REQ-test-journaled-engine-harness
-  const requestSignalShutdown = (): void => {
-    void shutdown();
-  };
+  const requestSignalShutdown = requestEngineSignalShutdown(shutdown);
   process.once("SIGTERM", requestSignalShutdown);
   process.once("SIGINT", requestSignalShutdown);
 

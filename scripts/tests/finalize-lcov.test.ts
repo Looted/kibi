@@ -12,7 +12,7 @@ import { describe, expect, test } from "bun:test";
 import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { finalizeLcov } from "../finalize-lcov.ts";
+import { finalizeLcov, finalizeLcovIfMain } from "../finalize-lcov.ts";
 import { mergeLcovContents } from "../merge-lcov.ts";
 
 describe("finalizeLcov", () => {
@@ -35,6 +35,11 @@ describe("finalizeLcov", () => {
     expect(lcovPath).toBe(join(coverageDir, "lcov.info"));
     expect(existsSync(temporaryPath)).toBe(false);
     expect(readFileSync(lcovPath, "utf8")).toBe("TN:\nSF:example.ts\n");
+  });
+
+  test("throws when neither lcov.info nor a temporary file exists", async () => {
+    const coverageDir = mkdtempSync(join(tmpdir(), "kibi-lcov-finalize-"));
+    await expect(finalizeLcov(coverageDir)).rejects.toThrow(/No lcov.info/);
   });
 });
 
@@ -70,6 +75,49 @@ describe("mergeLcovContents", () => {
     expect(merged).toContain("DA:1,4\nDA:2,3");
     expect(merged).toContain("LF:2\nLH:2");
     expect(merged.match(/SF:src\/example\.ts/g)).toHaveLength(1);
+  });
+
+  test("does not union extra DA:0 rows from a poisoned map into a complete map", () => {
+    const completeLines = Array.from({ length: 20 }, (_, index) => `DA:${index + 1},1`);
+    const poisonedLines = [
+      ...completeLines.map((line) => line.replace(",1", ",0")),
+      "DA:154,0",
+      "DA:202,0",
+    ];
+    const merged = mergeLcovContents([
+      ["TN:", "SF:src/tree.ts", ...poisonedLines, "LF:22", "LH:0", "end_of_record"].join(
+        "\n",
+      ),
+      ["TN:", "SF:src/tree.ts", ...completeLines, "LF:20", "LH:20", "end_of_record"].join(
+        "\n",
+      ),
+    ]);
+    expect(merged).toContain("LF:20\nLH:20");
+    expect(merged).not.toContain("DA:154,0");
+    expect(merged).not.toContain("DA:202,0");
+  });
+
+  test("drops extra DA:0 rows when a higher-hit-rate map is not yet 95% complete", () => {
+    const betterLines = [
+      ...Array.from({ length: 12 }, (_, index) => `DA:${index + 1},1`),
+      ...Array.from({ length: 4 }, (_, index) => `DA:${index + 13},0`),
+    ];
+    const poisonedLines = [
+      ...Array.from({ length: 16 }, (_, index) => `DA:${index + 1},0`),
+      "DA:80,0",
+      "DA:81,0",
+    ];
+    const merged = mergeLcovContents([
+      ["TN:", "SF:src/runtime.ts", ...poisonedLines, "LF:18", "LH:0", "end_of_record"].join(
+        "\n",
+      ),
+      ["TN:", "SF:src/runtime.ts", ...betterLines, "LF:16", "LH:12", "end_of_record"].join(
+        "\n",
+      ),
+    ]);
+    expect(merged).toContain("LF:16\nLH:12");
+    expect(merged).not.toContain("DA:80,0");
+    expect(merged).not.toContain("DA:81,0");
   });
 
   test("keeps distinct source records in deterministic first-seen order", () => {
@@ -130,5 +178,59 @@ describe("mergeLcovContents", () => {
     expect(merged).toContain("BRDA:2,0,0,4");
     expect(merged).toContain("BRDA:2,0,1,2");
     expect(merged).toContain("BRF:2\nBRH:2");
+  });
+
+  test("keeps both unparsed branch-taken marks and skips extra DA:0 on an authority map", () => {
+    const mergedBranches = mergeLcovContents([
+      [
+        "TN:",
+        "SF:src/nan.ts",
+        "BRDA:1,0,0,-",
+        "BRDA:1,0,1,-",
+        "DA:1,1",
+        "LF:1",
+        "LH:1",
+        "end_of_record",
+      ].join("\n"),
+      [
+        "TN:",
+        "SF:src/nan.ts",
+        "BRDA:1,0,0,-",
+        "BRDA:1,0,1,-",
+        "DA:1,1",
+        "LF:1",
+        "LH:1",
+        "end_of_record",
+      ].join("\n"),
+    ]);
+    expect(mergedBranches).toContain("BRDA:1,0,0,-");
+
+    const completeLines = Array.from({ length: 20 }, (_, index) => `DA:${index + 1},1`);
+    const mergedAuthority = mergeLcovContents([
+      ["TN:", "SF:src/auth.ts", ...completeLines, "LF:20", "LH:20", "end_of_record"].join(
+        "\n",
+      ),
+      [
+        "TN:",
+        "SF:src/auth.ts",
+        ...completeLines.map((line) => line.replace(",1", ",0")),
+        "DA:21,0",
+        "DA:22,3",
+        "LF:22",
+        "LH:1",
+        "end_of_record",
+      ].join("\n"),
+    ]);
+    expect(mergedAuthority).not.toContain("DA:21,0");
+    expect(mergedAuthority).toContain("DA:22,3");
+  });
+});
+
+describe("finalizeLcovIfMain leftover entry guard", () => {
+  test("skips when not main and finalizes when main is injected", async () => {
+    await finalizeLcovIfMain(false);
+    const coverageDir = mkdtempSync(join(tmpdir(), "kibi-lcov-ifmain-"));
+    writeFileSync(join(coverageDir, "lcov.info"), "TN:\nend_of_record\n");
+    await finalizeLcovIfMain(true, ["bun", "finalize-lcov.ts", coverageDir]);
   });
 });

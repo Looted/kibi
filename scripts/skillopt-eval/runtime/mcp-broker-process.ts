@@ -25,7 +25,7 @@ function requestKey(id: string | number | null): string {
   return `${typeof id}:${String(id)}`;
 }
 
-function terminateGroup(pid: number, signal: NodeJS.Signals): void {
+export function terminateGroup(pid: number, signal: NodeJS.Signals): void {
   try {
     process.kill(-pid, signal);
   } catch (error) {

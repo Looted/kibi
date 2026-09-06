@@ -125,3 +125,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0a4929835508
+  - type: executable_for
+    from: SYM-e2e-test-agent-guided-migration-orchestration
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-09-05T14:40:34.619Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-65fdaa08b7be
+  - type: covered_by
+    from: SYM-DEFAULT-CONFIG
+    to: TEST-001
+    created_at: 2026-09-05T14:50:01.568Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9c7b7cf3185
+  - type: covered_by
+    from: SYM-DOC-RESOURCES
+    to: TEST-agent-kibi-interface-selection
+    created_at: 2026-09-05T15:01:47.132Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca7f1590defe
+  - type: covered_by
+    from: SYM-cli-impact-collectSourceChanges
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:16:04.860Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36eca6e31cbf
+  - type: executable_for
+    from: SYM-e2e-test-kibi-logical-requirement-coverage
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-09-05T15:44:58.040Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1cdcc364658b
+  - type: covered_by
+    from: SYM-run-failure-phases
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:33:21.775Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-104708923755
+  - type: covered_by
+    from: SYM-semantic-advisor-statementOf
+    to: TEST-mcp-semantic-advisor-preflight
+    created_at: 2026-09-05T17:40:12.176Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-210087a94fe1
+  - type: covered_by
+    from: SYM-skillsLoadCommand
+    to: TEST-skill-cli-load-validate
+    created_at: 2026-09-05T18:05:42.391Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4b7cca72328

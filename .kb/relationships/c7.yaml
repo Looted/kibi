@@ -125,3 +125,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e381cbb2d6d8
+  - type: covered_by
+    from: SYM-cli-PrologProcess-signalProcessTree
+    to: TEST-001
+    created_at: 2026-09-05T15:34:18.218Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8861ed3dc208
+  - type: covered_by
+    from: SYM-binding-lookup
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:28:57.370Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38cd39635d67
+  - type: covered_by
+    from: SYM-skillopt-derive-measured-report-metrics
+    to: TEST-skillopt-paid-launch-accounting
+    created_at: 2026-09-05T18:17:20.208Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c249db4f8cba
+  - type: covered_by
+    from: SYM-skillopt-external-trust-client-main
+    to: TEST-skillopt-paid-launch-accounting
+    created_at: 2026-09-05T18:17:25.709Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9feb079adca

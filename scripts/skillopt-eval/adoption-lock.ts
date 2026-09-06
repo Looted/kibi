@@ -32,6 +32,15 @@ function lockFlag(mode: LockMode): number {
   return mode === "-s" ? LOCK_FLAGS.shared : LOCK_FLAGS.exclusive;
 }
 
+export function throwIfDirectoryInodeDrift(
+  current: { readonly dev: number | bigint; readonly ino: number | bigint },
+  identity: { readonly dev: number | bigint; readonly ino: number | bigint },
+): void {
+  if (current.dev !== identity.dev || current.ino !== identity.ino) {
+    throw new Error("adoption .kibi directory inode drift");
+  }
+}
+
 function currentEuid(): number {
   const euid = process.geteuid?.();
   if (euid === undefined) throw new Error("current euid unavailable");
@@ -67,12 +76,7 @@ async function secureLockHandle(
 
     // Verify .kibi directory identity hasn't been swapped while opening.
     const kibiCurrent = await lstat(stateRoot);
-    if (
-      kibiCurrent.dev !== kibiIdentity.dev ||
-      kibiCurrent.ino !== kibiIdentity.ino
-    ) {
-      throw new Error("adoption .kibi directory inode drift");
-    }
+    throwIfDirectoryInodeDrift(kibiCurrent, kibiIdentity);
 
     const current = await lstat(lockPath);
     if (

@@ -69,3 +69,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1b5e43f14e7c
+  - type: constrains
+    from: REQ-mcp-tag-filtering-server-side
+    to: FACT-SUBJ-REQ-MCP-TAG-FILTERING-SERVER-SIDE
+    created_at: 2026-09-05T14:35:55.256Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-19f73005a3a1
+  - type: requires_property
+    from: REQ-mcp-tag-filtering-server-side
+    to: FACT-PROP-REQ-MCP-TAG-FILTERING-SERVER-SIDE-N01
+    created_at: 2026-09-05T14:35:55.273Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e312517ab1a
+  - type: requires_property
+    from: REQ-mcp-tag-filtering-server-side
+    to: FACT-PROP-REQ-MCP-TAG-FILTERING-SERVER-SIDE-N02
+    created_at: 2026-09-05T14:35:55.277Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2927dadf2742
+  - type: requires_property
+    from: REQ-mcp-tag-filtering-server-side
+    to: FACT-PROP-REQ-MCP-TAG-FILTERING-SERVER-SIDE-N03
+    created_at: 2026-09-05T14:35:55.282Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abed475a1041
+  - type: requires_property
+    from: REQ-mcp-tag-filtering-server-side
+    to: FACT-PROP-REQ-MCP-TAG-FILTERING-SERVER-SIDE-N04
+    created_at: 2026-09-05T14:35:55.285Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6e825200312
+  - type: covered_by
+    from: SYM-core-journaled-indexes
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:32:46.626Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb4b2b15dff9
+  - type: covered_by
+    from: SYM-semantic-advisor-detectCountStrictSuggestion
+    to: TEST-mcp-semantic-advisor-preflight
+    created_at: 2026-09-05T17:39:07.159Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9210764365f5
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-3-inferConditionalBehaviorArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:43:45.598Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de52383add99
+  - type: covered_by
+    from: SYM-assertMaxBytes
+    to: TEST-skill-cli-load-validate
+    created_at: 2026-09-05T18:03:11.507Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-caddf7a129ee

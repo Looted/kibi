@@ -146,3 +146,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f20cefa4758f
+  - type: executable_for
+    from: SYM-e2e-test-001
+    to: TEST-001
+    created_at: 2026-09-05T14:49:29.543Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63f3604681e0
+  - type: covered_by
+    from: SYM-HeldOutTerminalReceipt
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:08:57.177Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84c6c98607e6

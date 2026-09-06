@@ -104,6 +104,37 @@ export interface QueryResult {
   error?: string;
 }
 
+export function registerProcessExitOnce(
+  current: (() => void) | null,
+  handler: () => void,
+  on: (
+    event: "exit",
+    listener: () => void,
+  ) => void = (event, listener) => process.on(event, listener),
+): () => void {
+  if (current) return current;
+  on("exit", handler);
+  return handler;
+}
+
+// implements REQ-core-prolog-process-management
+export function bindProcessExitHandler(
+  current: (() => void) | null,
+  terminate: () => void | Promise<void>,
+  on: (
+    event: "exit",
+    listener: () => void,
+  ) => void = (event, listener) => process.on(event, listener),
+): () => void {
+  return registerProcessExitOnce(
+    current,
+    () => {
+      void terminate();
+    },
+    on,
+  );
+}
+
 export class PrologProcess {
   private process: ChildProcess | null = null;
   private swiplPath: string;
@@ -128,6 +159,20 @@ export class PrologProcess {
       options.oneShot ??
       (process.env.NODE_ENV === "test" &&
         typeof (globalThis as { Bun?: unknown }).Bun !== "undefined");
+  }
+
+  // implements REQ-core-prolog-process-management
+  attachProcessExitHandler(
+    on: (
+      event: "exit",
+      listener: () => void,
+    ) => void = (event, listener) => process.on(event, listener),
+  ): void {
+    this.onProcessExit = bindProcessExitHandler(
+      this.onProcessExit,
+      () => this.terminate(),
+      on,
+    );
   }
 
   async start(): Promise<void> {
@@ -174,12 +219,7 @@ export class PrologProcess {
 
     this.process.stdin.write("true.\n");
 
-    if (!this.onProcessExit) {
-      this.onProcessExit = () => {
-        void this.terminate();
-      };
-      process.on("exit", this.onProcessExit);
-    }
+    this.attachProcessExitHandler();
 
     await this.waitForReady();
   }

@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
-import { parseHookInput, parseStdinJson } from "../src/hook-input";
+import { parseHookInput, parseStdinJson, readStdin } from "../src/hook-input";
+import { Readable } from "node:stream";
 
 describe("Codex hook input", () => {
   test("Given non-object input When parsing Then an empty event is returned", () => {
@@ -38,5 +39,20 @@ describe("Codex hook input", () => {
   test("Given raw stdin JSON When parsing Then blank input becomes an empty object", () => {
     expect(parseStdinJson("  \n")).toEqual({});
     expect(parseStdinJson('{"event":"Stop"}')).toEqual({ event: "Stop" });
+  });
+
+  test("Given stdin chunks When reading Then string and buffer chunks concatenate", async () => {
+    const previous = Object.getOwnPropertyDescriptor(process, "stdin");
+    Object.defineProperty(process, "stdin", {
+      configurable: true,
+      value: Readable.from(["hello ", Buffer.from("world")]),
+    });
+    try {
+      expect(await readStdin()).toBe("hello world");
+    } finally {
+      if (previous) {
+        Object.defineProperty(process, "stdin", previous);
+      }
+    }
   });
 });

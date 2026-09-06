@@ -1,5 +1,6 @@
 import { createPublicKey, verify } from "node:crypto";
 import { ZodError } from "zod";
+import { tryVerifyBundleSignature } from "./bundle-signature";
 import {
   ExternalBundleSchema,
   type PreflightReceipt,
@@ -24,6 +25,7 @@ import { PreflightInputError, digest, readNoFollow } from "./preflight-io";
 
 export { PreflightNoGo } from "./preflight-host-model";
 export type { HostPreflightOptions } from "./preflight-host-model";
+export { rethrowIfNotError, tryVerifyBundleSignature } from "./bundle-signature";
 
 // implements REQ-skillopt-codex-optimization
 export async function qualifySkillOptHost(
@@ -79,17 +81,11 @@ export async function qualifySkillOptHost(
     const externalLock = ExternalBundleSchema.parse(
       JSON.parse(externalLockFile.text),
     );
-    let signatureValid = false;
-    try {
-      signatureValid = verify(
-        null,
-        Buffer.from(JSON.stringify(externalLock.payload)),
-        createPublicKey(publisher.text),
-        Buffer.from(externalLock.signature, "base64"),
-      );
-    } catch (error) {
-      if (!(error instanceof Error)) throw error;
-    }
+    const signatureValid = tryVerifyBundleSignature(
+      externalLock.payload,
+      publisher.text,
+      externalLock.signature,
+    );
     check(state, "bundle-signature", signatureValid, true, signatureValid);
     check(
       state,

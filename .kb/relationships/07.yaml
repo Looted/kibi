@@ -83,3 +83,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b3a156418c2a
+  - type: covered_by
+    from: SYM-buildStrictWriteSet
+    to: TEST-001
+    created_at: 2026-09-05T14:51:02.198Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-729e3c1afd0d
+  - type: covered_by
+    from: SYM-kibi-migration-plan-version
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-09-05T15:01:27.007Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8eabcb7ec73
+  - type: covered_by
+    from: SYM-isAuditedNoImpactOverrideAllowed
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:18:12.526Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf9f187f9652
+  - type: covered_by
+    from: SYM-cli-engine-client-get-pid
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:28:43.039Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3aac4ff437a3
+  - type: covered_by
+    from: SYM-cli-rule-registry-RULE_NAMES
+    to: TEST-001
+    created_at: 2026-09-05T15:35:15.130Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4dd65f29f6f9
+  - type: covered_by
+    from: SYM-load-proof-integrations
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:30:37.588Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-182334843529
+  - type: covered_by
+    from: SYM-modeling-predicate-utils-clampInteger
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:45:03.733Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0aa504c7943a
+  - type: covered_by
+    from: SYM-GuidanceCache
+    to: TEST-opencode-smart-enforcement
+    created_at: 2026-09-05T17:51:23.561Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d46609ad5858

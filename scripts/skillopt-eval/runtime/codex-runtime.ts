@@ -27,14 +27,16 @@ export type CodexRuntimeStagingDependencies = Readonly<{
   systemBwrapExecutable?: string | null;
 }>;
 
+export function falseIfEnoent(error: unknown): boolean {
+  return error instanceof Error && "code" in error && error.code === "ENOENT";
+}
+
 async function executableFile(path: string): Promise<boolean> {
   try {
     await access(path, fsConstants.X_OK);
     return true;
   } catch (error) {
-    if (error instanceof Error && "code" in error && error.code === "ENOENT") {
-      return false;
-    }
+    if (falseIfEnoent(error)) return false;
     throw error;
   }
 }

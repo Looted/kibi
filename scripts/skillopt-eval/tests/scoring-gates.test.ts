@@ -4,7 +4,10 @@ import {
   evaluateHeldOutPredicateGate,
   evaluateSkillGate,
 } from "../scoring/gates";
-import { pairedBootstrapLowerBound } from "../scoring/statistics";
+import {
+  pairedBootstrapLowerBound,
+  sortedPairedDeltas,
+} from "../scoring/statistics";
 import {
   FAMILIES,
   bundleGateCandidateFailureWithWeakBaseline,
@@ -57,6 +60,19 @@ describe("SkillOpt deterministic statistics", () => {
 
     // Then
     expect(result).toBeNull();
+    expect(sortedPairedDeltas(candidate.slice(0, 1), comparator)).toBeNull();
+    expect(
+      sortedPairedDeltas(
+        [
+          { taskId: "a", family: "x", score: 1, hard: 1, criticalFailureCount: 0 },
+          { taskId: "a", family: "x", score: 2, hard: 1, criticalFailureCount: 0 },
+        ] as never,
+        [
+          { taskId: "a", family: "x", score: 1, hard: 1, criticalFailureCount: 0 },
+          { taskId: "b", family: "x", score: 2, hard: 1, criticalFailureCount: 0 },
+        ] as never,
+      ),
+    ).toBeNull();
   });
 });
 

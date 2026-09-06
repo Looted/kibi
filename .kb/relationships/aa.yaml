@@ -136,3 +136,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-795af7fd1067
+  - type: executable_for
+    from: SYM-e2e-test-cli-doctor-packed-provenance
+    to: TEST-cli-doctor-packed-provenance
+    created_at: 2026-09-05T15:08:23.720Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-661ef75ae50f
+  - type: covered_by
+    from: SYM-canonical-StorageMigrationPlan
+    to: TEST-cli-canonical-status
+    created_at: 2026-09-06T09:05:48.146Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-367f8db22b9d

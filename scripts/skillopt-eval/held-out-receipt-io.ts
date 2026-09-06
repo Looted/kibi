@@ -28,7 +28,7 @@ async function syncDirectory(path: string): Promise<void> {
   }
 }
 
-async function removeIfPresent(path: string): Promise<void> {
+export async function removeIfPresent(path: string): Promise<void> {
   try {
     await unlink(path);
   } catch (error) {

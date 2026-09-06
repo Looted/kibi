@@ -1,9 +1,14 @@
-import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
-import * as fs from "node:fs";
+// implements REQ-002
+import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from "bun:test";
+import fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import {
+  getBranchOverride,
   getCoreModulePathOverride,
+  getEnvFileName,
+  getKbPlPathOverride,
+  isMcpDebugEnabled,
   loadDefaultEnvFile,
   loadEnvFile,
 } from "../src/env.js";
@@ -99,10 +104,14 @@ describe("env loading", () => {
 
   test("loadDefaultEnvFile resolves workspace root and env file name from environment", () => {
     fs.mkdirSync(path.join(tmpDir, ".git"), { recursive: true });
+    fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
     fs.writeFileSync(
       path.join(tmpDir, ".env.custom"),
       "DEFAULT_KEY=from-default\n",
     );
+    delete process.env.KIBI_WORKSPACE;
+    delete process.env.KIBI_PROJECT_ROOT;
+    delete process.env.KIBI_ROOT;
     process.env.KIBI_ENV_FILE = " .env.custom ";
     process.chdir(tmpDir);
 
@@ -122,5 +131,54 @@ describe("env loading", () => {
     expect(getCoreModulePathOverride("foo-bar.baz.pl")).toBe(
       "/tmp/foo-bar-baz.pl",
     );
+  });
+
+  test("falls back when override env vars are unset, empty, or whitespace", () => {
+    Reflect.deleteProperty(process.env, "KIBI_ENV_FILE");
+    Reflect.deleteProperty(process.env, "KIBI_BRANCH");
+    Reflect.deleteProperty(process.env, "KIBI_MCP_DEBUG");
+    Reflect.deleteProperty(process.env, "KIBI_KB_PL_PATH");
+    Reflect.deleteProperty(process.env, "KIBI_DISCOVERY_PL_PATH");
+
+    expect(getEnvFileName()).toBe(".env");
+    expect(getBranchOverride()).toBeUndefined();
+    expect(isMcpDebugEnabled()).toBe(false);
+    expect(getKbPlPathOverride()).toBeUndefined();
+    expect(getCoreModulePathOverride("discovery.pl")).toBeUndefined();
+
+    process.env.KIBI_ENV_FILE = "   ";
+    process.env.KIBI_BRANCH = "";
+    expect(getEnvFileName()).toBe(".env");
+    expect(getBranchOverride()).toBeUndefined();
+  });
+
+  test("skips empty keys and treats non-Error read failures as unloaded", () => {
+    const envPath = path.join(tmpDir, ".env.empty-key");
+    fs.writeFileSync(envPath, "   =novalue\nKEPT=ok\n");
+    const loaded = loadEnvFile({
+      envFileName: ".env.empty-key",
+      workspaceRoot: tmpDir,
+    });
+    expect(loaded.keysLoaded).toEqual(["KEPT"]);
+
+    const readSpy = spyOn(fs, "readFileSync").mockImplementation(() => {
+      throw "permission denied";
+    });
+    const consoleError = mock(() => {});
+    const originalError = console.error;
+    console.error = consoleError;
+    try {
+      const result = loadEnvFile({
+        envFileName: ".env.empty-key",
+        workspaceRoot: tmpDir,
+      });
+      expect(result.loaded).toBe(false);
+      expect(consoleError).toHaveBeenCalledWith(
+        expect.stringContaining("permission denied"),
+      );
+    } finally {
+      console.error = originalError;
+      readSpy.mockRestore();
+    }
   });
 });

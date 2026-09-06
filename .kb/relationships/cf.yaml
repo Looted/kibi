@@ -97,3 +97,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5c31ae0cbe49
+  - type: covered_by
+    from: SYM-kibi-icons
+    to: TEST-005
+    created_at: 2026-09-05T14:46:58.265Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f2d69c15e765
+  - type: covered_by
+    from: SYM-getFreshSymbolsManifestSourcePaths
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:17:47.417Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1199d7846af7
+  - type: covered_by
+    from: SYM-cli-discovery-renderDiscoveryTable
+    to: TEST-mcp-search-discovery
+    created_at: 2026-09-05T17:36:42.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25878dc23d43
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-2-inferOfflineBehaviorRuleArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:43:09.362Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01f36863e79d

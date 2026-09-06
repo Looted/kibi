@@ -513,6 +513,17 @@ function buildStagedKibiImpactEvidence(options: {
   };
 }
 
+export function requireActiveProlog<E, P>(
+  engine: E | null | undefined,
+  prolog: P | null | undefined,
+): NonNullable<E | P> {
+  const activeProlog = engine ?? prolog;
+  if (activeProlog == null) {
+    throw new Error("Prolog runtime not initialized");
+  }
+  return activeProlog as NonNullable<E | P>;
+}
+
 // implements REQ-006
 export async function checkCommand(
   options: CheckOptions,
@@ -807,10 +818,7 @@ export async function checkCommand(
       attached = true;
     }
 
-    const activeProlog = engine ?? prolog;
-    if (!activeProlog) {
-      throw new Error("Prolog runtime not initialized");
-    }
+    const activeProlog = requireActiveProlog<EngineClient, PrologProcess>(engine, prolog);
     const rules = options.rules
       ?.split(",")
       .map((rule) => rule.trim())
@@ -882,7 +890,7 @@ export async function checkCommand(
   }
 }
 
-async function checkMustPriorityCoverage(
+export async function checkMustPriorityCoverage(
   prolog: PrologProcess,
 ): Promise<Violation[]> {
   const violations: Violation[] = [];
@@ -938,7 +946,7 @@ async function checkMustPriorityCoverage(
   return violations;
 }
 
-async function findMustPriorityReqs(prolog: PrologProcess): Promise<string[]> {
+export async function findMustPriorityReqs(prolog: PrologProcess): Promise<string[]> {
   const query = `findall(Id, (kb_entity(Id, req, Props), memberchk(priority=P, Props), (P = ^^("must", _) ; P = "must" ; P = 'must' ; (atom(P), atom_string(P, PS), sub_string(PS, _, 4, 0, "must")))), Ids)`;
   const result = await prolog.query(query);
 
@@ -956,7 +964,7 @@ async function findMustPriorityReqs(prolog: PrologProcess): Promise<string[]> {
   return content.split(",").map((id) => id.trim().replace(/^'|'$/g, ""));
 }
 
-async function getAllEntityIds(
+export async function getAllEntityIds(
   prolog: PrologProcess,
   type?: string,
 ): Promise<string[]> {
@@ -977,7 +985,7 @@ async function getAllEntityIds(
 
   return content.split(",").map((id) => id.trim().replace(/^'|'$/g, ""));
 }
-async function checkNoDanglingRefs(
+export async function checkNoDanglingRefs(
   prolog: PrologProcess,
 ): Promise<Violation[]> {
   const violations: Violation[] = [];
@@ -1044,7 +1052,7 @@ async function checkNoDanglingRefs(
   return violations;
 }
 
-async function checkNoCycles(prolog: PrologProcess): Promise<Violation[]> {
+export async function checkNoCycles(prolog: PrologProcess): Promise<Violation[]> {
   const violations: Violation[] = [];
 
   const depsResult = await prolog.query(
@@ -1145,7 +1153,7 @@ async function checkNoCycles(prolog: PrologProcess): Promise<Violation[]> {
   return violations;
 }
 
-async function checkRequiredFields(
+export async function checkRequiredFields(
   prolog: PrologProcess,
   allEntityIds: string[],
 ): Promise<Violation[]> {
@@ -1191,7 +1199,7 @@ async function checkRequiredFields(
   return violations;
 }
 
-async function checkDeprecatedAdrs(
+export async function checkDeprecatedAdrs(
   prolog: PrologProcess,
 ): Promise<Violation[]> {
   const violations: Violation[] = [];
@@ -1243,7 +1251,7 @@ async function checkDeprecatedAdrs(
   return violations;
 }
 
-async function checkDomainContradictions(
+export async function checkDomainContradictions(
   prolog: PrologProcess,
 ): Promise<Violation[]> {
   const violations: Violation[] = [];
@@ -1271,7 +1279,7 @@ async function checkDomainContradictions(
   return violations;
 }
 
-async function checkStrictFactShape(
+export async function checkStrictFactShape(
   prolog: PrologProcess,
 ): Promise<Violation[]> {
   const violations: Violation[] = [];
@@ -1296,7 +1304,7 @@ async function checkStrictFactShape(
   return violations;
 }
 
-async function checkStrictReqFactPairing(
+export async function checkStrictReqFactPairing(
   prolog: PrologProcess,
 ): Promise<Violation[]> {
   const violations: Violation[] = [];
@@ -1321,7 +1329,7 @@ async function checkStrictReqFactPairing(
   return violations;
 }
 
-async function checkStrictReadiness(
+export async function checkStrictReadiness(
   prolog: PrologProcess,
 ): Promise<Violation[]> {
   const violations: Violation[] = [];
@@ -1346,7 +1354,7 @@ async function checkStrictReadiness(
   return violations;
 }
 
-async function checkSymbolCoverage(
+export async function checkSymbolCoverage(
   prolog: PrologProcess,
 ): Promise<Violation[]> {
   const violations: Violation[] = [];

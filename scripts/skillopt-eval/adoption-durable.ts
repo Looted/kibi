@@ -36,6 +36,10 @@ function sameIdentity(left: FileIdentity, right: FileIdentity): boolean {
   return left.dev === right.dev && left.ino === right.ino;
 }
 
+export function throwIfIdentityDrift(same: boolean): void {
+  if (!same) throw new Error("adoption file inode drift");
+}
+
 function assertWithin(repoRoot: string, candidate: string): void {
   const pathFromRoot = relative(resolve(repoRoot), resolve(candidate));
   if (pathFromRoot === ".." || pathFromRoot.startsWith(`..${"/"}`)) {
@@ -95,9 +99,7 @@ export async function readSecureFile(
     }
     const bytes = await handle.readFile();
     const final = await lstat(path);
-    if (!sameIdentity(identityOf(opened), identityOf(final))) {
-      throw new Error("adoption file inode drift");
-    }
+    throwIfIdentityDrift(sameIdentity(identityOf(opened), identityOf(final)));
     return { bytes, identity: identityOf(opened) };
   } finally {
     await handle.close();

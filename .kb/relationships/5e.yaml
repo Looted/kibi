@@ -69,3 +69,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0d04caef9495
+  - type: constrains
+    from: REQ-vscode-sidebar-kb-tree
+    to: FACT-SUBJ-REQ-VSCODE-SIDEBAR-KB-TREE
+    created_at: 2026-09-05T14:15:19.511Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9040c2dd974e
+  - type: requires_property
+    from: REQ-vscode-sidebar-kb-tree
+    to: FACT-PROP-REQ-VSCODE-SIDEBAR-KB-TREE-C01
+    created_at: 2026-09-05T14:15:19.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c2e118a17e1e
+  - type: covered_by
+    from: SYM-markdown-FrontmatterError-originalError
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:26:28.185Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ccb0a797b3a
+  - type: covered_by
+    from: SYM-auto-1B3428DDA393
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:15:56.062Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e66ac4e2cdc5
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-3-inferWarmupPolicyRuleArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:44:40.805Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36a48b28c91c
+  - type: covered_by
+    from: SYM-modeling-predicate-utils-normalizeOptionalString
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:46:20.934Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1b6dfca14c5
