@@ -11,6 +11,7 @@ import {
   isDetachedHead,
   isValidBranchName,
   resolveActiveBranch,
+  resolveBranchAttachment,
   resolveDefaultBranch,
 } from "../../src/utils/branch-resolver.js";
 import {
@@ -125,5 +126,44 @@ describe("branch-resolver leftover validation, snapshot, and diagnostic branches
       }) as typeof execSync,
     });
     expect(resolveActiveBranch("/tmp")).toMatchObject({ code: "UNKNOWN_ERROR" });
+  });
+
+  test("blocks attachment on an unreadable migration journal", () => {
+    restores.push(isolateKibiEnv());
+    const root = createTempDir("kibi-branch-journal-");
+    roots.push(root);
+    mkdirSync(path.join(root, ".git"), { recursive: true });
+    mkdirSync(path.join(root, ".kb", "recovery", "branch-migrations"), {
+      recursive: true,
+    });
+    writeFileSync(
+      path.join(root, ".kb", "recovery", "branch-migrations", "mig-1.json"),
+      "{not-json",
+    );
+    _setBranchResolverDepsForTests({
+      execSync: ((command: string) => {
+        if (String(command).includes("rev-parse --abbrev-ref HEAD")) {
+          return "develop\n";
+        }
+        if (String(command).includes("rev-parse --is-inside-work-tree")) {
+          return "true\n";
+        }
+        return "develop\n";
+      }) as typeof execSync,
+    });
+    expect(resolveBranchAttachment(root)).toMatchObject({
+      code: "MIGRATION_RECOVERY_REQUIRED",
+      error: expect.stringContaining("Unreadable branch migration journal"),
+    });
+  });
+
+  test("isValidBranchName returns false when git check-ref-format throws", () => {
+    restores.push(isolateKibiEnv());
+    _setBranchResolverDepsForTests({
+      execFileSync: (() => {
+        throw new Error("ref rejected");
+      }) as never,
+    });
+    expect(isValidBranchName("ok-name")).toBe(false);
   });
 });

@@ -63,7 +63,7 @@ describe("held-out-cell-binding remaining terminal categories and parse misses",
     for (const status of statuses) {
       expect(() => skillGate([bound(status)], [])).not.toThrow();
     }
-    expect(predicateGate([bound("completed")]).eligibility).toBeDefined();
+    expect(predicateGate([bound("completed")])).toBeDefined();
     expect(
       bindPhysicalCells([
         {

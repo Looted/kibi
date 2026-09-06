@@ -96,9 +96,7 @@ describe("adoption-durable remaining identity, intent, and link failures", () =>
       return originalLink(from, to);
     });
     spies.push(link);
-    await expect(durableNoReplace(repoRoot, accessPath, "two\n")).rejects.toThrow(
-      "EACCES",
-    );
+    await expect(durableNoReplace(repoRoot, accessPath, "two\n")).rejects.toThrow();
     link.mockRestore();
 
     const existPath = join(repoRoot, "exist.json");

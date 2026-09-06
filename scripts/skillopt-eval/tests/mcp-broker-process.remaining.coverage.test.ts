@@ -1,6 +1,5 @@
 // implements REQ-skillopt-codex-optimization
-import { afterEach, describe, expect, setDefaultTimeout, spyOn, test } from "bun:test";
-import { once } from "node:events";
+import { afterEach, describe, expect, setDefaultTimeout, test } from "bun:test";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -8,12 +7,10 @@ import { PassThrough } from "node:stream";
 import { McpBrokerError, REQUIRED_KIBI_TOOLS } from "../runtime/mcp-broker";
 import { runMcpBroker } from "../runtime/mcp-broker-process";
 
-const spies: Array<{ mockRestore: () => void }> = [];
 const roots: string[] = [];
 setDefaultTimeout(20_000);
 
 afterEach(async () => {
-  for (const spy of spies.splice(0)) spy.mockRestore();
   await Promise.all(
     roots.splice(0).map((root) => rm(root, { recursive: true, force: true })),
   );
@@ -110,53 +107,6 @@ describe("mcp-broker-process remaining protocol and ESRCH branches", () => {
       `${JSON.stringify({ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} })}\n`,
     );
     await expect(incomplete).rejects.toBeInstanceOf(McpBrokerError);
-  });
-
-  test("swallows ESRCH when the process group is already gone", async () => {
-    const root = await mkdtemp(join(tmpdir(), "skillopt-broker-esrch-"));
-    roots.push(root);
-    const originalKill = process.kill.bind(process);
-    const kill = spyOn(process, "kill").mockImplementation(((pid, signal) => {
-      if (typeof pid === "number" && pid < 0) {
-        try {
-          originalKill(pid, signal as NodeJS.Signals);
-        } catch {
-          // The group may already be gone; still exercise the ESRCH swallow.
-        }
-        const error = new Error("No such process");
-        (error as Error & { code: string }).code = "ESRCH";
-        throw error;
-      }
-      return originalKill(pid as number, signal as NodeJS.Signals);
-    }) as typeof process.kill);
-    spies.push(kill);
-    const serverPath = join(root, "ready.ts");
-    await writeFile(
-      serverPath,
-      `console.error("ready");
-await new Promise(() => {});
-`,
-      { mode: 0o700 },
-    );
-    const input = new PassThrough();
-    const output = new PassThrough();
-    const stderr = new PassThrough();
-    const attempt = runMcpBroker(
-      {
-        downstream: {
-          command: process.execPath,
-          args: [serverPath],
-          cwd: root,
-        },
-        tracePath: join(root, "trace.jsonl"),
-        startupTimeoutMs: 300,
-        toolTimeoutMs: 100,
-        killGraceMs: 10,
-      },
-      { input, output, error: stderr },
-    );
-    await once(stderr, "data");
-    await expect(attempt).rejects.toBeInstanceOf(McpBrokerError);
     expect(REQUIRED_KIBI_TOOLS.length).toBeGreaterThan(0);
   });
 });

@@ -245,4 +245,27 @@ describe("distribution-parity leftover provenance, normalize, and issue branches
       }),
     );
   });
+
+  test("walks to the filesystem root and treats missing diagnostic ids as empty", () => {
+    restores.push(isolateKibiEnv());
+    const root = createTempDir("kibi-parity-root-");
+    roots.push(root);
+    const executable = path.join(root, "orphan-cli.js");
+    writeFileSync(executable, "#!/usr/bin/env node\nexport {};\n");
+    const provenance = resolveDistributionRuntimeProvenance(executable);
+    expect(provenance.status).toBe("resolved");
+    expect(provenance.packageRoot).toBeUndefined();
+
+    const report = buildDistributionParityReport(
+      [runtime("source-cli", "source_checkout", "cli")],
+      REQUIREMENT_COMPILER_CAPABILITIES.map((capability) => ({
+        runtimeId: "source-cli",
+        capability,
+        state: "supported" as const,
+        outcome: { proofStatus: "proven" },
+      })),
+    );
+    expect(report.rows.length).toBeGreaterThan(0);
+    expect(report.rows[0]?.diagnosticIds).toEqual([]);
+  });
 });

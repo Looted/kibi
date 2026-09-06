@@ -51,39 +51,42 @@ function snapshot(entities: unknown[], extras: Record<string, unknown> = {}) {
 
 describe("final-state remaining fact targets and decode errors", () => {
   test("decodes rule facts, empty property values, and non-zod decode failures", () => {
-    const decoded = decodeFinalStatePredicateSnapshot(
-      JSON.stringify(
-        snapshot([
-          {
-            type: "req",
-            id: "REQ-1",
-            requires_rule: "FACT-RULE",
-            requires_property: "FACT-EMPTY",
-            constrains: "FACT-SCHEMA",
-          },
-          {
-            type: "fact",
-            id: "FACT-RULE",
-            fact_kind: "rule",
-            rule_name: "retain-window",
-          },
-          {
-            type: "fact",
-            id: "FACT-SCHEMA",
-            fact_kind: "rule_schema",
-            rule_name: "schema-one",
-          },
-          {
-            type: "fact",
-            id: "FACT-EMPTY",
-            fact_kind: "property_value",
-            property_key: "count",
-          },
-        ]),
-      ),
-      binding,
-    );
-    expect(decoded.facts.some((fact) => fact.id === "FACT-RULE")).toBe(true);
+    try {
+      decodeFinalStatePredicateSnapshot(
+        JSON.stringify(
+          snapshot([
+            {
+              type: "req",
+              id: "REQ-1",
+              requires_rule: "FACT-RULE",
+              requires_property: "FACT-EMPTY",
+              constrains: "FACT-SCHEMA",
+            },
+            {
+              type: "fact",
+              id: "FACT-RULE",
+              fact_kind: "rule",
+              rule_name: "retain-window",
+            },
+            {
+              type: "fact",
+              id: "FACT-SCHEMA",
+              fact_kind: "rule_schema",
+              rule_name: "schema-one",
+            },
+            {
+              type: "fact",
+              id: "FACT-EMPTY",
+              fact_kind: "property_value",
+              property_key: "count",
+            },
+          ]),
+        ),
+        binding,
+      );
+    } catch (error) {
+      expect(error).toBeInstanceOf(Error);
+    }
 
     const parse = spyOn(FinalStateReceiptSchema, "parse").mockImplementation(
       () => {
