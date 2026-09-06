@@ -319,8 +319,14 @@ export async function runHookCli(): Promise<void> {
   }
 }
 
-if (isInvokedAsCli(process.argv[1], import.meta.url)) {
-  void runHookCli();
+export async function runHookCliIfMain(
+  isMain = isInvokedAsCli(process.argv[1], import.meta.url),
+  start = runHookCli,
+): Promise<void> {
+  if (!isMain) return;
+  await start();
 }
+
+void runHookCliIfMain();
 
 export const hookRunnerPath = fileURLToPath(import.meta.url);

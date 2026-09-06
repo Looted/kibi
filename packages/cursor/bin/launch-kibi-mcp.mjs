@@ -14,7 +14,7 @@
  */
 
 import { spawn } from "node:child_process";
-import { existsSync, readFileSync, realpathSync, statSync } from "node:fs";
+import * as fs from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -29,12 +29,12 @@ const SIGNAL_EXIT_CODES = {
 };
 
 function readJson(path) {
-  return JSON.parse(readFileSync(path, "utf8"));
+  return JSON.parse(fs.readFileSync(path, "utf8"));
 }
 
 function isDirectory(path) {
   try {
-    return statSync(path).isDirectory();
+    return fs.statSync(path).isDirectory();
   } catch {
     return false;
   }
@@ -86,17 +86,22 @@ export function parseWorkspaceFolderPaths(value) {
     .filter(Boolean);
 }
 
+export function nextAncestorDirectory(current) {
+  const parent = dirname(current);
+  return parent === current ? undefined : parent;
+}
+
 export function packageJsonForResolvedFile(startPath) {
   let current = resolve(startPath);
   try {
-    if (!statSync(current).isDirectory()) current = dirname(current);
+    if (!fs.statSync(current).isDirectory()) current = dirname(current);
   } catch {
     current = dirname(current);
   }
 
-  while (true) {
+  while (current !== undefined) {
     const packageJsonPath = join(current, "package.json");
-    if (existsSync(packageJsonPath)) {
+    if (fs.existsSync(packageJsonPath)) {
       try {
         const packageJson = readJson(packageJsonPath);
         if (packageJson.name === PACKAGE_NAME) {
@@ -106,10 +111,9 @@ export function packageJsonForResolvedFile(startPath) {
         // Keep walking if a parent package manifest is malformed.
       }
     }
-    const parent = dirname(current);
-    if (parent === current) return null;
-    current = parent;
+    current = nextAncestorDirectory(current);
   }
+  return null;
 }
 
 function isWithinRoot(rootPath, candidatePath) {
@@ -123,7 +127,7 @@ function isWithinRoot(rootPath, candidatePath) {
 export function hasConsumerNodeModulesLink(workspaceRoot, packageRoot) {
   try {
     const linkPath = join(workspaceRoot, "node_modules", PACKAGE_NAME);
-    const linkedRoot = realpathSync(linkPath);
+    const linkedRoot = fs.realpathSync(linkPath);
     return (
       isWithinRoot(linkedRoot, packageRoot) ||
       isWithinRoot(packageRoot, linkedRoot)
@@ -197,7 +201,7 @@ export function resolveProjectLocalMcp(workspaceRoot) {
   }
 
   const binPath = resolve(packageInfo.packageRoot, binEntry);
-  if (!existsSync(binPath)) {
+  if (!fs.existsSync(binPath)) {
     throw new Error(
       `[KIBI-CURSOR] Project-local ${PACKAGE_NAME} declares a missing executable: ${binPath}. Reinstall the workspace dependency and reload Cursor.`,
     );
@@ -213,7 +217,7 @@ export function resolveProjectLocalMcp(workspaceRoot) {
 
 export function hasDeclaredProjectDependency(workspaceRoot) {
   const packageJsonPath = join(workspaceRoot, "package.json");
-  if (!existsSync(packageJsonPath)) return false;
+  if (!fs.existsSync(packageJsonPath)) return false;
   try {
     const packageJson = readJson(packageJsonPath);
     return [
@@ -235,8 +239,8 @@ export function hasDeclaredProjectDependency(workspaceRoot) {
 
 function isDemonstrablyProjectWorkspace(workspaceRoot) {
   return (
-    existsSync(join(workspaceRoot, ".git")) ||
-    existsSync(join(workspaceRoot, ".kb")) ||
+    fs.existsSync(join(workspaceRoot, ".git")) ||
+    fs.existsSync(join(workspaceRoot, ".kb")) ||
     hasDeclaredProjectDependency(workspaceRoot)
   );
 }

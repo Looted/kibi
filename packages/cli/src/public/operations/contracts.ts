@@ -346,6 +346,16 @@ const EFFECT_OVERRIDES: Readonly<
   },
 };
 
+export function assertUniqueEffectKinds(
+  operation: string,
+  declarations: readonly { readonly kind: string }[],
+  expectedSize: number,
+): void {
+  if (new Set(declarations.map(({ kind }) => kind)).size !== expectedSize) {
+    throw new Error(`Duplicate effect contract for ${operation}`);
+  }
+}
+
 export function declaredEffects(
   operation: OperationName,
   effects: readonly OperationEffect[],
@@ -367,8 +377,6 @@ export function declaredEffects(
       openWorld: override.openWorld === true,
     };
   });
-  if (new Set(declarations.map(({ kind }) => kind)).size !== expected.size) {
-    throw new Error(`Duplicate effect contract for ${operation}`);
-  }
+  assertUniqueEffectKinds(operation, declarations, expected.size);
   return declarations;
 }

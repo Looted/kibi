@@ -92,14 +92,19 @@ function directorySearchStart(candidatePath: string): string {
   return stats?.isDirectory() ? resolved : dirname(resolved);
 }
 
+export function nextAncestorDirectory(current: string): string | undefined {
+  const parent = dirname(current);
+  return parent === current ? undefined : parent;
+}
+
 function findGitMetadata(
   candidatePath: string,
   searchBoundary?: string,
 ): GitMetadata | null {
-  let current = directorySearchStart(candidatePath);
+  let current: string | undefined = directorySearchStart(candidatePath);
   const boundary = searchBoundary ? resolve(searchBoundary) : null;
 
-  while (true) {
+  while (current !== undefined) {
     const dotGitPath = join(current, ".git");
     const dotGitStats = safeStat(dotGitPath);
 
@@ -128,12 +133,9 @@ function findGitMetadata(
       return null;
     }
 
-    const parent = dirname(current);
-    if (parent === current) {
-      return null;
-    }
-    current = parent;
+    current = nextAncestorDirectory(current);
   }
+  return null;
 }
 
 function hasRootKbConfig(root: string): boolean {
@@ -176,19 +178,15 @@ export function authorityRootFromLinkedGitDir(gitDir: string): string | null {
 
 export function ancestorKbRoots(start: string): string[] {
   const roots: string[] = [];
-  let current = resolve(start);
+  let current: string | undefined = resolve(start);
 
-  while (true) {
+  while (current !== undefined) {
     if (hasRootKbConfig(current)) {
       roots.push(current);
     }
-
-    const parent = dirname(current);
-    if (parent === current) {
-      return roots;
-    }
-    current = parent;
+    current = nextAncestorDirectory(current);
   }
+  return roots;
 }
 
 function resolveAuthorityRoot(

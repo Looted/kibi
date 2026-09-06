@@ -3,6 +3,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import {
   DEFAULT_TELEMETRY_ACCEPTANCE_POLICY,
   analyzeTelemetryAcceptance,
+  thresholdStatus,
 } from "../../src/public/telemetry-acceptance.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";
 
@@ -93,5 +94,10 @@ describe("telemetry-acceptance remaining repeated-failure sort and proof-gap ope
     );
     expect(recovery?.threshold).toEqual({ operator: "<", value: 4 });
     expect(recovery?.status).toBe("passed");
+    expect(thresholdStatus(undefined, "<", 4)).toBe("not_applicable");
+    expect(thresholdStatus(3, "<", 4)).toBe("passed");
+    expect(thresholdStatus(4, "<", 4)).toBe("failed");
+    expect(thresholdStatus(5, ">=", 4)).toBe("passed");
+    expect(thresholdStatus(3, "<=", 4)).toBe("passed");
   });
 });

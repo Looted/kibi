@@ -9,6 +9,7 @@ import {
   detectExecuteApplyPlanExport,
   doctorCommand,
   nearestNamedPackageManifest,
+  nextAncestorDirectory,
   packageMigrationActions,
 } from "../../src/commands/doctor.js";
 import { engineStopCommand } from "../../src/commands/engine.js";
@@ -712,5 +713,7 @@ status: open
       path.join(cwd, "pkg", "package.json"),
     );
     expect(nearestNamedPackageManifest(nested, "missing-package")).toBeUndefined();
+    expect(nextAncestorDirectory("/")).toBeUndefined();
+    expect(nextAncestorDirectory(nested)).toBe(path.join(cwd, "pkg"));
   });
 });

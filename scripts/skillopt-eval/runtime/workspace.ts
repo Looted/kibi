@@ -24,6 +24,18 @@ import {
   TARGET_MODEL,
 } from "./permissions";
 
+export function defaultCanaryRun(
+  argv: Parameters<CanaryRunner>[0],
+  cwd: Parameters<CanaryRunner>[1],
+  env: Parameters<CanaryRunner>[2],
+  timeoutMs: Parameters<CanaryRunner>[3],
+  stdin: Parameters<CanaryRunner>[4],
+) {
+  return import("./process").then(({ runBoundedProcess }) =>
+    runBoundedProcess({ argv, cwd, env, timeoutMs, stdin }),
+  );
+}
+
 export { createIsolationWorkspace };
 export type { IsolationWorkspace, WorkspaceOptions };
 
@@ -66,12 +78,7 @@ export async function runCapabilityCanary(
     configuredArtifactRoot,
     sourceWorktree,
   );
-  const run =
-    dependencies?.run ??
-    ((argv, cwd, env, timeoutMs, stdin) =>
-      import("./process").then(({ runBoundedProcess }) =>
-        runBoundedProcess({ argv, cwd, env, timeoutMs, stdin }),
-      ));
+  const run = dependencies?.run ?? defaultCanaryRun;
   const modelRuns: CapabilityCanaryModelRun[] = [];
   let authMode: "file" | "keyring" | null = null;
   let paidCount = 0;

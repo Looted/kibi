@@ -14,6 +14,13 @@ import {
 } from "../contracts/evidence";
 import { redactJsonRpcValue } from "./jsonrpc";
 
+export function onlyDefinedSnapshot<T>(snapshot: T | undefined): T {
+  if (snapshot === undefined) {
+    throw new EvidenceBindingError("malformed-snapshot");
+  }
+  return snapshot;
+}
+
 const FINAL_STATE_TOOLS = [
   "kb_query",
   "kb_status",
@@ -129,7 +136,7 @@ function canonicalPropertyKey(entity: Record<string, unknown>): string | null {
   return propertyKey;
 }
 
-function factTarget(entity: Record<string, unknown>): string | null {
+export function factTarget(entity: Record<string, unknown>): string | null {
   switch (entity.fact_kind) {
     case "subject":
       return typeof entity.subject_key === "string" ? entity.subject_key : null;
@@ -321,10 +328,7 @@ export function decodeFinalStatePredicateSnapshot(
   if (snapshots.length !== 1) {
     throw new EvidenceBindingError("malformed-snapshot");
   }
-  const snapshot = snapshots[0];
-  if (snapshot === undefined) {
-    throw new EvidenceBindingError("malformed-snapshot");
-  }
+  const snapshot = onlyDefinedSnapshot(snapshots[0]);
   const resultHash = createHash("sha256")
     .update(JSON.stringify(snapshot.result))
     .digest("hex");

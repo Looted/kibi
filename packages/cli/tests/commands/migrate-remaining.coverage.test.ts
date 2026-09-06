@@ -445,4 +445,5 @@ describe("migrateCommand remaining runtime branches", () => {
     expect(io.logText()).toContain("No changes applied.");
     expect(io.logText()).toContain("Use --dry-run to preview or --yes");
   });
+
 });

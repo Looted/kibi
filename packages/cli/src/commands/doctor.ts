@@ -300,12 +300,17 @@ function packageInfoFromManifest(
   };
 }
 
+export function nextAncestorDirectory(current: string): string | undefined {
+  const parent = path.dirname(current);
+  return parent === current ? undefined : parent;
+}
+
 export function nearestNamedPackageManifest(
   startDir: string,
   name: string,
 ): string | undefined {
-  let current = startDir;
-  while (true) {
+  let current: string | undefined = startDir;
+  while (current !== undefined) {
     const candidate = path.join(current, "package.json");
     try {
       const metadata = JSON.parse(readFileSync(candidate, "utf8")) as {
@@ -315,10 +320,9 @@ export function nearestNamedPackageManifest(
     } catch {
       // Keep walking; an unrelated or absent manifest is not a match.
     }
-    const parent = path.dirname(current);
-    if (parent === current) return undefined;
-    current = parent;
+    current = nextAncestorDirectory(current);
   }
+  return undefined;
 }
 
 function resolveInstalledPackageInfo(name: string): InstalledPackageInfo {

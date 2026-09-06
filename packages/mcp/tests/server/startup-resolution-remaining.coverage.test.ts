@@ -5,6 +5,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {
+  nextAncestorDirectory,
   readRunningPackageInfo,
   resolveProjectLocalMcp,
 } from "../../src/startup-resolution.js";
@@ -61,5 +62,7 @@ describe("startup-resolution remaining package walk and catch-all", () => {
       /Unable to find package.json/,
     );
     expect(resolveProjectLocalMcp(path.join(os.tmpdir(), "kibi-mcp-walk"))).toBeNull();
+    expect(nextAncestorDirectory("/")).toBeUndefined();
+    expect(nextAncestorDirectory("/tmp/nested")).toBe("/tmp");
   });
 });

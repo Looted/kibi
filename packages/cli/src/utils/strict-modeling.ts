@@ -345,7 +345,7 @@ function normalizeStatement(statement: string): string {
   return normalized;
 }
 
-function normalizeTextRef(
+export function normalizeTextRef(
   provenance: string | undefined,
   source: string,
 ): string {

@@ -1,8 +1,10 @@
 // implements REQ-002
 import { afterEach, describe, expect, test } from "bun:test";
 import {
+  describedAnySchema,
   firstDefined,
   jsonSchemaToZod,
+  singleLiteralOrAny,
 } from "../../src/server/json-schema-to-zod.js";
 
 afterEach(() => {
@@ -46,5 +48,9 @@ describe("json-schema-to-zod remaining allOf, enum hole, and described unknown",
     expect(firstDefined(["only"])).toBe("only");
     const schema = jsonSchemaToZod({ type: "mystery" });
     expect(schema.safeParse("x").success).toBe(true);
+    expect(describedAnySchema("described").description).toBe("described");
+    expect(describedAnySchema(undefined).description).toBeUndefined();
+    expect(singleLiteralOrAny([], "empty").description).toBe("empty");
+    expect(singleLiteralOrAny([], undefined).safeParse(1).success).toBe(true);
   });
 });

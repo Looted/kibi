@@ -7,6 +7,22 @@ export function firstDefined<T>(items: readonly T[]): T | undefined {
   return items[0];
 }
 
+export function describedAnySchema(description: string | undefined) {
+  const anySchema = z.any();
+  return description ? anySchema.describe(description) : anySchema;
+}
+
+export function singleLiteralOrAny(
+  literalSchemas: readonly z.ZodLiteral<JsonPrimitive>[],
+  description: string | undefined,
+) {
+  const single = firstDefined(literalSchemas);
+  if (!single) {
+    return describedAnySchema(description);
+  }
+  return description ? single.describe(description) : single;
+}
+
 function hasRequiredProperties(value: JsonRecord, schema: unknown): boolean {
   if (schema === null || typeof schema !== "object") return false;
   const condition = schema as JsonRecord;
@@ -92,11 +108,7 @@ export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
     }
     const literalSchemas = literals.map((value) => z.literal(value));
     if (literalSchemas.length === 1) {
-      const single = firstDefined(literalSchemas);
-      if (!single) {
-        return description ? z.any().describe(description) : z.any();
-      }
-      return description ? single.describe(description) : single;
+      return singleLiteralOrAny(literalSchemas, description);
     }
     const union = z.union(
       literalSchemas as [
@@ -255,11 +267,9 @@ export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
         typeof obj.description === "string" ? obj.description : undefined;
       return description ? n.describe(description) : n;
     }
-    default: {
-      const anySchema = z.any();
-      const description =
-        typeof obj.description === "string" ? obj.description : undefined;
-      return description ? anySchema.describe(description) : anySchema;
-    }
+    default:
+      return describedAnySchema(
+        typeof obj.description === "string" ? obj.description : undefined,
+      );
   }
 }

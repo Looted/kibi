@@ -174,6 +174,15 @@ export function main(): number {
   return 0;
 }
 
-if (import.meta.main) {
-  process.exit(main());
+export function runVerifyPublishMetadataIfMain(
+  isMain = import.meta.main,
+  start = main,
+  exit: (code: number) => never | void = (code) => {
+    process.exit(code);
+  },
+): void {
+  if (!isMain) return;
+  exit(start());
 }
+
+runVerifyPublishMetadataIfMain();

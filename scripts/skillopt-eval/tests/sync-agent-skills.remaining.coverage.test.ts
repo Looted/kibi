@@ -14,6 +14,8 @@ import {
   canonicalSkillsDir,
   main,
   processTarget,
+  requireSelectedTargets,
+  runSyncAgentSkillsIfMain,
   syncAgentSkills,
   syncAgentSkillsUnlocked,
 } from "../../sync-agent-skills";
@@ -120,5 +122,19 @@ describe("sync-agent-skills remaining write lock, missing hash, and main exits",
     );
     expect(stderr.join("")).toContain("drift detected in: cursor");
     process.exitCode = 0;
+  });
+
+  test("requireSelectedTargets and runSyncAgentSkillsIfMain leftovers", async () => {
+    expect(() => requireSelectedTargets([])).toThrow("No targets selected");
+    expect(requireSelectedTargets(["cursor"])).toEqual(["cursor"]);
+    let started = 0;
+    await runSyncAgentSkillsIfMain(false, [], async () => {
+      started += 1;
+    });
+    expect(started).toBe(0);
+    await runSyncAgentSkillsIfMain(true, ["--check"], async () => {
+      started += 1;
+    });
+    expect(started).toBe(1);
   });
 });

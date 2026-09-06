@@ -7,6 +7,7 @@ import * as childProcess from "node:child_process";
 import {
   parseIntegrationSelector,
   proveCommand,
+  testId,
 } from "../../src/commands/prove.js";
 import type { IngestProofResult } from "../../src/operations/proof/ingest-proof.js";
 import * as discovery from "../../src/public/operations/discovery-entities.js";
@@ -831,5 +832,9 @@ describe("proveCommand remaining runtime branches", () => {
       },
     );
     expect(result.exitCode).toBe(1);
+  });
+
+  test("testId stringifies a selected test id", () => {
+    expect(testId({ id: "TEST-001" } as never)).toBe("TEST-001");
   });
 });

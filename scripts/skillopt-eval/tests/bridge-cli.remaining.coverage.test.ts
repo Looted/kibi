@@ -1,7 +1,7 @@
 // implements REQ-skillopt-codex-optimization
 import { afterAll, afterEach, describe, expect, spyOn, test } from "bun:test";
 import { Readable } from "node:stream";
-import { bridgeMain, finishBridgeCli } from "../bridge-cli";
+import { bridgeMain, finishBridgeCli, runBridgeCliIfMain } from "../bridge-cli";
 import { EvaluationInfrastructureError } from "../evaluation-infrastructure";
 import {
   bridgeErrorCode,
@@ -167,5 +167,17 @@ describe("bridge CLI remaining default pipe and settlement branches", () => {
     expect(bridgeErrorCode(bridgeFailure("not-an-error"))).toBe(
       "BRIDGE_EXECUTION_FAILED",
     );
+  });
+
+  test("runBridgeCliIfMain starts only when invoked as main", async () => {
+    let started = 0;
+    await runBridgeCliIfMain(false, async () => {
+      started += 1;
+    });
+    expect(started).toBe(0);
+    await runBridgeCliIfMain(true, async () => {
+      started += 1;
+    });
+    expect(started).toBe(1);
   });
 });

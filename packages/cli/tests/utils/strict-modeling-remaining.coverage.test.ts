@@ -4,6 +4,7 @@ import {
   type SemanticClaim,
   buildStrictWriteSet,
   modelRequirementClaims,
+  normalizeTextRef,
 } from "../../src/utils/strict-modeling.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.ts";
 
@@ -100,5 +101,10 @@ describe("strict-modeling remaining typed-value and clamp branches", () => {
       { claim: claim({ value: 2 }), statement: "Two." },
     ]);
     expect(modeled).toHaveLength(2);
+    expect(() => normalizeTextRef("  ", "  ")).toThrow(
+      "Strict modeling requires claim provenance or source",
+    );
+    expect(normalizeTextRef("  ", "src.md")).toBe("src.md");
+    expect(normalizeTextRef("prov.md", "src.md")).toBe("prov.md");
   });
 });

@@ -82,19 +82,21 @@ function readFirstEnv(keys: readonly string[]): string | null {
   return null;
 }
 
+export function nextAncestorDirectory(current: string): string | undefined {
+  const parent = path.dirname(current);
+  return parent === current ? undefined : parent;
+}
+
 function findUpwards(startDir: string, marker: string): string | null {
-  let current = path.resolve(startDir);
-  while (true) {
+  let current: string | undefined = path.resolve(startDir);
+  while (current !== undefined) {
     const candidate = path.join(current, marker);
     if (fs.existsSync(candidate)) {
       return current;
     }
-    const parent = path.dirname(current);
-    if (parent === current) {
-      return null;
-    }
-    current = parent;
+    current = nextAncestorDirectory(current);
   }
+  return null;
 }
 
 function isBranchPath(p: string): boolean {

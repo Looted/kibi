@@ -3,6 +3,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import {
   detectCountStrictSuggestion,
   numberToken,
+  whenParsedNumber,
 } from "../../src/operations/semantic-advisor/strict-count-rules.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";
 
@@ -57,5 +58,7 @@ describe("strict count remaining cap-at branches", () => {
     expect(numberToken("eleven")).toBeNull();
     expect(numberToken("3")).toBe(3);
     expect(detectCountStrictSuggestion(payload, "hello world")).toBeNull();
+    expect(whenParsedNumber(null, (value) => value + 1)).toBeNull();
+    expect(whenParsedNumber(4, (value) => value * 2)).toBe(8);
   });
 });

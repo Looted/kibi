@@ -1,6 +1,9 @@
 // implements REQ-kibi-operation-interface-parity
 import { afterEach, describe, expect, test } from "bun:test";
-import { scenarioCoverageWarnings } from "../../src/operations/mutation/warnings.js";
+import {
+  scenarioCoverageWarning,
+  scenarioCoverageWarnings,
+} from "../../src/operations/mutation/warnings.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";
 
 const restores: Array<() => void> = [];
@@ -24,5 +27,6 @@ describe("scenarioCoverageWarnings remaining verified_by success", () => {
       "REQ-1",
     );
     expect(warnings[0]).toMatch(/Scenario-backed coverage/);
+    expect(scenarioCoverageWarning("REQ-9")[0]).toContain("REQ-9");
   });
 });

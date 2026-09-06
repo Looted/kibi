@@ -513,6 +513,17 @@ function buildStagedKibiImpactEvidence(options: {
   };
 }
 
+export function requireActiveProlog<T>(
+  engine: T | undefined,
+  prolog: T | undefined,
+): T {
+  const activeProlog = engine ?? prolog;
+  if (!activeProlog) {
+    throw new Error("Prolog runtime not initialized");
+  }
+  return activeProlog;
+}
+
 // implements REQ-006
 export async function checkCommand(
   options: CheckOptions,
@@ -807,10 +818,7 @@ export async function checkCommand(
       attached = true;
     }
 
-    const activeProlog = engine ?? prolog;
-    if (!activeProlog) {
-      throw new Error("Prolog runtime not initialized");
-    }
+    const activeProlog = requireActiveProlog(engine, prolog);
     const rules = options.rules
       ?.split(",")
       .map((rule) => rule.trim())

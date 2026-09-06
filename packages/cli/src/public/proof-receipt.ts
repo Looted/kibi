@@ -201,6 +201,13 @@ export type ProofReceipt = Readonly<{
   }[];
 }>;
 
+export function finishedAtPrecedesStartedAt(
+  startedAt: number | null,
+  finishedAt: number | null,
+): boolean {
+  return startedAt !== null && finishedAt !== null && finishedAt < startedAt;
+}
+
 function timestamp(value: unknown): number | null {
   if (typeof value !== "string") return null;
   if (
@@ -379,7 +386,7 @@ export function proofReceiptHistoryErrors(
     }
     const startedAt = timestamp(receipt.started_at);
     const finishedAt = timestamp(receipt.finished_at);
-    if (startedAt !== null && finishedAt !== null && finishedAt < startedAt) {
+    if (finishedAtPrecedesStartedAt(startedAt, finishedAt)) {
       errors.push(`${prefix}.finished_at must not precede started_at`);
     }
     if (

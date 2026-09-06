@@ -6,6 +6,7 @@ import {
   checkCommand,
   checkMustPriorityCoverage,
   findMustPriorityReqs,
+  requireActiveProlog,
 } from "../../src/commands/check.js";
 import * as gitStaged from "../../src/traceability/git-staged.js";
 import { EngineClient } from "../../src/engine.js";
@@ -927,5 +928,17 @@ Must stay independently testable.
     );
     expect([0, 1]).toContain(result.exitCode);
     expect(staged).toHaveBeenCalled();
+  });
+
+  test("requireActiveProlog rejects when both engine and process are missing", () => {
+    expect(() => requireActiveProlog(undefined, undefined)).toThrow(
+      "Prolog runtime not initialized",
+    );
+    expect(requireActiveProlog({ kind: "engine" }, undefined)).toEqual({
+      kind: "engine",
+    });
+    expect(requireActiveProlog(undefined, { kind: "process" })).toEqual({
+      kind: "process",
+    });
   });
 });

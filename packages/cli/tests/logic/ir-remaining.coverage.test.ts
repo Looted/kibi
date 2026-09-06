@@ -6,6 +6,7 @@ import {
   LOGIC_RULE_MAX_DEPTH,
   LOGIC_RULE_MAX_VARIABLES,
   renderLogicProlog,
+  termVariables,
   utf8Span,
   validateLogicIr,
 } from "../../src/logic/ir.js";
@@ -349,5 +350,9 @@ describe("validateLogicIr remaining term, temporal, and kind branches", () => {
     expect(unsafeException.errors.join(" ")).toMatch(
       /exception variable Y is not range-restricted/,
     );
+    expect([...termVariables({ kind: "var", name: "X" } as never)]).toEqual([
+      "X",
+    ]);
+    expect(termVariables({ kind: "const", value: "a" } as never).size).toBe(0);
   });
 });

@@ -134,6 +134,19 @@ function actionSort(left: MigrationAction, right: MigrationAction): number {
   );
 }
 
+export function compareReadyActionIds(
+  left: string,
+  right: string,
+  byId: ReadonlyMap<string, MigrationAction>,
+): number {
+  const leftAction = byId.get(left);
+  const rightAction = byId.get(right);
+  if (leftAction === undefined || rightAction === undefined) {
+    return left.localeCompare(right);
+  }
+  return actionSort(leftAction, rightAction);
+}
+
 /** Return actions in a deterministic dependency-first order for agents and the applier. */
 function dependencyOrder(
   actions: readonly MigrationAction[],
@@ -168,14 +181,7 @@ function dependencyOrder(
       }
       ready.push(candidateId);
       queued.add(candidateId);
-      ready.sort((left, right) => {
-        const leftAction = byId.get(left);
-        const rightAction = byId.get(right);
-        if (leftAction === undefined || rightAction === undefined) {
-          return left.localeCompare(right);
-        }
-        return actionSort(leftAction, rightAction);
-      });
+      ready.sort((left, right) => compareReadyActionIds(left, right, byId));
     }
   }
   // Preserve cyclic/missing-dependency actions in canonical order; validation will block them.

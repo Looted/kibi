@@ -1,6 +1,9 @@
 // implements REQ-cli-staged-impact-enforcement
 import { afterEach, describe, expect, test } from "bun:test";
-import { hasMeaningfulSourceDiff } from "../../src/public/impact/diff-meaning.js";
+import {
+  hasMeaningfulSourceDiff,
+  isTrailingCommaBeforeCloser,
+} from "../../src/public/impact/diff-meaning.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";
 
 const restores: Array<() => void> = [];
@@ -41,5 +44,10 @@ describe("diff-meaning remaining trailing-comma skip before closers", () => {
     ].join("\n");
     expect(hasMeaningfulSourceDiff(arrayDiff)).toBe(false);
     expect(hasMeaningfulSourceDiff(objectDiff)).toBe(false);
+    expect(isTrailingCommaBeforeCloser(",", ")")).toBe(true);
+    expect(isTrailingCommaBeforeCloser(",", "]")).toBe(true);
+    expect(isTrailingCommaBeforeCloser(",", "}")).toBe(true);
+    expect(isTrailingCommaBeforeCloser(",", "x")).toBe(false);
+    expect(isTrailingCommaBeforeCloser(";", ")")).toBe(false);
   });
 });

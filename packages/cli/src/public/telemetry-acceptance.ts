@@ -132,7 +132,7 @@ function rate(numerator: number, denominator: number): number | undefined {
   return denominator === 0 ? undefined : numerator / denominator;
 }
 
-function thresholdStatus(
+export function thresholdStatus(
   actual: number | undefined,
   operator: ">=" | "<=" | "<",
   expected: number,

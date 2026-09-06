@@ -280,9 +280,17 @@ const args = process.argv.slice(2);
 const invokedDirectly =
   process.argv[1] !== undefined &&
   resolve(process.argv[1]) === fileURLToPath(import.meta.url);
-if (invokedDirectly) {
-  await main(args);
+
+export async function runBuildAgentPluginIfMain(
+  isMain = invokedDirectly,
+  argv = args,
+  start = main,
+): Promise<void> {
+  if (!isMain) return;
+  await start(argv);
 }
+
+await runBuildAgentPluginIfMain();
 
 export {
   AGENT_MCP_SCHEMA,

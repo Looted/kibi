@@ -63,6 +63,12 @@ const ENGINE_QUERY_CACHE_MAX_RESULT_BYTES = 8 * 1024 * 1024;
 const ENGINE_FRESHNESS_CACHE_MS = 100;
 const ENGINE_PUBLICATION_LOCK_STALE_MS = 5_000;
 
+export function requestEngineSignalShutdown(shutdown: () => unknown): () => void {
+  return () => {
+    void shutdown();
+  };
+}
+
 export function readJournalGeneration(branchPath: string): string {
   // implements REQ-core-journaled-engine-persistence
   const currentPath = path.join(branchPath, "CURRENT");
@@ -1954,9 +1960,7 @@ export async function runEngineDaemon(options: {
   // Detached engines must cross the same durability boundary when a service
   // manager or a test harness terminates them as they do for an RPC stop.
   // implements REQ-test-journaled-engine-harness
-  const requestSignalShutdown = (): void => {
-    void shutdown();
-  };
+  const requestSignalShutdown = requestEngineSignalShutdown(shutdown);
   process.once("SIGTERM", requestSignalShutdown);
   process.once("SIGINT", requestSignalShutdown);
 

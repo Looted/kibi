@@ -85,6 +85,12 @@ export function createUniqueStagingPath(
   );
 }
 
+export function abandonedStagingBranch(
+  branch: string | undefined,
+): string | undefined {
+  return branch ? branch : undefined;
+}
+
 // implements REQ-003
 export async function cleanupAbandonedStagingDirectories(
   stagingPath: string,
@@ -101,7 +107,7 @@ export async function cleanupAbandonedStagingDirectories(
     return;
   }
 
-  const branch = match.groups.branch;
+  const branch = abandonedStagingBranch(match.groups.branch);
   if (!branch) {
     return;
   }

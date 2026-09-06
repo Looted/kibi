@@ -1,7 +1,10 @@
 // implements REQ-cursor-kibi-plugin-v1
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as fs from "node:fs";
-import { packageJsonForResolvedFile } from "../bin/launch-kibi-mcp.mjs";
+import {
+  nextAncestorDirectory,
+  packageJsonForResolvedFile,
+} from "../bin/launch-kibi-mcp.mjs";
 
 const spies: Array<{ mockRestore: () => void }> = [];
 
@@ -19,5 +22,7 @@ describe("launch-kibi-mcp remaining package walk to filesystem root", () => {
     });
     spies.push(spy);
     expect(packageJsonForResolvedFile("/tmp/kibi-launch-missing/server.js")).toBeNull();
+    expect(nextAncestorDirectory("/")).toBeUndefined();
+    expect(nextAncestorDirectory("/tmp/nested")).toBe("/tmp");
   });
 });

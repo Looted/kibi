@@ -5,7 +5,11 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import fs from "node:fs/promises";
 import { isolateKibiEnv } from "./helpers/in-process-workspace.ts";
-import { loadMarkdownBody, rankEntities } from "../src/search-ranking.js";
+import {
+  loadMarkdownBody,
+  rankEntities,
+  snippetFromMatchedLine,
+} from "../src/search-ranking.js";
 
 const spies: Array<{ mockRestore: () => void }> = [];
 let restoreEnv: (() => void) | undefined;
@@ -145,5 +149,11 @@ describe("search-ranking remaining query, body, and snippet branches", () => {
     );
     expect(matches[0]?.reasons).toContain("markdown body token coverage");
     expect(matches[0]?.snippet).toBe("alpha beta gamma");
+  });
+
+  test("snippetFromMatchedLine handles missing and long lines", () => {
+    expect(snippetFromMatchedLine(undefined)).toBeUndefined();
+    expect(snippetFromMatchedLine("short")).toBe("short");
+    expect(snippetFromMatchedLine("x".repeat(200))?.endsWith("...")).toBe(true);
   });
 });

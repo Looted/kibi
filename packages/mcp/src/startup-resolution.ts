@@ -59,36 +59,33 @@ function readJson(filePath: string): PackageJson {
   return JSON.parse(fs.readFileSync(filePath, "utf8")) as PackageJson;
 }
 
+export function nextAncestorDirectory(current: string): string | undefined {
+  const parent = path.dirname(current);
+  return parent === current ? undefined : parent;
+}
+
 function nearestPackageJson(startPath: string): string {
-  let current = path.dirname(startPath);
-  while (true) {
+  let current: string | undefined = path.dirname(startPath);
+  while (current !== undefined) {
     const candidate = path.join(current, "package.json");
     if (fs.existsSync(candidate)) {
       return candidate;
     }
-
-    const parent = path.dirname(current);
-    if (parent === current) {
-      throw new Error(`Unable to find package.json for ${startPath}`);
-    }
-    current = parent;
+    current = nextAncestorDirectory(current);
   }
+  throw new Error(`Unable to find package.json for ${startPath}`);
 }
 
 function nearestPackageJsonFromDirectory(startPath: string): string | null {
-  let current = path.resolve(startPath);
-  while (true) {
+  let current: string | undefined = path.resolve(startPath);
+  while (current !== undefined) {
     const candidate = path.join(current, "package.json");
     if (fs.existsSync(candidate)) {
       return candidate;
     }
-
-    const parent = path.dirname(current);
-    if (parent === current) {
-      return null;
-    }
-    current = parent;
+    current = nextAncestorDirectory(current);
   }
+  return null;
 }
 
 function packageInfoFromEntrypoint(entrypoint: string): McpPackageInfo {

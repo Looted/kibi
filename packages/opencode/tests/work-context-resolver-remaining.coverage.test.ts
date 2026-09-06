@@ -6,6 +6,7 @@ import { join } from "node:path";
 import {
   ancestorKbRoots,
   authorityRootFromLinkedGitDir,
+  nextAncestorDirectory,
   resolveBranch,
   resolveWorkContext,
 } from "../src/work-context-resolver.js";
@@ -95,6 +96,8 @@ describe("work-context-resolver remaining git walks and detached HEAD", () => {
       ),
     ).toBe(root);
     expect(ancestorKbRoots(join(root, "nested", "deeper"))).toContain(root);
+    expect(nextAncestorDirectory("/")).toBeUndefined();
+    expect(nextAncestorDirectory(join(root, "nested"))).toBe(root);
     expect(resolveBranch(null)).toBe("unknown");
     expect(
       resolveBranch({

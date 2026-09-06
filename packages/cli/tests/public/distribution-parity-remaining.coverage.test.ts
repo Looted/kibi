@@ -7,6 +7,7 @@ import {
   REQUIREMENT_COMPILER_CAPABILITIES,
   buildDistributionParityReport,
   nearestPackageInfo,
+  nextAncestorDirectory,
   normalizeDistributionParityValue,
   resolveDistributionRuntimeProvenance,
   runDistributionParityMatrix,
@@ -286,5 +287,7 @@ describe("distribution-parity leftover provenance, normalize, and issue branches
     ).toEqual({ packageRoot: root });
     expect(sortedUnique(undefined)).toEqual([]);
     expect(sortedUnique(["b", "a", "b"])).toEqual(["a", "b"]);
+    expect(nextAncestorDirectory("/")).toBeUndefined();
+    expect(nextAncestorDirectory(path.join(root, "nested"))).toBe(root);
   });
 });

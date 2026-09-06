@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   OPERATION_DATA_SCHEMAS,
+  assertUniqueEffectKinds,
   declaredEffects,
   nullableJsonSchema,
 } from "../../src/public/operations/contracts.js";
@@ -30,5 +31,11 @@ describe("operation contracts remaining catalog and effect declarations", () => 
     expect(nullableJsonSchema({ type: ["string"] })).toEqual({
       anyOf: [{ type: ["string"] }, { type: "null" }],
     });
+    expect(() =>
+      assertUniqueEffectKinds("kb_status", [{ kind: "kb-read" }, { kind: "kb-read" }], 2),
+    ).toThrow(/Duplicate effect contract/);
+    expect(() =>
+      assertUniqueEffectKinds("kb_status", [{ kind: "kb-read" }], 1),
+    ).not.toThrow();
   });
 });

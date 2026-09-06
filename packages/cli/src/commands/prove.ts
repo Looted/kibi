@@ -74,7 +74,7 @@ function withId(entity: Record<string, unknown>): SelectedTest {
   return entity;
 }
 
-function testId(test: SelectedTest): string {
+export function testId(test: SelectedTest): string {
   return String(test.id);
 }
 

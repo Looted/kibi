@@ -582,10 +582,6 @@ export async function migrateCommand(
     return { exitCode: 0 };
   }
 
-  if (!options.yes) {
-    return warnMigrationRequiredWithoutYes();
-  }
-
   // One-way storage cutover first: files must reach the canonical layout
   // before the manifest records the new schema generation.
   if (needsStorageMigration) {

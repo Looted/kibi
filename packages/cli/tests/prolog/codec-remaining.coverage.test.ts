@@ -1,6 +1,8 @@
 // implements REQ-009
 import { afterEach, describe, expect, test } from "bun:test";
 import {
+  entityFromBindingParts,
+  fallbackWhenPairMissing,
   fileUriLeaf,
   firstTwoDefinedParts,
   parseAtomList,
@@ -11,6 +13,7 @@ import {
   parsePropertyList,
   parseTriples,
   parseViolationRows,
+  typedLiteralFromParts,
 } from "../../src/prolog/codec.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";
 
@@ -81,5 +84,13 @@ describe("prolog codec leftover parse branches", () => {
     expect(firstTwoDefinedParts(["id", "req"])).toEqual(["id", "req"]);
     expect(fileUriLeaf("file:///tmp/app.ts")).toBe("app.ts");
     expect(fileUriLeaf("noslash")).toBe("noslash");
+    const hole: Array<string | undefined> = [];
+    hole[2] = "props";
+    expect(entityFromBindingParts(hole)).toEqual({});
+    expect(typedLiteralFromParts(hole, "^^(missing)")).toBe("^^(missing)");
+    expect(fallbackWhenPairMissing(undefined, { empty: true })).toEqual({
+      empty: true,
+    });
+    expect(fallbackWhenPairMissing(["id", "req"], "kept")).toBeNull();
   });
 });

@@ -199,6 +199,13 @@ export function assertRunLockMatches(expected: RunLock, actual: RunLock): void {
   if (expected.dirtyState.isDirty || actual.dirtyState.isDirty) {
     throw new ContractIntegrityError("dirty run lock", "dirtyState");
   }
+  assertMatchingRunLockHash(expected, actual);
+}
+
+export function assertMatchingRunLockHash(
+  expected: RunLock,
+  actual: RunLock,
+): void {
   if (runLockHash(expected) !== runLockHash(actual)) {
     throw new ContractIntegrityError("immutable run lock mismatch", "runLock");
   }

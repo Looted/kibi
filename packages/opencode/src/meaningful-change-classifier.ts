@@ -11,6 +11,13 @@ import type { RiskClass } from "./risk-classifier.js";
  * - "ignored": The change is in a build artifact or third-party path — no KB
  *   impact.
  */
+export function isSafeDocsUnknownPath(
+  riskClass: RiskClass,
+  pathKind: PathKind,
+): boolean {
+  return riskClass === "safe_docs_only" && pathKind === "unknown";
+}
+
 export type MeaningfulChangeClass =
   | "requires-kb-evidence"
   | "advisory"
@@ -160,7 +167,7 @@ export function classifyMeaningfulChange(params: {
       return "requires-kb-evidence";
     }
 
-    if (riskClass === "safe_docs_only" && pathKind === "unknown") {
+    if (isSafeDocsUnknownPath(riskClass, pathKind)) {
       return "advisory";
     }
   }

@@ -27,6 +27,14 @@ export function numberToken(value: string): number | null {
     : (NUMBER_WORDS.get(value.toLowerCase()) ?? null);
 }
 
+export function whenParsedNumber<T>(
+  value: number | null,
+  then: (value: number) => T,
+): T | null {
+  if (value === null) return null;
+  return then(value);
+}
+
 // implements REQ-mcp-semantic-advisor-preflight
 export function detectCountStrictSuggestion(
   payload: Payload,
@@ -41,7 +49,7 @@ export function detectCountStrictSuggestion(
     cardinality.groups.resource
   ) {
     const value = numberToken(cardinality.groups.value);
-    if (value !== null) {
+    const suggestion = whenParsedNumber(value, (parsed) => {
       const normalized = normalizeKey(cardinality.groups.resource);
       const tail = singularize(normalized.split("_").at(-1) ?? normalized);
       const operator = /at\s+least/i.test(cardinality.groups.operator)
@@ -60,20 +68,21 @@ export function detectCountStrictSuggestion(
             : "count",
           operator,
           value_type: "int",
-          value_int: value,
+          value_int: parsed,
         },
         "Bounded cardinality is a strict numeric property and should be modeled explicitly.",
         0.9,
       );
-    }
+    });
+    if (suggestion) return suggestion;
   }
   const capped = statement.match(
     /^(?<subject>.+?)\s+cap(?:s|ped)?\s+at\s+(?:(?<property>[a-z][a-z\s_-]*?)\s+)?(?<value>\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten)\.?$/i,
   );
   if (capped?.groups?.subject && capped.groups.value) {
     const value = numberToken(capped.groups.value);
-    if (value !== null) {
-      return strictSuggestion(
+    const suggestion = whenParsedNumber(value, (parsed) =>
+      strictSuggestion(
         payload,
         `cap at ${capped.groups.value}`,
         {
@@ -83,12 +92,13 @@ export function detectCountStrictSuggestion(
             : "count",
           operator: "lte",
           value_type: "int",
-          value_int: value,
+          value_int: parsed,
         },
         "Cap-at prose is an upper-bound strict property and should be modeled explicitly.",
         0.9,
-      );
-    }
+      ),
+    );
+    if (suggestion) return suggestion;
   }
   return null;
 }

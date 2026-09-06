@@ -4,7 +4,12 @@ import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { isCliEntrypoint, packageVersion, runCliIfEntrypoint } from "../src/cli.js";
+import {
+  buildProgram,
+  isCliEntrypoint,
+  packageVersion,
+  runCliIfEntrypoint,
+} from "../src/cli.js";
 
 const restores: Array<() => void> = [];
 
@@ -72,5 +77,6 @@ describe("cli main leftover entry and drain branches", () => {
     expect(isCliEntrypoint(cliPath, pathToFileURL(resolve(cliPath)).href)).toBe(
       true,
     );
+    expect(buildProgram().name()).toBe("kibi");
   });
 });

@@ -5,6 +5,15 @@ import { readKbManifestStatus } from "../../utils/kb-manifest.js";
 import { KB_PATHS } from "../../utils/kb-paths.js";
 import type { ActivationPolicy, ActivationState } from "./types.js";
 
+export function missingManifestActivation(
+  vendored: boolean,
+  projectSignal: boolean,
+): ActivationPolicy {
+  return activationFor(
+    vendored && !projectSignal ? "vendored_only" : "root_uninitialized",
+  );
+}
+
 function activationFor(state: ActivationState): ActivationPolicy {
   switch (state) {
     case "root_uninitialized":
@@ -151,9 +160,7 @@ export async function classifyActivation(
     );
     const projectSignal =
       projectSignalFromFiles || projectSignalFromDirectories.some(Boolean);
-    return activationFor(
-      vendored && !projectSignal ? "vendored_only" : "root_uninitialized",
-    );
+    return missingManifestActivation(vendored, projectSignal);
   }
   if (manifestStatus.state !== "ok") return activationFor("root_partial");
   const targets = [...Object.values(KB_PATHS.lanes), KB_PATHS.symbolsManifest];

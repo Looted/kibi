@@ -10,6 +10,7 @@ import path from "node:path";
 import {
   atomicPublishGeneration,
   cleanupAbandonedStagingDirectories,
+  abandonedStagingBranch,
   prepareStagingEnvironment,
 } from "../../../src/commands/sync/staging.js";
 import {
@@ -229,5 +230,11 @@ describe("cleanupAbandonedStagingDirectories leftover candidate filters", () => 
       },
     );
     expect(removed).toEqual(["/repo/.kb/branches/main.staging.111.1"]);
+  });
+
+  test("abandonedStagingBranch treats empty names as absent", () => {
+    expect(abandonedStagingBranch(undefined)).toBeUndefined();
+    expect(abandonedStagingBranch("")).toBeUndefined();
+    expect(abandonedStagingBranch("main")).toBe("main");
   });
 });

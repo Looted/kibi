@@ -77,6 +77,12 @@ export async function finishBridgeCli(result: Promise<number>): Promise<void> {
   }
 }
 
-if (import.meta.main) {
-  await finishBridgeCli(bridgeMain(process.argv.slice(2)));
+export async function runBridgeCliIfMain(
+  isMain = import.meta.main,
+  start = () => finishBridgeCli(bridgeMain(process.argv.slice(2))),
+): Promise<void> {
+  if (!isMain) return;
+  await start();
 }
+
+await runBridgeCliIfMain();

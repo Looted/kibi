@@ -8,6 +8,7 @@ import {
   branchMigrationApprovalHash,
   branchRecoverCommand,
   branchRestoreCommand,
+  completeBranchJournalPaths,
 } from "../../src/commands/branch.js";
 import * as syncModule from "../../src/commands/sync.js";
 import { EngineClient, engineSocketPath } from "../../src/engine.js";
@@ -411,5 +412,17 @@ describe("branch commands remaining runtime branches", () => {
     await expect(
       branchRestoreCommand({ workspaceRoot: cwd, branch: "main" }),
     ).rejects.toThrow("No quarantined store found");
+  });
+
+  test("completeBranchJournalPaths rejects an incomplete tuple", () => {
+    expect(() => completeBranchJournalPaths(["a", "b", "c", ""])).toThrow(
+      "Branch migration journal is incomplete",
+    );
+    expect(completeBranchJournalPaths(["a", "b", "c", "d"])).toEqual([
+      "a",
+      "b",
+      "c",
+      "d",
+    ]);
   });
 });
