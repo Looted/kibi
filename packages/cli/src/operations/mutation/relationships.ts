@@ -325,13 +325,12 @@ export async function validateStrictLanePairing(
     const result = await prolog.query(
       `once((kb_entity('${escapeAtom(target)}', fact, _SlpProps), memberchk(fact_kind=_SlpFK, _SlpProps), normalize_term_atom(_SlpFK, ${wrongKind})))`,
     );
-    if (result.success) {
+    if (result.success)
       throw wrongKindRelationshipError(
         String(relationship.type),
         target,
         wrongKind,
       );
-    }
   }
 }
 

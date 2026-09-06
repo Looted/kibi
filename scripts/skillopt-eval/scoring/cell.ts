@@ -107,9 +107,7 @@ export function coverageResultFromPriorCalls(
 ): Record<string, unknown> | null {
   for (let index = firstApplyIndex - 1; index >= 0; index -= 1) {
     const call = rawCalls[index];
-    if (call?.tool === "kb_coverage") {
-      return call.result ?? null;
-    }
+    if (call?.tool === "kb_coverage") return call.result ?? null;
   }
   return null;
 }

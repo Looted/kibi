@@ -818,10 +818,7 @@ export async function checkCommand(
       attached = true;
     }
 
-    const activeProlog = engine ?? prolog;
-    if (!activeProlog) {
-      throw new Error("Prolog runtime not initialized");
-    }
+    const activeProlog = requireActiveProlog<EngineClient, PrologProcess>(engine, prolog);
     const rules = options.rules
       ?.split(",")
       .map((rule) => rule.trim())

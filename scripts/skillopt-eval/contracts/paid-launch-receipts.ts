@@ -1,3 +1,4 @@
+export const PAID_LAUNCH_RECEIPTS_MODULE = true;
 import { z } from "zod";
 import {
   ArtifactIdSchema,

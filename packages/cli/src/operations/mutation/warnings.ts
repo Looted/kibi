@@ -21,9 +21,7 @@ export async function scenarioCoverageWarnings(
     const result = await prolog.query(
       `once(kb_relationship(specified_by, '${escapeAtom(entityId)}', ScenarioId))`,
     );
-    if (result.success) {
-      return scenarioCoverageWarning(entityId);
-    }
+    if (result.success) return scenarioCoverageWarning(entityId);
   }
   return [];
 }

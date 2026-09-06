@@ -99,7 +99,7 @@ export async function cleanupAbandonedStagingDirectories(
   const resolved = resolveDeps(deps);
   const stagingDir = path.dirname(stagingPath);
   const stagingBase = path.basename(stagingPath);
-  const match = /^(?<branch>.+)\.staging\.(?<pid>\d+)\.(?<timestamp>\d+)$/.exec(
+  const match = /^(?<branch>.*)\.staging\.(?<pid>\d+)\.(?<timestamp>\d+)$/.exec(
     stagingBase,
   );
 

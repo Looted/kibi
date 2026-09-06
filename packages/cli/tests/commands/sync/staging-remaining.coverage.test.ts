@@ -237,4 +237,15 @@ describe("cleanupAbandonedStagingDirectories leftover candidate filters", () => 
     expect(abandonedStagingBranch("")).toBeUndefined();
     expect(abandonedStagingBranch("main")).toBe("main");
   });
+
+  test("skips abandoned staging directories whose branch group is empty", async () => {
+    let globbed = false;
+    await cleanupAbandonedStagingDirectories("/repo/.kb/branches/.staging.1.2", {
+      fg: (async () => {
+        globbed = true;
+        return [];
+      }) as never,
+    });
+    expect(globbed).toBe(false);
+  });
 });

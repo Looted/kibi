@@ -10,8 +10,7 @@ export function missingManifestActivation(
   projectSignal: boolean,
 ): ActivationPolicy {
   return activationFor(
-    vendored && !projectSignal ? "vendored_only" : "root_uninitialized",
-  );
+    vendored && !projectSignal ? "vendored_only" : "root_uninitialized");
 }
 
 function activationFor(state: ActivationState): ActivationPolicy {

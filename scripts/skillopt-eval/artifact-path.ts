@@ -161,13 +161,19 @@ export function initialArtifactPathClosed(): boolean {
   return false;
 }
 
-export class ArtifactPath {
-  #closed = initialArtifactPathClosed();
+export const ArtifactPath = class ArtifactPath {
+  #closed: boolean;
+  readonly path: string;
+  readonly #directory: Awaited<ReturnType<typeof open>>;
 
   private constructor(
-    readonly path: string,
-    private readonly directory: Awaited<ReturnType<typeof open>>,
-  ) {}
+    path: string,
+    directory: Awaited<ReturnType<typeof open>>,
+  ) {
+    this.path = path;
+    this.#directory = directory;
+    this.#closed = initialArtifactPathClosed();
+  }
 
   static async create(
     options: PrepareArtifactPathOptions,
@@ -220,7 +226,7 @@ export class ArtifactPath {
   async remove(name: string): Promise<void> {
     if (this.#closed) throw new ArtifactPathError("artifact root is closed");
     assertDirectFileName(name);
-    assertSuccess(removeAt(this.directory.fd, name), "remove");
+    assertSuccess(removeAt(this.#directory.fd, name), "remove");
   }
 
   async writeText(name: string, text: string): Promise<void> {
@@ -232,15 +238,17 @@ export class ArtifactPath {
     if (existing !== undefined && !existing.isFile())
       throw new ArtifactPathError("artifact destination is not a file");
 
-    await writeAtomicTextFile(this.directory, name, text);
+    await writeAtomicTextFile(this.#directory, name, text);
   }
 
   async close(): Promise<void> {
     if (this.#closed) return;
     this.#closed = true;
-    await this.directory.close();
+    await this.#directory.close();
   }
-}
+};
+
+export type ArtifactPath = InstanceType<typeof ArtifactPath>;
 
 // implements REQ-skillopt-codex-optimization
 export function prepareArtifactPath(

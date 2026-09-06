@@ -1,3 +1,4 @@
+export const CLI_OPTIONS_MODULE = true;
 import { join } from "node:path";
 import { CANONICAL_SKILLS, type CanonicalSkill } from "./catalog";
 import type { CodexCellRuntime } from "./real-workflow";

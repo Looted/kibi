@@ -167,9 +167,7 @@ export function classifyMeaningfulChange(params: {
       return "requires-kb-evidence";
     }
 
-    if (isSafeDocsUnknownPath(riskClass, pathKind)) {
-      return "advisory";
-    }
+    if (isSafeDocsUnknownPath(riskClass, pathKind)) return "advisory";
   }
 
   // 5. DEFAULT — safety default for unknown paths

@@ -59,9 +59,7 @@ function effectStatus(
     const failure = failures.find(
       (entry) => record(entry) && entry.kind === effect,
     );
-    if (record(failure)) {
-      return failedEffectStatus(effect, failure);
-    }
+    if (record(failure)) return failedEffectStatus(effect, failure);
   }
   return { kind: effect, status: "completed" };
 }

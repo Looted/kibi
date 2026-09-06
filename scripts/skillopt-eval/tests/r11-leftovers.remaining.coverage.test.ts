@@ -23,18 +23,24 @@ import { initialArtifactPathClosed } from "../artifact-path";
 import { emptyIfEnoent } from "../runtime/codex-cell-artifacts";
 import { falseIfEnoent } from "../runtime/codex-runtime";
 import { assertMatchingSemanticClass } from "../fixtures/predicate-case-data";
-import { throwIfIntentDrift } from "../adoption-intent";
+import { intentIdentityDrifted, throwIfIntentDrift } from "../adoption-intent";
 import { throwIfDirectoryInodeDrift } from "../adoption-lock";
 import { throwIfTerminalMismatch } from "../adoption-journal";
 import { throwIfIdentityDrift } from "../adoption-durable";
 import { defaultPreflightDependencies } from "../legacy-preflight";
 import { requireSkillFrontmatter } from "../offline-artifacts";
-import { rethrowIfNotError } from "../preflight-host";
+import { rethrowIfNotError, tryVerifyBundleSignature } from "../bundle-signature";
 import { sandboxProbeFailureCode } from "../runtime/canary-probes";
 import { loginRunForSource } from "../runtime/codex-optimizer";
 import { throwIfBundleFailed } from "../runtime/staged-mcp";
 import { coverageResultFromPriorCalls } from "../scoring/cell";
-import { hasRoleKeyReuse } from "../runtime/fake-provider-contracts";
+import {
+  ConfigurationSchema,
+  hasRoleKeyReuse,
+} from "../runtime/fake-provider-contracts";
+import { CLI_OPTIONS_MODULE } from "../cli-options";
+import { PAID_LAUNCH_RECEIPTS_MODULE } from "../contracts/paid-launch-receipts";
+import { TRUST_PLANE_MODULE } from "../contracts/trust-plane";
 
 afterEach(() => {
   process.exitCode = 0;
@@ -84,7 +90,16 @@ describe("skillopt remasure11 leftover helpers", () => {
     expect(() => unexpectedPredicateBindingReason("nope")).toThrow(
       /unexpected predicate binding reason/,
     );
-    expect(typeof defaultCanaryRun).toBe("function");
+    const canary = await defaultCanaryRun(
+      ["/bin/true"],
+      process.cwd(),
+      process.env,
+      5_000,
+    );
+    expect(canary.exitCode).toBe(0);
+    expect(CLI_OPTIONS_MODULE).toBe(true);
+    expect(PAID_LAUNCH_RECEIPTS_MODULE).toBe(true);
+    expect(TRUST_PLANE_MODULE).toBe(true);
     expect(
       emptyIfEnoent(Object.assign(new Error("missing"), { code: "ENOENT" })),
     ).toBe("");
@@ -100,6 +115,27 @@ describe("skillopt remasure11 leftover helpers", () => {
       "adoption no-replace intent drift",
     );
     throwIfIntentDrift(false);
+    const matchingStat = {
+      isSymbolicLink: () => false,
+      isFile: () => true,
+      dev: 1,
+      ino: 2,
+      nlink: 2,
+    };
+    expect(
+      intentIdentityDrifted(matchingStat, matchingStat, {
+        dev: "1",
+        ino: "2",
+        hash: "abc",
+      }, "abc"),
+    ).toBe(false);
+    expect(
+      intentIdentityDrifted(matchingStat, matchingStat, {
+        dev: "1",
+        ino: "2",
+        hash: "abc",
+      }, "drifted"),
+    ).toBe(true);
     expect(() =>
       throwIfDirectoryInodeDrift({ dev: 1, ino: 2 }, { dev: 1, ino: 3 }),
     ).toThrow("adoption .kibi directory inode drift");
@@ -113,7 +149,15 @@ describe("skillopt remasure11 leftover helpers", () => {
       "adoption file inode drift",
     );
     throwIfIdentityDrift(true);
-    expect(typeof defaultPreflightDependencies().probeSandbox).toBe("function");
+    expect(typeof defaultPreflightDependencies.probeSandbox).toBe("function");
+    const preflightRun = await defaultPreflightDependencies.run(
+      ["/bin/true"],
+      process.cwd(),
+      process.env,
+      5_000,
+    );
+    expect(preflightRun.exitCode).toBe(0);
+    expect(tryVerifyBundleSignature({}, "not-a-key", "Zg==")).toBe(false);
     expect(() => requireSkillFrontmatter("no frontmatter")).toThrow(
       "offline_skill_frontmatter_missing",
     );
@@ -122,7 +166,11 @@ describe("skillopt remasure11 leftover helpers", () => {
     rethrowIfNotError(new Error("ignored"));
     expect(sandboxProbeFailureCode(true)).toBe("source_isolation_probe_failed");
     expect(sandboxProbeFailureCode(false)).toBe("sandbox_probe_failed");
-    expect(typeof loginRunForSource("/workspace")).toBe("function");
+    const loginRun = await loginRunForSource(process.cwd())(
+      ["/bin/true"],
+      process.env,
+    );
+    expect(loginRun.exitCode).toBe(0);
     expect(() => throwIfBundleFailed(false)).toThrow("bundle_failed");
     throwIfBundleFailed(true);
     expect(
@@ -137,5 +185,37 @@ describe("skillopt remasure11 leftover helpers", () => {
     expect(coverageResultFromPriorCalls([], 0)).toBeNull();
     expect(hasRoleKeyReuse("a", "a")).toBe(true);
     expect(hasRoleKeyReuse("a", "b")).toBe(false);
+    const reusedHash = "a".repeat(64);
+    expect(
+      ConfigurationSchema.safeParse({
+        parentId: "00000000-0000-4000-8000-000000000001",
+        parentHash: reusedHash,
+        authorizationMicrousd: 0,
+        maxRequests: 1,
+        pricingHash: reusedHash,
+        providerKeyId: "same",
+        verifierKeyId: "same",
+        destination: {
+          scheme: "https",
+          host: "example.com",
+          port: 443,
+          sni: "example.com",
+          pinnedIps: ["1.2.3.4"],
+          selectedIp: "1.2.3.4",
+          caDigest: reusedHash,
+          redirects: false,
+          proxies: false,
+          tunnels: false,
+        },
+        ceilings: {
+          models: ["gpt-5.4-mini"],
+          maxInputTokens: 1,
+          maxOutputTokens: 1,
+          maxRetries: 0,
+          timeoutMs: 1,
+          maxChargeMicrousd: 1,
+        },
+      }).success,
+    ).toBe(false);
   });
 });

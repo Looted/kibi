@@ -13,6 +13,7 @@ import {
 } from "../src/session-edit-state.js";
 import {
   adoptPrecomputedSuggestion,
+  nextRecentCommentSuggestion,
   resetCommentSuggestion,
 } from "../src/plugin.js";
 
@@ -24,6 +25,11 @@ describe("opencode remasure11 leftover helpers", () => {
   test("covers extracted leftover helpers and forceEdit kind", () => {
     expect(emptyLinkedTargets()).toEqual({ ids: [], source: "none" });
     expect(resetCommentSuggestion()).toBeNull();
+    expect(nextRecentCommentSuggestion(false, { id: "skip" })).toBeNull();
+    expect(nextRecentCommentSuggestion(true, null)).toBeNull();
+    expect(nextRecentCommentSuggestion(true, { id: "keep" })).toEqual({
+      id: "keep",
+    });
     expect(adoptPrecomputedSuggestion(null, { id: "next" })).toEqual({
       id: "next",
     });
@@ -44,6 +50,12 @@ describe("opencode remasure11 leftover helpers", () => {
     state.forceEdit(join(worktree, "src", "forced.ts"), "file.edited", 11);
     expect(state.hasSessionEdits()).toBe(true);
     expect(getFileLinkedEntityIds(worktree, "src/missing.ts")).toEqual({
+      ids: [],
+      source: "none",
+    });
+    mkdirSync(join(worktree, ".kb"), { recursive: true });
+    mkdirSync(join(worktree, ".kb", "symbols.yaml"));
+    expect(getFileLinkedEntityIds(worktree, "src/forced.ts")).toEqual({
       ids: [],
       source: "none",
     });

@@ -394,6 +394,18 @@ export function warnFailedSourceHash(file: string, error: unknown): void {
   console.warn(`Warning: Failed to hash ${file}: ${message}`);
 }
 
+// implements REQ-003, REQ-007
+export function rememberChangedSourceOrWarn(
+  file: string,
+  apply: () => void,
+): void {
+  try {
+    apply();
+  } catch (error) {
+    warnFailedSourceHash(file, error);
+  }
+}
+
 export function maybePushKbMissingDiagnostic(
   diagnostics: Diagnostic[],
   kbExists: boolean,
@@ -763,10 +775,10 @@ export async function syncCommand(
       removedShardRelationships.length > 0;
 
     for (const file of sourceFiles) {
-      try {
+      rememberChangedSourceOrWarn(file, () => {
         const key = toCacheKey(workspaceRoot, file);
         const hash = changedSourceHashes.get(key) ?? syncCache.hashes[key];
-        if (hash === undefined) continue;
+        if (hash === undefined) return;
         const lastSeen = syncCache.seenAt[key];
         const lastSeenMs = lastSeen ? Date.parse(lastSeen) : Number.NaN;
         const expired =
@@ -788,9 +800,7 @@ export async function syncCommand(
             changedManifestFiles.push(file);
           }
         }
-      } catch (error) {
-        warnFailedSourceHash(file, error);
-      }
+      });
     }
 
     // A v1 cache has only whole-file hashes. Perform one compiler-metadata

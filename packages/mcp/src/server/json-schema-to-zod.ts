@@ -268,8 +268,6 @@ export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
       return description ? n.describe(description) : n;
     }
     default:
-      return describedAnySchema(
-        typeof obj.description === "string" ? obj.description : undefined,
-      );
+      return describedAnySchema(typeof obj.description === "string" ? obj.description : undefined);
   }
 }

@@ -206,7 +206,6 @@ export function assertMatchingRunLockHash(
   expected: RunLock,
   actual: RunLock,
 ): void {
-  if (runLockHash(expected) !== runLockHash(actual)) {
+  if (runLockHash(expected) !== runLockHash(actual))
     throw new ContractIntegrityError("immutable run lock mismatch", "runLock");
-  }
 }

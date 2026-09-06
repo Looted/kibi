@@ -8,6 +8,7 @@ import {
   maybePushDocsNotIndexedDiagnostic,
   maybePushKbMissingDiagnostic,
   trackedRelationshipFiles,
+  rememberChangedSourceOrWarn,
   warnFailedSourceHash,
 } from "../../src/commands/sync.js";
 import {
@@ -134,11 +135,15 @@ describe("sync leftover diagnostic and hash-warning helpers", () => {
     try {
       warnFailedSourceHash("docs/a.md", new Error("hash-broke"));
       warnFailedSourceHash("docs/b.md", "plain");
+      rememberChangedSourceOrWarn("docs/c.md", () => {
+        throw new Error("apply-broke");
+      });
     } finally {
       console.warn = warn;
     }
     expect(warnings.join("\n")).toContain("Failed to hash docs/a.md: hash-broke");
     expect(warnings.join("\n")).toContain("Failed to hash docs/b.md: plain");
+    expect(warnings.join("\n")).toContain("Failed to hash docs/c.md: apply-broke");
 
     const missing: Array<{ category?: string }> = [];
     maybePushKbMissingDiagnostic(missing as never, true, false, "main", "/tmp/kb");

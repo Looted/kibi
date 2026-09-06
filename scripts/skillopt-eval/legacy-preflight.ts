@@ -82,18 +82,14 @@ export type PreflightDependencies = Readonly<{
   probeSandbox: typeof probeCodexSandbox;
 }>;
 
-export function defaultPreflightDependencies(): PreflightDependencies {
-  return {
-    run: (argv, cwd, env, timeoutMs, stdin) =>
-      runBoundedProcess({ argv, cwd, env, timeoutMs, stdin }),
-    sourceClean: sourceWorktreeIsClean,
-    stageRuntime: stageCapabilityCanary,
-    probeRequiredMcp,
-    probeSandbox: probeCodexSandbox,
-  };
-}
-
-const runtimeDependencies: PreflightDependencies = defaultPreflightDependencies();
+export const defaultPreflightDependencies: PreflightDependencies = {
+  run: (argv, cwd, env, timeoutMs, stdin) =>
+    runBoundedProcess({ argv, cwd, env, timeoutMs, stdin }),
+  sourceClean: sourceWorktreeIsClean,
+  stageRuntime: stageCapabilityCanary,
+  probeRequiredMcp,
+  probeSandbox: probeCodexSandbox,
+};
 
 function baseReceipt(
   config: PreflightConfig,
@@ -181,7 +177,7 @@ async function prepareConfig(
 // implements REQ-skillopt-codex-optimization
 export async function runPreflight(
   config: PreflightConfig,
-  dependencies: PreflightDependencies = runtimeDependencies,
+  dependencies: PreflightDependencies = defaultPreflightDependencies,
 ): Promise<PreflightReceipt> {
   const sourceWorktree = resolve(config.sourceWorktree ?? process.cwd());
   const configuredArtifactRoot = await resolveArtifactRoot(config.artifactRoot);

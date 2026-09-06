@@ -192,9 +192,7 @@ export function isKbFreshnessRelevantPath(candidate: string): boolean {
 
   if (segments[0] === ".kb") {
     const lane = segments[1];
-    if (isFreshnessLane(lane)) {
-      return true;
-    }
+    if (isFreshnessLane(lane)) return true;
   }
 
   // Legacy layout during migration

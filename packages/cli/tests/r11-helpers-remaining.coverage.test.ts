@@ -15,7 +15,11 @@ import { optionalPredicateName } from "../src/operations/modeling/predicate-load
 import { predicateSchemaFromEntity } from "../src/operations/modeling/predicate-loader.js";
 import { wrongKindRelationshipError } from "../src/operations/mutation/relationships.js";
 import { restoreOrUnlinkCoordinateArtifact } from "../src/operations/mutation/symbol-refresh.js";
-import { registerProcessExitOnce } from "../src/prolog.js";
+import {
+  PrologProcess,
+  bindProcessExitHandler,
+  registerProcessExitOnce,
+} from "../src/prolog.js";
 import { attachmentFailureMessage } from "../src/runtime/cli-runtime.js";
 import { unreadableMigrationJournalError } from "../src/utils/branch-resolver.js";
 import { failedEffectStatus } from "../src/public/operations/result-envelope.js";
@@ -122,6 +126,14 @@ describe("cli remasure11 leftover helpers", () => {
     });
     expect(assigned).toBe(second);
     expect(registered).toBe(1);
+    let terminated = false;
+    const bound = bindProcessExitHandler(null, () => {
+      terminated = true;
+    }, () => undefined);
+    bound();
+    expect(terminated).toBe(true);
+    const prolog = new PrologProcess({ oneShot: true });
+    prolog.attachProcessExitHandler(() => undefined);
     expect(
       attachmentFailureMessage({
         error: "not a git repository",

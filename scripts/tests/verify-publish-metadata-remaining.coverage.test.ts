@@ -17,5 +17,6 @@ describe("verify-publish-metadata leftover main gate", () => {
       exits.push(code);
     });
     expect(exits).toEqual([3]);
+    runVerifyPublishMetadataIfMain(false, () => 0);
   });
 });
