@@ -18,6 +18,7 @@ import type {
   PrologQueryResult,
 } from "../../src/public/operations/runtime-types.js";
 import * as syncModule from "../../src/commands/sync.js";
+import { asApply } from "../helpers/coverage-casts.js";
 
 function sha(value: string): string {
   return createHash("sha256").update(value).digest("hex");
@@ -162,8 +163,8 @@ describe("source recovery journals", () => {
         filesystemContext(root),
       );
       expect(result.structuredContent.outcome).toBe("replayed");
-      expect(result.structuredContent.recoveryJournalId).toBe(journalId);
-      expect(result.structuredContent.changedEntities).toBe(2);
+      expect(asApply(result.structuredContent).recoveryJournalId).toBe(journalId);
+      expect(asApply(result.structuredContent).changedEntities).toBe(2);
       expect(syncSpy).toHaveBeenCalled();
     } finally {
       syncSpy.mockRestore();
@@ -209,7 +210,7 @@ describe("source recovery journals", () => {
         filesystemContext(root),
       );
       expect(result.structuredContent.outcome).toBe("replayed");
-      expect(result.structuredContent.changedEntities).toBe(0);
+      expect(asApply(result.structuredContent).changedEntities).toBe(0);
     } finally {
       syncSpy.mockRestore();
     }
@@ -574,33 +575,35 @@ describe("bootstrap recovery journals", () => {
     expect(result.structuredContent.outcome).toMatch(
       /applied|partially_applied|reconciliation_required/,
     );
-    expect(result.structuredContent.recoveryJournalId).toBe(journalId);
+    expect(asApply(result.structuredContent).recoveryJournalId).toBe(journalId);
   });
 
   test("records a repair journal when a bootstrap action fails", async () => {
     const root = makeTempDir();
     const plan = await thinPlan();
-    const ctx = filesystemContext(root);
-    ctx.prolog = {
-      query: async (goal: string): Promise<PrologQueryResult> => {
-        if (goal.includes("REQ-bootstrap-recover-2")) {
-          return { success: false, bindings: {}, error: "upsert failed" };
-        }
-        if (goal.includes("kb_commit_upsert")) {
-          return { success: true, bindings: { ChangeKind: "created" } };
-        }
-        return { success: true, bindings: { Results: "[]" } };
+    const ctx = {
+      ...filesystemContext(root),
+      prolog: {
+        query: async (goal: string): Promise<PrologQueryResult> => {
+          if (goal.includes("REQ-bootstrap-recover-2")) {
+            return { success: false, bindings: {}, error: "upsert failed" };
+          }
+          if (goal.includes("kb_commit_upsert")) {
+            return { success: true, bindings: { ChangeKind: "created" } };
+          }
+          return { success: true, bindings: { Results: "[]" } };
+        },
+        queryStatusJson: async () => ({ success: true, bindings: {} }),
+        nextSolution: async () => null,
+        save: async () => ({ success: true, bindings: {} }),
       },
-      queryStatusJson: async () => ({ success: true, bindings: {} }),
-      nextSolution: async () => null,
-      save: async () => ({ success: true, bindings: {} }),
     };
     const result = await executeApplyPlan(
       { plan, approvedPlanHash: plan.planHash },
       ctx,
     );
     expect(result.structuredContent.outcome).toBe("partially_applied");
-    expect(result.structuredContent.recoveryJournalId).toMatch(/^bootstrap-/);
+    expect(asApply(result.structuredContent).recoveryJournalId).toMatch(/^bootstrap-/);
   });
 });
 
@@ -686,24 +689,26 @@ describe("compile plan snapshot and derived-commit failures", () => {
         },
       ],
     });
-    const ctx = filesystemContext(root);
-    ctx.prolog = {
-      query: async (goal: string): Promise<PrologQueryResult> => {
-        if (goal.includes("kb_commit_upsert")) {
-          return { success: false, bindings: {}, error: "compiled failed" };
-        }
-        return { success: true, bindings: { Results: "[]" } };
+    const ctx = {
+      ...filesystemContext(root),
+      prolog: {
+        query: async (goal: string): Promise<PrologQueryResult> => {
+          if (goal.includes("kb_commit_upsert")) {
+            return { success: false, bindings: {}, error: "compiled failed" };
+          }
+          return { success: true, bindings: { Results: "[]" } };
+        },
+        queryStatusJson: async () => ({ success: true, bindings: {} }),
+        nextSolution: async () => null,
+        save: async () => ({ success: true, bindings: {} }),
       },
-      queryStatusJson: async () => ({ success: true, bindings: {} }),
-      nextSolution: async () => null,
-      save: async () => ({ success: true, bindings: {} }),
     };
     const result = await executeApplyPlan(
       { plan, approvedPlanHash: plan.planHash },
       ctx,
     );
-    expect(result.structuredContent.status).toBe("committed_with_repairs");
-    expect(result.structuredContent.recoveryJournalId).toMatch(/^source-writes-/);
+    expect(asApply(result.structuredContent).status).toBe("committed_with_repairs");
+    expect(asApply(result.structuredContent).recoveryJournalId).toMatch(/^source-writes-/);
   });
 
   test("keeps a compile apply committed when final status readback fails", async () => {
@@ -737,13 +742,13 @@ describe("compile plan snapshot and derived-commit failures", () => {
         { plan, approvedPlanHash: plan.planHash },
         filesystemContext(root),
       );
-      expect(result.structuredContent.status).toBe("committed_with_repairs");
+      expect(asApply(result.structuredContent).status).toBe("committed_with_repairs");
       expect(
-        result.structuredContent.effectFailures?.some(
+        asApply(result.structuredContent).effectFailures?.some(
           (failure) => failure.kind === "post-commit-readback",
         ),
       ).toBe(true);
-      expect(result.structuredContent.nextActions?.some((action) => action.operation === "kb_status")).toBe(
+      expect(asApply(result.structuredContent).nextActions?.some((action) => action.operation === "kb_status")).toBe(
         true,
       );
     } finally {

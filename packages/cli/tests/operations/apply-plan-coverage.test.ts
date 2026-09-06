@@ -10,6 +10,7 @@ import {
   compilePlanHash,
 } from "../../src/operations/planning/compile-intent.js";
 import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
+import { asApply } from "../helpers/coverage-casts.js";
 import {
   buildMigrationPlan,
   type MigrationAction,
@@ -290,7 +291,7 @@ describe("compile plan application", () => {
       outcome: "applied",
       planHash: plan.planHash,
     });
-    expect(result.structuredContent.changedPaths).toEqual([
+    expect(asApply(result.structuredContent).changedPaths).toEqual([
       "requirements/REQ-apply.md",
     ]);
   });
@@ -550,7 +551,7 @@ describe("migration plan application", () => {
       outcome: "reconciliation_required",
     });
     const rows = (
-      result.structuredContent as {
+      result.structuredContent as unknown as {
         actionResults: readonly { actionId: string; outcome: string }[];
       }
     ).actionResults;
@@ -772,9 +773,9 @@ describe("bootstrap plan extra guards", () => {
       filesystemContext(root, {
         query: {
           query: async (goal) =>
-            goal.includes("kb_commit_upsert")
+            (goal.includes("kb_commit_upsert")
               ? { success: true, bindings: { ChangeKind: "created" } }
-              : { success: true, bindings: { Results: "[]" } },
+              : { success: true, bindings: { Results: "[]" } }) as unknown as PrologQueryResult,
           queryStatusJson: async () => ({ success: true, bindings: {} }),
           nextSolution: async () => null,
           save: async () => ({ success: true, bindings: {} }),
@@ -1014,7 +1015,7 @@ describe("source hash and source-write guards", () => {
       { plan, approvedPlanHash: plan.planHash },
       filesystemContext(root),
     );
-    expect(result.structuredContent.changedPaths).toEqual(["gone.md"]);
+    expect(asApply(result.structuredContent).changedPaths).toEqual(["gone.md"]);
   });
 
   test("writes without rename and refuses delete without unlink", async () => {
@@ -1036,7 +1037,7 @@ describe("source hash and source-write guards", () => {
       { plan, approvedPlanHash: plan.planHash },
       { ...filesystemContext(root), fs: noRename },
     );
-    expect(written.structuredContent.changedPaths).toEqual(["docs/compat.md"]);
+    expect(asApply(written.structuredContent).changedPaths).toEqual(["docs/compat.md"]);
 
     writeFileSync(path.join(root, "gone-no-unlink.md"), "x\n");
     const del = compilePlan({
@@ -1257,7 +1258,7 @@ describe("migration action executors", () => {
         ctx,
       );
       expect(
-        (ensured.structuredContent as { actionResults: { outcome: string }[] })
+        (ensured.structuredContent as unknown as { actionResults: { outcome: string }[] })
           .actionResults[0]?.outcome,
       ).toBe("applied");
     } finally {
@@ -1294,7 +1295,7 @@ describe("migration action executors", () => {
     );
     expect(result.structuredContent.outcome).toBe("reconciliation_required");
     const rows = (
-      result.structuredContent as {
+      result.structuredContent as unknown as {
         actionResults: readonly { actionId: string; outcome: string }[];
       }
     ).actionResults;
@@ -1574,7 +1575,7 @@ describe("remaining apply-plan shape and recovery branches", () => {
       { plan: mismatch, approvedPlanHash: mismatch.planHash },
       filesystemContext(root),
     );
-    expect(applied.structuredContent.changedPaths).toEqual(["docs/other.md"]);
+    expect(asApply(applied.structuredContent).changedPaths).toEqual(["docs/other.md"]);
   });
 
   test("records committed_with_repairs when a bootstrap upsert returns repair status", async () => {
@@ -1585,9 +1586,9 @@ describe("remaining apply-plan shape and recovery branches", () => {
       filesystemContext(root, {
         query: {
           query: async (goal) =>
-            goal.includes("kb_commit_upsert")
+            (goal.includes("kb_commit_upsert")
               ? { success: true, bindings: { ChangeKind: "mutated" } }
-              : { success: true, bindings: { Results: "[]" } },
+              : { success: true, bindings: { Results: "[]" } }) as unknown as PrologQueryResult,
           queryStatusJson: async () => ({ success: true, bindings: {} }),
           nextSolution: async () => null,
           save: async () => ({ success: true, bindings: {} }),
@@ -1595,7 +1596,7 @@ describe("remaining apply-plan shape and recovery branches", () => {
       }),
     );
     expect(result.structuredContent.outcome).toBe("partially_applied");
-    expect(result.structuredContent.status).toBe("committed_with_repairs");
+    expect(asApply(result.structuredContent).status).toBe("committed_with_repairs");
   });
 
   test("rejects compile apply without Prolog after plan validation", async () => {
