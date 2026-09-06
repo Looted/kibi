@@ -6,9 +6,11 @@ import {
   type DistributionRuntime,
   REQUIREMENT_COMPILER_CAPABILITIES,
   buildDistributionParityReport,
+  nearestPackageInfo,
   normalizeDistributionParityValue,
   resolveDistributionRuntimeProvenance,
   runDistributionParityMatrix,
+  sortedUnique,
 } from "../../src/public/distribution-parity.js";
 import {
   createTempDir,
@@ -267,5 +269,22 @@ describe("distribution-parity leftover provenance, normalize, and issue branches
     );
     expect(report.rows.length).toBeGreaterThan(0);
     expect(report.rows[0]?.diagnosticIds).toEqual([]);
+  });
+
+  test("nearestPackageInfo and sortedUnique cover walk and undefined-list leftovers", () => {
+    restores.push(isolateKibiEnv());
+    const root = createTempDir("kibi-parity-walk-");
+    roots.push(root);
+    mkdirSync(path.join(root, "nested", "deep"), { recursive: true });
+    writeFileSync(
+      path.join(root, "nested", "deep", "entry.js"),
+      "export {};\n",
+    );
+    writeFileSync(path.join(root, "package.json"), "{not-json");
+    expect(
+      nearestPackageInfo(path.join(root, "nested", "deep", "entry.js")),
+    ).toEqual({ packageRoot: root });
+    expect(sortedUnique(undefined)).toEqual([]);
+    expect(sortedUnique(["b", "a", "b"])).toEqual(["a", "b"]);
   });
 });

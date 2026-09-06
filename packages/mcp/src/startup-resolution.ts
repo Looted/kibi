@@ -16,7 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { existsSync, readFileSync, realpathSync } from "node:fs";
+import * as fs from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -56,14 +56,14 @@ function toEntrypointPath(entrypointUrl: string): string {
 }
 
 function readJson(filePath: string): PackageJson {
-  return JSON.parse(readFileSync(filePath, "utf8")) as PackageJson;
+  return JSON.parse(fs.readFileSync(filePath, "utf8")) as PackageJson;
 }
 
 function nearestPackageJson(startPath: string): string {
   let current = path.dirname(startPath);
   while (true) {
     const candidate = path.join(current, "package.json");
-    if (existsSync(candidate)) {
+    if (fs.existsSync(candidate)) {
       return candidate;
     }
 
@@ -79,7 +79,7 @@ function nearestPackageJsonFromDirectory(startPath: string): string | null {
   let current = path.resolve(startPath);
   while (true) {
     const candidate = path.join(current, "package.json");
-    if (existsSync(candidate)) {
+    if (fs.existsSync(candidate)) {
       return candidate;
     }
 
@@ -121,7 +121,7 @@ export function resolveProjectLocalMcp(cwd: string): McpPackageInfo | null {
     const projectRequire = createRequire(projectPackageJson);
     const resolved = projectRequire.resolve(PACKAGE_NAME);
     const entrypoint =
-      realpathSync.native?.(resolved) ?? realpathSync(resolved);
+      fs.realpathSync.native?.(resolved) ?? fs.realpathSync(resolved);
     return packageInfoFromEntrypoint(entrypoint);
   } catch (error) {
     const code = (error as NodeJS.ErrnoException).code;

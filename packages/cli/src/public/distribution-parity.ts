@@ -181,7 +181,7 @@ type PackageManifest = {
   readonly version?: string;
 };
 
-function nearestPackageInfo(entrypoint: string): {
+export function nearestPackageInfo(entrypoint: string): {
   readonly packageRoot?: string;
   readonly version?: string;
 } {
@@ -308,7 +308,7 @@ function semanticFingerprint(value: unknown): string {
   return JSON.stringify(value);
 }
 
-function sortedUnique(values: readonly string[] | undefined): string[] {
+export function sortedUnique(values: readonly string[] | undefined): string[] {
   return [...new Set(values ?? [])].sort((left, right) =>
     left.localeCompare(right),
   );

@@ -1,3 +1,4 @@
+// implements REQ-002
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as fs from "node:fs";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
@@ -46,5 +47,19 @@ describe("startup-resolution remaining package walk and catch-all", () => {
     });
     spies.push(spy);
     expect(resolveProjectLocalMcp("/tmp")).toBeNull();
+  });
+
+  test("walks nested directories before throwing or returning null", () => {
+    const original = fs.existsSync.bind(fs);
+    const spy = spyOn(fs, "existsSync").mockImplementation((target) => {
+      if (String(target).endsWith(`${path.sep}package.json`)) return false;
+      return original(target);
+    });
+    spies.push(spy);
+    const nested = path.join(os.tmpdir(), "kibi-mcp-walk", "nested", "server.js");
+    expect(() => readRunningPackageInfo(nested)).toThrow(
+      /Unable to find package.json/,
+    );
+    expect(resolveProjectLocalMcp(path.join(os.tmpdir(), "kibi-mcp-walk"))).toBeNull();
   });
 });
