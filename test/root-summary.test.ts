@@ -5,6 +5,7 @@ import {
   CLI_ENGINE_BATCH_TIMEOUT_MS,
   type SuiteSummary,
   getBatchFailureMessage,
+  isCuratedSuiteEntryPoint,
   isolatedUnitBatchEnv,
   parseSuiteSummaries,
 } from "./root.test.ts";
@@ -46,6 +47,29 @@ describe("getBatchFailureMessage", () => {
     ).toBe(
       `cli timed out after ${BATCH_TIMEOUT_MINUTES} minutes (status null; 0 summaries).`,
     );
+  });
+});
+
+describe("isCuratedSuiteEntryPoint", () => {
+  const modulePath = "/workspace/test/root.test.ts";
+
+  it("runs only as a direct script, not under bun test", () => {
+    expect(
+      isCuratedSuiteEntryPoint(["bun", modulePath], modulePath),
+    ).toBe(true);
+    expect(
+      isCuratedSuiteEntryPoint(
+        ["bun", "test", "--timeout", "120000", modulePath],
+        modulePath,
+      ),
+    ).toBe(false);
+    expect(
+      isCuratedSuiteEntryPoint(
+        ["bun", "test", modulePath, "./packages/cli/tests/engine.test.ts"],
+        modulePath,
+      ),
+    ).toBe(false);
+    expect(isCuratedSuiteEntryPoint(["bun"], modulePath)).toBe(false);
   });
 });
 

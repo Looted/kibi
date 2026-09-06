@@ -23253,7 +23253,7 @@ coordinates:
     sourceLine: 1
   SYM-test-root-batch-concurrency:
     identityHash: 1b350dbbe342b5b9de2f433899a639eb0761dac135c3d6aa71ad3d0f4f3035b0
-    sourceHash: 65e7df927ee1c3760adc87378b60417a7f60530fde47654d5a40da730fb3aa1c
+    sourceHash: 5080ebc7c59081871b2db9a4036360a20a09117adbdcc9427340dd3cea7a475a
     sourceColumn: 13
     sourceEndColumn: 34
     sourceEndLine: 58
@@ -23261,7 +23261,7 @@ coordinates:
     sourceLine: 58
   SYM-test-root-batch-timeout-minutes:
     identityHash: 419e1f2874ae6af61de24368330a41c22dcf31a3df144b5fdefa0f239f707252
-    sourceHash: 65e7df927ee1c3760adc87378b60417a7f60530fde47654d5a40da730fb3aa1c
+    sourceHash: 5080ebc7c59081871b2db9a4036360a20a09117adbdcc9427340dd3cea7a475a
     sourceColumn: 13
     sourceEndColumn: 39
     sourceEndLine: 57
@@ -23269,7 +23269,7 @@ coordinates:
     sourceLine: 57
   SYM-test-root-cli-engine-batch-timeout:
     identityHash: dc8b145b6e06765b54a74edefd0beda9f40ab59a9703c6582d8281fd9146b248
-    sourceHash: 65e7df927ee1c3760adc87378b60417a7f60530fde47654d5a40da730fb3aa1c
+    sourceHash: 5080ebc7c59081871b2db9a4036360a20a09117adbdcc9427340dd3cea7a475a
     sourceColumn: 13
     sourceEndColumn: 50
     sourceEndLine: 63
@@ -23277,7 +23277,7 @@ coordinates:
     sourceLine: 63
   SYM-test-root-engine-shutdown-timeout:
     identityHash: 86dc4d6514b5b0a995a6da345a4719e18e3689b4b3c1215f86d838d5fbb6e25c
-    sourceHash: 65e7df927ee1c3760adc87378b60417a7f60530fde47654d5a40da730fb3aa1c
+    sourceHash: 5080ebc7c59081871b2db9a4036360a20a09117adbdcc9427340dd3cea7a475a
     sourceColumn: 13
     sourceEndColumn: 52
     sourceEndLine: 59
@@ -23285,7 +23285,7 @@ coordinates:
     sourceLine: 59
   SYM-test-root-getBatchFailureMessage:
     identityHash: 856031a9fe762f1f995ef791d81f5cf88475794aa41bd1d943ee1fb5d5cab2de
-    sourceHash: 65e7df927ee1c3760adc87378b60417a7f60530fde47654d5a40da730fb3aa1c
+    sourceHash: 5080ebc7c59081871b2db9a4036360a20a09117adbdcc9427340dd3cea7a475a
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 87
@@ -23293,7 +23293,7 @@ coordinates:
     sourceLine: 73
   SYM-test-root-isolated-unit-batch-env:
     identityHash: 487365ed205c926435678d3f494c2e163b97324184ff7aa927f0e0f589cff2a0
-    sourceHash: 65e7df927ee1c3760adc87378b60417a7f60530fde47654d5a40da730fb3aa1c
+    sourceHash: 5080ebc7c59081871b2db9a4036360a20a09117adbdcc9427340dd3cea7a475a
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 53
@@ -23301,7 +23301,7 @@ coordinates:
     sourceLine: 23
   SYM-test-root-runBatch:
     identityHash: 8948f32a78a75a740dc69b7350c004fa013602ee03d3ddff225bafeed9d1cd8a
-    sourceHash: 65e7df927ee1c3760adc87378b60417a7f60530fde47654d5a40da730fb3aa1c
+    sourceHash: 5080ebc7c59081871b2db9a4036360a20a09117adbdcc9427340dd3cea7a475a
     sourceColumn: 15
     sourceEndColumn: 1
     sourceEndLine: 334
@@ -23309,7 +23309,7 @@ coordinates:
     sourceLine: 274
   SYM-test-root-stop-engines:
     identityHash: 694f43748981754ef61b9eaf8f4362a7bc1dc955c3ddee4fb20800d8786196fd
-    sourceHash: 65e7df927ee1c3760adc87378b60417a7f60530fde47654d5a40da730fb3aa1c
+    sourceHash: 5080ebc7c59081871b2db9a4036360a20a09117adbdcc9427340dd3cea7a475a
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 244
@@ -23317,10 +23317,10 @@ coordinates:
     sourceLine: 204
   SYM-test-root-summary-timeout-diagnostic:
     identityHash: 2314e0d297634c8033ad2a748d3e8720642dffa0f77739939d66028c894e08f8
-    sourceHash: 82a9b28580c2dd86e3faf0388ff4ed2249d845cd151495548642ca344db7f426
+    sourceHash: 4d676ab9a4734c26f3d012de6041720a526a71e54138f8c072e1dedf65e5d6fd
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 187
+    sourceEndLine: 211
     sourceFile: test/root-summary.test.ts
     sourceLine: 1
   SYM-test-rule-contradiction-witness-proof:

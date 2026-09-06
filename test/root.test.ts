@@ -356,10 +356,22 @@ async function runCuratedUnitSuite(): Promise<number> {
   return summaries.some((summary) => summary.fail > 0) ? 1 : 0;
 }
 
-const isEntryPoint =
-  process.argv.length >= 2 &&
-  process.argv[1] !== undefined &&
-  resolve(process.argv[1]) === import.meta.filename;
+// bun test puts this file on argv[1] when it is the first test path. The
+// curated suite is a script entrypoint only (`bun ./test/root.test.ts`).
+// implements REQ-test-journaled-engine-harness
+// covered_by TEST-test-journaled-engine-harness
+export function isCuratedSuiteEntryPoint(
+  argv: readonly string[],
+  modulePath: string,
+): boolean {
+  if (argv.includes("test")) return false;
+  return argv[1] !== undefined && resolve(argv[1]) === resolve(modulePath);
+}
+
+const isEntryPoint = isCuratedSuiteEntryPoint(
+  process.argv,
+  import.meta.filename,
+);
 if (isEntryPoint) {
   try {
     process.exit(await runCuratedUnitSuite());
