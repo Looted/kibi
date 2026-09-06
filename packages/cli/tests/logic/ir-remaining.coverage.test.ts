@@ -298,4 +298,56 @@ describe("validateLogicIr remaining term, temporal, and kind branches", () => {
 
     expect(utf8Span("abc", -2, 1)).toEqual({ start: 0, end: 1 });
   });
+
+  test("rejects untyped expressions, non-atom wrappers, before terms, and unsafe exceptions", () => {
+    restoreEnv = isolateKibiEnv();
+    expect(
+      validateLogicIr({
+        version: LOGIC_IR_VERSION,
+        kind: "constraint",
+        modality: "assert",
+        body: "not-an-expression",
+      }).errors.join(" "),
+    ).toMatch(/typed expression object/);
+
+    expect(
+      validateLogicIr({
+        version: LOGIC_IR_VERSION,
+        kind: "constraint",
+        modality: "assert",
+        body: { kind: "not", item: { kind: "const", value: "x" } },
+      }).errors.join(" "),
+    ).toMatch(/must be an atom/);
+
+    expect(
+      validateLogicIr({
+        version: LOGIC_IR_VERSION,
+        kind: "constraint",
+        modality: "assert",
+        body: {
+          kind: "temporal",
+          relation: "before",
+          left: { kind: "const", value: "x" },
+          right: { kind: "const", value: "y" },
+        },
+      }).errors.join(" "),
+    ).toMatch(/before requires timestamp or interval terms/);
+
+    const unsafeException = validateLogicIr({
+      version: LOGIC_IR_VERSION,
+      kind: "constraint",
+      modality: "assert",
+      variables: [
+        { name: "X", type: "entity" },
+        { name: "Y", type: "entity" },
+      ],
+      body: atom("ready", [{ kind: "var", name: "X", type: "entity" }]),
+      exceptions: [
+        atom("skip", [{ kind: "var", name: "Y", type: "entity" }]),
+      ],
+    });
+    expect(unsafeException.errors.join(" ")).toMatch(
+      /exception variable Y is not range-restricted/,
+    );
+  });
 });
