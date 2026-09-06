@@ -123,7 +123,19 @@ export async function doctorCommand(
   return { exitCode: 1 };
 }
 
-async function packageMigrationActions(
+export async function detectExecuteApplyPlanExport(
+  load: () => Promise<{ executeApplyPlan?: unknown }> = () =>
+    import("../public/operations/index.js"),
+): Promise<boolean> {
+  try {
+    const operations = await load();
+    return typeof operations.executeApplyPlan === "function";
+  } catch {
+    return false;
+  }
+}
+
+export async function packageMigrationActions(
   runtime: Readonly<Record<string, unknown>>,
 ) {
   const actions = [];
@@ -227,14 +239,7 @@ async function runtimeProvenance(): Promise<Record<string, unknown>> {
   }
   const core = resolveInstalledPackageInfo("kibi-core");
   const mcp = resolveInstalledPackageInfo("kibi-mcp");
-  let executeApplyPlanExported: boolean | undefined;
-  try {
-    const operations = await import("../public/operations/index.js");
-    executeApplyPlanExported =
-      typeof operations.executeApplyPlan === "function";
-  } catch {
-    executeApplyPlanExported = false;
-  }
+  const executeApplyPlanExported = await detectExecuteApplyPlanExport();
   return {
     cliVersion: typeof cli.version === "string" ? cli.version : "unknown",
     coreVersion: core.version,
@@ -295,7 +300,7 @@ function packageInfoFromManifest(
   };
 }
 
-function nearestNamedPackageManifest(
+export function nearestNamedPackageManifest(
   startDir: string,
   name: string,
 ): string | undefined {

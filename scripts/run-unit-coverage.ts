@@ -400,6 +400,11 @@ export async function runUnitCoverage(): Promise<void> {
   }
 }
 
-if (import.meta.main) {
+export async function runUnitCoverageIfMain(
+  isMain = import.meta.main,
+): Promise<void> {
+  if (!isMain) return;
   await runUnitCoverage();
 }
+
+await runUnitCoverageIfMain();

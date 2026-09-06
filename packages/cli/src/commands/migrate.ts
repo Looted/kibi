@@ -194,7 +194,7 @@ function writeTextAtomically(filePath: string, content: string): void {
   renameSync(tempPath, filePath);
 }
 
-function formatSchemaVersion(
+export function formatSchemaVersion(
   rawSchemaVersion: unknown,
   normalized: number | null,
 ): string {

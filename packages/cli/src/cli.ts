@@ -34,7 +34,7 @@ const packageJson: unknown = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
 );
 
-function packageVersion(value: unknown): string {
+export function packageVersion(value: unknown): string {
   if (
     value !== null &&
     typeof value === "object" &&
@@ -44,6 +44,15 @@ function packageVersion(value: unknown): string {
     return value.version;
   }
   return "0.1.0";
+}
+
+export function isCliEntrypoint(
+  argv1: string | undefined,
+  moduleUrl: string,
+): boolean {
+  return (
+    argv1 !== undefined && moduleUrl === pathToFileURL(resolve(argv1)).href
+  );
 }
 
 // implements REQ-kibi-operation-interface-parity
@@ -85,10 +94,6 @@ export async function main(): Promise<never> {
   process.exit(exitCode);
 }
 
-const entryPath = process.argv[1];
-if (
-  entryPath !== undefined &&
-  import.meta.url === pathToFileURL(resolve(entryPath)).href
-) {
+if (isCliEntrypoint(process.argv[1], import.meta.url)) {
   void main();
 }

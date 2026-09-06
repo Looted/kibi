@@ -12,8 +12,10 @@ import { runEngineDaemon } from "./engine.js";
 export function isEngineDaemonEntrypoint(
   argv: readonly string[] = process.argv,
   moduleUrl: string = import.meta.url,
+  isMain: boolean | undefined = (import.meta as ImportMeta & { main?: boolean })
+    .main,
 ): boolean {
-  if ((import.meta as ImportMeta & { main?: boolean }).main === true) {
+  if (isMain === true) {
     return moduleUrl === import.meta.url;
   }
   const entry = argv[1];
@@ -60,6 +62,11 @@ export async function runEngineDaemonCli(
   }
 }
 
-if (isEngineDaemonEntrypoint()) {
+export async function runEngineDaemonIfEntrypoint(
+  isEntrypoint = isEngineDaemonEntrypoint(),
+): Promise<void> {
+  if (!isEntrypoint) return;
   await runEngineDaemonCli();
 }
+
+await runEngineDaemonIfEntrypoint();

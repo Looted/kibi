@@ -45,7 +45,9 @@ const stringArray: OperationJsonSchema = {
 /** Preserve JSON Schema's nullable scalar/object representation in every
  * generated consumer contract.  Using a `type` union keeps the catalog
  * readable and lets the MCP bridge round-trip the same wire schema. */
-function nullable(schema: OperationJsonSchema): OperationJsonSchema {
+export function nullableJsonSchema(
+  schema: OperationJsonSchema,
+): OperationJsonSchema {
   const type = schema.type;
   if (typeof type === "string") {
     return { ...schema, type: [type, "null"] };
@@ -208,8 +210,8 @@ export const OPERATION_DATA_SCHEMAS: Readonly<
     valid: booleanValue,
     errors: valueArray,
     warnings: valueArray,
-    semanticAdvisor: nullable(recordValue),
-    normalizedPreview: nullable(recordValue),
+    semanticAdvisor: nullableJsonSchema(recordValue),
+    normalizedPreview: nullableJsonSchema(recordValue),
   }),
   kb_upsert: objectData({
     created: integerValue,

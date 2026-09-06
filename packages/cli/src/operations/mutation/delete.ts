@@ -37,6 +37,16 @@ function requireProlog(context: OperationContext) {
   return context.prolog;
 }
 
+export function assertFilesystemCapableRuntime(
+  fs: OperationContext["fs"],
+): asserts fs is NonNullable<OperationContext["fs"]> {
+  if (!fs) {
+    throw new Error(
+      "Relationship source patch requires a filesystem-capable runtime",
+    );
+  }
+}
+
 async function loadEntity(
   prolog: NonNullable<OperationContext["prolog"]>,
   id: string,
@@ -260,10 +270,7 @@ async function executeRelationshipDelete(
     relative: string,
     body: string,
   ): Promise<void> => {
-    if (!context.fs)
-      throw new Error(
-        "Relationship source patch requires a filesystem-capable runtime",
-      );
+    assertFilesystemCapableRuntime(context.fs);
     const absolute = resolveContainedSourcePath(
       context.workspaceRoot,
       relative,
