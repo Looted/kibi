@@ -57,6 +57,12 @@ function canonicalHash(value: unknown): string {
   return hash(serialized);
 }
 
+export function requireSkillFrontmatter(markdown: string): void {
+  if (!/^---\r?\n[\s\S]*?\r?\n---\r?\n/.test(markdown)) {
+    throw new Error("offline_skill_frontmatter_missing");
+  }
+}
+
 export async function loadSurface(sourceRepoRoot: string): Promise<{
   body: string;
   frontmatterHash: string;
@@ -69,9 +75,7 @@ export async function loadSurface(sourceRepoRoot: string): Promise<{
     );
     const bundle = loadBundledSkillFrom(skillsDir, SKILL);
     const markdown = await readFile(join(bundle.rootDir, "SKILL.md"), "utf8");
-    if (!/^---\r?\n[\s\S]*?\r?\n---\r?\n/.test(markdown)) {
-      throw new Error("offline_skill_frontmatter_missing");
-    }
+    requireSkillFrontmatter(markdown);
     const resources = Object.fromEntries(
       await Promise.all(
         [...(bundle.manifest.resources ?? [])]

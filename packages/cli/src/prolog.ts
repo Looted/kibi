@@ -104,6 +104,19 @@ export interface QueryResult {
   error?: string;
 }
 
+export function registerProcessExitOnce(
+  current: (() => void) | null,
+  handler: () => void,
+  on: (
+    event: "exit",
+    listener: () => void,
+  ) => void = (event, listener) => process.on(event, listener),
+): () => void {
+  if (current) return current;
+  on("exit", handler);
+  return handler;
+}
+
 export class PrologProcess {
   private process: ChildProcess | null = null;
   private swiplPath: string;
@@ -174,12 +187,9 @@ export class PrologProcess {
 
     this.process.stdin.write("true.\n");
 
-    if (!this.onProcessExit) {
-      this.onProcessExit = () => {
-        void this.terminate();
-      };
-      process.on("exit", this.onProcessExit);
-    }
+    this.onProcessExit = registerProcessExitOnce(this.onProcessExit, () => {
+      void this.terminate();
+    });
 
     await this.waitForReady();
   }

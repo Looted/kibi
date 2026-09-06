@@ -76,6 +76,17 @@ interface RecentEdit {
   timestamp: number;
 }
 
+export function resetCommentSuggestion(): null {
+  return null;
+}
+
+export function adoptPrecomputedSuggestion<T>(
+  recent: T | null,
+  precomputed: T | null | undefined,
+): T | null {
+  return recent ?? precomputed ?? null;
+}
+
 import * as fs from "node:fs";
 
 function deriveFileBucket(kind: PathKind): string {
@@ -1041,10 +1052,10 @@ const kibiOpencodePlugin: Plugin = async (
             );
           }
         } else {
-          recentCommentSuggestion = null;
+          recentCommentSuggestion = resetCommentSuggestion();
         }
       } else {
-        recentCommentSuggestion = null;
+        recentCommentSuggestion = resetCommentSuggestion();
       }
     }
 
@@ -1123,9 +1134,10 @@ const kibiOpencodePlugin: Plugin = async (
             promptPathKindCache,
           );
           effectiveRiskClass = riskCtx.effectiveRiskClass;
-          if (!recentCommentSuggestion && riskCtx.precomputedSuggestion) {
-            recentCommentSuggestion = riskCtx.precomputedSuggestion;
-          }
+          recentCommentSuggestion = adoptPrecomputedSuggestion(
+            recentCommentSuggestion,
+            riskCtx.precomputedSuggestion,
+          );
         }
         if (effectiveRiskClass === null && lastRiskClass !== null) {
           effectiveRiskClass = lastRiskClass;

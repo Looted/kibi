@@ -23,6 +23,18 @@ import { initialArtifactPathClosed } from "../artifact-path";
 import { emptyIfEnoent } from "../runtime/codex-cell-artifacts";
 import { falseIfEnoent } from "../runtime/codex-runtime";
 import { assertMatchingSemanticClass } from "../fixtures/predicate-case-data";
+import { throwIfIntentDrift } from "../adoption-intent";
+import { throwIfDirectoryInodeDrift } from "../adoption-lock";
+import { throwIfTerminalMismatch } from "../adoption-journal";
+import { throwIfIdentityDrift } from "../adoption-durable";
+import { defaultPreflightDependencies } from "../legacy-preflight";
+import { requireSkillFrontmatter } from "../offline-artifacts";
+import { rethrowIfNotError } from "../preflight-host";
+import { sandboxProbeFailureCode } from "../runtime/canary-probes";
+import { loginRunForSource } from "../runtime/codex-optimizer";
+import { throwIfBundleFailed } from "../runtime/staged-mcp";
+import { coverageResultFromPriorCalls } from "../scoring/cell";
+import { hasRoleKeyReuse } from "../runtime/fake-provider-contracts";
 
 afterEach(() => {
   process.exitCode = 0;
@@ -84,5 +96,46 @@ describe("skillopt remasure11 leftover helpers", () => {
     expect(() =>
       assertMatchingSemanticClass("wrong-graph" as never, "mixed-snapshot" as never),
     ).toThrow("semantic class mismatch");
+    expect(() => throwIfIntentDrift(true)).toThrow(
+      "adoption no-replace intent drift",
+    );
+    throwIfIntentDrift(false);
+    expect(() =>
+      throwIfDirectoryInodeDrift({ dev: 1, ino: 2 }, { dev: 1, ino: 3 }),
+    ).toThrow("adoption .kibi directory inode drift");
+    throwIfDirectoryInodeDrift({ dev: 1, ino: 2 }, { dev: 1, ino: 2 });
+    expect(() => throwIfTerminalMismatch(false, false)).toThrow(
+      "adoption terminal mismatch",
+    );
+    throwIfTerminalMismatch(true, false);
+    throwIfTerminalMismatch(false, true);
+    expect(() => throwIfIdentityDrift(false)).toThrow(
+      "adoption file inode drift",
+    );
+    throwIfIdentityDrift(true);
+    expect(typeof defaultPreflightDependencies().probeSandbox).toBe("function");
+    expect(() => requireSkillFrontmatter("no frontmatter")).toThrow(
+      "offline_skill_frontmatter_missing",
+    );
+    requireSkillFrontmatter("---\nname: x\n---\nbody\n");
+    expect(() => rethrowIfNotError("nope")).toThrow("nope");
+    rethrowIfNotError(new Error("ignored"));
+    expect(sandboxProbeFailureCode(true)).toBe("source_isolation_probe_failed");
+    expect(sandboxProbeFailureCode(false)).toBe("sandbox_probe_failed");
+    expect(typeof loginRunForSource("/workspace")).toBe("function");
+    expect(() => throwIfBundleFailed(false)).toThrow("bundle_failed");
+    throwIfBundleFailed(true);
+    expect(
+      coverageResultFromPriorCalls(
+        [
+          { tool: "kb_coverage", args: {}, resultOk: true, result: { ok: 1 } },
+          { tool: "kb_apply_plan", args: {}, resultOk: true },
+        ],
+        1,
+      ),
+    ).toEqual({ ok: 1 });
+    expect(coverageResultFromPriorCalls([], 0)).toBeNull();
+    expect(hasRoleKeyReuse("a", "a")).toBe(true);
+    expect(hasRoleKeyReuse("a", "b")).toBe(false);
   });
 });

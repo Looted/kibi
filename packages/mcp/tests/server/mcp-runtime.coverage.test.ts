@@ -15,6 +15,7 @@ const restores: Array<() => void> = [];
 afterEach(() => {
   for (const restore of restores.splice(0)) restore();
   for (const root of roots.splice(0)) removeTempDir(root);
+  process.exitCode = 0;
 });
 
 function port() {
@@ -98,5 +99,36 @@ describe("createMcpRuntime remaining branches", () => {
       requiresProlog: true,
       execute: async () => ({}),
     });
+  });
+
+  test("returns a provided Prolog port without starting the session engine", async () => {
+    const { attachedContextWithProlog } = await import(
+      "../../src/runtime/mcp-runtime.js"
+    );
+    const provided = port();
+    const ensure = mock(async () => port());
+    const runtime = createMcpRuntime({
+      workspaceRoot: "/workspace",
+      activeBranchName: () => "develop",
+      attachedBranchKbPath: () => null,
+      ensureProlog: ensure,
+      adaptProlog: (value) => value,
+      refreshAttachedBranchStamp: async () => undefined,
+    });
+    const context = await runtime.open(
+      {
+        name: "kb_query",
+        requiresProlog: true,
+        effects: ["kb-read"],
+        execute: async () => ({}),
+      },
+      { prolog: provided },
+    );
+    expect(context.prolog).toBe(provided);
+    expect(ensure).not.toHaveBeenCalled();
+    expect(
+      attachedContextWithProlog({ workspaceRoot: "/workspace" }, provided)
+        .prolog,
+    ).toBe(provided);
   });
 });

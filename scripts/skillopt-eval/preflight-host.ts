@@ -25,6 +25,10 @@ import { PreflightInputError, digest, readNoFollow } from "./preflight-io";
 export { PreflightNoGo } from "./preflight-host-model";
 export type { HostPreflightOptions } from "./preflight-host-model";
 
+export function rethrowIfNotError(error: unknown): void {
+  if (!(error instanceof Error)) throw error;
+}
+
 // implements REQ-skillopt-codex-optimization
 export async function qualifySkillOptHost(
   options: HostPreflightOptions,
@@ -88,7 +92,7 @@ export async function qualifySkillOptHost(
         Buffer.from(externalLock.signature, "base64"),
       );
     } catch (error) {
-      if (!(error instanceof Error)) throw error;
+      rethrowIfNotError(error);
     }
     check(state, "bundle-signature", signatureValid, true, signatureValid);
     check(

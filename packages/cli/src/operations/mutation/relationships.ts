@@ -25,6 +25,17 @@ export const RELATIONSHIP_TYPES = [
 ] as const;
 export type RelationshipType = (typeof RELATIONSHIP_TYPES)[number];
 
+export function wrongKindRelationshipError(
+  type: string,
+  target: string,
+  wrongKind: string,
+): Error {
+  const expected = type === "constrains" ? "subject" : "property_value";
+  return new Error(
+    `Relationship '${type}' requires target '${target}' to be a ${expected}, observation, or meta fact. ${wrongKind[0]?.toUpperCase()}${wrongKind.slice(1)} facts cannot be direct targets of ${type} relationships.`,
+  );
+}
+
 export function dependentRelationshipsGoal(entityId: string): string {
   return `findall([RelType,From], (member(RelType, [${RELATIONSHIP_TYPES.join(", ")}]), kb_relationship(RelType, From, '${escapeAtom(entityId)}')), Dependents)`;
 }
@@ -315,10 +326,10 @@ export async function validateStrictLanePairing(
       `once((kb_entity('${escapeAtom(target)}', fact, _SlpProps), memberchk(fact_kind=_SlpFK, _SlpProps), normalize_term_atom(_SlpFK, ${wrongKind})))`,
     );
     if (result.success) {
-      const expected =
-        relationship.type === "constrains" ? "subject" : "property_value";
-      throw new Error(
-        `Relationship '${String(relationship.type)}' requires target '${target}' to be a ${expected}, observation, or meta fact. ${wrongKind[0]?.toUpperCase()}${wrongKind.slice(1)} facts cannot be direct targets of ${String(relationship.type)} relationships.`,
+      throw wrongKindRelationshipError(
+        String(relationship.type),
+        target,
+        wrongKind,
       );
     }
   }

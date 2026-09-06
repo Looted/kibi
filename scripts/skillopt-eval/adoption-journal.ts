@@ -192,12 +192,17 @@ export async function installTerminal(
     terminal,
     dependencies.durabilityObserver,
   );
-  if (
-    !installed &&
-    (await readDurableText(repoRoot, terminalPath(wal))) !== terminal
-  ) {
-    throw new Error("adoption terminal mismatch");
-  }
+  throwIfTerminalMismatch(
+    installed,
+    (await readDurableText(repoRoot, terminalPath(wal))) === terminal,
+  );
+}
+
+export function throwIfTerminalMismatch(
+  installed: boolean,
+  matches: boolean,
+): void {
+  if (!installed && !matches) throw new Error("adoption terminal mismatch");
 }
 
 export async function createJournal(

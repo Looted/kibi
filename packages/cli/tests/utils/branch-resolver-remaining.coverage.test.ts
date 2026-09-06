@@ -27,6 +27,7 @@ afterEach(() => {
   for (const restore of restores.splice(0)) restore();
   _setBranchResolverDepsForTests({});
   for (const root of roots.splice(0)) removeTempDir(root);
+  process.exitCode = 0;
 });
 
 describe("branch-resolver leftover validation, snapshot, and diagnostic branches", () => {
@@ -155,6 +156,39 @@ describe("branch-resolver leftover validation, snapshot, and diagnostic branches
       code: "MIGRATION_RECOVERY_REQUIRED",
       error: expect.stringContaining("Unreadable branch migration journal"),
     });
+  });
+
+  test("walks past a committed migration journal to the store check", () => {
+    restores.push(isolateKibiEnv());
+    const root = createTempDir("kibi-branch-journal-ok-");
+    roots.push(root);
+    mkdirSync(path.join(root, ".git"), { recursive: true });
+    mkdirSync(path.join(root, ".kb", "recovery", "branch-migrations"), {
+      recursive: true,
+    });
+    writeFileSync(
+      path.join(root, ".kb", "recovery", "branch-migrations", "notes.txt"),
+      "skip",
+    );
+    writeFileSync(
+      path.join(root, ".kb", "recovery", "branch-migrations", "mig-ok.json"),
+      JSON.stringify({ state: "committed" }),
+    );
+    _setBranchResolverDepsForTests({
+      execSync: ((command: string) => {
+        if (String(command).includes("rev-parse --abbrev-ref HEAD")) {
+          return "develop\n";
+        }
+        if (String(command).includes("rev-parse --is-inside-work-tree")) {
+          return "true\n";
+        }
+        return "develop\n";
+      }) as typeof execSync,
+    });
+    const attachment = resolveBranchAttachment(root);
+    expect("error" in attachment ? attachment.code : "ok").not.toBe(
+      "MIGRATION_RECOVERY_REQUIRED",
+    );
   });
 
   test("isValidBranchName returns false when git check-ref-format throws", () => {

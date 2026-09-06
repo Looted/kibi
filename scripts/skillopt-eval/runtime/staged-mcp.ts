@@ -25,6 +25,10 @@ export type StagedMcpOptions = Readonly<{
 
 const bundleCache = new Map<string, Promise<Uint8Array>>();
 
+export function throwIfBundleFailed(success: boolean): void {
+  if (!success) throw new RuntimePrerequisiteError("mcp_bundle_failed");
+}
+
 async function buildRuntimeBundle(
   sourceWorktree: string,
   privateRoot: string,
@@ -46,9 +50,7 @@ async function buildRuntimeBundle(
     minify: false,
     sourcemap: "none",
   });
-  if (!build.success) {
-    throw new RuntimePrerequisiteError("mcp_bundle_failed");
-  }
+  throwIfBundleFailed(build.success);
   return new Uint8Array(await readFile(resolve(outputRoot, "server.js")));
 }
 

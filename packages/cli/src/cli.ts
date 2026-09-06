@@ -55,6 +55,12 @@ export function isCliEntrypoint(
   );
 }
 
+export function exitCodeFromCliFailure(error: unknown): number {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(message);
+  return 1;
+}
+
 // implements REQ-kibi-operation-interface-parity
 export function buildProgram(): Command {
   const program = new Command()
@@ -82,9 +88,7 @@ export async function main(): Promise<never> {
     await buildProgram().parseAsync(process.argv);
     exitCode = process.exitCode ?? 0;
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error(message);
-    exitCode = 1;
+    exitCode = exitCodeFromCliFailure(error);
   }
   await Promise.all(
     [process.stdout, process.stderr].map((stream) =>

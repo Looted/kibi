@@ -183,6 +183,13 @@ export type CodexOptimizerOptions = Readonly<{
   timeoutMs?: number;
 }>;
 
+export function loginRunForSource(
+  sourceWorktree: string,
+): (argv: string[], childEnv: NodeJS.ProcessEnv) => ReturnType<typeof runBoundedProcess> {
+  return (argv, childEnv) =>
+    defaultCodexLoginRun(argv, childEnv, sourceWorktree);
+}
+
 export function defaultCodexLoginRun(
   argv: string[],
   childEnv: NodeJS.ProcessEnv,
@@ -215,8 +222,7 @@ export async function runCodexSkillOptStep(
       privateCodexHome: workspace.codexHome,
       sandboxHome: workspace.sandboxHome,
       env,
-      run: (argv, childEnv) =>
-        defaultCodexLoginRun(argv, childEnv, sourceWorktree),
+      run: loginRunForSource(sourceWorktree),
     });
     const staged = await stageCapabilityCanary(workspace, sourceWorktree, {
       ...(options.codexExecutable === undefined

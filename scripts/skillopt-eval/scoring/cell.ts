@@ -101,6 +101,19 @@ type ProtocolContract = NonNullable<
   ReturnType<typeof parsePrivateEvaluatorManifest>["protocolContract"]
 >;
 
+export function coverageResultFromPriorCalls(
+  rawCalls: readonly RawCallView[],
+  firstApplyIndex: number,
+): Record<string, unknown> | null {
+  for (let index = firstApplyIndex - 1; index >= 0; index -= 1) {
+    const call = rawCalls[index];
+    if (call?.tool === "kb_coverage") {
+      return call.result ?? null;
+    }
+  }
+  return null;
+}
+
 interface RawCallView {
   readonly tool: string;
   readonly args: Record<string, unknown>;
@@ -180,14 +193,10 @@ export function migrationApplyContractViolations(
     firstApplyIndex === undefined ? undefined : rawCalls[firstApplyIndex];
   if (apply === undefined) return ["no kb_apply_plan attempt"];
 
-  let coverageResult: Record<string, unknown> | null = null;
-  for (let index = firstApplyIndex - 1; index >= 0; index -= 1) {
-    const call = rawCalls[index];
-    if (call?.tool === "kb_coverage") {
-      coverageResult = call.result ?? null;
-      break;
-    }
-  }
+  const coverageResult = coverageResultFromPriorCalls(
+    rawCalls,
+    firstApplyIndex,
+  );
   if (coverageResult === null) {
     violations.push("no kb_coverage before kb_apply_plan");
   }

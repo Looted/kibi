@@ -82,14 +82,18 @@ export type PreflightDependencies = Readonly<{
   probeSandbox: typeof probeCodexSandbox;
 }>;
 
-const runtimeDependencies: PreflightDependencies = {
-  run: (argv, cwd, env, timeoutMs, stdin) =>
-    runBoundedProcess({ argv, cwd, env, timeoutMs, stdin }),
-  sourceClean: sourceWorktreeIsClean,
-  stageRuntime: stageCapabilityCanary,
-  probeRequiredMcp,
-  probeSandbox: probeCodexSandbox,
-};
+export function defaultPreflightDependencies(): PreflightDependencies {
+  return {
+    run: (argv, cwd, env, timeoutMs, stdin) =>
+      runBoundedProcess({ argv, cwd, env, timeoutMs, stdin }),
+    sourceClean: sourceWorktreeIsClean,
+    stageRuntime: stageCapabilityCanary,
+    probeRequiredMcp,
+    probeSandbox: probeCodexSandbox,
+  };
+}
+
+const runtimeDependencies: PreflightDependencies = defaultPreflightDependencies();
 
 function baseReceipt(
   config: PreflightConfig,

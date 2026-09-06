@@ -36,6 +36,10 @@ type NoReplaceIntent = Readonly<{
 }>;
 
 // implements REQ-skillopt-automatic-adoption
+export function throwIfIntentDrift(drifted: boolean): void {
+  if (drifted) throw new Error("adoption no-replace intent drift");
+}
+
 export function intentPath(path: string): string {
   return `${path}.install-intent.json`;
 }
@@ -146,7 +150,7 @@ export async function finalizeIntent(
     destination.nlink !== 2 ||
     hash(await readFile(path)) !== intent.hash
   ) {
-    throw new Error("adoption no-replace intent drift");
+    throwIfIntentDrift(true);
   }
   await rm(intent.stage);
   await fault(injection, "stage-unlink");

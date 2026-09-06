@@ -135,6 +135,40 @@ describe("symbol refresh remaining publication and parse branches", () => {
     );
   });
 
+  test("rolls back an update over an existing coordinate artifact", async () => {
+    const workspace = preparedWorkspace();
+    writeFileSync(
+      join(workspace, "src", "keep.ts"),
+      "export function keep() {}\n",
+    );
+    writeFileSync(
+      join(workspace, ".kb", "symbols.yaml"),
+      "symbols:\n  - id: SYM-KEEP\n    title: keep\n    sourceFile: src/keep.ts\n",
+    );
+    const first = await refreshSymbolCoordinatesUnlocked(
+      "SYM-KEEP",
+      context(workspace),
+    );
+    expect(first.outcome).toBe("updated");
+    const before = fs.readFileSync(
+      join(workspace, ".kb", "symbol-coordinates.yaml"),
+      "utf8",
+    );
+    writeFileSync(
+      join(workspace, "src", "keep.ts"),
+      "export function keep() { return 1; }\n",
+    );
+    const second = await refreshSymbolCoordinatesUnlocked(
+      "SYM-KEEP",
+      context(workspace),
+    );
+    expect(second.outcome).toBe("updated");
+    second.publication?.rollback();
+    expect(
+      fs.readFileSync(join(workspace, ".kb", "symbol-coordinates.yaml"), "utf8"),
+    ).toBe(before);
+  });
+
   test("cleans a temp file best-effort when atomic rename fails", async () => {
     const workspace = preparedWorkspace();
     writeFileSync(

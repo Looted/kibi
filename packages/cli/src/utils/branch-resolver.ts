@@ -42,6 +42,15 @@ export type BranchResolutionResult =
   | BranchResolutionSuccess
   | BranchResolutionError;
 
+export function unreadableMigrationJournalError(
+  journalName: string,
+): BranchResolutionError {
+  return {
+    error: `Unreadable branch migration journal '${journalName}' blocks attachment; recover it explicitly before continuing.`,
+    code: "MIGRATION_RECOVERY_REQUIRED",
+  };
+}
+
 export type BranchAttachment = {
   gitBranch: string;
   kbBranch: string;
@@ -268,10 +277,7 @@ export function resolveBranchAttachment(
           };
         }
       } catch {
-        return {
-          error: `Unreadable branch migration journal '${journalName}' blocks attachment; recover it explicitly before continuing.`,
-          code: "MIGRATION_RECOVERY_REQUIRED",
-        };
+        return unreadableMigrationJournalError(journalName);
       }
     }
   }

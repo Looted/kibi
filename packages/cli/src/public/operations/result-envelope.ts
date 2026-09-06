@@ -36,6 +36,20 @@ function nextActions(value: unknown): KibiResult["nextActions"] {
   });
 }
 
+export function failedEffectStatus(
+  effect: OperationEffect,
+  failure: Record<string, unknown>,
+): KibiResult["effects"][number] {
+  return {
+    kind: effect,
+    status: "failed",
+    detail: failure.detail,
+    ...(typeof failure.errorCode === "string"
+      ? { errorCode: failure.errorCode }
+      : {}),
+  };
+}
+
 function effectStatus(
   effect: OperationEffect,
   data: Record<string, unknown> | undefined,
@@ -46,14 +60,7 @@ function effectStatus(
       (entry) => record(entry) && entry.kind === effect,
     );
     if (record(failure)) {
-      return {
-        kind: effect,
-        status: "failed",
-        detail: failure.detail,
-        ...(typeof failure.errorCode === "string"
-          ? { errorCode: failure.errorCode }
-          : {}),
-      };
+      return failedEffectStatus(effect, failure);
     }
   }
   return { kind: effect, status: "completed" };
