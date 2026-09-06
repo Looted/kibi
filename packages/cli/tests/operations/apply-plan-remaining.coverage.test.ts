@@ -864,7 +864,7 @@ describe("bootstrap apply checkpoints and recovery flatten", () => {
             [1] as never,
             { operation: "kb_check", reason: "inspect", required: true },
           ],
-        },
+        } as never,
       }),
     );
     const repaired = await executeApplyPlan(
@@ -1044,7 +1044,7 @@ describe("compile plan remaining commit and readback paths", () => {
             null as never,
             { operation: "kb_check", reason: "x", required: false },
           ],
-        },
+        } as never,
       }),
     );
     const forwarded = await executeApplyPlan(
