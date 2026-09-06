@@ -1,7 +1,10 @@
 // implements REQ-KIBI-BOOTSTRAP-PLAN
 import { afterEach, describe, expect, test } from "bun:test";
 import path from "node:path";
-import { buildGuidance } from "../../src/operations/bootstrap/guidance.js";
+import {
+  buildGuidance,
+  confidence,
+} from "../../src/operations/bootstrap/guidance.js";
 import type {
   ActivationPolicy,
   BootstrapDeclaredContext,
@@ -124,5 +127,21 @@ describe("bootstrap guidance remaining relative, signal, and warning branches", 
       warnings: ["scan truncated", "ignored vendored tree"],
     });
     expect(warned.promptBlock).toMatch(/Scan diagnostics: 2 warning/);
+  });
+
+  test("drops confidence when the prompt block is empty", () => {
+    restores.push(isolateKibiEnv());
+    const result = confidence(
+      activation(),
+      declared(),
+      [],
+      [],
+      "",
+    );
+    expect(result.reasons).toEqual(
+      expect.arrayContaining([
+        "Prompt block could not be assembled within the handoff budget.",
+      ]),
+    );
   });
 });

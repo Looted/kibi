@@ -1,7 +1,10 @@
 // implements REQ-core-journaled-engine-persistence
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as url from "node:url";
-import { isEngineDaemonEntrypoint } from "../src/engine-daemon.js";
+import {
+  isEngineDaemonEntrypoint,
+  runEngineDaemonIfEntrypoint,
+} from "../src/engine-daemon.js";
 import { isolateKibiEnv } from "./helpers/in-process-workspace.js";
 
 const spies: Array<{ mockRestore: () => void }> = [];
@@ -23,5 +26,13 @@ describe("engine-daemon remaining entrypoint catch", () => {
     expect(isEngineDaemonEntrypoint(["node", "/tmp/engine-daemon.js"])).toBe(
       false,
     );
+  });
+
+  test("treats Bun import.meta.main as an entrypoint when the module url matches", async () => {
+    restores.push(isolateKibiEnv());
+    expect(isEngineDaemonEntrypoint(["node", "/tmp/other.js"], undefined, true)).toBe(
+      true,
+    );
+    await runEngineDaemonIfEntrypoint(false);
   });
 });

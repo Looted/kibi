@@ -5,7 +5,12 @@ import * as fs from "node:fs";
 import { mkdirSync, writeFileSync } from "node:fs";
 import * as nodeModule from "node:module";
 import path from "node:path";
-import { doctorCommand } from "../../src/commands/doctor.js";
+import {
+  detectExecuteApplyPlanExport,
+  doctorCommand,
+  nearestNamedPackageManifest,
+  packageMigrationActions,
+} from "../../src/commands/doctor.js";
 import { engineStopCommand } from "../../src/commands/engine.js";
 import { initCommand } from "../../src/commands/init.js";
 import {
@@ -669,5 +674,43 @@ status: open
     const result = await withCwd(cwd, () => doctorCommand({ format: "json" }));
     expect(result.exitCode).toBe(1);
     expect(io.logText()).toContain("Unable to parse major version");
+  });
+
+  test("emits export-surface drift when executeApplyPlan is missing", async () => {
+    const actions = await packageMigrationActions({
+      cliVersion: "1.2.3",
+      mcpCliRange: "^1.2.3",
+      executeApplyPlanExported: false,
+    });
+    expect(actions.some((action) => action.id === "package-cli-export-surface-drift")).toBe(
+      true,
+    );
+    await expect(
+      detectExecuteApplyPlanExport(async () => {
+        throw new Error("operations export missing");
+      }),
+    ).resolves.toBe(false);
+    await expect(
+      detectExecuteApplyPlanExport(async () => ({})),
+    ).resolves.toBe(false);
+    await expect(detectExecuteApplyPlanExport()).resolves.toBe(true);
+  });
+
+  test("walks parent directories until a named package manifest matches", () => {
+    const cwd = preparedWorkspace();
+    const nested = path.join(cwd, "pkg", "dist");
+    mkdirSync(nested, { recursive: true });
+    writeFileSync(
+      path.join(cwd, "pkg", "package.json"),
+      JSON.stringify({ name: "kibi-core" }),
+    );
+    writeFileSync(
+      path.join(cwd, "package.json"),
+      JSON.stringify({ name: "workspace-root" }),
+    );
+    expect(nearestNamedPackageManifest(nested, "kibi-core")).toBe(
+      path.join(cwd, "pkg", "package.json"),
+    );
+    expect(nearestNamedPackageManifest(nested, "missing-package")).toBeUndefined();
   });
 });

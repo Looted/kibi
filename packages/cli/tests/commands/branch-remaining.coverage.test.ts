@@ -396,4 +396,20 @@ describe("branch commands remaining runtime branches", () => {
       "No quarantined store found",
     );
   });
+
+  test("skips quarantined stores whose metadata cannot be parsed", async () => {
+    const cwd = preparedWorkspace();
+    const keyRoot = path.join(
+      cwd,
+      ".kb",
+      "quarantine",
+      "branches",
+      path.basename(branchStorePath(cwd, "main")),
+    );
+    mkdirSync(path.join(keyRoot, "broken"), { recursive: true });
+    writeFileSync(path.join(keyRoot, "broken", "quarantine.json"), "{not json");
+    await expect(
+      branchRestoreCommand({ workspaceRoot: cwd, branch: "main" }),
+    ).rejects.toThrow("No quarantined store found");
+  });
 });

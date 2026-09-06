@@ -1,5 +1,6 @@
 // implements REQ-001
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import * as fsPromises from "node:fs/promises";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { Project } from "ts-morph";
@@ -130,5 +131,73 @@ export function special$name() {}
     );
     expect(io.warns.join("\n")).toMatch(/Failed to enrich symbol coordinates/);
     expect(enriched[0]?.id).toBe("SYM-1");
+  });
+
+  test("keeps the original entry when catch-path source resolution fails", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const root = createTempDir("kibi-symbols-gone-");
+    roots.push(root);
+    mkdirSync(path.join(root, "src"), { recursive: true });
+    writeFileSync(
+      path.join(root, "src", "widget.ts"),
+      "export function exportedFn() {}\n",
+    );
+    const warn = spyOn(console, "warn").mockImplementation(() => undefined);
+    restores.push(() => warn.mockRestore());
+    let accessCalls = 0;
+    const access = spyOn(fsPromises, "access").mockImplementation(async () => {
+      accessCalls += 1;
+      if (accessCalls >= 2) throw new Error("vanished");
+    });
+    restores.push(() => access.mockRestore());
+    const line = spyOn(Project.prototype, "addSourceFileAtPath").mockImplementation(
+      function (this: Project, filePath: string) {
+        const sf = Project.prototype.createSourceFile.call(
+          this,
+          filePath,
+          "export function exportedFn() {}",
+          { overwrite: true },
+        );
+        spyOn(sf, "getLineAndColumnAtPos").mockImplementation(() => {
+          throw new Error("span denied");
+        });
+        return sf;
+      },
+    );
+    restores.push(() => line.mockRestore());
+    const enriched = await enrichSymbolCoordinatesWithTsMorph(
+      [{ id: "SYM-1", title: "exportedFn", sourceFile: "src/widget.ts" }],
+      root,
+    );
+    expect(enriched[0]).toEqual({
+      id: "SYM-1",
+      title: "exportedFn",
+      sourceFile: "src/widget.ts",
+    });
+  });
+
+  test("returns the original entry when text fallback cannot match the title", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const root = createTempDir("kibi-symbols-nomatch-");
+    roots.push(root);
+    mkdirSync(path.join(root, "src"), { recursive: true });
+    writeFileSync(
+      path.join(root, "src", "widget.ts"),
+      "export function exportedFn() {}\n",
+    );
+    const add = spyOn(Project.prototype, "addSourceFileAtPath").mockImplementation(
+      () => {
+        throw new Error("parse denied");
+      },
+    );
+    restores.push(() => add.mockRestore());
+    const enriched = await enrichSymbolCoordinatesWithTsMorph(
+      [{ id: "SYM-MISS", title: "noSuchTokenXYZ", sourceFile: "src/widget.ts" }],
+      root,
+    );
+    expect(enriched[0]?.title).toBe("noSuchTokenXYZ");
+    expect(enriched[0]?.sourceLine).toBeUndefined();
   });
 });

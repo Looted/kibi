@@ -888,6 +888,18 @@ describe("executeUpsert remaining runtime branches", () => {
       contextFor(root, commitQuery(), { fs: nodeFilesystem, sourceFirst: false }),
     );
     expect(missing.structuredContent?.warnings).toContain("coverage note");
+    expect(missing.structuredContent?.warnings.some((warning) =>
+      warning.includes("Relationship shard vanished after write"),
+    )).toBe(true);
+    expect(missing.structuredContent?.status).toBe("committed_with_repairs");
+    expect(missing.structuredContent?.effectFailures?.[0]).toMatchObject({
+      kind: "workspace-write",
+      errorCode: "RELATIONSHIP_SHARD_WRITE_FAILED",
+    });
+    expect(missing.structuredContent?.nextActions?.[0]).toMatchObject({
+      operation: "kb_check",
+      required: true,
+    });
 
     track(
       spyOn(advisorModule, "analyzeSemanticAdvisorInput").mockImplementation((input) => {

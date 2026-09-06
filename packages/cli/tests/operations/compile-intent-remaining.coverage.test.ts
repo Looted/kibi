@@ -4,6 +4,7 @@ import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import * as intentSearch from "../../src/intent-search.js";
+import * as advisorModule from "../../src/operations/semantic-advisor/analyze-prose.js";
 import {
   executeCompileIntent,
 } from "../../src/operations/planning/compile-intent.js";
@@ -478,5 +479,76 @@ describe("executeCompileIntent leftover planning branches", () => {
       )
     ).structuredContent;
     expect(plan.expected.workspaceSnapshot).toBe("unknown");
+  });
+
+  test("falls back to proposition status when no modeling suggestion matches", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-status-fb-"));
+    workspaces.push(root);
+    const original = advisorModule.analyzeSemanticAdvisorInput;
+    const analyze = spyOn(
+      advisorModule,
+      "analyzeSemanticAdvisorInput",
+    ).mockImplementation((input) => {
+      const base = original(input);
+      const span = { start: 0, end: 8 };
+      return {
+        ...base,
+        receipt: {
+          ...base.receipt,
+          suggestions: [],
+          propositions: [
+            {
+              claim_key: "ambiguous-key",
+              claim_text: "maybe retain",
+              role: "normative",
+              status: "ambiguous",
+              span,
+            },
+            {
+              claim_key: "gap-key",
+              claim_text: "unknown ontology",
+              role: "normative",
+              status: "ontology_gap",
+              span,
+            },
+            {
+              claim_key: "missing-key",
+              claim_text: "missing model",
+              role: "normative",
+              status: "missing",
+              span,
+            },
+            {
+              claim_key: "nonlogical-key",
+              claim_text: "not logical",
+              role: "normative",
+              status: "nonlogical",
+              span,
+            },
+          ],
+        },
+      };
+    });
+    restores.push(() => analyze.mockRestore());
+    const plan = (
+      await executeCompileIntent(
+        {
+          intent: "Customer data must be retained for 7 years.",
+          mode: "create",
+        },
+        contextFor(root, quietQuery()),
+      )
+    ).structuredContent;
+    const statuses = plan.propositions.map((proposition) => proposition.status);
+    expect(statuses).toEqual(
+      expect.arrayContaining([
+        "ambiguous",
+        "ontology_gap",
+        "ontology_gap",
+        "nonlogical",
+      ]),
+    );
   });
 });

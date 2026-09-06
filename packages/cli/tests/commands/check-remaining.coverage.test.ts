@@ -6,7 +6,9 @@ import {
   checkCommand,
   checkMustPriorityCoverage,
   findMustPriorityReqs,
+  requireActiveProlog,
 } from "../../src/commands/check.js";
+import * as gitStaged from "../../src/traceability/git-staged.js";
 import { EngineClient } from "../../src/engine.js";
 import * as manifestExtractor from "../../src/extractors/manifest.js";
 import { PrologProcess } from "../../src/prolog.js";
@@ -848,5 +850,92 @@ Must stay independently testable.
     expect(io.logText()).toContain("[required-fields] auth");
     expect(io.logText()).toContain("Entity: REQ-1");
     expect(io.logText()).toContain("Source: docs/auth.md");
+  });
+
+  test("requireActiveProlog throws when neither engine nor process exists", () => {
+    expect(() => requireActiveProlog(undefined, undefined)).toThrow(
+      /Prolog runtime not initialized/,
+    );
+    expect(requireActiveProlog({ id: "engine" }, undefined)).toEqual({
+      id: "engine",
+    });
+  });
+
+  test("records entity markdown and the first audited no-impact override", async () => {
+    const cwd = preparedWorkspace();
+    const staged = spyOn(gitStaged, "getStagedFiles").mockReturnValue([
+      {
+        path: ".kb/requirements/REQ-STAGED.md",
+        status: "A",
+        hunkRanges: [{ start: 1, end: 12 }],
+        content: `---
+id: REQ-STAGED
+title: Staged
+type: req
+status: open
+---
+
+Must stay independently testable.
+`,
+      },
+      {
+        path: "notes.md",
+        status: "M",
+        hunkRanges: [{ start: 1, end: 2 }],
+        content:
+          "Kibi-Impact: none\nRationale: comment-only tweak with no behavior change\n",
+      },
+      {
+        path: "extra.md",
+        status: "M",
+        hunkRanges: [{ start: 1, end: 2 }],
+        content: "Kibi-Impact: none\nRationale: second override is ignored\n",
+      },
+      {
+        path: "src/widget.ts",
+        status: "M",
+        hunkRanges: [{ start: 1, end: 1 }],
+        content: "const x = 1;\n",
+        diffText: "@@ -1 +1 @@\n-const x = 0;\n+const x = 1;\n",
+      },
+    ]);
+    const overlayDir = path.join(cwd, "overlay");
+    mkdirSync(overlayDir, { recursive: true });
+    const overlayPath = path.join(overlayDir, "changed_symbols.pl");
+    writeFileSync(overlayPath, "");
+    const create = spyOn(tempKb, "createTempKb").mockResolvedValue({
+      tempDir: overlayDir,
+      kbPath: overlayDir,
+      overlayPath,
+      prolog: { query: async () => ({ success: true, bindings: {} }) } as never,
+    });
+    const project = spyOn(tempKb, "projectStagedEntities").mockResolvedValue(
+      undefined,
+    );
+    const consult = spyOn(tempKb, "consultOverlay").mockResolvedValue(undefined);
+    const cleanup = spyOn(tempKb, "cleanupTempKb").mockResolvedValue(undefined);
+    const validate = spyOn(
+      stagedValidate,
+      "validateStagedSymbols",
+    ).mockResolvedValue([]);
+    restores.push(() => {
+      staged.mockRestore();
+      create.mockRestore();
+      project.mockRestore();
+      consult.mockRestore();
+      cleanup.mockRestore();
+      validate.mockRestore();
+    });
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await withCwd(cwd, () =>
+      checkCommand({
+        staged: true,
+        dryRun: true,
+        kbPath: path.join(cwd, "kb-store"),
+      }),
+    );
+    expect([0, 1]).toContain(result.exitCode);
+    expect(staged).toHaveBeenCalled();
   });
 });

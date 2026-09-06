@@ -3,6 +3,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import {
   OPERATION_DATA_SCHEMAS,
   declaredEffects,
+  nullableJsonSchema,
 } from "../../src/public/operations/contracts.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";
 
@@ -26,5 +27,8 @@ describe("operation contracts remaining catalog and effect declarations", () => 
       "local-read",
       "kb-read",
     ]);
+    expect(nullableJsonSchema({ type: ["string"] })).toEqual({
+      anyOf: [{ type: ["string"] }, { type: "null" }],
+    });
   });
 });

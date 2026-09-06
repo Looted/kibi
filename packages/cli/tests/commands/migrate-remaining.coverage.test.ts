@@ -3,7 +3,7 @@ import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { engineStopCommand } from "../../src/commands/engine.js";
-import { migrateCommand } from "../../src/commands/migrate.js";
+import { formatSchemaVersion, migrateCommand } from "../../src/commands/migrate.js";
 import {
   buildMigrationPlan,
   migrationAction,
@@ -381,5 +381,55 @@ describe("migrateCommand remaining runtime branches", () => {
     );
     expect(result.exitCode).toBe(0);
     expect(io.logText()).toContain("dry run");
+  });
+
+  test("labels an unparseable schemaVersion as invalid JSON", () => {
+    expect(formatSchemaVersion("not-a-number", null)).toBe(
+      'invalid ("not-a-number")',
+    );
+    expect(formatSchemaVersion(undefined, null)).toBe("missing");
+    expect(formatSchemaVersion(4, 4)).toBe("4");
+  });
+
+  test("apply-safe reports when no automatic actions are ready", async () => {
+    const cwd = preparedWorkspace();
+    writeManifest(cwd, 5);
+    const action = migrationAction({
+      id: "schema-blocked",
+      code: "schema_upgrade",
+      category: "schema",
+      state: "blocked",
+      safety: "operator",
+      autoApplicable: false,
+      invocation: {
+        kind: "review",
+        instruction: "wait",
+      },
+    });
+    const plan = buildMigrationPlan({
+      evaluatedDomains: ["schema"],
+      actions: [action],
+    });
+    const exec = spyOn(runtimeTypes, "executeOperation").mockResolvedValue({
+      content: [],
+      structuredContent: {
+        migrationPlan: plan,
+        branchStore: { state: "healthy" },
+        schemaStatus: { needsMigration: false },
+        branchAttachment: { kind: "exact" },
+      },
+    } as never);
+    restores.push(() => exec.mockRestore());
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await migrateCommand({
+      applySafe: true,
+      approvedPlanHash: plan.planHash,
+      workspaceRoot: cwd,
+    });
+    expect(result.exitCode).toBe(0);
+    expect(io.logText()).toContain(
+      "No approved automatic migration actions are ready.",
+    );
   });
 });

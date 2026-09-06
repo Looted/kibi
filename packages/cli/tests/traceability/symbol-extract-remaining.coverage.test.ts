@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { MethodDeclaration } from "ts-morph";
 import { extractSymbolsFromStagedFile } from "../../src/traceability/symbol-extract.js";
 import {
   createTempDir,
@@ -118,5 +119,35 @@ describe("extractSymbolsFromStagedFile leftover script, cache, and hunk branches
       status: "A",
     });
     expect(symbols[0]?.id).toHaveLength(16);
+  });
+
+  test("swallows class member extraction failures and skips private members", () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const methodText = spyOn(
+      MethodDeclaration.prototype,
+      "getFullText",
+    ).mockImplementation(() => {
+      throw new Error("method boom");
+    });
+    restores.push(() => methodText.mockRestore());
+    const symbols = extractSymbolsFromStagedFile({
+      path: "src/members.ts",
+      content: `
+export class Box {
+  private hide() {}
+  #secret() {}
+  public show() {}
+  value = 1;
+  get label() { return 1; }
+}
+export interface Named { id: string }
+export type Alias = string;
+`,
+      hunkRanges: [],
+      status: "A",
+    });
+    expect(symbols.some((symbol) => symbol.name === "Box.show")).toBe(false);
+    expect(symbols.some((symbol) => symbol.name === "Box")).toBe(true);
   });
 });

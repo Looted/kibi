@@ -10,7 +10,7 @@ import {
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { runUnitCoverage } from "../run-unit-coverage.ts";
+import { runUnitCoverage, runUnitCoverageIfMain } from "../run-unit-coverage.ts";
 
 const roots: string[] = [];
 
@@ -86,6 +86,51 @@ describe("runUnitCoverage mocked shards", () => {
       process.chdir(previousCwd);
       process.exitCode = previousExit ?? 0;
       spawnSpy.mockRestore();
+    }
+  }, 20_000);
+
+  test("fails the coverage floor, warns about missing sources, and honors the main guard", async () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "kibi-unit-cov-floor-"));
+    roots.push(root);
+    mkdirSync(path.join(root, "packages", "demo", "src"), { recursive: true });
+    writeFileSync(path.join(root, "packages", "demo", "src", "main.ts"), "x\n");
+    writeFileSync(path.join(root, "packages", "demo", "src", "other.ts"), "y\n");
+    const previousCwd = process.cwd();
+    const previousExit = process.exitCode;
+    const errors: string[] = [];
+    const warnings: string[] = [];
+    const errorSpy = spyOn(console, "error").mockImplementation((message) => {
+      errors.push(String(message));
+    });
+    const warnSpy = spyOn(console, "warn").mockImplementation((message) => {
+      warnings.push(String(message));
+    });
+    const spawnSpy = spyOn(childProcess, "spawnSync").mockImplementation(
+      ((_command, args) => {
+        const list = (args ?? []) as string[];
+        const coverageDir = list[list.indexOf("--coverage-dir") + 1] ?? "";
+        mkdirSync(coverageDir, { recursive: true });
+        writeFileSync(
+          path.join(coverageDir, "lcov.info"),
+          lcovRecord("packages/demo/src/main.ts", 0),
+        );
+        return { status: 0 } as ReturnType<typeof childProcess.spawnSync>;
+      }) as typeof childProcess.spawnSync,
+    );
+    process.chdir(root);
+    try {
+      await runUnitCoverageIfMain(false);
+      expect(spawnSpy).not.toHaveBeenCalled();
+      await runUnitCoverageIfMain(true);
+      expect(errors.join("\n")).toMatch(/below the 50% floor/);
+      expect(warnings.join("\n")).toMatch(/absent from LCOV/);
+      expect(process.exitCode).toBe(1);
+    } finally {
+      process.chdir(previousCwd);
+      process.exitCode = previousExit ?? 0;
+      spawnSpy.mockRestore();
+      errorSpy.mockRestore();
+      warnSpy.mockRestore();
     }
   }, 20_000);
 });

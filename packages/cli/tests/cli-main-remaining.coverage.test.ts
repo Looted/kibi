@@ -4,6 +4,7 @@ import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { isCliEntrypoint, packageVersion } from "../src/cli.js";
 
 const restores: Array<() => void> = [];
 
@@ -62,5 +63,16 @@ describe("cli main leftover entry and drain branches", () => {
     await expect(
       import(`${pathToFileURL(cliPath).href}?entry=${Date.now()}`),
     ).resolves.toBeDefined();
+  });
+
+  test("packageVersion falls back and isCliEntrypoint requires a matching argv path", () => {
+    expect(packageVersion(null)).toBe("0.1.0");
+    expect(packageVersion({ version: 12 })).toBe("0.1.0");
+    expect(packageVersion({ version: "9.9.9" })).toBe("9.9.9");
+    expect(isCliEntrypoint(undefined, import.meta.url)).toBe(false);
+    const cliPath = fileURLToPath(new URL("../src/cli.ts", import.meta.url));
+    expect(isCliEntrypoint(cliPath, pathToFileURL(resolve(cliPath)).href)).toBe(
+      true,
+    );
   });
 });

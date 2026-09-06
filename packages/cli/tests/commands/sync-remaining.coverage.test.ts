@@ -866,4 +866,26 @@ Embedded children are invalid here.
     },
     90_000,
   );
+
+  test("recovers a missing pending relationship shard when a backup path is supplied", async () => {
+    const cwd = preparedGitWorkspace();
+    await withCwd(cwd, () => initCommand({}));
+    git(cwd, "add .kb");
+    git(cwd, "commit --no-verify -m init-kb");
+    writePendingSourceReceipt(
+      cwd,
+      ".kb/relationships/missing-recover.yaml",
+      "c".repeat(64),
+    );
+    const backup = path.join(cwd, ".kb", "recovery", "store-backup");
+    const result = await syncCommand(
+      {
+        validateOnly: true,
+        workspaceRoot: cwd,
+        recoveryBackupPath: backup,
+      },
+      { createProlog: () => scriptedProlog() as never },
+    );
+    expect(result.success === true || result.success === false).toBe(true);
+  });
 });

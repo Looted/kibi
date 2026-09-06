@@ -1,6 +1,7 @@
 /// <reference types="bun" />
 
-import { afterEach, describe, expect, test } from "bun:test";
+import * as fsPromises from "node:fs/promises";
+import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { Readable } from "node:stream";
 import { loadInput } from "../src/cli-input.js";
 
@@ -8,6 +9,7 @@ const restores: Array<() => void> = [];
 
 afterEach(() => {
   for (const restore of restores.splice(0)) restore();
+  process.exitCode = 0;
 });
 
 describe("loadInput leftover stdin and read-error branches", () => {
@@ -45,5 +47,29 @@ describe("loadInput leftover stdin and read-error branches", () => {
       loadInput({ input: "/", cwd: "/" }),
     ).rejects.toMatchObject({ code: "INPUT_READ_FAILED" });
     void previous;
+  });
+
+  test("rethrows non-Error file-read and JSON parse failures", async () => {
+    const read = spyOn(fsPromises, "readFile").mockRejectedValue("eio");
+    restores.push(() => read.mockRestore());
+    await expect(
+      loadInput({ input: "missing.json", cwd: process.cwd() }),
+    ).rejects.toBe("eio");
+    read.mockRestore();
+    const parse = spyOn(JSON, "parse").mockImplementation(() => {
+      throw "not-syntax";
+    });
+    restores.push(() => parse.mockRestore());
+    const root = await import("node:fs/promises");
+    void root;
+    const os = await import("node:os");
+    const path = await import("node:path");
+    const { writeFileSync, mkdirSync } = await import("node:fs");
+    const dir = path.join(os.tmpdir(), `kibi-input-${Date.now()}`);
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(path.join(dir, "bad.json"), "{}\n");
+    await expect(
+      loadInput({ input: "bad.json", cwd: dir }),
+    ).rejects.toBe("not-syntax");
   });
 });

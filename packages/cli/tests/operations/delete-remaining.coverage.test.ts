@@ -11,7 +11,10 @@ import {
 import os from "node:os";
 import path from "node:path";
 
-import { executeDelete } from "../../src/operations/mutation/delete.js";
+import {
+  assertFilesystemCapableRuntime,
+  executeDelete,
+} from "../../src/operations/mutation/delete.js";
 import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
 import type {
   FilesystemPort,
@@ -768,5 +771,62 @@ describe("executeDelete entity remaining branches", () => {
         }),
       ),
     ).rejects.toThrow(/Delete execution failed: compiled-down/);
+  });
+
+  test("blocks relationship deletes while a legacy branch still requires migration", async () => {
+    const root = makeTempDir();
+    await expect(
+      executeDelete(
+        { relationships: [{ type: "relates_to", from: "REQ-1", to: "REQ-2" }] },
+        contextFor(root, () => ({ success: true, bindings: {} }), {
+          fs: nodeFilesystem,
+          branchAttachment: attachment(root, true),
+        }),
+      ),
+    ).rejects.toThrow(/Delete blocked: KB is attached through legacy branch storage/);
+  });
+
+  test("assertFilesystemCapableRuntime rejects a missing filesystem port", () => {
+    expect(() => assertFilesystemCapableRuntime(undefined)).toThrow(
+      /filesystem-capable runtime/,
+    );
+  });
+
+  test("rolls authored YAML relationship bytes back when retract fails", async () => {
+    const root = makeTempDir();
+    const relative = ".kb/symbols.yaml";
+    writeFileSync(
+      path.join(root, relative),
+      "symbols:\n  - id: SYM-RETRACT\n    relationships:\n      - type: implements\n        target: REQ-1\n",
+      "utf8",
+    );
+    await expect(
+      executeDelete(
+        {
+          relationships: [
+            { type: "implements", from: "SYM-RETRACT", to: "REQ-1" },
+          ],
+        },
+        contextFor(
+          root,
+          (goal) => {
+            if (goal.includes("findall(['SYM-RETRACT'")) {
+              return entityGoal("SYM-RETRACT", "symbol", relative);
+            }
+            if (goal.includes("kb_relationship(implements")) {
+              return { success: true, bindings: {} };
+            }
+            if (goal.includes("kb_retract_relationship")) {
+              return { success: false, bindings: {}, error: "retract exploded" };
+            }
+            return { success: false, bindings: {} };
+          },
+          { fs: nodeFilesystem },
+        ),
+      ),
+    ).rejects.toThrow(
+      /Relationship retraction failed; canonical relationship shards were restored[\s\S]*retract exploded/,
+    );
+    expect(readFileSync(path.join(root, relative), "utf8")).toContain("REQ-1");
   });
 });

@@ -180,4 +180,21 @@ describe("optimizeSkillOptVariant remaining rejection branches", () => {
     if (retry.status !== "invalid") throw new Error("expected invalid");
     expect(retry.error).toContain("candidate_empty");
   });
+
+  test("treats an undefined frozen candidate as retry exhaustion", async () => {
+    const freeze = spyOn(variants, "freezeCandidateVariant").mockReturnValue(
+      undefined as never,
+    );
+    spies.push(freeze);
+    const result = await optimizeSkillOptVariant(validInput(), {
+      runStep: async () => ({
+        body: "Valid candidate\n",
+        development: { mean: 71, hardPasses: 2, worstFamilyMean: 61 },
+      }),
+    });
+    expect(result).toMatchObject({
+      status: "invalid",
+      error: "candidate_validation_retry_exhausted",
+    });
+  });
 });

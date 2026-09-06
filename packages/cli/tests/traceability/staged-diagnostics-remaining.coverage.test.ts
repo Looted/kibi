@@ -4,7 +4,10 @@ import {
   KIBI_NO_IMPACT_DECLARATION,
   type KibiImpactEvidence,
 } from "../../src/traceability/evidence-model.js";
-import { collectStagedKibiDiagnostics } from "../../src/traceability/staged-diagnostics.js";
+import {
+  collectStagedKibiDiagnostics,
+  createMissingOverrideRationaleDiagnostic,
+} from "../../src/traceability/staged-diagnostics.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";
 
 const restores: Array<() => void> = [];
@@ -55,5 +58,20 @@ describe("staged-diagnostics remaining coordinate derivation and empty override"
       },
     };
     expect(collectStagedKibiDiagnostics(emptyOverride)).toEqual([]);
+  });
+
+  test("rejects override-rationale diagnostics without a no-impact override", () => {
+    restores.push(isolateKibiEnv());
+    expect(() =>
+      createMissingOverrideRationaleDiagnostic({
+        sourceChanges: [],
+        symbolsManifest: {
+          path: ".kb/symbol-coordinates.yaml",
+          state: "not_required",
+          sourcePaths: [],
+        },
+        mode: { kind: "missing" },
+      }),
+    ).toThrow(/no-impact override/);
   });
 });

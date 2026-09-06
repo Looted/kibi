@@ -8,6 +8,7 @@ import type {
 } from "../src/public/operations/runtime-types.js";
 import * as branchResolver from "../src/utils/branch-resolver.js";
 import { _setBranchResolverDepsForTests } from "../src/utils/branch-resolver.js";
+import { EngineClient } from "../src/engine.js";
 import { createCliRuntime } from "../src/runtime/cli-runtime.js";
 
 const lazySpec: RuntimeOperationSpec<Record<string, never>, void> = {
@@ -186,5 +187,113 @@ describe("createCliRuntime leftover proxy and lazy-engine branches", () => {
     const context = await runtime.open(readSpec);
     expect(context.workspaceRoot).toBe("/tmp/kibi-workspace-from-env");
     await runtime.close(context);
+  });
+
+  test("lazy ensureProlog starts the default engine and records ownership", async () => {
+    const start = spyOn(EngineClient.prototype, "start").mockResolvedValue(
+      undefined,
+    );
+    const terminate = spyOn(
+      EngineClient.prototype,
+      "terminate",
+    ).mockResolvedValue(undefined);
+    restores.push(() => {
+      start.mockRestore();
+      terminate.mockRestore();
+    });
+    const resolve = spyOn(
+      branchResolver,
+      "resolveBranchAttachment",
+    ).mockReturnValue({
+      gitBranch: "develop",
+      kbBranch: "develop",
+      storePath: "/workspace/.kb/branches/develop",
+      kind: "exact",
+      migrationRequired: false,
+    } as never);
+    restores.push(() => resolve.mockRestore());
+    const runtime = createCliRuntime({ workspaceRoot: "/workspace" });
+    const context = await runtime.open(lazySpec);
+    const port = await context.ensureProlog?.();
+    expect(start).toHaveBeenCalled();
+    expect(port).toBeDefined();
+    await runtime.close(context);
+    expect(terminate).toHaveBeenCalled();
+  });
+
+  test("names a non-git attachment failure when git is unavailable", async () => {
+    const events: string[] = [];
+    const resolve = spyOn(
+      branchResolver,
+      "resolveBranchAttachment",
+    ).mockReturnValue({
+      error: "git binary missing",
+      code: "GIT_NOT_AVAILABLE",
+    } as never);
+    restores.push(() => resolve.mockRestore());
+    const runtime = createCliRuntime({
+      workspaceRoot: "/missing-git",
+      prolog: createManagedProlog(events),
+    });
+    await expect(runtime.open(readSpec)).rejects.toThrow(
+      /set KIBI_BRANCH explicitly/,
+    );
+    expect(events).toContain("terminate");
+  });
+
+  test("surfaces the raw branch error when the workspace is git but detached", async () => {
+    const events: string[] = [];
+    const resolve = spyOn(
+      branchResolver,
+      "resolveBranchAttachment",
+    ).mockReturnValue({
+      error: "detached HEAD",
+      code: "DETACHED_HEAD",
+    } as never);
+    restores.push(() => resolve.mockRestore());
+    const runtime = createCliRuntime({
+      workspaceRoot: "/workspace",
+      prolog: createManagedProlog(events),
+    });
+    await expect(runtime.open(readSpec)).rejects.toThrow(
+      /Failed to resolve active branch: detached HEAD/,
+    );
+  });
+
+  test("throws when a supplied Prolog port cannot attach the branch store", async () => {
+    _setBranchResolverDepsForTests({ execSync: fakeBranchExecSync("develop") });
+    const events: string[] = [];
+    const prolog = createManagedProlog(events);
+    const originalQuery = prolog.query;
+    prolog.query = async (goal, signal) => {
+      if (String(goal).includes("kb_attach")) {
+        return { success: false, bindings: {} };
+      }
+      return originalQuery(goal, signal);
+    };
+    const runtime = createCliRuntime({
+      workspaceRoot: "/workspace",
+      prolog,
+    });
+    await expect(runtime.open(readSpec)).rejects.toThrow(
+      /Failed to attach branch KB/,
+    );
+    expect(events).toContain("terminate");
+  });
+
+  test("terminates the Prolog port when start fails after attach is required", async () => {
+    _setBranchResolverDepsForTests({ execSync: fakeBranchExecSync("develop") });
+    const events: string[] = [];
+    const prolog = createManagedProlog(events);
+    prolog.start = async () => {
+      events.push("start");
+      throw new Error("engine refused to start");
+    };
+    const runtime = createCliRuntime({
+      workspaceRoot: "/workspace",
+      prolog,
+    });
+    await expect(runtime.open(readSpec)).rejects.toThrow(/engine refused to start/);
+    expect(events).toContain("terminate");
   });
 });
