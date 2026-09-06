@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import {
   _resetKibiBootstrapCapabilityCacheForTests,
+  capabilityInputsOrEmpty,
   detectKibiBootstrapCommandCapability,
   getKibiBootstrapCommandCapability,
 } from "../src/kibi-bootstrap-capability.js";
@@ -70,5 +71,16 @@ describe("kibi-bootstrap-capability remaining unsupported host inputs", () => {
     process.chdir(root);
     const capability = getKibiBootstrapCommandCapability();
     expect(typeof capability.supported).toBe("boolean");
+  });
+
+  test("capabilityInputsOrEmpty swallows loader failures", () => {
+    expect(capabilityInputsOrEmpty(() => ({ pluginVersion: "1" }))).toEqual({
+      pluginVersion: "1",
+    });
+    expect(
+      capabilityInputsOrEmpty(() => {
+        throw new Error("missing plugin");
+      }),
+    ).toEqual({});
   });
 });

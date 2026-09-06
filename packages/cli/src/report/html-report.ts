@@ -22,7 +22,7 @@ import {
   sourceWebUrl,
 } from "./repository.js";
 
-type UnknownRecord = Readonly<Record<string, unknown>>;
+export type UnknownRecord = Readonly<Record<string, unknown>>;
 
 // implements REQ-kibi-html-health-report
 function reportStyles(): string {
@@ -261,18 +261,22 @@ function proofGates(rows: readonly UnknownRecord[]): readonly ProofGate[] {
   });
 }
 
-function earliestUnmetGate(row: UnknownRecord): ProofGateKey | "proven" {
-  if (row.proofStatus === "proven") return "proven";
-  for (const gate of [
-    "semantic",
-    "scenario",
-    "implementation",
-    "e2e",
-    "evidence",
-  ] as const) {
-    if (!passesProofGate(row, gate)) return gate;
+export function firstFailingProofGate(
+  gates: readonly ProofGateKey[],
+  passes: (gate: ProofGateKey) => boolean,
+): ProofGateKey | "proven" {
+  for (const gate of gates) {
+    if (!passes(gate)) return gate;
   }
   return "proven";
+}
+
+export function earliestUnmetGate(row: UnknownRecord): ProofGateKey | "proven" {
+  if (row.proofStatus === "proven") return "proven";
+  return firstFailingProofGate(
+    ["semantic", "scenario", "implementation", "e2e", "evidence"],
+    (gate) => passesProofGate(row, gate),
+  );
 }
 
 function evidenceStage(

@@ -205,6 +205,16 @@ function hasConfigCommandField(sdkTypesDts: string): boolean {
   );
 }
 
+export function capabilityInputsOrEmpty<T extends object>(
+  load: () => T,
+): T | Record<string, never> {
+  try {
+    return load();
+  } catch {
+    return {};
+  }
+}
+
 function resolveHostCapabilityInputs(): KibiBootstrapCapabilityDetectionInput {
   const moduleDir = path.dirname(fileURLToPath(import.meta.url));
   const dogfoodHost = resolveDogfoodHostCapabilityInputs(
@@ -224,7 +234,7 @@ function resolveHostCapabilityInputs(): KibiBootstrapCapabilityDetectionInput {
     return dogfoodHost;
   }
 
-  try {
+  return capabilityInputsOrEmpty(() => {
     const pluginPackageJsonPath = require.resolve(
       "@opencode-ai/plugin/package.json",
     );
@@ -247,9 +257,7 @@ function resolveHostCapabilityInputs(): KibiBootstrapCapabilityDetectionInput {
       ...(pluginHooksDts ? { pluginHooksDts } : {}),
       ...(sdkTypesDts ? { sdkTypesDts } : {}),
     };
-  } catch {
-    return {};
-  }
+  });
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

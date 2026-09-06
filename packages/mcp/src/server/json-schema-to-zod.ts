@@ -3,6 +3,10 @@ import { z } from "zod";
 type JsonPrimitive = string | number | boolean | null;
 type JsonRecord = Record<string, unknown>;
 
+export function firstDefined<T>(items: readonly T[]): T | undefined {
+  return items[0];
+}
+
 function hasRequiredProperties(value: JsonRecord, schema: unknown): boolean {
   if (schema === null || typeof schema !== "object") return false;
   const condition = schema as JsonRecord;
@@ -88,7 +92,7 @@ export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
     }
     const literalSchemas = literals.map((value) => z.literal(value));
     if (literalSchemas.length === 1) {
-      const single = literalSchemas[0];
+      const single = firstDefined(literalSchemas);
       if (!single) {
         return description ? z.any().describe(description) : z.any();
       }

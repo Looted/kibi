@@ -301,7 +301,7 @@ function symbolManifestRecord(
   return record;
 }
 
-function manifestRelationships(
+export function manifestRelationships(
   item: unknown,
 ): Array<{ type: string; target: string }> {
   if (

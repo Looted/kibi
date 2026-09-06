@@ -3,7 +3,12 @@ import { execSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { resolveWorkContext } from "../src/work-context-resolver.js";
+import {
+  ancestorKbRoots,
+  authorityRootFromLinkedGitDir,
+  resolveBranch,
+  resolveWorkContext,
+} from "../src/work-context-resolver.js";
 
 const dirs: string[] = [];
 
@@ -50,5 +55,54 @@ describe("work-context-resolver remaining git walks and detached HEAD", () => {
       inputWorktree: root,
     });
     expect(context.branch).toBe("HEAD");
+  });
+
+  test("walks a nested file in a non-git tree and treats empty HEAD as unknown", () => {
+    const root = mkdtempSync(join(tmpdir(), "kibi-work-nested-"));
+    dirs.push(root);
+    mkdirSync(join(root, "nested"), { recursive: true });
+    writeFileSync(join(root, "nested", "file.ts"), "export const x = 1;\n");
+    const nested = resolveWorkContext({
+      inputDirectory: root,
+      inputWorktree: root,
+      filePath: join(root, "nested", "file.ts"),
+    });
+    expect(nested.worktreeRoot).toBe(root);
+
+    git(root, "init -b main");
+    git(root, "config user.email kibi-test@example.com");
+    git(root, "config user.name Kibi Test");
+    writeFileSync(join(root, "README.md"), "ok\n");
+    git(root, "add README.md");
+    git(root, "commit -m init");
+    writeFileSync(join(root, ".git", "HEAD"), "\n");
+    const emptyHead = resolveWorkContext({
+      inputDirectory: root,
+      inputWorktree: root,
+    });
+    expect(emptyHead.branch).toBe("unknown");
+  });
+
+  test("authorityRootFromLinkedGitDir, ancestorKbRoots, and resolveBranch leftovers", () => {
+    const root = mkdtempSync(join(tmpdir(), "kibi-work-helpers-"));
+    dirs.push(root);
+    mkdirSync(join(root, ".kb"), { recursive: true });
+    writeFileSync(join(root, ".kb", "manifest.json"), "{}\n");
+    expect(authorityRootFromLinkedGitDir(join(root, "custom-git"))).toBeNull();
+    expect(
+      authorityRootFromLinkedGitDir(
+        join(root, ".git", "worktrees", "feature"),
+      ),
+    ).toBe(root);
+    expect(ancestorKbRoots(join(root, "nested", "deeper"))).toContain(root);
+    expect(resolveBranch(null)).toBe("unknown");
+    expect(
+      resolveBranch({
+        worktreeRoot: root,
+        gitDir: join(root, "missing-git"),
+        commonGitDir: join(root, "missing-git"),
+        isLinkedWorktree: false,
+      }),
+    ).toBe("unknown");
   });
 });

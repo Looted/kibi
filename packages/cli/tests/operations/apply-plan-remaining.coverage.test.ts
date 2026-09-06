@@ -18,7 +18,11 @@ import {
   bootstrapEmptyKbSnapshotId,
   bootstrapPlanHash,
 } from "../../src/operations/bootstrap/types.js";
-import { executeApplyPlan } from "../../src/operations/planning/apply-plan.js";
+import {
+  assertBootstrapRecoveryDependencies,
+  assertSourceWriteStaysInWorkspace,
+  executeApplyPlan,
+} from "../../src/operations/planning/apply-plan.js";
 import {
   type CompilePlanV1,
   compilePlanHash,
@@ -1919,5 +1923,42 @@ describe("apply-plan leftover recovery and bootstrap catch", () => {
     expect(JSON.stringify(result.structuredContent.effectFailures)).toContain(
       "journal write boom",
     );
+  });
+});
+
+describe("apply-plan leftover workspace escape and recovery dependency helpers", () => {
+  test("assertSourceWriteStaysInWorkspace rejects an escaped absolute path", () => {
+    expect(() =>
+      assertSourceWriteStaysInWorkspace(
+        "/tmp/workspace",
+        "/tmp/outside/secret.md",
+        "docs/secret.md",
+      ),
+    ).toThrow(/escapes workspace/);
+    expect(() =>
+      assertSourceWriteStaysInWorkspace(
+        "/tmp/workspace",
+        "/tmp/workspace/docs/ok.md",
+        "docs/ok.md",
+      ),
+    ).not.toThrow();
+  });
+
+  test("assertBootstrapRecoveryDependencies rejects a missing remaining dependency", () => {
+    expect(() =>
+      assertBootstrapRecoveryDependencies(
+        [{ id: "bootstrap-upsert-0002", dependsOn: ["ghost-dep"] }],
+        new Set(),
+      ),
+    ).toThrow(/missing dependency 'ghost-dep'/);
+    expect(() =>
+      assertBootstrapRecoveryDependencies(
+        [
+          { id: "bootstrap-upsert-0001" },
+          { id: "bootstrap-upsert-0002", dependsOn: ["bootstrap-upsert-0001"] },
+        ],
+        new Set(),
+      ),
+    ).not.toThrow();
   });
 });

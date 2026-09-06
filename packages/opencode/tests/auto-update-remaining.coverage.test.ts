@@ -2,7 +2,13 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { createAutoUpdateRunner } from "../src/auto-update.js";
+import { pathToFileURL } from "node:url";
+import {
+  createAutoUpdateRunner,
+  findPackageJsonUp,
+  notifyAutoUpdate,
+} from "../src/auto-update.js";
+import * as logger from "../src/logger.js";
 
 const dirs: string[] = [];
 
@@ -48,5 +54,33 @@ describe("auto-update remaining semver prerelease comparison", () => {
     });
     const result = await run({ directory: root, enabled: true });
     expect(result.status).toBe("up-to-date");
+  });
+
+  test("findPackageJsonUp finds the plugin package and returns null at the root", async () => {
+    const found = mkdtempSync(path.join(os.tmpdir(), "kibi-pkg-found-"));
+    const missing = mkdtempSync(path.join(os.tmpdir(), "kibi-pkg-missing-"));
+    dirs.push(found, missing);
+    mkdirSync(path.join(found, "src"), { recursive: true });
+    mkdirSync(path.join(missing, "src"), { recursive: true });
+    writeFileSync(
+      path.join(found, "package.json"),
+      JSON.stringify({ name: "kibi-opencode", version: "9.9.9" }),
+    );
+    writeFileSync(
+      path.join(missing, "package.json"),
+      JSON.stringify({ name: "other", version: "1.0.0" }),
+    );
+    expect(
+      findPackageJsonUp(
+        pathToFileURL(path.join(found, "src", "mod.ts")).href,
+      ),
+    ).toBe(path.join(found, "package.json"));
+    expect(
+      findPackageJsonUp(
+        pathToFileURL(path.join(missing, "src", "mod.ts")).href,
+      ),
+    ).toBeNull();
+    await notifyAutoUpdate("coverage notify");
+    expect(typeof logger.info).toBe("function");
   });
 });

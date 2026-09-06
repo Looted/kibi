@@ -5,6 +5,8 @@ import path from "node:path";
 import {
   assessStagedSymbolsManifest,
   collectStagedAuthoredSymbolsManifestEvidence,
+  manifestRecordSourcePath,
+  parsedCoordinateOrNull,
 } from "../../src/traceability/staged-symbols-manifest.js";
 import {
   createGitWorkspace,
@@ -139,5 +141,30 @@ describe("staged symbols manifest leftover record normalization", () => {
         assessment.state,
       );
     });
+  });
+
+  test("parsedCoordinateOrNull and manifestRecordSourcePath cover leftover fallbacks", () => {
+    expect(
+      parsedCoordinateOrNull(() => {
+        throw new Error("parse boom");
+      }),
+    ).toBeNull();
+    expect(
+      parsedCoordinateOrNull(() => ({
+        status: "invalid",
+        reason: "bad",
+      })),
+    ).toBeNull();
+    expect(
+      parsedCoordinateOrNull(() => ({
+        status: "legacy",
+        coordinates: {},
+      })),
+    ).toEqual({ status: "legacy", coordinates: {} });
+    expect(manifestRecordSourcePath({ sourceFile: "src/a.ts" })).toBe(
+      "src/a.ts",
+    );
+    expect(manifestRecordSourcePath({ source: "src/b.ts" })).toBe("src/b.ts");
+    expect(manifestRecordSourcePath({ sourceFile: 12, source: 9 })).toBeNull();
   });
 });

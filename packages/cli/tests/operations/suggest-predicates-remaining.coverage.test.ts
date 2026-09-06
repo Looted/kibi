@@ -6,6 +6,8 @@ import * as loader from "../../src/operations/modeling/predicate-loader.js";
 import * as ranker from "../../src/operations/modeling/predicate-ranker.js";
 import type { PredicateScoreComponents } from "../../src/operations/modeling/predicate-types.js";
 import {
+  compareEligibleByApplicabilityScoreThenName,
+  compareEligibleByApplicabilityThenName,
   executeSuggestPredicates,
   handleKbSuggestPredicates,
 } from "../../src/operations/modeling/suggest-predicates.js";
@@ -187,5 +189,27 @@ describe("suggest-predicates remaining routing and ranking branches", () => {
     expect(strong.structuredContent.recommendedAction).not.toBe(
       "record_ontology_gap",
     );
+  });
+
+  test("compare helpers break ties by score then name", () => {
+    restoreEnv = isolateKibiEnv();
+    expect(
+      compareEligibleByApplicabilityThenName(
+        { applicability_score: 0.5, predicate_name: "alpha" },
+        { applicability_score: 0.5, predicate_name: "beta" },
+      ),
+    ).toBeLessThan(0);
+    expect(
+      compareEligibleByApplicabilityScoreThenName(
+        { applicability_score: 0.5, score: 0.2, predicate_name: "beta" },
+        { applicability_score: 0.5, score: 0.4, predicate_name: "alpha" },
+      ),
+    ).toBeGreaterThan(0);
+    expect(
+      compareEligibleByApplicabilityScoreThenName(
+        { applicability_score: 0.5, score: 0.4, predicate_name: "alpha" },
+        { applicability_score: 0.5, score: 0.4, predicate_name: "beta" },
+      ),
+    ).toBeLessThan(0);
   });
 });

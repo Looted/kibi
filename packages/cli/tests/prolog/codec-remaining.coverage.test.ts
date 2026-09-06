@@ -1,6 +1,8 @@
 // implements REQ-009
 import { afterEach, describe, expect, test } from "bun:test";
 import {
+  fileUriLeaf,
+  firstTwoDefinedParts,
   parseAtomList,
   parseEntityFromBinding,
   parseEntityFromList,
@@ -67,5 +69,17 @@ describe("prolog codec leftover parse branches", () => {
     ]);
     expect(parseViolationRows("[]")).toEqual([]);
     expect(parseViolationRows("")).toEqual([]);
+  });
+
+  test("firstTwoDefinedParts and fileUriLeaf cover defensive holes", () => {
+    restores.push(isolateKibiEnv());
+    expect(firstTwoDefinedParts([])).toBeUndefined();
+    expect(firstTwoDefinedParts(["only"])).toBeUndefined();
+    const sparse: Array<string | undefined> = [];
+    sparse[1] = "type";
+    expect(firstTwoDefinedParts(sparse)).toBeUndefined();
+    expect(firstTwoDefinedParts(["id", "req"])).toEqual(["id", "req"]);
+    expect(fileUriLeaf("file:///tmp/app.ts")).toBe("app.ts");
+    expect(fileUriLeaf("noslash")).toBe("noslash");
   });
 });

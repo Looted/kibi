@@ -4,7 +4,10 @@ import * as fs from "node:fs";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { inspectProofEnvironment } from "../../src/proof/inspect.js";
+import {
+  directoryEntriesMatch,
+  inspectProofEnvironment,
+} from "../../src/proof/inspect.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";
 
 const spies: Array<{ mockRestore: () => void }> = [];
@@ -48,5 +51,14 @@ describe("inspect remaining glob and directory existence catch paths", () => {
     });
     spies.push(spy);
     expect(inspectProofEnvironment(root).ciWorkflows).toEqual([]);
+  });
+
+  test("directoryEntriesMatch returns false when readdir throws", () => {
+    restores.push(isolateKibiEnv());
+    const root = mkdtempSync(path.join(os.tmpdir(), "kibi-inspect-file-"));
+    const file = path.join(root, "not-a-dir.txt");
+    writeFileSync(file, "x\n");
+    expect(directoryEntriesMatch(file, /^x$/)).toBe(false);
+    expect(directoryEntriesMatch(root, /^not-a-dir\.txt$/)).toBe(true);
   });
 });

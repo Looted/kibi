@@ -7,6 +7,7 @@ import { Project } from "ts-morph";
 import {
   createTsMorphSourceAnalysisProvider,
   enrichSymbolCoordinatesWithTsMorph,
+  onlyCandidate,
 } from "../../src/extractors/symbols-ts.js";
 import {
   createTempDir,
@@ -199,5 +200,40 @@ export function special$name() {}
     );
     expect(enriched[0]?.title).toBe("noSuchTokenXYZ");
     expect(enriched[0]?.sourceLine).toBeUndefined();
+  });
+
+  test("onlyCandidate and unique internal, method, and member matches", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    expect(onlyCandidate([])).toBeUndefined();
+    expect(onlyCandidate(["one"])).toBe("one");
+    expect(onlyCandidate(["one", "two"])).toBeUndefined();
+    const hole: Array<string | undefined> = [];
+    hole.length = 1;
+    expect(onlyCandidate(hole)).toBeUndefined();
+
+    const root = createTempDir("kibi-symbols-unique-");
+    roots.push(root);
+    mkdirSync(path.join(root, "src"), { recursive: true });
+    writeFileSync(
+      path.join(root, "src", "unique.ts"),
+      `
+function onlyInternal() {}
+export class Only { run() {} value = 1; get label() { return 1 } }
+`,
+    );
+    const enriched = await enrichSymbolCoordinatesWithTsMorph(
+      [
+        { id: "SYM-INT", title: "onlyInternal", sourceFile: "src/unique.ts" },
+        { id: "SYM-RUN", title: "run", sourceFile: "src/unique.ts" },
+        { id: "SYM-VAL", title: "value", sourceFile: "src/unique.ts" },
+        { id: "SYM-LAB", title: "label", sourceFile: "src/unique.ts" },
+      ],
+      root,
+    );
+    expect(enriched.find((row) => row.id === "SYM-INT")?.sourceLine).toBeDefined();
+    expect(enriched.find((row) => row.id === "SYM-RUN")?.sourceLine).toBeDefined();
+    expect(enriched.find((row) => row.id === "SYM-VAL")?.sourceLine).toBeDefined();
+    expect(enriched.find((row) => row.id === "SYM-LAB")?.sourceLine).toBeDefined();
   });
 });

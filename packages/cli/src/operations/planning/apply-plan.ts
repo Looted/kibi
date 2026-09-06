@@ -163,6 +163,36 @@ function isBootstrapApplyArgs(
   return "plan" in args && args.plan.version === "kibi.bootstrap-plan.v1";
 }
 
+export function assertSourceWriteStaysInWorkspace(
+  root: string,
+  absolute: string,
+  writePath: string,
+): void {
+  if (absolute !== root && !absolute.startsWith(`${root}${path.sep}`)) {
+    throw new Error(
+      `Apply plan failed: sourceWrites.path escapes workspace: ${writePath}`,
+    );
+  }
+}
+
+export function assertBootstrapRecoveryDependencies(
+  remaining: readonly { id: string; dependsOn?: readonly string[] }[],
+  applied: ReadonlySet<string>,
+): void {
+  for (const action of remaining) {
+    for (const dependency of action.dependsOn ?? []) {
+      if (
+        !applied.has(dependency) &&
+        !remaining.some((candidate) => candidate.id === dependency)
+      ) {
+        throw new Error(
+          `Bootstrap recovery journal is missing dependency '${dependency}' for '${action.id}'`,
+        );
+      }
+    }
+  }
+}
+
 export function orderBootstrapActions(
   actions: readonly BootstrapAction[],
   completed = new Set<string>(),
@@ -610,11 +640,7 @@ async function applySourceWrites(
       }
       const absolute = path.resolve(context.workspaceRoot, write.path);
       const root = path.resolve(context.workspaceRoot);
-      if (absolute !== root && !absolute.startsWith(`${root}${path.sep}`)) {
-        throw new Error(
-          `Apply plan failed: sourceWrites.path escapes workspace: ${write.path}`,
-        );
-      }
+      assertSourceWriteStaysInWorkspace(root, absolute, write.path);
       const workspaceRelative = path
         .relative(root, absolute)
         .split(path.sep)
@@ -1394,17 +1420,7 @@ export async function executeApplyPlan(
         ordered.filter((action) => !applied.has(action.id)),
         applied,
       );
-      for (const action of remaining) {
-        for (const dependency of action.dependsOn ?? []) {
-          if (
-            !applied.has(dependency) &&
-            !remaining.some((candidate) => candidate.id === dependency)
-          )
-            throw new Error(
-              `Bootstrap recovery journal is missing dependency '${dependency}' for '${action.id}'`,
-            );
-        }
-      }
+      assertBootstrapRecoveryDependencies(remaining, applied);
       return executeBootstrapPlan(
         { plan: journal.plan, approvedPlanHash: journal.plan.planHash },
         context,

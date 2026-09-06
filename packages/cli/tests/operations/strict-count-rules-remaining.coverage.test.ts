@@ -1,6 +1,9 @@
 // implements REQ-mcp-semantic-advisor-preflight
 import { afterEach, describe, expect, test } from "bun:test";
-import { detectCountStrictSuggestion } from "../../src/operations/semantic-advisor/strict-count-rules.js";
+import {
+  detectCountStrictSuggestion,
+  numberToken,
+} from "../../src/operations/semantic-advisor/strict-count-rules.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";
 
 const payload = {
@@ -50,5 +53,9 @@ describe("strict count remaining cap-at branches", () => {
       "The pool capped at zero.",
     );
     expect(wordZero?.claim).toMatchObject({ value_int: 0, operator: "lte" });
+
+    expect(numberToken("eleven")).toBeNull();
+    expect(numberToken("3")).toBe(3);
+    expect(detectCountStrictSuggestion(payload, "hello world")).toBeNull();
   });
 });

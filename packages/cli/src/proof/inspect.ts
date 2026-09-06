@@ -147,6 +147,17 @@ function packageJson(root: string): Record<string, unknown> | null {
   }
 }
 
+export function directoryEntriesMatch(
+  directory: string,
+  regex: RegExp,
+): boolean {
+  try {
+    return readdirSync(directory).some((entry) => regex.test(entry));
+  } catch {
+    return false;
+  }
+}
+
 function globExists(root: string, pattern: string): boolean {
   if (pattern.includes("*")) {
     const directory = path.dirname(path.join(root, pattern));
@@ -158,11 +169,7 @@ function globExists(root: string, pattern: string): boolean {
         .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
         .join(".*")}$`,
     );
-    try {
-      return readdirSync(directory).some((entry) => regex.test(entry));
-    } catch {
-      return false;
-    }
+    return directoryEntriesMatch(directory, regex);
   }
   return existsSync(path.join(root, pattern));
 }

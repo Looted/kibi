@@ -4,6 +4,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { LOGIC_IR_VERSION, type LogicRuleIR } from "../../src/logic/ir.js";
 import {
+  annotateModelRequirementStep,
   executeModelRequirement,
   getWorkspaceMigrationWarning,
   handleKbModelRequirement,
@@ -126,5 +127,21 @@ describe("model-requirement remaining branches", () => {
       { workspaceRoot: cwd, prolog: null } as never,
     );
     expect(viaExecute.structuredContent.statement.length).toBeGreaterThan(0);
+  });
+
+  test("annotateModelRequirementStep leaves non-fact non-req steps unchanged", () => {
+    restores.push(isolateKibiEnv());
+    const step = {
+      type: "scenario",
+      id: "SCEN-1",
+      properties: { title: "Keep" },
+    };
+    expect(
+      annotateModelRequirementStep(step, {
+        claimKey: "CLAIM-1",
+        statement: "The editor must save.",
+        logicClaims: ["CLAIM-1"],
+      }),
+    ).toEqual(step);
   });
 });

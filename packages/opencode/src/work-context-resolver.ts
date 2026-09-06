@@ -31,7 +31,7 @@ export interface WorkContext {
   agentIdentity: string;
 }
 
-interface GitMetadata {
+export interface GitMetadata {
   worktreeRoot: string;
   gitDir: string;
   commonGitDir: string;
@@ -163,7 +163,7 @@ function authorityRootFromCommonGitDir(commonGitDir: string): string | null {
   return basename(commonGitDir) === ".git" ? dirname(commonGitDir) : null;
 }
 
-function authorityRootFromLinkedGitDir(gitDir: string): string | null {
+export function authorityRootFromLinkedGitDir(gitDir: string): string | null {
   const normalizedGitDir = resolve(gitDir);
   const marker = `${sep}.git${sep}worktrees${sep}`;
   const markerIndex = normalizedGitDir.indexOf(marker);
@@ -174,7 +174,7 @@ function authorityRootFromLinkedGitDir(gitDir: string): string | null {
   return normalizedGitDir.slice(0, markerIndex);
 }
 
-function ancestorKbRoots(start: string): string[] {
+export function ancestorKbRoots(start: string): string[] {
   const roots: string[] = [];
   let current = resolve(start);
 
@@ -214,7 +214,7 @@ function resolveAuthorityRoot(
   );
 }
 
-function resolveBranch(git: GitMetadata | null): string {
+export function resolveBranch(git: GitMetadata | null): string {
   if (!git) {
     return "unknown";
   }

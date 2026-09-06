@@ -474,6 +474,11 @@ function inferModuleTitle(filePath: string): string {
 
 type NamedDeclarationCandidate = Node | ClassDeclaration | VariableDeclaration;
 
+export function onlyCandidate<T>(candidates: readonly T[]): T | undefined {
+  if (candidates.length !== 1) return undefined;
+  return candidates[0];
+}
+
 function findNamedDeclaration(
   sourceFile: SourceFile,
   title: string,
@@ -578,12 +583,9 @@ function findNamedDeclaration(
       internalCandidates.push({ node: decl, getNameNode: () => nameNode });
     }
 
-    // Fail closed: only return if exactly one unique match
-    if (internalCandidates.length === 1) {
-      const candidate = internalCandidates[0];
-      if (candidate) {
-        return candidate;
-      }
+    const uniqueInternal = onlyCandidate(internalCandidates);
+    if (uniqueInternal) {
+      return uniqueInternal;
     }
 
     // Third pass: unique class methods
@@ -601,12 +603,9 @@ function findNamedDeclaration(
       }
     }
 
-    // Fail closed: only return if exactly one unique match
-    if (methodCandidates.length === 1) {
-      const candidate = methodCandidates[0];
-      if (candidate) {
-        return candidate;
-      }
+    const uniqueMethod = onlyCandidate(methodCandidates);
+    if (uniqueMethod) {
+      return uniqueMethod;
     }
 
     const memberCandidates: Array<{
@@ -632,11 +631,9 @@ function findNamedDeclaration(
       }
     }
 
-    if (memberCandidates.length === 1) {
-      const candidate = memberCandidates[0];
-      if (candidate) {
-        return candidate;
-      }
+    const uniqueMember = onlyCandidate(memberCandidates);
+    if (uniqueMember) {
+      return uniqueMember;
     }
 
     return null;

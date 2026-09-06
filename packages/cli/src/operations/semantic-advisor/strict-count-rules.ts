@@ -21,7 +21,7 @@ const NUMBER_WORDS = new Map<string, number>([
   ["ten", 10],
 ]);
 
-function numberToken(value: string): number | null {
+export function numberToken(value: string): number | null {
   return /^\d+$/.test(value)
     ? Number(value)
     : (NUMBER_WORDS.get(value.toLowerCase()) ?? null);

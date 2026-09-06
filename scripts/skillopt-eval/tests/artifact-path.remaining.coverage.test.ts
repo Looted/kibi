@@ -3,7 +3,10 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { chmod, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { prepareArtifactPath } from "../artifact-path";
+import {
+  initialArtifactPathClosed,
+  prepareArtifactPath,
+} from "../artifact-path";
 
 const roots: string[] = [];
 
@@ -50,5 +53,9 @@ describe("ArtifactPath remaining read, append, and remove methods", () => {
     } finally {
       await prepared.close();
     }
+  });
+
+  test("initialArtifactPathClosed starts open", () => {
+    expect(initialArtifactPathClosed()).toBe(false);
   });
 });

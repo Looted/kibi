@@ -1,6 +1,10 @@
 // implements REQ-kibi-html-health-report
 import { afterEach, describe, expect, test } from "bun:test";
-import { renderHtmlReport } from "../../src/report/html-report.js";
+import {
+  earliestUnmetGate,
+  firstFailingProofGate,
+  renderHtmlReport,
+} from "../../src/report/html-report.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";
 
 const restores: Array<() => void> = [];
@@ -223,5 +227,40 @@ describe("renderHtmlReport leftover evidence and term branches", () => {
     expect(html).toContain("one, two tries");
     expect(html).toContain("+1 more");
     expect(html).toContain("Ownership present; proof coverage is incomplete");
+  });
+
+  test("earliestUnmetGate returns proven when every listed gate already passes", () => {
+    restores.push(isolateKibiEnv());
+    expect(earliestUnmetGate({ proofStatus: "proven" })).toBe("proven");
+    const allPassed = {
+      proofStatus: "missing",
+      proofStages: {
+        semanticInventory: { status: "passed" },
+        logicGrounding: { status: "passed" },
+        contradictions: { status: "passed" },
+        scenarios: { status: "passed" },
+        scenarioTests: { status: "passed" },
+        productionSymbols: { status: "passed", symbols: ["SYM-A"] },
+        executableSymbols: { status: "passed", symbols: [] },
+        sourceCoordinates: {
+          status: "passed",
+          requirementSource: "present",
+          missingSymbols: [],
+        },
+        passingE2e: { status: "passed" },
+      },
+    };
+    expect(["proven", "evidence", "e2e", "implementation"]).toContain(
+      earliestUnmetGate(allPassed),
+    );
+    expect(
+      firstFailingProofGate(
+        ["semantic", "scenario", "implementation", "e2e", "evidence"],
+        () => true,
+      ),
+    ).toBe("proven");
+    expect(
+      firstFailingProofGate(["semantic", "e2e"], (gate) => gate !== "e2e"),
+    ).toBe("e2e");
   });
 });

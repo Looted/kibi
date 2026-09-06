@@ -22,4 +22,24 @@ describe("diff-meaning remaining trailing-comma skip before closers", () => {
     ].join("\n");
     expect(hasMeaningfulSourceDiff(diffText)).toBe(false);
   });
+
+  test("ignores trailing commas immediately before array and object closers", () => {
+    restores.push(isolateKibiEnv());
+    const arrayDiff = [
+      "diff --git a/src/list.ts b/src/list.ts",
+      "@@ -1 +1 @@",
+      "-const xs = [value]",
+      "+const xs = [value,]",
+      "",
+    ].join("\n");
+    const objectDiff = [
+      "diff --git a/src/obj.ts b/src/obj.ts",
+      "@@ -1 +1 @@",
+      "-const o = {value}",
+      "+const o = {value,}",
+      "",
+    ].join("\n");
+    expect(hasMeaningfulSourceDiff(arrayDiff)).toBe(false);
+    expect(hasMeaningfulSourceDiff(objectDiff)).toBe(false);
+  });
 });

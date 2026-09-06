@@ -102,7 +102,21 @@ describe("relationship shards remaining atomic write and parse failures", () => 
     restores.push(isolateKibiEnv());
     const kb = tempRoot();
     const created = appendRelationship(kb, { ...base, to: "REQ-004" });
-    fs.writeFileSync(created.shardPath, "notes: true\n");
+    const originalRead = fs.readFileSync.bind(fs);
+    let reads = 0;
+    const read = spyOn(fs, "readFileSync").mockImplementation(
+      ((target, encoding) => {
+        if (String(target) === created.shardPath) {
+          reads += 1;
+          if (reads === 1) {
+            return originalRead(target, encoding as BufferEncoding);
+          }
+          return "notes: true\n";
+        }
+        return originalRead(target, encoding as BufferEncoding);
+      }) as typeof fs.readFileSync,
+    );
+    spies.push(read);
     expect(() =>
       appendRelationship(kb, { ...base, to: "REQ-005" }),
     ).toThrow(/missing 'relationships' array/);

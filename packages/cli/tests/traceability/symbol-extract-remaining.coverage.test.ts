@@ -2,8 +2,18 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { MethodDeclaration } from "ts-morph";
-import { extractSymbolsFromStagedFile } from "../../src/traceability/symbol-extract.js";
+import {
+  GetAccessorDeclaration,
+  InterfaceDeclaration,
+  MethodDeclaration,
+  PropertyDeclaration,
+  Scope,
+  TypeAliasDeclaration,
+} from "ts-morph";
+import {
+  extractSymbolsFromStagedFile,
+  isPrivateClassMember,
+} from "../../src/traceability/symbol-extract.js";
 import {
   createTempDir,
   isolateKibiEnv,
@@ -149,5 +159,68 @@ export type Alias = string;
     });
     expect(symbols.some((symbol) => symbol.name === "Box.show")).toBe(false);
     expect(symbols.some((symbol) => symbol.name === "Box")).toBe(true);
+  });
+
+  test("swallows property, accessor, interface, and type-alias extraction failures", () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const propertyText = spyOn(
+      PropertyDeclaration.prototype,
+      "getFullText",
+    ).mockImplementation(() => {
+      throw new Error("property boom");
+    });
+    const accessorText = spyOn(
+      GetAccessorDeclaration.prototype,
+      "getFullText",
+    ).mockImplementation(() => {
+      throw new Error("accessor boom");
+    });
+    const ifaceText = spyOn(
+      InterfaceDeclaration.prototype,
+      "getText",
+    ).mockImplementation(() => {
+      throw new Error("iface boom");
+    });
+    const aliasText = spyOn(
+      TypeAliasDeclaration.prototype,
+      "getText",
+    ).mockImplementation(() => {
+      throw new Error("alias boom");
+    });
+    restores.push(
+      () => propertyText.mockRestore(),
+      () => accessorText.mockRestore(),
+      () => ifaceText.mockRestore(),
+      () => aliasText.mockRestore(),
+    );
+    const symbols = extractSymbolsFromStagedFile({
+      path: "src/members-catch.ts",
+      content: `
+export class Box {
+  value = 1;
+  get label() { return 1; }
+}
+export interface Named { id: string }
+export type Alias = string;
+`,
+      hunkRanges: [],
+      status: "A",
+    });
+    expect(symbols.some((symbol) => symbol.name === "Box")).toBe(true);
+    expect(symbols.some((symbol) => symbol.name === "Box.value")).toBe(false);
+    expect(symbols.some((symbol) => symbol.name === "Named")).toBe(false);
+    expect(symbols.some((symbol) => symbol.name === "Alias")).toBe(false);
+  });
+
+  test("isPrivateClassMember covers scope-private and missing-scope members", () => {
+    expect(
+      isPrivateClassMember({
+        getName: () => "hide",
+        getScope: () => Scope.Private,
+      }),
+    ).toBe(true);
+    expect(isPrivateClassMember({ getName: () => "public" })).toBe(false);
+    expect(isPrivateClassMember({})).toBe(false);
   });
 });

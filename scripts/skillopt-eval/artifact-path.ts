@@ -157,8 +157,12 @@ function assertDirectFileName(name: string): void {
   }
 }
 
+export function initialArtifactPathClosed(): boolean {
+  return false;
+}
+
 export class ArtifactPath {
-  #closed = false;
+  #closed = initialArtifactPathClosed();
 
   private constructor(
     readonly path: string,

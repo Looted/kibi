@@ -135,16 +135,37 @@ function uniqueSchemas(
   });
 }
 
+export function compareEligibleByApplicabilityThenName(
+  left: Pick<PredicateSuggestion, "applicability_score" | "predicate_name">,
+  right: Pick<PredicateSuggestion, "applicability_score" | "predicate_name">,
+): number {
+  if (right.applicability_score !== left.applicability_score)
+    return right.applicability_score - left.applicability_score;
+  return left.predicate_name.localeCompare(right.predicate_name);
+}
+
+export function compareEligibleByApplicabilityScoreThenName(
+  left: Pick<
+    PredicateSuggestion,
+    "applicability_score" | "score" | "predicate_name"
+  >,
+  right: Pick<
+    PredicateSuggestion,
+    "applicability_score" | "score" | "predicate_name"
+  >,
+): number {
+  if (right.applicability_score !== left.applicability_score)
+    return right.applicability_score - left.applicability_score;
+  if (right.score !== left.score) return right.score - left.score;
+  return left.predicate_name.localeCompare(right.predicate_name);
+}
+
 function withMarginRejection(
   candidates: readonly PredicateSuggestion[],
 ): PredicateSuggestion[] {
   const eligible = candidates
     .filter((candidate) => candidate.eligibility === "eligible")
-    .sort((left, right) => {
-      if (right.applicability_score !== left.applicability_score)
-        return right.applicability_score - left.applicability_score;
-      return left.predicate_name.localeCompare(right.predicate_name);
-    });
+    .sort(compareEligibleByApplicabilityThenName);
   const top = eligible[0];
   const second = eligible[1];
   if (
@@ -284,12 +305,7 @@ export async function handleKbSuggestPredicates(
       : [];
   const recommendedCandidate = candidates
     .filter((candidate) => candidate.eligibility === "eligible")
-    .sort((left, right) => {
-      if (right.applicability_score !== left.applicability_score)
-        return right.applicability_score - left.applicability_score;
-      if (right.score !== left.score) return right.score - left.score;
-      return left.predicate_name.localeCompare(right.predicate_name);
-    })[0];
+    .sort(compareEligibleByApplicabilityScoreThenName)[0];
 
   if (candidates.length === 0 && !args.schemaId) {
     warnings.push(

@@ -183,6 +183,19 @@ export type CodexOptimizerOptions = Readonly<{
   timeoutMs?: number;
 }>;
 
+export function defaultCodexLoginRun(
+  argv: string[],
+  childEnv: NodeJS.ProcessEnv,
+  sourceWorktree: string,
+): ReturnType<typeof runBoundedProcess> {
+  return runBoundedProcess({
+    argv,
+    cwd: sourceWorktree,
+    env: childEnv,
+    timeoutMs: 15_000,
+  });
+}
+
 // implements REQ-skillopt-codex-optimization
 export async function runCodexSkillOptStep(
   options: CodexOptimizerOptions,
@@ -203,12 +216,7 @@ export async function runCodexSkillOptStep(
       sandboxHome: workspace.sandboxHome,
       env,
       run: (argv, childEnv) =>
-        runBoundedProcess({
-          argv,
-          cwd: sourceWorktree,
-          env: childEnv,
-          timeoutMs: 15_000,
-        }),
+        defaultCodexLoginRun(argv, childEnv, sourceWorktree),
     });
     const staged = await stageCapabilityCanary(workspace, sourceWorktree, {
       ...(options.codexExecutable === undefined

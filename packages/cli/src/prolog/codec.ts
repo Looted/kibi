@@ -107,6 +107,25 @@ export function parseListOfLists(listStr: string): string[][] {
   return results;
 }
 
+export function firstTwoDefinedParts(
+  parts: readonly (string | undefined)[],
+): [string, string] | undefined {
+  const first = parts[0];
+  const second = parts[1];
+  if (first === undefined || second === undefined) {
+    return undefined;
+  }
+  return [first, second];
+}
+
+export function fileUriLeaf(value: string): string {
+  const lastSlash = value.lastIndexOf("/");
+  if (lastSlash !== -1) {
+    return value.substring(lastSlash + 1);
+  }
+  return value;
+}
+
 export function parseEntityFromBinding(
   // implements REQ-009
   bindingStr: string,
@@ -118,11 +137,11 @@ export function parseEntityFromBinding(
     return {};
   }
 
-  const idPart = parts[0];
-  const typePart = parts[1];
-  if (idPart === undefined || typePart === undefined) {
+  const pair = firstTwoDefinedParts(parts);
+  if (!pair) {
     return {};
   }
+  const [idPart, typePart] = pair;
 
   const id = idPart.trim();
   const type = typePart.trim();
@@ -232,11 +251,11 @@ export function parsePrologValue(valueInput: string): unknown {
 
     const parts = splitTopLevelGeneral(innerContent, ",");
     if (parts.length >= 2) {
-      const literalPart = parts[0];
-      const datatypePart = parts[1];
-      if (literalPart === undefined || datatypePart === undefined) {
+      const pair = firstTwoDefinedParts(parts);
+      if (!pair) {
         return value;
       }
+      const [literalPart, datatypePart] = pair;
 
       let literalValue = literalPart.trim();
       const datatype = datatypePart.trim();
@@ -273,11 +292,7 @@ export function parsePrologValue(valueInput: string): unknown {
 
   // Handle URI
   if (value.startsWith("file:///")) {
-    const lastSlash = value.lastIndexOf("/");
-    if (lastSlash !== -1) {
-      return value.substring(lastSlash + 1);
-    }
-    return value;
+    return fileUriLeaf(value);
   }
 
   // Handle quoted string

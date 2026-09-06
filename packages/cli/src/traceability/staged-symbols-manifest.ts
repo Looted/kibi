@@ -128,6 +128,28 @@ function parseManifestRecords(
   }
 }
 
+export function parsedCoordinateOrNull(
+  parse: () => ParsedCoordinateArtifact,
+): ParsedCoordinateArtifact | null {
+  try {
+    const parsed = parse();
+    return parsed.status === "invalid" ? null : parsed;
+  } catch {
+    return null;
+  }
+}
+
+export function manifestRecordSourcePath(record: {
+  sourceFile?: unknown;
+  source?: unknown;
+}): string | null {
+  return typeof record.sourceFile === "string"
+    ? record.sourceFile
+    : typeof record.source === "string"
+      ? record.source
+      : null;
+}
+
 function parseCoordinateArtifact(
   content: string | null | undefined,
 ): ParsedCoordinateArtifact | null {
@@ -139,12 +161,7 @@ function parseCoordinateArtifact(
     return null;
   }
 
-  try {
-    const parsed = parseStrict(content);
-    return parsed.status === "invalid" ? null : parsed;
-  } catch {
-    return null;
-  }
+  return parsedCoordinateOrNull(() => parseStrict(content));
 }
 
 function normalizeNumber(value: unknown): number | null {
@@ -419,12 +436,7 @@ export function assessStagedSymbolsManifest(options: {
   for (const sourceFile of sourceFiles) {
     const manifestRecordsForFile = (stagedManifestRecords ?? []).filter(
       (record) => {
-        const recordSource =
-          typeof record.sourceFile === "string"
-            ? record.sourceFile
-            : typeof record.source === "string"
-              ? record.source
-              : null;
+        const recordSource = manifestRecordSourcePath(record);
         return recordSource === sourceFile.path;
       },
     );
