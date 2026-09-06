@@ -181,3 +181,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d0d311fede85
+  - type: implements
+    from: SYM-test-root-is-curated-suite-entry-point
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-09-06T06:25:02.986Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-758c036bb8f6
+  - type: covered_by
+    from: SYM-test-root-is-curated-suite-entry-point
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-09-06T06:25:02.995Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d92313d9cc73

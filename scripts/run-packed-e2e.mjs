@@ -60,6 +60,7 @@ export async function runPackedE2E(options = {}) {
       [
         "--test",
         "--test-concurrency=2",
+        "--test-force-exit",
         ...testFiles.map((testFile) => path.resolve(testFile)),
       ],
       {

@@ -55,21 +55,19 @@ describe("isCuratedSuiteEntryPoint", () => {
 
   it("runs only as a direct script, not under bun test", () => {
     expect(
-      isCuratedSuiteEntryPoint(["bun", modulePath], modulePath),
+      isCuratedSuiteEntryPoint(["bun", modulePath], modulePath, true),
     ).toBe(true);
+    expect(
+      isCuratedSuiteEntryPoint(["bun", modulePath], modulePath, false),
+    ).toBe(false);
     expect(
       isCuratedSuiteEntryPoint(
         ["bun", "test", "--timeout", "120000", modulePath],
         modulePath,
+        true,
       ),
     ).toBe(false);
-    expect(
-      isCuratedSuiteEntryPoint(
-        ["bun", "test", modulePath, "./packages/cli/tests/engine.test.ts"],
-        modulePath,
-      ),
-    ).toBe(false);
-    expect(isCuratedSuiteEntryPoint(["bun"], modulePath)).toBe(false);
+    expect(isCuratedSuiteEntryPoint(["bun"], modulePath, true)).toBe(false);
   });
 });
 

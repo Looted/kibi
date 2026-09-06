@@ -46,6 +46,7 @@ test("packed runner prepares once, propagates both paths, and preserves bounded 
   assert.deepEqual(calls[0].argv, [
     "--test",
     "--test-concurrency=2",
+    "--test-force-exit",
     "/tmp/one.test.js",
     "/tmp/two.test.js",
   ]);

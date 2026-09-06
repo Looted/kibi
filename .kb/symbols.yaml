@@ -33974,3 +33974,14 @@ symbols:
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: implements
         target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-test-root-is-curated-suite-entry-point
+    title: isCuratedSuiteEntryPoint
+    status: active
+    sourceFile: test/root.test.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-test-journaled-engine-harness

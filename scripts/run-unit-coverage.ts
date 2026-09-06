@@ -216,7 +216,10 @@ export const COVERAGE_SHARDS: readonly {
       "./scripts/skillopt-eval/coverage-isolates/cursor-suite-remaining.coverage.test.ts",
     ],
   },
-  { label: "scripts", paths: ["./scripts/tests"] },
+  {
+    label: "scripts",
+    paths: ["./scripts/tests", "./test/root-summary.test.ts"],
+  },
   {
     label: "vscode.activation",
     // merge-lcov now drops extra DA:0 rows from lower-hit-rate maps, so the

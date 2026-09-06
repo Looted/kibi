@@ -29,7 +29,7 @@ describe("unit coverage runner contract", () => {
     });
     expect(COVERAGE_SHARDS).toContainEqual({
       label: "scripts",
-      paths: ["./scripts/tests"],
+      paths: ["./scripts/tests", "./test/root-summary.test.ts"],
     });
     expect(COVERAGE_SHARDS).toContainEqual({
       label: "runtime",
