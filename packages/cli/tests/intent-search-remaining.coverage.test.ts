@@ -58,7 +58,7 @@ describe("intent-search remaining candidate, graph, and related-id branches", ()
         minScore: 0.01,
       },
       {
-        query: async (goal: string) => {
+        query: (async (goal: string) => {
           if (goal.includes("kb_relationship")) {
             return {
               success: true,
@@ -88,7 +88,7 @@ describe("intent-search remaining candidate, graph, and related-id branches", ()
             success: true,
             bindings: { Results: encodeEntities([seeded, ...extra, related]) },
           };
-        },
+        }) as never,
         searchEntities: async () => ({
           entities: [seeded],
           count: 1,

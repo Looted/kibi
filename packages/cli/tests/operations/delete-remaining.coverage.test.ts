@@ -55,13 +55,22 @@ function attachment(workspaceRoot: string, migrationRequired = false) {
   };
 }
 
+type LooseQueryResult = {
+  success: boolean;
+  bindings: Record<string, string | undefined>;
+  error?: string;
+};
+
 function contextFor(
   workspaceRoot: string,
-  query: (goal: string) => PrologQueryResult | Promise<PrologQueryResult>,
+  query: (goal: string) => LooseQueryResult | Promise<LooseQueryResult>,
   extras: Partial<OperationContext> = {},
 ): OperationContext {
   const prolog: PrologPort = {
-    query: async (goal) => query(Array.isArray(goal) ? goal.join(", ") : goal),
+    query: async (goal) =>
+      (await query(
+        Array.isArray(goal) ? goal.join(", ") : goal,
+      )) as PrologQueryResult,
     nextSolution: async () => null,
     save: extras.prolog?.save ?? (async () => ({ success: true, bindings: {} })),
   };
@@ -69,7 +78,6 @@ function contextFor(
     workspaceRoot,
     signal: new AbortController().signal,
     clock: () => new Date("2026-09-05T00:00:00.000Z"),
-    prolog,
     branchAttachment: attachment(workspaceRoot),
     ...extras,
     prolog: extras.prolog ?? prolog,
@@ -644,7 +652,9 @@ describe("executeDelete entity remaining branches", () => {
       ),
     );
     expect(yamlPlan.structuredContent?.deletionPlan?.supersessionRequired).toBe(false);
-    expect(yamlPlan.structuredContent?.deletionPlan?.sourceWrites[0]?.mode).toBe("write");
+    expect(
+      yamlPlan.structuredContent?.deletionPlan?.sourceWrites?.[0]?.mode,
+    ).toBe("write");
 
     const compiled = await executeDelete(
       { ids: ["REQ-NOSRC"] },

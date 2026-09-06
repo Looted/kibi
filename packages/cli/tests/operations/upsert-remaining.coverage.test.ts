@@ -71,13 +71,22 @@ function attachment(workspaceRoot: string, migrationRequired = false) {
   };
 }
 
+type LooseQueryResult = {
+  success: boolean;
+  bindings: Record<string, string | undefined>;
+  error?: string;
+};
+
 function contextFor(
   workspaceRoot: string,
-  query: (goal: string) => Promise<PrologQueryResult> | PrologQueryResult,
+  query: (goal: string) => Promise<LooseQueryResult> | LooseQueryResult,
   extras: Partial<OperationContext> = {},
 ): OperationContext {
   const prolog: PrologPort = {
-    query: async (goal) => query(Array.isArray(goal) ? goal.join(", ") : goal),
+    query: async (goal) =>
+      (await query(
+        Array.isArray(goal) ? goal.join(", ") : goal,
+      )) as PrologQueryResult,
     nextSolution: async () => null,
     save: async () => ({ success: true, bindings: {} }),
     invalidateCache: extras.prolog?.invalidateCache,
@@ -86,7 +95,6 @@ function contextFor(
     workspaceRoot,
     signal: new AbortController().signal,
     clock: () => new Date("2026-09-05T00:00:00.000Z"),
-    prolog,
     branchAttachment: attachment(workspaceRoot),
     ...extras,
     prolog: extras.prolog ?? prolog,
@@ -499,10 +507,13 @@ describe("executeUpsert remaining runtime branches", () => {
         signal: new AbortController().signal,
         clock: () => new Date("2026-09-05T00:00:00.000Z"),
         prolog: {
-          query: async (goal) =>
+          query: (async (goal: string) =>
             String(goal).startsWith("kb_commit_upsert(")
               ? { success: true, bindings: { ChangeKind: '"updated"' } }
-              : { success: true, bindings: { Results: "[]" } },
+              : {
+                  success: true,
+                  bindings: { Results: "[]" },
+                }) as unknown as PrologPort["query"],
           nextSolution: async () => null,
           save: async () => ({ success: true, bindings: {} }),
         },
@@ -937,10 +948,13 @@ describe("executeUpsert remaining runtime branches", () => {
       },
       contextFor(root, commitQuery(), {
         prolog: {
-          query: async (goal) =>
+          query: (async (goal: string) =>
             String(goal).startsWith("kb_commit_upsert(")
               ? { success: true, bindings: { ChangeKind: "created" } }
-              : { success: true, bindings: { Results: "[]" } },
+              : {
+                  success: true,
+                  bindings: { Results: "[]" },
+                }) as unknown as PrologPort["query"],
           nextSolution: async () => null,
           save: async () => ({ success: true, bindings: {} }),
           invalidateCache,

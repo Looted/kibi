@@ -50,6 +50,7 @@ import {
 import { collectLinkedEntities, formatExtractedSymbols, buildNextActions } from "../src/public/impact/summaries.js";
 import { collectSourceChanges } from "../src/public/impact/source-changes.js";
 import { getSpec } from "../src/public/operations/catalog.js";
+import type { OperationContext } from "../src/public/operations/runtime-types.js";
 import { buildRepairPlan } from "../src/public/operations/repair-plan.js";
 import { executeSemanticAdvisor, semanticAdvisorSpec } from "../src/public/operations/specs/semantic.js";
 import { skillsLoadSpec } from "../src/public/operations/specs/skills.js";
@@ -89,7 +90,7 @@ function tempDir(prefix = "kibi-small-gaps-"): string {
 
 function operationContext(workspaceRoot: string, prolog?: {
   query: (goal: string) => Promise<{ success: boolean; bindings: Record<string, unknown>; error?: string }>;
-}) {
+}): OperationContext {
   return {
     workspaceRoot,
     signal: new AbortController().signal,
@@ -103,7 +104,7 @@ function operationContext(workspaceRoot: string, prolog?: {
           },
         }
       : {}),
-  };
+  } as unknown as OperationContext;
 }
 
 function schema(
@@ -642,7 +643,7 @@ describe("coverage gaps: remaining small CLI modules", () => {
                 id: "SYM-1",
                 name: "alpha",
                 kind: "function",
-                role: "implementation",
+                role: "implementation" as never,
                 location: { file: "src/a.ts", startLine: 1, endLine: 1 },
                 hunkRanges: [],
                 reqLinks: [],
@@ -650,7 +651,7 @@ describe("coverage gaps: remaining small CLI modules", () => {
               },
             ],
           ],
-        ]),
+        ]) as never,
       )[0]?.linkedEntityIds,
     ).toEqual(["REQ-1"]);
     expect(

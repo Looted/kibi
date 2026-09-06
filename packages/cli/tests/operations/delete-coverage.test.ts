@@ -30,13 +30,20 @@ function attachment(workspaceRoot: string, migrationRequired = false) {
   };
 }
 
+type LooseQueryResult = {
+  success: boolean;
+  bindings: Record<string, string | undefined>;
+  error?: string;
+};
+
 function contextFor(
   workspaceRoot: string,
-  query: (goal: string) => PrologQueryResult,
+  query: (goal: string) => LooseQueryResult,
   extras: Partial<OperationContext> = {},
 ): OperationContext {
   const prolog: PrologPort = {
-    query: async (goal) => query(Array.isArray(goal) ? goal.join(", ") : goal),
+    query: async (goal) =>
+      query(Array.isArray(goal) ? goal.join(", ") : goal) as PrologQueryResult,
     nextSolution: async () => null,
     save: async () => ({ success: true, bindings: {} }),
   };

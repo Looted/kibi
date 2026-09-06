@@ -9,7 +9,10 @@ import {
   executePlanBootstrap,
   selectBootstrapCandidates,
 } from "../../src/operations/bootstrap/generate.js";
-import type { Candidate } from "../../src/operations/bootstrap/types.js";
+import type {
+  BootstrapPlanV1,
+  Candidate,
+} from "../../src/operations/bootstrap/types.js";
 import * as executors from "../../src/public/operations/discovery-executors.js";
 import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
 import type { OperationContext } from "../../src/public/operations/runtime-types.js";
@@ -208,10 +211,9 @@ describe("executePlanBootstrap", () => {
           },
         }),
       );
-      expect(result.structuredContent.expected.sourceHashes["docs/a.md"]).toMatch(
-        /^[a-f0-9]{64}$/,
-      );
-      expect(result.structuredContent.expected.sourceHashes["docs/missing.md"]).toBeNull();
+      const expected = result.structuredContent.expected as BootstrapPlanV1["expected"];
+      expect(expected.sourceHashes["docs/a.md"]).toMatch(/^[a-f0-9]{64}$/);
+      expect(expected.sourceHashes["docs/missing.md"]).toBeNull();
       expect(result.structuredContent.suppressedCandidates.some((row) => row.reason === "ignored_source")).toBe(
         true,
       );
@@ -298,9 +300,10 @@ describe("executePlanBootstrap", () => {
           },
         }),
       );
-      expect(result.structuredContent.expected.kbSnapshotId).toMatch(
-        /unavailable|empty-source-state|missing/,
-      );
+      expect(
+        (result.structuredContent.expected as BootstrapPlanV1["expected"])
+          .kbSnapshotId,
+      ).toMatch(/unavailable|empty-source-state|missing/);
     } finally {
       spy.mockRestore();
     }

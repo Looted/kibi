@@ -130,7 +130,7 @@ async function waitForSocket(
 function mockPrologForDaemon(
   queryImpl?: (goal: string) => Promise<{
     success: boolean;
-    bindings: Record<string, string>;
+    bindings: Record<string, string | undefined>;
     error?: string;
   }>,
 ): () => void {
@@ -142,7 +142,7 @@ function mockPrologForDaemon(
     "terminate",
   ).mockResolvedValue(undefined);
   const query = spyOn(PrologProcess.prototype, "query").mockImplementation(
-    async (goal: string | string[]) => {
+    (async (goal: string | string[]) => {
       const text = Array.isArray(goal) ? goal.join(", ") : goal;
       if (queryImpl) return queryImpl(text);
       if (text.includes("kb_attach") || text.includes("use_module")) {
@@ -157,7 +157,7 @@ function mockPrologForDaemon(
         };
       }
       return { success: true, bindings: { Rows: "[]", Count: "0" } };
-    },
+    }) as never,
   );
   return () => {
     start.mockRestore();
@@ -192,7 +192,12 @@ describe("engine remaining: runtime directory and lock recovery", () => {
     writeFileSync(blocked, "not-a-directory");
     const previousRuntime = process.env.KIBI_RUNTIME_DIR;
     process.env.KIBI_RUNTIME_DIR = blocked;
-    restores.push(() => restoreEnv("KIBI_RUNTIME_DIR", previousRuntime));
+    restores.push(() =>
+      (restoreEnv as unknown as (name: string, value: string | undefined) => void)(
+        "KIBI_RUNTIME_DIR",
+        previousRuntime,
+      ),
+    );
     const root = tempRoot();
     const socket = engineSocketPath(root, "main");
     expect(socket).toContain("kibi-");
@@ -204,7 +209,12 @@ describe("engine remaining: runtime directory and lock recovery", () => {
     restores.push(restoreEnv);
     const previousRuntime = process.env.KIBI_RUNTIME_DIR;
     process.env.KIBI_RUNTIME_DIR = path.join(tempRoot(), "missing-runtime");
-    restores.push(() => restoreEnv("KIBI_RUNTIME_DIR", previousRuntime));
+    restores.push(() =>
+      (restoreEnv as unknown as (name: string, value: string | undefined) => void)(
+        "KIBI_RUNTIME_DIR",
+        previousRuntime,
+      ),
+    );
     const mkdir = spyOn(fs, "mkdirSync").mockImplementation(() => {
       throw new Error("mkdir denied");
     });
@@ -311,7 +321,12 @@ describe("engine remaining: runtime directory and lock recovery", () => {
 
     const previousNode = process.env.KIBI_NODE_PATH;
     process.env.KIBI_NODE_PATH = path.join(root, "missing-node");
-    restores.push(() => restoreEnv("KIBI_NODE_PATH", previousNode));
+    restores.push(() =>
+      (restoreEnv as unknown as (name: string, value: string | undefined) => void)(
+        "KIBI_NODE_PATH",
+        previousNode,
+      ),
+    );
     const client = new EngineClient({
       workspaceRoot: root,
       branch: "main",
@@ -368,7 +383,12 @@ exit 1
     );
     const previousNode = process.env.KIBI_NODE_PATH;
     process.env.KIBI_NODE_PATH = fakeNode;
-    restores.push(() => restoreEnv("KIBI_NODE_PATH", previousNode));
+    restores.push(() =>
+      (restoreEnv as unknown as (name: string, value: string | undefined) => void)(
+        "KIBI_NODE_PATH",
+        previousNode,
+      ),
+    );
     const client = new EngineClient({
       workspaceRoot: root,
       branch: "main",
@@ -420,7 +440,12 @@ exit 1
 
     const previousNode = process.env.KIBI_NODE_PATH;
     process.env.KIBI_NODE_PATH = path.join(root, "no-such-node");
-    restores.push(() => restoreEnv("KIBI_NODE_PATH", previousNode));
+    restores.push(() =>
+      (restoreEnv as unknown as (name: string, value: string | undefined) => void)(
+        "KIBI_NODE_PATH",
+        previousNode,
+      ),
+    );
     const spawnClient = new EngineClient({
       workspaceRoot: root,
       branch: "main",
@@ -439,7 +464,10 @@ exit 1
     const server = net.createServer((socket) => {
       let buffer = Buffer.alloc(0);
       socket.on("data", (chunk) => {
-        buffer = Buffer.concat([buffer, chunk]);
+        buffer = Buffer.concat([
+          buffer,
+          chunk as unknown as Uint8Array,
+        ]);
         while (buffer.length >= 4) {
           const length = buffer.readUInt32BE(0);
           if (buffer.length < length + 4) return;
@@ -537,7 +565,12 @@ exit 1
     const root = tempRoot();
     const previousNode = process.env.KIBI_NODE_PATH;
     process.env.KIBI_NODE_PATH = path.join(root, "missing-node");
-    restores.push(() => restoreEnv("KIBI_NODE_PATH", previousNode));
+    restores.push(() =>
+      (restoreEnv as unknown as (name: string, value: string | undefined) => void)(
+        "KIBI_NODE_PATH",
+        previousNode,
+      ),
+    );
     const client = new EngineClient({
       workspaceRoot: root,
       branch: "main",
@@ -666,7 +699,12 @@ describe("engine remaining: journal recovery and migration", () => {
     restores.push(restoreEnv);
     const previousNodeEnv = process.env.NODE_ENV;
     process.env.NODE_ENV = "production";
-    restores.push(() => restoreEnv("NODE_ENV", previousNodeEnv));
+    restores.push(() =>
+      (restoreEnv as unknown as (name: string, value: string | undefined) => void)(
+        "NODE_ENV",
+        previousNodeEnv,
+      ),
+    );
     const root = tempRoot();
     const store = path.join(root, "legacy");
     mkdirSync(store, { recursive: true });

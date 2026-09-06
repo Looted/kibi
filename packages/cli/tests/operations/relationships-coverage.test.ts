@@ -30,9 +30,12 @@ afterEach(() => {
   }
 });
 
-function prolog(query: PrologPort["query"], extras: Partial<PrologPort> = {}): PrologPort {
+function prolog(
+  query: (goal: string) => Promise<unknown>,
+  extras: Partial<PrologPort> = {},
+): PrologPort {
   return {
-    query,
+    query: query as unknown as PrologPort["query"],
     nextSolution: async () => null,
     save: async () => ({ success: true, bindings: {} }),
     ...extras,

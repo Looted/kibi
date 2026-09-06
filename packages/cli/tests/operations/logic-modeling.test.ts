@@ -1,16 +1,25 @@
 import { describe, expect, test } from "bun:test";
 
-import { LOGIC_IR_VERSION, type LogicRuleIR } from "../../src/logic/ir.js";
+import {
+  LOGIC_IR_VERSION,
+  type LogicAtom,
+  type LogicExpression,
+  type LogicRuleIR,
+} from "../../src/logic/ir.js";
 import {
   buildLogicApplyPlan,
   logicRuleFactId,
 } from "../../src/operations/modeling/logic-modeling.js";
 
-const atom = (name: string, args: readonly Record<string, unknown>[] = []) => ({
-  kind: "atom" as const,
-  name,
-  args,
-});
+const atom = (
+  name: string,
+  args: readonly Record<string, unknown>[] = [],
+): LogicAtom =>
+  ({
+    kind: "atom" as const,
+    name,
+    args,
+  }) as unknown as LogicAtom;
 
 function validRule(overrides: Partial<LogicRuleIR> = {}): LogicRuleIR {
   return {
@@ -19,7 +28,9 @@ function validRule(overrides: Partial<LogicRuleIR> = {}): LogicRuleIR {
     modality: "oblige",
     variables: [{ name: "X", type: "entity" }],
     head: atom("retain", [{ kind: "var", name: "X", type: "entity" }]),
-    body: atom("customer", [{ kind: "var", name: "X", type: "entity" }]),
+    body: atom("customer", [
+      { kind: "var", name: "X", type: "entity" },
+    ]) as unknown as LogicExpression,
     ...overrides,
   };
 }

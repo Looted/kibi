@@ -11,11 +11,25 @@ import path from "node:path";
 import { PrologProcess, resolveKbPlPath } from "../src/prolog.js";
 import { isolateKibiEnv } from "./helpers/in-process-workspace.js";
 
+type ModuleWithResolve = typeof Module & {
+  _resolveFilename: (
+    request: string,
+    parent: NodeModule | undefined,
+    isMain: boolean,
+    options?: unknown,
+  ) => string;
+};
+
+function nodeModule(): ModuleWithResolve {
+  return Module as unknown as ModuleWithResolve;
+}
+
 function patchResolveFilename(
   impl: (request: string) => string | never,
 ): () => void {
-  const original = Module._resolveFilename;
-  Module._resolveFilename = function (
+  const host = nodeModule();
+  const original = host._resolveFilename;
+  host._resolveFilename = function (
     request: string,
     parent: NodeModule | undefined,
     isMain: boolean,
@@ -27,7 +41,7 @@ function patchResolveFilename(
     return original.call(Module, request, parent, isMain, options);
   };
   return () => {
-    Module._resolveFilename = original;
+    host._resolveFilename = original;
   };
 }
 
@@ -55,6 +69,10 @@ type FakeChild = EventEmitter & {
   killed: boolean;
   kill: (signal?: NodeJS.Signals) => boolean;
 };
+
+function asSpawn(impl: () => FakeChild | never): typeof childProcess.spawn {
+  return impl as unknown as typeof childProcess.spawn;
+}
 
 function fakeChild(options: {
   stdin?: boolean;
@@ -237,11 +255,13 @@ describe("prolog remaining: interactive start and query errors", () => {
     restores.push(() => restoreEnv("KIBI_PROLOG_DEBUG", previousDebug));
 
     const children: FakeChild[] = [];
-    const spawn = spyOn(childProcess, "spawn").mockImplementation(() => {
-      const created = fakeChild({ echoTrue: true });
-      children.push(created);
-      return created as unknown as ChildProcess;
-    });
+    const spawn = spyOn(childProcess, "spawn").mockImplementation(
+      asSpawn(() => {
+        const created = fakeChild({ echoTrue: true });
+        children.push(created);
+        return created;
+      }),
+    );
     restores.push(() => spawn.mockRestore());
     const last = (): FakeChild => {
       const child = children.at(-1);
@@ -334,87 +354,99 @@ describe("prolog remaining: one-shot spawn, overflow, and decode errors", () => 
     const spawn = spyOn(childProcess, "spawn");
     restores.push(() => spawn.mockRestore());
 
-    spawn.mockImplementationOnce(() => {
-      throw "raw spawn failure";
-    });
+    spawn.mockImplementationOnce(
+      asSpawn(() => {
+        throw "raw spawn failure";
+      }),
+    );
     const raw = new PrologProcess({ oneShot: true, timeout: 500 });
     const rawResult = await raw.query("true");
     expect(rawResult.success).toBe(false);
     expect(rawResult.error).toContain("raw spawn failure");
 
     const errorChild = fakeChild();
-    spawn.mockImplementationOnce(() => {
-      queueMicrotask(() =>
-        errorChild.emit("error", new Error("enoent child")),
-      );
-      return errorChild as unknown as ChildProcess;
-    });
+    spawn.mockImplementationOnce(
+      asSpawn(() => {
+        queueMicrotask(() =>
+          errorChild.emit("error", new Error("enoent child")),
+        );
+        return errorChild;
+      }),
+    );
     const errored = new PrologProcess({ oneShot: true, timeout: 1_000 });
     const errorResult = await errored.query("true");
     expect(errorResult.success).toBe(false);
     expect(errorResult.error).toContain("enoent child");
 
     const overflowChild = fakeChild();
-    spawn.mockImplementationOnce(() => {
-      queueMicrotask(() => {
-        overflowChild.stdout?.emit(
-          "data",
-          Buffer.alloc(8 * 1024 * 1024 + 16, 0x62),
-        );
-        overflowChild.stdout?.emit("data", Buffer.from("ignored"));
-        overflowChild.stderr?.emit("data", Buffer.from("more"));
-      });
-      return overflowChild as unknown as ChildProcess;
-    });
+    spawn.mockImplementationOnce(
+      asSpawn(() => {
+        queueMicrotask(() => {
+          overflowChild.stdout?.emit(
+            "data",
+            Buffer.alloc(8 * 1024 * 1024 + 16, 0x62),
+          );
+          overflowChild.stdout?.emit("data", Buffer.from("ignored"));
+          overflowChild.stderr?.emit("data", Buffer.from("more"));
+        });
+        return overflowChild;
+      }),
+    );
     const overflowed = new PrologProcess({ oneShot: true, timeout: 2_000 });
     const overflowResult = await overflowed.query("true");
     expect(overflowResult.success).toBe(false);
     expect(overflowResult.error).toMatch(/ENOBUFS|bounded Prolog output/);
 
     const falseChild = fakeChild();
-    spawn.mockImplementationOnce(() => {
-      queueMicrotask(() => {
-        falseChild.stdout?.emit("data", Buffer.from("__KIBI_FALSE__.\n"));
-        falseChild.emit("close", 0, null);
-      });
-      return falseChild as unknown as ChildProcess;
-    });
+    spawn.mockImplementationOnce(
+      asSpawn(() => {
+        queueMicrotask(() => {
+          falseChild.stdout?.emit("data", Buffer.from("__KIBI_FALSE__.\n"));
+          falseChild.emit("close", 0, null);
+        });
+        return falseChild;
+      }),
+    );
     const falsy = new PrologProcess({ oneShot: true, timeout: 1_000 });
     const falseResult = await falsy.query("true");
     expect(falseResult.success).toBe(false);
     expect(falseResult.error).toMatch(/false/i);
 
     const junkChild = fakeChild();
-    spawn.mockImplementationOnce(() => {
-      queueMicrotask(() => {
-        junkChild.stdout?.emit("data", Buffer.from("no markers here\n"));
-        junkChild.stderr?.emit(
-          "data",
-          Buffer.from("__KIBI_RUNTIME__:node@test\n"),
-        );
-        junkChild.emit("close", 0, null);
-      });
-      return junkChild as unknown as ChildProcess;
-    });
+    spawn.mockImplementationOnce(
+      asSpawn(() => {
+        queueMicrotask(() => {
+          junkChild.stdout?.emit("data", Buffer.from("no markers here\n"));
+          junkChild.stderr?.emit(
+            "data",
+            Buffer.from("__KIBI_RUNTIME__:node@test\n"),
+          );
+          junkChild.emit("close", 0, null);
+        });
+        return junkChild;
+      }),
+    );
     const junk = new PrologProcess({ oneShot: true, timeout: 1_000 });
     const junkResult = await junk.query("true");
     expect(junkResult.success).toBe(false);
     expect(junkResult.error).toMatch(/Query failed/);
 
     const errChild = fakeChild();
-    spawn.mockImplementationOnce(() => {
-      queueMicrotask(() => {
-        errChild.stderr?.emit("data", Buffer.from("ERROR: syntax_error\n"));
-        errChild.emit("close", 1, null);
-      });
-      return errChild as unknown as ChildProcess;
-    });
+    spawn.mockImplementationOnce(
+      asSpawn(() => {
+        queueMicrotask(() => {
+          errChild.stderr?.emit("data", Buffer.from("ERROR: syntax_error\n"));
+          errChild.emit("close", 1, null);
+        });
+        return errChild;
+      }),
+    );
     const stderrErr = new PrologProcess({ oneShot: true, timeout: 1_000 });
     const stderrResult = await stderrErr.query("true");
     expect(stderrResult.success).toBe(false);
 
     const hang = fakeChild();
-    spawn.mockImplementationOnce(() => hang as unknown as ChildProcess);
+    spawn.mockImplementationOnce(asSpawn(() => hang));
     const timed = new PrologProcess({ oneShot: true, timeout: 50 });
     await expect(timed.query("true")).rejects.toThrow(/timeout/);
   });
@@ -423,14 +455,16 @@ describe("prolog remaining: one-shot spawn, overflow, and decode errors", () => 
     const restoreEnvFn = isolateKibiEnv();
     restores.push(restoreEnvFn);
     const store = tempRoot();
-    const spawn = spyOn(childProcess, "spawn").mockImplementation(() => {
-      const child = fakeChild();
-      queueMicrotask(() => {
-        child.stdout?.emit("data", Buffer.from("__KIBI_TRUE__.\n"));
-        child.emit("close", 0, null);
-      });
-      return child as unknown as ChildProcess;
-    });
+    const spawn = spyOn(childProcess, "spawn").mockImplementation(
+      asSpawn(() => {
+        const child = fakeChild();
+        queueMicrotask(() => {
+          child.stdout?.emit("data", Buffer.from("__KIBI_TRUE__.\n"));
+          child.emit("close", 0, null);
+        });
+        return child;
+      }),
+    );
     restores.push(() => spawn.mockRestore());
     const prolog = new PrologProcess({ oneShot: true, timeout: 2_000 });
     const first = await prolog.query(`kb_attach('${store}')`);
@@ -525,14 +559,16 @@ describe("prolog remaining: process-tree teardown and translators", () => {
   test("isCacheableGoal prefixes stay uncached across one-shot reads", async () => {
     const restoreEnvFn = isolateKibiEnv();
     restores.push(restoreEnvFn);
-    const spawn = spyOn(childProcess, "spawn").mockImplementation(() => {
-      const child = fakeChild();
-      queueMicrotask(() => {
-        child.stdout?.emit("data", Buffer.from("X = 1.\n__KIBI_TRUE__.\n"));
-        child.emit("close", 0, null);
-      });
-      return child as unknown as ChildProcess;
-    });
+    const spawn = spyOn(childProcess, "spawn").mockImplementation(
+      asSpawn(() => {
+        const child = fakeChild();
+        queueMicrotask(() => {
+          child.stdout?.emit("data", Buffer.from("X = 1.\n__KIBI_TRUE__.\n"));
+          child.emit("close", 0, null);
+        });
+        return child;
+      }),
+    );
     restores.push(() => spawn.mockRestore());
     const prolog = new PrologProcess({ oneShot: true, timeout: 1_000 });
     for (const goal of [
@@ -559,11 +595,13 @@ describe("prolog remaining: process-tree teardown and translators", () => {
     const restoreEnvFn = isolateKibiEnv();
     restores.push(restoreEnvFn);
     const children: FakeChild[] = [];
-    const spawn = spyOn(childProcess, "spawn").mockImplementation(() => {
-      const created = fakeChild({ echoTrue: true });
-      children.push(created);
-      return created as unknown as ChildProcess;
-    });
+    const spawn = spyOn(childProcess, "spawn").mockImplementation(
+      asSpawn(() => {
+        const created = fakeChild({ echoTrue: true });
+        children.push(created);
+        return created;
+      }),
+    );
     restores.push(() => spawn.mockRestore());
     const last = (): FakeChild => {
       const child = children.at(-1);
@@ -597,11 +635,13 @@ describe("prolog remaining: process-tree teardown and translators", () => {
     const restoreEnvFn = isolateKibiEnv();
     restores.push(restoreEnvFn);
     const children: FakeChild[] = [];
-    const spawn = spyOn(childProcess, "spawn").mockImplementation(() => {
-      const created = fakeChild({ echoTrue: true });
-      children.push(created);
-      return created as unknown as ChildProcess;
-    });
+    const spawn = spyOn(childProcess, "spawn").mockImplementation(
+      asSpawn(() => {
+        const created = fakeChild({ echoTrue: true });
+        children.push(created);
+        return created;
+      }),
+    );
     restores.push(() => spawn.mockRestore());
     const last = (): FakeChild => {
       const child = children.at(-1);
@@ -632,11 +672,13 @@ describe("prolog remaining isRunning and stderr-less start", () => {
     const restoreEnvFn = isolateKibiEnv();
     restores.push(restoreEnvFn);
     const children: FakeChild[] = [];
-    const spawn = spyOn(childProcess, "spawn").mockImplementation(() => {
-      const created = fakeChild({ echoTrue: true });
-      children.push(created);
-      return created as unknown as ChildProcess;
-    });
+    const spawn = spyOn(childProcess, "spawn").mockImplementation(
+      asSpawn(() => {
+        const created = fakeChild({ echoTrue: true });
+        children.push(created);
+        return created;
+      }),
+    );
     restores.push(() => spawn.mockRestore());
     const prolog = new PrologProcess({
       swiplPath: "/usr/bin/env",

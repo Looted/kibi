@@ -316,7 +316,7 @@ describe("compile-intent validation and source planning", () => {
       return { success: true, bindings: { Results: "[]" } };
     });
     const ctx = contextFor(root, query);
-    ctx.prolog = {
+    (ctx as { prolog: PrologPort }).prolog = {
       ...ctx.prolog!,
       queryStatusJson: async () => ({
         success: true,
