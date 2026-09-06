@@ -97,17 +97,6 @@ export interface CheckOptions {
   format?: "text" | "json";
 }
 
-export function requireActiveProlog<T>(
-  engine: T | undefined,
-  prolog: T | undefined,
-): T {
-  const active = engine ?? prolog;
-  if (!active) {
-    throw new Error("Prolog runtime not initialized");
-  }
-  return active;
-}
-
 function getMatchGroup(
   match: RegExpMatchArray | null,
   index = 1,
@@ -818,7 +807,10 @@ export async function checkCommand(
       attached = true;
     }
 
-    const activeProlog = requireActiveProlog(engine, prolog);
+    const activeProlog = engine ?? prolog;
+    if (!activeProlog) {
+      throw new Error("Prolog runtime not initialized");
+    }
     const rules = options.rules
       ?.split(",")
       .map((rule) => rule.trim())

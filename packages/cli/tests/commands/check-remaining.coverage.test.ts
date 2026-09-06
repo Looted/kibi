@@ -6,7 +6,6 @@ import {
   checkCommand,
   checkMustPriorityCoverage,
   findMustPriorityReqs,
-  requireActiveProlog,
 } from "../../src/commands/check.js";
 import * as gitStaged from "../../src/traceability/git-staged.js";
 import { EngineClient } from "../../src/engine.js";
@@ -850,15 +849,6 @@ Must stay independently testable.
     expect(io.logText()).toContain("[required-fields] auth");
     expect(io.logText()).toContain("Entity: REQ-1");
     expect(io.logText()).toContain("Source: docs/auth.md");
-  });
-
-  test("requireActiveProlog throws when neither engine nor process exists", () => {
-    expect(() => requireActiveProlog(undefined, undefined)).toThrow(
-      /Prolog runtime not initialized/,
-    );
-    expect(requireActiveProlog({ id: "engine" }, undefined)).toEqual({
-      id: "engine",
-    });
   });
 
   test("records entity markdown and the first audited no-impact override", async () => {
