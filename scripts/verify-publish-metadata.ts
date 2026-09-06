@@ -174,12 +174,14 @@ export function main(): number {
   return 0;
 }
 
+export function defaultVerifyPublishExit(code: number): void {
+  process.exit(code);
+}
+
 export function runVerifyPublishMetadataIfMain(
   isMain = import.meta.main,
   start = main,
-  exit: (code: number) => never | void = (code) => {
-    process.exit(code);
-  },
+  exit: (code: number) => never | void = defaultVerifyPublishExit,
 ): void {
   if (!isMain) return;
   exit(start());

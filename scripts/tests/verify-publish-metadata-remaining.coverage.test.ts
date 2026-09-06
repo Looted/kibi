@@ -1,6 +1,9 @@
 // implements REQ-kibi-distribution-parity-matrix
 import { afterEach, describe, expect, test } from "bun:test";
-import { runVerifyPublishMetadataIfMain } from "../verify-publish-metadata.ts";
+import {
+  defaultVerifyPublishExit,
+  runVerifyPublishMetadataIfMain,
+} from "../verify-publish-metadata.ts";
 
 afterEach(() => {
   process.exitCode = 0;
@@ -18,5 +21,16 @@ describe("verify-publish-metadata leftover main gate", () => {
     });
     expect(exits).toEqual([3]);
     runVerifyPublishMetadataIfMain(false, () => 0);
+    const exit = process.exit;
+    const codes: number[] = [];
+    process.exit = ((code?: number) => {
+      codes.push(code ?? 0);
+    }) as typeof process.exit;
+    try {
+      defaultVerifyPublishExit(2);
+    } finally {
+      process.exit = exit;
+    }
+    expect(codes).toEqual([2]);
   });
 });

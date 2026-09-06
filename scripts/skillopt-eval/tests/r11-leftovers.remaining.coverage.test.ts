@@ -23,7 +23,11 @@ import { initialArtifactPathClosed } from "../artifact-path";
 import { emptyIfEnoent } from "../runtime/codex-cell-artifacts";
 import { falseIfEnoent } from "../runtime/codex-runtime";
 import { assertMatchingSemanticClass } from "../fixtures/predicate-case-data";
-import { intentIdentityDrifted, throwIfIntentDrift } from "../adoption-intent";
+import {
+  finalizeIntent,
+  intentIdentityDrifted,
+  throwIfIntentDrift,
+} from "../adoption-intent";
 import { throwIfDirectoryInodeDrift } from "../adoption-lock";
 import { throwIfTerminalMismatch } from "../adoption-journal";
 import { throwIfIdentityDrift } from "../adoption-durable";
@@ -136,6 +140,24 @@ describe("skillopt remasure11 leftover helpers", () => {
         hash: "abc",
       }, "drifted"),
     ).toBe(true);
+    const dest = join(publicRoot, "adopted.txt");
+    const stage = join(publicRoot, "adopted.stage");
+    await writeFile(dest, "payload\n");
+    await writeFile(stage, "payload\n");
+    await expect(
+      finalizeIntent(
+        publicRoot,
+        dest,
+        {
+          path: dest,
+          stage,
+          dev: "0",
+          ino: "0",
+          hash: "not-the-hash",
+        },
+        undefined,
+      ),
+    ).rejects.toThrow("adoption no-replace intent drift");
     expect(() =>
       throwIfDirectoryInodeDrift({ dev: 1, ino: 2 }, { dev: 1, ino: 3 }),
     ).toThrow("adoption .kibi directory inode drift");
