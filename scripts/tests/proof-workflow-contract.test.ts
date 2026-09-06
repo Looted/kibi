@@ -144,21 +144,11 @@ describe("strict proof workflow contract", () => {
     );
   });
 
-  test("ratchet baseline fixes the denominator and tracks every observed gap", () => {
-    expect(baseline.mode).toBe("ratchet");
+  test("equality baseline locks 100% current-requirement proof", () => {
+    expect(baseline.mode).toBe("equality");
     expect(baseline.currentRequirements).toBe(97);
-    expect(baseline.proofProven).toBe(39);
-    expect(baseline.currentUnproven).toBe(58);
-    expect(Object.keys(baseline.trackedGaps).sort()).toEqual([
-      "contradiction_check_incomplete",
-      "incomplete_semantic_inventory",
-      "missing_logic_claims",
-      "missing_passing_e2e",
-      "missing_production_symbol",
-      "missing_production_symbol_coverage",
-      "missing_proof_receipt",
-      "missing_semantic_inventory",
-      "unresolved_semantic_proposition",
-    ]);
+    expect(baseline.proofProven).toBe(97);
+    expect(baseline.currentUnproven).toBe(0);
+    expect(baseline.trackedGaps).toEqual({});
   });
 });

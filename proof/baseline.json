@@ -1,18 +1,8 @@
 {
   "version": "kibi.proof-baseline.v1",
-  "mode": "ratchet",
+  "mode": "equality",
   "currentRequirements": 97,
-  "proofProven": 39,
-  "currentUnproven": 58,
-  "trackedGaps": {
-    "contradiction_check_incomplete": 38,
-    "incomplete_semantic_inventory": 2,
-    "missing_logic_claims": 38,
-    "missing_passing_e2e": 53,
-    "missing_production_symbol": 12,
-    "missing_production_symbol_coverage": 46,
-    "missing_semantic_inventory": 38,
-    "unresolved_semantic_proposition": 14,
-    "missing_proof_receipt": 3
-  }
+  "proofProven": 97,
+  "currentUnproven": 0,
+  "trackedGaps": {}
 }
