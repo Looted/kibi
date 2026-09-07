@@ -3235,6 +3235,14 @@ coordinates:
     sourceEndLine: 90
     sourceFile: packages/cli/src/types/entities.ts
     sourceLine: 90
+  SYM-cli-GeneratedRules:
+    identityHash: 2945db77b199cf2d9dd5068eba5cd451506dce661911fd2da50e9dc9fc8336a5
+    sourceHash: b9b945a1c55281432bdb65be2c4b9c84162014110924f1056e18976250d1843a
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 126
+    sourceFile: packages/cli/src/utils/rule-registry.generated.ts
+    sourceLine: 11
   SYM-cli-get-operation-metadata:
     identityHash: ccb984d9c4c89e7814ac3cc724fa4368379e5402fd8a1de3992bc1e0f1a7143d
     sourceHash: caa9f5e40310ffc003cbc24e706c7f521a85b00c56a7bb0ef32baa53ece381a6
@@ -4917,132 +4925,132 @@ coordinates:
     sourceLine: 82
   SYM-cli-rule-registry-ChecksConfig:
     identityHash: 2870af6c1eb5aec3e2827ecd478197c3381a73961eba51a997d43a52285968dd
-    sourceHash: a5f082c43c32c8386919a065ba568512634a16983c9509e90c85c94c98551bcc
+    sourceHash: 34b66010f4298d9b5d0eedb7e993c966debbeb1f469465fde8897cfcdc9404bf
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 282
+    sourceEndLine: 160
     sourceFile: packages/cli/src/utils/rule-registry.ts
     sourceLine: 1
   SYM-cli-rule-registry-DEFAULT_CHECKS_CONFIG:
     identityHash: 905267e27b350d3ed6d9dde5c9365224900a65afa605383cf6591b822650ba83
-    sourceHash: a5f082c43c32c8386919a065ba568512634a16983c9509e90c85c94c98551bcc
+    sourceHash: 34b66010f4298d9b5d0eedb7e993c966debbeb1f469465fde8897cfcdc9404bf
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 282
+    sourceEndLine: 160
     sourceFile: packages/cli/src/utils/rule-registry.ts
     sourceLine: 1
   SYM-cli-rule-registry-getCanonicalRules:
     identityHash: c12f80c9c8aba5877ef486aaa8625ac46b51a96d4b08efc52572f58585ba61f0
-    sourceHash: a5f082c43c32c8386919a065ba568512634a16983c9509e90c85c94c98551bcc
+    sourceHash: 34b66010f4298d9b5d0eedb7e993c966debbeb1f469465fde8897cfcdc9404bf
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 245
+    sourceEndLine: 123
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 239
+    sourceLine: 117
   SYM-cli-rule-registry-getDefaultRules:
     identityHash: 7f550cabf8cde1439ad20f013e4b64626894daa126e84e030580f8ed2060c904
-    sourceHash: a5f082c43c32c8386919a065ba568512634a16983c9509e90c85c94c98551bcc
+    sourceHash: 34b66010f4298d9b5d0eedb7e993c966debbeb1f469465fde8897cfcdc9404bf
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 233
+    sourceEndLine: 111
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 227
+    sourceLine: 105
   SYM-cli-rule-registry-getEffectiveRules:
     identityHash: bbfbcb65856cbc5cd25b093acbb7d3f8088a8ac0e43473e452e6d167d62b30ed
-    sourceHash: a5f082c43c32c8386919a065ba568512634a16983c9509e90c85c94c98551bcc
+    sourceHash: 34b66010f4298d9b5d0eedb7e993c966debbeb1f469465fde8897cfcdc9404bf
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 270
+    sourceEndLine: 148
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 261
+    sourceLine: 139
   SYM-cli-rule-registry-getRuleDefinition:
     identityHash: 9896fee0ec65a3c71cd17ecc26113b4852f07068d30a20bae631024c2e2957cc
-    sourceHash: a5f082c43c32c8386919a065ba568512634a16983c9509e90c85c94c98551bcc
+    sourceHash: 34b66010f4298d9b5d0eedb7e993c966debbeb1f469465fde8897cfcdc9404bf
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 204
+    sourceEndLine: 82
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 202
+    sourceLine: 80
   SYM-cli-rule-registry-getRuleEnforcementClass:
     identityHash: 7e94b2b557d99d88dbe51d99f87537ab87a9f7d7961f80c2bd2c1881eaf67eb0
-    sourceHash: a5f082c43c32c8386919a065ba568512634a16983c9509e90c85c94c98551bcc
+    sourceHash: 34b66010f4298d9b5d0eedb7e993c966debbeb1f469465fde8897cfcdc9404bf
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 210
+    sourceEndLine: 88
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 206
+    sourceLine: 84
   SYM-cli-rule-registry-isCanonicalRule:
     identityHash: 0e2fc92f7c4c11be640b2a8f9632e80badc24fa86ca44ec9cab772d7caa89f0c
-    sourceHash: a5f082c43c32c8386919a065ba568512634a16983c9509e90c85c94c98551bcc
+    sourceHash: 34b66010f4298d9b5d0eedb7e993c966debbeb1f469465fde8897cfcdc9404bf
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 249
+    sourceEndLine: 127
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 247
+    sourceLine: 125
   SYM-cli-rule-registry-RULE_NAMES:
     identityHash: 9a2dc68e68b8f8f30bc4941f523432f14215a25e701a3b90e1ac92821addab99
-    sourceHash: a5f082c43c32c8386919a065ba568512634a16983c9509e90c85c94c98551bcc
+    sourceHash: 34b66010f4298d9b5d0eedb7e993c966debbeb1f469465fde8897cfcdc9404bf
     sourceColumn: 13
     sourceEndColumn: 59
-    sourceEndLine: 200
+    sourceEndLine: 78
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 200
+    sourceLine: 78
   SYM-cli-rule-registry-RuleDefinition:
     identityHash: d3e51ffe6434a603a01c10f96823d4ffd653b5f13239bb4ecc3db4f0adf7d07d
-    sourceHash: a5f082c43c32c8386919a065ba568512634a16983c9509e90c85c94c98551bcc
+    sourceHash: 34b66010f4298d9b5d0eedb7e993c966debbeb1f469465fde8897cfcdc9404bf
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 51
+    sourceEndLine: 57
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 45
+    sourceLine: 51
   SYM-cli-rule-registry-RuleEnforcementClass:
     identityHash: e96337a8aeefc3e219d141b633b8f0f40d584e989f6acd42983e8c784175dcea
-    sourceHash: a5f082c43c32c8386919a065ba568512634a16983c9509e90c85c94c98551bcc
+    sourceHash: 34b66010f4298d9b5d0eedb7e993c966debbeb1f469465fde8897cfcdc9404bf
     sourceColumn: 12
     sourceEndColumn: 16
-    sourceEndLine: 43
+    sourceEndLine: 49
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 27
+    sourceLine: 33
   SYM-cli-rule-registry-ruleRunsByDefault:
     identityHash: 55b6b3a35ee495a91d566e865ea74d342278152d7e7b915ffe7200dbf004fd22
-    sourceHash: a5f082c43c32c8386919a065ba568512634a16983c9509e90c85c94c98551bcc
+    sourceHash: 34b66010f4298d9b5d0eedb7e993c966debbeb1f469465fde8897cfcdc9404bf
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 221
+    sourceEndLine: 99
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 217
+    sourceLine: 95
   SYM-cli-rule-registry-RULES:
     identityHash: d95b34917c68ab2ac1845cfb95f07fe2fd4b733fabe934ae2cd6335916a28a92
-    sourceHash: a5f082c43c32c8386919a065ba568512634a16983c9509e90c85c94c98551bcc
+    sourceHash: 34b66010f4298d9b5d0eedb7e993c966debbeb1f469465fde8897cfcdc9404bf
     sourceColumn: 13
-    sourceEndColumn: 10
-    sourceEndLine: 193
+    sourceEndColumn: 63
+    sourceEndLine: 71
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 68
+    sourceLine: 71
   SYM-cli-rule-registry-SymbolTraceabilityOptions:
     identityHash: c65e72f113d1a8897277b8001fb3ba75838ef786164388748513548f448fa3bb
-    sourceHash: a5f082c43c32c8386919a065ba568512634a16983c9509e90c85c94c98551bcc
+    sourceHash: 34b66010f4298d9b5d0eedb7e993c966debbeb1f469465fde8897cfcdc9404bf
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 282
+    sourceEndLine: 160
     sourceFile: packages/cli/src/utils/rule-registry.ts
     sourceLine: 1
   SYM-cli-rule-registry-validateRuleName:
     identityHash: 5eee24eb2103320d9662bbde109283e057fe8e1ab72bf5359d84d05f40a8ee23
-    sourceHash: a5f082c43c32c8386919a065ba568512634a16983c9509e90c85c94c98551bcc
+    sourceHash: 34b66010f4298d9b5d0eedb7e993c966debbeb1f469465fde8897cfcdc9404bf
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 281
+    sourceEndLine: 159
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 276
+    sourceLine: 154
   SYM-cli-rule-registry-Violation:
     identityHash: 89592650871a19d89f5ffb959b690b476f00fe414d21666985c04cbb2b35cb53
-    sourceHash: a5f082c43c32c8386919a065ba568512634a16983c9509e90c85c94c98551bcc
+    sourceHash: 34b66010f4298d9b5d0eedb7e993c966debbeb1f469465fde8897cfcdc9404bf
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 62
+    sourceEndLine: 68
     sourceFile: packages/cli/src/utils/rule-registry.ts
-    sourceLine: 54
+    sourceLine: 60
   SYM-cli-run-aggregated-checks:
     identityHash: a5b571f10cd50792d66d20ff4214ff56f49116b4a2fae25c05d5076ef4814140
     sourceHash: 26e532f80f4a8dcc311fe14b88f099663edb35d794d7f07b12a788c8bf9bfc8b
@@ -5075,6 +5083,22 @@ coordinates:
     sourceEndLine: 52
     sourceFile: packages/cli/src/commands/search.ts
     sourceLine: 14
+  SYM-cli-SelectableRuleNames:
+    identityHash: 82682c9cc9f3a789c15da582ff4f7a83618a54e87de1f36a573733e83e48dc4f
+    sourceHash: 5f6b1519ee8ba0d0bb98fb82064c1d67843f945561b3790bd92942345e36d38c
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 32
+    sourceFile: packages/cli/src/public/operations/specs/check-rules.generated.ts
+    sourceLine: 12
+  SYM-cli-SelectableRulesAllowed:
+    identityHash: c758995755cd952b1bd92decb518d76a8ec23df31c746b1eaae9a503aff10489
+    sourceHash: 5f6b1519ee8ba0d0bb98fb82064c1d67843f945561b3790bd92942345e36d38c
+    sourceColumn: 13
+    sourceEndColumn: 429
+    sourceEndLine: 36
+    sourceFile: packages/cli/src/public/operations/specs/check-rules.generated.ts
+    sourceLine: 36
   SYM-cli-semantic-advisor-relationship:
     identityHash: e8d56a9f096c6435cfab3fe6fe4218b10d9e658c7f01500e0f00560c6c5be276
     sourceHash: 75653db8083ad9b5dcbefc3764b26af4b522141699200a71d47bbfa5fce3fda1
@@ -5821,7 +5845,7 @@ coordinates:
     sourceLine: 53
   SYM-core-check-logic-coverage:
     identityHash: 7edaa0ca4741f3c87af436f228970ea7884ee9db9d085ff5519e3837d24d4fc6
-    sourceHash: b4e1d1db0878cadb459d8036cda975fd5d30b79ddcf42f49ea6349d5aacec053
+    sourceHash: 31293e724ac78eae04d1df4a19446ee558bcbdbc47211e54117a5d6f4607e738
     sourceColumn: 4
     sourceEndColumn: 24
     sourceEndLine: 24
@@ -5829,7 +5853,7 @@ coordinates:
     sourceLine: 24
   SYM-core-check-selected-json:
     identityHash: c807dd22aed58d2f33db66b50550f7642ac22a341ef2beb7a53228741a76d7a7
-    sourceHash: b4e1d1db0878cadb459d8036cda975fd5d30b79ddcf42f49ea6349d5aacec053
+    sourceHash: 31293e724ac78eae04d1df4a19446ee558bcbdbc47211e54117a5d6f4607e738
     sourceColumn: 4
     sourceEndColumn: 23
     sourceEndLine: 9
@@ -5893,7 +5917,7 @@ coordinates:
     sourceLine: 117
   SYM-core-domain-contradiction-witnesses:
     identityHash: f278d76085427cd73c6a226059d2e1c71fd57017ba36138a8a9bf65a226b3031
-    sourceHash: b4e1d1db0878cadb459d8036cda975fd5d30b79ddcf42f49ea6349d5aacec053
+    sourceHash: 31293e724ac78eae04d1df4a19446ee558bcbdbc47211e54117a5d6f4607e738
     sourceColumn: 4
     sourceEndColumn: 40
     sourceEndLine: 19
@@ -5925,12 +5949,12 @@ coordinates:
     sourceLine: 527
   SYM-core-grounded-requirement-claim-fact:
     identityHash: 92a025b07d51902993f2c5c35f76ebea849a7f5b70fa7bc420223b2028e4ef86
-    sourceHash: b4e1d1db0878cadb459d8036cda975fd5d30b79ddcf42f49ea6349d5aacec053
+    sourceHash: 31293e724ac78eae04d1df4a19446ee558bcbdbc47211e54117a5d6f4607e738
     sourceColumn: 4
     sourceEndColumn: 35
-    sourceEndLine: 1057
+    sourceEndLine: 1059
     sourceFile: packages/core/src/checks.pl
-    sourceLine: 1057
+    sourceLine: 1059
   SYM-core-journaled-index-refresh:
     identityHash: 760d1d411470b996b51d47e9cb784966cecb45ca194e633979f47fdb96fcbc08
     sourceHash: 73f07da33a1f89e05b0596d48cbc08d6811094ec8ceda13a151a174ad1630eb4
@@ -6029,12 +6053,12 @@ coordinates:
     sourceLine: 1794
   SYM-core-logical-ground-signature:
     identityHash: c5d7bbb70dcd98f0d38502210deb3860fe98f851d3dd54482f9ea51bc5afd2d4
-    sourceHash: b4e1d1db0878cadb459d8036cda975fd5d30b79ddcf42f49ea6349d5aacec053
+    sourceHash: 31293e724ac78eae04d1df4a19446ee558bcbdbc47211e54117a5d6f4607e738
     sourceColumn: 4
     sourceEndColumn: 28
-    sourceEndLine: 1079
+    sourceEndLine: 1081
     sourceFile: packages/core/src/checks.pl
-    sourceLine: 1079
+    sourceLine: 1081
   SYM-core-proof-contradiction-stage:
     identityHash: ecf842a5feebf29ffc80d5963d3ecbc3178b848110fba9deff68a7778047a024
     sourceHash: 96343ab64089d41feb38772a264add502d09b3155c44d4af0cd3c52cd353f1d9
@@ -6085,12 +6109,12 @@ coordinates:
     sourceLine: 5
   SYM-core-rule-contradiction-witness:
     identityHash: 2f01dd6c5e47703ac9f7253ebe3bca6344375c6d2de7b839a94b44c949ec5bce
-    sourceHash: b4e1d1db0878cadb459d8036cda975fd5d30b79ddcf42f49ea6349d5aacec053
+    sourceHash: 31293e724ac78eae04d1df4a19446ee558bcbdbc47211e54117a5d6f4607e738
     sourceColumn: 21
     sourceEndColumn: 47
-    sourceEndLine: 611
+    sourceEndLine: 613
     sourceFile: packages/core/src/checks.pl
-    sourceLine: 611
+    sourceLine: 613
   SYM-core-sparql-client:
     identityHash: 0774c693798591fb07c2b8bad5f0e431ea772c6b6e1ccccc61b4f0381325b7fa
     sourceHash: efa9051c95cca41f074f30bde95a05c08b0a03b7e1735d41a81ea1c586c38afb
@@ -12285,12 +12309,12 @@ coordinates:
     sourceLine: 57
   SYM-operation-check-spec:
     identityHash: 612665430c688db6619a547398f77a620075cadac78a8fbfddfc3e3616c5e186
-    sourceHash: e07589430437bf3125663a9094e7390fb1c25b9bc4d24f5d3dcdd21df06c5274
+    sourceHash: 1d6d12f17ce7091ff0bcea336bc0a48ca7027f54a0013e38322e939b7fec1bc3
     sourceColumn: 13
     sourceEndColumn: 34
-    sourceEndLine: 76
+    sourceEndLine: 67
     sourceFile: packages/cli/src/public/operations/specs/check.ts
-    sourceLine: 4
+    sourceLine: 8
   SYM-operation-content-type:
     identityHash: d2508b4ed198835b571af14270bc6a204a3f4a5c86c6a12eaf6fe9b1507c1672
     sourceHash: e22d59d82cf1c4681a76645fa518f468952af28f69a4294424ca94f46f6b1461

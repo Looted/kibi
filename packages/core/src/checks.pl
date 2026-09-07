@@ -35,6 +35,8 @@
 :- use_module('../schema/entities.pl', [entity_type/1, required_property/2]).
 :- use_module('../schema/relationships.pl', [relationship_type/1]).
 :- use_module('logic_ir.pl', [logic_rule_safety/2, logic_rule_from_props/2, logic_rule_conflict/3, logic_rule_conflict_witness/3, logic_rules_stratified/1]).
+% GENERATED registry facts; single source is schema/rule-registry.json.
+:- use_module('rule_registry.pl', [known_rule/1]).
 
 % Required fields for all entities
 required_fields([id, title, status, created_at, updated_at, source]).
@@ -1412,7 +1414,18 @@ check_selected_json(Rules, JsonString) :-
         JsonString
     ).
 
-check_selected(Rules, _{
+%% check_selected(+Rules, -ViolationsDict)
+% Run only the named aggregated checks. This is intentionally separate from
+% check_all/1 so focused diagnostics cannot evaluate unrelated rule queries.
+% Unknown rule names fail loudly: a typo must never masquerade as a clean,
+% violation-free run. Rules implemented on the TypeScript side (recorded in
+% rule_registry.pl with implementation typescript) are accepted here and
+% simply produce no Prolog-side violations.
+check_selected(Rules, ViolationsDict) :-
+    require_known_rules(Rules),
+    check_selected_dispatch(Rules, ViolationsDict).
+
+check_selected_dispatch(Rules, _{
     must_priority_coverage: MustPriority,
     symbol_coverage: SymbolCoverage,
     symbol_traceability: SymbolTraceability,
@@ -1457,6 +1470,17 @@ selected_rule_with_options(Rules, Name, Goal, Violations) :-
     (   memberchk(Name, Rules)
     ->  call(Goal, false, Violations)
     ;   Violations = []
+    ).
+
+%% require_known_rules(+Rules)
+% Fail closed on names outside the generated registry so a typo or a
+% stale cross-version call surfaces as an error instead of an empty result.
+require_known_rules(Rules) :-
+    exclude(rule_registry:known_rule, Rules, Unknown),
+    (   Unknown == []
+    ->  true
+    ;   throw(error(domain_error(check_rule, Unknown),
+                context(check_selected, 'Unknown check rules requested')))
     ).
 
 %% check_all_json_with_options(-JsonString, +RequireAdr)
