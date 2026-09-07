@@ -12,6 +12,11 @@
     "description": "Run KB validation rules and return violations, quality diagnostics, and typed kibi.migration-plan.v2 actions. Use before or after mutations and after source edits; checks remain read-only and never infer or apply actions from prose suggestions.",
     "inputSchema": {
       "properties": {
+        "async": {
+          "default": false,
+          "description": "When true, start the check as a background job and return a kibi.job.v1 receipt immediately instead of holding the request until the tool timeout. Poll kb_job_status with the returned jobId. Use for full checks on large KBs that exceed the configured tool timeout.",
+          "type": "boolean"
+        },
         "includeImpactDiagnostics": {
           "description": "When true, include changed-file impact diagnostics such as symbol_granularity_violation and symbol_semantic_review_needed in structured output.",
           "type": "boolean"

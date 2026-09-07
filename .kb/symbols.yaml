@@ -10089,29 +10089,6 @@ symbols:
         target: REQ-kibi-operation-interface-parity
       - type: implements
         target: REQ-mcp-search-discovery
-  - id: SYM-mcp-session-activeBranchName
-    title: activeBranchName
-    status: active
-    sourceFile: packages/mcp/src/server/session.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-002
-  - id: SYM-mcp-session-attachedBranchKbPath
-    title: attachedBranchKbPath
-    sourceFile: packages/mcp/src/server/session.ts
-    symbol_role: structural
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-mcp-kb-freshness
-      - type: implements
-        target: REQ-mcp-kb-freshness
   - id: SYM-mcp-session-ensureBranchKbExists
     title: ensureBranchKbExists
     sourceFile: packages/mcp/src/server/session.ts
@@ -10157,30 +10134,6 @@ symbols:
         target: REQ-008
       - type: implements
         target: REQ-mcp-search-discovery
-  - id: SYM-mcp-session-isShuttingDown
-    title: isShuttingDown
-    status: active
-    sourceFile: packages/mcp/src/server/session.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-002
-  - id: SYM-mcp-session-prologProcess
-    title: prologProcess
-    status: active
-    sourceFile: packages/mcp/src/server/session.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-005
-      - type: covered_by
-        target: TEST-kibi-change-to-proof-plan-compiler
-      - type: implements
-        target: REQ-002
   - id: SYM-mcp-session-resetSessionDepsForTests
     title: _resetSessionDepsForTests
     sourceFile: packages/mcp/src/server/session.ts
@@ -34450,3 +34403,43 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-mutation-saga-compensation
+  - id: SYM-mcp-getPrologProcess
+    title: getPrologProcess
+    status: active
+    sourceFile: packages/mcp/src/server/session.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-008
+  - id: SYM-mcp-getAttachedBranchKbPath
+    title: getAttachedBranchKbPath
+    status: active
+    sourceFile: packages/mcp/src/server/session.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-008
+  - id: SYM-mcp-getIsShuttingDown
+    title: getIsShuttingDown
+    status: active
+    sourceFile: packages/mcp/src/server/session.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-008
+  - id: SYM-mcp-getActiveBranchName
+    title: getActiveBranchName
+    status: active
+    sourceFile: packages/mcp/src/server/session.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-008
+  - id: SYM-mcp-session-setPrologProcessForTests
+    title: _setPrologProcessForTests
+    status: active
+    sourceFile: packages/mcp/src/server/session.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-008
