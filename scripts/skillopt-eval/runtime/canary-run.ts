@@ -114,6 +114,9 @@ export async function runModelCanary(
   let authMode: "file" | "keyring" | null = null;
   let events: readonly Readonly<Record<string, unknown>>[] = [];
   let paidModelCalls: 0 | 1 = 0;
+  // Narrowing helper: assignments inside the retry closure are invisible to
+  // control-flow analysis at the catch site, so compare through a function.
+  const paidCallHappened = (): boolean => paidModelCalls === 1;
   try {
     return await withPreparedLogin(
       {
@@ -269,7 +272,7 @@ export async function runModelCanary(
         authMode,
         paidModelCalls,
         reason: error.message,
-        ...(paidModelCalls === 1
+        ...(paidCallHappened()
           ? { run: modelRun(context.role, events) }
           : {}),
       };
@@ -283,7 +286,7 @@ export async function runModelCanary(
       authMode,
       paidModelCalls,
       reason: `canary_infrastructure:${reason}`,
-      ...(paidModelCalls === 1 ? { run: modelRun(context.role, events) } : {}),
+      ...(paidCallHappened() ? { run: modelRun(context.role, events) } : {}),
     };
   } finally {
     await workspace.cleanup();

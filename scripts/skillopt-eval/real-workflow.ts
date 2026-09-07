@@ -240,7 +240,10 @@ export async function runRealOptimization(
             body: baseline.body,
             frontmatterHash: baseline.frontmatterHash,
             resourcesHash: baseline.resourcesHash,
-            provenance: "codex-one-shot",
+            // Distinct provenance so metrics can tell a paid optimizer run
+            // from the fail-open baseline fallback recorded in
+            // one-shot-failure.json.
+            provenance: "codex-one-shot-unavailable",
           });
         }
       })();

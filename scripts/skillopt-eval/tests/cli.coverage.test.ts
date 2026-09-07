@@ -78,6 +78,7 @@ function dependencies(
       root: `${artifactRoot}/.runtime/unused`,
       codexExecutable: `${artifactRoot}/.runtime/unused/codex`,
       bwrapExecutable: `${artifactRoot}/.runtime/unused/bwrap`,
+      codeModeHostExecutable: `${artifactRoot}/.runtime/unused/code-mode-host`,
       cleanup: async () => {},
     }),
     ...overrides,

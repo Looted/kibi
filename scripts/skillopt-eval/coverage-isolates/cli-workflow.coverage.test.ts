@@ -86,6 +86,7 @@ function dependencies(
       root: join(artifactRoot, ".runtime"),
       codexExecutable: "/bin/true",
       bwrapExecutable: "/bin/true",
+      codeModeHostExecutable: "/bin/true",
       cleanup: async () => undefined,
     }),
     ...overrides,
