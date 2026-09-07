@@ -69,3 +69,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b2f87af0eb44
+  - type: implements
+    from: SYM-cli-SagaStep
+    to: REQ-014
+    created_at: 2026-09-07T11:46:37.072Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae2c469c87c5

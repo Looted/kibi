@@ -195,3 +195,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d145fff7dd85
+  - type: implements
+    from: SYM-cli-MutationSaga
+    to: REQ-014
+    created_at: 2026-09-07T11:46:32.749Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e21ff26a695e

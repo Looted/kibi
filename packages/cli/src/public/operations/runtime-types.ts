@@ -1,4 +1,5 @@
 import type { BranchAttachment } from "../../utils/branch-resolver.js";
+import type { PrologErrorRecord } from "../../prolog/error-terms.js";
 import type { OperationEffect } from "./types.js";
 
 export type { OperationEffect } from "./types.js";
@@ -7,6 +8,8 @@ export type PrologQueryResult = {
   readonly success: boolean;
   readonly bindings: Readonly<Record<string, string>>;
   readonly error?: string;
+  /** Structured error term when the failure crossed a kb.pl throw site. */
+  readonly errorRecord?: PrologErrorRecord;
 };
 
 export type PrologEntityQueryInput = Readonly<{

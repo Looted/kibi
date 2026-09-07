@@ -4883,7 +4883,8 @@ symbols:
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable resource examples
+    title: predicate guidance loads a canonical decision tree with immutable
+      resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -34344,3 +34345,91 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+  - id: SYM-cli-PrologErrorCode
+    title: PrologErrorCode
+    status: active
+    sourceFile: packages/cli/src/prolog/error-terms.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-core-prolog-process-management
+  - id: SYM-cli-PrologErrorRelationship
+    title: PrologErrorRelationship
+    status: active
+    sourceFile: packages/cli/src/prolog/error-terms.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-core-prolog-process-management
+  - id: SYM-cli-PrologErrorConflict
+    title: PrologErrorConflict
+    status: active
+    sourceFile: packages/cli/src/prolog/error-terms.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-core-prolog-process-management
+  - id: SYM-cli-PrologErrorRecord
+    title: PrologErrorRecord
+    status: active
+    sourceFile: packages/cli/src/prolog/error-terms.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-core-prolog-process-management
+  - id: SYM-cli-PrologErrorTermPrefix
+    title: PROLOG_ERROR_TERM_PREFIX
+    status: active
+    sourceFile: packages/cli/src/prolog/error-terms.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-core-prolog-process-management
+  - id: SYM-cli-MutationSaga
+    title: MutationSaga
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/saga.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-014
+  - id: SYM-cli-SagaStep
+    title: SagaStep
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/saga.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-014
+  - id: SYM-cli-SagaRollbackFailure
+    title: SagaRollbackFailure
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/saga.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-014
+  - id: SYM-cli-GeneratedRules
+    title: GENERATED_RULES
+    status: active
+    sourceFile: packages/cli/src/utils/rule-registry.generated.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-006
+  - id: SYM-cli-SelectableRuleNames
+    title: SELECTABLE_RULE_NAMES
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/check-rules.generated.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-006
+  - id: SYM-cli-SelectableRulesAllowed
+    title: SELECTABLE_RULES_ALLOWED
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/check-rules.generated.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-006
