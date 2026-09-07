@@ -127,6 +127,10 @@ Evidence production is configured in tracked, Kibi-managed
 ```
 
 - `command` is executed with `shell: false`, exactly as configured.
+- The child environment always includes `KIBI_PROOF_RUN=1`. Runner
+  configurations that must behave differently under a proof run (for example,
+  Playwright `retries: 0`) should branch on this stable marker instead of
+  guessing which output-path variable implies a proof run.
 - `producer: command` lets Kibi synthesize the envelope from the process
   outcome (aggregate-run provenance).
 - `producer: playwright` (or a custom id) expects the child to emit

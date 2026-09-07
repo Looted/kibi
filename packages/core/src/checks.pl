@@ -25,6 +25,7 @@
     check_rule_safety/1,
     check_rule_verifiability/1,
     check_semantic_completeness/1,
+    check_req_status_vocabulary/1,
     run_checks_json/0,              % Entry point for JSON output
     violation_id_text/2             % Extract text from entity ID term (exported for testing)
 ]).
@@ -66,6 +67,7 @@ check_all(ViolationsDict) :-
     check_rule_safety(RuleSafety),
     check_rule_verifiability(RuleVerifiability),
     check_semantic_completeness(SemanticCompleteness),
+    check_req_status_vocabulary(ReqStatusVocabulary),
     ViolationsDict = _{
         must_priority_coverage: MustPriority,
         symbol_coverage: SymbolCoverage,
@@ -82,7 +84,8 @@ check_all(ViolationsDict) :-
         logic_coverage: LogicCoverage,
         rule_safety: RuleSafety,
         rule_verifiability: RuleVerifiability,
-        semantic_completeness: SemanticCompleteness
+        semantic_completeness: SemanticCompleteness,
+        req_status_vocabulary: ReqStatusVocabulary
     }.
 
 %% check_must_priority_coverage(-Violations)
@@ -362,6 +365,39 @@ deprecated_adr_violation(violation(
     ->  true
     ;   Source = ""
     ).
+
+%% check_req_status_vocabulary(-Violations)
+% Rejects requirement statuses outside the canonical+legacy vocabulary.
+% Requirement documents carrying ADR vocabulary (e.g. `status: accepted`)
+% compile and pass schema validation, then silently fall out of
+% current_req/1 — the proof ladder reports them not_applicable with no
+% signal. This rule surfaces the vocabulary mismatch at check time instead.
+canonical_req_statuses([open, in_progress, closed]).
+legacy_req_statuses([active, approved]).
+
+check_req_status_vocabulary(Violations) :-
+    findall(
+        Violation,
+        req_status_vocabulary_violation(Violation),
+        Violations
+    ).
+
+req_status_vocabulary_violation(violation(
+    'req-status-vocabulary',
+    ReqId,
+    Description,
+    Suggestion,
+    Source
+)) :-
+    kb_entity(ReqId, req, Props),
+    memberchk(status=RawStatus, Props),
+    normalize_term_atom(RawStatus, StatusAtom),
+    canonical_req_statuses(Canonical),
+    legacy_req_statuses(Legacy),
+    \+ (memberchk(StatusAtom, Canonical) ; memberchk(StatusAtom, Legacy)),
+    format(string(Description), "Requirement status '~w' is not a current requirement status; it is silently excluded from the proof ladder", [StatusAtom]),
+    format(string(Suggestion), "Set status to one of open, in_progress, closed (legacy: active, approved). To park a current requirement out of E2E-proof scope, use proof_exempt: true with proof_exempt_reason instead of an ADR status", []),
+    violation_source(ReqId, req, Source).
 
 %% check_strict_fact_shape(-Violations)
 % Finds all strict facts (with fact_kind) that have malformed shape.
@@ -1428,7 +1464,8 @@ check_selected(Rules, _{
     logic_coverage: LogicCoverage,
     rule_safety: RuleSafety,
     rule_verifiability: RuleVerifiability,
-    semantic_completeness: SemanticCompleteness
+    semantic_completeness: SemanticCompleteness,
+    req_status_vocabulary: ReqStatusVocabulary
 }) :-
     selected_rule(Rules, 'must-priority-coverage', check_must_priority_coverage, MustPriority),
     selected_rule(Rules, 'symbol-coverage', check_symbol_coverage, SymbolCoverage),
@@ -1445,7 +1482,8 @@ check_selected(Rules, _{
     selected_rule(Rules, 'logic-coverage', check_logic_coverage, LogicCoverage),
     selected_rule(Rules, 'rule-safety', check_rule_safety, RuleSafety),
     selected_rule(Rules, 'rule-verifiability', check_rule_verifiability, RuleVerifiability),
-    selected_rule(Rules, 'semantic-completeness', check_semantic_completeness, SemanticCompleteness).
+    selected_rule(Rules, 'semantic-completeness', check_semantic_completeness, SemanticCompleteness),
+    selected_rule(Rules, 'req-status-vocabulary', check_req_status_vocabulary, ReqStatusVocabulary).
 
 selected_rule(Rules, Name, Goal, Violations) :-
     (   memberchk(Name, Rules)
@@ -1489,6 +1527,7 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
     check_rule_safety(RuleSafety),
     check_rule_verifiability(RuleVerifiability),
     check_semantic_completeness(SemanticCompleteness),
+    check_req_status_vocabulary(ReqStatusVocabulary),
     ViolationsDict = _{
         must_priority_coverage: MustPriority,
         symbol_coverage: SymbolCoverage,
@@ -1505,7 +1544,8 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
         logic_coverage: LogicCoverage,
         rule_safety: RuleSafety,
         rule_verifiability: RuleVerifiability,
-        semantic_completeness: SemanticCompleteness
+        semantic_completeness: SemanticCompleteness,
+        req_status_vocabulary: ReqStatusVocabulary
     }.
 
 %% violations_dict_to_json(+ViolationsDict, -JsonDict)

@@ -31,10 +31,11 @@ export const checkSpec = {
             "rule-verifiability",
             "semantic-completeness",
             "query-plan-safety",
+            "req-status-vocabulary",
           ],
         },
         description:
-          "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, source-relationship-parity, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, logic-coverage, rule-safety, rule-verifiability, semantic-completeness, query-plan-safety. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
+          "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, source-relationship-parity, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, logic-coverage, rule-safety, rule-verifiability, semantic-completeness, query-plan-safety, req-status-vocabulary. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
       },
       sourceFiles: {
         type: "array",
@@ -67,6 +68,12 @@ export const checkSpec = {
         type: "string",
         description:
           "Optional workspace root for impact diagnostics. Defaults to the MCP server workspace.",
+      },
+      async: {
+        type: "boolean",
+        default: false,
+        description:
+          "When true, start the check as a background job and return a kibi.job.v1 receipt immediately instead of holding the request until the tool timeout. Poll kb_job_status with the returned jobId. Use for full checks on large KBs that exceed the configured tool timeout.",
       },
     },
   },

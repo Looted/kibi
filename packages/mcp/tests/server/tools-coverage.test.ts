@@ -1171,7 +1171,12 @@ describe.serial("server tools coverage", () => {
 
     registerAllTools(server, runtime);
 
-    expect(registered.map((tool) => tool.name)).toEqual([...TOOL_NAMES]);
+    // TOOL_NAMES covers the canonical catalog; kb_job_status is the extra
+    // MCP-server-native job-poll tool registered by registerAllTools.
+    expect(registered.map((tool) => tool.name)).toEqual([
+      ...TOOL_NAMES,
+      "kb_job_status",
+    ]);
     expect(registered.some((tool) => tool.name === "kb_plan_bootstrap")).toBe(
       true,
     );

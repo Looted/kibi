@@ -37,6 +37,8 @@ entity_property(req, semantic_inventory_version, string).
 entity_property(req, semantic_source_field, string).
 entity_property(req, semantic_source_hash, string).
 entity_property(req, semantic_inventory, list_or_json).
+entity_property(req, proof_exempt, boolean).
+entity_property(req, proof_exempt_reason, string).
 
 % Typed fact fields - only valid for fact entities
 entity_property(fact, fact_kind, atom).
@@ -114,6 +116,8 @@ optional_property(req, semantic_inventory_version).
 optional_property(req, semantic_source_field).
 optional_property(req, semantic_source_hash).
 optional_property(req, semantic_inventory).
+optional_property(req, proof_exempt).
+optional_property(req, proof_exempt_reason).
 optional_property(test, verification_scope).
 optional_property(test, verification_perspective).
 optional_property(test, proof_contract).

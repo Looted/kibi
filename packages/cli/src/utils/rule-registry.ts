@@ -156,6 +156,13 @@ export const RULES: readonly RuleDefinition[] = [
     category: "integrity",
   },
   {
+    name: "req-status-vocabulary",
+    description:
+      "Requirement statuses must use the canonical vocabulary (open, in_progress, closed; legacy: active, approved); ADR statuses such as accepted silently fall out of the proof ladder",
+    enforcementClass: "canonical",
+    category: "lifecycle",
+  },
+  {
     name: "strict-fact-shape",
     description:
       "Detect malformed strict facts (facts with fact_kind that are missing required fields)",

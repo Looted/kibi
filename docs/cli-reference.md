@@ -158,6 +158,12 @@ that skips tests bound to the listed integrations. A selector that matches no
 proof-bearing test is an error, so a typo cannot silently prove nothing.
 The exit code is non-zero when any proof fails or a producer errors.
 
+Producer child processes run with `KIBI_PROOF_RUN=1` (plus
+`KIBI_PROOF_OUTPUT`, `KIBI_PROOF_SNAPSHOT`, and other `KIBI_PROOF_*`
+variables). Runner configurations that need proof-run-aware behavior —
+disabling retries, for example — should branch on `KIBI_PROOF_RUN` instead of
+inferring a proof run from output-path variables.
+
 ## `kibi proof inspect`
 
 Detects languages, build systems, test frameworks, CI workflows, configured
@@ -172,6 +178,36 @@ See [proving requirements](proving-requirements.md) for the full workflow:
 proof contracts, integration configuration, the artifact reference, adapter
 authoring, and troubleshooting. Playwright is an optional first-party
 producer (`kibi-cli/playwright-reporter`); Kibi itself is runner-neutral.
+See [the proof ladder](proof-ladder.md) for what each proof stage and status
+means.
+
+### `kibi proof prune`
+
+Shrinks each test's `proof_receipts` history to its newest entries.
+Re-proving the same snapshot appends a receipt per run, so duplicate passed
+blocks accumulate; prune keeps the newest `--keep <n>` (default 1) per test
+and reports the before/after counts. This is the one sanctioned
+history-shrinking mutation — pruned histories remain ordered, structurally
+valid evidence, and current-binding rules still apply to the newest receipt.
+
+```bash
+kibi proof prune              # keep the newest receipt per test
+kibi proof prune --keep 3     # keep the newest three
+kibi proof prune --test TEST-E2E-EDITOR-001
+```
+
+### `kibi proof migrate-legacy`
+
+Removes legacy `verification_receipts` frontmatter blocks from test
+documents that already carry a `proof_contract`. The old blocks contain
+stale snapshot hashes and make live-receipt greps error-prone. The block is
+spliced out of the authored document and the compiled property is dropped —
+nothing else in the document is rewritten.
+
+```bash
+kibi proof migrate-legacy
+kibi proof migrate-legacy --test TEST-LEGACY-001
+```
 
 ## `kibi query [type]`
 
@@ -299,15 +335,16 @@ Generates curated coverage reports.
 
 **Syntax:**
 ```bash
-kibi coverage [--by req|symbol|type] [--tag TAGS] [--include-passing] [--no-include-transitive] [--limit N] [--offset N] [--include-migration-preview] [--migration-limit N] [--migration-offset N] [--migration-predicate-limit N] [--migration-predicate-min-score 0..1] [--format json|table]
+kibi coverage [--by req|symbol|type] [--tag TAGS] [--include-passing] [--status STATUSES] [--no-include-transitive] [--limit N] [--offset N] [--include-migration-preview] [--migration-limit N] [--migration-offset N] [--migration-predicate-limit N] [--migration-predicate-min-score 0..1] [--format json|table]
 ```
 
 **Notes:**
 - Requirement coverage summaries distinguish evaluated must-priority requirements from `not_applicable` rows.
 - `--include-passing` adds rows with a proven or not-applicable proof outcome back into requirement results; compatibility-oriented structural coverage remains visible on every returned row.
+- `--status <statuses>` (comma-separated: `proven`, `missing`, `unresolved`, `not_applicable`) selects requirement rows by `proofStatus` and implies include-passing. Use it to enumerate one slice — e.g. `kibi coverage --by req --status not_applicable` lists every out-of-scope requirement with its typed applicability reason (`proofStages.applicability.reason`: superseded, a status-vocabulary mismatch, or a proof exemption). The summary always reflects the whole KB; pagination applies to the filtered rows.
 - Requirement coverage rows include coverage-depth labels when evidence can be classified: `direct_passing_e2e`, `scenario_passing_e2e`, `unit_only`, `open_or_nonpassing_tests_only`, `scenario_only_no_test`, or `no_test_evidence`.
 - Coverage-depth labels are informational. They do not change existing covered/uncovered pass-fail semantics, and typed test fields (`verification_scope`, then `verification_perspective`) take precedence over legacy `e2e` tags or `/e2e/` path heuristics.
-- Requirement rows also expose the additive `kibi.requirement-proof.v3` contract. `proofStatus` is `proven`, `unresolved`, `missing`, or `not_applicable` for a non-current requirement, and is intentionally independent from compatibility-oriented `coverageStatus`.
+- Requirement rows also expose the additive `kibi.requirement-proof.v3` contract. `proofStatus` is `proven`, `unresolved`, `missing`, or `not_applicable` for a non-current requirement, and is intentionally independent from compatibility-oriented `coverageStatus`. See `docs/proof-ladder.md` for the per-stage semantics.
 - `proofStages` records semantic inventory, logical grounding, contradiction, scenario, scenario-test, passing E2E, executable-symbol, production-symbol, and exact source-coordinate evidence. `proofGaps` lists only blocking issues that prevent `proven`. `proofAdvisories` lists non-blocking extra-evidence issues, such as additional scenario-backed tests that still lack a receipt after strict proof already exists. `proofRepairs` ranks concrete recovery actions for blocking gaps only.
 - Requirement reports also include `repairPlan` (`kibi.repair-plan.v1`). It groups gaps into one small batch per requirement and dependency phase, marks only the earliest unresolved batch `ready`, and links later batches through `dependsOn`. Every batch is read-only guidance with `autoApplicable: false`, a reviewed `workflowSteps` sequence, targeted `validationRules`, and a sequential-write policy.
 - Requirement and symbol reports also include the shared `migrationPlan` (`kibi.migration-plan.v2`). Apply only ready automatic actions after explicitly approving its exact hash and action IDs; review, operator, and E2E execution actions remain agent/operator work.
@@ -448,6 +485,9 @@ kibi check --rules predicate-verifiability
 
 # Audit Prolog validation query plans
 kibi check --rules query-plan-safety
+
+# Audit requirement status vocabulary (catches ADR statuses on reqs)
+kibi check --rules req-status-vocabulary
 ```
 
 While editing, agents can run impact diagnostics through MCP `kb_check({sourceFiles:[...], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})` or the equivalent `kibi check --input <file|->` JSON route. `kibi check --staged` remains the commit-time git-hook gate once files are staged.

@@ -43,18 +43,20 @@ requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, Contex
         proofMaxAgeSeconds: MaxAge
     }.
 
+% implements REQ-kibi-proof-applicability-reason
+% Exemption first: a current requirement explicitly marked proof_exempt with a
+% reason is intentionally outside E2E-proof scope and must never fall through
+% to the ladder (which would report misleading receipt gaps).
+requirement_proof(ReqId, ReqProps, _Context, Proof) :-
+    kb:current_req(ReqId),
+    proof_exempt(ReqProps, Reason),
+    !,
+    exempt_requirement_proof(Reason, Proof).
 requirement_proof(ReqId, _ReqProps, _Context, Proof) :-
     \+ kb:current_req(ReqId),
     !,
-    proof_version(Version),
-    Proof = _{
-        proofVersion: Version,
-        proofStatus: not_applicable,
-        proofGaps: [],
-        proofAdvisories: [],
-        proofRepairs: [],
-        proofStages: _{applicability: _{status: not_applicable}}
-    }.
+    applicability_exclusion_reason(ReqId, Reason),
+    exempt_requirement_proof(Reason, Proof).
 requirement_proof(ReqId, ReqProps, Context, Proof) :-
     semantic_inventory_stage(ReqProps, SemanticStage, Inventory),
     logic_grounding_stage(ReqId, ReqProps, Inventory, Context, LogicStage),
@@ -88,6 +90,45 @@ requirement_proof(ReqId, ReqProps, Context, Proof) :-
         proofRepairs: Repairs,
         proofStages: Stages
     }.
+
+exempt_requirement_proof(Reason, Proof) :-
+    proof_version(Version),
+    Proof = _{
+        proofVersion: Version,
+        proofStatus: not_applicable,
+        proofGaps: [],
+        proofAdvisories: [],
+        proofRepairs: [],
+        proofStages: _{applicability: _{status: not_applicable, reason: Reason}}
+    }.
+
+%% proof_exempt(+Props, -Reason)
+% A current requirement is exempt from E2E-proof scope when its author set
+% proof_exempt to a truthy value AND supplied a non-empty proof_exempt_reason.
+% Without the reason the exemption does not apply, so an author cannot park a
+% requirement silently; upsert validation enforces the same pairing.
+proof_exempt(Props, Reason) :-
+    memberchk(proof_exempt=RawFlag, Props),
+    normalize_atom(RawFlag, Flag),
+    memberchk(Flag, [true, yes, on, '1']),
+    memberchk(proof_exempt_reason=RawReason, Props),
+    normalize_atom(RawReason, Reason),
+    Reason \= ''.
+
+%% applicability_exclusion_reason(+ReqId, -Reason)
+% Typed reason a requirement fails current_req/1: superseded lifecycle, or a
+% status outside the canonical+legacy requirement vocabulary (e.g. the ADR
+% vocabulary 'accepted').
+applicability_exclusion_reason(ReqId, "requirement is superseded by a newer requirement") :-
+    kb_relationship(supersedes, _, ReqId),
+    !.
+applicability_exclusion_reason(ReqId, Reason) :-
+    kb_entity(ReqId, req, Props),
+    memberchk(status=Status, Props),
+    normalize_term_atom(Status, StatusAtom),
+    format(atom(Reason), "status '~w' is not a current requirement status", [StatusAtom]),
+    !.
+applicability_exclusion_reason(_ReqId, "requirement is not current").
 
 semantic_inventory_stage(Props, Stage, Entries) :-
     (   memberchk(semantic_inventory=RawInventory, Props),
@@ -842,15 +883,19 @@ production_symbol_stage(ReqId, PassingE2eTests, Stage, ProductionSymbols) :-
     include(type_shape_symbol_with_structural_contract, ImplementingSymbols, StructuralSymbols),
     exclude(type_shape_symbol_with_structural_contract, ImplementingSymbols, ProductionSymbols),
     include(symbol_not_covered_by_tests(PassingE2eTests), ProductionSymbols, UncoveredSymbols),
-    production_stage_status(ProductionSymbols, StructuralSymbols, PassingE2eTests, UncoveredSymbols, Status),
+    production_stage_status(ProductionSymbols, StructuralSymbols, PassingE2eTests, UncoveredSymbols, Status, StatusReason),
     maplist(symbol_coordinate_ref, ProductionSymbols, Coordinates),
-    Stage = _{
+    StageBase = _{
         status: Status,
         symbols: ProductionSymbols,
         structuralSymbols: StructuralSymbols,
         uncoveredSymbols: UncoveredSymbols,
         coordinates: Coordinates
-    }.
+    },
+    (   Status == passed
+    ->  Stage = StageBase
+    ;   put_dict(reason, StageBase, StatusReason, Stage)
+    ).
 
 type_shape_symbol_with_structural_contract(SymbolId) :-
     kb_entity(SymbolId, symbol, SymbolProps),
@@ -863,10 +908,26 @@ type_shape_symbol_with_structural_contract(SymbolId) :-
     normalize_atom(RawStatus, Status),
     memberchk(Status, [active, passing]).
 
-production_stage_status([], [], _, _, missing) :- !.
-production_stage_status(_, _, [], _, blocked) :- !.
-production_stage_status(_, _, _, [], passed) :- !.
-production_stage_status(_, _, _, _, missing).
+% Stage status plus a typed reason, from a single total clause so status and
+% reason can never disagree (the Align stale-receipts case reported `blocked`
+% with no indication that fresh receipts were the unblock). Clause order keeps
+% the historical precedence: no production symbols at all is `missing` even
+% when E2E evidence is also absent; only then does absent E2E evidence read
+% as `blocked`.
+production_stage_status(ProductionSymbols, StructuralSymbols, PassingE2eTests, UncoveredSymbols, Status, Reason) :-
+    (   ProductionSymbols == [],
+        StructuralSymbols == []
+    ->  Status = missing,
+        Reason = "no production symbols implement this requirement; link at least one with implements"
+    ;   PassingE2eTests == []
+    ->  Status = blocked,
+        Reason = "no passing E2E test evidence is available for the current snapshot; run kibi prove so this stage can evaluate production symbol coverage"
+    ;   UncoveredSymbols == []
+    ->  Status = passed
+    ;   Status = missing,
+        length(UncoveredSymbols, Count),
+        format(atom(Reason), "~w production symbol(s) lack covered_by links to the passing E2E tests", [Count])
+    ).
 
 symbol_not_covered_by_tests(Tests, SymbolId) :-
     \+ (member(TestId, Tests), kb_relationship(covered_by, SymbolId, TestId)).

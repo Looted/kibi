@@ -671,6 +671,7 @@ export async function writeSourceForUpsert(
   entity: Readonly<Record<string, unknown>>,
   existing?: Readonly<Record<string, unknown>>,
   context?: OperationContext,
+  sourceDocumentOverride?: string,
 ): Promise<{
   receipt: SourceWriteReceipt;
   rollback: () => Promise<void>;
@@ -686,7 +687,14 @@ export async function writeSourceForUpsert(
   } catch {
     before = undefined;
   }
-  const after = renderSourceDocument(input, entity, before, relative);
+  // Proof-receipt ingest supplies pre-patched bytes so unrelated frontmatter
+  // keeps its authored formatting (and the workspace snapshot stays stable).
+  // Only valid when the document already exists; a new document still needs
+  // the canonical render.
+  const after =
+    before !== undefined && sourceDocumentOverride !== undefined
+      ? sourceDocumentOverride
+      : renderSourceDocument(input, entity, before, relative);
   await context.fs.mkdir(path.dirname(absolute));
   const temporary = `${absolute}.kibi-source-${digest(relative).slice(0, 12)}`;
   await context.fs.writeFile(temporary, after);

@@ -1404,6 +1404,14 @@
             "default": 0,
             "type": "integer"
           },
+          "statuses": {
+            "description": "Requirement proof-status filter (req mode): include only rows whose proofStatus is listed. Selecting statuses implies include-passing; not_applicable rows carry their typed applicability reason in proofStages.applicability.reason. The summary always reflects the whole KB.",
+            "items": {
+              "enum": ["proven", "missing", "unresolved", "not_applicable"],
+              "type": "string"
+            },
+            "type": "array"
+          },
           "tags": {
             "items": {
               "type": "string"
@@ -3533,7 +3541,7 @@
             "type": "integer"
           },
           "rules": {
-            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, source-relationship-parity, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, logic-coverage, rule-safety, rule-verifiability, semantic-completeness, query-plan-safety. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
+            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, source-relationship-parity, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, logic-coverage, rule-safety, rule-verifiability, semantic-completeness, query-plan-safety, req-status-vocabulary. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
             "items": {
               "enum": [
                 "must-priority-coverage",
@@ -3552,7 +3560,8 @@
                 "rule-safety",
                 "rule-verifiability",
                 "semantic-completeness",
-                "query-plan-safety"
+                "query-plan-safety",
+                "req-status-vocabulary"
               ],
               "type": "string"
             },

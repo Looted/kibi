@@ -268,7 +268,9 @@ describe("mcp contract fixtures", () => {
     const registered = createRegisteredToolsSnapshot();
     const toolDefinitions = new Map(TOOLS.map((tool) => [tool.name, tool]));
 
-    expect(registered.map((tool) => tool.name)).toHaveLength(21);
+    // 21 canonical catalog operations + the MCP-server-native kb_job_status
+    // poll tool (see jobs.ts).
+    expect(registered.map((tool) => tool.name)).toHaveLength(22);
     expect(registered.map((tool) => tool.name)).not.toContain(
       "kb_briefing_generate",
     );
