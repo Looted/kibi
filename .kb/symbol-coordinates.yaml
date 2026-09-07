@@ -877,7 +877,7 @@ coordinates:
     sourceLine: 56
   SYM-auto-5E0D46927248:
     identityHash: 11a4843c20b738551ff8963027f959992bbf2730a514c506516a189d98bd7afd
-    sourceHash: f17be60c9f2c50ecdfc1265d631c788458ba93085cf22580ba46d105c9a57431
+    sourceHash: eeb76009504653f0f2de81b96a4d2d9d994f39c15e7b4649464d224a2fa3da30
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 165
@@ -4123,6 +4123,14 @@ coordinates:
     sourceEndLine: 26
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
     sourceLine: 26
+  SYM-cli-mutation-saga-test:
+    identityHash: 57ae0c737df5ecd83466ecce48a16d64ce9d57cbf5302062307f3b8540757512
+    sourceHash: 993bd410dfc3e2dcc0232793ff0be50fdfff48aeb69d9cd8e5b5069a9b003e3c
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 77
+    sourceFile: packages/cli/tests/operations/mutation-saga.test.ts
+    sourceLine: 1
   SYM-cli-mutation-serialization-buildPropertyList:
     identityHash: d9e895dcd539061b92057e9a28d0bc1548903fc56d1a3b05b28403da15fff7da
     sourceHash: d5ed2d4f67e44ca233c71902375035d57a8fa11a7cc002d5a6e846baaf5de357
@@ -4171,6 +4179,14 @@ coordinates:
     sourceEndLine: 24
     sourceFile: packages/cli/src/operations/mutation/strict-fact.ts
     sourceLine: 11
+  SYM-cli-MutationSaga:
+    identityHash: ce4366a4310f364ad1b251c7e4233080963709bfd15357492c66397c7e887828
+    sourceHash: 53a2119a53bf293b1b8e835e996fcb16451c46a81737b3cb15f0583463379862
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 105
+    sourceFile: packages/cli/src/operations/mutation/saga.ts
+    sourceLine: 55
   SYM-cli-operation-error:
     identityHash: e17404ae2ce322c8f5baafbe8d2881faf1a0c6f48404cdb4523bf22389efc84f
     sourceHash: 4078e348469fafb241ec794d880af35ac52096d70167c87dea1be0b6f71930d1
@@ -5067,6 +5083,22 @@ coordinates:
     sourceEndLine: 173
     sourceFile: packages/cli/src/cli-json-command.ts
     sourceLine: 68
+  SYM-cli-SagaRollbackFailure:
+    identityHash: 31e8ad40ec425f79ba6f0608aeb604da2ebcd1fb92d17c303a7d103cbc47a24e
+    sourceHash: 53a2119a53bf293b1b8e835e996fcb16451c46a81737b3cb15f0583463379862
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 52
+    sourceFile: packages/cli/src/operations/mutation/saga.ts
+    sourceLine: 49
+  SYM-cli-SagaStep:
+    identityHash: 98e649b41a9b985a53d87b9a4f63c7c56f3e13a6f6628a12207c06f04a894e75
+    sourceHash: 53a2119a53bf293b1b8e835e996fcb16451c46a81737b3cb15f0583463379862
+    sourceColumn: 12
+    sourceEndColumn: 3
+    sourceEndLine: 46
+    sourceFile: packages/cli/src/operations/mutation/saga.ts
+    sourceLine: 31
   SYM-cli-Scenario:
     identityHash: 36537c2fc7fe0694ce7a2941e40432f3c0d623e261d9cce116d483bd80853b46
     sourceHash: b076d1efd06582a57927e8a71baf6f222da5918414ec1fd29e86a2a942d5a35f
@@ -6947,6 +6979,14 @@ coordinates:
     sourceEndLine: 47
     sourceFile: packages/opencode/src/file-operation-reminders.ts
     sourceLine: 41
+  SYM-describe-workspace-drift:
+    identityHash: 38436e97be84bd04e267da2fb210477132b61a25ec0e335a8374dab56053e8e1
+    sourceHash: 350e356c5d07f942d7a9e272d34e2efe1d0722b675e410d5c09e29c262b9ee6a
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 595
+    sourceFile: packages/cli/src/commands/prove.ts
+    sourceLine: 1
   SYM-detectPosture:
     identityHash: 4769b727c3b5a38bed22fa2ccb9443210008d80d62c092fb499865800b36bf98
     sourceHash: aff0b9a76a94e4e21fc48dec2c95a104688ce400c070a46e32c102d7cd114a11
@@ -7629,7 +7669,7 @@ coordinates:
     sourceLine: 143
   SYM-effective-requirement-relationships:
     identityHash: 33e4d255941e33285c1e1dc5ec85249c91ab9ac5f03dd3408b3acbaae7952657
-    sourceHash: f17be60c9f2c50ecdfc1265d631c788458ba93085cf22580ba46d105c9a57431
+    sourceHash: eeb76009504653f0f2de81b96a4d2d9d994f39c15e7b4649464d224a2fa3da30
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 195
@@ -7829,10 +7869,10 @@ coordinates:
     sourceLine: 26
   SYM-executeUpsert:
     identityHash: 613959bfd20a567412ab7b43b4493186cfcc57e0fa137a625784eec03f858cc6
-    sourceHash: f17be60c9f2c50ecdfc1265d631c788458ba93085cf22580ba46d105c9a57431
+    sourceHash: eeb76009504653f0f2de81b96a4d2d9d994f39c15e7b4649464d224a2fa3da30
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 650
+    sourceEndLine: 662
     sourceFile: packages/cli/src/operations/mutation/upsert.ts
     sourceLine: 229
   SYM-executeValidateUpsert:
@@ -8901,7 +8941,7 @@ coordinates:
     sourceLine: 15
   SYM-kb-status-json:
     identityHash: 694af4207781bb7c1e1715a608758e5407401c960e971371235dea4ad7b20f6b
-    sourceHash: 26a2001393794e4f5012ffa21f4e1ddccdf7778436988a8c53af6427d85021fb
+    sourceHash: c7d6b18ee1ae530e94c2546228169fb6c94de569cf662eabb4bea13f4997eb8e
     sourceColumn: 4
     sourceEndColumn: 18
     sourceEndLine: 5
@@ -17211,6 +17251,14 @@ coordinates:
     sourceEndLine: 81
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
     sourceLine: 81
+  SYM-skillopt-codex-optimizer-missing-guidance:
+    identityHash: c086490cee25afc2006cb617ae06182d890000197c8a025cf3b37324191c47f3
+    sourceHash: f1098a6ddedc482a25e319ddcc3669bc4029947b25735757d3b1850fc40f6805
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 360
+    sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
+    sourceLine: 1
   SYM-skillopt-codex-optimizer-options:
     identityHash: 3eee1ad8cbe7e5c7e6c02fc3371735aa9a5435c04dceeadeb002b998234685b7
     sourceHash: f1098a6ddedc482a25e319ddcc3669bc4029947b25735757d3b1850fc40f6805
@@ -17235,6 +17283,14 @@ coordinates:
     sourceEndLine: 146
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
     sourceLine: 114
+  SYM-skillopt-codex-optimizer-persist-failure:
+    identityHash: 7e43760a00634b6c604286f6d66e1614c011b13a51ab7e543d969e74a625b47d
+    sourceHash: f1098a6ddedc482a25e319ddcc3669bc4029947b25735757d3b1850fc40f6805
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 360
+    sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
+    sourceLine: 1
   SYM-skillopt-codex-optimizer-run:
     identityHash: 1ce3a5074f93027f4784c5da87dffd1b0353679757d0de039a8d1d8b9932bf8f
     sourceHash: f1098a6ddedc482a25e319ddcc3669bc4029947b25735757d3b1850fc40f6805
@@ -21372,7 +21428,7 @@ coordinates:
     sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
     sourceLine: 62
   SYM-skillopt-runtime-auth-error:
-    identityHash: 71c338d45390ac885b4c8589847730af7930c2902c2e6207c70b8b56e6842b49
+    identityHash: 8ae11ba5806af4d53c8fb5f06c1603c33ecc8e64d5596e5691d6fbedba374bf1
     sourceHash: f756c27d19a696c68f2bdf9e5030a76610dea9aa045feb66fcae70f05f119efe
     sourceColumn: 13
     sourceEndColumn: 1
@@ -21507,6 +21563,14 @@ coordinates:
     sourceEndLine: 34
     sourceFile: scripts/skillopt-eval/runtime/canary-evidence.ts
     sourceLine: 29
+  SYM-skillopt-runtime-code-mode-host-path:
+    identityHash: 271b09999fb1b9a53a4e912cfa006ea9c363522c6546c8d0baea39833264286c
+    sourceHash: 5b6e492ceadc9434321c09eadfc370cc698fae45005c8587b10f03a69f947c20
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 184
+    sourceFile: scripts/skillopt-eval/runtime/permissions.ts
+    sourceLine: 1
   SYM-skillopt-runtime-codex-optimizer-tests:
     identityHash: 11a62739a6ad2b4662a74ec46053ba71abe9204bf7c327083651867788d954bf
     sourceHash: 8cbc32dae8bd1574cf78cbe8226c8ccf391c1f79932dc1b36ec16b6261432a78
@@ -21587,6 +21651,14 @@ coordinates:
     sourceEndLine: 40
     sourceFile: scripts/skillopt-eval/runtime/process.ts
     sourceLine: 37
+  SYM-skillopt-runtime-login-auth-paths:
+    identityHash: 36c39932adec21f735f5049a8c2f848ea6c28049d56eedfb185554f9f79a5338
+    sourceHash: f756c27d19a696c68f2bdf9e5030a76610dea9aa045feb66fcae70f05f119efe
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 151
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    sourceLine: 1
   SYM-skillopt-runtime-mcp-probe-result:
     identityHash: f9198a7b0f7387bf1868a7e3994ccebf1f3486b88678f35143ec44cc1f0ba9ab
     sourceHash: 9aa3bbc7a70a3361b7e1fdcfb2d479687587ad7bfeacfb9010a8bf504a99d7d7
@@ -21667,6 +21739,14 @@ coordinates:
     sourceEndLine: 58
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
     sourceLine: 49
+  SYM-skillopt-runtime-persist-refreshed-login:
+    identityHash: 6c260f3cd17f892ef5fe005a9ab8270b11e29176a7d475f1e6db016cf5438564
+    sourceHash: f756c27d19a696c68f2bdf9e5030a76610dea9aa045feb66fcae70f05f119efe
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 151
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    sourceLine: 1
   SYM-skillopt-runtime-preflight-config:
     identityHash: 42a1ae7b8160db627739cfb2c547c1e3fb531eefcc09c48c538c51989ea3e375
     sourceHash: 3e079e44cd3d80f3585ac6766c3bb35d34dd01ecc35015c772eee21f536a44b8
@@ -21907,6 +21987,22 @@ coordinates:
     sourceEndLine: 128
     sourceFile: scripts/skillopt-eval/runtime/canary-evidence.ts
     sourceLine: 59
+  SYM-skillopt-runtime-with-codex-auth-lease:
+    identityHash: 1001a1122665247a5637269ba5e32c5cc8677e12b19f2489a6b1d89755613f6f
+    sourceHash: f756c27d19a696c68f2bdf9e5030a76610dea9aa045feb66fcae70f05f119efe
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 151
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    sourceLine: 1
+  SYM-skillopt-runtime-with-prepared-login:
+    identityHash: 6b1028e1e1d6e5a93919b2083e6cc0abe33fb62cda4fdaf5e94e1ed6ad814c41
+    sourceHash: f756c27d19a696c68f2bdf9e5030a76610dea9aa045feb66fcae70f05f119efe
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 151
+    sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
+    sourceLine: 1
   SYM-skillopt-runtime-workspace-cleanup-error:
     identityHash: e4ccbf4304b5050fdf9f9b71e50a5a2646f10302d9f433d6d2641fdd0215091f
     sourceHash: d855aecac2182aa8ff98782917175ea7f098d8701e4a38a58debc0e173f02f82
@@ -23955,6 +24051,14 @@ coordinates:
     sourceEndLine: 159
     sourceFile: packages/cli/src/commands/init-helpers.ts
     sourceLine: 130
+  SYM-upsert-execution-options:
+    identityHash: ce7c5f6ff4b5176a3c19de6b4361c68c2bcbb82ba8d5fc8b41497c180dc771bd
+    sourceHash: eeb76009504653f0f2de81b96a4d2d9d994f39c15e7b4649464d224a2fa3da30
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 663
+    sourceFile: packages/cli/src/operations/mutation/upsert.ts
+    sourceLine: 1
   SYM-UpsertArgs:
     identityHash: 859e4746a3fa989115183f3885b3d35d88c5184d33dee4f0e2d83f70f722e4f0
     sourceHash: af74a8b4c33671a9112c05e5b41380534a859bd0f66a77c860fa6375cc7b5ed2

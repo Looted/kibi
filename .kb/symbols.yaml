@@ -16116,7 +16116,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
     symbol_role: behavioral
     status: active
-    granularity_reason: legacy-link
+    granularity_reason: module-level-behavior
     relationships:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
@@ -16155,7 +16155,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
     symbol_role: behavioral
     status: active
-    granularity_reason: legacy-link
+    granularity_reason: module-level-behavior
     relationships:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
@@ -20685,7 +20685,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
     symbol_role: behavioral
     status: active
-    granularity_reason: legacy-link
+    granularity_reason: module-level-behavior
     relationships:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
@@ -20755,7 +20755,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
     symbol_role: behavioral
     status: active
-    granularity_reason: legacy-link
+    granularity_reason: module-level-behavior
     relationships:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
@@ -21107,7 +21107,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
     symbol_role: type-shape
     status: active
-    granularity_reason: legacy-link
+    granularity_reason: module-level-behavior
     relationships:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
@@ -21118,7 +21118,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
     symbol_role: behavioral
     status: active
-    granularity_reason: legacy-link
+    granularity_reason: module-level-behavior
     relationships:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
@@ -21129,7 +21129,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
     symbol_role: behavioral
     status: active
-    granularity_reason: legacy-link
+    granularity_reason: module-level-behavior
     relationships:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
@@ -21140,7 +21140,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
     symbol_role: behavioral
     status: active
-    granularity_reason: legacy-link
+    granularity_reason: module-level-behavior
     relationships:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
@@ -34244,7 +34244,7 @@ symbols:
     status: active
     sourceFile: packages/cli/src/commands/prove.ts
     symbol_role: behavioral
-    granularity_reason: legacy-link
+    granularity_reason: module-level-behavior
     relationships:
       - type: implements
         target: REQ-kibi-verification-evidence-contract
@@ -34253,7 +34253,7 @@ symbols:
     status: active
     sourceFile: packages/cli/src/operations/mutation/upsert.ts
     symbol_role: type-shape
-    granularity_reason: legacy-link
+    granularity_reason: module-level-behavior
     relationships:
       - type: implements
         target: REQ-kibi-operation-interface-parity
@@ -34441,3 +34441,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-006
+  - id: SYM-cli-mutation-saga-test
+    title: mutation-saga.test.ts
+    status: active
+    sourceFile: packages/cli/tests/operations/mutation-saga.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-mutation-saga-compensation
