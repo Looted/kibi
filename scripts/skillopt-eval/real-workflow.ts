@@ -30,6 +30,7 @@ import {
   defaultTrain,
   oneShotVariant,
 } from "./training-setup";
+import { CodexOptimizerError } from "./runtime/codex-optimizer";
 import { createBaselineVariant, freezeCandidateVariant } from "./variants";
 
 export type {
@@ -214,7 +215,35 @@ export async function runRealOptimization(
           ? {}
           : { cellRuntime: options.cellRuntime }),
       };
-      const oneShot = await (dependencies.oneShot ?? oneShotVariant)(training);
+      let oneShotFailed = false;
+      const oneShot = await (async () => {
+        try {
+          return await (dependencies.oneShot ?? oneShotVariant)(training);
+        } catch (error) {
+          if (!(error instanceof CodexOptimizerError)) throw error;
+          oneShotFailed = true;
+          await mkdir(training.artifactRoot, { recursive: true, mode: 0o700 });
+          await writeFile(
+            join(training.artifactRoot, "one-shot-failure.json"),
+            `${JSON.stringify({
+              schemaVersion: "1.0.0",
+              artifactType: "skillopt-one-shot-failure",
+              runId: options.runId,
+              skill,
+              error: error.message,
+            })}\n`,
+            { encoding: "utf8", mode: 0o600 },
+          );
+          return freezeCandidateVariant({
+            skill,
+            variant: "one-shot",
+            body: baseline.body,
+            frontmatterHash: baseline.frontmatterHash,
+            resourcesHash: baseline.resourcesHash,
+            provenance: "codex-one-shot",
+          });
+        }
+      })();
       const evaluateDevelopment =
         dependencies.evaluateDevelopment ?? defaultEvaluateDevelopment;
       const baselineDevelopment = await evaluateDevelopment({
@@ -229,18 +258,20 @@ export async function runRealOptimization(
           ? {}
           : { runtime: options.cellRuntime }),
       });
-      const oneShotDevelopment = await evaluateDevelopment({
-        skill,
-        candidate: oneShot,
-        descriptors: training.developmentDescriptors,
-        sourceWorktree: training.sourceWorktree,
-        artifactRoot: training.artifactRoot,
-        runId: options.runId,
-        env,
-        ...(options.cellRuntime === undefined
-          ? {}
-          : { runtime: options.cellRuntime }),
-      });
+      const oneShotDevelopment = oneShotFailed
+        ? baselineDevelopment
+        : await evaluateDevelopment({
+            skill,
+            candidate: oneShot,
+            descriptors: training.developmentDescriptors,
+            sourceWorktree: training.sourceWorktree,
+            artifactRoot: training.artifactRoot,
+            runId: options.runId,
+            env,
+            ...(options.cellRuntime === undefined
+              ? {}
+              : { runtime: options.cellRuntime }),
+          });
       const seedCandidate =
         options.seedCandidatePath === undefined
           ? undefined

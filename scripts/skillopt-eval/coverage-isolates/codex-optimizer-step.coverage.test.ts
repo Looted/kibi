@@ -97,7 +97,7 @@ const REQUIRED_GUIDANCE = [
 
 const completeBody = `# Kibi Usage\n\n${REQUIRED_GUIDANCE}\n\n${"Operational guidance. ".repeat(60)}`;
 
-let lastMessageBody = completeBody;
+let lastMessageBody: string | string[] = completeBody;
 let processExitCode = 0;
 let processError: Error | undefined;
 
@@ -109,7 +109,10 @@ mock.module("../runtime/process", () => ({
     const lastIdx = options.argv.indexOf("--output-last-message");
     const lastPath = lastIdx >= 0 ? options.argv[lastIdx + 1] : undefined;
     if (lastPath) {
-      await writeFile(lastPath, JSON.stringify({ body: lastMessageBody }));
+      const queued = Array.isArray(lastMessageBody)
+        ? (lastMessageBody.shift() ?? "")
+        : lastMessageBody;
+      await writeFile(lastPath, JSON.stringify({ body: queued }));
     }
     return {
       argv: options.argv,
@@ -191,6 +194,58 @@ describe("runCodexSkillOptStep", () => {
       "utf8",
     ).catch(() => null);
     expect(accepted).toBeNull();
+    const firstFailure = JSON.parse(
+      await readFile(
+        join(artifactRoot, "failed-output", "attempt-1", "parse-error.json"),
+        "utf8",
+      ),
+    );
+    const retryFailure = JSON.parse(
+      await readFile(
+        join(artifactRoot, "failed-output", "attempt-2", "parse-error.json"),
+        "utf8",
+      ),
+    );
+    expect(firstFailure.error).toBe("optimizer_output_incomplete_body");
+    expect(retryFailure.error).toBe("optimizer_output_incomplete_body");
+    expect(firstFailure.missingGuidance).toContain("kb_semantic_advisor");
+  });
+
+  test("repairs an incomplete body on the second attempt without stitching", async () => {
+    const artifactRoot = await mkdtemp(join(tmpdir(), "skillopt-opt-repair-"));
+    roots.push(artifactRoot);
+    lastMessageBody = [
+      `${"Safe portable guidance. ".repeat(80)}npx --no-install kibi`,
+      completeBody,
+    ];
+    const result = await runCodexSkillOptStep({
+      sourceWorktree: process.cwd(),
+      artifactRoot,
+      runId: "run-opt-repair",
+      request: request(),
+      timeoutMs: 1_000,
+    });
+    expect(result.body).toBe(completeBody);
+    expect(result.body).not.toContain("Required Kibi logic contract");
+    expect(
+      await readFile(
+        join(artifactRoot, "accepted-output", "candidate-body.md"),
+        "utf8",
+      ),
+    ).toBe(completeBody);
+    const firstFailure = JSON.parse(
+      await readFile(
+        join(artifactRoot, "failed-output", "attempt-1", "parse-error.json"),
+        "utf8",
+      ),
+    );
+    expect(firstFailure.error).toBe("optimizer_output_incomplete_body");
+    await expect(
+      readFile(
+        join(artifactRoot, "failed-output", "attempt-2", "parse-error.json"),
+        "utf8",
+      ),
+    ).rejects.toThrow();
   });
 
   test("wraps optimizer exit failures and unexpected errors", async () => {

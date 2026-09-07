@@ -109,10 +109,16 @@ describe("operator leftover runtime branches", () => {
 
     const fileRoot = join(writable, "not-a-dir");
     await writeFile(fileRoot, "x");
+    const preferred = await resolveOperatorBase({
+      runtimeDir: fileRoot,
+      cacheRoot: writable,
+      tempRoot: "",
+    });
+    expect(preferred).toBe(join(writable, "kibi-skillopt", "operator"));
     await expect(
       resolveOperatorBase({
-        runtimeDir: fileRoot,
-        cacheRoot: writable,
+        runtimeDir: writable,
+        cacheRoot: fileRoot,
         tempRoot: "",
       }),
     ).rejects.toThrow();

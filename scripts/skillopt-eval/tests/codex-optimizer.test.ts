@@ -4,8 +4,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   CodexOptimizerError,
+  missingRequiredGuidance,
   parseCodexOptimizerBody,
   persistCodexOptimizerBody,
+  persistCodexOptimizerFailure,
 } from "../runtime/codex-optimizer";
 
 const REQUIRED_GUIDANCE = [
@@ -165,5 +167,53 @@ describe("Codex optimizer output", () => {
       bodyBytes: Buffer.byteLength(body, "utf8"),
       step: 1,
     });
+  });
+
+  test("records missing required phrases for an incomplete body", () => {
+    expect(missingRequiredGuidance("short body")).toContain("kb_semantic_advisor");
+    expect(missingRequiredGuidance(`# Kibi Usage\n\n${REQUIRED_GUIDANCE}`)).toEqual(
+      [],
+    );
+  });
+
+  test("persists failed optimizer output outside the ephemeral workspace", async () => {
+    const root = await mkdtemp(join(tmpdir(), "skillopt-optimizer-failed-"));
+    roots.push(root);
+    const artifactRoot = join(root, "artifacts");
+    const lastMessage = JSON.stringify({
+      body: `# Kibi Usage\n\n${"Operational guidance. ".repeat(80)}`,
+    });
+
+    await persistCodexOptimizerFailure(artifactRoot, join(root, "source"), {
+      runId: "00000000-0000-4000-8000-000000000002",
+      skill: "kibi-usage",
+      step: 1,
+      attempt: 1,
+      error: "optimizer_output_incomplete_body",
+      lastMessage,
+      exitCode: 0,
+      stderrTail: "",
+    });
+
+    expect(
+      await readFile(
+        join(artifactRoot, "failed-output", "attempt-1", "last-message.txt"),
+        "utf8",
+      ),
+    ).toBe(lastMessage);
+    const report = JSON.parse(
+      await readFile(
+        join(artifactRoot, "failed-output", "attempt-1", "parse-error.json"),
+        "utf8",
+      ),
+    );
+    expect(report).toMatchObject({
+      artifactType: "skillopt-failed-optimizer-output",
+      error: "optimizer_output_incomplete_body",
+      attempt: 1,
+      exitCode: 0,
+    });
+    expect(report.missingGuidance).toContain("kb_semantic_advisor");
+    expect(report.missingGuidance).not.toContain("## Required Kibi logic contract");
   });
 });
