@@ -82,6 +82,8 @@ jobs:
         run: bun run typecheck
       - name: Verify generated schema parity
         run: bun run schema:check
+      - name: Verify generated rule registry parity
+        run: bun run rules:check
 
       - name: Build runtime package
         run: bun run build:runtime

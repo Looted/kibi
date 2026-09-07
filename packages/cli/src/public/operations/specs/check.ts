@@ -1,5 +1,9 @@
 import { executeCheck } from "../check-executor.js";
 import type { OperationSpec } from "../types.js";
+import {
+  SELECTABLE_RULE_NAMES,
+  SELECTABLE_RULES_ALLOWED,
+} from "./check-rules.generated.js";
 
 export const checkSpec = {
   name: "kb_check",
@@ -13,29 +17,9 @@ export const checkSpec = {
         type: "array",
         items: {
           type: "string",
-          enum: [
-            "must-priority-coverage",
-            "symbol-coverage",
-            "symbol-traceability",
-            "no-dangling-refs",
-            "source-relationship-parity",
-            "no-cycles",
-            "required-fields",
-            "deprecated-adr-no-successor",
-            "domain-contradictions",
-            "strict-fact-shape",
-            "strict-req-fact-pairing",
-            "predicate-verifiability",
-            "logic-coverage",
-            "rule-safety",
-            "rule-verifiability",
-            "semantic-completeness",
-            "query-plan-safety",
-            "req-status-vocabulary",
-          ],
+          enum: [...SELECTABLE_RULE_NAMES],
         },
-        description:
-          "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, source-relationship-parity, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, logic-coverage, rule-safety, rule-verifiability, semantic-completeness, query-plan-safety, req-status-vocabulary. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
+        description: `Optional rule subset. Allowed: ${SELECTABLE_RULES_ALLOWED}. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.`,
       },
       sourceFiles: {
         type: "array",
