@@ -1,5 +1,9 @@
 import { escapeAtom } from "../../prolog/codec.js";
-import { formatInvalidRelationshipError } from "./relationships.js";
+import type { PrologErrorRecord } from "../../prolog/error-terms.js";
+import {
+  formatInvalidRelationshipError,
+  formatInvalidRelationshipTuple,
+} from "./relationships.js";
 import {
   buildPropertyList,
   buildRelationshipMetadata,
@@ -23,12 +27,52 @@ export function buildUpsertCommitGoal(input: TransactionInput): string {
 }
 
 // implements REQ-kibi-operation-interface-parity
-export function formatUpsertError(entityId: string, raw?: string): string {
-  if (!raw) return `Failed to upsert entity ${entityId}: Unknown error`;
-  const stage = raw.match(/\(stage=([^)]+)\)/)?.[1];
+export function formatUpsertError(
+  entityId: string,
+  raw?: string,
+  record?: PrologErrorRecord,
+): string {
+  const stage = raw?.match(/\(stage=([^)]+)\)/)?.[1];
   const stageSuffix = stage === undefined ? "" : ` (stage=${stage})`;
+  if (record) {
+    return formatStructuredUpsertError(entityId, record, stageSuffix);
+  }
+  return formatTextUpsertError(entityId, raw, stageSuffix);
+}
+
+function formatStructuredUpsertError(
+  entityId: string,
+  record: PrologErrorRecord,
+  stageSuffix: string,
+): string {
+  if (record.code === "contradiction") {
+    const conflicts = [
+      ...new Set(
+        (record.conflicts ?? []).map(
+          (conflict) =>
+            `  - Conflicts with ${conflict.otherId}: ${conflict.reason}`,
+        ),
+      ),
+    ];
+    if (conflicts.length > 0) {
+      return `Contradiction detected for requirement ${entityId}:\n${conflicts.join("\n")}\n\nTo resolve:\n  1. Add a supersedes relationship from the new requirement to the conflicting one, OR\n  2. Deprecate the conflicting requirement before creating the new one.${stageSuffix}`;
+    }
+    return `Contradiction detected for entity ${entityId}: This requirement conflicts with existing requirements. Add a supersedes relationship to the conflicting requirement, or deprecate the old requirement before creating the new one.${stageSuffix}`;
+  }
+  if (record.code === "invalid_relationship" && record.relationship) {
+    return `Failed to upsert entity ${entityId}: ${formatInvalidRelationshipTuple(record.relationship)}${stageSuffix}`;
+  }
+  return `Failed to upsert entity ${entityId}: ${record.message}${stageSuffix}`;
+}
+
+function formatTextUpsertError(
+  entityId: string,
+  raw: string | undefined,
+  stageSuffix: string,
+): string {
+  if (!raw) return `Failed to upsert entity ${entityId}: Unknown error`;
   const diagnosticFree = raw.replace(
-    /^__KIBI_(?:STAGE|RUNTIME)__:[^\r\n]*\r?\n?/gm,
+    /^__KIBI_(?:STAGE|RUNTIME|ERROR)__:[^\r\n]*\r?\n?/gm,
     "",
   );
   if (diagnosticFree.includes("stale_snapshot")) {

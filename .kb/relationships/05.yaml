@@ -115,3 +115,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5033601e47e2
+  - type: implements
+    from: SYM-upsert-execution-options
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-09-08T00:34:28.656Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-973caddaaeb6

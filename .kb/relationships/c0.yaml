@@ -139,3 +139,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b41dac32b593
+  - type: implements
+    from: SYM-cli-PrologErrorConflict
+    to: REQ-core-prolog-process-management
+    created_at: 2026-09-07T11:46:17.015Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09f932945e99

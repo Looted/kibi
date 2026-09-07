@@ -152,5 +152,23 @@ relationships:
         created_by: kibi/upsert,
         source: mcp://kibi/upsert,
         id: rel-2e1ab57c00e2
+      },
+    {
+        type: implements,
+        from: SYM-skillopt-runtime-code-mode-host-path,
+        to: REQ-skillopt-codex-optimization,
+        created_at: 2026-09-08T00:33:55.688Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-2358d24fe6c0
+      },
+    {
+        type: covered_by,
+        from: SYM-skillopt-runtime-code-mode-host-path,
+        to: TEST-skillopt-codex-optimization,
+        created_at: 2026-09-08T00:33:55.701Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-7c63c52ab68b
       }
   ]

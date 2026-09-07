@@ -62,3 +62,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d63b222bc854
+  - type: implements
+    from: SYM-skillopt-runtime-with-prepared-login
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-09-08T00:34:22.057Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa241d6cef47
+  - type: covered_by
+    from: SYM-skillopt-runtime-with-prepared-login
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-09-08T00:34:22.065Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c3ae26de7a0

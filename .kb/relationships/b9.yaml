@@ -69,3 +69,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-587e108989de
+  - type: implements
+    from: SYM-cli-PrologErrorTermPrefix
+    to: REQ-core-prolog-process-management
+    created_at: 2026-09-07T11:46:27.505Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-214f8fad30cd
