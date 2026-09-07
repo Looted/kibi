@@ -4,7 +4,7 @@ title: Codex SkillOpt contract rejects stale hosts and gates
 type: test
 status: passing
 created_at: 2026-07-21T00:00:00.000Z
-updated_at: 2026-09-05T00:00:00.000Z
+updated_at: 2026-09-06T00:00:00.000Z
 source: scripts/skillopt-eval/tests/methodology-contract.test.ts
 priority: must
 tags:
@@ -30,7 +30,7 @@ The current contract tests also cover CLI parsing and dispatch, schema compatibi
 
 Learning-loop regressions prove that behavioral misses retain partial score, the bridge forwards structured public failure/tool/final-state evidence, the trainer uses the balanced 8/4 corpus, and `--max-steps` configures the same number of full ReflACT proposal rounds. Runtime configuration asserts `gpt-5.4-mini`/low for targets and `gpt-5.6-sol`/xhigh for the optimizer. The trainer's selection gate follows hard-pass evidence, while the real workflow independently re-evaluates the frozen candidate before admission. Development workflow tests compare baseline and one-shot, seed with the stronger variant, require mean at least 0.85, at least three of four hard passes, worst-family mean at least 0.75, and a strict mean improvement without hard-pass or family regression, and prove every failed public gate launches zero held-out cells. Predicate-gate tests require matrix completeness and every candidate replicate while proving weak comparator cells do not veto candidate success.
 
-Optimizer-output regressions require a dedicated `--output-last-message` path, parse only its strict final JSON object, accept a substantive replacement with the canonical Kibi safety and operation guidance, and reject progress notes, malformed JSON, unsafe direct-`.kb` instructions, or incomplete bodies before evaluation. They also prove the accepted body and its hash receipt survive outside the cleaned ephemeral optimizer workspace.
+Optimizer-output regressions require a dedicated `--output-last-message` path, parse only its strict final JSON object, accept a substantive replacement with the canonical Kibi safety and operation guidance, and reject progress notes, malformed JSON, unsafe direct-`.kb` instructions, or incomplete bodies before evaluation. Incomplete bodies remain rejected when missing required phrases are appended as a dummy contract section. The optimizer run path throws `optimizer_output_incomplete_body` and does not persist `accepted-output/candidate-body.md`. They also prove the accepted body and its hash receipt survive outside the cleaned ephemeral optimizer workspace.
 
 Optimizer-output tests also reject repository release-policy leakage and require complete predicate-modeling guidance. Operator and real-workflow tests verify explicit preserved-candidate seeding, exact seed-body propagation, and a durable seed hash/byte receipt. Python adapter tests verify that every rewrite receives compact cumulative public failure counts by family rather than only the latest rollout.
 

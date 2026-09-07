@@ -315,33 +315,7 @@ export async function runCodexSkillOptStep(
       );
     }
     const output = await readFile(outputLastMessage, "utf8");
-    let body: string;
-    try {
-      body = parseCodexOptimizerBody(output);
-    } catch (error) {
-      if (
-        !(error instanceof CodexOptimizerError) ||
-        error.message !== "optimizer_output_incomplete_body"
-      )
-        throw error;
-      const parsed = BodySchema.safeParse(parseJson(output));
-      if (!parsed.success) throw error;
-      const candidateBody = parsed.data.body;
-      validateCandidateBody(candidateBody);
-      if (
-        Buffer.byteLength(candidateBody, "utf8") < MIN_COMPLETE_BODY_BYTES ||
-        REPOSITORY_POLICY_LEAKS.some((pattern) => pattern.test(candidateBody))
-      )
-        throw error;
-      const missing = REQUIRED_BODY_GUIDANCE.filter(
-        (guidance) => !candidateBody.includes(guidance),
-      );
-      body =
-        missing.length === 0
-          ? candidateBody
-          : `${candidateBody.trim()}\n\n## Required Kibi logic contract\n\n${missing.join(" · ")}\n`;
-      validateCandidateBody(body);
-    }
+    const body = parseCodexOptimizerBody(output);
     await persistCodexOptimizerBody(options.artifactRoot, sourceWorktree, {
       runId: options.runId,
       skill: options.request.skill,

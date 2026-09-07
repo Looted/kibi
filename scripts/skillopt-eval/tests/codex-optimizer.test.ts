@@ -85,6 +85,25 @@ describe("Codex optimizer output", () => {
     );
   });
 
+  test("rejects incomplete output instead of stitching required phrases", () => {
+    const incomplete = `# Kibi Usage\n\n${"Operational guidance. ".repeat(80)}`;
+    expect(incomplete.includes("kb_semantic_advisor")).toBe(false);
+    expect(() =>
+      parseCodexOptimizerBody(JSON.stringify({ body: incomplete })),
+    ).toThrow(
+      new CodexOptimizerError("optimizer_output_incomplete_body").message,
+    );
+    expect(() =>
+      parseCodexOptimizerBody(
+        JSON.stringify({
+          body: `${incomplete.trim()}\n\n## Required Kibi logic contract\n\nkb_semantic_advisor · polarity: deny\n`,
+        }),
+      ),
+    ).toThrow(
+      new CodexOptimizerError("optimizer_output_incomplete_body").message,
+    );
+  });
+
   test("rejects malformed or unsafe final output", () => {
     expect(() => parseCodexOptimizerBody("not-json")).toThrow(
       "optimizer_output_missing_body",

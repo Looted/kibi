@@ -4874,8 +4874,7 @@ symbols:
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable
-      resource examples
+    title: predicate guidance loads a canonical decision tree with immutable resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -16146,6 +16145,24 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     text_ref: scripts/skillopt-eval/runtime/codex-optimizer.ts#runCodexSkillOptStep
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-default-codex-login-run
+    title: defaultCodexLoginRun
+    sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+  - id: SYM-skillopt-login-run-for-source
+    title: loginRunForSource
+    sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
+    symbol_role: behavioral
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization

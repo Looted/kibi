@@ -12,7 +12,25 @@ mock.module("../runtime/codex-auth", () => ({
     mode: "file",
     env: { CODEX_HOME: privateCodexHome },
     realCodexHome: "/tmp/real-codex",
+    privateCodexHome,
   }),
+  withPreparedLogin: async (
+    options: {
+      privateCodexHome: string;
+    },
+    operation: (auth: {
+      mode: "file";
+      env: NodeJS.ProcessEnv;
+      realCodexHome: string;
+      privateCodexHome: string;
+    }) => Promise<unknown>,
+  ) =>
+    operation({
+      mode: "file",
+      env: { CODEX_HOME: options.privateCodexHome },
+      realCodexHome: "/tmp/real-codex",
+      privateCodexHome: options.privateCodexHome,
+    }),
 }));
 
 mock.module("../runtime/canary-runtime", () => ({
@@ -153,18 +171,26 @@ describe("runCodexSkillOptStep", () => {
     expect(accepted.length >= 0).toBe(true);
   });
 
-  test("appends missing required guidance for an otherwise safe incomplete body", async () => {
+  test("rejects incomplete optimizer output instead of persisting a stitched body", async () => {
     const artifactRoot = await mkdtemp(join(tmpdir(), "skillopt-opt-incomplete-"));
     roots.push(artifactRoot);
     lastMessageBody = `${"Safe portable guidance. ".repeat(80)}npx --no-install kibi`;
-    const result = await runCodexSkillOptStep({
-      sourceWorktree: process.cwd(),
-      artifactRoot,
-      runId: "run-opt-2",
-      request: request(),
-      timeoutMs: 1_000,
-    });
-    expect(result.body).toContain("Required Kibi logic contract");
+    await expect(
+      runCodexSkillOptStep({
+        sourceWorktree: process.cwd(),
+        artifactRoot,
+        runId: "run-opt-2",
+        request: request(),
+        timeoutMs: 1_000,
+      }),
+    ).rejects.toThrow(
+      new CodexOptimizerError("optimizer_output_incomplete_body").message,
+    );
+    const accepted = await readFile(
+      join(artifactRoot, "accepted-output", "candidate-body.md"),
+      "utf8",
+    ).catch(() => null);
+    expect(accepted).toBeNull();
   });
 
   test("wraps optimizer exit failures and unexpected errors", async () => {
