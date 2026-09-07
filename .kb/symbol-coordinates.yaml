@@ -4123,6 +4123,14 @@ coordinates:
     sourceEndLine: 26
     sourceFile: packages/cli/src/operations/mutation/relationships.ts
     sourceLine: 26
+  SYM-cli-mutation-saga-test:
+    identityHash: 57ae0c737df5ecd83466ecce48a16d64ce9d57cbf5302062307f3b8540757512
+    sourceHash: 993bd410dfc3e2dcc0232793ff0be50fdfff48aeb69d9cd8e5b5069a9b003e3c
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 77
+    sourceFile: packages/cli/tests/operations/mutation-saga.test.ts
+    sourceLine: 1
   SYM-cli-mutation-serialization-buildPropertyList:
     identityHash: d9e895dcd539061b92057e9a28d0bc1548903fc56d1a3b05b28403da15fff7da
     sourceHash: d5ed2d4f67e44ca233c71902375035d57a8fa11a7cc002d5a6e846baaf5de357
@@ -4173,10 +4181,10 @@ coordinates:
     sourceLine: 11
   SYM-cli-MutationSaga:
     identityHash: ce4366a4310f364ad1b251c7e4233080963709bfd15357492c66397c7e887828
-    sourceHash: 6982a78c266a10945cb1424f447a4b13764d0cd6778bfc91d3dea57936bf67ca
+    sourceHash: 53a2119a53bf293b1b8e835e996fcb16451c46a81737b3cb15f0583463379862
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 101
+    sourceEndLine: 105
     sourceFile: packages/cli/src/operations/mutation/saga.ts
     sourceLine: 55
   SYM-cli-operation-error:
@@ -5077,7 +5085,7 @@ coordinates:
     sourceLine: 68
   SYM-cli-SagaRollbackFailure:
     identityHash: 31e8ad40ec425f79ba6f0608aeb604da2ebcd1fb92d17c303a7d103cbc47a24e
-    sourceHash: 6982a78c266a10945cb1424f447a4b13764d0cd6778bfc91d3dea57936bf67ca
+    sourceHash: 53a2119a53bf293b1b8e835e996fcb16451c46a81737b3cb15f0583463379862
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 52
@@ -5085,7 +5093,7 @@ coordinates:
     sourceLine: 49
   SYM-cli-SagaStep:
     identityHash: 98e649b41a9b985a53d87b9a4f63c7c56f3e13a6f6628a12207c06f04a894e75
-    sourceHash: 6982a78c266a10945cb1424f447a4b13764d0cd6778bfc91d3dea57936bf67ca
+    sourceHash: 53a2119a53bf293b1b8e835e996fcb16451c46a81737b3cb15f0583463379862
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 46

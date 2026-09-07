@@ -34433,3 +34433,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-006
+  - id: SYM-cli-mutation-saga-test
+    title: mutation-saga.test.ts
+    status: active
+    sourceFile: packages/cli/tests/operations/mutation-saga.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-mutation-saga-compensation
