@@ -507,7 +507,7 @@ describe.serial("session uncovered branch coverage", () => {
       exitMock.mockClear();
       mockPrologProcessInstance.isRunning.mockImplementation(() => false);
       await session.ensureProlog();
-      expect(session.prologProcess).toBeDefined();
+      expect(session.getPrologProcess()).toBeDefined();
       const rejected = Promise.reject(new Error("in-flight failed"));
       rejected.catch(() => {});
       session.inFlightRequests.set("rejected", rejected);

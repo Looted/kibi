@@ -262,20 +262,20 @@ function createSessionModuleMock(
   trackedRequests = new Map<string, Promise<unknown>>(),
 ): SessionModule {
   return {
-    activeBranchName,
+    getActiveBranchName: (): string => activeBranchName,
     ensureProlog: async () => {
       throw new Error("ensureProlog should not be called in this test");
     },
     ensureBranchKbExists: (): boolean => false,
     inFlightRequests: trackedRequests,
     initiateGracefulShutdown: async (): Promise<void> => {},
-    isShuttingDown: false,
+    getIsShuttingDown: (): boolean => false,
     resetProlog: async (): Promise<void> => {},
     _setSessionDepsForTests: (): void => {},
     _resetSessionDepsForTests: (): void => {},
-    prologProcess: null,
+    getPrologProcess: (): null => null,
     resetSessionStateForTests: (): void => {},
-    attachedBranchKbPath: null,
+    getAttachedBranchKbPath: (): null => null,
     updateAttachedBranchStamp: (): void => {},
     _setPrologProcessForTests: (): void => {},
   };

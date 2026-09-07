@@ -194,7 +194,7 @@ describe.serial("session remaining engine, reset, and empty-branch branches", ()
         getPid: () => 9,
         start: async () => {},
         query: async () => ({ success: true, bindings: {} }),
-      } as unknown as NonNullable<typeof session.prologProcess>);
+      } as unknown as NonNullable<ReturnType<typeof session.getPrologProcess>>);
     };
 
     await expect(session.ensureProlog()).rejects.toThrow(

@@ -148,9 +148,10 @@ function adaptProlog(prolog: PrologProcess): PrologPort {
 
 const operationRuntime = createMcpRuntime<PrologProcess>({
   workspaceRoot: resolveWorkspaceRoot(),
-  activeBranchName: async () => (await getSessionModule()).activeBranchName,
+  activeBranchName: async () =>
+    (await getSessionModule()).getActiveBranchName(),
   attachedBranchKbPath: async () =>
-    (await getSessionModule()).attachedBranchKbPath,
+    (await getSessionModule()).getAttachedBranchKbPath(),
   ensureProlog: async () => (await getSessionModule()).ensureProlog(),
   adaptProlog,
   fs: nodeFilesystem,
@@ -158,7 +159,7 @@ const operationRuntime = createMcpRuntime<PrologProcess>({
   net: { fetch: (input, init) => globalThis.fetch(input, init) },
   refreshAttachedBranchStamp: async () => {
     const session = await getSessionModule();
-    const kbPath = session.attachedBranchKbPath;
+    const kbPath = session.getAttachedBranchKbPath();
     if (kbPath) {
       try {
         session.updateAttachedBranchStamp(await readBranchKbStamp(kbPath));
@@ -185,12 +186,13 @@ export const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
   // runtime interface with looser Record<string, unknown> inputSchema. The cast is safe
   // because the tool definitions are statically authored and validated at startup.
   tools: TOOLS as unknown as ToolConfig[],
-  activeBranchName: async () => (await getSessionModule()).activeBranchName,
+  activeBranchName: async () =>
+    (await getSessionModule()).getActiveBranchName(),
   ensureProlog: async () => (await getSessionModule()).ensureProlog(),
   resetProlog: async (reason) => (await getSessionModule()).resetProlog(reason),
   inFlightRequests: async () => (await getSessionModule()).inFlightRequests,
-  isShuttingDown: async () => (await getSessionModule()).isShuttingDown,
-  prologProcess: async () => (await getSessionModule()).prologProcess,
+  isShuttingDown: async () => (await getSessionModule()).getIsShuttingDown(),
+  prologProcess: async () => (await getSessionModule()).getPrologProcess(),
   operationRuntime,
   handleKbCheck,
   handleKbCoverage,

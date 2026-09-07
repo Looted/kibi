@@ -27,13 +27,13 @@ describe("tools-runtime remaining debug stamp-refresh warning", () => {
     const warn = spyOn(console, "warn").mockImplementation(() => {});
     spies.push(warn);
     const session = {
-      activeBranchName: "coverage-branch",
-      attachedBranchKbPath: "/tmp/kibi-stamp-debug",
+      getActiveBranchName: () => "coverage-branch",
+      getAttachedBranchKbPath: () => "/tmp/kibi-stamp-debug",
       ensureProlog: async () => ({ query: async () => ({ success: true }) }),
       resetProlog: async () => {},
       inFlightRequests: new Map(),
-      isShuttingDown: false,
-      prologProcess: { getPid: () => 1 },
+      getIsShuttingDown: () => false,
+      getPrologProcess: () => ({ getPid: () => 1 }),
       updateAttachedBranchStamp: () => {
         throw new Error("stamp failed");
       },
