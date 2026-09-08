@@ -541,6 +541,33 @@ if (RUN_NODE_TEST_SUITE) {
       console.log(`  ✓ Check completed (exit code: ${exitCode})`);
     });
 
+    it("should run kibi check with a registry-selected migration rule", async () => {
+      if (!hasProlog) return;
+
+      // strict-readiness is registry-generated; selecting it end-to-end proves
+      // the packed CLI advertises and dispatches every registry rule.
+      const { stdout, stderr, exitCode } = await kibi(
+        sandbox,
+        ["check", "--rules", "strict-readiness"],
+        {
+          timeoutMs: 60000,
+        },
+      );
+
+      const output = stdout + stderr;
+      assert.strictEqual(
+        exitCode,
+        0,
+        `check --rules strict-readiness should pass with exit code 0, got ${exitCode}. Output: ${output}`,
+      );
+      assert.ok(
+        output.includes("strict-readiness") ||
+          output.includes("No violations") ||
+          output.includes("✓"),
+        `Expected strict-readiness rule output. Output: ${output}`,
+      );
+    });
+
     it("should generate a self-contained HTML requirement health report", async () => {
       if (!hasProlog) return;
       await verifyHtmlRequirementHealthReport(sandbox);
