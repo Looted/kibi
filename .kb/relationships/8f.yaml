@@ -48,17 +48,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-46932e33ed4b
-  - type: covered_by
-    from: SYM-skillopt-python-env-adapter
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:15:05.946Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e69834eeaabf
-  - type: implements
-    from: SYM-x-_setToolsServerDepsForTests
-    to: REQ-002
-    created_at: 2026-09-09T12:50:40.773Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-2929e6a81ebb

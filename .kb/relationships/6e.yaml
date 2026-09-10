@@ -132,17 +132,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-200b6652b26b
-  - type: covered_by
-    from: SYM-cli-engine-attachments-match
-    to: TEST-core-journaled-engine-delta-sync
-    created_at: 2026-09-05T15:28:13.106Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ef4c95fd0b15
-  - type: implements
-    from: SYM-x-resolveTestFiles
-    to: REQ-test-journaled-engine-harness
-    created_at: 2026-09-09T12:51:20.821Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1354939c282f

@@ -202,17 +202,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1148551c0939
-  - type: covered_by
-    from: SYM-TraceabilityRegistrationResult
-    to: TEST-vscode-traceability-coverage
-    created_at: 2026-09-05T18:26:47.079Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3b71532257e0
-  - type: implements
-    from: SYM-x-DEFAULT_TOOLS_RUNTIME
-    to: REQ-002
-    created_at: 2026-09-09T12:50:23.684Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6e6ed804392c

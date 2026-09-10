@@ -62,17 +62,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9d9b966d299f
-  - type: covered_by
-    from: SYM-PredicateReplicate
-    to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:09:18.874Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-905e607d4959
-  - type: implements
-    from: SYM-x-_resetSessionModulePromise
-    to: REQ-002
-    created_at: 2026-09-09T12:50:32.251Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-6c84a3b0d6fc
