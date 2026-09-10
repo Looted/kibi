@@ -12,7 +12,7 @@ function fakeSignalTarget() {
 }
 
 // executable_for TEST-test-journaled-engine-harness
-test("packed runner prepares once, propagates both paths, and preserves bounded concurrency", async () => {
+test("packed runner prepares once, propagates both paths, and serializes file execution", async () => {
   const calls = [];
   let prepareCount = 0;
   let cleanupCount = 0;
@@ -49,7 +49,7 @@ test("packed runner prepares once, propagates both paths, and preserves bounded 
   assert.equal(calls[0].command, "fake-node");
   assert.deepEqual(calls[0].argv, [
     "--test",
-    "--test-concurrency=2",
+    "--test-concurrency=1",
     "--test-force-exit",
     packedTestIsolationArg(),
     "/tmp/one.test.js",

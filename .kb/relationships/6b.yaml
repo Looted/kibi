@@ -181,3 +181,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d4b7cca72328
+  - type: implements
+    from: SYM-x-attachedContextWithProlog
+    to: REQ-002
+    created_at: 2026-09-09T12:50:15.849Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46d2ddac66cc

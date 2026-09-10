@@ -20,3 +20,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-237440bd08cf
+  - type: implements
+    from: SYM-x-runPackedE2EIfEntrypoint
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-09-09T12:51:12.995Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16e08e0da8c3

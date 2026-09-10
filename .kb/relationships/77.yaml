@@ -195,3 +195,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f1f936903cef
+  - type: covered_by
+    from: SYM-sync-warn-failed-source-hash
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-09T03:35:49.175Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1bcd1e1bf94f

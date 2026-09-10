@@ -42,27 +42,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-506d47373aeb
   - type: implements
-    from: SYM-mcp-session-activeBranchName
-    to: REQ-002
-    created_at: 2026-08-22T20:07:48.275Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-89a1e9ed55c4
-  - type: covered_by
-    from: SYM-mcp-session-activeBranchName
-    to: TEST-005
-    created_at: 2026-08-22T20:07:48.288Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-55031cae2a36
-  - type: covered_by
-    from: SYM-mcp-session-activeBranchName
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:07:48.292Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a546861cf236
-  - type: implements
     from: SYM-requirement-extract-heuristic-claim
     to: REQ-002
     created_at: 2026-08-22T20:09:14.861Z
@@ -146,3 +125,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-09f932945e99
+  - type: covered_by
+    from: SYM-cli-PrologErrorConflict
+    to: TEST-mcp-upsert-coverage
+    created_at: 2026-09-09T03:36:11.617Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d9483ee1369c

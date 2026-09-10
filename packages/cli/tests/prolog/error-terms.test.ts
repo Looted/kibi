@@ -98,6 +98,19 @@ describe("parsePrologErrorTerm", () => {
     expect(record?.message).toBe("Entity shape invalid for fact");
   });
 
+
+  test("returns null for zero-argument error terms", () => {
+    expect(parsePrologErrorTerm("error(boom())")).toBeNull();
+  });
+
+  test("entity lookup without source/target role uses the neutral verb", () => {
+    const record = parsePrologErrorTerm(
+      "error(existence_error(entity,'REQ-8'),context(kb_assert_relationship,'other reason'))",
+    );
+    expect(record?.role).toBeUndefined();
+    expect(record?.message).toBe("Entity does not exist: REQ-8");
+  });
+
   test("returns null for unrecognized terms", () => {
     expect(parsePrologErrorTerm("error(domain_error(x,y),ctx)")).toBeNull();
     expect(parsePrologErrorTerm("not_an_error_term")).toBeNull();
@@ -135,6 +148,17 @@ describe("formatUpsertError with structured records", () => {
     expect(message).toContain("- Conflicts with REQ-1: Subject X conflicts");
     expect(message).toContain("To resolve:");
     expect(message).toContain("(stage=contradiction_check)");
+  });
+
+
+  test("formats the generic contradiction message when the term carries no conflict pairs", () => {
+    const record = parsePrologErrorTerm(
+      "error(kb_contradiction([]),'Contradiction detected for requirement REQ-2')",
+    );
+    const message = formatUpsertError("REQ-2", "raw", record ?? undefined);
+    expect(message).toContain(
+      "Contradiction detected for entity REQ-2: This requirement conflicts with existing requirements",
+    );
   });
 
   test("formats invalid relationship records with the recipe", () => {

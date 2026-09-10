@@ -174,3 +174,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e613adde4b8e
+  - type: implements
+    from: SYM-x-defaultImportHelpers
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-09-09T12:50:49.403Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b15a083215d9

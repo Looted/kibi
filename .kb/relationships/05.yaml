@@ -122,3 +122,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-973caddaaeb6
+  - type: covered_by
+    from: SYM-upsert-execution-options
+    to: TEST-mcp-upsert-coverage
+    created_at: 2026-09-09T03:37:28.755Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-174c64f7232e
+  - type: covered_by
+    from: SYM-upsert-execution-options
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-09T06:04:06.617Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1080f8f30f69

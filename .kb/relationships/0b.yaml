@@ -139,3 +139,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eee187209e62
+  - type: implements
+    from: SYM-x-packedTestIsolationArg
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-09-09T12:51:05.143Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30b8d551aa30
