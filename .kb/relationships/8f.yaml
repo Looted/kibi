@@ -48,3 +48,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-46932e33ed4b
+  - type: covered_by
+    from: SYM-skillopt-python-env-adapter
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-10T15:00:27.565Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e69834eeaabf
+  - type: implements
+    from: SYM-skillopt-python-env-adapter
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-09-10T15:00:27.605Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f91a4e4bbc8f
+  - type: implements
+    from: SYM-skillopt-python-env-adapter
+    to: REQ-skillopt-external-adoption-verdict
+    created_at: 2026-09-10T15:00:27.612Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55428fce602a
