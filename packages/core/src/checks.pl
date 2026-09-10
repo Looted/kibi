@@ -1477,6 +1477,7 @@ check_selected_dispatch(Rules, _{
     logic_coverage: LogicCoverage,
     rule_safety: RuleSafety,
     rule_verifiability: RuleVerifiability,
+    req_status_vocabulary: ReqStatusVocabulary,
     semantic_completeness: SemanticCompleteness
 }) :-
     selected_rule(Rules, 'must-priority-coverage', check_must_priority_coverage, MustPriority),
