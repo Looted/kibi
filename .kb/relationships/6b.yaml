@@ -195,3 +195,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-49c98ae0e2e7
+  - type: covered_by
+    from: SYM-x-attachedContextWithProlog
+    to: TEST-005
+    created_at: 2026-09-11T06:35:50.700Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-abb4df41d77a
