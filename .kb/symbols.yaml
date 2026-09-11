@@ -34372,6 +34372,8 @@ symbols:
       - type: covered_by
         target: TEST-005
       - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
         target: TEST-mcp-upsert-coverage
       - type: implements
         target: REQ-002
