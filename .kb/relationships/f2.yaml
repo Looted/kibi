@@ -65,7 +65,14 @@ relationships:
   - type: covered_by
     from: SYM-PredicateReplicate
     to: TEST-skillopt-external-adoption-verdict
-    created_at: 2026-09-05T18:09:18.874Z
+    created_at: 2026-09-10T15:00:55.505Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-905e607d4959
+  - type: implements
+    from: SYM-PredicateReplicate
+    to: REQ-skillopt-external-adoption-verdict
+    created_at: 2026-09-10T15:00:55.541Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8cdf15c3e23c

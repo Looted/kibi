@@ -83,3 +83,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7a07cd3feb89
+  - type: covered_by
+    from: SYM-prove-test-id
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-09-09T03:37:51.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-692d589d0c0b
+  - type: covered_by
+    from: SYM-prove-test-id
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-09T06:04:31.399Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8bdc8063bf1
+  - type: implements
+    from: SYM-prove-test-id
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-09-09T06:04:31.403Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ff027fb27b7

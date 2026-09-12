@@ -71,7 +71,7 @@ export async function runPackedE2E(options = {}) {
       nodeExecutable,
       [
         "--test",
-        "--test-concurrency=2",
+        "--test-concurrency=1",
         "--test-force-exit",
         packedTestIsolationArg(),
         ...testFiles.map((testFile) => path.resolve(testFile)),

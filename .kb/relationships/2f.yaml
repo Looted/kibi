@@ -125,3 +125,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2c50616708da
+  - type: covered_by
+    from: SYM-persistence-relationship-failure-message
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-09T03:34:40.880Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6d2ffad7b5a

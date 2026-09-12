@@ -76,3 +76,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6865f93d1452
+  - type: covered_by
+    from: SYM-sync-assert-relationships-cleared
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-09T03:34:52.036Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be0014efae66

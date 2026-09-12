@@ -3,15 +3,6 @@
 #   id, title, sourceFile, links, status, tags, owner, priority
 # Generated coordinates are stored separately in symbol-coordinates.yaml.
 # Run `kibi sync --refresh-symbol-coordinates` to refresh them.
-#
-# Coordinate refresh granularity gate:
-#   The AST extractor locates per-declaration spans for code files. When it
-#   cannot find a declaration, a title-match or whole-file coarse span is
-#   published ONLY for symbols that declare a coarse granularity_reason
-#   (config-artifact, module-level-behavior, extractor-miss, test-suite).
-#   A symbol without granularity_reason whose extraction misses gets no
-#   coordinate entry at all and is reported as failed; add symbol_role and
-#   granularity_reason to opt it into the coarse fallback.
 symbols:
   - id: SYM-test-packed-exact-branch-recovery
     title: assertExactBranchRecoveryOutcome
@@ -4883,7 +4874,8 @@ symbols:
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable resource examples
+    title: predicate guidance loads a canonical decision tree with immutable
+      resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -16077,11 +16069,13 @@ symbols:
     title: missingRequiredGuidance
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
     symbol_role: behavioral
+    status: active
+    granularity_reason: module-level-behavior
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-codex-optimizer-options
     title: CodexOptimizerOptions
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
@@ -16114,11 +16108,13 @@ symbols:
     title: persistCodexOptimizerFailure
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
     symbol_role: behavioral
+    status: active
+    granularity_reason: module-level-behavior
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-codex-optimizer-run
     title: runCodexSkillOptStep
     sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
@@ -20642,11 +20638,13 @@ symbols:
     title: CodexAuthError
     sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
     symbol_role: behavioral
+    status: active
+    granularity_reason: module-level-behavior
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-runtime-auth-error-name
     title: CodexAuthError.name
     sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
@@ -20710,11 +20708,13 @@ symbols:
     title: stagedCodeModeHostExecutable
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
     symbol_role: behavioral
+    status: active
+    granularity_reason: module-level-behavior
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-runtime-evaluation-branch
     title: SKILLOPT_EVALUATION_BRANCH
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
@@ -21060,38 +21060,46 @@ symbols:
     title: LoginAuthPaths
     sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
     symbol_role: type-shape
+    status: active
+    granularity_reason: module-level-behavior
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-runtime-persist-refreshed-login
     title: persistRefreshedLogin
     sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
     symbol_role: behavioral
+    status: active
+    granularity_reason: module-level-behavior
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-runtime-with-codex-auth-lease
     title: withCodexAuthLease
     sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
     symbol_role: behavioral
+    status: active
+    granularity_reason: module-level-behavior
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-runtime-with-prepared-login
     title: withPreparedLogin
     sourceFile: scripts/skillopt-eval/runtime/codex-auth.ts
     symbol_role: behavioral
+    status: active
+    granularity_reason: module-level-behavior
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-runtime-prerequisite-error
     title: RuntimePrerequisiteError
     sourceFile: scripts/skillopt-eval/runtime/canary-errors.ts
@@ -34033,164 +34041,17 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-test-journaled-engine-harness
-  - id: SYM-proof-prune-command
-    title: proofPruneCommand
-    status: active
-    sourceFile: packages/cli/src/commands/proof-prune.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-proof-migrate-legacy-command
-    title: proofMigrateLegacyCommand
-    status: active
-    sourceFile: packages/cli/src/commands/proof-migrate-legacy.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-untracked-target-matches
-    title: findUntrackedDocumentMatches
-    status: active
-    sourceFile: packages/cli/src/commands/sync/untracked-targets.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-core-journaled-engine-persistence
-  - id: SYM-prune-receipts-operation
-    title: executePruneReceipts
-    status: active
-    sourceFile: packages/cli/src/operations/proof/prune-receipts.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-migrate-legacy-receipts-operation
-    title: executeMigrateLegacyReceipts
-    status: active
-    sourceFile: packages/cli/src/operations/proof/migrate-legacy-receipts.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-receipt-document-patcher
-    title: patchReceiptsIntoDocument
-    status: active
-    sourceFile: packages/cli/src/operations/proof/receipt-document.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-mcp-job-registry
-    title: startJob
-    status: active
-    sourceFile: packages/mcp/src/server/jobs.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-002
-  - id: SYM-proof-prune-options
-    title: ProofPruneOptions
-    status: active
-    sourceFile: packages/cli/src/commands/proof-prune.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-proof-migrate-legacy-options
-    title: ProofMigrateLegacyOptions
-    status: active
-    sourceFile: packages/cli/src/commands/proof-migrate-legacy.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-prune-receipts-args
-    title: PruneReceiptsArgs
-    status: active
-    sourceFile: packages/cli/src/operations/proof/prune-receipts.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-prune-receipts-test-result
-    title: PruneReceiptsTestResult
-    status: active
-    sourceFile: packages/cli/src/operations/proof/prune-receipts.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-prune-receipts-result
-    title: PruneReceiptsResult
-    status: active
-    sourceFile: packages/cli/src/operations/proof/prune-receipts.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-migrate-legacy-receipts-args
-    title: MigrateLegacyReceiptsArgs
-    status: active
-    sourceFile: packages/cli/src/operations/proof/migrate-legacy-receipts.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-migrate-legacy-receipts-result
-    title: MigrateLegacyReceiptsResult
-    status: active
-    sourceFile: packages/cli/src/operations/proof/migrate-legacy-receipts.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
-  - id: SYM-mcp-job-record
-    title: JobRecord
-    status: active
-    sourceFile: packages/mcp/src/server/jobs.ts
-    symbol_role: type-shape
-    relationships:
-      - type: implements
-        target: REQ-002
-  - id: SYM-mcp-job-get
-    title: getJob
-    status: active
-    sourceFile: packages/mcp/src/server/jobs.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-002
-  - id: SYM-mcp-job-snapshot
-    title: jobSnapshot
-    status: active
-    sourceFile: packages/mcp/src/server/jobs.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-002
-  - id: SYM-mcp-job-reset-for-tests
-    title: resetJobsForTests
-    status: active
-    sourceFile: packages/mcp/src/server/jobs.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-002
-  - id: SYM-receipt-document-block-remover
-    title: removeFrontmatterBlock
-    status: active
-    sourceFile: packages/cli/src/operations/proof/receipt-document.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-kibi-verification-evidence-contract
   - id: SYM-describe-workspace-drift
     title: describeWorkspaceDrift
     status: active
     sourceFile: packages/cli/src/commands/prove.ts
     symbol_role: behavioral
+    granularity_reason: module-level-behavior
     relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
       - type: implements
         target: REQ-kibi-verification-evidence-contract
   - id: SYM-upsert-execution-options
@@ -34198,7 +34059,12 @@ symbols:
     status: active
     sourceFile: packages/cli/src/operations/mutation/upsert.ts
     symbol_role: type-shape
+    granularity_reason: module-level-behavior
     relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
       - type: implements
         target: REQ-kibi-operation-interface-parity
   - id: SYM-prove-test-id
@@ -34206,7 +34072,12 @@ symbols:
     status: active
     sourceFile: packages/cli/src/commands/prove.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
       - type: implements
         target: REQ-kibi-verification-evidence-contract
   - id: SYM-sync-assert-relationships-cleared
@@ -34214,7 +34085,10 @@ symbols:
     status: active
     sourceFile: packages/cli/src/commands/sync.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
       - type: implements
         target: REQ-core-journaled-engine-persistence
   - id: SYM-sync-maybe-push-docs-not-indexed-diagnostic
@@ -34222,7 +34096,10 @@ symbols:
     status: active
     sourceFile: packages/cli/src/commands/sync.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
       - type: implements
         target: REQ-core-journaled-engine-persistence
   - id: SYM-sync-maybe-push-kb-missing-diagnostic
@@ -34230,7 +34107,10 @@ symbols:
     status: active
     sourceFile: packages/cli/src/commands/sync.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
       - type: implements
         target: REQ-core-journaled-engine-persistence
   - id: SYM-sync-remember-changed-source-or-warn
@@ -34238,7 +34118,10 @@ symbols:
     status: active
     sourceFile: packages/cli/src/commands/sync.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
       - type: implements
         target: REQ-core-journaled-engine-persistence
   - id: SYM-sync-tracked-relationship-files
@@ -34246,7 +34129,10 @@ symbols:
     status: active
     sourceFile: packages/cli/src/commands/sync.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
       - type: implements
         target: REQ-core-journaled-engine-persistence
   - id: SYM-sync-warn-failed-source-hash
@@ -34254,7 +34140,10 @@ symbols:
     status: active
     sourceFile: packages/cli/src/commands/sync.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
       - type: implements
         target: REQ-core-journaled-engine-persistence
   - id: SYM-persistence-relationship-failure-message
@@ -34262,7 +34151,10 @@ symbols:
     status: active
     sourceFile: packages/cli/src/commands/sync/persistence.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-delta-sync
       - type: implements
         target: REQ-core-journaled-engine-persistence
   - id: SYM-source-authoring-manifest-relationships
@@ -34278,7 +34170,12 @@ symbols:
     status: active
     sourceFile: packages/cli/src/prolog.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-005
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
       - type: implements
         target: REQ-core-prolog-process-management
   - id: SYM-prolog-attach-process-exit-handler
@@ -34286,7 +34183,12 @@ symbols:
     status: active
     sourceFile: packages/cli/src/prolog.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-005
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
       - type: implements
         target: REQ-core-prolog-process-management
   - id: SYM-prolog-register-process-exit-once
@@ -34294,7 +34196,12 @@ symbols:
     status: active
     sourceFile: packages/cli/src/prolog.ts
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-005
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
       - type: implements
         target: REQ-core-prolog-process-management
   - id: SYM-cli-PrologErrorCode
@@ -34303,6 +34210,8 @@ symbols:
     sourceFile: packages/cli/src/prolog/error-terms.ts
     granularity_reason: module-level-behavior
     relationships:
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
       - type: implements
         target: REQ-core-prolog-process-management
   - id: SYM-cli-PrologErrorRelationship
@@ -34311,6 +34220,8 @@ symbols:
     sourceFile: packages/cli/src/prolog/error-terms.ts
     granularity_reason: module-level-behavior
     relationships:
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
       - type: implements
         target: REQ-core-prolog-process-management
   - id: SYM-cli-PrologErrorConflict
@@ -34319,6 +34230,8 @@ symbols:
     sourceFile: packages/cli/src/prolog/error-terms.ts
     granularity_reason: module-level-behavior
     relationships:
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
       - type: implements
         target: REQ-core-prolog-process-management
   - id: SYM-cli-PrologErrorRecord
@@ -34327,6 +34240,8 @@ symbols:
     sourceFile: packages/cli/src/prolog/error-terms.ts
     granularity_reason: module-level-behavior
     relationships:
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
       - type: implements
         target: REQ-core-prolog-process-management
   - id: SYM-cli-PrologErrorTermPrefix
@@ -34335,6 +34250,8 @@ symbols:
     sourceFile: packages/cli/src/prolog/error-terms.ts
     granularity_reason: module-level-behavior
     relationships:
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
       - type: implements
         target: REQ-core-prolog-process-management
   - id: SYM-cli-MutationSaga
@@ -34343,6 +34260,10 @@ symbols:
     sourceFile: packages/cli/src/operations/mutation/saga.ts
     granularity_reason: module-level-behavior
     relationships:
+      - type: covered_by
+        target: TEST-011
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
       - type: implements
         target: REQ-014
   - id: SYM-cli-SagaStep
@@ -34351,6 +34272,10 @@ symbols:
     sourceFile: packages/cli/src/operations/mutation/saga.ts
     granularity_reason: module-level-behavior
     relationships:
+      - type: covered_by
+        target: TEST-011
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
       - type: implements
         target: REQ-014
   - id: SYM-cli-SagaRollbackFailure
@@ -34359,6 +34284,10 @@ symbols:
     sourceFile: packages/cli/src/operations/mutation/saga.ts
     granularity_reason: module-level-behavior
     relationships:
+      - type: covered_by
+        target: TEST-011
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
       - type: implements
         target: REQ-014
   - id: SYM-cli-GeneratedRules
@@ -34434,3 +34363,55 @@ symbols:
     relationships:
       - type: implements
         target: REQ-008
+  - id: SYM-x-attachedContextWithProlog
+    title: attachedContextWithProlog
+    status: active
+    sourceFile: packages/mcp/src/runtime/mcp-runtime.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-005
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
+      - type: implements
+        target: REQ-002
+  - id: SYM-x-defaultImportHelpers
+    title: defaultImportHelpers
+    status: active
+    sourceFile: scripts/run-packed-e2e.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+  - id: SYM-x-main
+    title: main
+    status: active
+    sourceFile: scripts/run-packed-e2e.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+  - id: SYM-x-packedTestIsolationArg
+    title: packedTestIsolationArg
+    status: active
+    sourceFile: scripts/run-packed-e2e.mjs
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+  - id: SYM-x-runPackedE2EIfEntrypoint
+    title: runPackedE2EIfEntrypoint
+    status: active
+    sourceFile: scripts/run-packed-e2e.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-test-journaled-engine-harness

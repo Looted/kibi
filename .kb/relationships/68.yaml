@@ -28,27 +28,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-3661764eb608
   - type: implements
-    from: SYM-mcp-session-prologProcess
-    to: REQ-002
-    created_at: 2026-08-22T20:07:59.298Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-5f28accc9302
-  - type: covered_by
-    from: SYM-mcp-session-prologProcess
-    to: TEST-005
-    created_at: 2026-08-22T20:07:59.313Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ffbedc48f7bb
-  - type: covered_by
-    from: SYM-mcp-session-prologProcess
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:07:59.319Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-90f7b0d268d3
-  - type: implements
     from: SYM-DEFAULT-SYNC-PATHS
     to: REQ-011
     created_at: 2026-08-22T20:12:29.236Z

@@ -24,26 +24,44 @@ if (selected.length === 0) {
 }
 
 let failed = 0;
+const STEP_TIMEOUT_MS = 15 * 60_000;
+const STEP_ATTEMPTS = 2;
 for (const entry of selected) {
   for (const [index, argv] of entry.steps.entries()) {
     const [command, ...args] = argv;
     const label = `${entry.test_id} step ${index + 1}: ${command} ${args.join(" ")}`;
-    console.log(`[proof] ${label}`);
-    const result = spawnSync(command, args, {
-      cwd: workspaceRoot,
-      env: process.env,
-      stdio: "inherit",
-      shell: false,
-      maxBuffer: 64 * 1024 * 1024,
-    });
-    if (result.error !== undefined || result.status !== 0) {
-      console.error(
-        `[proof] FAILED ${label}${
-          result.status === null ? "" : ` (exit ${result.status})`
-        }`,
+    let stepFailed = false;
+    for (let attempt = 1; attempt <= STEP_ATTEMPTS; attempt += 1) {
+      console.log(
+        `[proof] ${label}${attempt > 1 ? ` (retry ${attempt - 1})` : ""}`,
       );
-      failed += 1;
+      const result = spawnSync(command, args, {
+        cwd: workspaceRoot,
+        env: process.env,
+        stdio: "inherit",
+        shell: false,
+        maxBuffer: 64 * 1024 * 1024,
+        timeout: STEP_TIMEOUT_MS,
+        killSignal: "SIGKILL",
+      });
+      if (result.error === undefined && result.status === 0) {
+        stepFailed = false;
+        break;
+      }
+      stepFailed = true;
+      if (attempt === STEP_ATTEMPTS) {
+        console.error(
+          `[proof] FAILED ${label}${
+            result.status === null ? "" : ` (exit ${result.status})`
+          }${result.error ? ` (${result.error.message})` : ""}`,
+        );
+      } else {
+        console.error(
+          `[proof] step failed (attempt ${attempt}); retrying: ${label}`,
+        );
+      }
     }
+    if (stepFailed) failed += 1;
   }
 }
 

@@ -111,3 +111,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-83e3f6effca7
+  - type: implements
+    from: SYM-skillopt-runtime-auth-error
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-09-08T00:33:48.763Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-594366732bc1
+  - type: covered_by
+    from: SYM-skillopt-runtime-auth-error
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-09-08T00:33:48.771Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c576195a74df

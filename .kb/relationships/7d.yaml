@@ -132,3 +132,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5c2e9b1ba7fd
+  - type: covered_by
+    from: SYM-prolog-bind-process-exit-handler
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-09-09T03:37:06.498Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3db4b7630c9e
+  - type: covered_by
+    from: SYM-prolog-bind-process-exit-handler
+    to: TEST-005
+    created_at: 2026-09-09T06:03:42.384Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0fbbdff3c53
+  - type: implements
+    from: SYM-prolog-bind-process-exit-handler
+    to: REQ-core-prolog-process-management
+    created_at: 2026-09-09T06:03:42.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f435955f91a
