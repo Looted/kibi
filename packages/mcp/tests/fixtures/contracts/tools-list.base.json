@@ -5685,6 +5685,22 @@
         ],
         "type": "object"
       }
+    },
+    {
+      "description": "Poll a background job started with async:true (e.g. kb_check async jobs). Returns the kibi.job.v1 state: running, succeeded (with the full result), or failed (with the error).",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": {},
+        "properties": {
+          "jobId": {
+            "description": "The jobId from the kibi.job.v1 receipt.",
+            "type": "string"
+          }
+        },
+        "required": ["jobId"],
+        "type": "object"
+      },
+      "name": "kb_job_status"
     }
   ]
 }
