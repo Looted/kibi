@@ -75,3 +75,4 @@ documentation/tests/e2e/packed/.compiled/
 artifacts/skillopt/
 .env
 .omo
+.zcode/

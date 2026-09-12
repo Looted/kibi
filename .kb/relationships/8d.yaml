@@ -209,3 +209,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0c9c5c0416dd
+  - type: implements
+    from: SYM-cli-PrologErrorRelationship
+    to: REQ-core-prolog-process-management
+    created_at: 2026-09-07T11:46:11.771Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad92755c7c52
+  - type: covered_by
+    from: SYM-cli-PrologErrorRelationship
+    to: TEST-mcp-upsert-coverage
+    created_at: 2026-09-09T03:36:33.724Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4eda7ccd6a4f

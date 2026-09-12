@@ -3519,6 +3519,11 @@
       "description": "Run KB validation rules and return violations, quality diagnostics, and typed kibi.migration-plan.v2 actions. Use before or after mutations and after source edits; checks remain read-only and never infer or apply actions from prose suggestions.",
       "inputSchema": {
         "properties": {
+          "async": {
+            "default": false,
+            "description": "When true, start the check as a background job and return a kibi.job.v1 receipt immediately instead of holding the request until the tool timeout. Poll kb_job_status with the returned jobId. Use for full checks on large KBs that exceed the configured tool timeout.",
+            "type": "boolean"
+          },
           "includeImpactDiagnostics": {
             "description": "When true, include changed-file impact diagnostics such as symbol_granularity_violation and symbol_semantic_review_needed in structured output.",
             "type": "boolean"
@@ -3533,7 +3538,7 @@
             "type": "integer"
           },
           "rules": {
-            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, source-relationship-parity, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, logic-coverage, rule-safety, rule-verifiability, semantic-completeness, query-plan-safety. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
+            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, source-relationship-parity, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, logic-coverage, rule-safety, rule-verifiability, query-plan-safety, req-status-vocabulary, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, strict-readiness, semantic-completeness. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
             "items": {
               "enum": [
                 "must-priority-coverage",
@@ -3545,14 +3550,16 @@
                 "required-fields",
                 "deprecated-adr-no-successor",
                 "domain-contradictions",
-                "strict-fact-shape",
-                "strict-req-fact-pairing",
-                "predicate-verifiability",
                 "logic-coverage",
                 "rule-safety",
                 "rule-verifiability",
-                "semantic-completeness",
-                "query-plan-safety"
+                "query-plan-safety",
+                "req-status-vocabulary",
+                "strict-fact-shape",
+                "strict-req-fact-pairing",
+                "predicate-verifiability",
+                "strict-readiness",
+                "semantic-completeness"
               ],
               "type": "string"
             },

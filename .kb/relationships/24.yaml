@@ -251,3 +251,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-43b0726aaa08
+  - type: implements
+    from: SYM-cli-SelectableRulesAllowed
+    to: REQ-006
+    created_at: 2026-09-07T11:46:54.610Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad78f36df484

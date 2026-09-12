@@ -199,3 +199,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dfca57681da4
+  - type: implements
+    from: SYM-cli-SagaRollbackFailure
+    to: REQ-014
+    created_at: 2026-09-07T11:46:41.444Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2da203d852cc
+  - type: covered_by
+    from: SYM-cli-SagaRollbackFailure
+    to: TEST-mcp-upsert-coverage
+    created_at: 2026-09-09T03:34:19.781Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b60f9212b3f9
+  - type: covered_by
+    from: SYM-cli-SagaRollbackFailure
+    to: TEST-011
+    created_at: 2026-09-09T06:03:07.478Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bf729012249

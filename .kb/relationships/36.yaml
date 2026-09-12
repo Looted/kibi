@@ -154,3 +154,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-69fc763c2027
+  - type: implements
+    from: SYM-mcp-session-setPrologProcessForTests
+    to: REQ-008
+    created_at: 2026-09-07T13:00:29.915Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67557f230331

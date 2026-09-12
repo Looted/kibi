@@ -35,13 +35,13 @@ function createSession(kbPath: string | null = "/tmp/kibi-branch") {
   };
   return {
     session: {
-      activeBranchName: "coverage-branch",
-      attachedBranchKbPath: kbPath,
+      getActiveBranchName: () => "coverage-branch",
+      getAttachedBranchKbPath: () => kbPath,
       ensureProlog: async () => prolog,
       resetProlog: async (_reason: string) => {},
       inFlightRequests: new Map<string, Promise<unknown>>(),
-      isShuttingDown: false,
-      prologProcess: { getPid: () => 4242 },
+      getIsShuttingDown: () => false,
+      getPrologProcess: () => ({ getPid: () => 4242 }),
       updateAttachedBranchStamp: mock((_stamp: unknown) => {}),
     },
     prolog,
@@ -148,13 +148,13 @@ describe("DEFAULT_TOOLS_RUNTIME session wiring", () => {
     }));
     const prolog = { query };
     const session = {
-      activeBranchName: "minimal",
-      attachedBranchKbPath: null,
+      getActiveBranchName: () => "minimal",
+      getAttachedBranchKbPath: () => null,
       ensureProlog: async () => prolog,
       resetProlog: async (_reason: string) => {},
       inFlightRequests: new Map<string, Promise<unknown>>(),
-      isShuttingDown: false,
-      prologProcess: { getPid: () => 7 },
+      getIsShuttingDown: () => false,
+      getPrologProcess: () => ({ getPid: () => 7 }),
       updateAttachedBranchStamp: mock(),
     };
     _setToolsServerDepsForTests(

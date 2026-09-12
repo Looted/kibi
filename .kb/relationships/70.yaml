@@ -111,3 +111,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-16bd11fb9bc0
+  - type: implements
+    from: SYM-skillopt-runtime-persist-refreshed-login
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-09-08T00:34:09.054Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4364d82d9335
+  - type: covered_by
+    from: SYM-skillopt-runtime-persist-refreshed-login
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-09-08T00:34:09.061Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1830d41635f6

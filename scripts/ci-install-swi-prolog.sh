@@ -41,12 +41,13 @@ Acquire::ftp::Timeout "20";
 EOF
   if [ -f /etc/apt/apt-mirrors.txt ]; then
     sudo sed -i \
-      's|http://azure.archive.ubuntu.com/ubuntu|http://archive.ubuntu.com/ubuntu|g' \
+      's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' \
       /etc/apt/apt-mirrors.txt || true
   fi
   sudo find /etc/apt -type f \( -name '*.list' -o -name '*.sources' \) \
     -exec sed -i \
-      's|http://azure.archive.ubuntu.com/ubuntu|http://archive.ubuntu.com/ubuntu|g' \
+      -e 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' \
+      -e 's|http://archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' \
       {} +
 }
 

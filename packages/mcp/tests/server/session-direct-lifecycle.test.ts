@@ -156,7 +156,7 @@ describe.serial("direct session lifecycle coverage", () => {
     expect(second).toBe(first);
     expect(calls).toContain("start");
     expect(calls).toContain("terminate");
-    expect(session.prologProcess).toBeNull();
+    expect(session.getPrologProcess()).toBeNull();
   });
 
   test("creates branch KBs, switches branches, and tolerates detach warnings", async () => {
@@ -293,7 +293,7 @@ describe.serial("direct session lifecycle coverage", () => {
   test("same-branch refresh fails closed on detach failure and retry stamp churn", async () => {
     process.env.KIBI_BRANCH = "develop";
     await session.ensureProlog();
-    const attachedPath = session.attachedBranchKbPath;
+    const attachedPath = session.getAttachedBranchKbPath();
     if (attachedPath === null) {
       throw new Error("Expected attached branch path after initialization");
     }

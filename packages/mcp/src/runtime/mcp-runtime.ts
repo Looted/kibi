@@ -13,7 +13,7 @@ import { resolveBranchAttachment } from "kibi-runtime";
 // implements REQ-kibi-operation-interface-parity
 export interface McpSession<TProlog = PrologPort> {
   readonly workspaceRoot: string;
-  readonly activeBranchName: () => string | Promise<string>;
+  readonly activeBranchName?: () => string | Promise<string>;
   readonly attachedBranchKbPath: () => string | null | Promise<string | null>;
   readonly ensureProlog: () => Promise<TProlog>;
   readonly adaptProlog: (prolog: TProlog) => PrologPort;

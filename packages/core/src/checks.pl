@@ -4,6 +4,7 @@
 % validation rule in a single Prolog call, avoiding expensive round-trips.
 
 :- module(checks, [
+        check_req_status_vocabulary/1,
     check_all/1,                    % Returns all violations as a dict
     check_all_json/1,               % Returns all violations as JSON string
     check_selected_json/2,           % Returns only selected rule violations as JSON
@@ -35,6 +36,8 @@
 :- use_module('../schema/entities.pl', [entity_type/1, required_property/2]).
 :- use_module('../schema/relationships.pl', [relationship_type/1]).
 :- use_module('logic_ir.pl', [logic_rule_safety/2, logic_rule_from_props/2, logic_rule_conflict/3, logic_rule_conflict_witness/3, logic_rules_stratified/1]).
+% GENERATED registry facts; single source is schema/rule-registry.json.
+:- use_module('rule_registry.pl', [known_rule/1]).
 
 % Required fields for all entities
 required_fields([id, title, status, created_at, updated_at, source]).
@@ -66,6 +69,7 @@ check_all(ViolationsDict) :-
     check_rule_safety(RuleSafety),
     check_rule_verifiability(RuleVerifiability),
     check_semantic_completeness(SemanticCompleteness),
+    check_req_status_vocabulary(ReqStatusVocabulary),
     ViolationsDict = _{
         must_priority_coverage: MustPriority,
         symbol_coverage: SymbolCoverage,
@@ -82,6 +86,7 @@ check_all(ViolationsDict) :-
         logic_coverage: LogicCoverage,
         rule_safety: RuleSafety,
         rule_verifiability: RuleVerifiability,
+    req_status_vocabulary: ReqStatusVocabulary,
         semantic_completeness: SemanticCompleteness
     }.
 
@@ -362,6 +367,39 @@ deprecated_adr_violation(violation(
     ->  true
     ;   Source = ""
     ).
+
+%% check_req_status_vocabulary(-Violations)
+% Rejects requirement statuses outside the canonical+legacy vocabulary.
+% Requirement documents carrying ADR vocabulary (e.g. `status: accepted`)
+% compile and pass schema validation, then silently fall out of
+% current_req/1 — the proof ladder reports them not_applicable with no
+% signal. This rule surfaces the vocabulary mismatch at check time instead.
+canonical_req_statuses([open, in_progress, closed]).
+legacy_req_statuses([active, approved]).
+
+check_req_status_vocabulary(Violations) :-
+    findall(
+        Violation,
+        req_status_vocabulary_violation(Violation),
+        Violations
+    ).
+
+req_status_vocabulary_violation(violation(
+    'req-status-vocabulary',
+    ReqId,
+    Description,
+    Suggestion,
+    Source
+)) :-
+    kb_entity(ReqId, req, Props),
+    memberchk(status=RawStatus, Props),
+    normalize_term_atom(RawStatus, StatusAtom),
+    canonical_req_statuses(Canonical),
+    legacy_req_statuses(Legacy),
+    \+ (memberchk(StatusAtom, Canonical) ; memberchk(StatusAtom, Legacy)),
+    format(string(Description), "Requirement status '~w' is not a current requirement status; it is silently excluded from the proof ladder", [StatusAtom]),
+    format(string(Suggestion), "Set status to one of open, in_progress, closed (legacy: active, approved). To park a current requirement out of E2E-proof scope, use proof_exempt: true with proof_exempt_reason instead of an ADR status", []),
+    violation_source(ReqId, req, Source).
 
 %% check_strict_fact_shape(-Violations)
 % Finds all strict facts (with fact_kind) that have malformed shape.
@@ -1412,7 +1450,18 @@ check_selected_json(Rules, JsonString) :-
         JsonString
     ).
 
-check_selected(Rules, _{
+%% check_selected(+Rules, -ViolationsDict)
+% Run only the named aggregated checks. This is intentionally separate from
+% check_all/1 so focused diagnostics cannot evaluate unrelated rule queries.
+% Unknown rule names fail loudly: a typo must never masquerade as a clean,
+% violation-free run. Rules implemented on the TypeScript side (recorded in
+% rule_registry.pl with implementation typescript) are accepted here and
+% simply produce no Prolog-side violations.
+check_selected(Rules, ViolationsDict) :-
+    require_known_rules(Rules),
+    check_selected_dispatch(Rules, ViolationsDict).
+
+check_selected_dispatch(Rules, _{
     must_priority_coverage: MustPriority,
     symbol_coverage: SymbolCoverage,
     symbol_traceability: SymbolTraceability,
@@ -1428,6 +1477,7 @@ check_selected(Rules, _{
     logic_coverage: LogicCoverage,
     rule_safety: RuleSafety,
     rule_verifiability: RuleVerifiability,
+    req_status_vocabulary: ReqStatusVocabulary,
     semantic_completeness: SemanticCompleteness
 }) :-
     selected_rule(Rules, 'must-priority-coverage', check_must_priority_coverage, MustPriority),
@@ -1445,6 +1495,7 @@ check_selected(Rules, _{
     selected_rule(Rules, 'logic-coverage', check_logic_coverage, LogicCoverage),
     selected_rule(Rules, 'rule-safety', check_rule_safety, RuleSafety),
     selected_rule(Rules, 'rule-verifiability', check_rule_verifiability, RuleVerifiability),
+    selected_rule(Rules, 'req-status-vocabulary', check_req_status_vocabulary, ReqStatusVocabulary),
     selected_rule(Rules, 'semantic-completeness', check_semantic_completeness, SemanticCompleteness).
 
 selected_rule(Rules, Name, Goal, Violations) :-
@@ -1457,6 +1508,17 @@ selected_rule_with_options(Rules, Name, Goal, Violations) :-
     (   memberchk(Name, Rules)
     ->  call(Goal, false, Violations)
     ;   Violations = []
+    ).
+
+%% require_known_rules(+Rules)
+% Fail closed on names outside the generated registry so a typo or a
+% stale cross-version call surfaces as an error instead of an empty result.
+require_known_rules(Rules) :-
+    exclude(rule_registry:known_rule, Rules, Unknown),
+    (   Unknown == []
+    ->  true
+    ;   throw(error(domain_error(check_rule, Unknown),
+                context(check_selected, 'Unknown check rules requested')))
     ).
 
 %% check_all_json_with_options(-JsonString, +RequireAdr)

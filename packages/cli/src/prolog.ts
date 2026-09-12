@@ -22,6 +22,10 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { getKbPlPathOverride, isPrologDebugEnabled } from "./env.js";
+import {
+  extractPrologErrorRecord,
+  type PrologErrorRecord,
+} from "./prolog/error-terms.js";
 
 const importMetaDir = path.dirname(fileURLToPath(import.meta.url));
 const PROLOG_OUTPUT_MAX_BUFFER_BYTES = 8 * 1024 * 1024;
@@ -102,6 +106,7 @@ export interface QueryResult {
   success: boolean;
   bindings: Record<string, string>;
   error?: string;
+  errorRecord?: PrologErrorRecord;
 }
 
 export function registerProcessExitOnce(
@@ -334,9 +339,13 @@ export class PrologProcess {
       const goalWithPersistence = shouldPersist
         ? `(${normalizedGoal}, kb_save)`
         : normalizedGoal;
+      // Report the thrown term structurally ahead of SWI's human-readable
+      // print_message output. Built-ins only, so the wrapper works against
+      // any installed kibi-core version.
+      const errorReport = `(write(user_error, '__KIBI_ERROR__:'), write_term(user_error, _E, [quoted(true), max_depth(8)]), nl(user_error), print_message(error, _E), fail)`;
       const wrappedGoal = /^once\s*\(/.test(goalWithPersistence)
-        ? `catch(${goalWithPersistence}, _E, (print_message(error, _E), fail))`
-        : `catch(once((${goalWithPersistence})), _E, (print_message(error, _E), fail))`;
+        ? `catch(${goalWithPersistence}, _E, ${errorReport})`
+        : `catch(once((${goalWithPersistence})), _E, ${errorReport})`;
       const start = Date.now();
 
       if (debug) {
@@ -404,14 +413,18 @@ export class PrologProcess {
                 `[prolog debug] query error: ${goalLabel} error=${this.errorBuffer.split("\n")[0]}`,
               );
             }
+            const classified = this.classifyErrorOutput(this.errorBuffer);
             resolve({
               success: false,
               bindings: {},
               error: this.addDiagnosticStage(
-                this.translateError(this.errorBuffer),
+                classified.message,
                 normalizedGoal,
                 this.errorBuffer,
               ),
+              ...(classified.record
+                ? { errorRecord: classified.record }
+                : {}),
             });
             return;
           }
@@ -604,7 +617,7 @@ export class PrologProcess {
       "read_term_from_atom(GoalAtom, Goal, [variable_names(Vars)])",
       kbPath ? "getenv('KIBI_KB_PATH', KBPath), kb_attach(KBPath)" : "true",
       isBatch ? "WrappedGoal = rdf_transaction(Goal)" : "WrappedGoal = Goal",
-      "(catch(call(WrappedGoal), E, (print_message(error, E), fail)) -> QuerySucceeded = true ; QuerySucceeded = false)",
+      "(catch(call(WrappedGoal), E, (write(user_error, '__KIBI_ERROR__:'), write_term(user_error, E, [quoted(true), max_depth(8)]), nl(user_error), print_message(error, E), fail)) -> QuerySucceeded = true ; QuerySucceeded = false)",
       kbPath &&
       (explicitSaveRequested ||
         goalList.some((item) => this.isMutatingGoal(item)))
@@ -748,14 +761,16 @@ export class PrologProcess {
     }
 
     if (stderr.includes("ERROR")) {
+      const classified = this.classifyErrorOutput(stderr);
       return {
         success: false,
         bindings: {},
         error: this.addDiagnosticStage(
-          this.translateError(stderr),
+          classified.message,
           combinedGoal ?? "true",
           stderr,
         ),
+        ...(classified.record ? { errorRecord: classified.record } : {}),
       };
     }
 
@@ -936,13 +951,24 @@ export class PrologProcess {
     return bindings;
   }
 
+  /** Prefer the structured error term; fall back to text heuristics. */
+  private classifyErrorOutput(
+    errorText: string,
+  ): { message: string; record?: PrologErrorRecord } {
+    const record = extractPrologErrorRecord(errorText);
+    if (record) {
+      return { message: record.message, record };
+    }
+    return { message: this.translateError(errorText) };
+  }
+
   // implements REQ-core-prolog-process-management
   private translateError(errorText: string): string {
     // Diagnostic markers intentionally contain words such as `lock` and the
     // audit path. Remove them before classifying the actual Prolog error so a
     // contradiction at the check stage is not mistaken for an audit lock.
     const cleanError = errorText.replace(
-      /^__KIBI_(?:STAGE|RUNTIME)__:[^\r\n]*\r?\n?/gm,
+      /^__KIBI_(?:STAGE|RUNTIME|ERROR)__:[^\r\n]*\r?\n?/gm,
       "",
     );
     if (cleanError.includes("stale_snapshot")) {

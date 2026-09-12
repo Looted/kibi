@@ -205,7 +205,14 @@ relationships:
   - type: covered_by
     from: SYM-TraceabilityRegistrationResult
     to: TEST-vscode-traceability-coverage
-    created_at: 2026-09-05T18:26:47.079Z
+    created_at: 2026-09-10T14:56:50.451Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b71532257e0
+  - type: implements
+    from: SYM-TraceabilityRegistrationResult
+    to: REQ-vscode-traceability
+    created_at: 2026-09-10T14:56:50.532Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e1161431d7c
