@@ -3,6 +3,10 @@ import assert from "node:assert";
 import { readFileSync, writeFileSync } from "node:fs";
 import type { Server } from "node:http";
 import { join, resolve } from "node:path";
+
+// Packed tests run with the repo root as cwd, but sandbox helpers may
+// chdir the process; anchor repo-root reads explicitly.
+const repoRoot = process.env.KIBI_PROOF_REPO_ROOT ?? process.cwd();
 import { after, before, describe, it } from "node:test";
 import {
   type Tarballs,
@@ -135,9 +139,7 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
         assert.ifError(response.error);
         const expected = JSON.parse(
           readFileSync(
-            resolve(
-              "packages/mcp/tests/fixtures/contracts/tools-list.base.json",
-            ),
+            resolve(repoRoot, "packages/mcp/tests/fixtures/contracts/tools-list.base.json"),
             "utf8",
           ),
         );
@@ -148,7 +150,7 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
         const tools = response.result?.tools as
           | readonly Record<string, unknown>[]
           | undefined;
-        assert.strictEqual(tools?.length, 21);
+        assert.strictEqual(tools?.length, 22);
         assert.ok(!tools?.some((tool) => tool.name === "kb_briefing_generate"));
       } finally {
         process.kill();
