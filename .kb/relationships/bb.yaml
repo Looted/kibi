@@ -300,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7c16c4013e01
+  - type: implements
+    from: SYM-x-oc-KibiEventEnv
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-09-13T20:11:25.216Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fff375f375bd
+  - type: covered_by
+    from: SYM-x-oc-KibiEventEnv
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-09-13T20:11:25.234Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa91009ffd6a

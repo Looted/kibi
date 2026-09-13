@@ -69,3 +69,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-650ecb586e56
+  - type: implements
+    from: SYM-x-oc-handleKbToolEvent
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-09-13T20:11:41.993Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8dafb5703327
+  - type: covered_by
+    from: SYM-x-oc-handleKbToolEvent
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-09-13T20:11:42.004Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75ac6688b82a

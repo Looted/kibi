@@ -7277,10 +7277,10 @@ coordinates:
     sourceLine: 1
   SYM-e2e-test-agent-kibi-interface-selection:
     identityHash: ad7741661edb8378d748e8b3f83bb9e3d7982b567af799d41b2b169c2573035a
-    sourceHash: b808d6f00a7db32556b01f2db8703965ae4bdc861bc9270064db6e1080cac7bb
+    sourceHash: 8add310c3b03ddc6dbd357c7294a6446342bf0cb61b9515b84cf6f439f564270
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 181
+    sourceEndLine: 183
     sourceFile: documentation/tests/e2e/packed/mcp-cli-operation-parity.test.ts
     sourceLine: 1
   SYM-e2e-test-audit-quality-diagnostics-v1:
@@ -7429,10 +7429,10 @@ coordinates:
     sourceLine: 1
   SYM-e2e-test-kibi-operation-interface-parity:
     identityHash: 778a12009b21f80bd423bbf777d223312a50b1591a338e44eb6e54a0cd0aeef3
-    sourceHash: b808d6f00a7db32556b01f2db8703965ae4bdc861bc9270064db6e1080cac7bb
+    sourceHash: 8add310c3b03ddc6dbd357c7294a6446342bf0cb61b9515b84cf6f439f564270
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 181
+    sourceEndLine: 183
     sourceFile: documentation/tests/e2e/packed/mcp-cli-operation-parity.test.ts
     sourceLine: 1
   SYM-e2e-test-kibi-proof-aware-quality-diagnostics:
@@ -7501,10 +7501,10 @@ coordinates:
     sourceLine: 1
   SYM-e2e-test-mcp-tag-filtering-server-side:
     identityHash: f522e7676285eb7dbc03827b7f3e55d3987b7068c4fc5f1508865eae691b25fb
-    sourceHash: b808d6f00a7db32556b01f2db8703965ae4bdc861bc9270064db6e1080cac7bb
+    sourceHash: 8add310c3b03ddc6dbd357c7294a6446342bf0cb61b9515b84cf6f439f564270
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 181
+    sourceEndLine: 183
     sourceFile: documentation/tests/e2e/packed/mcp-cli-operation-parity.test.ts
     sourceLine: 1
   SYM-e2e-test-mcp-tool-check-coverage:
@@ -8645,12 +8645,12 @@ coordinates:
     sourceLine: 57
   SYM-Hooks:
     identityHash: 7947ce5efedbad96203f4052c4e5dbc4a93a9642b52a3709d921635dfa19cbf5
-    sourceHash: 7e7e40fada52d59a27419f38f70bc3da159400fc11c60eb291ac26f0bfc8fe62
+    sourceHash: f1ec58daeb6a1665b2ed36dccb553a73d8525e2e8a0075225cb927613dbda55a
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 170
+    sourceEndLine: 177
     sourceFile: packages/opencode/src/plugin.ts
-    sourceLine: 162
+    sourceLine: 169
   SYM-IgnorePolicy:
     identityHash: 9afd20c46b29e1156140319b6c99a9d5bc137729231c7d45020273ca87939ef3
     sourceHash: 382d10a33f0d3b1608577a9864b6a69ba7ada3e504142595b0267c858da84774
@@ -10493,12 +10493,12 @@ coordinates:
     sourceLine: 93
   SYM-kibiOpencodePlugin:
     identityHash: a2aea0d2b451e30dd1e29894eaf8a87dc8d00a8213cf6e82b954544809ffc47c
-    sourceHash: 7e7e40fada52d59a27419f38f70bc3da159400fc11c60eb291ac26f0bfc8fe62
+    sourceHash: f1ec58daeb6a1665b2ed36dccb553a73d8525e2e8a0075225cb927613dbda55a
     sourceColumn: 6
     sourceEndColumn: 24
-    sourceEndLine: 232
+    sourceEndLine: 239
     sourceFile: packages/opencode/src/plugin.ts
-    sourceLine: 232
+    sourceLine: 239
   SYM-KibiOpencodePluginEntry:
     identityHash: f28737965a3375afde0ca1598952e62257ac9968a044aa32cfa7c1cda21cd5b6
     sourceHash: 7b0f9072cf2f80905f13b337def6160d9a83f0011f8152d6be72a5f0301aeec5
@@ -12725,12 +12725,12 @@ coordinates:
     sourceLine: 23
   SYM-packed-parity-e2e-module:
     identityHash: f5c56b9a9718bbadac518f8ee6de062f70844e38135c2cf9927f73d965a231e6
-    sourceHash: b808d6f00a7db32556b01f2db8703965ae4bdc861bc9270064db6e1080cac7bb
+    sourceHash: 8add310c3b03ddc6dbd357c7294a6446342bf0cb61b9515b84cf6f439f564270
     sourceColumn: 10
     sourceEndColumn: 45
-    sourceEndLine: 30
+    sourceEndLine: 34
     sourceFile: documentation/tests/e2e/packed/mcp-cli-operation-parity.test.ts
-    sourceLine: 30
+    sourceLine: 34
   SYM-packed-parity-json-record:
     identityHash: e315ecd1a3dee789e43f787443a0c959112a71781d5fdae588e9f6e1aa588529
     sourceHash: 454afbf7596bd7e74200ccab0d2c815281f71f3832963da3f210ed09154e1447
@@ -13149,12 +13149,12 @@ coordinates:
     sourceLine: 10
   SYM-Plugin:
     identityHash: 1e9201c0bd1522b83b36cd31fb2d4361d6476fa76c8e6b0c382652b1c5fd0eb8
-    sourceHash: 7e7e40fada52d59a27419f38f70bc3da159400fc11c60eb291ac26f0bfc8fe62
+    sourceHash: f1ec58daeb6a1665b2ed36dccb553a73d8525e2e8a0075225cb927613dbda55a
     sourceColumn: 12
     sourceEndColumn: 68
-    sourceEndLine: 172
+    sourceEndLine: 179
     sourceFile: packages/opencode/src/plugin.ts
-    sourceLine: 172
+    sourceLine: 179
   SYM-PluginClient:
     identityHash: d54b4a69136f5da5c1a7117e5e626fcfead0f1c80e0baf2e63265872bfadca68
     sourceHash: 53a986bfbe1042aaa46a79ff2185411029d18177b29619cfd66b1dec2612d2db
@@ -13165,12 +13165,12 @@ coordinates:
     sourceLine: 3
   SYM-PluginInput:
     identityHash: cd4d1a2a65a8c737901a55aa38204ed7a57932b09a91661494c1902d732ea23a
-    sourceHash: 7e7e40fada52d59a27419f38f70bc3da159400fc11c60eb291ac26f0bfc8fe62
+    sourceHash: f1ec58daeb6a1665b2ed36dccb553a73d8525e2e8a0075225cb927613dbda55a
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 136
+    sourceEndLine: 143
     sourceFile: packages/opencode/src/plugin.ts
-    sourceLine: 105
+    sourceLine: 112
   SYM-PluginStartupContext:
     identityHash: 8445eb155ca00179047e51b780b407d4701b3566ca3d39363d20aa6dbd7e6c78
     sourceHash: a234092cb83e14bdcd16cdf6db25482382d6de79a5c00d75f5a46f80f4a42906
@@ -24435,6 +24435,62 @@ coordinates:
     sourceEndLine: 114
     sourceFile: scripts/run-packed-e2e.mjs
     sourceLine: 107
+  SYM-x-oc-handleFileLifecycleEvent:
+    identityHash: 1760137c69868806258b9930d19d1439d6640751a799495a5401e357e6f97afa
+    sourceHash: a1fbfbccc16f3b5066b7debf39a058fc1df82e439d680f0039c6b9bc509eb842
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 458
+    sourceFile: packages/opencode/src/smart-enforcement-events.ts
+    sourceLine: 220
+  SYM-x-oc-handleKbToolEvent:
+    identityHash: 16b171fa3a5dd9b2a1dc05faa389115329eaa052daa9bbf75ebe0bb08a2bb38a
+    sourceHash: a1fbfbccc16f3b5066b7debf39a058fc1df82e439d680f0039c6b9bc509eb842
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 170
+    sourceFile: packages/opencode/src/smart-enforcement-events.ts
+    sourceLine: 139
+  SYM-x-oc-isKbToolEventType:
+    identityHash: 0d5f7897aa6bbf383ca5bb11c87a8679bfaed528dda103384b6ce33296810a4f
+    sourceHash: a1fbfbccc16f3b5066b7debf39a058fc1df82e439d680f0039c6b9bc509eb842
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 136
+    sourceFile: packages/opencode/src/smart-enforcement-events.ts
+    sourceLine: 134
+  SYM-x-oc-KibiEventEnv:
+    identityHash: 25eedcd2f16cce184e4f23b604bf4af7490ab054239463261fa303c81bc93084
+    sourceHash: a1fbfbccc16f3b5066b7debf39a058fc1df82e439d680f0039c6b9bc509eb842
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 123
+    sourceFile: packages/opencode/src/smart-enforcement-events.ts
+    sourceLine: 72
+  SYM-x-oc-PluginEvent:
+    identityHash: e3c592375c8fcb75dbd56eafb935cbb3edcc9bc0b2be6d7d98c0c49c34eb29dd
+    sourceHash: a1fbfbccc16f3b5066b7debf39a058fc1df82e439d680f0039c6b9bc509eb842
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 57
+    sourceFile: packages/opencode/src/smart-enforcement-events.ts
+    sourceLine: 54
+  SYM-x-oc-PluginEventInput:
+    identityHash: b39662b24cfa0e7f8acab7d04d69dbaf6ed021d94fd97236a2b63b00fd265c0b
+    sourceHash: a1fbfbccc16f3b5066b7debf39a058fc1df82e439d680f0039c6b9bc509eb842
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 51
+    sourceFile: packages/opencode/src/smart-enforcement-events.ts
+    sourceLine: 46
+  SYM-x-oc-SmartEnforcementState:
+    identityHash: 7aa0cc042cd6a6b089203d18faed91dd40383ef64f228f7fdb52699f843c431a
+    sourceHash: a1fbfbccc16f3b5066b7debf39a058fc1df82e439d680f0039c6b9bc509eb842
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 69
+    sourceFile: packages/opencode/src/smart-enforcement-events.ts
+    sourceLine: 61
   SYM-x-packedTestIsolationArg:
     identityHash: 5db6092ffbf38bf796f0e0c681d16bbaf1480e5e6b02c6eef86aaccaf87c35e0
     sourceHash: ad77a227a76013652f0c19f6299c80cd3438c259beaba1af848b8393cd7afb09

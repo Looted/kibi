@@ -34423,3 +34423,73 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-test-journaled-engine-harness
+  - id: SYM-x-oc-isKbToolEventType
+    title: isKbToolEventType
+    status: active
+    sourceFile: packages/opencode/src/smart-enforcement-events.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+  - id: SYM-x-oc-PluginEventInput
+    title: PluginEventInput
+    status: active
+    sourceFile: packages/opencode/src/smart-enforcement-events.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+  - id: SYM-x-oc-PluginEvent
+    title: PluginEvent
+    status: active
+    sourceFile: packages/opencode/src/smart-enforcement-events.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+  - id: SYM-x-oc-SmartEnforcementState
+    title: SmartEnforcementState
+    status: active
+    sourceFile: packages/opencode/src/smart-enforcement-events.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+  - id: SYM-x-oc-KibiEventEnv
+    title: KibiEventEnv
+    status: active
+    sourceFile: packages/opencode/src/smart-enforcement-events.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+  - id: SYM-x-oc-handleKbToolEvent
+    title: handleKbToolEvent
+    status: active
+    sourceFile: packages/opencode/src/smart-enforcement-events.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+  - id: SYM-x-oc-handleFileLifecycleEvent
+    title: handleFileLifecycleEvent
+    status: active
+    sourceFile: packages/opencode/src/smart-enforcement-events.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1

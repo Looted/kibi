@@ -230,3 +230,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-755822d8705d
+  - type: implements
+    from: SYM-x-oc-PluginEventInput
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-09-13T20:10:33.669Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a929d6a93aa
+  - type: covered_by
+    from: SYM-x-oc-PluginEventInput
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-09-13T20:10:33.686Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d9ff41eca24d
+  - type: implements
+    from: SYM-x-oc-SmartEnforcementState
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-09-13T20:11:07.927Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6fe6883a092e
+  - type: covered_by
+    from: SYM-x-oc-SmartEnforcementState
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-09-13T20:11:07.949Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59c73a2753ce
