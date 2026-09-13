@@ -226,8 +226,21 @@ async function selectTests(
   context: OperationContext,
   options: ProveCommandOptions,
 ): Promise<SelectedTest[]> {
-  const loadAll = async (): Promise<Record<string, unknown>[]> =>
-    await loadEntities(context.prolog as never, { type: "test" });
+  // Paginated: loading every test entity with full props in one query can
+  // exceed the Prolog output buffer once receipt histories grow.
+  const loadAll = async (): Promise<Record<string, unknown>[]> => {
+    const pageSize = 25;
+    const all: Record<string, unknown>[] = [];
+    for (let offset = 0; ; offset += pageSize) {
+      const page = await loadEntities(context.prolog as never, {
+        type: "test",
+        limit: pageSize,
+        offset,
+      });
+      all.push(...page);
+      if (page.length < pageSize) return all;
+    }
+  };
   let candidates: SelectedTest[] = [];
   if (options.testId) {
     const found = await loadEntities(context.prolog as never, {

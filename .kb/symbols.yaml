@@ -3,6 +3,15 @@
 #   id, title, sourceFile, links, status, tags, owner, priority
 # Generated coordinates are stored separately in symbol-coordinates.yaml.
 # Run `kibi sync --refresh-symbol-coordinates` to refresh them.
+#
+# Coordinate refresh granularity gate:
+#   The AST extractor locates per-declaration spans for code files. When it
+#   cannot find a declaration, a title-match or whole-file coarse span is
+#   published ONLY for symbols that declare a coarse granularity_reason
+#   (config-artifact, module-level-behavior, extractor-miss, test-suite).
+#   A symbol without granularity_reason whose extraction misses gets no
+#   coordinate entry at all and is reported as failed; add symbol_role and
+#   granularity_reason to opt it into the coarse fallback.
 symbols:
   - id: SYM-test-packed-exact-branch-recovery
     title: assertExactBranchRecoveryOutcome
@@ -4874,8 +4883,7 @@ symbols:
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable
-      resource examples
+    title: predicate guidance loads a canonical decision tree with immutable resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
