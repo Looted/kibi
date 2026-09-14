@@ -35,6 +35,32 @@ import { defaultKbManifest, writeKbManifest } from "../utils/kb-manifest.js";
 import { ENTITY_LANES, KB_PATHS } from "../utils/kb-paths.js";
 import { SYMBOLS_MANIFEST_COMMENT_BLOCK } from "./sync/manifest.js";
 
+// Git executes hooks with the caller's PATH, which does not include
+// node_modules/.bin, so a locally installed kibi CLI would not resolve.
+// Each hook resolves the binary up front: PATH first (global installs),
+// then a walk up from the repository root (git runs hooks from the top of
+// the working tree) for local npm/bun dependencies.
+const KIBI_BIN_RESOLVER = `KIBI_BIN="$(command -v kibi 2>/dev/null || true)"
+if [ -z "$KIBI_BIN" ]; then
+  kibi_dir="$PWD"
+  while [ -n "$kibi_dir" ] && [ "$kibi_dir" != "/" ]; do
+    if [ -x "$kibi_dir/node_modules/.bin/kibi" ]; then
+      KIBI_BIN="$kibi_dir/node_modules/.bin/kibi"
+      break
+    fi
+    kibi_parent="\${kibi_dir%/*}"
+    if [ -z "$kibi_parent" ]; then
+      kibi_parent="/"
+    fi
+    kibi_dir="$kibi_parent"
+  done
+fi
+if [ -z "$KIBI_BIN" ]; then
+  echo "kibi: cannot locate the kibi CLI (checked PATH and node_modules/.bin)." >&2
+  echo "Install kibi globally or as a project dependency, then re-run 'kibi init'." >&2
+  exit 1
+fi`;
+
 const POST_CHECKOUT_HOOK = `#!/bin/sh
 # post-checkout hook for kibi
 # Parameters: old_ref new_ref branch_flag
@@ -48,10 +74,12 @@ old_ref=$1
 new_ref=$2
 branch_flag=$3
 
+${KIBI_BIN_RESOLVER}
+
 if [ "$branch_flag" = "1" ]; then
   # Branch stores are derived from the checked-out tracked sources. Never copy
   # the old branch's compiled store during checkout.
-  kibi sync
+  "$KIBI_BIN" sync
 fi
 `;
 
@@ -62,7 +90,9 @@ const POST_MERGE_HOOK = `#!/bin/sh
 # Uses default non-coordinate-writing sync to avoid writing
 # committed symbol artifacts during automatic hook execution.
 
-kibi sync
+${KIBI_BIN_RESOLVER}
+
+"$KIBI_BIN" sync
 `;
 
 const POST_REWRITE_HOOK = `#!/bin/sh
@@ -74,8 +104,10 @@ const POST_REWRITE_HOOK = `#!/bin/sh
 
 rewrite_type=$1
 
+${KIBI_BIN_RESOLVER}
+
 if [ "$rewrite_type" = "rebase" ]; then
-  kibi sync
+  "$KIBI_BIN" sync
 fi
 `;
 
@@ -91,7 +123,9 @@ const PRE_COMMIT_HOOK = `#!/bin/sh
 
 set -e
 
-kibi check --staged
+${KIBI_BIN_RESOLVER}
+
+"$KIBI_BIN" check --staged
 `;
 
 export async function getCurrentBranch(

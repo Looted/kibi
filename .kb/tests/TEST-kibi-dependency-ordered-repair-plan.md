@@ -819,15 +819,15 @@ proof_receipts:
         attempts:
           status: unavailable
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-03cb514da42c1e59817d9bc4
+    receipt_id: PR-6b544f4eafda524d96330724
     test_id: TEST-kibi-dependency-ordered-repair-plan
     scope: end_to_end
     outcome: passed
-    code_snapshot: fb726665c2099ebe73479d746d72c442537b4653e6a01bf2f74c71e3105557c1
-    environment_hash: 099f7c7810817359ceb53f590959a4934481728356256c4ad8d76cebc5094929
-    started_at: '2026-09-14T13:40:49.960Z'
-    finished_at: '2026-09-14T13:41:52.113Z'
-    artifact_digest: 14f860075a10a677c17eabaca2cefd1587769b8ceba87c793f0c236101f53509
+    code_snapshot: 807961781c537e824f0bd98a27b157fdb699f858cd39d2bd42acef64a5f2222a
+    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
+    started_at: '2026-09-14T13:11:45.423Z'
+    finished_at: '2026-09-14T13:37:56.113Z'
+    artifact_digest: fadc0c61f917b435961101344a5a47a8790fd55e5b9d0f389a413cce82a57531
     contract_hash: 96e6ad53540d1eeb56b046e41503b337fb0ae29fe85536c0e0d0d0da91f38240
     fingerprint: b63eb23b0af935e81ed7d751ddd81a5883a5f018024a41cf23fb76b1df569d1f
     fingerprint_components:

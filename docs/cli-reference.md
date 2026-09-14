@@ -57,7 +57,7 @@ not infer or write product knowledge.
 
 **Behavior:**
 - Creates `.kb/` directory structure with canonical knowledge lanes (`requirements/`, `scenarios/`, `tests/`, `facts/`, `adr/`, `flags/`, `events/`)
-- Installs git hooks (pre-commit, post-checkout, post-merge, post-rewrite) by default
+- Installs git hooks (pre-commit, post-checkout, post-merge, post-rewrite) by default. Hooks resolve the `kibi` binary at run time (PATH first, then `node_modules/.bin` walking up from the repository root), so they work with both global and project-local installs even though git does not put `node_modules/.bin` on the hook's `PATH`.
 - Ignores derived `.kb/` runtime state in `.gitignore` (`.kb/branches/`, `.kb/recovery/`, `.kb/proof/runs/`, `.kb/briefs/`, `.kb/migrations/`, `.kb/usage.log`). Authored knowledge under `.kb/` stays tracked. `kibi migrate` also removes the pre-canonical blanket `.kb/` ignore stanza so migrated knowledge files are not left Git-ignored.
 - Creates Kibi-owned `.kb/manifest.json` (lifecycle metadata only; not a user configuration file)
 - Creates `.kb/symbols.yaml` and `.kb/symbol-coordinates.yaml` when they do not already exist
@@ -524,6 +524,7 @@ artifacts are executing.
 - SWI-Prolog not found → See [install guide](install.md)
 - `.kb/` missing → Run `kibi init`
 - Git hooks missing → Run `kibi init`
+- Git hooks use the legacy template without kibi CLI resolution → Run `kibi init` to regenerate them
 - Config invalid → Check `.kb/manifest.json` syntax; leftover `.kb/config.json` is retired with `kibi migrate --yes`
 
 ## Release package validation

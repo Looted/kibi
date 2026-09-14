@@ -429,12 +429,29 @@ describe("init-helpers", () => {
       path.join(hooksDir, "post-checkout"),
       "utf8",
     );
-    expect(postCheckoutContent).toContain("kibi sync");
+    expect(postCheckoutContent).toContain("KIBI_BIN=");
+    expect(postCheckoutContent).toContain('"$KIBI_BIN" sync');
+
+    const postMergeContent = readFileSync(
+      path.join(hooksDir, "post-merge"),
+      "utf8",
+    );
+    expect(postMergeContent).toContain("KIBI_BIN=");
+    expect(postMergeContent).toContain('"$KIBI_BIN" sync');
+
+    const postRewriteContent = readFileSync(
+      path.join(hooksDir, "post-rewrite"),
+      "utf8",
+    );
+    expect(postRewriteContent).toContain("KIBI_BIN=");
+    expect(postRewriteContent).toContain('"$KIBI_BIN" sync');
 
     const preCommitContent = readFileSync(
       path.join(hooksDir, "pre-commit"),
       "utf8",
     );
+    expect(preCommitContent).toContain("KIBI_BIN=");
+    expect(preCommitContent).toContain('"$KIBI_BIN" check --staged');
     expect(preCommitContent).toContain(".kb/symbols.yaml");
     expect(preCommitContent).toContain(
       "kibi sync --refresh-symbol-coordinates",
@@ -477,7 +494,7 @@ describe("init-helpers", () => {
       path.join(hooksDir, "post-checkout"),
       "utf8",
     );
-    expect(postCheckout).toContain("kibi sync");
+    expect(postCheckout).toContain('"$KIBI_BIN" sync');
     expect(postCheckout).not.toContain("kibi branch ensure");
   });
 });

@@ -716,6 +716,38 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-784d8a3e3e0f0ec870e07ffd
+    test_id: TEST-mcp-kb-freshness
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 807961781c537e824f0bd98a27b157fdb699f858cd39d2bd42acef64a5f2222a
+    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
+    started_at: '2026-09-14T13:11:45.423Z'
+    finished_at: '2026-09-14T13:37:56.113Z'
+    artifact_digest: fadc0c61f917b435961101344a5a47a8790fd55e5b9d0f389a413cce82a57531
+    contract_hash: e7c4bb73116c831d679581255f2a0676bd8d24ee2b909b00ef6ae91592fcaa5c
+    fingerprint: 103254618500a69c12e629668bfc81f4dc0030610a854f04dbbb0302fde0d5dd
+    fingerprint_components:
+      contract: e7c4bb73116c831d679581255f2a0676bd8d24ee2b909b00ef6ae91592fcaa5c
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-mcp-kb-freshness
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 
 Verifies that the MCP session refreshes an externally replaced same-branch KB attachment and fails closed when refresh reconciliation cannot complete.

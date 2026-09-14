@@ -3,17 +3,16 @@ import { describe, expect, test } from "bun:test";
 import { Readable } from "node:stream";
 import { fileURLToPath } from "node:url";
 
-import {
-  isInvokedAsCli,
-  main,
-  runHookCli,
-} from "../src/hook-runner";
+import { isInvokedAsCli, main, runHookCli } from "../src/hook-runner";
 
 const hookRunnerPath = fileURLToPath(
   new URL("../src/hook-runner.ts", import.meta.url),
 );
 
-async function withStdin<T>(chunks: Array<string | Buffer>, fn: () => Promise<T>): Promise<T> {
+async function withStdin<T>(
+  chunks: Array<string | Buffer>,
+  fn: () => Promise<T>,
+): Promise<T> {
   const previous = Object.getOwnPropertyDescriptor(process, "stdin");
   Object.defineProperty(process, "stdin", {
     configurable: true,
@@ -48,12 +47,16 @@ describe("Codex hook runner CLI", () => {
 
   test("classifies CLI invocation and reports in-process hook errors", async () => {
     expect(isInvokedAsCli(undefined, "file:///tmp/hook.ts")).toBe(false);
-    expect(isInvokedAsCli(hookRunnerPath, `file://${hookRunnerPath}`)).toBe(true);
+    expect(isInvokedAsCli(hookRunnerPath, `file://${hookRunnerPath}`)).toBe(
+      true,
+    );
 
     const writes: string[] = [];
     const write = process.stdout.write.bind(process.stdout);
     process.stdout.write = ((chunk: string | Uint8Array) => {
-      writes.push(typeof chunk === "string" ? chunk : Buffer.from(chunk).toString());
+      writes.push(
+        typeof chunk === "string" ? chunk : Buffer.from(chunk).toString(),
+      );
       return true;
     }) as typeof process.stdout.write;
     try {
@@ -66,10 +69,12 @@ describe("Codex hook runner CLI", () => {
     } finally {
       process.stdout.write = write;
     }
-    expect(writes.some((chunk) => chunk.includes("Kibi hook runner error"))).toBe(
+    expect(
+      writes.some((chunk) => chunk.includes("Kibi hook runner error")),
+    ).toBe(true);
+    expect(writes.some((chunk) => chunk.includes('"continue":true'))).toBe(
       true,
     );
-    expect(writes.some((chunk) => chunk.includes('"continue":true'))).toBe(true);
   });
 
   test("loads the module as a CLI entrypoint", async () => {
@@ -81,7 +86,9 @@ describe("Codex hook runner CLI", () => {
     });
     process.argv[1] = hookRunnerPath;
     try {
-      await import(`${new URL("../src/hook-runner.ts", import.meta.url).href}?cli=${Date.now()}`);
+      await import(
+        `${new URL("../src/hook-runner.ts", import.meta.url).href}?cli=${Date.now()}`
+      );
     } finally {
       process.argv[1] = previousArgv;
       if (previousStdin) {

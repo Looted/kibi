@@ -1571,6 +1571,21 @@ export async function runEngineDaemon(options: {
     }
   };
 
+  // A daemon whose workspace vanished (git worktree remove --force, deleted
+  // checkout) can never serve a request again, but it would keep holding the
+  // branch-store lock and wedge every later operation behind an opaque
+  // "KB locked". Detect the loss and shut down cleanly instead.
+  const workspaceWatchdog = setInterval(() => {
+    if (shuttingDown) return;
+    if (!existsSync(options.workspaceRoot)) {
+      console.error(
+        `[KIBI] workspace ${options.workspaceRoot} no longer exists; stopping engine`,
+      );
+      void shutdown();
+    }
+  }, 30_000);
+  workspaceWatchdog.unref();
+
   const scheduleIdleExit = (): void => {
     if (activeClients > 0) return;
     if (!idleCompactionQueued) {
@@ -1924,6 +1939,7 @@ export async function runEngineDaemon(options: {
     process.off("SIGTERM", requestSignalShutdown);
     process.off("SIGINT", requestSignalShutdown);
     if (idleTimer) clearTimeout(idleTimer);
+    clearInterval(workspaceWatchdog);
     const saved = await prolog.query("kb_save").catch(() => null);
     if (saved?.success) {
       try {

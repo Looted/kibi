@@ -56,6 +56,18 @@ export type PrologErrorConflict = Readonly<{
 }>;
 
 // implements REQ-core-prolog-process-management
+export type PrologStoreLockOwner = Readonly<{
+  pid?: number;
+  workspaceRoot?: string;
+  bootId?: string;
+  startedAt?: string;
+}>;
+
+export type PrologStoreLockedDetail = Readonly<{
+  owner: PrologStoreLockOwner | null;
+  lockDirectory: string;
+}>;
+
 export type PrologErrorRecord = Readonly<{
   code: PrologErrorCode;
   message: string;
@@ -63,6 +75,7 @@ export type PrologErrorRecord = Readonly<{
   role?: "source" | "target";
   relationship?: PrologErrorRelationship;
   conflicts?: readonly PrologErrorConflict[];
+  storeLocked?: PrologStoreLockedDetail;
 }>;
 
 /** Extract the first structured error term line from raw stderr text. */
@@ -129,6 +142,19 @@ export function parsePrologErrorTerm(
         message:
           "Audit journal is locked by another Kibi runtime; restart the stale MCP/CLI session before retrying",
       };
+    case "store_locked": {
+      const detail = parseStoreLockedContext(contextRaw);
+      const holder = detail.owner;
+      const holderSummary =
+        holder === null
+          ? "an unidentified holder"
+          : `pid ${holder.pid ?? "?"}${holder.workspaceRoot !== undefined ? ` for ${holder.workspaceRoot}` : ""}${holder.startedAt !== undefined ? ` since ${holder.startedAt}` : ""}`;
+      return {
+        code: "permission_denied",
+        storeLocked: detail,
+        message: `Branch store is locked by ${holderSummary}; close that session or, if it is dead, retry so Kibi can break the stale lock (store_locked)`,
+      };
+    }
     case "permission_denied":
       return {
         code: "permission_denied",
@@ -191,10 +217,63 @@ function parseContextTerm(contextRaw: string): ContextTerm | null {
   };
 }
 
+/**
+ * Parse the context of a store-locked error thrown by kb.pl:
+ * `kb_store_locked('<owner-json>', '<persistency-directory>')`. The owner JSON
+ * is best-effort: any malformed content yields a null owner while the lock
+ * directory is still surfaced.
+ */
+// implements REQ-core-journaled-engine-persistence
+function parseStoreLockedContext(
+  contextRaw: string | undefined,
+): PrologStoreLockedDetail {
+  const empty: PrologStoreLockedDetail = {
+    owner: null,
+    lockDirectory: "",
+  };
+  if (!contextRaw) return empty;
+  const inner = contextRaw.trim().match(/^kb_store_locked\((.*)\)$/s)?.[1];
+  if (inner === undefined) return empty;
+  const parts = splitTopLevelGeneral(inner, ",");
+  const ownerRaw = parts[0]?.trim();
+  const lockRaw = parts[1]?.trim();
+  const lockDirectory = lockRaw ? unquoteAtom(lockRaw) : "";
+  if (!ownerRaw || ownerRaw === '""' || ownerRaw === "''") {
+    return { owner: null, lockDirectory };
+  }
+  try {
+    const parsed = JSON.parse(unquoteAtom(ownerRaw)) as {
+      pid?: unknown;
+      workspaceRoot?: unknown;
+      bootId?: unknown;
+      startedAt?: unknown;
+    };
+    if (parsed === null || typeof parsed !== "object") {
+      return { owner: null, lockDirectory };
+    }
+    return {
+      owner: {
+        ...(typeof parsed.pid === "number" ? { pid: parsed.pid } : {}),
+        ...(typeof parsed.workspaceRoot === "string"
+          ? { workspaceRoot: parsed.workspaceRoot }
+          : {}),
+        ...(typeof parsed.bootId === "string" ? { bootId: parsed.bootId } : {}),
+        ...(typeof parsed.startedAt === "string"
+          ? { startedAt: parsed.startedAt }
+          : {}),
+      },
+      lockDirectory,
+    };
+  } catch {
+    return { owner: null, lockDirectory };
+  }
+}
+
 type FormalTerm =
   | { kind: "stale_snapshot" }
   | { kind: "audit_locked" }
   | { kind: "permission_denied" }
+  | { kind: "store_locked" }
   | { kind: "entity_not_found"; entityId: string }
   | { kind: "invalid_relationship" }
   | { kind: "contradiction"; pairs: Array<[string, string]> }
@@ -218,6 +297,9 @@ function parseFormalTerm(formalRaw: string): FormalTerm | null {
     if (detail === "stale_snapshot") return { kind: "stale_snapshot" };
     if (operation === "lock" && resource === "audit_log") {
       return { kind: "audit_locked" };
+    }
+    if (operation === "attach" && resource === "kb_store") {
+      return { kind: "store_locked" };
     }
     return { kind: "permission_denied" };
   }

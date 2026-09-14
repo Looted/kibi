@@ -751,6 +751,38 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-96896ffa04d71c25cd79c413
+    test_id: TEST-cursor-kibi-plugin-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 807961781c537e824f0bd98a27b157fdb699f858cd39d2bd42acef64a5f2222a
+    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
+    started_at: '2026-09-14T13:11:45.423Z'
+    finished_at: '2026-09-14T13:37:56.113Z'
+    artifact_digest: fadc0c61f917b435961101344a5a47a8790fd55e5b9d0f389a413cce82a57531
+    contract_hash: c179dda4770841e83866552ddcd6f75d3192ebc8a970b1c71a6346feb794a759
+    fingerprint: f33c89d0790a58c84dae06ba8c448ce4baf441865974c1c35c6a3467bf603b9c
+    fingerprint_components:
+      contract: c179dda4770841e83866552ddcd6f75d3192ebc8a970b1c71a6346feb794a759
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-cursor-kibi-plugin-v1
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 
 Verification for `kibi-cursor` documentation and plugin onboarding guidance includes:
