@@ -358,6 +358,11 @@ export async function proveCommand(
     const before = await readWorkspaceSnapshot(context);
     if (!before.available) throw new Error(`prove: ${before.error}`);
     const snapshot = before.snapshot.hash;
+    // Packed contracts run in separate processes; one shared packed-tarball
+    // cache area per campaign snapshot replaces dozens of repeated packs and
+    // installs with a single population. The snapshot hash is the provenance
+    // key: different workspace state never sees another campaign's artifacts.
+    process.env.KIBI_E2E_PACK_CACHE_KEY ??= snapshot;
 
     const groups = new Map<string, SelectedTest[]>();
     for (const test of selected) {
