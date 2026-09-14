@@ -1,6 +1,12 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { analyzeSourceText } from "../../extractors/symbols-coordinator.js";
+import { coarseCoordinateSpan } from "../../extractors/symbol-coordinates.js";
+import {
+  type ManifestSymbolEntry,
+  analyzeSourceText,
+  enrichSymbolCoordinates,
+} from "../../extractors/symbols-coordinator.js";
+import { isCoarseGranularityReason } from "../symbol-granularity.js";
 import { loadEntities } from "./discovery-entities.js";
 import type { OperationContext } from "./runtime-types.js";
 
@@ -29,6 +35,152 @@ function coordinatesPresent(
     entity.sourceEndLine,
     entity.sourceEndColumn,
   ].every((value) => Number.isInteger(value) && Number(value) >= 0);
+}
+
+export type CoordinateRepairEvidence = Readonly<{
+  symbolId: string;
+  sourceFile: string | null;
+  refreshable: boolean;
+  reason:
+    | "extractable"
+    | "coarse_anchor"
+    | "extractor_miss"
+    | "source_unavailable";
+  suggestion: string;
+}>;
+
+/** Preview the same extraction and explicit coarse fallback used by refresh. */
+export async function inspectCoordinateRepairs(
+  symbols: readonly Readonly<Record<string, unknown>>[],
+  workspaceRoot: string,
+): Promise<Map<string, CoordinateRepairEvidence>> {
+  const entries: ManifestSymbolEntry[] = symbols.map((symbol) => {
+    const sourceFile = sourceFileOf(symbol);
+    return {
+      id: String(symbol.id),
+      title: typeof symbol.title === "string" ? symbol.title : "",
+      ...(sourceFile === null ? {} : { sourceFile }),
+      ...(typeof symbol.granularity_reason === "string"
+        ? { granularity_reason: symbol.granularity_reason }
+        : {}),
+    };
+  });
+  const enriched = await enrichSymbolCoordinates(entries, workspaceRoot);
+  return new Map(
+    entries.map((entry, index) => {
+      const sourceFile = entry.sourceFile ?? null;
+      let source: string | null = null;
+      if (sourceFile) {
+        try {
+          source = readFileSync(
+            path.resolve(workspaceRoot, sourceFile),
+            "utf8",
+          );
+        } catch {
+          /* A missing or unreadable source requires authored repair. */
+        }
+      }
+      const extracted =
+        entry.title.length > 0 && coordinatesPresent(enriched[index] ?? {});
+      const coarse =
+        source !== null &&
+        sourceFile !== null &&
+        isCoarseGranularityReason(entry.granularity_reason) &&
+        coarseCoordinateSpan(sourceFile, entry.title, source) !== null;
+      const reason =
+        source === null
+          ? "source_unavailable"
+          : extracted
+            ? "extractable"
+            : coarse
+              ? "coarse_anchor"
+              : "extractor_miss";
+      const refreshable = source !== null && (extracted || coarse);
+      return [
+        entry.id,
+        {
+          symbolId: entry.id,
+          sourceFile,
+          refreshable,
+          reason,
+          suggestion: refreshable
+            ? "Refresh and persist current symbol coordinates."
+            : source === null
+              ? "Repair sourceFile to point to readable implementation code before refreshing."
+              : "Query and validate the symbol, then author a resolvable title/sourceFile or an explicit granularity_reason: extractor-miss (or another intentional coarse anchor) through kb_upsert before refreshing.",
+        },
+      ];
+    }),
+  );
+}
+
+/** Attach current extraction evidence before constructing requirement repairs. */
+export async function addCoordinateRepairEvidence(
+  rows: readonly Readonly<Record<string, unknown>>[],
+  context: OperationContext,
+): Promise<readonly Readonly<Record<string, unknown>>[]> {
+  const missingByRow = rows.map((row) => {
+    const stages = row.proofStages as
+      | { sourceCoordinates?: { missingSymbols?: unknown } }
+      | undefined;
+    const missing = stages?.sourceCoordinates?.missingSymbols;
+    return Array.isArray(missing)
+      ? missing.filter((id): id is string => typeof id === "string")
+      : [];
+  });
+  const ids = new Set(missingByRow.flat());
+  if (ids.size === 0 || !context.prolog) return rows;
+  const symbols = (
+    await loadEntities(context.prolog, { type: "symbol" })
+  ).filter((symbol) => ids.has(String(symbol.id)));
+  const evidence = await inspectCoordinateRepairs(
+    symbols,
+    context.workspaceRoot,
+  );
+  return rows.map((row, index) => {
+    const missing = missingByRow[index] ?? [];
+    if (missing.length === 0) return row;
+    const coordinateRepairs = missing.map(
+      (id) =>
+        evidence.get(id) ?? {
+          symbolId: id,
+          sourceFile: null,
+          refreshable: false,
+          reason: "source_unavailable",
+          suggestion: "Query and repair the missing symbol before refreshing.",
+        },
+    );
+    const stages = row.proofStages as Record<string, Record<string, unknown>>;
+    return {
+      ...row,
+      ...(Array.isArray(row.proofRepairs)
+        ? {
+            proofRepairs: row.proofRepairs.map((repair) =>
+              repair?.gap === "missing_symbol_coordinates" &&
+              coordinateRepairs.some((item) => !item.refreshable)
+                ? {
+                    ...repair,
+                    action: [
+                      ...new Set(
+                        coordinateRepairs
+                          .filter((item) => !item.refreshable)
+                          .map((item) => item.suggestion),
+                      ),
+                    ].join(" "),
+                  }
+                : repair,
+            ),
+          }
+        : {}),
+      proofStages: {
+        ...stages,
+        sourceCoordinates: {
+          ...stages.sourceCoordinates,
+          coordinateRepairs,
+        },
+      },
+    };
+  });
 }
 
 function currentCandidates(
@@ -92,6 +244,7 @@ export async function buildSymbolRepairPlan(
         absolute,
         readFileSync(absolute, "utf8"),
       );
+      if (analysis.providerId === null) continue;
       extractedByPath.set(
         source,
         analysis.symbols.map((candidate) => ({
@@ -100,10 +253,14 @@ export async function buildSymbolRepairPlan(
         })),
       );
     } catch {
-      extractedByPath.set(source, []);
+      // An unavailable extractor cannot establish that a declaration is absent.
     }
   }
 
+  const coordinateEvidence = await inspectCoordinateRepairs(
+    symbols.filter((symbol) => !coordinatesPresent(symbol)),
+    context.workspaceRoot,
+  );
   const repairs = rows.flatMap((row) => {
     if (row.type !== "symbol") return [];
     const entity = symbols.find((candidate) => candidate.id === row.id);
@@ -133,7 +290,9 @@ export async function buildSymbolRepairPlan(
       : extractionProvesAbsent && entity.symbol_origin === "extracted"
         ? "delete_obsolete_symbol"
         : !coordinatesPresent(entity)
-          ? "refresh_coordinates"
+          ? coordinateEvidence.get(String(entity.id))?.refreshable === true
+            ? "refresh_coordinates"
+            : "review"
           : candidates.length > 0
             ? "remap"
             : "review";
@@ -151,6 +310,7 @@ export async function buildSymbolRepairPlan(
             ? extractedByPath.has(source)
             : false,
           autoApply: false,
+          coordinateRepair: coordinateEvidence.get(String(entity.id)),
         },
       },
     ];

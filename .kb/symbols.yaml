@@ -186,6 +186,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-coordinate-repair-capability
       - type: implements
         target: REQ-agent-guided-migration-orchestration
   - id: SYM-kibi-migration-config-read
@@ -8673,11 +8675,14 @@ symbols:
     sourceFile: packages/cli/src/commands/sync/manifest.ts
     status: active
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-007
       - type: covered_by
         target: TEST-cli-sync-discovery-readme-ignore
+      - type: covered_by
+        target: TEST-coordinate-repair-capability
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -13487,11 +13492,14 @@ symbols:
     sourceFile: packages/cli/src/commands/sync/manifest.ts
     status: active
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-007
       - type: covered_by
         target: TEST-cli-sync-discovery-readme-ignore
+      - type: covered_by
+        target: TEST-coordinate-repair-capability
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -25056,6 +25064,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-coordinate-repair-capability
+      - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
       - type: covered_by
         target: TEST-kibi-dependency-ordered-repair-plan
@@ -25365,6 +25375,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-coordinate-repair-capability
       - type: covered_by
         target: TEST-kibi-dependency-ordered-repair-plan
       - type: implements
@@ -34693,3 +34705,104 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-branch-store-recovery
+  - id: SYM-coordinate-repair-inspect
+    title: inspectCoordinateRepairs
+    status: active
+    sourceFile: packages/cli/src/public/operations/symbol-repair-plan.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-coordinate-repair-capability
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+  - id: SYM-coordinate-repair-evidence
+    title: addCoordinateRepairEvidence
+    status: active
+    sourceFile: packages/cli/src/public/operations/symbol-repair-plan.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-coordinate-repair-capability
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+  - id: SYM-coordinate-repair-symbol-plan
+    title: buildSymbolRepairPlan
+    status: active
+    sourceFile: packages/cli/src/public/operations/symbol-repair-plan.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-coordinate-repair-capability
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+  - id: SYM-coordinate-repair-evidence-type
+    title: CoordinateRepairEvidence
+    status: active
+    sourceFile: packages/cli/src/public/operations/symbol-repair-plan.ts
+    symbol_role: structural
+    relationships:
+      - type: covered_by
+        target: TEST-coordinate-repair-capability
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+  - id: SYM-coordinate-repair-batches
+    title: buildRequirementBatches
+    status: active
+    sourceFile: packages/cli/src/public/operations/repair-plan.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-coordinate-repair-capability
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+  - id: SYM-test-coordinate-repair-capability
+    title: coordinate repair capability
+    status: active
+    sourceFile: packages/cli/tests/public/operations/symbol-repair-plan.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-coordinate-repair-capability
+  - id: SYM-migration-compare-ready-actions
+    title: compareReadyActionIds
+    status: active
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+  - id: SYM-symbol-repair-plan-type
+    title: SymbolRepairPlan
+    status: active
+    sourceFile: packages/cli/src/public/operations/symbol-repair-plan.ts
+    symbol_role: structural
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+  - id: SYM-symbol-repair-plan-version
+    title: SYMBOL_REPAIR_PLAN_VERSION
+    status: active
+    sourceFile: packages/cli/src/public/operations/symbol-repair-plan.ts
+    symbol_role: structural
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
