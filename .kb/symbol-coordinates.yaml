@@ -21115,6 +21115,14 @@ coordinates:
     sourceEndLine: 237
     sourceFile: tools/skillopt/kibi_skillopt/run_lock.py
     sourceLine: 237
+  SYM-skillopt-python-bridge-process-cleanup-tests:
+    identityHash: 5c9e54303459221edfeee3c327f2d0ac70612de191ba1b782a74beab3b3e344f
+    sourceHash: 0318bab8254e4d99a116d91dea23aa7d63740aa46c0ca81acf86f2ef0b39da5d
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 72
+    sourceFile: tools/skillopt/tests/test_bridge_process_cleanup.py
+    sourceLine: 1
   SYM-skillopt-python-bridge-request:
     identityHash: b0dc0f3651dfe2c8689ee3a48d6d1b2075a4aa6a8eba01430d63394c44f678b1
     sourceHash: 90fb0d02545cb7b5bd7cdb52ef06fa443bed41e318755cf7c029c715b5c57bec
