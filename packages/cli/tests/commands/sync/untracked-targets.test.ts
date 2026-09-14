@@ -3,7 +3,7 @@ import { findUntrackedDocumentMatches } from "../../../src/commands/sync/untrack
 
 function depsWith(
   overrides: Partial<{
-    execFileSync: (file: string, args: string[]) => string;
+    execFileSync: (file: string, args: readonly string[]) => string;
     existsSync: (path: string) => boolean;
     readFileSync: (path: string) => string;
   }>,

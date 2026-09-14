@@ -21,13 +21,17 @@ import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
 
 interface UntrackedTargetsDeps {
-  execFileSync: typeof execFileSync;
-  existsSync: typeof existsSync;
-  readFileSync: typeof readFileSync;
+  execFileSync: (
+    file: string,
+    args: readonly string[],
+    options: { encoding: "utf8"; maxBuffer: number; stdio: "pipe" },
+  ) => string;
+  existsSync: (path: string) => boolean;
+  readFileSync: (path: string, encoding: "utf8") => string;
 }
 
 const defaultDeps: UntrackedTargetsDeps = {
-  execFileSync,
+  execFileSync: (file, args, options) => execFileSync(file, args, options),
   existsSync,
   readFileSync,
 };

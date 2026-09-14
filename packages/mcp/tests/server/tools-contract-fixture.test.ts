@@ -297,7 +297,6 @@ describe("mcp contract fixtures", () => {
     // The tools-list fixture must reflect the wire surface: the 21 canonical
     // catalog operations plus the server-native kb_job_status poll tool that
     // registerAllTools adds after the catalog (see jobs.ts).
-    console.error("[dbg3] map keys:", [...registeredByName.keys()].join(","));
     const jobStatus = registeredByName.get("kb_job_status");
     const jobStatusFixture = jobStatus
       ? {
@@ -308,32 +307,18 @@ describe("mcp contract fixtures", () => {
           ) as JsonRecord,
         }
       : null;
-    console.error(
-      "[dbg4] jobStatusFixture truthy:",
-      Boolean(jobStatusFixture),
-      "| type:",
-      typeof jobStatusFixture,
-    );
     const baseTools = {
       tools: [
         ...buildToolListSnapshot(TOOLS).tools,
         ...(jobStatusFixture ? [jobStatusFixture] : []),
       ],
     };
-    console.error("[dbg4] baseTools length:", baseTools.length);
     const diagnosticTools = buildToolListSnapshot(
       withDiagnosticTelemetrySchema(TOOLS),
     );
     if (jobStatusFixture) diagnosticTools.tools.push(jobStatusFixture);
 
-    console.error(
-      "[dbg5] updateFixtures:",
-      updateFixtures,
-      "| TOOL_LIST_BASE_PATH:",
-      TOOL_LIST_BASE_PATH,
-    );
     if (updateFixtures) {
-      console.error("[dbg5] WRITING fixture to", TOOL_LIST_BASE_PATH);
       writeFileSync(
         TOOL_LIST_BASE_PATH,
         `${stableSchemaStringify(baseTools)}\n`,

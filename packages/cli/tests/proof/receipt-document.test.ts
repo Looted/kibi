@@ -43,6 +43,7 @@ describe("patchReceiptsIntoDocument", () => {
   test("replaces an existing receipts block in place", () => {
     const withReceipts = patchReceiptsIntoDocument(HAND_AUTHORED, [receipt]);
     expect(withReceipts).not.toBeNull();
+    if (withReceipts === null) return;
     const newer = { ...receipt, receipt_id: "PR-def456" };
     const patched = patchReceiptsIntoDocument(withReceipts, [newer]);
     expect(patched).not.toBeNull();
