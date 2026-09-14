@@ -258,3 +258,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-59c73a2753ce
+  - type: covered_by
+    from: SYM-x-oc-PluginEventInput
+    to: TEST-opencode-kibi-plugin-v1-coverage
+    created_at: 2026-09-14T04:47:22.858Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-656bafa1f5bb
+  - type: covered_by
+    from: SYM-x-oc-SmartEnforcementState
+    to: TEST-opencode-kibi-plugin-v1-coverage
+    created_at: 2026-09-14T04:47:44.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-323408c81570

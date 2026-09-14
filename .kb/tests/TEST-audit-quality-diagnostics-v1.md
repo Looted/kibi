@@ -612,6 +612,70 @@ proof_receipts:
       - symbol_id: SYM-e2e-test-audit-quality-diagnostics-v1
         target: default
         reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +83 more'
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-769d2c303419bf0de3de0c53
+    test_id: TEST-audit-quality-diagnostics-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 609b27d4e5672c4000011b090499931e6a1fe38be1981e2088de3e3e4fb2f277
+    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
+    started_at: '2026-09-13T20:17:13.278Z'
+    finished_at: '2026-09-13T21:56:21.890Z'
+    artifact_digest: c976524424d5b291f4e58e762a7e0fe0a5f0e09d457a6213cfaaa0195a072de4
+    contract_hash: a4ede36af0fbc90edf64819063ba171cce954a0e21967fdc19cf10e6548df496
+    fingerprint: 8b633b1cf9a6ca8782e60c374374b761f0c69f0d22cbd9ed574494b0feb2efbb
+    fingerprint_components:
+      contract: a4ede36af0fbc90edf64819063ba171cce954a0e21967fdc19cf10e6548df496
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-audit-quality-diagnostics-v1
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-9c94a764c25bb3ffba966aa7
+    test_id: TEST-audit-quality-diagnostics-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 0b5814a1764ceb7e33a105329bcfac1ca4ab366405f4083d213938472376fb44
+    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
+    started_at: '2026-09-13T22:14:34.497Z'
+    finished_at: '2026-09-13T23:51:44.048Z'
+    artifact_digest: f22bd2804415e7b28c082cc4e0491f9cc5b9947a5bb0b6aa76bd06e39712bf82
+    contract_hash: a4ede36af0fbc90edf64819063ba171cce954a0e21967fdc19cf10e6548df496
+    fingerprint: 8b633b1cf9a6ca8782e60c374374b761f0c69f0d22cbd9ed574494b0feb2efbb
+    fingerprint_components:
+      contract: a4ede36af0fbc90edf64819063ba171cce954a0e21967fdc19cf10e6548df496
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-audit-quality-diagnostics-v1
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 
 # Audit Quality Diagnostics Test Rollup

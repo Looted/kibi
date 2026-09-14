@@ -4883,7 +4883,8 @@ symbols:
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable resource examples
+    title: predicate guidance loads a canonical decision tree with immutable
+      resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -34431,6 +34432,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1-coverage
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
   - id: SYM-x-oc-PluginEventInput
@@ -34441,6 +34444,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1-coverage
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
   - id: SYM-x-oc-PluginEvent
@@ -34451,6 +34456,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1-coverage
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
   - id: SYM-x-oc-SmartEnforcementState
@@ -34461,6 +34468,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1-coverage
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
   - id: SYM-x-oc-KibiEventEnv
@@ -34471,6 +34480,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1-coverage
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
   - id: SYM-x-oc-handleKbToolEvent
@@ -34481,6 +34492,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1-coverage
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
   - id: SYM-x-oc-handleFileLifecycleEvent
@@ -34491,5 +34504,7 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1-coverage
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
