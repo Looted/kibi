@@ -109,13 +109,12 @@ export interface QueryResult {
   errorRecord?: PrologErrorRecord;
 }
 
+// implements REQ-core-prolog-process-management
 export function registerProcessExitOnce(
   current: (() => void) | null,
   handler: () => void,
-  on: (
-    event: "exit",
-    listener: () => void,
-  ) => void = (event, listener) => process.on(event, listener),
+  on: (event: "exit", listener: () => void) => void = (event, listener) =>
+    process.on(event, listener),
 ): () => void {
   if (current) return current;
   on("exit", handler);
@@ -126,10 +125,8 @@ export function registerProcessExitOnce(
 export function bindProcessExitHandler(
   current: (() => void) | null,
   terminate: () => void | Promise<void>,
-  on: (
-    event: "exit",
-    listener: () => void,
-  ) => void = (event, listener) => process.on(event, listener),
+  on: (event: "exit", listener: () => void) => void = (event, listener) =>
+    process.on(event, listener),
 ): () => void {
   return registerProcessExitOnce(
     current,
@@ -168,10 +165,8 @@ export class PrologProcess {
 
   // implements REQ-core-prolog-process-management
   attachProcessExitHandler(
-    on: (
-      event: "exit",
-      listener: () => void,
-    ) => void = (event, listener) => process.on(event, listener),
+    on: (event: "exit", listener: () => void) => void = (event, listener) =>
+      process.on(event, listener),
   ): void {
     this.onProcessExit = bindProcessExitHandler(
       this.onProcessExit,
@@ -360,7 +355,7 @@ export class PrologProcess {
         let settled = false;
         const timeoutId = setTimeout(() => {
           const stage = this.lastDiagnosticStage(this.errorBuffer) ?? "unknown";
-          const msg = `Query timeout after ${this.timeout / 1000}s (stage=${stage}, pid=${this.process?.pid ?? 0}, killed=${this.process?.killed ? "yes" : "no"}, exitCode=${this.process?.exitCode ?? "null"}, signal=${this.process?.signalCode ?? "null"}, goal=${goalLabel})`;
+          const msg = `Query timeout after ${this.timeout / 1000}s (stage=${stage}, pid=${this.process?.pid ?? 0}, killed=${this.process?.killed ? "yes" : "no"}, exitCode=${this.process?.exitCode ?? "null"}, signal=${this.process?.signalCode ?? "null"}, goal=${goalLabel}). If several fresh Kibi commands hang or crawl the same way, the engine state is likely wedged: run 'kibi engine stop' (then 'kibi sync --rebuild' if needed) and retry.`;
           if (debug) {
             console.error(`[prolog debug] timeout: ${msg}`);
             const runtime = this.errorBuffer

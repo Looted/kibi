@@ -69,3 +69,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-650ecb586e56
+  - type: implements
+    from: SYM-x-oc-handleKbToolEvent
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-09-13T20:11:41.993Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8dafb5703327
+  - type: covered_by
+    from: SYM-x-oc-handleKbToolEvent
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-09-13T20:11:42.004Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75ac6688b82a
+  - type: covered_by
+    from: SYM-x-oc-handleKbToolEvent
+    to: TEST-opencode-kibi-plugin-v1-coverage
+    created_at: 2026-09-14T04:48:26.304Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43c9fb05da2a
+  - type: covered_by
+    from: SYM-x-oc-handleKbToolEvent
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-09-14T06:26:15.753Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b344f7a7f63

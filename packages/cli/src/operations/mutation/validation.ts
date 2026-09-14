@@ -115,6 +115,8 @@ export function validateUpsertInput(
       `Entity validation failed: ${formatEntityErrors(entity, validateEntity.errors ?? [])}`,
     );
   }
+  validateSymbolSourceFile(entity);
+  validateProofExemptionPairing(entity);
   if (entity.type === "test" && Array.isArray(entity.proof_receipts)) {
     const receipts = entity.proof_receipts.filter(
       (value): value is Record<string, unknown> =>
@@ -157,3 +159,50 @@ export function validateUpsertInput(
 }
 
 export { isAllowedGranularityReason };
+
+/**
+ * A symbol whose sourceFile points into .kb/ can publish coordinates to the
+ * artifact, but the engine never merges coordinates for KB-internal paths —
+ * coverage then reports missing_symbol_coordinates forever with no signal.
+ * Reject the configuration at upsert time instead.
+ */
+function validateSymbolSourceFile(
+  entity: Readonly<Record<string, unknown>>,
+): void {
+  if (entity.type !== "symbol") return;
+  const sourceFile = entity.sourceFile;
+  if (typeof sourceFile !== "string" || sourceFile.trim() === "") return;
+  const normalized = sourceFile.replaceAll("\\", "/").trim();
+  if (normalized === ".kb" || normalized.startsWith(".kb/")) {
+    throw new Error(
+      `Entity validation failed: symbol sourceFile must point at a real code file in the workspace, not into the knowledge base ('${sourceFile}'). Coordinates for .kb/ paths are never merged into the engine, so coverage would report missing_symbol_coordinates permanently. Point the symbol at the implementing or verifying code file instead.`,
+    );
+  }
+}
+
+/**
+ * proof_exempt parks a current requirement outside E2E-proof scope. Without a
+ * reason the requirement would disappear from the proof ladder silently, so
+ * the exemption only exists with its justification attached (mirrored in
+ * requirement_proof.pl, which ignores an exemption without a reason).
+ */
+function validateProofExemptionPairing(
+  entity: Readonly<Record<string, unknown>>,
+): void {
+  if (entity.type !== "req") return;
+  const flag = entity.proof_exempt;
+  const isExempt =
+    flag === true ||
+    flag === "true" ||
+    flag === "yes" ||
+    flag === "on" ||
+    flag === 1 ||
+    flag === "1";
+  if (!isExempt) return;
+  const reason = entity.proof_exempt_reason;
+  if (typeof reason !== "string" || reason.trim() === "") {
+    throw new Error(
+      "Entity validation failed: proof_exempt requires a non-empty proof_exempt_reason explaining why the requirement is outside E2E-proof scope",
+    );
+  }
+}

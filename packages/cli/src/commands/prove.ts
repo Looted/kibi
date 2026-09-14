@@ -48,6 +48,34 @@ export type ProveCommandDependencies = Readonly<{
 type SelectedTest = Record<string, unknown>;
 
 /**
+ * Describe which paths moved when a proof snapshot refusal fires, so
+ * consumers can see what kibi thinks changed instead of diffing by hand.
+ * Snapshot-relevant changes come first (receipt-only and ignored edits do
+ * not affect the hash), and the list is capped to keep the error readable.
+ */
+// implements REQ-kibi-proof-evidence-protocol
+export function describeWorkspaceDrift(
+  snapshot: Awaited<ReturnType<typeof readWorkspaceSnapshot>>,
+): string {
+  if (!snapshot.available) return " (workspace snapshot unavailable)";
+  const changes = snapshot.snapshot.changes ?? [];
+  const relevant = changes.filter((change) => change.snapshotRelevant);
+  const pool =
+    relevant.length > 0
+      ? relevant
+      : changes.filter((change) => !change.snapshotRelevant);
+  if (pool.length === 0) {
+    return " (git reported no workspace changes; the hash drift may come from file content that git treats as unchanged)";
+  }
+  const maxPaths = 10;
+  const listed = pool
+    .slice(0, maxPaths)
+    .map((change) => `${change.status.trim() || "M"} ${change.path}`);
+  const more = pool.length - listed.length;
+  return `; changed: ${listed.join(", ")}${more > 0 ? ` (+${more} more)` : ""}`;
+}
+
+/**
  * Parse a comma-separated integration selector ("a", "a,b,c") into a set of
  * trimmed, non-empty ids. Empty selectors yield an empty set; blank items
  * fail fast instead of silently narrowing the selection.
@@ -198,8 +226,21 @@ async function selectTests(
   context: OperationContext,
   options: ProveCommandOptions,
 ): Promise<SelectedTest[]> {
-  const loadAll = async (): Promise<Record<string, unknown>[]> =>
-    await loadEntities(context.prolog as never, { type: "test" });
+  // Paginated: loading every test entity with full props in one query can
+  // exceed the Prolog output buffer once receipt histories grow.
+  const loadAll = async (): Promise<Record<string, unknown>[]> => {
+    const pageSize = 25;
+    const all: Record<string, unknown>[] = [];
+    for (let offset = 0; ; offset += pageSize) {
+      const page = await loadEntities(context.prolog as never, {
+        type: "test",
+        limit: pageSize,
+        offset,
+      });
+      all.push(...page);
+      if (page.length < pageSize) return all;
+    }
+  };
   let candidates: SelectedTest[] = [];
   if (options.testId) {
     const found = await loadEntities(context.prolog as never, {
@@ -405,7 +446,7 @@ export async function proveCommand(
       const afterRun = await readWorkspaceSnapshot(context);
       if (!afterRun.available || afterRun.snapshot.hash !== snapshot) {
         failures.push(
-          `integration '${integrationId}' changed the tracked workspace during proof execution; proof is bound to snapshot ${snapshot}`,
+          `integration '${integrationId}' changed the tracked workspace during proof execution; proof is bound to snapshot ${snapshot}${describeWorkspaceDrift(afterRun)}`,
         );
         continue;
       }
@@ -421,7 +462,7 @@ export async function proveCommand(
       const afterIngest = await readWorkspaceSnapshot(context);
       if (!afterIngest.available || afterIngest.snapshot.hash !== snapshot) {
         failures.push(
-          "the tracked workspace changed while receipts were applied; re-run kibi prove",
+          `the tracked workspace changed while receipts were applied; re-run kibi prove${describeWorkspaceDrift(afterIngest)}`,
         );
       }
     }

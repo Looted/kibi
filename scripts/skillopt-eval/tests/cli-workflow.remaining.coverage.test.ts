@@ -85,6 +85,7 @@ describe("runWorkflowCommand remaining held-out cellRunner injection", () => {
           root,
           ".runtime/test-runtime/codex-resources/bwrap",
         ),
+        codeModeHostExecutable: "/bin/true",
         cleanup: async () => undefined,
       }),
     };

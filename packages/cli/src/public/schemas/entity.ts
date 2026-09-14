@@ -360,6 +360,17 @@ const entitySchema: Record<string, unknown> = {
     severity: { type: "string" },
     links: { type: "array", items: { type: "string" } },
     text_ref: { type: "string" },
+    proof_exempt: {
+      type: "boolean",
+      description:
+        "Requirement-only. Marks a current requirement as intentionally outside E2E-proof scope; requires proof_exempt_reason.",
+    },
+    proof_exempt_reason: {
+      type: "string",
+      minLength: 1,
+      description:
+        "Requirement-only. Required when proof_exempt is true; surfaces as the applicability reason in coverage rows.",
+    },
     semantic_text: {
       type: "string",
       description:
@@ -628,6 +639,8 @@ const entitySchema: Record<string, unknown> = {
             { required: ["semantic_inventory_version"] },
             { required: ["semantic_source_field"] },
             { required: ["semantic_source_hash"] },
+            { required: ["proof_exempt"] },
+            { required: ["proof_exempt_reason"] },
           ],
         },
       },

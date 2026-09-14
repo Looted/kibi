@@ -81,7 +81,7 @@ Diagnostic reconciliation is the multiset of successful model-originated Kibi ca
 | `$OPERATOR_BASE/optimize/<run-id>/episodes/<episode-id>/` | `runCodexCell` | Ephemeral Codex episode evidence, including broker and host receipts. |
 | `$OPERATOR_BASE/fixtures/<run-id>/` | `optimize` | Materialized public/held-out fixture corpus for that run. |
 
-`$OPERATOR_BASE` is `$XDG_RUNTIME_DIR/kibi-skillopt/operator` when the runtime dir is writable; otherwise `~/.cache/kibi-skillopt/operator` or a private temp directory.
+`$OPERATOR_BASE` prefers `~/.cache/kibi-skillopt/operator` (or `$XDG_CACHE_HOME`) so paid optimizer last-messages survive logout; `$XDG_RUNTIME_DIR/kibi-skillopt/operator` remains a writable fallback, then a private temp directory. Each optimizer attempt copies `--output-last-message` and parse errors to `failed-output/` before the ephemeral workspace is removed.
 
 The smoke gate requires the shell isolation probe exactly once and one model-originated read-only `kb_semantic_advisor` call. It verifies the matching successful `tools/call` broker trace, valid hash chain, and successful `.kb/usage.log` diagnostic receipt before optimization starts. The probe suppresses the expected read-only-write denial so exact-output evidence contains only its pass token. If a real cell reports infrastructure failure, the command stops immediately and emits a structured `cell_infrastructure_failure` no-go result; this is distinct from `HELD_OUT_MATRIX_INELIGIBLE`, which is reserved for a complete matrix with behavioral gate failures.
 

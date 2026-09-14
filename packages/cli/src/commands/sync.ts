@@ -1077,7 +1077,13 @@ export async function syncCommand(
 
     const livePath = branchStorePath(workspaceRoot, currentBranch);
     const kbExists = existsSync(livePath);
-    maybePushKbMissingDiagnostic(diagnostics, kbExists, rebuild, currentBranch, livePath);
+    maybePushKbMissingDiagnostic(
+      diagnostics,
+      kbExists,
+      rebuild,
+      currentBranch,
+      livePath,
+    );
 
     // implements REQ-core-journaled-engine-delta-sync
     // Normal syncs are compiled directly into the long-lived single-writer
@@ -1213,9 +1219,12 @@ export async function syncCommand(
           }
         }
         const { relationshipCount, kbModified: relationshipsModified } =
-          await persistRelationships(engineProlog, results, [
-            ...shardDeltaByKey.values(),
-          ]);
+          await persistRelationships(
+            engineProlog,
+            results,
+            [...shardDeltaByKey.values()],
+            { workspaceRoot },
+          );
 
         const kbModified =
           removedCount > 0 ||
@@ -1384,7 +1393,9 @@ export async function syncCommand(
 
       // Persist relationships
       const { relationshipCount, kbModified: relationshipsModified } =
-        await persistRelationships(prolog, results, validRelationships);
+        await persistRelationships(prolog, results, validRelationships, {
+          workspaceRoot,
+        });
 
       const kbModified = entitiesModified || relationshipsModified;
 

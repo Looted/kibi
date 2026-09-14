@@ -32,7 +32,9 @@ import {
   proofReceiptHistoryErrors,
 } from "../../public/proof-receipt.js";
 import { projectEntityProperties } from "../mutation/entity-projection.js";
+import { resolveContainedSourcePath } from "../mutation/source-authoring.js";
 import { executeUpsert } from "../mutation/upsert.js";
+import { patchReceiptsIntoDocument } from "./receipt-document.js";
 
 // implements REQ-kibi-proof-evidence-protocol
 export type IngestProofArgs = Readonly<{
@@ -346,6 +348,31 @@ export async function executeIngestProof(
       );
     const properties = projectEntityProperties(test);
     properties.proof_receipts = undefined;
+    // Surgical receipt append: splice only the proof_receipts block into the
+    // authored document so unrelated frontmatter keeps its authored form.
+    // Canonical re-rendering here would change non-receipt bytes, shift the
+    // workspace snapshot hash mid-campaign, and make later integrations in
+    // the same `kibi prove --all` refuse with "changed the tracked
+    // workspace". Falls back to the canonical render when the document is
+    // not a patchable markdown file.
+    let sourceDocumentOverride: string | undefined;
+    const source = typeof test.source === "string" ? test.source : "";
+    if (context.fs && source !== "" && /\.(md|mdx)$/i.test(source)) {
+      try {
+        const absolute = resolveContainedSourcePath(
+          context.workspaceRoot,
+          source,
+        );
+        const before = await context.fs.readFile(absolute);
+        sourceDocumentOverride =
+          patchReceiptsIntoDocument(before, nextReceipts) ?? undefined;
+      } catch {
+        sourceDocumentOverride = undefined;
+      }
+    }
+    // exactOptionalPropertyTypes: only pass the override when one exists.
+    const upsertOptions =
+      sourceDocumentOverride === undefined ? {} : { sourceDocumentOverride };
     const upsert = await executeUpsert(
       {
         type: "test",
@@ -353,6 +380,7 @@ export async function executeIngestProof(
         properties: { ...properties, proof_receipts: nextReceipts },
       },
       context,
+      upsertOptions,
     );
     void upsert;
     if (receipt.outcome === "passed") passed += 1;

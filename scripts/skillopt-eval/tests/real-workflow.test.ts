@@ -12,6 +12,7 @@ import {
 } from "../real-workflow";
 import { requireRuntime } from "../real-workflow-types";
 import { freezeCandidateVariant } from "../variants";
+import { CodexOptimizerError } from "../runtime/codex-optimizer";
 import { CANONICAL_SKILL_ROOT } from "./fixture-test-helpers";
 
 const RUN_ID = "00000000-0000-4000-8000-000000000201";
@@ -171,6 +172,61 @@ describe("real SkillOpt workflow", () => {
           "utf8",
         ),
       ).toContain("approval boundaries");
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  test("Given a failed one-shot rewrite When optimization continues Then it records the failure and trains from baseline", async () => {
+    const root = await mkdtemp(join(tmpdir(), "skillopt-real-one-shot-fail-"));
+    try {
+      const developmentVariants: string[] = [];
+      const result = await runRealOptimization(
+        {
+          runId: RUN_ID,
+          artifactRoot: root,
+          sourceWorktree: process.cwd(),
+          skills: ["kibi-usage"],
+          maxSteps: 1,
+        },
+        {
+          sourceClean: async () => true,
+          oneShot: async () => {
+            throw new CodexOptimizerError("optimizer_output_incomplete_body");
+          },
+          evaluateDevelopment: async ({ candidate }) => {
+            developmentVariants.push(candidate.variant);
+            return { mean: 0.4, hardPasses: 1, worstFamilyMean: 0.25 };
+          },
+          train: async (input) => {
+            expect(input.initialVariant?.variant).toBe("baseline");
+            expect(input.initialVariant?.provenance).toBe("canonical");
+            return {
+              status: "frozen",
+              candidateBody:
+                "Use the Kibi MCP workflow and preserve approval boundaries.\n",
+              trainerCheckpointHash: "a".repeat(64),
+              trajectoryHashes: ["b".repeat(64)],
+              development: { mean: 0.4, hardPasses: 1, worstFamilyMean: 0.25 },
+            };
+          },
+          evaluateHeldOut: async () => ({
+            eligibility: "HELD_OUT_MATRIX_INELIGIBLE",
+            cellCount: 36,
+          }),
+        },
+      );
+
+      expect(result.status).toBe("blocked");
+      expect(developmentVariants).toEqual(["baseline", "skillopt"]);
+      const failure = JSON.parse(
+        await readFile(
+          join(root, "skills", "kibi-usage", "one-shot-failure.json"),
+          "utf8",
+        ),
+      ) as { error?: string; artifactType?: string };
+      expect(failure.artifactType).toBe("skillopt-one-shot-failure");
+      expect(failure.error).toBe("optimizer_output_incomplete_body");
     } finally {
       await rm(root, { recursive: true, force: true });
     }

@@ -26,18 +26,21 @@ afterEach(async () => {
 async function fakeExecutables(root: string) {
   const installed = join(root, "installed");
   const codex = join(installed, "bin/codex");
+  const codeModeHost = join(installed, "bin/codex-code-mode-host");
   const bwrap = join(installed, "codex-resources/bwrap");
   await mkdir(join(installed, "bin"), { recursive: true });
   await mkdir(join(installed, "codex-resources"), { recursive: true });
   await writeFile(codex, "#!/bin/sh\nexit 0\n", { mode: 0o700 });
+  await writeFile(codeModeHost, "#!/bin/sh\nexit 0\n", { mode: 0o700 });
   await writeFile(bwrap, "#!/bin/sh\nexit 0\n", { mode: 0o700 });
   await chmod(codex, 0o500);
+  await chmod(codeModeHost, 0o500);
   await chmod(bwrap, 0o500);
-  return { codex, bwrap };
+  return { codex, codeModeHost, bwrap };
 }
 
 describe("staged Codex runtime", () => {
-  test("copies Codex and bwrap to absolute private executable paths", async () => {
+  test("copies Codex, code-mode host, and bwrap to absolute private executable paths", async () => {
     const root = await mkdtemp(join(tmpdir(), "skillopt-runtime-stage-"));
     roots.push(root);
     const source = await fakeExecutables(root);
@@ -46,12 +49,34 @@ describe("staged Codex runtime", () => {
     });
 
     expect(staged.codexExecutable).toBe(join(root, "target/codex"));
+    expect(staged.codeModeHostExecutable).toBe(
+      join(root, "target/codex-code-mode-host"),
+    );
     expect(staged.bwrapExecutable).toBe(
       join(root, "target/codex-resources/bwrap"),
     );
     expect(await readFile(staged.codexExecutable, "utf8")).toContain("exit 0");
     expect((await stat(staged.codexExecutable)).mode & 0o777).toBe(0o500);
+    expect((await stat(staged.codeModeHostExecutable)).mode & 0o777).toBe(
+      0o500,
+    );
     expect((await stat(staged.bwrapExecutable)).mode & 0o777).toBe(0o500);
+  });
+
+  test("fails closed when the installed code-mode host is missing", async () => {
+    const root = await mkdtemp(join(tmpdir(), "skillopt-runtime-missing-host-"));
+    roots.push(root);
+    const source = await fakeExecutables(root);
+    await rm(source.codeModeHost);
+
+    await expect(
+      stageCodexRuntime(join(root, "target"), {
+        codexExecutable: source.codex,
+      }),
+    ).rejects.toMatchObject({
+      name: "RuntimePrerequisiteError",
+      message: "missing_isolation:code_mode_host",
+    });
   });
 
   test("cleans the once-per-run runtime lease and makes cleanup idempotent", async () => {

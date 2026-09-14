@@ -4,7 +4,6 @@
 % validation rule in a single Prolog call, avoiding expensive round-trips.
 
 :- module(checks, [
-        check_req_status_vocabulary/1,
     check_all/1,                    % Returns all violations as a dict
     check_all_json/1,               % Returns all violations as JSON string
     check_selected_json/2,           % Returns only selected rule violations as JSON
@@ -26,6 +25,7 @@
     check_rule_safety/1,
     check_rule_verifiability/1,
     check_semantic_completeness/1,
+    check_req_status_vocabulary/1,
     run_checks_json/0,              % Entry point for JSON output
     violation_id_text/2             % Extract text from entity ID term (exported for testing)
 ]).
@@ -86,8 +86,8 @@ check_all(ViolationsDict) :-
         logic_coverage: LogicCoverage,
         rule_safety: RuleSafety,
         rule_verifiability: RuleVerifiability,
-    req_status_vocabulary: ReqStatusVocabulary,
-        semantic_completeness: SemanticCompleteness
+        semantic_completeness: SemanticCompleteness,
+        req_status_vocabulary: ReqStatusVocabulary
     }.
 
 %% check_must_priority_coverage(-Violations)
@@ -1477,8 +1477,8 @@ check_selected_dispatch(Rules, _{
     logic_coverage: LogicCoverage,
     rule_safety: RuleSafety,
     rule_verifiability: RuleVerifiability,
-    req_status_vocabulary: ReqStatusVocabulary,
-    semantic_completeness: SemanticCompleteness
+    semantic_completeness: SemanticCompleteness,
+    req_status_vocabulary: ReqStatusVocabulary
 }) :-
     selected_rule(Rules, 'must-priority-coverage', check_must_priority_coverage, MustPriority),
     selected_rule(Rules, 'symbol-coverage', check_symbol_coverage, SymbolCoverage),
@@ -1495,8 +1495,8 @@ check_selected_dispatch(Rules, _{
     selected_rule(Rules, 'logic-coverage', check_logic_coverage, LogicCoverage),
     selected_rule(Rules, 'rule-safety', check_rule_safety, RuleSafety),
     selected_rule(Rules, 'rule-verifiability', check_rule_verifiability, RuleVerifiability),
-    selected_rule(Rules, 'req-status-vocabulary', check_req_status_vocabulary, ReqStatusVocabulary),
-    selected_rule(Rules, 'semantic-completeness', check_semantic_completeness, SemanticCompleteness).
+    selected_rule(Rules, 'semantic-completeness', check_semantic_completeness, SemanticCompleteness),
+    selected_rule(Rules, 'req-status-vocabulary', check_req_status_vocabulary, ReqStatusVocabulary).
 
 selected_rule(Rules, Name, Goal, Violations) :-
     (   memberchk(Name, Rules)
@@ -1551,6 +1551,7 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
     check_rule_safety(RuleSafety),
     check_rule_verifiability(RuleVerifiability),
     check_semantic_completeness(SemanticCompleteness),
+    check_req_status_vocabulary(ReqStatusVocabulary),
     ViolationsDict = _{
         must_priority_coverage: MustPriority,
         symbol_coverage: SymbolCoverage,
@@ -1567,7 +1568,8 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
         logic_coverage: LogicCoverage,
         rule_safety: RuleSafety,
         rule_verifiability: RuleVerifiability,
-        semantic_completeness: SemanticCompleteness
+        semantic_completeness: SemanticCompleteness,
+        req_status_vocabulary: ReqStatusVocabulary
     }.
 
 %% violations_dict_to_json(+ViolationsDict, -JsonDict)

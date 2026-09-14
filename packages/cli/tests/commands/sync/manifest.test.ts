@@ -778,14 +778,8 @@ describe("refreshManifestCoordinates", () => {
     mockEnrichSymbolCoordinates.mockImplementation(async (e) => e);
 
     // Make dumpYAML produce content such that rawContent === nextContent
-    const commentBlock = `# symbols.yaml
-# AUTHORED fields (edit freely):
-#   id, title, sourceFile, links, status, tags, owner, priority
-# Generated coordinates are stored separately in symbol-coordinates.yaml.
-# Run \`kibi sync --refresh-symbol-coordinates\` to refresh them.
-`;
     const dumpedYaml = "yaml-content\n";
-    const fullContent = `${commentBlock}${dumpedYaml}`;
+    const fullContent = `${SYMBOLS_MANIFEST_COMMENT_BLOCK}${dumpedYaml}`;
     mockReadFileSync.mockImplementation(() => fullContent);
     mockDumpYAML.mockImplementation(() => dumpedYaml);
 
@@ -951,9 +945,12 @@ describe("refreshManifestCoordinates", () => {
       manifestDeps(),
     );
 
-    // path.relative("/workspace", "/workspace/.kb/symbols.yaml") => ".kb/symbols.yaml"
+    // Without an explicit refresh flag no coordinate artifact is written; the
+    // message names the authored manifest and must not claim a coordinate
+    // refresh.
     expect(messages[0]).toContain(".kb/symbols.yaml");
-    expect(messages[0]).toContain("✓ Refreshed symbol coordinates");
+    expect(messages[0]).toContain("✓ Normalized symbol manifest");
+    expect(messages[0]).not.toContain("Refreshed symbol coordinates");
 
     restore();
   });

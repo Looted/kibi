@@ -83,7 +83,7 @@ This section provides guidance on selecting the appropriate entity type for your
 |--------------|----------|----------------|--------------------------------------------------|
 | id           | Yes      | string         | Unique identifier                                |
 | title        | Yes      | string         | Requirement summary                              |
-| status       | Yes      | string         | open, in_progress, closed, deprecated            |
+| status       | Yes      | string         | open, in_progress, closed, deprecated. ADR vocabulary such as `accepted` compiles but is not a requirement status: it silently removes the requirement from the proof ladder, and `kibi check` reports it under `req-status-vocabulary`. Superseded requirements keep their status and gain a `supersedes` link from the successor. |
 | created_at   | Yes      | ISO 8601       | Creation timestamp                               |
 | updated_at   | Yes      | ISO 8601       | Last update timestamp                            |
 | source       | Yes      | string         | Provenance                                       |
@@ -93,6 +93,8 @@ This section provides guidance on selecting the appropriate entity type for your
 | severity     | No       | string         | Severity level                                   |
 | links[]      | No       | array[string]  | URLs or entity IDs (for relationships)           |
 | text_ref     | No       | string         | Independent code/doc evidence pointer            |
+| proof_exempt | No       | boolean        | Marks a current requirement as intentionally outside E2E-proof scope. Requires `proof_exempt_reason`; coverage reports the requirement `not_applicable` with that reason |
+| proof_exempt_reason | No | string        | Required when `proof_exempt` is true — the reviewable justification surfaced in coverage rows |
 | semantic_text | No      | string         | Requirement-only normalized authored prose that anchors semantic byte spans |
 | logic_claims | No       | array[string]  | Requirement-only manifest of stable atomic claim keys |
 | semantic_clauses | No | array[string] | Reviewed atomic decomposition override used against the exact semantic source |

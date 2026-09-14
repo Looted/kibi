@@ -255,6 +255,7 @@ if (RUN_NODE_TEST_SUITE) {
                       "kb_compile_intent",
                       "kb_apply_plan",
                       "kb_ingest_proof",
+                      "kb_job_status",
                     ]);
                     assert.ok(
                       !toolNames.includes("kb_briefing_generate"),

@@ -5,6 +5,7 @@
     find_gaps_json/8,
     coverage_report_json/7,
     coverage_report_json/10,
+    coverage_report_json/11,
     graph_expand_json/8
 ]).
 
@@ -41,6 +42,35 @@ coverage_report_json(By, Tags, IncludePassing, IncludeTransitive, Limit, Offset,
     status_meta_dict(Meta),
     Response = _{summary: Summary, rows: Rows, meta: Meta},
     dict_json_string(Response, JsonString).
+
+% implements REQ-kibi-coverage-status-filter
+% Proof-status filtered report. The status filter selects requirement rows by
+% proofStatus (proven, missing, unresolved, not_applicable) and replaces the
+% default include-passing filtering, so callers can enumerate exactly one
+% slice — e.g. every not_applicable row together with its typed applicability
+% reason — without diffing full exports by hand. The summary is always
+% computed over all rows so filtered responses keep whole-KB counts.
+coverage_report_json(By, Tags, IncludePassing, StatusFilter, IncludeTransitive, Limit, Offset, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
+    status_filtered_coverage_rows(By, Tags, IncludePassing, StatusFilter, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, MatchedRows0, Summary),
+    sort_dict_rows(MatchedRows0, SortedRows),
+    paginate_rows(SortedRows, Offset, Limit, Rows),
+    status_meta_dict(Meta),
+    Response = _{summary: Summary, rows: Rows, meta: Meta},
+    dict_json_string(Response, JsonString).
+
+status_filtered_coverage_rows(By, Tags, IncludePassing, [], IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary) :-
+    !,
+    coverage_rows(By, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary).
+status_filtered_coverage_rows(req, Tags, _IncludePassing, StatusFilter, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, MatchedRows, Summary) :-
+    !,
+    coverage_rows(req, Tags, true, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows0, Summary),
+    include(req_row_proof_status_in(StatusFilter), Rows0, MatchedRows).
+status_filtered_coverage_rows(By, Tags, _IncludePassing, _StatusFilter, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary) :-
+    coverage_rows(By, Tags, true, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary).
+
+req_row_proof_status_in(StatusFilter, Row) :-
+    Status = Row.proofStatus,
+    memberchk(Status, StatusFilter).
 
 graph_expand_json(SeedIds, Relationships, Direction, Depth, EntityTypes, MaxNodes, MaxEdges, JsonString) :-
     sort(SeedIds, SeedSet),

@@ -251,6 +251,7 @@ if (RUN_NODE_TEST_SUITE) {
                 "kb_find_gaps",
                 "kb_graph",
                 "kb_ingest_proof",
+                "kb_job_status",
                 "kb_model_requirement",
                 "kb_plan_bootstrap",
                 "kb_query",

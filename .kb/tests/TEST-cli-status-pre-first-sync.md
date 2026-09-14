@@ -583,6 +583,170 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-44a407b54a2990fb13ad54ad
+    test_id: TEST-cli-status-pre-first-sync
+    scope: end_to_end
+    outcome: failed
+    code_snapshot: 79f838abae86001aa78ba97d7be9f63467709effbd55b97118f9a0ccef937803
+    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
+    started_at: '2026-09-12T00:53:36.381Z'
+    finished_at: '2026-09-12T02:23:02.095Z'
+    artifact_digest: 729ba6000636c5b9faca47c20a964ecb8e3b5ed9f9a1c753d181e5febbb50b8c
+    contract_hash: 2e476ed657ad7b705eeaf33f3751f76b60b706a3924226f2dfde0ed1f47cc888
+    fingerprint: 2aec55cc9da691c790d9f3e3c5bacf96e0ebd8e5e385a79bc878c55e9316c594
+    fingerprint_components:
+      contract: 2e476ed657ad7b705eeaf33f3751f76b60b706a3924226f2dfde0ed1f47cc888
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: failed
+    proof_results:
+      - symbol_id: SYM-e2e-test-cli-status-pre-first-sync
+        target: default
+        outcome: failed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+    gaps:
+      - symbol_id: SYM-e2e-test-cli-status-pre-first-sync
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +83 more'
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-a8f2e7f15a02fbb0d4fa87ef
+    test_id: TEST-cli-status-pre-first-sync
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 609b27d4e5672c4000011b090499931e6a1fe38be1981e2088de3e3e4fb2f277
+    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
+    started_at: '2026-09-13T20:17:13.278Z'
+    finished_at: '2026-09-13T21:56:21.890Z'
+    artifact_digest: c976524424d5b291f4e58e762a7e0fe0a5f0e09d457a6213cfaaa0195a072de4
+    contract_hash: 2e476ed657ad7b705eeaf33f3751f76b60b706a3924226f2dfde0ed1f47cc888
+    fingerprint: 2aec55cc9da691c790d9f3e3c5bacf96e0ebd8e5e385a79bc878c55e9316c594
+    fingerprint_components:
+      contract: 2e476ed657ad7b705eeaf33f3751f76b60b706a3924226f2dfde0ed1f47cc888
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-cli-status-pre-first-sync
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-1c381aee76331ff014990e1b
+    test_id: TEST-cli-status-pre-first-sync
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 0b5814a1764ceb7e33a105329bcfac1ca4ab366405f4083d213938472376fb44
+    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
+    started_at: '2026-09-13T22:14:34.497Z'
+    finished_at: '2026-09-13T23:51:44.048Z'
+    artifact_digest: f22bd2804415e7b28c082cc4e0491f9cc5b9947a5bb0b6aa76bd06e39712bf82
+    contract_hash: 2e476ed657ad7b705eeaf33f3751f76b60b706a3924226f2dfde0ed1f47cc888
+    fingerprint: 2aec55cc9da691c790d9f3e3c5bacf96e0ebd8e5e385a79bc878c55e9316c594
+    fingerprint_components:
+      contract: 2e476ed657ad7b705eeaf33f3751f76b60b706a3924226f2dfde0ed1f47cc888
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-cli-status-pre-first-sync
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-1a353bc2827adfff01c8c234
+    test_id: TEST-cli-status-pre-first-sync
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 32fc8076ce1ce9656d665c040aae2f438b4d47e12d23ad67c7e2396871cdb96b
+    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
+    started_at: '2026-09-14T04:53:57.354Z'
+    finished_at: '2026-09-14T06:13:26.255Z'
+    artifact_digest: 738ce45f97ae1097eadd640367ac094351b9f6ecf2c331c84e56b71e495f7f77
+    contract_hash: 2e476ed657ad7b705eeaf33f3751f76b60b706a3924226f2dfde0ed1f47cc888
+    fingerprint: 2aec55cc9da691c790d9f3e3c5bacf96e0ebd8e5e385a79bc878c55e9316c594
+    fingerprint_components:
+      contract: 2e476ed657ad7b705eeaf33f3751f76b60b706a3924226f2dfde0ed1f47cc888
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-cli-status-pre-first-sync
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-2bb78379f625fffb7bed6044
+    test_id: TEST-cli-status-pre-first-sync
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ed40ba5e905305e0049ad3548381193ed09b7a4c16602e2deb3c109eb7acda13
+    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
+    started_at: '2026-09-14T06:29:52.699Z'
+    finished_at: '2026-09-14T07:37:41.045Z'
+    artifact_digest: 9e21e6884d6f07025a28d1aff21db0b67358a05dc6a0cc0df2654eaacf06dcfb
+    contract_hash: 2e476ed657ad7b705eeaf33f3751f76b60b706a3924226f2dfde0ed1f47cc888
+    fingerprint: 2aec55cc9da691c790d9f3e3c5bacf96e0ebd8e5e385a79bc878c55e9316c594
+    fingerprint_components:
+      contract: 2e476ed657ad7b705eeaf33f3751f76b60b706a3924226f2dfde0ed1f47cc888
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-cli-status-pre-first-sync
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 
 The test verifies that the `kibi status` command does not fail when executed in a newly initialized repository before any data has been synced, and that ignored documentation README files do not make a freshly synced workspace stale.

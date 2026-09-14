@@ -148,6 +148,8 @@ function adaptProlog(prolog: PrologProcess): PrologPort {
 
 const operationRuntime = createMcpRuntime<PrologProcess>({
   workspaceRoot: resolveWorkspaceRoot(),
+  activeBranchName: async () =>
+    (await getSessionModule()).getActiveBranchName(),
   attachedBranchKbPath: async () =>
     (await getSessionModule()).getAttachedBranchKbPath(),
   ensureProlog: async () => (await getSessionModule()).ensureProlog(),

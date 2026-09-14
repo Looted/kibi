@@ -9,7 +9,7 @@ import {
   RequiredMcpStartupError,
   stageCapabilityCanary,
 } from "./canary-runtime";
-import { prepareExistingLogin } from "./codex-auth";
+import { withPreparedLogin } from "./codex-auth";
 import { createIsolationWorkspace } from "./isolation-workspace";
 import { buildCodexConfig, buildCodexExecArgv } from "./permissions";
 import { runBoundedProcess } from "./process";
@@ -91,6 +91,18 @@ function parseJson(text: string): unknown {
 }
 
 // implements REQ-skillopt-codex-optimization
+export function missingRequiredGuidance(body: string): readonly string[] {
+  return REQUIRED_BODY_GUIDANCE.filter((guidance) => !body.includes(guidance));
+}
+
+function isRepairableOptimizerError(error: CodexOptimizerError): boolean {
+  return (
+    error.message === "optimizer_output_missing_body" ||
+    error.message === "optimizer_output_incomplete_body"
+  );
+}
+
+// implements REQ-skillopt-codex-optimization
 export function parseCodexOptimizerBody(lastMessage: string): string {
   const parsed = BodySchema.safeParse(parseJson(lastMessage));
   if (!parsed.success) {
@@ -100,7 +112,7 @@ export function parseCodexOptimizerBody(lastMessage: string): string {
   validateCandidateBody(body);
   if (
     Buffer.byteLength(body, "utf8") < MIN_COMPLETE_BODY_BYTES ||
-    REQUIRED_BODY_GUIDANCE.some((guidance) => !body.includes(guidance))
+    missingRequiredGuidance(body).length > 0
   ) {
     throw new CodexOptimizerError("optimizer_output_incomplete_body");
   }
@@ -143,6 +155,81 @@ export async function persistCodexOptimizerBody(
     })}\n`,
     { encoding: "utf8", mode: 0o600 },
   );
+}
+
+// implements REQ-skillopt-codex-optimization
+export async function persistCodexOptimizerFailure(
+  artifactRoot: string,
+  sourceWorktree: string,
+  input: Readonly<{
+    runId: string;
+    skill: string;
+    step: number;
+    attempt: number;
+    error: string;
+    lastMessage: string;
+    exitCode: number;
+    stderrTail: string;
+  }>,
+): Promise<void> {
+  const failedRoot = resolveIsolationArtifactRoot(
+    resolve(artifactRoot, "failed-output", `attempt-${input.attempt}`),
+    sourceWorktree,
+  );
+  await mkdir(failedRoot, { recursive: true, mode: 0o700 });
+  const parsed = BodySchema.safeParse(parseJson(input.lastMessage));
+  const missingGuidance = parsed.success
+    ? missingRequiredGuidance(parsed.data.body)
+    : [];
+  await writeFile(join(failedRoot, "last-message.txt"), input.lastMessage, {
+    encoding: "utf8",
+    mode: 0o600,
+  });
+  await writeFile(
+    join(failedRoot, "parse-error.json"),
+    `${JSON.stringify({
+      schemaVersion: "1.0.0",
+      artifactType: "skillopt-failed-optimizer-output",
+      runId: input.runId,
+      skill: input.skill,
+      step: input.step,
+      attempt: input.attempt,
+      error: input.error,
+      missingGuidance,
+      lastMessageBytes: Buffer.byteLength(input.lastMessage, "utf8"),
+      exitCode: input.exitCode,
+      stderrTail: input.stderrTail,
+    })}\n`,
+    { encoding: "utf8", mode: 0o600 },
+  );
+}
+
+function repairPromptFor(
+  request: SkillOptStepRequest,
+  lastMessage: string,
+  error: CodexOptimizerError,
+): string {
+  if (error.message === "optimizer_output_missing_body") {
+    return [
+      "Return one JSON object with exactly one string field named body.",
+      "Your previous response was not valid JSON with a body field.",
+      "Rewrite only the skill body. Do not include Markdown frontmatter.",
+      "Do not append a dummy section titled Required Kibi logic contract.",
+      `Previous output:\n${lastMessage}`,
+      `Current body:\n${request.currentBody}`,
+    ].join("\n\n");
+  }
+  const parsed = BodySchema.safeParse(parseJson(lastMessage));
+  const previousBody = parsed.success ? parsed.data.body : lastMessage;
+  const missing = missingRequiredGuidance(previousBody);
+  return [
+    "Return one JSON object with exactly one string field named body.",
+    "Start from your previous skill body. Insert each missing exact phrase into real prose sections where it belongs.",
+    "Do not append a dummy section titled Required Kibi logic contract.",
+    "Do not join missing phrases with a middle-dot list.",
+    `Missing exact phrases:\n${missing.map((phrase) => `- ${phrase}`).join("\n")}`,
+    `Previous body:\n${previousBody}`,
+  ].join("\n\n");
 }
 
 function promptFor(request: SkillOptStepRequest): string {
@@ -221,12 +308,14 @@ export async function runCodexSkillOptStep(
   try {
     const sourceWorktree = resolve(options.sourceWorktree);
     const env = options.env ?? process.env;
-    const auth = await prepareExistingLogin({
-      privateCodexHome: workspace.codexHome,
-      sandboxHome: workspace.sandboxHome,
-      env,
-      run: loginRunForSource(sourceWorktree),
-    });
+    return await withPreparedLogin(
+      {
+        privateCodexHome: workspace.codexHome,
+        sandboxHome: workspace.sandboxHome,
+        env,
+        run: loginRunForSource(sourceWorktree),
+      },
+      async (auth) => {
     const staged = await stageCapabilityCanary(workspace, sourceWorktree, {
       ...(options.codexExecutable === undefined
         ? {}
@@ -293,60 +382,144 @@ export async function runCodexSkillOptStep(
       }),
       { encoding: "utf8", mode: 0o600 },
     );
-    const result = await runBoundedProcess({
-      argv: buildCodexExecArgv({
-        codexCommand: staged.codexCommand,
-        workspace: workspace.target,
-        outputSchema,
-        outputLastMessage,
-        role: "optimizer",
-      }),
-      cwd: workspace.target,
-      env: { ...auth.env, PATH: "/usr/bin:/bin" },
-      timeoutMs: options.timeoutMs ?? 15 * 60 * 1000,
-      stdin: promptFor(options.request),
+    const execArgv = buildCodexExecArgv({
+      codexCommand: staged.codexCommand,
+      workspace: workspace.target,
+      outputSchema,
+      outputLastMessage,
+      role: "optimizer",
     });
-    if (result.exitCode !== 0) {
+    const timeoutMs = options.timeoutMs ?? 15 * 60 * 1000;
+    const runAttempt = async (stdin: string) => {
+      await writeFile(outputLastMessage, "", {
+        encoding: "utf8",
+        mode: 0o600,
+      });
+      const result = await runBoundedProcess({
+        argv: execArgv,
+        cwd: workspace.target,
+        env: { ...auth.env, PATH: "/usr/bin:/bin" },
+        timeoutMs,
+        stdin,
+      });
+      const lastMessage = await readFile(outputLastMessage, "utf8").catch(
+        () => "",
+      );
+      return { result, lastMessage };
+    };
+    const interpretAttempt = (
+      result: { exitCode: number; stderr: string },
+      lastMessage: string,
+    ):
+      | { ok: true; body: string; result: { exitCode: number; stderr: string }; lastMessage: string }
+      | {
+          ok: false;
+          error: CodexOptimizerError;
+          result: { exitCode: number; stderr: string };
+          lastMessage: string;
+        } => {
+      if (result.exitCode !== 0) {
+        const stderrTail = result.stderr
+          .trim()
+          .split("\n")
+          .slice(-6)
+          .join(" | ");
+        return {
+          ok: false,
+          error: new CodexOptimizerError(
+            `optimizer_exit:${result.exitCode}${stderrTail ? `:${stderrTail.slice(0, 600)}` : ""}`,
+          ),
+          result,
+          lastMessage,
+        };
+      }
+      try {
+        return {
+          ok: true,
+          body: parseCodexOptimizerBody(lastMessage),
+          result,
+          lastMessage,
+        };
+      } catch (error) {
+        return {
+          ok: false,
+          error:
+            error instanceof CodexOptimizerError
+              ? error
+              : new CodexOptimizerError(
+                  error instanceof Error ? error.message : "optimizer_failed",
+                ),
+          result,
+          lastMessage,
+        };
+      }
+    };
+    const persistFailure = async (
+      attempt: number,
+      error: CodexOptimizerError,
+      result: { exitCode: number; stderr: string },
+      lastMessage: string,
+    ) => {
       const stderrTail = result.stderr.trim().split("\n").slice(-6).join(" | ");
-      throw new CodexOptimizerError(
-        `optimizer_exit:${result.exitCode}${stderrTail ? `:${stderrTail.slice(0, 600)}` : ""}`,
+      await persistCodexOptimizerFailure(
+        options.artifactRoot,
+        sourceWorktree,
+        {
+          runId: options.runId,
+          skill: options.request.skill,
+          step: options.request.step,
+          attempt,
+          error: error.message,
+          lastMessage,
+          exitCode: result.exitCode,
+          stderrTail: stderrTail.slice(0, 600),
+        },
       );
-    }
-    const output = await readFile(outputLastMessage, "utf8");
-    let body: string;
-    try {
-      body = parseCodexOptimizerBody(output);
-    } catch (error) {
-      if (
-        !(error instanceof CodexOptimizerError) ||
-        error.message !== "optimizer_output_incomplete_body"
-      )
-        throw error;
-      const parsed = BodySchema.safeParse(parseJson(output));
-      if (!parsed.success) throw error;
-      const candidateBody = parsed.data.body;
-      validateCandidateBody(candidateBody);
-      if (
-        Buffer.byteLength(candidateBody, "utf8") < MIN_COMPLETE_BODY_BYTES ||
-        REPOSITORY_POLICY_LEAKS.some((pattern) => pattern.test(candidateBody))
-      )
-        throw error;
-      const missing = REQUIRED_BODY_GUIDANCE.filter(
-        (guidance) => !candidateBody.includes(guidance),
+    };
+
+    let attempt = await runAttempt(promptFor(options.request));
+    let interpreted = interpretAttempt(attempt.result, attempt.lastMessage);
+    if (!interpreted.ok) {
+      await persistFailure(
+        1,
+        interpreted.error,
+        interpreted.result,
+        interpreted.lastMessage,
       );
-      body =
-        missing.length === 0
-          ? candidateBody
-          : `${candidateBody.trim()}\n\n## Required Kibi logic contract\n\n${missing.join(" · ")}\n`;
-      validateCandidateBody(body);
+      if (isRepairableOptimizerError(interpreted.error)) {
+        attempt = await runAttempt(
+          repairPromptFor(
+            options.request,
+            interpreted.lastMessage,
+            interpreted.error,
+          ),
+        );
+        interpreted = interpretAttempt(attempt.result, attempt.lastMessage);
+        if (!interpreted.ok) {
+          await persistFailure(
+            2,
+            interpreted.error,
+            interpreted.result,
+            interpreted.lastMessage,
+          );
+          throw interpreted.error;
+        }
+      } else {
+        throw interpreted.error;
+      }
     }
     await persistCodexOptimizerBody(options.artifactRoot, sourceWorktree, {
       runId: options.runId,
       skill: options.request.skill,
       step: options.request.step,
-      body,
+      body: interpreted.body,
     });
-    return { body, development: options.request.previousDevelopment };
+    return {
+      body: interpreted.body,
+      development: options.request.previousDevelopment,
+    };
+      },
+    );
   } catch (error) {
     if (error instanceof RequiredMcpStartupError) throw error;
     if (error instanceof CodexOptimizerError) throw error;

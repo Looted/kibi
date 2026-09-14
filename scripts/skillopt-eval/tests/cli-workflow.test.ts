@@ -79,6 +79,10 @@ function fakeDependencies(): CliDependencies {
     createCodexRuntimeLease: async ({ artifactRoot }) => ({
       root: join(artifactRoot, ".runtime/test-runtime"),
       codexExecutable: join(artifactRoot, ".runtime/test-runtime/codex"),
+      codeModeHostExecutable: join(
+        artifactRoot,
+        ".runtime/test-runtime/codex-code-mode-host",
+      ),
       bwrapExecutable: join(
         artifactRoot,
         ".runtime/test-runtime/codex-resources/bwrap",
@@ -295,6 +299,10 @@ describe("SkillOpt workflow CLI", () => {
     }: { artifactRoot: string }) => ({
       root: join(artifactRoot, ".runtime/failing-runtime"),
       codexExecutable: join(artifactRoot, ".runtime/failing-runtime/codex"),
+      codeModeHostExecutable: join(
+        artifactRoot,
+        ".runtime/failing-runtime/codex-code-mode-host",
+      ),
       bwrapExecutable: join(
         artifactRoot,
         ".runtime/failing-runtime/codex-resources/bwrap",

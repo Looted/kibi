@@ -47,6 +47,23 @@ describe("SkillOpt operator entrypoints", () => {
     expect(existsSync(base)).toBe(true);
   });
 
+  test("prefers a writable cache root over a writable runtime dir", async () => {
+    const cacheRoot = await mkdtemp(join(tmpdir(), "skillopt-operator-cache-"));
+    const runtimeDir = await mkdtemp(
+      join(tmpdir(), "skillopt-operator-runtime-"),
+    );
+    roots.push(cacheRoot, runtimeDir);
+
+    const base = await resolveOperatorBase({
+      runtimeDir,
+      cacheRoot,
+      tempRoot: "/missing-temp",
+    });
+
+    expect(base).toBe(join(cacheRoot, "kibi-skillopt", "operator"));
+    expect(existsSync(base)).toBe(true);
+  });
+
   test("smoke verifies pin and login then invokes paid canary", async () => {
     const root = await mkdtemp(join(tmpdir(), "skillopt-operator-smoke-"));
     roots.push(root);

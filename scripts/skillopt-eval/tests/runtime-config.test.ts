@@ -17,7 +17,9 @@ import {
 import {
   CodexAuthError,
   isolatedCodexEnvironment,
+  persistRefreshedLogin,
   prepareExistingLogin,
+  withPreparedLogin,
 } from "../runtime/codex-auth";
 import { buildCodexConfig, buildCodexExecArgv } from "../runtime/permissions";
 
@@ -74,6 +76,107 @@ describe("Codex existing-login isolation", () => {
       (await stat(join(paths.privateHome, "auth.json"))).mode & 0o777,
     ).toBe(0o600);
     expect(Bun.file(join(paths.privateHome, "config.toml")).size).toBe(0);
+  });
+
+  test("writes refreshed private tokens back to the host auth file", async () => {
+    // Given
+    const paths = await directories();
+    const original = JSON.stringify({
+      auth_mode: "chatgpt",
+      OPENAI_API_KEY: null,
+      tokens: { access_token: "old", refresh_token: "refresh-1" },
+    });
+    const refreshed = JSON.stringify({
+      auth_mode: "chatgpt",
+      OPENAI_API_KEY: null,
+      tokens: { access_token: "new", refresh_token: "refresh-2" },
+    });
+    await writeFile(join(paths.real, "auth.json"), original, { mode: 0o600 });
+    await writeFile(join(paths.privateHome, "auth.json"), refreshed, {
+      mode: 0o600,
+    });
+
+    // When
+    await persistRefreshedLogin({
+      mode: "file",
+      realCodexHome: paths.real,
+      privateCodexHome: paths.privateHome,
+    });
+
+    // Then
+    expect(await readFile(join(paths.real, "auth.json"), "utf8")).toBe(
+      refreshed,
+    );
+    expect((await stat(join(paths.real, "auth.json"))).mode & 0o777).toBe(
+      0o600,
+    );
+  });
+
+  test("does not clobber host auth when the private copy is invalid", async () => {
+    // Given
+    const paths = await directories();
+    const original = JSON.stringify({
+      auth_mode: "chatgpt",
+      tokens: { access_token: "keep" },
+    });
+    await writeFile(join(paths.real, "auth.json"), original, { mode: 0o600 });
+    await writeFile(
+      join(paths.privateHome, "auth.json"),
+      JSON.stringify({ auth_mode: "apikey", OPENAI_API_KEY: "secret" }),
+      { mode: 0o600 },
+    );
+
+    // When
+    const attempt = persistRefreshedLogin({
+      mode: "file",
+      realCodexHome: paths.real,
+      privateCodexHome: paths.privateHome,
+    });
+
+    // Then
+    await expect(attempt).rejects.toMatchObject({
+      name: "CodexAuthError",
+      kind: "auth_file",
+    });
+    expect(await readFile(join(paths.real, "auth.json"), "utf8")).toBe(
+      original,
+    );
+  });
+
+  test("writes Codex refresh mutations back through withPreparedLogin", async () => {
+    // Given
+    const paths = await directories();
+    const original = JSON.stringify({
+      auth_mode: "chatgpt",
+      OPENAI_API_KEY: null,
+      tokens: { access_token: "old", refresh_token: "refresh-1" },
+    });
+    const refreshed = JSON.stringify({
+      auth_mode: "chatgpt",
+      OPENAI_API_KEY: null,
+      tokens: { access_token: "new", refresh_token: "refresh-2" },
+    });
+    await writeFile(join(paths.real, "auth.json"), original, { mode: 0o600 });
+
+    // When
+    await withPreparedLogin(
+      {
+        privateCodexHome: paths.privateHome,
+        env: { PATH: process.env.PATH, CODEX_HOME: paths.real },
+        run: successfulLogin,
+      },
+      async (auth) => {
+        await writeFile(join(auth.privateCodexHome, "auth.json"), refreshed, {
+          mode: 0o600,
+        });
+        return "ok";
+      },
+    );
+
+    // Then
+    expect(await readFile(join(paths.real, "auth.json"), "utf8")).toBe(
+      refreshed,
+    );
   });
 
   test("uses keyring without copying credentials", async () => {
@@ -355,6 +458,9 @@ describe("Codex evaluator-owned permissions", () => {
     expect(config).toContain('":slash_tmp" = "deny"');
     expect(config).toContain(
       '"/run/work/.runtime/codex-resources/bwrap" = "read"',
+    );
+    expect(config).toContain(
+      '"/run/work/.runtime/codex-code-mode-host" = "read"',
     );
     expect(config).toContain('".kb" = "deny"');
     expect(config).toContain(`${JSON.stringify(paths.fixtureKb)} = "deny"`);

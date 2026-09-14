@@ -226,9 +226,29 @@ function reextractCanonicalSymbolEntity(
   };
 }
 
+// implements REQ-kibi-operation-interface-parity
+export type UpsertExecutionOptions = Readonly<{
+  /**
+   * Internal escape hatch for proof-receipt ingest: when provided, the
+   * authored document is written with exactly these bytes instead of the
+   * canonical re-render. Receipt appends must not canonicalize unrelated
+   * frontmatter — a mid-campaign reformat would change the workspace
+   * snapshot hash and make every later `kibi prove` integration refuse.
+   */
+  // implements REQ-kibi-operation-interface-parity
+  readonly sourceDocumentOverride?: string;
+  /**
+   * Internal escape hatch for `kibi proof prune`: the prune maintenance
+   * command deliberately shrinks a test's receipt history to its newest
+   * entries. Everything else keeps the append-only invariant fail-closed.
+   */
+  readonly allowReceiptsPrune?: boolean;
+}>;
+
 export async function executeUpsert(
   input: UpsertInput,
   context: OperationContext,
+  options: UpsertExecutionOptions = {},
 ): Promise<OperationResult<UpsertPayload>> {
   const branchAttachment =
     context.branchAttachment ?? resolveBranchAttachment(context.workspaceRoot);
@@ -271,7 +291,9 @@ export async function executeUpsert(
       compilerLock = await acquireSymbolCompilerLock(context.workspaceRoot);
     }
     const validated = validateUpsertInput(input, context.clock());
-    await validateAppendOnlyProofReceipts(validated.entity, context);
+    if (options.allowReceiptsPrune !== true) {
+      await validateAppendOnlyProofReceipts(validated.entity, context);
+    }
     validateRelationshipSources(input.id, validated.relationships);
     await validateSymbolGranularity(
       validated.entity,
@@ -339,6 +361,7 @@ export async function executeUpsert(
           validated.entity,
           existing,
           context,
+          options.sourceDocumentOverride,
         );
         if (sourceWrite !== null) {
           const sourceStep = sourceWrite;

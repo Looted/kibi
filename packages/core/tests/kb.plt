@@ -3497,6 +3497,113 @@ test(cleanup_temp_file_removes_existing_temp_file, [setup(setup_kb), cleanup(cle
 
 :- end_tests(kb_internal_coverage_gaps).
 
+:- begin_tests(requirement_applicability).
+
+test(req_status_vocabulary_accepts_canonical_and_legacy_statuses, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(req, 'REQ-CANON-OPEN', "Canonical open", open, []),
+    assert_fixture_entity(req, 'REQ-CANON-INPROG', "Canonical in_progress", in_progress, []),
+    assert_fixture_entity(req, 'REQ-CANON-CLOSED', "Canonical closed", closed, []),
+    assert_fixture_entity(req, 'REQ-LEGACY-ACTIVE', "Legacy active", active, []),
+    assert_fixture_entity(req, 'REQ-LEGACY-APPROVED', "Legacy approved", approved, []),
+    checks:check_req_status_vocabulary(Violations),
+    Violations == [].
+
+test(req_status_vocabulary_rejects_adr_statuses_on_requirements, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(req, 'REQ-ACCEPTED-STATUS', "Accepted status", accepted, [source="docs/requirements/REQ-ACCEPTED-STATUS.md"]),
+    checks:check_req_status_vocabulary([violation('req-status-vocabulary', 'REQ-ACCEPTED-STATUS', Description, Suggestion, Source)]),
+    assertion(sub_string(Description, _, _, _, "accepted")),
+    assertion(sub_string(Suggestion, _, _, _, "proof_exempt")),
+    Source == 'REQ-ACCEPTED-STATUS.md'.
+
+test(req_status_vocabulary_is_wired_into_check_all, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(req, 'REQ-BAD-STATUS', "Bad status", accepted, []),
+    checks:check_all(Dict),
+    member('REQ-BAD-STATUS'-_, Pairs),
+    dict_pairs(Dict, _, Pairs0),
+    assertion(member(req_status_vocabulary-_, Pairs0)),
+    checks:check_req_status_vocabulary([_|_]).
+
+test(requirement_proof_reports_typed_reason_for_noncurrent_status, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(req, 'REQ-ACCEPTED-NONCURRENT', "Accepted noncurrent", accepted, []),
+    kb_entity('REQ-ACCEPTED-NONCURRENT', req, Props),
+    requirement_proof:requirement_proof_context(unknown, "1970-01-01T00:00:00Z", 604800, Context),
+    requirement_proof:requirement_proof('REQ-ACCEPTED-NONCURRENT', Props, Context, Proof),
+    Proof.proofStatus == not_applicable,
+    Proof.proofGaps == [],
+    Applicability = Proof.proofStages.applicability,
+    Applicability.status == not_applicable,
+    sub_atom(Applicability.reason, _, _, _, "status 'accepted' is not a current requirement status").
+
+test(requirement_proof_reports_superseded_reason, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(req, 'REQ-OLD-SUPERSEDED', "Old requirement", closed, []),
+    assert_fixture_entity(req, 'REQ-NEW-CURRENT', "New requirement", open, [priority=must]),
+    kb_assert_relationship(supersedes, 'REQ-NEW-CURRENT', 'REQ-OLD-SUPERSEDED', []),
+    kb_entity('REQ-OLD-SUPERSEDED', req, Props),
+    requirement_proof:requirement_proof_context(unknown, "1970-01-01T00:00:00Z", 604800, Context),
+    requirement_proof:requirement_proof('REQ-OLD-SUPERSEDED', Props, Context, Proof),
+    Applicability = Proof.proofStages.applicability,
+    Applicability.status == not_applicable,
+    sub_atom(Applicability.reason, _, _, _, "superseded").
+
+test(requirement_proof_exempts_current_requirement_with_reason, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(req, 'REQ-EXEMPT', "Exempt requirement", open, [
+        priority=must,
+        proof_exempt=true,
+        proof_exempt_reason="toolchain currency: verified by CI, not product E2E"
+    ]),
+    kb_entity('REQ-EXEMPT', req, Props),
+    requirement_proof:requirement_proof_context(unknown, "1970-01-01T00:00:00Z", 604800, Context),
+    requirement_proof:requirement_proof('REQ-EXEMPT', Props, Context, Proof),
+    Proof.proofStatus == not_applicable,
+    Proof.proofGaps == [],
+    Applicability = Proof.proofStages.applicability,
+    Applicability.status == not_applicable,
+    sub_atom(Applicability.reason, _, _, _, "toolchain currency").
+
+test(requirement_proof_ignores_exemption_without_reason, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(req, 'REQ-EXEMPT-NO-REASON', "Exempt without reason", open, [
+        priority=must,
+        proof_exempt=true
+    ]),
+    kb_entity('REQ-EXEMPT-NO-REASON', req, Props),
+    requirement_proof:requirement_proof_context(unknown, "1970-01-01T00:00:00Z", 604800, Context),
+    requirement_proof:requirement_proof('REQ-EXEMPT-NO-REASON', Props, Context, Proof),
+    \+ Proof.proofStatus == not_applicable,
+    \+ dict_has_key(Proof.proofStages, applicability).
+
+test(coverage_report_status_filter_returns_only_matching_rows, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    seed_coverage_depth_fixture,
+    coverage_report_json(req, [], false, [not_applicable], true, 100, 0, unknown, "1970-01-01T00:00:00Z", 604800, JsonString),
+    json_string_dict(JsonString, Report),
+    Report.rows == [].
+test(coverage_report_status_filter_includes_not_applicable_with_reason, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(req, 'REQ-NA-STATUS', "N/A via status", accepted, []),
+    coverage_report_json(req, [], false, [not_applicable], true, 100, 0, unknown, "1970-01-01T00:00:00Z", 604800, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-NA-STATUS', Row),
+    Row.proofStatus == not_applicable,
+    sub_atom(Row.proofStages.applicability.reason, _, _, _, "accepted"),
+    Report.summary.total >= 1.
+
+test(coverage_report_status_filter_can_enumerate_missing_rows, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    seed_coverage_depth_fixture,
+    coverage_report_json(req, [], false, [missing], true, 100, 0, unknown, "1970-01-01T00:00:00Z", 604800, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-UNIT-ONLY', Row),
+    Row.proofStatus == missing,
+    forall(member(R, Report.rows), R.proofStatus == missing).
+
+test(production_symbol_stage_reports_reason_with_status, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(req, 'REQ-STAGE-REASON', "Stage reason", active, [priority=must]),
+    kb_entity('REQ-STAGE-REASON', req, Props),
+    requirement_proof:production_symbol_stage('REQ-STAGE-REASON', [], Stage, _),
+    Stage.status == missing,
+    sub_atom(Stage.reason, _, _, _, "no production symbols implement").
+
+dict_has_key(Dict, Key) :- is_dict(Dict), get_dict(Key, Dict, _).
+
+:- end_tests(requirement_applicability).
+
 % Test setup/cleanup helpers
 assert_fixture_entity(Type, Id, Title, Status, ExtraProps) :-
     (   memberchk(source=_, ExtraProps)

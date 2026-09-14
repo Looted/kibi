@@ -1,4 +1,4 @@
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
 import type { McpServerLaunch } from "./canary-runtime";
 import type { AuthMode } from "./codex-auth";
 import type { ProcessResult } from "./process";
@@ -70,6 +70,10 @@ function tomlString(value: string): string {
   return JSON.stringify(resolve(value));
 }
 
+export function stagedCodeModeHostExecutable(codexExecutable: string): string {
+  return resolve(dirname(codexExecutable), "codex-code-mode-host");
+}
+
 // implements REQ-skillopt-codex-optimization
 export function buildCodexConfig(options: CodexConfigOptions): string {
   const model = options.role === "target" ? TARGET_MODEL : OPTIMIZER_MODEL;
@@ -116,6 +120,7 @@ export function buildCodexConfig(options: CodexConfigOptions): string {
     '":minimal" = "read"',
     `${tomlString(options.bwrapExecutable)} = "read"`,
     `${tomlString(options.codexExecutable)} = "read"`,
+    `${tomlString(stagedCodeModeHostExecutable(options.codexExecutable))} = "read"`,
     ...[...deniedRoots].map((path) => `${tomlString(path)} = "deny"`),
     '":tmpdir" = "deny"',
     '":slash_tmp" = "deny"',

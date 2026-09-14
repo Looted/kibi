@@ -230,3 +230,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-755822d8705d
+  - type: implements
+    from: SYM-x-oc-PluginEventInput
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-09-13T20:10:33.669Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a929d6a93aa
+  - type: covered_by
+    from: SYM-x-oc-PluginEventInput
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-09-13T20:10:33.686Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d9ff41eca24d
+  - type: implements
+    from: SYM-x-oc-SmartEnforcementState
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-09-13T20:11:07.927Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6fe6883a092e
+  - type: covered_by
+    from: SYM-x-oc-SmartEnforcementState
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-09-13T20:11:07.949Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59c73a2753ce
+  - type: covered_by
+    from: SYM-x-oc-PluginEventInput
+    to: TEST-opencode-kibi-plugin-v1-coverage
+    created_at: 2026-09-14T04:47:22.858Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-656bafa1f5bb
+  - type: covered_by
+    from: SYM-x-oc-SmartEnforcementState
+    to: TEST-opencode-kibi-plugin-v1-coverage
+    created_at: 2026-09-14T04:47:44.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-323408c81570
+  - type: covered_by
+    from: SYM-x-oc-PluginEventInput
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-09-14T06:25:33.680Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-825f28a0c42b
+  - type: covered_by
+    from: SYM-x-oc-SmartEnforcementState
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-09-14T06:25:47.714Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-475a7c0104d7

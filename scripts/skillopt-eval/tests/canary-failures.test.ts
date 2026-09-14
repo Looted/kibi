@@ -44,11 +44,16 @@ beforeAll(async () => {
     encoding: "utf8",
     mode: 0o700,
   });
+  await writeFile(join(root, "codex-code-mode-host"), "#!/bin/sh\nexit 0\n", {
+    encoding: "utf8",
+    mode: 0o700,
+  });
   await writeFile(fakeBwrapExecutable, "#!/bin/sh\nexit 0\n", {
     encoding: "utf8",
     mode: 0o700,
   });
   await chmod(fakeCodexExecutable, 0o500);
+  await chmod(join(root, "codex-code-mode-host"), 0o500);
   await chmod(fakeBwrapExecutable, 0o500);
 });
 afterAll(async () => {

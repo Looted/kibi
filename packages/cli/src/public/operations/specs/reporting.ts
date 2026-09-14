@@ -53,6 +53,8 @@ export type CoverageInput = {
   readonly by?: "req" | "symbol" | "type";
   readonly tags?: readonly string[];
   readonly includePassing?: boolean;
+  /** Requirement proof-status filter (req mode). Implies include-passing. */
+  readonly statuses?: readonly string[];
   readonly includeTransitive?: boolean;
   readonly limit?: number;
   readonly offset?: number;
@@ -103,6 +105,22 @@ function validateEntityType(type?: string): void {
       `Invalid type '${type}'. Valid types: ${ENTITY_TYPES.join(", ")}. Use a single type value, or omit this parameter to query all entities.`,
     );
   }
+}
+
+const COVERAGE_PROOF_STATUSES: ReadonlySet<string> = new Set([
+  "proven",
+  "missing",
+  "unresolved",
+  "not_applicable",
+]);
+
+function validateCoverageStatus(status: string): string {
+  if (!COVERAGE_PROOF_STATUSES.has(status)) {
+    throw new Error(
+      `Invalid coverage status '${status}'. Valid statuses: ${[...COVERAGE_PROOF_STATUSES].join(", ")}.`,
+    );
+  }
+  return status;
 }
 
 export async function executeFindGaps(
@@ -171,10 +189,17 @@ export async function executeCoverage(
       ? snapshotEvidence.snapshot.hash
       : "unknown";
     const checkedAt = context.clock().toISOString();
+    const statuses = (input.statuses ?? []).map((status) =>
+      validateCoverageStatus(status),
+    );
+    const goal =
+      statuses.length > 0
+        ? `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${toPrologList(statuses)}, ${input.includeTransitive ?? true}, ${input.limit ?? 100}, ${input.offset ?? 0}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`
+        : `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${input.includeTransitive ?? true}, ${input.limit ?? 100}, ${input.offset ?? 0}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`;
     const payload = await runOperationJsonQuery<CoveragePayload>(
       requireProlog(context),
       "discovery.pl",
-      `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${input.includeTransitive ?? true}, ${input.limit ?? 100}, ${input.offset ?? 0}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`,
+      goal,
       "Coverage execution",
     );
     const repairPlan = buildRepairPlan(payload, input, codeSnapshot);
@@ -278,6 +303,15 @@ export const coverageSpec = {
       by: { type: "string", enum: ["req", "symbol", "type"], default: "req" },
       tags: { type: "array", items: { type: "string" } },
       includePassing: { type: "boolean", default: false },
+      statuses: {
+        type: "array",
+        items: {
+          type: "string",
+          enum: ["proven", "missing", "unresolved", "not_applicable"],
+        },
+        description:
+          "Requirement proof-status filter (req mode): include only rows whose proofStatus is listed. Selecting statuses implies include-passing; not_applicable rows carry their typed applicability reason in proofStages.applicability.reason. The summary always reflects the whole KB.",
+      },
       includeTransitive: { type: "boolean", default: true },
       limit: { type: "integer", default: 100 },
       offset: { type: "integer", default: 0 },

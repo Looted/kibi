@@ -14,7 +14,7 @@ import {
   writeCapabilityProbe,
 } from "./canary-runtime";
 import type { McpServerLaunch, probeCodexSandbox } from "./canary-runtime";
-import { CodexAuthError, prepareExistingLogin } from "./codex-auth";
+import { CodexAuthError, withPreparedLogin } from "./codex-auth";
 import {
   type IsolationWorkspace,
   createIsolationWorkspace,
@@ -114,14 +114,19 @@ export async function runModelCanary(
   let authMode: "file" | "keyring" | null = null;
   let events: readonly Readonly<Record<string, unknown>>[] = [];
   let paidModelCalls: 0 | 1 = 0;
+  // Narrowing helper: assignments inside the retry closure are invisible to
+  // control-flow analysis at the catch site, so compare through a function.
+  const paidCallHappened = (): boolean => paidModelCalls === 1;
   try {
-    const auth = await prepareExistingLogin({
-      privateCodexHome: workspace.codexHome,
-      sandboxHome: workspace.sandboxHome,
-      env: context.env,
-      run: (argv, childEnv) =>
-        context.run(argv, workspace.target, childEnv, 15_000),
-    });
+    return await withPreparedLogin(
+      {
+        privateCodexHome: workspace.codexHome,
+        sandboxHome: workspace.sandboxHome,
+        env: context.env,
+        run: (argv, childEnv) =>
+          context.run(argv, workspace.target, childEnv, 15_000),
+      },
+      async (auth) => {
     authMode = auth.mode;
     const staged = await stageCapabilityCanary(
       workspace,
@@ -251,6 +256,8 @@ export async function runModelCanary(
       );
     }
     return { kind: "pass", authMode, run };
+      },
+    );
   } catch (error) {
     if (
       error instanceof CodexAuthError ||
@@ -265,7 +272,7 @@ export async function runModelCanary(
         authMode,
         paidModelCalls,
         reason: error.message,
-        ...(paidModelCalls === 1
+        ...(paidCallHappened()
           ? { run: modelRun(context.role, events) }
           : {}),
       };
@@ -279,7 +286,7 @@ export async function runModelCanary(
       authMode,
       paidModelCalls,
       reason: `canary_infrastructure:${reason}`,
-      ...(paidModelCalls === 1 ? { run: modelRun(context.role, events) } : {}),
+      ...(paidCallHappened() ? { run: modelRun(context.role, events) } : {}),
     };
   } finally {
     await workspace.cleanup();

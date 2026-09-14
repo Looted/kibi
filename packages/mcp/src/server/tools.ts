@@ -26,6 +26,7 @@ import {
   appendDiagnosticErrorUsage,
   appendDiagnosticSuccessUsage,
 } from "./diagnostic-usage.js";
+import { getJob, jobSnapshot } from "./jobs.js";
 import { jsonSchemaToZod } from "./json-schema-to-zod.js";
 import { registerConfiguredTools } from "./tool-registration.js";
 import type {
@@ -365,4 +366,73 @@ export function registerAllTools<TProlog>(
   runtime: ToolsRuntime<TProlog> = DEFAULT_TOOLS_RUNTIME as unknown as ToolsRuntime<TProlog>,
 ): void {
   registerConfiguredTools(server, runtime, addTool);
+  registerJobStatusTool(server);
+}
+
+/**
+ * kb_job_status polls background jobs started by long-running operations
+ * (currently `kb_check` with `async: true`). This is an MCP-server-native
+ * companion to the job receipts, not part of the canonical CLI operation
+ * catalog: jobs live in the server process and have no CLI counterpart.
+ */
+function registerJobStatusTool(server: McpServer): void {
+  addTool(
+    server,
+    "kb_job_status",
+    "Poll a background job started with async:true (e.g. kb_check async jobs). Returns the kibi.job.v1 state: running, succeeded (with the full result), or failed (with the error).",
+    {
+      type: "object",
+      properties: {
+        jobId: {
+          type: "string",
+          description: "The jobId from the kibi.job.v1 receipt.",
+        },
+      },
+      required: ["jobId"],
+    },
+    async (args) => {
+      const jobId = typeof args.jobId === "string" ? args.jobId : "";
+      const job = jobId === "" ? undefined : getJob(jobId);
+      if (job === undefined) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                kibiProtocol: 1,
+                jobVersion: "kibi.job.v1",
+                jobId,
+                status: "unknown",
+                error:
+                  "No such job. Jobs are process-local and dropped on server restart; check the jobId or re-run the operation with async:true.",
+              }),
+            },
+          ],
+          structuredContent: {
+            kibiProtocol: 1,
+            jobVersion: "kibi.job.v1",
+            jobId,
+            status: "unknown",
+            error:
+              "No such job. Jobs are process-local and dropped on server restart; check the jobId or re-run the operation with async:true.",
+          },
+        };
+      }
+      const snapshot = jobSnapshot(job);
+      return {
+        content: [{ type: "text", text: JSON.stringify(snapshot) }],
+        structuredContent: snapshot,
+      };
+    },
+    undefined,
+    undefined,
+    undefined,
+    {
+      title: "Poll a Kibi background job",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
+  );
 }

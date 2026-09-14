@@ -108,8 +108,8 @@ export async function resolveOperatorBase(
   },
 ): Promise<string> {
   const candidates = [
-    options.runtimeDir,
     options.cacheRoot,
+    options.runtimeDir,
     options.tempRoot ?? tmpdir(),
   ].filter((value): value is string => value !== undefined && value !== "");
 
