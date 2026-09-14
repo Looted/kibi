@@ -98,6 +98,7 @@ Extracts entities and relationships from project documents and updates the knowl
 - `--validate-only` - Perform validation without making mutations
 - `--rebuild` - Rebuild branch snapshot from scratch (discards current KB)
 - `--refresh-symbol-coordinates` - Refresh symbol location data in `.kb/symbol-coordinates.yaml` during sync. Explicit refreshes are fatal on artifact errors, force coordinate-bearing symbols to persist even when normalized hashes match cached state, and only then advance the sync cache (version 2, workspace-root-relative keys; the artifact is a compiler dependency of `symbols.yaml`).
+  Extraction misses are reported as failed, including Python and other files handled by the text heuristic. If a qualified symbol title cannot be located, query and validate/upsert a corrected title/sourceFile or an intentional `granularity_reason: extractor-miss` before refreshing. Coverage only offers automatic coordinate repair when current extraction or an explicit coarse anchor can produce coordinates.
 
 **Notes (sync + MCP):**
 

@@ -139,3 +139,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ef24e7758c59
+  - type: implements
+    from: SYM-migration-compare-ready-actions
+    to: REQ-agent-guided-migration-orchestration
+    created_at: 2026-09-14T13:37:44.400Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d39dac6f498
+  - type: covered_by
+    from: SYM-migration-compare-ready-actions
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-09-14T13:37:44.410Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1eeecfbdfbb2

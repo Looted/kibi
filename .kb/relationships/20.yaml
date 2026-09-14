@@ -174,3 +174,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c464375b3409
+  - type: validates
+    from: TEST-coordinate-repair-capability
+    to: SCEN-kibi-dependency-ordered-repair-plan
+    created_at: 2026-09-14T13:22:41.819Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e3fb05d5b37
+  - type: validates
+    from: TEST-coordinate-repair-capability
+    to: SCEN-001
+    created_at: 2026-09-14T13:22:41.843Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5198bddb2a14
+  - type: validates
+    from: TEST-coordinate-repair-capability
+    to: SCEN-agent-guided-migration-orchestration
+    created_at: 2026-09-14T13:22:41.853Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9bcd5dfb1f19

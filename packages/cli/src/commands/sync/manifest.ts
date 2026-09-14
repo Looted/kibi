@@ -88,17 +88,6 @@ export const SYMBOLS_MANIFEST_COMMENT_BLOCK = `# symbols.yaml
 #   granularity_reason to opt it into the coarse fallback.
 `;
 
-const SYMBOL_COORD_EXTENSIONS = new Set([
-  ".ts",
-  ".tsx",
-  ".js",
-  ".jsx",
-  ".mts",
-  ".cts",
-  ".mjs",
-  ".cjs",
-]);
-
 const GENERATED_COORD_FIELDS = [
   "sourceLine",
   "sourceColumn",
@@ -469,9 +458,9 @@ export function isEligibleForCoordinateRefresh(
     ? sourceFile
     : path.resolve(workspaceRoot, sourceFile);
 
-  if (!resolved.existsSync(absolute)) return false;
-  const ext = path.extname(absolute).toLowerCase();
-  return SYMBOL_COORD_EXTENSIONS.has(ext);
+  // Non-JS/TS files also undergo coordinate extraction through the text
+  // heuristic. A miss there must be reported just like an AST extraction miss.
+  return resolved.existsSync(absolute);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

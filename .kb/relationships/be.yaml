@@ -132,3 +132,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ce2479303a8f
+  - type: covered_by
+    from: SYM-operation-executeCoverage
+    to: TEST-coordinate-repair-capability
+    created_at: 2026-09-14T13:29:22.820Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4572611f8072

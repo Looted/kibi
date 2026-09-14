@@ -195,3 +195,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3e010fd96012
+  - type: implements
+    from: SYM-coordinate-repair-symbol-plan
+    to: REQ-kibi-dependency-ordered-repair-plan
+    created_at: 2026-09-14T13:24:25.818Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1be08a89944
+  - type: covered_by
+    from: SYM-coordinate-repair-symbol-plan
+    to: TEST-coordinate-repair-capability
+    created_at: 2026-09-14T13:24:25.833Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77758b5f730d
+  - type: covered_by
+    from: SYM-coordinate-repair-symbol-plan
+    to: TEST-kibi-dependency-ordered-repair-plan
+    created_at: 2026-09-14T13:24:25.842Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ad27f888a0a

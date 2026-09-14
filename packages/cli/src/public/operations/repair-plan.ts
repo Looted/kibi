@@ -427,7 +427,38 @@ function buildRequirementBatches(
   );
   const priorBatchIds: string[] = [];
   return phases.map((phase) => {
-    const definition = REPAIR_PHASES[phase];
+    const phaseRepairs = byPhase.get(phase) ?? [];
+    const coordinatesNeedReview =
+      phase === "source_coordinates" &&
+      phaseRepairs.some((repair) => {
+        const evidence = repair.evidence.coordinateRepairs;
+        return (
+          repair.gap !== "missing_symbol_coordinates" ||
+          !Array.isArray(evidence) ||
+          evidence.length === 0 ||
+          evidence.some((item) => !isRecord(item) || item.refreshable !== true)
+        );
+      });
+    const definition: RepairPhaseDefinition = coordinatesNeedReview
+      ? {
+          ...REPAIR_PHASES[phase],
+          objective: phaseRepairs.some(
+            (repair) => repair.gap === "missing_requirement_source",
+          )
+            ? "Bind the requirement to its current source document through validated upsert and inspect any missing symbol anchors before refreshing."
+            : "Query the affected symbols and repair their sourceFile/title or explicitly author granularity_reason: extractor-miss (or another intentional coarse anchor) through validated upsert before refreshing.",
+          workflowSteps: [
+            "kb_query",
+            "kb_validate_upsert",
+            "kb_upsert",
+            "kibi sync --refresh-symbol-coordinates",
+            "kibi sync",
+            "kb_check",
+            "kb_coverage",
+          ],
+          writePolicy: "review_then_sequential_upsert",
+        }
+      : REPAIR_PHASES[phase];
     const id = batchId(requirementId, phase);
     const batch: RepairPlanBatch = {
       id,
@@ -441,11 +472,17 @@ function buildRequirementBatches(
       validationRules: definition.validationRules,
       writePolicy: definition.writePolicy,
       autoApplicable: false,
-      repairs: (byPhase.get(phase) ?? []).sort(
-        (left, right) =>
-          left.proofPriority - right.proofPriority ||
-          left.gap.localeCompare(right.gap),
-      ),
+      repairs: phaseRepairs
+        .map((repair) =>
+          coordinatesNeedReview
+            ? { ...repair, action: definition.objective }
+            : repair,
+        )
+        .sort(
+          (left, right) =>
+            left.proofPriority - right.proofPriority ||
+            left.gap.localeCompare(right.gap),
+        ),
     };
     priorBatchIds.push(id);
     return batch;
