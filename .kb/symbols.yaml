@@ -34577,22 +34577,6 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-journaled-engine-persistence
-  - id: SYM-store-lock-holder-state
-    title: StoreLock-holder-state
-    status: active
-    sourceFile: packages/cli/src/prolog/store-lock.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-core-journaled-engine-persistence
-  - id: SYM-store-lock-takeover-decision
-    title: StoreLock-takeover-decision
-    status: active
-    sourceFile: packages/cli/src/prolog/store-lock.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: implements
-        target: REQ-core-journaled-engine-persistence
   - id: SYM-request-engine-signal-shutdown
     title: requestEngineSignalShutdown
     status: active
