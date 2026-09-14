@@ -5060,18 +5060,6 @@ symbols:
         target: TEST-codex-kibi-plugin-v1
       - type: implements
         target: REQ-codex-kibi-plugin-v1
-  - id: SYM-codex-bootstrapReminder
-    title: BOOTSTRAP_REMINDER
-    sourceFile: packages/codex/src/messages.ts
-    links:
-      - REQ-codex-kibi-plugin-v1
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
   - id: SYM-codex-clearDirtyPaths
     title: clearDirtyPaths
     sourceFile: packages/codex/src/hook-state.ts
@@ -5228,6 +5216,18 @@ symbols:
         target: TEST-codex-kibi-plugin-v1
       - type: implements
         target: REQ-codex-kibi-plugin-v1
+  - id: SYM-codex-isInvokedAsCli
+    title: isInvokedAsCli
+    sourceFile: packages/codex/src/hook-runner.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
   - id: SYM-codex-isMeaningfulTrackedPath
     title: isMeaningfulTrackedPath
     sourceFile: packages/codex/src/path-policy.ts
@@ -5263,9 +5263,45 @@ symbols:
         target: REQ-codex-kibi-plugin-v1
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-KIBI_WORKSPACE_ENV_KEYS
+    title: KIBI_WORKSPACE_ENV_KEYS
+    sourceFile: packages/codex/src/workspace-optin.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+  - id: SYM-codex-KibiWorkspaceResolution
+    title: KibiWorkspaceResolution
+    sourceFile: packages/codex/src/workspace-optin.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
   - id: SYM-codex-loadHookState
     title: loadHookState
     sourceFile: packages/codex/src/hook-state.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+  - id: SYM-codex-main
+    title: main
+    sourceFile: packages/codex/src/hook-runner.ts
     links:
       - REQ-codex-kibi-plugin-v1
     status: active
@@ -5333,10 +5369,58 @@ symbols:
         target: TEST-codex-kibi-plugin-v1
       - type: implements
         target: REQ-codex-kibi-plugin-v1
+  - id: SYM-codex-resolveKibiWorkspace
+    title: resolveKibiWorkspace
+    sourceFile: packages/codex/src/workspace-optin.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+  - id: SYM-codex-resolveWorkspaceStateDir
+    title: resolveWorkspaceStateDir
+    sourceFile: packages/codex/src/hook-state.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
   - id: SYM-codex-runHook
     title: runHook
     sourceFile: packages/codex/src/hook-runner.ts
     text_ref: packages/codex/src/hook-runner.ts#runHook
+    links:
+      - REQ-codex-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+  - id: SYM-codex-runHookCli
+    title: runHookCli
+    sourceFile: packages/codex/src/hook-runner.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+  - id: SYM-codex-runHookCliIfMain
+    title: runHookCliIfMain
+    sourceFile: packages/codex/src/hook-runner.ts
     links:
       - REQ-codex-kibi-plugin-v1
     status: active

@@ -1,7 +1,7 @@
 // implements REQ-codex-kibi-plugin-v1
-export const BOOTSTRAP_REMINDER =
-  "Kibi is not initialized for this workspace. Use the Kibi MCP workflow to bootstrap project memory before relying on KB lookups; do not edit .kb/ files directly.";
-
+// The plugin stays silent in workspaces that never opted into Kibi, so there
+// is deliberately no bootstrap reminder: initialization happens only when the
+// user explicitly runs the kibi-bootstrap skill or `kibi init`.
 export const DIRECT_KB_EDIT_WARNING =
   "Avoid direct edits to .kb/. Use Kibi MCP tools for KB discovery and mutations so project memory stays valid.";
 

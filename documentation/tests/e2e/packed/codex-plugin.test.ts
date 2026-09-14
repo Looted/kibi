@@ -1,20 +1,20 @@
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import {
+  chmodSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
-  readdirSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { delimiter, join, relative, resolve } from "node:path";
+import { dirname, join } from "node:path";
 import { after, before, describe, it } from "node:test";
 import {
   type Tarballs,
-  type TestSandbox,
-  createSandbox,
+  isolatedPackedSandboxEnv,
   packAll,
   run,
 } from "./helpers.js";
@@ -23,168 +23,331 @@ type McpServerConfig = {
   command?: string;
   args?: string[];
   cwd?: string;
+  enabled?: boolean;
+  startup_timeout_sec?: number;
+  tool_timeout_sec?: number;
+  default_tools_approval_mode?: string;
 };
 
 type CodexMcpConfig = {
   mcpServers?: Record<string, McpServerConfig>;
 };
 
-function npxInstallCacheEntries(cacheDir: string): string[] {
-  const installCache = join(cacheDir, "_npx");
-  if (!existsSync(installCache)) return [];
-  const pending = [installCache];
-  const files: string[] = [];
-  while (pending.length > 0) {
-    const directory = pending.pop();
-    if (!directory) continue;
-    for (const entry of readdirSync(directory, { withFileTypes: true })) {
-      const entryPath = join(directory, entry.name);
-      if (entry.isDirectory()) pending.push(entryPath);
-      else files.push(relative(installCache, entryPath));
+/**
+ * Drive the packed launcher exactly like the Codex host does: spawn
+ * `node -e <inline source>` from the session workspace, write JSON-RPC lines
+ * to stdin, and collect the responses until the process exits.
+ */
+function runLauncherMcp(
+  inlineSource: string,
+  cwd: string,
+  env: NodeJS.ProcessEnv,
+  requests: unknown[],
+): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, ["-e", inlineSource], {
+      cwd,
+      env,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout?.on("data", (data: Buffer) => {
+      stdout += data.toString("utf8");
+    });
+    child.stderr?.on("data", (data: Buffer) => {
+      stderr += data.toString("utf8");
+    });
+    child.on("error", reject);
+    for (const request of requests) {
+      child.stdin?.write(`${JSON.stringify(request)}\n`);
     }
-  }
-  return files.sort();
-}
-
-function projectEnv(
-  sandbox: TestSandbox,
-  consumerRoot: string,
-  cacheDir: string,
-): NodeJS.ProcessEnv {
-  const pathEntries = (process.env.PATH ?? "")
-    .split(delimiter)
-    .filter(
-      (entry) =>
-        resolve(entry) !==
-        resolve(join(sandbox.npmPrefix, "node_modules", ".bin")),
-    );
-  return {
-    ...sandbox.env,
-    HOME: join(consumerRoot, "home"),
-    USERPROFILE: join(consumerRoot, "home"),
-    npm_config_cache: cacheDir,
-    npm_config_update_notifier: "false",
-    PATH: [join(consumerRoot, "node_modules", ".bin"), ...pathEntries].join(
-      delimiter,
-    ),
-  };
+    child.stdin?.end();
+    child.on("close", (code) => {
+      resolve({ exitCode: code ?? -1, stdout, stderr });
+    });
+  });
 }
 
 describe(
-  "packed Codex plugin consumer-local MCP registration",
+  "packed Codex plugin workspace opt-in",
   { concurrency: false },
   () => {
     let tarballs: Tarballs;
-    let sandbox: TestSandbox;
     const tempRoots: string[] = [];
+    let pluginRoot: string;
+    let inlineLauncherSource: string;
 
-    before(
-      async () => {
-        tarballs = await packAll();
-        sandbox = createSandbox();
-        await sandbox.install(tarballs);
-      },
-      { timeout: 300_000 },
-    );
+    before(async () => {
+      tarballs = await packAll();
+      const fixtureRoot = mkdtempSync(join(tmpdir(), "kibi-codex-packed-"));
+      tempRoots.push(fixtureRoot);
+      pluginRoot = join(fixtureRoot, "plugin-cache", "kibi-codex");
+      mkdirSync(pluginRoot, { recursive: true });
+      const extracted = await run(
+        "tar",
+        ["-xzf", tarballs.codex, "--strip-components=1", "-C", pluginRoot],
+        { cwd: pluginRoot, env: isolatedPackedSandboxEnv() },
+      );
+      assert.equal(extracted.exitCode, 0, extracted.stderr);
+      const config = JSON.parse(
+        readFileSync(join(pluginRoot, ".mcp.json"), "utf8"),
+      ) as CodexMcpConfig;
+      inlineLauncherSource = config.mcpServers?.kibi?.args?.[1] ?? "";
+    });
 
     after(async () => {
-      if (sandbox) await sandbox.cleanup();
-      for (const root of tempRoots) {
+      for (const root of tempRoots.splice(0)) {
         rmSync(root, { recursive: true, force: true });
       }
     });
 
+    function launcherEnv(overrides: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv {
+      return isolatedPackedSandboxEnv(overrides);
+    }
+
     it(
-      "uses the active consumer cwd for the packed plugin and refuses missing installs",
-      { timeout: 120_000 },
-      async () => {
-        const fixtureRoot = mkdtempSync(join(tmpdir(), "kibi-codex-packed-"));
-        tempRoots.push(fixtureRoot);
-        const pluginRoot = join(fixtureRoot, "plugin-cache", "kibi-codex");
-        // The packed harness has already installed all packed Kibi packages in
-        // an isolated npm consumer prefix. Keep the plugin cache elsewhere so
-        // resolution can prove it uses the active task cwd.
-        const consumerRoot = sandbox.npmPrefix;
-        const cacheDir = join(fixtureRoot, "npm-cache");
-        mkdirSync(pluginRoot, { recursive: true });
-        mkdirSync(cacheDir, { recursive: true });
-        const extractedPlugin = await run(
-          "tar",
-          ["-xzf", tarballs.codex, "--strip-components=1", "-C", pluginRoot],
-          { cwd: sandbox.repoDir, env: sandbox.env },
+      "packs executable hook assets and the inline launcher config",
+      { timeout: 30_000 },
+      () => {
+        // The hook commands invoke node against dist/hook-runner.js; plugin
+        // installs that miss the built assets break every lifecycle hook.
+        assert.equal(
+          existsSync(join(pluginRoot, "dist", "hook-runner.js")),
+          true,
+          "packed plugin is missing dist/hook-runner.js",
         );
-        assert.equal(extractedPlugin.exitCode, 0, extractedPlugin.stderr);
+        assert.equal(
+          existsSync(join(pluginRoot, "dist", "hook-input.js")),
+          true,
+          "packed plugin is missing compiled hook modules",
+        );
+        assert.equal(
+          existsSync(join(pluginRoot, "hooks", "hooks.json")),
+          true,
+        );
+        assert.equal(
+          existsSync(join(pluginRoot, ".codex-plugin", "plugin.json")),
+          true,
+        );
+        assert.equal(
+          existsSync(join(pluginRoot, "skills", "kibi-usage", "SKILL.md")),
+          true,
+        );
 
         const config = JSON.parse(
           readFileSync(join(pluginRoot, ".mcp.json"), "utf8"),
         ) as CodexMcpConfig;
         const server = config.mcpServers?.kibi;
         assert.ok(server, "packed plugin omitted mcpServers.kibi");
-        const command = server.command;
-        const args = server.args;
-        assert.equal(command, "npx");
-        assert.deepEqual(args, ["--no-install", "kibi-mcp"]);
         assert.equal(server.cwd, undefined);
-        assert.ok(command);
+        assert.equal(server.enabled, true);
+        assert.equal(server.startup_timeout_sec, 30);
+        assert.equal(server.tool_timeout_sec, 60);
+        assert.equal(server.default_tools_approval_mode, "prompt");
+        assert.equal(server.command, "node");
+        assert.deepEqual(server.args?.slice(0, 1), ["-e"]);
 
-        const env = projectEnv(sandbox, consumerRoot, cacheDir);
-        const result = await run(
-          command,
-          [...(args ?? []), "--print-resolution"],
-          { cwd: consumerRoot, env },
+        const source = inlineLauncherSource;
+        assert.ok(source.length > 0, "inline launcher source is empty");
+        assert.ok(
+          source.trimEnd().endsWith("main();"),
+          "inline launcher never invokes its entrypoint",
         );
-        assert.equal(result.exitCode, 0, result.stderr);
-        const resolution = JSON.parse(result.stdout) as {
-          cwd?: string;
-          running?: { entrypoint?: string };
-          projectLocal?: { entrypoint?: string };
-        };
-        assert.equal(resolve(resolution.cwd ?? ""), resolve(consumerRoot));
-        for (const entrypoint of [
-          resolution.running?.entrypoint,
-          resolution.projectLocal?.entrypoint,
-        ]) {
-          assert.ok(entrypoint, "resolution did not report an entrypoint");
-          const withinConsumer = relative(consumerRoot, entrypoint);
-          assert.ok(
-            withinConsumer === "" ||
-              (!withinConsumer.startsWith("..") &&
-                !withinConsumer.startsWith("/")),
-            `resolution escaped consumer root: ${entrypoint}`,
-          );
-          assert.match(withinConsumer, /kibi-mcp/);
-        }
+        assert.match(source, /require\.main === module/);
+        assert.match(source, /\.kb\/manifest\.json/);
+        assert.match(source, /"--no-install"/);
+        assert.match(source, /KIBI_WORKSPACE/);
+      },
+    );
 
-        // Use a second disposable consumer for the negative case. The packed
-        // harness prefix may be shared with other test files and must remain
-        // immutable after the positive resolution assertion.
-        const missingConsumerRoot = join(fixtureRoot, "missing-consumer");
-        mkdirSync(join(missingConsumerRoot, "node_modules", ".bin"), {
-          recursive: true,
-        });
-        const missingPackageJson = join(missingConsumerRoot, "package.json");
-        const missingPackageRoot = join(
-          missingConsumerRoot,
-          "node_modules",
-          "kibi-mcp",
-        );
-        writeFileSync(
-          missingPackageJson,
-          JSON.stringify({ name: "codex-missing-consumer", private: true }),
-        );
-        const beforeMissing = npxInstallCacheEntries(cacheDir);
-        const missing = await run(
-          command,
-          [...(args ?? []), "--print-resolution"],
+    it(
+      "starts cleanly with zero tools in unconfigured workspaces",
+      { timeout: 30_000 },
+      async () => {
+        const workspace = mkdtempSync(join(tmpdir(), "kibi-codex-plain-"));
+        tempRoots.push(workspace);
+
+        const result = await runLauncherMcp(inlineLauncherSource, workspace, launcherEnv(), [
           {
-            cwd: missingConsumerRoot,
-            env: projectEnv(sandbox, missingConsumerRoot, cacheDir),
+            jsonrpc: "2.0",
+            id: 1,
+            method: "initialize",
+            params: { protocolVersion: "2025-06-18", clientInfo: { name: "codex" } },
           },
+          { jsonrpc: "2.0", method: "notifications/initialized" },
+          { jsonrpc: "2.0", id: 2, method: "tools/list" },
+        ]);
+
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stderr, "");
+        const lines = result.stdout
+          .split("\n")
+          .filter((line) => line.trim().length > 0)
+          .map((line) => JSON.parse(line) as Record<string, unknown>);
+        const initialize = lines.find(
+          (message) => message.id === 1,
+        ) as { result?: { serverInfo?: { name?: string }; instructions?: string } };
+        assert.equal(initialize?.result?.serverInfo?.name, "kibi-codex-launcher");
+        assert.equal(initialize?.result?.instructions, undefined);
+        const tools = lines.find((message) => message.id === 2) as {
+          result?: { tools?: unknown[] };
+        };
+        assert.deepEqual(tools?.result?.tools, []);
+      },
+    );
+
+    it(
+      "proxies the project-local kibi-mcp from configured workspaces and subdirectories",
+      { timeout: 30_000 },
+      async () => {
+        const fixtureRoot = mkdtempSync(join(tmpdir(), "kibi-codex-configured-"));
+        tempRoots.push(fixtureRoot);
+        const workspace = join(fixtureRoot, "workspace");
+        const subdir = join(workspace, "packages", "app");
+        mkdirSync(join(workspace, ".kb"), { recursive: true });
+        mkdirSync(subdir, { recursive: true });
+        writeFileSync(join(workspace, ".kb", "manifest.json"), "{}\n");
+
+        const fakeBin = join(fixtureRoot, "fakebin");
+        mkdirSync(fakeBin, { recursive: true });
+        // Stub npx: the resolution probe succeeds, then the "server" relays a
+        // stub tool catalog and records how the launcher spawned it.
+        const stubPath = join(fakeBin, "npx");
+        writeFileSync(
+          stubPath,
+          `#!/usr/bin/env node
+const fs = require("node:fs");
+const log = ${JSON.stringify(join(fixtureRoot, "npx-invocations.jsonl"))};
+fs.appendFileSync(log, JSON.stringify({
+  argv: process.argv.slice(1),
+  cwd: process.cwd(),
+  kibiWorkspace: process.env.KIBI_WORKSPACE ?? null,
+}) + "\\n");
+const args = process.argv.slice(2);
+if (args.includes("--print-resolution")) {
+  process.stdout.write(JSON.stringify({ ok: true }));
+  process.exit(0);
+}
+process.stdin.setEncoding("utf8");
+let buffer = "";
+process.stdin.on("data", (chunk) => {
+  buffer += chunk;
+  for (;;) {
+    const index = buffer.indexOf("\\n");
+    if (index < 0) break;
+    const line = buffer.slice(0, index);
+    buffer = buffer.slice(index + 1);
+    if (!line.trim()) continue;
+    const message = JSON.parse(line);
+    if (message.method === "initialize") {
+      process.stdout.write(JSON.stringify({
+        jsonrpc: "2.0",
+        id: message.id,
+        result: { protocolVersion: "2025-06-18", capabilities: {}, serverInfo: { name: "stub-kibi-mcp", version: "0.0.0" } },
+      }) + "\\n");
+    } else if (message.method === "tools/list") {
+      process.stdout.write(JSON.stringify({
+        jsonrpc: "2.0",
+        id: message.id,
+        result: { tools: [{ name: "stub_tool" }] },
+      }) + "\\n");
+    }
+  }
+});
+`,
         );
-        assert.notEqual(missing.exitCode, 0);
-        assert.deepEqual(npxInstallCacheEntries(cacheDir), beforeMissing);
-        assert.equal(existsSync(missingPackageRoot), false);
-        assert.equal(existsSync(missingPackageJson), true);
+        chmodSync(stubPath, 0o755);
+
+        const result = await runLauncherMcp(
+          inlineLauncherSource,
+          subdir,
+          launcherEnv({
+            // Keep node reachable for the stub's `env node` shebang.
+            PATH: `${fakeBin}:${dirname(process.execPath)}`,
+          }),
+          [
+            {
+              jsonrpc: "2.0",
+              id: 1,
+              method: "initialize",
+              params: { protocolVersion: "2025-06-18" },
+            },
+            { jsonrpc: "2.0", id: 2, method: "tools/list" },
+          ],
+        );
+
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.match(result.stdout, /stub-kibi-mcp/);
+        assert.match(result.stdout, /stub_tool/);
+        assert.doesNotMatch(result.stdout, /kibi-codex-launcher/);
+
+        const invocations = readFileSync(join(fixtureRoot, "npx-invocations.jsonl"), "utf8")
+          .split("\n")
+          .filter((line) => line.trim().length > 0)
+          .map((line) => JSON.parse(line) as {
+            argv: string[];
+            cwd: string;
+            kibiWorkspace: string | null;
+          });
+        const serverInvocation = invocations.find(
+          (entry) => !entry.argv.includes("--print-resolution"),
+        );
+        assert.ok(serverInvocation, "launcher never started the real server");
+        // The stub records process.argv.slice(1): its own path first.
+        assert.deepEqual(serverInvocation.argv.slice(1), [
+          "--no-install",
+          "kibi-mcp",
+        ]);
+        assert.equal(serverInvocation.cwd, workspace);
+        assert.equal(serverInvocation.kibiWorkspace, workspace);
+      },
+    );
+
+    it(
+      "starts cleanly with guidance when the configured workspace lacks kibi-mcp",
+      { timeout: 30_000 },
+      async () => {
+        const fixtureRoot = mkdtempSync(join(tmpdir(), "kibi-codex-missing-"));
+        tempRoots.push(fixtureRoot);
+        const workspace = join(fixtureRoot, "workspace");
+        mkdirSync(join(workspace, ".kb"), { recursive: true });
+        writeFileSync(join(workspace, ".kb", "manifest.json"), "{}\n");
+
+        const result = await runLauncherMcp(
+          inlineLauncherSource,
+          workspace,
+          // No npx anywhere on PATH: the launcher must not fail the handshake.
+          launcherEnv({ PATH: join(fixtureRoot, "empty-bin") }),
+          [
+            {
+              jsonrpc: "2.0",
+              id: 1,
+              method: "initialize",
+              params: { protocolVersion: "2025-06-18" },
+            },
+            { jsonrpc: "2.0", id: 2, method: "tools/list" },
+          ],
+        );
+
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stderr, "");
+        const lines = result.stdout
+          .split("\n")
+          .filter((line) => line.trim().length > 0)
+          .map((line) => JSON.parse(line) as Record<string, unknown>);
+        const initialize = lines.find(
+          (message) => message.id === 1,
+        ) as { result?: { instructions?: string; serverInfo?: { name?: string } } };
+        assert.equal(initialize?.result?.serverInfo?.name, "kibi-codex-launcher");
+        assert.match(
+          initialize?.result?.instructions ?? "",
+          /kibi-mcp/,
+        );
+        const tools = lines.find((message) => message.id === 2) as {
+          result?: { tools?: unknown[] };
+        };
+        assert.deepEqual(tools?.result?.tools, []);
       },
     );
   },
