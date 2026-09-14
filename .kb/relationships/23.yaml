@@ -73,3 +73,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-46b1054be5bb
+  - type: covered_by
+    from: SYM-host-matches-journal
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-09-14T17:06:14.798Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2bc9b90d9921

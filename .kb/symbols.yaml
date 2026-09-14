@@ -34527,6 +34527,8 @@ symbols:
     sourceFile: packages/cli/src/prolog/store-lock.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
       - type: implements
         target: REQ-core-journaled-engine-persistence
   - id: SYM-classify-store-lock-holder
@@ -34535,6 +34537,8 @@ symbols:
     sourceFile: packages/cli/src/prolog/store-lock.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
       - type: implements
         target: REQ-core-journaled-engine-persistence
   - id: SYM-current-boot-id
@@ -34543,6 +34547,8 @@ symbols:
     sourceFile: packages/cli/src/prolog/store-lock.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
       - type: implements
         target: REQ-core-journaled-engine-persistence
   - id: SYM-decide-store-lock-takeover
@@ -34551,6 +34557,8 @@ symbols:
     sourceFile: packages/cli/src/prolog/store-lock.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
       - type: implements
         target: REQ-core-journaled-engine-persistence
   - id: SYM-host-matches-journal
@@ -34559,6 +34567,8 @@ symbols:
     sourceFile: packages/cli/src/prolog/store-lock.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
       - type: implements
         target: REQ-core-journaled-engine-persistence
   - id: SYM-is-process-alive
@@ -34567,6 +34577,8 @@ symbols:
     sourceFile: packages/cli/src/prolog/store-lock.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
       - type: implements
         target: REQ-core-journaled-engine-persistence
   - id: SYM-parse-store-lock-owner
@@ -34575,6 +34587,8 @@ symbols:
     sourceFile: packages/cli/src/prolog/store-lock.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
       - type: implements
         target: REQ-core-journaled-engine-persistence
   - id: SYM-request-engine-signal-shutdown
@@ -34583,6 +34597,8 @@ symbols:
     sourceFile: packages/cli/src/engine.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
       - type: implements
         target: REQ-core-journaled-engine-persistence
   - id: SYM-attachment-failure-message
