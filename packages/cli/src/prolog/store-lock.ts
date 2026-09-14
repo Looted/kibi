@@ -18,7 +18,7 @@
 
 import { existsSync, rmSync } from "node:fs";
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import type { PrologStoreLockOwner } from "./error-terms.js";
 
 /**
@@ -81,10 +81,18 @@ export function classifyStoreLockHolder(
   return "alive";
 }
 
-/** Remove the stale lock artifacts so a fresh attach can take the store. */
-export function breakStoreLock(lockDirectory: string): void {
-  for (const name of ["lock", ".kibi-lock-owner.json"]) {
-    const candidate = join(lockDirectory, name);
+/**
+ * Remove the stale lock artifacts so a fresh attach can take the store.
+ * The rdf lock lives inside the persistency directory; the ownership journal
+ * lives at the branch-store root (older builds kept it beside the lock).
+ */
+export function breakStoreLock(rdfDirectory: string): void {
+  const candidates = [
+    join(rdfDirectory, "lock"),
+    join(rdfDirectory, ".kibi-lock-owner.json"),
+    join(dirname(rdfDirectory), ".kibi-lock-owner.json"),
+  ];
+  for (const candidate of candidates) {
     if (existsSync(candidate)) {
       rmSync(candidate, { force: true });
     }

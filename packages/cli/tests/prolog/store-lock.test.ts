@@ -18,7 +18,7 @@
 
 import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   breakStoreLock,
@@ -107,5 +107,17 @@ describe("breakStoreLock", () => {
     breakStoreLock(dir);
     expect(existsSync(join(dir, "lock"))).toBe(false);
     expect(existsSync(join(dir, ".kibi-lock-owner.json"))).toBe(false);
+  });
+
+  test("removes the journal from the store root beside the rdf directory", () => {
+    const rdf = mkdtempSync(join(tmpdir(), "kibi-store-lock-rdf-"));
+    const store = dirname(rdf);
+    tempDirs.push(rdf);
+    tempDirs.push(store);
+    writeFileSync(join(rdf, "lock"), "stale");
+    writeFileSync(join(store, ".kibi-lock-owner.json"), '{"pid":1}');
+    breakStoreLock(rdf);
+    expect(existsSync(join(rdf, "lock"))).toBe(false);
+    expect(existsSync(join(store, ".kibi-lock-owner.json"))).toBe(false);
   });
 });

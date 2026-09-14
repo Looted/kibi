@@ -164,7 +164,7 @@ kb_attach_journaled(Directory) :-
                         [access(read_write), silent(true), concurrency(4)]),
           error(permission_error(_, _, _), _),
           kb_throw_store_locked(PersistencyDirectory, Directory)),
-    catch(kb_write_lock_owner(PersistencyDirectory, Directory), _, true),
+    catch(kb_write_lock_owner(Directory), _, true),
     % Create RDF graph name from directory.  Do not unload a graph here:
     % rdf_attach_db has already restored it from its snapshot/journal.  A
     % staged migration can have been atomically moved after the graph was
@@ -244,11 +244,11 @@ kb_attach_legacy(Directory) :-
 % holder is provably dead (crash, kill, removed worktree).
 % implements REQ-core-journaled-engine-persistence
 
-kb_lock_owner_path(PersistencyDirectory, Path) :-
-    atom_concat(PersistencyDirectory, '/.kibi-lock-owner.json', Path).
+kb_lock_owner_path(Directory, Path) :-
+    atom_concat(Directory, '/.kibi-lock-owner.json', Path).
 
-kb_write_lock_owner(PersistencyDirectory, Directory) :-
-    kb_lock_owner_path(PersistencyDirectory, Path),
+kb_write_lock_owner(Directory) :-
+    kb_lock_owner_path(Directory, Path),
     current_prolog_flag(pid, Pid),
     (   exists_file('/proc/sys/kernel/random/boot_id')
     ->  read_file_to_string('/proc/sys/kernel/random/boot_id', BootIdRaw, []),
@@ -257,25 +257,26 @@ kb_write_lock_owner(PersistencyDirectory, Directory) :-
     ),
     get_time(Now),
     format_time(atom(StartedAt), '%FT%TZ', Now),
+    atom_concat(Path, '.tmp', TmpPath),
     setup_call_cleanup(
-        open(Path, write, Stream),
+        open(TmpPath, write, Stream),
         json_write_dict(Stream,
                         json([pid:Pid,
                               workspaceRoot:Directory,
                               bootId:BootId,
                               startedAt:StartedAt]),
                         []),
-        close(Stream)).
+        (close(Stream), rename_file(TmpPath, Path))).
 
 kb_remove_lock_owner :-
-    (   kb_persistency_directory(PersistencyDirectory)
-    ->  kb_lock_owner_path(PersistencyDirectory, Path),
+    (   kb_attached(Directory)
+    ->  kb_lock_owner_path(Directory, Path),
         catch(delete_file(Path), _, true)
     ;   true
     ).
 
 kb_throw_store_locked(PersistencyDirectory, Directory) :-
-    kb_lock_owner_path(PersistencyDirectory, Path),
+    kb_lock_owner_path(Directory, Path),
     (   exists_file(Path)
     ->  catch(read_file_to_string(Path, OwnerJson, []), _, OwnerJson = "")
     ;   OwnerJson = ""
