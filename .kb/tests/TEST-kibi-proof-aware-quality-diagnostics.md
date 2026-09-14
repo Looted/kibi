@@ -686,6 +686,38 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-99d470ab4413485ff5d0286c
+    test_id: TEST-kibi-proof-aware-quality-diagnostics
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: ed40ba5e905305e0049ad3548381193ed09b7a4c16602e2deb3c109eb7acda13
+    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
+    started_at: '2026-09-14T06:29:52.699Z'
+    finished_at: '2026-09-14T07:37:41.045Z'
+    artifact_digest: 9e21e6884d6f07025a28d1aff21db0b67358a05dc6a0cc0df2654eaacf06dcfb
+    contract_hash: 03b73d06f8bd257888cb482850f18a049a5a03327d78623999a65de32ee6b76e
+    fingerprint: 051d4b42fffaccbac6615e6451aac956cc126aaefbfc6d0bb20a24d746f8ac12
+    fingerprint_components:
+      contract: 03b73d06f8bd257888cb482850f18a049a5a03327d78623999a65de32ee6b76e
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-kibi-proof-aware-quality-diagnostics
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 
 Validates suppression of stale weak-depth heuristics when current scenario-backed E2E proof passes, preservation of independent proof gaps, and bounded receipt-gap evidence with v2 remediation guidance.
