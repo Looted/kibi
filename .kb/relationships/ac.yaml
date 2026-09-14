@@ -139,3 +139,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0be5e1611fa7
+  - type: implements
+    from: SYM-decide-store-lock-takeover
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-14T12:38:16.540Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44b5a21517d9
+  - type: covered_by
+    from: SYM-decide-store-lock-takeover
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-09-14T17:05:58.243Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b42bbfafaaa1
