@@ -819,6 +819,38 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-975efde5b886c44609c3d6d7
+    test_id: TEST-kibi-distribution-parity-matrix
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 807961781c537e824f0bd98a27b157fdb699f858cd39d2bd42acef64a5f2222a
+    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
+    started_at: '2026-09-14T13:11:45.423Z'
+    finished_at: '2026-09-14T13:37:56.113Z'
+    artifact_digest: fadc0c61f917b435961101344a5a47a8790fd55e5b9d0f389a413cce82a57531
+    contract_hash: 43234b210205cc387390fbfa17dbb1c0e24034c7f8caaa64cbb546fff4e23035
+    fingerprint: 1a2ebcfa3a72e49e439ad2ee57852a0051ffef7bb0478a4bca8a6d80dd9996f4
+    fingerprint_components:
+      contract: 43234b210205cc387390fbfa17dbb1c0e24034c7f8caaa64cbb546fff4e23035
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-test-packed-distribution-parity
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 
 Exercises `kibi.distribution-parity.v1` through source and freshly packed CLI/MCP binaries, then optionally through the binaries actually resolved by audited projects. The fixture set checks proposition ingestion, source-bound contradiction witnesses, conservative proof stages, dependency-ordered repair plans, snapshot-bound receipt gaps, and telemetry acceptance. Align is expected to resolve this checkout and match; BizzWords' older pinned CLI/MCP capabilities must be reported as unsupported rather than silently passing, with a named upgrade action for each divergence.

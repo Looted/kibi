@@ -30,13 +30,16 @@ export function assertDefaultBranchSyncHooks(repoDir: string): void {
       (statSync(hookPath).mode & 0o111) !== 0,
       `${hookName} hook should be executable`,
     );
-    assert.match(readFileSync(hookPath, "utf8"), /kibi sync/);
+    // Current hooks resolve the kibi binary into KIBI_BIN before invoking it
+    // (git hooks do not get node_modules/.bin on PATH).
+    assert.match(readFileSync(hookPath, "utf8"), /KIBI_BIN" sync/);
   }
   const checkout = readFileSync(
     join(repoDir, ".git/hooks/post-checkout"),
     "utf8",
   );
   assert.match(checkout, /branch_flag is 1 for branch checkout/);
+  assert.match(checkout, /KIBI_BIN=/);
   assert.doesNotMatch(checkout, /--from/);
 }
 
@@ -107,7 +110,10 @@ if (RUN_NODE_TEST_SUITE) {
       assert.ok(isExecutable, "Hook should be executable");
 
       const content = readFileSync(hookPath, "utf8");
-      assert.ok(content.includes("kibi sync"), "Hook should contain kibi sync");
+      assert.ok(
+        content.includes('"$KIBI_BIN" sync'),
+        "Hook should invoke the resolved kibi binary",
+      );
     });
 
     it("should install post-rewrite hook by default", async () => {
@@ -123,7 +129,10 @@ if (RUN_NODE_TEST_SUITE) {
       assert.ok(isExecutable, "Hook should be executable");
 
       const content = readFileSync(hookPath, "utf8");
-      assert.ok(content.includes("kibi sync"), "Hook should contain kibi sync");
+      assert.ok(
+        content.includes('"$KIBI_BIN" sync'),
+        "Hook should invoke the resolved kibi binary",
+      );
     });
 
     it("should create branch KB on git checkout", async () => {
