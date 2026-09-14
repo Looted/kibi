@@ -76,10 +76,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-68b4cb495edc
-  - type: implements
-    from: SYM-store-lock-holder-state
-    to: REQ-core-journaled-engine-persistence
-    created_at: 2026-09-14T12:39:09.315Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-32c5e576ed52
