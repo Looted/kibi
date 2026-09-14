@@ -83,3 +83,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-39d03d2fe46c
+  - type: implements
+    from: SYM-is-process-alive
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-14T12:38:43.061Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a078e0b4a923

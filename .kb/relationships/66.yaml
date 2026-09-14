@@ -76,3 +76,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3395906910f1
+  - type: implements
+    from: SYM-current-boot-id
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-14T12:38:03.248Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-096913c633d4

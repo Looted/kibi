@@ -118,3 +118,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ee91373aaf2c
+  - type: implements
+    from: SYM-break-store-lock
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-14T12:37:37.407Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ebe7f20f47e

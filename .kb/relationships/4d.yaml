@@ -118,3 +118,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-85d34d6adfa0
+  - type: implements
+    from: SYM-request-engine-signal-shutdown
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-14T12:39:45.919Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e4ee7dec68bc

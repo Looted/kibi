@@ -8,6 +8,28 @@ import { formatUpsertError } from "../../src/operations/mutation/contradictions.
 import { PrologProcess } from "../../src/prolog";
 
 describe("parsePrologErrorTerm", () => {
+  test("parses store_locked errors with the recorded holder", () => {
+    const record = parsePrologErrorTerm(
+      "error(permission_error(attach,kb_store,'/tmp/kb/branches/x'),kb_store_locked('{\"pid\":123,\"workspaceRoot\":\"/ws\",\"bootId\":\"boot-1\",\"startedAt\":\"2026-09-14T00:00:00Z\"}','/tmp/kb/branches/x/rdf'))",
+    );
+    expect(record?.code).toBe("permission_denied");
+    expect(record?.storeLocked?.lockDirectory).toBe("/tmp/kb/branches/x/rdf");
+    expect(record?.storeLocked?.owner?.pid).toBe(123);
+    expect(record?.storeLocked?.owner?.workspaceRoot).toBe("/ws");
+    expect(record?.message).toContain("pid 123");
+    expect(record?.message).toContain("store_locked");
+  });
+
+  test("parses store_locked errors without an ownership journal", () => {
+    const record = parsePrologErrorTerm(
+      "error(permission_error(attach,kb_store,'/tmp/kb/branches/x'),kb_store_locked('','/tmp/kb/branches/x/rdf'))",
+    );
+    expect(record?.code).toBe("permission_denied");
+    expect(record?.storeLocked?.owner).toBeNull();
+    expect(record?.storeLocked?.lockDirectory).toBe("/tmp/kb/branches/x/rdf");
+  });
+
+
   test("parses stale_snapshot permission errors", () => {
     const record = parsePrologErrorTerm(
       "error(permission_error(save,kb,stale_snapshot),kb_save/0)",

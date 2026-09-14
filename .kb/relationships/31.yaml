@@ -129,3 +129,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d2bd70aab8b8
+  - type: implements
+    from: SYM-parse-store-lock-owner
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-14T12:38:56.104Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-611b31828ce5
