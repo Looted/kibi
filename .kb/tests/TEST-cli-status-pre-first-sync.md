@@ -683,6 +683,38 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-1a353bc2827adfff01c8c234
+    test_id: TEST-cli-status-pre-first-sync
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 32fc8076ce1ce9656d665c040aae2f438b4d47e12d23ad67c7e2396871cdb96b
+    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
+    started_at: '2026-09-14T04:53:57.354Z'
+    finished_at: '2026-09-14T06:13:26.255Z'
+    artifact_digest: 738ce45f97ae1097eadd640367ac094351b9f6ecf2c331c84e56b71e495f7f77
+    contract_hash: 2e476ed657ad7b705eeaf33f3751f76b60b706a3924226f2dfde0ed1f47cc888
+    fingerprint: 2aec55cc9da691c790d9f3e3c5bacf96e0ebd8e5e385a79bc878c55e9316c594
+    fingerprint_components:
+      contract: 2e476ed657ad7b705eeaf33f3751f76b60b706a3924226f2dfde0ed1f47cc888
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-cli-status-pre-first-sync
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 
 The test verifies that the `kibi status` command does not fail when executed in a newly initialized repository before any data has been synced, and that ignored documentation README files do not make a freshly synced workspace stale.

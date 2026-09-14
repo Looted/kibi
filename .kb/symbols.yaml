@@ -34434,6 +34434,8 @@ symbols:
         target: TEST-opencode-kibi-plugin-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1-coverage
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
   - id: SYM-x-oc-PluginEventInput
@@ -34446,6 +34448,8 @@ symbols:
         target: TEST-opencode-kibi-plugin-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1-coverage
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
   - id: SYM-x-oc-PluginEvent
@@ -34458,6 +34462,8 @@ symbols:
         target: TEST-opencode-kibi-plugin-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1-coverage
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
   - id: SYM-x-oc-SmartEnforcementState
@@ -34470,6 +34476,8 @@ symbols:
         target: TEST-opencode-kibi-plugin-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1-coverage
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
   - id: SYM-x-oc-KibiEventEnv
@@ -34482,6 +34490,8 @@ symbols:
         target: TEST-opencode-kibi-plugin-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1-coverage
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
   - id: SYM-x-oc-handleKbToolEvent
@@ -34494,6 +34504,8 @@ symbols:
         target: TEST-opencode-kibi-plugin-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1-coverage
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
   - id: SYM-x-oc-handleFileLifecycleEvent
@@ -34506,5 +34518,7 @@ symbols:
         target: TEST-opencode-kibi-plugin-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1-coverage
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
