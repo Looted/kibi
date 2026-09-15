@@ -1,11 +1,19 @@
 import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import {
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execSync } from "../helpers/isolated-env.js";
 
 import {
   getStagedFiles,
+  getStagedInventory,
   parseHunksFromDiff,
   parseNameStatusNull,
 } from "../../src/traceability/git-staged";
@@ -240,6 +248,118 @@ describe("git-staged", () => {
         process.chdir(originalCwd);
         rmSync(repoDir, { recursive: true, force: true });
       }
+    });
+  });
+
+  describe("getStagedInventory", () => {
+    it("retains text, binary, symlink, rename, and deletion records", () => {
+      const repoDir = createTempRepo();
+      try {
+        writeFileSync(
+          join(repoDir, "deleted.py"),
+          "def removed():\n    pass\n",
+        );
+        writeFileSync(join(repoDir, "rename.sh"), "#!/bin/sh\nexit 0\n");
+        execSync("git add deleted.py rename.sh", { cwd: repoDir });
+        execSync('git commit -m "baseline"', { cwd: repoDir, stdio: "pipe" });
+
+        execSync("git rm deleted.py", { cwd: repoDir, stdio: "pipe" });
+        execSync('git mv rename.sh "renamed script.sh"', {
+          cwd: repoDir,
+          stdio: "pipe",
+        });
+        writeFileSync(join(repoDir, "compose.yaml"), "services: {}\n");
+        writeFileSync(join(repoDir, "Dockerfile"), "FROM scratch\n");
+        writeFileSync(join(repoDir, "odd\nname.md"), "# Notes\n");
+        writeFileSync(join(repoDir, "binary.dat"), Buffer.from([0, 1, 2]));
+        writeFileSync(join(repoDir, "invalid.txt"), Buffer.from([0xc3, 0x28]));
+        symlinkSync("compose.yaml", join(repoDir, "compose-link"));
+        execSync("git add -A", { cwd: repoDir, stdio: "pipe" });
+
+        const inventory = getStagedInventory((args) =>
+          execFileSync("git", args, {
+            cwd: repoDir,
+            encoding: "buffer",
+            maxBuffer: 64 * 1024 * 1024,
+          }),
+        );
+
+        expect(
+          inventory.find((file) => file.path === "compose.yaml"),
+        ).toMatchObject({
+          analysisDepth: "file",
+          disposition: "advisory",
+          content: "services: {}\n",
+        });
+        expect(
+          inventory.find((file) => file.path === "Dockerfile"),
+        ).toMatchObject({
+          analysisDepth: "file",
+          disposition: "advisory",
+        });
+        expect(
+          inventory.find((file) => file.path === "deleted.py"),
+        ).toMatchObject({
+          status: "D",
+          analysisDepth: "file",
+          previousContent: "def removed():\n    pass\n",
+        });
+        expect(
+          inventory.find((file) => file.path === "renamed script.sh"),
+        ).toMatchObject({
+          status: "R",
+          oldPath: "rename.sh",
+          analysisDepth: "file",
+        });
+        expect(
+          inventory.find((file) => file.path === "binary.dat"),
+        ).toMatchObject({
+          analysisDepth: "none",
+          disposition: "skipped",
+          skipReason: "binary",
+        });
+        expect(
+          inventory.find((file) => file.path === "invalid.txt"),
+        ).toMatchObject({
+          skipReason: "unsupported_encoding",
+        });
+        expect(
+          inventory.find((file) => file.path === "compose-link"),
+        ).toMatchObject({
+          gitMode: "120000",
+          skipReason: "symlink",
+        });
+        expect(
+          inventory.find((file) => file.path === "odd\nname.md"),
+        ).toMatchObject({
+          analysisDepth: "file",
+        });
+      } finally {
+        rmSync(repoDir, { recursive: true, force: true });
+      }
+    });
+
+    it("reports submodule entries without reading their blobs", () => {
+      const exec = (args: readonly string[]): Buffer => {
+        const command = args.join(" ");
+        if (command.includes("--name-status"))
+          return Buffer.from("M\0vendor/lib\0");
+        if (command.includes("ls-files")) {
+          return Buffer.from(`160000 ${"a".repeat(40)} 0\tvendor/lib\0`);
+        }
+        throw new Error(`unexpected command: ${command}`);
+      };
+      expect(getStagedInventory(exec)).toEqual([
+        {
+          path: "vendor/lib",
+          status: "M",
+          hunkRanges: [],
+          gitMode: "160000",
+          analysisDepth: "none",
+          disposition: "skipped",
+          skipReason: "submodule",
+        },
+      ]);
     });
   });
 });

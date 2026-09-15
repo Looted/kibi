@@ -132,3 +132,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-99ed57f24e69
+  - type: implements
+    from: SYM-attachment-failure-message
+    to: REQ-branch-store-recovery-v3
+    created_at: 2026-09-14T19:35:27.415Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a677a445fc9

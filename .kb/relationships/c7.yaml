@@ -153,3 +153,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f9feb079adca
+  - type: implements
+    from: SYM-checkSymbolCoverage
+    to: REQ-cli-check
+    created_at: 2026-09-14T15:03:06.897Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd72ff676c09
+  - type: covered_by
+    from: SYM-checkSymbolCoverage
+    to: TEST-004
+    created_at: 2026-09-14T15:03:06.934Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6c3cd14f094

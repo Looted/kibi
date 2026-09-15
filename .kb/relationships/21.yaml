@@ -76,3 +76,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-248630fa9d8f
+  - type: implements
+    from: SYM-checkStrictReadiness
+    to: REQ-cli-check
+    created_at: 2026-09-14T15:02:33.235Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb7d39d4169d
+  - type: covered_by
+    from: SYM-checkStrictReadiness
+    to: TEST-004
+    created_at: 2026-09-14T15:02:33.243Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b3d5433e5c9
