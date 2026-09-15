@@ -7,4 +7,5 @@ Kibi CLI now preserves quoted Prolog text and large structured responses when re
 
 - Harden Prolog response parsing and atom/string escaping.
 - Normalize entity endpoints at graph and quality-evidence callers.
+- Use bounded paginated entity projection when full KB quality reads exceed the Prolog transport capacity.
 - Wait for stdout backpressure before completing JSON CLI operations.

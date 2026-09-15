@@ -835,6 +835,9 @@ export async function checkCommand(
         clock: () => new Date(),
         prolog: {
           query: (goal) => activeProlog.query(goal),
+          ...(activeProlog instanceof EngineClient
+            ? { queryEntities: activeProlog.queryEntities.bind(activeProlog) }
+            : {}),
           nextSolution: async () => null,
           invalidateCache: () => activeProlog.invalidateCache(),
           save: () => activeProlog.query("kb_save"),

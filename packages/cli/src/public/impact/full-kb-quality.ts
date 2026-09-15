@@ -6,6 +6,7 @@ import type {
 } from "../../extractors/markdown.js";
 import {
   normalizeEntityId,
+  parseAtomList,
   parseEntityFromList,
   parseListOfLists,
   parseTriples,
@@ -30,9 +31,13 @@ import type { QualityDiagnostic } from "./types.js";
 
 const RELATIONSHIP_TYPES: readonly string[] =
   relationshipSchema.properties.type.enum;
+const ENTITY_BATCH_SIZE = 32;
+const PROLOG_OUTPUT_CAPACITY_MARKER =
+  "Query exceeded bounded Prolog output capacity (ENOBUFS)";
+const ENTITY_IDS_QUERY = "findall(Id, kb_entity(Id, _, _), Ids)";
 
 type FullKbQualityDiagnosticsOptions = {
-  readonly prolog: Pick<PrologPort, "query">;
+  readonly prolog: Pick<PrologPort, "query" | "queryEntities">;
   readonly hardViolationEntityIds?: ReadonlySet<string>;
   readonly maxDiagnostics?: number;
   readonly workspaceRoot?: string;
@@ -305,20 +310,281 @@ function sourceFileFor(entity: Record<string, unknown>): string | undefined {
   );
 }
 
-export async function loadKbExtractionResults(
-  prolog: Pick<PrologPort, "query">,
-): Promise<ExtractionResult[]> {
-  const entityResult = await prolog.query(
-    "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)",
-  );
-  if (!entityResult.success) {
+class BoundedEntityProjectionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BoundedEntityProjectionError";
+  }
+}
+
+function isOutputCapacityError(error: string | undefined): boolean {
+  return error?.includes(PROLOG_OUTPUT_CAPACITY_MARKER) === true;
+}
+
+function parseAuthoritativeEntityIds(raw: string): string[] {
+  const trimmed = raw.trim();
+  if (
+    trimmed !== "[]" &&
+    (!trimmed.startsWith("[") || !trimmed.endsWith("]"))
+  ) {
+    throw new Error("Full KB entity ID enumeration returned malformed data");
+  }
+  const ids = parseAtomList(trimmed);
+  if (ids.some((id) => id.length === 0)) {
+    throw new Error("Full KB entity ID enumeration returned an empty ID");
+  }
+  return ids;
+}
+
+function validateEntityBatch(
+  requestedIds: readonly string[],
+  entities: readonly Record<string, unknown>[],
+): Record<string, unknown>[] {
+  const requested = new Set<string>();
+  for (const id of requestedIds) {
+    const normalizedId = normalizeEntityId(id);
+    if (normalizedId.length === 0 || requested.has(normalizedId)) {
+      throw new Error(
+        "Full KB bounded entity projection returned duplicate or empty requested IDs",
+      );
+    }
+    requested.add(normalizedId);
+  }
+
+  const returned = new Map<string, Record<string, unknown>>();
+  for (const entity of entities) {
+    const id = stringField(entity, "id");
+    const type = stringField(entity, "type");
+    const normalizedId = normalizeEntityId(id);
+    if (normalizedId.length === 0 || type.length === 0) {
+      throw new Error(
+        "Full KB bounded entity projection returned a malformed entity row",
+      );
+    }
+    if (!requested.has(normalizedId) || returned.has(normalizedId)) {
+      throw new Error(
+        `Full KB bounded entity projection returned an unexpected entity ID: ${normalizedId}`,
+      );
+    }
+    returned.set(normalizedId, entity);
+  }
+
+  const missing = [...requested.keys()].filter((id) => !returned.has(id));
+  if (missing.length > 0) {
     throw new Error(
-      `Full KB entity projection query failed: ${entityResult.error ?? "Unknown error"}`,
+      `Full KB bounded entity projection returned an incomplete page; missing ${missing.join(", ")}`,
     );
   }
-  const entities = entityResult.bindings.Results
-    ? parseListOfLists(entityResult.bindings.Results).map(parseEntityFromList)
-    : [];
+
+  return [...requested.keys()].map(
+    (id) => returned.get(id) as Record<string, unknown>,
+  );
+}
+
+function validateIndexedEntityPage(
+  entities: readonly Record<string, unknown>[],
+  seenIds: ReadonlySet<string>,
+): Record<string, unknown>[] {
+  const pageIds = new Set<string>();
+  for (const entity of entities) {
+    const id = normalizeEntityId(stringField(entity, "id"));
+    const type = stringField(entity, "type");
+    if (id.length === 0 || type.length === 0) {
+      throw new Error(
+        "Full KB paginated entity projection returned a malformed entity row",
+      );
+    }
+    if (pageIds.has(id) || seenIds.has(id)) {
+      throw new Error(
+        `Full KB paginated entity projection returned duplicate entity ID: ${id}`,
+      );
+    }
+    pageIds.add(id);
+  }
+  return [...entities];
+}
+
+function isOutputCapacityException(error: unknown): boolean {
+  return isOutputCapacityError(
+    error instanceof Error ? error.message : String(error),
+  );
+}
+
+async function loadIndexedEntityProjection(
+  queryEntities: NonNullable<PrologPort["queryEntities"]>,
+): Promise<Record<string, unknown>[]> {
+  const entities: Record<string, unknown>[] = [];
+  const seenIds = new Set<string>();
+  let offset = 0;
+  let pageSize = ENTITY_BATCH_SIZE;
+  let totalCount: number | undefined;
+  type EntityPage = Awaited<ReturnType<typeof queryEntities>>;
+
+  while (totalCount === undefined || offset < totalCount) {
+    let page: EntityPage;
+    try {
+      page = await queryEntities({ limit: pageSize, offset });
+    } catch (error) {
+      if (!isOutputCapacityException(error) || pageSize === 1) {
+        throw error;
+      }
+      pageSize = Math.ceil(pageSize / 2);
+      continue;
+    }
+
+    if (
+      !Number.isInteger(page.count) ||
+      page.count < 0 ||
+      (totalCount !== undefined && page.count !== totalCount)
+    ) {
+      throw new Error(
+        "Full KB paginated entity projection returned an inconsistent count",
+      );
+    }
+    totalCount ??= page.count;
+    if (page.entities.length > pageSize) {
+      throw new Error(
+        "Full KB paginated entity projection returned an oversized page",
+      );
+    }
+    const pageEntities = validateIndexedEntityPage(page.entities, seenIds);
+    if (offset + pageEntities.length > totalCount) {
+      throw new Error(
+        "Full KB paginated entity projection returned more rows than its count",
+      );
+    }
+    if (pageEntities.length === 0 && offset < totalCount) {
+      throw new Error(
+        "Full KB paginated entity projection returned an incomplete page",
+      );
+    }
+    for (const entity of pageEntities) {
+      seenIds.add(normalizeEntityId(stringField(entity, "id")));
+    }
+    entities.push(...pageEntities);
+    offset += pageEntities.length;
+    if (offset < totalCount && pageEntities.length < pageSize) {
+      throw new Error(
+        "Full KB paginated entity projection returned an incomplete page",
+      );
+    }
+  }
+
+  if (entities.length !== totalCount) {
+    throw new Error(
+      "Full KB paginated entity projection returned an incomplete result",
+    );
+  }
+  return entities;
+}
+
+async function loadEntityBatch(
+  prolog: Pick<PrologPort, "query">,
+  ids: readonly string[],
+): Promise<Record<string, unknown>[]> {
+  const idTerms = ids.map((id) => toPrologAtom(id)).join(",");
+  const result = await prolog.query(
+    `findall([Id,Type,Props], (member(Id, [${idTerms}]), kb_entity(Id, Type, Props)), Results)`,
+  );
+  if (!result.success) {
+    const message = result.error ?? "Unknown error";
+    if (isOutputCapacityError(result.error)) {
+      throw new BoundedEntityProjectionError(message);
+    }
+    throw new Error(
+      `Full KB bounded entity projection query failed: ${message}`,
+    );
+  }
+
+  const rawRows = result.bindings.Results;
+  if (rawRows === undefined) {
+    throw new Error(
+      "Full KB bounded entity projection query returned no Results binding",
+    );
+  }
+  return validateEntityBatch(
+    ids,
+    parseListOfLists(rawRows).map(parseEntityFromList),
+  );
+}
+
+async function loadEntityBatchAdaptively(
+  prolog: Pick<PrologPort, "query">,
+  ids: readonly string[],
+): Promise<Record<string, unknown>[]> {
+  try {
+    return await loadEntityBatch(prolog, ids);
+  } catch (error) {
+    if (!(error instanceof BoundedEntityProjectionError)) throw error;
+    if (ids.length === 1) {
+      throw new Error(
+        `Full KB entity projection failed for ${ids[0]}: ${error.message}`,
+      );
+    }
+    const midpoint = Math.ceil(ids.length / 2);
+    const left = await loadEntityBatchAdaptively(
+      prolog,
+      ids.slice(0, midpoint),
+    );
+    const right = await loadEntityBatchAdaptively(prolog, ids.slice(midpoint));
+    return [...left, ...right];
+  }
+}
+
+async function loadBoundedEntityProjection(
+  prolog: Pick<PrologPort, "query">,
+): Promise<Record<string, unknown>[]> {
+  const idsResult = await prolog.query(ENTITY_IDS_QUERY);
+  if (!idsResult.success) {
+    throw new Error(
+      `Full KB entity ID enumeration query failed: ${idsResult.error ?? "Unknown error"}`,
+    );
+  }
+  const rawIds = idsResult.bindings.Ids;
+  if (rawIds === undefined) {
+    throw new Error(
+      "Full KB entity ID enumeration query returned no Ids binding",
+    );
+  }
+  const ids = parseAuthoritativeEntityIds(rawIds);
+  const entities: Record<string, unknown>[] = [];
+  for (let offset = 0; offset < ids.length; offset += ENTITY_BATCH_SIZE) {
+    entities.push(
+      ...(await loadEntityBatchAdaptively(
+        prolog,
+        ids.slice(offset, offset + ENTITY_BATCH_SIZE),
+      )),
+    );
+  }
+  return entities;
+}
+
+export async function loadKbExtractionResults(
+  prolog: Pick<PrologPort, "query" | "queryEntities">,
+): Promise<ExtractionResult[]> {
+  let entities: Record<string, unknown>[];
+  if (prolog.queryEntities !== undefined) {
+    entities = await loadIndexedEntityProjection(
+      prolog.queryEntities.bind(prolog),
+    );
+  } else {
+    const entityResult = await prolog.query(
+      "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)",
+    );
+    if (entityResult.success) {
+      entities = entityResult.bindings.Results
+        ? parseListOfLists(entityResult.bindings.Results).map(
+            parseEntityFromList,
+          )
+        : [];
+    } else if (isOutputCapacityError(entityResult.error)) {
+      entities = await loadBoundedEntityProjection(prolog);
+    } else {
+      throw new Error(
+        `Full KB entity projection query failed: ${entityResult.error ?? "Unknown error"}`,
+      );
+    }
+  }
   const relationships = new Map<string, ExtractionResult["relationships"]>();
 
   for (const relationshipType of RELATIONSHIP_TYPES) {
