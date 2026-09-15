@@ -139,7 +139,10 @@ describe("treeProvider remaining runtime branches", () => {
       path.join(tmpDir, ".kb", "tests", "TEST-DOC.md"),
       "---\nid: TEST-DOC\n---\n",
     );
-    writeFile(path.join(tmpDir, ".kb", "adr", "ADR-DOC.md"), "no-frontmatter\n");
+    writeFile(
+      path.join(tmpDir, ".kb", "adr", "ADR-DOC.md"),
+      "no-frontmatter\n",
+    );
     writeFile(
       path.join(tmpDir, ".kb", "flags", "FLAG-DOC.md"),
       "---\nid: FLAG-DOC\ntitle: Flag\n---\n",
@@ -185,7 +188,9 @@ describe("treeProvider remaining runtime branches", () => {
     );
     const reqRoot = roots.find((item) => item.contextValue === "kibi-req");
     expect(reqRoot?.children?.length).toBeGreaterThan(0);
-    const symbolRoot = roots.find((item) => item.contextValue === "kibi-symbol");
+    const symbolRoot = roots.find(
+      (item) => item.contextValue === "kibi-symbol",
+    );
     expect(symbolRoot?.children?.[0]?.description).toContain("src/alpha.ts");
 
     const internals = provider as unknown as ProviderInternals;
@@ -277,14 +282,15 @@ describe("treeProvider remaining runtime branches", () => {
     );
 
     const originalRead = fs.promises.readFile.bind(fs.promises);
-    const readSpy = spyOn(fs.promises, "readFile").mockImplementation(
-      ((filePath: fs.PathLike | fs.promises.FileHandle, options?: unknown) => {
-        if (String(filePath).endsWith("BAD.md")) {
-          return Promise.reject(new Error("unreadable"));
-        }
-        return originalRead(filePath, options as never);
-      }) as typeof fs.promises.readFile,
-    );
+    const readSpy = spyOn(fs.promises, "readFile").mockImplementation(((
+      filePath: fs.PathLike | fs.promises.FileHandle,
+      options?: unknown,
+    ) => {
+      if (String(filePath).endsWith("BAD.md")) {
+        return Promise.reject(new Error("unreadable"));
+      }
+      return originalRead(filePath, options as never);
+    }) as typeof fs.promises.readFile);
 
     const provider = new KibiTreeDataProvider(tmpDir);
     await provider.getChildren();
@@ -425,7 +431,9 @@ describe("treeProvider remaining runtime branches", () => {
     expect(internals.inferEntityTypeFromId("FLAG-1")).toBe("flag");
     expect(internals.inferEntityTypeFromId("EVT-1")).toBe("event");
     expect(internals.inferEntityTypeFromId("FACT-1")).toBe("fact");
-    expect(internals.getDocumentationPathForEntity("SYM-1", "symbol")).toBeUndefined();
+    expect(
+      internals.getDocumentationPathForEntity("SYM-1", "symbol"),
+    ).toBeUndefined();
     expect(internals.getDocumentationPathForEntity("NOPE")).toBeUndefined();
 
     expect(

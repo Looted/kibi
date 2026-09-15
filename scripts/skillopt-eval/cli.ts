@@ -90,7 +90,7 @@ export async function main(
     if (WORKFLOW_COMMANDS.has(command))
       return await runWorkflowCommand(
         command,
-        parseWorkflowOptions(args.slice(1)),
+        parseWorkflowOptions(args.slice(1), command),
         dependencies,
       );
     throw new CliUsageError(`Unknown command: ${command}`);

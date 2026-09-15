@@ -4,13 +4,13 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { PROOF_INTEGRATION_VERSION } from "../../src/public/proof-protocol.js";
 import {
   loadProofIntegrations,
   proofIntegrationErrors,
   resolveIntegration,
   toExecution,
 } from "../../src/proof/integrations.js";
+import { PROOF_INTEGRATION_VERSION } from "../../src/public/proof-protocol.js";
 
 const tempDirs: string[] = [];
 
@@ -87,16 +87,22 @@ describe("proof integrations loader", () => {
     expect(errors.some((error) => error.includes("must be an object"))).toBe(
       true,
     );
-    expect(errors.some((error) => error.includes(".id must be a non-empty"))).toBe(
-      true,
-    );
+    expect(
+      errors.some((error) => error.includes(".id must be a non-empty")),
+    ).toBe(true);
     expect(errors.some((error) => error.includes("duplicates"))).toBe(true);
     expect(errors.some((error) => error.includes("artifact is required"))).toBe(
       true,
     );
-    expect(errors.some((error) => error.includes("command must be"))).toBe(true);
-    expect(errors.some((error) => error.includes("targets must be"))).toBe(true);
-    expect(errors.some((error) => error.includes("options must be"))).toBe(true);
+    expect(errors.some((error) => error.includes("command must be"))).toBe(
+      true,
+    );
+    expect(errors.some((error) => error.includes("targets must be"))).toBe(
+      true,
+    );
+    expect(errors.some((error) => error.includes("options must be"))).toBe(
+      true,
+    );
     expect(errors.some((error) => error.includes("description must be"))).toBe(
       true,
     );
@@ -143,8 +149,10 @@ describe("proof integrations loader", () => {
     if (!loaded.available) return;
     expect(resolveIntegration(loaded.integrations, "missing")).toBeNull();
     const integration = resolveIntegration(loaded.integrations, "self-proof");
-    expect(integration?.id).toBe("self-proof");
-    expect(toExecution(integration!)).toEqual({
+    expect(integration).toBeDefined();
+    if (!integration) throw new Error("expected self-proof integration");
+    expect(integration.id).toBe("self-proof");
+    expect(toExecution(integration)).toEqual({
       id: "self-proof",
       producer: "command",
       producer_version: "1.0.0",

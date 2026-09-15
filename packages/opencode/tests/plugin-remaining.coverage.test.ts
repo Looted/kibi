@@ -9,12 +9,12 @@ import path from "node:path";
 import * as autoUpdate from "../src/auto-update.js";
 import * as reminders from "../src/file-operation-reminders.js";
 import { GuidanceCache } from "../src/guidance-cache.js";
+import * as freshness from "../src/kb-freshness-state.js";
 import {
   KibiCheckpointRunner,
   type KibiCheckpointRunnerOptions,
 } from "../src/kibi-checkpoint-runner.js";
 import * as checkpointModule from "../src/kibi-checkpoint-runner.js";
-import * as freshness from "../src/kb-freshness-state.js";
 import { _setConsoleError } from "../src/logger.js";
 import * as logger from "../src/logger.js";
 import kibiOpencodePlugin from "../src/plugin.js";
@@ -81,9 +81,7 @@ function writePluginConfig(
   );
 }
 
-function makeClient(
-  extras: Partial<NonNullable<PluginInput["client"]>> = {},
-): {
+function makeClient(extras: Partial<NonNullable<PluginInput["client"]>> = {}): {
   client: NonNullable<PluginInput["client"]>;
   logs: Record<string, unknown>[];
   toasts: ToastPayload[];
@@ -206,7 +204,10 @@ describe("plugin remaining event, lint, and hook branches", () => {
         },
       });
       await hooks.event?.({
-        event: { type: "tool.call.completed", properties: { name: "kb_check" } },
+        event: {
+          type: "tool.call.completed",
+          properties: { name: "kb_check" },
+        },
       });
       await hooks.event?.({
         event: {
@@ -242,7 +243,10 @@ describe("plugin remaining event, lint, and hook branches", () => {
     };
     writePluginConfig(tmpDir, { ux: { toastStartup: false } });
     const store = freshness.createKbFreshnessEvidenceStore();
-    const create = spyOn(freshness, "createKbFreshnessEvidenceStore").mockImplementation(
+    const create = spyOn(
+      freshness,
+      "createKbFreshnessEvidenceStore",
+    ).mockImplementation(
       () =>
         ({
           ...store,
@@ -316,7 +320,10 @@ describe("plugin remaining event, lint, and hook branches", () => {
     installSchedulerStub();
     globals.__kibi_test_schedule_startup_notify = () => {};
     try {
-      fs.writeFileSync(path.join(tmpDir, "src", "new.ts"), "export const n = 1;\n");
+      fs.writeFileSync(
+        path.join(tmpDir, "src", "new.ts"),
+        "export const n = 1;\n",
+      );
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: tmpDir,
@@ -366,9 +373,10 @@ describe("plugin remaining scheduler, cache, checkpoint, and auto-update branche
       };
     };
     globals.__kibi_test_schedule_startup_notify = () => {};
-    const cacheHit = spyOn(GuidanceCache.prototype, "isSatisfied").mockReturnValue(
-      true,
-    );
+    const cacheHit = spyOn(
+      GuidanceCache.prototype,
+      "isSatisfied",
+    ).mockReturnValue(true);
     spies.push(cacheHit);
     try {
       fs.writeFileSync(
@@ -430,9 +438,7 @@ describe("plugin remaining scheduler, cache, checkpoint, and auto-update branche
         smartEnforcement: { mode: "hard" },
       },
     });
-    let capturedComplete:
-      | ((meta: SyncRunMetadata) => void)
-      | undefined;
+    let capturedComplete: ((meta: SyncRunMetadata) => void) | undefined;
     const OriginalRunner = checkpointModule.KibiCheckpointRunner;
     const requestSpy = spyOn(
       OriginalRunner.prototype,
@@ -502,7 +508,10 @@ export function validateUser(user: { email: string }) {
         client: captured.client,
       });
       await hooks.event?.({
-        event: { type: "file.edited", properties: { file: "src/commented.ts" } },
+        event: {
+          type: "file.edited",
+          properties: { file: "src/commented.ts" },
+        },
       });
       fs.writeFileSync(
         path.join(tmpDir, "src", "traced.ts"),
@@ -545,7 +554,10 @@ export function validateUser(user: { email: string }) {
     globals.__kibi_test_schedule_startup_notify = (callback) => {
       callback();
     };
-    const versionSpy = spyOn(versions, "readKibiPackageVersions").mockReturnValue({
+    const versionSpy = spyOn(
+      versions,
+      "readKibiPackageVersions",
+    ).mockReturnValue({
       opencode: "1.2.3",
       mcp: "1.0.0",
       cli: "1.0.0",
@@ -553,16 +565,17 @@ export function validateUser(user: { email: string }) {
       source: "generated-dist",
       missing: [],
     });
-    const runnerSpy = spyOn(autoUpdate, "createAutoUpdateRunner").mockImplementation(
-      (deps) => {
-        expect(deps.getCurrentVersion()).toBe("1.2.3");
-        return async () => {
-          await deps.notify("plugin updated");
-          release();
-          return { status: "updated" };
-        };
-      },
-    );
+    const runnerSpy = spyOn(
+      autoUpdate,
+      "createAutoUpdateRunner",
+    ).mockImplementation((deps) => {
+      expect(deps.getCurrentVersion()).toBe("1.2.3");
+      return async () => {
+        await deps.notify("plugin updated");
+        release();
+        return { status: "updated" };
+      };
+    });
     spies.push(versionSpy, runnerSpy);
     try {
       await kibiOpencodePlugin({
@@ -571,9 +584,9 @@ export function validateUser(user: { email: string }) {
         client: captured.client,
       });
       await notified;
-      expect(captured.toasts.some((toast) => toast.message === "plugin updated")).toBe(
-        true,
-      );
+      expect(
+        captured.toasts.some((toast) => toast.message === "plugin updated"),
+      ).toBe(true);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -589,7 +602,10 @@ export function validateUser(user: { email: string }) {
     globals.__kibi_test_schedule_startup_notify = (callback) => {
       callback();
     };
-    const versionSpy = spyOn(versions, "readKibiPackageVersions").mockReturnValue({
+    const versionSpy = spyOn(
+      versions,
+      "readKibiPackageVersions",
+    ).mockReturnValue({
       opencode: "unknown",
       mcp: "unknown",
       cli: "unknown",
@@ -597,15 +613,16 @@ export function validateUser(user: { email: string }) {
       source: "unknown",
       missing: ["opencode"],
     });
-    const runnerSpy = spyOn(autoUpdate, "createAutoUpdateRunner").mockImplementation(
-      (deps) => {
-        expect(deps.getCurrentVersion()).toBeNull();
-        return async () => {
-          release();
-          return { status: "current-version-unknown" };
-        };
-      },
-    );
+    const runnerSpy = spyOn(
+      autoUpdate,
+      "createAutoUpdateRunner",
+    ).mockImplementation((deps) => {
+      expect(deps.getCurrentVersion()).toBeNull();
+      return async () => {
+        release();
+        return { status: "current-version-unknown" };
+      };
+    });
     spies.push(versionSpy, runnerSpy);
     try {
       await kibiOpencodePlugin({

@@ -169,10 +169,7 @@ describe("launch-kibi-mcp remaining branches", () => {
         bin: { "kibi-mcp": "bin/kibi-mcp.mjs" },
       }),
     );
-    writeFileSync(
-      path.join(pkg, "bin", "kibi-mcp.mjs"),
-      "process.exit(11);\n",
-    );
+    writeFileSync(path.join(pkg, "bin", "kibi-mcp.mjs"), "process.exit(11);\n");
     const code = await launchKibiMcp([root], {
       ...process.env,
       WORKSPACE_FOLDER_PATHS: undefined,
@@ -311,7 +308,9 @@ describe("launch-kibi-mcp remaining branches", () => {
       path.join(lonely, "package.json"),
       JSON.stringify({ name: "other" }),
     );
-    expect(packageJsonForResolvedFile(path.join(lonely, "index.js"))).toBeNull();
+    expect(
+      packageJsonForResolvedFile(path.join(lonely, "index.js")),
+    ).toBeNull();
   });
 
   test("project-scope helpers reject broken links and honor PnP", () => {
@@ -322,9 +321,7 @@ describe("launch-kibi-mcp remaining branches", () => {
       path.join(outside, "missing-target"),
       path.join(workspace, "node_modules", "kibi-mcp"),
     );
-    expect(
-      hasConsumerNodeModulesLink(workspace, outside),
-    ).toBe(false);
+    expect(hasConsumerNodeModulesLink(workspace, outside)).toBe(false);
 
     writeFileSync(
       path.join(workspace, "package.json"),
@@ -334,7 +331,10 @@ describe("launch-kibi-mcp remaining branches", () => {
     writeFileSync(path.join(workspace, "package.json"), "{not-json");
     expect(hasDeclaredProjectDependency(workspace)).toBe(false);
 
-    const previousPnp = Object.getOwnPropertyDescriptor(process.versions, "pnp");
+    const previousPnp = Object.getOwnPropertyDescriptor(
+      process.versions,
+      "pnp",
+    );
     Object.defineProperty(process.versions, "pnp", {
       configurable: true,
       value: "1",
@@ -345,7 +345,7 @@ describe("launch-kibi-mcp remaining branches", () => {
       if (previousPnp) {
         Object.defineProperty(process.versions, "pnp", previousPnp);
       } else {
-        delete (process.versions as { pnp?: string }).pnp;
+        Reflect.deleteProperty(process.versions, "pnp");
       }
     }
   });
@@ -370,7 +370,9 @@ describe("launch-kibi-mcp remaining branches", () => {
       }),
     );
     writeFileSync(path.join(pkg, "bin", "kibi-mcp.mjs"), "export {}\n");
-    expect(() => resolveProjectLocalMcp(workspace)).toThrow("outside the consumer");
+    expect(() => resolveProjectLocalMcp(workspace)).toThrow(
+      "outside the consumer",
+    );
   });
 
   test("usable workspace lists skip directories that cannot resolve MCP", () => {
@@ -514,7 +516,10 @@ describe("launch-kibi-mcp remaining branches", () => {
     );
     expect(await nullClose).toBe(1);
 
-    const previousPlatform = Object.getOwnPropertyDescriptor(process, "platform");
+    const previousPlatform = Object.getOwnPropertyDescriptor(
+      process,
+      "platform",
+    );
     Object.defineProperty(process, "platform", {
       configurable: true,
       value: "win32",

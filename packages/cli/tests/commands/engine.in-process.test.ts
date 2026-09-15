@@ -85,9 +85,12 @@ describe("engine commands", () => {
     const cwd = createGitWorkspace();
     roots.push(cwd);
     mkdirSync(path.join(cwd, ".kb", "branches", "main"), { recursive: true });
-    writeFileSync(path.join(cwd, ".kb", "branches", "main", "kb.rdf"), "legacy\n");
-    await expect(
-      withCwd(cwd, () => storageCompactCommand()),
-    ).rejects.toThrow(/Storage compaction blocked by legacy attachment/);
+    writeFileSync(
+      path.join(cwd, ".kb", "branches", "main", "kb.rdf"),
+      "legacy\n",
+    );
+    await expect(withCwd(cwd, () => storageCompactCommand())).rejects.toThrow(
+      /Storage compaction blocked by legacy attachment/,
+    );
   });
 });

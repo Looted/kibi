@@ -354,11 +354,15 @@ export function launchKibiMcp(
     return Promise.resolve(1);
   }
 
-  const child = spawnImpl(process.execPath, [projectLocal.binPath, ...childArgs], {
-    cwd: workspaceRoot,
-    env: { ...env, KIBI_WORKSPACE: workspaceRoot },
-    stdio: ["inherit", "inherit", "inherit"],
-  });
+  const child = spawnImpl(
+    process.execPath,
+    [projectLocal.binPath, ...childArgs],
+    {
+      cwd: workspaceRoot,
+      env: { ...env, KIBI_WORKSPACE: workspaceRoot },
+      stdio: ["inherit", "inherit", "inherit"],
+    },
+  );
 
   return new Promise((resolveExit) => {
     let finished = false;

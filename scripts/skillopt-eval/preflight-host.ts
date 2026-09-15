@@ -25,7 +25,10 @@ import { PreflightInputError, digest, readNoFollow } from "./preflight-io";
 
 export { PreflightNoGo } from "./preflight-host-model";
 export type { HostPreflightOptions } from "./preflight-host-model";
-export { rethrowIfNotError, tryVerifyBundleSignature } from "./bundle-signature";
+export {
+  rethrowIfNotError,
+  tryVerifyBundleSignature,
+} from "./bundle-signature";
 
 // implements REQ-skillopt-codex-optimization
 export async function qualifySkillOptHost(

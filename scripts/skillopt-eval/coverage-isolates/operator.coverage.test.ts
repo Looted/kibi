@@ -131,12 +131,17 @@ describe("operator coverage leftovers", () => {
       command: "optimize",
       skill: "bundle",
     });
-    expect(parseOperatorArgs(["optimize", "--skill", "kibi-freshness"])).toMatchObject({
+    expect(
+      parseOperatorArgs(["optimize", "--skill", "kibi-freshness"]),
+    ).toMatchObject({
       skill: "kibi-freshness",
     });
-    expect(parseOperatorArgs(["suite"])).toMatchObject({
+    expect(
+      parseOperatorArgs(["suite", "--candidate-manifest", "bundle.json"]),
+    ).toMatchObject({
       command: "suite",
       skill: "bundle",
+      candidateManifest: "bundle.json",
     });
   });
 
@@ -195,9 +200,11 @@ describe("operator coverage leftovers", () => {
         runCli: async (args) => {
           expect(args[0]).toBe("bundle");
           expect(args).toContain("--skill");
+          expect(args).toContain("--candidate-manifest");
           return 0;
         },
       }),
+      { candidateManifest: "bundle.json" },
     );
     expect(suite).toBe(0);
 

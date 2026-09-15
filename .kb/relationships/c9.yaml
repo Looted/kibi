@@ -118,3 +118,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-69dbbfc6e76e
+  - type: implements
+    from: SYM-quality-producer-selectExactProofSteps
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-09-14T18:54:35.064Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43a5166afe54
+  - type: covered_by
+    from: SYM-quality-producer-selectExactProofSteps
+    to: TEST-proof-runner-integrity
+    created_at: 2026-09-14T18:54:35.082Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ef52aafec61

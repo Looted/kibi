@@ -1758,19 +1758,20 @@ describe("retract helpers", () => {
   test("retractEntitiesForSources returns 0 when no ids are indexed", async () => {
     const prolog = makeProlog();
     expect(
-      await retractEntitiesForSources(asPrologProcess(prolog), [
-        "docs/REQ.md",
-      ]),
+      await retractEntitiesForSources(asPrologProcess(prolog), ["docs/REQ.md"]),
     ).toBe(0);
   });
 
   test("retractEntitiesForSources batches retract goals and fails closed", async () => {
     const prolog = makeProlog();
-    (prolog as unknown as { queryBatch?: (goals: readonly string[]) => Promise<QueryResult> }).queryBatch =
-      mock(async () => ({
-        success: true,
-        bindings: {},
-      }));
+    (
+      prolog as unknown as {
+        queryBatch?: (goals: readonly string[]) => Promise<QueryResult>;
+      }
+    ).queryBatch = mock(async () => ({
+      success: true,
+      bindings: {},
+    }));
     prolog.query.mockImplementation(async (goal: string | string[]) => {
       const g = Array.isArray(goal) ? goal.join(", ") : goal;
       if (g.includes("kb_entities_by_source")) {
@@ -1779,18 +1780,19 @@ describe("retract helpers", () => {
       return { success: true, bindings: {} };
     });
     expect(
-      await retractEntitiesForSources(asPrologProcess(prolog), [
-        "docs/REQ.md",
-      ]),
+      await retractEntitiesForSources(asPrologProcess(prolog), ["docs/REQ.md"]),
     ).toBe(2);
 
     const failing = makeProlog();
-    (failing as unknown as { queryBatch?: (goals: readonly string[]) => Promise<QueryResult> }).queryBatch =
-      mock(async () => ({
-        success: false,
-        bindings: {},
-        error: "batch retract failed",
-      }));
+    (
+      failing as unknown as {
+        queryBatch?: (goals: readonly string[]) => Promise<QueryResult>;
+      }
+    ).queryBatch = mock(async () => ({
+      success: false,
+      bindings: {},
+      error: "batch retract failed",
+    }));
     failing.query.mockImplementation(async (goal: string | string[]) => {
       const g = Array.isArray(goal) ? goal.join(", ") : goal;
       if (g.includes("kb_entities_by_source")) {
@@ -1816,9 +1818,7 @@ describe("retract helpers", () => {
       return { success: true, bindings: {} };
     });
     expect(
-      await retractEntitiesForSources(asPrologProcess(prolog), [
-        "docs/REQ.md",
-      ]),
+      await retractEntitiesForSources(asPrologProcess(prolog), ["docs/REQ.md"]),
     ).toBe(1);
 
     const failing = makeProlog();
@@ -1827,7 +1827,11 @@ describe("retract helpers", () => {
       if (g.includes("kb_entities_by_source")) {
         return { success: true, bindings: { Ids: "[REQ-SEQ]" } };
       }
-      return { success: false, bindings: {}, error: "Failed to retract changed source entity" };
+      return {
+        success: false,
+        bindings: {},
+        error: "Failed to retract changed source entity",
+      };
     });
     await expect(
       retractEntitiesForSources(asPrologProcess(failing), ["docs/REQ.md"]),
@@ -1842,9 +1846,14 @@ describe("retract helpers", () => {
 
     const sequential = makeProlog();
     expect(
-      await retractEntitiesById(asPrologProcess(sequential), ["REQ-A", "REQ-A"]),
+      await retractEntitiesById(asPrologProcess(sequential), [
+        "REQ-A",
+        "REQ-A",
+      ]),
     ).toBe(1);
-    await retractEntityRelationshipsById(asPrologProcess(sequential), ["REQ-A"]);
+    await retractEntityRelationshipsById(asPrologProcess(sequential), [
+      "REQ-A",
+    ]);
     expect(
       await retractRelationships(asPrologProcess(sequential), [
         { type: "verified_by", from: "REQ-A", to: "TEST-A" },
@@ -1852,9 +1861,14 @@ describe("retract helpers", () => {
     ).toBe(1);
 
     const batch = makeProlog();
-    (batch as unknown as { queryBatch?: (goals: readonly string[]) => Promise<QueryResult> }).queryBatch =
-      mock(async () => ({ success: true, bindings: {} }));
-    expect(await retractEntitiesById(asPrologProcess(batch), ["REQ-B"])).toBe(1);
+    (
+      batch as unknown as {
+        queryBatch?: (goals: readonly string[]) => Promise<QueryResult>;
+      }
+    ).queryBatch = mock(async () => ({ success: true, bindings: {} }));
+    expect(await retractEntitiesById(asPrologProcess(batch), ["REQ-B"])).toBe(
+      1,
+    );
     await retractEntityRelationshipsById(asPrologProcess(batch), ["REQ-B"]);
     expect(
       await retractRelationships(asPrologProcess(batch), [
@@ -1863,8 +1877,11 @@ describe("retract helpers", () => {
     ).toBe(1);
 
     const failing = makeProlog();
-    (failing as unknown as { queryBatch?: (goals: readonly string[]) => Promise<QueryResult> }).queryBatch =
-      mock(async () => ({ success: false, bindings: {} }));
+    (
+      failing as unknown as {
+        queryBatch?: (goals: readonly string[]) => Promise<QueryResult>;
+      }
+    ).queryBatch = mock(async () => ({ success: false, bindings: {} }));
     await expect(
       retractEntitiesById(asPrologProcess(failing), ["REQ-C"]),
     ).rejects.toThrow(/Failed to retract entity delta/);
@@ -1891,9 +1908,7 @@ describe("retract helpers", () => {
       return { success: true, bindings: {} };
     });
     expect(
-      await retractEntitiesForSources(asPrologProcess(prolog), [
-        "docs/REQ.md",
-      ]),
+      await retractEntitiesForSources(asPrologProcess(prolog), ["docs/REQ.md"]),
     ).toBe(4);
 
     const empty = makeProlog();
@@ -1923,7 +1938,9 @@ describe("retract helpers", () => {
       bindings: { Ids: 12 as never },
     }));
     expect(
-      await retractEntitiesForSources(asPrologProcess(numeric), ["docs/REQ.md"]),
+      await retractEntitiesForSources(asPrologProcess(numeric), [
+        "docs/REQ.md",
+      ]),
     ).toBe(0);
   });
 
@@ -2095,10 +2112,9 @@ describe("persistRelationships remaining retry and tip paths", () => {
     const result = await persistRelationships(
       asPrologProcess(prolog),
       [
-        makeResult(
-          {},
-          [{ type: "specified_by", from: "REQ-001", to: "SCEN-1" }],
-        ),
+        makeResult({}, [
+          { type: "specified_by", from: "REQ-001", to: "SCEN-1" },
+        ]),
       ],
       [{ type: "verified_by", from: "REQ-001", to: "TEST-1" }],
     );
@@ -2128,7 +2144,11 @@ describe("persistRelationships remaining retry and tip paths", () => {
       });
       await persistRelationships(
         asPrologProcess(prolog),
-        [makeResult({}, [{ type: "specified_by", from: "REQ-001", to: "SCEN-1" }])],
+        [
+          makeResult({}, [
+            { type: "specified_by", from: "REQ-001", to: "SCEN-1" },
+          ]),
+        ],
         [],
       );
       expect(
@@ -2175,4 +2195,3 @@ describe("persistRelationships remaining retry and tip paths", () => {
     }
   });
 });
-

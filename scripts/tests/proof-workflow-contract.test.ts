@@ -63,6 +63,16 @@ describe("strict proof workflow contract", () => {
         expect(step.length).toBeGreaterThan(0);
         expect(step[0]).not.toBe("sh");
         expect(step[0]).not.toBe("bash");
+        if (step[0] === "bun" && step[1] === "test") {
+          for (const argument of step.slice(2)) {
+            if (
+              argument.includes("/") &&
+              /\.(?:test|spec)\.[cm]?[jt]sx?$/.test(argument)
+            ) {
+              expect(argument.startsWith("./")).toBe(true);
+            }
+          }
+        }
       }
 
       const markdown = readFileSync(
@@ -139,16 +149,23 @@ describe("strict proof workflow contract", () => {
     }
     expect(proofPackedRunner).toContain("mkdtemp(");
     expect(proofPackedRunner).toContain("run-packed-e2e.mjs");
+    expect(proofPackedRunner).toContain("KIBI_PROOF_PACKED");
     expect(proofPackedRunner).toContain(
       "rm(compiledDirectory, { recursive: true, force: true })",
     );
   });
 
-  test("equality baseline locks 100% current-requirement proof", () => {
-    expect(baseline.mode).toBe("equality");
-    expect(baseline.currentRequirements).toBe(98);
-    expect(baseline.proofProven).toBe(98);
-    expect(baseline.currentUnproven).toBe(0);
-    expect(baseline.trackedGaps).toEqual({});
+  test("ratchet baseline records the stricter per-scenario proof gaps", () => {
+    expect(baseline.mode).toBe("ratchet");
+    expect(baseline.currentRequirements).toBe(101);
+    expect(baseline.proofProven).toBe(63);
+    expect(baseline.currentUnproven).toBe(38);
+    expect(baseline.trackedGaps).toEqual({
+      missing_passing_e2e: 21,
+      missing_production_symbol_coverage: 26,
+      missing_proof_receipt: 12,
+      unresolved_semantic_proposition: 2,
+      missing_production_symbol: 2,
+    });
   });
 });

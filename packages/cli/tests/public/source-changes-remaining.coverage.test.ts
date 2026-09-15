@@ -31,22 +31,23 @@ describe("source-changes remaining working-tree hunk catch", () => {
     writeFileSync(path.join(root, sourceFile), "export const value = 1;\n");
     const original = childProcess.execSync.bind(childProcess);
     let diffCalls = 0;
-    const spy = spyOn(childProcess, "execSync").mockImplementation(
-      ((command: string, options?: childProcess.ExecSyncOptions) => {
-        if (typeof command === "string" && command.includes("git diff -U0")) {
-          diffCalls += 1;
-          if (diffCalls > 1) throw new Error("hunk diff failed");
-          return [
-            "diff --git a/src/app.ts b/src/app.ts",
-            "@@ -1 +1 @@",
-            "-export const value = 1;",
-            "+export const value = 2;",
-            "",
-          ].join("\n");
-        }
-        return original(command, options as never);
-      }) as typeof childProcess.execSync,
-    );
+    const spy = spyOn(childProcess, "execSync").mockImplementation(((
+      command: string,
+      options?: childProcess.ExecSyncOptions,
+    ) => {
+      if (typeof command === "string" && command.includes("git diff -U0")) {
+        diffCalls += 1;
+        if (diffCalls > 1) throw new Error("hunk diff failed");
+        return [
+          "diff --git a/src/app.ts b/src/app.ts",
+          "@@ -1 +1 @@",
+          "-export const value = 1;",
+          "+export const value = 2;",
+          "",
+        ].join("\n");
+      }
+      return original(command, options as never);
+    }) as typeof childProcess.execSync);
     spies.push(spy);
     expect(
       collectSourceChanges({

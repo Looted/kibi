@@ -6,8 +6,8 @@ import { join } from "node:path";
 import { buildPublicCatalog } from "../catalog";
 import { EvaluationInfrastructureError } from "../evaluation-infrastructure";
 import { materializeFixtureRun } from "../fixtures/private";
-import { parseBridgeOptions } from "../runtime/bridge-cli-options";
 import { runBridge } from "../runtime/bridge-cli-execution";
+import { parseBridgeOptions } from "../runtime/bridge-cli-options";
 import { defaultCodexCellDependencies } from "../runtime/codex-cell-defaults";
 import { CANONICAL_SKILL_ROOT } from "./fixture-test-helpers";
 
@@ -73,26 +73,23 @@ function options(root: string, fixtureRunRoot: string) {
 
 describe("runBridge remaining behavioral and infrastructure paths", () => {
   test("returns the fake result without launching a cell", async () => {
-    const result = await runBridge(
-      parseBridgeOptions(["--pipe", "--fake"]),
-      {
-        schemaVersion: "1.0.0",
-        artifactType: "skillopt-bridge-request",
-        runId: "00000000-0000-4000-8000-000000000502",
-        batchId: "fake-1",
-        skill: "kibi-usage",
-        phase: "train",
-        candidateBody: "body",
-        taskIds: ["task-a"],
-        publicClaim: {
-          taskId: "task-a",
-          text: "prompt",
-          publicManifestHash: "a".repeat(64),
-          workspaceHash: "b".repeat(64),
-        },
-        sourceLockHash: "c".repeat(64),
+    const result = await runBridge(parseBridgeOptions(["--pipe", "--fake"]), {
+      schemaVersion: "1.0.0",
+      artifactType: "skillopt-bridge-request",
+      runId: "00000000-0000-4000-8000-000000000502",
+      batchId: "fake-1",
+      skill: "kibi-usage",
+      phase: "train",
+      candidateBody: "body",
+      taskIds: ["task-a"],
+      publicClaim: {
+        taskId: "task-a",
+        text: "prompt",
+        publicManifestHash: "a".repeat(64),
+        workspaceHash: "b".repeat(64),
       },
-    );
+      sourceLockHash: "c".repeat(64),
+    });
     expect(result.rows[0]).toMatchObject({
       id: "task-a",
       hard: 1,
@@ -108,68 +105,72 @@ describe("runBridge remaining behavioral and infrastructure paths", () => {
     await mkdir(artifactDirectory, { recursive: true });
     await writeFile(join(artifactDirectory, "final-state.json"), "{}");
 
-    const result = await runBridge(options(root, fixtureRun.roots.runRoot), request, {
-      defaultCodexCellDependencies,
-      runCodexCell: async () => ({
-        receipt: {
-          result: {
-            status: "behavioral-failure",
-            hardPass: false,
-            score: 75,
-            criticalFailures: [],
-          },
-          evidenceIndex: {
-            events: [
-              { event: "not-an-object" },
-              { event: [] },
-              { event: { type: "other" } },
-              { event: { type: "item.completed", payload: null } },
-              { event: { type: "item.completed", payload: [] } },
-              {
-                event: {
-                  type: "item.completed",
-                  payload: { item: null },
+    const result = await runBridge(
+      options(root, fixtureRun.roots.runRoot),
+      request,
+      {
+        defaultCodexCellDependencies,
+        runCodexCell: async () => ({
+          receipt: {
+            result: {
+              status: "behavioral-failure",
+              hardPass: false,
+              score: 75,
+              criticalFailures: [],
+            },
+            evidenceIndex: {
+              events: [
+                { event: "not-an-object" },
+                { event: [] },
+                { event: { type: "other" } },
+                { event: { type: "item.completed", payload: null } },
+                { event: { type: "item.completed", payload: [] } },
+                {
+                  event: {
+                    type: "item.completed",
+                    payload: { item: null },
+                  },
                 },
-              },
-              {
-                event: {
-                  type: "item.completed",
-                  payload: { item: { type: "message" } },
+                {
+                  event: {
+                    type: "item.completed",
+                    payload: { item: { type: "message" } },
+                  },
                 },
-              },
-              {
-                event: {
-                  type: "item.completed",
-                  payload: {
-                    item: {
-                      type: "mcp_tool_call",
-                      tool: "kb_query",
-                      arguments: "raw",
-                      error: { message: "nope" },
+                {
+                  event: {
+                    type: "item.completed",
+                    payload: {
+                      item: {
+                        type: "mcp_tool_call",
+                        tool: "kb_query",
+                        arguments: "raw",
+                        error: { message: "nope" },
+                      },
                     },
                   },
                 },
-              },
-              {
-                event: {
-                  type: "item.completed",
-                  payload: {
-                    item: {
-                      type: "mcp_tool_call",
-                      tool: "kb_status",
-                      arguments: { includePassing: true },
-                      error: null,
+                {
+                  event: {
+                    type: "item.completed",
+                    payload: {
+                      item: {
+                        type: "mcp_tool_call",
+                        tool: "kb_status",
+                        arguments: { includePassing: true },
+                        error: null,
+                      },
                     },
                   },
                 },
-              },
-            ],
+              ],
+            },
           },
-        },
-        artifactDirectory,
-        receiptPath: join(artifactDirectory, "episode-receipt.json"),
-      }),
-    });
+          artifactDirectory,
+          receiptPath: join(artifactDirectory, "episode-receipt.json"),
+        }),
+      },
+    );
 
     expect(result.rows[0]).toMatchObject({
       hard: 0,

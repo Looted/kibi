@@ -13,7 +13,10 @@ import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { finalizeLcov, finalizeLcovIfMain } from "../finalize-lcov.ts";
-import { mergeLcovContents } from "../merge-lcov.ts";
+import {
+  mergeLcovContents,
+  mergeLcovContentsWithDiagnostics,
+} from "../merge-lcov.ts";
 
 describe("finalizeLcov", () => {
   test("keeps an existing lcov.info file", async () => {
@@ -77,27 +80,40 @@ describe("mergeLcovContents", () => {
     expect(merged.match(/SF:src\/example\.ts/g)).toHaveLength(1);
   });
 
-  test("does not union extra DA:0 rows from a poisoned map into a complete map", () => {
-    const completeLines = Array.from({ length: 20 }, (_, index) => `DA:${index + 1},1`);
+  test("retains zero-hit lines from every valid map", () => {
+    const completeLines = Array.from(
+      { length: 20 },
+      (_, index) => `DA:${index + 1},1`,
+    );
     const poisonedLines = [
       ...completeLines.map((line) => line.replace(",1", ",0")),
       "DA:154,0",
       "DA:202,0",
     ];
     const merged = mergeLcovContents([
-      ["TN:", "SF:src/tree.ts", ...poisonedLines, "LF:22", "LH:0", "end_of_record"].join(
-        "\n",
-      ),
-      ["TN:", "SF:src/tree.ts", ...completeLines, "LF:20", "LH:20", "end_of_record"].join(
-        "\n",
-      ),
+      [
+        "TN:",
+        "SF:src/tree.ts",
+        ...poisonedLines,
+        "LF:22",
+        "LH:0",
+        "end_of_record",
+      ].join("\n"),
+      [
+        "TN:",
+        "SF:src/tree.ts",
+        ...completeLines,
+        "LF:20",
+        "LH:20",
+        "end_of_record",
+      ].join("\n"),
     ]);
-    expect(merged).toContain("LF:20\nLH:20");
-    expect(merged).not.toContain("DA:154,0");
-    expect(merged).not.toContain("DA:202,0");
+    expect(merged).toContain("LF:22\nLH:20");
+    expect(merged).toContain("DA:154,0");
+    expect(merged).toContain("DA:202,0");
   });
 
-  test("drops extra DA:0 rows when a higher-hit-rate map is not yet 95% complete", () => {
+  test("retains zero-hit lines even when another map has a higher hit rate", () => {
     const betterLines = [
       ...Array.from({ length: 12 }, (_, index) => `DA:${index + 1},1`),
       ...Array.from({ length: 4 }, (_, index) => `DA:${index + 13},0`),
@@ -108,26 +124,36 @@ describe("mergeLcovContents", () => {
       "DA:81,0",
     ];
     const merged = mergeLcovContents([
-      ["TN:", "SF:src/runtime.ts", ...poisonedLines, "LF:18", "LH:0", "end_of_record"].join(
-        "\n",
-      ),
-      ["TN:", "SF:src/runtime.ts", ...betterLines, "LF:16", "LH:12", "end_of_record"].join(
-        "\n",
-      ),
+      [
+        "TN:",
+        "SF:src/runtime.ts",
+        ...poisonedLines,
+        "LF:18",
+        "LH:0",
+        "end_of_record",
+      ].join("\n"),
+      [
+        "TN:",
+        "SF:src/runtime.ts",
+        ...betterLines,
+        "LF:16",
+        "LH:12",
+        "end_of_record",
+      ].join("\n"),
     ]);
-    expect(merged).toContain("LF:16\nLH:12");
-    expect(merged).not.toContain("DA:80,0");
-    expect(merged).not.toContain("DA:81,0");
+    expect(merged).toContain("LF:18\nLH:12");
+    expect(merged).toContain("DA:80,0");
+    expect(merged).toContain("DA:81,0");
   });
 
-  test("keeps distinct source records in deterministic first-seen order", () => {
+  test("keeps distinct source records in deterministic source order", () => {
     const merged = mergeLcovContents([
       "TN:\nSF:src/b.ts\nDA:2,1\nLF:1\nLH:1\nend_of_record",
       "TN:\nSF:src/a.ts\nDA:1,1\nLF:1\nLH:1\nend_of_record",
     ]);
 
-    expect(merged.indexOf("SF:src/b.ts")).toBeLessThan(
-      merged.indexOf("SF:src/a.ts"),
+    expect(merged.indexOf("SF:src/a.ts")).toBeLessThan(
+      merged.indexOf("SF:src/b.ts"),
     );
     expect(merged.match(/end_of_record/g)).toHaveLength(2);
   });
@@ -180,7 +206,7 @@ describe("mergeLcovContents", () => {
     expect(merged).toContain("BRF:2\nBRH:2");
   });
 
-  test("keeps both unparsed branch-taken marks and skips extra DA:0 on an authority map", () => {
+  test("keeps both unparsed branch-taken marks and reports line-map conflicts", () => {
     const mergedBranches = mergeLcovContents([
       [
         "TN:",
@@ -205,11 +231,19 @@ describe("mergeLcovContents", () => {
     ]);
     expect(mergedBranches).toContain("BRDA:1,0,0,-");
 
-    const completeLines = Array.from({ length: 20 }, (_, index) => `DA:${index + 1},1`);
+    const completeLines = Array.from(
+      { length: 20 },
+      (_, index) => `DA:${index + 1},1`,
+    );
     const mergedAuthority = mergeLcovContents([
-      ["TN:", "SF:src/auth.ts", ...completeLines, "LF:20", "LH:20", "end_of_record"].join(
-        "\n",
-      ),
+      [
+        "TN:",
+        "SF:src/auth.ts",
+        ...completeLines,
+        "LF:20",
+        "LH:20",
+        "end_of_record",
+      ].join("\n"),
       [
         "TN:",
         "SF:src/auth.ts",
@@ -221,8 +255,18 @@ describe("mergeLcovContents", () => {
         "end_of_record",
       ].join("\n"),
     ]);
-    expect(mergedAuthority).not.toContain("DA:21,0");
+    expect(mergedAuthority).toContain("DA:21,0");
     expect(mergedAuthority).toContain("DA:22,3");
+  });
+
+  test("reports source-map metadata conflicts without shrinking the denominator", () => {
+    const merged = mergeLcovContentsWithDiagnostics([
+      "TN:\nSF:src/conflict.ts\nDA:1,0,hash-a\nLF:1\nLH:0\nend_of_record",
+      "TN:\nSF:src/conflict.ts\nDA:1,1,hash-b\nDA:2,0\nLF:2\nLH:1\nend_of_record",
+    ]);
+    expect(merged.lcov).toContain("DA:1,1,hash-b");
+    expect(merged.lcov).toContain("DA:2,0");
+    expect(merged.diagnostics.join("\n")).toContain("metadata conflict");
   });
 });
 

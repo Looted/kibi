@@ -41,7 +41,10 @@ function baseManifest(
         required: [{ tool: "kb_search", predicate: "sequence=1" }],
         forbidden: [{ tool: "kb_delete", predicate: "unless needed" }],
       },
-      isolationSentinels: ["PRIVATE_SENTINEL_secret", "SIBLING_SENTINEL_secret"],
+      isolationSentinels: [
+        "PRIVATE_SENTINEL_secret",
+        "SIBLING_SENTINEL_secret",
+      ],
       rubric: [
         {
           key: "final_state",
@@ -262,7 +265,12 @@ describe("evaluatePredicateCase remaining lane and failure branches", () => {
     expect(
       evaluatePredicateCase(
         observation,
-        evidence(snapshot({ facts: [{ id: "O", factKind: "observation" }], logicClaims: [] })),
+        evidence(
+          snapshot({
+            facts: [{ id: "O", factKind: "observation" }],
+            logicClaims: [],
+          }),
+        ),
       ).failureCodes,
     ).toEqual([]);
 
@@ -294,18 +302,32 @@ describe("evaluatePredicateCase remaining lane and failure branches", () => {
     expect(() => evaluatePredicateCase(manifest, evidence())).toThrow(
       EvidenceBindingError,
     );
-    expect(predicateBindingFailure(baseManifest({ predicateExpectation: null }), new EvidenceBindingError("roots"))).toBeUndefined();
-    expect(predicateBindingFailure(manifest, new EvidenceBindingError("roots"))).toMatchObject({
+    expect(
+      predicateBindingFailure(
+        baseManifest({ predicateExpectation: null }),
+        new EvidenceBindingError("roots"),
+      ),
+    ).toBeUndefined();
+    expect(
+      predicateBindingFailure(manifest, new EvidenceBindingError("roots")),
+    ).toMatchObject({
       failure: "wrong-graph",
     });
-    expect(predicateBindingFailure(manifest, new EvidenceBindingError("case-id"))).toMatchObject({
-      failure: "replayed-evidence",
-    });
-    expect(predicateBindingFailure(manifest, new EvidenceBindingError("sequence"))).toMatchObject({
+    expect(
+      predicateBindingFailure(manifest, new EvidenceBindingError("case-id")),
+    ).toMatchObject({
       failure: "replayed-evidence",
     });
     expect(
-      predicateBindingFailure(manifest, new EvidenceBindingError("snapshot-hash")),
+      predicateBindingFailure(manifest, new EvidenceBindingError("sequence")),
+    ).toMatchObject({
+      failure: "replayed-evidence",
+    });
+    expect(
+      predicateBindingFailure(
+        manifest,
+        new EvidenceBindingError("snapshot-hash"),
+      ),
     ).toMatchObject({ failure: "mixed-snapshot" });
     expect(
       predicateBindingFailure(

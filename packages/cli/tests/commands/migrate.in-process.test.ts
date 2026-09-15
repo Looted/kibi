@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { migrateCommand } from "../../src/commands/migrate.js";
 import { engineStopCommand } from "../../src/commands/engine.js";
 import { initCommand } from "../../src/commands/init.js";
+import { migrateCommand } from "../../src/commands/migrate.js";
 import {
   captureIo,
   createGitWorkspace,
@@ -158,7 +158,9 @@ status: open
       workspaceRoot: cwd,
     });
     expect(result.exitCode).toBe(2);
-    expect(io.errorText()).toContain("--apply-safe requires --approved-plan-hash");
+    expect(io.errorText()).toContain(
+      "--apply-safe requires --approved-plan-hash",
+    );
   });
 
   test("emits a json plan and rejects a stale apply-safe hash", async () => {
@@ -191,7 +193,9 @@ status: open
       workspaceRoot: cwd,
     });
     expect(applied.exitCode).toBe(0);
-    expect(io.logText()).toMatch(/No approved automatic migration actions|Migration applied|outcome/);
+    expect(io.logText()).toMatch(
+      /No approved automatic migration actions|Migration applied|outcome/,
+    );
   });
 
   test("prints a text plan when neither --yes nor --dry-run is set", async () => {
@@ -245,7 +249,10 @@ status: open
     roots.push(cwd);
     writeManifest(cwd, 4);
     mkdirSync(path.join(cwd, ".kb", "branches", "main"), { recursive: true });
-    writeFileSync(path.join(cwd, ".kb", "branches", "main", "kb.rdf"), "legacy\n");
+    writeFileSync(
+      path.join(cwd, ".kb", "branches", "main", "kb.rdf"),
+      "legacy\n",
+    );
     const io = captureIo();
     restores.push(io.restore);
     const result = await migrateCommand({ yes: true, workspaceRoot: cwd });

@@ -50,6 +50,15 @@ async function waitFor(
   throw new Error("Timed out waiting for engine state transition");
 }
 
+function processHasExited(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return false;
+  } catch (error) {
+    return (error as NodeJS.ErrnoException).code === "ESRCH";
+  }
+}
+
 function rawEngineRequest(
   socketPath: string,
   request: Readonly<Record<string, unknown>>,
@@ -131,12 +140,39 @@ describe("journaled engine", () => {
       expect(first.getPid()).toBeGreaterThan(0);
       expect(second.getPid()).toBe(first.getPid());
 
-      const write = await first.query(
-        'kb_assert_entity(req, [id=\'REQ-ENGINE-TEST\', title="Engine test", status=open, created_at="2026-01-01T00:00:00Z", updated_at="2026-01-01T00:00:00Z", source="engine-test"])',
-      );
-      expect(write.success).toBe(true);
-      const read = await second.query("kb_entity('REQ-ENGINE-TEST', _, _)");
-      expect(read.success).toBe(true);
+      const writes = await Promise.all([
+        first.query(
+          'kb_assert_entity(req, [id=\'REQ-ENGINE-FIRST\', title="First overlapping write", status=open, created_at="2026-01-01T00:00:00Z", updated_at="2026-01-01T00:00:00Z", source="engine-test"])',
+        ),
+        second.query(
+          'kb_assert_entity(req, [id=\'REQ-ENGINE-SECOND\', title="Second overlapping write", status=open, created_at="2026-01-01T00:00:00Z", updated_at="2026-01-01T00:00:00Z", source="engine-test"])',
+        ),
+      ]);
+      expect(writes.every((write) => write.success)).toBe(true);
+      const reads = await Promise.all([
+        first.query("kb_entity('REQ-ENGINE-FIRST', _, _)"),
+        second.query("kb_entity('REQ-ENGINE-SECOND', _, _)"),
+      ]);
+      expect(reads.every((read) => read.success)).toBe(true);
+
+      const crossReads = await Promise.all([
+        first.query("kb_entity('REQ-ENGINE-SECOND', _, _)"),
+        second.query("kb_entity('REQ-ENGINE-FIRST', _, _)"),
+      ]);
+      expect(crossReads.every((read) => read.success)).toBe(true);
+
+      const crashedPid = first.getPid();
+      await first.terminate();
+      await second.terminate();
+      process.kill(crashedPid, "SIGKILL");
+      await waitFor(() => processHasExited(crashedPid));
+
+      await second.start();
+      const recovered = await Promise.all([
+        second.query("kb_entity('REQ-ENGINE-FIRST', _, _)"),
+        second.query("kb_entity('REQ-ENGINE-SECOND', _, _)"),
+      ]);
+      expect(recovered.every((read) => read.success)).toBe(true);
     } finally {
       await first.terminate();
       await second.stop().catch(() => undefined);
@@ -398,13 +434,42 @@ describe("journaled engine", () => {
       const pid = first.getPid();
       process.kill(pid, "SIGKILL");
       await first.terminate();
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await waitFor(() => processHasExited(pid));
       await second.start();
       expect(second.getPid()).not.toBe(pid);
       const replayed = await second.query("kb_entity('REQ-CRASH', req, _)");
       expect(replayed.success).toBe(true);
     } finally {
       await second.stop().catch(() => undefined);
+    }
+  });
+
+  test("workspace watchdog stops a detached daemon after its workspace disappears", async () => {
+    const root = tempRoot();
+    const previousWatchdog = process.env.KIBI_ENGINE_WORKSPACE_WATCHDOG_MS;
+    process.env.KIBI_ENGINE_WORKSPACE_WATCHDOG_MS = "100";
+    const client = new EngineClient({
+      workspaceRoot: root,
+      branch: "main",
+      timeout: 15_000,
+    });
+    const socket = engineSocketPath(root, "main");
+    try {
+      await client.start();
+      const pid = client.getPid();
+      expect(pid).toBeGreaterThan(0);
+      expect(existsSync(socket)).toBe(true);
+      rmSync(root, { recursive: true, force: true });
+      await waitFor(() => !existsSync(socket), 5_000);
+      await waitFor(() => processHasExited(pid), 5_000);
+    } finally {
+      if (previousWatchdog === undefined)
+        Reflect.deleteProperty(
+          process.env,
+          "KIBI_ENGINE_WORKSPACE_WATCHDOG_MS",
+        );
+      else process.env.KIBI_ENGINE_WORKSPACE_WATCHDOG_MS = previousWatchdog;
+      await client.terminate();
     }
   });
 

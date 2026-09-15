@@ -1,16 +1,16 @@
 /// <reference types="bun-types" />
 import { describe, expect, test } from "bun:test";
+import { formatUpsertError } from "../../src/operations/mutation/contradictions.js";
+import { PrologProcess } from "../../src/prolog";
 import {
   extractPrologErrorRecord,
   parsePrologErrorTerm,
 } from "../../src/prolog/error-terms.js";
-import { formatUpsertError } from "../../src/operations/mutation/contradictions.js";
-import { PrologProcess } from "../../src/prolog";
 
 describe("parsePrologErrorTerm", () => {
   test("parses store_locked errors with the recorded holder", () => {
     const record = parsePrologErrorTerm(
-      "error(permission_error(attach,kb_store,'/tmp/kb/branches/x'),kb_store_locked('{\"pid\":123,\"workspaceRoot\":\"/ws\",\"bootId\":\"boot-1\",\"startedAt\":\"2026-09-14T00:00:00Z\"}','/tmp/kb/branches/x/rdf'))",
+      'error(permission_error(attach,kb_store,\'/tmp/kb/branches/x\'),kb_store_locked(\'{"pid":123,"workspaceRoot":"/ws","bootId":"boot-1","startedAt":"2026-09-14T00:00:00Z"}\',\'/tmp/kb/branches/x/rdf\'))',
     );
     expect(record?.code).toBe("permission_denied");
     expect(record?.storeLocked?.lockDirectory).toBe("/tmp/kb/branches/x/rdf");
@@ -31,7 +31,7 @@ describe("parsePrologErrorTerm", () => {
 
   test("parses store_locked errors that carry the original attach error", () => {
     const record = parsePrologErrorTerm(
-      "error(permission_error(attach,kb_store,'/tmp/kb/branches/x'),kb_store_locked('{\"pid\":123,\"workspaceRoot\":\"/ws\"}','/tmp/kb/branches/x/rdf','error(permission_error(open,source_sink,lock_file))'))",
+      'error(permission_error(attach,kb_store,\'/tmp/kb/branches/x\'),kb_store_locked(\'{"pid":123,"workspaceRoot":"/ws"}\',\'/tmp/kb/branches/x/rdf\',\'error(permission_error(open,source_sink,lock_file))\'))',
     );
     expect(record?.storeLocked?.owner?.pid).toBe(123);
     expect(record?.storeLocked?.originalError).toBe(
@@ -41,14 +41,13 @@ describe("parsePrologErrorTerm", () => {
 
   test("preserves the original attach error when the owner journal is corrupt", () => {
     const record = parsePrologErrorTerm(
-      "error(permission_error(attach,kb_store,'/tmp/kb/branches/x'),kb_store_locked('{not-json','/tmp/kb/branches/x/rdf','error(permission_error(open,source_sink,lock_file))'))",
+      'error(permission_error(attach,kb_store,\'/tmp/kb/branches/x\'),kb_store_locked(\'{not-json\',\'/tmp/kb/branches/x/rdf\',\'error(permission_error(open,source_sink,lock_file))\'))',
     );
     expect(record?.storeLocked?.owner).toBeNull();
     expect(record?.storeLocked?.originalError).toBe(
       "error(permission_error(open,source_sink,lock_file))",
     );
   });
-
 
   test("parses stale_snapshot permission errors", () => {
     const record = parsePrologErrorTerm(
@@ -185,14 +184,18 @@ describe("formatUpsertError with structured records", () => {
     );
     const message = formatUpsertError("TEST-1", "boom", record ?? undefined);
     expect(message).toContain("Failed to upsert entity TEST-1:");
-    expect(message).toContain("Invalid relationship: implements from test to req");
+    expect(message).toContain(
+      "Invalid relationship: implements from test to req",
+    );
   });
 
   test("formats stale snapshot records", () => {
     const record = parsePrologErrorTerm(
       "error(permission_error(save,kb,stale_snapshot),kb_save/0)",
     );
-    expect(formatUpsertError("REQ-1", "raw (stage=commit)", record ?? undefined)).toBe(
+    expect(
+      formatUpsertError("REQ-1", "raw (stage=commit)", record ?? undefined),
+    ).toBe(
       "Failed to upsert entity REQ-1: KB snapshot is stale; reattach or refresh the runtime before retrying (stale_snapshot) (stage=commit)",
     );
   });

@@ -40,7 +40,7 @@ class ModelPricing(ContractModel):
 
 
 class PricingModels(ContractModel):
-    target: Annotated[ModelPricing, Field(alias="gpt-5.4-mini")]
+    target: Annotated[ModelPricing | None, Field(alias="gpt-5.6-luna")]
     optimizer: Annotated[ModelPricing, Field(alias="gpt-5.6-sol")]
 
 
@@ -178,7 +178,7 @@ class RunLock(ContractModel):
     codex_executable: Annotated[ExecutableIdentity, Field(alias="codexExecutable")]
     cli_args: Annotated[list[NonEmptyString], Field(alias="cliArgs", min_length=1)]
     artifact_root: Annotated[NonEmptyString, Field(alias="artifactRoot")]
-    target_model: Annotated[Literal["gpt-5.4-mini"], Field(alias="targetModel")]
+    target_model: Annotated[Literal["gpt-5.6-luna"], Field(alias="targetModel")]
     optimizer_model: Annotated[Literal["gpt-5.6-sol"], Field(alias="optimizerModel")]
     skillopt: SkillOptPin
     source_lock_hash: Annotated[Sha256, Field(alias="sourceLockHash")]

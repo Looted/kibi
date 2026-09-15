@@ -1,14 +1,14 @@
 // implements REQ-mcp-semantic-advisor-preflight
 import { describe, expect, test } from "bun:test";
 
-import { evaluateProseCoverageCorpus } from "../../src/operations/semantic-advisor/prose-coverage-evaluator.js";
-import { detectStrictSuggestion } from "../../src/operations/semantic-advisor/strict-rules.js";
-import { LATEST_KB_SCHEMA_VERSION } from "../../src/public/schema-version.js";
 import * as predicateTypes from "../../src/operations/modeling/predicate-types.js";
 import * as requirementTypes from "../../src/operations/modeling/requirement-types.js";
 import * as mutationTypes from "../../src/operations/mutation/types.js";
+import { evaluateProseCoverageCorpus } from "../../src/operations/semantic-advisor/prose-coverage-evaluator.js";
+import { detectStrictSuggestion } from "../../src/operations/semantic-advisor/strict-rules.js";
 import * as advisorTypes from "../../src/operations/semantic-advisor/types.js";
 import * as impactTypes from "../../src/public/impact/types.js";
+import { LATEST_KB_SCHEMA_VERSION } from "../../src/public/schema-version.js";
 import * as skillTypes from "../../src/public/skill-system/types.js";
 import * as changesetTypes from "../../src/types/changeset.js";
 import * as entityTypes from "../../src/types/entities.js";
@@ -79,14 +79,20 @@ describe("CLI modules previously absent from LCOV", () => {
       detectStrictSuggestion(payload, "Dark mode must be disabled.")?.kind,
     ).toBe("strict_property");
     expect(
-      detectStrictSuggestion(payload, "Customer data must be retained for 7 years.")
-        ?.kind,
+      detectStrictSuggestion(
+        payload,
+        "Customer data must be retained for 7 years.",
+      )?.kind,
     ).toBe("strict_property");
     expect(
-      detectStrictSuggestion(payload, "Status must be one of open, closed, or deferred.")
-        ?.kind,
+      detectStrictSuggestion(
+        payload,
+        "Status must be one of open, closed, or deferred.",
+      )?.kind,
     ).toBe("strict_property");
-    expect(detectStrictSuggestion(payload, "This is narrative only.")).toBeNull();
+    expect(
+      detectStrictSuggestion(payload, "This is narrative only."),
+    ).toBeNull();
   });
 
   test("evaluateProseCoverageCorpus scores empty, matching, and mismatched cases", () => {

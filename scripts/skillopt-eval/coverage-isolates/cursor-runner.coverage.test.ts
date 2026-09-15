@@ -76,8 +76,8 @@ mock.module("../scoring/cell", () => ({
 }));
 
 const { runCursorCell } = await import("../cursor/runner");
-import { ProcessControlError } from "../runtime/process";
 import { hashWorkspace } from "../fixtures/workspace";
+import { ProcessControlError } from "../runtime/process";
 import { evaluatorManifest } from "../tests/fixtures/evaluator-authority-fixtures";
 
 const roots: string[] = [];
@@ -186,7 +186,10 @@ describe("runCursorCell", () => {
     roots.push(artifactRoot);
     await expect(
       runCursorCell({
-        request: { ...request(publicFixture.hash), workspaceFixtureHash: "e".repeat(64) },
+        request: {
+          ...request(publicFixture.hash),
+          workspaceFixtureHash: "e".repeat(64),
+        },
         fixtureRoot: publicFixture.root,
         sourceWorktree: process.cwd(),
         artifactRoot,

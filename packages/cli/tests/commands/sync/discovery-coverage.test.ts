@@ -61,7 +61,10 @@ type: req
 
 Body.
 `;
-    writeFileSync(path.join(cwd, ".kb", "requirements", "REQ-PEND.md"), reqBody);
+    writeFileSync(
+      path.join(cwd, ".kb", "requirements", "REQ-PEND.md"),
+      reqBody,
+    );
     writePendingSourceReceipt(
       cwd,
       ".kb/requirements/REQ-PEND.md",
@@ -74,12 +77,12 @@ Body.
     writePendingSourceReceipt(cwd, ".kb/symbols.yaml", sha(symbols));
 
     const result = await discoverSourceFiles(cwd, { trackedOnly: true });
-    expect(result.markdownFiles.some((file) => file.endsWith("REQ-PEND.md"))).toBe(
-      true,
-    );
-    expect(result.manifestFiles.some((file) => file.endsWith("symbols.yaml"))).toBe(
-      true,
-    );
+    expect(
+      result.markdownFiles.some((file) => file.endsWith("REQ-PEND.md")),
+    ).toBe(true);
+    expect(
+      result.manifestFiles.some((file) => file.endsWith("symbols.yaml")),
+    ).toBe(true);
   });
 
   test("rejects a pending receipt that escapes the workspace", async () => {
@@ -124,9 +127,9 @@ Body.
     writeFileSync(path.join(pendingRoot, "ignore.txt"), "skip");
     writeFileSync(path.join(pendingRoot, "bad.json"), "{");
     const result = await discoverSourceFiles(cwd, { trackedOnly: true });
-    expect(result.markdownFiles.some((file) => file.endsWith("REQ-TRACK.md"))).toBe(
-      true,
-    );
+    expect(
+      result.markdownFiles.some((file) => file.endsWith("REQ-TRACK.md")),
+    ).toBe(true);
     const leftover = fs
       .readdirSync(pendingRoot)
       .filter((name) => name.endsWith(".json"));

@@ -43,7 +43,9 @@ describe("check-format remaining branches", () => {
       }),
     ).toContain("unknown-source");
 
-    expect(formatQualityDiagnosticsText([])).toBe("No quality diagnostics found");
+    expect(formatQualityDiagnosticsText([])).toBe(
+      "No quality diagnostics found",
+    );
     expect(
       formatQualityDiagnosticsText([
         {

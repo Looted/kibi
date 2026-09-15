@@ -167,8 +167,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "passes fresh complete evidence and fails with ranked retry diagnostics",
       { timeout: 300_000 },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
         const now = Date.now();
         const events = passingEvents(now);
         writeUsageLog(sandbox, events);

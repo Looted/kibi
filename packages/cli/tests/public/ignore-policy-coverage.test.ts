@@ -1,6 +1,12 @@
 // implements REQ-014
 import { describe, expect, test } from "bun:test";
-import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { createRepoIgnorePolicy } from "../../src/public/ignore-policy.js";
@@ -48,9 +54,9 @@ describe("ignore-policy leftover walk and glob branches", () => {
       expect(policy.explain("build/out.txt").ignored).toBe(true);
       expect(policy.explain("hidden/secret.txt").ignored).toBe(true);
       expect(policy.explain("docs")).toEqual({ ignored: false });
-      expect(policy.isIgnored(path.join(dir, "docs", "nested", "keep.md"))).toBe(
-        false,
-      );
+      expect(
+        policy.isIgnored(path.join(dir, "docs", "nested", "keep.md")),
+      ).toBe(false);
       const globs = policy.getFastGlobIgnoreGlobs();
       expect(globs).toContain("**/build/out.txt");
       expect(globs).toContain("**/tmp");

@@ -2,13 +2,13 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { EvidenceBindingError } from "../contracts/evidence";
 import { parsePrivateEvaluatorManifest } from "../fixtures/private";
-import * as predicateEvidence from "../scoring/predicate-evidence";
 import {
   type CellEvidence,
   classifyPreActionInfrastructureFailure,
   migrationApplyContractViolations,
   scoreCell,
 } from "../scoring/cell";
+import * as predicateEvidence from "../scoring/predicate-evidence";
 
 const spies: Array<{ mockRestore: () => void }> = [];
 
@@ -53,7 +53,10 @@ const manifest = parsePrivateEvaluatorManifest(
         { tool: "kb_query", predicate: "sequence=2" },
       ],
       forbidden: [
-        { tool: "kb_upsert", predicate: "unless task explicitly requires removal" },
+        {
+          tool: "kb_upsert",
+          predicate: "unless task explicitly requires removal",
+        },
         { tool: "kb_delete", predicate: "before kb_search" },
       ],
     },
@@ -94,6 +97,14 @@ const manifest = parsePrivateEvaluatorManifest(
     })),
   }),
 );
+
+function protocolContractOrThrow() {
+  expect(manifest.protocolContract).toBeDefined();
+  if (!manifest.protocolContract) {
+    throw new Error("fixture manifest must include a protocol contract");
+  }
+  return manifest.protocolContract;
+}
 
 function completeEvidence(overrides: Partial<CellEvidence> = {}): CellEvidence {
   return {
@@ -249,7 +260,7 @@ describe("scoreCell remaining integrity, protocol, and contract branches", () =>
   });
 
   test("migrationApplyContractViolations covers envelope, argv, and missing-plan branches", () => {
-    const contract = manifest.protocolContract!;
+    const contract = protocolContractOrThrow();
     const evidenceFrom = (
       rawCalls: NonNullable<CellEvidence["broker"]["rawCalls"]>,
     ): CellEvidence =>
@@ -402,7 +413,7 @@ describe("scoreCell remaining integrity, protocol, and contract branches", () =>
   });
 
   test("covers apply-twice, hash mismatch, conflicts, sentinels, and incomplete sources", () => {
-    const contract = manifest.protocolContract!;
+    const contract = protocolContractOrThrow();
     const evidenceFrom = (
       rawCalls: NonNullable<CellEvidence["broker"]["rawCalls"]>,
     ): CellEvidence =>
@@ -457,7 +468,11 @@ describe("scoreCell remaining integrity, protocol, and contract branches", () =>
 
     expect(
       migrationApplyContractViolations(
-        { ...contract, exactMigrationApply: undefined, forbiddenTools: ["kb_upsert"] },
+        {
+          ...contract,
+          exactMigrationApply: undefined,
+          forbiddenTools: ["kb_upsert"],
+        },
         evidenceFrom([
           { tool: "kb_apply_plan", args: {}, resultOk: true },
           { tool: "kb_upsert", args: {}, resultOk: true },

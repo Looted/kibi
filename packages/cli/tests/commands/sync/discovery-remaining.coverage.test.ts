@@ -42,7 +42,9 @@ describe("discoverSourceFiles remaining pending coordinate and receipt races", (
     writePendingSourceReceipt(cwd, relative, sha(body));
     const result = await discoverSourceFiles(cwd, { trackedOnly: true });
     expect(
-      result.manifestFiles.some((file) => file.endsWith("symbol-coordinates.yaml")),
+      result.manifestFiles.some((file) =>
+        file.endsWith("symbol-coordinates.yaml"),
+      ),
     ).toBe(true);
   });
 

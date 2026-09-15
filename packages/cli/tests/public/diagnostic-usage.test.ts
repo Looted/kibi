@@ -41,12 +41,9 @@ describe("diagnosticMutationFingerprint", () => {
 
 describe("deriveDiagnosticUsageFields", () => {
   test("unwraps MCP structuredContent and CLI protocol envelopes", () => {
-    const mcp = deriveDiagnosticUsageFields(
-      "kb_query",
-      {},
-      null,
-      { structuredContent: { count: 0 } },
-    );
+    const mcp = deriveDiagnosticUsageFields("kb_query", {}, null, {
+      structuredContent: { count: 0 },
+    });
     expect(mcp).toMatchObject({
       telemetry_status: "missing",
       result_count: 0,
@@ -85,9 +82,14 @@ describe("deriveDiagnosticUsageFields", () => {
 
   test("summarizes check, coverage, semantic, and mutation tools", () => {
     expect(
-      deriveDiagnosticUsageFields("kb_check", { rules: ["required-fields"] }, null, {
-        count: 2,
-      }),
+      deriveDiagnosticUsageFields(
+        "kb_check",
+        { rules: ["required-fields"] },
+        null,
+        {
+          count: 2,
+        },
+      ),
     ).toMatchObject({
       violation_count: 2,
       requested_rules: ["required-fields"],

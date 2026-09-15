@@ -37,6 +37,24 @@ describe("getBatchFailureMessage", () => {
     }
   });
 
+  it("pins curated unit children to test-mode Prolog semantics", () => {
+    const original = process.env.NODE_ENV;
+    try {
+      for (const value of [undefined, "production"]) {
+        if (value === undefined)
+          Reflect.deleteProperty(process.env, "NODE_ENV");
+        else process.env.NODE_ENV = value;
+        expect(isolatedUnitBatchEnv("/tmp/kibi-unit-runtime").NODE_ENV).toBe(
+          "test",
+        );
+      }
+    } finally {
+      if (original === undefined)
+        Reflect.deleteProperty(process.env, "NODE_ENV");
+      else process.env.NODE_ENV = original;
+    }
+  });
+
   it("reports a killed batch timeout before a missing summary", () => {
     expect(
       getBatchFailureMessage("cli", {

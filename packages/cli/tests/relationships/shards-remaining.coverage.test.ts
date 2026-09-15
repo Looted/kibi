@@ -68,7 +68,9 @@ describe("relationship shards remaining atomic write and parse failures", () => 
     });
     spies.push(rename, unlink);
     expect(() =>
-      writeShard(created.shardPath, [{ ...base, id: "rel-keep", to: "REQ-002" }]),
+      writeShard(created.shardPath, [
+        { ...base, id: "rel-keep", to: "REQ-002" },
+      ]),
     ).toThrow("rename denied");
   });
 
@@ -78,18 +80,19 @@ describe("relationship shards remaining atomic write and parse failures", () => 
     const created = appendRelationship(kb, { ...base, to: "REQ-003" });
     const originalRead = fs.readFileSync.bind(fs);
     let reads = 0;
-    const read = spyOn(fs, "readFileSync").mockImplementation(
-      ((target, encoding) => {
-        if (String(target) === created.shardPath) {
-          reads += 1;
-          if (reads === 1) {
-            return originalRead(target, encoding as BufferEncoding);
-          }
-          return "notes: true\n";
+    const read = spyOn(fs, "readFileSync").mockImplementation(((
+      target: fs.PathLike | number,
+      encoding: BufferEncoding,
+    ) => {
+      if (String(target) === created.shardPath) {
+        reads += 1;
+        if (reads === 1) {
+          return originalRead(target, encoding as BufferEncoding);
         }
-        return originalRead(target, encoding as BufferEncoding);
-      }) as typeof fs.readFileSync,
-    );
+        return "notes: true\n";
+      }
+      return originalRead(target, encoding as BufferEncoding);
+    }) as typeof fs.readFileSync);
     spies.push(read);
     expect(() =>
       removeRelationshipsFromShards(kb, [
@@ -104,21 +107,22 @@ describe("relationship shards remaining atomic write and parse failures", () => 
     const created = appendRelationship(kb, { ...base, to: "REQ-004" });
     const originalRead = fs.readFileSync.bind(fs);
     let reads = 0;
-    const read = spyOn(fs, "readFileSync").mockImplementation(
-      ((target, encoding) => {
-        if (String(target) === created.shardPath) {
-          reads += 1;
-          if (reads === 1) {
-            return originalRead(target, encoding as BufferEncoding);
-          }
-          return "notes: true\n";
+    const read = spyOn(fs, "readFileSync").mockImplementation(((
+      target: fs.PathLike | number,
+      encoding: BufferEncoding,
+    ) => {
+      if (String(target) === created.shardPath) {
+        reads += 1;
+        if (reads === 1) {
+          return originalRead(target, encoding as BufferEncoding);
         }
-        return originalRead(target, encoding as BufferEncoding);
-      }) as typeof fs.readFileSync,
-    );
+        return "notes: true\n";
+      }
+      return originalRead(target, encoding as BufferEncoding);
+    }) as typeof fs.readFileSync);
     spies.push(read);
-    expect(() =>
-      appendRelationship(kb, { ...base, to: "REQ-005" }),
-    ).toThrow(/missing 'relationships' array/);
+    expect(() => appendRelationship(kb, { ...base, to: "REQ-005" })).toThrow(
+      /missing 'relationships' array/,
+    );
   });
 });

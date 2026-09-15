@@ -67,7 +67,7 @@ if (cmd === "init") {
   mkdirSync(join(process.cwd(), ".kb"), { recursive: true });
   process.exit(0);
 }
-if (cmd === "sync" || cmd === "upsert") process.exit(0);
+if (cmd === "sync" || cmd === "upsert" || cmd === "check") process.exit(0);
 console.error("unknown " + cmd);
 process.exit(1);
 `,
@@ -90,10 +90,7 @@ describe("fixture-kb-setup", () => {
     const absent = { id: "SYM-1" };
     assertSymbolCoordinatesAbsent(absent, "SYM-1");
     expect(() =>
-      assertSymbolCoordinatesAbsent(
-        { ...absent, sourceLine: 1 },
-        "SYM-1",
-      ),
+      assertSymbolCoordinatesAbsent({ ...absent, sourceLine: 1 }, "SYM-1"),
     ).toThrow(FixtureSetupError);
   });
 
@@ -124,10 +121,42 @@ describe("fixture-kb-setup", () => {
 
     const fresh = join(root, "fresh");
     mkdirSync(fresh, { recursive: true });
+    mkdirSync(join(fresh, "src"), { recursive: true });
+    writeFileSync(
+      join(fresh, "src", "fixture.ts"),
+      'export const fixtureFamily = "coverage";\n',
+    );
     await setupSeededFreshKb(fresh, cliRoot);
     const stale = join(root, "stale-copy");
     mkdirSync(stale, { recursive: true });
+    mkdirSync(join(stale, "src"), { recursive: true });
+    writeFileSync(
+      join(stale, "src", "fixture.ts"),
+      'export const fixtureFamily = "coverage";\n',
+    );
     await setupSeededStaleKb(stale, cliRoot);
+  });
+
+  test("does not author a passing seeded test when its executable fixture fails", async () => {
+    const root = mkdtempSync(join(tmpdir(), "skillopt-fixture-kb-test-fail-"));
+    roots.push(root);
+    const cliRoot = join(root, "cli");
+    const workspace = join(root, "workspace");
+    mkdirSync(join(workspace, "src"), { recursive: true });
+    writeFileSync(
+      join(workspace, "src", "fixture.ts"),
+      'export const fixtureFamily = "";\n',
+    );
+    writeFakeCli(cliRoot);
+
+    await expect(setupSeededFreshKb(workspace, cliRoot)).rejects.toThrow(
+      /seeded fixture test failed/,
+    );
+    expect(
+      await Bun.file(
+        join(workspace, ".kb", "tests", "TEST-SETUP-FIXTURE.md"),
+      ).exists(),
+    ).toBe(false);
   });
 
   test("setupGeneratedCoordinateDivergence drives the CLI then strips coordinates", async () => {

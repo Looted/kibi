@@ -1,7 +1,7 @@
 // implements REQ-skillopt-codex-optimization
 import { afterEach, describe, expect, test } from "bun:test";
-import path from "node:path";
 import { rmSync } from "node:fs";
+import path from "node:path";
 import { materializePredicateCorpus } from "../fixtures/predicate-corpus";
 import { materializeFixtureRun } from "../fixtures/private";
 import { createBaselineVariant, freezeCandidateVariant } from "../variants";

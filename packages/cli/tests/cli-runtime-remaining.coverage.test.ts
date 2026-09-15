@@ -1,13 +1,13 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import { EngineClient } from "../src/engine.js";
 import type {
   PrologPort,
   PrologQueryResult,
   RuntimeOperationSpec,
 } from "../src/public/operations/runtime-types.js";
+import { createCliRuntime } from "../src/runtime/cli-runtime.js";
 import * as branchResolver from "../src/utils/branch-resolver.js";
 import { _setBranchResolverDepsForTests } from "../src/utils/branch-resolver.js";
-import { EngineClient } from "../src/engine.js";
-import { createCliRuntime } from "../src/runtime/cli-runtime.js";
 
 const lazySpec: RuntimeOperationSpec<Record<string, never>, void> = {
   name: "kb_status",
@@ -106,10 +106,10 @@ describe("createCliRuntime leftover proxy and lazy-engine branches", () => {
     ).toEqual({ entities: [], count: 0 });
     expect(await context.prolog?.save()).toMatchObject({ success: true });
     expect(
-      await context.engine?.execute(
+      (await context.engine?.execute(
         { version: 1, kind: "status" },
         context.signal,
-      ) as unknown,
+      )) as unknown,
     ).toEqual({ ok: true });
     await runtime.close(context, { status: "success", result: undefined });
     expect(events.some((event) => event.startsWith("queryEntities:"))).toBe(
@@ -188,7 +188,8 @@ describe("createCliRuntime leftover proxy and lazy-engine branches", () => {
     const previous = process.env.KIBI_WORKSPACE;
     process.env.KIBI_WORKSPACE = "/tmp/kibi-workspace-from-env";
     restores.push(() => {
-      if (previous === undefined) Reflect.deleteProperty(process.env, "KIBI_WORKSPACE");
+      if (previous === undefined)
+        Reflect.deleteProperty(process.env, "KIBI_WORKSPACE");
       else process.env.KIBI_WORKSPACE = previous;
     });
     _setBranchResolverDepsForTests({ execSync: fakeBranchExecSync("develop") });
@@ -304,7 +305,9 @@ describe("createCliRuntime leftover proxy and lazy-engine branches", () => {
       workspaceRoot: "/workspace",
       prolog,
     });
-    await expect(runtime.open(readSpec)).rejects.toThrow(/engine refused to start/);
+    await expect(runtime.open(readSpec)).rejects.toThrow(
+      /engine refused to start/,
+    );
     expect(events).toContain("terminate");
   });
 });

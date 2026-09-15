@@ -30,9 +30,9 @@ describe("engine-daemon remaining entrypoint catch", () => {
 
   test("treats Bun import.meta.main as an entrypoint when the module url matches", async () => {
     restores.push(isolateKibiEnv());
-    expect(isEngineDaemonEntrypoint(["node", "/tmp/other.js"], undefined, true)).toBe(
-      true,
-    );
+    expect(
+      isEngineDaemonEntrypoint(["node", "/tmp/other.js"], undefined, true),
+    ).toBe(true);
     await runEngineDaemonIfEntrypoint(false);
   });
 });

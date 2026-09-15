@@ -1,9 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { createHash } from "node:crypto";
 import {
   existsSync,
   mkdirSync,
-  readdirSync,
   readFileSync,
+  readdirSync,
   symlinkSync,
   writeFileSync,
 } from "node:fs";
@@ -15,6 +16,7 @@ import {
   executeUpsert,
   validateAppendOnlyProofReceipts,
 } from "../../src/operations/mutation/upsert.js";
+import { analyzeSemanticAdvisorInput } from "../../src/operations/semantic-advisor/analyze-prose.js";
 import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
 import type {
   OperationContext,
@@ -88,7 +90,7 @@ describe("upsert helpers and executeUpsert guards", () => {
           success: true,
           bindings: {
             Results:
-              "[['TEST-KEEP',test,[id='TEST-KEEP',proof_receipts=\"[{\\\"version\\\":\\\"kibi.proof-receipt.v1\\\"}]\"]]]",
+              '[[\'TEST-KEEP\',test,[id=\'TEST-KEEP\',proof_receipts="[{\\"version\\":\\"kibi.proof-receipt.v1\\"}]"]]]',
           },
         };
       }
@@ -187,14 +189,10 @@ describe("upsert helpers and executeUpsert guards", () => {
           id: "REQ-LEGACY",
           properties: { title: "Legacy", status: "open" },
         },
-        contextFor(
-          root,
-          async () => ({ success: true, bindings: {} }),
-          {
-            fs: nodeFilesystem,
-            branchAttachment: attachment(root, true),
-          },
-        ),
+        contextFor(root, async () => ({ success: true, bindings: {} }), {
+          fs: nodeFilesystem,
+          branchAttachment: attachment(root, true),
+        }),
       ),
     ).rejects.toThrow(/legacy branch storage/);
 
@@ -240,6 +238,144 @@ describe("upsert helpers and executeUpsert guards", () => {
       created: 1,
       sourceWrites: [expect.objectContaining({ path: "docs/REQ-SOURCE.md" })],
     });
+  });
+
+  test("advisor output with repeated claims crosses the source-first upsert boundary losslessly", async () => {
+    const root = await mkdtemp(
+      path.join(tmpdir(), "kibi-upsert-advisor-dedup-"),
+    );
+    workspaces.push(root);
+    const semanticText =
+      "The service must log exports. The service must log exports.";
+    const base = {
+      type: "req" as const,
+      id: "REQ-ADVISOR-DEDUP",
+      properties: {
+        title: "Export logs",
+        status: "open",
+        semantic_text: semanticText,
+      },
+    };
+    const advisor = analyzeSemanticAdvisorInput({ payload: base });
+    expect(advisor.receipt.propositions).toHaveLength(1);
+    const contract = advisor.receipt.inventory_contract;
+    const result = await executeUpsert(
+      {
+        ...base,
+        properties: {
+          ...base.properties,
+          logic_claims: advisor.receipt.logic_coverage.expected_claim_keys,
+          semantic_inventory_version: contract.version,
+          semantic_source_field: contract.source_field,
+          semantic_source_hash: contract.source_hash,
+          semantic_inventory: advisor.receipt.propositions.map(
+            (proposition) => ({ ...proposition, status: "ontology_gap" }),
+          ),
+        },
+        document: {
+          path: "docs/REQ-ADVISOR-DEDUP.md",
+          body: `${semanticText}\n`,
+        },
+      },
+      contextFor(
+        root,
+        async (goal) => {
+          if (goal.startsWith("kb_commit_upsert(")) {
+            return { success: true, bindings: { ChangeKind: "created" } };
+          }
+          return { success: true, bindings: { Results: "[]" } };
+        },
+        { fs: nodeFilesystem },
+      ),
+    );
+
+    expect(result.structuredContent?.created).toBe(1);
+    const authored = readFileSync(
+      path.join(root, "docs", "REQ-ADVISOR-DEDUP.md"),
+      "utf8",
+    );
+    expect(authored).toContain(semanticText);
+    expect(authored).toContain(`semantic_source_hash: ${contract.source_hash}`);
+  });
+
+  test("advisor preserves exact multiline Markdown source spans through upsert", async () => {
+    const root = await mkdtemp(
+      path.join(tmpdir(), "kibi-upsert-advisor-multiline-"),
+    );
+    workspaces.push(root);
+    const semanticText = [
+      "The OpenCode Kibi Briefing system must transition to a render-first idle-delivery and prompt-time replay model.",
+      "24#KW|",
+      "25#SV|1.  **Render-First Idle Delivery**: When an idle briefing is generated at `session.idle`, it must be persisted as a JSON envelope.",
+      "26#KX|2.  **Prompt-Time Replay**: If immediate idle-time delivery was skipped, the latest unread brief must be surfaced.",
+      "30#JT|6.  **Channel Gating**: Delivery is gated by `.kb/config.json` settings for café users:",
+      "31#TM|    - `briefs.enabled`: Global kill-switch for all briefing generation.",
+    ].join("\n");
+    const base = {
+      type: "req" as const,
+      id: "REQ-ADVISOR-MULTILINE",
+      properties: {
+        title: "Render-first briefing",
+        status: "open",
+        semantic_text: semanticText,
+      },
+    };
+    const advisor = analyzeSemanticAdvisorInput({ payload: base });
+    const contract = advisor.receipt.inventory_contract;
+    const gatedClaim =
+      "30#JT|6.  **Channel Gating**: Delivery is gated by `.kb/config.json` settings for café users";
+    const gatedStart = semanticText.indexOf(gatedClaim);
+    const gated = advisor.receipt.propositions.find((proposition) =>
+      proposition.claim_text.includes("café"),
+    );
+    expect(gatedStart).toBeGreaterThanOrEqual(0);
+    expect(gated?.span).toEqual({
+      start: Buffer.byteLength(semanticText.slice(0, gatedStart), "utf8"),
+      end: Buffer.byteLength(
+        semanticText.slice(0, gatedStart + gatedClaim.length),
+        "utf8",
+      ),
+    });
+    const result = await executeUpsert(
+      {
+        ...base,
+        properties: {
+          ...base.properties,
+          logic_claims: advisor.receipt.logic_coverage.expected_claim_keys,
+          semantic_inventory_version: contract.version,
+          semantic_source_field: contract.source_field,
+          semantic_source_hash: contract.source_hash,
+          semantic_inventory: advisor.receipt.propositions.map(
+            (proposition) => ({ ...proposition, status: "ontology_gap" }),
+          ),
+        },
+        document: {
+          path: "docs/REQ-ADVISOR-MULTILINE.md",
+          body: `${semanticText}\n`,
+        },
+      },
+      contextFor(
+        root,
+        async (goal) => {
+          if (goal.startsWith("kb_commit_upsert(")) {
+            return { success: true, bindings: { ChangeKind: "created" } };
+          }
+          return { success: true, bindings: { Results: "[]" } };
+        },
+        { fs: nodeFilesystem },
+      ),
+    );
+
+    expect(result.structuredContent?.created).toBe(1);
+    expect(contract.source_hash).toBe(
+      createHash("sha256").update(semanticText).digest("hex"),
+    );
+    const authored = readFileSync(
+      path.join(root, "docs", "REQ-ADVISOR-MULTILINE.md"),
+      "utf8",
+    );
+    expect(authored).toContain(semanticText);
+    expect(authored).toContain(`semantic_source_hash: ${contract.source_hash}`);
   });
 
   test("executeUpsert rolls back source writes when commit fails and rejects unknown ChangeKind", async () => {
@@ -347,14 +483,16 @@ describe("upsert helpers and executeUpsert guards", () => {
       ),
     );
     expect(result.structuredContent?.relationships_created).toBe(1);
-    expect(result.structuredContent?.sourceWrites?.some((write) =>
-      write.path.startsWith(".kb/relationships/"),
-    )).toBe(true);
+    expect(
+      result.structuredContent?.sourceWrites?.some((write) =>
+        write.path.startsWith(".kb/relationships/"),
+      ),
+    ).toBe(true);
     const pendingRoot = path.join(root, ".kb", "recovery", "pending-sources");
     expect(existsSync(pendingRoot)).toBe(true);
-    expect(readdirSync(pendingRoot).some((name) => name.endsWith(".json"))).toBe(
-      true,
-    );
+    expect(
+      readdirSync(pendingRoot).some((name) => name.endsWith(".json")),
+    ).toBe(true);
   });
 
   test("executeUpsert skips source writes when sourceFirst is false and when the live source is mcp://", async () => {
@@ -483,9 +621,9 @@ describe("upsert helpers and executeUpsert guards", () => {
       ? readdirSync(relDir).filter((name) => name.endsWith(".yaml"))
       : [];
     expect(shards.length).toBe(1);
-    expect(
-      readFileSync(path.join(relDir, shards[0] ?? ""), "utf8"),
-    ).toContain("concurrent rewrite");
+    expect(readFileSync(path.join(relDir, shards[0] ?? ""), "utf8")).toContain(
+      "concurrent rewrite",
+    );
   });
 
   test("executeUpsert writes existing markdown sources and skips contradiction checks", async () => {
@@ -519,7 +657,9 @@ describe("upsert helpers and executeUpsert guards", () => {
       ),
     );
     expect(result.structuredContent?.updated).toBe(1);
-    expect(result.structuredContent?.contradictionCheck?.outcome).toBe("skipped");
+    expect(result.structuredContent?.contradictionCheck?.outcome).toBe(
+      "skipped",
+    );
     expect(existsSync(path.join(root, "docs", "REQ-EXIST.md"))).toBe(true);
   });
 
@@ -550,4 +690,3 @@ describe("upsert helpers and executeUpsert guards", () => {
     expect(result.structuredContent?.sourceWrites?.length).toBeGreaterThan(0);
   });
 });
-

@@ -53,10 +53,16 @@ describe("symbol refresh remaining branches", () => {
       outcome: "updated",
     });
     expect(
-      await refreshSymbolCoordinatesForManifest("SYM-1", "/tmp/symbols.yaml", ctx),
+      await refreshSymbolCoordinatesForManifest(
+        "SYM-1",
+        "/tmp/symbols.yaml",
+        ctx,
+      ),
     ).toMatchObject({ outcome: "updated" });
     setSymbolRefreshForTests(undefined);
-    expect(await refreshSymbolCoordinates("SYM-1", { ...ctx, fs: undefined })).toEqual({
+    expect(
+      await refreshSymbolCoordinates("SYM-1", { ...ctx, fs: undefined }),
+    ).toEqual({
       refreshed: false,
       found: false,
     });
@@ -67,18 +73,24 @@ describe("symbol refresh remaining branches", () => {
     workspaces.push(workspace);
     mkdirSync(join(workspace, ".kb"), { recursive: true });
     const ctx = context(workspace);
-    await expect(refreshSymbolCoordinatesUnlocked("SYM-1", ctx)).rejects.toThrow(
-      /could not be parsed/,
-    );
+    await expect(
+      refreshSymbolCoordinatesUnlocked("SYM-1", ctx),
+    ).rejects.toThrow(/could not be parsed/);
     writeFileSync(join(workspace, ".kb", "symbols.yaml"), "title: none\n");
-    await expect(refreshSymbolCoordinatesUnlocked("SYM-1", ctx)).rejects.toThrow(
-      /no symbols array/,
+    await expect(
+      refreshSymbolCoordinatesUnlocked("SYM-1", ctx),
+    ).rejects.toThrow(/no symbols array/);
+    writeFileSync(
+      join(workspace, ".kb", "symbols.yaml"),
+      "symbols:\n  - id: SYM-1\n",
     );
-    writeFileSync(join(workspace, ".kb", "symbols.yaml"), "symbols:\n  - id: SYM-1\n");
-    writeFileSync(join(workspace, ".kb", "symbol-coordinates.yaml"), "coordinates: [\n");
-    await expect(refreshSymbolCoordinatesUnlocked("SYM-1", ctx)).rejects.toThrow(
-      /coordinate/,
+    writeFileSync(
+      join(workspace, ".kb", "symbol-coordinates.yaml"),
+      "coordinates: [\n",
     );
+    await expect(
+      refreshSymbolCoordinatesUnlocked("SYM-1", ctx),
+    ).rejects.toThrow(/coordinate/);
   });
 
   test("returns not_found, unchanged, and rollback-safe publications", async () => {
@@ -90,17 +102,40 @@ describe("symbol refresh remaining branches", () => {
       join(workspace, ".kb", "symbols.yaml"),
       "symbols:\n  - id: SYM-KEEP\n    title: keep\n    sourceFile: src/keep.ts\n",
     );
-    writeFileSync(join(workspace, "src", "keep.ts"), "export function keep() {}\n");
-    const missing = await refreshSymbolCoordinatesUnlocked("SYM-MISSING", context(workspace));
-    expect(missing).toMatchObject({ refreshed: false, found: false, outcome: "not_found" });
+    writeFileSync(
+      join(workspace, "src", "keep.ts"),
+      "export function keep() {}\n",
+    );
+    const missing = await refreshSymbolCoordinatesUnlocked(
+      "SYM-MISSING",
+      context(workspace),
+    );
+    expect(missing).toMatchObject({
+      refreshed: false,
+      found: false,
+      outcome: "not_found",
+    });
 
-    const first = await refreshSymbolCoordinatesUnlocked("SYM-KEEP", context(workspace));
+    const first = await refreshSymbolCoordinatesUnlocked(
+      "SYM-KEEP",
+      context(workspace),
+    );
     expect(first.found).toBe(true);
-    const second = await refreshSymbolCoordinatesUnlocked("SYM-KEEP", context(workspace));
+    const second = await refreshSymbolCoordinatesUnlocked(
+      "SYM-KEEP",
+      context(workspace),
+    );
     expect(second.outcome).toBe("unchanged");
-    writeFileSync(join(workspace, ".kb", "symbol-coordinates.yaml"), "changed\n");
-    expect(() => first.publication?.rollback()).toThrow(/changed after publication/);
-    expect(existsSync(join(workspace, ".kb", "symbol-coordinates.yaml"))).toBe(true);
+    writeFileSync(
+      join(workspace, ".kb", "symbol-coordinates.yaml"),
+      "changed\n",
+    );
+    expect(() => first.publication?.rollback()).toThrow(
+      /changed after publication/,
+    );
+    expect(existsSync(join(workspace, ".kb", "symbol-coordinates.yaml"))).toBe(
+      true,
+    );
   });
 
   test("refreshSymbolCoordinates acquires the lock when no test substitute is set", async () => {
@@ -108,8 +143,17 @@ describe("symbol refresh remaining branches", () => {
     workspaces.push(workspace);
     mkdirSync(join(workspace, ".kb"), { recursive: true });
     writeFileSync(join(workspace, ".kb", "symbols.yaml"), "symbols: []\n");
-    const result = await refreshSymbolCoordinates("SYM-NONE", context(workspace));
-    expect(result).toMatchObject({ refreshed: false, found: false, outcome: "not_found" });
-    expect(readFileSync(join(workspace, ".kb", "symbols.yaml"), "utf8")).toContain("symbols");
+    const result = await refreshSymbolCoordinates(
+      "SYM-NONE",
+      context(workspace),
+    );
+    expect(result).toMatchObject({
+      refreshed: false,
+      found: false,
+      outcome: "not_found",
+    });
+    expect(
+      readFileSync(join(workspace, ".kb", "symbols.yaml"), "utf8"),
+    ).toContain("symbols");
   });
 });

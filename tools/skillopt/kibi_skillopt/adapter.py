@@ -406,6 +406,24 @@ class EnvAdapter(OptimizerAdapterMixin, SkillOptEnvAdapter):
             max_steps=self._max_steps,
             public_evidence_summary=self._public_evidence_summary(cumulative),
         )
+        if optimized.status == "rejected":
+            rejection_root = self.run_root / "optimizer" / f"step-{self._optimizer_step:04d}"
+            rejection_root.mkdir(parents=True, exist_ok=True)
+            _ = (rejection_root / "rejection-receipt.json").write_text(
+                json.dumps(
+                    {
+                        "schemaVersion": "1.0.0",
+                        "artifactType": "skillopt-optimizer-rejection-receipt",
+                        "step": self._optimizer_step,
+                        "requestHash": optimized.request_hash,
+                        "reason": optimized.reason,
+                    },
+                    sort_keys=True,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            return []
         return [
             {
                 "source_type": "failure",

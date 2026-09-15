@@ -90,3 +90,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-716473d0aac2
+  - type: relates_to
+    from: REQ-006
+    to: FACT-CHECK-RULESET-CORE-3
+    created_at: 2026-09-14T18:42:28.144Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86108de55a32
+  - type: implements
+    from: SYM-quality-producer-loadProofSteps
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-09-14T18:53:53.933Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-788794ad543c
+  - type: covered_by
+    from: SYM-quality-producer-loadProofSteps
+    to: TEST-proof-runner-integrity
+    created_at: 2026-09-14T18:53:53.945Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2eb75099676

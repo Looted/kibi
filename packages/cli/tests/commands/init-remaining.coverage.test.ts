@@ -27,7 +27,10 @@ afterEach(() => {
 describe("init remaining next-action and non-git error copy", () => {
   test("prints the raw attachment error when git is present but unusable", async () => {
     restores.push(isolateKibiEnv());
-    const spy = spyOn(branchResolver, "resolveBranchAttachment").mockReturnValue({
+    const spy = spyOn(
+      branchResolver,
+      "resolveBranchAttachment",
+    ).mockReturnValue({
       error: "Detached HEAD blocks init.",
       code: "DETACHED_HEAD",
     } as never);

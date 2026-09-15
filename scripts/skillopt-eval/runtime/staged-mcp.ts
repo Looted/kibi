@@ -132,7 +132,10 @@ export async function stageKibiMcpRuntime(
     stagedCommand,
   );
   await chmod(stagedCommand, 0o500);
-  const sourceRoots = new Set<string>([sourceWorktree, resolve(sourceWorktree)]);
+  const sourceRoots = new Set<string>([
+    sourceWorktree,
+    resolve(sourceWorktree),
+  ]);
   try {
     sourceRoots.add(await realpath(sourceWorktree));
   } catch {

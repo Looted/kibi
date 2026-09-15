@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
-import { parseHookInput, parseStdinJson, readStdin } from "../src/hook-input";
 import { Readable } from "node:stream";
+import { parseHookInput, parseStdinJson, readStdin } from "../src/hook-input";
 
 describe("Cursor hook input", () => {
   test("Given non-object input When parsing Then an empty event is returned", () => {

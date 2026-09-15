@@ -69,13 +69,13 @@ describe("analyzeSemanticAdvisorInput leftover signal, role, and interpretation 
       },
     });
     const kinds = new Set(result.receipt.suggestions.map((row) => row.kind));
-    expect(kinds.has("ambiguity_observation") || kinds.has("ontology_gap")).toBe(
-      true,
-    );
+    expect(
+      kinds.has("ambiguity_observation") || kinds.has("ontology_gap"),
+    ).toBe(true);
     const roles = new Set(result.receipt.propositions.map((row) => row.role));
-    expect(roles.has("example") || roles.has("rationale") || roles.has("subjective")).toBe(
-      true,
-    );
+    expect(
+      roles.has("example") || roles.has("rationale") || roles.has("subjective"),
+    ).toBe(true);
   });
 
   test("treats a fully modeled requirement as suggestion-free", () => {
@@ -179,7 +179,9 @@ describe("analyzeSemanticAdvisorInput leftover signal, role, and interpretation 
     const shadowKinds = new Set(
       result.receipt.shadow_analysis.map((cue) => cue.kind),
     );
-    expect(shadowKinds.has("conditional") || shadowKinds.has("modal")).toBe(true);
+    expect(shadowKinds.has("conditional") || shadowKinds.has("modal")).toBe(
+      true,
+    );
   });
 
   test("keeps unmatched normative clauses as ontology gaps", () => {

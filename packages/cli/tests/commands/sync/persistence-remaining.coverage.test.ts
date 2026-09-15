@@ -10,8 +10,8 @@ import type {
   ExtractedRelationship,
   ExtractionResult,
 } from "../../../src/extractors/markdown.js";
-import * as codec from "../../../src/prolog/codec.js";
 import type { PrologProcess, QueryResult } from "../../../src/prolog.js";
+import * as codec from "../../../src/prolog/codec.js";
 import * as discoveryEntities from "../../../src/public/operations/discovery-entities.js";
 import {
   captureIo,
@@ -53,7 +53,11 @@ function makeProlog(
   queryImpl?: (goal: string) =>
     | Promise<QueryResult>
     | QueryResult
-    | { success: boolean; bindings: Record<string, string | undefined>; error?: string },
+    | {
+        success: boolean;
+        bindings: Record<string, string | undefined>;
+        error?: string;
+      },
 ): PrologProcess {
   return {
     query: async (goal: string | string[]) => {
@@ -218,7 +222,9 @@ describe("persistEntities leftover receipt and batch wrap branches", () => {
     );
     expect(result.kbModified).toBe(true);
     expect(goals.some((goal) => goal.includes("semantic_text"))).toBe(true);
-    expect(goals.some((goal) => goal.includes("semantic_inventory"))).toBe(true);
+    expect(goals.some((goal) => goal.includes("semantic_inventory"))).toBe(
+      true,
+    );
   });
 
   test("parses empty existing-id lists without adding tokens", async () => {
@@ -265,7 +271,11 @@ describe("persistRelationships leftover reset and construction branches", () => 
           started += 1;
         },
       } as unknown as PrologProcess,
-      [makeResult({}, [{ type: "specified_by", from: "REQ-001", to: "SCEN-1" }])],
+      [
+        makeResult({}, [
+          { type: "specified_by", from: "REQ-001", to: "SCEN-1" },
+        ]),
+      ],
       [],
     );
     expect(started).toBe(1);
@@ -285,7 +295,11 @@ describe("persistRelationships leftover reset and construction branches", () => 
           error: "query failed",
         }),
       } as unknown as PrologProcess,
-      [makeResult({}, [{ type: "specified_by", from: "REQ-001", to: "SCEN-1" }])],
+      [
+        makeResult({}, [
+          { type: "specified_by", from: "REQ-001", to: "SCEN-1" },
+        ]),
+      ],
       [],
     );
     expect(io.warns.join("\n")).toMatch(/Tip: Ensure target entities exist/);
@@ -308,7 +322,11 @@ describe("persistRelationships leftover reset and construction branches", () => 
           throw new Error("cannot start");
         },
       } as unknown as PrologProcess,
-      [makeResult({}, [{ type: "specified_by", from: "REQ-001", to: "SCEN-1" }])],
+      [
+        makeResult({}, [
+          { type: "specified_by", from: "REQ-001", to: "SCEN-1" },
+        ]),
+      ],
       [],
     );
     expect(io.warns.join("\n")).toMatch(/failed to sync/);
@@ -351,7 +369,11 @@ describe("persistRelationships leftover reset and construction branches", () => 
         }
         return { success: true, bindings: {} };
       }),
-      [makeResult({}, [{ type: "specified_by", from: "REQ-001", to: "SCEN-1" }])],
+      [
+        makeResult({}, [
+          { type: "specified_by", from: "REQ-001", to: "SCEN-1" },
+        ]),
+      ],
       [],
     );
     expect(io.warns.join("\n")).toMatch(/missing entity/);
@@ -374,7 +396,11 @@ describe("persistRelationships leftover reset and construction branches", () => 
         },
         queryBatch: async () => ({ success: false, bindings: {} }),
       } as unknown as PrologProcess,
-      [makeResult({}, [{ type: "specified_by", from: "REQ-001", to: "SCEN-1" }])],
+      [
+        makeResult({}, [
+          { type: "specified_by", from: "REQ-001", to: "SCEN-1" },
+        ]),
+      ],
       [],
     );
     expect(io.warns.join("\n")).toContain("retry boom");

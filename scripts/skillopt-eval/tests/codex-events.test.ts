@@ -217,6 +217,66 @@ describe("Codex JSONL normalization", () => {
     expect(normalized.violations).not.toContain("direct_kb_access");
   });
 
+  test("Given Codex's serialized negative glob with a quoted space When normalized Then the exclusion remains allowed", () => {
+    const normalized = normalizeCodexJsonl(
+      JSON.stringify({
+        type: "item.completed",
+        item: {
+          type: "command_execution",
+          command: "/bin/bash -c \"rg --files -g '\"'! .kb/**'\"'\"",
+        },
+      }),
+      { hiddenMarkers: [], forbiddenRoots: [] },
+    );
+
+    expect(normalized.violations).not.toContain("direct_kb_access");
+  });
+
+  test("Given supported literal negative glob forms When normalized Then only the excluded KB globs are ignored", () => {
+    const commands = [
+      "rg --files -g '! .kb/**'",
+      "rg --files -g '!**/.kb/**'",
+      "rg --files --glob='! .kb/**'",
+      "rg --files --glob=!**/.kb/**",
+    ];
+
+    for (const command of commands) {
+      const normalized = normalizeCodexJsonl(
+        JSON.stringify({
+          type: "item.completed",
+          item: { type: "command_execution", command },
+        }),
+        { hiddenMarkers: [], forbiddenRoots: [] },
+      );
+
+      expect(normalized.violations).not.toContain("direct_kb_access");
+    }
+  });
+
+  test("Given direct or ambiguous KB-bearing command operands When normalized Then access is not hidden by a negative glob", () => {
+    const commands = [
+      "/bin/bash -c \"rg --files -g '\"'! .kb/**'\"' && cat .kb/usage.log\"",
+      "rg --files -g ! .kb/**",
+      "rg --files --glob=.kb/**",
+      'cat ".kb/usage.log"',
+      'rg --files -g "!**/.kb/** $(cat .kb/secret)"',
+      'rg --files -g "!**/.kb/** `cat .kb/secret`"',
+      'rg --files -g "!**/.kb/**; cat .kb/secret"',
+    ];
+
+    for (const command of commands) {
+      const normalized = normalizeCodexJsonl(
+        JSON.stringify({
+          type: "item.completed",
+          item: { type: "command_execution", command },
+        }),
+        { hiddenMarkers: [], forbiddenRoots: [] },
+      );
+
+      expect(normalized.violations).toContain("direct_kb_access");
+    }
+  });
+
   test("Given a KB path outside an exclusion glob When normalized Then direct access is reported", () => {
     // Given
     const transcript = JSON.stringify({

@@ -1,11 +1,6 @@
 // implements REQ-cursor-agent-plugin-standard-v1
 import { afterAll, afterEach, describe, expect, spyOn, test } from "bun:test";
-import {
-  mkdirSync,
-  mkdtempSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {

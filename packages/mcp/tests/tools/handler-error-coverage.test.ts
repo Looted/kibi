@@ -26,9 +26,11 @@ describe("MCP handler error wrappers", () => {
   });
 
   test("skills list wraps executor failures", async () => {
-    const spy = spyOn(skillsListSpec, "execute").mockImplementation(async () => {
-      throw new Error("list down");
-    });
+    const spy = spyOn(skillsListSpec, "execute").mockImplementation(
+      async () => {
+        throw new Error("list down");
+      },
+    );
     try {
       await expect(handleKbSkillsList({})).rejects.toThrow(
         "Skills list failed: list down",
@@ -39,9 +41,11 @@ describe("MCP handler error wrappers", () => {
   });
 
   test("skills load wraps non-Error executor failures", async () => {
-    const spy = spyOn(skillsLoadSpec, "execute").mockImplementation(async () => {
-      throw "load down";
-    });
+    const spy = spyOn(skillsLoadSpec, "execute").mockImplementation(
+      async () => {
+        throw "load down";
+      },
+    );
     try {
       await expect(handleKbSkillsLoad({ id: "kibi-usage" })).rejects.toThrow(
         "Skills load failed: load down",

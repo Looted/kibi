@@ -17,6 +17,18 @@ function processGroupExists(groupId: number): boolean {
   }
 }
 
+function descendantAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    if (error instanceof Error && "code" in error && error.code === "ESRCH") {
+      return false;
+    }
+    throw error;
+  }
+}
+
 async function waitForProcessGroupReaping(groupId: number): Promise<number> {
   const deadline = performance.now() + 2_000;
   while (processGroupExists(groupId)) {
@@ -189,6 +201,183 @@ describe("bounded process groups", () => {
 
     // Then
     expect(exitCode).toBe(0);
+  });
+
+  test.skipIf(process.platform !== "linux")(
+    "kills a descendant that ignores SIGTERM after its inherited leader exits",
+    async () => {
+      // Given
+      const processPromise = runBoundedProcess({
+        argv: [
+          "bash",
+          "-c",
+          [
+            'trap "exit 0" TERM',
+            '(trap "" TERM; sleep 5) >/dev/null 2>&1 & grandchild=$!',
+            "printf '%s\\n' \"$grandchild\"",
+            "wait",
+          ].join("; "),
+        ],
+        cwd: process.cwd(),
+        env: process.env,
+        timeoutMs: 500,
+        killGraceMs: 100,
+        groupMode: "inherited",
+      });
+
+      // When
+      const error = await processPromise.catch((caught: unknown) => caught);
+
+      // Then
+      expect(error).toBeInstanceOf(ProcessControlError);
+      if (!(error instanceof ProcessControlError)) throw error;
+      expect(error.kind).toBe("timeout");
+      const descendantId = Number.parseInt(error.result.stdout.trim(), 10);
+      expect(Number.isSafeInteger(descendantId)).toBe(true);
+      expect(descendantAlive(descendantId)).toBe(false);
+    },
+  );
+
+  test.skipIf(process.platform !== "linux")(
+    "kills an owned descendant forked while the original child handles SIGTERM",
+    async () => {
+      // Given
+      const processPromise = runBoundedProcess({
+        argv: [
+          "bash",
+          "-c",
+          [
+            'trap "exit 0" TERM',
+            '(trap \'env -i PATH="$PATH" bash -c "trap \\"\\" TERM; sleep 5" >/dev/null 2>&1 & echo forked:$!; exit 0\' TERM; while true; do sleep 1; done) &',
+            "wait",
+          ].join("\n"),
+        ],
+        cwd: process.cwd(),
+        env: process.env,
+        timeoutMs: 500,
+        killGraceMs: 100,
+      });
+
+      // When
+      const error = await processPromise.catch((caught: unknown) => caught);
+
+      // Then
+      expect(error).toBeInstanceOf(ProcessControlError);
+      if (!(error instanceof ProcessControlError)) throw error;
+      expect(error.kind).toBe("timeout");
+      const match = /forked:(\d+)/.exec(error.result.stdout);
+      expect(match).not.toBeNull();
+      const descendantId = Number.parseInt(match?.[1] ?? "", 10);
+      expect(Number.isSafeInteger(descendantId)).toBe(true);
+      expect(descendantAlive(descendantId)).toBe(false);
+    },
+  );
+
+  test.skipIf(process.platform !== "linux")(
+    "kills an environment-scrubbed fork in a bridge-owned inherited group",
+    async () => {
+      // Given
+      const runtimeUrl = new URL("../runtime/process.ts", import.meta.url).href;
+      const command = [
+        'trap "exit 0" TERM',
+        '(trap \'env -i PATH="$PATH" bash -c "trap \\"\\" TERM; sleep 5" >/dev/null 2>&1 & echo forked:$!; exit 0\' TERM; while true; do sleep 1; done) &',
+        "wait",
+      ].join("\n");
+      const harness = `
+        import { runBoundedProcess, ProcessControlError } from ${JSON.stringify(runtimeUrl)};
+        const error = await runBoundedProcess({
+          argv: ["bash", "-c", ${JSON.stringify(command)}],
+          cwd: process.cwd(),
+          env: process.env,
+          timeoutMs: 500,
+          killGraceMs: 100,
+          groupMode: "inherited",
+        }).catch((caught) => caught);
+        if (!(error instanceof ProcessControlError) || error.kind !== "timeout") {
+          process.exitCode = 3;
+        } else {
+          process.stdout.write(JSON.stringify({ stdout: error.result.stdout }));
+        }
+      `;
+      const child = Bun.spawn(["setsid", process.execPath, "-e", harness], {
+        cwd: process.cwd(),
+        stdout: "pipe",
+        stderr: "pipe",
+      });
+      const stdout = new Response(child.stdout).text();
+
+      // When
+      const exitCode = await child.exited;
+
+      // Then
+      expect(exitCode).toBe(0);
+      const result = JSON.parse(await stdout) as { stdout: string };
+      const match = /forked:(\d+)/.exec(result.stdout);
+      expect(match).not.toBeNull();
+      const descendantId = Number.parseInt(match?.[1] ?? "", 10);
+      expect(Number.isSafeInteger(descendantId)).toBe(true);
+      expect(descendantAlive(descendantId)).toBe(false);
+      expect(processGroupExists(child.pid)).toBe(false);
+    },
+  );
+
+  test.skipIf(process.platform !== "linux")(
+    "kills a group member that ignores SIGTERM after the owned leader exits",
+    async () => {
+      // Given
+      const processPromise = runBoundedProcess({
+        argv: [
+          "bash",
+          "-c",
+          [
+            'trap "exit 0" TERM',
+            '(trap "" TERM; sleep 5) >/dev/null 2>&1 & grandchild=$!',
+            "printf '%s\\n' \"$$ $grandchild\"",
+            "wait",
+          ].join("; "),
+        ],
+        cwd: process.cwd(),
+        env: process.env,
+        timeoutMs: 500,
+        killGraceMs: 100,
+      });
+
+      // When
+      const error = await processPromise.catch((caught: unknown) => caught);
+
+      // Then
+      expect(error).toBeInstanceOf(ProcessControlError);
+      if (!(error instanceof ProcessControlError)) throw error;
+      expect(error.kind).toBe("timeout");
+      const [leaderText, descendantText] = error.result.stdout
+        .trim()
+        .split(/\s+/);
+      const leaderId = Number.parseInt(leaderText ?? "", 10);
+      const descendantId = Number.parseInt(descendantText ?? "", 10);
+      expect(Number.isSafeInteger(leaderId)).toBe(true);
+      expect(Number.isSafeInteger(descendantId)).toBe(true);
+      expect(descendantAlive(descendantId)).toBe(false);
+      expect(processGroupExists(leaderId)).toBe(false);
+    },
+  );
+
+  test("resolves an inherited leader exit immediately without waiting on descendants", async () => {
+    // Given
+    const startedAt = performance.now();
+
+    // When
+    const result = await runBoundedProcess({
+      argv: ["bash", "-c", '(trap "" TERM; sleep 2) >/dev/null 2>&1 & exit 0'],
+      cwd: process.cwd(),
+      env: process.env,
+      timeoutMs: 5_000,
+      groupMode: "inherited",
+    });
+
+    // Then
+    expect(result.exitCode).toBe(0);
+    expect(result.signal).toBeNull();
+    expect(performance.now() - startedAt).toBeLessThan(1_500);
   });
 });
 

@@ -132,3 +132,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4546ff93a7c2
+  - type: validates
+    from: TEST-proof-runner-integrity
+    to: SCEN-kibi-verification-evidence-contract
+    created_at: 2026-09-14T18:51:02.448Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-61b348d753c0
+  - type: validates
+    from: TEST-proof-runner-integrity
+    to: SCEN-test-journaled-engine-harness
+    created_at: 2026-09-14T18:51:02.474Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db5241b7101a

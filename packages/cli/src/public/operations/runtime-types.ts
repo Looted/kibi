@@ -1,5 +1,5 @@
-import type { BranchAttachment } from "../../utils/branch-resolver.js";
 import type { PrologErrorRecord } from "../../prolog/error-terms.js";
+import type { BranchAttachment } from "../../utils/branch-resolver.js";
 import type { OperationEffect } from "./types.js";
 
 export type { OperationEffect } from "./types.js";

@@ -135,8 +135,11 @@ if (RUN_NODE_TEST_SUITE) {
       if (sandbox) await sandbox.cleanup();
     });
 
-    it("rejects omissions and accepts exact explicit unresolved ledgers", async () => {
-      if (!hasProlog) return;
+    it("rejects omissions and accepts exact explicit unresolved ledgers", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
       await packedCliEnforcesPropositionCompleteIngestion(sandbox);
     });
   });

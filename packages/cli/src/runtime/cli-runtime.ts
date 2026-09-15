@@ -21,7 +21,6 @@ import {
   resolveBranchAttachment,
 } from "../utils/branch-resolver.js";
 
-
 export function attachmentFailureMessage(
   attachment: BranchResolutionError,
 ): string {

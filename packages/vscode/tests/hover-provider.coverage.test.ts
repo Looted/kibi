@@ -192,8 +192,8 @@ symbols:
     const index = buildIndex(manifestPath, tmpDir);
     const symbol = index.byFile.get(testFile)?.[0];
     if (symbol) {
-      delete symbol.sourceFile;
-      delete symbol.sourceLine;
+      Reflect.deleteProperty(symbol, "sourceFile");
+      Reflect.deleteProperty(symbol, "sourceLine");
       symbol.sourceLine = 1;
     }
 
@@ -310,18 +310,23 @@ symbols:
     );
     const index = buildIndex(manifestPath, tmpDir);
     const token = { isCancellationRequested: false };
-    const provider = new KibiHoverProvider(tmpDir, index, createCache() as never, {
-      execCli: (command: string) => {
-        if (command.includes("--relationships")) {
-          return JSON.stringify([
-            { type: "implements", from: "SYM-DELTA", to: "REQ-1" },
-            { type: "implements", from: "SYM-DELTA", to: "REQ-2" },
-          ]);
-        }
-        token.isCancellationRequested = true;
-        return JSON.stringify({ id: "REQ-1", title: "Req" });
+    const provider = new KibiHoverProvider(
+      tmpDir,
+      index,
+      createCache() as never,
+      {
+        execCli: (command: string) => {
+          if (command.includes("--relationships")) {
+            return JSON.stringify([
+              { type: "implements", from: "SYM-DELTA", to: "REQ-1" },
+              { type: "implements", from: "SYM-DELTA", to: "REQ-2" },
+            ]);
+          }
+          token.isCancellationRequested = true;
+          return JSON.stringify({ id: "REQ-1", title: "Req" });
+        },
       },
-    });
+    );
     expect(
       await provider.provideHover(
         { uri: { fsPath: testFile } } as never,

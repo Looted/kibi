@@ -153,3 +153,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c6fc1fe1e9a9
+  - type: implements
+    from: SYM-quality-maintenance-executeMigrateLegacyReceipts
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-09-14T19:08:34.237Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3bf05f5be78
+  - type: covered_by
+    from: SYM-quality-maintenance-executeMigrateLegacyReceipts
+    to: TEST-proof-maintenance-roundtrip
+    created_at: 2026-09-14T19:08:34.247Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21337dcfc5f5

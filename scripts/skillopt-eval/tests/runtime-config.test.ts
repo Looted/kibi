@@ -314,7 +314,7 @@ describe("Codex evaluator-owned permissions", () => {
       "--ignore-rules",
       "--strict-config",
       "--model",
-      "gpt-5.4-mini",
+      "gpt-5.6-luna",
       "--cd",
       "/run/work",
       "--output-schema",
@@ -491,8 +491,8 @@ describe("Codex evaluator-owned permissions", () => {
     expect(config).not.toContain('"/source/node_modules');
     expect(config).toContain("required = true");
     expect(config).toContain('default_tools_approval_mode = "approve"');
-    expect(config).toContain('model = "gpt-5.4-mini"');
-    expect(config).toContain('model_reasoning_effort = "low"');
+    expect(config).toContain('model = "gpt-5.6-luna"');
+    expect(config).toContain('model_reasoning_effort = "medium"');
     expect(config).toContain(
       '[mcp_servers.kibi.env]\nKIBI_BRANCH = "skillopt-eval"\nKIBI_SKILLOPT_PROCESS_GROUP = "python_bridge"',
     );

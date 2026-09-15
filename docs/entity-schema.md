@@ -182,7 +182,7 @@ relationship:
 **Strict Fact Modeling (Normative Lane):**
 
 - Preserve readable requirement prose, but decompose the entire assertive body into atomic propositions with `kb_semantic_advisor`. Context-only rationale, examples, and subjective commentary remain in the inventory as `nonlogical` and do not enter `logic_claims`.
-- For a current requirement write, persist the receipt's `inventory_contract` as `semantic_inventory_version`, `semantic_source_field`, and `semantic_source_hash`. Ledger spans are UTF-8 byte offsets into that exact field; duplicate keys/spans, source drift, and silent omission are rejected before mutation.
+- For a current requirement write, persist the receipt's `inventory_contract` as `semantic_inventory_version`, `semantic_source_field`, and `semantic_source_hash`. Ledger spans are UTF-8 byte offsets into that exact field; the advisor canonicalizes repeated identical normalized claims to one proposition at the first source occurrence, while duplicate keys/spans in a submitted ledger, source drift, and silent omission are rejected before mutation.
 - Store exactly all returned assertive keys in the requirement `logic_claims` manifest. Each `modeled` entry must resolve through exactly one `requires_property`, `requires_predicate`, or `requires_rule` edge to a fact carrying the same `claim_key`; explicit `ambiguous`, `ontology_gap`, or `missing` entries remain ingestible but unresolved.
 - `logic-coverage` checks manifest-to-ground-fact correspondence and is enabled by default. Requirements without manifests remain a gradual-backfill case; quality diagnostics identify every current requirement with this debt, while the default rule prevents explicitly modeled manifests from drifting.
 

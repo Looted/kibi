@@ -33,8 +33,10 @@ describe("upsert remaining coordinate-refresh error wrapper", () => {
     __test__.setRefreshCoordinatesForSymbolIdForTests(async () => {
       throw new Error("refresh exploded");
     });
-    expect(wrapped).toBeTypeOf("function");
-    await expect(wrapped!("SYM-1")).resolves.toEqual({
+    const refresh = wrapped;
+    expect(refresh).toBeTypeOf("function");
+    if (!refresh) throw new Error("refresh wrapper was not registered");
+    await expect(refresh("SYM-1")).resolves.toEqual({
       refreshed: false,
       found: false,
     });
@@ -43,7 +45,7 @@ describe("upsert remaining coordinate-refresh error wrapper", () => {
     __test__.setRefreshCoordinatesForSymbolIdForTests(async () => {
       throw "string-fail";
     });
-    await expect(wrapped!("SYM-2")).resolves.toEqual({
+    await expect(refresh("SYM-2")).resolves.toEqual({
       refreshed: false,
       found: false,
     });

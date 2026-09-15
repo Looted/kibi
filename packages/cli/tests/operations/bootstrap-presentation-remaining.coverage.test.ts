@@ -27,9 +27,7 @@ function activation(
   };
 }
 
-function summary(
-  overrides: Partial<DiscoverySummary> = {},
-): DiscoverySummary {
+function summary(overrides: Partial<DiscoverySummary> = {}): DiscoverySummary {
   return {
     activationState: "root_uninitialized",
     activationMode: "cold_start_bootstrap",

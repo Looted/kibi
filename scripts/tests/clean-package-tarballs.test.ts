@@ -190,13 +190,21 @@ describe("clean-package-tarballs", () => {
       started += 1;
     });
     expect(started).toBe(0);
-    runCleanPackageTarballsIfMain("file:///tmp/clean.ts", "/tmp/clean.ts", () => {
-      started += 1;
-    });
+    runCleanPackageTarballsIfMain(
+      "file:///tmp/clean.ts",
+      "/tmp/clean.ts",
+      () => {
+        started += 1;
+      },
+    );
     expect(started).toBe(1);
-    runCleanPackageTarballsIfMain("file:///tmp/clean.ts", "file:///tmp/clean.ts", () => {
-      started += 1;
-    });
+    runCleanPackageTarballsIfMain(
+      "file:///tmp/clean.ts",
+      "file:///tmp/clean.ts",
+      () => {
+        started += 1;
+      },
+    );
     expect(started).toBe(2);
   });
 });

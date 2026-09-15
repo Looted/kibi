@@ -1,15 +1,16 @@
 // implements REQ-014
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import * as childProcess from "node:child_process";
 import { EventEmitter } from "node:events";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import * as childProcess from "node:child_process";
 import {
   parseIntegrationSelector,
   proveCommand,
   testId,
 } from "../../src/commands/prove.js";
 import type { IngestProofResult } from "../../src/operations/proof/ingest-proof.js";
+import * as integrationsMod from "../../src/proof/integrations.js";
 import * as discovery from "../../src/public/operations/discovery-entities.js";
 import type {
   OperationContext,
@@ -20,7 +21,6 @@ import {
   PROOF_INTEGRATION_VERSION,
   PROOF_RUN_VERSION,
 } from "../../src/public/proof-protocol.js";
-import * as integrationsMod from "../../src/proof/integrations.js";
 import * as cliRuntime from "../../src/runtime/cli-runtime.js";
 import {
   captureIo,
@@ -170,7 +170,11 @@ function validArtifact(overrides: Record<string, unknown> = {}) {
     integration: "self-proof",
     command_argv: passingCommand,
     code_snapshot: SNAPSHOT,
-    environment: { os: "linux", arch: "x64", runtime: { name: "node", version: "1" } },
+    environment: {
+      os: "linux",
+      arch: "x64",
+      runtime: { name: "node", version: "1" },
+    },
     run: {
       outcome: "passed",
       exit_code: 0,
@@ -343,12 +347,9 @@ describe("proveCommand remaining runtime branches", () => {
       resultsFor([entityRow("TEST-001", extraContract)]),
     );
     const context = await runtime.open({} as never, {});
-    delete (context as { git?: unknown }).git;
+    Reflect.deleteProperty(context, "git");
     await expect(
-      proveCommand(
-        { all: true, workspaceRoot: cwd },
-        { runtime },
-      ),
+      proveCommand({ all: true, workspaceRoot: cwd }, { runtime }),
     ).rejects.toThrow("does not expose workspace snapshots");
   });
 
@@ -409,7 +410,8 @@ describe("proveCommand remaining runtime branches", () => {
   test("converts TAP reports including unbound diagnostics", async () => {
     const cwd = preparedWorkspace();
     const report = path.join(cwd, "results.tap");
-    const tap = "ok 1 LoginTest::acceptsValidPassword\nok 2 unbound case\n";
+    const tap =
+      "TAP version 13\n1..2\nok 1 LoginTest::acceptsValidPassword\nok 2 unbound case\n";
     writeIntegrations(cwd, [
       {
         id: "unit",
@@ -603,10 +605,7 @@ describe("proveCommand remaining runtime branches", () => {
     const io = captureIo();
     restores.push(io.restore);
     const result = await withCwd(cwd, () =>
-      proveCommand(
-        { all: true },
-        { ingestProof: async () => ingestResult() },
-      ),
+      proveCommand({ all: true }, { ingestProof: async () => ingestResult() }),
     );
     expect(result.exitCode).toBe(0);
   });
@@ -621,14 +620,15 @@ describe("proveCommand remaining runtime branches", () => {
         description: "Self proof",
       },
     ]);
-    const resolve = spyOn(integrationsMod, "resolveIntegration").mockReturnValue(
-      {
-        id: "self-proof",
-        producer: "command",
-        command: [],
-        description: "Self proof",
-      },
-    );
+    const resolve = spyOn(
+      integrationsMod,
+      "resolveIntegration",
+    ).mockReturnValue({
+      id: "self-proof",
+      producer: "command",
+      command: [],
+      description: "Self proof",
+    });
     restores.push(() => resolve.mockRestore());
     const stdout = captureStdout();
     restores.push(stdout.restore);
@@ -722,14 +722,15 @@ describe("proveCommand remaining runtime branches", () => {
         description: "Self proof",
       },
     ]);
-    const resolve = spyOn(integrationsMod, "resolveIntegration").mockReturnValue(
-      {
-        id: "self-proof",
-        producer: "junit",
-        command: passingCommand,
-        description: "JUnit",
-      },
-    );
+    const resolve = spyOn(
+      integrationsMod,
+      "resolveIntegration",
+    ).mockReturnValue({
+      id: "self-proof",
+      producer: "junit",
+      command: passingCommand,
+      description: "JUnit",
+    });
     restores.push(() => resolve.mockRestore());
     const stdout = captureStdout();
     restores.push(stdout.restore);

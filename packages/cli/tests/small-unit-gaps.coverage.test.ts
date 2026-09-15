@@ -104,9 +104,7 @@ function tempDir(prefix = "kibi-small-gaps-"): string {
 function operationContext(
   workspaceRoot: string,
   prolog?: {
-    query: (
-      goal: string,
-    ) => Promise<{
+    query: (goal: string) => Promise<{
       success: boolean;
       bindings: Record<string, unknown>;
       error?: string;

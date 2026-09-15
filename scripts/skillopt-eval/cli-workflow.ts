@@ -6,7 +6,18 @@ import {
   ArtifactRootRequiredError,
   prepareArtifactPath,
 } from "./artifact-path";
-import { runPaidBundleGate } from "./bundle-workflow";
+import {
+  type BundleSurface,
+  type BundleSurfaces,
+  runPaidBundleGate,
+} from "./bundle-workflow";
+import {
+  CampaignArtifactError,
+  readBundleCandidateManifest,
+  sha256Text,
+  validateCampaignManifestAgainstSurface,
+} from "./campaign-artifacts";
+import { CANONICAL_SKILLS } from "./catalog";
 import { CliUsageError, type WorkflowOptions } from "./cli-options";
 import {
   EvaluationInfrastructureError,
@@ -21,13 +32,19 @@ import {
 import { RunStore, runOfflineWorkflow } from "./orchestration";
 import { runCapabilityCanary, runPreflight } from "./preflight";
 import { prepareArtifact } from "./prepared-root";
-import { runRealOptimization } from "./real-workflow";
+import { runRealOptimization, surface } from "./real-workflow";
 import type { HeldOutCellRunner } from "./real-workflow-types";
 import { runCodexCell } from "./runtime/codex-cell-runner";
 import {
   type CodexRuntimeLease,
   createCodexRuntimeLease,
 } from "./runtime/codex-runtime";
+import type { SkillSurface } from "./runtime/skill-assembly";
+import {
+  TargetEpisodeBudgetError,
+  initializeTargetEpisodeBudget,
+  readTargetEpisodeBudget,
+} from "./target-episode-budget";
 
 const STATEFUL_COMMANDS = new Set([
   "run",
@@ -45,6 +62,7 @@ export type WorkflowDependencies = Readonly<{
   readonly runRealOptimization: typeof runRealOptimization;
   readonly evaluateHeldOut: typeof defaultEvaluateHeldOut;
   readonly cellRunner: HeldOutCellRunner;
+  readonly resolveBundleSurfaces?: typeof resolveBundleSurfaces;
   readonly createCodexRuntimeLease: (
     options: Readonly<{ artifactRoot: string }>,
   ) => Promise<CodexRuntimeLease>;
@@ -58,6 +76,56 @@ export const defaultWorkflowDependencies = {
   cellRunner: runCodexCell,
   createCodexRuntimeLease,
 } satisfies WorkflowDependencies;
+
+export type BundleSurfaceSet = Readonly<{
+  baselineSurfaces: BundleSurfaces;
+  candidateSurfaces: BundleSurfaces;
+}>;
+
+export async function resolveBundleSurfaces(
+  sourceRoot: string,
+  bundleManifestPath: string,
+): Promise<BundleSurfaceSet> {
+  const bundle = await readBundleCandidateManifest(bundleManifestPath);
+  const baselineEntries = await Promise.all(
+    CANONICAL_SKILLS.map(async (skill) => {
+      const current = await surface(sourceRoot, skill);
+      return [skill, current] as const;
+    }),
+  );
+  const baselineSurfaces = Object.fromEntries(
+    baselineEntries,
+  ) as BundleSurfaces;
+  const candidateSurfaces = { ...baselineSurfaces } as Record<
+    (typeof CANONICAL_SKILLS)[number],
+    BundleSurface
+  >;
+
+  for (const entry of bundle.bundle.entries) {
+    if (entry.arm === "baseline") continue;
+    const manifest = bundle.candidates.get(entry.skill);
+    if (manifest === undefined)
+      throw new CampaignArtifactError("bundle_candidate_manifest_missing");
+    const current = baselineSurfaces[entry.skill];
+    validateCampaignManifestAgainstSurface(manifest, current);
+    candidateSurfaces[entry.skill] = {
+      body: manifest.frozenBody,
+      frontmatterHash: manifest.frontmatterHash,
+      resourcesHash: manifest.resourcesHash,
+    } satisfies SkillSurface;
+  }
+
+  if (
+    !CANONICAL_SKILLS.some(
+      (skill) =>
+        sha256Text(baselineSurfaces[skill].body) !==
+        sha256Text(candidateSurfaces[skill].body),
+    )
+  ) {
+    throw new CampaignArtifactError("bundle_no_improvement");
+  }
+  return { baselineSurfaces, candidateSurfaces };
+}
 
 type WorkflowExecution = Readonly<{
   options: WorkflowOptions;
@@ -190,7 +258,7 @@ async function runWorkflowAtRoot(
       artifactPath,
     );
   if (command === "bundle" && !options.fake)
-    return await runPaidBundleStage(options, dependencies);
+    return await runPaidBundleStage(options, dependencies, artifactPath);
   if (!options.fake)
     throw new CliUsageError(
       `${command} requires --fake until the bounded real smoke gate is enabled`,
@@ -223,11 +291,33 @@ async function runPaidOptimization(
     throw new CliUsageError(
       "optimize requires --fixture-run-root for bounded Codex cells",
     );
+  let env = process.env;
+  if (options.developmentOnly === true) {
+    // Development-only runs are the bounded paid lane. The normal optimize
+    // route and the separate bundle stage retain their existing budgets.
+    try {
+      const budgetEnv = await initializeTargetEpisodeBudget(
+        options.artifactRoot,
+        64,
+      );
+      env = { ...process.env, ...budgetEnv };
+    } catch (error) {
+      if (!(error instanceof TargetEpisodeBudgetError)) throw error;
+      return await reportTargetBudgetFailure(
+        command,
+        options,
+        artifactPath,
+        error,
+        env,
+      );
+    }
+  }
   const preflight = await dependencies.runPreflight({
     runId: options.runId,
     sourceWorktree: process.cwd(),
     artifactRoot: options.artifactRoot,
   });
+  await writeGateReceipt(artifactPath, "preflight.json", preflight);
   if (preflight.verdict !== "pass") {
     process.stdout.write(
       `${JSON.stringify({ command, stage: "preflight", ...preflight })}\n`,
@@ -239,6 +329,7 @@ async function runPaidOptimization(
     sourceWorktree: process.cwd(),
     artifactRoot: options.artifactRoot,
   });
+  await writeGateReceipt(artifactPath, "smoke.json", smoke);
   if (smoke.verdict !== "pass") {
     process.stdout.write(
       `${JSON.stringify({ command, stage: "smoke", ...smoke })}\n`,
@@ -274,6 +365,8 @@ async function runPaidOptimization(
         sourceWorktree: process.cwd(),
         skills: [options.skill],
         maxSteps: options.maxSteps,
+        developmentOnly: options.developmentOnly ?? false,
+        env,
         ...(options.seedCandidate === undefined
           ? {}
           : { seedCandidatePath: options.seedCandidate }),
@@ -297,6 +390,15 @@ async function runPaidOptimization(
     );
     return 0;
   } catch (error) {
+    if (error instanceof TargetEpisodeBudgetError) {
+      return await reportTargetBudgetFailure(
+        command,
+        options,
+        artifactPath,
+        error,
+        env,
+      );
+    }
     if (!(error instanceof EvaluationInfrastructureError)) throw error;
     process.stdout.write(
       `${JSON.stringify({ command, ...evaluationInfrastructurePayload(error) })}\n`,
@@ -307,10 +409,44 @@ async function runPaidOptimization(
   }
 }
 
+async function reportTargetBudgetFailure(
+  command: string,
+  options: WorkflowOptions,
+  artifactPath: ArtifactPath,
+  error: TargetEpisodeBudgetError,
+  env: NodeJS.ProcessEnv,
+): Promise<number> {
+  const targetEpisodeBudget = await readTargetEpisodeBudget(
+    env,
+    process.cwd(),
+  ).catch(() => undefined);
+  const failure = {
+    schemaVersion: "1.0.0",
+    artifactType: "skillopt-optimization-failure",
+    command,
+    runId: options.runId,
+    artifactRoot: artifactPath.path,
+    verdict: "no-go",
+    stage: "development",
+    status: "blocked",
+    reason: error.code,
+    reviewPath: join(artifactPath.path, "optimization-review.json"),
+    failurePath: join(artifactPath.path, "optimization-failure.json"),
+    ...(targetEpisodeBudget === undefined ? {} : { targetEpisodeBudget }),
+  } as const;
+  await artifactPath.writeText(
+    "optimization-failure.json",
+    `${JSON.stringify(failure, null, 2)}\n`,
+  );
+  process.stdout.write(`${JSON.stringify(failure)}\n`);
+  return 1;
+}
+
 // implements REQ-skillopt-codex-optimization
 async function runPaidBundleStage(
   options: WorkflowOptions,
   dependencies: WorkflowDependencies,
+  artifactPath: ArtifactPath,
 ): Promise<number> {
   if (!options.allowPaid)
     throw new CliUsageError(
@@ -322,11 +458,28 @@ async function runPaidBundleStage(
     throw new CliUsageError(
       "bundle requires --fixture-run-root for bounded Codex cells",
     );
+  if (options.candidateManifest === undefined)
+    throw new CliUsageError("bundle requires --candidate-manifest PATH");
+  const sourceWorktree = options.sourceRoot ?? process.cwd();
+  let bundleSurfaces: BundleSurfaceSet;
+  try {
+    bundleSurfaces = await (
+      dependencies.resolveBundleSurfaces ?? resolveBundleSurfaces
+    )(sourceWorktree, options.candidateManifest);
+  } catch (error) {
+    if (error instanceof CliUsageError) throw error;
+    throw new CliUsageError(
+      `bundle candidate manifest rejected: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+  }
   const preflight = await dependencies.runPreflight({
     runId: options.runId,
-    sourceWorktree: process.cwd(),
+    sourceWorktree,
     artifactRoot: options.artifactRoot,
   });
+  await writeGateReceipt(artifactPath, "preflight.json", preflight);
   if (preflight.verdict !== "pass") {
     process.stdout.write(
       `${JSON.stringify({ command: "bundle", stage: "preflight", ...preflight })}\n`,
@@ -335,9 +488,10 @@ async function runPaidBundleStage(
   }
   const smoke = await dependencies.runCapabilityCanary({
     runId: options.runId,
-    sourceWorktree: process.cwd(),
+    sourceWorktree,
     artifactRoot: options.artifactRoot,
   });
+  await writeGateReceipt(artifactPath, "smoke.json", smoke);
   if (smoke.verdict !== "pass") {
     process.stdout.write(
       `${JSON.stringify({ command: "bundle", stage: "smoke", ...smoke })}\n`,
@@ -352,8 +506,10 @@ async function runPaidBundleStage(
       {
         runId: options.runId,
         artifactRoot: options.artifactRoot,
-        sourceWorktree: process.cwd(),
+        sourceWorktree,
         fixtureRunRoot: options.cellRuntime.fixtureRunRoot,
+        baselineSurfaces: bundleSurfaces.baselineSurfaces,
+        candidateSurfaces: bundleSurfaces.candidateSurfaces,
         env: process.env,
         codexExecutable: runtimeLease.codexExecutable,
         bwrapExecutable: runtimeLease.bwrapExecutable,
@@ -371,4 +527,12 @@ async function runPaidBundleStage(
   } finally {
     await runtimeLease.cleanup();
   }
+}
+
+async function writeGateReceipt(
+  artifactPath: ArtifactPath,
+  name: "preflight.json" | "smoke.json",
+  receipt: unknown,
+): Promise<void> {
+  await artifactPath.writeText(name, `${JSON.stringify(receipt, null, 2)}\n`);
 }

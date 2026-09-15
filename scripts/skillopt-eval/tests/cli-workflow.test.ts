@@ -11,6 +11,11 @@ import {
   OPTIMIZER_MODEL,
   TARGET_MODEL,
 } from "../runtime/permissions";
+import {
+  MAX_TARGET_EPISODES_ENV,
+  TARGET_EPISODE_BUDGET_ROOT_ENV,
+  TargetEpisodeBudgetError,
+} from "../target-episode-budget";
 
 let preflightCalls = 0;
 let canaryCalls = 0;
@@ -50,6 +55,7 @@ function fakeDependencies(): CliDependencies {
         optimizerModel: OPTIMIZER_MODEL,
         authMode: "file",
         paidModelCalls: 2,
+        modelInvocationAttempts: 2,
         modelRuns: [],
         events: [],
       } satisfies CapabilityCanaryReceipt;
@@ -199,6 +205,32 @@ describe("SkillOpt workflow CLI", () => {
     // Then
     expect(options.cellRuntime).toEqual({ fixtureRunRoot: "/tmp/fixture-run" });
     expect(options.seedCandidate).toBe("/tmp/candidate.md");
+    expect(options.developmentOnly).toBe(false);
+    expect(
+      parseWorkflowOptions(
+        [
+          "--run-id",
+          "00000000-0000-4000-8000-000000000097",
+          "--candidate-manifest",
+          "/tmp/bundle.json",
+        ],
+        "bundle",
+      ).candidateManifest,
+    ).toBe("/tmp/bundle.json");
+    expect(() =>
+      parseWorkflowOptions(
+        [
+          "--run-id",
+          "00000000-0000-4000-8000-000000000097",
+          "--candidate-manifest",
+          "/tmp/bundle.json",
+        ],
+        "optimize",
+      ),
+    ).toThrow("only valid for bundle");
+    expect(() => parseWorkflowOptions(["--development-only"], "run")).toThrow(
+      "only valid for optimize",
+    );
     expect(() =>
       parseWorkflowOptions([
         "--run-id",
@@ -283,7 +315,193 @@ describe("SkillOpt workflow CLI", () => {
       expect(realOptimizationDependencies?.evaluateHeldOut).toEqual(
         expect.any(Function),
       );
+      expect(realOptimizationOptions?.env?.[MAX_TARGET_EPISODES_ENV]).toBe(
+        undefined,
+      );
     } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  test("persists preflight and smoke receipts before no-go returns", async () => {
+    const root = await mkdtemp(join(tmpdir(), "skillopt-cli-gates-"));
+    try {
+      const preflightFailure: CliDependencies = {
+        ...fakeDependencies(),
+        runPreflight: async ({ runId }) => ({
+          verdict: "no-go",
+          runId,
+          targetModel: TARGET_MODEL,
+          optimizerModel: OPTIMIZER_MODEL,
+          skilloptCommit: "b860a5cf88ce75e2bd02ca981ac21fb28cffba83",
+          codexVersion: null,
+          authMode: null,
+          bwrap: false,
+          sourceClean: false,
+          configValid: false,
+          paidModelCalls: 0,
+          reason: "source_not_clean",
+        }),
+      };
+      expect(
+        await main(
+          [
+            "optimize",
+            "--allow-paid",
+            "--skill",
+            "kibi-usage",
+            "--run-id",
+            "00000000-0000-4000-8000-000000000100",
+            "--artifact-root",
+            root,
+            "--fixture-run-root",
+            "/tmp/fixture-run",
+          ],
+          preflightFailure,
+        ),
+      ).toBe(1);
+      expect(
+        JSON.parse(await readFile(join(root, "preflight.json"), "utf8")),
+      ).toMatchObject({ verdict: "no-go", reason: "source_not_clean" });
+      expect(await readdir(root)).not.toContain("smoke.json");
+
+      const smokeFailure: CliDependencies = {
+        ...fakeDependencies(),
+        runCapabilityCanary: async ({ runId }) => ({
+          verdict: "no-go",
+          runId,
+          targetModel: TARGET_MODEL,
+          optimizerModel: OPTIMIZER_MODEL,
+          authMode: "file",
+          paidModelCalls: 0,
+          modelInvocationAttempts: 0,
+          modelRuns: [],
+          events: [],
+          phase: "sandbox-probe",
+          diagnostic: "sandbox-probe:timeout",
+          reason: "process_timeout:bwrap",
+        }),
+      };
+      expect(
+        await main(
+          [
+            "optimize",
+            "--allow-paid",
+            "--skill",
+            "kibi-usage",
+            "--run-id",
+            "00000000-0000-4000-8000-000000000101",
+            "--artifact-root",
+            root,
+            "--fixture-run-root",
+            "/tmp/fixture-run",
+          ],
+          smokeFailure,
+        ),
+      ).toBe(1);
+      expect(
+        JSON.parse(await readFile(join(root, "smoke.json"), "utf8")),
+      ).toMatchObject({
+        verdict: "no-go",
+        phase: "sandbox-probe",
+        modelInvocationAttempts: 0,
+      });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  test("forwards development-only without changing the default route", async () => {
+    const root = await mkdtemp(
+      join(tmpdir(), "skillopt-cli-development-only-"),
+    );
+    try {
+      expect(
+        await main(
+          [
+            "optimize",
+            "--allow-paid",
+            "--development-only",
+            "--skill",
+            "kibi-usage",
+            "--run-id",
+            "00000000-0000-4000-8000-000000000098",
+            "--artifact-root",
+            root,
+            "--fixture-run-root",
+            "/tmp/fixture-run",
+          ],
+          fakeDependencies(),
+        ),
+      ).toBe(0);
+      expect(realOptimizationOptions?.developmentOnly).toBe(true);
+      expect(
+        realOptimizationOptions?.env?.[TARGET_EPISODE_BUDGET_ROOT_ENV],
+      ).toBe(root);
+      expect(realOptimizationOptions?.env?.[MAX_TARGET_EPISODES_ENV]).toBe(
+        "64",
+      );
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  test("returns structured budget exhaustion and preserves a failure artifact", async () => {
+    const root = await mkdtemp(join(tmpdir(), "skillopt-cli-budget-failure-"));
+    const output: string[] = [];
+    const originalWrite = process.stdout.write;
+    process.stdout.write = ((chunk: string | Uint8Array) => {
+      output.push(String(chunk));
+      return true;
+    }) as typeof process.stdout.write;
+    try {
+      const exitCode = await main(
+        [
+          "optimize",
+          "--allow-paid",
+          "--development-only",
+          "--skill",
+          "kibi-usage",
+          "--run-id",
+          "00000000-0000-4000-8000-000000000099",
+          "--artifact-root",
+          root,
+          "--fixture-run-root",
+          "/tmp/fixture-run",
+        ],
+        {
+          ...fakeDependencies(),
+          runRealOptimization: async () => {
+            throw new TargetEpisodeBudgetError(
+              "target_episode_budget_exhausted",
+            );
+          },
+        },
+      );
+      expect(exitCode).toBe(1);
+      const response = JSON.parse(output.at(-1) ?? "{}") as {
+        status?: string;
+        reason?: string;
+        failurePath?: string;
+      };
+      expect(response).toMatchObject({
+        status: "blocked",
+        reason: "target_episode_budget_exhausted",
+      });
+      expect(response.failurePath).toBe(
+        join(root, "optimization-failure.json"),
+      );
+      expect(
+        JSON.parse(
+          await readFile(join(root, "optimization-failure.json"), "utf8"),
+        ),
+      ).toMatchObject({
+        artifactType: "skillopt-optimization-failure",
+        reason: "target_episode_budget_exhausted",
+        stage: "development",
+      });
+    } finally {
+      process.stdout.write = originalWrite;
       await rm(root, { recursive: true, force: true });
     }
   });

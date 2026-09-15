@@ -1,8 +1,8 @@
 // implements REQ-kibi-operation-interface-parity
 import { afterEach, describe, expect, mock, spyOn, test } from "bun:test";
 import { Command } from "commander";
-import { registerFoundationCommands } from "../src/cli-register-foundation.js";
 import * as jsonCommand from "../src/cli-json-command.js";
+import { registerFoundationCommands } from "../src/cli-register-foundation.js";
 import * as initCommand from "../src/commands/init.js";
 import * as migrateCommand from "../src/commands/migrate.js";
 import * as queryCommand from "../src/commands/query.js";
@@ -17,12 +17,18 @@ afterEach(() => {
 
 describe("registerFoundationCommands action bodies", () => {
   test("invokes command implementations and JSON input routes", async () => {
-    const init = spyOn(initCommand, "initCommand").mockResolvedValue({} as never);
+    const init = spyOn(initCommand, "initCommand").mockResolvedValue(
+      {} as never,
+    );
     const migrate = spyOn(migrateCommand, "migrateCommand").mockResolvedValue(
       {} as never,
     );
-    const sync = spyOn(syncCommand, "syncCommand").mockResolvedValue({} as never);
-    const query = spyOn(queryCommand, "queryCommand").mockResolvedValue({} as never);
+    const sync = spyOn(syncCommand, "syncCommand").mockResolvedValue(
+      {} as never,
+    );
+    const query = spyOn(queryCommand, "queryCommand").mockResolvedValue(
+      {} as never,
+    );
     const search = spyOn(searchCommand, "searchCommand").mockResolvedValue(
       undefined as never,
     );
@@ -52,16 +58,22 @@ describe("registerFoundationCommands action bodies", () => {
       { from: "user" },
     );
     expect(migrate).toHaveBeenCalled();
-    const migrateOpts = migrate.mock.calls[0]?.[0] as { approvedAction?: string[] };
+    const migrateOpts = migrate.mock.calls[0]?.[0] as {
+      approvedAction?: string[];
+    };
     expect(migrateOpts.approvedAction).toEqual(["one", "two", "three"]);
 
     await program.parseAsync(["sync", "--validate-only"], { from: "user" });
     expect(sync).toHaveBeenCalled();
 
-    await program.parseAsync(["query", "req", "--limit", "5"], { from: "user" });
+    await program.parseAsync(["query", "req", "--limit", "5"], {
+      from: "user",
+    });
     expect(query).toHaveBeenCalled();
 
-    await program.parseAsync(["query", "req", "--input", "-"], { from: "user" });
+    await program.parseAsync(["query", "req", "--input", "-"], {
+      from: "user",
+    });
     expect(json).toHaveBeenCalledWith(
       expect.objectContaining({ operationName: "kb_query", inputPath: "-" }),
     );

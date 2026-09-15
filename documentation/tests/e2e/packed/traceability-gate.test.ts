@@ -125,8 +125,11 @@ if (RUN_NODE_TEST_SUITE) {
       { timeout: 120000 },
     );
 
-    it("should pass with authored symbol ownership metadata", async () => {
-      if (!hasProlog) return;
+    it("should pass with authored symbol ownership metadata", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       // snapshot host repo artifacts
       const hostRepo = process.cwd();
@@ -202,8 +205,11 @@ if (RUN_NODE_TEST_SUITE) {
       );
     });
 
-    it("should fail without requirement link", async () => {
-      if (!hasProlog) return;
+    it("should fail without requirement link", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       const hostRepo = process.cwd();
       const beforeSymbols = repoSymbolsHash(hostRepo);
@@ -249,8 +255,11 @@ if (RUN_NODE_TEST_SUITE) {
       assert.deepStrictEqual(afterBranches, beforeBranches);
     });
 
-    it("should handle nothing staged", async () => {
-      if (!hasProlog) return;
+    it("should handle nothing staged", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       const hostRepo = process.cwd();
       const beforeSymbols = repoSymbolsHash(hostRepo);
@@ -334,8 +343,11 @@ if (RUN_NODE_TEST_SUITE) {
       );
     });
 
-    it("should pass with executable_for test symbol", async () => {
-      if (!hasProlog) return;
+    it("should pass with executable_for test symbol", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       const hostRepo = process.cwd();
       const beforeSymbols = repoSymbolsHash(hostRepo);
@@ -414,8 +426,11 @@ if (RUN_NODE_TEST_SUITE) {
       assert.deepStrictEqual(afterBranches, beforeBranches);
     });
 
-    it("should fail when only covered_by is present (no implements ownership)", async () => {
-      if (!hasProlog) return;
+    it("should fail when only covered_by is present (no implements ownership)", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       const hostRepo = process.cwd();
       const beforeSymbols = repoSymbolsHash(hostRepo);

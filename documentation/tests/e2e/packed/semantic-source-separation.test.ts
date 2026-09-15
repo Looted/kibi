@@ -139,8 +139,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "preserves text_ref evidence while CLI and MCP preview semantic_text",
       { timeout: 300_000 },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
         const requirementPath =
           ".kb/requirements/REQ-PACKED-SEMANTIC-SOURCE.md";
         const semanticText =

@@ -97,4 +97,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ab50a1c3c5f1
-
+  - type: implements
+    from: SYM-quality-eval-SearchSourceMatch
+    to: REQ-kibi-change-to-proof-evaluation
+    created_at: 2026-09-14T19:18:04.448Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71282e1b4d5f
+  - type: covered_by
+    from: SYM-quality-eval-SearchSourceMatch
+    to: TEST-kibi-change-to-proof-evaluation
+    created_at: 2026-09-14T19:18:04.460Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-654ffa7f8bfb

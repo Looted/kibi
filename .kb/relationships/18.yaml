@@ -181,3 +181,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2e132a5bbf00
+  - type: implements
+    from: SYM-quality-inventory-462930c7e9c8
+    to: REQ-core-persistence
+    created_at: 2026-09-14T20:31:47.497Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d63630278fe8
+  - type: covered_by
+    from: SYM-quality-inventory-462930c7e9c8
+    to: TEST-cli-prolog-codec
+    created_at: 2026-09-14T20:31:47.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dd00d0dc9a2f

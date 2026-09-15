@@ -39,6 +39,16 @@ describe("SkillOpt orchestration", () => {
     ).toThrow("request_tokens_exceed_cap");
   });
 
+  test("does not invent an unknown Luna price", () => {
+    expect(
+      estimatePriceEquivalent("gpt-5.6-luna", {
+        inputTokens: 1_000,
+        cachedInputTokens: 100,
+        outputTokens: 100,
+      }),
+    ).toBeNull();
+  });
+
   test("rejects concurrent run locks", async () => {
     const root = await mkdtemp(join(tmpdir(), "skillopt-lock-"));
     try {

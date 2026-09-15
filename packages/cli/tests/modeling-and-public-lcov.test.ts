@@ -3,11 +3,18 @@
 // implements REQ-mcp-suggest-predicates
 import { describe, expect, test } from "bun:test";
 import { withExitCode } from "../src/cli-command.js";
+import type { ExtractionResult } from "../src/extractors/markdown.js";
 import {
-  recordEntityAudit,
-  recordRelationshipAudits,
-  buildEntityDeleteAuditGoal,
-} from "../src/operations/mutation/audit.js";
+  loadExistingPredicateSchemas,
+  predicateSchemaFromEntity,
+  schemaForCandidate,
+  stringArray,
+  usageHintsFromEntity,
+} from "../src/operations/modeling/predicate-loader.js";
+import {
+  strictWriteSetToApplyPlan,
+  writeSetPrimaryEntityId,
+} from "../src/operations/modeling/requirement-applyplan.js";
 import {
   buildFallbackClaim,
   extractHeuristicClaim,
@@ -16,10 +23,6 @@ import {
   estimateNormativeSignalConfidence,
   extractRequirementClaim,
 } from "../src/operations/modeling/requirement-modeler.js";
-import {
-  strictWriteSetToApplyPlan,
-  writeSetPrimaryEntityId,
-} from "../src/operations/modeling/requirement-applyplan.js";
 import {
   clampConfidence,
   cleanPredicate,
@@ -31,12 +34,18 @@ import {
   stripListPrefix,
 } from "../src/operations/modeling/requirement-utils.js";
 import {
-  loadExistingPredicateSchemas,
-  predicateSchemaFromEntity,
-  schemaForCandidate,
-  stringArray,
-  usageHintsFromEntity,
-} from "../src/operations/modeling/predicate-loader.js";
+  buildEntityDeleteAuditGoal,
+  recordEntityAudit,
+  recordRelationshipAudits,
+} from "../src/operations/mutation/audit.js";
+import type { StrictWriteSet } from "../src/public/check-types.js";
+import { createRequirementQualityDiagnostics } from "../src/public/impact/requirement-quality.js";
+import {
+  collectSymbols,
+  isModuleOrConfig,
+  narrowerExtractedSymbols,
+  narrowerManifestSymbols,
+} from "../src/public/impact/symbol-quality-model.js";
 import {
   buildEntityGoal,
   dedupeEntities,
@@ -50,15 +59,6 @@ import {
   toPrologAtom,
   toPrologList,
 } from "../src/public/operations/prolog-json.js";
-import { createRequirementQualityDiagnostics } from "../src/public/impact/requirement-quality.js";
-import {
-  collectSymbols,
-  isModuleOrConfig,
-  narrowerExtractedSymbols,
-  narrowerManifestSymbols,
-} from "../src/public/impact/symbol-quality-model.js";
-import type { ExtractionResult } from "../src/extractors/markdown.js";
-import type { StrictWriteSet } from "../src/public/check-types.js";
 import type {
   PrologPort,
   PrologQueryResult,
@@ -67,7 +67,10 @@ import type {
 function asPort(
   query: PrologPort["query"] | (() => Promise<unknown>),
 ): PrologPort {
-  return { query } as unknown as PrologPort;
+  // These fixtures exercise the repository's one-shot operation adapter. Keep
+  // that choice explicit so another Bun test temporarily changing NODE_ENV
+  // cannot alter the branch under test.
+  return { query, oneShotMode: true } as unknown as PrologPort;
 }
 
 function entity(
@@ -182,16 +185,16 @@ describe("requirement modeling remaining branches", () => {
     expect(fallback.extractionMode).toBe("fallback");
     expect(fallback.claim.confidence).toBeLessThanOrEqual(0.69);
     expect(fallback.claim.subjectKey).toBe("REQ note");
-    expect(
-      buildFallbackClaim("x", "", 0.5, undefined).claim.subjectKey,
-    ).toBe("Requirement");
+    expect(buildFallbackClaim("x", "", 0.5, undefined).claim.subjectKey).toBe(
+      "Requirement",
+    );
   });
 
   test("models explicit, heuristic, and fallback requirement claims", () => {
     expect(estimateNormativeSignalConfidence("please consider this")).toBe(0);
-    expect(estimateNormativeSignalConfidence("Agents shall persist facts")).toBe(
-      0.86,
-    );
+    expect(
+      estimateNormativeSignalConfidence("Agents shall persist facts"),
+    ).toBe(0.86);
     expect(estimateNormativeSignalConfidence("Agents must persist facts")).toBe(
       0.84,
     );
@@ -422,7 +425,10 @@ describe("discovery entities and Prolog JSON helpers", () => {
       ]),
     ).toHaveLength(1);
     await expect(
-      loadEntities({ query: async () => ({ success: false, bindings: {} }) }, {}),
+      loadEntities(
+        { query: async () => ({ success: false, bindings: {} }) },
+        {},
+      ),
     ).rejects.toThrow(/Query failed/);
     const tagged = await loadEntities(
       {
@@ -568,15 +574,15 @@ describe("requirement and symbol quality models", () => {
         ...symbols,
       ],
     } as never);
-    expect(diagnostics.some((item) => item.id === "broad_requirement_review")).toBe(
-      true,
-    );
-    expect(diagnostics.some((item) => item.id === "requirement_status_review")).toBe(
-      true,
-    );
-    expect(diagnostics.some((item) => item.id === "logical_coverage_review")).toBe(
-      true,
-    );
+    expect(
+      diagnostics.some((item) => item.id === "broad_requirement_review"),
+    ).toBe(true);
+    expect(
+      diagnostics.some((item) => item.id === "requirement_status_review"),
+    ).toBe(true);
+    expect(
+      diagnostics.some((item) => item.id === "logical_coverage_review"),
+    ).toBe(true);
     expect(
       createRequirementQualityDiagnostics({
         manifestResults: [
@@ -604,13 +610,16 @@ describe("requirement and symbol quality models", () => {
       manifestResults: [parent, child, entity("REQ-1", "req")],
     } as never);
     expect(symbols).toHaveLength(2);
-    expect(isModuleOrConfig(symbols[0]!)).toBe(true);
-    expect(narrowerManifestSymbols(symbols[0]!, symbols).map((s) => s.id)).toEqual([
-      "SYM-FN",
-    ]);
+    const firstSymbol = symbols[0];
+    expect(firstSymbol).toBeDefined();
+    if (!firstSymbol) throw new Error("expected a collected module symbol");
+    expect(isModuleOrConfig(firstSymbol)).toBe(true);
+    expect(
+      narrowerManifestSymbols(firstSymbol, symbols).map((s) => s.id),
+    ).toEqual(["SYM-FN"]);
     expect(
       narrowerExtractedSymbols(
-        symbols[0]!,
+        firstSymbol,
         new Map([
           [
             "src/widget.ts",

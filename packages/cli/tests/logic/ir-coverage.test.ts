@@ -19,6 +19,14 @@ const atom = (
   ...extra,
 });
 
+function normalizedOrThrow(result: ReturnType<typeof validateLogicIr>) {
+  expect(result.normalized).toBeDefined();
+  if (!result.normalized) {
+    throw new Error("valid logic IR result is missing its normalized value");
+  }
+  return result.normalized;
+}
+
 describe("validateLogicIr term and expression coverage", () => {
   test("rejects non-objects, unknown keys, and invalid modalities", () => {
     expect(validateLogicIr("nope").valid).toBe(false);
@@ -80,7 +88,7 @@ describe("validateLogicIr term and expression coverage", () => {
       ruleSchemaId: "FACT-RULE-SCHEMA-LOGIC-V1",
     });
     expect(result.valid).toBe(true);
-    expect(canonicalLogicJson(result.normalized!)).toContain("permit");
+    expect(canonicalLogicJson(normalizedOrThrow(result))).toContain("permit");
   });
 
   test("accepts duration terms and closed-world negation", () => {
@@ -197,7 +205,7 @@ describe("renderLogicProlog and remaining validators", () => {
       head: atom("ready"),
     });
     expect(atomOnly.valid).toBe(true);
-    expect(renderLogicProlog(atomOnly.normalized!)).toContain("assert(");
+    expect(renderLogicProlog(normalizedOrThrow(atomOnly))).toContain("assert(");
 
     const rule = validateLogicIr({
       version: LOGIC_IR_VERSION,
@@ -236,7 +244,7 @@ describe("renderLogicProlog and remaining validators", () => {
       },
     });
     expect(rule.valid).toBe(true);
-    expect(renderLogicProlog(rule.normalized!)).toContain(":-");
+    expect(renderLogicProlog(normalizedOrThrow(rule))).toContain(":-");
   });
 
   test("rejects incompatible units, invalid namespaces, and version drift", () => {

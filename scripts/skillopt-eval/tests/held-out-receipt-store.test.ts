@@ -388,7 +388,9 @@ describe("held-out receipt store", () => {
     });
     const receiptStore = store(root, corpus);
     await receiptStore.reserve();
-    mkdirSync(join(root, "run-artifacts", "held-out-evidence", "terminal.json"));
+    mkdirSync(
+      join(root, "run-artifacts", "held-out-evidence", "terminal.json"),
+    );
 
     await expect(receiptStore.loadTerminal()).rejects.toMatchObject({
       code: "EISDIR",

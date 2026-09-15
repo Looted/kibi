@@ -3,8 +3,8 @@ import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { chmod, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { PreflightNoGo, qualifySkillOptHost } from "../preflight-host";
-import { PreflightInputError } from "../preflight-io";
 import * as runtime from "../preflight-host-runtime";
+import { PreflightInputError } from "../preflight-io";
 import { createPreflightFixture } from "./preflight-fixture";
 
 const roots: string[] = [];

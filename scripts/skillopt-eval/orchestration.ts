@@ -17,11 +17,13 @@ export const BUDGET_LIMITS = {
 } as const;
 
 const MODEL_PRICING = {
+  // Retain the historical Mini estimate for old offline artifacts only.
   "gpt-5.4-mini": {
     inputPerMillionTokens: 0.4,
     cachedInputPerMillionTokens: 0.1,
     outputPerMillionTokens: 1.6,
   },
+  "gpt-5.6-luna": null,
   "gpt-5.6-sol": {
     inputPerMillionTokens: 5,
     cachedInputPerMillionTokens: 0.5,
@@ -37,7 +39,7 @@ export function estimatePriceEquivalent(
     cachedInputTokens: number;
     outputTokens: number;
   }>,
-): number {
+): number | null {
   if (
     !Number.isInteger(usage.inputTokens) ||
     !Number.isInteger(usage.cachedInputTokens) ||
@@ -52,6 +54,7 @@ export function estimatePriceEquivalent(
     throw new Error("request_tokens_exceed_cap");
   }
   const pricing = MODEL_PRICING[model];
+  if (pricing === null) return null;
   const uncachedInput = usage.inputTokens - usage.cachedInputTokens;
   return (
     (uncachedInput * pricing.inputPerMillionTokens +

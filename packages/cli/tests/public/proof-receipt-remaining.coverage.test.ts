@@ -2,15 +2,15 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { proofContractHash } from "../../src/public/proof-fingerprint.js";
 import {
+  PROOF_CONTRACT_VERSION,
+  PROOF_RECEIPT_VERSION,
+} from "../../src/public/proof-protocol.js";
+import {
   MAX_PROOF_RECEIPTS,
   appendOnlyProofReceiptHistoryErrors,
   proofReceiptCurrentBindingErrors,
   validProofReceiptShape,
 } from "../../src/public/proof-receipt.js";
-import {
-  PROOF_CONTRACT_VERSION,
-  PROOF_RECEIPT_VERSION,
-} from "../../src/public/proof-protocol.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";
 
 const restores: Array<() => void> = [];

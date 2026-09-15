@@ -660,10 +660,14 @@ function sealedFinalState(
           ? "dirty"
           : "fresh"
         : "not_evaluated";
-  const proofState = proofStateFromCoverage(
-    latestContent(requests, "kb_coverage"),
-  );
   const expectedWorkflow = options.evaluatorManifest.workflowExpectation;
+  // Coverage remains available as raw final-state evidence, but a workflow
+  // that declares proof out of scope must not inherit an unresolved result
+  // from the verifier's general coverage request.
+  const proofState =
+    expectedWorkflow?.expectedProofState === "not_evaluated"
+      ? "not_evaluated"
+      : proofStateFromCoverage(latestContent(requests, "kb_coverage"));
   const taskOutcome = taskComplete ? "complete" : "blocked";
   // Pre-approval phases expect the agent to stop before any write; when it
   // does, that is the sanctioned "interim" outcome rather than "blocked".

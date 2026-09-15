@@ -128,11 +128,14 @@ if (RUN_NODE_TEST_SUITE) {
         { timeout: 120000 },
       );
 
-      it("installed kibi-runtime must ship dist/engine-daemon.js", async () => {
+      it("installed kibi-runtime must ship dist/engine-daemon.js", async (testContext) => {
         // SWI-Prolog is an optional local prerequisite for packed E2E runs.
         // The setup hook deliberately avoids creating a sandbox when it is
         // absent, so every test must honor the same skip boundary.
-        if (!hasProlog) return;
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const daemonEntry = join(
           sandbox.npmPrefix,
@@ -147,8 +150,11 @@ if (RUN_NODE_TEST_SUITE) {
         );
       });
 
-      it("EngineClient from the installed runtime must start the daemon and serve typed queries", async () => {
-        if (!hasProlog) return;
+      it("EngineClient from the installed runtime must start the daemon and serve typed queries", async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const result = await startPackedEngineDaemonAndQuery(sandbox);
         assert.ok(

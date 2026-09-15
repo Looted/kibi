@@ -14,14 +14,17 @@ describe("formatUpsertError remaining diagnostic branches", () => {
     previousExitCode = process.exitCode;
     expect(formatUpsertError("REQ-1")).toContain("Unknown error");
     expect(
-      formatUpsertError("REQ-1", "__KIBI_STAGE__:x\nstale_snapshot (stage=commit)"),
+      formatUpsertError(
+        "REQ-1",
+        "__KIBI_STAGE__:x\nstale_snapshot (stage=commit)",
+      ),
     ).toMatch(/stale_snapshot.*stage=commit/);
     expect(
       formatUpsertError("REQ-1", "Audit journal is locked (stage=write)"),
     ).toMatch(/Audit journal is locked/);
-    expect(
-      formatUpsertError("REQ-1", "open audit_log failed"),
-    ).toMatch(/Audit journal is locked/);
+    expect(formatUpsertError("REQ-1", "open audit_log failed")).toMatch(
+      /Audit journal is locked/,
+    );
     expect(formatUpsertError("REQ-1", "audit.log busy")).toMatch(
       /Audit journal is locked/,
     );

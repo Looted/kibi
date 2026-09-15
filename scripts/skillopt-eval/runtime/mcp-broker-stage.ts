@@ -75,7 +75,10 @@ export async function stageKibiMcpBroker(
     sourcemap: "none",
   });
   if (!build.success) throw new McpBrokerError("startup");
-  const sourceRoots = new Set<string>([sourceWorktree, resolve(sourceWorktree)]);
+  const sourceRoots = new Set<string>([
+    sourceWorktree,
+    resolve(sourceWorktree),
+  ]);
   try {
     sourceRoots.add(await realpath(sourceWorktree));
   } catch {

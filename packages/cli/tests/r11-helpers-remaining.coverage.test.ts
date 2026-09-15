@@ -1,33 +1,33 @@
 // implements REQ-014
 import { afterEach, describe, expect, test } from "bun:test";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { writeOptionalStderr } from "../src/cli-json-command.js";
+import { requireCliOperationMetadata } from "../src/cli-operation-metadata.js";
+import { exitCodeFromCliFailure } from "../src/cli.js";
 import { skipBlankLines } from "../src/commands/github-init.js";
 import { relationshipFailureMessage } from "../src/commands/sync/persistence.js";
-import { skipNonIntegerFactNumber } from "../src/traceability/temp-kb.js";
 import { missingManifestActivation } from "../src/operations/bootstrap/activation.js";
-import { writeOptionalStderr } from "../src/cli-json-command.js";
-import { passingE2eStage } from "../src/public/impact/full-kb-quality.js";
 import { filterSourceOnlySignals } from "../src/operations/bootstrap/generate.js";
-import { stringLogicClaims } from "../src/operations/semantic-advisor/analyze-prose.js";
-import { finishedAtPrecedesStartedAt } from "../src/public/proof-receipt.js";
-import { isBehaviorSourceEdit } from "../src/traceability/staged-impact-contract.js";
-import { exitCodeFromCliFailure } from "../src/cli.js";
 import { optionalPredicateName } from "../src/operations/modeling/predicate-loader.js";
 import { predicateSchemaFromEntity } from "../src/operations/modeling/predicate-loader.js";
 import { wrongKindRelationshipError } from "../src/operations/mutation/relationships.js";
 import { restoreOrUnlinkCoordinateArtifact } from "../src/operations/mutation/symbol-refresh.js";
+import { stringLogicClaims } from "../src/operations/semantic-advisor/analyze-prose.js";
 import {
   PrologProcess,
   bindProcessExitHandler,
   registerProcessExitOnce,
 } from "../src/prolog.js";
-import { attachmentFailureMessage } from "../src/runtime/cli-runtime.js";
-import { unreadableMigrationJournalError } from "../src/utils/branch-resolver.js";
-import { failedEffectStatus } from "../src/public/operations/result-envelope.js";
+import { passingE2eStage } from "../src/public/impact/full-kb-quality.js";
 import { requireKnownSpec } from "../src/public/operations/catalog.js";
-import { requireCliOperationMetadata } from "../src/cli-operation-metadata.js";
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { failedEffectStatus } from "../src/public/operations/result-envelope.js";
+import { finishedAtPrecedesStartedAt } from "../src/public/proof-receipt.js";
+import { attachmentFailureMessage } from "../src/runtime/cli-runtime.js";
+import { isBehaviorSourceEdit } from "../src/traceability/staged-impact-contract.js";
+import { skipNonIntegerFactNumber } from "../src/traceability/temp-kb.js";
+import { unreadableMigrationJournalError } from "../src/utils/branch-resolver.js";
 
 afterEach(() => {
   process.exitCode = 0;
@@ -76,10 +76,7 @@ describe("cli remasure11 leftover helpers", () => {
     expect(writes).toEqual(["err\n"]);
     expect(
       filterSourceOnlySignals(
-        [
-          { kind: "req" } as never,
-          { kind: "test" } as never,
-        ],
+        [{ kind: "req" } as never, { kind: "test" } as never],
         ["req"],
       ).map((signal) => signal.kind),
     ).toEqual(["req"]);
@@ -127,9 +124,13 @@ describe("cli remasure11 leftover helpers", () => {
     expect(assigned).toBe(second);
     expect(registered).toBe(1);
     let terminated = false;
-    const bound = bindProcessExitHandler(null, () => {
-      terminated = true;
-    }, () => undefined);
+    const bound = bindProcessExitHandler(
+      null,
+      () => {
+        terminated = true;
+      },
+      () => undefined,
+    );
     bound();
     expect(terminated).toBe(true);
     const prolog = new PrologProcess({ oneShot: true });
@@ -149,9 +150,9 @@ describe("cli remasure11 leftover helpers", () => {
     expect(unreadableMigrationJournalError("mig-1.json").code).toBe(
       "MIGRATION_RECOVERY_REQUIRED",
     );
-    expect(
-      failedEffectStatus("kb-write", { detail: "blocked" }).status,
-    ).toBe("failed");
+    expect(failedEffectStatus("kb-write", { detail: "blocked" }).status).toBe(
+      "failed",
+    );
     expect(
       failedEffectStatus("kb-write", {
         detail: "blocked",
@@ -161,9 +162,9 @@ describe("cli remasure11 leftover helpers", () => {
     expect(() => requireKnownSpec(undefined, "kb_status")).toThrow(
       /Unknown Kibi operation/,
     );
-    expect(requireKnownSpec({ name: "kb_status" } as never, "kb_status").name).toBe(
-      "kb_status",
-    );
+    expect(
+      requireKnownSpec({ name: "kb_status" } as never, "kb_status").name,
+    ).toBe("kb_status");
     expect(() => requireCliOperationMetadata(undefined, "kb_status")).toThrow(
       /Unknown Kibi CLI operation/,
     );

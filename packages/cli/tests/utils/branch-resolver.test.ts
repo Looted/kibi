@@ -602,7 +602,9 @@ describe("branch-resolver", () => {
       _setBranchResolverDepsForTests({
         execSync: ((command: string) => {
           if (command.includes("symbolic-ref")) {
-            throw new Error("fatal: ref refs/remotes/origin/HEAD is not a symbolic ref");
+            throw new Error(
+              "fatal: ref refs/remotes/origin/HEAD is not a symbolic ref",
+            );
           }
           return execSync(command, { cwd: tmpDir, encoding: "utf8" });
         }) as unknown as typeof execSync,

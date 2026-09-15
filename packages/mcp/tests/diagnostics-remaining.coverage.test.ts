@@ -76,12 +76,9 @@ describe("deriveDiagnosticFields remaining protocol and coverage branches", () =
     expect(noRules.requested_rules).toEqual([]);
     expect(noRules.result_summary).toBe("0 violations");
 
-    const notRecord = deriveDiagnosticFields(
-      "kb_query",
-      {},
-      null,
-      { structuredContent: ["not", "an", "object"] },
-    );
+    const notRecord = deriveDiagnosticFields("kb_query", {}, null, {
+      structuredContent: ["not", "an", "object"],
+    });
     expect(notRecord.result_count).toBe(0);
     expect(notRecord.zero_results).toBe(true);
   });
@@ -232,7 +229,8 @@ describe("deriveDiagnosticFields remaining protocol and coverage branches", () =
     expect(contradiction.semantic_conflicting_req_ids).toBeUndefined();
 
     expect(
-      classifyDiagnosticError(new Error("tool timeout while waiting")).error_category,
+      classifyDiagnosticError(new Error("tool timeout while waiting"))
+        .error_category,
     ).toBe("tool_timeout");
     expect(
       classifyDiagnosticError(
@@ -304,7 +302,10 @@ describe("deriveDiagnosticFields remaining protocol and coverage branches", () =
             subject_key: "auth",
             property_key: "timeout",
           },
-          semanticAdvisor: { logic_readiness: "ready", candidate_lane: "strict" },
+          semanticAdvisor: {
+            logic_readiness: "ready",
+            candidate_lane: "strict",
+          },
         },
       },
     );

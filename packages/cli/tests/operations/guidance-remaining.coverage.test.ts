@@ -102,7 +102,12 @@ describe("bootstrap guidance remaining relative, signal, and warning branches", 
       }),
       declared: declared({
         projectSummary: "A compact editor",
-        sourceOfTruthPaths: ["docs/a.md", "docs/b.md", "docs/c.md", "docs/d.md"],
+        sourceOfTruthPaths: [
+          "docs/a.md",
+          "docs/b.md",
+          "docs/c.md",
+          "docs/d.md",
+        ],
       }),
       candidates: [candidate("req", "Retain drafts")],
       signals,
@@ -131,13 +136,7 @@ describe("bootstrap guidance remaining relative, signal, and warning branches", 
 
   test("drops confidence when the prompt block is empty", () => {
     restores.push(isolateKibiEnv());
-    const result = confidence(
-      activation(),
-      declared(),
-      [],
-      [],
-      "",
-    );
+    const result = confidence(activation(), declared(), [], [], "");
     expect(result.reasons).toEqual(
       expect.arrayContaining([
         "Prompt block could not be assembled within the handoff budget.",

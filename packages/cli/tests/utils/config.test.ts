@@ -144,7 +144,9 @@ describe("config (canonical contract)", () => {
       symbolsManifest: "from-manifest.yaml",
       paths: { requirements: "  " },
     });
-    expect(resolved.requirements).toBe(LEGACY_DEFAULT_ENTITY_PATHS.requirements);
+    expect(resolved.requirements).toBe(
+      LEGACY_DEFAULT_ENTITY_PATHS.requirements,
+    );
     expect(resolved.symbols).toBe("from-manifest.yaml");
     const blankSymbols = resolveLegacyEntityPaths({
       symbolsManifest: "from-manifest.yaml",

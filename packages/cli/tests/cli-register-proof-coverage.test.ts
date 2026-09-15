@@ -1,9 +1,9 @@
 // implements REQ-kibi-proof-evidence-protocol
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
-import { Command } from "commander";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { Command } from "commander";
 import { registerProofCommand } from "../src/cli-register-proof.js";
 import * as prove from "../src/commands/prove.js";
 import { inspectProofEnvironment } from "../src/proof/inspect.js";
@@ -62,7 +62,9 @@ describe("registerProofCommand actions", () => {
     writeFileSync(path.join(populated, "pom.xml"), "<project/>\n");
     writeFileSync(path.join(populated, "Makefile"), "test:\n");
     writeFileSync(path.join(populated, "App.csproj"), "<Project/>\n");
-    mkdirSync(path.join(populated, ".github", "workflows"), { recursive: true });
+    mkdirSync(path.join(populated, ".github", "workflows"), {
+      recursive: true,
+    });
     writeFileSync(
       path.join(populated, ".github", "workflows", "ci.yml"),
       "name: ci\n",
@@ -91,7 +93,9 @@ describe("registerProofCommand actions", () => {
     try {
       process.chdir(empty);
       await program.parseAsync(["proof", "inspect"], { from: "user" });
-      await program.parseAsync(["proof", "inspect", "--json"], { from: "user" });
+      await program.parseAsync(["proof", "inspect", "--json"], {
+        from: "user",
+      });
     } finally {
       process.chdir(cwd);
       write.mockRestore();

@@ -85,9 +85,10 @@ function stringsWithKeys(
   );
 }
 
-const KB_PATH_PATTERN = /(?:^|[\s\\/])\.kb(?:[\\/]|$)/;
+const KB_PATH_PATTERN = /(?:^|[\s"'`=\\/!($])\.kb(?:[\s"'`=\\/!$)]|$)/;
 const GLOB_OPTION_PATTERN =
-  /(?:^|\s)(?:-g|--glob)(?:=|\s+)(?:"([^"]*)"|'([^']*)'|([^\s]+))/g;
+  /(?:^|\s)(?:-g|--glob)(?:=|\s+)(?:'"'([^']*)'"'|(?:"([^"]*)"|'([^']*)'|([^\s]+)))/g;
+const UNSAFE_GLOB_CONTENT = /[\0\r\n$`;&|<>(){}\\]/;
 
 /**
  * A command is allowed to exclude the private KB tree while enumerating a
@@ -98,29 +99,28 @@ const GLOB_OPTION_PATTERN =
 // implements REQ-skillopt-codex-optimization
 function commandReferencesKb(command: string): boolean {
   // Codex's shell serializer represents an embedded quote as `'"'`.  Remove
-  // only that quoting marker before parsing glob operands; the path itself is
-  // preserved for the access check below.
-  const normalizedCommand = command.replace(/'"'/g, "");
+  // only complete safe option ranges before checking operands; the path itself
+  // remains preserved for the access check below.
   const excludedRanges: Array<readonly [number, number]> = [];
-  for (const match of normalizedCommand.matchAll(GLOB_OPTION_PATTERN)) {
-    const glob = (match[1] ?? match[2] ?? match[3] ?? "").replace(
-      /^['"]+|['"]+$/g,
-      "",
-    );
-    if (glob.startsWith("!") && KB_PATH_PATTERN.test(glob)) {
+  for (const match of command.matchAll(GLOB_OPTION_PATTERN)) {
+    const glob = match[1] ?? match[2] ?? match[3] ?? match[4] ?? "";
+    if (
+      glob.startsWith("!") &&
+      KB_PATH_PATTERN.test(glob) &&
+      !UNSAFE_GLOB_CONTENT.test(glob)
+    ) {
       const start = match.index ?? 0;
       excludedRanges.push([start, start + match[0].length]);
     }
   }
-  if (excludedRanges.length === 0)
-    return KB_PATH_PATTERN.test(normalizedCommand);
+  if (excludedRanges.length === 0) return KB_PATH_PATTERN.test(command);
   let offset = 0;
   let remainder = "";
   for (const [start, end] of excludedRanges) {
-    remainder += normalizedCommand.slice(offset, start);
+    remainder += command.slice(offset, start);
     offset = end;
   }
-  remainder += normalizedCommand.slice(offset);
+  remainder += command.slice(offset);
   return KB_PATH_PATTERN.test(remainder);
 }
 

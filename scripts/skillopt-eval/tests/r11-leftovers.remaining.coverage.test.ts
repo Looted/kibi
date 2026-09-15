@@ -3,48 +3,48 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { FileBridge } from "../runtime/file-bridge";
-import { HeldOutExecutionLeaseError } from "../held-out-execution-lease";
-import { removeIfPresent } from "../held-out-receipt-io";
-import { sha256Text } from "../fixtures/fixture-claim";
-import { loadText } from "../cursor-operator";
-import {
-  factTarget,
-  onlyDefinedSnapshot,
-} from "../runtime/final-state";
-import {
-  nodeCommandOptions,
-  startupFailureDetail,
-} from "../runtime/canary-runtime";
-import { defaultCanaryRun } from "../runtime/workspace";
-import { redactEvidence } from "../scoring/evidence-utils";
-import { unexpectedPredicateBindingReason } from "../scoring/predicate-evidence";
-import { initialArtifactPathClosed } from "../artifact-path";
-import { emptyIfEnoent } from "../runtime/codex-cell-artifacts";
-import { falseIfEnoent } from "../runtime/codex-runtime";
-import { assertMatchingSemanticClass } from "../fixtures/predicate-case-data";
+import { throwIfIdentityDrift } from "../adoption-durable";
 import {
   finalizeIntent,
   intentIdentityDrifted,
   throwIfIntentDrift,
 } from "../adoption-intent";
-import { throwIfDirectoryInodeDrift } from "../adoption-lock";
 import { throwIfTerminalMismatch } from "../adoption-journal";
-import { throwIfIdentityDrift } from "../adoption-durable";
+import { throwIfDirectoryInodeDrift } from "../adoption-lock";
+import { initialArtifactPathClosed } from "../artifact-path";
+import {
+  rethrowIfNotError,
+  tryVerifyBundleSignature,
+} from "../bundle-signature";
+import { CLI_OPTIONS_MODULE } from "../cli-options";
+import { PAID_LAUNCH_RECEIPTS_MODULE } from "../contracts/paid-launch-receipts";
+import { TRUST_PLANE_MODULE } from "../contracts/trust-plane";
+import { loadText } from "../cursor-operator";
+import { sha256Text } from "../fixtures/fixture-claim";
+import { assertMatchingSemanticClass } from "../fixtures/predicate-case-data";
+import { HeldOutExecutionLeaseError } from "../held-out-execution-lease";
+import { removeIfPresent } from "../held-out-receipt-io";
 import { defaultPreflightDependencies } from "../legacy-preflight";
 import { requireSkillFrontmatter } from "../offline-artifacts";
-import { rethrowIfNotError, tryVerifyBundleSignature } from "../bundle-signature";
 import { sandboxProbeFailureCode } from "../runtime/canary-probes";
+import {
+  nodeCommandOptions,
+  startupFailureDetail,
+} from "../runtime/canary-runtime";
+import { emptyIfEnoent } from "../runtime/codex-cell-artifacts";
 import { loginRunForSource } from "../runtime/codex-optimizer";
-import { throwIfBundleFailed } from "../runtime/staged-mcp";
-import { coverageResultFromPriorCalls } from "../scoring/cell";
+import { falseIfEnoent } from "../runtime/codex-runtime";
 import {
   ConfigurationSchema,
   hasRoleKeyReuse,
 } from "../runtime/fake-provider-contracts";
-import { CLI_OPTIONS_MODULE } from "../cli-options";
-import { PAID_LAUNCH_RECEIPTS_MODULE } from "../contracts/paid-launch-receipts";
-import { TRUST_PLANE_MODULE } from "../contracts/trust-plane";
+import { FileBridge } from "../runtime/file-bridge";
+import { factTarget, onlyDefinedSnapshot } from "../runtime/final-state";
+import { throwIfBundleFailed } from "../runtime/staged-mcp";
+import { defaultCanaryRun } from "../runtime/workspace";
+import { coverageResultFromPriorCalls } from "../scoring/cell";
+import { redactEvidence } from "../scoring/evidence-utils";
+import { unexpectedPredicateBindingReason } from "../scoring/predicate-evidence";
 
 afterEach(() => {
   process.exitCode = 0;
@@ -56,7 +56,9 @@ describe("skillopt remasure11 leftover helpers", () => {
     const publicRoot = await mkdtemp(join(tmpdir(), "kibi-r11-pub-"));
     const privateRoot = await mkdtemp(join(tmpdir(), "kibi-r11-priv-"));
     const bridge = new FileBridge(publicRoot, privateRoot);
-    expect(bridge.resolve("a.json", "public").startsWith(publicRoot)).toBe(true);
+    expect(bridge.resolve("a.json", "public").startsWith(publicRoot)).toBe(
+      true,
+    );
 
     expect(
       new HeldOutExecutionLeaseError("held_out_execution_lease_acquire_failed")
@@ -83,7 +85,9 @@ describe("skillopt remasure11 leftover helpers", () => {
     expect(nodeCommandOptions("node")).toEqual({ nodeCommand: "node" });
     expect(startupFailureDetail("nope")).toBe("unknown");
     expect(
-      startupFailureDetail(Object.assign(new Error("denied"), { code: "EACCES" })),
+      startupFailureDetail(
+        Object.assign(new Error("denied"), { code: "EACCES" }),
+      ),
     ).toBe("eacces");
     expect(startupFailureDetail(new TypeError("bad"))).toBe("typeerror");
 
@@ -114,7 +118,10 @@ describe("skillopt remasure11 leftover helpers", () => {
     ).toBe(true);
     expect(falseIfEnoent(new Error("boom"))).toBe(false);
     expect(() =>
-      assertMatchingSemanticClass("wrong-graph" as never, "mixed-snapshot" as never),
+      assertMatchingSemanticClass(
+        "wrong-graph" as never,
+        "mixed-snapshot" as never,
+      ),
     ).toThrow("semantic class mismatch");
     expect(() => throwIfIntentDrift(true)).toThrow(
       "adoption no-replace intent drift",
@@ -128,18 +135,28 @@ describe("skillopt remasure11 leftover helpers", () => {
       nlink: 2,
     };
     expect(
-      intentIdentityDrifted(matchingStat, matchingStat, {
-        dev: "1",
-        ino: "2",
-        hash: "abc",
-      }, "abc"),
+      intentIdentityDrifted(
+        matchingStat,
+        matchingStat,
+        {
+          dev: "1",
+          ino: "2",
+          hash: "abc",
+        },
+        "abc",
+      ),
     ).toBe(false);
     expect(
-      intentIdentityDrifted(matchingStat, matchingStat, {
-        dev: "1",
-        ino: "2",
-        hash: "abc",
-      }, "drifted"),
+      intentIdentityDrifted(
+        matchingStat,
+        matchingStat,
+        {
+          dev: "1",
+          ino: "2",
+          hash: "abc",
+        },
+        "drifted",
+      ),
     ).toBe(true);
     const dest = join(publicRoot, "adopted.txt");
     const stage = join(publicRoot, "adopted.stage");
@@ -231,7 +248,7 @@ describe("skillopt remasure11 leftover helpers", () => {
           tunnels: false,
         },
         ceilings: {
-          models: ["gpt-5.4-mini"],
+          models: ["gpt-5.6-luna"],
           maxInputTokens: 1,
           maxOutputTokens: 1,
           maxRetries: 0,

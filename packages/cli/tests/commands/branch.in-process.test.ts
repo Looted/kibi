@@ -176,9 +176,9 @@ describe("branch commands", () => {
     restores.push(restoreEnv);
     const cwd = createGitWorkspace();
     roots.push(cwd);
-    await expect(
-      branchRestoreCommand({ workspaceRoot: cwd }),
-    ).rejects.toThrow("requires a valid --branch");
+    await expect(branchRestoreCommand({ workspaceRoot: cwd })).rejects.toThrow(
+      "requires a valid --branch",
+    );
     await expect(
       branchRestoreCommand({ workspaceRoot: cwd, branch: "main" }),
     ).rejects.toThrow("No quarantined store found");
@@ -222,7 +222,10 @@ describe("branch commands", () => {
     const cwd = createGitWorkspace();
     roots.push(cwd);
     mkdirSync(path.join(cwd, ".kb", "branches", "main"), { recursive: true });
-    writeFileSync(path.join(cwd, ".kb", "branches", "main", "kb.rdf"), "legacy\n");
+    writeFileSync(
+      path.join(cwd, ".kb", "branches", "main", "kb.rdf"),
+      "legacy\n",
+    );
     await expect(branchEnsureCommand({ workspaceRoot: cwd })).rejects.toThrow(
       /legacy storage/,
     );
@@ -378,15 +381,18 @@ describe("branch commands", () => {
     restores.push(restoreEnv);
     const cwd = createGitWorkspace();
     roots.push(cwd);
-    await expect(
-      branchRecoverCommand({ workspaceRoot: cwd }),
-    ).rejects.toThrow("Branch KB is missing");
+    await expect(branchRecoverCommand({ workspaceRoot: cwd })).rejects.toThrow(
+      "Branch KB is missing",
+    );
 
     mkdirSync(path.join(cwd, ".kb", "branches", "main"), { recursive: true });
-    writeFileSync(path.join(cwd, ".kb", "branches", "main", "kb.rdf"), "legacy\n");
-    await expect(
-      branchRecoverCommand({ workspaceRoot: cwd }),
-    ).rejects.toThrow(/exact Git\/KB attachment|migrate legacy/);
+    writeFileSync(
+      path.join(cwd, ".kb", "branches", "main", "kb.rdf"),
+      "legacy\n",
+    );
+    await expect(branchRecoverCommand({ workspaceRoot: cwd })).rejects.toThrow(
+      /exact Git\/KB attachment|migrate legacy/,
+    );
   });
 
   test("recover journal apply covers committed, incomplete, and conflicting states", async () => {
@@ -496,8 +502,8 @@ describe("branch commands", () => {
     restores.push(restoreEnv);
     const nongit = createTempDir("kibi-branch-nongit-");
     roots.push(nongit);
-    await expect(branchEnsureCommand({ workspaceRoot: nongit })).rejects.toThrow(
-      /Failed to resolve active branch/,
-    );
+    await expect(
+      branchEnsureCommand({ workspaceRoot: nongit }),
+    ).rejects.toThrow(/Failed to resolve active branch/);
   });
 });

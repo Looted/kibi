@@ -61,16 +61,11 @@ describe("legacy-migration-plan remaining disposition, offset, and context branc
   test("blocks a missing requirement and an offset past the candidate window", async () => {
     restores.push(isolateKibiEnv());
     const plan = repairPlan(["REQ-ABSENT"]);
-    const missing = await buildLegacyMigrationPlan(
-      plan,
-      {},
-      "b".repeat(64),
-      {
-        requirements: [{ id: 12, title: "not a string id" }],
-        projectPredicateSchemas: [],
-        readSource: async () => "unused",
-      },
-    );
+    const missing = await buildLegacyMigrationPlan(plan, {}, "b".repeat(64), {
+      requirements: [{ id: 12, title: "not a string id" }],
+      projectPredicateSchemas: [],
+      readSource: async () => "unused",
+    });
     expect(missing.batches[0]?.state).toBe("blocked");
     expect(missing.batches[0]?.diagnostics[0]).toMatch(
       /absent from exact KB query results/,
@@ -177,22 +172,23 @@ describe("legacy-migration-plan remaining disposition, offset, and context branc
     );
     expect(
       ambiguous.batches[0]?.propositions.some(
-        (proposition) =>
-          proposition.disposition === "unresolved_ambiguity",
+        (proposition) => proposition.disposition === "unresolved_ambiguity",
       ),
     ).toBe(true);
   });
 
   test("buildLegacyMigrationPlanFromContext loads entities and authored markdown", async () => {
     restores.push(isolateKibiEnv());
-    const entities = spyOn(discoveryEntities, "loadEntities").mockResolvedValue([
-      {
-        id: "REQ-CTX",
-        title: "From context",
-        status: "open",
-        source: "docs/REQ-CTX.md",
-      },
-    ]);
+    const entities = spyOn(discoveryEntities, "loadEntities").mockResolvedValue(
+      [
+        {
+          id: "REQ-CTX",
+          title: "From context",
+          status: "open",
+          source: "docs/REQ-CTX.md",
+        },
+      ],
+    );
     spies.push(entities);
     const schemas = spyOn(
       loader,

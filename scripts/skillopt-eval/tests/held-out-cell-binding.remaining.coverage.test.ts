@@ -1,6 +1,6 @@
 // implements REQ-skillopt-codex-optimization
 import { afterEach, describe, expect, test } from "bun:test";
-import { contractHash, JsonValueSchema } from "../contracts/common";
+import { JsonValueSchema, contractHash } from "../contracts/common";
 import type { EpisodeRequest } from "../contracts/episode";
 import {
   bindPhysicalCells,
@@ -21,7 +21,10 @@ const HASHES = {
   skillopt: "c".repeat(64),
 } as const;
 
-function bound(status: string, extras: Partial<BoundPhysicalCell> = {}): BoundPhysicalCell {
+function bound(
+  status: string,
+  extras: Partial<BoundPhysicalCell> = {},
+): BoundPhysicalCell {
   const req = request({
     episode: 1,
     taskId: "task-1",

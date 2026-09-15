@@ -1,9 +1,9 @@
 // implements REQ-kibi-operation-interface-parity
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { Command } from "commander";
+import * as jsonCommand from "../src/cli-json-command.js";
 import { registerJsonOnlyCommands } from "../src/cli-register-json.js";
 import { registerSkillsCommands } from "../src/cli-register-skills.js";
-import * as jsonCommand from "../src/cli-json-command.js";
 import * as skills from "../src/commands/skills.js";
 
 const restores: Array<() => void> = [];
