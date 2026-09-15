@@ -152,7 +152,9 @@ describe("executeCompileIntent leftover planning branches", () => {
       if (goal.includes("findall([A,B,Reason]"))
         return {
           success: true,
-          bindings: { Rows: "[[REQ-KEEP,REQ-OTHER,overlap]]" },
+          bindings: {
+            Rows: "[['file:///tmp/REQ-KEEP','kb:entity/REQ-OTHER',overlap]]",
+          },
         };
       if (goal.includes("kb_entity('REQ-KEEP'"))
         return {

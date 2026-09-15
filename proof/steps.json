@@ -293,6 +293,16 @@
     ]
   },
   {
+    "test_id": "TEST-kibi-github-report-integration",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/github-report-integration.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-cursor-consumer-local-mcp-launcher-v1",
     "steps": [
       [
@@ -591,7 +601,7 @@
       [
         "node",
         "scripts/run-proof-packed-e2e.mjs",
-        "documentation/tests/e2e/packed/github-report-integration.test.ts"
+        "documentation/tests/e2e/packed/cli-status-pre-first-sync.test.ts"
       ]
     ]
   },

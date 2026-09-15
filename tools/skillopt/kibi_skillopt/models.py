@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Annotated, Final, Literal
+from typing import Annotated, Final, Literal, TypeAlias
 
 from pydantic import Field, model_validator
 from typing_extensions import Self
@@ -172,12 +172,41 @@ class OptimizerRequest(ContractModel):
     corpus_roots: Annotated[CorpusRoots, Field(alias="corpusRoots")]
 
 
-class OptimizerResult(ContractModel):
+OptimizerRejectionReason: TypeAlias = Literal[
+    "candidate_empty",
+    "candidate_too_large",
+    "candidate_invalid_utf8",
+    "candidate_frontmatter_changed",
+    "candidate_resources_changed",
+    "candidate_direct_kb_guidance",
+    "candidate_prohibited_host_or_provider_claim",
+    "optimizer_output_missing_body",
+    "optimizer_output_incomplete_body",
+    "optimizer_output_repository_policy_leak",
+]
+
+
+class OptimizerAcceptedResult(ContractModel):
     schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
     artifact_type: Annotated[Literal["skillopt-optimizer-result"], Field(alias="artifactType")]
+    status: Literal["accepted"]
     request_hash: Annotated[Sha256, Field(alias="requestHash")]
     body: Annotated[str, Field(min_length=1, max_length=100_000)]
     development: DevelopmentGate
+
+
+class OptimizerRejectedResult(ContractModel):
+    schema_version: Annotated[Literal["1.0.0"], Field(alias="schemaVersion")]
+    artifact_type: Annotated[Literal["skillopt-optimizer-result"], Field(alias="artifactType")]
+    status: Literal["rejected"]
+    request_hash: Annotated[Sha256, Field(alias="requestHash")]
+    reason: OptimizerRejectionReason
+
+
+OptimizerResult: TypeAlias = Annotated[
+    OptimizerAcceptedResult | OptimizerRejectedResult,
+    Field(discriminator="status"),
+]
 
 
 class AdapterCheckpoint(ContractModel):

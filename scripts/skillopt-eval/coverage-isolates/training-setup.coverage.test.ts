@@ -218,6 +218,7 @@ describe("training-setup default implementations", () => {
   test("defaultEvaluateDevelopment aggregates cell scores", async () => {
     const artifactRoot = await mkdtemp(join(tmpdir(), "skillopt-dev-"));
     roots.push(artifactRoot);
+    let cellCalls = 0;
     const gate = await defaultEvaluateDevelopment({
       runId: "run-dev",
       skill: "kibi-usage",
@@ -258,20 +259,27 @@ describe("training-setup default implementations", () => {
         codexExecutable: "/tmp/fake-codex",
         bwrapExecutable: "/tmp/fake-bwrap",
       },
-      cellRunner: (async () => ({
-        receipt: {
-          result: {
-            status: "completed",
-            hardPass: true,
-            score: 80,
-            criticalFailures: [],
+      cellRunner: (async () => {
+        const call = cellCalls;
+        cellCalls += 1;
+        return {
+          receipt: {
+            result: {
+              status: "completed",
+              hardPass: true,
+              score: 80,
+              criticalFailures:
+                call === 0 ? ["assertion-miss"] : ["sentinel-1"],
+            },
+            violations: call === 0 ? ["direct_kb_access"] : [],
           },
-        },
-        receiptPath: join(artifactRoot, "receipt.json"),
-      })) as never,
+          receiptPath: join(artifactRoot, `receipt-${call}.json`),
+        };
+      }) as never,
     });
     expect(gate.hardPasses).toBe(2);
     expect(gate.mean).toBeCloseTo(0.8);
+    expect(gate.securityFailures).toBe(2);
   });
 
   test("defaultEvaluateDevelopment rejects an empty descriptor list", async () => {

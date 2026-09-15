@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
-import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { RequiredMcpStartupError } from "../runtime/canary-runtime";
 import {
   EPISODE_OUTPUT_SCHEMA,
@@ -23,15 +23,27 @@ import { evaluatorManifest } from "./fixtures/evaluator-authority-fixtures";
 
 afterEach(cleanupRoots);
 
+async function longArtifactRoot(prefix: string): Promise<string> {
+  const root = await mkdtemp(join(tmpdir(), prefix));
+  roots.push(root);
+  const artifactRoot = join(
+    root,
+    ...Array.from(
+      { length: 8 },
+      (_, index) => `long-artifact-segment-${index}-${"x".repeat(40)}`,
+    ),
+  );
+  await mkdir(artifactRoot, { recursive: true, mode: 0o700 });
+  return artifactRoot;
+}
+
 describe("Codex cell runner", () => {
   test("Given fake runtime evidence When one target episode runs Then it is ephemeral, sealed, durable, and cleaned", async () => {
     // Given
     const publicFixture = await fixture();
-    const artifactRoot = await mkdtemp(
-      join(tmpdir(), "skillopt-cell-artifacts-"),
-    );
-    roots.push(artifactRoot);
+    const artifactRoot = await longArtifactRoot("skillopt-cell-artifacts-");
     let ephemeralRoot = "";
+    let ephemeralParent = "";
     let observedArgv: readonly string[] = [];
     let observedConfig = "";
     let probeBranch: string | undefined;
@@ -64,6 +76,7 @@ describe("Codex cell runner", () => {
         }),
         stageBroker: async (workspace) => {
           ephemeralRoot = workspace.root;
+          ephemeralParent = dirname(ephemeralRoot);
           const broker = fakeBroker(workspace);
           await writeFile(broker.tracePath, '{"kind":"tools/call"}\n');
           await writeFile(
@@ -134,8 +147,11 @@ describe("Codex cell runner", () => {
     expect(probeBranch).toBe("skillopt-eval");
     expect(runBranch).toBe("skillopt-eval");
     expect(finalStateBranch).toBe("skillopt-eval");
+    expect(ephemeralRoot).not.toContain(artifactRoot);
     expect(existsSync(ephemeralRoot)).toBe(false);
+    expect(existsSync(ephemeralParent)).toBe(false);
     expect(existsSync(completed.artifactDirectory)).toBe(true);
+    expect(existsSync(join(artifactRoot, ".fixture-setup-lock"))).toBe(true);
     expect(JSON.parse(await readFile(completed.receiptPath, "utf8"))).toEqual(
       completed.receipt,
     );
@@ -144,11 +160,9 @@ describe("Codex cell runner", () => {
   test("Given required MCP startup failure When the episode is attempted Then no host call occurs and cleanup is bounded", async () => {
     // Given
     const publicFixture = await fixture();
-    const artifactRoot = await mkdtemp(
-      join(tmpdir(), "skillopt-cell-mcp-fail-"),
-    );
-    roots.push(artifactRoot);
+    const artifactRoot = await longArtifactRoot("skillopt-cell-mcp-fail-");
     let ephemeralRoot = "";
+    let ephemeralParent = "";
     let hostCalls = 0;
 
     // When
@@ -177,6 +191,7 @@ describe("Codex cell runner", () => {
         }),
         stageBroker: async (workspace) => {
           ephemeralRoot = workspace.root;
+          ephemeralParent = dirname(ephemeralRoot);
           return fakeBroker(workspace);
         },
         probeMcp: async () => {
@@ -201,6 +216,9 @@ describe("Codex cell runner", () => {
       "missing_mcp_evidence",
     );
     expect(existsSync(ephemeralRoot)).toBe(false);
+    expect(ephemeralRoot).not.toContain(artifactRoot);
+    expect(existsSync(ephemeralParent)).toBe(false);
+    expect(existsSync(join(artifactRoot, ".fixture-setup-lock"))).toBe(true);
   });
 
   test("Given a bounded process timeout When the episode terminates Then partial JSONL is replayed and cleanup still runs", async () => {

@@ -1,3 +1,4 @@
+import { once } from "node:events";
 import type { Command } from "commander";
 import { InputError } from "./cli-errors.js";
 import { loadInput } from "./cli-input.js";
@@ -62,6 +63,14 @@ function structuredResult(stdout: string | undefined): unknown {
   } catch {
     return undefined;
   }
+}
+
+async function writeAndWaitForDrain(
+  stream: NodeJS.WriteStream,
+  value: string,
+): Promise<void> {
+  if (stream.write(value)) return;
+  await once(stream, "drain");
 }
 
 // implements REQ-kibi-operation-interface-parity
@@ -166,7 +175,7 @@ export async function runJsonInvocation(
     });
   }
   if (result.stdout !== undefined) {
-    process.stdout.write(result.stdout);
+    await writeAndWaitForDrain(process.stdout, result.stdout);
   }
   writeOptionalStderr(result.stderr);
   process.exitCode = result.exitCode;

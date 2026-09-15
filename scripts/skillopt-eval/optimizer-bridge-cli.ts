@@ -3,7 +3,11 @@ import { dirname, resolve } from "node:path";
 import { z } from "zod";
 import { CANONICAL_SKILLS } from "./catalog";
 import { contractHash } from "./contracts/common";
-import { runCodexSkillOptStep } from "./runtime/codex-optimizer";
+import { resolveIsolationArtifactRoot } from "./runtime/artifact-root";
+import {
+  CodexOptimizerError,
+  runCodexSkillOptStep,
+} from "./runtime/codex-optimizer";
 
 const SkillSchema = z.enum(CANONICAL_SKILLS);
 const Sha256Schema = z.string().regex(/^[a-f0-9]{64}$/);
@@ -84,65 +88,172 @@ const OptimizerRequestSchema = z
     corpusRoots: CorpusRootsSchema,
   })
   .strict();
-const OptimizerResultSchema = z
+export const OptimizerRejectionReasonSchema = z.enum([
+  "candidate_empty",
+  "candidate_too_large",
+  "candidate_invalid_utf8",
+  "candidate_frontmatter_changed",
+  "candidate_resources_changed",
+  "candidate_direct_kb_guidance",
+  "candidate_prohibited_host_or_provider_claim",
+  "optimizer_output_missing_body",
+  "optimizer_output_incomplete_body",
+  "optimizer_output_repository_policy_leak",
+]);
+const OptimizerAcceptedResultSchema = z
   .object({
     schemaVersion: z.literal("1.0.0"),
     artifactType: z.literal("skillopt-optimizer-result"),
+    status: z.literal("accepted"),
     requestHash: Sha256Schema,
     body: z.string().min(1).max(100_000),
     development: DevelopmentGateSchema,
   })
   .strict();
+const OptimizerRejectedResultSchema = z
+  .object({
+    schemaVersion: z.literal("1.0.0"),
+    artifactType: z.literal("skillopt-optimizer-result"),
+    status: z.literal("rejected"),
+    requestHash: Sha256Schema,
+    reason: OptimizerRejectionReasonSchema,
+  })
+  .strict();
+export const OptimizerResultSchema = z.discriminatedUnion("status", [
+  OptimizerAcceptedResultSchema,
+  OptimizerRejectedResultSchema,
+]);
 
 const CODEX_RUNTIME_ENV = "KIBI_SKILLOPT_CODEX_EXECUTABLE";
 const BWRAP_RUNTIME_ENV = "KIBI_SKILLOPT_BWRAP_EXECUTABLE";
 
-function argument(name: string): string {
-  const index = process.argv.indexOf(name);
-  const value = index >= 0 ? process.argv[index + 1] : undefined;
+export type OptimizerRejectionReason = z.infer<
+  typeof OptimizerRejectionReasonSchema
+>;
+
+export type OptimizerBridgeDependencies = Readonly<{
+  runCodexSkillOptStep: typeof runCodexSkillOptStep;
+}>;
+
+export function knownOptimizerRejectionReason(
+  error: unknown,
+): OptimizerRejectionReason | undefined {
+  if (!(error instanceof CodexOptimizerError)) return undefined;
+  const parsed = OptimizerRejectionReasonSchema.safeParse(error.message);
+  return parsed.success ? parsed.data : undefined;
+}
+
+async function persistOptimizerRejection(
+  artifactRoot: string,
+  sourceWorktree: string,
+  input: Readonly<{
+    runId: string;
+    skill: string;
+    step: number;
+    requestHash: string;
+    reason: OptimizerRejectionReason;
+  }>,
+): Promise<void> {
+  const rejectedRoot = resolveIsolationArtifactRoot(
+    resolve(artifactRoot, "rejected-output"),
+    sourceWorktree,
+  );
+  await mkdir(rejectedRoot, { recursive: true, mode: 0o700 });
+  await writeFile(
+    resolve(rejectedRoot, "receipt.json"),
+    `${JSON.stringify({
+      schemaVersion: "1.0.0",
+      artifactType: "skillopt-optimizer-rejection-receipt",
+      runId: input.runId,
+      skill: input.skill,
+      step: input.step,
+      requestHash: input.requestHash,
+      reason: input.reason,
+    })}\n`,
+    { encoding: "utf8", mode: 0o600 },
+  );
+}
+
+function argument(args: readonly string[], name: string): string {
+  const index = args.indexOf(name);
+  const value = index >= 0 ? args[index + 1] : undefined;
   if (value === undefined || value.length === 0) {
     throw new Error(`missing_${name.slice(2)}`);
   }
   return value;
 }
 
-const requestPath = resolve(argument("--request"));
-const resultPath = resolve(argument("--result"));
-const request = OptimizerRequestSchema.parse(
-  JSON.parse(await readFile(requestPath, "utf8")),
-);
-const result = process.argv.includes("--fake")
-  ? { body: request.currentBody, development: request.previousDevelopment }
-  : await runCodexSkillOptStep({
-      sourceWorktree: resolve(import.meta.dir, "../.."),
-      artifactRoot: resolve(dirname(resultPath), "optimizer-artifacts"),
-      runId: request.runId,
-      request: {
-        skill: request.skill,
-        step: request.step,
-        maxSteps: request.maxSteps,
-        currentBody: request.currentBody,
-        trainTrajectories: request.trainTrajectories,
-        publicEvidenceSummary: request.publicEvidenceSummary,
-        previousDevelopment: request.previousDevelopment,
-      },
-      env: process.env,
-      ...(process.env[CODEX_RUNTIME_ENV] === undefined
-        ? {}
-        : { codexExecutable: process.env[CODEX_RUNTIME_ENV] }),
-      ...(process.env[BWRAP_RUNTIME_ENV] === undefined
-        ? {}
-        : { bwrapExecutable: process.env[BWRAP_RUNTIME_ENV] }),
-    });
-const payload = OptimizerResultSchema.parse({
-  schemaVersion: "1.0.0",
-  artifactType: "skillopt-optimizer-result",
-  requestHash: contractHash(request),
-  body: result.body,
-  development: result.development,
-});
-await mkdir(dirname(resultPath), { recursive: true, mode: 0o700 });
-await writeFile(resultPath, `${JSON.stringify(payload)}\n`, {
-  encoding: "utf8",
-  mode: 0o600,
-});
+export async function optimizerBridgeMain(
+  args: readonly string[] = process.argv.slice(2),
+  dependencies: OptimizerBridgeDependencies = { runCodexSkillOptStep },
+): Promise<void> {
+  const requestPath = resolve(argument(args, "--request"));
+  const resultPath = resolve(argument(args, "--result"));
+  const request = OptimizerRequestSchema.parse(
+    JSON.parse(await readFile(requestPath, "utf8")),
+  );
+  const sourceWorktree = resolve(import.meta.dir, "../..");
+  const artifactRoot = resolve(dirname(resultPath), "optimizer-artifacts");
+  const requestHash = contractHash(request);
+  const result = args.includes("--fake")
+    ? {
+        status: "accepted" as const,
+        body: request.currentBody,
+        development: request.previousDevelopment,
+      }
+    : await (async () => {
+        try {
+          return {
+            status: "accepted" as const,
+            ...(await dependencies.runCodexSkillOptStep({
+              sourceWorktree,
+              artifactRoot,
+              runId: request.runId,
+              request: {
+                skill: request.skill,
+                step: request.step,
+                maxSteps: request.maxSteps,
+                currentBody: request.currentBody,
+                trainTrajectories: request.trainTrajectories,
+                publicEvidenceSummary: request.publicEvidenceSummary,
+                previousDevelopment: request.previousDevelopment,
+              },
+              env: process.env,
+              ...(process.env[CODEX_RUNTIME_ENV] === undefined
+                ? {}
+                : { codexExecutable: process.env[CODEX_RUNTIME_ENV] }),
+              ...(process.env[BWRAP_RUNTIME_ENV] === undefined
+                ? {}
+                : { bwrapExecutable: process.env[BWRAP_RUNTIME_ENV] }),
+            })),
+          };
+        } catch (error) {
+          const reason = knownOptimizerRejectionReason(error);
+          if (reason === undefined) throw error;
+          await persistOptimizerRejection(artifactRoot, sourceWorktree, {
+            runId: request.runId,
+            skill: request.skill,
+            step: request.step,
+            requestHash,
+            reason,
+          });
+          return { status: "rejected" as const, reason };
+        }
+      })();
+  const payload = OptimizerResultSchema.parse({
+    schemaVersion: "1.0.0",
+    artifactType: "skillopt-optimizer-result",
+    requestHash,
+    status: result.status,
+    ...(result.status === "accepted"
+      ? { body: result.body, development: result.development }
+      : { reason: result.reason }),
+  });
+  await mkdir(dirname(resultPath), { recursive: true, mode: 0o700 });
+  await writeFile(resultPath, `${JSON.stringify(payload)}\n`, {
+    encoding: "utf8",
+    mode: 0o600,
+  });
+}
+
+if (import.meta.main) await optimizerBridgeMain();

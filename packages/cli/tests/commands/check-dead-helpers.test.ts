@@ -196,7 +196,9 @@ describe("exported check helpers", () => {
     const violations = await checkDomainContradictions(
       prolog(() => ({
         success: true,
-        bindings: { Rows: '[[REQ-A,REQ-B,"retention conflict"]]' },
+        bindings: {
+          Rows: "[['file:///tmp/REQ-A','kb:entity/REQ-B',\"retention conflict\"]]",
+        },
       })),
     );
     expect(violations).toEqual([

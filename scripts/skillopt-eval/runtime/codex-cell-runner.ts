@@ -1,10 +1,11 @@
-import { cp, mkdir, writeFile } from "node:fs/promises";
+import { chmod, cp, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { EpisodeRequestSchema } from "../contracts/episode";
 import { fixtureSymbolId, hashWorkspace } from "../fixtures/workspace";
 import { withHeldOutExecutionLease } from "../held-out-execution-lease";
 import { scoreCell } from "../scoring/cell";
-import { resolveIsolationArtifactRoot } from "./artifact-root";
+import { reserveTargetEpisode } from "../target-episode-budget";
 import { RequiredMcpStartupError } from "./canary-runtime";
 import { persistRefreshedLogin, withCodexAuthLease } from "./codex-auth";
 import {
@@ -54,6 +55,37 @@ export const EPISODE_OUTPUT_SCHEMA = {
   },
 } as const;
 
+// SWI can encode the workspace URI into a journal filename. Keep that path
+// independent of the potentially deep persistent artifact cache, including
+// when TMPDIR itself points at a deep checkout.
+const MAX_SHORT_TEMP_ROOT_LENGTH = 32;
+
+async function createCellTempParent(): Promise<string> {
+  const candidates = [tmpdir(), process.env.XDG_RUNTIME_DIR, "/tmp"];
+  let lastError: unknown;
+  const seen = new Set<string>();
+  for (const candidate of candidates) {
+    if (candidate === undefined) continue;
+    const root = resolve(candidate);
+    if (root.length > MAX_SHORT_TEMP_ROOT_LENGTH || seen.has(root)) {
+      continue;
+    }
+    seen.add(root);
+    let parent: string | undefined;
+    try {
+      parent = await mkdtemp(join(root, "kibi-cell-"));
+      await chmod(parent, 0o700);
+      return parent;
+    } catch (error) {
+      if (parent !== undefined) {
+        await rm(parent, { recursive: true, force: true });
+      }
+      lastError = error;
+    }
+  }
+  throw lastError ?? new Error("no_short_private_temp_root");
+}
+
 function assertNoCallerScoreInjection(options: CodexCellOptions): void {
   if (Object.hasOwn(options, "score") || Object.hasOwn(options, "receipt")) {
     throw new CallerScoreInjectionError();
@@ -67,35 +99,38 @@ export async function runCodexCell(
 ): Promise<CompletedCodexCell> {
   assertNoCallerScoreInjection(options);
   const request = EpisodeRequestSchema.parse(options.request);
+  await reserveTargetEpisode(options.env, options.sourceWorktree);
   const artifactDirectory = resolve(
     options.artifactRoot,
     "episodes",
     request.episodeId,
   );
   await mkdir(artifactDirectory, { recursive: true, mode: 0o700 });
-  const workspace = await createIsolationWorkspace({
-    artifactRoot: resolveIsolationArtifactRoot(
-      resolve(options.artifactRoot, "ephemeral"),
-      options.sourceWorktree,
-    ),
-    runId: request.episodeId,
-    role: "target",
-  });
-  const startedAt = dependencies.clock().toISOString();
-  let transcript = "";
-  let stderr = "";
-  let exitCode: number | null = null;
-  let termination: "exit" | "timeout" | "interrupted" = "exit";
-  let brokerTrace = "";
-  let diagnosticReceipt = "";
-  let finalState = "";
-  let infrastructureFailure: string | undefined;
-  const cellExecutionLockRoot = join(
-    options.artifactRoot,
-    ".fixture-setup-lock",
-  );
-  await mkdir(cellExecutionLockRoot, { recursive: true, mode: 0o700 });
+  const cellTempParent = await createCellTempParent();
+  let workspaceForCleanup:
+    | Awaited<ReturnType<typeof createIsolationWorkspace>>
+    | undefined;
   try {
+    const workspace = await createIsolationWorkspace({
+      artifactRoot: cellTempParent,
+      runId: request.episodeId,
+      role: "target",
+    });
+    workspaceForCleanup = workspace;
+    const startedAt = dependencies.clock().toISOString();
+    let transcript = "";
+    let stderr = "";
+    let exitCode: number | null = null;
+    let termination: "exit" | "timeout" | "interrupted" = "exit";
+    let brokerTrace = "";
+    let diagnosticReceipt = "";
+    let finalState = "";
+    let infrastructureFailure: string | undefined;
+    const cellExecutionLockRoot = join(
+      options.artifactRoot,
+      ".fixture-setup-lock",
+    );
+    await mkdir(cellExecutionLockRoot, { recursive: true, mode: 0o700 });
     await cp(options.fixtureRoot, workspace.target, { recursive: true });
     if (hashWorkspace(workspace.target) !== request.workspaceFixtureHash) {
       throw new FixtureIntegrityError();
@@ -111,6 +146,9 @@ export async function runCodexCell(
       sourceRepoRoot: options.sourceWorktree,
       workspace: workspace.target,
       targetSkill: options.targetSkill,
+      ...(options.baselineSurfaces === undefined
+        ? {}
+        : { baselineSurfaces: options.baselineSurfaces }),
       ...(options.candidate === undefined
         ? {}
         : { candidate: options.candidate }),
@@ -294,6 +332,12 @@ export async function runCodexCell(
       }
     });
   } finally {
-    await workspace.cleanup();
+    try {
+      if (workspaceForCleanup !== undefined) {
+        await workspaceForCleanup.cleanup();
+      }
+    } finally {
+      await rm(cellTempParent, { recursive: true, force: true });
+    }
   }
 }

@@ -3,15 +3,21 @@ import type { McpServerLaunch } from "./canary-runtime";
 import type { AuthMode } from "./codex-auth";
 import type { ProcessResult } from "./process";
 
-export const TARGET_MODEL = "gpt-5.4-mini" as const;
+export const TARGET_MODEL = "gpt-5.6-luna" as const;
 export const OPTIMIZER_MODEL = "gpt-5.6-sol" as const;
-export const TARGET_REASONING_EFFORT = "low" as const;
+export const TARGET_EFFORT = "medium" as const;
 export const OPTIMIZER_REASONING_EFFORT = "xhigh" as const;
 export const SKILLOPT_EVALUATION_BRANCH = "skillopt-eval" as const;
 export const MCP_STARTUP_TIMEOUT_SECONDS = 15 as const;
 export const MCP_TOOL_TIMEOUT_SECONDS = 120 as const;
 export type CanaryRole = "optimizer" | "target";
 export type CanaryModel = typeof TARGET_MODEL | typeof OPTIMIZER_MODEL;
+export type CanaryPhase =
+  | "login"
+  | "staging"
+  | "mcp-probe"
+  | "sandbox-probe"
+  | "model";
 
 export type CapabilityCanaryModelRun = Readonly<{
   role: CanaryRole;
@@ -25,9 +31,13 @@ export type CapabilityCanaryReceipt = Readonly<{
   targetModel: typeof TARGET_MODEL;
   optimizerModel: typeof OPTIMIZER_MODEL;
   authMode: "file" | "keyring" | null;
+  /** Legacy name retained for receipt compatibility; this counts attempts, not billing. */
   paidModelCalls: 0 | 1 | 2;
+  modelInvocationAttempts: 0 | 1 | 2;
   modelRuns: readonly CapabilityCanaryModelRun[];
   events: readonly Readonly<Record<string, unknown>>[];
+  phase?: CanaryPhase;
+  diagnostic?: string;
   reason?: string;
 }>;
 
@@ -78,9 +88,7 @@ export function stagedCodeModeHostExecutable(codexExecutable: string): string {
 export function buildCodexConfig(options: CodexConfigOptions): string {
   const model = options.role === "target" ? TARGET_MODEL : OPTIMIZER_MODEL;
   const reasoningEffort =
-    options.role === "target"
-      ? TARGET_REASONING_EFFORT
-      : OPTIMIZER_REASONING_EFFORT;
+    options.role === "target" ? TARGET_EFFORT : OPTIMIZER_REASONING_EFFORT;
   const deniedRoots = new Set([options.paths.fixtureKb]);
   // Target cells are noninteractive and can only reach the evaluator-owned,
   // allowlisted Kibi broker inside their disposable workspace. Approve that

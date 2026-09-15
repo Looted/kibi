@@ -21,6 +21,7 @@ import {
 } from "./isolation-workspace";
 import {
   type CanaryModel,
+  type CanaryPhase,
   type CanaryRole,
   type CanaryRunner,
   type CapabilityCanaryModelRun,
@@ -42,13 +43,17 @@ export type ModelCanaryResult =
   | Readonly<{
       kind: "pass";
       authMode: "file" | "keyring";
+      modelInvocationAttempts: 1;
       run: CapabilityCanaryModelRun;
     }>
   | Readonly<{
       kind: "no-go";
       authMode: "file" | "keyring" | null;
       paidModelCalls: 0 | 1;
+      modelInvocationAttempts: 0 | 1;
       reason: string;
+      phase?: CanaryPhase;
+      diagnostic?: string;
       run?: CapabilityCanaryModelRun;
     }>;
 
@@ -71,6 +76,41 @@ function modelRun(
 ): CapabilityCanaryModelRun {
   const model: CanaryModel = role === "target" ? TARGET_MODEL : OPTIMIZER_MODEL;
   return { role, model, events };
+}
+
+const MAX_DIAGNOSTIC_LENGTH = 600;
+
+function bounded(text: string): string {
+  return text.trim().replaceAll("\n", " | ").slice(0, MAX_DIAGNOSTIC_LENGTH);
+}
+
+function partialEvents(
+  stdout: string,
+): readonly Readonly<Record<string, unknown>>[] {
+  const events: Readonly<Record<string, unknown>>[] = [];
+  for (const line of stdout.split("\n")) {
+    if (line.trim() === "") continue;
+    try {
+      const parsed = parseJsonLines(`${line}\n`);
+      for (const { event } of parsed) events.push(event);
+    } catch {
+      break;
+    }
+  }
+  return events;
+}
+
+function diagnosticFor(phase: CanaryPhase, error: unknown): string {
+  if (error instanceof ProcessControlError) {
+    const detail =
+      bounded(error.result.stderr) ||
+      bounded(error.result.stdout) ||
+      "no_output";
+    return bounded(`${phase}:${error.kind}:${detail}`);
+  }
+  const detail =
+    error instanceof Error ? `${error.name}:${error.message}` : "UnknownError";
+  return bounded(`${phase}:${detail}`);
 }
 
 function permissionPaths(
@@ -113,10 +153,12 @@ export async function runModelCanary(
   });
   let authMode: "file" | "keyring" | null = null;
   let events: readonly Readonly<Record<string, unknown>>[] = [];
-  let paidModelCalls: 0 | 1 = 0;
+  let modelInvocationAttempts: 0 | 1 = 0;
+  let phase: CanaryPhase = "login";
   // Narrowing helper: assignments inside the retry closure are invisible to
   // control-flow analysis at the catch site, so compare through a function.
-  const paidCallHappened = (): boolean => paidModelCalls === 1;
+  const modelCallHappened = (): boolean => modelInvocationAttempts === 1;
+  const currentPhase = (): CanaryPhase => phase;
   try {
     return await withPreparedLogin(
       {
@@ -128,6 +170,7 @@ export async function runModelCanary(
       },
       async (auth) => {
         authMode = auth.mode;
+        phase = "staging";
         const staged = await stageCapabilityCanary(
           workspace,
           context.sourceWorktree,
@@ -162,7 +205,9 @@ export async function runModelCanary(
             auth.realCodexHome,
           ),
         );
+        phase = "mcp-probe";
         await context.probeMcp({ ...staged.mcpServer, env: runtimeEnv });
+        phase = "sandbox-probe";
         await context.probeSandbox({
           codexCommand: staged.codexCommand,
           workspace: workspace.target,
@@ -178,6 +223,8 @@ export async function runModelCanary(
                 `Then use shell_command exactly once to execute ${probe.command}.`,
                 "Do not call any other shell or MCP tool. Do not infer or claim success without both completed tool calls. If both succeed, return probeExecuted=true; otherwise fail.",
               ].join(" ");
+        phase = "model";
+        modelInvocationAttempts = 1;
         const result = await context.run(
           buildCodexExecArgv({
             codexCommand: staged.codexCommand,
@@ -191,16 +238,22 @@ export async function runModelCanary(
           prompt,
         );
         const requiredMcpFailure = codexRequiredMcpFailure(result);
-        if (requiredMcpFailure !== null) throw requiredMcpFailure;
-        paidModelCalls = 1;
+        if (requiredMcpFailure !== null) {
+          phase = "mcp-probe";
+          modelInvocationAttempts = 0;
+          throw requiredMcpFailure;
+        }
         events = parseJsonLines(result.stdout).map(({ event }) => event);
         const run = modelRun(context.role, events);
         if (result.exitCode !== 0) {
           return {
             kind: "no-go",
             authMode,
-            paidModelCalls,
+            paidModelCalls: modelInvocationAttempts,
+            modelInvocationAttempts,
             reason: summarizeProcessFailure(result),
+            phase,
+            diagnostic: bounded(summarizeProcessFailure(result)),
             run,
           };
         }
@@ -212,8 +265,11 @@ export async function runModelCanary(
           return {
             kind: "no-go",
             authMode,
-            paidModelCalls,
+            paidModelCalls: modelInvocationAttempts,
+            modelInvocationAttempts,
             reason: "codex_event_failure",
+            phase,
+            diagnostic: "model:codex_event_failure",
             run,
           };
         }
@@ -221,8 +277,11 @@ export async function runModelCanary(
           return {
             kind: "no-go",
             authMode,
-            paidModelCalls,
+            paidModelCalls: modelInvocationAttempts,
+            modelInvocationAttempts,
             reason: "missing_turn_completed",
+            phase,
+            diagnostic: "model:missing_turn_completed",
             run,
           };
         }
@@ -263,36 +322,75 @@ export async function runModelCanary(
             },
           );
         }
-        return { kind: "pass", authMode, run };
+        return {
+          kind: "pass",
+          authMode,
+          modelInvocationAttempts,
+          run,
+        };
       },
     );
   } catch (error) {
+    if (error instanceof ProcessControlError) {
+      const failurePhase = currentPhase();
+      if (failurePhase === "model") {
+        modelInvocationAttempts = error.kind === "spawn" ? 0 : 1;
+        if (modelCallHappened()) events = partialEvents(error.result.stdout);
+      }
+      const run = modelCallHappened()
+        ? modelRun(context.role, events)
+        : undefined;
+      return {
+        kind: "no-go",
+        authMode,
+        paidModelCalls: modelInvocationAttempts,
+        modelInvocationAttempts,
+        reason: error.message,
+        phase: failurePhase,
+        diagnostic: diagnosticFor(failurePhase, error),
+        ...(run === undefined ? {} : { run }),
+      };
+    }
     if (
       error instanceof CodexAuthError ||
-      error instanceof ProcessControlError ||
       error instanceof JsonLinesError ||
       error instanceof CanaryEvidenceError ||
       error instanceof RuntimePrerequisiteError ||
       error instanceof RequiredMcpStartupError
     ) {
+      const failurePhase = currentPhase();
+      const run = modelCallHappened()
+        ? modelRun(context.role, events)
+        : undefined;
+      const reason = error.message;
       return {
         kind: "no-go",
         authMode,
-        paidModelCalls,
-        reason: error.message,
-        ...(paidCallHappened() ? { run: modelRun(context.role, events) } : {}),
+        paidModelCalls: modelInvocationAttempts,
+        modelInvocationAttempts,
+        reason,
+        phase: failurePhase,
+        diagnostic: diagnosticFor(failurePhase, error),
+        ...(run === undefined ? {} : { run }),
       };
     }
     const reason =
       error instanceof Error
         ? `${error.name}:${error.message}`.slice(0, 600)
         : "UnknownError";
+    const run = modelCallHappened()
+      ? modelRun(context.role, events)
+      : undefined;
+    const failurePhase = currentPhase();
     return {
       kind: "no-go",
       authMode,
-      paidModelCalls,
+      paidModelCalls: modelInvocationAttempts,
+      modelInvocationAttempts,
       reason: `canary_infrastructure:${reason}`,
-      ...(paidCallHappened() ? { run: modelRun(context.role, events) } : {}),
+      phase: failurePhase,
+      diagnostic: diagnosticFor(failurePhase, error),
+      ...(run === undefined ? {} : { run }),
     };
   } finally {
     await workspace.cleanup();

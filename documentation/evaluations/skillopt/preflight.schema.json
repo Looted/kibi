@@ -13,7 +13,7 @@
   ],
   "properties": {
     "runId": { "type": "string", "minLength": 1 },
-    "targetModel": { "const": "gpt-5.4-mini" },
+    "targetModel": { "const": "gpt-5.6-luna" },
     "optimizerModel": { "const": "gpt-5.6-sol" },
     "skilloptCommit": { "const": "b860a5cf88ce75e2bd02ca981ac21fb28cffba83" },
     "hosts": { "type": "array", "items": { "type": "object" } },

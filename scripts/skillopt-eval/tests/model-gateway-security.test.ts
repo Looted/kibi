@@ -28,7 +28,7 @@ const fixture = () =>
       tunnels: false,
     },
     ceilings: {
-      models: ["gpt-5.4-mini", "gpt-5.6-sol"],
+      models: ["gpt-5.6-luna", "gpt-5.6-sol"],
       maxInputTokens: 1000,
       maxOutputTokens: 200,
       maxRetries: 1,
@@ -37,7 +37,7 @@ const fixture = () =>
     },
   });
 
-const request = (id = "request-1", model = "gpt-5.4-mini") => ({
+const request = (id = "request-1", model = "gpt-5.6-luna") => ({
   requestId: id,
   requestHash: hash(id.endsWith("1") ? "b" : "c"),
   model,
@@ -103,7 +103,7 @@ describe("trusted broker model gateway security", () => {
     const { capability } = supervisor.reserve(request());
 
     // When / Then
-    expect(capability.model).toBe("gpt-5.4-mini");
+    expect(capability.model).toBe("gpt-5.6-luna");
     expect(() =>
       supervisor.forward(
         { ...capability, model: "gpt-5.6-sol" },

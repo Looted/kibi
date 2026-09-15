@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware operations safely across MCP or the trusted local CLI, including partial completion repair.
-version: 2.1.1
+version: 2.1.2
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -75,6 +75,8 @@ check. Never fire `kb_upsert` calls in parallel; create or confirm endpoint
 entities before linking them. The canonical MCP names are `kb_search`,
 `kb_query`, `kb_upsert`, and `kb_check`.
 
+For a task that explicitly supplies a malformed concrete mutation payload, locate and read that public request artifact before choosing an entity, preserving its exact entity ID, type, requested changes, and every intended relationship and endpoint. Do not substitute a seeded or convenient entity for the requested target. Start with kb_search, then exact-filter those targets with kb_query, and run kb_validate_upsert on that same payload; validation is not completion. Correct only diagnosed pre-commit errors and revalidate the corrected payload. Once authorized, apply the identical corrected and authorized payload with kb_upsert. If it returns committed_with_repairs, treat the mutation as committed, follow only the required repair actions, and neither retry it nor trigger unrelated semantic backfill for a schema-only repair. Exact-read every changed entity and relationship endpoint with kb_query, then finish with an unfiltered kb_check followed by a final kb_status.
+
 ## Closeout fields
 
 End every task with these five independent fields:
@@ -146,6 +148,8 @@ Use `kb_model_requirement` for strict scalar clauses. Use
 grounding: run `logic-coverage` so each key binds to one ground fact.
 Relationship direction is fixed, and every `from` in a relationship batch
 must equal the upserted entity ID.
+
+For conditional relational claims, after the initial `kb_suggest_predicates` and before any `kb_upsert`—including one needed for a missing schema—call read-only `kb_model_requirement` to preview suitable scalar or typed-rule modeling. Treat the preview as advisory: do not apply an irrelevant result or create unrequested facts, and retain an approved ground-predicate plan when it captures the whole claim. Preserve supplied arity, ordered argument roles, polarity, bound values, and one claim key per actual assertion; never split arguments across clauses or schemas or alter values to force uniqueness.
 
 ## Symbol-First Traceability
 

@@ -8,7 +8,7 @@ import {
   type SourceLocation,
   executeIntentSearch,
 } from "../../intent-search.js";
-import { parseTriples } from "../../prolog/codec.js";
+import { normalizeEntityId, parseTriples } from "../../prolog/codec.js";
 import { loadEntities } from "../../public/operations/discovery-entities.js";
 import { executeStatus } from "../../public/operations/discovery-executors.js";
 import type {
@@ -425,10 +425,18 @@ async function contradictionAnalysis(
   if (!result.success) return { outcome: "unresolved", witnesses: [] };
   const rows = parseTriples(result.bindings.Rows ?? "[]");
   const witnesses = rows
+    .map(([left, right, reason]) => ({
+      left: normalizeEntityId(left),
+      right: normalizeEntityId(right),
+      reason,
+    }))
     .filter(
-      ([left, right]) => left === requirementId || right === requirementId,
+      ({ left, right }) => left === requirementId || right === requirementId,
     )
-    .map(([left, right, reason]) => ({ requirements: [left, right], reason }));
+    .map(({ left, right, reason }) => ({
+      requirements: [left, right],
+      reason,
+    }));
   return {
     outcome: witnesses.length > 0 ? "conflict" : "no_conflict",
     witnesses,

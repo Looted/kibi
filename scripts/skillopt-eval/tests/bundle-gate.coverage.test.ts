@@ -3,9 +3,10 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { runPaidBundleGate } from "../bundle-workflow";
+import { type BundleSurfaces, runPaidBundleGate } from "../bundle-workflow";
 import { CANONICAL_SKILLS } from "../catalog";
 import { materializeFixtureRun } from "../fixtures/private";
+import { surface } from "../real-workflow";
 import { ProcessControlError } from "../runtime/process";
 import { CANONICAL_SKILL_ROOT } from "./fixture-test-helpers";
 
@@ -16,6 +17,26 @@ afterEach(async () => {
   );
 });
 
+async function bundleSurfaces(): Promise<{
+  baselineSurfaces: BundleSurfaces;
+  candidateSurfaces: BundleSurfaces;
+}> {
+  const entries = await Promise.all(
+    CANONICAL_SKILLS.map(
+      async (skill) => [skill, await surface(process.cwd(), skill)] as const,
+    ),
+  );
+  const baselineSurfaces = Object.fromEntries(entries) as BundleSurfaces;
+  const candidateSurfaces = {
+    ...baselineSurfaces,
+    "kibi-usage": {
+      ...baselineSurfaces["kibi-usage"],
+      body: `${baselineSurfaces["kibi-usage"].body}\n# candidate\n`,
+    },
+  } as BundleSurfaces;
+  return { baselineSurfaces, candidateSurfaces };
+}
+
 describe("runPaidBundleGate", () => {
   test("runs baseline and skillopt arms and persists a verdict", async () => {
     const root = await mkdtemp(join(tmpdir(), "skillopt-bundle-gate-"));
@@ -25,6 +46,7 @@ describe("runPaidBundleGate", () => {
       canonicalSkillRoot: CANONICAL_SKILL_ROOT,
     });
     const artifactRoot = join(root, "artifacts");
+    const surfaces = await bundleSurfaces();
     let cells = 0;
     const result = await runPaidBundleGate(
       {
@@ -35,8 +57,7 @@ describe("runPaidBundleGate", () => {
         codexExecutable: "/tmp/fake-codex",
         bwrapExecutable: "/tmp/fake-bwrap",
         timeoutMs: 1_000,
-        resolveCandidates: async (skill) =>
-          skill === "kibi-usage" ? "# candidate\n" : undefined,
+        ...surfaces,
       },
       {
         runCodexCell: (async (_options: unknown) => {
@@ -74,6 +95,7 @@ describe("runPaidBundleGate", () => {
       canonicalSkillRoot: CANONICAL_SKILL_ROOT,
     });
     let calls = 0;
+    const surfaces = await bundleSurfaces();
     const result = await runPaidBundleGate(
       {
         runId: "00000000-0000-4000-8000-0000000000bb",
@@ -85,6 +107,7 @@ describe("runPaidBundleGate", () => {
         hiddenMarkers: ["hidden"],
         pricingHash: "a".repeat(64),
         priceAmount: 1,
+        ...surfaces,
       },
       {
         runCodexCell: async () => {
@@ -123,6 +146,7 @@ describe("runPaidBundleGate", () => {
           artifactRoot: join(root, "artifacts-throw"),
           codexExecutable: "/tmp/fake-codex",
           bwrapExecutable: "/tmp/fake-bwrap",
+          ...surfaces,
         },
         {
           runCodexCell: async () => {
@@ -131,5 +155,63 @@ describe("runPaidBundleGate", () => {
         },
       ),
     ).rejects.toThrow("unexpected-cell-failure");
+  });
+
+  test("passes complete arm bodies to the runner and does not infer identity from equal scores", async () => {
+    const root = await mkdtemp(join(tmpdir(), "skillopt-bundle-surfaces-"));
+    roots.push(root);
+    const receipt = materializeFixtureRun({
+      runRoot: join(root, "run"),
+      canonicalSkillRoot: CANONICAL_SKILL_ROOT,
+    });
+    const surfaces = await bundleSurfaces();
+    const seen: Array<{
+      variant: string;
+      bodies: Record<string, string>;
+    }> = [];
+    const result = await runPaidBundleGate(
+      {
+        runId: "00000000-0000-4000-8000-0000000000dd",
+        fixtureRunRoot: receipt.roots.runRoot,
+        sourceWorktree: process.cwd(),
+        artifactRoot: join(root, "artifacts"),
+        codexExecutable: "/tmp/fake-codex",
+        bwrapExecutable: "/tmp/fake-bwrap",
+        ...surfaces,
+      },
+      {
+        runCodexCell: async (options) => {
+          seen.push({
+            variant: options.request.variant,
+            bodies: Object.fromEntries(
+              Object.entries(options.bundleCandidates ?? {}).map(
+                ([skill, candidate]) => [skill, candidate.body],
+              ),
+            ),
+          });
+          return {
+            receipt: {
+              result: {
+                status: "completed",
+                hardPass: true,
+                score: 80,
+                criticalFailures: [],
+              },
+            },
+          };
+        },
+      },
+    );
+
+    expect(result.verdict).toBe("compatible");
+    expect(seen).toHaveLength(16);
+    const baseline = seen.find((entry) => entry.variant === "baseline");
+    const candidate = seen.find((entry) => entry.variant === "skillopt");
+    expect(baseline?.bodies["kibi-usage"]).toBe(
+      surfaces.baselineSurfaces["kibi-usage"].body,
+    );
+    expect(candidate?.bodies["kibi-usage"]).toBe(
+      surfaces.candidateSurfaces["kibi-usage"].body,
+    );
   });
 });

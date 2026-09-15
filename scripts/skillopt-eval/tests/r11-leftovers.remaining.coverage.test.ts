@@ -248,7 +248,7 @@ describe("skillopt remasure11 leftover helpers", () => {
           tunnels: false,
         },
         ceilings: {
-          models: ["gpt-5.4-mini"],
+          models: ["gpt-5.6-luna"],
           maxInputTokens: 1,
           maxOutputTokens: 1,
           maxRetries: 0,

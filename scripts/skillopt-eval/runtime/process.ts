@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { z } from "zod";
 
 // implements REQ-skillopt-codex-optimization
@@ -85,6 +85,87 @@ function terminateChild(
   child.kill(signal);
 }
 
+const PROCESS_TREE_SETTLE_EXTRA_MS = 5_000;
+const PROCESS_TREE_SETTLE_POLL_MS = 20;
+const SUPPORTS_PROCESS_GROUPS = process.platform !== "win32";
+const PROCESS_TABLE_TIMEOUT_MS = 100;
+const PROCESS_TABLE_MAX_BUFFER = 1024 * 1024;
+
+type ProcessTableRow = Readonly<{
+  pid: number;
+  parentPid: number;
+  groupId: number;
+}>;
+
+function readProcessTable(killGraceMs: number): readonly ProcessTableRow[] {
+  try {
+    const listing = execFileSync("ps", ["-eo", "pid=,ppid=,pgid="], {
+      encoding: "utf8",
+      timeout: Math.max(1, Math.min(killGraceMs, PROCESS_TABLE_TIMEOUT_MS)),
+      maxBuffer: PROCESS_TABLE_MAX_BUFFER,
+    });
+    return listing.split("\n").flatMap((line) => {
+      const match = /^\s*(\d+)\s+(\d+)\s+(\d+)\s*$/.exec(line);
+      if (match === null) return [];
+      const [, pid, parentPid, groupId] = match.map(Number);
+      return pid === undefined ||
+        parentPid === undefined ||
+        groupId === undefined
+        ? []
+        : [{ pid, parentPid, groupId }];
+    });
+  } catch {
+    return [];
+  }
+}
+
+function descendantPids(
+  table: readonly ProcessTableRow[],
+  pid: number,
+): readonly number[] {
+  const childrenByParent = new Map<number, number[]>();
+  for (const row of table) {
+    const children = childrenByParent.get(row.parentPid) ?? [];
+    children.push(row.pid);
+    childrenByParent.set(row.parentPid, children);
+  }
+  const descendants: number[] = [];
+  const pending = [pid];
+  for (let index = 0; index < pending.length; index += 1) {
+    const parentPid = pending[index];
+    if (parentPid === undefined) continue;
+    for (const childPid of childrenByParent.get(parentPid) ?? []) {
+      pending.push(childPid);
+      descendants.push(childPid);
+    }
+  }
+  return descendants.reverse();
+}
+
+function terminateProcess(pid: number, signal: NodeJS.Signals): void {
+  try {
+    process.kill(pid, signal);
+  } catch (error) {
+    if (
+      !(error instanceof Error && "code" in error && error.code === "ESRCH")
+    ) {
+      throw error;
+    }
+  }
+}
+
+function pidAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    if (error instanceof Error && "code" in error && error.code === "ESRCH") {
+      return false;
+    }
+    return true;
+  }
+}
+
 // implements REQ-skillopt-codex-optimization
 export function runBoundedProcess(
   options: ProcessOptions,
@@ -93,6 +174,16 @@ export function runBoundedProcess(
   const ownsGroup = options.groupMode !== "inherited";
   return new Promise((resolve, reject) => {
     const [command, ...args] = options.argv;
+    const initialProcessTable = ownsGroup ? [] : readProcessTable(killGraceMs);
+    const inheritedGroupId = initialProcessTable.find(
+      (row) => row.pid === process.pid,
+    )?.groupId;
+    const ownsInheritedGroup = inheritedGroupId === process.pid;
+    const inheritedBaselinePids = new Set(
+      initialProcessTable
+        .filter((row) => row.groupId === inheritedGroupId)
+        .map((row) => row.pid),
+    );
     const child = spawn(command, args, {
       cwd: options.cwd,
       env: options.env,
@@ -103,17 +194,64 @@ export function runBoundedProcess(
     let stderr = "";
     let terminalKind: "timeout" | "interrupted" | null = null;
     let killTimer: NodeJS.Timeout | undefined;
+    let settleTimer: NodeJS.Timeout | undefined;
+    let closed = false;
+    let settled = false;
+    let treePids: readonly number[] = [];
+
+    const settle = (finish: () => void): void => {
+      if (settled) return;
+      settled = true;
+      if (killTimer !== undefined) clearTimeout(killTimer);
+      if (settleTimer !== undefined) clearTimeout(settleTimer);
+      process.off("SIGINT", interrupt);
+      process.off("SIGTERM", interrupt);
+      finish();
+    };
+
+    const refreshTreePids = (): readonly number[] => {
+      if (ownsGroup || child.pid === undefined) return [];
+      const table = readProcessTable(killGraceMs);
+      const discovered = [
+        ...(closed ? [] : descendantPids(table, child.pid)),
+        ...table
+          .filter(
+            (row) =>
+              inheritedGroupId !== undefined &&
+              ownsInheritedGroup &&
+              row.groupId === inheritedGroupId &&
+              !inheritedBaselinePids.has(row.pid),
+          )
+          .map((row) => row.pid),
+      ];
+      treePids = [...new Set([...treePids, ...discovered])].filter(
+        (descendantPid) => pidAlive(descendantPid),
+      );
+      return treePids;
+    };
+
+    const escalateToSigkill = (): void => {
+      killTimer = undefined;
+      if (child.pid === undefined) return;
+      if (ownsGroup) {
+        terminateGroup(child.pid, "SIGKILL");
+        return;
+      }
+      for (const descendantPid of refreshTreePids())
+        terminateProcess(descendantPid, "SIGKILL");
+      terminateChild(child, "SIGKILL");
+    };
 
     const beginTermination = (kind: "timeout" | "interrupted"): void => {
-      if (terminalKind !== null || child.pid === undefined) return;
+      if (terminalKind !== null || closed || child.pid === undefined) return;
       terminalKind = kind;
       if (ownsGroup) terminateGroup(child.pid, "SIGTERM");
-      else terminateChild(child, "SIGTERM");
-      killTimer = setTimeout(() => {
-        if (child.pid === undefined) return;
-        if (ownsGroup) terminateGroup(child.pid, "SIGKILL");
-        else terminateChild(child, "SIGKILL");
-      }, killGraceMs);
+      else {
+        for (const descendantPid of refreshTreePids())
+          terminateProcess(descendantPid, "SIGTERM");
+        terminateChild(child, "SIGTERM");
+      }
+      killTimer = setTimeout(escalateToSigkill, killGraceMs);
     };
     const interrupt = (): void => beginTermination("interrupted");
     process.on("SIGINT", interrupt);
@@ -130,6 +268,7 @@ export function runBoundedProcess(
       stderr += chunk.toString("utf8");
     });
     child.once("error", (error) => {
+      if (closed || settled) return;
       clearTimeout(timeout);
       if (killTimer !== undefined) clearTimeout(killTimer);
       process.off("SIGINT", interrupt);
@@ -143,10 +282,8 @@ export function runBoundedProcess(
       );
     });
     child.once("close", (code, signal) => {
+      closed = true;
       clearTimeout(timeout);
-      if (killTimer !== undefined) clearTimeout(killTimer);
-      process.off("SIGINT", interrupt);
-      process.off("SIGTERM", interrupt);
       const result: ProcessResult = {
         argv: options.argv,
         stdout,
@@ -154,11 +291,38 @@ export function runBoundedProcess(
         exitCode: code ?? -1,
         signal,
       };
-      if (terminalKind !== null) {
-        reject(new ProcessControlError(terminalKind, result));
+      const finish = (): void => {
+        if (terminalKind !== null) {
+          reject(new ProcessControlError(terminalKind, result));
+          return;
+        }
+        resolve(result);
+      };
+      const leaderPid = child.pid;
+      if (
+        terminalKind === null ||
+        !SUPPORTS_PROCESS_GROUPS ||
+        leaderPid === undefined
+      ) {
+        settle(finish);
         return;
       }
-      resolve(result);
+      const deadline = Date.now() + killGraceMs + PROCESS_TREE_SETTLE_EXTRA_MS;
+      const treeAlive = (): boolean =>
+        ownsGroup ? pidAlive(-leaderPid) : refreshTreePids().length > 0;
+      const awaitTreeExit = (): void => {
+        if (!treeAlive()) {
+          settle(finish);
+          return;
+        }
+        if (Date.now() >= deadline) {
+          escalateToSigkill();
+          settle(finish);
+          return;
+        }
+        settleTimer = setTimeout(awaitTreeExit, PROCESS_TREE_SETTLE_POLL_MS);
+      };
+      awaitTreeExit();
     });
     child.stdin.end(options.stdin);
   });

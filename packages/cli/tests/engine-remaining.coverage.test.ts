@@ -40,6 +40,7 @@ const roots: string[] = [];
 const restores: Array<() => void> = [];
 const baselineSigterm = process.listeners("SIGTERM").slice();
 const baselineSigint = process.listeners("SIGINT").slice();
+const baselineNodeEnv = process.env.NODE_ENV;
 
 function tempRoot(prefix = "kibi-engine-remain-"): string {
   const root = mkdtempSync(path.join(tmpdir(), prefix));
@@ -77,6 +78,10 @@ function restoreProcessSignals(): void {
   for (const listener of baselineSigint) {
     process.on("SIGINT", listener as (...args: unknown[]) => void);
   }
+}
+
+function expectNodeEnvRestored(): void {
+  expect(process.env.NODE_ENV).toBe(baselineNodeEnv);
 }
 
 function frame(value: unknown): Buffer {
@@ -127,34 +132,14 @@ async function waitForSocket(
   }
 }
 
-async function waitForCondition(
-  predicate: () => boolean,
-  timeoutMs = 5_000,
-): Promise<void> {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    if (predicate()) return;
+async function waitForExitCall(exit: {
+  mock: { calls: unknown[][] };
+}): Promise<void> {
+  const deadline = Date.now() + 8_000;
+  while (exit.mock.calls.length === 0 && Date.now() < deadline) {
     await new Promise((resolve) => setTimeout(resolve, 20));
   }
-  throw new Error("Timed out waiting for engine test state transition");
-}
-
-async function settleWithTimeout<T>(
-  operation: Promise<T>,
-  timeoutMs: number,
-  message: string,
-): Promise<T> {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  try {
-    return await Promise.race([
-      operation,
-      new Promise<T>((_, reject) => {
-        timer = setTimeout(() => reject(new Error(message)), timeoutMs);
-      }),
-    ]);
-  } finally {
-    if (timer !== undefined) clearTimeout(timer);
-  }
+  expect(exit).toHaveBeenCalled();
 }
 
 function mockPrologForDaemon(
@@ -208,6 +193,7 @@ async function listenSocket(socketPath: string): Promise<net.Server> {
 
 afterEach(() => {
   for (const restore of restores.splice(0)) restore();
+  expectNodeEnvRestored();
   restoreProcessSignals();
   for (const root of roots.splice(0)) {
     rmSync(root, { recursive: true, force: true });
@@ -740,14 +726,11 @@ describe("engine remaining: journal recovery and migration", () => {
     restores.push(restoreEnv);
     const previousNodeEnv = process.env.NODE_ENV;
     process.env.NODE_ENV = "production";
-    restores.push(() =>
-      (
-        restoreEnv as unknown as (
-          name: string,
-          value: string | undefined,
-        ) => void
-      )("NODE_ENV", previousNodeEnv),
-    );
+    restores.push(() => {
+      if (previousNodeEnv === undefined)
+        Reflect.deleteProperty(process.env, "NODE_ENV");
+      else process.env.NODE_ENV = previousNodeEnv;
+    });
     const root = tempRoot();
     const store = path.join(root, "legacy");
     mkdirSync(store, { recursive: true });
@@ -904,9 +887,13 @@ describe("engine remaining: in-process daemon error and signal paths", () => {
       socketPath: stalePath,
     });
     await waitForSocket(stalePath);
-    await settleWithTimeout(daemon, 8_000, "idle shutdown stalled");
-    await waitForCondition(() => exit.mock.calls.length > 0);
-    expect(exit).toHaveBeenCalled();
+    await Promise.race([
+      daemon,
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("idle shutdown stalled")), 8_000),
+      ),
+    ]);
+    await waitForExitCall(exit);
   });
 
   test("serves remaining command, cache, mismatch, and overflow branches", async () => {
@@ -1244,8 +1231,13 @@ describe("engine remaining: in-process daemon error and signal paths", () => {
       id: 99,
       method: "stop",
     });
-    await settleWithTimeout(daemon, 8_000, "daemon did not stop");
-    await waitForCondition(() => exit.mock.calls.length > 0);
+    await Promise.race([
+      daemon,
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("daemon did not stop")), 8_000),
+      ),
+    ]);
+    await waitForExitCall(exit);
   }, 20_000);
 });
 

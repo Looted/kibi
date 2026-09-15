@@ -319,7 +319,7 @@ export async function verifyHtmlRequirementHealthReport(
     );
   }
   assert.match(html, /@media \(max-width: 760px\)/);
-  assert.match(html, /\.overview \{ grid-template-columns: 1fr;/);
+  assert.match(html, /\.overview \{\s*grid-template-columns:\s*1fr;/);
   assert.match(html, /@media print/);
   assert.match(html, /color-scheme: light/);
   assert.doesNotMatch(
