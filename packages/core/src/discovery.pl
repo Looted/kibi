@@ -42,7 +42,12 @@ coverage_report_json(By, Tags, IncludePassing, IncludeTransitive, Limit, Offset,
 % Per-contract receipt binding (W2): BindingMode strict_snapshot | per_contract
 % with TestBindings mapping TestId -> current binding hash.
 coverage_report_json(By, Tags, IncludePassing, BindingMode, TestBindings, IncludeTransitive, Limit, Offset, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
-    coverage_rows(By, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, BindingMode, TestBindings, Rows0, Summary),
+    % Binding mode applies to requirement rows only; other By values keep
+    % their snapshot-era arity so type/symbol reports are unchanged.
+    (   By == req
+    ->  coverage_rows(req, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, BindingMode, TestBindings, Rows0, Summary)
+    ;   coverage_rows(By, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows0, Summary)
+    ),
     sort_dict_rows(Rows0, SortedRows),
     paginate_rows(SortedRows, Offset, Limit, Rows),
     status_meta_dict(Meta),

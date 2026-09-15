@@ -2438,6 +2438,10 @@
                       "pattern": "^[a-f0-9]{64}$",
                       "type": "string"
                     },
+                    "binding_hash": {
+                      "pattern": "^[a-f0-9]{64}$",
+                      "type": "string"
+                    },
                     "code_snapshot": {
                       "pattern": "^[a-f0-9]{64}$",
                       "type": "string"
