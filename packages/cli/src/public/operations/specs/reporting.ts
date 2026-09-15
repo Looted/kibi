@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import { PROOF_RECEIPT_MAX_AGE_SECONDS } from "../../proof-receipt.js";
 import { executeStatus } from "../discovery-executors.js";
 import {
@@ -182,6 +183,58 @@ export const findGapsSpec = {
   execute: executeFindGaps,
 } as const satisfies OperationSpec<FindGapsInput, FindGapsPayload>;
 
+/**
+ * Per-contract receipt binding (W2): compute the current binding hash for
+ * every receipt-bearing test (contract + receipt-stripped authored document)
+ * and hand the Prolog coverage stage a TestId -> BindingHash dict. Opt-in via
+ * KIBI_PROOF_BINDING_MODE=per-contract; the default stays strict_snapshot.
+ */
+// implements REQ-kibi-proof-evidence-protocol
+async function perContractTestBindings(
+  context: OperationContext,
+): Promise<string | null> {
+  if (process.env.KIBI_PROOF_BINDING_MODE !== "per-contract") return null;
+  const { loadEntities } = await import("../discovery-entities.js");
+  const { receiptBindingHash } = await import("../../proof-fingerprint.js");
+  const { removeFrontmatterBlock } = await import(
+    "../../../operations/proof/receipt-document.js"
+  );
+  let tests: Record<string, unknown>[];
+  try {
+    tests = await loadEntities(context.prolog as never, { type: "test" });
+  } catch {
+    return null;
+  }
+  const entries: string[] = [];
+  for (const test of tests) {
+    const testId = typeof test.id === "string" ? test.id : "";
+    const contract =
+      test.proof_contract !== undefined &&
+      test.proof_contract !== null &&
+      typeof test.proof_contract === "object"
+        ? (test.proof_contract as Record<string, unknown>)
+        : undefined;
+    const source = typeof test.source === "string" ? test.source : "";
+    if (testId === "" || contract === undefined || source === "") continue;
+    if (!/\.(md|mdx)$/i.test(source)) continue;
+    if (!context.fs) continue;
+    try {
+      const absolute = join(context.workspaceRoot, source);
+      const authored = await context.fs.readFile(absolute);
+      const stripped = removeFrontmatterBlock(authored, "proof_receipts");
+      const binding = receiptBindingHash(
+        contract as never,
+        stripped ?? authored,
+      );
+      entries.push(`${toPrologAtom(testId)}: ${toPrologAtom(binding)}`);
+    } catch {
+      // Unreadable documents keep strict semantics for that test.
+    }
+  }
+  if (entries.length === 0) return null;
+  return `_{${entries.join(", ")}}`;
+}
+
 export async function executeCoverage(
   input: CoverageInput,
   context: OperationContext,
@@ -195,10 +248,16 @@ export async function executeCoverage(
     const statuses = (input.statuses ?? []).map((status) =>
       validateCoverageStatus(status),
     );
+    const bindingsDict =
+      statuses.length === 0 && (input.by ?? "req") === "req"
+        ? await perContractTestBindings(context)
+        : null;
     const goal =
-      statuses.length > 0
-        ? `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${toPrologList(statuses)}, ${input.includeTransitive ?? true}, ${input.limit ?? 100}, ${input.offset ?? 0}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`
-        : `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${input.includeTransitive ?? true}, ${input.limit ?? 100}, ${input.offset ?? 0}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`;
+      bindingsDict !== null
+        ? `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, per_contract, ${bindingsDict}, ${input.includeTransitive ?? true}, ${input.limit ?? 100}, ${input.offset ?? 0}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`
+        : statuses.length > 0
+          ? `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${toPrologList(statuses)}, ${input.includeTransitive ?? true}, ${input.limit ?? 100}, ${input.offset ?? 0}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`
+          : `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${input.includeTransitive ?? true}, ${input.limit ?? 100}, ${input.offset ?? 0}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`;
     const payload = await runOperationJsonQuery<CoveragePayload>(
       requireProlog(context),
       "discovery.pl",
