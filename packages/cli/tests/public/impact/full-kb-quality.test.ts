@@ -64,7 +64,7 @@ function makeProlog(
         },
       };
     }
-    if (text.includes("coverage_report_json")) {
+    if (text.includes("coverage_evidence_json")) {
       return {
         success: true,
         bindings: {
@@ -74,13 +74,9 @@ function makeProlog(
                   {
                     id: "REQ-NORMATIVE",
                     proofStatus: "unresolved",
-                    proofStages: {
-                      passingE2e: {
-                        status: "passed",
-                        tests: ["TEST-UPLOAD"],
-                      },
-                    },
-                    proofGaps: ["unresolved_semantic_proposition"],
+                    passingE2eStatus: "passed",
+                    passingE2eTests: ["TEST-UPLOAD"],
+                    receiptGapCodes: ["unresolved_semantic_proposition"],
                   },
                 ]
               : [],
