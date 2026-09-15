@@ -7,6 +7,7 @@
     coverage_report_json/10,
     coverage_report_json/11,
     coverage_report_json/12,
+    coverage_evidence_json/5,
     graph_expand_json/8
 ]).
 
@@ -38,6 +39,59 @@ coverage_report_json(By, Tags, IncludePassing, IncludeTransitive, Limit, Offset,
 
 coverage_report_json(By, Tags, IncludePassing, IncludeTransitive, Limit, Offset, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
     coverage_report_json(By, Tags, IncludePassing, strict_snapshot, _{}, IncludeTransitive, Limit, Offset, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString).
+
+% Slim per-requirement proof evidence for quality diagnostics (W1 push-down).
+% Projects only the fields the quality diagnostics consume - proof status,
+% the passing-e2e stage summary, and receipt-related gap codes - instead of
+% the full coverage row set, keeping the response small on large KBs.
+coverage_evidence_json(Tags, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
+    requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, ProofContext),
+    findall(Evidence,
+        (   kb_entity(Id, req, Props),
+            matches_tags(Tags, Props),
+            requirement_proof(Id, Props, ProofContext, Proof),
+            coverage_evidence_row(Id, Proof, Evidence)
+        ),
+        Evidences),
+    Response = _{rows: Evidences},
+    dict_json_string(Response, JsonString).
+
+coverage_evidence_row(Id, Proof, Evidence) :-
+    (   get_dict(proofStatus, Proof, ProofStatus)
+    ->  true
+    ;   ProofStatus = unknown
+    ),
+    (   get_dict(proofStages, Proof, Stages),
+        get_dict(passingE2e, Stages, PassingE2e),
+        get_dict(status, PassingE2e, PassingE2eStatus)
+    ->  (   get_dict(tests, PassingE2e, PassingE2eTests)
+        ->  true
+        ;   PassingE2eTests = []
+        )
+    ;   PassingE2eStatus = unknown,
+        PassingE2eTests = []
+    ),
+    (   get_dict(proofGaps, Proof, Gaps)
+    ->  include(coverage_evidence_receipt_gap, Gaps, ReceiptGapCodes)
+    ;   ReceiptGapCodes = []
+    ),
+    Evidence = _{
+        id: Id,
+        proofStatus: ProofStatus,
+        passingE2eStatus: PassingE2eStatus,
+        passingE2eTests: PassingE2eTests,
+        receiptGapCodes: ReceiptGapCodes
+    }.
+
+coverage_evidence_receipt_gap(Gap) :-
+    (   atom(Gap)
+    ->  Atom = Gap
+    ;   format(atom(Atom), "~w", [Gap])
+    ),
+    (   sub_atom(Atom, _, _, _, 'proof_receipt')
+    ;   sub_atom(Atom, _, _, _, 'proof_contract')
+    ;   sub_atom(Atom, _, _, _, 'proof_snapshot')
+    ).
 
 % Per-contract receipt binding (W2): BindingMode strict_snapshot | per_contract
 % with TestBindings mapping TestId -> current binding hash.
