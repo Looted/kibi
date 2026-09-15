@@ -11,7 +11,11 @@ from skillopt.envs.base import EnvAdapter as SkillOptEnvAdapter
 from tools.skillopt.kibi_skillopt.adapter import EnvAdapter
 from tools.skillopt.kibi_skillopt.bridge import BridgeError
 from tools.skillopt.kibi_skillopt.common import JsonValue, contract_hash, parse_json_value
-from tools.skillopt.kibi_skillopt.models import BridgeRequest
+from tools.skillopt.kibi_skillopt.models import (
+    BridgeRequest,
+    OptimizerAcceptedResult,
+    OptimizerRejectedResult,
+)
 from tools.skillopt.kibi_skillopt.trainer import build_training_config
 
 HASH = "a" * 64
@@ -246,6 +250,7 @@ class AdapterContractTests(unittest.TestCase):
                 ],
             )
             optimized = {
+                "status": "accepted",
                 "body": "Use exact Kibi decision rules.",
                 "development": DEVELOPMENT,
             }
@@ -355,6 +360,7 @@ class AdapterContractTests(unittest.TestCase):
                         {
                             "schemaVersion": "1.0.0",
                             "artifactType": "skillopt-optimizer-result",
+                            "status": "accepted",
                             "requestHash": contract_hash(payload),
                             "body": "Use Kibi through MCP.",
                             "development": DEVELOPMENT,
@@ -374,8 +380,109 @@ class AdapterContractTests(unittest.TestCase):
                 )
 
             # Then
+            if result.status != "accepted":
+                self.fail("expected an accepted optimizer result")
             self.assertEqual(result.body, "Use Kibi through MCP.")
             self.assertEqual(result.development.model_dump(by_alias=True), DEVELOPMENT)
+
+    def test_optimizer_rejection_skips_patch_and_next_reflection_can_accept(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            subject = adapter(root)
+            subject.record_development_gate(
+                "body",
+                [{"soft": 0.5, "hard": 1, "task_type": "predicate"}],
+            )
+            rollout: dict[str, JsonValue] = {
+                "id": "predicate-train-1",
+                "hard": 0,
+                "soft": 0,
+                "task_type": "predicate",
+                "failure_category": "predicate_missing",
+                "conversation_path": "predictions/predicate-train-1/conversation.json",
+                "evidence_refs": ["episode/predicate-train-1/receipt.json"],
+                "trajectory": {
+                    "taskId": "predicate-train-1",
+                    "family": "predicate",
+                    "reflection": "missing",
+                },
+            }
+            rejected = OptimizerRejectedResult.model_validate(
+                {
+                    "schemaVersion": "1.0.0",
+                    "artifactType": "skillopt-optimizer-result",
+                    "status": "rejected",
+                    "requestHash": HASH,
+                    "reason": "candidate_direct_kb_guidance",
+                }
+            )
+            accepted = OptimizerAcceptedResult.model_validate(
+                {
+                    "schemaVersion": "1.0.0",
+                    "artifactType": "skillopt-optimizer-result",
+                    "status": "accepted",
+                    "requestHash": HASH,
+                    "body": "accepted body",
+                    "development": DEVELOPMENT,
+                }
+            )
+
+            with patch.object(subject, "optimize", side_effect=[rejected, accepted]) as optimize:
+                first = subject.reflect([rollout], "body", str(root))
+                second = subject.reflect([rollout], "body", str(root))
+
+            self.assertEqual(first, [])
+            patch_payload = second[0]
+            if not isinstance(patch_payload, dict):
+                self.fail("accepted reflection must return a patch")
+            patch_entry = patch_payload.get("patch")
+            if not isinstance(patch_entry, dict):
+                self.fail("accepted reflection patch must be an object")
+            candidates = patch_entry.get("skill_candidates")
+            if not isinstance(candidates, list) or not candidates:
+                self.fail("accepted reflection patch must contain a candidate")
+            candidate = candidates[0]
+            if not isinstance(candidate, dict):
+                self.fail("accepted reflection candidate must be an object")
+            self.assertEqual(
+                candidate.get("new_skill"), "accepted body"
+            )
+            self.assertEqual(
+                [call.kwargs["current_body"] for call in optimize.call_args_list],
+                ["body", "body"],
+            )
+            receipt_value = parse_json_value(
+                (root / "run" / "optimizer" / "step-0001" / "rejection-receipt.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            if not isinstance(receipt_value, dict):
+                self.fail("rejection receipt must be an object")
+            self.assertEqual(receipt_value["step"], 1)
+            self.assertEqual(receipt_value["requestHash"], HASH)
+            self.assertEqual(receipt_value["reason"], "candidate_direct_kb_guidance")
+
+    def test_optimizer_infrastructure_error_is_not_converted_to_no_patch(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            subject = adapter(Path(directory))
+            subject.record_development_gate(
+                "body",
+                [{"soft": 0.5, "hard": 1, "task_type": "predicate"}],
+            )
+            rollout: dict[str, JsonValue] = {
+                "id": "predicate-train-1",
+                "hard": 0,
+                "soft": 0,
+                "task_type": "predicate",
+                "trajectory": {
+                    "taskId": "predicate-train-1",
+                    "family": "predicate",
+                    "reflection": "missing",
+                },
+            }
+            with patch.object(subject, "optimize", side_effect=BridgeError("bridge_timeout")):
+                with self.assertRaisesRegex(BridgeError, "bridge_timeout"):
+                    _ = subject.reflect([rollout], "body", directory)
 
 
 if __name__ == "__main__":

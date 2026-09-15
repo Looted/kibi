@@ -24,7 +24,11 @@ describe("predicate-cases remaining lookup and invariant failures", () => {
       (typeof PREDICATE_CASES)[number]
     >;
     try {
-      cases[1] = { ...cases[1]!, semanticClass: cases[0]!.semanticClass };
+      const firstCase = cases[0];
+      const secondCase = cases[1];
+      if (!firstCase || !secondCase)
+        throw new Error("expected predicate cases");
+      cases[1] = { ...secondCase, semanticClass: firstCase.semanticClass };
       expect(() => assertDistinctSemanticClasses()).toThrow(
         /predicate cases must be semantically distinct/,
       );

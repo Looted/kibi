@@ -423,6 +423,48 @@ describe("default Codex cell evidence sealing", () => {
     expect(scoreCell(manifest, evidence).criticalFailures).toEqual([]);
   });
 
+  test("does not evaluate proof when the workflow marks proof out of scope", async () => {
+    const base = workflowManifest();
+    const workflow = base.workflowExpectation;
+    if (workflow === null) throw new Error("workflow expectation is required");
+    const manifest = parsePrivateEvaluatorManifest(
+      JSON.stringify({
+        ...base,
+        expectedFinalState: base.expectedFinalState.map((assertion) =>
+          assertion.key === "workflow-proof-state"
+            ? { ...assertion, expected: "not_evaluated" }
+            : assertion,
+        ),
+        workflowExpectation: {
+          ...workflow,
+          expectedProofState: "not_evaluated",
+          closeout: { ...workflow.closeout, proofState: "not_evaluated" },
+        },
+      }),
+    );
+    const requests = [
+      { tool: "kb_query" as const, args: {} },
+      { tool: "kb_check" as const, args: {} },
+      { tool: "kb_status" as const, args: {} },
+      { tool: "kb_coverage" as const, args: { by: "req" } },
+    ];
+    const evidence = sealDefaultCellEvidence(
+      { evaluatorManifest: manifest, finalStateRequests: requests },
+      {
+        finalState: workflowFinalStateReceipt(),
+        brokerTrace: await brokerTrace(),
+        diagnosticReceipt:
+          '{"tool":"kb_query","status":"success","telemetry":null}\n',
+      },
+    );
+
+    expect(evidence.finalState.closeout.proofState).toBe("not_evaluated");
+    expect(evidence.finalState.claims).toContainEqual({
+      key: "workflow-proof-state",
+      value: "not_evaluated",
+    });
+  });
+
   test("binds authentic final-state MCP output and derives evaluator claims", async () => {
     const manifest = evaluatorManifest("predicate");
     const requests = [

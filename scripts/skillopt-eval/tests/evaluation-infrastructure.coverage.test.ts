@@ -9,7 +9,12 @@ import {
 } from "../evaluation-infrastructure.js";
 
 function completed(
-  status: "passed" | "infrastructure-failure" | "interrupted" | "budget-exhausted" | "evidence-conflict",
+  status:
+    | "passed"
+    | "infrastructure-failure"
+    | "interrupted"
+    | "budget-exhausted"
+    | "evidence-conflict",
   criticalFailures: string[] = [],
 ) {
   return {
@@ -31,11 +36,14 @@ describe("evaluation infrastructure helpers", () => {
     ).not.toThrow();
 
     expect(() =>
-      assertCellInfrastructureHealthy(completed("infrastructure-failure", ["disk"]), {
-        stage: "development",
-        taskId: "t2",
-        variant: "baseline",
-      }),
+      assertCellInfrastructureHealthy(
+        completed("infrastructure-failure", ["disk"]),
+        {
+          stage: "development",
+          taskId: "t2",
+          variant: "baseline",
+        },
+      ),
     ).toThrow(EvaluationInfrastructureError);
 
     try {
@@ -84,9 +92,9 @@ describe("evaluation infrastructure helpers", () => {
     expect(parsed?.details.taskId).toBe("t5");
 
     const noNewline = `${EVALUATION_INFRASTRUCTURE_MARKER}${JSON.stringify(details)}`;
-    expect(parseEvaluationInfrastructureMarker(noNewline)?.details.variant).toBe(
-      "skillopt",
-    );
+    expect(
+      parseEvaluationInfrastructureMarker(noNewline)?.details.variant,
+    ).toBe("skillopt");
 
     expect(
       parseEvaluationInfrastructureMarker(
@@ -94,7 +102,9 @@ describe("evaluation infrastructure helpers", () => {
       ),
     ).toBeNull();
     expect(
-      parseEvaluationInfrastructureMarker(`${EVALUATION_INFRASTRUCTURE_MARKER}{`),
+      parseEvaluationInfrastructureMarker(
+        `${EVALUATION_INFRASTRUCTURE_MARKER}{`,
+      ),
     ).toBeNull();
     expect(
       parseEvaluationInfrastructureMarker(

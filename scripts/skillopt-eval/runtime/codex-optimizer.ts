@@ -2,8 +2,24 @@ import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { z } from "zod";
+import {
+  type BaselineInsertionComposition,
+  type BaselineInsertionPlan,
+  BaselineInsertionValidationError,
+  MAX_BASELINE_INSERTION_PARAGRAPH_BYTES,
+  composeBaselineInsertion,
+  validateBaselineInsertionAnchor,
+  validateBaselineInsertionParagraph,
+  validateBaselineInsertionPlan,
+} from "../baseline-insertion";
+import {
+  CodexOptimizerError,
+  missingRequiredGuidance,
+  validateCompleteCandidateBody,
+} from "../candidate-body";
 import type { SkillOptStepRequest, SkillOptStepResult } from "../optimize";
-import { validateCandidateBody } from "../variants";
+import { sha256Text } from "../variants";
+export { CodexOptimizerError, missingRequiredGuidance };
 import { resolveIsolationArtifactRoot } from "./artifact-root";
 import {
   RequiredMcpStartupError,
@@ -15,71 +31,6 @@ import { buildCodexConfig, buildCodexExecArgv } from "./permissions";
 import { runBoundedProcess } from "./process";
 
 const BodySchema = z.object({ body: z.string().min(1) }).strict();
-const MIN_COMPLETE_BODY_BYTES = 1_000;
-const REQUIRED_BODY_GUIDANCE = [
-  "npx --no-install kibi",
-  "bunx --no-install kibi",
-  "Do not read or edit files inside `.kb` directly",
-  "kb_search",
-  "kb_query",
-  "kb_upsert",
-  "kb_check",
-  "kb_semantic_advisor",
-  "kb_suggest_predicates",
-  "kb_model_requirement",
-  "fact_kind: predicate",
-  "predicate_name",
-  "predicate_args",
-  "canonical_key",
-  "polarity",
-  "predicate_schema",
-  "requires_predicate",
-  "logic_claims",
-  "semantic_inventory",
-  "claim_key",
-  "claim_text",
-  "propositions",
-  "interpretations",
-  "projectLocalSchemas",
-  "nonlogical",
-  "review:ambiguity",
-  "review:ontology-gap",
-  "polarity: deny",
-  "kibi.logic.v1",
-  "fact_kind: rule_schema",
-  "fact_kind: rule",
-  "requires_rule",
-  "rule-safety",
-  "rule-verifiability",
-  "semantic-completeness",
-  "logic-coverage",
-  "taskOutcome",
-  "kbState",
-  "verificationState",
-  "proofState",
-  "limitationDisposition",
-  "quality diagnostic",
-  "fixed",
-  "accepted",
-  "deferred",
-  "contract hash",
-  "freshness window",
-  "temporary",
-] as const;
-const REPOSITORY_POLICY_LEAKS = [
-  /bun run version-packages/i,
-  /(?:branch|merge|merged|merging)[^\n]{0,80}`(?:develop|master)`/i,
-  /`(?:develop|master)`[^\n]{0,80}(?:branch|merge|merged|merging)/i,
-  /public training trajectories/i,
-  /kibi-usage-[a-z0-9-]+-(?:train|development|held-out)-\d+/i,
-  /publishable package set/i,
-] as const;
-
-// implements REQ-skillopt-codex-optimization
-export class CodexOptimizerError extends Error {
-  // implements REQ-skillopt-codex-optimization
-  readonly name = "CodexOptimizerError";
-}
 
 function parseJson(text: string): unknown {
   try {
@@ -90,16 +41,24 @@ function parseJson(text: string): unknown {
   }
 }
 
-// implements REQ-skillopt-codex-optimization
-export function missingRequiredGuidance(body: string): readonly string[] {
-  return REQUIRED_BODY_GUIDANCE.filter((guidance) => !body.includes(guidance));
-}
-
 function isRepairableOptimizerError(error: CodexOptimizerError): boolean {
   return (
     error.message === "optimizer_output_missing_body" ||
     error.message === "optimizer_output_incomplete_body"
   );
+}
+
+function isRepairableBaselineInsertionError(
+  error: CodexOptimizerError,
+): boolean {
+  return [
+    "optimizer_output_missing_body",
+    "baseline_insertion_paragraph_too_large",
+    "baseline_insertion_multiple_paragraphs",
+    "baseline_insertion_non_paragraph",
+    "baseline_insertion_fence",
+    "baseline_insertion_header",
+  ].includes(error.message);
 }
 
 // implements REQ-skillopt-codex-optimization
@@ -109,17 +68,28 @@ export function parseCodexOptimizerBody(lastMessage: string): string {
     throw new CodexOptimizerError("optimizer_output_missing_body");
   }
   const body = parsed.data.body;
-  validateCandidateBody(body);
-  if (
-    Buffer.byteLength(body, "utf8") < MIN_COMPLETE_BODY_BYTES ||
-    missingRequiredGuidance(body).length > 0
-  ) {
-    throw new CodexOptimizerError("optimizer_output_incomplete_body");
-  }
-  if (REPOSITORY_POLICY_LEAKS.some((pattern) => pattern.test(body))) {
-    throw new CodexOptimizerError("optimizer_output_repository_policy_leak");
-  }
+  validateCompleteCandidateBody(body);
   return body;
+}
+
+// implements REQ-skillopt-codex-optimization
+export function parseBaselineInsertionParagraph(
+  lastMessage: string,
+  plan: BaselineInsertionPlan,
+): string {
+  const parsed = BodySchema.safeParse(parseJson(lastMessage));
+  if (!parsed.success) {
+    throw new CodexOptimizerError("optimizer_output_missing_body");
+  }
+  try {
+    validateBaselineInsertionParagraph(parsed.data.body, plan);
+  } catch (error) {
+    if (error instanceof BaselineInsertionValidationError) {
+      throw new CodexOptimizerError(error.message);
+    }
+    throw error;
+  }
+  return parsed.data.body;
 }
 
 // implements REQ-skillopt-codex-optimization
@@ -152,6 +122,88 @@ export async function persistCodexOptimizerBody(
       step: input.step,
       bodyHash: createHash("sha256").update(input.body, "utf8").digest("hex"),
       bodyBytes: Buffer.byteLength(input.body, "utf8"),
+    })}\n`,
+    { encoding: "utf8", mode: 0o600 },
+  );
+}
+
+// implements REQ-skillopt-codex-optimization
+export async function persistBaselineInsertionArtifacts(
+  artifactRoot: string,
+  sourceWorktree: string,
+  input: Readonly<{
+    runId: string;
+    skill: string;
+    step: number;
+    baselineBody: string;
+    plan: BaselineInsertionPlan;
+    composition: BaselineInsertionComposition;
+  }>,
+): Promise<void> {
+  const acceptedRoot = resolveIsolationArtifactRoot(
+    resolve(artifactRoot, "accepted-output"),
+    sourceWorktree,
+  );
+  await mkdir(acceptedRoot, { recursive: true, mode: 0o700 });
+  await writeFile(
+    join(acceptedRoot, "model-paragraph.md"),
+    input.composition.paragraph,
+    {
+      encoding: "utf8",
+      mode: 0o600,
+    },
+  );
+  await writeFile(join(acceptedRoot, "baseline-body.md"), input.baselineBody, {
+    encoding: "utf8",
+    mode: 0o600,
+  });
+  await writeFile(
+    join(acceptedRoot, "composed-body.md"),
+    input.composition.composedBody,
+    { encoding: "utf8", mode: 0o600 },
+  );
+  await writeFile(
+    join(acceptedRoot, "baseline-insertion-plan.json"),
+    `${JSON.stringify(input.plan)}\n`,
+    { encoding: "utf8", mode: 0o600 },
+  );
+  await writeFile(
+    join(acceptedRoot, "composition-receipt.json"),
+    `${JSON.stringify(input.composition.receipt)}\n`,
+    { encoding: "utf8", mode: 0o600 },
+  );
+  await writeFile(
+    join(acceptedRoot, "receipt.json"),
+    `${JSON.stringify({
+      schemaVersion: "1.0.0",
+      artifactType: "skillopt-accepted-baseline-insertion-output",
+      mode: "baseline-insertion",
+      runId: input.runId,
+      skill: input.skill,
+      step: input.step,
+      bodyKind: "composed",
+      bodyPath: "composed-body.md",
+      modelParagraphPath: "model-paragraph.md",
+      baselineBodyPath: "baseline-body.md",
+      planPath: "baseline-insertion-plan.json",
+      compositionReceiptPath: "composition-receipt.json",
+      bodyHash: input.composition.receipt.composedBodyHash,
+      bodyBytes: input.composition.receipt.composedBodyBytes,
+      modelParagraphHash: input.composition.receipt.paragraphHash,
+      modelParagraphBytes: input.composition.receipt.paragraphBytes,
+      baselineBodyHash: input.composition.receipt.baselineBodyHash,
+      currentBaselineBodyHash:
+        input.composition.receipt.currentBaselineBodyHash,
+      baselineBodyBytes: input.composition.receipt.baselineBodyBytes,
+      frontmatterHash: input.composition.receipt.frontmatterHash,
+      resourcesHash: input.composition.receipt.resourcesHash,
+      headingAnchor: input.composition.receipt.headingAnchor,
+      objectiveHash: input.composition.receipt.objectiveHash,
+      composedBodyHash: input.composition.receipt.composedBodyHash,
+      composedBodyBytes: input.composition.receipt.composedBodyBytes,
+      insertionHash: input.composition.receipt.insertionHash,
+      insertionBytes: input.composition.receipt.insertionBytes,
+      planHash: input.composition.receipt.planHash,
     })}\n`,
     { encoding: "utf8", mode: 0o600 },
   );
@@ -242,8 +294,8 @@ function promptFor(request: SkillOptStepRequest): string {
     "The body must pass candidate safety validation: do not mention OpenCode, Cursor, API keys, or provider SDKs; do not add positive instructions to read, write, edit, modify, access, inspect, or open .kb files.",
     "Do not copy the current body unchanged when it contains prohibited host names or direct .kb guidance.",
     "The candidate is subject to automatic safety and surface checks; never claim that a behavioral evaluation passed.",
-    "Treat the public trajectories as evidence, not text to append. Translate recurring failures, successful tool order, and observed final-state gaps into concise executable guidance.",
-    "Optimize for the paid development gate, not partial-credit wording: a candidate must reach mean >= 0.85, at least 3 hard passes out of 4, and worst-family mean >= 0.75, while improving on the stronger baseline/one-shot comparator. Preserve hard passes and the weakest family when adding prose; a soft-score increase that leaves hard passes unchanged is not an improvement.",
+    "Treat the public trajectories as historical optimization evidence, not text to append or independent evaluator evidence; they are never private or held-out evidence. Translate recurring failures, successful tool order, and observed final-state gaps into concise executable guidance.",
+    "Optimize against the baseline development result, not the one-shot result. Allow partial-score gains: admission is a mean improvement over baseline with no hard-pass or worst-family regression and zero security failures, without absolute mean, hard-pass, or worst-family floors. A soft-score gain without a new hard or family loss is a valid improvement; preserve all required guidance while making that change. One-shot remains diagnostic and may initialize the trainer when stronger; do not discard a winning one-shot.",
     "Do not append trajectory JSON, task IDs, failure-label inventories, scores, or an optimization log to the skill body.",
     "Make clause-complete prose-to-verified-logic modeling a primary workflow, not a passing mention. Require an extraction pass and an adversarial coverage-audit pass with `kb_semantic_advisor`; its `propositions` ledger must bind every assertive span to exact text and UTF-8 byte spans, classify rationale/examples/subjective prose as nonlogical, and mark every other proposition modeled, ambiguous, ontology_gap, or missing. Submit up to three typed `interpretations` when a clause has plausible alternatives; canonical semantic keys and structural comparison must keep materially different meanings unresolved regardless of confidence. For ground scalar claims use strict property facts; for relational claims use `kb_suggest_predicates` and a declared `predicate_schema`; for conditions, exceptions, quantifiers, deontic modalities, cardinality, and bounded temporal relationships use validated `kibi.logic.v1` IR through `kb_model_requirement`, persisted as `fact_kind: rule_schema` plus `fact_kind: rule` and linked with `requires_rule`. Every modeled proposition must preserve its stable `claim_key` and `claim_text` on exactly one ground fact or safe rule, and every key must be merged into `logic_claims`; never let one edge suppress the remaining clauses. Explain the typed IR safety boundary: no raw Prolog, function symbols, goals, cuts, meta-calls, dynamic predicates, I/O, unsafe variables, unstratified negation, or unbounded aggregation. Equivalent claims converge on a canonical semantic key while provenance keys remain auditable. Require `rule-safety`, `rule-verifiability`, `semantic-completeness`, `logic-coverage`, `predicate-verifiability`, and `domain-contradictions`; contradictions include opposing modalities over overlapping context, while unresolved or resource-limited analysis is not evidence of consistency. Never instruct the agent to execute raw prose as Prolog.",
     "Preserve hard lane gates: advisor `nonlogical`/`subjective` propositions remain one observation without a logic claim; `ambiguous` remains an ambiguity observation; `ontology_gap` is unresolved unless an approved schema or validated IR exists. When authorized input supplies `projectLocalSchemas`, create its minimal schema endpoint and rerun predicate lookup after an empty pre-schema lookup; do not let a lookup miss override the supplied schema. Use one complete relation and one claim key, and map `must not`, `never`, `cannot`, and `forbidden` to `polarity: deny` on the positive schema. Never split schema arguments or subjective prose into synthetic clauses, and never downgrade a fitting declared schema to an observation.",
@@ -258,6 +310,42 @@ function promptFor(request: SkillOptStepRequest): string {
   ].join("\n\n");
 }
 
+function baselineInsertionPromptFor(
+  request: SkillOptStepRequest,
+  plan: BaselineInsertionPlan,
+): string {
+  return [
+    "Return one JSON object with exactly one string field named body.",
+    "The body value must be exactly one short prose paragraph, not a replacement skill body.",
+    `Keep the paragraph at or below ${MAX_BASELINE_INSERTION_PARAGRAPH_BYTES} UTF-8 bytes. Do not use a Markdown heading, blank-line paragraph break, fenced code block, indented code, or list.`,
+    "Follow the operator objective as a small, scoped addition to the unchanged baseline. Preserve its existing typed-result recovery. For authorized mutation guidance, preserve the actual supplied target and intended edges, discover and query those targets, validate the same payload, perform the authorized same-payload kb_upsert, and exact-read back the result before final checks. Distinct authorized payloads may require multiple sequential writes; never impose a global one-write limit or retry an already committed mutation.",
+    "Validation is not completion. The operator objective below is prompt-only: use it to guide portable wording, but do not quote or copy it into the paragraph. Do not include fixture IDs, task or run IDs, scores, evaluator/private evidence, or optimization notes in the paragraph. Do not invent arbitrary deletion/replacement operations or user-change anchors. Do not claim behavioral efficacy, evaluation success, or production adoption.",
+    "The paragraph must pass the existing shallow candidate safety and repository-policy checks. Do not mention hosts, provider SDKs, API keys, release policy, or direct .kb access.",
+    `Insertion anchor (host-owned and not model-editable): ${plan.headingAnchor}`,
+    `Operator objective (prompt-only; hash-bound in the receipt): ${plan.objective}`,
+    `Public historical feedback (observations and labelled hypotheses, not current evaluation results; never copy its identifiers into the paragraph):\n${JSON.stringify(request.trainTrajectories)}`,
+    `Current baseline body is supplied for context only; do not rewrite it:\n${request.currentBody}`,
+  ].join("\n\n");
+}
+
+function baselineInsertionRepairPromptFor(
+  request: SkillOptStepRequest,
+  plan: BaselineInsertionPlan,
+  lastMessage: string,
+  error: CodexOptimizerError,
+): string {
+  return [
+    "Return one JSON object with exactly one string field named body.",
+    "Repair output format only. Return exactly one short portable prose paragraph, with no Markdown heading, blank-line paragraph break, fenced or indented code block, or list.",
+    `Keep the paragraph at or below ${MAX_BASELINE_INSERTION_PARAGRAPH_BYTES} UTF-8 bytes. Do not copy fixture, task, run, score, evaluator, private, or optimization metadata; do not change the authorized operation or add arbitrary deletion/replacement operations.`,
+    "Preserve the meaning required by the operator objective and the baseline's typed-result recovery. Validation is not completion of an authorized mutation; apply and read back its corrected payload. Distinct authorized payloads may require multiple sequential writes. Repair formatting without dropping schema/claim distinctions or inventing a global one-write limit.",
+    `Format failure: ${error.message}`,
+    `Previous output:\n${lastMessage}`,
+    `Operator objective (prompt-only; hash-bound in the receipt): ${plan.objective}`,
+    `Current baseline body is context only:\n${request.currentBody}`,
+  ].join("\n\n");
+}
+
 // implements REQ-skillopt-codex-optimization
 export type CodexOptimizerOptions = Readonly<{
   sourceWorktree: string;
@@ -268,7 +356,9 @@ export type CodexOptimizerOptions = Readonly<{
   codexExecutable?: string;
   bwrapExecutable?: string;
   timeoutMs?: number;
+  baselineInsertion?: BaselineInsertionPlan;
 }>;
+export type { BaselineInsertionPlan } from "../baseline-insertion";
 
 export function loginRunForSource(
   sourceWorktree: string,
@@ -293,10 +383,60 @@ export function defaultCodexLoginRun(
   });
 }
 
+type CanonicalSkillSurface = Readonly<{
+  body: string;
+  frontmatterHash: string;
+  resourcesHash: string;
+}>;
+
+async function validateBaselineInsertionSource(
+  options: CodexOptimizerOptions,
+): Promise<CanonicalSkillSurface> {
+  const plan = options.baselineInsertion;
+  if (plan === undefined) {
+    throw new CodexOptimizerError("baseline_insertion_plan_missing");
+  }
+  try {
+    validateBaselineInsertionPlan(plan);
+    // real-workflow imports this runtime, so keep this lookup dynamic to avoid
+    // making the existing optimizer/runtime module cycle static.
+    const { surface } = await import("../real-workflow");
+    const actual = await surface(
+      resolve(options.sourceWorktree),
+      options.request.skill,
+    );
+    if (
+      options.request.currentBody !== actual.body ||
+      sha256Text(options.request.currentBody) !==
+        plan.currentBaselineBodyHash ||
+      sha256Text(actual.body) !== plan.currentBaselineBodyHash ||
+      actual.frontmatterHash !== plan.frontmatterHash ||
+      actual.resourcesHash !== plan.resourcesHash
+    ) {
+      throw new CodexOptimizerError("baseline_insertion_source_changed");
+    }
+    validateBaselineInsertionAnchor(actual.body, plan.headingAnchor);
+    return actual;
+  } catch (error) {
+    if (error instanceof CodexOptimizerError) throw error;
+    if (error instanceof BaselineInsertionValidationError) {
+      throw new CodexOptimizerError(error.message);
+    }
+    throw new CodexOptimizerError(
+      error instanceof Error
+        ? error.message
+        : "baseline_insertion_source_invalid",
+    );
+  }
+}
+
 // implements REQ-skillopt-codex-optimization
 export async function runCodexSkillOptStep(
   options: CodexOptimizerOptions,
 ): Promise<SkillOptStepResult> {
+  if (options.baselineInsertion !== undefined) {
+    await validateBaselineInsertionSource(options);
+  }
   const workspace = await createIsolationWorkspace({
     artifactRoot: resolveIsolationArtifactRoot(
       resolve(options.artifactRoot, "optimizer-runtime"),
@@ -316,208 +456,275 @@ export async function runCodexSkillOptStep(
         run: loginRunForSource(sourceWorktree),
       },
       async (auth) => {
-    const staged = await stageCapabilityCanary(workspace, sourceWorktree, {
-      ...(options.codexExecutable === undefined
-        ? {}
-        : { codexExecutable: options.codexExecutable }),
-      ...(options.bwrapExecutable === undefined
-        ? {}
-        : { systemBwrapExecutable: options.bwrapExecutable }),
-      ...(options.codexExecutable !== undefined &&
-      options.bwrapExecutable !== undefined
-        ? {
-            stagedRuntime: {
-              codexExecutable: options.codexExecutable,
-              bwrapExecutable: options.bwrapExecutable,
-            },
-          }
-        : {}),
-    });
-    // `.runtime` is intentionally read-only inside the Codex sandbox: it
-    // contains the staged executable, broker, and the canary schema. Keep the
-    // optimizer's response contract at the workspace root, whose write access
-    // is explicitly granted by the isolated permission profile. Otherwise the
-    // optimizer can fail before producing a result when Codex tries to open its
-    // response schema/message files through bwrap.
-    const outputSchema = join(
-      workspace.target,
-      ".optimizer-output.schema.json",
-    );
-    const outputLastMessage = join(
-      workspace.target,
-      ".optimizer-output-last-message.json",
-    );
-    await writeFile(
-      outputSchema,
-      JSON.stringify({
-        type: "object",
-        additionalProperties: false,
-        required: ["body"],
-        properties: { body: { type: "string", minLength: 1 } },
-      }),
-      { encoding: "utf8", mode: 0o600 },
-    );
-    await writeFile(outputLastMessage, "", {
-      encoding: "utf8",
-      mode: 0o600,
-    });
-    await writeFile(
-      join(workspace.codexHome, "config.toml"),
-      buildCodexConfig({
-        role: "optimizer",
-        authMode: auth.mode,
-        paths: {
-          workspace: workspace.target,
-          runPrivateHome: workspace.codexHome,
-          realCodexHome: auth.realCodexHome,
-          sourceWorktree,
-          fixtureKb: join(workspace.target, ".kb"),
-          privateScorer: workspace.privateScorer,
-          privateEvidence: workspace.privateEvidence,
-          siblingRuns: workspace.siblingRun,
-        },
-        bwrapExecutable: staged.bwrapExecutable,
-        codexExecutable: staged.codexCommand,
-        mcpServer: staged.mcpServer,
-      }),
-      { encoding: "utf8", mode: 0o600 },
-    );
-    const execArgv = buildCodexExecArgv({
-      codexCommand: staged.codexCommand,
-      workspace: workspace.target,
-      outputSchema,
-      outputLastMessage,
-      role: "optimizer",
-    });
-    const timeoutMs = options.timeoutMs ?? 15 * 60 * 1000;
-    const runAttempt = async (stdin: string) => {
-      await writeFile(outputLastMessage, "", {
-        encoding: "utf8",
-        mode: 0o600,
-      });
-      const result = await runBoundedProcess({
-        argv: execArgv,
-        cwd: workspace.target,
-        env: { ...auth.env, PATH: "/usr/bin:/bin" },
-        timeoutMs,
-        stdin,
-      });
-      const lastMessage = await readFile(outputLastMessage, "utf8").catch(
-        () => "",
-      );
-      return { result, lastMessage };
-    };
-    const interpretAttempt = (
-      result: { exitCode: number; stderr: string },
-      lastMessage: string,
-    ):
-      | { ok: true; body: string; result: { exitCode: number; stderr: string }; lastMessage: string }
-      | {
-          ok: false;
-          error: CodexOptimizerError;
-          result: { exitCode: number; stderr: string };
-          lastMessage: string;
-        } => {
-      if (result.exitCode !== 0) {
-        const stderrTail = result.stderr
-          .trim()
-          .split("\n")
-          .slice(-6)
-          .join(" | ");
-        return {
-          ok: false,
-          error: new CodexOptimizerError(
-            `optimizer_exit:${result.exitCode}${stderrTail ? `:${stderrTail.slice(0, 600)}` : ""}`,
-          ),
-          result,
-          lastMessage,
-        };
-      }
-      try {
-        return {
-          ok: true,
-          body: parseCodexOptimizerBody(lastMessage),
-          result,
-          lastMessage,
-        };
-      } catch (error) {
-        return {
-          ok: false,
-          error:
-            error instanceof CodexOptimizerError
-              ? error
-              : new CodexOptimizerError(
-                  error instanceof Error ? error.message : "optimizer_failed",
-                ),
-          result,
-          lastMessage,
-        };
-      }
-    };
-    const persistFailure = async (
-      attempt: number,
-      error: CodexOptimizerError,
-      result: { exitCode: number; stderr: string },
-      lastMessage: string,
-    ) => {
-      const stderrTail = result.stderr.trim().split("\n").slice(-6).join(" | ");
-      await persistCodexOptimizerFailure(
-        options.artifactRoot,
-        sourceWorktree,
-        {
-          runId: options.runId,
-          skill: options.request.skill,
-          step: options.request.step,
-          attempt,
-          error: error.message,
-          lastMessage,
-          exitCode: result.exitCode,
-          stderrTail: stderrTail.slice(0, 600),
-        },
-      );
-    };
-
-    let attempt = await runAttempt(promptFor(options.request));
-    let interpreted = interpretAttempt(attempt.result, attempt.lastMessage);
-    if (!interpreted.ok) {
-      await persistFailure(
-        1,
-        interpreted.error,
-        interpreted.result,
-        interpreted.lastMessage,
-      );
-      if (isRepairableOptimizerError(interpreted.error)) {
-        attempt = await runAttempt(
-          repairPromptFor(
-            options.request,
-            interpreted.lastMessage,
-            interpreted.error,
-          ),
+        const staged = await stageCapabilityCanary(workspace, sourceWorktree, {
+          ...(options.codexExecutable === undefined
+            ? {}
+            : { codexExecutable: options.codexExecutable }),
+          ...(options.bwrapExecutable === undefined
+            ? {}
+            : { systemBwrapExecutable: options.bwrapExecutable }),
+          ...(options.codexExecutable !== undefined &&
+          options.bwrapExecutable !== undefined
+            ? {
+                stagedRuntime: {
+                  codexExecutable: options.codexExecutable,
+                  bwrapExecutable: options.bwrapExecutable,
+                },
+              }
+            : {}),
+        });
+        // `.runtime` is intentionally read-only inside the Codex sandbox: it
+        // contains the staged executable, broker, and the canary schema. Keep the
+        // optimizer's response contract at the workspace root, whose write access
+        // is explicitly granted by the isolated permission profile. Otherwise the
+        // optimizer can fail before producing a result when Codex tries to open its
+        // response schema/message files through bwrap.
+        const outputSchema = join(
+          workspace.target,
+          ".optimizer-output.schema.json",
         );
-        interpreted = interpretAttempt(attempt.result, attempt.lastMessage);
+        const outputLastMessage = join(
+          workspace.target,
+          ".optimizer-output-last-message.json",
+        );
+        await writeFile(
+          outputSchema,
+          JSON.stringify({
+            type: "object",
+            additionalProperties: false,
+            required: ["body"],
+            properties: {
+              body: {
+                type: "string",
+                minLength: 1,
+                ...(options.baselineInsertion === undefined
+                  ? {}
+                  : { maxLength: MAX_BASELINE_INSERTION_PARAGRAPH_BYTES }),
+              },
+            },
+          }),
+          { encoding: "utf8", mode: 0o600 },
+        );
+        await writeFile(outputLastMessage, "", {
+          encoding: "utf8",
+          mode: 0o600,
+        });
+        await writeFile(
+          join(workspace.codexHome, "config.toml"),
+          buildCodexConfig({
+            role: "optimizer",
+            authMode: auth.mode,
+            paths: {
+              workspace: workspace.target,
+              runPrivateHome: workspace.codexHome,
+              realCodexHome: auth.realCodexHome,
+              sourceWorktree,
+              fixtureKb: join(workspace.target, ".kb"),
+              privateScorer: workspace.privateScorer,
+              privateEvidence: workspace.privateEvidence,
+              siblingRuns: workspace.siblingRun,
+            },
+            bwrapExecutable: staged.bwrapExecutable,
+            codexExecutable: staged.codexCommand,
+            mcpServer: staged.mcpServer,
+          }),
+          { encoding: "utf8", mode: 0o600 },
+        );
+        const execArgv = buildCodexExecArgv({
+          codexCommand: staged.codexCommand,
+          workspace: workspace.target,
+          outputSchema,
+          outputLastMessage,
+          role: "optimizer",
+        });
+        const timeoutMs = options.timeoutMs ?? 15 * 60 * 1000;
+        const runAttempt = async (stdin: string) => {
+          await writeFile(outputLastMessage, "", {
+            encoding: "utf8",
+            mode: 0o600,
+          });
+          const result = await runBoundedProcess({
+            argv: execArgv,
+            cwd: workspace.target,
+            env: { ...auth.env, PATH: "/usr/bin:/bin" },
+            timeoutMs,
+            stdin,
+          });
+          const lastMessage = await readFile(outputLastMessage, "utf8").catch(
+            () => "",
+          );
+          return { result, lastMessage };
+        };
+        const interpretAttempt = (
+          result: { exitCode: number; stderr: string },
+          lastMessage: string,
+        ):
+          | {
+              ok: true;
+              body: string;
+              result: { exitCode: number; stderr: string };
+              lastMessage: string;
+            }
+          | {
+              ok: false;
+              error: CodexOptimizerError;
+              result: { exitCode: number; stderr: string };
+              lastMessage: string;
+            } => {
+          if (result.exitCode !== 0) {
+            const stderrTail = result.stderr
+              .trim()
+              .split("\n")
+              .slice(-6)
+              .join(" | ");
+            return {
+              ok: false,
+              error: new CodexOptimizerError(
+                `optimizer_exit:${result.exitCode}${stderrTail ? `:${stderrTail.slice(0, 600)}` : ""}`,
+              ),
+              result,
+              lastMessage,
+            };
+          }
+          try {
+            return {
+              ok: true,
+              body:
+                options.baselineInsertion === undefined
+                  ? parseCodexOptimizerBody(lastMessage)
+                  : parseBaselineInsertionParagraph(
+                      lastMessage,
+                      options.baselineInsertion,
+                    ),
+              result,
+              lastMessage,
+            };
+          } catch (error) {
+            return {
+              ok: false,
+              error:
+                error instanceof CodexOptimizerError
+                  ? error
+                  : new CodexOptimizerError(
+                      error instanceof Error
+                        ? error.message
+                        : "optimizer_failed",
+                    ),
+              result,
+              lastMessage,
+            };
+          }
+        };
+        const persistFailure = async (
+          attempt: number,
+          error: CodexOptimizerError,
+          result: { exitCode: number; stderr: string },
+          lastMessage: string,
+        ) => {
+          const stderrTail = result.stderr
+            .trim()
+            .split("\n")
+            .slice(-6)
+            .join(" | ");
+          await persistCodexOptimizerFailure(
+            options.artifactRoot,
+            sourceWorktree,
+            {
+              runId: options.runId,
+              skill: options.request.skill,
+              step: options.request.step,
+              attempt,
+              error: error.message,
+              lastMessage,
+              exitCode: result.exitCode,
+              stderrTail: stderrTail.slice(0, 600),
+            },
+          );
+        };
+
+        const initialPrompt =
+          options.baselineInsertion === undefined
+            ? promptFor(options.request)
+            : baselineInsertionPromptFor(
+                options.request,
+                options.baselineInsertion,
+              );
+        let attempt = await runAttempt(initialPrompt);
+        let interpreted = interpretAttempt(attempt.result, attempt.lastMessage);
         if (!interpreted.ok) {
           await persistFailure(
-            2,
+            1,
             interpreted.error,
             interpreted.result,
             interpreted.lastMessage,
           );
-          throw interpreted.error;
+          const repairable =
+            options.baselineInsertion === undefined
+              ? isRepairableOptimizerError(interpreted.error)
+              : isRepairableBaselineInsertionError(interpreted.error);
+          if (repairable) {
+            attempt = await runAttempt(
+              options.baselineInsertion === undefined
+                ? repairPromptFor(
+                    options.request,
+                    interpreted.lastMessage,
+                    interpreted.error,
+                  )
+                : baselineInsertionRepairPromptFor(
+                    options.request,
+                    options.baselineInsertion,
+                    interpreted.lastMessage,
+                    interpreted.error,
+                  ),
+            );
+            interpreted = interpretAttempt(attempt.result, attempt.lastMessage);
+            if (!interpreted.ok) {
+              await persistFailure(
+                2,
+                interpreted.error,
+                interpreted.result,
+                interpreted.lastMessage,
+              );
+              throw interpreted.error;
+            }
+          } else {
+            throw interpreted.error;
+          }
         }
-      } else {
-        throw interpreted.error;
-      }
-    }
-    await persistCodexOptimizerBody(options.artifactRoot, sourceWorktree, {
-      runId: options.runId,
-      skill: options.request.skill,
-      step: options.request.step,
-      body: interpreted.body,
-    });
-    return {
-      body: interpreted.body,
-      development: options.request.previousDevelopment,
-    };
+        if (options.baselineInsertion !== undefined) {
+          const currentSurface = await validateBaselineInsertionSource(options);
+          const composition = composeBaselineInsertion({
+            baselineBody: currentSurface.body,
+            paragraph: interpreted.body,
+            plan: options.baselineInsertion,
+          });
+          await persistBaselineInsertionArtifacts(
+            options.artifactRoot,
+            sourceWorktree,
+            {
+              runId: options.runId,
+              skill: options.request.skill,
+              step: options.request.step,
+              baselineBody: currentSurface.body,
+              plan: options.baselineInsertion,
+              composition,
+            },
+          );
+          return {
+            body: composition.composedBody,
+            development: options.request.previousDevelopment,
+          };
+        }
+        await persistCodexOptimizerBody(options.artifactRoot, sourceWorktree, {
+          runId: options.runId,
+          skill: options.request.skill,
+          step: options.request.step,
+          body: interpreted.body,
+        });
+        return {
+          body: interpreted.body,
+          development: options.request.previousDevelopment,
+        };
       },
     );
   } catch (error) {

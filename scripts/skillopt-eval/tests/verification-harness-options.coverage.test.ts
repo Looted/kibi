@@ -8,9 +8,7 @@ import {
 
 const RUN_ID = "123e4567-e89b-12d3-a456-426614174000";
 
-function argv(
-  overrides: Record<string, string> = {},
-): string[] {
+function argv(overrides: Record<string, string> = {}): string[] {
   const values = {
     skill: "kibi-usage",
     "run-id": RUN_ID,

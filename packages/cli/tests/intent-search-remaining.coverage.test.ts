@@ -40,7 +40,9 @@ function encodeEntities(rows: Record<string, unknown>[]): string {
 describe("intent-search remaining candidate, graph, and related-id branches", () => {
   test("scans facet corpora, caps oversized candidate sets, and loads related graph ids", async () => {
     restores.push(isolateKibiEnv());
-    const related = entity("TEST-RELATED", "Related coverage", { type: "test" });
+    const related = entity("TEST-RELATED", "Related coverage", {
+      type: "test",
+    });
     const seeded = entity("REQ-EXPORT", "Export csv report for operators", {
       tags: ["download"],
     });
@@ -64,7 +66,7 @@ describe("intent-search remaining candidate, graph, and related-id branches", ()
               success: true,
               bindings: {
                 Edges:
-                  "[[implements,REQ-EXPORT,SYM-EXPORT],[covered_by,SYM-EXPORT,TEST-RELATED]]",
+                  "[[implements,'file:///tmp/REQ-EXPORT','kb:entity/SYM-EXPORT'],[covered_by,'kb:entity/SYM-EXPORT','file:///tmp/TEST-RELATED']]",
               },
             };
           }
@@ -104,6 +106,14 @@ describe("intent-search remaining candidate, graph, and related-id branches", ()
       found.matches.some((match) => String(match.entity.id) === "SYM-EXPORT") ||
         found.analysis.candidateCount >= 1,
     ).toBe(true);
+    expect(
+      found.matches.find((match) => String(match.entity.id) === "REQ-EXPORT")
+        ?.evidence.graphPaths,
+    ).toContainEqual({
+      from: "REQ-EXPORT",
+      relationships: ["implements"],
+      to: "SYM-EXPORT",
+    });
 
     const capped = await executeIntentSearch(
       {

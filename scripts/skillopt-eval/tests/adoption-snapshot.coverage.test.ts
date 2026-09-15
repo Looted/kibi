@@ -3,12 +3,6 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
-  AdoptionIntegrityError,
-  type AutoAdoptionInput,
-  type ExternalAdoptionVerdict,
-  type PredicateEligibilityReceipt,
-} from "../adoption-types";
-import {
   canonicalTargetSet,
   deriveAdoptionId,
   loadCanonicalSnapshot,
@@ -18,6 +12,12 @@ import {
   validateExternalAdoptionVerdict,
   validatePredicateEligibility,
 } from "../adoption-snapshot";
+import {
+  AdoptionIntegrityError,
+  type AutoAdoptionInput,
+  type ExternalAdoptionVerdict,
+  type PredicateEligibilityReceipt,
+} from "../adoption-types";
 import { createBaselineVariant, freezeCandidateVariant } from "../variants";
 import {
   approvalArtifacts,
@@ -58,9 +58,10 @@ function eligibilityFor(
       ...((overrides.lineage as object | undefined) ?? {}),
     },
   };
-  const { sealedEvidenceHash: _ignored, ...withoutSeal } = base as typeof base & {
-    sealedEvidenceHash?: string;
-  };
+  const { sealedEvidenceHash: _ignored, ...withoutSeal } =
+    base as typeof base & {
+      sealedEvidenceHash?: string;
+    };
   return {
     ...withoutSeal,
     sealedEvidenceHash:
@@ -71,7 +72,9 @@ function eligibilityFor(
 }
 
 function autoInput(): AutoAdoptionInput {
-  return automaticInput(approvalArtifacts("/unused")) as unknown as AutoAdoptionInput;
+  return automaticInput(
+    approvalArtifacts("/unused"),
+  ) as unknown as AutoAdoptionInput;
 }
 
 describe("adoption-snapshot leftover branches", () => {
@@ -174,7 +177,12 @@ describe("adoption-snapshot leftover branches", () => {
     });
     const verdict = externalVerdict(input);
     await expect(
-      validateExternalAdoptionVerdict(input, undefined, snapshot, async () => true),
+      validateExternalAdoptionVerdict(
+        input,
+        undefined,
+        snapshot,
+        async () => true,
+      ),
     ).rejects.toThrow(/external adoption verdict is required/);
     await expect(
       validateExternalAdoptionVerdict(input, verdict, snapshot, undefined),
@@ -220,7 +228,12 @@ describe("adoption-snapshot leftover branches", () => {
       ),
     ).rejects.toThrow(/target set mismatch/);
     await expect(
-      validateExternalAdoptionVerdict(input, verdict, snapshot, async () => false),
+      validateExternalAdoptionVerdict(
+        input,
+        verdict,
+        snapshot,
+        async () => false,
+      ),
     ).rejects.toThrow(/verdict rejected/);
 
     const candidatePreimage: ExternalAdoptionVerdict = {

@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { z } from "zod";
 
 // implements REQ-skillopt-codex-optimization
@@ -85,6 +85,71 @@ function terminateChild(
   child.kill(signal);
 }
 
+const PROCESS_TREE_DISCOVERY_TIMEOUT_MS = 100;
+const PROCESS_TREE_DISCOVERY_MAX_BUFFER = 1024 * 1024;
+
+// Inherited groups may contain the bridge, so terminate only this child's tree.
+function descendantPids(pid: number, killGraceMs: number): readonly number[] {
+  try {
+    const listing = execFileSync("ps", ["-eo", "pid=,ppid="], {
+      encoding: "utf8",
+      timeout: Math.max(
+        1,
+        Math.min(killGraceMs, PROCESS_TREE_DISCOVERY_TIMEOUT_MS),
+      ),
+      maxBuffer: PROCESS_TREE_DISCOVERY_MAX_BUFFER,
+    });
+    const childrenByParent = new Map<number, number[]>();
+    for (const line of listing.split("\n")) {
+      const match = /^\s*(\d+)\s+(\d+)\s*$/.exec(line);
+      if (match === null) continue;
+      const [, childPidText, parentPidText] = match;
+      if (childPidText === undefined || parentPidText === undefined) continue;
+      const childPid = Number.parseInt(childPidText, 10);
+      const parentPid = Number.parseInt(parentPidText, 10);
+      const children = childrenByParent.get(parentPid) ?? [];
+      children.push(childPid);
+      childrenByParent.set(parentPid, children);
+    }
+
+    const descendants: number[] = [];
+    const pending = [pid];
+    for (let index = 0; index < pending.length; index += 1) {
+      const parentPid = pending[index];
+      if (parentPid === undefined) continue;
+      for (const childPid of childrenByParent.get(parentPid) ?? []) {
+        pending.push(childPid);
+        descendants.push(childPid);
+      }
+    }
+    return descendants.reverse();
+  } catch {
+    return [];
+  }
+}
+
+function terminateProcess(pid: number, signal: NodeJS.Signals): void {
+  try {
+    process.kill(pid, signal);
+  } catch (error) {
+    if (
+      !(error instanceof Error && "code" in error && error.code === "ESRCH")
+    ) {
+      throw error;
+    }
+  }
+}
+
+function terminateInheritedTree(
+  child: ReturnType<typeof spawn>,
+  signal: NodeJS.Signals,
+  descendantPidsToTerminate: readonly number[],
+): void {
+  for (const descendantPid of descendantPidsToTerminate)
+    terminateProcess(descendantPid, signal);
+  terminateChild(child, signal);
+}
+
 // implements REQ-skillopt-codex-optimization
 export function runBoundedProcess(
   options: ProcessOptions,
@@ -107,12 +172,16 @@ export function runBoundedProcess(
     const beginTermination = (kind: "timeout" | "interrupted"): void => {
       if (terminalKind !== null || child.pid === undefined) return;
       terminalKind = kind;
+      const inheritedDescendantPids = ownsGroup
+        ? []
+        : descendantPids(child.pid, killGraceMs);
       if (ownsGroup) terminateGroup(child.pid, "SIGTERM");
-      else terminateChild(child, "SIGTERM");
+      else terminateInheritedTree(child, "SIGTERM", inheritedDescendantPids);
       killTimer = setTimeout(() => {
-        if (child.pid === undefined) return;
-        if (ownsGroup) terminateGroup(child.pid, "SIGKILL");
-        else terminateChild(child, "SIGKILL");
+        if (ownsGroup) {
+          if (child.pid !== undefined) terminateGroup(child.pid, "SIGKILL");
+        } else
+          terminateInheritedTree(child, "SIGKILL", inheritedDescendantPids);
       }, killGraceMs);
     };
     const interrupt = (): void => beginTermination("interrupted");

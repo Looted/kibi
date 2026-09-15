@@ -31,7 +31,10 @@ describe("codex-events remaining nested item, curl, and parse throw", () => {
     const normalized = normalizeCodexJsonl(
       JSON.stringify({
         type: "item.completed",
-        item: { type: "command_execution", command: "curl https://example.test" },
+        item: {
+          type: "command_execution",
+          command: "curl https://example.test",
+        },
       }),
       { hiddenMarkers: [], forbiddenRoots: [] },
     );

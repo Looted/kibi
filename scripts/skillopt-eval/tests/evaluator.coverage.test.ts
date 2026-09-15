@@ -29,7 +29,9 @@ function manifestFor(objectiveCode: string) {
   return {
     task,
     manifest: buildPrivateManifest({
-      task: task as unknown as Parameters<typeof buildPrivateManifest>[0]["task"],
+      task: task as unknown as Parameters<
+        typeof buildPrivateManifest
+      >[0]["task"],
       publicManifestHash: "a".repeat(64),
       workspaceHash: "b".repeat(64),
     }),
@@ -39,14 +41,16 @@ function manifestFor(objectiveCode: string) {
 describe("buildPrivateManifest remaining required-tool and workflow branches", () => {
   test("sequences ingest, inspect, delete, migration, and read-only tool lists", () => {
     const ingest = manifestFor("contracted_e2e_with_ontology_gap").manifest;
-    expect(ingest.orderedMcpPredicates.required.map(({ tool }) => tool)).toEqual(
+    expect(
+      ingest.orderedMcpPredicates.required.map(({ tool }) => tool),
+    ).toEqual(
       expect.arrayContaining(["kb_ingest_proof", "kb_coverage", "kb_check"]),
     );
 
     const inspect = manifestFor("unchanged_snapshot_receipt_reuse").manifest;
-    expect(inspect.orderedMcpPredicates.required.map(({ tool }) => tool)).toEqual(
-      expect.arrayContaining(["kb_status", "kb_coverage", "kb_check"]),
-    );
+    expect(
+      inspect.orderedMcpPredicates.required.map(({ tool }) => tool),
+    ).toEqual(expect.arrayContaining(["kb_status", "kb_coverage", "kb_check"]));
     expect(
       inspect.orderedMcpPredicates.required.some(
         ({ tool }) => tool === "kb_ingest_proof",
@@ -55,7 +59,9 @@ describe("buildPrivateManifest remaining required-tool and workflow branches", (
 
     const deleted = manifestFor("relationship_shard_delete").manifest;
     expect(
-      deleted.orderedMcpPredicates.required.some(({ tool }) => tool === "kb_delete"),
+      deleted.orderedMcpPredicates.required.some(
+        ({ tool }) => tool === "kb_delete",
+      ),
     ).toBe(true);
     expect(
       deleted.orderedMcpPredicates.forbidden.some(
@@ -64,7 +70,9 @@ describe("buildPrivateManifest remaining required-tool and workflow branches", (
     ).toBe(false);
 
     const migration = manifestFor("legacy_branch_storage").manifest;
-    expect(migration.orderedMcpPredicates.required.map(({ tool }) => tool)).toEqual(
+    expect(
+      migration.orderedMcpPredicates.required.map(({ tool }) => tool),
+    ).toEqual(
       expect.arrayContaining(["kb_status", "kb_apply_plan", "kb_check"]),
     );
 
@@ -117,17 +125,17 @@ describe("buildPrivateManifest remaining required-tool and workflow branches", (
       workspaceHash: "b".repeat(64),
     });
     expect(manifest.predicateExpectation).not.toBeNull();
-    expect(manifest.orderedMcpPredicates.required.map(({ tool }) => tool)).toEqual(
-      [
-        "kb_search",
-        "kb_query",
-        "kb_semantic_advisor",
-        "kb_suggest_predicates",
-        "kb_model_requirement",
-        "kb_upsert",
-        "kb_check",
-      ],
-    );
+    expect(
+      manifest.orderedMcpPredicates.required.map(({ tool }) => tool),
+    ).toEqual([
+      "kb_search",
+      "kb_query",
+      "kb_semantic_advisor",
+      "kb_suggest_predicates",
+      "kb_model_requirement",
+      "kb_upsert",
+      "kb_check",
+    ]);
     expect(blindedVariantOrder(predicate.id, predicate.skill)).toHaveLength(3);
   });
 
@@ -148,8 +156,14 @@ describe("buildPrivateManifest remaining required-tool and workflow branches", (
 
   test("covers leftover skill, receipt, delete, and fixture-setup builders", () => {
     const approved = manifestFor("approved_plan_apply").manifest;
-    expect(approved.orderedMcpPredicates.required.map(({ tool }) => tool)).toEqual(
-      expect.arrayContaining(["kb_plan_bootstrap", "kb_apply_plan", "kb_check"]),
+    expect(
+      approved.orderedMcpPredicates.required.map(({ tool }) => tool),
+    ).toEqual(
+      expect.arrayContaining([
+        "kb_plan_bootstrap",
+        "kb_apply_plan",
+        "kb_check",
+      ]),
     );
     expect(approved.workflowExpectation?.expectedOutcome).toBe("complete");
 
@@ -157,9 +171,9 @@ describe("buildPrivateManifest remaining required-tool and workflow branches", (
     expect(repair.workflowExpectation?.expectedOutcome).toBe("blocked");
 
     const freshness = manifestFor("recover_stale_state").manifest;
-    expect(freshness.orderedMcpPredicates.required.map(({ tool }) => tool)).toEqual(
-      expect.arrayContaining(["kb_status", "kb_query", "kb_check"]),
-    );
+    expect(
+      freshness.orderedMcpPredicates.required.map(({ tool }) => tool),
+    ).toEqual(expect.arrayContaining(["kb_status", "kb_query", "kb_check"]));
     expect(freshness.fixtureSetup).toBe("seeded_stale_kb");
 
     const trace = manifestFor("discover_requirement").manifest;
@@ -174,7 +188,9 @@ describe("buildPrivateManifest remaining required-tool and workflow branches", (
       ),
     ).toBe(false);
 
-    const ingest = manifestFor("final_integration_invalidates_receipts").manifest;
+    const ingest = manifestFor(
+      "final_integration_invalidates_receipts",
+    ).manifest;
     expect(
       ingest.orderedMcpPredicates.required.some(
         ({ tool }) => tool === "kb_ingest_proof",
@@ -183,22 +199,26 @@ describe("buildPrivateManifest remaining required-tool and workflow branches", (
 
     const deleted = manifestFor("legacy_shard_edge_cleanup").manifest;
     expect(
-      deleted.orderedMcpPredicates.required.some(({ tool }) => tool === "kb_delete"),
+      deleted.orderedMcpPredicates.required.some(
+        ({ tool }) => tool === "kb_delete",
+      ),
     ).toBe(true);
 
     const bundle = buildBundleCatalog()[0];
     if (bundle === undefined) throw new Error("bundle fixture missing");
     const bundleManifest = buildPrivateManifest({
-      task: bundle as unknown as Parameters<typeof buildPrivateManifest>[0]["task"],
+      task: bundle as unknown as Parameters<
+        typeof buildPrivateManifest
+      >[0]["task"],
       publicManifestHash: "a".repeat(64),
       workspaceHash: "b".repeat(64),
     });
     expect(
       bundleManifest.orderedMcpPredicates.required.map(({ tool }) => tool),
     ).toEqual(expect.arrayContaining(["kb_plan_bootstrap", "kb_search"]));
-    expect(verifyPrivateManifestIntegrity(bundle as never, bundleManifest as never)).toBe(
-      true,
-    );
+    expect(
+      verifyPrivateManifestIntegrity(bundle as never, bundleManifest as never),
+    ).toBe(true);
 
     const predicate = [...buildPublicCatalog(), ...buildHeldOutCatalog()].find(
       (task) => task.family === "fact-predicate-modeling",

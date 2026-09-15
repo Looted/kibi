@@ -40,6 +40,7 @@ const roots: string[] = [];
 const restores: Array<() => void> = [];
 const baselineSigterm = process.listeners("SIGTERM").slice();
 const baselineSigint = process.listeners("SIGINT").slice();
+const baselineNodeEnv = process.env.NODE_ENV;
 
 function tempRoot(prefix = "kibi-engine-remain-"): string {
   const root = mkdtempSync(path.join(tmpdir(), prefix));
@@ -77,6 +78,10 @@ function restoreProcessSignals(): void {
   for (const listener of baselineSigint) {
     process.on("SIGINT", listener as (...args: unknown[]) => void);
   }
+}
+
+function expectNodeEnvRestored(): void {
+  expect(process.env.NODE_ENV).toBe(baselineNodeEnv);
 }
 
 function frame(value: unknown): Buffer {
@@ -125,6 +130,16 @@ async function waitForSocket(
   if (!existsSync(socketPath)) {
     throw new Error(`engine socket never appeared: ${socketPath}`);
   }
+}
+
+async function waitForExitCall(exit: {
+  mock: { calls: unknown[][] };
+}): Promise<void> {
+  const deadline = Date.now() + 8_000;
+  while (exit.mock.calls.length === 0 && Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+  expect(exit).toHaveBeenCalled();
 }
 
 function mockPrologForDaemon(
@@ -178,6 +193,7 @@ async function listenSocket(socketPath: string): Promise<net.Server> {
 
 afterEach(() => {
   for (const restore of restores.splice(0)) restore();
+  expectNodeEnvRestored();
   restoreProcessSignals();
   for (const root of roots.splice(0)) {
     rmSync(root, { recursive: true, force: true });
@@ -193,10 +209,12 @@ describe("engine remaining: runtime directory and lock recovery", () => {
     const previousRuntime = process.env.KIBI_RUNTIME_DIR;
     process.env.KIBI_RUNTIME_DIR = blocked;
     restores.push(() =>
-      (restoreEnv as unknown as (name: string, value: string | undefined) => void)(
-        "KIBI_RUNTIME_DIR",
-        previousRuntime,
-      ),
+      (
+        restoreEnv as unknown as (
+          name: string,
+          value: string | undefined,
+        ) => void
+      )("KIBI_RUNTIME_DIR", previousRuntime),
     );
     const root = tempRoot();
     const socket = engineSocketPath(root, "main");
@@ -210,10 +228,12 @@ describe("engine remaining: runtime directory and lock recovery", () => {
     const previousRuntime = process.env.KIBI_RUNTIME_DIR;
     process.env.KIBI_RUNTIME_DIR = path.join(tempRoot(), "missing-runtime");
     restores.push(() =>
-      (restoreEnv as unknown as (name: string, value: string | undefined) => void)(
-        "KIBI_RUNTIME_DIR",
-        previousRuntime,
-      ),
+      (
+        restoreEnv as unknown as (
+          name: string,
+          value: string | undefined,
+        ) => void
+      )("KIBI_RUNTIME_DIR", previousRuntime),
     );
     const mkdir = spyOn(fs, "mkdirSync").mockImplementation(() => {
       throw new Error("mkdir denied");
@@ -322,10 +342,12 @@ describe("engine remaining: runtime directory and lock recovery", () => {
     const previousNode = process.env.KIBI_NODE_PATH;
     process.env.KIBI_NODE_PATH = path.join(root, "missing-node");
     restores.push(() =>
-      (restoreEnv as unknown as (name: string, value: string | undefined) => void)(
-        "KIBI_NODE_PATH",
-        previousNode,
-      ),
+      (
+        restoreEnv as unknown as (
+          name: string,
+          value: string | undefined,
+        ) => void
+      )("KIBI_NODE_PATH", previousNode),
     );
     const client = new EngineClient({
       workspaceRoot: root,
@@ -384,10 +406,12 @@ exit 1
     const previousNode = process.env.KIBI_NODE_PATH;
     process.env.KIBI_NODE_PATH = fakeNode;
     restores.push(() =>
-      (restoreEnv as unknown as (name: string, value: string | undefined) => void)(
-        "KIBI_NODE_PATH",
-        previousNode,
-      ),
+      (
+        restoreEnv as unknown as (
+          name: string,
+          value: string | undefined,
+        ) => void
+      )("KIBI_NODE_PATH", previousNode),
     );
     const client = new EngineClient({
       workspaceRoot: root,
@@ -441,10 +465,12 @@ exit 1
     const previousNode = process.env.KIBI_NODE_PATH;
     process.env.KIBI_NODE_PATH = path.join(root, "no-such-node");
     restores.push(() =>
-      (restoreEnv as unknown as (name: string, value: string | undefined) => void)(
-        "KIBI_NODE_PATH",
-        previousNode,
-      ),
+      (
+        restoreEnv as unknown as (
+          name: string,
+          value: string | undefined,
+        ) => void
+      )("KIBI_NODE_PATH", previousNode),
     );
     const spawnClient = new EngineClient({
       workspaceRoot: root,
@@ -464,10 +490,7 @@ exit 1
     const server = net.createServer((socket) => {
       let buffer = Buffer.alloc(0);
       socket.on("data", (chunk) => {
-        buffer = Buffer.concat([
-          buffer,
-          chunk as unknown as Uint8Array,
-        ]);
+        buffer = Buffer.concat([buffer, chunk as unknown as Uint8Array]);
         while (buffer.length >= 4) {
           const length = buffer.readUInt32BE(0);
           if (buffer.length < length + 4) return;
@@ -529,9 +552,8 @@ exit 1
         client.query("kb_entity(_, _, _)", controller.signal),
       ).rejects.toThrow(/cancelled|request failed/);
 
-      const socket = (
-        client as unknown as { socket: net.Socket | null }
-      ).socket;
+      const socket = (client as unknown as { socket: net.Socket | null })
+        .socket;
       if (socket) {
         socket.write = (() => {
           throw new Error("peer reset");
@@ -566,10 +588,12 @@ exit 1
     const previousNode = process.env.KIBI_NODE_PATH;
     process.env.KIBI_NODE_PATH = path.join(root, "missing-node");
     restores.push(() =>
-      (restoreEnv as unknown as (name: string, value: string | undefined) => void)(
-        "KIBI_NODE_PATH",
-        previousNode,
-      ),
+      (
+        restoreEnv as unknown as (
+          name: string,
+          value: string | undefined,
+        ) => void
+      )("KIBI_NODE_PATH", previousNode),
     );
     const client = new EngineClient({
       workspaceRoot: root,
@@ -637,7 +661,10 @@ describe("engine remaining: journal recovery and migration", () => {
       from: fs.PathLike,
       to: fs.PathLike,
     ) => {
-      if (String(from).includes("rdf.old") || String(from).includes("CURRENT.old")) {
+      if (
+        String(from).includes("rdf.old") ||
+        String(from).includes("CURRENT.old")
+      ) {
         throw new Error("rename busy");
       }
       return originalRename(from, to);
@@ -699,12 +726,11 @@ describe("engine remaining: journal recovery and migration", () => {
     restores.push(restoreEnv);
     const previousNodeEnv = process.env.NODE_ENV;
     process.env.NODE_ENV = "production";
-    restores.push(() =>
-      (restoreEnv as unknown as (name: string, value: string | undefined) => void)(
-        "NODE_ENV",
-        previousNodeEnv,
-      ),
-    );
+    restores.push(() => {
+      if (previousNodeEnv === undefined)
+        Reflect.deleteProperty(process.env, "NODE_ENV");
+      else process.env.NODE_ENV = previousNodeEnv;
+    });
     const root = tempRoot();
     const store = path.join(root, "legacy");
     mkdirSync(store, { recursive: true });
@@ -719,10 +745,12 @@ describe("engine remaining: journal recovery and migration", () => {
       PrologProcess.prototype,
       "terminate",
     ).mockResolvedValue(undefined);
-    const query = spyOn(PrologProcess.prototype, "query").mockResolvedValueOnce({
-      success: false,
-      bindings: {},
-    });
+    const query = spyOn(PrologProcess.prototype, "query").mockResolvedValueOnce(
+      {
+        success: false,
+        bindings: {},
+      },
+    );
     restores.push(() => {
       start.mockRestore();
       terminate.mockRestore();
@@ -865,357 +893,352 @@ describe("engine remaining: in-process daemon error and signal paths", () => {
         setTimeout(() => reject(new Error("idle shutdown stalled")), 8_000),
       ),
     ]);
-    await new Promise((resolve) => setTimeout(resolve, 80));
-    expect(exit).toHaveBeenCalled();
+    await waitForExitCall(exit);
   });
 
-  test(
-    "serves remaining command, cache, mismatch, and overflow branches",
-    async () => {
-      const restoreEnv = isolateKibiEnv();
-      restores.push(restoreEnv, isolateRuntime());
-      const exit = spyOn(process, "exit").mockImplementation((() => {
-        return undefined as never;
-      }) as typeof process.exit);
-      restores.push(() => exit.mockRestore());
-      process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS = "100";
-      process.env.KIBI_PACKAGE_VERSIONS = "server-packages";
-      const root = tempRoot();
-      ensureBranchStoreManifest(root, "main");
-      await ensureJournaledBranchStoreAsync(branchStorePath(root, "main"));
-      const socketPath = engineSocketPath(root, "main");
-      const restore = mockPrologForDaemon(async (goal) => {
-        if (goal.includes("kb_search_entities") && goal.includes("fail-search")) {
-          return { success: false, bindings: {} };
-        }
-        if (goal.includes("kb_query_entities") && goal.includes("REQ-FAIL")) {
-          return { success: false, bindings: {} };
-        }
-        if (goal.includes("broken-status")) {
-          return { success: true, bindings: { JsonString: "not-json" } };
-        }
-        if (goal.includes("kb_status_json")) {
-          return {
-            success: true,
-            bindings: {
-              JsonString: JSON.stringify(JSON.stringify({ branch: "other" })),
-            },
-          };
-        }
-        if (goal.includes("kb_entity(")) {
-          return { success: true, bindings: { X: "1" } };
-        }
-        if (goal.includes("kb_assert_entity")) {
-          return { success: true, bindings: {} };
-        }
-        if (goal.includes("kb_save") || goal.includes("kb_storage")) {
-          return { success: false, bindings: {}, error: "save skipped" };
-        }
-        return { success: true, bindings: { Rows: "[]", Count: "abc" } };
-      });
-      restores.push(restore);
-      const chmod = spyOn(fs, "chmodSync").mockImplementation(() => {
-        throw new Error("chmod unsupported");
-      });
-      restores.push(() => chmod.mockRestore());
+  test("serves remaining command, cache, mismatch, and overflow branches", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv, isolateRuntime());
+    const exit = spyOn(process, "exit").mockImplementation((() => {
+      return undefined as never;
+    }) as typeof process.exit);
+    restores.push(() => exit.mockRestore());
+    process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS = "100";
+    process.env.KIBI_PACKAGE_VERSIONS = "server-packages";
+    const root = tempRoot();
+    ensureBranchStoreManifest(root, "main");
+    await ensureJournaledBranchStoreAsync(branchStorePath(root, "main"));
+    const socketPath = engineSocketPath(root, "main");
+    const restore = mockPrologForDaemon(async (goal) => {
+      if (goal.includes("kb_search_entities") && goal.includes("fail-search")) {
+        return { success: false, bindings: {} };
+      }
+      if (goal.includes("kb_query_entities") && goal.includes("REQ-FAIL")) {
+        return { success: false, bindings: {} };
+      }
+      if (goal.includes("broken-status")) {
+        return { success: true, bindings: { JsonString: "not-json" } };
+      }
+      if (goal.includes("kb_status_json")) {
+        return {
+          success: true,
+          bindings: {
+            JsonString: JSON.stringify(JSON.stringify({ branch: "other" })),
+          },
+        };
+      }
+      if (goal.includes("kb_entity(")) {
+        return { success: true, bindings: { X: "1" } };
+      }
+      if (goal.includes("kb_assert_entity")) {
+        return { success: true, bindings: {} };
+      }
+      if (goal.includes("kb_save") || goal.includes("kb_storage")) {
+        return { success: false, bindings: {}, error: "save skipped" };
+      }
+      return { success: true, bindings: { Rows: "[]", Count: "abc" } };
+    });
+    restores.push(restore);
+    const chmod = spyOn(fs, "chmodSync").mockImplementation(() => {
+      throw new Error("chmod unsupported");
+    });
+    restores.push(() => chmod.mockRestore());
 
-      const daemon = runEngineDaemon({
-        workspaceRoot: root,
-        branch: "main",
-        socketPath,
-      });
-      await waitForSocket(socketPath);
-      expect(existsSync(enginePidPath(root, "main"))).toBe(true);
+    const daemon = runEngineDaemon({
+      workspaceRoot: root,
+      branch: "main",
+      socketPath,
+    });
+    await waitForSocket(socketPath);
+    expect(existsSync(enginePidPath(root, "main"))).toBe(true);
 
-      const identity = {
-        id: 1,
-        protocolVersion: ENGINE_PROTOCOL_VERSION,
-        packageVersions: "server-packages",
-        workspaceRoot: root,
-        branch: "main",
-      };
+    const identity = {
+      id: 1,
+      protocolVersion: ENGINE_PROTOCOL_VERSION,
+      packageVersions: "server-packages",
+      workspaceRoot: root,
+      branch: "main",
+    };
 
-      expect(
-        String(
-          (
-            await rawEngineRequest(socketPath, {
-              ...identity,
-              id: 2,
-              method: "status",
-              protocolVersion: undefined,
-            })
-          ).error,
-        ),
-      ).toContain("protocol mismatch");
-      expect(
-        String(
-          (
-            await rawEngineRequest(socketPath, {
-              ...identity,
-              id: 3,
-              method: "status",
-              packageVersions: "other-packages",
-            })
-          ).error,
-        ),
-      ).toContain("package-version mismatch");
-      expect(
-        String(
-          (
-            await rawEngineRequest(socketPath, {
-              ...identity,
-              id: 4,
-              method: "status",
-              branch: "other",
-            })
-          ).error,
-        ),
-      ).toContain("workspace identity mismatch");
-
-      expect(
+    expect(
+      String(
         (
           await rawEngineRequest(socketPath, {
             ...identity,
-            id: 5,
-            method: "kbStatus",
+            id: 2,
+            method: "status",
+            protocolVersion: undefined,
           })
-        ).ok,
-      ).toBe(true);
-      expect(
+        ).error,
+      ),
+    ).toContain("protocol mismatch");
+    expect(
+      String(
         (
           await rawEngineRequest(socketPath, {
             ...identity,
-            id: 6,
-            method: "kbStatus",
+            id: 3,
+            method: "status",
+            packageVersions: "other-packages",
           })
-        ).ok,
-      ).toBe(true);
-
-      expect(
-        String(
-          (
-            await rawEngineRequest(socketPath, {
-              ...identity,
-              id: 7,
-              method: "command",
-            })
-          ).error,
-        ),
-      ).toContain("version 1");
-      expect(
-        String(
-          (
-            await rawEngineRequest(socketPath, {
-              ...identity,
-              id: 8,
-              method: "command",
-              command: { version: 2, kind: "status" },
-            })
-          ).error,
-        ),
-      ).toContain("version 1");
-      expect(
-        String(
-          (
-            await rawEngineRequest(socketPath, {
-              ...identity,
-              id: 9,
-              method: "command",
-              command: { version: 1, kind: "nope" },
-            })
-          ).error,
-        ),
-      ).toContain("unsupported");
-      expect(
-        String(
-          (
-            await rawEngineRequest(socketPath, {
-              ...identity,
-              id: 10,
-              method: "export",
-            })
-          ).error,
-        ),
-      ).toContain("targetDirectory");
-      expect(
+        ).error,
+      ),
+    ).toContain("package-version mismatch");
+    expect(
+      String(
         (
           await rawEngineRequest(socketPath, {
             ...identity,
-            id: 11,
-            method: "cancel",
+            id: 4,
+            method: "status",
+            branch: "other",
           })
-        ).result,
-      ).toEqual({ cancelled: null });
-      expect(
-        String(
-          (
-            await rawEngineRequest(socketPath, {
-              ...identity,
-              id: 12,
-              method: "query",
-            })
-          ).error,
-        ),
-      ).toContain("query.goal must be a string");
+        ).error,
+      ),
+    ).toContain("workspace identity mismatch");
 
-      const quoted = await rawEngineRequest(socketPath, {
-        ...identity,
-        id: 13,
-        method: "query",
-        goal: "true % halt(\n/* abort( */",
-      });
-      expect(quoted.ok).toBe(true);
-      const escaped = await rawEngineRequest(socketPath, {
-        ...identity,
-        id: 14,
-        method: "query",
-        goal: "kb_entity('it\\'s', \"halt(\", `shell(`)",
-      });
-      expect(escaped.ok).toBe(true);
-      const doubled = await rawEngineRequest(socketPath, {
-        ...identity,
-        id: 15,
-        method: "query",
-        goal: "kb_entity('halt(''x'')', _, _)",
-      });
-      expect(doubled.ok).toBe(true);
+    expect(
+      (
+        await rawEngineRequest(socketPath, {
+          ...identity,
+          id: 5,
+          method: "kbStatus",
+        })
+      ).ok,
+    ).toBe(true);
+    expect(
+      (
+        await rawEngineRequest(socketPath, {
+          ...identity,
+          id: 6,
+          method: "kbStatus",
+        })
+      ).ok,
+    ).toBe(true);
 
-      await rawEngineRequest(socketPath, {
-        ...identity,
-        id: 16,
-        method: "query",
-        goal: "kb_entity('REQ-CACHE', _, _)",
-      });
-      await rawEngineRequest(socketPath, {
-        ...identity,
-        id: 16,
-        method: "query",
-        goal: "kb_entity('REQ-CACHE', _, _)",
-      });
-      await rawEngineRequest(socketPath, {
-        ...identity,
-        id: 17,
-        method: "query",
-        goal:
-          "kb_assert_entity(req, [id='REQ-MUT', title=\"m\", status=open, created_at=\"2026-01-01T00:00:00Z\", updated_at=\"2026-01-01T00:00:00Z\", source=\"t\"])",
-      });
-      await rawEngineRequest(socketPath, {
-        ...identity,
-        id: 18,
-        method: "query",
-        goal: "kb_storage_status(Status)",
-      });
-      await rawEngineRequest(socketPath, {
-        ...identity,
-        id: 19,
-        method: "query",
-        goal: "(true)",
-      });
-
-      expect(
+    expect(
+      String(
         (
           await rawEngineRequest(socketPath, {
             ...identity,
-            id: 20,
-            method: "entities",
-            limit: 2,
+            id: 7,
+            method: "command",
+          })
+        ).error,
+      ),
+    ).toContain("version 1");
+    expect(
+      String(
+        (
+          await rawEngineRequest(socketPath, {
+            ...identity,
+            id: 8,
+            method: "command",
+            command: { version: 2, kind: "status" },
+          })
+        ).error,
+      ),
+    ).toContain("version 1");
+    expect(
+      String(
+        (
+          await rawEngineRequest(socketPath, {
+            ...identity,
+            id: 9,
+            method: "command",
+            command: { version: 1, kind: "nope" },
+          })
+        ).error,
+      ),
+    ).toContain("unsupported");
+    expect(
+      String(
+        (
+          await rawEngineRequest(socketPath, {
+            ...identity,
+            id: 10,
+            method: "export",
+          })
+        ).error,
+      ),
+    ).toContain("targetDirectory");
+    expect(
+      (
+        await rawEngineRequest(socketPath, {
+          ...identity,
+          id: 11,
+          method: "cancel",
+        })
+      ).result,
+    ).toEqual({ cancelled: null });
+    expect(
+      String(
+        (
+          await rawEngineRequest(socketPath, {
+            ...identity,
+            id: 12,
+            method: "query",
+          })
+        ).error,
+      ),
+    ).toContain("query.goal must be a string");
+
+    const quoted = await rawEngineRequest(socketPath, {
+      ...identity,
+      id: 13,
+      method: "query",
+      goal: "true % halt(\n/* abort( */",
+    });
+    expect(quoted.ok).toBe(true);
+    const escaped = await rawEngineRequest(socketPath, {
+      ...identity,
+      id: 14,
+      method: "query",
+      goal: "kb_entity('it\\'s', \"halt(\", `shell(`)",
+    });
+    expect(escaped.ok).toBe(true);
+    const doubled = await rawEngineRequest(socketPath, {
+      ...identity,
+      id: 15,
+      method: "query",
+      goal: "kb_entity('halt(''x'')', _, _)",
+    });
+    expect(doubled.ok).toBe(true);
+
+    await rawEngineRequest(socketPath, {
+      ...identity,
+      id: 16,
+      method: "query",
+      goal: "kb_entity('REQ-CACHE', _, _)",
+    });
+    await rawEngineRequest(socketPath, {
+      ...identity,
+      id: 16,
+      method: "query",
+      goal: "kb_entity('REQ-CACHE', _, _)",
+    });
+    await rawEngineRequest(socketPath, {
+      ...identity,
+      id: 17,
+      method: "query",
+      goal: 'kb_assert_entity(req, [id=\'REQ-MUT\', title="m", status=open, created_at="2026-01-01T00:00:00Z", updated_at="2026-01-01T00:00:00Z", source="t"])',
+    });
+    await rawEngineRequest(socketPath, {
+      ...identity,
+      id: 18,
+      method: "query",
+      goal: "kb_storage_status(Status)",
+    });
+    await rawEngineRequest(socketPath, {
+      ...identity,
+      id: 19,
+      method: "query",
+      goal: "(true)",
+    });
+
+    expect(
+      (
+        await rawEngineRequest(socketPath, {
+          ...identity,
+          id: 20,
+          method: "entities",
+          limit: 2,
+          offset: 0,
+        })
+      ).ok,
+    ).toBe(true);
+    expect(
+      String(
+        (
+          await rawEngineRequest(socketPath, {
+            ...identity,
+            id: 21,
+            method: "search",
+            searchQuery: "fail-search",
+            limit: 1,
             offset: 0,
           })
-        ).ok,
-      ).toBe(true);
-      expect(
-        String(
-          (
-            await rawEngineRequest(socketPath, {
-              ...identity,
-              id: 21,
-              method: "search",
-              searchQuery: "fail-search",
-              limit: 1,
-              offset: 0,
-            })
-          ).error,
-        ),
-      ).toContain("Indexed search candidate query failed");
-      expect(
-        (
-          await rawEngineRequest(socketPath, {
-            ...identity,
-            id: 22,
-            method: "command",
-            command: {
-              version: 1,
-              kind: "entities",
-              type: "req",
-              id: "REQ-X",
-              tags: ["a"],
-              sourceFile: "src/a.ts",
-              limit: 1,
-              offset: 0,
-            },
-          })
-        ).ok,
-      ).toBe(true);
-      expect(
-        (
-          await rawEngineRequest(socketPath, {
-            ...identity,
-            id: 23,
-            method: "command",
-            command: {
-              version: 1,
-              kind: "search",
-              query: "keep",
-              type: "req",
-              limit: 1,
-              offset: 0,
-            },
-          })
-        ).ok,
-      ).toBe(true);
-      await rawEngineRequest(socketPath, {
-        ...identity,
-        id: 24,
-        method: "command",
-        command: { version: 1, kind: "save" },
-      });
-      await rawEngineRequest(socketPath, {
-        ...identity,
-        id: 25,
-        method: "command",
-        command: {
-          version: 1,
-          kind: "persistence",
-          action: "export",
-          targetDirectory: path.join(root, "out"),
-        },
-      });
-      await rawEngineRequest(socketPath, {
-        ...identity,
-        id: 26,
-        method: "entities",
-        type: "req",
-        entityId: "REQ-NONE",
-        tags: ["keep"],
-        sourceFile: "docs/none.md",
-        limit: 2,
-        offset: 0,
-      });
+        ).error,
+      ),
+    ).toContain("Indexed search candidate query failed");
+    expect(
+      (
+        await rawEngineRequest(socketPath, {
+          ...identity,
+          id: 22,
+          method: "command",
+          command: {
+            version: 1,
+            kind: "entities",
+            type: "req",
+            id: "REQ-X",
+            tags: ["a"],
+            sourceFile: "src/a.ts",
+            limit: 1,
+            offset: 0,
+          },
+        })
+      ).ok,
+    ).toBe(true);
+    expect(
+      (
+        await rawEngineRequest(socketPath, {
+          ...identity,
+          id: 23,
+          method: "command",
+          command: {
+            version: 1,
+            kind: "search",
+            query: "keep",
+            type: "req",
+            limit: 1,
+            offset: 0,
+          },
+        })
+      ).ok,
+    ).toBe(true);
+    await rawEngineRequest(socketPath, {
+      ...identity,
+      id: 24,
+      method: "command",
+      command: { version: 1, kind: "save" },
+    });
+    await rawEngineRequest(socketPath, {
+      ...identity,
+      id: 25,
+      method: "command",
+      command: {
+        version: 1,
+        kind: "persistence",
+        action: "export",
+        targetDirectory: path.join(root, "out"),
+      },
+    });
+    await rawEngineRequest(socketPath, {
+      ...identity,
+      id: 26,
+      method: "entities",
+      type: "req",
+      entityId: "REQ-NONE",
+      tags: ["keep"],
+      sourceFile: "docs/none.md",
+      limit: 2,
+      offset: 0,
+    });
 
-      await rawEngineRequest(socketPath, {
-        ...identity,
-        id: 99,
-        method: "stop",
-      });
-      await Promise.race([
-        daemon,
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("daemon did not stop")), 8_000),
-        ),
-      ]);
-    },
-    20_000,
-  );
+    await rawEngineRequest(socketPath, {
+      ...identity,
+      id: 99,
+      method: "stop",
+    });
+    await Promise.race([
+      daemon,
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("daemon did not stop")), 8_000),
+      ),
+    ]);
+    await waitForExitCall(exit);
+  }, 20_000);
 });
 
 describe("engine remaining attachment identity helpers", () => {
@@ -1247,15 +1270,12 @@ describe("engine remaining attachment identity helpers", () => {
       dev: 8,
       ino: 9,
     };
-    expect(
-      engineAttachmentsMatch(left, { ...left, path: "/tmp/other" }),
-    ).toBe(false);
+    expect(engineAttachmentsMatch(left, { ...left, path: "/tmp/other" })).toBe(
+      false,
+    );
     expect(engineAttachmentsMatch(left, left)).toBe(true);
     expect(
-      engineAttachmentsMatch(
-        { ...left, ino: 0 },
-        { ...left, ino: 0, dev: 99 },
-      ),
+      engineAttachmentsMatch({ ...left, ino: 0 }, { ...left, ino: 0, dev: 99 }),
     ).toBe(true);
     expect(
       engineAttachmentsMatch(
@@ -1263,8 +1283,8 @@ describe("engine remaining attachment identity helpers", () => {
         { ...left, ino: 0, generation: "" },
       ),
     ).toBe(false);
-    expect(
-      formatEngineAttachmentMismatch("kb_save", null, null),
-    ).toContain("branchStore=missing");
+    expect(formatEngineAttachmentMismatch("kb_save", null, null)).toContain(
+      "branchStore=missing",
+    );
   });
 });

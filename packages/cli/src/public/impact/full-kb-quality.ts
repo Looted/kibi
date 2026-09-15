@@ -5,6 +5,7 @@ import type {
   ExtractionResult,
 } from "../../extractors/markdown.js";
 import {
+  normalizeEntityId,
   parseEntityFromList,
   parseListOfLists,
   parseTriples,
@@ -16,6 +17,7 @@ import {
 } from "../operations/prolog-json.js";
 import type { PrologPort } from "../operations/runtime-types.js";
 import { PROOF_RECEIPT_MAX_AGE_SECONDS } from "../proof-receipt.js";
+import relationshipSchema from "../schemas/relationship.js";
 import {
   analyzeTelemetryAcceptance,
   createTelemetryAcceptanceDiagnostics,
@@ -26,24 +28,8 @@ import { createRequirementQualityDiagnostics } from "./requirement-quality.js";
 import { createSymbolQualityDiagnostics } from "./symbol-quality.js";
 import type { QualityDiagnostic } from "./types.js";
 
-const RELATIONSHIP_TYPES = [
-  "depends_on",
-  "executable_for",
-  "specified_by",
-  "verified_by",
-  "validates",
-  "implements",
-  "covered_by",
-  "constrained_by",
-  "constrains",
-  "requires_property",
-  "requires_predicate",
-  "guards",
-  "publishes",
-  "consumes",
-  "supersedes",
-  "relates_to",
-] as const;
+const RELATIONSHIP_TYPES: readonly string[] =
+  relationshipSchema.properties.type.enum;
 
 type FullKbQualityDiagnosticsOptions = {
   readonly prolog: Pick<PrologPort, "query">;
@@ -89,6 +75,24 @@ function optionalStringArrayField(
   return value.map((item) => String(item));
 }
 
+function optionalBooleanField(
+  entity: Record<string, unknown>,
+  key: string,
+): boolean | undefined {
+  const value = entity[key];
+  return typeof value === "boolean" ? value : undefined;
+}
+
+function optionalObjectField(
+  entity: Record<string, unknown>,
+  key: string,
+): Record<string, unknown> | undefined {
+  const value = entity[key];
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : undefined;
+}
+
 function toExtractedEntity(entity: Record<string, unknown>): ExtractedEntity {
   const extracted: ExtractedEntity = {
     id: stringField(entity, "id"),
@@ -113,6 +117,41 @@ function toExtractedEntity(entity: Record<string, unknown>): ExtractedEntity {
   if (semanticText !== undefined) extracted.semantic_text = semanticText;
   const logicClaims = optionalStringArrayField(entity, "logic_claims");
   if (logicClaims !== undefined) extracted.logic_claims = logicClaims;
+  const semanticClauses = optionalStringArrayField(entity, "semantic_clauses");
+  if (semanticClauses !== undefined)
+    extracted.semantic_clauses = semanticClauses;
+  const semanticInventoryVersion = optionalStringField(
+    entity,
+    "semantic_inventory_version",
+  );
+  if (semanticInventoryVersion === "kibi.semantic-inventory.v1") {
+    extracted.semantic_inventory_version = semanticInventoryVersion;
+  }
+  const semanticSourceField = optionalStringField(
+    entity,
+    "semantic_source_field",
+  );
+  if (
+    semanticSourceField === "semantic_text" ||
+    semanticSourceField === "text_ref" ||
+    semanticSourceField === "title"
+  ) {
+    extracted.semantic_source_field = semanticSourceField;
+  }
+  const semanticSourceHash = optionalStringField(
+    entity,
+    "semantic_source_hash",
+  );
+  if (semanticSourceHash !== undefined) {
+    extracted.semantic_source_hash = semanticSourceHash;
+  }
+  const semanticInventory = entity.semantic_inventory;
+  if (Array.isArray(semanticInventory)) {
+    extracted.semantic_inventory = semanticInventory as readonly Record<
+      string,
+      unknown
+    >[];
+  }
   const granularityReason = optionalStringField(entity, "granularity_reason");
   if (granularityReason !== undefined) {
     extracted.granularity_reason = granularityReason;
@@ -128,6 +167,34 @@ function toExtractedEntity(entity: Record<string, unknown>): ExtractedEntity {
     verificationScope === "end_to_end"
   ) {
     extracted.verification_scope = verificationScope;
+  }
+  const verificationPerspective = optionalStringField(
+    entity,
+    "verification_perspective",
+  );
+  if (
+    verificationPerspective === "internal" ||
+    verificationPerspective === "consumer"
+  ) {
+    extracted.verification_perspective = verificationPerspective;
+  }
+  const proofContract = optionalObjectField(entity, "proof_contract");
+  if (proofContract !== undefined) {
+    extracted.proof_contract = proofContract as NonNullable<
+      ExtractedEntity["proof_contract"]
+    >;
+  }
+  const proofBindings = entity.proof_bindings;
+  if (Array.isArray(proofBindings)) {
+    extracted.proof_bindings = proofBindings as NonNullable<
+      ExtractedEntity["proof_bindings"]
+    >;
+  }
+  const proofReceipts = entity.proof_receipts;
+  if (Array.isArray(proofReceipts)) {
+    extracted.proof_receipts = proofReceipts as NonNullable<
+      ExtractedEntity["proof_receipts"]
+    >;
   }
   const sourceLine = optionalNumberField(entity, "sourceLine");
   if (sourceLine !== undefined) extracted.sourceLine = sourceLine;
@@ -145,22 +212,78 @@ function toExtractedEntity(entity: Record<string, unknown>): ExtractedEntity {
     factKind === "observation" ||
     factKind === "meta" ||
     factKind === "predicate_schema" ||
-    factKind === "predicate"
+    factKind === "predicate" ||
+    factKind === "rule_schema" ||
+    factKind === "rule"
   ) {
     extracted.fact_kind = factKind;
   }
-  const claimKey = optionalStringField(entity, "claim_key");
-  if (claimKey !== undefined) extracted.claim_key = claimKey;
-  const claimText = optionalStringField(entity, "claim_text");
-  if (claimText !== undefined) extracted.claim_text = claimText;
-  const predicateName = optionalStringField(entity, "predicate_name");
-  if (predicateName !== undefined) extracted.predicate_name = predicateName;
-  const predicateNamespace = optionalStringField(entity, "predicate_namespace");
-  if (predicateNamespace !== undefined) {
-    extracted.predicate_namespace = predicateNamespace;
+  for (const field of [
+    "subject_key",
+    "property_key",
+    "value_string",
+    "unit",
+    "scope",
+    "valid_from",
+    "valid_to",
+    "canonical_key",
+    "claim_key",
+    "claim_text",
+    "predicate_name",
+    "predicate_namespace",
+    "rule_hash",
+    "rule_schema_id",
+    "rule_name",
+    "semantic_key",
+  ] as const) {
+    const value = optionalStringField(entity, field);
+    if (value !== undefined) extracted[field] = value;
   }
+  const operator = optionalStringField(entity, "operator");
+  if (
+    operator === "eq" ||
+    operator === "neq" ||
+    operator === "lt" ||
+    operator === "lte" ||
+    operator === "gt" ||
+    operator === "gte"
+  ) {
+    extracted.operator = operator;
+  }
+  const valueType = optionalStringField(entity, "value_type");
+  if (
+    valueType === "string" ||
+    valueType === "int" ||
+    valueType === "number" ||
+    valueType === "bool"
+  ) {
+    extracted.value_type = valueType;
+  }
+  const polarity = optionalStringField(entity, "polarity");
+  if (
+    polarity === "require" ||
+    polarity === "forbid" ||
+    polarity === "assert" ||
+    polarity === "deny"
+  ) {
+    extracted.polarity = polarity;
+  }
+  const valueInt = optionalNumberField(entity, "value_int");
+  if (valueInt !== undefined) extracted.value_int = valueInt;
+  const valueNumber = optionalNumberField(entity, "value_number");
+  if (valueNumber !== undefined) extracted.value_number = valueNumber;
   const predicateArity = optionalNumberField(entity, "predicate_arity");
   if (predicateArity !== undefined) extracted.predicate_arity = predicateArity;
+  const claimSpanStart = optionalNumberField(entity, "claim_span_start");
+  if (claimSpanStart !== undefined) extracted.claim_span_start = claimSpanStart;
+  const claimSpanEnd = optionalNumberField(entity, "claim_span_end");
+  if (claimSpanEnd !== undefined) extracted.claim_span_end = claimSpanEnd;
+  const valueBool = optionalBooleanField(entity, "value_bool");
+  if (valueBool !== undefined) extracted.value_bool = valueBool;
+  const closedWorld = optionalBooleanField(entity, "closed_world");
+  if (closedWorld !== undefined) extracted.closed_world = closedWorld;
+  const ruleIr = optionalObjectField(entity, "rule_ir");
+  if (ruleIr !== undefined) extracted.rule_ir = ruleIr;
   for (const field of [
     "argument_names",
     "argument_types",
@@ -182,12 +305,17 @@ function sourceFileFor(entity: Record<string, unknown>): string | undefined {
   );
 }
 
-async function loadKbExtractionResults(
+export async function loadKbExtractionResults(
   prolog: Pick<PrologPort, "query">,
 ): Promise<ExtractionResult[]> {
   const entityResult = await prolog.query(
     "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)",
   );
+  if (!entityResult.success) {
+    throw new Error(
+      `Full KB entity projection query failed: ${entityResult.error ?? "Unknown error"}`,
+    );
+  }
   const entities = entityResult.bindings.Results
     ? parseListOfLists(entityResult.bindings.Results).map(parseEntityFromList)
     : [];
@@ -197,10 +325,17 @@ async function loadKbExtractionResults(
     const relResult = await prolog.query(
       `findall([From,To,'${relationshipType}'], kb_relationship(${relationshipType}, From, To), Rels)`,
     );
+    if (!relResult.success) {
+      throw new Error(
+        `Full KB relationship projection query failed for ${relationshipType}: ${relResult.error ?? "Unknown error"}`,
+      );
+    }
     const rows = relResult.bindings.Rels
       ? parseTriples(relResult.bindings.Rels)
       : [];
-    for (const [from, to, type] of rows) {
+    for (const [rawFrom, rawTo, type] of rows) {
+      const from = normalizeEntityId(rawFrom);
+      const to = normalizeEntityId(rawTo);
       const current = relationships.get(from) ?? [];
       current.push({ from, to, type });
       relationships.set(from, current);

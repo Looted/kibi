@@ -6,7 +6,7 @@ import {
   parseEvaluationInfrastructureMarker,
 } from "./evaluation-infrastructure";
 import {
-  type DevelopmentGate,
+  type DevelopmentEvaluation,
   type RealOptimizationDependencies,
   TrainResultSchema,
   type TrainingInput,
@@ -258,7 +258,7 @@ export const defaultTrain: RealOptimizationDependencies["train"] = async (
 // implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export const defaultEvaluateDevelopment: RealOptimizationDependencies["evaluateDevelopment"] =
-  async (input): Promise<DevelopmentGate> => {
+  async (input): Promise<DevelopmentEvaluation> => {
     const runtime = requireRuntime(input.runtime);
     if (input.descriptors.length === 0)
       throw new Error("development_descriptor_missing");
@@ -320,6 +320,15 @@ export const defaultEvaluateDevelopment: RealOptimizationDependencies["evaluateD
       completed.reduce((sum, { cell }) => sum + cell.receipt.result.score, 0) /
       (completed.length * 100);
     const familyMeans = new Map<string, number[]>();
+    const securityFailures = completed.reduce((total, { cell }) => {
+      const failures = new Set([
+        ...(cell.receipt.violations ?? []),
+        ...cell.receipt.result.criticalFailures.filter((failure) =>
+          /^(?:isolation|sentinel)(?:-|$)/.test(failure),
+        ),
+      ]);
+      return total + failures.size;
+    }, 0);
     for (const { descriptor, cell } of completed) {
       const values = familyMeans.get(descriptor.family) ?? [];
       values.push(cell.receipt.result.score / 100);
@@ -334,6 +343,7 @@ export const defaultEvaluateDevelopment: RealOptimizationDependencies["evaluateD
             values.reduce((sum, value) => sum + value, 0) / values.length,
         ),
       ),
+      securityFailures,
     };
   };
 

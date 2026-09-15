@@ -40,12 +40,12 @@ describe("artifact-root remaining cache fallback", () => {
     const { access } = await import("node:fs/promises");
     const original = access;
     const fsPromises = await import("node:fs/promises");
-    const spy = (await import("bun:test")).spyOn(fsPromises, "access").mockImplementation(
-      async (path, mode) => {
+    const spy = (await import("bun:test"))
+      .spyOn(fsPromises, "access")
+      .mockImplementation(async (path, mode) => {
         if (String(path).includes("busy-cache")) throw error;
         return original(path, mode);
-      },
-    );
+      });
     try {
       await expect(
         resolveArtifactRoot(undefined, {

@@ -31,6 +31,7 @@ import {
 import { PrologProcess } from "../prolog.js";
 import {
   escapeAtom,
+  normalizeEntityId,
   parseTriples,
   parseViolationRows,
 } from "../prolog/codec.js";
@@ -818,7 +819,10 @@ export async function checkCommand(
       attached = true;
     }
 
-    const activeProlog = requireActiveProlog<EngineClient, PrologProcess>(engine, prolog);
+    const activeProlog = requireActiveProlog<EngineClient, PrologProcess>(
+      engine,
+      prolog,
+    );
     const rules = options.rules
       ?.split(",")
       .map((rule) => rule.trim())
@@ -946,7 +950,9 @@ export async function checkMustPriorityCoverage(
   return violations;
 }
 
-export async function findMustPriorityReqs(prolog: PrologProcess): Promise<string[]> {
+export async function findMustPriorityReqs(
+  prolog: PrologProcess,
+): Promise<string[]> {
   const query = `findall(Id, (kb_entity(Id, req, Props), memberchk(priority=P, Props), (P = ^^("must", _) ; P = "must" ; P = 'must' ; (atom(P), atom_string(P, PS), sub_string(PS, _, 4, 0, "must")))), Ids)`;
   const result = await prolog.query(query);
 
@@ -1052,7 +1058,9 @@ export async function checkNoDanglingRefs(
   return violations;
 }
 
-export async function checkNoCycles(prolog: PrologProcess): Promise<Violation[]> {
+export async function checkNoCycles(
+  prolog: PrologProcess,
+): Promise<Violation[]> {
   const violations: Violation[] = [];
 
   const depsResult = await prolog.query(
@@ -1266,7 +1274,9 @@ export async function checkDomainContradictions(
 
   const rows = parseTriples(result.bindings.Rows);
 
-  for (const [reqA, reqB, reason] of rows) {
+  for (const [rawReqA, rawReqB, reason] of rows) {
+    const reqA = normalizeEntityId(rawReqA);
+    const reqB = normalizeEntityId(rawReqB);
     violations.push({
       rule: "domain-contradictions",
       entityId: `${reqA}/${reqB}`,

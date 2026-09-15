@@ -25,7 +25,7 @@ const fixture = () =>
       tunnels: false,
     },
     ceilings: {
-      models: ["gpt-5.4-mini", "gpt-5.6-sol"],
+      models: ["gpt-5.6-luna", "gpt-5.6-sol"],
       maxInputTokens: 1000,
       maxOutputTokens: 200,
       maxRetries: 1,
@@ -34,7 +34,7 @@ const fixture = () =>
     },
   });
 
-const request = (id: string, model = "gpt-5.4-mini") => ({
+const request = (id: string, model = "gpt-5.6-luna") => ({
   requestId: id,
   requestHash: hash(id.endsWith("1") ? "b" : "c"),
   model,
@@ -69,7 +69,7 @@ describe("trusted broker model gateway", () => {
 
     // Then
     expect(first.capability).toMatchObject({
-      model: "gpt-5.4-mini",
+      model: "gpt-5.6-luna",
       leaseId: "00000000-0000-4000-8000-000000000511",
       sealed: true,
       oneUse: true,

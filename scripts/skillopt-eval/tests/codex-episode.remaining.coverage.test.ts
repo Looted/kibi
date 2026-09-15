@@ -1,8 +1,8 @@
 // implements REQ-skillopt-codex-optimization
 import { afterEach, describe, expect, test } from "bun:test";
-import { request } from "./held-out-evaluation-test-helpers";
 import { replayCodexEpisode } from "../runtime/codex-episode";
 import type { CellReceipt } from "../scoring/cell";
+import { request } from "./held-out-evaluation-test-helpers";
 
 afterEach(() => {
   if (process.exitCode === 1) process.exitCode = 0;
@@ -14,7 +14,10 @@ const HASHES = {
   skillopt: "c".repeat(64),
 } as const;
 
-function score(terminalCategory: CellReceipt["terminalCategory"], hard: 0 | 1 = 0): CellReceipt {
+function score(
+  terminalCategory: CellReceipt["terminalCategory"],
+  hard: 0 | 1 = 0,
+): CellReceipt {
   return {
     outcome: hard === 1 ? "pass" : "fail",
     terminalCategory,

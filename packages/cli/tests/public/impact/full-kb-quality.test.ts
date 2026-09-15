@@ -3,7 +3,11 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { PrologProcess, type QueryResult } from "../../../src/prolog.js";
-import { collectFullKbQualityDiagnostics } from "../../../src/public/impact/full-kb-quality.js";
+import { toPrologString } from "../../../src/prolog/codec.js";
+import {
+  collectFullKbQualityDiagnostics,
+  loadKbExtractionResults,
+} from "../../../src/public/impact/full-kb-quality.js";
 
 const entityRows = [
   [
@@ -42,13 +46,17 @@ function makeProlog(
     if (text.includes("kb_relationship(implements")) {
       return {
         success: true,
-        bindings: { Rels: "[['SYM-UPLOAD','REQ-NORMATIVE',implements]]" },
+        bindings: {
+          Rels: "[['kb:entity/SYM-UPLOAD','file:///tmp/REQ-NORMATIVE',implements]]",
+        },
       };
     }
     if (text.includes("kb_relationship(covered_by")) {
       return {
         success: true,
-        bindings: { Rels: "[['REQ-NORMATIVE','TEST-UPLOAD',covered_by]]" },
+        bindings: {
+          Rels: "[['file:///tmp/REQ-NORMATIVE','kb:entity/TEST-UPLOAD',covered_by]]",
+        },
       };
     }
     if (text.includes("coverage_report_json")) {
@@ -81,6 +89,58 @@ function makeProlog(
 }
 
 describe("collectFullKbQualityDiagnostics", () => {
+  it("preserves source cells and rule metadata while normalizing endpoints", async () => {
+    const ruleIr = JSON.stringify({
+      version: "kibi.logic.v1",
+      kind: "rule",
+      head: { name: "retained", args: ["subject", "years"] },
+    });
+    const prolog: Pick<PrologProcess, "query"> = {
+      query: async (goal): Promise<QueryResult> => {
+        const text = Array.isArray(goal) ? goal.join(",") : goal;
+        if (text.includes("kb_entity")) {
+          return {
+            success: true,
+            bindings: {
+              Results: `[${[
+                "['REQ-NORMATIVE',req,[title='Users must keep audit data',status=active,created_at='2026-07-01',updated_at='2026-07-01',source='docs/REQ-NORMATIVE.md']]",
+                `[RULE-SCHEMA,rule_schema,[title='Retention rule',status=active,created_at='2026-07-01',updated_at='2026-07-01',source='docs/rules.md',fact_kind=rule_schema,rule_schema_id='retention-v1',rule_name='retained',predicate_name='retained',predicate_arity=^^(\"2\", 'http://www.w3.org/2001/XMLSchema#integer'),argument_names=[subject,years],argument_types=[string,int],sourceFile='src/rules.ts',sourceLine=^^(\"21\", 'http://www.w3.org/2001/XMLSchema#integer'),sourceColumn=^^(\"3\", 'http://www.w3.org/2001/XMLSchema#integer'),sourceEndLine=^^(\"28\", 'http://www.w3.org/2001/XMLSchema#integer'),sourceEndColumn=^^(\"9\", 'http://www.w3.org/2001/XMLSchema#integer'),rule_ir=${toPrologString(ruleIr)}]]`,
+              ].join(",")}]`,
+            },
+          };
+        }
+        if (text.includes("kb_relationship(implements")) {
+          return {
+            success: true,
+            bindings: {
+              Rels: "[['file:///tmp/RULE-SCHEMA','kb:entity/REQ-NORMATIVE',implements]]",
+            },
+          };
+        }
+        return { success: true, bindings: { Rels: "[]" } };
+      },
+    };
+
+    const results = await loadKbExtractionResults(prolog);
+    const rule = results.find((result) => result.entity.id === "RULE-SCHEMA");
+
+    expect(rule?.entity).toMatchObject({
+      fact_kind: "rule_schema",
+      rule_schema_id: "retention-v1",
+      rule_name: "retained",
+      predicate_arity: 2,
+      sourceLine: 21,
+      sourceColumn: 3,
+      sourceEndLine: 28,
+      sourceEndColumn: 9,
+      rule_ir: JSON.parse(ruleIr),
+    });
+    expect(rule?.sourceFile).toBe("src/rules.ts");
+    expect(rule?.relationships).toEqual([
+      { from: "RULE-SCHEMA", to: "REQ-NORMATIVE", type: "implements" },
+    ]);
+  });
+
   it("loads entities and relationships from Prolog and combines quality diagnostics", async () => {
     const diagnostics = await collectFullKbQualityDiagnostics({
       prolog: makeProlog(),

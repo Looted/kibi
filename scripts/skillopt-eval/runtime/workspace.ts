@@ -16,6 +16,7 @@ import {
   createIsolationWorkspace,
 } from "./isolation-workspace";
 import {
+  type CanaryPhase,
   type CanaryRunner,
   type CapabilityCanaryModelRun,
   type CapabilityCanaryOptions,
@@ -45,6 +46,8 @@ function noGoReceipt(
   paidModelCalls: 0 | 1 | 2,
   reason: string,
   modelRuns: readonly CapabilityCanaryModelRun[],
+  phase?: CanaryPhase,
+  diagnostic?: string,
 ): CapabilityCanaryReceipt {
   return {
     verdict: "no-go",
@@ -53,8 +56,11 @@ function noGoReceipt(
     optimizerModel: OPTIMIZER_MODEL,
     authMode,
     paidModelCalls,
+    modelInvocationAttempts: paidModelCalls,
     modelRuns,
     events: modelRuns.flatMap(({ events }) => events),
+    ...(phase === undefined ? {} : { phase }),
+    ...(diagnostic === undefined ? {} : { diagnostic }),
     reason,
   };
 }
@@ -82,7 +88,6 @@ export async function runCapabilityCanary(
   const modelRuns: CapabilityCanaryModelRun[] = [];
   let authMode: "file" | "keyring" | null = null;
   let paidCount = 0;
-  let firstFailure: string | null = null;
   for (const role of ["target", "optimizer"] as const) {
     const result = await runModelCanary({
       options,
@@ -99,21 +104,21 @@ export async function runCapabilityCanary(
     authMode = result.authMode ?? authMode;
     if (result.kind === "pass") {
       modelRuns.push(result.run);
-      paidCount += 1;
+      paidCount += result.modelInvocationAttempts;
       continue;
     }
     if (result.run !== undefined) modelRuns.push(result.run);
-    paidCount += result.paidModelCalls;
-    firstFailure ??= result.reason;
-  }
-  const paidModelCalls = paidCount === 2 ? 2 : paidCount === 1 ? 1 : 0;
-  if (firstFailure !== null) {
+    paidCount += result.modelInvocationAttempts;
+    const modelInvocationAttempts =
+      paidCount === 2 ? 2 : paidCount === 1 ? 1 : 0;
     return noGoReceipt(
       options,
       authMode,
-      paidModelCalls,
-      firstFailure,
+      modelInvocationAttempts,
+      result.reason,
       modelRuns,
+      result.phase,
+      result.diagnostic,
     );
   }
   return {
@@ -123,6 +128,7 @@ export async function runCapabilityCanary(
     optimizerModel: OPTIMIZER_MODEL,
     authMode,
     paidModelCalls: 2,
+    modelInvocationAttempts: 2,
     modelRuns,
     events: modelRuns.flatMap(({ events }) => events),
   };

@@ -42,7 +42,7 @@ export const supervisorParentFixture = {
   ceilings: {
     totalMicrousd: 2000,
     maxRequests: 2,
-    models: ["gpt-5.4-mini", "gpt-5.6-sol"],
+    models: ["gpt-5.6-luna", "gpt-5.6-sol"],
     maxInputTokens: 1000,
     maxOutputTokens: 200,
     maxRetries: 1,

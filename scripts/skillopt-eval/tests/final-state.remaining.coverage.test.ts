@@ -2,8 +2,8 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { createHash } from "node:crypto";
 import {
-  decodeFinalStatePredicateSnapshot,
   FinalStateReceiptSchema,
+  decodeFinalStatePredicateSnapshot,
 } from "../runtime/final-state";
 
 const spies: Array<{ mockRestore: () => void }> = [];

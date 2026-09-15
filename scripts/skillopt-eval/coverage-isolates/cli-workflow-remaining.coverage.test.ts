@@ -18,7 +18,7 @@ mock.module("../bundle-workflow", () => ({
 const { defaultWorkflowDependencies, runWorkflowCommand } = await import(
   "../cli-workflow"
 );
-import type { WorkflowDependencies } from "../cli-workflow";
+import type { BundleSurfaceSet, WorkflowDependencies } from "../cli-workflow";
 
 const roots: string[] = [];
 afterEach(async () => {
@@ -26,6 +26,28 @@ afterEach(async () => {
     await rm(root, { recursive: true, force: true });
   }
 });
+
+function bundleSurfaces(): BundleSurfaceSet {
+  const baseline = {
+    body: "baseline\n",
+    frontmatterHash: "a".repeat(64),
+    resourcesHash: "b".repeat(64),
+  };
+  return {
+    baselineSurfaces: {
+      "kibi-usage": baseline,
+      "kibi-freshness": baseline,
+      "kibi-traceability": baseline,
+      "kibi-bootstrap": baseline,
+    },
+    candidateSurfaces: {
+      "kibi-usage": { ...baseline, body: "candidate\n" },
+      "kibi-freshness": baseline,
+      "kibi-traceability": baseline,
+      "kibi-bootstrap": baseline,
+    },
+  };
+}
 
 function workflowOptions(
   artifactRoot: string,
@@ -42,6 +64,7 @@ function workflowOptions(
     cellRuntime: {
       fixtureRunRoot: join(artifactRoot, "fixtures"),
     },
+    candidateManifest: join(artifactRoot, "bundle.json"),
     ...overrides,
   } as const;
 }
@@ -92,6 +115,7 @@ function dependencies(
     cellRunner: async () => {
       throw new Error("cell runner unused");
     },
+    resolveBundleSurfaces: async () => bundleSurfaces(),
     createCodexRuntimeLease: async ({ artifactRoot }) => ({
       root: join(artifactRoot, ".runtime"),
       codexExecutable: "/bin/true",
