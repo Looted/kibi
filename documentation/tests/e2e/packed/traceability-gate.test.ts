@@ -1,6 +1,13 @@
 import assert from "node:assert";
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { join, relative } from "node:path";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
 import {
@@ -275,6 +282,65 @@ if (RUN_NODE_TEST_SUITE) {
       const afterBranches = kbBranchesSnapshot(hostRepo);
       assert.strictEqual(afterSymbols, beforeSymbols);
       assert.deepStrictEqual(afterBranches, beforeBranches);
+    });
+
+    it("should report advisory coverage instead of an empty index for staged YAML", async () => {
+      if (!hasProlog) return;
+
+      mkdirSync(join(sandbox.repoDir, "deploy"), { recursive: true });
+      writeFileSync(
+        join(sandbox.repoDir, "deploy", "compose.yaml"),
+        "services:\n  web:\n    image: example/web:latest\n",
+      );
+      await run("git", ["add", "deploy/compose.yaml"], {
+        cwd: sandbox.repoDir,
+        env: sandbox.env,
+      });
+
+      const result = await kibi(
+        sandbox,
+        ["check", "--staged", "--format", "json"],
+        { timeoutMs: TEST_TIMEOUT_MS },
+      );
+      const output = JSON.parse(result.stdout) as {
+        structuredContent: {
+          diagnostics: Array<{ id: string; path: string }>;
+          staged: {
+            files: Array<{
+              path: string;
+              analysisDepth: string;
+              disposition: string;
+            }>;
+          };
+          messages: string[];
+        };
+      };
+
+      assert.strictEqual(result.exitCode, 0);
+      assert.deepStrictEqual(
+        output.structuredContent.staged.files.find(
+          (file) => file.path === "deploy/compose.yaml",
+        ),
+        {
+          path: "deploy/compose.yaml",
+          status: "A",
+          analysisDepth: "file",
+          disposition: "advisory",
+          requirementIds: [],
+          evidencePaths: [],
+          providerId: null,
+        },
+      );
+      assert.ok(
+        output.structuredContent.diagnostics.some(
+          (diagnostic) =>
+            diagnostic.id === "staged_file_ownership_missing" &&
+            diagnostic.path === "deploy/compose.yaml",
+        ),
+      );
+      assert.ok(
+        !output.structuredContent.messages.includes("No staged files found."),
+      );
     });
 
     it("should pass with executable_for test symbol", async (testContext) => {

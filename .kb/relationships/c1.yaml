@@ -48,3 +48,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e610200d73c7
+  - type: implements
+    from: SYM-checkNoCycles
+    to: REQ-cli-check
+    created_at: 2026-09-14T14:54:24.671Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd1c932095b2
+  - type: covered_by
+    from: SYM-checkNoCycles
+    to: TEST-004
+    created_at: 2026-09-14T14:54:24.678Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80bfb1c68efa

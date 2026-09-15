@@ -35,6 +35,7 @@ import type {
 } from "./engine-types.js";
 import { PrologProcess, resolveKbPlPath } from "./prolog.js";
 import { parseEntityFromList, parseListOfLists } from "./prolog/codec.js";
+import { retryAttachAfterBreakingStaleLock } from "./prolog/store-lock.js";
 import type { PrologQueryResult } from "./public/operations/runtime-types.js";
 import type {
   PrologEntityQueryInput,
@@ -337,7 +338,7 @@ function parseFrames(
   return buffer.subarray(cursor);
 }
 
-function runtimeDirectory(): string {
+export function runtimeDirectory(): string {
   const configured =
     process.env.KIBI_RUNTIME_DIR ??
     process.env.XDG_RUNTIME_DIR ??
@@ -1500,8 +1501,19 @@ export async function runEngineDaemon(options: {
   const attached = await prolog.query(
     `kb_attach('${quoteProlog(branchPath)}')`,
   );
-  if (!attached.success)
-    throw new Error(attached.error ?? "Failed to attach branch KB");
+  if (!attached.success) {
+    // The daemon hosts the branch store for every later request, so a
+    // store-locked startup with a provably dead holder is auto-healed here
+    // exactly like the CLI runtime path; live holders abort the startup
+    // with the holder identity surfaced.
+    const recovered = await retryAttachAfterBreakingStaleLock(
+      prolog,
+      branchPath,
+      attached,
+    );
+    if (!recovered.success)
+      throw new Error(recovered.error ?? "Failed to attach branch KB");
+  }
   const attachedIdentity = readEngineAttachmentIdentity(branchPath);
   const coreModuleDir = path.dirname(resolveKbPlPath());
   for (const [fileName, label] of [
@@ -1588,14 +1600,21 @@ export async function runEngineDaemon(options: {
   // checkout) can never serve a request again, but it would keep holding the
   // branch-store lock and wedge every later operation behind an opaque
   // "KB locked". Detect the loss and shut down cleanly instead.
+  let workspaceMissingStreak = 0;
   const workspaceWatchdog = setInterval(() => {
     if (shuttingDown) return;
+    // Two consecutive misses before giving up: a transient blip (slow
+    // rename, network mount hiccup) must not stop a healthy daemon.
     if (!existsSync(options.workspaceRoot)) {
+      workspaceMissingStreak += 1;
+      if (workspaceMissingStreak < 2) return;
       console.error(
         `[KIBI] workspace ${options.workspaceRoot} no longer exists; stopping engine`,
       );
       void shutdown();
+      return;
     }
+    workspaceMissingStreak = 0;
   }, engineWorkspaceWatchdogMs());
   workspaceWatchdog.unref();
 

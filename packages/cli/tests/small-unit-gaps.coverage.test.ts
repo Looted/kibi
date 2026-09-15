@@ -605,7 +605,7 @@ describe("coverage gaps: symbol repair plan", () => {
         (candidate) => candidate.symbolId,
       ),
     ).toContain("SYM-PEER");
-    expect(byId["SYM-BROKEN"]?.action).toBe("delete_obsolete_symbol");
+    expect(byId["SYM-BROKEN"]?.action).toBe("review");
   });
 });
 

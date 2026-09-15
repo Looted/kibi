@@ -49,12 +49,20 @@ import {
   type KibiEntityType,
   type KibiImpactEvidence,
 } from "../traceability/evidence-model.js";
-import { type StagedFile, getStagedFiles } from "../traceability/git-staged.js";
+import {
+  type StagedFile,
+  getStagedInventory,
+  supportedStagedFiles,
+} from "../traceability/git-staged.js";
 import { validateStagedMarkdown } from "../traceability/markdown-validate.js";
 import {
   type KibiImpactDiagnostic,
   collectStagedKibiDiagnostics,
 } from "../traceability/staged-diagnostics.js";
+import {
+  type StagedFileCoverageResult,
+  analyzeStagedFileCoverage,
+} from "../traceability/staged-file-coverage.js";
 import {
   classifyKibiImpactEvidence,
   isBehaviorSourceEdit,
@@ -81,7 +89,7 @@ import {
   validateStagedSymbols,
 } from "../traceability/validate.js";
 import { resolveBranchAttachment } from "../utils/branch-resolver.js";
-import { CANONICAL_ENTITY_PATHS } from "../utils/kb-paths.js";
+import { CANONICAL_ENTITY_PATHS, isEntityLanePath } from "../utils/kb-paths.js";
 import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
 import type { Violation } from "../utils/rule-registry.js";
 
@@ -105,7 +113,7 @@ function getMatchGroup(
   return typeof value === "string" ? value : null;
 }
 
-function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
+function buildManifestLookup(stagedFiles: StagedFile[]): {
   manifestLookup: ManifestLookup;
   manifestResults: ExtractionResult[];
   authoredSymbolResults: ExtractionResult[];
@@ -375,6 +383,76 @@ function printStructuredCheckResult(input: {
   );
 }
 
+function formatStagedCoverage(result: StagedFileCoverageResult): string {
+  const counts = {
+    symbol: result.files.filter((file) => file.analysisDepth === "symbol")
+      .length,
+    metadata: result.files.filter((file) => file.analysisDepth === "metadata")
+      .length,
+    file: result.files.filter((file) => file.analysisDepth === "file").length,
+    skipped: result.files.filter((file) => file.disposition === "skipped")
+      .length,
+  };
+  const lines = [
+    `Staged files: ${result.files.length} total; ${counts.symbol} symbol-level; ${counts.metadata} metadata; ${counts.file} file-level; ${counts.skipped} skipped.`,
+  ];
+  for (const file of result.files) {
+    const details: string[] = [file.analysisDepth, file.disposition];
+    if (file.reason) details.push(file.reason);
+    if (file.requirementIds.length > 0) {
+      details.push(`requirements: ${file.requirementIds.join(", ")}`);
+    }
+    if (file.evidencePaths.length > 0) {
+      details.push(`evidence: ${file.evidencePaths.join(", ")}`);
+    }
+    lines.push(`  ${file.status} ${file.path} [${details.join("; ")}]`);
+  }
+  if (result.diagnostics.length > 0) {
+    lines.push(
+      "",
+      `Advisory staged-file diagnostics (${result.diagnostics.length}):`,
+    );
+    for (const diagnostic of result.diagnostics) {
+      lines.push(`  [${diagnostic.id}] ${diagnostic.message}`);
+      lines.push(`    Suggestion: ${diagnostic.suggestion}`);
+    }
+  }
+  return lines.join("\n");
+}
+
+function printStagedResult(input: {
+  format: "text" | "json" | undefined;
+  coverage: StagedFileCoverageResult | null;
+  violations?: readonly unknown[];
+  qualityDiagnostics?: readonly unknown[];
+  messages?: readonly string[];
+  operationalError?: string;
+}): void {
+  const violations = input.violations ?? [];
+  const qualityDiagnostics = input.qualityDiagnostics ?? [];
+  if (input.format === "json") {
+    console.log(
+      JSON.stringify({
+        structuredContent: {
+          violations,
+          count: violations.length,
+          diagnostics: input.coverage?.diagnostics ?? [],
+          qualityDiagnostics,
+          staged: input.coverage,
+          messages: input.messages ?? [],
+          ...(input.operationalError
+            ? { operationalError: input.operationalError }
+            : {}),
+        },
+      }),
+    );
+    return;
+  }
+  if (input.coverage) console.log(formatStagedCoverage(input.coverage));
+  for (const message of input.messages ?? []) console.log(message);
+  if (input.operationalError) console.error(input.operationalError);
+}
+
 function uniqueSorted(values: Iterable<string>): string[] {
   return Array.from(new Set(values)).sort();
 }
@@ -550,6 +628,7 @@ export async function checkCommand(
 
     if (options.staged) {
       const minLinks = options.minLinks ? Number(options.minLinks) : 1;
+      let stagedCoverage: StagedFileCoverageResult | null = null;
       let tempCtx: {
         tempDir: string;
         kbPath: string;
@@ -557,9 +636,15 @@ export async function checkCommand(
         prolog: PrologProcess;
       } | null = null;
       try {
-        const stagedFiles = getStagedFiles();
-        if (!stagedFiles || stagedFiles.length === 0) {
-          console.log("No staged files found.");
+        const stagedInventory = getStagedInventory();
+        stagedCoverage = analyzeStagedFileCoverage(stagedInventory);
+        const stagedFiles = supportedStagedFiles(stagedInventory);
+        if (stagedInventory.length === 0) {
+          printStagedResult({
+            format: options.format,
+            coverage: stagedCoverage,
+            messages: ["No staged files found."],
+          });
           return { exitCode: 0 };
         }
 
@@ -571,11 +656,17 @@ export async function checkCommand(
         } = buildManifestLookup(stagedFiles);
         const symbolsManifestPath = KIBI_SYMBOLS_MANIFEST_PATH;
 
-        const sourceFiles = stagedFiles.filter(
-          (file) =>
-            !file.path.endsWith(".md") && !isStagedManifestPath(file.path),
+        const symbolPaths = new Set(
+          stagedInventory
+            .filter((file) => file.analysisDepth === "symbol")
+            .map((file) => file.path),
         );
-        const markdownFiles = stagedFiles.filter((f) => f.path.endsWith(".md"));
+        const sourceFiles = stagedFiles.filter((file) =>
+          symbolPaths.has(file.path),
+        );
+        const markdownFiles = stagedFiles.filter(
+          (file) => file.path.endsWith(".md") && isEntityLanePath(file.path),
+        );
 
         const markdownErrors: string[] = [];
         for (const f of markdownFiles) {
@@ -586,13 +677,18 @@ export async function checkCommand(
         }
 
         if (markdownErrors.length > 0) {
-          console.log(
-            "Found embedded entity violations in staged markdown files:",
-          );
-          for (const err of markdownErrors) {
-            console.log(err);
-            console.log();
-          }
+          printStagedResult({
+            format: options.format,
+            coverage: stagedCoverage,
+            violations: markdownErrors.map((message) => ({
+              rule: "staged-markdown",
+              message,
+            })),
+            messages: [
+              "Found embedded entity violations in staged markdown files:",
+              ...markdownErrors,
+            ],
+          });
           if (options.dryRun) {
             return { exitCode: 0 };
           }
@@ -615,9 +711,8 @@ export async function checkCommand(
               allSymbols.push(...symbols);
             }
           } catch (e) {
-            console.error(
-              `Error extracting symbols from staged file ${f.path}: ${e instanceof Error ? e.message : String(e)}`,
-            );
+            const message = `Error extracting symbols from staged file ${f.path}: ${e instanceof Error ? e.message : String(e)}`;
+            if (options.format !== "json") console.error(message);
           }
         }
 
@@ -692,7 +787,12 @@ export async function checkCommand(
 
         if (allSymbols.length === 0 && stagedEntityResults.length === 0) {
           if (stagedKibiDiagnostics.length > 0) {
-            console.log(formatStagedKibiDiagnostics(stagedKibiDiagnostics));
+            printStagedResult({
+              format: options.format,
+              coverage: stagedCoverage,
+              qualityDiagnostics: stagedKibiDiagnostics,
+              messages: [formatStagedKibiDiagnostics(stagedKibiDiagnostics)],
+            });
             if (options.dryRun) {
               return { exitCode: 0 };
             }
@@ -703,15 +803,24 @@ export async function checkCommand(
             };
           }
 
-          console.log(
-            "No exported symbols or staged entities found in staged files.",
-          );
+          printStagedResult({
+            format: options.format,
+            coverage: stagedCoverage,
+            messages: [
+              "No exported symbols or staged entities found in staged files.",
+            ],
+          });
           return { exitCode: 0 };
         }
 
         if (allSymbols.length === 0) {
           if (stagedKibiDiagnostics.length > 0) {
-            console.log(formatStagedKibiDiagnostics(stagedKibiDiagnostics));
+            printStagedResult({
+              format: options.format,
+              coverage: stagedCoverage,
+              qualityDiagnostics: stagedKibiDiagnostics,
+              messages: [formatStagedKibiDiagnostics(stagedKibiDiagnostics)],
+            });
             if (options.dryRun) {
               return { exitCode: 0 };
             }
@@ -721,7 +830,11 @@ export async function checkCommand(
                 : 0,
             };
           }
-          console.log("✓ No violations found in staged files.");
+          printStagedResult({
+            format: options.format,
+            coverage: stagedCoverage,
+            messages: ["✓ No violations found in staged files."],
+          });
           return { exitCode: 0 };
         }
 
@@ -747,13 +860,19 @@ export async function checkCommand(
         });
         const violationsFormatted = formatStagedViolations(violationsRaw);
 
-        if (stagedKibiDiagnostics.length > 0) {
-          console.log(formatStagedKibiDiagnostics(stagedKibiDiagnostics));
-          console.log();
-        }
-
         if (violationsRaw && violationsRaw.length > 0) {
-          console.log(violationsFormatted);
+          printStagedResult({
+            format: options.format,
+            coverage: stagedCoverage,
+            violations: violationsRaw,
+            qualityDiagnostics: stagedKibiDiagnostics,
+            messages: [
+              ...(stagedKibiDiagnostics.length > 0
+                ? [formatStagedKibiDiagnostics(stagedKibiDiagnostics)]
+                : []),
+              violationsFormatted,
+            ],
+          });
           await cleanupTempKb(tempCtx.tempDir);
           if (options.dryRun) {
             return { exitCode: 0 };
@@ -763,11 +882,22 @@ export async function checkCommand(
 
         if (stagedKibiDiagnostics.length > 0) {
           await cleanupTempKb(tempCtx.tempDir);
+          const blocking = hasBlockingImpactDiagnostics(stagedKibiDiagnostics);
+          printStagedResult({
+            format: options.format,
+            coverage: stagedCoverage,
+            qualityDiagnostics: stagedKibiDiagnostics,
+            messages: [
+              formatStagedKibiDiagnostics(stagedKibiDiagnostics),
+              ...(!blocking
+                ? ["✓ No violations found in staged symbols."]
+                : []),
+            ],
+          });
           if (options.dryRun) {
             return { exitCode: 0 };
           }
-          if (!hasBlockingImpactDiagnostics(stagedKibiDiagnostics)) {
-            console.log("✓ No violations found in staged symbols.");
+          if (!blocking) {
             return { exitCode: 0 };
           }
           return {
@@ -775,13 +905,15 @@ export async function checkCommand(
           };
         }
 
-        console.log("✓ No violations found in staged symbols.");
+        printStagedResult({
+          format: options.format,
+          coverage: stagedCoverage,
+          messages: ["✓ No violations found in staged symbols."],
+        });
         await cleanupTempKb(tempCtx.tempDir);
         return { exitCode: 0 };
       } catch (err) {
-        console.error(
-          `Error running staged validation: ${err instanceof Error ? err.message : String(err)}`,
-        );
+        const message = `Error running staged validation: ${err instanceof Error ? err.message : String(err)}`;
         if (tempCtx) {
           try {
             await cleanupTempKb(tempCtx.tempDir);
@@ -789,6 +921,11 @@ export async function checkCommand(
             // best-effort: temp directory may already be cleaned up
           }
         }
+        printStagedResult({
+          format: options.format,
+          coverage: stagedCoverage,
+          operationalError: message,
+        });
         return { exitCode: 1 };
       }
     }

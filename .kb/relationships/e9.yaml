@@ -111,3 +111,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4b48ea7bf180
+  - type: implements
+    from: SYM-checkRequiredFields
+    to: REQ-cli-check
+    created_at: 2026-09-14T15:00:04.283Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cffed1e152a0
+  - type: covered_by
+    from: SYM-checkRequiredFields
+    to: TEST-004
+    created_at: 2026-09-14T15:00:04.292Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a2e2ace2f1a

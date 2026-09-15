@@ -881,10 +881,12 @@ Must stay independently testable.
 
   test("records entity markdown and the first audited no-impact override", async () => {
     const cwd = preparedWorkspace();
-    const staged = spyOn(gitStaged, "getStagedFiles").mockReturnValue([
+    const staged = spyOn(gitStaged, "getStagedInventory").mockReturnValue([
       {
         path: ".kb/requirements/REQ-STAGED.md",
         status: "A",
+        analysisDepth: "metadata",
+        disposition: "checked",
         hunkRanges: [{ start: 1, end: 12 }],
         content: `---
 id: REQ-STAGED
@@ -899,6 +901,8 @@ Must stay independently testable.
       {
         path: "notes.md",
         status: "M",
+        analysisDepth: "file",
+        disposition: "advisory",
         hunkRanges: [{ start: 1, end: 2 }],
         content:
           "Kibi-Impact: none\nRationale: comment-only tweak with no behavior change\n",
@@ -906,12 +910,16 @@ Must stay independently testable.
       {
         path: "extra.md",
         status: "M",
+        analysisDepth: "file",
+        disposition: "advisory",
         hunkRanges: [{ start: 1, end: 2 }],
         content: "Kibi-Impact: none\nRationale: second override is ignored\n",
       },
       {
         path: "src/widget.ts",
         status: "M",
+        analysisDepth: "symbol",
+        disposition: "checked",
         hunkRanges: [{ start: 1, end: 1 }],
         content: "const x = 1;\n",
         diffText: "@@ -1 +1 @@\n-const x = 0;\n+const x = 1;\n",

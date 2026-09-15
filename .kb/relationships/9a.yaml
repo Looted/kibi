@@ -90,3 +90,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-38ba474a5e08
+  - type: implements
+    from: SYM-checkMustPriorityCoverage
+    to: REQ-cli-check
+    created_at: 2026-09-14T14:58:39.532Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7218a9ec229b
+  - type: covered_by
+    from: SYM-checkMustPriorityCoverage
+    to: TEST-004
+    created_at: 2026-09-14T14:58:39.540Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63490dea0db7

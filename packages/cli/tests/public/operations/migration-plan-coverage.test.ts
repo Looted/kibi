@@ -66,6 +66,7 @@ describe("migration plan builders and config status", () => {
           {
             id: "coords",
             phase: "source_coordinates",
+            writePolicy: "refresh_then_sync",
             requirementId: "REQ-1",
             state: "ready",
             dependsOn: ["prior"],

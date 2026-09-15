@@ -162,8 +162,8 @@ kb_attach_journaled(Directory) :-
     % over when the holder is provably dead.
     catch(rdf_attach_db(PersistencyDirectory,
                         [access(read_write), silent(true), concurrency(4)]),
-          error(permission_error(_, _, _), _),
-          kb_throw_store_locked(PersistencyDirectory, Directory)),
+          error(permission_error(_, _, _), Original),
+          kb_throw_store_locked(PersistencyDirectory, Directory, Original)),
     catch(kb_write_lock_owner(Directory), _, true),
     % Create RDF graph name from directory.  Do not unload a graph here:
     % rdf_attach_db has already restored it from its snapshot/journal.  A
@@ -251,8 +251,11 @@ kb_write_lock_owner(Directory) :-
     kb_lock_owner_path(Directory, Path),
     current_prolog_flag(pid, Pid),
     (   exists_file('/proc/sys/kernel/random/boot_id')
-    ->  read_file_to_string('/proc/sys/kernel/random/boot_id', BootIdRaw, []),
-        split_string(BootIdRaw, "\r\n", "\r\n", [BootId|_])
+    ->  catch((   read_file_to_string('/proc/sys/kernel/random/boot_id',
+                                 BootIdRaw, []),
+                  split_string(BootIdRaw, "\r\n", "\r\n", [BootId|_])),
+              _,
+              BootId = "")
     ;   BootId = ""
     ),
     get_time(Now),
@@ -275,14 +278,15 @@ kb_remove_lock_owner :-
     ;   true
     ).
 
-kb_throw_store_locked(PersistencyDirectory, Directory) :-
+kb_throw_store_locked(PersistencyDirectory, Directory, Original) :-
     kb_lock_owner_path(Directory, Path),
     (   exists_file(Path)
     ->  catch(read_file_to_string(Path, OwnerJson, []), _, OwnerJson = "")
     ;   OwnerJson = ""
     ),
+    term_string(Original, OriginalText),
     throw(error(permission_error(attach, kb_store, Directory),
-                kb_store_locked(OwnerJson, PersistencyDirectory))).
+                kb_store_locked(OwnerJson, PersistencyDirectory, OriginalText))).
 
 %% kb_detach
 % Safely detach from KB without persisting pending changes.

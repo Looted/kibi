@@ -124,6 +124,7 @@ function restoreEnv(name: string, value: string | undefined): void {
 }
 
 // executable_for TEST-cli-quality-diagnostics-contract
+// implements REQ-test-journaled-engine-harness
 export function captureIo(options: { stdio?: boolean } = {}): {
   logs: string[];
   errors: string[];
@@ -185,7 +186,7 @@ export function captureIo(options: { stdio?: boolean } = {}): {
       warnSpy.mockRestore();
       stdoutSpy?.mockRestore();
       stderrSpy?.mockRestore();
-      process.exitCode = previousExit;
+      process.exitCode = previousExit ?? 0;
     },
     logText: () => logs.join("\n"),
     errorText: () => errors.join("\n"),

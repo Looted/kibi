@@ -98,6 +98,7 @@ Extracts entities and relationships from project documents and updates the knowl
 - `--validate-only` - Perform validation without making mutations
 - `--rebuild` - Rebuild branch snapshot from scratch (discards current KB)
 - `--refresh-symbol-coordinates` - Refresh symbol location data in `.kb/symbol-coordinates.yaml` during sync. Explicit refreshes are fatal on artifact errors, force coordinate-bearing symbols to persist even when normalized hashes match cached state, and only then advance the sync cache (version 2, workspace-root-relative keys; the artifact is a compiler dependency of `symbols.yaml`).
+  Extraction misses are reported as failed, including Python and other files handled by the text heuristic. If a qualified symbol title cannot be located, query and validate/upsert a corrected title/sourceFile or an intentional `granularity_reason: extractor-miss` before refreshing. Coverage only offers automatic coordinate repair when current extraction or an explicit coarse anchor can produce coordinates.
 
 **Notes (sync + MCP):**
 
@@ -441,7 +442,8 @@ Validates knowledge base integrity and runs inference rules.
 - Detects dangling references (entities that reference non-existent IDs)
 - Detects cycles in dependency graphs
 - Supports strict advisory modeling checks (`strict-fact-shape`, `strict-req-fact-pairing`, `predicate-verifiability`) that run by default as non-blocking `qualityDiagnostics`, and default-off migration diagnostics (`strict-readiness`, `semantic-completeness`) that run only when explicitly selected with `--rules`. Canonical rules always populate blocking `violations[]`. `--rules` is an invocation-time diagnostic filter only; leftover `.kb/config.json` cannot disable canonical checks.
-- With `--staged`, runs commit-time changed-file impact enforcement for behavior-changing source edits, including missing Kibi impact evidence, stale symbol coordinates, and changed behavioral symbols that are only linked through coarse class/module ownership
+- With `--staged`, inventories every index path before analysis. TypeScript and JavaScript keep their blocking symbol checks; Kibi metadata is validated through its typed lanes; every other readable UTF-8 text file receives advisory file-level ownership and impact-evidence checks.
+- Staged deletions and renames retain committed content and ownership for removal review. Binary blobs, unsupported encodings, symlinks, and submodules are reported with explicit skipped reasons and remain non-blocking.
 - Reports blocking `violations[]` with actionable suggestions and additive `qualityDiagnostics[]` audit signals for modeling quality, coverage depth, broad requirements, duplicate coordinates, symbol fanout, and strict-fact review
 - When `.kb/usage.log` exists, an unfiltered check also turns failed or insufficient `kibi.telemetry-acceptance.v1` metrics into ranked, non-blocking `category: telemetry` quality diagnostics; a missing log is skipped because diagnostic logging is opt-in
 - Keeps advisory quality diagnostics non-blocking by default: `review`, `info`, and non-blocking `warning` diagnostics do not change the exit code; hard violations, `severity: "error"`, or `blocking: true` still fail the check
@@ -492,7 +494,7 @@ kibi check --rules req-status-vocabulary
 
 While editing, agents can run impact diagnostics through MCP `kb_check({sourceFiles:[...], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})` or the equivalent `kibi check --input <file|->` JSON route. `kibi check --staged` remains the commit-time git-hook gate once files are staged.
 
-Structured JSON output preserves the same two-lane model used by MCP: hard correctness failures appear under `structuredContent.violations[]`, while advisory audit signals appear under `structuredContent.qualityDiagnostics[]`. Advisory-only output is still a successful check; integrations should inspect `blocking` and `severity` instead of treating every diagnostic as a failure.
+Structured JSON output preserves the same two-lane model used by MCP: hard correctness failures appear under `structuredContent.violations[]`, while advisory audit signals appear under `structuredContent.qualityDiagnostics[]`. For `--staged`, one envelope is emitted for every outcome. `structuredContent.staged.files[]` records each path's Git status, analysis depth, disposition, ownership, evidence, provider, and skipped reason; file-level advisory findings appear in `structuredContent.diagnostics[]`. Advisory-only output is still a successful check; integrations should inspect `blocking` and `severity` instead of treating every diagnostic as a failure.
 
 **See also:** [Staged Symbol Traceability](#staged-symbol-traceability) for `--staged` usage details.
 
@@ -752,7 +754,7 @@ XB
 
 ## Staged Symbol Traceability
 
-The `kibi check --staged` command enforces traceability on code before commit.
+The `kibi check --staged` command inventories every staged path and enforces traceability on code before commit.
 
 **Purpose:**
 Every new or modified code symbol (function, class, method, accessor, behavioral class property, or module) must be explicitly linked to at least one requirement before it can be committed. This prevents "orphan" code from being merged and catches edits hidden behind broad class/module links when a narrower changed anchor exists.
@@ -767,13 +769,17 @@ Every new or modified code symbol (function, class, method, accessor, behavioral
 kibi check --staged
 ```
 
-This command scans only files staged for commit and reports any new or modified symbols that do not have requirement links (either via inline comments or explicit KB relationships). It also reports stale symbol-coordinate evidence and `symbol_granularity_violation` when a changed behavioral member such as `UploadPageComponent.processingProgressLabel` is covered only by a coarse class/module relationship without an audited `granularity_reason`. If violations are found and this is run as a pre-commit hook, the commit will be blocked.
+This command reads blob content from the Git index rather than the working tree. It reports any new or modified TypeScript/JavaScript symbols that do not have requirement links (either via inline comments or explicit KB relationships). It also reports stale symbol-coordinate evidence and `symbol_granularity_violation` when a changed behavioral member such as `UploadPageComponent.processingProgressLabel` is covered only by a coarse class/module relationship without an audited `granularity_reason`. If violations are found and this is run as a pre-commit hook, the commit will be blocked.
+
+Readable UTF-8 files outside the TypeScript/JavaScript and Kibi metadata lanes receive advisory file-level checks. This includes Python, shell scripts, YAML and Compose files, Dockerfiles, Markdown, JSON, and other text formats. Kibi resolves ownership only from real source-linked symbol entities and typed `implements` relationships in committed knowledge plus the staged KB changes. Unstaged KB edits and unrelated staged entities do not satisfy the advisory check.
+
+The text and JSON output include the complete path inventory, counts by analysis depth, and an explicit reason for skipped content. “No staged files found” is reserved for an empty Git index. Binary blobs, non-UTF-8 text, symlinks, and submodules are reported but do not block the commit.
 
 The staged CLI gate does not prove that linked prose still matches the source edit. Use an impact-enabled `kb_check` through MCP or CLI JSON mode while editing to get `symbol_semantic_review_needed` guidance and inspect linked requirements/scenarios/tests before deciding whether to update KB entities.
 
 Quality diagnostics may also appear during full or staged checks. They are designed to surface auditability problems automatically without creating a new command agents must remember: broad requirement reviews, multi-requirement symbol fanout, mixed-purpose class/component reviews, duplicate symbol-coordinate reviews, status misuse, strict-fact modeling gaps, and coverage-depth labels are review signals unless explicitly marked blocking.
 
-**Scope Note**: Staged check handles explicitly modeled symbols and extracted TypeScript/JavaScript anchors, including exported class methods, accessors, and behavior-bearing class properties. Automatic extraction of framework-specific `test()` or `it()` callbacks is not currently supported.
+**Scope Note**: Staged symbol checks handle explicitly modeled symbols and extracted TypeScript/JavaScript anchors, including exported class methods, accessors, and behavior-bearing class properties. Other readable text currently receives file-level analysis. Automatic extraction of framework-specific `test()` or `it()` callbacks is not currently supported.
 
 **Inline Directive Syntax (Optional):**
 
@@ -789,9 +795,11 @@ Link to multiple requirements:
 export class MyClass { } // implements REQ-001, REQ-002
 ```
 
-**Supported languages:**
-- TypeScript (`.ts`, `.tsx`)
-- JavaScript (`.js`, `.jsx`)
+**Analysis depth:**
+- Symbol-level: TypeScript and JavaScript (`.ts`, `.tsx`, `.js`, `.jsx`, `.mts`, `.cts`, `.mjs`, `.cjs`)
+- Metadata: Kibi entity Markdown, symbol manifests, coordinate manifests, relationship shards, and `.kb/manifest.json`
+- Advisory file-level: all other readable UTF-8 files
+- Explicitly skipped: binary blobs, unsupported encodings, symlinks, and submodules
 
 **CLI Flags for staged checking:**
 - `--staged` - Only check staged files

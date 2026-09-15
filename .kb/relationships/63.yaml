@@ -94,3 +94,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-52c3b76543ce
+  - type: implements
+    from: SYM-coordinate-repair-inspect
+    to: REQ-kibi-dependency-ordered-repair-plan
+    created_at: 2026-09-15T07:41:10.691Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5133f2c8a4f
+  - type: covered_by
+    from: SYM-coordinate-repair-inspect
+    to: TEST-coordinate-repair-capability
+    created_at: 2026-09-15T07:41:10.699Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ffbb015cac6
+  - type: covered_by
+    from: SYM-coordinate-repair-inspect
+    to: TEST-kibi-dependency-ordered-repair-plan
+    created_at: 2026-09-15T07:41:10.704Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a43e6a7686f

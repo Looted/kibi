@@ -147,8 +147,8 @@ describe("strict proof workflow contract", () => {
 
   test("equality baseline locks 100% current-requirement proof", () => {
     expect(baseline.mode).toBe("equality");
-    expect(baseline.currentRequirements).toBe(97);
-    expect(baseline.proofProven).toBe(97);
+    expect(baseline.currentRequirements).toBe(98);
+    expect(baseline.proofProven).toBe(98);
     expect(baseline.currentUnproven).toBe(0);
     expect(baseline.trackedGaps).toEqual({});
   });

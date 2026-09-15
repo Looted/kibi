@@ -63,6 +63,52 @@ describe("checkCommand", () => {
     expect(io.logText()).toContain("No staged files found.");
   });
 
+  test("returns one structured result for empty and operational staged outcomes", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    const io = captureIo();
+    restores.push(io.restore);
+
+    const empty = await withCwd(cwd, () =>
+      checkCommand({
+        staged: true,
+        format: "json",
+        kbPath: path.join(cwd, "kb-store"),
+      }),
+    );
+    expect(empty.exitCode).toBe(0);
+    const emptyOutput = JSON.parse(io.logs.at(-1) ?? "") as {
+      structuredContent: {
+        staged: { files: unknown[] };
+        messages: string[];
+      };
+    };
+    expect(emptyOutput.structuredContent.staged.files).toEqual([]);
+    expect(emptyOutput.structuredContent.messages).toContain(
+      "No staged files found.",
+    );
+
+    const nonGit = createTempDir("kibi-check-staged-nongit-");
+    roots.push(nonGit);
+    const failed = await withCwd(nonGit, () =>
+      checkCommand({
+        staged: true,
+        format: "json",
+        kbPath: path.join(nonGit, "kb-store"),
+      }),
+    );
+    expect(failed.exitCode).toBe(1);
+    const failureOutput = JSON.parse(io.logs.at(-1) ?? "") as {
+      structuredContent: { operationalError: string; staged: null };
+    };
+    expect(failureOutput.structuredContent.operationalError).toContain(
+      "failed to list staged files",
+    );
+    expect(failureOutput.structuredContent.staged).toBeNull();
+  });
+
   test("fails staged markdown that embeds another entity type", async () => {
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);
@@ -114,8 +160,89 @@ Body.
       checkCommand({ staged: true, kbPath: path.join(cwd, "kb-store") }),
     );
     expect(result.exitCode).toBe(0);
-    expect(io.logText()).toMatch(
-      /No exported symbols|No staged files|No violations/,
+    expect(io.logText()).toContain("1 file-level");
+    expect(io.logText()).toContain("staged_file_ownership_missing");
+    expect(io.logText()).not.toContain("No staged files found");
+  });
+
+  test("reports unsupported-only staged changes as advisory coverage in JSON", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    mkdirSync(path.join(cwd, "deploy"), { recursive: true });
+    writeFileSync(path.join(cwd, "deploy", "compose.yaml"), "services: {}\n");
+    writeFileSync(path.join(cwd, "deploy", "run.sh"), "#!/bin/sh\nexit 0\n");
+    git(cwd, "add deploy/compose.yaml deploy/run.sh");
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await withCwd(cwd, () =>
+      checkCommand({
+        staged: true,
+        format: "json",
+        kbPath: path.join(cwd, "kb-store"),
+      }),
+    );
+    expect(result.exitCode).toBe(0);
+    const output = JSON.parse(io.logText()) as {
+      structuredContent: {
+        staged: { files: Array<{ path: string; analysisDepth: string }> };
+        diagnostics: Array<{ id: string }>;
+      };
+    };
+    expect(output.structuredContent.staged.files).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: "deploy/compose.yaml",
+          analysisDepth: "file",
+        }),
+        expect.objectContaining({
+          path: "deploy/run.sh",
+          analysisDepth: "file",
+        }),
+      ]),
+    );
+    expect(output.structuredContent.diagnostics).toHaveLength(2);
+    expect(io.logText()).not.toContain("No staged files found");
+  });
+
+  test("reports skipped-only staged blobs in JSON without blocking", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    writeFileSync(path.join(cwd, "asset.bin"), Buffer.from([0, 1, 2, 3]));
+    git(cwd, "add asset.bin");
+    const io = captureIo();
+    restores.push(io.restore);
+
+    const result = await withCwd(cwd, () =>
+      checkCommand({
+        staged: true,
+        format: "json",
+        kbPath: path.join(cwd, "kb-store"),
+      }),
+    );
+    expect(result.exitCode).toBe(0);
+    const output = JSON.parse(io.logText()) as {
+      structuredContent: {
+        staged: {
+          files: Array<{
+            path: string;
+            analysisDepth: string;
+            disposition: string;
+            reason: string;
+          }>;
+        };
+      };
+    };
+    expect(output.structuredContent.staged.files).toContainEqual(
+      expect.objectContaining({
+        path: "asset.bin",
+        analysisDepth: "none",
+        disposition: "skipped",
+        reason: "binary",
+      }),
     );
   });
 

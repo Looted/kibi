@@ -125,3 +125,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-974375d5b6f3
+  - type: covered_by
+    from: SYM-kibi-migration-coverage-actions
+    to: TEST-coordinate-repair-capability
+    created_at: 2026-09-14T13:29:50.412Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de80596e8b3a
