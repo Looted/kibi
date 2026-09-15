@@ -81,23 +81,37 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-831127a30937
   - type: implements
+    from: SYM-quality-inventory-fb246ed248a3
+    to: REQ-core-persistence
+    created_at: 2026-09-14T20:32:10.618Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a9c259c91dd
+  - type: covered_by
+    from: SYM-quality-inventory-fb246ed248a3
+    to: TEST-cli-prolog-codec
+    created_at: 2026-09-14T20:32:10.631Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52c3b76543ce
+  - type: implements
     from: SYM-coordinate-repair-inspect
     to: REQ-kibi-dependency-ordered-repair-plan
-    created_at: 2026-09-14T13:23:12.847Z
+    created_at: 2026-09-15T07:41:10.691Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f5133f2c8a4f
   - type: covered_by
     from: SYM-coordinate-repair-inspect
     to: TEST-coordinate-repair-capability
-    created_at: 2026-09-14T13:23:12.857Z
+    created_at: 2026-09-15T07:41:10.699Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0ffbb015cac6
   - type: covered_by
     from: SYM-coordinate-repair-inspect
     to: TEST-kibi-dependency-ordered-repair-plan
-    created_at: 2026-09-14T13:23:12.864Z
+    created_at: 2026-09-15T07:41:10.704Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8a43e6a7686f

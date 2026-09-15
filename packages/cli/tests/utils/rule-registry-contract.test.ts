@@ -4,9 +4,9 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { RULES } from "../../src/utils/rule-registry.js";
 import { SELECTABLE_RULE_NAMES } from "../../src/public/operations/specs/check-rules.generated.js";
 import { checkSpec } from "../../src/public/operations/specs/check.js";
+import { RULES } from "../../src/utils/rule-registry.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),

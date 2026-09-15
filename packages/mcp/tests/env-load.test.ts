@@ -1,5 +1,13 @@
 // implements REQ-002
-import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from "bun:test";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  spyOn,
+  test,
+} from "bun:test";
 import fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -109,9 +117,9 @@ describe("env loading", () => {
       path.join(tmpDir, ".env.custom"),
       "DEFAULT_KEY=from-default\n",
     );
-    delete process.env.KIBI_WORKSPACE;
-    delete process.env.KIBI_PROJECT_ROOT;
-    delete process.env.KIBI_ROOT;
+    Reflect.deleteProperty(process.env, "KIBI_WORKSPACE");
+    Reflect.deleteProperty(process.env, "KIBI_PROJECT_ROOT");
+    Reflect.deleteProperty(process.env, "KIBI_ROOT");
     process.env.KIBI_ENV_FILE = " .env.custom ";
     process.chdir(tmpDir);
 

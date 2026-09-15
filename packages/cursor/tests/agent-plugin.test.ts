@@ -164,7 +164,10 @@ describe("kibi-cursor portable Agent Plugin artifact", () => {
   test("formats wide JSON, repository URLs, and missing skill sources", () => {
     expect(formatAgentJson(null, 0, 0)).toBe("null");
     expect(formatAgentJson(["alpha", "beta"], 0, 0)).toBe('["alpha", "beta"]');
-    const wide = Array.from({ length: 12 }, (_, index) => `item-${index}-value`);
+    const wide = Array.from(
+      { length: 12 },
+      (_, index) => `item-${index}-value`,
+    );
     expect(formatAgentJson(wide, 0, 0)).toContain("\n");
     expect(
       formatAgentJson(
@@ -189,13 +192,20 @@ describe("kibi-cursor portable Agent Plugin artifact", () => {
     );
     expect(repoRootFromScript()).toBe(repoRoot);
 
-    const missingRoot = path.join(os.tmpdir(), `kibi-missing-skills-${Date.now()}`);
+    const missingRoot = path.join(
+      os.tmpdir(),
+      `kibi-missing-skills-${Date.now()}`,
+    );
     expect(() => assertCanonicalSourceComplete(missingRoot)).toThrow(
       "Canonical skills source missing",
     );
-    const incomplete = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-partial-skills-"));
+    const incomplete = fs.mkdtempSync(
+      path.join(os.tmpdir(), "kibi-partial-skills-"),
+    );
     try {
-      fs.mkdirSync(path.join(incomplete, "kibi-bootstrap"), { recursive: true });
+      fs.mkdirSync(path.join(incomplete, "kibi-bootstrap"), {
+        recursive: true,
+      });
       expect(() => assertCanonicalSourceComplete(incomplete)).toThrow(
         "missing its SKILL.md",
       );
@@ -209,11 +219,15 @@ describe("kibi-cursor portable Agent Plugin artifact", () => {
     const stderrWrite = process.stderr.write.bind(process.stderr);
     const stdoutWrite = process.stdout.write.bind(process.stdout);
     process.stderr.write = ((chunk: string | Uint8Array) => {
-      writes.push(typeof chunk === "string" ? chunk : Buffer.from(chunk).toString());
+      writes.push(
+        typeof chunk === "string" ? chunk : Buffer.from(chunk).toString(),
+      );
       return true;
     }) as typeof process.stderr.write;
     process.stdout.write = ((chunk: string | Uint8Array) => {
-      writes.push(typeof chunk === "string" ? chunk : Buffer.from(chunk).toString());
+      writes.push(
+        typeof chunk === "string" ? chunk : Buffer.from(chunk).toString(),
+      );
       return true;
     }) as typeof process.stdout.write;
     const exit = spyOn(process, "exit").mockImplementation(((code?: number) => {
@@ -222,7 +236,9 @@ describe("kibi-cursor portable Agent Plugin artifact", () => {
     try {
       await expect(main(["--nope"])).rejects.toThrow("exit:2");
       expect(writes.some((chunk) => chunk.includes("unknown flag"))).toBe(true);
-      const fakeRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-agent-cli-"));
+      const fakeRoot = fs.mkdtempSync(
+        path.join(os.tmpdir(), "kibi-agent-cli-"),
+      );
       try {
         for (const id of EXPECTED_SKILL_IDS) {
           fs.mkdirSync(
@@ -230,11 +246,18 @@ describe("kibi-cursor portable Agent Plugin artifact", () => {
             { recursive: true },
           );
           fs.writeFileSync(
-            path.join(fakeRoot, "packages/cli/src/public/skills", id, "SKILL.md"),
+            path.join(
+              fakeRoot,
+              "packages/cli/src/public/skills",
+              id,
+              "SKILL.md",
+            ),
             `# ${id}\n`,
           );
         }
-        fs.mkdirSync(path.join(fakeRoot, "packages/cursor"), { recursive: true });
+        fs.mkdirSync(path.join(fakeRoot, "packages/cursor"), {
+          recursive: true,
+        });
         fs.writeFileSync(
           path.join(fakeRoot, "packages/cursor", "package.json"),
           JSON.stringify({

@@ -161,3 +161,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-67557f230331
+  - type: covered_by
+    from: SYM-mcp-session-setPrologProcessForTests
+    to: TEST-mcp-session-state
+    created_at: 2026-09-14T19:11:21.840Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f8d047b092ed
+  - type: implements
+    from: SYM-quality-eval-liveSearchEvaluator
+    to: REQ-kibi-change-to-proof-evaluation
+    created_at: 2026-09-14T19:18:36.599Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6cf168936be
+  - type: covered_by
+    from: SYM-quality-eval-liveSearchEvaluator
+    to: TEST-kibi-change-to-proof-evaluation
+    created_at: 2026-09-14T19:18:36.610Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-899b95d8fa56
+  - type: implements
+    from: SYM-quality-inventory-db28319fe3b6
+    to: REQ-cli-check
+    created_at: 2026-09-14T20:25:59.338Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-735e363e1be4
+  - type: covered_by
+    from: SYM-quality-inventory-db28319fe3b6
+    to: TEST-cli-check-integrity
+    created_at: 2026-09-14T20:25:59.353Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80efc29ecc25

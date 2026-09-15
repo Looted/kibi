@@ -12,8 +12,8 @@ tags:
   - cli
   - mcp
   - e2e
-verification_scope: end_to_end
-verification_perspective: consumer
+verification_scope: integration
+verification_perspective: internal
 links:
   - type: validates
     target: SCEN-kibi-conservative-requirement-proof

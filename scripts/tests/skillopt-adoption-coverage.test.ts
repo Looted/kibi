@@ -1,6 +1,12 @@
 // implements REQ-skillopt-automatic-adoption
 import { afterEach, describe, expect, test } from "bun:test";
-import { chmodSync, mkdirSync, mkdtempSync, symlinkSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  mkdirSync,
+  mkdtempSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -70,11 +76,13 @@ describe("skillopt adoption durable helpers", () => {
     const root = privateRoot();
     await assertSecureDirectory(root);
     await ensureSecureDirectory(path.join(root, "private"));
-    await expect(assertSecureDirectory(path.join(root, "missing"))).rejects.toThrow();
+    await expect(
+      assertSecureDirectory(path.join(root, "missing")),
+    ).rejects.toThrow();
     writeFileSync(path.join(root, "not-dir"), "x\n");
-    await expect(assertSecureDirectory(path.join(root, "not-dir"))).rejects.toThrow(
-      /not a directory/,
-    );
+    await expect(
+      assertSecureDirectory(path.join(root, "not-dir")),
+    ).rejects.toThrow(/not a directory/);
     const link = path.join(root, "dir-link");
     symlinkSync(root, link);
     await expect(assertSecureDirectory(link)).rejects.toThrow(/symlink/);
@@ -105,15 +113,23 @@ describe("skillopt adoption durable helpers", () => {
     const replaced = path.join(root, "replaced.txt");
     writeFileSync(replaced, "old\n");
     const before = await readSecureFile(root, replaced);
-    await durableReplace(root, replaced, "new\n", before.identity, async () => undefined);
+    await durableReplace(
+      root,
+      replaced,
+      "new\n",
+      before.identity,
+      async () => undefined,
+    );
     expect(await readDurableText(root, replaced)).toBe("new\n");
 
     const created = path.join(root, "created.txt");
-    expect(await durableNoReplace(root, created, "first\n", async () => undefined)).toBe(
-      true,
-    );
+    expect(
+      await durableNoReplace(root, created, "first\n", async () => undefined),
+    ).toBe(true);
     expect(await readDurableText(root, created)).toBe("first\n");
-    expect(await durableNoReplace(root, created, "second\n", undefined)).toBe(false);
+    expect(await durableNoReplace(root, created, "second\n", undefined)).toBe(
+      false,
+    );
     expect(await readDurableText(root, created)).toBe("first\n");
   });
 
@@ -121,9 +137,15 @@ describe("skillopt adoption durable helpers", () => {
     const root = privateRoot();
     const target = path.join(root, "receipt.txt");
     await expect(
-      durableNoReplace(root, target, "receipt\n", undefined, async (operation) => {
-        if (operation === "link") throw new Error("crash:link");
-      }),
+      durableNoReplace(
+        root,
+        target,
+        "receipt\n",
+        undefined,
+        async (operation) => {
+          if (operation === "link") throw new Error("crash:link");
+        },
+      ),
     ).rejects.toThrow("crash:link");
     await recoverNoReplaceIntents(root);
     expect(await readDurableText(root, target)).toBe("receipt\n");

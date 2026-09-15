@@ -29,7 +29,12 @@ describe("source relationship parity", () => {
   test("compareRelationshipParity reports authored and compiled gaps and skips runtime edges", () => {
     const violations = compareRelationshipParity(
       [
-        { type: "verified_by", from: "REQ-1", to: "TEST-1", source: "docs/a.md" },
+        {
+          type: "verified_by",
+          from: "REQ-1",
+          to: "TEST-1",
+          source: "docs/a.md",
+        },
         { type: "specified_by", from: "REQ-1", to: "SCEN-1" },
       ],
       [
@@ -50,10 +55,14 @@ describe("source relationship parity", () => {
     expect(violations.map((row) => row.description).join(" ")).toContain(
       "no authored Markdown",
     );
-    expect(violations.some((row) => row.entityId === "REQ-1" && row.source === "docs/a.md")).toBe(
+    expect(
+      violations.some(
+        (row) => row.entityId === "REQ-1" && row.source === "docs/a.md",
+      ),
+    ).toBe(true);
+    expect(violations.every((row) => !row.description.includes("REQ-2"))).toBe(
       true,
     );
-    expect(violations.every((row) => !row.description.includes("REQ-2"))).toBe(true);
   });
 
   test("parseCompiledRelationshipRows marks protocol sources as runtime", () => {
@@ -81,11 +90,14 @@ describe("source relationship parity", () => {
 
   test("collectSourceRelationshipParityViolations returns empty outside git and compiled mismatches inside git", async () => {
     expect(
-      await collectSourceRelationshipParityViolations("/tmp/not-a-git-workspace", {
-        query: async () => ({ success: true, bindings: { Rows: "[]" } }),
-        nextSolution: async () => null,
-        save: async () => ({ success: true, bindings: {} }),
-      }),
+      await collectSourceRelationshipParityViolations(
+        "/tmp/not-a-git-workspace",
+        {
+          query: async () => ({ success: true, bindings: { Rows: "[]" } }),
+          nextSolution: async () => null,
+          save: async () => ({ success: true, bindings: {} }),
+        },
+      ),
     ).toEqual([]);
 
     const root = createGitWorkspace();
@@ -128,9 +140,9 @@ describe("source relationship parity", () => {
       nextSolution: async () => null,
       save: async () => ({ success: true, bindings: {} }),
     });
-    expect(violations.some((row) => row.rule === "source-relationship-parity")).toBe(
-      true,
-    );
+    expect(
+      violations.some((row) => row.rule === "source-relationship-parity"),
+    ).toBe(true);
 
     await expect(
       collectSourceRelationshipParityViolations(root, {
@@ -161,7 +173,9 @@ describe("source relationship parity", () => {
         },
       );
       expect(discoveryFailures[0]?.entityId).toBe("source-discovery");
-      expect(discoveryFailures[0]?.description).toContain("pending receipt blocked");
+      expect(discoveryFailures[0]?.description).toContain(
+        "pending receipt blocked",
+      );
     } finally {
       spy.mockRestore();
     }

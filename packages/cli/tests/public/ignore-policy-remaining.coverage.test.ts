@@ -103,8 +103,10 @@ describe("createRepoIgnorePolicy leftover walk and glob branches", () => {
     const policy = createRepoIgnorePolicy(root);
     expect(policy.isIgnored("src/ok.ts")).toBe(false);
     expect(policy.explain(root).ignored).toBe(false);
-    expect(policy.getFastGlobIgnoreGlobs().some((glob) => glob.includes("node_modules"))).toBe(
-      true,
-    );
+    expect(
+      policy
+        .getFastGlobIgnoreGlobs()
+        .some((glob) => glob.includes("node_modules")),
+    ).toBe(true);
   });
 });

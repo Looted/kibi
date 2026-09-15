@@ -40,7 +40,10 @@ function run(command, args) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       cwd: repoRoot,
-      env: process.env,
+      env: {
+        ...process.env,
+        KIBI_PROOF_PACKED: "1",
+      },
       stdio: "inherit",
     });
     child.once("error", reject);

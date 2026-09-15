@@ -126,16 +126,30 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-01f36863e79d
   - type: implements
+    from: SYM-quality-inventory-dd324a5a7d94
+    to: REQ-cli-check
+    created_at: 2026-09-14T20:23:09.559Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9caf70528875
+  - type: covered_by
+    from: SYM-quality-inventory-dd324a5a7d94
+    to: TEST-cli-check-integrity
+    created_at: 2026-09-14T20:23:09.575Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fa774acd7a1
+  - type: implements
     from: SYM-checkNoDanglingRefs
     to: REQ-cli-check
-    created_at: 2026-09-14T14:59:38.213Z
+    created_at: 2026-09-15T07:38:44.479Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0d6bc01efc91
   - type: covered_by
     from: SYM-checkNoDanglingRefs
     to: TEST-004
-    created_at: 2026-09-14T14:59:38.223Z
+    created_at: 2026-09-15T07:38:44.490Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c65c380f495d

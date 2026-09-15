@@ -55,7 +55,8 @@ describe("unit coverage runner contract", () => {
       "cli.integration",
     ]);
     expect(
-      COVERAGE_SHARDS.find((shard) => shard.label === "cli.commands")?.timeoutMs,
+      COVERAGE_SHARDS.find((shard) => shard.label === "cli.commands")
+        ?.timeoutMs,
     ).toBe(120_000);
     expect(
       COVERAGE_SHARDS.find((shard) => shard.label === "vscode.activation")
@@ -66,8 +67,9 @@ describe("unit coverage runner contract", () => {
         ?.mergeLcov,
     ).not.toBe(false);
     expect(
-      COVERAGE_SHARDS.find((shard) => shard.label === "vscode.activation-coverage")
-        ?.paths,
+      COVERAGE_SHARDS.find(
+        (shard) => shard.label === "vscode.activation-coverage",
+      )?.paths,
     ).toEqual([
       "./packages/vscode/tests/coverage-completion.test.ts",
       "./packages/vscode/tests/workspace-resolve.coverage.test.ts",

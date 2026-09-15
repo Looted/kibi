@@ -1,16 +1,11 @@
 // implements REQ-003
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import {
+  abandonedStagingBranch,
   atomicPublishGeneration,
   cleanupAbandonedStagingDirectories,
-  abandonedStagingBranch,
   prepareStagingEnvironment,
 } from "../../../src/commands/sync/staging.js";
 import {
@@ -85,8 +80,12 @@ describe("atomicPublishGeneration leftover publish and rollback branches", () =>
     writeFileSync(path.join(live, "CURRENT"), "old:0\n");
     mkdirSync(path.join(staging, "rdf"), { recursive: true });
     writeFileSync(path.join(staging, "CURRENT"), "new:0\n");
-    const { renameSync, rmSync, existsSync, mkdirSync: mkdir } =
-      require("node:fs") as typeof import("node:fs");
+    const {
+      renameSync,
+      rmSync,
+      existsSync,
+      mkdirSync: mkdir,
+    } = require("node:fs") as typeof import("node:fs");
     let currentPublishAttempts = 0;
     expect(() =>
       atomicPublishGeneration(staging, live, {
@@ -95,7 +94,10 @@ describe("atomicPublishGeneration leftover publish and rollback branches", () =>
         rmSync,
         renameSync: (from, to) => {
           const toStr = String(to);
-          if (toStr.endsWith(`${path.sep}CURRENT`) && !toStr.includes(".old.")) {
+          if (
+            toStr.endsWith(`${path.sep}CURRENT`) &&
+            !toStr.includes(".old.")
+          ) {
             currentPublishAttempts += 1;
             if (currentPublishAttempts === 1) {
               throw new Error("CURRENT publish failed");
@@ -116,8 +118,11 @@ describe("atomicPublishGeneration leftover publish and rollback branches", () =>
     writeFileSync(path.join(live, "CURRENT"), "old:0\n");
     mkdirSync(path.join(staging, "rdf"), { recursive: true });
     writeFileSync(path.join(staging, "CURRENT"), "new:0\n");
-    const { renameSync, existsSync, mkdirSync: mkdir } =
-      require("node:fs") as typeof import("node:fs");
+    const {
+      renameSync,
+      existsSync,
+      mkdirSync: mkdir,
+    } = require("node:fs") as typeof import("node:fs");
     expect(() =>
       atomicPublishGeneration(staging, live, {
         existsSync,
@@ -160,7 +165,10 @@ describe("prepareStagingEnvironment leftover metadata branches", () => {
     const staging = path.join(root, "staging");
     const live = path.join(root, "live");
     mkdirSync(staging, { recursive: true });
-    writeFileSync(path.join(staging, "storage.json"), '{"format":"existing"}\n');
+    writeFileSync(
+      path.join(staging, "storage.json"),
+      '{"format":"existing"}\n',
+    );
     await prepareStagingEnvironment(staging, live, false, {
       existsSync: (target) =>
         String(target) === staging ||
@@ -203,9 +211,7 @@ describe("cleanupAbandonedStagingDirectories leftover candidate filters", () => 
   });
 
   test("default liveness treats ESRCH as dead and other kill errors as live", async () => {
-    const kill = spyOn(process, "kill").mockImplementation(((
-      pid: number,
-    ) => {
+    const kill = spyOn(process, "kill").mockImplementation(((pid: number) => {
       if (pid === 111) {
         throw Object.assign(new Error("gone"), { code: "ESRCH" });
       }
@@ -240,12 +246,15 @@ describe("cleanupAbandonedStagingDirectories leftover candidate filters", () => 
 
   test("skips abandoned staging directories whose branch group is empty", async () => {
     let globbed = false;
-    await cleanupAbandonedStagingDirectories("/repo/.kb/branches/.staging.1.2", {
-      fg: (async () => {
-        globbed = true;
-        return [];
-      }) as never,
-    });
+    await cleanupAbandonedStagingDirectories(
+      "/repo/.kb/branches/.staging.1.2",
+      {
+        fg: (async () => {
+          globbed = true;
+          return [];
+        }) as never,
+      },
+    );
     expect(globbed).toBe(false);
   });
 });

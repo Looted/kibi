@@ -98,6 +98,14 @@ const manifest = parsePrivateEvaluatorManifest(
   }),
 );
 
+function protocolContractOrThrow() {
+  expect(manifest.protocolContract).toBeDefined();
+  if (!manifest.protocolContract) {
+    throw new Error("fixture manifest must include a protocol contract");
+  }
+  return manifest.protocolContract;
+}
+
 function completeEvidence(overrides: Partial<CellEvidence> = {}): CellEvidence {
   return {
     finalState: {
@@ -252,8 +260,7 @@ describe("scoreCell remaining integrity, protocol, and contract branches", () =>
   });
 
   test("migrationApplyContractViolations covers envelope, argv, and missing-plan branches", () => {
-    const contract = manifest.protocolContract;
-    if (!contract) throw new Error("expected protocol contract");
+    const contract = protocolContractOrThrow();
     const evidenceFrom = (
       rawCalls: NonNullable<CellEvidence["broker"]["rawCalls"]>,
     ): CellEvidence =>
@@ -406,8 +413,7 @@ describe("scoreCell remaining integrity, protocol, and contract branches", () =>
   });
 
   test("covers apply-twice, hash mismatch, conflicts, sentinels, and incomplete sources", () => {
-    const contract = manifest.protocolContract;
-    if (!contract) throw new Error("expected protocol contract");
+    const contract = protocolContractOrThrow();
     const evidenceFrom = (
       rawCalls: NonNullable<CellEvidence["broker"]["rawCalls"]>,
     ): CellEvidence =>

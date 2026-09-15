@@ -94,15 +94,7 @@ describe("registerConfiguredTools", () => {
     registerConfiguredTools(
       {} as never,
       runtime as never,
-      (
-        _server,
-        name,
-        _description,
-        _schema,
-        _handler,
-        _runtime,
-        spec,
-      ) => {
+      (_server, name, _description, _schema, _handler, _runtime, spec) => {
         registered.push(name);
         if (spec) {
           executes.push((args) => spec.execute(args, context as never));
@@ -144,11 +136,14 @@ describe("registerConfiguredTools", () => {
       },
     );
     await expect(
-      captured?.({}, {
-        workspaceRoot: "/tmp",
-        signal: new AbortController().signal,
-        clock: () => new Date(),
-      }),
+      captured?.(
+        {},
+        {
+          workspaceRoot: "/tmp",
+          signal: new AbortController().signal,
+          clock: () => new Date(),
+        },
+      ),
     ).rejects.toThrow("session Prolog");
   });
 

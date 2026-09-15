@@ -56,8 +56,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "blocks an authored edge that is absent from compiled RDF",
       { timeout: 120000 },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const requirementPath = ".kb/requirements/REQ-PARITY-E2E.md";
         createMarkdownFile(

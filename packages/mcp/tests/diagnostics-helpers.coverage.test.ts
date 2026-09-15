@@ -11,9 +11,9 @@ import {
 
 describe("diagnostics helpers coverage", () => {
   test("classifies common MCP error families and redacts secrets", () => {
-    expect(classifyDiagnosticError(new Error("stale_snapshot")).error_category).toBe(
-      "stale_snapshot",
-    );
+    expect(
+      classifyDiagnosticError(new Error("stale_snapshot")).error_category,
+    ).toBe("stale_snapshot");
     expect(
       classifyDiagnosticError(new Error("unknown option ... h for help"))
         .error_category,
@@ -23,10 +23,12 @@ describe("diagnostics helpers coverage", () => {
         .error_category,
     ).toBe("prolog_process_not_started");
     expect(
-      classifyDiagnosticError(new Error("resetting Prolog worker")).error_category,
+      classifyDiagnosticError(new Error("resetting Prolog worker"))
+        .error_category,
     ).toBe("prolog_worker_reset");
     expect(
-      classifyDiagnosticError(new Error("timed out after 15000ms")).error_category,
+      classifyDiagnosticError(new Error("timed out after 15000ms"))
+        .error_category,
     ).toBe("tool_timeout");
     expect(
       classifyDiagnosticError(

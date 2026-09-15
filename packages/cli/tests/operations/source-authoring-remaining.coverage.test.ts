@@ -48,12 +48,14 @@ describe("source-authoring remaining path, manifest, and rollback branches", () 
   test("rejects a resolved path that escapes the workspace", async () => {
     const root = await workspace();
     const originalResolve = path.resolve.bind(path);
-    const spy = spyOn(path, "resolve").mockImplementation((...args: string[]) => {
-      if (args.length >= 2 && args[1] === "docs/escape.md") {
-        return "/tmp/kibi-outside-escape.md";
-      }
-      return originalResolve(...(args as [string, ...string[]]));
-    });
+    const spy = spyOn(path, "resolve").mockImplementation(
+      (...args: string[]) => {
+        if (args.length >= 2 && args[1] === "docs/escape.md") {
+          return "/tmp/kibi-outside-escape.md";
+        }
+        return originalResolve(...(args as [string, ...string[]]));
+      },
+    );
     spies.push(spy);
     expect(() => resolveContainedSourcePath(root, "docs/escape.md")).toThrow(
       /escapes the workspace/,
@@ -83,7 +85,9 @@ describe("source-authoring remaining path, manifest, and rollback branches", () 
         type: "symbol",
         id: "SYM-MIXED",
         properties: { title: "Mixed next" },
-        relationships: [{ type: "covered_by", from: "SYM-MIXED", to: "TEST-1" }],
+        relationships: [
+          { type: "covered_by", from: "SYM-MIXED", to: "TEST-1" },
+        ],
       },
       { id: "SYM-MIXED", type: "symbol", title: "Mixed next" },
       { id: "SYM-MIXED", source: ".kb/symbols.yaml" },

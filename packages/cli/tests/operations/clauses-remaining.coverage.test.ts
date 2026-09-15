@@ -13,8 +13,8 @@ afterEach(() => {
 describe("semantic clauses remaining empty supplied-clause guard", () => {
   test("rejects supplied clauses that are all blank", () => {
     restores.push(isolateKibiEnv());
-    expect(() => extractSemanticClauses("The system must work.", ["", "  "])).toThrow(
-      /at least one non-empty atomic claim/,
-    );
+    expect(() =>
+      extractSemanticClauses("The system must work.", ["", "  "]),
+    ).toThrow(/at least one non-empty atomic claim/);
   });
 });

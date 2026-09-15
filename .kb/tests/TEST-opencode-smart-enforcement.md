@@ -15,8 +15,8 @@ tags:
 links:
   - type: validates
     target: SCEN-opencode-smart-enforcement
-verification_scope: end_to_end
-verification_perspective: consumer
+verification_scope: unit
+verification_perspective: internal
 proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof

@@ -5,8 +5,8 @@ import {
   withAttachedBranchProlog,
 } from "../../src/commands/discovery-shared.js";
 import { EngineClient } from "../../src/engine.js";
-import { coverageSpec } from "../../src/public/operations/specs/reporting.js";
 import * as runtimeTypes from "../../src/public/operations/runtime-types.js";
+import { coverageSpec } from "../../src/public/operations/specs/reporting.js";
 import * as resolver from "../../src/utils/branch-resolver.js";
 import {
   captureIo,
@@ -56,15 +56,16 @@ describe("discovery-shared remaining runtime branches", () => {
     restores.push(restoreEnv);
     const cwd = createGitWorkspace();
     roots.push(cwd);
-    const attachment = spyOn(resolver, "resolveBranchAttachment").mockReturnValue(
-      {
-        gitBranch: "main",
-        kbBranch: "main",
-        storePath: `${cwd}/.kb/branches/main`,
-        kind: "exact",
-        migrationRequired: false,
-      },
-    );
+    const attachment = spyOn(
+      resolver,
+      "resolveBranchAttachment",
+    ).mockReturnValue({
+      gitBranch: "main",
+      kbBranch: "main",
+      storePath: `${cwd}/.kb/branches/main`,
+      kind: "exact",
+      migrationRequired: false,
+    });
     const start = spyOn(EngineClient.prototype, "start").mockResolvedValue(
       undefined as never,
     );

@@ -15,20 +15,17 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
-  readdirSync,
   readFileSync,
+  readdirSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { isolatedUnitBatchEnv, stopTestEngines } from "../test/root.test.js";
 import { writeCoverageManifestAudit } from "./coverage-manifest";
 import { finalizeLcov } from "./finalize-lcov";
-import { mergeLcovContents } from "./merge-lcov";
-import {
-  isolatedUnitBatchEnv,
-  stopTestEngines,
-} from "../test/root.test.js";
+import { mergeLcovContentsWithDiagnostics } from "./merge-lcov";
 
 const COVERAGE_DIR = "coverage/unit";
 const LCOV_PATH = join(COVERAGE_DIR, "lcov.info");
@@ -98,9 +95,7 @@ export const COVERAGE_SHARDS: readonly {
   },
   {
     label: "cli.engine-remaining",
-    paths: [
-      "./packages/cli/tests/engine-remaining.coverage.test.ts",
-    ],
+    paths: ["./packages/cli/tests/engine-remaining.coverage.test.ts"],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
   },
   {
@@ -222,9 +217,8 @@ export const COVERAGE_SHARDS: readonly {
   },
   {
     label: "vscode.activation",
-    // merge-lcov now drops extra DA:0 rows from lower-hit-rate maps, so the
-    // cache-busted activation shard can contribute its complete activation
-    // file maps without poisoning vscode.core.
+    // LCOV line maps are unioned by source line. Keep activation coverage in
+    // its own shard so alternate import graphs remain auditable.
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
     paths: [
       "./packages/vscode/tests/activation/contextOnOpen.test.ts",
@@ -311,6 +305,33 @@ function lineCoveragePercent(lcov: string): number {
 }
 
 // implements REQ-014
+// covered_by TEST-scripts-unit-coverage-runner
+export type BranchCoverageSummary = Readonly<{
+  readonly available: boolean;
+  readonly found: number;
+  readonly hit: number;
+}>;
+
+/**
+ * Summarize measured LCOV branches without treating missing BRDA data as a
+ * zero measurement. Bun's JavaScript coverage may publish line/function data
+ * without branch records, so that case must remain explicitly unavailable.
+ */
+export function summarizeBranchCoverage(lcov: string): BranchCoverageSummary {
+  let found = 0;
+  let hit = 0;
+  for (const line of lcov.split("\n")) {
+    const match = line.match(/^BRDA:\d+,[^,]*,[^,]*,(.*)$/);
+    if (match === null) continue;
+    const taken = match[1] ?? "";
+    if (taken !== "-" && !/^\d+$/.test(taken)) continue;
+    found += 1;
+    if (taken !== "-" && Number(taken) > 0) hit += 1;
+  }
+  return { available: found > 0, found, hit };
+}
+
+// implements REQ-014
 export async function runUnitCoverage(): Promise<void> {
   rmSync(COVERAGE_DIR, { recursive: true, force: true });
   rmSync(SHARD_DIR, { recursive: true, force: true });
@@ -363,13 +384,39 @@ export async function runUnitCoverage(): Promise<void> {
   // exits. Let that writer finish before publishing the merged artifact so it
   // cannot overwrite the final report.
   await new Promise((resolve) => setTimeout(resolve, 100));
-  const mergedLcov = mergeLcovContents(
+  const mergeResult = mergeLcovContentsWithDiagnostics(
     shardFiles.map((filePath) => readFileSync(filePath, "utf8")),
   );
-  writeFileSync(LCOV_PATH, mergedLcov, "utf8");
+  writeFileSync(LCOV_PATH, mergeResult.lcov, "utf8");
+  writeFileSync(
+    join(COVERAGE_DIR, "lcov-conflicts.txt"),
+    mergeResult.diagnostics.length > 0
+      ? `${mergeResult.diagnostics.join("\n")}\n`
+      : "",
+    "utf8",
+  );
+  if (mergeResult.diagnostics.length > 0) {
+    console.warn(
+      `Coverage merger reported ${mergeResult.diagnostics.length} source-map conflict(s); see ${join(COVERAGE_DIR, "lcov-conflicts.txt")}`,
+    );
+  }
+  const mergedLcov = mergeResult.lcov;
   const lineCoverage = lineCoveragePercent(mergedLcov);
+  const branchCoverage = summarizeBranchCoverage(mergedLcov);
+  const branchSummary = branchCoverage.available
+    ? `Merged unit branch coverage: ${((branchCoverage.hit / branchCoverage.found) * 100).toFixed(2)}% (${branchCoverage.hit}/${branchCoverage.found} branches)`
+    : "Merged unit branch coverage: unavailable (LCOV contains no BRDA records)";
   console.log(
     `Merged unit line coverage: ${lineCoverage.toFixed(2)}% (floor ${UNIT_LINE_COVERAGE_FLOOR}%)`,
+  );
+  console.log(branchSummary);
+  writeFileSync(
+    join(COVERAGE_DIR, "coverage-summary.txt"),
+    `${[
+      `Merged unit line coverage: ${lineCoverage.toFixed(2)}%`,
+      branchSummary,
+    ].join("\n")}\n`,
+    "utf8",
   );
   if (lineCoverage < UNIT_LINE_COVERAGE_FLOOR) {
     console.error(
@@ -383,9 +430,10 @@ export async function runUnitCoverage(): Promise<void> {
     mergedLcov,
   );
   if (missingFiles.length > 0) {
-    console.warn(
-      `Coverage manifest audit: ${missingFiles.length} production source files are absent from LCOV.`,
+    console.error(
+      `Coverage manifest audit failed: ${missingFiles.length} production source files are absent from LCOV.`,
     );
+    process.exitCode = 1;
   }
   writeFileSync(
     join(COVERAGE_DIR, "failed-shards.txt"),

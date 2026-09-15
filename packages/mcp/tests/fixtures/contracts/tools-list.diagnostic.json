@@ -2848,6 +2848,10 @@
                       "pattern": "^[a-f0-9]{64}$",
                       "type": "string"
                     },
+                    "binding_hash": {
+                      "pattern": "^[a-f0-9]{64}$",
+                      "type": "string"
+                    },
                     "code_snapshot": {
                       "pattern": "^[a-f0-9]{64}$",
                       "type": "string"
@@ -5446,6 +5450,15 @@
                 },
                 "id": {
                   "type": "string"
+                },
+                "scenarioIds": {
+                  "description": "Stable scenario draft IDs verified by this test. Required when multiple scenario drafts are supplied.",
+                  "items": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "maxItems": 20,
+                  "type": "array"
                 },
                 "title": {
                   "minLength": 1,

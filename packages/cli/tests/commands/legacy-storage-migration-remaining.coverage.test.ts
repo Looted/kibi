@@ -65,7 +65,10 @@ describe("legacy storage migration remaining glob and duplicate destinations", (
     );
     const originalSync = fg.sync.bind(fg);
     spies.push(
-      spyOn(fg, "sync").mockImplementation(((patterns: string | string[], options?: unknown) => {
+      spyOn(fg, "sync").mockImplementation(((
+        patterns: string | string[],
+        options?: unknown,
+      ) => {
         const glob = String(Array.isArray(patterns) ? patterns[0] : patterns);
         if (glob.includes("docs/reqs")) {
           return [path.join(root, "docs/reqs/REQ-GLOB.md")];

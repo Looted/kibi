@@ -147,7 +147,7 @@ async function seedBaseKb(
   kbPath: string,
   results: ExtractionResult[],
 ): Promise<void> {
-  const prolog = new PrologProcess({ timeout: 120000 });
+  const prolog = new PrologProcess({ timeout: 120000, oneShot: true });
   await prolog.start();
 
   try {
@@ -175,7 +175,7 @@ describe("temp-kb", () => {
     // Ensure createTempKb uses the real PrologProcess constructor, not a mock.
     // Other test files (e.g. discovery-shared.test.ts) may call mock.module("prolog.js")
     // which replaces the module-level binding. The factory bypasses this.
-    _setPrologFactory((opts) => new PrologProcess(opts));
+    _setPrologFactory((opts) => new PrologProcess({ ...opts, oneShot: true }));
     mock.restore();
     // Create a temporary base KB directory for testing
     // Use a unique suffix to avoid collisions

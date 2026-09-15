@@ -285,9 +285,9 @@ describe("skill-system loader and validation", () => {
     mkdirSync(join(rootDir, "resources"), { recursive: true });
     writeFileSync(join(rootDir, "resources/example.txt"), "declared");
     writeFileSync(join(rootDir, "resources/hidden.txt"), "hidden");
-    expect(readBundledSkillResource("valid-skill", "resources/example.txt")).toBe(
-      "declared",
-    );
+    expect(
+      readBundledSkillResource("valid-skill", "resources/example.txt"),
+    ).toBe("declared");
 
     const symlinkRoot = writeSkill(
       "symlink-skill",
@@ -331,7 +331,10 @@ describe("skill-system loader and validation", () => {
     ).toThrow(SkillOversizeError);
     expect(validateSkillBundle(rootDir).valid).toBe(false);
     expect(() =>
-      assertMaxBytes(join(rootDir, "resources/example.txt"), RESOURCE_MAX_BYTES),
+      assertMaxBytes(
+        join(rootDir, "resources/example.txt"),
+        RESOURCE_MAX_BYTES,
+      ),
     ).toThrow(SkillOversizeError);
   });
 
@@ -346,7 +349,10 @@ describe("skill-system loader and validation", () => {
           join(skillsDir, "fixture", "SKILL.md"),
           '---\nid: fixture\nname: Fixture\ndescription: Explicit root fixture\nversion: 1.0.0\nkibiCompatibility: ">=0.11.0"\nresources:\n  - resources/guide.md\n---\n# Fixture\n',
         );
-        writeFileSync(join(skillsDir, "fixture", "resources/guide.md"), content);
+        writeFileSync(
+          join(skillsDir, "fixture", "resources/guide.md"),
+          content,
+        );
       };
       writeFixture(facadeRoot, "facade resource");
       writeFixture(scopedRoot, "scoped resource");
@@ -355,7 +361,11 @@ describe("skill-system loader and validation", () => {
       const bundle = loadBundledSkillFrom(scopedRoot, "fixture");
       expect(bundle.manifest.id).toBe("fixture");
       expect(
-        readBundledSkillResourceFrom(scopedRoot, "fixture", "resources/guide.md"),
+        readBundledSkillResourceFrom(
+          scopedRoot,
+          "fixture",
+          "resources/guide.md",
+        ),
       ).toBe("scoped resource");
       expect(readBundledSkillResource("fixture", "resources/guide.md")).toBe(
         "facade resource",
@@ -373,9 +383,9 @@ describe("skill-system loader and validation", () => {
       expect(() =>
         readBundledSkillResourceFrom(scopedRoot, "fixture", "../escape.md"),
       ).toThrow(SkillResourceOutOfBoundsError);
-      expect(() => loadBundledSkillFrom(join(root, "absent"), "fixture")).toThrow(
-        SkillNotFoundError,
-      );
+      expect(() =>
+        loadBundledSkillFrom(join(root, "absent"), "fixture"),
+      ).toThrow(SkillNotFoundError);
     } finally {
       setBundledSkillsDir(bundledSkillsDir);
       rmSync(root, { recursive: true, force: true });

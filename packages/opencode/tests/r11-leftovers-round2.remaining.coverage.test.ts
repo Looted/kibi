@@ -8,14 +8,14 @@ import {
   getFileLinkedEntityIds,
 } from "../src/file-entity-links.js";
 import {
-  createSessionEditState,
-  pushEventHintIfKind,
-} from "../src/session-edit-state.js";
-import {
   adoptPrecomputedSuggestion,
   nextRecentCommentSuggestion,
   resetCommentSuggestion,
 } from "../src/plugin.js";
+import {
+  createSessionEditState,
+  pushEventHintIfKind,
+} from "../src/session-edit-state.js";
 
 afterEach(() => {
   process.exitCode = 0;

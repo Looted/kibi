@@ -41,7 +41,9 @@ function parseArgs(argv) {
     if (arg === "--keep") {
       keep = Number.parseInt(argv[++index] ?? "", 10);
       if (!Number.isInteger(keep) || keep < 0) {
-        throw new Error(`--keep expects a non-negative integer, got ${argv[index]}`);
+        throw new Error(
+          `--keep expects a non-negative integer, got ${argv[index]}`,
+        );
       }
     } else if (arg === "--root") {
       root = argv[++index];
@@ -55,9 +57,7 @@ function parseArgs(argv) {
 
 const { keep, root: rootArg } = parseArgs(process.argv.slice(2));
 const cacheRoot =
-  rootArg ??
-  process.env.KIBI_E2E_PACK_CACHE_ROOT?.trim() ??
-  tmpdir();
+  rootArg ?? process.env.KIBI_E2E_PACK_CACHE_ROOT?.trim() ?? tmpdir();
 const namespacesPath = path.join(cacheRoot, "kibi-e2e-pack");
 
 let namespaces = [];

@@ -7,8 +7,8 @@ import {
   assertRelationshipsCleared,
   maybePushDocsNotIndexedDiagnostic,
   maybePushKbMissingDiagnostic,
-  trackedRelationshipFiles,
   rememberChangedSourceOrWarn,
+  trackedRelationshipFiles,
   warnFailedSourceHash,
 } from "../../src/commands/sync.js";
 import {
@@ -110,7 +110,9 @@ describe("trackedRelationshipFiles leftover pending-source branches", () => {
       item.path.endsWith("REQ-GONE__implements__SYM-GONE.yaml"),
     ).length;
     expect(goneCount).toBe(1);
-    unlinkSync(path.join(cwd, ".kb", "recovery", "pending-sources", "gone.json"));
+    unlinkSync(
+      path.join(cwd, ".kb", "recovery", "pending-sources", "gone.json"),
+    );
 
     const liveRelative = ".kb/relationships/REQ-A__implements__SYM-A.yaml";
     const driftReceipt = writeReceipt(cwd, "drift.json", {
@@ -119,9 +121,11 @@ describe("trackedRelationshipFiles leftover pending-source branches", () => {
     });
     expect(() => trackedRelationshipFiles(cwd, relDir)).toThrow(/hash drift/);
     unlinkSync(driftReceipt);
-    expect(trackedRelationshipFiles(cwd, relDir).some((file) =>
-      file.endsWith("REQ-A__implements__SYM-A.yaml"),
-    )).toBe(true);
+    expect(
+      trackedRelationshipFiles(cwd, relDir).some((file) =>
+        file.endsWith("REQ-A__implements__SYM-A.yaml"),
+      ),
+    ).toBe(true);
   });
 });
 
@@ -141,16 +145,38 @@ describe("sync leftover diagnostic and hash-warning helpers", () => {
     } finally {
       console.warn = warn;
     }
-    expect(warnings.join("\n")).toContain("Failed to hash docs/a.md: hash-broke");
+    expect(warnings.join("\n")).toContain(
+      "Failed to hash docs/a.md: hash-broke",
+    );
     expect(warnings.join("\n")).toContain("Failed to hash docs/b.md: plain");
-    expect(warnings.join("\n")).toContain("Failed to hash docs/c.md: apply-broke");
+    expect(warnings.join("\n")).toContain(
+      "Failed to hash docs/c.md: apply-broke",
+    );
 
     const missing: Array<{ category?: string }> = [];
-    maybePushKbMissingDiagnostic(missing as never, true, false, "main", "/tmp/kb");
+    maybePushKbMissingDiagnostic(
+      missing as never,
+      true,
+      false,
+      "main",
+      "/tmp/kb",
+    );
     expect(missing).toHaveLength(0);
-    maybePushKbMissingDiagnostic(missing as never, false, true, "main", "/tmp/kb");
+    maybePushKbMissingDiagnostic(
+      missing as never,
+      false,
+      true,
+      "main",
+      "/tmp/kb",
+    );
     expect(missing).toHaveLength(0);
-    maybePushKbMissingDiagnostic(missing as never, false, false, "main", "/tmp/kb");
+    maybePushKbMissingDiagnostic(
+      missing as never,
+      false,
+      false,
+      "main",
+      "/tmp/kb",
+    );
     expect(missing).toHaveLength(1);
 
     const docs: Array<{ category?: string }> = [];

@@ -108,3 +108,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b300b5d3a41b
+  - type: validates
+    from: TEST-mcp-schema-adapter
+    to: SCEN-kibi-operation-interface-parity
+    created_at: 2026-09-14T20:22:24.754Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d46471745f95

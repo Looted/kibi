@@ -13,9 +13,7 @@ describe("enforcement-policy remaining empty relevant-event checkpoint", () => {
   test("advisory mode still checkpoint-passes when every event is ignored", () => {
     const result = computeEnforcementPolicy({
       effectiveMode: "smart" as never,
-      lifecycleEvents: [
-        { normalizedPath: "README.md", lifecycle: "edited" },
-      ],
+      lifecycleEvents: [{ normalizedPath: "README.md", lifecycle: "edited" }],
       pathKinds: ["ignored"] as never,
       posture: "root_active",
       resolvedContext: {

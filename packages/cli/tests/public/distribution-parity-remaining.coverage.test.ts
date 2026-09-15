@@ -84,7 +84,8 @@ describe("distribution-parity leftover provenance, normalize, and issue branches
     );
     writeFileSync(path.join(noVersion, "bin.js"), "#!/usr/bin/env node\n");
     expect(
-      resolveDistributionRuntimeProvenance(path.join(noVersion, "bin.js")).version,
+      resolveDistributionRuntimeProvenance(path.join(noVersion, "bin.js"))
+        .version,
     ).toBeUndefined();
 
     const unreadable = resolveDistributionRuntimeProvenance(root);

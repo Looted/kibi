@@ -125,3 +125,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4b5669b0ad3a
+  - type: implements
+    from: SYM-quality-eval-ChangeToProofEvaluation
+    to: REQ-kibi-change-to-proof-evaluation
+    created_at: 2026-09-14T19:18:21.104Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbf23c46ded8
+  - type: covered_by
+    from: SYM-quality-eval-ChangeToProofEvaluation
+    to: TEST-kibi-change-to-proof-evaluation
+    created_at: 2026-09-14T19:18:21.115Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78ef006d8f60

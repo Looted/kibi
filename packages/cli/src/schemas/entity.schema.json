@@ -810,6 +810,10 @@
             "type": "string",
             "pattern": "^[a-f0-9]{64}$"
           },
+          "binding_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
           "fingerprint": {
             "type": "string",
             "pattern": "^[a-f0-9]{64}$"

@@ -78,19 +78,20 @@ describe("symbol refresh remaining publication and parse branches", () => {
       join(workspace, ".kb", "symbols.yaml"),
       "symbols:\n  - id: SYM-GONE\n    title: gone\n    sourceFile: src/gone.ts\n",
     );
-    const enrich = spyOn(coordinator, "enrichSymbolCoordinates").mockResolvedValue(
-      [
-        {
-          id: "SYM-GONE",
-          title: "gone",
-          sourceFile: "src/gone.ts",
-          sourceLine: 1,
-          sourceColumn: 0,
-          sourceEndLine: 1,
-          sourceEndColumn: 4,
-        },
-      ],
-    );
+    const enrich = spyOn(
+      coordinator,
+      "enrichSymbolCoordinates",
+    ).mockResolvedValue([
+      {
+        id: "SYM-GONE",
+        title: "gone",
+        sourceFile: "src/gone.ts",
+        sourceLine: 1,
+        sourceColumn: 0,
+        sourceEndLine: 1,
+        sourceEndColumn: 4,
+      },
+    ]);
     restores.push(() => enrich.mockRestore());
     const result = await refreshSymbolCoordinatesUnlocked(
       "SYM-GONE",
@@ -165,7 +166,10 @@ describe("symbol refresh remaining publication and parse branches", () => {
     expect(second.outcome).toBe("updated");
     second.publication?.rollback();
     expect(
-      fs.readFileSync(join(workspace, ".kb", "symbol-coordinates.yaml"), "utf8"),
+      fs.readFileSync(
+        join(workspace, ".kb", "symbol-coordinates.yaml"),
+        "utf8",
+      ),
     ).toBe(before);
   });
 
@@ -211,28 +215,32 @@ describe("symbol refresh remaining publication and parse branches", () => {
     const workspace = preparedWorkspace();
     const manifestPath = join(workspace, ".kb", "symbols.yaml");
     writeFileSync(manifestPath, "symbols: []\n");
-    writeFileSync(join(workspace, ".kb", "symbol-coordinates.yaml"), "coordinates: {}\n");
-    const parse = spyOn(symbolCoordinates, "parseCoordinateArtifact").mockReturnValue(
-      {
-        status: "legacy",
-        coordinates: {
-          "SYM-GONE": {
-            sourceFile: "src/gone.ts",
-            sourceLine: 1,
-            sourceColumn: 0,
-            sourceEndLine: 1,
-            sourceEndColumn: 4,
-          },
-          "SYM-BAD": {
-            sourceFile: "",
-            sourceLine: 0,
-            sourceColumn: -1,
-            sourceEndLine: 0,
-            sourceEndColumn: -1,
-          },
+    writeFileSync(
+      join(workspace, ".kb", "symbol-coordinates.yaml"),
+      "coordinates: {}\n",
+    );
+    const parse = spyOn(
+      symbolCoordinates,
+      "parseCoordinateArtifact",
+    ).mockReturnValue({
+      status: "legacy",
+      coordinates: {
+        "SYM-GONE": {
+          sourceFile: "src/gone.ts",
+          sourceLine: 1,
+          sourceColumn: 0,
+          sourceEndLine: 1,
+          sourceEndColumn: 4,
+        },
+        "SYM-BAD": {
+          sourceFile: "",
+          sourceLine: 0,
+          sourceColumn: -1,
+          sourceEndLine: 0,
+          sourceEndColumn: -1,
         },
       },
-    );
+    });
     restores.push(() => parse.mockRestore());
     await expect(
       refreshSymbolCoordinatesForManifest(

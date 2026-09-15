@@ -8,12 +8,12 @@ import {
   findMustPriorityReqs,
   requireActiveProlog,
 } from "../../src/commands/check.js";
-import * as gitStaged from "../../src/traceability/git-staged.js";
 import { EngineClient } from "../../src/engine.js";
 import * as manifestExtractor from "../../src/extractors/manifest.js";
 import { PrologProcess } from "../../src/prolog.js";
-import * as checkExecutor from "../../src/public/operations/check-executor.js";
 import * as impact from "../../src/public/impact-diagnostics.js";
+import * as checkExecutor from "../../src/public/operations/check-executor.js";
+import * as gitStaged from "../../src/traceability/git-staged.js";
 import * as tempKb from "../../src/traceability/temp-kb.js";
 import * as stagedValidate from "../../src/traceability/validate.js";
 import {
@@ -157,11 +157,12 @@ describe("checkCommand remaining runtime branches", () => {
   test("treats a thrown non-Error as a failed check", async () => {
     const cwd = preparedWorkspace();
     const resolve = await import("../../src/utils/branch-resolver.js");
-    const attachment = spyOn(resolve, "resolveBranchAttachment").mockImplementation(
-      () => {
-        throw "detached";
-      },
-    );
+    const attachment = spyOn(
+      resolve,
+      "resolveBranchAttachment",
+    ).mockImplementation(() => {
+      throw "detached";
+    });
     restores.push(() => attachment.mockRestore());
     const io = captureIo();
     restores.push(io.restore);
@@ -276,11 +277,14 @@ describe("checkCommand remaining runtime branches", () => {
     const project = spyOn(tempKb, "projectStagedEntities").mockResolvedValue(
       undefined,
     );
-    const consult = spyOn(tempKb, "consultOverlay").mockResolvedValue(undefined);
-    const cleanup = spyOn(tempKb, "cleanupTempKb").mockResolvedValue(undefined);
-    const validate = spyOn(stagedValidate, "validateStagedSymbols").mockResolvedValue(
-      [],
+    const consult = spyOn(tempKb, "consultOverlay").mockResolvedValue(
+      undefined,
     );
+    const cleanup = spyOn(tempKb, "cleanupTempKb").mockResolvedValue(undefined);
+    const validate = spyOn(
+      stagedValidate,
+      "validateStagedSymbols",
+    ).mockResolvedValue([]);
     restores.push(() => {
       create.mockRestore();
       project.mockRestore();
@@ -306,9 +310,10 @@ describe("checkCommand remaining runtime branches", () => {
     writeFileSync(path.join(cwd, "src", "greet.ts"), "const x = 1;\n");
     git(cwd, "add src/greet.ts");
     const extract = await import("../../src/traceability/symbol-extract.js");
-    const extractSpy = spyOn(extract, "extractSymbolsFromStagedFile").mockReturnValue(
-      [],
-    );
+    const extractSpy = spyOn(
+      extract,
+      "extractSymbolsFromStagedFile",
+    ).mockReturnValue([]);
     restores.push(() => extractSpy.mockRestore());
     const granularity = spyOn(
       impact,
@@ -324,15 +329,18 @@ describe("checkCommand remaining runtime branches", () => {
         docs: ["docs/modeling.md"],
       },
     ] as never);
-    const quality = spyOn(impact, "createSymbolQualityDiagnostics").mockReturnValue(
-      [],
-    );
-    const review = spyOn(impact, "createSemanticReviewDiagnostics").mockReturnValue(
-      [],
-    );
-    const blocking = spyOn(impact, "hasBlockingImpactDiagnostics").mockReturnValue(
-      false,
-    );
+    const quality = spyOn(
+      impact,
+      "createSymbolQualityDiagnostics",
+    ).mockReturnValue([]);
+    const review = spyOn(
+      impact,
+      "createSemanticReviewDiagnostics",
+    ).mockReturnValue([]);
+    const blocking = spyOn(
+      impact,
+      "hasBlockingImpactDiagnostics",
+    ).mockReturnValue(false);
     restores.push(() => {
       granularity.mockRestore();
       quality.mockRestore();
@@ -364,9 +372,10 @@ describe("checkCommand remaining runtime branches", () => {
     writeFileSync(path.join(cwd, "src", "greet.ts"), "const x = 1;\n");
     git(cwd, "add src/greet.ts");
     const extract = await import("../../src/traceability/symbol-extract.js");
-    const extractSpy = spyOn(extract, "extractSymbolsFromStagedFile").mockReturnValue(
-      [],
-    );
+    const extractSpy = spyOn(
+      extract,
+      "extractSymbolsFromStagedFile",
+    ).mockReturnValue([]);
     restores.push(() => extractSpy.mockRestore());
     const granularity = spyOn(
       impact,
@@ -382,15 +391,18 @@ describe("checkCommand remaining runtime branches", () => {
         docs: [],
       },
     ] as never);
-    const quality = spyOn(impact, "createSymbolQualityDiagnostics").mockReturnValue(
-      [],
-    );
-    const review = spyOn(impact, "createSemanticReviewDiagnostics").mockReturnValue(
-      [],
-    );
-    const blocking = spyOn(impact, "hasBlockingImpactDiagnostics").mockReturnValue(
-      true,
-    );
+    const quality = spyOn(
+      impact,
+      "createSymbolQualityDiagnostics",
+    ).mockReturnValue([]);
+    const review = spyOn(
+      impact,
+      "createSemanticReviewDiagnostics",
+    ).mockReturnValue([]);
+    const blocking = spyOn(
+      impact,
+      "hasBlockingImpactDiagnostics",
+    ).mockReturnValue(true);
     restores.push(() => {
       granularity.mockRestore();
       quality.mockRestore();
@@ -482,9 +494,11 @@ describe("checkCommand remaining runtime branches", () => {
       },
     } as never);
     expect(violations[0]?.description).toContain("scenario coverage");
-    expect(await findMustPriorityReqs({
-      query: async () => ({ success: true, bindings: { Ids: "REQ-BARE" } }),
-    } as never)).toEqual([]);
+    expect(
+      await findMustPriorityReqs({
+        query: async () => ({ success: true, bindings: { Ids: "REQ-BARE" } }),
+      } as never),
+    ).toEqual([]);
   });
 
   test("returns exit 1 when kbPath attach fails in json mode", async () => {
@@ -615,17 +629,20 @@ describe("checkCommand remaining runtime branches", () => {
     const project = spyOn(tempKb, "projectStagedEntities").mockResolvedValue(
       undefined,
     );
-    const consult = spyOn(tempKb, "consultOverlay").mockResolvedValue(undefined);
-    const cleanup = spyOn(tempKb, "cleanupTempKb").mockResolvedValue(undefined);
-    const validate = spyOn(stagedValidate, "validateStagedSymbols").mockResolvedValue(
-      [
-        {
-          rule: "symbol-coverage",
-          entityId: "SYM-GREET",
-          description: "unlinked",
-        },
-      ] as never,
+    const consult = spyOn(tempKb, "consultOverlay").mockResolvedValue(
+      undefined,
     );
+    const cleanup = spyOn(tempKb, "cleanupTempKb").mockResolvedValue(undefined);
+    const validate = spyOn(
+      stagedValidate,
+      "validateStagedSymbols",
+    ).mockResolvedValue([
+      {
+        rule: "symbol-coverage",
+        entityId: "SYM-GREET",
+        description: "unlinked",
+      },
+    ] as never);
     restores.push(() => {
       create.mockRestore();
       project.mockRestore();
@@ -643,7 +660,9 @@ describe("checkCommand remaining runtime branches", () => {
       }),
     );
     expect(result.exitCode).toBe(0);
-    expect(debug.mock.calls.join("\n")).toMatch(/skipping working-tree manifest/);
+    expect(debug.mock.calls.join("\n")).toMatch(
+      /skipping working-tree manifest/,
+    );
   });
 
   test("uses fallback lookup keys and keeps only traceability relationships from manifests", async () => {
@@ -676,9 +695,10 @@ describe("checkCommand remaining runtime branches", () => {
       ],
       sourceFile: "src/greet.ts",
     };
-    const fromDisk = spyOn(manifestExtractor, "extractFromManifest").mockReturnValue(
-      [nameless as never],
-    );
+    const fromDisk = spyOn(
+      manifestExtractor,
+      "extractFromManifest",
+    ).mockReturnValue([nameless as never]);
     const fromStaged = spyOn(
       manifestExtractor,
       "extractFromManifestString",
@@ -696,11 +716,14 @@ describe("checkCommand remaining runtime branches", () => {
     const project = spyOn(tempKb, "projectStagedEntities").mockResolvedValue(
       undefined,
     );
-    const consult = spyOn(tempKb, "consultOverlay").mockResolvedValue(undefined);
-    const cleanup = spyOn(tempKb, "cleanupTempKb").mockResolvedValue(undefined);
-    const validate = spyOn(stagedValidate, "validateStagedSymbols").mockResolvedValue(
-      [],
+    const consult = spyOn(tempKb, "consultOverlay").mockResolvedValue(
+      undefined,
     );
+    const cleanup = spyOn(tempKb, "cleanupTempKb").mockResolvedValue(undefined);
+    const validate = spyOn(
+      stagedValidate,
+      "validateStagedSymbols",
+    ).mockResolvedValue([]);
     restores.push(() => {
       fromDisk.mockRestore();
       fromStaged.mockRestore();
@@ -733,9 +756,10 @@ describe("checkCommand remaining runtime branches", () => {
     );
     git(cwd, "add src/widget.ts impact.md");
     const extract = await import("../../src/traceability/symbol-extract.js");
-    const extractSpy = spyOn(extract, "extractSymbolsFromStagedFile").mockReturnValue(
-      [],
-    );
+    const extractSpy = spyOn(
+      extract,
+      "extractSymbolsFromStagedFile",
+    ).mockReturnValue([]);
     restores.push(() => extractSpy.mockRestore());
     const io = captureIo();
     restores.push(io.restore);
@@ -775,15 +799,18 @@ Must stay independently testable.
         docs: ["docs/modeling.md"],
       },
     ] as never);
-    const quality = spyOn(impact, "createSymbolQualityDiagnostics").mockReturnValue(
-      [],
-    );
-    const review = spyOn(impact, "createSemanticReviewDiagnostics").mockReturnValue(
-      [],
-    );
-    const blocking = spyOn(impact, "hasBlockingImpactDiagnostics").mockReturnValue(
-      false,
-    );
+    const quality = spyOn(
+      impact,
+      "createSymbolQualityDiagnostics",
+    ).mockReturnValue([]);
+    const review = spyOn(
+      impact,
+      "createSemanticReviewDiagnostics",
+    ).mockReturnValue([]);
+    const blocking = spyOn(
+      impact,
+      "hasBlockingImpactDiagnostics",
+    ).mockReturnValue(false);
     restores.push(() => {
       granularity.mockRestore();
       quality.mockRestore();
@@ -911,7 +938,9 @@ Must stay independently testable.
     const project = spyOn(tempKb, "projectStagedEntities").mockResolvedValue(
       undefined,
     );
-    const consult = spyOn(tempKb, "consultOverlay").mockResolvedValue(undefined);
+    const consult = spyOn(tempKb, "consultOverlay").mockResolvedValue(
+      undefined,
+    );
     const cleanup = spyOn(tempKb, "cleanupTempKb").mockResolvedValue(undefined);
     const validate = spyOn(
       stagedValidate,

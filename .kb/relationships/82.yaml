@@ -132,3 +132,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b424d33cef0f
+  - type: implements
+    from: SYM-quality-staged-manifestRecordSourcePath
+    to: REQ-cli-staged-impact-enforcement
+    created_at: 2026-09-15T01:06:58.508Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11983766a524
+  - type: covered_by
+    from: SYM-quality-staged-manifestRecordSourcePath
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-15T01:06:58.529Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c56c206127e2

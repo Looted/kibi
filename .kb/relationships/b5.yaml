@@ -300,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fee1a53b71de
+  - type: implements
+    from: SYM-quality-staged-parsedCoordinateOrNull
+    to: REQ-cli-staged-impact-enforcement
+    created_at: 2026-09-15T01:06:32.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-844d40479f0f
+  - type: covered_by
+    from: SYM-quality-staged-parsedCoordinateOrNull
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-15T01:06:32.338Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0cb19ca43cb

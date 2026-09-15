@@ -1,11 +1,6 @@
 // implements REQ-cursor-agent-plugin-standard-v1
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
-import {
-  mkdirSync,
-  mkdtempSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -116,7 +111,9 @@ describe("sync-agent-skills remaining CLI and drift branches", () => {
       stdout.push(String(chunk));
       return true;
     }) as typeof process.stdout.write);
-    const err = spyOn(process.stderr, "write").mockImplementation((() => true) as typeof process.stderr.write);
+    const err = spyOn(process.stderr, "write").mockImplementation(
+      (() => true) as typeof process.stderr.write,
+    );
     const exit = spyOn(process, "exit").mockImplementation(((code?: number) => {
       throw new Error(`exit ${code}`);
     }) as typeof process.exit);

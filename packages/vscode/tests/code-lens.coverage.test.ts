@@ -1,5 +1,13 @@
 // implements REQ-vscode-kb-to-source
-import { afterAll, afterEach, describe, expect, mock, spyOn, test } from "bun:test";
+import {
+  afterAll,
+  afterEach,
+  describe,
+  expect,
+  mock,
+  spyOn,
+  test,
+} from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -103,12 +111,17 @@ describe("codeLensProvider remaining runtime branches", () => {
       { uri: { fsPath: sourceFile } } as never,
       { isCancellationRequested: false } as never,
     );
-    expect(lenses?.length).toBe(2);
-    expect((lenses?.[1] as DefaultCodeLens).range).toMatchObject({
+    expect(lenses).toHaveLength(2);
+    if (!lenses || lenses.length < 2)
+      throw new Error("expected two code lenses");
+    const firstLens = lenses[0];
+    const secondLens = lenses[1];
+    if (!firstLens || !secondLens) throw new Error("expected code lenses");
+    expect((secondLens as DefaultCodeLens).range).toMatchObject({
       start: { line: 0, character: 0 },
     });
 
-    const resolved = await provider.resolveCodeLens(lenses![0], {
+    const resolved = await provider.resolveCodeLens(firstLens, {
       isCancellationRequested: false,
     } as never);
     expect(resolved?.command?.title).toBeDefined();
@@ -123,7 +136,7 @@ describe("codeLensProvider remaining runtime branches", () => {
     mockQueryImpl = () => {
       throw new Error("should use cache");
     };
-    const cached = await provider.resolveCodeLens(lenses![0], {
+    const cached = await provider.resolveCodeLens(firstLens, {
       isCancellationRequested: false,
     } as never);
     expect(cached?.command?.command).toBe("kibi.browseLinkedEntities");
@@ -134,16 +147,18 @@ describe("codeLensProvider remaining runtime branches", () => {
       { uri: { fsPath: sourceFile } } as never,
       { isCancellationRequested: false } as never,
     );
+    if (!inflightLenses?.[0]) throw new Error("expected inflight code lens");
+    const inflightLens = inflightLenses[0];
     let queryCount = 0;
     mockQueryImpl = () => {
       queryCount += 1;
       return [{ type: "implements", from: "SYM-ALPHA", to: "REQ-1" }];
     };
     const [left, right] = await Promise.all([
-      inflightProvider.resolveCodeLens(inflightLenses![0], {
+      inflightProvider.resolveCodeLens(inflightLens, {
         isCancellationRequested: false,
       } as never),
-      inflightProvider.resolveCodeLens(inflightLenses![0], {
+      inflightProvider.resolveCodeLens(inflightLens, {
         isCancellationRequested: false,
       } as never),
     ]);
@@ -162,17 +177,21 @@ describe("codeLensProvider remaining runtime branches", () => {
       { uri: { fsPath: sourceFile } } as never,
       { isCancellationRequested: false } as never,
     );
+    if (!cancelLenses?.[0]) throw new Error("expected cancellation code lens");
     expect(
       await cancelProvider.resolveCodeLens(
-        cancelLenses![0],
+        cancelLenses[0],
         cancelToken as never,
       ),
     ).toBeNull();
 
     expect(
-      await provider.resolveCodeLens(new DefaultCodeLens({} as never) as never, {
-        isCancellationRequested: false,
-      } as never),
+      await provider.resolveCodeLens(
+        new DefaultCodeLens({} as never) as never,
+        {
+          isCancellationRequested: false,
+        } as never,
+      ),
     ).toBeNull();
   });
 
@@ -202,12 +221,16 @@ describe("codeLensProvider remaining runtime branches", () => {
     expect(
       internals.getEntriesForDocumentPath(path.join(tmpDir, "src", "beta.ts")),
     ).toBeTruthy();
-    expect(internals.relativeKey(path.join(tmpDir, "..", "outside.ts"))).toBeNull();
+    expect(
+      internals.relativeKey(path.join(tmpDir, "..", "outside.ts")),
+    ).toBeNull();
     expect(internals.relativeKey(tmpDir)).toBeNull();
 
-    const realpathSpy = spyOn(fs.realpathSync, "native").mockImplementation(() => {
-      throw new Error("no realpath");
-    });
+    const realpathSpy = spyOn(fs.realpathSync, "native").mockImplementation(
+      () => {
+        throw new Error("no realpath");
+      },
+    );
     try {
       expect(
         internals.filePathCandidates(path.join(tmpDir, "missing", "ghost.ts"))

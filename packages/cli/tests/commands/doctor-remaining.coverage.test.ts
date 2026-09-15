@@ -159,7 +159,9 @@ status: open
     restores.push(io.restore);
     const result = await withCwd(cwd, () => doctorCommand({ format: "json" }));
     expect(result.exitCode).toBe(1);
-    expect(io.logText()).toContain("Unable to check hook permissions or read content");
+    expect(io.logText()).toContain(
+      "Unable to check hook permissions or read content",
+    );
   });
 
   test("emits a caret-range mismatch when the installed CLI is older than MCP's range", async () => {
@@ -175,7 +177,10 @@ status: open
       options?: unknown,
     ) => {
       const file = String(target);
-      if (file === cliPackagePath() || file.endsWith(`${path.sep}cli${path.sep}package.json`)) {
+      if (
+        file === cliPackagePath() ||
+        file.endsWith(`${path.sep}cli${path.sep}package.json`)
+      ) {
         return JSON.stringify({
           name: "kibi-cli",
           version: "1.2.3",
@@ -317,9 +322,12 @@ status: open
     const payload = JSON.parse(io.logText());
     expect(payload.runtime.cliVersion).toBe("unknown");
     expect(payload.runtime.coreRange).toBe("unknown");
-    expect(payload.migrationPlan.actions.some((action: { id: string }) =>
-      action.id === "package-provenance-unresolved",
-    )).toBe(true);
+    expect(
+      payload.migrationPlan.actions.some(
+        (action: { id: string }) =>
+          action.id === "package-provenance-unresolved",
+      ),
+    ).toBe(true);
   });
 
   test("walks from an entrypoint when package.json exports are hidden", async () => {
@@ -647,28 +655,26 @@ status: open
       return originalExec(command, options as never);
     }) as typeof childProcess.execSync);
     const originalMatch = String.prototype.match;
-    const match = spyOn(String.prototype, "match").mockImplementation(
-      function (this: string, regexp: string | RegExp) {
-        const result = originalMatch.call(
-          this,
-          regexp as never,
-        );
-        if (
-          typeof this === "string" &&
-          this.includes("SWI-Prolog version") &&
-          result
-        ) {
-          const copy = [...result] as unknown as RegExpMatchArray;
-          copy.index = result.index;
-          copy.input = result.input;
-          copy.groups = result.groups;
-          copy[1] = "";
-          copy[2] = result[2];
-          return copy;
-        }
-        return result;
-      } as typeof String.prototype.match,
-    );
+    const match = spyOn(String.prototype, "match").mockImplementation(function (
+      this: string,
+      regexp: string | RegExp,
+    ) {
+      const result = originalMatch.call(this, regexp as never);
+      if (
+        typeof this === "string" &&
+        this.includes("SWI-Prolog version") &&
+        result
+      ) {
+        const copy = [...result] as unknown as RegExpMatchArray;
+        copy.index = result.index;
+        copy.input = result.input;
+        copy.groups = result.groups;
+        copy[1] = "";
+        copy[2] = result[2];
+        return copy;
+      }
+      return result;
+    } as typeof String.prototype.match);
     restores.push(() => {
       exec.mockRestore();
       match.mockRestore();
@@ -686,17 +692,19 @@ status: open
       mcpCliRange: "^1.2.3",
       executeApplyPlanExported: false,
     });
-    expect(actions.some((action) => action.id === "package-cli-export-surface-drift")).toBe(
-      true,
-    );
+    expect(
+      actions.some(
+        (action) => action.id === "package-cli-export-surface-drift",
+      ),
+    ).toBe(true);
     await expect(
       detectExecuteApplyPlanExport(async () => {
         throw new Error("operations export missing");
       }),
     ).resolves.toBe(false);
-    await expect(
-      detectExecuteApplyPlanExport(async () => ({})),
-    ).resolves.toBe(false);
+    await expect(detectExecuteApplyPlanExport(async () => ({}))).resolves.toBe(
+      false,
+    );
     await expect(detectExecuteApplyPlanExport()).resolves.toBe(true);
   });
 
@@ -715,7 +723,9 @@ status: open
     expect(nearestNamedPackageManifest(nested, "kibi-core")).toBe(
       path.join(cwd, "pkg", "package.json"),
     );
-    expect(nearestNamedPackageManifest(nested, "missing-package")).toBeUndefined();
+    expect(
+      nearestNamedPackageManifest(nested, "missing-package"),
+    ).toBeUndefined();
     expect(nextAncestorDirectory("/")).toBeUndefined();
     expect(nextAncestorDirectory(nested)).toBe(path.join(cwd, "pkg"));
   });

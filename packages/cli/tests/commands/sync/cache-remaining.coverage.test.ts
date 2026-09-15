@@ -50,7 +50,10 @@ describe("hashManifestWithCoordinates remaining referenced-source states", () =>
       ].join("\n"),
     );
     mkdirSync(path.join(root, "src"), { recursive: true });
-    writeFileSync(path.join(root, "src", "present.ts"), "export const x = 1;\n");
+    writeFileSync(
+      path.join(root, "src", "present.ts"),
+      "export const x = 1;\n",
+    );
 
     const withOutside = hashManifestWithCoordinates(root, manifest, null);
     expect(withOutside).toMatch(/^[a-f0-9]{64}$/);

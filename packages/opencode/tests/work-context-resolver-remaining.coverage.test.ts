@@ -14,7 +14,8 @@ import {
 const dirs: string[] = [];
 
 afterEach(() => {
-  for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true });
+  for (const dir of dirs.splice(0))
+    rmSync(dir, { recursive: true, force: true });
   if (process.exitCode === 1) process.exitCode = 0;
 });
 
@@ -91,9 +92,7 @@ describe("work-context-resolver remaining git walks and detached HEAD", () => {
     writeFileSync(join(root, ".kb", "manifest.json"), "{}\n");
     expect(authorityRootFromLinkedGitDir(join(root, "custom-git"))).toBeNull();
     expect(
-      authorityRootFromLinkedGitDir(
-        join(root, ".git", "worktrees", "feature"),
-      ),
+      authorityRootFromLinkedGitDir(join(root, ".git", "worktrees", "feature")),
     ).toBe(root);
     expect(ancestorKbRoots(join(root, "nested", "deeper"))).toContain(root);
     expect(nextAncestorDirectory("/")).toBeUndefined();

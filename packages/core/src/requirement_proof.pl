@@ -4,6 +4,7 @@
 :- module(requirement_proof, [
     requirement_proof_context/1,
     requirement_proof_context/4,
+    requirement_proof_context/6,
     requirement_proof/4
 ]).
 
@@ -25,6 +26,17 @@ requirement_proof_context(Context) :-
     requirement_proof_context(unknown, '1970-01-01T00:00:00Z', 604800, Context).
 
 requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, Context) :-
+    requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds,
+                              strict_snapshot, _{}, Context).
+
+% Per-contract receipt binding (W2): BindingMode is strict_snapshot (the
+% default: a receipt is current only against the whole-workspace snapshot it
+% was proven on) or per_contract (a receipt carrying a binding_hash is current
+% while its contract + receipt-stripped test document are unchanged, via the
+% TestBindings dict TestId -> BindingHash; receipts without a binding_hash
+% still fall back to the snapshot match).
+requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds,
+                          BindingMode, TestBindings, Context) :-
     check_domain_contradictions_and_witnesses(Contradictions, ContradictionWitnesses),
     check_rule_safety(UnsafeRules),
     check_rule_verifiability(UnverifiableRules),
@@ -32,6 +44,7 @@ requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, Contex
     normalize_atom(CheckedAt, CheckedAtAtom),
     (catch(parse_time(CheckedAtAtom, CheckedAtStamp), _, fail) -> true ; CheckedAtStamp = -1),
     normalize_integer(MaxAgeSeconds, MaxAge),
+    normalize_atom(BindingMode, BindingModeAtom),
     Context = _{
         contradictions: Contradictions,
         contradictionWitnesses: ContradictionWitnesses,
@@ -40,7 +53,9 @@ requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, Contex
         proofSnapshot: Snapshot,
         proofCheckedAt: CheckedAtAtom,
         proofCheckedAtStamp: CheckedAtStamp,
-        proofMaxAgeSeconds: MaxAge
+        proofMaxAgeSeconds: MaxAge,
+        proofBindingMode: BindingModeAtom,
+        proofTestBindings: TestBindings
     }.
 
 % implements REQ-kibi-proof-applicability-reason
@@ -62,8 +77,8 @@ requirement_proof(ReqId, ReqProps, Context, Proof) :-
     logic_grounding_stage(ReqId, ReqProps, Inventory, Context, LogicStage),
     contradiction_stage(ReqId, LogicStage.status, Context, ContradictionStage),
     scenario_stage(ReqId, ScenarioStage, ScenarioIds),
-    scenario_test_stage(ScenarioIds, ScenarioTestStage, ScenarioTests),
-    passing_e2e_stage(ScenarioTests, Context, PassingE2eStage, PassingE2eTests),
+    scenario_test_stage(ScenarioIds, ScenarioTestStage, _ScenarioTests),
+    passing_e2e_stage(ScenarioTestStage, Context, PassingE2eStage, PassingE2eTests),
     executable_symbol_stage(PassingE2eTests, ExecutableStage, ExecutableSymbols),
     production_symbol_stage(ReqId, PassingE2eTests, ProductionStage, ProductionSymbols),
     source_coordinate_stage(ReqProps, ExecutableSymbols, ProductionSymbols, CoordinateStage),
@@ -476,31 +491,94 @@ violation_for_entity(Violations, EntityId) :-
 
 scenario_stage(ReqId, Stage, ScenarioIds) :-
     findall(ScenarioId,
-        (kb_relationship(specified_by, ReqId, ScenarioId), kb_entity(ScenarioId, scenario, _)),
-        ScenarioIds0),
-    sort(ScenarioIds0, ScenarioIds),
-    (ScenarioIds = [] -> Status = missing ; Status = passed),
+        kb_relationship(specified_by, ReqId, ScenarioId),
+        ScenarioTargets0),
+    sort(ScenarioTargets0, ScenarioTargets),
+    include(existing_scenario, ScenarioTargets, ScenarioIds),
+    findall(ScenarioId,
+        (member(ScenarioId, ScenarioTargets), \+ existing_scenario(ScenarioId)),
+        InvalidScenarioTargets),
+    ((ScenarioIds = [] ; InvalidScenarioTargets \= []) -> Status = missing ; Status = passed),
     maplist(entity_source_ref, ScenarioIds, Sources),
-    Stage = _{status: Status, scenarios: ScenarioIds, sources: Sources}.
+    Stage = _{
+        status: Status,
+        scenarios: ScenarioIds,
+        scenarioTargets: ScenarioTargets,
+        invalidScenarioTargets: InvalidScenarioTargets,
+        sources: Sources
+    }.
+
+existing_scenario(ScenarioId) :-
+    kb_entity(ScenarioId, scenario, _).
 
 scenario_test_stage(ScenarioIds, Stage, ScenarioTests) :-
+    maplist(scenario_test_obligation, ScenarioIds, Obligations),
     findall(TestId,
-        (member(ScenarioId, ScenarioIds), scenario_test(ScenarioId, TestId)),
+        (member(Obligation, Obligations), member(TestId, Obligation.tests)),
         ScenarioTests0),
     sort(ScenarioTests0, ScenarioTests),
-    (ScenarioTests = [] -> Status = missing ; Status = passed),
+    findall(TestId,
+        (member(Obligation, Obligations), member(TestId, Obligation.scenarioTestTargets)),
+        ScenarioTestTargets0),
+    sort(ScenarioTestTargets0, ScenarioTestTargets),
+    findall(TestId,
+        (member(Obligation, Obligations), member(TestId, Obligation.invalidScenarioTestTargets)),
+        InvalidScenarioTestTargets0),
+    sort(InvalidScenarioTestTargets0, InvalidScenarioTestTargets),
+    (   ScenarioIds == []
+    ->  Status = missing
+    ;   member(Obligation, Obligations), Obligation.status == missing
+    ->  Status = missing
+    ;   Status = passed
+    ),
     maplist(entity_source_ref, ScenarioTests, Sources),
-    Stage = _{status: Status, tests: ScenarioTests, sources: Sources}.
+    Stage = _{
+        status: Status,
+        scenarios: ScenarioIds,
+        tests: ScenarioTests,
+        scenarioTestTargets: ScenarioTestTargets,
+        invalidScenarioTestTargets: InvalidScenarioTestTargets,
+        sources: Sources,
+        obligations: Obligations
+    }.
+
+scenario_test_obligation(ScenarioId, Obligation) :-
+    findall(TestId, declared_scenario_test_target(ScenarioId, TestId), TestTargets0),
+    sort(TestTargets0, TestTargets),
+    include(existing_test, TestTargets, TestIds),
+    findall(TestId,
+        (member(TestId, TestTargets), \+ existing_test(TestId)),
+        InvalidScenarioTestTargets),
+    maplist(entity_source_ref, TestIds, Sources),
+    (   (TestIds == [] ; InvalidScenarioTestTargets \= [])
+    ->  Status = missing
+    ;   Status = passed
+    ),
+    Obligation = _{
+        scenarioId: ScenarioId,
+        status: Status,
+        scenarioTestTargets: TestTargets,
+        invalidScenarioTestTargets: InvalidScenarioTestTargets,
+        tests: TestIds,
+        sources: Sources
+    }.
+
+declared_scenario_test_target(ScenarioId, TestId) :-
+    kb_relationship(verified_by, ScenarioId, TestId).
+declared_scenario_test_target(ScenarioId, TestId) :-
+    kb_relationship(validates, TestId, ScenarioId).
+
+existing_test(TestId) :-
+    kb_entity(TestId, test, _).
 
 scenario_test(ScenarioId, TestId) :-
-    kb_relationship(verified_by, ScenarioId, TestId),
-    kb_entity(TestId, test, _).
-scenario_test(ScenarioId, TestId) :-
-    kb_relationship(validates, TestId, ScenarioId),
-    kb_entity(TestId, test, _).
+    declared_scenario_test_target(ScenarioId, TestId),
+    existing_test(TestId).
 
-passing_e2e_stage(ScenarioTests, Context, Stage, PassingE2eTests) :-
-    maplist(test_receipt_evidence(Context), ScenarioTests, Evidence),
+passing_e2e_stage(ScenarioTestStage, Context, Stage, PassingE2eTests) :-
+    maplist(scenario_passing_e2e_obligation(Context), ScenarioTestStage.obligations, ScenarioObligations),
+    findall(Item, (member(Obligation, ScenarioObligations), member(Item, Obligation.evidence)), Evidence0),
+    unique_evidence_by_test(Evidence0, Evidence),
     evidence_tests_with_state(Evidence, passed, PassingE2eTests),
     evidence_tests_with_state(Evidence, missing, MissingReceiptTests),
     evidence_tests_with_state(Evidence, stale, StaleReceiptTests),
@@ -509,10 +587,11 @@ passing_e2e_stage(ScenarioTests, Context, Stage, PassingE2eTests) :-
     evidence_tests_with_state(Evidence, contract_mismatch, ContractMismatchReceiptTests),
     evidence_tests_with_state(Evidence, snapshot_unavailable, SnapshotUnavailableTests),
     evidence_tests_with_state(Evidence, not_end_to_end, NonEndToEndTests),
-    passing_e2e_status(PassingE2eTests, InvalidReceiptTests, ContractMismatchReceiptTests, SnapshotUnavailableTests, Status),
+    passing_e2e_status(ScenarioObligations, Status),
     Stage = _{
         status: Status,
         tests: PassingE2eTests,
+        scenarioObligations: ScenarioObligations,
         receiptEvidence: Evidence,
         missingReceiptTests: MissingReceiptTests,
         staleReceiptTests: StaleReceiptTests,
@@ -526,11 +605,99 @@ passing_e2e_stage(ScenarioTests, Context, Stage, PassingE2eTests) :-
         maxAgeSeconds: Context.proofMaxAgeSeconds
     }.
 
-passing_e2e_status(Passing, _, _, _, passed) :- Passing \= [], !.
-passing_e2e_status([], Invalid, _, _, unresolved) :- Invalid \= [], !.
-passing_e2e_status([], _, ContractMismatch, _, unresolved) :- ContractMismatch \= [], !.
-passing_e2e_status([], _, _, SnapshotUnavailable, unresolved) :- SnapshotUnavailable \= [], !.
-passing_e2e_status([], _, _, _, missing).
+unique_evidence_by_test(Evidence0, Evidence) :-
+    findall(TestId,
+        (member(Item, Evidence0), TestId = Item.testId),
+        TestIds0),
+    sort(TestIds0, TestIds),
+    maplist(first_evidence_for_test(Evidence0), TestIds, Evidence).
+
+first_evidence_for_test(Evidence, TestId, Item) :-
+    member(Item, Evidence),
+    Item.testId == TestId,
+    !.
+
+scenario_passing_e2e_obligation(Context, TestObligation, Obligation) :-
+    maplist(test_receipt_evidence(Context), TestObligation.tests, Evidence),
+    include(e2e_evidence, Evidence, E2eEvidence),
+    include(non_e2e_evidence, Evidence, NonEndToEndEvidence),
+    evidence_tests_with_state(E2eEvidence, passed, PassingE2eTests),
+    evidence_tests_with_state(E2eEvidence, missing, MissingReceiptTests),
+    evidence_tests_with_state(E2eEvidence, stale, StaleReceiptTests),
+    evidence_tests_with_state(E2eEvidence, failed, FailedReceiptTests),
+    evidence_tests_with_state(E2eEvidence, invalid, InvalidReceiptTests),
+    evidence_tests_with_state(E2eEvidence, contract_mismatch, ContractMismatchReceiptTests),
+    evidence_tests_with_state(E2eEvidence, snapshot_unavailable, SnapshotUnavailableTests),
+    evidence_tests_with_state(NonEndToEndEvidence, not_end_to_end, NonEndToEndTests),
+    scenario_obligation_gaps(TestObligation, E2eEvidence, Gaps),
+    scenario_obligation_status(TestObligation, E2eEvidence, Status),
+    findall(TestId,
+        (member(Item, E2eEvidence), TestId = Item.testId),
+        E2eTests0),
+    sort(E2eTests0, E2eTests),
+    Obligation = _{
+        scenarioId: TestObligation.scenarioId,
+        status: Status,
+        scenarioTestTargets: TestObligation.scenarioTestTargets,
+        invalidScenarioTestTargets: TestObligation.invalidScenarioTestTargets,
+        tests: TestObligation.tests,
+        e2eTests: E2eTests,
+        nonEndToEndTests: NonEndToEndTests,
+        evidence: Evidence,
+        gaps: Gaps,
+        passingE2eTests: PassingE2eTests,
+        missingReceiptTests: MissingReceiptTests,
+        staleReceiptTests: StaleReceiptTests,
+        failedReceiptTests: FailedReceiptTests,
+        invalidReceiptTests: InvalidReceiptTests,
+        contractMismatchReceiptTests: ContractMismatchReceiptTests,
+        snapshotUnavailableTests: SnapshotUnavailableTests
+    }.
+
+e2e_evidence(Item) :- Item.state \= not_end_to_end.
+non_e2e_evidence(Item) :- Item.state == not_end_to_end.
+
+scenario_obligation_gaps(TestObligation, E2eEvidence, Gaps) :-
+    findall(Gap, scenario_obligation_gap(TestObligation, E2eEvidence, Gap), Gaps0),
+    sort(Gaps0, Gaps).
+
+scenario_obligation_gap(TestObligation, _E2eEvidence, missing_scenario_test) :-
+    TestObligation.status == missing.
+scenario_obligation_gap(TestObligation, E2eEvidence, missing_passing_e2e) :-
+    TestObligation.status == passed,
+    E2eEvidence == [].
+scenario_obligation_gap(_TestObligation, Evidence, missing_proof_receipt) :-
+    member(Item, Evidence), Item.state == missing.
+scenario_obligation_gap(_TestObligation, Evidence, stale_proof_receipt) :-
+    member(Item, Evidence), Item.state == stale.
+scenario_obligation_gap(_TestObligation, Evidence, failed_proof_receipt) :-
+    member(Item, Evidence), Item.state == failed.
+scenario_obligation_gap(_TestObligation, Evidence, invalid_proof_receipt) :-
+    member(Item, Evidence), Item.state == invalid.
+scenario_obligation_gap(_TestObligation, Evidence, proof_contract_mismatch) :-
+    member(Item, Evidence), Item.state == contract_mismatch.
+scenario_obligation_gap(_TestObligation, Evidence, proof_snapshot_unavailable) :-
+    member(Item, Evidence), Item.state == snapshot_unavailable.
+
+scenario_obligation_status(TestObligation, _E2eEvidence, missing) :-
+    TestObligation.status == missing,
+    !.
+scenario_obligation_status(_TestObligation, [], missing) :-
+    !.
+scenario_obligation_status(_TestObligation, Evidence, passed) :-
+    Evidence \= [],
+    forall(member(Item, Evidence), Item.state == passed),
+    !.
+scenario_obligation_status(_TestObligation, _Evidence, unresolved).
+
+passing_e2e_status([], missing) :- !.
+passing_e2e_status(Obligations, passed) :-
+    forall(member(Obligation, Obligations), Obligation.status == passed),
+    !.
+passing_e2e_status(Obligations, missing) :-
+    member(Obligation, Obligations), Obligation.status == missing,
+    !.
+passing_e2e_status(_Obligations, unresolved).
 
 evidence_tests_with_state(Evidence, State, TestIds) :-
     findall(TestId,
@@ -561,7 +728,7 @@ receipt_evidence_state(TestId, Scope, Props, Receipts, _Present, _Context,
     ; \+ chronological_receipt_history(Receipts)),
     !.
 receipt_evidence_state(TestId, Scope, Props, Receipts, _Present, Context, Evidence) :-
-    include(receipt_for_snapshot(Context.proofSnapshot), Receipts, SnapshotReceipts),
+    receipt_for_current_mode(TestId, Context, Receipts, SnapshotReceipts),
     (   SnapshotReceipts == []
     ->  length(Receipts, Count),
         Evidence = _{testId: TestId, state: stale, scope: Scope, receiptCount: Count}
@@ -615,6 +782,11 @@ valid_receipt_shape(TestId, Receipt) :-
     is_list(RawCommandArgv),
     RawCommandArgv \= [],
     maplist(nonempty_receipt_atom, RawCommandArgv),
+    (   inventory_entry_field(Receipt, binding_hash, RawBindingHash)
+    ->  normalize_receipt_atom(RawBindingHash, BindingHash),
+        valid_sha256(BindingHash)
+    ;   true
+    ),
     inventory_entry_field(Receipt, run_outcome, RawRunOutcome),
     normalize_receipt_atom(RawRunOutcome, RunOutcome),
     memberchk(RunOutcome, [passed, failed, errored, cancelled, timed_out, interrupted, no_results]),
@@ -705,6 +877,29 @@ strictly_increasing([Left, Right|Rest]) :-
 receipt_for_snapshot(Snapshot, Receipt) :-
     inventory_entry_field(Receipt, code_snapshot, RawSnapshot),
     normalize_receipt_atom(RawSnapshot, Snapshot).
+
+% Per-contract binding selector (W2). In per_contract mode a receipt carrying
+% a binding_hash is current when it matches the test's current binding hash;
+% receipts without one keep the strict snapshot semantics so older evidence
+% stays valid until each contract is re-proven.
+receipt_for_current_mode(TestId, Context, Receipts, SnapshotReceipts) :-
+    (   Context.proofBindingMode == per_contract,
+        get_dict(TestId, Context.proofTestBindings, CurrentBinding)
+    ->  include(receipt_with_binding_hash, Receipts, BoundReceipts),
+        include(receipt_for_binding(CurrentBinding), BoundReceipts, SnapshotReceipts),
+        (   SnapshotReceipts == []
+        ->  include(receipt_for_snapshot(Context.proofSnapshot), Receipts, SnapshotReceipts)
+        ;   true
+        )
+    ;   include(receipt_for_snapshot(Context.proofSnapshot), Receipts, SnapshotReceipts)
+    ).
+
+receipt_with_binding_hash(Receipt) :-
+    inventory_entry_field(Receipt, binding_hash, _).
+
+receipt_for_binding(Binding, Receipt) :-
+    inventory_entry_field(Receipt, binding_hash, RawBinding),
+    normalize_receipt_atom(RawBinding, Binding).
 
 receipt_matches_current_binding(Scope, ContractBinding, Receipt) :-
     inventory_entry_field(Receipt, scope, RawScope),
@@ -1063,8 +1258,9 @@ proof_advisories(Stages, Advisories) :-
     proof_issues(Stages, _, Advisories).
 
 % implements REQ-kibi-conservative-requirement-proof
-% proofGaps are blocking only. Receipt-completeness codes become
-% proofAdvisories when passingE2e already supplies strict proof.
+% Every linked scenario is a mandatory proof obligation. Receipt-completeness
+% failures therefore remain blocking even when another scenario has a passing
+% receipt; unit/integration-only evidence stays nonblocking in the E2E lane.
 % Invariant: proofStatus == proven implies proofGaps == [].
 proof_issues(Stages, Gaps, Advisories) :-
     findall(Gap,
@@ -1084,9 +1280,8 @@ receipt_completeness_issue(failed_proof_receipt).
 receipt_completeness_issue(invalid_proof_receipt).
 receipt_completeness_issue(proof_contract_mismatch).
 
-proof_issue_advisory(Gap, Stages) :-
-    receipt_completeness_issue(Gap),
-    Stages.passingE2e.status == passed.
+proof_issue_advisory(_Gap, _Stages) :-
+    fail.
 
 proof_gap_present(missing_semantic_inventory, Stages) :- Stages.semanticInventory.propositionCount =:= 0.
 proof_gap_present(incomplete_semantic_inventory, Stages) :- Stages.semanticInventory.missingCount > 0.

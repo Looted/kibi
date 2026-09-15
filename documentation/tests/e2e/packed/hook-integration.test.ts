@@ -90,15 +90,21 @@ if (RUN_NODE_TEST_SUITE) {
       { timeout: 120000 },
     );
 
-    it("should install post-checkout hook by default", async () => {
-      if (!hasProlog) return;
+    it("should install post-checkout hook by default", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       await kibi(sandbox, ["init"]);
       assertDefaultBranchSyncHooks(sandbox.repoDir);
     });
 
-    it("should install post-merge hook by default", async () => {
-      if (!hasProlog) return;
+    it("should install post-merge hook by default", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       await kibi(sandbox, ["init"]);
 
@@ -116,8 +122,11 @@ if (RUN_NODE_TEST_SUITE) {
       );
     });
 
-    it("should install post-rewrite hook by default", async () => {
-      if (!hasProlog) return;
+    it("should install post-rewrite hook by default", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       await kibi(sandbox, ["init"]);
 
@@ -135,8 +144,11 @@ if (RUN_NODE_TEST_SUITE) {
       );
     });
 
-    it("should create branch KB on git checkout", async () => {
-      if (!hasProlog) return;
+    it("should create branch KB on git checkout", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       await kibi(sandbox, ["init"]);
 
@@ -211,17 +223,23 @@ status: open
       );
     });
 
-    it("should sync KB after merge", { timeout: TEST_TIMEOUT_MS }, async () => {
-      if (!hasProlog) return;
+    it(
+      "should sync KB after merge",
+      { timeout: TEST_TIMEOUT_MS },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
-      await kibi(sandbox, ["init"]);
+        await kibi(sandbox, ["init"]);
 
-      const reqDir = join(sandbox.repoDir, ".kb/requirements");
-      mkdirSync(reqDir, { recursive: true });
+        const reqDir = join(sandbox.repoDir, ".kb/requirements");
+        mkdirSync(reqDir, { recursive: true });
 
-      writeFileSync(
-        join(reqDir, "develop.md"),
-        `---
+        writeFileSync(
+          join(reqDir, "develop.md"),
+          `---
 title: Develop
 type: req
 status: open
@@ -229,25 +247,25 @@ status: open
 
 # Develop
 `,
-      );
+        );
 
-      await run("git", ["add", "."], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
-      await run("git", ["commit", "--no-verify", "-m", "develop"], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
+        await run("git", ["add", "."], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
+        await run("git", ["commit", "--no-verify", "-m", "develop"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
 
-      await run("git", ["checkout", "-b", "feature"], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
+        await run("git", ["checkout", "-b", "feature"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
 
-      writeFileSync(
-        join(reqDir, "feature.md"),
-        `---
+        writeFileSync(
+          join(reqDir, "feature.md"),
+          `---
 title: Feature
 type: req
 status: open
@@ -255,33 +273,37 @@ status: open
 
 # Feature
 `,
-      );
+        );
 
-      await run("git", ["add", "."], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
-      await run("git", ["commit", "--no-verify", "-m", "feature"], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
+        await run("git", ["add", "."], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
+        await run("git", ["commit", "--no-verify", "-m", "feature"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
 
-      await run("git", ["checkout", "develop"], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
+        await run("git", ["checkout", "develop"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
 
-      await run("git", ["merge", "feature", "--no-edit"], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
+        await run("git", ["merge", "feature", "--no-edit"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
 
-      const { stdout: developQuery } = await kibi(sandbox, ["query", "req"]);
-      assertPostMergeSynchronizedTrackedSources(developQuery);
-    });
+        const { stdout: developQuery } = await kibi(sandbox, ["query", "req"]);
+        assertPostMergeSynchronizedTrackedSources(developQuery);
+      },
+    );
 
-    it("should be idempotent on re-install", async () => {
-      if (!hasProlog) return;
+    it("should be idempotent on re-install", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       await kibi(sandbox, ["init"]);
 
@@ -298,8 +320,11 @@ status: open
       );
     });
 
-    it("should not break existing hooks", async () => {
-      if (!hasProlog) return;
+    it("should not break existing hooks", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       const existingHookPath = join(
         sandbox.repoDir,
@@ -331,8 +356,11 @@ echo "Existing hook"
       );
     });
 
-    it("should not install hooks with --no-hooks", async () => {
-      if (!hasProlog) return;
+    it("should not install hooks with --no-hooks", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       await kibi(sandbox, ["init", "--no-hooks"]);
 
@@ -353,8 +381,11 @@ echo "Existing hook"
     it(
       "should work with detached HEAD",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         await kibi(sandbox, ["init"]);
 
@@ -412,8 +443,11 @@ status: open
     it(
       "should handle sync failures gracefully",
       { timeout: 20000 },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         await kibi(sandbox, ["init"]);
 

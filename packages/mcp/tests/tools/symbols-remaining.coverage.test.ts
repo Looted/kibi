@@ -149,30 +149,30 @@ describe("handleKbSymbolsRefresh remaining artifact and fill branches", () => {
       path.join(root, ".kb", "symbol-coordinates.yaml"),
       "coordinates: []\n",
     );
-    await expect(handleKbSymbolsRefresh({ workspaceRoot: root })).rejects.toThrow(
-      /coordinates must be a mapping/,
-    );
+    await expect(
+      handleKbSymbolsRefresh({ workspaceRoot: root }),
+    ).rejects.toThrow(/coordinates must be a mapping/);
 
     writeFileSync(
       path.join(root, ".kb", "symbol-coordinates.yaml"),
       "not: [valid\n",
     );
-    await expect(handleKbSymbolsRefresh({ workspaceRoot: root })).rejects.toThrow(
-      /Failed to parse coordinate artifact/,
-    );
+    await expect(
+      handleKbSymbolsRefresh({ workspaceRoot: root }),
+    ).rejects.toThrow(/Failed to parse coordinate artifact/);
 
     writeFileSync(
       path.join(root, ".kb", "symbol-coordinates.yaml"),
       "version: 99\ncoordinates: {}\n",
     );
-    await expect(handleKbSymbolsRefresh({ workspaceRoot: root })).rejects.toThrow(
-      /Unsupported coordinate artifact version/,
-    );
+    await expect(
+      handleKbSymbolsRefresh({ workspaceRoot: root }),
+    ).rejects.toThrow(/Unsupported coordinate artifact version/);
 
     writeFileSync(path.join(root, ".kb", "symbol-coordinates.yaml"), "[]\n");
-    await expect(handleKbSymbolsRefresh({ workspaceRoot: root })).rejects.toThrow(
-      /root must be a mapping/,
-    );
+    await expect(
+      handleKbSymbolsRefresh({ workspaceRoot: root }),
+    ).rejects.toThrow(/root must be a mapping/);
   });
 
   test("treats empty YAML as a legacy artifact and publishes after a successful match", async () => {
@@ -259,9 +259,9 @@ describe("refreshCoordinatesForSymbolId remaining legacy and cleanup branches", 
         "    sourceEndColumn: 3",
       ].join("\n"),
     );
-    await expect(refreshCoordinatesForSymbolId("SYM-BAD", root)).rejects.toThrow(
-      /identity\/source binding/,
-    );
+    await expect(
+      refreshCoordinatesForSymbolId("SYM-BAD", root),
+    ).rejects.toThrow(/identity\/source binding/);
   });
 
   test("cleans the temporary file even when unlink after a failed publish also fails", async () => {
@@ -285,7 +285,9 @@ describe("refreshCoordinatesForSymbolId remaining legacy and cleanup branches", 
     });
     spies.push(writeSpy, unlinkSpy);
     mkdirSync(path.join(root, ".kb", "symbol-coordinates.yaml"));
-    await expect(handleKbSymbolsRefresh({ workspaceRoot: root })).rejects.toThrow();
+    await expect(
+      handleKbSymbolsRefresh({ workspaceRoot: root }),
+    ).rejects.toThrow();
   });
 
   test("refuses to publish a legacy artifact that contains an invalid leftover record", async () => {
@@ -316,9 +318,12 @@ describe("refreshCoordinatesForSymbolId remaining legacy and cleanup branches", 
       const keys = originalKeys(value);
       const first = keys[0];
       const record = first
-        ? (value as Record<string, { sourceFile?: unknown; identityHash?: unknown }>)[
-            first
-          ]
+        ? (
+            value as Record<
+              string,
+              { sourceFile?: unknown; identityHash?: unknown }
+            >
+          )[first]
         : undefined;
       if (
         keys.includes("SYM-KEEP") &&
@@ -332,9 +337,9 @@ describe("refreshCoordinatesForSymbolId remaining legacy and cleanup branches", 
       return keys;
     });
     spies.push(spy);
-    await expect(refreshCoordinatesForSymbolId("SYM-KEEP", root)).rejects.toThrow(
-      /Invalid legacy coordinate record for SYM-BOGUS/,
-    );
+    await expect(
+      refreshCoordinatesForSymbolId("SYM-KEEP", root),
+    ).rejects.toThrow(/Invalid legacy coordinate record for SYM-BOGUS/);
   });
 });
 
@@ -412,7 +417,7 @@ describe("handleKbSymbolsRefresh fillMissingCoordinates leftover branches", () =
       [
         "symbols:",
         "  - id: SYM-COARSE-EMPTY",
-        "    title: \"\"",
+        '    title: ""',
         "    sourceFile: src/coarse-miss.ts",
         "    granularity_reason: extractor-miss",
         "  - id: SYM-COARSE-MISS",
@@ -448,11 +453,14 @@ describe("handleKbSymbolsRefresh fillMissingCoordinates leftover branches", () =
   test("rejects a non-array symbols manifest and treats eligible title misses as failed", async () => {
     const root = tempWorkspace();
     writeManifest(root, "symbols: false\n");
-    await expect(handleKbSymbolsRefresh({ workspaceRoot: root })).rejects.toThrow(
-      /Invalid symbols manifest/,
-    );
+    await expect(
+      handleKbSymbolsRefresh({ workspaceRoot: root }),
+    ).rejects.toThrow(/Invalid symbols manifest/);
 
-    writeFileSync(path.join(root, "src", "fail.ts"), "export const other = 1;\n");
+    writeFileSync(
+      path.join(root, "src", "fail.ts"),
+      "export const other = 1;\n",
+    );
     writeManifest(
       root,
       "symbols:\n  - id: SYM-FAIL\n    title: neverHere\n    sourceFile: src/fail.ts\n",
@@ -481,7 +489,10 @@ describe("refreshCoordinatesForSymbolId leftover not-found and delete branches",
 
   test("deletes an existing artifact record when fill cannot recover coordinates", async () => {
     const root = tempWorkspace();
-    writeFileSync(path.join(root, "src", "gone.ts"), "export function leftover() {}\n");
+    writeFileSync(
+      path.join(root, "src", "gone.ts"),
+      "export function leftover() {}\n",
+    );
     writeManifest(
       root,
       "symbols:\n  - id: SYM-DROP\n    title: neverHere\n    sourceFile: src/gone.ts\n",
@@ -560,10 +571,10 @@ describe("handleKbSymbolsRefresh fillMissingCoordinates DA:0 leftovers", () => {
             return rest as typeof entry;
           }
           const next = { ...entry };
-          delete next.sourceLine;
-          delete next.sourceColumn;
-          delete next.sourceEndLine;
-          delete next.sourceEndColumn;
+          Reflect.deleteProperty(next, "sourceLine");
+          Reflect.deleteProperty(next, "sourceColumn");
+          Reflect.deleteProperty(next, "sourceEndLine");
+          Reflect.deleteProperty(next, "sourceEndColumn");
           return next;
         }),
     );
@@ -583,13 +594,16 @@ describe("handleKbSymbolsRefresh fillMissingCoordinates DA:0 leftovers", () => {
     const root = tempWorkspace();
     const runtime = await import("kibi-runtime");
     mkdirSync(path.join(root, "src", "dir-src"));
-    writeFileSync(path.join(root, "src", "empty-title.ts"), "export const x = 1;\n");
+    writeFileSync(
+      path.join(root, "src", "empty-title.ts"),
+      "export const x = 1;\n",
+    );
     writeManifest(
       root,
       [
         "symbols:",
         "  - id: SYM-EMPTY-TITLE",
-        "    title: \"\"",
+        '    title: ""',
         "    sourceFile: src/empty-title.ts",
         "    sourceLine: 1",
         "    sourceColumn: 0",
@@ -615,46 +629,59 @@ describe("handleKbSymbolsRefresh fillMissingCoordinates DA:0 leftovers", () => {
 
   test("refuses to publish bound coordinates whose hashes are not sha256", async () => {
     const root = tempWorkspace();
-    writeFileSync(path.join(root, "src", "hash.ts"), "export function hashed() {}\n");
+    writeFileSync(
+      path.join(root, "src", "hash.ts"),
+      "export function hashed() {}\n",
+    );
     writeManifest(
       root,
       "symbols:\n  - id: SYM-HASH\n    title: hashed\n    sourceFile: src/hash.ts\n",
     );
     const crypto = await import("node:crypto");
     const originalCreateHash = crypto.createHash;
-    const hashSpy = spyOn(crypto, "createHash").mockImplementation(
-      ((algorithm: string, options?: unknown) => {
-        const hash = originalCreateHash(
-          algorithm as Parameters<typeof originalCreateHash>[0],
-          options as Parameters<typeof originalCreateHash>[1],
-        );
-        const originalDigest = hash.digest.bind(hash);
-        hash.digest = ((encoding?: import("node:crypto").BinaryToTextEncoding) => {
-          if (encoding === "hex") return "not-a-sha256-digest";
-          return originalDigest(encoding as never);
-        }) as typeof hash.digest;
-        return hash;
-      }) as typeof crypto.createHash,
-    );
+    const hashSpy = spyOn(crypto, "createHash").mockImplementation(((
+      algorithm: string,
+      options?: unknown,
+    ) => {
+      const hash = originalCreateHash(
+        algorithm as Parameters<typeof originalCreateHash>[0],
+        options as Parameters<typeof originalCreateHash>[1],
+      );
+      const originalDigest = hash.digest.bind(hash);
+      hash.digest = ((
+        encoding?: import("node:crypto").BinaryToTextEncoding,
+      ) => {
+        if (encoding === "hex") return "not-a-sha256-digest";
+        return originalDigest(encoding as never);
+      }) as typeof hash.digest;
+      return hash;
+    }) as typeof crypto.createHash);
     spies.push(hashSpy);
-    await expect(handleKbSymbolsRefresh({ workspaceRoot: root })).rejects.toThrow(
-      /Invalid bound coordinate record/,
-    );
+    await expect(
+      handleKbSymbolsRefresh({ workspaceRoot: root }),
+    ).rejects.toThrow(/Invalid bound coordinate record/);
   });
 
   test("cleans up a failed publish when unlink of the temp file also fails", async () => {
     const root = tempWorkspace();
-    writeFileSync(path.join(root, "src", "pub.ts"), "export function pubSymbol() {}\n");
+    writeFileSync(
+      path.join(root, "src", "pub.ts"),
+      "export function pubSymbol() {}\n",
+    );
     writeManifest(
       root,
       "symbols:\n  - id: SYM-PUB2\n    title: pubSymbol\n    sourceFile: src/pub.ts\n",
     );
     const fsp = await import("node:fs/promises");
-    const renameSpy = spyOn(fsp, "rename").mockRejectedValue(new Error("rename denied"));
-    const unlinkSpy = spyOn(fsp, "unlink").mockRejectedValue(new Error("unlink denied"));
-    spies.push(renameSpy, unlinkSpy);
-    await expect(handleKbSymbolsRefresh({ workspaceRoot: root })).rejects.toThrow(
-      /rename denied/,
+    const renameSpy = spyOn(fsp, "rename").mockRejectedValue(
+      new Error("rename denied"),
     );
+    const unlinkSpy = spyOn(fsp, "unlink").mockRejectedValue(
+      new Error("unlink denied"),
+    );
+    spies.push(renameSpy, unlinkSpy);
+    await expect(
+      handleKbSymbolsRefresh({ workspaceRoot: root }),
+    ).rejects.toThrow(/rename denied/);
   });
 });

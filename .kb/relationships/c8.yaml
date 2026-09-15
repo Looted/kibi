@@ -196,23 +196,37 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-3e010fd96012
   - type: implements
+    from: SYM-quality-coverage-branch-summary
+    to: REQ-014
+    created_at: 2026-09-14T19:20:26.114Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ded537b7e0a9
+  - type: covered_by
+    from: SYM-quality-coverage-branch-summary
+    to: TEST-scripts-unit-coverage-runner
+    created_at: 2026-09-14T19:20:26.129Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4699d5ce56b3
+  - type: implements
     from: SYM-coordinate-repair-symbol-plan
     to: REQ-kibi-dependency-ordered-repair-plan
-    created_at: 2026-09-14T13:24:25.818Z
+    created_at: 2026-09-15T07:41:27.852Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a1be08a89944
   - type: covered_by
     from: SYM-coordinate-repair-symbol-plan
     to: TEST-coordinate-repair-capability
-    created_at: 2026-09-14T13:24:25.833Z
+    created_at: 2026-09-15T07:41:27.864Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-77758b5f730d
   - type: covered_by
     from: SYM-coordinate-repair-symbol-plan
     to: TEST-kibi-dependency-ordered-repair-plan
-    created_at: 2026-09-14T13:24:25.842Z
+    created_at: 2026-09-15T07:41:27.872Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8ad27f888a0a

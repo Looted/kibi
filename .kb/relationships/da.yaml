@@ -129,3 +129,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-565d0ebf69ee
+  - type: implements
+    from: SYM-quality-maintenance-proofPruneCommand
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-09-14T19:09:16.904Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e416d0a42521
+  - type: covered_by
+    from: SYM-quality-maintenance-proofPruneCommand
+    to: TEST-proof-maintenance-roundtrip
+    created_at: 2026-09-14T19:09:16.917Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0921f22e5a83

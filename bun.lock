@@ -22,7 +22,7 @@
     },
     "packages/cli": {
       "name": "kibi-cli",
-      "version": "0.21.0",
+      "version": "1.0.1",
       "bin": {
         "kibi": "bin/kibi",
       },
@@ -34,7 +34,8 @@
         "gray-matter": "^4.0.3",
         "ignore": "^5.3.0",
         "js-yaml": "^4.1.0",
-        "kibi-core": "^0.10.3",
+        "kibi-core": "^0.11.0",
+        "saxes": "^6.0.0",
         "ts-morph": "^23.0.0",
         "yaml": "^2.9.0",
       },
@@ -46,7 +47,7 @@
     },
     "packages/codex": {
       "name": "kibi-codex",
-      "version": "0.20.3",
+      "version": "1.0.0",
       "devDependencies": {
         "@types/node": "latest",
         "typescript": "^5.7.0",
@@ -62,11 +63,11 @@
     },
     "packages/core": {
       "name": "kibi-core",
-      "version": "0.10.3",
+      "version": "0.11.0",
     },
     "packages/cursor": {
       "name": "kibi-cursor",
-      "version": "0.6.3",
+      "version": "1.0.1",
       "devDependencies": {
         "@types/node": "latest",
         "typescript": "^5.7.0",
@@ -82,7 +83,7 @@
     },
     "packages/mcp": {
       "name": "kibi-mcp",
-      "version": "0.24.0",
+      "version": "1.0.0",
       "bin": {
         "kibi-mcp": "bin/kibi-mcp",
       },
@@ -110,7 +111,7 @@
     },
     "packages/opencode": {
       "name": "kibi-opencode",
-      "version": "0.19.6",
+      "version": "1.0.0",
       "dependencies": {
         "@opencode-ai/plugin": "^1.4.7",
         "@opentui/core": "^0.1.99",
@@ -124,7 +125,7 @@
     },
     "packages/runtime": {
       "name": "kibi-runtime",
-      "version": "0.1.0",
+      "version": "1.0.1",
       "dependencies": {
         "gray-matter": "^4.0.3",
         "kibi-core": "^0.10.3",
@@ -135,7 +136,7 @@
     },
     "packages/vscode": {
       "name": "kibi-vscode",
-      "version": "0.4.14",
+      "version": "1.0.0",
       "dependencies": {
         "js-yaml": "^4.1.0",
         "kibi-cli": "^0.20.0",
@@ -1243,6 +1244,8 @@
 
     "sax": ["sax@1.4.4", "", {}, "sha512-1n3r/tGXO6b6VXMdFT54SHzT9ytu9yr7TaELowdYpMqY/Ao7EnlQGmAQ1+RatX7Tkkdm6hONI2owqNx2aZj5Sw=="],
 
+    "saxes": ["saxes@6.0.0", "", { "dependencies": { "xmlchars": "^2.2.0" } }, "sha512-xAg7SOnEhrm5zI3puOOKyy1OMcMlIJZYNJY7xLBwSze0UjhPLnWfj2GF2EpT0jmzaJKIWKHLsaSSajf35bcYnA=="],
+
     "secretlint": ["secretlint@10.2.2", "", { "dependencies": { "@secretlint/config-creator": "^10.2.2", "@secretlint/formatter": "^10.2.2", "@secretlint/node": "^10.2.2", "@secretlint/profiler": "^10.2.2", "debug": "^4.4.1", "globby": "^14.1.0", "read-pkg": "^9.0.1" }, "bin": "./bin/secretlint.js" }, "sha512-xVpkeHV/aoWe4vP4TansF622nBEImzCY73y/0042DuJ29iKIaqgoJ8fGxre3rVSHHbxar4FdJobmTnLp9AU0eg=="],
 
     "section-matter": ["section-matter@1.0.0", "", { "dependencies": { "extend-shallow": "^2.0.1", "kind-of": "^6.0.0" } }, "sha512-vfD3pmTzGpufjScBh50YHKzEu2lxBWhVEHsNGoEXmCmn2hKGfeNLYMzCJpe8cD7gqX7TJluOVpBkAequ6dgMmA=="],
@@ -1414,6 +1417,8 @@
     "xml2js": ["xml2js@0.5.0", "", { "dependencies": { "sax": ">=0.6.0", "xmlbuilder": "~11.0.0" } }, "sha512-drPFnkQJik/O+uPKpqSgr22mpuFHqKdbS835iAQrUC73L2F5WkboIRd63ai/2Yg6I1jzifPFKH2NTK+cfglkIA=="],
 
     "xmlbuilder": ["xmlbuilder@11.0.1", "", {}, "sha512-fDlsI/kFEx7gLvbecc0/ohLG50fugQp8ryHzMTuW9vSa1GJ0XYWKnhsUx7oie3G98+r56aTQIUB4kht42R3JvA=="],
+
+    "xmlchars": ["xmlchars@2.2.0", "", {}, "sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw=="],
 
     "yallist": ["yallist@4.0.0", "", {}, "sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A=="],
 

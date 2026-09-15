@@ -41,6 +41,22 @@ function escapeSingleQuotes(value) {
   return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 }
 
+const TYPESCRIPT_LINE_WIDTH = 80;
+
+function renderTsProperty(indent, name, value) {
+  const literal = JSON.stringify(value);
+  const inline = `${indent}${name}: ${literal},`;
+  if (inline.length <= TYPESCRIPT_LINE_WIDTH) return inline;
+  return `${indent}${name}:\n${" ".repeat(indent.length + 2)}${literal},`;
+}
+
+function renderTsConst(name, value) {
+  const literal = JSON.stringify(value);
+  const inline = `export const ${name} = ${literal};`;
+  if (inline.length <= TYPESCRIPT_LINE_WIDTH) return inline;
+  return `export const ${name} =\n  ${literal};`;
+}
+
 function validate(rules) {
   const seen = new Set();
   for (const rule of rules) {
@@ -52,7 +68,9 @@ function validate(rules) {
       "implementation",
     ]) {
       if (typeof rule[field] !== "string" || rule[field].length === 0) {
-        throw new Error(`Rule ${rule.name ?? "(unnamed)"}: ${field} is required`);
+        throw new Error(
+          `Rule ${rule.name ?? "(unnamed)"}: ${field} is required`,
+        );
       }
     }
     if (seen.has(rule.name)) {
@@ -73,7 +91,9 @@ function validate(rules) {
         throw new Error(`Rule ${rule.name}: prologPredicate is required`);
       }
       if (![1, 2].includes(rule.prologPredicateArity)) {
-        throw new Error(`Rule ${rule.name}: prologPredicateArity must be 1 or 2`);
+        throw new Error(
+          `Rule ${rule.name}: prologPredicateArity must be 1 or 2`,
+        );
       }
     } else if (rule.prologPredicate !== null) {
       throw new Error(
@@ -87,10 +107,10 @@ function renderRulesTs(rules) {
   const entries = rules
     .map((rule) => {
       const fields = [
-        `    name: ${JSON.stringify(rule.name)},`,
-        `    description: ${JSON.stringify(rule.description)},`,
-        `    enforcementClass: ${JSON.stringify(rule.enforcementClass)},`,
-        `    category: ${JSON.stringify(rule.category)},`,
+        renderTsProperty("    ", "name", rule.name),
+        renderTsProperty("    ", "description", rule.description),
+        renderTsProperty("    ", "enforcementClass", rule.enforcementClass),
+        renderTsProperty("    ", "category", rule.category),
       ];
       return `  {\n${fields.join("\n")}\n  },`;
     })
@@ -131,7 +151,7 @@ export const SELECTABLE_RULE_NAMES: readonly string[] = [
 
 // implements REQ-006
 /** Comma-separated "Allowed:" fragment for the kb_check rules description. */
-export const SELECTABLE_RULES_ALLOWED = "${allowed}";
+${renderTsConst("SELECTABLE_RULES_ALLOWED", allowed)}
 `;
 }
 
@@ -151,7 +171,9 @@ function renderPrologFacts(rules) {
       `rule_implementation('${rule.name}', ${rule.implementation}).`,
     );
     if (rule.prologPredicate) {
-      predicates.push(`rule_predicate('${rule.name}', ${rule.prologPredicate}).`);
+      predicates.push(
+        `rule_predicate('${rule.name}', ${rule.prologPredicate}).`,
+      );
       arities.push(
         `rule_predicate_arity('${rule.name}', ${rule.prologPredicateArity}).`,
       );

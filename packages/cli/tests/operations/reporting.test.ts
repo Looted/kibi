@@ -44,6 +44,19 @@ function contextWithPayload(payload: Readonly<Record<string, unknown>>): {
   };
 }
 
+function queryContaining(
+  query: ReturnType<typeof mock>,
+  fragment: string,
+): string {
+  const goal = query.mock.calls
+    .map(([candidate]) => String(candidate))
+    .find((candidate) => candidate.includes(fragment));
+  if (goal === undefined) {
+    throw new Error(`Expected a Prolog query containing ${fragment}`);
+  }
+  return goal;
+}
+
 describe("shared reporting operation executors", () => {
   test("findGapsSpec.execute applies pagination defaults and returns rows", async () => {
     const { context, query } = contextWithPayload({
@@ -58,7 +71,7 @@ describe("shared reporting operation executors", () => {
 
     expect(result.structuredContent?.count).toBe(1);
     expect(result.content[0]?.text).toContain("REQ-001");
-    expect(String(query.mock.calls[0]?.[0])).toContain(
+    expect(queryContaining(query, "find_gaps_json")).toContain(
       "find_gaps_json('req', ['specified_by'], [], [], none, 100, 0, JsonString)",
     );
   });
@@ -74,7 +87,7 @@ describe("shared reporting operation executors", () => {
     expect(result.content[0]?.text).toBe(
       "Coverage summary: 1 structurally covered and 0 proven out of 2.",
     );
-    expect(String(query.mock.calls[0]?.[0])).toContain(
+    expect(queryContaining(query, "coverage_report_json")).toContain(
       `coverage_report_json('req', [], false, true, 100, 0, '${"a".repeat(64)}', '1970-01-01T00:00:00.000Z', 604800, JsonString)`,
     );
     expect(result.structuredContent?.meta).toMatchObject({
@@ -96,7 +109,7 @@ describe("shared reporting operation executors", () => {
 
     const result = await coverageSpec.execute({}, withoutSnapshot);
 
-    expect(String(query.mock.calls[0]?.[0])).toContain(
+    expect(queryContaining(query, "coverage_report_json")).toContain(
       "100, 0, 'unknown', '1970-01-01T00:00:00.000Z', 604800, JsonString)",
     );
     expect(result.structuredContent?.meta).toMatchObject({
@@ -180,7 +193,7 @@ describe("shared reporting operation executors", () => {
     );
 
     expect(result.content[0]?.text).toContain("1 nodes and 0 edges");
-    expect(String(query.mock.calls[0]?.[0])).toContain(
+    expect(queryContaining(query, "graph_expand_json")).toContain(
       "graph_expand_json(['REQ-001'], [], 'outgoing', 5, [], 40, 80, JsonString)",
     );
   });

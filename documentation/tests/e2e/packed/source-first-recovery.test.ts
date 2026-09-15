@@ -52,8 +52,11 @@ if (RUN_NODE_TEST_SUITE) {
       { timeout: 120000 },
     );
 
-    it("compiles tracked source and refuses arbitrary untracked input", async () => {
-      if (!hasProlog) return;
+    it("compiles tracked source and refuses arbitrary untracked input", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
       await kibi(sandbox, ["init", "--no-hooks"]);
       createMarkdownFile(
         sandbox,

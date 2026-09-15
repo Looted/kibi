@@ -1,24 +1,27 @@
+import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, test } from "bun:test";
 
-import { executeApplyPlan, orderBootstrapActions } from "../../src/operations/planning/apply-plan.js";
+import {
+  executeApplyPlan,
+  orderBootstrapActions,
+} from "../../src/operations/planning/apply-plan.js";
 import {
   type CompilePlanV1,
   compilePlanHash,
 } from "../../src/operations/planning/compile-intent.js";
-import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
-import { asApply } from "../helpers/coverage-casts.js";
 import {
-  buildMigrationPlan,
   type MigrationAction,
+  buildMigrationPlan,
 } from "../../src/public/operations/migration-plan.js";
+import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
 import type {
   OperationContext,
   PrologQueryResult,
 } from "../../src/public/operations/runtime-types.js";
+import { asApply } from "../helpers/coverage-casts.js";
 
 function sha(value: string): string {
   return createHash("sha256").update(value).digest("hex");
@@ -205,7 +208,10 @@ describe("compile plan application", () => {
 
     await expect(
       executeApplyPlan(
-        { plan: { ...ready, planHash: "b".repeat(64) }, approvedPlanHash: "b".repeat(64) },
+        {
+          plan: { ...ready, planHash: "b".repeat(64) },
+          approvedPlanHash: "b".repeat(64),
+        },
         ctx,
       ),
     ).rejects.toThrow(/canonical plan body/);
@@ -215,10 +221,15 @@ describe("compile plan application", () => {
     const root = makeTempDir();
     const ctx = filesystemContext(root);
     const badType = compilePlan({
-      steps: [{ type: "note", id: "NOTE-1", properties: {}, relationships: [] }],
+      steps: [
+        { type: "note", id: "NOTE-1", properties: {}, relationships: [] },
+      ],
     });
     await expect(
-      executeApplyPlan({ plan: badType, approvedPlanHash: badType.planHash }, ctx),
+      executeApplyPlan(
+        { plan: badType, approvedPlanHash: badType.planHash },
+        ctx,
+      ),
     ).rejects.toThrow(/unsupported step entity type/);
 
     const missingId = compilePlan({
@@ -242,7 +253,10 @@ describe("compile plan application", () => {
       ],
     });
     await expect(
-      executeApplyPlan({ plan: badRel, approvedPlanHash: badRel.planHash }, ctx),
+      executeApplyPlan(
+        { plan: badRel, approvedPlanHash: badRel.planHash },
+        ctx,
+      ),
     ).rejects.toThrow(/type, from, and to/);
 
     const absHash = compilePlan({
@@ -254,7 +268,10 @@ describe("compile plan application", () => {
       },
     });
     await expect(
-      executeApplyPlan({ plan: absHash, approvedPlanHash: absHash.planHash }, ctx),
+      executeApplyPlan(
+        { plan: absHash, approvedPlanHash: absHash.planHash },
+        ctx,
+      ),
     ).rejects.toThrow(/workspace-relative/);
   });
 
@@ -383,10 +400,7 @@ describe("entity deletion plans", () => {
     ).rejects.toThrow(/canonical plan body/);
     const hashed = { ...body, planHash };
     await expect(
-      executeApplyPlan(
-        { plan: hashed, approvedPlanHash: "d".repeat(64) },
-        ctx,
-      ),
+      executeApplyPlan({ plan: hashed, approvedPlanHash: "d".repeat(64) }, ctx),
     ).rejects.toThrow(/approvedPlanHash does not match/);
     const empty = {
       version: "kibi.entity-deletion-plan.v1" as const,
@@ -397,7 +411,10 @@ describe("entity deletion plans", () => {
     const emptyHash = sha(JSON.stringify(empty));
     await expect(
       executeApplyPlan(
-        { plan: { ...empty, planHash: emptyHash }, approvedPlanHash: emptyHash },
+        {
+          plan: { ...empty, planHash: emptyHash },
+          approvedPlanHash: emptyHash,
+        },
         ctx,
       ),
     ).rejects.toThrow(/entityIds must be non-empty/);
@@ -452,19 +469,26 @@ describe("migration plan application", () => {
     const ready = buildMigrationPlan({
       actions: [automaticAction()],
     });
+    const readyAction = ready.actions[0];
+    expect(readyAction).toBeDefined();
+    if (!readyAction) throw new Error("expected an automatic migration action");
     await expect(
       executeApplyPlan(
         {
           plan: ready,
           approvedPlanHash: "e".repeat(64),
-          approvedActionIds: [ready.actions[0]!.id],
+          approvedActionIds: [readyAction.id],
         },
         ctx,
       ),
     ).rejects.toThrow(/does not match plan.planHash/);
     await expect(
       executeApplyPlan(
-        { plan: ready, approvedPlanHash: ready.planHash, approvedActionIds: [] },
+        {
+          plan: ready,
+          approvedPlanHash: ready.planHash,
+          approvedActionIds: [],
+        },
         ctx,
       ),
     ).rejects.toThrow(/approvedActionIds must contain at least one/);
@@ -616,7 +640,11 @@ describe("bootstrap plan extra guards", () => {
         verificationAnchors: [],
       },
       contextQuestions: [],
-      confidence: { score: 0.9, level: "high" as const, policy: "full_actions" as const },
+      confidence: {
+        score: 0.9,
+        level: "high" as const,
+        policy: "full_actions" as const,
+      },
       discoverySummary: {
         activationState: "root_active_thin" as const,
         activationMode: "attached_thin_bootstrap" as const,
@@ -775,7 +803,10 @@ describe("bootstrap plan extra guards", () => {
           query: async (goal) =>
             (goal.includes("kb_commit_upsert")
               ? { success: true, bindings: { ChangeKind: "created" } }
-              : { success: true, bindings: { Results: "[]" } }) as unknown as PrologQueryResult,
+              : {
+                  success: true,
+                  bindings: { Results: "[]" },
+                }) as unknown as PrologQueryResult,
           queryStatusJson: async () => ({ success: true, bindings: {} }),
           nextSolution: async () => null,
           save: async () => ({ success: true, bindings: {} }),
@@ -1037,7 +1068,9 @@ describe("source hash and source-write guards", () => {
       { plan, approvedPlanHash: plan.planHash },
       { ...filesystemContext(root), fs: noRename },
     );
-    expect(asApply(written.structuredContent).changedPaths).toEqual(["docs/compat.md"]);
+    expect(asApply(written.structuredContent).changedPaths).toEqual([
+      "docs/compat.md",
+    ]);
 
     writeFileSync(path.join(root, "gone-no-unlink.md"), "x\n");
     const del = compilePlan({
@@ -1101,22 +1134,26 @@ describe("source hash and source-write guards", () => {
     writeFileSync(afterStage, after);
     writeFileSync(
       path.join(recoveryDir, `${journalId}.json`),
-      `${JSON.stringify({
-        version: 1,
-        planHash: plan.planHash,
-        state: "prepared",
-        entries: [
-          {
-            path: "docs/crash.md",
-            mode: "write",
-            beforeHash: sha(before),
-            afterHash: sha(after),
-            beforeExisted: true,
-            beforeStage,
-            afterStage,
-          },
-        ],
-      }, null, 2)}\n`,
+      `${JSON.stringify(
+        {
+          version: 1,
+          planHash: plan.planHash,
+          state: "prepared",
+          entries: [
+            {
+              path: "docs/crash.md",
+              mode: "write",
+              beforeHash: sha(before),
+              afterHash: sha(after),
+              beforeExisted: true,
+              beforeStage,
+              afterStage,
+            },
+          ],
+        },
+        null,
+        2,
+      )}\n`,
     );
     const recovered = await executeApplyPlan(
       { plan, approvedPlanHash: plan.planHash },
@@ -1148,22 +1185,36 @@ describe("source hash and source-write guards", () => {
     writeFileSync(path.join(root, "docs", "drift.md"), "outside\n");
     writeFileSync(
       path.join(root, ".kb", "recovery", `${driftId}.json`),
-      `${JSON.stringify({
-        version: 1,
-        planHash: drifted.planHash,
-        state: "publishing_sources",
-        entries: [
-          {
-            path: "docs/drift.md",
-            mode: "write",
-            beforeHash: sha("old\n"),
-            afterHash: sha("new\n"),
-            beforeExisted: true,
-            beforeStage: path.join(root, ".kb", "recovery", `${driftId}-0.before`),
-            afterStage: path.join(root, ".kb", "recovery", `${driftId}-0.after`),
-          },
-        ],
-      }, null, 2)}\n`,
+      `${JSON.stringify(
+        {
+          version: 1,
+          planHash: drifted.planHash,
+          state: "publishing_sources",
+          entries: [
+            {
+              path: "docs/drift.md",
+              mode: "write",
+              beforeHash: sha("old\n"),
+              afterHash: sha("new\n"),
+              beforeExisted: true,
+              beforeStage: path.join(
+                root,
+                ".kb",
+                "recovery",
+                `${driftId}-0.before`,
+              ),
+              afterStage: path.join(
+                root,
+                ".kb",
+                "recovery",
+                `${driftId}-0.after`,
+              ),
+            },
+          ],
+        },
+        null,
+        2,
+      )}\n`,
     );
     await expect(
       executeApplyPlan(
@@ -1258,8 +1309,11 @@ describe("migration action executors", () => {
         ctx,
       );
       expect(
-        (ensured.structuredContent as unknown as { actionResults: { outcome: string }[] })
-          .actionResults[0]?.outcome,
+        (
+          ensured.structuredContent as unknown as {
+            actionResults: { outcome: string }[];
+          }
+        ).actionResults[0]?.outcome,
       ).toBe("applied");
     } finally {
       restore();
@@ -1393,7 +1447,10 @@ describe("remaining apply-plan shape and recovery branches", () => {
     const ready = await thinBody();
     await expect(
       executeApplyPlan(
-        { plan: { ...ready.body, planHash: ready.planHash }, approvedPlanHash: "not-hex" },
+        {
+          plan: { ...ready.body, planHash: ready.planHash },
+          approvedPlanHash: "not-hex",
+        },
         ctx,
       ),
     ).rejects.toThrow(/SHA-256/);
@@ -1426,7 +1483,10 @@ describe("remaining apply-plan shape and recovery branches", () => {
     });
     await expect(
       executeApplyPlan(
-        { plan: { ...badSnap.body, planHash: badSnap.planHash }, approvedPlanHash: badSnap.planHash },
+        {
+          plan: { ...badSnap.body, planHash: badSnap.planHash },
+          approvedPlanHash: badSnap.planHash,
+        },
         ctx,
       ),
     ).rejects.toThrow(/exact KB snapshot/);
@@ -1434,7 +1494,10 @@ describe("remaining apply-plan shape and recovery branches", () => {
     const empty = await thinBody({ actions: [] });
     await expect(
       executeApplyPlan(
-        { plan: { ...empty.body, planHash: empty.planHash }, approvedPlanHash: empty.planHash },
+        {
+          plan: { ...empty.body, planHash: empty.planHash },
+          approvedPlanHash: empty.planHash,
+        },
         ctx,
       ),
     ).rejects.toThrow(/must contain actions/);
@@ -1445,13 +1508,23 @@ describe("remaining apply-plan shape and recovery branches", () => {
           id: "bootstrap-upsert-a",
           kind: "upsert",
           dependsOn: ["bootstrap-upsert-b"],
-          payload: { type: "req", id: "REQ-a", properties: {}, relationships: [] },
+          payload: {
+            type: "req",
+            id: "REQ-a",
+            properties: {},
+            relationships: [],
+          },
         },
         {
           id: "bootstrap-upsert-b",
           kind: "upsert",
           dependsOn: ["bootstrap-upsert-a"],
-          payload: { type: "req", id: "REQ-b", properties: {}, relationships: [] },
+          payload: {
+            type: "req",
+            id: "REQ-b",
+            properties: {},
+            relationships: [],
+          },
         },
       ]),
     ).toThrow(/dependency cycle/);
@@ -1484,7 +1557,10 @@ describe("remaining apply-plan shape and recovery branches", () => {
     });
     const { fs: _fs, ...noFs } = filesystemContext(root);
     await expect(
-      executeApplyPlan({ plan: hashed, approvedPlanHash: hashed.planHash }, noFs),
+      executeApplyPlan(
+        { plan: hashed, approvedPlanHash: hashed.planHash },
+        noFs,
+      ),
     ).rejects.toThrow(/filesystem-capable runtime/);
 
     const { body, planHash } = await thinBody();
@@ -1517,22 +1593,26 @@ describe("remaining apply-plan shape and recovery branches", () => {
     writeFileSync(path.join(recoveryDir, `${journalId}-0.after`), after);
     writeFileSync(
       path.join(recoveryDir, `${journalId}.json`),
-      `${JSON.stringify({
-        version: 1,
-        planHash: plan.planHash,
-        state: "prepared",
-        entries: [
-          {
-            path: "docs/new.md",
-            mode: "write",
-            beforeHash: null,
-            afterHash: sha(after),
-            beforeExisted: false,
-            beforeStage: path.join(recoveryDir, `${journalId}-0.before`),
-            afterStage: path.join(recoveryDir, `${journalId}-0.after`),
-          },
-        ],
-      }, null, 2)}\n`,
+      `${JSON.stringify(
+        {
+          version: 1,
+          planHash: plan.planHash,
+          state: "prepared",
+          entries: [
+            {
+              path: "docs/new.md",
+              mode: "write",
+              beforeHash: null,
+              afterHash: sha(after),
+              beforeExisted: false,
+              beforeStage: path.join(recoveryDir, `${journalId}-0.before`),
+              afterStage: path.join(recoveryDir, `${journalId}-0.after`),
+            },
+          ],
+        },
+        null,
+        2,
+      )}\n`,
     );
     const recovered = await executeApplyPlan(
       { plan, approvedPlanHash: plan.planHash },
@@ -1575,7 +1655,9 @@ describe("remaining apply-plan shape and recovery branches", () => {
       { plan: mismatch, approvedPlanHash: mismatch.planHash },
       filesystemContext(root),
     );
-    expect(asApply(applied.structuredContent).changedPaths).toEqual(["docs/other.md"]);
+    expect(asApply(applied.structuredContent).changedPaths).toEqual([
+      "docs/other.md",
+    ]);
   });
 
   test("records committed_with_repairs when a bootstrap upsert returns repair status", async () => {
@@ -1588,7 +1670,10 @@ describe("remaining apply-plan shape and recovery branches", () => {
           query: async (goal) =>
             (goal.includes("kb_commit_upsert")
               ? { success: true, bindings: { ChangeKind: "mutated" } }
-              : { success: true, bindings: { Results: "[]" } }) as unknown as PrologQueryResult,
+              : {
+                  success: true,
+                  bindings: { Results: "[]" },
+                }) as unknown as PrologQueryResult,
           queryStatusJson: async () => ({ success: true, bindings: {} }),
           nextSolution: async () => null,
           save: async () => ({ success: true, bindings: {} }),
@@ -1596,17 +1681,21 @@ describe("remaining apply-plan shape and recovery branches", () => {
       }),
     );
     expect(result.structuredContent.outcome).toBe("partially_applied");
-    expect(asApply(result.structuredContent).status).toBe("committed_with_repairs");
+    expect(asApply(result.structuredContent).status).toBe(
+      "committed_with_repairs",
+    );
   });
 
   test("rejects compile apply without Prolog after plan validation", async () => {
     const root = makeTempDir();
     const plan = compilePlan();
-    const { prolog: _prolog, ensureProlog: _ensure, ...ctx } = filesystemContext(root);
+    const {
+      prolog: _prolog,
+      ensureProlog: _ensure,
+      ...ctx
+    } = filesystemContext(root);
     await expect(
       executeApplyPlan({ plan, approvedPlanHash: plan.planHash }, ctx),
     ).rejects.toThrow(/Prolog runtime/);
   });
 });
-
-

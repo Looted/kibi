@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { initCommand } from "../../src/commands/init.js";
 import { engineStopCommand } from "../../src/commands/engine.js";
+import { initCommand } from "../../src/commands/init.js";
 import { SyncError, syncCommand } from "../../src/commands/sync.js";
 import {
   captureIo,
@@ -54,7 +54,10 @@ describe("syncCommand error and option paths", () => {
     const cwd = createGitWorkspace();
     roots.push(cwd);
     mkdirSync(path.join(cwd, ".kb", "branches", "main"), { recursive: true });
-    writeFileSync(path.join(cwd, ".kb", "branches", "main", "kb.rdf"), "legacy\n");
+    writeFileSync(
+      path.join(cwd, ".kb", "branches", "main", "kb.rdf"),
+      "legacy\n",
+    );
     await expect(syncCommand({ workspaceRoot: cwd })).rejects.toThrow(
       /legacy branch storage/i,
     );

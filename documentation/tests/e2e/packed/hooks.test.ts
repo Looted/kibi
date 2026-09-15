@@ -48,8 +48,11 @@ if (RUN_NODE_TEST_SUITE) {
       { timeout: 120000 },
     );
 
-    it("should install git hooks on init", async () => {
-      if (!hasProlog) return;
+    it("should install git hooks on init", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       // Initialize kibi with hooks
       const { exitCode } = await kibi(sandbox, ["init"]);
@@ -75,8 +78,11 @@ if (RUN_NODE_TEST_SUITE) {
       console.log("  ✓ All hooks installed");
     });
 
-    it("should have executable hook files", async () => {
-      if (!hasProlog) return;
+    it("should have executable hook files", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       // Initialize kibi (if not done in previous test)
       await kibi(sandbox, ["init"]);
@@ -114,8 +120,11 @@ if (RUN_NODE_TEST_SUITE) {
       console.log("  ✓ All hooks are executable");
     });
 
-    it("should run hooks that reference installed kibi binary", async () => {
-      if (!hasProlog) return;
+    it("should run hooks that reference installed kibi binary", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       // Initialize kibi
       await kibi(sandbox, ["init"]);
@@ -141,8 +150,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "should trigger post-checkout hook on git checkout",
       { timeout: 20000 },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         // Initialize kibi and create initial content
         await kibi(sandbox, ["init"]);
@@ -220,8 +232,11 @@ if (RUN_NODE_TEST_SUITE) {
       },
     );
 
-    it("should handle pre-commit hook execution", async () => {
-      if (!hasProlog) return;
+    it("should handle pre-commit hook execution", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       // Initialize kibi
       await kibi(sandbox, ["init"]);

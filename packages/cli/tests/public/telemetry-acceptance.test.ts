@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import {
-  type TelemetryUsageEvent,
   DEFAULT_TELEMETRY_ACCEPTANCE_POLICY,
   TELEMETRY_ACCEPTANCE_VERSION,
+  type TelemetryUsageEvent,
   analyzeTelemetryAcceptance,
   createTelemetryAcceptanceDiagnostics,
   parseTelemetryUsageLog,
@@ -298,9 +298,9 @@ describe("telemetry acceptance", () => {
     });
     expect(report.version).toBe(TELEMETRY_ACCEPTANCE_VERSION);
     expect(report.diagnostics).toContain("usage_log_future_dated");
-    expect(createTelemetryAcceptanceDiagnostics(report).map((d) => d.id)).toContain(
-      "telemetry_evidence_stale",
-    );
+    expect(
+      createTelemetryAcceptanceDiagnostics(report).map((d) => d.id),
+    ).toContain("telemetry_evidence_stale");
   });
 
   test("reports unavailable timestamps and empty logs", () => {
@@ -312,12 +312,12 @@ describe("telemetry acceptance", () => {
     expect(untimed.diagnostics).toContain("usage_log_timestamps_unavailable");
     expect(untimed.scope.lastTimestamp).toBeNull();
     const diagnostics = createTelemetryAcceptanceDiagnostics(untimed);
-    expect(diagnostics.some((item) => item.id === "telemetry_evidence_stale")).toBe(
-      true,
-    );
-    expect(diagnostics.some((item) => item.message.includes("no valid timestamped"))).toBe(
-      true,
-    );
+    expect(
+      diagnostics.some((item) => item.id === "telemetry_evidence_stale"),
+    ).toBe(true);
+    expect(
+      diagnostics.some((item) => item.message.includes("no valid timestamped")),
+    ).toBe(true);
   });
 
   test("covers remaining metric, correlation, truncation, and recovery branches", () => {
@@ -327,7 +327,11 @@ describe("telemetry acceptance", () => {
         timestamp: timestamp(80 - index),
         tool: "kb_status",
         success: true,
-        telemetry: { is_autonomous: true, session_id: "sess-a", actor_id: "act-a" },
+        telemetry: {
+          is_autonomous: true,
+          session_id: "sess-a",
+          actor_id: "act-a",
+        },
         args: { _diagnostic_telemetry: { ignored: true }, keep: ["nested"] },
       });
     }
@@ -451,7 +455,8 @@ describe("telemetry acceptance", () => {
     });
     expect(report.scope.truncated).toBe(true);
     expect(
-      report.metrics.find((metric) => metric.id === "proof_gap_recovery")?.status,
+      report.metrics.find((metric) => metric.id === "proof_gap_recovery")
+        ?.status,
     ).toBe("passed");
     expect(
       report.metrics.find((metric) => metric.id === "e2e_receipt_freshness")
@@ -463,8 +468,9 @@ describe("telemetry acceptance", () => {
       )?.status,
     ).toBe("failed");
     expect(
-      report.metrics.find((metric) => metric.id === "source_lookup_zero_result_rate")
-        ?.evidence,
+      report.metrics.find(
+        (metric) => metric.id === "source_lookup_zero_result_rate",
+      )?.evidence,
     ).toMatchObject({
       zeroResultSourceFiles: expect.arrayContaining([
         { sourceFile: "src/a.ts", count: 1 },
@@ -490,9 +496,9 @@ describe("telemetry acceptance", () => {
       singleGap.metrics.find((metric) => metric.id === "proof_gap_recovery")
         ?.status,
     ).toBe("insufficient_evidence");
-    expect(createTelemetryAcceptanceDiagnostics(singleGap).map((d) => d.id)).toContain(
-      "telemetry_acceptance_incomplete",
-    );
+    expect(
+      createTelemetryAcceptanceDiagnostics(singleGap).map((d) => d.id),
+    ).toContain("telemetry_acceptance_incomplete");
 
     const staleFreshMetrics = analyzeTelemetryAcceptance(
       [
@@ -506,10 +512,11 @@ describe("telemetry acceptance", () => {
       new Date("2026-08-20T12:00:00.000Z"),
       { ...DEFAULT_TELEMETRY_ACCEPTANCE_POLICY, minimumEvents: 1 },
     );
-    const staleDiagnostics = createTelemetryAcceptanceDiagnostics(staleFreshMetrics);
-    expect(staleDiagnostics.some((item) => item.id === "telemetry_evidence_stale")).toBe(
-      true,
-    );
+    const staleDiagnostics =
+      createTelemetryAcceptanceDiagnostics(staleFreshMetrics);
+    expect(
+      staleDiagnostics.some((item) => item.id === "telemetry_evidence_stale"),
+    ).toBe(true);
     expect(staleDiagnostics[0]?.message).toContain("latest");
   });
 
@@ -627,8 +634,9 @@ describe("telemetry acceptance", () => {
         ?.status,
     ).toBe("passed");
     expect(
-      report.metrics.find((metric) => metric.id === "repeated_mutation_failures")
-        ?.status,
+      report.metrics.find(
+        (metric) => metric.id === "repeated_mutation_failures",
+      )?.status,
     ).toBe("passed");
     expect(
       report.metrics.find(
@@ -769,4 +777,3 @@ describe("telemetry acceptance", () => {
     expect(diagnostics[0]?.message).toContain("no valid timestamped evidence");
   });
 });
-

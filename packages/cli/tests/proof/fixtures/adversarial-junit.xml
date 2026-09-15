@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="outer">
+    <testsuite name="nested">
+      <testcase classname="Escaped" name="A &amp; B" time="0.012"><failure/></testcase>
+      <testcase classname="Nested" name="case"><error message="broken" /></testcase>
+    </testsuite>
+  </testsuite>
+</testsuites>

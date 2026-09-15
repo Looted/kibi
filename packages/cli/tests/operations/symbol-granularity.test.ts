@@ -30,9 +30,7 @@ function context(
   };
 }
 
-const implementsRel = [
-  { type: "implements", from: "SYM-COARSE", to: "REQ-1" },
-];
+const implementsRel = [{ type: "implements", from: "SYM-COARSE", to: "REQ-1" }];
 
 afterEach(() => {
   while (tempDirs.length > 0) {

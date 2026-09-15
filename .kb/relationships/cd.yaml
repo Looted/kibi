@@ -223,3 +223,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5541582475ec
+  - type: implements
+    from: SYM-quality-producer-runProofStep
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-09-14T18:55:17.250Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2b6ca96e124
+  - type: covered_by
+    from: SYM-quality-producer-runProofStep
+    to: TEST-proof-runner-integrity
+    created_at: 2026-09-14T18:55:17.270Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e29bb9bef234

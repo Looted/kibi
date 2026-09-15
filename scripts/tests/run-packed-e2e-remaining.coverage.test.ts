@@ -123,15 +123,22 @@ describe("run-packed-e2e remaining helper-missing and main-guard branches", () =
     const previousExit = process.exitCode;
     try {
       await runPackedE2EIfEntrypoint("/tmp/other.mjs", "file:///tmp/run.mjs");
-      await runPackedE2EIfEntrypoint("/tmp/run.mjs", "file:///tmp/run.mjs", async () => 0);
+      await runPackedE2EIfEntrypoint(
+        "/tmp/run.mjs",
+        "file:///tmp/run.mjs",
+        async () => 0,
+      );
       expect(process.exitCode).toBe(0);
-      await runPackedE2EIfEntrypoint("/tmp/run.mjs", "file:///tmp/run.mjs", async () => {
-        throw new Error("packed-entry-failed");
-      });
+      await runPackedE2EIfEntrypoint(
+        "/tmp/run.mjs",
+        "file:///tmp/run.mjs",
+        async () => {
+          throw new Error("packed-entry-failed");
+        },
+      );
       expect(process.exitCode).toBe(1);
     } finally {
       process.exitCode = previousExit ?? 0;
     }
   });
-
 });

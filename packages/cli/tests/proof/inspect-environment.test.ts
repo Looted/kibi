@@ -1,8 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import {
-  mkdirSync,
-  writeFileSync,
-} from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { inspectProofEnvironment } from "../../src/proof/inspect.js";
 import {
@@ -49,14 +46,19 @@ describe("inspectProofEnvironment", () => {
     writeFileSync(path.join(root, "bun.lock"), "{}\n");
     const inspection = inspectProofEnvironment(root);
     expect(inspection.languages).toContain("javascript/typescript");
-    expect(inspection.buildSystems).toEqual(expect.arrayContaining(["bun", "npm"]));
+    expect(inspection.buildSystems).toEqual(
+      expect.arrayContaining(["bun", "npm"]),
+    );
     expect(inspection.detectedRunners).toContain("npm test");
     expect(inspection.recommendation).toContain("Run bootstrap");
   });
 
   test("detects language runners, CI workflows, and configured integrations", () => {
     const root = workspace();
-    writeFileSync(path.join(root, "playwright.config.ts"), "export default {};\n");
+    writeFileSync(
+      path.join(root, "playwright.config.ts"),
+      "export default {};\n",
+    );
     writeFileSync(path.join(root, "vitest.config.ts"), "export default {};\n");
     writeFileSync(path.join(root, "jest.config.js"), "module.exports = {};\n");
     writeFileSync(path.join(root, "pytest.ini"), "[pytest]\n");
@@ -68,8 +70,14 @@ describe("inspectProofEnvironment", () => {
     writeFileSync(path.join(root, "Rakefile"), "task :test\n");
     writeFileSync(path.join(root, "Makefile"), "test:\n\ttrue\n");
     mkdirSync(path.join(root, ".github", "workflows"), { recursive: true });
-    writeFileSync(path.join(root, ".github", "workflows", "ci.yml"), "name: ci\n");
-    writeFileSync(path.join(root, ".github", "workflows", "notes.txt"), "skip\n");
+    writeFileSync(
+      path.join(root, ".github", "workflows", "ci.yml"),
+      "name: ci\n",
+    );
+    writeFileSync(
+      path.join(root, ".github", "workflows", "notes.txt"),
+      "skip\n",
+    );
     mkdirSync(path.join(root, ".kb", "proof"), { recursive: true });
     writeFileSync(
       path.join(root, ".kb", "proof", "integrations.json"),

@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { z } from "zod";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 
-import { registerAllTools } from "../../src/server/tools.js";
 import { DIAGNOSTIC_TELEMETRY_SCHEMA } from "../../src/diagnostics.js";
+import { registerAllTools } from "../../src/server/tools.js";
 import {
   TOOLS,
   withDiagnosticTelemetrySchema,
@@ -282,10 +282,9 @@ describe("mcp contract fixtures", () => {
     const seed = loadSeed();
     const registered = createRegisteredToolsSnapshot();
     const toolDefinitions = new Map(TOOLS.map((tool) => [tool.name, tool]));
-  const registeredByName = new Map(
-    registered.map((tool) => [tool.name, tool]),
-  );
-
+    const registeredByName = new Map(
+      registered.map((tool) => [tool.name, tool]),
+    );
 
     // 21 canonical catalog operations + the MCP-server-native kb_job_status
     // poll tool (see jobs.ts).

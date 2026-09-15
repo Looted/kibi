@@ -202,3 +202,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1bcd1e1bf94f
+  - type: covered_by
+    from: SYM-convert-tap
+    to: TEST-native-report-integrity
+    created_at: 2026-09-14T19:17:48.809Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b27c1cc3f148

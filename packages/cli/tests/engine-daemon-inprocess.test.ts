@@ -47,7 +47,10 @@ afterEach(async () => {
   }
 });
 
-async function waitForSocket(socketPath: string, timeoutMs = 20_000): Promise<void> {
+async function waitForSocket(
+  socketPath: string,
+  timeoutMs = 20_000,
+): Promise<void> {
   const deadline = Date.now() + timeoutMs;
   while (!existsSync(socketPath) && Date.now() < deadline) {
     await new Promise((resolve) => setTimeout(resolve, 25));
@@ -163,197 +166,189 @@ describe("runEngineDaemon in-process", () => {
     ).rejects.toThrow(/Invalid Kibi engine branch name/);
   });
 
-  test(
-    "serves EngineClient RPCs in-process and reports getPid",
-    async () => {
-      const previousIdle = process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS;
-      process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS = "60000";
-      restores.push(() => {
-        if (previousIdle === undefined) {
-          Reflect.deleteProperty(process.env, "KIBI_ENGINE_IDLE_TIMEOUT_MS");
-        } else {
-          process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS = previousIdle;
-        }
-      });
+  test("serves EngineClient RPCs in-process and reports getPid", async () => {
+    const previousIdle = process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS;
+    process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS = "60000";
+    restores.push(() => {
+      if (previousIdle === undefined) {
+        Reflect.deleteProperty(process.env, "KIBI_ENGINE_IDLE_TIMEOUT_MS");
+      } else {
+        process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS = previousIdle;
+      }
+    });
 
-      const root = tempRoot();
-      ensureBranchStoreManifest(root, "main");
-      const socketPath = engineSocketPath(root, "main");
-      const daemon = runEngineDaemon({
-        workspaceRoot: root,
-        branch: "main",
-        socketPath,
-      });
-      await waitForSocket(socketPath);
+    const root = tempRoot();
+    ensureBranchStoreManifest(root, "main");
+    const socketPath = engineSocketPath(root, "main");
+    const daemon = runEngineDaemon({
+      workspaceRoot: root,
+      branch: "main",
+      socketPath,
+    });
+    await waitForSocket(socketPath);
 
-      const client = new EngineClient({
-        workspaceRoot: root,
-        branch: "main",
-        timeout: 20_000,
+    const client = new EngineClient({
+      workspaceRoot: root,
+      branch: "main",
+      timeout: 20_000,
+    });
+    try {
+      expect(client.getPid()).toBeGreaterThan(0);
+      await client.start(false);
+      expect(client.isRunning()).toBe(true);
+      expect(client.getPid()).toBe(process.pid);
+      const status = await client.command({ version: 1, kind: "status" });
+      expect(status).toMatchObject({ success: true });
+      await client.query("true");
+      await client.queryBatch(["true"]);
+      await client.queryEntities({ limit: 5, offset: 0 });
+      await client.searchEntities({ query: "nothing", limit: 3, offset: 0 });
+      await client.save();
+      await client.storageStatus();
+      await client.checkpoint();
+      await client.queryStatusJson();
+      await client.queryStatusJson();
+      await client.compact();
+      client.cancel(99);
+      await client.command({
+        version: 1,
+        kind: "relationship",
+        action: "assert",
+        type: "relates_to",
+        from: "REQ-A",
+        to: "REQ-B",
       });
-      try {
-        expect(client.getPid()).toBeGreaterThan(0);
-        await client.start(false);
-        expect(client.isRunning()).toBe(true);
-        expect(client.getPid()).toBe(process.pid);
-        const status = await client.command({ version: 1, kind: "status" });
-        expect(status).toMatchObject({ success: true });
-        await client.query("true");
-        await client.queryBatch(["true"]);
-        await client.queryEntities({ limit: 5, offset: 0 });
-        await client.searchEntities({ query: "nothing", limit: 3, offset: 0 });
-        await client.save();
-        await client.storageStatus();
-        await client.checkpoint();
-        await client.queryStatusJson();
-        await client.queryStatusJson();
-        await client.compact();
-        client.cancel(99);
-        await client.command({
+      await client.command({
+        version: 1,
+        kind: "relationship",
+        action: "retract",
+        type: "relates_to",
+        from: "REQ-A",
+        to: "REQ-B",
+      });
+      await client.command({
+        version: 1,
+        kind: "persistence",
+        action: "checkpoint",
+      });
+      await client.command({
+        version: 1,
+        kind: "lifecycle",
+        action: "cancel",
+        requestId: 7,
+      });
+      const exportDir = path.join(root, "export-out");
+      await client.exportStorage(exportDir);
+      await expect(
+        client.queryEntities({ limit: -1, offset: 0 }),
+      ).rejects.toThrow();
+      await expect(
+        client.searchEntities({ query: "   ", limit: 1, offset: 0 }),
+      ).rejects.toThrow();
+      await expect(
+        client.command({
+          version: 1,
+          kind: "check",
+          rule: "Not_a_rule",
+        }),
+      ).rejects.toThrow(/lowercase rule name/);
+      await client.command({ version: 1, kind: "check", rule: "integrity" });
+      await client.queryEntities({
+        type: "req",
+        id: "REQ-NONE",
+        tags: ["keep"],
+        sourceFile: "docs/none.md",
+        limit: 2,
+        offset: 0,
+      });
+      await client.searchEntities({
+        query: "keep",
+        type: "req",
+        limit: 2,
+        offset: 0,
+      });
+      await expect(
+        client.command({
           version: 1,
           kind: "relationship",
           action: "assert",
-          type: "relates_to",
-          from: "REQ-A",
-          to: "REQ-B",
-        });
-        await client.command({
-          version: 1,
-          kind: "relationship",
-          action: "retract",
-          type: "relates_to",
-          from: "REQ-A",
-          to: "REQ-B",
-        });
-        await client.command({
+        } as never),
+      ).rejects.toThrow(/requires type, from, and to/);
+      await expect(
+        client.command({
           version: 1,
           kind: "persistence",
-          action: "checkpoint",
-        });
-        await client.command({
+          action: "export",
+        } as never),
+      ).rejects.toThrow(/targetDirectory/);
+      await expect(
+        client.command({
           version: 1,
           kind: "lifecycle",
           action: "cancel",
-          requestId: 7,
-        });
-        const exportDir = path.join(root, "export-out");
-        await client.exportStorage(exportDir);
-        await expect(
-          client.queryEntities({ limit: -1, offset: 0 }),
-        ).rejects.toThrow();
-        await expect(
-          client.searchEntities({ query: "   ", limit: 1, offset: 0 }),
-        ).rejects.toThrow();
-        await expect(
-          client.command({
-            version: 1,
-            kind: "check",
-            rule: "Not_a_rule",
-          }),
-        ).rejects.toThrow(/lowercase rule name/);
-        await client.command({ version: 1, kind: "check", rule: "integrity" });
-        await client.queryEntities({
-          type: "req",
-          id: "REQ-NONE",
-          tags: ["keep"],
-          sourceFile: "docs/none.md",
-          limit: 2,
+        } as never),
+      ).rejects.toThrow(/requestId/);
+      await expect(
+        client.command({
+          version: 1,
+          kind: "search",
+          query: "   ",
+          limit: 1,
           offset: 0,
-        });
-        await client.searchEntities({
+        } as never),
+      ).rejects.toThrow(/non-empty/);
+      await expect(
+        client.command({
+          version: 1,
+          kind: "entities",
+          limit: -1,
+          offset: 0,
+        } as never),
+      ).rejects.toThrow(/bounded integers/);
+      await expect(
+        client.command({
+          version: 1,
+          kind: "search",
           query: "keep",
-          type: "req",
-          limit: 2,
+          limit: -1,
           offset: 0,
-        });
-        await expect(
-          client.command({
-            version: 1,
-            kind: "relationship",
-            action: "assert",
-          } as never),
-        ).rejects.toThrow(/requires type, from, and to/);
-        await expect(
-          client.command({
-            version: 1,
-            kind: "persistence",
-            action: "export",
-          } as never),
-        ).rejects.toThrow(/targetDirectory/);
-        await expect(
-          client.command({
-            version: 1,
-            kind: "lifecycle",
-            action: "cancel",
-          } as never),
-        ).rejects.toThrow(/requestId/);
-        await expect(
-          client.command({
-            version: 1,
-            kind: "search",
-            query: "   ",
-            limit: 1,
-            offset: 0,
-          } as never),
-        ).rejects.toThrow(/non-empty/);
-        await expect(
-          client.command({
-            version: 1,
-            kind: "entities",
-            limit: -1,
-            offset: 0,
-          } as never),
-        ).rejects.toThrow(/bounded integers/);
-        await expect(
-          client.command({
-            version: 1,
-            kind: "search",
-            query: "keep",
-            limit: -1,
-            offset: 0,
-          } as never),
-        ).rejects.toThrow(/bounded integers/);
-        await client.stop(false);
-      } finally {
-        await client.terminate();
+        } as never),
+      ).rejects.toThrow(/bounded integers/);
+      await client.stop(false);
+    } finally {
+      await client.terminate();
+    }
+    await daemon;
+  }, 90_000);
+
+  test("idle timeout shuts the in-process daemon down without a client", async () => {
+    const previousIdle = process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS;
+    process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS = "100";
+    restores.push(() => {
+      if (previousIdle === undefined) {
+        Reflect.deleteProperty(process.env, "KIBI_ENGINE_IDLE_TIMEOUT_MS");
+      } else {
+        process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS = previousIdle;
       }
-      await daemon;
-    },
-    90_000,
-  );
+    });
 
-  test(
-    "idle timeout shuts the in-process daemon down without a client",
-    async () => {
-      const previousIdle = process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS;
-      process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS = "100";
-      restores.push(() => {
-        if (previousIdle === undefined) {
-          Reflect.deleteProperty(process.env, "KIBI_ENGINE_IDLE_TIMEOUT_MS");
-        } else {
-          process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS = previousIdle;
-        }
-      });
-
-      const root = tempRoot();
-      ensureBranchStoreManifest(root, "main");
-      const socketPath = engineSocketPath(root, "main");
-      const daemon = runEngineDaemon({
-        workspaceRoot: root,
-        branch: "main",
-        socketPath,
-      });
-      await waitForSocket(socketPath);
-      await Promise.race([
-        daemon,
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("idle daemon did not exit")), 8_000),
-        ),
-      ]);
-      expect(exitSpy).toHaveBeenCalled();
-    },
-    20_000,
-  );
+    const root = tempRoot();
+    ensureBranchStoreManifest(root, "main");
+    const socketPath = engineSocketPath(root, "main");
+    const daemon = runEngineDaemon({
+      workspaceRoot: root,
+      branch: "main",
+      socketPath,
+    });
+    await waitForSocket(socketPath);
+    await Promise.race([
+      daemon,
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("idle daemon did not exit")), 8_000),
+      ),
+    ]);
+    expect(exitSpy).toHaveBeenCalled();
+  }, 20_000);
 
   test("getPid returns 0 when the pid file is absent", () => {
     const root = tempRoot();

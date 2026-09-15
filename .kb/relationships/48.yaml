@@ -97,3 +97,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8a9ffaba14f8
+  - type: implements
+    from: SYM-quality-eval-evaluateGoldCorpus
+    to: REQ-kibi-change-to-proof-evaluation
+    created_at: 2026-09-14T19:19:46.441Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1928b27efacc
+  - type: covered_by
+    from: SYM-quality-eval-evaluateGoldCorpus
+    to: TEST-kibi-change-to-proof-evaluation
+    created_at: 2026-09-14T19:19:46.452Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f21f66c8a61e
+  - type: implements
+    from: SYM-quality-inventory-7d20be0182d6
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-09-14T20:34:59.179Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7655148416e1
+  - type: covered_by
+    from: SYM-quality-inventory-7d20be0182d6
+    to: TEST-mcp-schema-adapter
+    created_at: 2026-09-14T20:34:59.194Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed9de4c41849

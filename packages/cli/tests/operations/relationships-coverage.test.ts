@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 
 import {
+  RELATIONSHIP_TYPES,
   classifySupersedesHistory,
   dependentRelationshipsGoal,
   existingRelationships,
@@ -12,14 +13,16 @@ import {
   formatInvalidRelationshipError,
   formatInvalidRelationshipTuple,
   formatRelationshipSourceMismatch,
-  RELATIONSHIP_TYPES,
   validateLiveRelationshipTargets,
   validateRelationshipSources,
   validateStrictLanePairing,
   validateSupersedesSourceHistory,
 } from "../../src/operations/mutation/relationships.js";
 import type { PrologPort } from "../../src/public/operations/runtime-types.js";
-import { createGitWorkspace, removeTempDir } from "../helpers/in-process-workspace.js";
+import {
+  createGitWorkspace,
+  removeTempDir,
+} from "../helpers/in-process-workspace.js";
 
 const tempDirs: string[] = [];
 
@@ -109,7 +112,9 @@ describe("relationship recipes and source guards", () => {
         to: "TEST-1",
       }),
     ).toThrow(/from must be a non-empty string/);
-    expect(dependentRelationshipsGoal("REQ-1")).toContain(RELATIONSHIP_TYPES[0]);
+    expect(dependentRelationshipsGoal("REQ-1")).toContain(
+      RELATIONSHIP_TYPES[0],
+    );
   });
 });
 
@@ -160,7 +165,11 @@ describe("supersedes history and live targets", () => {
       "/tmp",
       {
         firstAdditionCommit: (root, source) =>
-          source.includes("new") ? "aaa" : source.includes("old") ? "bbb" : null,
+          source.includes("new")
+            ? "aaa"
+            : source.includes("old")
+              ? "bbb"
+              : null,
         isAncestor: (_root, ancestor) => ancestor === "bbb",
       },
     );
@@ -176,7 +185,11 @@ describe("supersedes history and live targets", () => {
         "/tmp",
         {
           firstAdditionCommit: (_root, source) =>
-            source.includes("old") ? "old" : source.includes("new") ? "new" : null,
+            source.includes("old")
+              ? "old"
+              : source.includes("new")
+                ? "new"
+                : null,
           isAncestor: (_root, ancestor, descendant) =>
             ancestor === "old" && descendant === "new",
         },

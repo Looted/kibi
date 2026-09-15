@@ -123,9 +123,10 @@ describe("branch commands remaining runtime branches", () => {
     const stop = spyOn(EngineClient.prototype, "stop").mockResolvedValue(
       undefined as never,
     );
-    const isRunning = spyOn(EngineClient.prototype, "isRunning").mockReturnValue(
-      true,
-    );
+    const isRunning = spyOn(
+      EngineClient.prototype,
+      "isRunning",
+    ).mockReturnValue(true);
     const terminate = spyOn(
       EngineClient.prototype,
       "terminate",
@@ -164,9 +165,10 @@ describe("branch commands remaining runtime branches", () => {
     const start = spyOn(EngineClient.prototype, "start").mockResolvedValue(
       undefined as never,
     );
-    const isRunning = spyOn(EngineClient.prototype, "isRunning").mockReturnValue(
-      false,
-    );
+    const isRunning = spyOn(
+      EngineClient.prototype,
+      "isRunning",
+    ).mockReturnValue(false);
     const terminate = spyOn(
       EngineClient.prototype,
       "terminate",
@@ -202,9 +204,10 @@ describe("branch commands remaining runtime branches", () => {
     const start = spyOn(EngineClient.prototype, "start").mockRejectedValue(
       "socket exploded",
     );
-    const isRunning = spyOn(EngineClient.prototype, "isRunning").mockReturnValue(
-      false,
-    );
+    const isRunning = spyOn(
+      EngineClient.prototype,
+      "isRunning",
+    ).mockReturnValue(false);
     const terminate = spyOn(
       EngineClient.prototype,
       "terminate",
@@ -245,9 +248,10 @@ describe("branch commands remaining runtime branches", () => {
     const stop = spyOn(EngineClient.prototype, "stop").mockResolvedValue(
       undefined as never,
     );
-    const isRunning = spyOn(EngineClient.prototype, "isRunning").mockReturnValue(
-      true,
-    );
+    const isRunning = spyOn(
+      EngineClient.prototype,
+      "isRunning",
+    ).mockReturnValue(true);
     const terminate = spyOn(
       EngineClient.prototype,
       "terminate",
@@ -278,9 +282,10 @@ describe("branch commands remaining runtime branches", () => {
       path.join(cwd, ".kb", "branches", "main"),
       branchStorePath(cwd, "main"),
     );
-    const matches = spyOn(locator, "branchStoreManifestMatches").mockReturnValue(
-      false,
-    );
+    const matches = spyOn(
+      locator,
+      "branchStoreManifestMatches",
+    ).mockReturnValue(false);
     restores.push(() => matches.mockRestore());
     await expect(
       branchMigrateCommand({
@@ -327,9 +332,9 @@ describe("branch commands remaining runtime branches", () => {
     restores.push(() => {
       Reflect.deleteProperty(process.env, "KIBI_BRANCH");
     });
-    await expect(
-      branchRecoverCommand({ workspaceRoot: cwd }),
-    ).rejects.toThrow("Failed to resolve active branch");
+    await expect(branchRecoverCommand({ workspaceRoot: cwd })).rejects.toThrow(
+      "Failed to resolve active branch",
+    );
   });
 
   test("recover journal restores a verified backup when the published target is invalid", async () => {
@@ -352,9 +357,10 @@ describe("branch commands remaining runtime branches", () => {
       stagingPath: ".kb/branches/missing-staging",
       backupPath: path.relative(cwd, backup),
     });
-    const matches = spyOn(locator, "branchStoreManifestMatches").mockReturnValue(
-      false,
-    );
+    const matches = spyOn(
+      locator,
+      "branchStoreManifestMatches",
+    ).mockReturnValue(false);
     restores.push(() => matches.mockRestore());
     await expect(
       branchMigrateCommand({
@@ -393,9 +399,9 @@ describe("branch commands remaining runtime branches", () => {
 
   test("restore from process.cwd previews when no quarantine key exists", async () => {
     const cwd = preparedWorkspace();
-    await expect(withCwd(cwd, () => branchRestoreCommand({ branch: "main" }))).rejects.toThrow(
-      "No quarantined store found",
-    );
+    await expect(
+      withCwd(cwd, () => branchRestoreCommand({ branch: "main" })),
+    ).rejects.toThrow("No quarantined store found");
   });
 
   test("skips quarantined stores whose metadata cannot be parsed", async () => {

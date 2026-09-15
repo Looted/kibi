@@ -61,8 +61,11 @@ if (RUN_NODE_TEST_SUITE) {
       {
         timeout: 60000,
       },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         // Initialize kibi
         const initResult = await kibi(sandbox, ["init"]);
@@ -126,8 +129,11 @@ if (RUN_NODE_TEST_SUITE) {
       {
         timeout: 60000,
       },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         // Initialize kibi
         const initResult = await kibi(sandbox, ["init"]);

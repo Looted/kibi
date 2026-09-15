@@ -22,6 +22,7 @@ import {
   sourceWebUrl,
 } from "./repository.js";
 
+// implements REQ-kibi-html-health-report
 export type UnknownRecord = Readonly<Record<string, unknown>>;
 
 // implements REQ-kibi-html-health-report
@@ -43,7 +44,6 @@ function reportStyles(): string {
     .replaceAll("__KIBI_WARNING__", KIBI_BRAND.warning)
     .replaceAll("__KIBI_DANGER__", KIBI_BRAND.danger);
 }
-
 
 // implements REQ-kibi-html-health-report
 export const REPORT_CSP =
@@ -261,6 +261,8 @@ function proofGates(rows: readonly UnknownRecord[]): readonly ProofGate[] {
   });
 }
 
+// implements REQ-kibi-html-health-report
+// covered_by TEST-kibi-html-health-report
 export function firstFailingProofGate(
   gates: readonly ProofGateKey[],
   passes: (gate: ProofGateKey) => boolean,
@@ -271,6 +273,8 @@ export function firstFailingProofGate(
   return "proven";
 }
 
+// implements REQ-kibi-html-health-report
+// covered_by TEST-kibi-html-health-report
 export function earliestUnmetGate(row: UnknownRecord): ProofGateKey | "proven" {
   if (row.proofStatus === "proven") return "proven";
   return firstFailingProofGate(

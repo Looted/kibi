@@ -10,8 +10,8 @@ import {
 } from "../../src/public/proof-fingerprint.js";
 import {
   ATTEMPTS_STATUS,
-  PROOF_BINDING_KINDS,
   PROOF_BINDINGS_SCHEMA,
+  PROOF_BINDING_KINDS,
   PROOF_CONTRACT_SCHEMA,
   PROOF_CONTRACT_VERSION,
   PROOF_INTEGRATION_VERSION,
@@ -199,10 +199,13 @@ describe("kibi.proof-run.v1", () => {
     expect(PROOF_CONTRACT_SCHEMA.type).toBe("object");
     expect(PROOF_BINDINGS_SCHEMA.type).toBe("array");
     expect(PROOF_RESULT_SCHEMA.properties.attempts.oneOf).toHaveLength(2);
-    expect(PROOF_RUN_ARTIFACT_SCHEMA.properties.run.properties.failure_phase.enum).toEqual(
-      [...RUN_FAILURE_PHASES],
-    );
-    expect(PROOF_BINDINGS_SCHEMA.items.required).toEqual(["symbol_id", "target"]);
+    expect(
+      PROOF_RUN_ARTIFACT_SCHEMA.properties.run.properties.failure_phase.enum,
+    ).toEqual([...RUN_FAILURE_PHASES]);
+    expect(PROOF_BINDINGS_SCHEMA.items.required).toEqual([
+      "symbol_id",
+      "target",
+    ]);
     expect(PROOF_CONTRACT_SCHEMA.properties.success_policy.enum).toEqual([
       ...SUCCESS_POLICIES,
     ]);
@@ -217,7 +220,10 @@ describe("kibi.proof-run.v1", () => {
         outcome: "nope",
         binding: "other",
         native_id: "",
-        attempts: { status: "complete", entries: [{ outcome: "nope", duration_ms: -1 }, "bad"] },
+        attempts: {
+          status: "complete",
+          entries: [{ outcome: "nope", duration_ms: -1 }, "bad"],
+        },
         diagnostics: ["ok", ""],
       },
       "r",
@@ -304,9 +310,9 @@ describe("kibi.proof-run.v1", () => {
         environment: { os: "linux", nested: { fn: () => 1 } },
       } as never).join(" "),
     ).toContain("JSON values");
-    expect(proofRunArtifactErrors({ ...validArtifact(), run: null }).join(" ")).toContain(
-      "artifact.run must be an object",
-    );
+    expect(
+      proofRunArtifactErrors({ ...validArtifact(), run: null }).join(" "),
+    ).toContain("artifact.run must be an object");
     const oversized = validArtifact();
     oversized.proof_results = Array.from({ length: 1001 }, (_, index) => ({
       symbol_id: `SYM-${index}`,
@@ -315,10 +321,12 @@ describe("kibi.proof-run.v1", () => {
       binding: "aggregate_run",
       attempts: { status: "unavailable" },
     }));
-    expect(proofRunArtifactErrors(oversized).join(" ")).toContain("at most 1000");
-    expect(proofRunArtifactErrors({ ...validArtifact(), producer: null }).join(" ")).toContain(
-      "producer must be an object",
+    expect(proofRunArtifactErrors(oversized).join(" ")).toContain(
+      "at most 1000",
     );
+    expect(
+      proofRunArtifactErrors({ ...validArtifact(), producer: null }).join(" "),
+    ).toContain("producer must be an object");
   });
 
   test("proofContractErrors and proofBindingsErrors cover duplicates and field shapes", () => {
@@ -327,7 +335,12 @@ describe("kibi.proof-run.v1", () => {
       proofContractErrors({
         version: "old",
         integration: "",
-        required_proofs: [null, { symbol_id: "", target: "" }, { symbol_id: "SYM-1", target: "t" }, { symbol_id: "SYM-1", target: "t" }],
+        required_proofs: [
+          null,
+          { symbol_id: "", target: "" },
+          { symbol_id: "SYM-1", target: "t" },
+          { symbol_id: "SYM-1", target: "t" },
+        ],
         success_policy: "other",
       }).join(" "),
     ).toMatch(/version|integration|symbol_id|duplicates|success_policy/);
@@ -344,7 +357,14 @@ describe("kibi.proof-run.v1", () => {
     expect(
       proofBindingsErrors([
         null,
-        { symbol_id: "", target: "", native_id: "", aliases: [""], source_file: "", line: 0 },
+        {
+          symbol_id: "",
+          target: "",
+          native_id: "",
+          aliases: [""],
+          source_file: "",
+          line: 0,
+        },
         { symbol_id: "SYM-1", target: "t" },
         { symbol_id: "SYM-1", target: "t" },
       ]).join(" "),
@@ -367,7 +387,7 @@ describe("kibi.proof-run.v1", () => {
       executor?: { name: string; version: string };
     };
     artifact.run.failure_phase = "execution";
-    delete artifact.executor;
+    Reflect.deleteProperty(artifact, "executor");
     expect(proofRunArtifactErrors(artifact)).toEqual([]);
     expect(
       proofResultErrors(
@@ -388,7 +408,11 @@ describe("kibi.proof-run.v1", () => {
     expect(
       proofRunArtifactErrors({
         ...validArtifact(),
-        environment: { os: "linux", nested: [1, { ok: true }], undef: undefined },
+        environment: {
+          os: "linux",
+          nested: [1, { ok: true }],
+          undef: undefined,
+        },
       } as never).join(" "),
     ).toContain("JSON values");
     expect(

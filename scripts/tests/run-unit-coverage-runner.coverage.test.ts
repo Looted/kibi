@@ -10,7 +10,11 @@ import {
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { runUnitCoverage, runUnitCoverageIfMain } from "../run-unit-coverage.ts";
+import {
+  runUnitCoverage,
+  runUnitCoverageIfMain,
+  summarizeBranchCoverage,
+} from "../run-unit-coverage.ts";
 
 const roots: string[] = [];
 
@@ -41,32 +45,36 @@ describe("runUnitCoverage mocked shards", () => {
     writeFileSync(path.join(root, "packages", "demo", "src", "main.ts"), "x\n");
     const previousCwd = process.cwd();
     const previousExit = process.exitCode;
-    const spawnSpy = spyOn(childProcess, "spawnSync").mockImplementation(
-      ((_command, args) => {
-        const list = (args ?? []) as string[];
-        const coverageDir = list[list.indexOf("--coverage-dir") + 1] ?? "";
-        const selected = list.find((value) => value.startsWith("./")) ?? "";
-        mkdirSync(coverageDir, { recursive: true });
-        if (selected.includes("runtime")) {
-          return { status: 0 } as ReturnType<typeof childProcess.spawnSync>;
-        }
-        if (selected.includes("vscode")) {
-          mkdirSync(path.join(root, "coverage", "unit"), { recursive: true });
-          writeFileSync(
-            path.join(root, "coverage", "unit", "lcov.info"),
-            lcovRecord("packages/demo/src/fallback.ts", 0),
-          );
-          return { status: 0 } as ReturnType<typeof childProcess.spawnSync>;
-        }
+    const spawnSpy = spyOn(childProcess, "spawnSync").mockImplementation(((
+      _command,
+      args,
+    ) => {
+      const list = (args ?? []) as string[];
+      const coverageDir = list[list.indexOf("--coverage-dir") + 1] ?? "";
+      const selected = list.find((value) => value.startsWith("./")) ?? "";
+      mkdirSync(coverageDir, { recursive: true });
+      if (selected.includes("runtime")) {
+        return { status: 0 } as ReturnType<typeof childProcess.spawnSync>;
+      }
+      if (selected.includes("vscode")) {
+        mkdirSync(path.join(root, "coverage", "unit"), { recursive: true });
         writeFileSync(
-          path.join(coverageDir, "lcov.info"),
-          lcovRecord("packages/demo/src/main.ts", selected.includes("skillopt") ? 0 : 1),
+          path.join(root, "coverage", "unit", "lcov.info"),
+          lcovRecord("packages/demo/src/fallback.ts", 0),
         );
-        return {
-          status: selected.includes("skillopt") ? 1 : 0,
-        } as ReturnType<typeof childProcess.spawnSync>;
-      }) as typeof childProcess.spawnSync,
-    );
+        return { status: 0 } as ReturnType<typeof childProcess.spawnSync>;
+      }
+      writeFileSync(
+        path.join(coverageDir, "lcov.info"),
+        lcovRecord(
+          "packages/demo/src/main.ts",
+          selected.includes("skillopt") ? 0 : 1,
+        ),
+      );
+      return {
+        status: selected.includes("skillopt") ? 1 : 0,
+      } as ReturnType<typeof childProcess.spawnSync>;
+    }) as typeof childProcess.spawnSync);
     process.chdir(root);
     try {
       await runUnitCoverage();
@@ -81,6 +89,12 @@ describe("runUnitCoverage mocked shards", () => {
       );
       expect(failed).toContain("skillopt");
       expect(failed).toContain("coverage artifact missing");
+      expect(
+        readFileSync(
+          path.join(root, "coverage", "unit", "coverage-summary.txt"),
+          "utf8",
+        ),
+      ).toContain("branch coverage: unavailable");
       expect(process.exitCode).toBe(1);
     } finally {
       process.chdir(previousCwd);
@@ -94,7 +108,10 @@ describe("runUnitCoverage mocked shards", () => {
     roots.push(root);
     mkdirSync(path.join(root, "packages", "demo", "src"), { recursive: true });
     writeFileSync(path.join(root, "packages", "demo", "src", "main.ts"), "x\n");
-    writeFileSync(path.join(root, "packages", "demo", "src", "other.ts"), "y\n");
+    writeFileSync(
+      path.join(root, "packages", "demo", "src", "other.ts"),
+      "y\n",
+    );
     const previousCwd = process.cwd();
     const previousExit = process.exitCode;
     const errors: string[] = [];
@@ -105,25 +122,26 @@ describe("runUnitCoverage mocked shards", () => {
     const warnSpy = spyOn(console, "warn").mockImplementation((message) => {
       warnings.push(String(message));
     });
-    const spawnSpy = spyOn(childProcess, "spawnSync").mockImplementation(
-      ((_command, args) => {
-        const list = (args ?? []) as string[];
-        const coverageDir = list[list.indexOf("--coverage-dir") + 1] ?? "";
-        mkdirSync(coverageDir, { recursive: true });
-        writeFileSync(
-          path.join(coverageDir, "lcov.info"),
-          lcovRecord("packages/demo/src/main.ts", 0),
-        );
-        return { status: 0 } as ReturnType<typeof childProcess.spawnSync>;
-      }) as typeof childProcess.spawnSync,
-    );
+    const spawnSpy = spyOn(childProcess, "spawnSync").mockImplementation(((
+      _command,
+      args,
+    ) => {
+      const list = (args ?? []) as string[];
+      const coverageDir = list[list.indexOf("--coverage-dir") + 1] ?? "";
+      mkdirSync(coverageDir, { recursive: true });
+      writeFileSync(
+        path.join(coverageDir, "lcov.info"),
+        lcovRecord("packages/demo/src/main.ts", 0),
+      );
+      return { status: 0 } as ReturnType<typeof childProcess.spawnSync>;
+    }) as typeof childProcess.spawnSync);
     process.chdir(root);
     try {
       await runUnitCoverageIfMain(false);
       expect(spawnSpy).not.toHaveBeenCalled();
       await runUnitCoverageIfMain(true);
       expect(errors.join("\n")).toMatch(/below the 50% floor/);
-      expect(warnings.join("\n")).toMatch(/absent from LCOV/);
+      expect(errors.join("\n")).toMatch(/absent from LCOV/);
       expect(process.exitCode).toBe(1);
     } finally {
       process.chdir(previousCwd);
@@ -133,4 +151,71 @@ describe("runUnitCoverage mocked shards", () => {
       warnSpy.mockRestore();
     }
   }, 20_000);
+
+  test("fails when the coverage floor passes but a production source is absent", async () => {
+    const root = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-unit-cov-missing-source-"),
+    );
+    roots.push(root);
+    mkdirSync(path.join(root, "packages", "demo", "src"), { recursive: true });
+    writeFileSync(path.join(root, "packages", "demo", "src", "main.ts"), "x\n");
+    writeFileSync(
+      path.join(root, "packages", "demo", "src", "unmeasured.ts"),
+      "y\n",
+    );
+    const previousCwd = process.cwd();
+    const previousExit = process.exitCode;
+    const errors: string[] = [];
+    const errorSpy = spyOn(console, "error").mockImplementation((message) => {
+      errors.push(String(message));
+    });
+    const spawnSpy = spyOn(childProcess, "spawnSync").mockImplementation(((
+      _command,
+      args,
+    ) => {
+      const list = (args ?? []) as string[];
+      const coverageDir = list[list.indexOf("--coverage-dir") + 1] ?? "";
+      mkdirSync(coverageDir, { recursive: true });
+      writeFileSync(
+        path.join(coverageDir, "lcov.info"),
+        lcovRecord("packages/demo/src/main.ts", 1),
+      );
+      return { status: 0 } as ReturnType<typeof childProcess.spawnSync>;
+    }) as typeof childProcess.spawnSync);
+    process.chdir(root);
+    try {
+      await runUnitCoverage();
+      expect(errors.join("\n")).toContain("Coverage manifest audit failed");
+      expect(errors.join("\n")).not.toContain("below the 50% floor");
+      expect(process.exitCode).toBe(1);
+    } finally {
+      process.chdir(previousCwd);
+      process.exitCode = previousExit ?? 0;
+      spawnSpy.mockRestore();
+      errorSpy.mockRestore();
+    }
+  }, 20_000);
+});
+
+describe("summarizeBranchCoverage", () => {
+  test("reports measured branch counts when BRDA records exist", () => {
+    expect(
+      summarizeBranchCoverage(
+        [
+          "SF:src/branch.ts",
+          "BRDA:4,0,0,3",
+          "BRDA:4,0,1,0",
+          "BRDA:8,1,0,-",
+        ].join("\n"),
+      ),
+    ).toEqual({ available: true, found: 3, hit: 1 });
+  });
+
+  test("keeps branch coverage unavailable when LCOV has no valid BRDA records", () => {
+    expect(
+      summarizeBranchCoverage(
+        ["SF:src/line-only.ts", "DA:1,1", "LF:1", "LH:1"].join("\n"),
+      ),
+    ).toEqual({ available: false, found: 0, hit: 0 });
+  });
 });
