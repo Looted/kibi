@@ -104,3 +104,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e4e1d0fdf2a2
+  - type: executable_for
+    from: SYM-skillopt-python-bridge-process-cleanup-tests
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-09-14T20:00:53.075Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-529f65b10d69

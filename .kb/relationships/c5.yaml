@@ -132,3 +132,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0ac6f3d341d2
+  - type: implements
+    from: SYM-checkStrictReqFactPairing
+    to: REQ-cli-check
+    created_at: 2026-09-14T15:01:58.012Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ed79b582e1af
+  - type: covered_by
+    from: SYM-checkStrictReqFactPairing
+    to: TEST-004
+    created_at: 2026-09-14T15:01:58.022Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-355b72a00d0f

@@ -129,3 +129,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fff6e420ecee
+  - type: implements
+    from: SYM-requireActiveProlog
+    to: REQ-cli-check
+    created_at: 2026-09-14T14:58:09.068Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cab250cf7b21
+  - type: covered_by
+    from: SYM-requireActiveProlog
+    to: TEST-004
+    created_at: 2026-09-14T14:58:09.080Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6d3c02365dc

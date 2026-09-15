@@ -14,6 +14,7 @@ import { resolveBranchAttachment } from "../../utils/branch-resolver.js";
 import {
   type BranchStoreInspection,
   branchStoreReason,
+  storeLockJournalReason,
   inspectBranchStore,
 } from "../../utils/branch-store.js";
 import {
@@ -385,6 +386,7 @@ export async function executeStatus(
     const snapshotEvidence = await readWorkspaceSnapshot(context);
     const existingReasons = payload.staleReasons ?? [];
     const storeReason = branchStoreReason(store);
+    const lockReason = storeLockJournalReason(store.path);
     const engineReason = engineStatus
       ? {
           code: engineStatus.errorCode ?? "engine_status_unavailable",
@@ -402,6 +404,7 @@ export async function executeStatus(
     const staleReasons = [
       ...existingReasons,
       ...(storeReason ? [storeReason] : []),
+      ...(lockReason ? [lockReason] : []),
       ...(engineReason ? [engineReason] : []),
     ].sort((left, right) =>
       String(left.path ?? "").localeCompare(String(right.path ?? "")),
