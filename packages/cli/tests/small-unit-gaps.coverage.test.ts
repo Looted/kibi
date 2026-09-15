@@ -7,15 +7,15 @@ import path from "node:path";
 import * as yaml from "js-yaml";
 
 import {
-  buildUsageMetricsReport,
-  parseUsageLog,
-  usageMetricsCommand,
-} from "../src/commands/usage-metrics.js";
-import {
   insertKibiBadge,
   loadGitHubWorkflowTemplate,
   parseGitHubRemote,
 } from "../src/commands/github-init.js";
+import {
+  buildUsageMetricsReport,
+  parseUsageLog,
+  usageMetricsCommand,
+} from "../src/commands/usage-metrics.js";
 import {
   getBranchOverride,
   getKbPlPathOverride,
@@ -32,27 +32,40 @@ import {
 import { classifyActivation } from "../src/operations/bootstrap/activation.js";
 import { claimFor } from "../src/operations/bootstrap/requirement-claims.js";
 import { bootstrapEmptyKbSnapshotId } from "../src/operations/bootstrap/types.js";
+import { classifyBinding } from "../src/operations/modeling/predicate-bindings.js";
 import {
   loadExistingPredicateSchemas,
   schemaForCandidate,
 } from "../src/operations/modeling/predicate-loader.js";
-import { rankSchema, scoreSchema } from "../src/operations/modeling/predicate-ranker.js";
+import {
+  rankSchema,
+  scoreSchema,
+} from "../src/operations/modeling/predicate-ranker.js";
 import type { PredicateSchemaCandidate } from "../src/operations/modeling/predicate-types.js";
-import { classifyBinding } from "../src/operations/modeling/predicate-bindings.js";
 import { extractRequirementClaim } from "../src/operations/modeling/requirement-modeler.js";
 import { saveMutation } from "../src/operations/mutation/save.js";
 import { scenarioCoverageWarnings } from "../src/operations/mutation/warnings.js";
-import { commaList, detectPredicateRules } from "../src/operations/semantic-advisor/predicate-rule.js";
+import {
+  commaList,
+  detectPredicateRules,
+} from "../src/operations/semantic-advisor/predicate-rule.js";
 import {
   appendCliDiagnosticUsage,
   deriveDiagnosticUsageFields,
 } from "../src/public/diagnostic-usage.js";
-import { collectLinkedEntities, formatExtractedSymbols, buildNextActions } from "../src/public/impact/summaries.js";
 import { collectSourceChanges } from "../src/public/impact/source-changes.js";
+import {
+  buildNextActions,
+  collectLinkedEntities,
+  formatExtractedSymbols,
+} from "../src/public/impact/summaries.js";
 import { getSpec } from "../src/public/operations/catalog.js";
-import type { OperationContext } from "../src/public/operations/runtime-types.js";
 import { buildRepairPlan } from "../src/public/operations/repair-plan.js";
-import { executeSemanticAdvisor, semanticAdvisorSpec } from "../src/public/operations/specs/semantic.js";
+import type { OperationContext } from "../src/public/operations/runtime-types.js";
+import {
+  executeSemanticAdvisor,
+  semanticAdvisorSpec,
+} from "../src/public/operations/specs/semantic.js";
 import { skillsLoadSpec } from "../src/public/operations/specs/skills.js";
 import {
   SYMBOL_REPAIR_PLAN_VERSION,
@@ -88,9 +101,18 @@ function tempDir(prefix = "kibi-small-gaps-"): string {
   return dir;
 }
 
-function operationContext(workspaceRoot: string, prolog?: {
-  query: (goal: string) => Promise<{ success: boolean; bindings: Record<string, unknown>; error?: string }>;
-}): OperationContext {
+function operationContext(
+  workspaceRoot: string,
+  prolog?: {
+    query: (
+      goal: string,
+    ) => Promise<{
+      success: boolean;
+      bindings: Record<string, unknown>;
+      error?: string;
+    }>;
+  },
+): OperationContext {
   return {
     workspaceRoot,
     signal: new AbortController().signal,
@@ -196,11 +218,13 @@ describe("coverage gaps: usage-metrics", () => {
       ].join("\n"),
     );
     const report = buildUsageMetricsReport(rows, 5);
-    expect(report.kbCheck.violationTrend.map((entry) => entry.timestamp)).toEqual(
-      ["2026-05-01T10:01:00.000Z", "2026-05-01T10:05:00.000Z"],
-    );
+    expect(
+      report.kbCheck.violationTrend.map((entry) => entry.timestamp),
+    ).toEqual(["2026-05-01T10:01:00.000Z", "2026-05-01T10:05:00.000Z"]);
     expect(report.zeroResults.count).toBeGreaterThan(0);
-    expect(report.zeroResults.topSourceFiles.map((entry) => entry.sourceFile)).toEqual(
+    expect(
+      report.zeroResults.topSourceFiles.map((entry) => entry.sourceFile),
+    ).toEqual(
       expect.arrayContaining(["src/from-args.ts", "src/from-business.ts"]),
     );
     expect(report.errors.categories.ColonCategory).toBe(1);
@@ -267,7 +291,9 @@ describe("coverage gaps: semantic advisor spec", () => {
 
 describe("coverage gaps: symbol coordinates", () => {
   test("falls back when the title is empty and rejects invalid artifacts", () => {
-    expect(coarseCoordinateSpan("src/a.ts", "", "one\ntwo\n").sourceEndLine).toBe(3);
+    expect(
+      coarseCoordinateSpan("src/a.ts", "", "one\ntwo\n").sourceEndLine,
+    ).toBe(3);
     expect(parseCoordinateArtifact("[]")).toMatchObject({
       status: "invalid",
     });
@@ -322,9 +348,12 @@ describe("coverage gaps: predicate ranker", () => {
       "The checkout flow is owned by payments.",
     );
     expect(exact.components.exact_pattern).toBeGreaterThan(0);
-    expect(scoreSchema(schema({ predicate_name: "ownership_rule" }), "The checkout flow is owned by payments.")).toBe(
-      exact.score,
-    );
+    expect(
+      scoreSchema(
+        schema({ predicate_name: "ownership_rule" }),
+        "The checkout flow is owned by payments.",
+      ),
+    ).toBe(exact.score);
 
     const launcher = rankSchema(
       schema({
@@ -356,17 +385,24 @@ describe("coverage gaps: predicate ranker", () => {
 
 describe("coverage gaps: requirement claims", () => {
   test("extracts enabled and disabled boolean state claims", () => {
-    expect(claimFor("Dark mode must be enabled.", "src.md", 0.9, "test")).toMatchObject({
+    expect(
+      claimFor("Dark mode must be enabled.", "src.md", 0.9, "test"),
+    ).toMatchObject({
       propertyKey: "enabled",
       operator: "bool",
       value: true,
     });
-    expect(claimFor("The feature shall be disabled.", "src.md", 0.8, "test")).toMatchObject({
+    expect(
+      claimFor("The feature shall be disabled.", "src.md", 0.8, "test"),
+    ).toMatchObject({
       propertyKey: "enabled",
       operator: "bool",
       value: false,
     });
-    expect(claimFor("1) Audit logs should be enabled.", "src.md", 0.7, "test")?.value).toBe(true);
+    expect(
+      claimFor("1) Audit logs should be enabled.", "src.md", 0.7, "test")
+        ?.value,
+    ).toBe(true);
   });
 });
 
@@ -374,7 +410,10 @@ describe("coverage gaps: repair plan", () => {
   test("uses fallback actions, unknown gaps, and same-phase priority sort", () => {
     const plan = buildRepairPlan(
       {
-        summary: { proofMissing: "skip", proofUnresolved: "skip" } as unknown as {
+        summary: {
+          proofMissing: "skip",
+          proofUnresolved: "skip",
+        } as unknown as {
           proofMissing: number;
           proofUnresolved: number;
         },
@@ -397,11 +436,17 @@ describe("coverage gaps: repair plan", () => {
       "e".repeat(64),
     );
     expect(plan?.status).toBe("ready");
-    const review = plan?.batches.find((batch) => batch.phase === "manual_review");
-    expect(review?.repairs.map((repair) => repair.action)).toEqual(["Earlier", "Later"]);
-    expect(plan?.batches.find((batch) => batch.phase === "scenario_endpoints")?.repairs[0]?.action).toContain(
-      "Create",
+    const review = plan?.batches.find(
+      (batch) => batch.phase === "manual_review",
     );
+    expect(review?.repairs.map((repair) => repair.action)).toEqual([
+      "Earlier",
+      "Later",
+    ]);
+    expect(
+      plan?.batches.find((batch) => batch.phase === "scenario_endpoints")
+        ?.repairs[0]?.action,
+    ).toContain("Create");
   });
 });
 
@@ -409,18 +454,34 @@ describe("coverage gaps: github-init", () => {
   test("rejects empty parsed remotes and missing templates", () => {
     expect(parseGitHubRemote("https://github.com/owner/.git")).toBeUndefined();
     const existsSpy = spyOn(fs, "existsSync").mockReturnValue(false);
-    expect(() => loadGitHubWorkflowTemplate("badge")).toThrow(/template missing/);
+    expect(() => loadGitHubWorkflowTemplate("badge")).toThrow(
+      /template missing/,
+    );
     existsSpy.mockRestore();
   });
 
   test("walks blank lines between badge clusters", () => {
     const withPeer = insertKibiBadge(
-      ["# Title", "", "[![peer](https://example.com/a.svg)](https://example.com)", "", "[![next](https://example.com/b.svg)](https://example.com)", "", "Body"].join("\n"),
+      [
+        "# Title",
+        "",
+        "[![peer](https://example.com/a.svg)](https://example.com)",
+        "",
+        "[![next](https://example.com/b.svg)](https://example.com)",
+        "",
+        "Body",
+      ].join("\n"),
       "[![Kibi](https://example.com/kibi.svg)](https://example.com)",
     );
     expect(withPeer).toContain("[![Kibi]");
     const stops = insertKibiBadge(
-      ["# Title", "", "[![peer](https://example.com/a.svg)](https://example.com)", "", "Not a badge"].join("\n"),
+      [
+        "# Title",
+        "",
+        "[![peer](https://example.com/a.svg)](https://example.com)",
+        "",
+        "Not a badge",
+      ].join("\n"),
       "[![Kibi](https://example.com/kibi.svg)](https://example.com)",
     );
     expect(stops).toContain("Not a badge");
@@ -454,7 +515,10 @@ describe("coverage gaps: diagnostic usage", () => {
             id: "REQ-1",
             proofGaps: ["missing_proof_receipt", "stale_proof_receipt"],
             proofStages: {
-              passingE2e: { missingReceiptTests: ["TEST-1"], staleReceiptTests: ["TEST-2"] },
+              passingE2e: {
+                missingReceiptTests: ["TEST-1"],
+                staleReceiptTests: ["TEST-2"],
+              },
             },
           },
           { proofGaps: ["other"] },
@@ -515,7 +579,10 @@ describe("coverage gaps: symbol repair plan", () => {
     const root = tempDir();
     const src = path.join(root, "src");
     mkdirSync(src);
-    writeFileSync(path.join(src, "live.ts"), "export function handleClick() { return 1; }\n");
+    writeFileSync(
+      path.join(src, "live.ts"),
+      "export function handleClick() { return 1; }\n",
+    );
     mkdirSync(path.join(src, "broken.ts"));
     const results = `[${[
       `[SYM-KIND,symbol,[title="otherName",sourceFile="src/live.ts",symbol_kind=function,symbol_origin=extracted]]`,
@@ -540,7 +607,7 @@ describe("coverage gaps: symbol repair plan", () => {
         (candidate) => candidate.symbolId,
       ),
     ).toContain("SYM-PEER");
-    expect(byId["SYM-BROKEN"]?.action).toBe("delete_obsolete_symbol");
+    expect(byId["SYM-BROKEN"]?.action).toBe("review");
   });
 });
 
@@ -564,7 +631,9 @@ describe("coverage gaps: remaining small CLI modules", () => {
       }),
     ).resolves.toMatchObject({ available: false, error: "snapshot-failed" });
 
-    expect(() => getSpec("kb_not_a_real_op" as never)).toThrow(/Unknown Kibi operation/);
+    expect(() => getSpec("kb_not_a_real_op" as never)).toThrow(
+      /Unknown Kibi operation/,
+    );
     expect(() =>
       extractRequirementClaim({ text: "Hello", sourceFiles: [] }),
     ).toThrow(/source or at least one sourceFiles/);
@@ -586,7 +655,11 @@ describe("coverage gaps: remaining small CLI modules", () => {
     expect(commaList("alpha, and beta")).toContain("alpha");
     expect(
       detectPredicateRules(
-        { type: "req", id: "REQ-1", properties: { title: "T", status: "open", source: "s" } },
+        {
+          type: "req",
+          id: "REQ-1",
+          properties: { title: "T", status: "open", source: "s" },
+        },
         "ignored",
         [
           {
@@ -605,9 +678,13 @@ describe("coverage gaps: remaining small CLI modules", () => {
       aliases: ["owns"],
       usage_hints: undefined,
     });
-    expect(schemaForCandidate(candidate).usage_hints.use_when.length).toBeGreaterThan(0);
+    expect(
+      schemaForCandidate(candidate).usage_hints.use_when.length,
+    ).toBeGreaterThan(0);
     const warnings: string[] = [];
-    expect(await loadExistingPredicateSchemas(null, true, warnings)).toEqual([]);
+    expect(await loadExistingPredicateSchemas(null, true, warnings)).toEqual(
+      [],
+    );
     expect(
       await loadExistingPredicateSchemas(
         {
@@ -628,9 +705,13 @@ describe("coverage gaps: remaining small CLI modules", () => {
         false,
       ),
     ).toBe("extracted");
-    expect(classifyBinding("missing_dependency", "a missing runtime dependency", false)).toBe(
-      "extracted",
-    );
+    expect(
+      classifyBinding(
+        "missing_dependency",
+        "a missing runtime dependency",
+        false,
+      ),
+    ).toBe("extracted");
 
     expect(buildNextActions([])).toEqual([]);
     expect(
@@ -647,7 +728,10 @@ describe("coverage gaps: remaining small CLI modules", () => {
                 location: { file: "src/a.ts", startLine: 1, endLine: 1 },
                 hunkRanges: [],
                 reqLinks: [],
-                relationships: [{ type: "implements", to: "REQ-1" }, { type: "mentions", to: "X" }],
+                relationships: [
+                  { type: "implements", to: "REQ-1" },
+                  { type: "mentions", to: "X" },
+                ],
               },
             ],
           ],
@@ -676,7 +760,11 @@ describe("coverage gaps: remaining small CLI modules", () => {
       saveMutation({
         query: async () => ({ success: true, bindings: {} }),
         nextSolution: async () => null,
-        save: async () => ({ success: false, bindings: {}, error: "disk full" }),
+        save: async () => ({
+          success: false,
+          bindings: {},
+          error: "disk full",
+        }),
       }),
     ).rejects.toThrow(/Failed to save KB after upsert/);
 

@@ -306,7 +306,7 @@ describe("isEligibleForCoordinateRefresh", () => {
     ).toBe(true);
   });
 
-  test("returns false for unsupported extension (.py)", () => {
+  test("returns true for Python text-heuristic extraction", () => {
     mockExistsSync.mockImplementation(() => true);
     expect(
       isEligibleForCoordinateRefresh(
@@ -314,10 +314,10 @@ describe("isEligibleForCoordinateRefresh", () => {
         workspaceRoot,
         manifestDeps(),
       ),
-    ).toBe(false);
+    ).toBe(true);
   });
 
-  test("returns false for unsupported extension (.rs)", () => {
+  test("returns true for Rust text-heuristic extraction", () => {
     mockExistsSync.mockImplementation(() => true);
     expect(
       isEligibleForCoordinateRefresh(
@@ -325,7 +325,7 @@ describe("isEligibleForCoordinateRefresh", () => {
         workspaceRoot,
         manifestDeps(),
       ),
-    ).toBe(false);
+    ).toBe(true);
   });
 
   test("resolves relative path correctly", () => {

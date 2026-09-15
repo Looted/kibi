@@ -191,6 +191,167 @@ if (RUN_NODE_TEST_SUITE) {
     });
 
     it(
+      "routes Python coordinate misses to authored repair and recovers after explicit coarse anchoring",
+      { timeout: 300_000 },
+      async () => {
+        if (!hasProlog) return;
+        writeFileSync(
+          join(sandbox.repoDir, "application.py"),
+          "class Service:\n    def decide(self):\n        return True\n",
+        );
+        stageSourceFile(sandbox, "application.py");
+        const requestPath = join(sandbox.repoDir, "coordinate-upsert.json");
+        const upsert = async (coarse: boolean) => {
+          writeFileSync(
+            requestPath,
+            JSON.stringify({
+              type: "symbol",
+              id: "SYM-PY-COORD",
+              properties: {
+                title: "Service.decide",
+                status: "active",
+                sourceFile: "application.py",
+                symbol_role: "behavioral",
+                ...(coarse ? { granularity_reason: "extractor-miss" } : {}),
+              },
+              relationships: [
+                {
+                  from: "SYM-PY-COORD",
+                  to: "REQ-PACKED-PLAN-A",
+                  type: "implements",
+                },
+              ],
+            }),
+          );
+          for (const command of ["validate-upsert", "upsert"]) {
+            const result = await kibi(sandbox, [
+              command,
+              "--input",
+              requestPath,
+            ]);
+            assert.strictEqual(
+              result.exitCode,
+              0,
+              result.stdout + result.stderr,
+            );
+            assert.strictEqual(
+              JSON.parse(result.stdout).status,
+              "success",
+              result.stdout,
+            );
+          }
+          stageSourceFile(sandbox, ".kb/symbols.yaml");
+        };
+        type Coverage = {
+          rows: Array<{
+            id: string;
+            proofGaps: string[];
+            proofStages: {
+              sourceCoordinates: { status: string; missingSymbols: string[] };
+            };
+          }>;
+          repairPlan: {
+            batches: Array<{
+              requirementId: string;
+              phase: string;
+              workflowSteps: string[];
+              writePolicy: string;
+            }>;
+          };
+          migrationPlan: {
+            actions: Array<{
+              code: string;
+              safety: string;
+              autoApplicable: boolean;
+              affectedEntityIds: string[];
+              invocation: { kind: string };
+            }>;
+          };
+        };
+        const coverage = () =>
+          cliJson<Coverage>(sandbox, [
+            "coverage",
+            "--by",
+            "req",
+            "--include-passing",
+            "--format",
+            "json",
+          ]);
+        await upsert(false);
+        for (let attempt = 0; attempt < 2; attempt++) {
+          const refresh = await kibi(sandbox, [
+            "sync",
+            "--refresh-symbol-coordinates",
+          ]);
+          assert.strictEqual(
+            refresh.exitCode,
+            0,
+            refresh.stdout + refresh.stderr,
+          );
+          assert.match(refresh.stdout, /refreshed=0, unchanged=0, failed=1/);
+          assert.match(refresh.stdout, /failed SYM-PY-COORD/);
+          const report = await coverage();
+          assert.ok(
+            report.rows
+              .find((row) => row.id === "REQ-PACKED-PLAN-A")
+              ?.proofGaps.includes("missing_symbol_coordinates"),
+          );
+          const batch = report.repairPlan.batches.find(
+            (batch) =>
+              batch.requirementId === "REQ-PACKED-PLAN-A" &&
+              batch.phase === "source_coordinates",
+          );
+          assert.strictEqual(
+            batch?.writePolicy,
+            "review_then_sequential_upsert",
+          );
+          assert.deepStrictEqual(batch?.workflowSteps.slice(0, 3), [
+            "kb_query",
+            "kb_validate_upsert",
+            "kb_upsert",
+          ]);
+          const action = report.migrationPlan.actions.find(
+            (action) =>
+              action.code === "coverage_source_coordinates" &&
+              action.affectedEntityIds.includes("REQ-PACKED-PLAN-A"),
+          );
+          assert.strictEqual(action?.safety, "review");
+          assert.strictEqual(action?.autoApplicable, false);
+          assert.strictEqual(action?.invocation.kind, "review");
+        }
+        await upsert(true);
+        const refresh = await kibi(sandbox, [
+          "sync",
+          "--refresh-symbol-coordinates",
+        ]);
+        assert.strictEqual(
+          refresh.exitCode,
+          0,
+          refresh.stdout + refresh.stderr,
+        );
+        const recovered = await coverage();
+        const requirement = recovered.rows.find(
+          (row) => row.id === "REQ-PACKED-PLAN-A",
+        );
+        assert.ok(requirement);
+        assert.ok(
+          !requirement.proofGaps.includes("missing_symbol_coordinates"),
+        );
+        assert.strictEqual(
+          requirement.proofStages.sourceCoordinates.status,
+          "passed",
+        );
+        assert.ok(
+          !recovered.repairPlan.batches.some(
+            (batch) =>
+              batch.requirementId === "REQ-PACKED-PLAN-A" &&
+              batch.phase === "source_coordinates",
+          ),
+        );
+      },
+    );
+
+    it(
       "fails pagination closed and orders non-auto-applicable batches without writes",
       { timeout: 300_000 },
       async () => {

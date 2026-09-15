@@ -186,6 +186,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-coordinate-repair-capability
       - type: implements
         target: REQ-agent-guided-migration-orchestration
   - id: SYM-kibi-migration-config-read
@@ -5060,18 +5062,6 @@ symbols:
         target: TEST-codex-kibi-plugin-v1
       - type: implements
         target: REQ-codex-kibi-plugin-v1
-  - id: SYM-codex-bootstrapReminder
-    title: BOOTSTRAP_REMINDER
-    sourceFile: packages/codex/src/messages.ts
-    links:
-      - REQ-codex-kibi-plugin-v1
-    status: active
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-codex-kibi-plugin-v1
-      - type: implements
-        target: REQ-codex-kibi-plugin-v1
   - id: SYM-codex-clearDirtyPaths
     title: clearDirtyPaths
     sourceFile: packages/codex/src/hook-state.ts
@@ -5228,6 +5218,18 @@ symbols:
         target: TEST-codex-kibi-plugin-v1
       - type: implements
         target: REQ-codex-kibi-plugin-v1
+  - id: SYM-codex-isInvokedAsCli
+    title: isInvokedAsCli
+    sourceFile: packages/codex/src/hook-runner.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
   - id: SYM-codex-isMeaningfulTrackedPath
     title: isMeaningfulTrackedPath
     sourceFile: packages/codex/src/path-policy.ts
@@ -5263,9 +5265,45 @@ symbols:
         target: REQ-codex-kibi-plugin-v1
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-KIBI_WORKSPACE_ENV_KEYS
+    title: KIBI_WORKSPACE_ENV_KEYS
+    sourceFile: packages/codex/src/workspace-optin.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+  - id: SYM-codex-KibiWorkspaceResolution
+    title: KibiWorkspaceResolution
+    sourceFile: packages/codex/src/workspace-optin.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
   - id: SYM-codex-loadHookState
     title: loadHookState
     sourceFile: packages/codex/src/hook-state.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+  - id: SYM-codex-main
+    title: main
+    sourceFile: packages/codex/src/hook-runner.ts
     links:
       - REQ-codex-kibi-plugin-v1
     status: active
@@ -5333,10 +5371,58 @@ symbols:
         target: TEST-codex-kibi-plugin-v1
       - type: implements
         target: REQ-codex-kibi-plugin-v1
+  - id: SYM-codex-resolveKibiWorkspace
+    title: resolveKibiWorkspace
+    sourceFile: packages/codex/src/workspace-optin.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+  - id: SYM-codex-resolveWorkspaceStateDir
+    title: resolveWorkspaceStateDir
+    sourceFile: packages/codex/src/hook-state.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
   - id: SYM-codex-runHook
     title: runHook
     sourceFile: packages/codex/src/hook-runner.ts
     text_ref: packages/codex/src/hook-runner.ts#runHook
+    links:
+      - REQ-codex-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+  - id: SYM-codex-runHookCli
+    title: runHookCli
+    sourceFile: packages/codex/src/hook-runner.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+  - id: SYM-codex-runHookCliIfMain
+    title: runHookCliIfMain
+    sourceFile: packages/codex/src/hook-runner.ts
     links:
       - REQ-codex-kibi-plugin-v1
     status: active
@@ -8589,11 +8675,14 @@ symbols:
     sourceFile: packages/cli/src/commands/sync/manifest.ts
     status: active
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-007
       - type: covered_by
         target: TEST-cli-sync-discovery-readme-ignore
+      - type: covered_by
+        target: TEST-coordinate-repair-capability
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -13403,11 +13492,14 @@ symbols:
     sourceFile: packages/cli/src/commands/sync/manifest.ts
     status: active
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-007
       - type: covered_by
         target: TEST-cli-sync-discovery-readme-ignore
+      - type: covered_by
+        target: TEST-coordinate-repair-capability
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -19863,6 +19955,8 @@ symbols:
     title: Python bridge process cleanup tests
     sourceFile: tools/skillopt/tests/test_bridge_process_cleanup.py
     symbol_role: behavioral
+    status: active
+    granularity_reason: test-suite
     relationships:
       - type: executable_for
         target: TEST-skillopt-codex-optimization
@@ -24972,6 +25066,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-coordinate-repair-capability
+      - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
       - type: covered_by
         target: TEST-kibi-dependency-ordered-repair-plan
@@ -25281,6 +25377,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-coordinate-repair-capability
       - type: covered_by
         target: TEST-kibi-dependency-ordered-repair-plan
       - type: implements
@@ -34589,3 +34687,371 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-branch-store-recovery
+  - id: SYM-coordinate-repair-inspect
+    title: inspectCoordinateRepairs
+    status: active
+    sourceFile: packages/cli/src/public/operations/symbol-repair-plan.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-coordinate-repair-capability
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+  - id: SYM-coordinate-repair-evidence
+    title: addCoordinateRepairEvidence
+    status: active
+    sourceFile: packages/cli/src/public/operations/symbol-repair-plan.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-coordinate-repair-capability
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+  - id: SYM-coordinate-repair-symbol-plan
+    title: buildSymbolRepairPlan
+    status: active
+    sourceFile: packages/cli/src/public/operations/symbol-repair-plan.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-coordinate-repair-capability
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+  - id: SYM-coordinate-repair-evidence-type
+    title: CoordinateRepairEvidence
+    status: active
+    sourceFile: packages/cli/src/public/operations/symbol-repair-plan.ts
+    symbol_role: structural
+    relationships:
+      - type: covered_by
+        target: TEST-coordinate-repair-capability
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+  - id: SYM-coordinate-repair-batches
+    title: buildRequirementBatches
+    status: active
+    sourceFile: packages/cli/src/public/operations/repair-plan.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-coordinate-repair-capability
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+  - id: SYM-test-coordinate-repair-capability
+    title: coordinate repair capability
+    status: active
+    sourceFile: packages/cli/tests/public/operations/symbol-repair-plan.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-coordinate-repair-capability
+  - id: SYM-migration-compare-ready-actions
+    title: compareReadyActionIds
+    status: active
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+  - id: SYM-symbol-repair-plan-type
+    title: SymbolRepairPlan
+    status: active
+    sourceFile: packages/cli/src/public/operations/symbol-repair-plan.ts
+    symbol_role: structural
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+  - id: SYM-symbol-repair-plan-version
+    title: SYMBOL_REPAIR_PLAN_VERSION
+    status: active
+    sourceFile: packages/cli/src/public/operations/symbol-repair-plan.ts
+    symbol_role: structural
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+  - id: SYM-analyze-staged-file-coverage
+    title: analyzeStagedFileCoverage
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-file-coverage.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-AUTO-941B0CE68BAF3331
+  - id: SYM-checkDeprecatedAdrs
+    title: checkDeprecatedAdrs
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-checkDomainContradictions
+    title: checkDomainContradictions
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-checkMustPriorityCoverage
+    title: checkMustPriorityCoverage
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-checkNoCycles
+    title: checkNoCycles
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-checkNoDanglingRefs
+    title: checkNoDanglingRefs
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-checkRequiredFields
+    title: checkRequiredFields
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-checkStrictFactShape
+    title: checkStrictFactShape
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-checkStrictReadiness
+    title: checkStrictReadiness
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-checkStrictReqFactPairing
+    title: checkStrictReqFactPairing
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-checkSymbolCoverage
+    title: checkSymbolCoverage
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-findMustPriorityReqs
+    title: findMustPriorityReqs
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-get-staged-inventory
+    title: getStagedInventory
+    status: active
+    sourceFile: packages/cli/src/traceability/git-staged.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-AUTO-941B0CE68BAF3331
+  - id: SYM-getAllEntityIds
+    title: getAllEntityIds
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-git-args-exec
+    title: GitArgsExecFn
+    status: active
+    sourceFile: packages/cli/src/traceability/git-staged.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-AUTO-941B0CE68BAF3331
+  - id: SYM-requireActiveProlog
+    title: requireActiveProlog
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-staged-analysis-depth
+    title: StagedAnalysisDepth
+    status: active
+    sourceFile: packages/cli/src/traceability/git-staged.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-AUTO-941B0CE68BAF3331
+  - id: SYM-staged-disposition
+    title: StagedDisposition
+    status: active
+    sourceFile: packages/cli/src/traceability/git-staged.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-AUTO-941B0CE68BAF3331
+  - id: SYM-staged-file-coverage-diagnostic
+    title: StagedFileCoverageDiagnostic
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-file-coverage.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-AUTO-941B0CE68BAF3331
+  - id: SYM-staged-file-coverage-record
+    title: StagedFileCoverageRecord
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-file-coverage.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-AUTO-941B0CE68BAF3331
+  - id: SYM-staged-file-coverage-result
+    title: StagedFileCoverageResult
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-file-coverage.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-AUTO-941B0CE68BAF3331
+  - id: SYM-staged-file-coverage-version
+    title: STAGED_FILE_COVERAGE_RESULT_VERSION
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-file-coverage.ts
+    symbol_role: type-shape
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-AUTO-941B0CE68BAF3331
+  - id: SYM-staged-path
+    title: StagedPath
+    status: active
+    sourceFile: packages/cli/src/traceability/git-staged.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-AUTO-941B0CE68BAF3331
+  - id: SYM-staged-skip-reason
+    title: StagedSkipReason
+    status: active
+    sourceFile: packages/cli/src/traceability/git-staged.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-AUTO-941B0CE68BAF3331
+  - id: SYM-supported-staged-files
+    title: supportedStagedFiles
+    status: active
+    sourceFile: packages/cli/src/traceability/git-staged.ts
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-AUTO-941B0CE68BAF3331

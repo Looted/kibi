@@ -748,6 +748,38 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-fd35710592b65934ef8cd74f
+    test_id: TEST-root-suite-batch-diagnostics
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: c613c587e4ca4b7b68ef60af5587603c701a24922708732b2e3202cfd1e44c62
+    environment_hash: 099f7c7810817359ceb53f590959a4934481728356256c4ad8d76cebc5094929
+    started_at: '2026-09-15T03:23:50.237Z'
+    finished_at: '2026-09-15T03:55:17.162Z'
+    artifact_digest: ec6b0a857165cc564b40009d6e1f29fdaa822402c84a5f3b4b67b11b265d8826
+    contract_hash: c6f0eed611841cbd30570adc1648500ffaab807ce323a6e873ed56444e476997
+    fingerprint: f6b52168af6594de06bac9d47f96e84146639fa5512c93014f1b401ea2119299
+    fingerprint_components:
+      contract: c6f0eed611841cbd30570adc1648500ffaab807ce323a6e873ed56444e476997
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-root-suite-batch-diagnostics
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 
 Exercises the batch diagnostic helpers in `test/root.test.ts`:

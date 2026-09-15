@@ -17,7 +17,10 @@ import {
 } from "../prolog-json.js";
 import { type RepairPlan, buildRepairPlan } from "../repair-plan.js";
 import type { OperationContext } from "../runtime-types.js";
-import { buildSymbolRepairPlan } from "../symbol-repair-plan.js";
+import {
+  addCoordinateRepairEvidence,
+  buildSymbolRepairPlan,
+} from "../symbol-repair-plan.js";
 import type { OperationResult, OperationSpec } from "../types.js";
 import { readWorkspaceSnapshot } from "../workspace-snapshot.js";
 
@@ -202,7 +205,15 @@ export async function executeCoverage(
       goal,
       "Coverage execution",
     );
-    const repairPlan = buildRepairPlan(payload, input, codeSnapshot);
+    const rows =
+      (input.by ?? "req") === "req"
+        ? await addCoordinateRepairEvidence(payload.rows, context)
+        : payload.rows;
+    const repairPlan = buildRepairPlan(
+      { ...payload, rows },
+      input,
+      codeSnapshot,
+    );
     const symbolRepairPlan =
       input.by === "symbol"
         ? await buildSymbolRepairPlan(payload.rows, context)
@@ -256,6 +267,7 @@ export async function executeCoverage(
       : coveragePlan;
     const enrichedPayload = {
       ...payload,
+      rows,
       ...(repairPlan !== undefined ? { repairPlan } : {}),
       ...(legacyMigrationPlan !== undefined ? { legacyMigrationPlan } : {}),
       ...(symbolRepairPlan !== undefined ? { symbolRepairPlan } : {}),

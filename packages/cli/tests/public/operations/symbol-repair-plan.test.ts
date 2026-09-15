@@ -1,5 +1,11 @@
-import { afterEach, describe, expect, mock, test } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { afterEach, describe, expect, mock, spyOn, test } from "bun:test";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
@@ -10,8 +16,14 @@ import type {
 } from "../../../src/public/operations/runtime-types.js";
 import {
   SYMBOL_REPAIR_PLAN_VERSION,
+  addCoordinateRepairEvidence,
   buildSymbolRepairPlan,
 } from "../../../src/public/operations/symbol-repair-plan.js";
+
+import { refreshManifestCoordinates } from "../../../src/commands/sync/manifest.js";
+import { parseCoordinateArtifact } from "../../../src/extractors/symbol-coordinates.js";
+import { buildActionsFromCoverage } from "../../../src/public/operations/migration-plan.js";
+import { buildRepairPlan } from "../../../src/public/operations/repair-plan.js";
 
 const xsdInteger = "http://www.w3.org/2001/XMLSchema#integer";
 
@@ -148,16 +160,16 @@ describe("buildSymbolRepairPlan", () => {
     expect(byId["SYM-REFRESH"]?.action).toBe("refresh_coordinates");
     expect(byId["SYM-REMAP"]?.action).toBe("remap");
     expect(
-      (byId["SYM-REMAP"]?.candidates as ReadonlyArray<{ symbolId: string }>).map(
-        (candidate) => candidate.symbolId,
-      ),
+      (
+        byId["SYM-REMAP"]?.candidates as ReadonlyArray<{ symbolId: string }>
+      ).map((candidate) => candidate.symbolId),
     ).toEqual(expect.arrayContaining(["SYM-REFRESH", "SYM-TITLE-ONLY"]));
     expect(byId["SYM-REVIEW"]?.action).toBe("review");
-    expect(byId["SYM-DIR"]?.action).toBe("delete_obsolete_symbol");
+    expect(byId["SYM-DIR"]?.action).toBe("review");
     expect(byId["SYM-ABSOLUTE"]?.action).toBe("refresh_coordinates");
     expect(byId["SYM-NO-SOURCE"]?.action).toBe("review");
     expect(byId["SYM-KIND-MATCH"]?.action).toBe("delete_obsolete_symbol");
-    expect(byId["SYM-UNTYPED"]?.action).toBe("refresh_coordinates");
+    expect(byId["SYM-UNTYPED"]?.action).toBe("review");
     expect(byId["SYM-MISSING-FILE"]?.evidence).toMatchObject({
       gaps: ["missing_symbol_coordinates"],
       autoApply: false,
@@ -165,5 +177,138 @@ describe("buildSymbolRepairPlan", () => {
     });
     expect(byId["SYM-ABSENT"]?.evidence).toMatchObject({ gaps: [] });
     expect(byId).not.toHaveProperty("SYM-UNKNOWN");
+  });
+});
+
+describe("coordinate repair capability", () => {
+  test("repeated Python extraction misses require authoring until a coarse anchor is explicit", async () => {
+    const root = makeTempDir();
+    const symbolsPath = path.join(root, "symbols.yaml");
+    const coordinatesPath = path.join(root, "symbol-coordinates.yaml");
+    writeFileSync(
+      path.join(root, "application.py"),
+      "class Service:\n    def decide(self):\n        return True\n",
+    );
+    writeFileSync(
+      symbolsPath,
+      "symbols:\n  - id: SYM-PY\n    title: Service.decide\n    sourceFile: application.py\n    symbol_role: behavioral\n",
+    );
+    const log = spyOn(console, "log").mockImplementation(() => {});
+    const refresh = () =>
+      refreshManifestCoordinates(symbolsPath, root, {
+        refreshSymbolCoordinates: true,
+        resolveSymbolsManifestPaths: () => ({ symbolsPath, coordinatesPath }),
+      });
+    for (let attempt = 0; attempt < 2; attempt++) {
+      log.mockClear();
+      await refresh();
+      expect(log.mock.calls.flat().join("\n")).toContain(
+        "refreshed=0, unchanged=0, failed=1",
+      );
+      expect(log.mock.calls.flat().join("\n")).toContain("granularity_reason");
+      expect(
+        parseCoordinateArtifact(readFileSync(coordinatesPath, "utf8")),
+      ).toMatchObject({ coordinates: {} });
+    }
+    const rows = [
+      {
+        id: "REQ-PY",
+        proofGaps: ["missing_symbol_coordinates"],
+        proofStages: {
+          sourceCoordinates: { status: "missing", missingSymbols: ["SYM-PY"] },
+        },
+      },
+    ];
+    const result = (reason = "") =>
+      `[[SYM-PY,symbol,[title="Service.decide",sourceFile="application.py"${reason}]]]`;
+    const enriched = await addCoordinateRepairEvidence(
+      rows,
+      contextFor(result(), root),
+    );
+    const plan = buildRepairPlan({ rows: enriched }, {}, "snapshot");
+    expect(plan?.batches[0]).toMatchObject({
+      writePolicy: "review_then_sequential_upsert",
+    });
+    expect(plan?.batches[0]?.workflowSteps.slice(0, 3)).toEqual([
+      "kb_query",
+      "kb_validate_upsert",
+      "kb_upsert",
+    ]);
+    expect(plan?.batches[0]?.repairs[0]?.action).toContain("extractor-miss");
+    expect(buildActionsFromCoverage({ repairPlan: plan })[0]).toMatchObject({
+      safety: "review",
+      autoApplicable: false,
+      invocation: { kind: "review" },
+    });
+    const symbolPlan = await buildSymbolRepairPlan(
+      [{ type: "symbol", id: "SYM-PY" }],
+      contextFor(result(), root),
+    );
+    expect(symbolPlan?.repairs[0]).toMatchObject({
+      action: "review",
+      evidence: {
+        coordinateRepair: { refreshable: false, reason: "extractor_miss" },
+      },
+    });
+    writeFileSync(
+      symbolsPath,
+      `${readFileSync(symbolsPath, "utf8")}    granularity_reason: extractor-miss\n`,
+    );
+    const coarseRows = await addCoordinateRepairEvidence(
+      rows,
+      contextFor(result(",granularity_reason=extractor-miss"), root),
+    );
+    const coarsePlan = buildRepairPlan({ rows: coarseRows }, {}, "snapshot");
+    expect(coarsePlan?.planId).not.toBe(plan?.planId);
+    expect(
+      buildActionsFromCoverage({ repairPlan: coarsePlan })[0],
+    ).toMatchObject({ safety: "automatic", autoApplicable: true });
+    await refresh();
+    expect(
+      parseCoordinateArtifact(readFileSync(coordinatesPath, "utf8")),
+    ).toMatchObject({
+      coordinates: { "SYM-PY": { sourceLine: 1, sourceEndLine: 4 } },
+    });
+  });
+
+  test("keeps extractable Python and TS symbols refreshable while mixed gaps require review", async () => {
+    const root = makeTempDir();
+    writeFileSync(
+      path.join(root, "app.py"),
+      "def decide():\n    return True\n",
+    );
+    writeFileSync(
+      path.join(root, "app.ts"),
+      "export function decide() { return true; }\n",
+    );
+    const result = `[[SYM-PY,symbol,[title="decide",sourceFile="app.py"]],[SYM-TS,symbol,[title="decide",sourceFile="app.ts"]],[SYM-MISS,symbol,[title="Missing.method",sourceFile="app.py"]]]`;
+    for (const missingSymbols of [
+      ["SYM-PY"],
+      ["SYM-TS"],
+      ["SYM-PY", "SYM-MISS"],
+      ["SYM-UNKNOWN"],
+    ]) {
+      const rows = await addCoordinateRepairEvidence(
+        [
+          {
+            id: "REQ-1",
+            proofGaps: ["missing_symbol_coordinates"],
+            proofStages: { sourceCoordinates: { missingSymbols } },
+          },
+        ],
+        contextFor(result, root),
+      );
+      const plan = buildRepairPlan({ rows }, {}, "snapshot");
+      const automatic =
+        missingSymbols.length === 1 && missingSymbols[0] !== "SYM-UNKNOWN";
+      expect(
+        buildActionsFromCoverage({ repairPlan: plan })[0]?.autoApplicable,
+      ).toBe(automatic);
+    }
+    const symbolPlan = await buildSymbolRepairPlan(
+      [{ type: "symbol", id: "SYM-PY" }],
+      contextFor(result, root),
+    );
+    expect(symbolPlan?.repairs[0]?.action).toBe("refresh_coordinates");
   });
 });

@@ -772,6 +772,166 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-cea9b5562ec55107f24a8655
+    test_id: TEST-cli-staged-impact-enforcement
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 82772940f9b8410ec524acfc6ce0c1451faae7dd7041a292605729d43e36e11f
+    environment_hash: 099f7c7810817359ceb53f590959a4934481728356256c4ad8d76cebc5094929
+    started_at: '2026-09-14T15:18:34.137Z'
+    finished_at: '2026-09-14T15:19:48.088Z'
+    artifact_digest: 30f076b5fdcd2a82620858172f1c30d8ba29a7ff50ee27f191bac7549b14f73b
+    contract_hash: e1e9ade4b078a6b34f6005c64386bb2e452b3f364c566248bf2e7180cac23eaf
+    fingerprint: 2abf545e3d1cfb4da708934f33f4bf225ce38cecf4110428865cb2cc43b582de
+    fingerprint_components:
+      contract: e1e9ade4b078a6b34f6005c64386bb2e452b3f364c566248bf2e7180cac23eaf
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-cli-staged-impact-enforcement
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-b288496d97884edd5fef7eec
+    test_id: TEST-cli-staged-impact-enforcement
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: e9ea7784c0f48a67118f64743c42aacf69e9ca6183f40a801b2b668a0b5ce3be
+    environment_hash: 099f7c7810817359ceb53f590959a4934481728356256c4ad8d76cebc5094929
+    started_at: '2026-09-14T19:24:31.620Z'
+    finished_at: '2026-09-14T19:25:26.112Z'
+    artifact_digest: c1e48c0f51ab2dce9b455e93444e3a255403b1d36da30d926d53228fdbf4e9b9
+    contract_hash: e1e9ade4b078a6b34f6005c64386bb2e452b3f364c566248bf2e7180cac23eaf
+    fingerprint: 2abf545e3d1cfb4da708934f33f4bf225ce38cecf4110428865cb2cc43b582de
+    fingerprint_components:
+      contract: e1e9ade4b078a6b34f6005c64386bb2e452b3f364c566248bf2e7180cac23eaf
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-cli-staged-impact-enforcement
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-5b755f489ce8365dc7a26aee
+    test_id: TEST-cli-staged-impact-enforcement
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: eb89d27758a94e5088fefdad2a302ca1dde5ea62d03f6ac40b311347c5e5d89a
+    environment_hash: 099f7c7810817359ceb53f590959a4934481728356256c4ad8d76cebc5094929
+    started_at: '2026-09-14T20:02:59.231Z'
+    finished_at: '2026-09-14T20:04:17.419Z'
+    artifact_digest: 12622096eb93252d364ee813d9aa91d01ba5cd6d22c3f13864de691209eb4bc1
+    contract_hash: e1e9ade4b078a6b34f6005c64386bb2e452b3f364c566248bf2e7180cac23eaf
+    fingerprint: 2abf545e3d1cfb4da708934f33f4bf225ce38cecf4110428865cb2cc43b582de
+    fingerprint_components:
+      contract: e1e9ade4b078a6b34f6005c64386bb2e452b3f364c566248bf2e7180cac23eaf
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-cli-staged-impact-enforcement
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-b0717a79341b0d7399a241e2
+    test_id: TEST-cli-staged-impact-enforcement
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 361762998769857fcbade5087eb6ab4cf60bd0651e94dbd3d85ece49a33dc573
+    environment_hash: 099f7c7810817359ceb53f590959a4934481728356256c4ad8d76cebc5094929
+    started_at: '2026-09-15T01:47:32.788Z'
+    finished_at: '2026-09-15T01:48:56.708Z'
+    artifact_digest: 7075ff5b1c47cc8eddec0b978f43ae2618e8dfbb42ae6f9d2be5bed9eff0e2e9
+    contract_hash: e1e9ade4b078a6b34f6005c64386bb2e452b3f364c566248bf2e7180cac23eaf
+    fingerprint: 2abf545e3d1cfb4da708934f33f4bf225ce38cecf4110428865cb2cc43b582de
+    fingerprint_components:
+      contract: e1e9ade4b078a6b34f6005c64386bb2e452b3f364c566248bf2e7180cac23eaf
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-cli-staged-impact-enforcement
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-2ad9908d68f4f34f5b807b00
+    test_id: TEST-cli-staged-impact-enforcement
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: c613c587e4ca4b7b68ef60af5587603c701a24922708732b2e3202cfd1e44c62
+    environment_hash: 099f7c7810817359ceb53f590959a4934481728356256c4ad8d76cebc5094929
+    started_at: '2026-09-15T03:23:50.237Z'
+    finished_at: '2026-09-15T03:55:17.162Z'
+    artifact_digest: ec6b0a857165cc564b40009d6e1f29fdaa822402c84a5f3b4b67b11b265d8826
+    contract_hash: e1e9ade4b078a6b34f6005c64386bb2e452b3f364c566248bf2e7180cac23eaf
+    fingerprint: 2abf545e3d1cfb4da708934f33f4bf225ce38cecf4110428865cb2cc43b582de
+    fingerprint_components:
+      contract: e1e9ade4b078a6b34f6005c64386bb2e452b3f364c566248bf2e7180cac23eaf
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-cli-staged-impact-enforcement
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 
 # CLI Staged Impact Enforcement Tests
