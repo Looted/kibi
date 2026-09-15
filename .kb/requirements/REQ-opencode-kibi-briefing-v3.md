@@ -1,6 +1,6 @@
 ---
 id: REQ-opencode-kibi-briefing-v3
-title: 'OpenCode Kibi Briefing v3: Reliable Session-Grounded Guidance'
+title: "OpenCode Kibi Briefing v3: Reliable Session-Grounded Guidance"
 status: closed
 created_at: 2026-04-24T00:00:00.000Z
 updated_at: 2026-04-24T00:00:00.000Z
@@ -19,182 +19,262 @@ links:
     target: SCEN-opencode-kibi-briefing-v3
   - type: verified_by
     target: TEST-opencode-kibi-briefing-v3
-semantic_text: |-
-  The OpenCode Kibi Briefing system must transition to a session-grounded reconcile model to ensure briefings remain accurate and reliable across complex multi-step agent workflows.
+semantic_text: >
+  The OpenCode Kibi Briefing system must transition to a session-grounded
+  reconcile model to ensure briefings remain accurate and reliable across
+  complex multi-step agent workflows.
 
-  **Session-Local Authority**: Briefings must be generated based on the **current-session** state, including dirty files and session history, ensuring guidance matches the agent's actual environment.
-  **Reconcile Mechanism**: The plugin must reconcile the local session state with the KB snapshot. If the session state has diverged, the briefing must be regenerated or adjusted to maintain accuracy.
-  **Multi-File Fingerprinting**: Briefing triggers and cache keys must use a fingerprint derived from all currently active/edited files in the session to prevent stale guidance when bouncing between related files.
-  **Baseline Reset**: The briefing system must explicitly revert-to-baseline and clear all cached briefings on branch checkout or session termination.
+
+  **Session-Local Authority**: Briefings must be generated based on the
+  **current-session** state, including dirty files and session history, ensuring
+  guidance matches the agent's actual environment.
+
+  **Reconcile Mechanism**: The plugin must reconcile the local session state
+  with the KB snapshot. If the session state has diverged, the briefing must be
+  regenerated or adjusted to maintain accuracy.
+
+  **Multi-File Fingerprinting**: Briefing triggers and cache keys must use a
+  fingerprint derived from all currently active/edited files in the session to
+  prevent stale guidance when bouncing between related files.
+
+  **Baseline Reset**: The briefing system must explicitly revert-to-baseline and
+  clear all cached briefings on branch checkout or session termination.
+
   **Event Flow**:
-  `file.edited` continues to serve as a fast-path trigger for the reconcile cycle.
-  `system.transform` remains the primary injection point for guidance, leveraging the reconciled briefing state.
-  **Manual Escape Hatch**: The `/brief-kibi` command must be preserved as the canonical manual refresh mechanism.
-  **MCP Constraint**: All briefing generation must continue to use the `kb_briefing_generate` MCP tool. Direct use of `kibi` CLI commands (init, sync, check, etc.) by agents is strictly forbidden.
-  **Toast Invariant**: Toast notification behavior from v2 must be preserved, but grounded in the new reconcile-ready state.
+
+  `file.edited` continues to serve as a fast-path trigger for the reconcile
+  cycle.
+
+  `system.transform` remains the primary injection point for guidance,
+  leveraging the reconciled briefing state.
+
+  **Manual Escape Hatch**: The `/brief-kibi` command must be preserved as the
+  canonical manual refresh mechanism.
+
+  **MCP Constraint**: All briefing generation must continue to use the
+  `kb_briefing_generate` MCP tool. Direct use of `kibi` CLI commands (init,
+  sync, check, etc.) by agents is strictly forbidden.
+
+  **Toast Invariant**: Toast notification behavior from v2 must be preserved,
+  but grounded in the new reconcile-ready state.
+
   **Config Split**: Brief policy is split across two locations:
-  Shared policy (`.kb/config.json`): `briefs.enabled`, `briefs.channels.vscode`, `briefs.channels.tui`, `briefs.tui.toast`, `briefs.tui.appendPrompt`
-  OpenCode-local (`.opencode/kibi.json`): `ux.briefs.autoSubmit` (default: `true`)
-  **Canonical Retrieval**: The `/brief-kibi` command remains the canonical manual refresh mechanism, unaffected by `autoSubmit` settings.
-  **MCP Constraint**: All briefing generation must continue to use the `kb_briefing_generate` MCP tool. Direct use of `kibi` CLI commands (init, sync, check, etc.) by agents is strictly forbidden.
+
+  Shared policy (`.kb/config.json`): `briefs.enabled`, `briefs.channels.vscode`,
+  `briefs.channels.tui`, `briefs.tui.toast`, `briefs.tui.appendPrompt`
+
+  OpenCode-local (`.opencode/kibi.json`): `ux.briefs.autoSubmit` (default:
+  `true`)
+
+  **Canonical Retrieval**: The `/brief-kibi` command remains the canonical
+  manual refresh mechanism, unaffected by `autoSubmit` settings.
 proof_exempt: true
-proof_exempt_reason: Historical requirement already retired as superseded before the test-quality audit; retained for provenance, outside current implementation proof scope.
+proof_exempt_reason: Historical requirement already retired as superseded before
+  the test-quality audit; retained for provenance, outside current
+  implementation proof scope.
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
-semantic_source_hash: b7d84fe67352319f378537c3abf433d3db447e38b16aa89c4491175069cb06bf
+semantic_source_hash: e0826546a05f668c045db995d101435aab9cc234bd79b7b30fbe5cba841492a4
 semantic_inventory:
   - claim_key: CLAIM-2870A724F08E70B5
-    claim_text: The OpenCode Kibi Briefing system must transition to a session-grounded reconcile model to ensure briefings remain accurate and reliable across complex multi-step agent workflows
+    claim_text: The OpenCode Kibi Briefing system must transition to a
+      session-grounded reconcile model to ensure briefings remain accurate and
+      reliable across complex multi-step agent workflows
     role: normative
     status: ontology_gap
     span:
       start: 0
       end: 178
-    payload_hash: 9a67903971d43c6b0f98874824939916c8067dac3973192c69bad0589cdab9a9
-    reason: This normative clause has no deterministic strict-property or declared predicate grounding. Define its domain terms and predicate signature explicitly before grounding it; keep it unresolved instead of treating prose as logic-complete.
+    payload_hash: 60311964d741320c6f742e53e1ab198110c6e827942447a8c8856dcf1a46ec0f
+    reason: This normative clause has no deterministic strict-property or declared
+      predicate grounding. Define its domain terms and predicate signature
+      explicitly before grounding it; keep it unresolved instead of treating
+      prose as logic-complete.
   - claim_key: CLAIM-937D640B555E68FA
-    claim_text: '**Session-Local Authority**: Briefings must be generated based on the **current-session** state, including dirty files and session history, ensuring guidance matches the agent''s actual environment'
+    claim_text: "**Session-Local Authority**: Briefings must be generated based on
+      the **current-session** state, including dirty files and session history,
+      ensuring guidance matches the agent's actual environment"
     role: normative
     status: ontology_gap
     span:
       start: 181
       end: 377
-    payload_hash: 9a67903971d43c6b0f98874824939916c8067dac3973192c69bad0589cdab9a9
-    reason: This normative clause has no deterministic strict-property or declared predicate grounding. Define its domain terms and predicate signature explicitly before grounding it; keep it unresolved instead of treating prose as logic-complete.
+    payload_hash: 60311964d741320c6f742e53e1ab198110c6e827942447a8c8856dcf1a46ec0f
+    reason: This normative clause has no deterministic strict-property or declared
+      predicate grounding. Define its domain terms and predicate signature
+      explicitly before grounding it; keep it unresolved instead of treating
+      prose as logic-complete.
   - claim_key: CLAIM-7B4304CF8CDFDB49
-    claim_text: '**Reconcile Mechanism**: The plugin must reconcile the local session state with the KB snapshot'
+    claim_text: "**Reconcile Mechanism**: The plugin must reconcile the local
+      session state with the KB snapshot"
     role: normative
     status: ontology_gap
     span:
       start: 379
       end: 474
-    payload_hash: 9a67903971d43c6b0f98874824939916c8067dac3973192c69bad0589cdab9a9
-    reason: This normative clause has no deterministic strict-property or declared predicate grounding. Define its domain terms and predicate signature explicitly before grounding it; keep it unresolved instead of treating prose as logic-complete.
+    payload_hash: 60311964d741320c6f742e53e1ab198110c6e827942447a8c8856dcf1a46ec0f
+    reason: This normative clause has no deterministic strict-property or declared
+      predicate grounding. Define its domain terms and predicate signature
+      explicitly before grounding it; keep it unresolved instead of treating
+      prose as logic-complete.
   - claim_key: CLAIM-0CD613E6B57700C5
-    claim_text: If the session state has diverged, the briefing must be regenerated or adjusted to maintain accuracy
+    claim_text: If the session state has diverged, the briefing must be regenerated
+      or adjusted to maintain accuracy
     role: condition
     status: missing
     span:
       start: 476
       end: 576
-    payload_hash: 9a67903971d43c6b0f98874824939916c8067dac3973192c69bad0589cdab9a9
+    payload_hash: 60311964d741320c6f742e53e1ab198110c6e827942447a8c8856dcf1a46ec0f
     reason: No accepted typed interpretation grounds this assertive proposition.
   - claim_key: CLAIM-888945EED36ECC0B
-    claim_text: '**Multi-File Fingerprinting**: Briefing triggers and cache keys must use a fingerprint derived from all currently active/edited files in the session to prevent stale guidance when bouncing between related files'
+    claim_text: "**Multi-File Fingerprinting**: Briefing triggers and cache keys
+      must use a fingerprint derived from all currently active/edited files in
+      the session to prevent stale guidance when bouncing between related files"
     role: normative
     status: ontology_gap
     span:
       start: 578
       end: 788
-    payload_hash: 9a67903971d43c6b0f98874824939916c8067dac3973192c69bad0589cdab9a9
-    reason: This normative clause has no deterministic strict-property or declared predicate grounding. Define its domain terms and predicate signature explicitly before grounding it; keep it unresolved instead of treating prose as logic-complete.
+    payload_hash: 60311964d741320c6f742e53e1ab198110c6e827942447a8c8856dcf1a46ec0f
+    reason: This normative clause has no deterministic strict-property or declared
+      predicate grounding. Define its domain terms and predicate signature
+      explicitly before grounding it; keep it unresolved instead of treating
+      prose as logic-complete.
   - claim_key: CLAIM-16BB49BA5581AD0B
-    claim_text: '**Baseline Reset**: The briefing system must explicitly revert-to-baseline and clear all cached briefings on branch checkout or session termination'
+    claim_text: "**Baseline Reset**: The briefing system must explicitly
+      revert-to-baseline and clear all cached briefings on branch checkout or
+      session termination"
     role: normative
     status: ontology_gap
     span:
       start: 790
       end: 937
-    payload_hash: 9a67903971d43c6b0f98874824939916c8067dac3973192c69bad0589cdab9a9
-    reason: This normative clause has no deterministic strict-property or declared predicate grounding. Define its domain terms and predicate signature explicitly before grounding it; keep it unresolved instead of treating prose as logic-complete.
+    payload_hash: 60311964d741320c6f742e53e1ab198110c6e827942447a8c8856dcf1a46ec0f
+    reason: This normative clause has no deterministic strict-property or declared
+      predicate grounding. Define its domain terms and predicate signature
+      explicitly before grounding it; keep it unresolved instead of treating
+      prose as logic-complete.
   - claim_key: CLAIM-33CDC98D47EC7AA0
-    claim_text: '**Event Flow**'
+    claim_text: "**Event Flow**"
     role: descriptive
     status: missing
     span:
       start: 939
       end: 953
-    payload_hash: 9a67903971d43c6b0f98874824939916c8067dac3973192c69bad0589cdab9a9
+    payload_hash: 60311964d741320c6f742e53e1ab198110c6e827942447a8c8856dcf1a46ec0f
     reason: No accepted typed interpretation grounds this assertive proposition.
   - claim_key: CLAIM-AD72A4BDEE2BC4EC
-    claim_text: '`file.edited` continues to serve as a fast-path trigger for the reconcile cycle'
+    claim_text: "`file.edited` continues to serve as a fast-path trigger for the
+      reconcile cycle"
     role: descriptive
     status: missing
     span:
       start: 955
       end: 1034
-    payload_hash: 9a67903971d43c6b0f98874824939916c8067dac3973192c69bad0589cdab9a9
+    payload_hash: 60311964d741320c6f742e53e1ab198110c6e827942447a8c8856dcf1a46ec0f
     reason: No accepted typed interpretation grounds this assertive proposition.
   - claim_key: CLAIM-3A8591F933C636C6
-    claim_text: '`system.transform` remains the primary injection point for guidance, leveraging the reconciled briefing state'
+    claim_text: "`system.transform` remains the primary injection point for
+      guidance, leveraging the reconciled briefing state"
     role: descriptive
     status: missing
     span:
       start: 1036
       end: 1145
-    payload_hash: 9a67903971d43c6b0f98874824939916c8067dac3973192c69bad0589cdab9a9
+    payload_hash: 60311964d741320c6f742e53e1ab198110c6e827942447a8c8856dcf1a46ec0f
     reason: No accepted typed interpretation grounds this assertive proposition.
   - claim_key: CLAIM-AEB6D6240045B4B7
-    claim_text: '**Manual Escape Hatch**: The `/brief-kibi` command must be preserved as the canonical manual refresh mechanism'
+    claim_text: "**Manual Escape Hatch**: The `/brief-kibi` command must be
+      preserved as the canonical manual refresh mechanism"
     role: normative
     status: ontology_gap
     span:
       start: 1147
       end: 1257
-    payload_hash: 9a67903971d43c6b0f98874824939916c8067dac3973192c69bad0589cdab9a9
-    reason: This normative clause has no deterministic strict-property or declared predicate grounding. Define its domain terms and predicate signature explicitly before grounding it; keep it unresolved instead of treating prose as logic-complete.
+    payload_hash: 60311964d741320c6f742e53e1ab198110c6e827942447a8c8856dcf1a46ec0f
+    reason: This normative clause has no deterministic strict-property or declared
+      predicate grounding. Define its domain terms and predicate signature
+      explicitly before grounding it; keep it unresolved instead of treating
+      prose as logic-complete.
   - claim_key: CLAIM-DDF2C80051872D4D
-    claim_text: '**MCP Constraint**: All briefing generation must continue to use the `kb_briefing_generate` MCP tool'
+    claim_text: "**MCP Constraint**: All briefing generation must continue to use
+      the `kb_briefing_generate` MCP tool"
     role: normative
     status: ontology_gap
     span:
       start: 1259
       end: 1359
-    payload_hash: 9a67903971d43c6b0f98874824939916c8067dac3973192c69bad0589cdab9a9
-    reason: This normative clause has no deterministic strict-property or declared predicate grounding. Define its domain terms and predicate signature explicitly before grounding it; keep it unresolved instead of treating prose as logic-complete.
+    payload_hash: 60311964d741320c6f742e53e1ab198110c6e827942447a8c8856dcf1a46ec0f
+    reason: This normative clause has no deterministic strict-property or declared
+      predicate grounding. Define its domain terms and predicate signature
+      explicitly before grounding it; keep it unresolved instead of treating
+      prose as logic-complete.
   - claim_key: CLAIM-CF169C8263B5BE99
-    claim_text: Direct use of `kibi` CLI commands (init, sync, check, etc.) by agents is strictly forbidden
+    claim_text: Direct use of `kibi` CLI commands (init, sync, check, etc.) by
+      agents is strictly forbidden
     role: normative
     status: ontology_gap
     span:
       start: 1361
       end: 1452
-    payload_hash: 9a67903971d43c6b0f98874824939916c8067dac3973192c69bad0589cdab9a9
-    reason: This normative clause has no deterministic strict-property or declared predicate grounding. Define its domain terms and predicate signature explicitly before grounding it; keep it unresolved instead of treating prose as logic-complete.
+    payload_hash: 60311964d741320c6f742e53e1ab198110c6e827942447a8c8856dcf1a46ec0f
+    reason: This normative clause has no deterministic strict-property or declared
+      predicate grounding. Define its domain terms and predicate signature
+      explicitly before grounding it; keep it unresolved instead of treating
+      prose as logic-complete.
   - claim_key: CLAIM-FFEDD11359530DE0
-    claim_text: '**Toast Invariant**: Toast notification behavior from v2 must be preserved, but grounded in the new reconcile-ready state'
+    claim_text: "**Toast Invariant**: Toast notification behavior from v2 must be
+      preserved, but grounded in the new reconcile-ready state"
     role: normative
     status: ontology_gap
     span:
       start: 1454
       end: 1575
-    payload_hash: 9a67903971d43c6b0f98874824939916c8067dac3973192c69bad0589cdab9a9
-    reason: This normative clause has no deterministic strict-property or declared predicate grounding. Define its domain terms and predicate signature explicitly before grounding it; keep it unresolved instead of treating prose as logic-complete.
+    payload_hash: 60311964d741320c6f742e53e1ab198110c6e827942447a8c8856dcf1a46ec0f
+    reason: This normative clause has no deterministic strict-property or declared
+      predicate grounding. Define its domain terms and predicate signature
+      explicitly before grounding it; keep it unresolved instead of treating
+      prose as logic-complete.
   - claim_key: CLAIM-91368C039739A958
-    claim_text: '**Config Split**: Brief policy is split across two locations'
+    claim_text: "**Config Split**: Brief policy is split across two locations"
     role: descriptive
     status: missing
     span:
       start: 1577
       end: 1637
-    payload_hash: 9a67903971d43c6b0f98874824939916c8067dac3973192c69bad0589cdab9a9
+    payload_hash: 60311964d741320c6f742e53e1ab198110c6e827942447a8c8856dcf1a46ec0f
     reason: No accepted typed interpretation grounds this assertive proposition.
   - claim_key: CLAIM-42F05C704EB46CAA
-    claim_text: 'Shared policy (`.kb/config.json`): `briefs.enabled`, `briefs.channels.vscode`, `briefs.channels.tui`, `briefs.tui.toast`, `briefs.tui.appendPrompt`'
+    claim_text: "Shared policy (`.kb/config.json`): `briefs.enabled`,
+      `briefs.channels.vscode`, `briefs.channels.tui`, `briefs.tui.toast`,
+      `briefs.tui.appendPrompt`"
     role: descriptive
     status: missing
     span:
       start: 1639
       end: 1786
-    payload_hash: 9a67903971d43c6b0f98874824939916c8067dac3973192c69bad0589cdab9a9
+    payload_hash: 60311964d741320c6f742e53e1ab198110c6e827942447a8c8856dcf1a46ec0f
     reason: No accepted typed interpretation grounds this assertive proposition.
   - claim_key: CLAIM-6B757291E002E717
-    claim_text: 'OpenCode-local (`.opencode/kibi.json`): `ux.briefs.autoSubmit` (default: `true`)'
+    claim_text: "OpenCode-local (`.opencode/kibi.json`): `ux.briefs.autoSubmit`
+      (default: `true`)"
     role: descriptive
     status: missing
     span:
       start: 1787
       end: 1867
-    payload_hash: 9a67903971d43c6b0f98874824939916c8067dac3973192c69bad0589cdab9a9
+    payload_hash: 60311964d741320c6f742e53e1ab198110c6e827942447a8c8856dcf1a46ec0f
     reason: No accepted typed interpretation grounds this assertive proposition.
   - claim_key: CLAIM-C039AC81334809D5
-    claim_text: '**Canonical Retrieval**: The `/brief-kibi` command remains the canonical manual refresh mechanism, unaffected by `autoSubmit` settings'
+    claim_text: "**Canonical Retrieval**: The `/brief-kibi` command remains the
+      canonical manual refresh mechanism, unaffected by `autoSubmit` settings"
     role: descriptive
     status: missing
     span:
       start: 1868
       end: 2002
-    payload_hash: 9a67903971d43c6b0f98874824939916c8067dac3973192c69bad0589cdab9a9
+    payload_hash: 60311964d741320c6f742e53e1ab198110c6e827942447a8c8856dcf1a46ec0f
     reason: No accepted typed interpretation grounds this assertive proposition.
 logic_claims:
   - CLAIM-2870A724F08E70B5
@@ -233,4 +313,3 @@ The OpenCode Kibi Briefing system must transition to a session-grounded reconcil
     - Shared policy (`.kb/config.json`): `briefs.enabled`, `briefs.channels.vscode`, `briefs.channels.tui`, `briefs.tui.toast`, `briefs.tui.appendPrompt`
     - OpenCode-local (`.opencode/kibi.json`): `ux.briefs.autoSubmit` (default: `true`)
 10. **Canonical Retrieval**: The `/brief-kibi` command remains the canonical manual refresh mechanism, unaffected by `autoSubmit` settings.
-11. **MCP Constraint**: All briefing generation must continue to use the `kb_briefing_generate` MCP tool. Direct use of `kibi` CLI commands (init, sync, check, etc.) by agents is strictly forbidden.
