@@ -354,6 +354,62 @@ Manual MCP fallback (no plugin install required):
 See [Cursor Plugins](https://cursor.com/docs/plugins) and `packages/cursor/README.md`
 for hook behavior and local testing details.
 
+### Optional: ZCode plugin
+
+`kibi-zcode` is an optional adapter that gives ZCode users prepackaged Kibi skills,
+a `/kibi-bootstrap` command, advisory lifecycle hooks, and MCP configuration. It
+builds on `kibi-core`, `kibi-cli`, and `kibi-mcp` and does not replace them.
+
+Install through the repo marketplace:
+
+1. Run `bun run build:zcode` first — a local marketplace install copies the
+   plugin directory as-is, and an install from a tree without a build is
+   missing `dist/hook-runner.js`, so every lifecycle hook fails to start.
+   (Packed npm installs run the build automatically via `prepack`.)
+2. In ZCode, open **Settings → Plugin Management → Discover**, use the **`+`**
+   button, and add this repository as a marketplace (local directory or
+   `Looted/kibi` on GitHub). The marketplace manifest lives at
+   `.claude-plugin/marketplace.json` and points ZCode at `./packages/zcode`.
+3. Install `kibi-zcode` from the **Kibi** marketplace. New installs are
+   enabled by default.
+
+The installed plugin package contributes:
+
+- `.zcode-plugin/plugin.json` manifest with the inline `mcpServers` entry
+- `bin/mcp-launcher.cjs` workspace-gated MCP launcher
+- `hooks/hooks.json` advisory lifecycle hooks (`SessionStart`, `PreToolUse`,
+  `PostToolUse`, `Stop`)
+- `skills/*/SKILL.md` Kibi workflow skills (frontmatter rewritten for ZCode's
+  skill loader; bodies and resources are byte-identical to the canonical
+  bundled skills)
+- `commands/kibi-bootstrap.md` slash command that routes into the
+  `kibi-bootstrap` skill
+
+The plugin follows the same workspace opt-in rule as the Codex adapter: hooks
+and the MCP launcher stay completely silent in workspaces whose Kibi project
+root does not own `.kb/manifest.json`. In opted-in workspaces, the MCP launcher
+proxies the project-local `kibi-mcp` (`npx --no-install kibi-mcp` with
+`KIBI_WORKSPACE` set), and hooks are advisory only — they remind about direct
+`.kb` edits, track changed paths, and surface freshness/impact reminders at
+session stop. The hard enforcement gate remains the `kibi check --staged` git
+hook installed by `kibi init`.
+
+Manual MCP fallback (no plugin install required):
+
+```json
+{
+  "mcpServers": {
+    "kibi": {
+      "command": "npx",
+      "args": ["--no-install", "kibi-mcp"]
+    }
+  }
+}
+```
+
+See `packages/zcode/README.md` for the ZCode declaration contract the plugin
+targets (hook events, output schema, skill frontmatter rules).
+
 ### Optional: Global install
 
 Global install is convenient for interactive use across projects, but local install is preferred for reproducibility.

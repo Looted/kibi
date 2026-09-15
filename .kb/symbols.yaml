@@ -29983,6 +29983,493 @@ symbols:
         target: TEST-codex-consumer-local-mcp-registration-v1
       - type: implements
         target: REQ-codex-consumer-local-mcp-registration-v1
+  - id: SYM-zcode-ZcodeHookEvent
+    title: ZcodeHookEvent
+    sourceFile: packages/zcode/src/hook-runner.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-SESSION_START_CONTEXT
+    title: SESSION_START_CONTEXT
+    sourceFile: packages/zcode/src/messages.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-requireSelectedTargets
+    title: requireSelectedTargets
+    sourceFile: scripts/sync-agent-skills.ts
+    links:
+      - REQ-reusable-skill-subsystem
+    status: active
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-runSyncAgentSkillsIfMain
+    title: runSyncAgentSkillsIfMain
+    sourceFile: scripts/sync-agent-skills.ts
+    links:
+      - REQ-reusable-skill-subsystem
+    status: active
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-transformZcodeSkillFrontmatter
+    title: transformZcodeSkillFrontmatter
+    sourceFile: scripts/sync-agent-skills.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-sync-agent-skills-main
+    title: main
+    sourceFile: scripts/sync-agent-skills.ts
+    links:
+      - REQ-reusable-skill-subsystem
+    status: active
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-zcode-adapterKind
+    title: adapterKind
+    sourceFile: packages/zcode/src/index.ts
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-addDirtyPaths
+    title: addDirtyPaths
+    sourceFile: packages/zcode/src/hook-state.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-clearDirtyPaths
+    title: clearDirtyPaths
+    sourceFile: packages/zcode/src/hook-state.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-directKbEditWarning
+    title: DIRECT_KB_EDIT_WARNING
+    sourceFile: packages/zcode/src/messages.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-extractExplicitPathFields
+    title: extractExplicitPathFields
+    sourceFile: packages/zcode/src/path-policy.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-extractKbMcpToolCall
+    title: extractKbMcpToolCall
+    sourceFile: packages/zcode/src/kb-mcp-tools.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-freshnessReminder
+    title: freshnessReminder
+    sourceFile: packages/zcode/src/messages.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-HookEnvironment
+    title: HookEnvironment
+    sourceFile: packages/zcode/src/hook-runner.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-HookEvent
+    title: HookEvent
+    sourceFile: packages/zcode/src/hook-input.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-HookInput
+    title: HookInput
+    sourceFile: packages/zcode/src/hook-input.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-HookResult
+    title: HookResult
+    sourceFile: packages/zcode/src/hook-runner.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-hookRunnerPath
+    title: hookRunnerPath
+    sourceFile: packages/zcode/src/hook-runner.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-HookState
+    title: HookState
+    sourceFile: packages/zcode/src/hook-state.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-impactCheckReminder
+    title: impactCheckReminder
+    sourceFile: packages/zcode/src/messages.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-isDirectKbPath
+    title: isDirectKbPath
+    sourceFile: packages/zcode/src/path-policy.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-isInvokedAsCli
+    title: isInvokedAsCli
+    sourceFile: packages/zcode/src/hook-runner.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-isMeaningfulTrackedPath
+    title: isMeaningfulTrackedPath
+    sourceFile: packages/zcode/src/path-policy.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-isSourceImpactRelevantPath
+    title: isSourceImpactRelevantPath
+    sourceFile: packages/zcode/src/path-policy.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-KbMcpToolCall
+    title: KbMcpToolCall
+    sourceFile: packages/zcode/src/kb-mcp-tools.ts
+    symbol_role: type-shape
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-KIBI_WORKSPACE_ENV_KEYS
+    title: KIBI_WORKSPACE_ENV_KEYS
+    sourceFile: packages/zcode/src/workspace-optin.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-KibiWorkspaceResolution
+    title: KibiWorkspaceResolution
+    sourceFile: packages/zcode/src/workspace-optin.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-loadHookState
+    title: loadHookState
+    sourceFile: packages/zcode/src/hook-state.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-main
+    title: main
+    sourceFile: packages/zcode/src/hook-runner.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-packageName
+    title: packageName
+    sourceFile: packages/zcode/src/index.ts
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-parseHookInput
+    title: parseHookInput
+    sourceFile: packages/zcode/src/hook-input.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-parseStdinJson
+    title: parseStdinJson
+    sourceFile: packages/zcode/src/hook-input.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-readStdin
+    title: readStdin
+    sourceFile: packages/zcode/src/hook-input.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-recordKbMcpTool
+    title: recordKbMcpTool
+    sourceFile: packages/zcode/src/hook-state.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-resolveKibiWorkspace
+    title: resolveKibiWorkspace
+    sourceFile: packages/zcode/src/workspace-optin.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-resolveWorkspaceStateDir
+    title: resolveWorkspaceStateDir
+    sourceFile: packages/zcode/src/hook-state.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-runHook
+    title: runHook
+    sourceFile: packages/zcode/src/hook-runner.ts
+    text_ref: packages/zcode/src/hook-runner.ts#runHook
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-runHookCli
+    title: runHookCli
+    sourceFile: packages/zcode/src/hook-runner.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-runHookCliIfMain
+    title: runHookCliIfMain
+    sourceFile: packages/zcode/src/hook-runner.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-saveHookState
+    title: saveHookState
+    sourceFile: packages/zcode/src/hook-state.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-mcp-registration-config
+    title: ZCode MCP registration config
+    status: active
+    sourceFile: packages/zcode/.zcode-plugin/plugin.json
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
   - id: SYM-kibi-predicate-suggestion-relevance-e2e
     title: predicate suggestion relevance e2e
     status: active
