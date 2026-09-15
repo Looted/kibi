@@ -6,6 +6,7 @@
     coverage_report_json/7,
     coverage_report_json/10,
     coverage_report_json/11,
+    coverage_report_json/12,
     graph_expand_json/8
 ]).
 
@@ -15,7 +16,7 @@
 :- use_module(library(lists)).
 :- use_module(library(pairs)).
 :- use_module('kb.pl').
-:- use_module('requirement_proof.pl', [requirement_proof_context/1, requirement_proof_context/4, requirement_proof/4]).
+:- use_module('requirement_proof.pl', [requirement_proof_context/1, requirement_proof_context/4, requirement_proof_context/6, requirement_proof/4]).
 :- use_module('status.pl', [status_meta_dict/1]).
 :- use_module('../schema/relationships.pl', [relationship_type/1]).
 
@@ -36,7 +37,12 @@ coverage_report_json(By, Tags, IncludePassing, IncludeTransitive, Limit, Offset,
     coverage_report_json(By, Tags, IncludePassing, IncludeTransitive, Limit, Offset, unknown, '1970-01-01T00:00:00Z', 604800, JsonString).
 
 coverage_report_json(By, Tags, IncludePassing, IncludeTransitive, Limit, Offset, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
-    coverage_rows(By, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows0, Summary),
+    coverage_report_json(By, Tags, IncludePassing, strict_snapshot, _{}, IncludeTransitive, Limit, Offset, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString).
+
+% Per-contract receipt binding (W2): BindingMode strict_snapshot | per_contract
+% with TestBindings mapping TestId -> current binding hash.
+coverage_report_json(By, Tags, IncludePassing, BindingMode, TestBindings, IncludeTransitive, Limit, Offset, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
+    coverage_rows(By, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, BindingMode, TestBindings, Rows0, Summary),
     sort_dict_rows(Rows0, SortedRows),
     paginate_rows(SortedRows, Offset, Limit, Rows),
     status_meta_dict(Meta),
@@ -133,9 +139,9 @@ relationship_count(Id, Relationship, Count) :-
         (kb_relationship(Relationship, Id, _); kb_relationship(Relationship, _, Id)),
         Count).
 
-coverage_rows(req, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary) :-
+coverage_rows(req, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, BindingMode, TestBindings, Rows, Summary) :-
     !,
-    requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, ProofContext),
+    requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, BindingMode, TestBindings, ProofContext),
     findall(Row,
         requirement_coverage_row(Tags, IncludeTransitive, ProofContext, Row),
         AllRows),
@@ -172,6 +178,10 @@ coverage_rows(type, _Tags, _IncludePassing, _IncludeTransitive, _VerificationSna
     maplist(type_pair_row, Pairs, Rows),
     length(Rows, Total),
     Summary = _{total: Total}.
+
+coverage_rows(req, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary) :-
+    !,
+    coverage_rows(req, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, strict_snapshot, _{}, Rows, Summary).
 
 requirement_coverage_row(Tags, IncludeTransitive, ProofContext, Row) :-
     kb_entity(Id, req, Props),

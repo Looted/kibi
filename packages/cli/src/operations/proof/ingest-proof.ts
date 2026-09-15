@@ -15,6 +15,7 @@ import {
   effectiveProofFingerprint,
   jsonDigest,
   proofContractHash,
+  receiptBindingHash,
 } from "../../public/proof-fingerprint.js";
 import {
   PROOF_CONTRACT_VERSION,
@@ -34,7 +35,10 @@ import {
 import { projectEntityProperties } from "../mutation/entity-projection.js";
 import { resolveContainedSourcePath } from "../mutation/source-authoring.js";
 import { executeUpsert } from "../mutation/upsert.js";
-import { patchReceiptsIntoDocument } from "./receipt-document.js";
+import {
+  patchReceiptsIntoDocument,
+  removeFrontmatterBlock,
+} from "./receipt-document.js";
 
 // implements REQ-kibi-proof-evidence-protocol
 export type IngestProofArgs = Readonly<{
@@ -264,6 +268,24 @@ export async function executeIngestProof(
     const evaluation = evaluateContractAgainstRun(artifact, contract);
     const environmentHash = canonicalEnvironmentHash(artifact.environment);
     const artifactDigest = jsonDigest(artifact);
+    // Per-contract receipt binding (W2): hash the receipt-stripped authored
+    // document together with the contract so the receipt survives unrelated
+    // workspace changes and stales only when its own inputs change.
+    let bindingHash: string | undefined;
+    const source = typeof test.source === "string" ? test.source : "";
+    if (context.fs && source !== "" && /\.(md|mdx)$/i.test(source)) {
+      try {
+        const absolute = resolveContainedSourcePath(
+          context.workspaceRoot,
+          source,
+        );
+        const authored = await context.fs.readFile(absolute);
+        const stripped = removeFrontmatterBlock(authored, "proof_receipts");
+        bindingHash = receiptBindingHash(contract, stripped ?? authored);
+      } catch {
+        bindingHash = undefined;
+      }
+    }
     const receipt: ProofReceipt = {
       version: PROOF_RECEIPT_VERSION,
       receipt_id: `PR-${jsonDigest({
@@ -281,6 +303,7 @@ export async function executeIngestProof(
       finished_at: artifact.run.finished_at,
       artifact_digest: artifactDigest,
       contract_hash: proofContractHash(contract),
+      ...(bindingHash !== undefined ? { binding_hash: bindingHash } : {}),
       fingerprint,
       fingerprint_components: components,
       integration_id: effectiveIntegrationId,

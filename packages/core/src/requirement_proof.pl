@@ -4,6 +4,7 @@
 :- module(requirement_proof, [
     requirement_proof_context/1,
     requirement_proof_context/4,
+    requirement_proof_context/6,
     requirement_proof/4
 ]).
 
@@ -25,6 +26,17 @@ requirement_proof_context(Context) :-
     requirement_proof_context(unknown, '1970-01-01T00:00:00Z', 604800, Context).
 
 requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, Context) :-
+    requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds,
+                              strict_snapshot, _{}, Context).
+
+% Per-contract receipt binding (W2): BindingMode is strict_snapshot (the
+% default: a receipt is current only against the whole-workspace snapshot it
+% was proven on) or per_contract (a receipt carrying a binding_hash is current
+% while its contract + receipt-stripped test document are unchanged, via the
+% TestBindings dict TestId -> BindingHash; receipts without a binding_hash
+% still fall back to the snapshot match).
+requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds,
+                          BindingMode, TestBindings, Context) :-
     check_domain_contradictions_and_witnesses(Contradictions, ContradictionWitnesses),
     check_rule_safety(UnsafeRules),
     check_rule_verifiability(UnverifiableRules),
@@ -32,6 +44,7 @@ requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, Contex
     normalize_atom(CheckedAt, CheckedAtAtom),
     (catch(parse_time(CheckedAtAtom, CheckedAtStamp), _, fail) -> true ; CheckedAtStamp = -1),
     normalize_integer(MaxAgeSeconds, MaxAge),
+    normalize_atom(BindingMode, BindingModeAtom),
     Context = _{
         contradictions: Contradictions,
         contradictionWitnesses: ContradictionWitnesses,
@@ -40,7 +53,9 @@ requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, Contex
         proofSnapshot: Snapshot,
         proofCheckedAt: CheckedAtAtom,
         proofCheckedAtStamp: CheckedAtStamp,
-        proofMaxAgeSeconds: MaxAge
+        proofMaxAgeSeconds: MaxAge,
+        proofBindingMode: BindingModeAtom,
+        proofTestBindings: TestBindings
     }.
 
 % implements REQ-kibi-proof-applicability-reason
@@ -561,7 +576,7 @@ receipt_evidence_state(TestId, Scope, Props, Receipts, _Present, _Context,
     ; \+ chronological_receipt_history(Receipts)),
     !.
 receipt_evidence_state(TestId, Scope, Props, Receipts, _Present, Context, Evidence) :-
-    include(receipt_for_snapshot(Context.proofSnapshot), Receipts, SnapshotReceipts),
+    receipt_for_current_mode(TestId, Context, Receipts, SnapshotReceipts),
     (   SnapshotReceipts == []
     ->  length(Receipts, Count),
         Evidence = _{testId: TestId, state: stale, scope: Scope, receiptCount: Count}
@@ -615,6 +630,11 @@ valid_receipt_shape(TestId, Receipt) :-
     is_list(RawCommandArgv),
     RawCommandArgv \= [],
     maplist(nonempty_receipt_atom, RawCommandArgv),
+    (   inventory_entry_field(Receipt, binding_hash, RawBindingHash)
+    ->  normalize_receipt_atom(RawBindingHash, BindingHash),
+        valid_sha256(BindingHash)
+    ;   true
+    ),
     inventory_entry_field(Receipt, run_outcome, RawRunOutcome),
     normalize_receipt_atom(RawRunOutcome, RunOutcome),
     memberchk(RunOutcome, [passed, failed, errored, cancelled, timed_out, interrupted, no_results]),
@@ -705,6 +725,29 @@ strictly_increasing([Left, Right|Rest]) :-
 receipt_for_snapshot(Snapshot, Receipt) :-
     inventory_entry_field(Receipt, code_snapshot, RawSnapshot),
     normalize_receipt_atom(RawSnapshot, Snapshot).
+
+% Per-contract binding selector (W2). In per_contract mode a receipt carrying
+% a binding_hash is current when it matches the test's current binding hash;
+% receipts without one keep the strict snapshot semantics so older evidence
+% stays valid until each contract is re-proven.
+receipt_for_current_mode(TestId, Context, Receipts, SnapshotReceipts) :-
+    (   Context.proofBindingMode == per_contract,
+        get_dict(TestId, Context.proofTestBindings, CurrentBinding)
+    ->  include(receipt_with_binding_hash, Receipts, BoundReceipts),
+        include(receipt_for_binding(CurrentBinding), BoundReceipts, SnapshotReceipts),
+        (   SnapshotReceipts == []
+        ->  include(receipt_for_snapshot(Context.proofSnapshot), Receipts, SnapshotReceipts)
+        ;   true
+        )
+    ;   include(receipt_for_snapshot(Context.proofSnapshot), Receipts, SnapshotReceipts)
+    ).
+
+receipt_with_binding_hash(Receipt) :-
+    inventory_entry_field(Receipt, binding_hash, _).
+
+receipt_for_binding(Binding, Receipt) :-
+    inventory_entry_field(Receipt, binding_hash, RawBinding),
+    normalize_receipt_atom(RawBinding, Binding).
 
 receipt_matches_current_binding(Scope, ContractBinding, Receipt) :-
     inventory_entry_field(Receipt, scope, RawScope),
