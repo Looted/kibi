@@ -111,3 +111,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a48d5475b363
+  - type: implements
+    from: SYM-sweep-store-lock
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-15T07:38:55.098Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f172c1064557
+  - type: covered_by
+    from: SYM-sweep-store-lock
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-09-15T07:38:55.107Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e97b5ad34f05

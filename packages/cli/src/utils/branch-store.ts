@@ -6,6 +6,10 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import * as path from "node:path";
 import {
+  classifyStoreLockHolder,
+  readStoreLockOwner,
+} from "../prolog/store-lock.js";
+import {
   branchStoreManifestMatches,
   branchStorePath,
   legacyBranchStorePath,
@@ -149,36 +153,17 @@ export function inspectBranchStore(
 export function storeLockJournalReason(
   storePath: string,
 ): Record<string, unknown> | null {
-  const journalPath = path.join(storePath, ".kibi-lock-owner.json");
-  if (!existsSync(journalPath)) return null;
-  let owner: {
-    pid?: unknown;
-    workspaceRoot?: unknown;
-    bootId?: unknown;
-  };
-  try {
-    owner = JSON.parse(readFileSync(journalPath, "utf8"));
-  } catch {
-    return null;
-  }
-  if (owner === null || typeof owner !== "object") return null;
-  const pid = typeof owner.pid === "number" ? owner.pid : undefined;
-  if (pid === undefined) return null;
-  let alive: boolean;
-  try {
-    process.kill(pid, 0);
-    alive = true;
-  } catch (error) {
-    alive = (error as NodeJS.ErrnoException | null)?.code === "EPERM";
-  }
-  if (alive) return null;
-  const workspaceRoot =
-    typeof owner.workspaceRoot === "string" ? owner.workspaceRoot : "unknown";
+  const journal = readStoreLockOwner(storePath);
+  if (journal === null) return null;
+  const owner = journal.owner;
+  // Same boot-id-aware classification as the janitor and the attach
+  // takeover, so all three surfaces reach the same verdict on a journal.
+  if (classifyStoreLockHolder(owner) !== "dead") return null;
   return {
     code: "store_lock_stale",
-    path: journalPath,
+    path: journal.journalPath,
     entityIds: [],
-    detail: `Branch store lock journal records holder pid ${pid} for ${workspaceRoot}, which is no longer running.`,
+    detail: `Branch store lock journal records holder pid ${owner.pid} for ${owner.workspaceRoot ?? "unknown"}, which is no longer running.`,
     remediation: {
       command_argv: ["kibi", "engine", "janitor", "--apply"],
       applyRequired: false,

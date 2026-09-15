@@ -118,3 +118,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-71938ce47c49
+  - type: implements
+    from: SYM-store-lock-journal-reason
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-15T07:39:54.494Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-604444e83505
+  - type: covered_by
+    from: SYM-store-lock-journal-reason
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-09-15T07:39:54.505Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b87bd17c1e6a
+  - type: implements
+    from: SYM-engine-janitor-command
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-15T07:41:55.114Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-87612536f085
+  - type: covered_by
+    from: SYM-engine-janitor-command
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-09-15T07:41:55.123Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1780718788f

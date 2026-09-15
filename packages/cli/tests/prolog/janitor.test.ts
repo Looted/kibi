@@ -30,6 +30,7 @@ function makeStore(options: {
   holderPid?: number;
   holderWorkspace?: string;
   withLock?: boolean;
+  legacyJournal?: boolean;
 }): { root: string; store: string } {
   const root = mkdtempSync(join(tmpdir(), "kibi-janitor-"));
   const store = join(root, ".kb", "branches", "abc123");
@@ -42,7 +43,10 @@ function makeStore(options: {
   }
   journal.bootId = "boot-other-universe";
   journal.startedAt = "2026-09-14T00:00:00Z";
-  writeFileSync(join(store, ".kibi-lock-owner.json"), JSON.stringify(journal));
+  const journalPath = options.legacyJournal
+    ? join(store, "rdf", ".kibi-lock-owner.json")
+    : join(store, ".kibi-lock-owner.json");
+  writeFileSync(journalPath, JSON.stringify(journal));
   if (options.withLock !== false) {
     writeFileSync(join(store, "rdf", "lock"), "held");
   }
@@ -86,6 +90,29 @@ describe("sweepStoreLock", () => {
     expect(report?.workspaceExists).toBe(false);
   });
 
+  test("keeps a live holder when the journal lacks a workspace", () => {
+    const { store } = makeStore({ holderPid: process.pid });
+    // Missing workspace evidence must stay hands-off even with --apply:
+    // the janitor must not signal a live daemon on absent metadata.
+    const report = sweepStoreLock(store, true);
+    expect(report?.action).toBe("keep");
+    expect(report?.workspaceExists).toBe(false);
+    expect(existsSync(join(store, "rdf", "lock"))).toBe(true);
+  });
+
+  test("sweeps a legacy journal kept beside the rdf lock", () => {
+    const { store } = makeStore({
+      holderPid: 2_147_000_000,
+      legacyJournal: true,
+    });
+    const report = sweepStoreLock(store, false);
+    expect(report?.action).toBe("clean");
+    const applied = sweepStoreLock(store, true);
+    expect(applied?.action).toBe("clean");
+    expect(existsSync(join(store, "rdf", ".kibi-lock-owner.json"))).toBe(false);
+    expect(existsSync(join(store, "rdf", "lock"))).toBe(false);
+  });
+
   test("returns null for stores without a lock journal", () => {
     const { store } = makeStore({});
     require("node:fs").rmSync(join(store, ".kibi-lock-owner.json"));
@@ -126,6 +153,27 @@ describe("sweepRuntimeSockets", () => {
     expect(findings[0]?.action).toBe("clean");
     expect(existsSync(socket)).toBe(false);
     expect(existsSync(`${socket}.pid`)).toBe(false);
+  });
+
+  test("keeps scanning when a pid file vanishes mid-scan", () => {
+    const runtime = mkdtempSync(join(tmpdir(), "kibi-janitor-runtime-"));
+    const socket = join(runtime, "kibi-raced.sock");
+    writeFileSync(socket, "");
+    // A directory where the pid file belongs makes the read fail the way a
+    // daemon exiting between existsSync and readFileSync does.
+    mkdirSync(`${socket}.pid`);
+    const findings = sweepRuntimeSockets({
+      workspaceRoot: runtime,
+      runtimeDirectory: runtime,
+      all: true,
+      apply: true,
+    });
+    expect(findings).toHaveLength(1);
+    expect(findings[0]).toMatchObject({
+      holderState: "unknown",
+      action: "keep",
+    });
+    expect(existsSync(socket)).toBe(true);
   });
 
   test("is inert without --all", () => {

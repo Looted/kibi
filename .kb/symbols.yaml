@@ -35055,3 +35055,163 @@ symbols:
         target: TEST-cli-staged-impact-enforcement
       - type: implements
         target: REQ-AUTO-941B0CE68BAF3331
+  - id: SYM-read-store-lock-owner
+    title: readStoreLockOwner
+    status: active
+    sourceFile: packages/cli/src/prolog/store-lock.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sweep-store-lock
+    title: sweepStoreLock
+    status: active
+    sourceFile: packages/cli/src/prolog/janitor.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sweep-workspace-store-locks
+    title: sweepWorkspaceStoreLocks
+    status: active
+    sourceFile: packages/cli/src/prolog/janitor.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-sweep-runtime-sockets
+    title: sweepRuntimeSockets
+    status: active
+    sourceFile: packages/cli/src/prolog/janitor.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-run-janitor
+    title: runJanitor
+    status: active
+    sourceFile: packages/cli/src/prolog/janitor.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-store-lock-journal-reason
+    title: storeLockJournalReason
+    status: active
+    sourceFile: packages/cli/src/utils/branch-store.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-engine-janitor-command
+    title: engineJanitorCommand
+    status: active
+    sourceFile: packages/cli/src/commands/engine.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-retry-attach-after-breaking-stale-lock
+    title: retryAttachAfterBreakingStaleLock
+    status: active
+    sourceFile: packages/cli/src/prolog/store-lock.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-store-lock-takeover-decision
+    title: StoreLockTakeoverDecision
+    status: active
+    sourceFile: packages/cli/src/prolog/store-lock.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-store-lock-retry-context
+    title: StoreLockRetryContext
+    status: active
+    sourceFile: packages/cli/src/prolog/store-lock.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-store-lock-holder-state
+    title: StoreLockHolderState
+    status: active
+    sourceFile: packages/cli/src/prolog/store-lock.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-engine-janitor-options
+    title: EngineJanitorOptions
+    status: active
+    sourceFile: packages/cli/src/commands/engine.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-store-lock-finding
+    title: StoreLockFinding
+    status: active
+    sourceFile: packages/cli/src/prolog/janitor.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-socket-finding
+    title: SocketFinding
+    status: active
+    sourceFile: packages/cli/src/prolog/janitor.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-janitor-options
+    title: JanitorOptions
+    status: active
+    sourceFile: packages/cli/src/prolog/janitor.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-janitor-finding
+    title: JanitorFinding
+    status: active
+    sourceFile: packages/cli/src/prolog/janitor.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
