@@ -264,14 +264,13 @@ if (fixtureChild) {
   test("cache-resolution fixtures do not alter the sibling packed environment", () => {
     const originalPrefix = process.env.KIBI_E2E_PREFIX;
     const originalTarballs = process.env.KIBI_TEST_TARBALLS;
+    const testFile = fileURLToPath(import.meta.url);
+    const childArgs = process.versions.bun
+      ? ["test", testFile]
+      : ["--test", "--test-concurrency=1", "--test-force-exit", testFile];
     const child = spawnSync(
       process.execPath,
-      [
-        "--test",
-        "--test-concurrency=1",
-        "--test-force-exit",
-        fileURLToPath(import.meta.url),
-      ],
+      childArgs,
       {
         cwd: process.cwd(),
         env: {
