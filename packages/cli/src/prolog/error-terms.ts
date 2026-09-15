@@ -66,6 +66,7 @@ export type PrologStoreLockOwner = Readonly<{
 export type PrologStoreLockedDetail = Readonly<{
   owner: PrologStoreLockOwner | null;
   lockDirectory: string;
+  originalError?: string;
 }>;
 
 export type PrologErrorRecord = Readonly<{
@@ -238,8 +239,16 @@ function parseStoreLockedContext(
   const ownerRaw = parts[0]?.trim();
   const lockRaw = parts[1]?.trim();
   const lockDirectory = lockRaw ? unquoteAtom(lockRaw) : "";
+  // kb.pl preserves the original attach failure so nothing is masked by the
+  // store_locked re-brand (e.g. a permissions problem vs a lock clash).
+  const originalRaw = parts[2]?.trim();
+  const originalError = originalRaw ? unquoteAtom(originalRaw) : "";
   if (!ownerRaw || ownerRaw === '""' || ownerRaw === "''") {
-    return { owner: null, lockDirectory };
+    return {
+      owner: null,
+      lockDirectory,
+      ...(originalError !== "" ? { originalError } : {}),
+    };
   }
   try {
     const parsed = JSON.parse(unquoteAtom(ownerRaw)) as {
@@ -249,7 +258,11 @@ function parseStoreLockedContext(
       startedAt?: unknown;
     };
     if (parsed === null || typeof parsed !== "object") {
-      return { owner: null, lockDirectory };
+      return {
+        owner: null,
+        lockDirectory,
+        ...(originalError !== "" ? { originalError } : {}),
+      };
     }
     return {
       owner: {
@@ -263,6 +276,7 @@ function parseStoreLockedContext(
           : {}),
       },
       lockDirectory,
+      ...(originalError !== "" ? { originalError } : {}),
     };
   } catch {
     return { owner: null, lockDirectory };
