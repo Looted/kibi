@@ -188,3 +188,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-30d996b4070d
+  - type: executable_for
+    from: SYM-quality-capture-io
+    to: TEST-cli-quality-diagnostics-contract
+    created_at: 2026-09-15T00:52:37.439Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6dc30fbd275

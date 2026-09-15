@@ -526,9 +526,18 @@ describe("codex MCP launcher server helpers", () => {
     const unconfigured = createTempRoot("kibi-codex-main-");
     const stdin = new PassThrough();
     const out = makeWriteSink();
-    Object.defineProperty(process, "stdin", { configurable: true, value: stdin });
-    Object.defineProperty(process, "stdout", { configurable: true, value: out.stream });
-    Object.defineProperty(process, "cwd", { configurable: true, value: () => unconfigured });
+    Object.defineProperty(process, "stdin", {
+      configurable: true,
+      value: stdin,
+    });
+    Object.defineProperty(process, "stdout", {
+      configurable: true,
+      value: out.stream,
+    });
+    Object.defineProperty(process, "cwd", {
+      configurable: true,
+      value: () => unconfigured,
+    });
     try {
       const exitPromise = launcher.main();
       stdin.write(
@@ -537,9 +546,18 @@ describe("codex MCP launcher server helpers", () => {
       stdin.end();
       await exitPromise;
     } finally {
-      Object.defineProperty(process, "stdin", { configurable: true, value: previousStdin });
-      Object.defineProperty(process, "stdout", { configurable: true, value: previousStdout });
-      Object.defineProperty(process, "cwd", { configurable: true, value: previousCwd });
+      Object.defineProperty(process, "stdin", {
+        configurable: true,
+        value: previousStdin,
+      });
+      Object.defineProperty(process, "stdout", {
+        configurable: true,
+        value: previousStdout,
+      });
+      Object.defineProperty(process, "cwd", {
+        configurable: true,
+        value: previousCwd,
+      });
     }
     out.stream.end();
     await out.done;

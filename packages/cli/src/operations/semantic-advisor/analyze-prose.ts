@@ -423,12 +423,9 @@ function withClauseProvenance(
   statement: string,
   sourceField: SemanticSourceField,
 ): SemanticModelingSuggestion {
-  const clauseOffset = statement.indexOf(clause.text);
-  const clauseSpan = utf8Span(
-    statement || clause.text,
-    clauseOffset >= 0 ? clauseOffset : 0,
-    clauseOffset >= 0 ? clauseOffset + clause.text.length : clause.text.length,
-  );
+  const clauseLocation = propositionSpan(statement, clause, 0);
+  const clauseText = clauseLocation.sourceText;
+  const clauseSpan = clauseLocation.span;
   const status =
     suggestion.kind === "ambiguity_observation"
       ? "ambiguous"
@@ -449,7 +446,7 @@ function withClauseProvenance(
           : "missing";
     return {
       claim_key: entry.claim_key,
-      claim_text: entry.text,
+      claim_text: located.sourceText,
       role,
       status: entryStatus,
       span: located.span,
@@ -495,7 +492,7 @@ function withClauseProvenance(
       properties: {
         ...properties,
         claim_key: clause.claim_key,
-        claim_text: clause.text,
+        claim_text: clauseText,
         claim_span_start: clauseSpan.start,
         claim_span_end: clauseSpan.end,
       },
@@ -504,14 +501,14 @@ function withClauseProvenance(
   return {
     ...suggestion,
     claim_key: clause.claim_key,
-    claim_text: clause.text,
+    claim_text: clauseText,
     applyPlan,
     ...(suggestion.kind === "predicate" && suggestion.relationshipPlan !== null
       ? {
           relationshipPlan: {
             ...suggestion.relationshipPlan,
             claimKey: clause.claim_key,
-            claimText: clause.text,
+            claimText: clauseText,
             logicClaims: expectedClaimKeys,
             semanticClauses: clauses.map(({ text }) => text),
             semanticInventory,
@@ -526,7 +523,7 @@ function withClauseProvenance(
           relationshipPlan: {
             ...suggestion.relationshipPlan,
             claimKey: clause.claim_key,
-            claimText: clause.text,
+            claimText: clauseText,
             logicClaims: expectedClaimKeys,
             semanticClauses: clauses.map(({ text }) => text),
             semanticInventory,
@@ -747,14 +744,48 @@ function propositionSpan(
   text: string,
   clause: SemanticClause,
   cursor: number,
-): { span: { start: number; end: number }; next: number } {
-  const exact = text.indexOf(clause.text, cursor);
+): {
+  span: { start: number; end: number };
+  next: number;
+  sourceText: string;
+} {
+  const located = locateSourceText(text, clause.text, cursor);
+  return {
+    span: utf8Span(text, located.start, located.end),
+    next: Math.max(cursor, located.end),
+    sourceText: text.slice(located.start, located.end),
+  };
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Locate canonical claim text while accepting source-only whitespace layout.
+ * The caller receives the authored slice so strict ingestion can compare the
+ * span with the claim text without rewriting the source document.
+ */
+function locateSourceText(
+  source: string,
+  claimText: string,
+  cursor: number,
+): { start: number; end: number } {
+  const canonicalPattern = escapeRegExp(claimText).replace(/\s+/g, "\\s+");
+  const match = new RegExp(canonicalPattern).exec(source.slice(cursor));
+  if (match?.index !== undefined) {
+    const start = cursor + match.index;
+    return { start, end: start + match[0].length };
+  }
+  const exact = source.indexOf(claimText, cursor);
   const start = exact >= 0 ? exact : cursor;
-  const end =
-    exact >= 0
-      ? exact + clause.text.length
-      : Math.min(text.length, start + clause.text.length);
-  return { span: utf8Span(text, start, end), next: Math.max(cursor, end) };
+  return {
+    start,
+    end:
+      exact >= 0
+        ? exact + claimText.length
+        : Math.min(source.length, start + claimText.length),
+  };
 }
 
 function interpretationResults(
@@ -794,20 +825,15 @@ function interpretationResults(
     )
       errors.push("interpretation span is invalid");
     if (clause && candidate.span) {
-      const candidateStart = statement.indexOf(candidate.claim_text);
-      const clauseStart = statement.indexOf(clause.text);
-      const sourceStart = candidateStart >= 0 ? candidateStart : clauseStart;
-      const sourceEnd =
-        sourceStart >= 0
-          ? sourceStart +
-            (candidateStart >= 0
-              ? candidate.claim_text.length
-              : clause.text.length)
-          : 0;
+      const candidateLocation = locateSourceText(
+        statement,
+        candidate.claim_text,
+        0,
+      );
       const expectedSpan = utf8Span(
         statement,
-        Math.max(0, sourceStart),
-        Math.max(0, sourceEnd),
+        candidateLocation.start,
+        candidateLocation.end,
       );
       if (
         candidate.span.start !== expectedSpan.start ||
@@ -902,7 +928,7 @@ function propositionInventory(
     }
     return {
       claim_key: clause.claim_key,
-      claim_text: clause.text,
+      claim_text: located.sourceText,
       role,
       status,
       span: located.span,

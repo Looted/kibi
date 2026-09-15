@@ -179,7 +179,9 @@ describe("branch-resolver leftover attachment and validation", () => {
     _setBranchResolverDepsForTests({
       execSync: (() => "") as unknown as typeof execSync,
     });
-    expect(resolveActiveBranch("/tmp")).toMatchObject({ code: "DETACHED_HEAD" });
+    expect(resolveActiveBranch("/tmp")).toMatchObject({
+      code: "DETACHED_HEAD",
+    });
 
     _setBranchResolverDepsForTests({
       execSync: ((command: string) => {
@@ -187,7 +189,9 @@ describe("branch-resolver leftover attachment and validation", () => {
         return "HEAD\n";
       }) as unknown as typeof execSync,
     });
-    expect(resolveActiveBranch("/tmp")).toMatchObject({ code: "DETACHED_HEAD" });
+    expect(resolveActiveBranch("/tmp")).toMatchObject({
+      code: "DETACHED_HEAD",
+    });
 
     _setBranchResolverDepsForTests({
       execSync: ((command: string) => {
@@ -195,7 +199,9 @@ describe("branch-resolver leftover attachment and validation", () => {
         return "\n";
       }) as unknown as typeof execSync,
     });
-    expect(resolveActiveBranch("/tmp")).toMatchObject({ code: "UNBORN_BRANCH" });
+    expect(resolveActiveBranch("/tmp")).toMatchObject({
+      code: "UNBORN_BRANCH",
+    });
 
     _setBranchResolverDepsForTests({
       execSync: ((command: string) => {
@@ -203,7 +209,9 @@ describe("branch-resolver leftover attachment and validation", () => {
         return "bad name\n";
       }) as unknown as typeof execSync,
     });
-    expect(resolveActiveBranch("/tmp")).toMatchObject({ code: "UNKNOWN_ERROR" });
+    expect(resolveActiveBranch("/tmp")).toMatchObject({
+      code: "UNKNOWN_ERROR",
+    });
 
     _setBranchResolverDepsForTests({
       execSync: ((command: string) => {
@@ -218,7 +226,9 @@ describe("branch-resolver leftover attachment and validation", () => {
         throw new Error("not a git repository");
       }) as unknown as typeof execSync,
     });
-    expect(resolveActiveBranch("/tmp")).toMatchObject({ code: "NOT_A_GIT_REPO" });
+    expect(resolveActiveBranch("/tmp")).toMatchObject({
+      code: "NOT_A_GIT_REPO",
+    });
 
     _setBranchResolverDepsForTests({
       execSync: ((command: string) => {
@@ -236,6 +246,8 @@ describe("branch-resolver leftover attachment and validation", () => {
         throw new Error("mystery git failure");
       }) as unknown as typeof execSync,
     });
-    expect(resolveActiveBranch("/tmp")).toMatchObject({ code: "UNKNOWN_ERROR" });
+    expect(resolveActiveBranch("/tmp")).toMatchObject({
+      code: "UNKNOWN_ERROR",
+    });
   });
 });

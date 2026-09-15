@@ -1090,6 +1090,8 @@ export async function checkMustPriorityCoverage(
   return violations;
 }
 
+// implements REQ-cli-check
+// covered_by TEST-004
 export async function findMustPriorityReqs(
   prolog: PrologProcess,
 ): Promise<string[]> {
@@ -1198,6 +1200,8 @@ export async function checkNoDanglingRefs(
   return violations;
 }
 
+// implements REQ-cli-check
+// covered_by TEST-cli-check-integrity
 export async function checkNoCycles(
   prolog: PrologProcess,
 ): Promise<Violation[]> {

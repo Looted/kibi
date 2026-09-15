@@ -15,14 +15,14 @@ import path from "node:path";
 
 import { OperationError } from "../../src/cli-errors.js";
 import * as manifestModule from "../../src/extractors/manifest.js";
+import * as relationshipsModule from "../../src/operations/mutation/relationships.js";
+import * as sourceAuthoring from "../../src/operations/mutation/source-authoring.js";
+import * as symbolRefresh from "../../src/operations/mutation/symbol-refresh.js";
 import {
   effectiveRelationships,
   executeUpsert,
   validateAppendOnlyProofReceipts,
 } from "../../src/operations/mutation/upsert.js";
-import * as relationshipsModule from "../../src/operations/mutation/relationships.js";
-import * as sourceAuthoring from "../../src/operations/mutation/source-authoring.js";
-import * as symbolRefresh from "../../src/operations/mutation/symbol-refresh.js";
 import {
   isAllowedGranularityReason,
   validateUpsertInput,
@@ -30,8 +30,8 @@ import {
 import * as warningsModule from "../../src/operations/mutation/warnings.js";
 import * as advisorModule from "../../src/operations/semantic-advisor/analyze-prose.js";
 import { semanticClaimKey } from "../../src/operations/semantic-advisor/clauses.js";
-import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
 import * as discoveryEntities from "../../src/public/operations/discovery-entities.js";
+import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
 import type {
   OperationContext,
   PrologPort,
@@ -190,7 +190,11 @@ describe("validateUpsertInput remaining branches", () => {
     // implements REQ-011
     const now = new Date("2026-09-05T00:00:00.000Z");
     const validated = validateUpsertInput(
-      { type: "req", id: "REQ-DEFAULTS", properties: { title: "Defaults", status: "open" } },
+      {
+        type: "req",
+        id: "REQ-DEFAULTS",
+        properties: { title: "Defaults", status: "open" },
+      },
       now,
     );
     expect(validated.entity.created_at).toBe(now.toISOString());
@@ -210,7 +214,9 @@ describe("validateUpsertInput remaining branches", () => {
         },
         new Date(),
       ),
-    ).toThrow(/unknown property 'value'[\s\S]*value_string[\s\S]*kb_model_requirement/);
+    ).toThrow(
+      /unknown property 'value'[\s\S]*value_string[\s\S]*kb_model_requirement/,
+    );
 
     expect(() =>
       validateUpsertInput(
@@ -226,7 +232,9 @@ describe("validateUpsertInput remaining branches", () => {
         },
         new Date(),
       ),
-    ).toThrow(/Did you mean 'subject_key'[\s\S]*snake_case[\s\S]*kb_model_requirement/);
+    ).toThrow(
+      /Did you mean 'subject_key'[\s\S]*snake_case[\s\S]*kb_model_requirement/,
+    );
 
     expect(() =>
       validateUpsertInput(
@@ -237,7 +245,9 @@ describe("validateUpsertInput remaining branches", () => {
         },
         new Date(),
       ),
-    ).toThrow(/unknown property 'notAField'|must NOT have additional properties/);
+    ).toThrow(
+      /unknown property 'notAField'|must NOT have additional properties/,
+    );
 
     expect(() =>
       validateUpsertInput(
@@ -275,7 +285,11 @@ describe("validateUpsertInput remaining branches", () => {
             verification_scope: "end_to_end",
             proof_receipts: [
               proofReceipt,
-              { ...proofReceipt, receipt_id: "PR-REMAIN-000002", test_id: "TEST-OTHER" },
+              {
+                ...proofReceipt,
+                receipt_id: "PR-REMAIN-000002",
+                test_id: "TEST-OTHER",
+              },
               "skip-me",
               null,
               ["array"],
@@ -295,7 +309,10 @@ describe("validateUpsertInput remaining branches", () => {
             title: "Dup",
             status: "active",
             verification_scope: "end_to_end",
-            proof_receipts: [proofReceipt, { ...proofReceipt, finished_at: "2026-07-21T12:05:00.000Z" }],
+            proof_receipts: [
+              proofReceipt,
+              { ...proofReceipt, finished_at: "2026-07-21T12:05:00.000Z" },
+            ],
           },
         },
         new Date(),
@@ -360,7 +377,9 @@ describe("validateUpsertInput remaining branches", () => {
           type: "req",
           id: "REQ-REL",
           properties: { title: "Rel", status: "open" },
-          relationships: [{ type: "not_a_type", from: "REQ-REL", to: "TEST-1" }],
+          relationships: [
+            { type: "not_a_type", from: "REQ-REL", to: "TEST-1" },
+          ],
         },
         new Date(),
       ),
@@ -557,22 +576,27 @@ describe("executeUpsert remaining runtime branches", () => {
     // implements REQ-014
     const root = makeTempDir();
     track(
-      spyOn(relationshipsModule, "validateRelationshipSources").mockImplementation(
-        () => undefined,
-      ),
+      spyOn(
+        relationshipsModule,
+        "validateRelationshipSources",
+      ).mockImplementation(() => undefined),
     );
     track(
-      spyOn(relationshipsModule, "validateStrictLanePairing").mockResolvedValue(undefined),
-    );
-    track(
-      spyOn(relationshipsModule, "validateLiveRelationshipTargets").mockResolvedValue(
+      spyOn(relationshipsModule, "validateStrictLanePairing").mockResolvedValue(
         undefined,
       ),
     );
     track(
-      spyOn(relationshipsModule, "validateSupersedesSourceHistory").mockResolvedValue(
-        undefined,
-      ),
+      spyOn(
+        relationshipsModule,
+        "validateLiveRelationshipTargets",
+      ).mockResolvedValue(undefined),
+    );
+    track(
+      spyOn(
+        relationshipsModule,
+        "validateSupersedesSourceHistory",
+      ).mockResolvedValue(undefined),
     );
     const result = await executeUpsert(
       {
@@ -584,12 +608,17 @@ describe("executeUpsert remaining runtime branches", () => {
           { type: "relates_to", from: "REQ-INCOMPLETE", to: "REQ-OK" },
         ],
       },
-      contextFor(root, commitQuery(), { fs: nodeFilesystem, sourceFirst: false }),
+      contextFor(root, commitQuery(), {
+        fs: nodeFilesystem,
+        sourceFirst: false,
+      }),
     );
     expect(result.structuredContent?.relationships_created).toBe(2);
 
     track(
-      spyOn(shardsModule, "computeShardPath").mockReturnValue("/tmp/escaped-outside.yaml"),
+      spyOn(shardsModule, "computeShardPath").mockReturnValue(
+        "/tmp/escaped-outside.yaml",
+      ),
     );
     await expect(
       executeUpsert(
@@ -597,9 +626,14 @@ describe("executeUpsert remaining runtime branches", () => {
           type: "req",
           id: "REQ-ESCAPE",
           properties: { title: "Escape", status: "open" },
-          relationships: [{ type: "relates_to", from: "REQ-ESCAPE", to: "REQ-TO" }],
+          relationships: [
+            { type: "relates_to", from: "REQ-ESCAPE", to: "REQ-TO" },
+          ],
         },
-        contextFor(root, commitQuery(), { fs: nodeFilesystem, sourceFirst: false }),
+        contextFor(root, commitQuery(), {
+          fs: nodeFilesystem,
+          sourceFirst: false,
+        }),
       ),
     ).rejects.toThrow(/escapes the canonical workspace lane/);
   });
@@ -609,7 +643,10 @@ describe("executeUpsert remaining runtime branches", () => {
     const root = makeTempDir();
     const shardDir = path.join(root, ".kb", "relationships");
     mkdirSync(shardDir, { recursive: true });
-    const shardPath = shardsModule.computeShardPath(path.join(root, ".kb"), "REQ-RESTORE");
+    const shardPath = shardsModule.computeShardPath(
+      path.join(root, ".kb"),
+      "REQ-RESTORE",
+    );
     writeFileSync(shardPath, "relationships: []\n", "utf8");
     const original = readFileSync(shardPath, "utf8");
 
@@ -619,7 +656,9 @@ describe("executeUpsert remaining runtime branches", () => {
           type: "req",
           id: "REQ-RESTORE",
           properties: { title: "Restore", status: "open" },
-          relationships: [{ type: "relates_to", from: "REQ-RESTORE", to: "REQ-TO" }],
+          relationships: [
+            { type: "relates_to", from: "REQ-RESTORE", to: "REQ-TO" },
+          ],
         },
         contextFor(
           root,
@@ -649,7 +688,9 @@ describe("executeUpsert remaining runtime branches", () => {
           type: "req",
           id: "REQ-RESTORE",
           properties: { title: "Restore", status: "open" },
-          relationships: [{ type: "relates_to", from: "REQ-RESTORE", to: "REQ-TO" }],
+          relationships: [
+            { type: "relates_to", from: "REQ-RESTORE", to: "REQ-TO" },
+          ],
         },
         contextFor(
           root,
@@ -679,7 +720,9 @@ describe("executeUpsert remaining runtime branches", () => {
           type: "req",
           id: "REQ-UNLINK",
           properties: { title: "Unlink", status: "open" },
-          relationships: [{ type: "relates_to", from: "REQ-UNLINK", to: "REQ-TO" }],
+          relationships: [
+            { type: "relates_to", from: "REQ-UNLINK", to: "REQ-TO" },
+          ],
         },
         contextFor(
           root,
@@ -696,13 +739,20 @@ describe("executeUpsert remaining runtime branches", () => {
   test("swallows a second shard restore failure after commit abort", async () => {
     // implements REQ-014
     const root = makeTempDir();
-    const shardPath = shardsModule.computeShardPath(path.join(root, ".kb"), "REQ-CATCH");
+    const shardPath = shardsModule.computeShardPath(
+      path.join(root, ".kb"),
+      "REQ-CATCH",
+    );
     mkdirSync(path.dirname(shardPath), { recursive: true });
     writeFileSync(shardPath, "relationships: []\n", "utf8");
     let failWrite = false;
     const write = writeFileSync;
     track(
-      spyOn(fs, "writeFileSync").mockImplementation(((target, data, options) => {
+      spyOn(fs, "writeFileSync").mockImplementation(((
+        target,
+        data,
+        options,
+      ) => {
         if (failWrite && String(target) === shardPath) {
           throw new Error("restore write blocked");
         }
@@ -715,27 +765,37 @@ describe("executeUpsert remaining runtime branches", () => {
           type: "req",
           id: "REQ-CATCH",
           properties: { title: "Catch", status: "open" },
-          relationships: [{ type: "relates_to", from: "REQ-CATCH", to: "REQ-TO" }],
+          relationships: [
+            { type: "relates_to", from: "REQ-CATCH", to: "REQ-TO" },
+          ],
         },
         contextFor(
           root,
           (goal) => {
             if (goal.startsWith("kb_commit_upsert(")) {
               failWrite = true;
-              return { success: false, bindings: {}, error: "commit-then-restore" };
+              return {
+                success: false,
+                bindings: {},
+                error: "commit-then-restore",
+              };
             }
             return { success: true, bindings: { Results: "[]" } };
           },
           { fs: nodeFilesystem, sourceFirst: false },
         ),
       ),
-    ).rejects.toThrow(/commit-then-restore|restore write blocked|Upsert execution failed/);
+    ).rejects.toThrow(
+      /commit-then-restore|restore write blocked|Upsert execution failed/,
+    );
   });
 
   test("skips source writes that return null and authors existing mdx sources", async () => {
     // implements REQ-014
     const root = makeTempDir();
-    track(spyOn(sourceAuthoring, "writeSourceForUpsert").mockResolvedValue(null));
+    track(
+      spyOn(sourceAuthoring, "writeSourceForUpsert").mockResolvedValue(null),
+    );
     const skipped = await executeUpsert(
       {
         type: "req",
@@ -802,9 +862,9 @@ describe("executeUpsert remaining runtime branches", () => {
       ),
     );
     expect(jsonExisting.structuredContent?.updated).toBe(1);
-    expect(existsSync(path.join(root, ".kb", "requirements", "REQ-JSON-EXIST.md"))).toBe(
-      true,
-    );
+    expect(
+      existsSync(path.join(root, ".kb", "requirements", "REQ-JSON-EXIST.md")),
+    ).toBe(true);
 
     await expect(
       executeUpsert(
@@ -840,20 +900,30 @@ describe("executeUpsert remaining runtime branches", () => {
         id: "REQ-BOTH",
         properties: { title: "Both", status: "open" },
         document: { path: "docs/REQ-BOTH.md", body: "must keep both lanes\n" },
-        relationships: [{ type: "relates_to", from: "REQ-BOTH", to: "REQ-PEER" }],
+        relationships: [
+          { type: "relates_to", from: "REQ-BOTH", to: "REQ-PEER" },
+        ],
       },
       contextFor(root, commitQuery(), { fs: nodeFilesystem }),
     );
-    const paths = result.structuredContent?.sourceWrites?.map((row) => row.path) ?? [];
+    const paths =
+      result.structuredContent?.sourceWrites?.map((row) => row.path) ?? [];
     expect(paths).toContain("docs/REQ-BOTH.md");
-    expect(paths.some((item) => item.startsWith(".kb/relationships/"))).toBe(true);
-    expect(result.structuredContent?.contradictionCheck?.outcome).toBe("no-conflict");
+    expect(paths.some((item) => item.startsWith(".kb/relationships/"))).toBe(
+      true,
+    );
+    expect(result.structuredContent?.contradictionCheck?.outcome).toBe(
+      "no-conflict",
+    );
   });
 
   test("skips unchanged or missing shard hashes and records modeled readiness", async () => {
     // implements REQ-014
     const root = makeTempDir();
-    const shardPath = shardsModule.computeShardPath(path.join(root, ".kb"), "REQ-SAME");
+    const shardPath = shardsModule.computeShardPath(
+      path.join(root, ".kb"),
+      "REQ-SAME",
+    );
     mkdirSync(path.dirname(shardPath), { recursive: true });
     shardsModule.appendRelationship(path.join(root, ".kb"), {
       type: "relates_to",
@@ -868,9 +938,14 @@ describe("executeUpsert remaining runtime branches", () => {
         type: "req",
         id: "REQ-SAME",
         properties: { title: "Same", status: "open" },
-        relationships: [{ type: "relates_to", from: "REQ-SAME", to: "REQ-PEER" }],
+        relationships: [
+          { type: "relates_to", from: "REQ-SAME", to: "REQ-PEER" },
+        ],
       },
-      contextFor(root, commitQuery(), { fs: nodeFilesystem, sourceFirst: false }),
+      contextFor(root, commitQuery(), {
+        fs: nodeFilesystem,
+        sourceFirst: false,
+      }),
     );
     expect(
       unchanged.structuredContent?.sourceWrites?.some((row) =>
@@ -879,29 +954,38 @@ describe("executeUpsert remaining runtime branches", () => {
     ).toBeFalsy();
 
     track(
-      spyOn(warningsModule, "scenarioCoverageWarnings").mockImplementation(async () => {
-        const relDir = path.join(root, ".kb", "relationships");
-        if (existsSync(relDir)) {
-          for (const name of readdirSync(relDir)) {
-            if (name.endsWith(".yaml")) unlinkSync(path.join(relDir, name));
+      spyOn(warningsModule, "scenarioCoverageWarnings").mockImplementation(
+        async () => {
+          const relDir = path.join(root, ".kb", "relationships");
+          if (existsSync(relDir)) {
+            for (const name of readdirSync(relDir)) {
+              if (name.endsWith(".yaml")) unlinkSync(path.join(relDir, name));
+            }
           }
-        }
-        return ["coverage note"];
-      }),
+          return ["coverage note"];
+        },
+      ),
     );
     const missing = await executeUpsert(
       {
         type: "req",
         id: "REQ-MISSING-HASH",
         properties: { title: "Missing hash", status: "open" },
-        relationships: [{ type: "relates_to", from: "REQ-MISSING-HASH", to: "REQ-PEER" }],
+        relationships: [
+          { type: "relates_to", from: "REQ-MISSING-HASH", to: "REQ-PEER" },
+        ],
       },
-      contextFor(root, commitQuery(), { fs: nodeFilesystem, sourceFirst: false }),
+      contextFor(root, commitQuery(), {
+        fs: nodeFilesystem,
+        sourceFirst: false,
+      }),
     );
     expect(missing.structuredContent?.warnings).toContain("coverage note");
-    expect(missing.structuredContent?.warnings.some((warning) =>
-      warning.includes("Relationship shard vanished after write"),
-    )).toBe(true);
+    expect(
+      missing.structuredContent?.warnings.some((warning) =>
+        warning.includes("Relationship shard vanished after write"),
+      ),
+    ).toBe(true);
     expect(missing.structuredContent?.status).toBe("committed_with_repairs");
     expect(missing.structuredContent?.effectFailures?.[0]).toMatchObject({
       kind: "workspace-write",
@@ -913,13 +997,15 @@ describe("executeUpsert remaining runtime branches", () => {
     });
 
     track(
-      spyOn(advisorModule, "analyzeSemanticAdvisorInput").mockImplementation((input) => {
-        const base = analyzeSemanticAdvisorInputOriginal(input);
-        return {
-          ...base,
-          receipt: { ...base.receipt, logic_readiness: "modeled" },
-        };
-      }),
+      spyOn(advisorModule, "analyzeSemanticAdvisorInput").mockImplementation(
+        (input) => {
+          const base = analyzeSemanticAdvisorInputOriginal(input);
+          return {
+            ...base,
+            receipt: { ...base.receipt, logic_readiness: "modeled" },
+          };
+        },
+      ),
     );
     const modeled = await executeUpsert(
       {
@@ -927,19 +1013,23 @@ describe("executeUpsert remaining runtime branches", () => {
         id: "REQ-MODELED",
         properties: { title: "Modeled", status: "open" },
       },
-      contextFor(root, commitQuery(), { fs: nodeFilesystem, sourceFirst: false }),
+      contextFor(root, commitQuery(), {
+        fs: nodeFilesystem,
+        sourceFirst: false,
+      }),
     );
-    expect(modeled.structuredContent?.contradictionCheck?.strict_readiness).toBe(
-      "modeled",
-    );
+    expect(
+      modeled.structuredContent?.contradictionCheck?.strict_readiness,
+    ).toBe("modeled");
   });
 
   test("invalidates the Prolog cache and wraps non-Error failures", async () => {
     // implements REQ-014
     const root = makeTempDir();
-    const invalidateCache = spyOn({ fn: () => undefined }, "fn").mockImplementation(
-      () => undefined,
-    );
+    const invalidateCache = spyOn(
+      { fn: () => undefined },
+      "fn",
+    ).mockImplementation(() => undefined);
     const result = await executeUpsert(
       {
         type: "scenario",
@@ -982,7 +1072,9 @@ describe("executeUpsert remaining runtime branches", () => {
     // implements REQ-014
     const root = makeTempDir();
     track(
-      spyOn(warningsModule, "scenarioCoverageWarnings").mockRejectedValue("post-commit"),
+      spyOn(warningsModule, "scenarioCoverageWarnings").mockRejectedValue(
+        "post-commit",
+      ),
     );
     const repaired = await executeUpsert(
       {
@@ -1007,7 +1099,10 @@ describe("executeUpsert remaining runtime branches", () => {
       rollback() {},
     };
     track(
-      spyOn(symbolRefresh, "refreshSymbolCoordinatesForManifest").mockResolvedValue({
+      spyOn(
+        symbolRefresh,
+        "refreshSymbolCoordinatesForManifest",
+      ).mockResolvedValue({
         refreshed: true,
         found: true,
         outcome: "updated",
@@ -1015,9 +1110,10 @@ describe("executeUpsert remaining runtime branches", () => {
       }),
     );
     track(
-      spyOn(manifestModule, "readManifestWithCoordinateOverlay").mockReturnValue([
-        { id: "SYM-OK", title: "Ok" },
-      ]),
+      spyOn(
+        manifestModule,
+        "readManifestWithCoordinateOverlay",
+      ).mockReturnValue([{ id: "SYM-OK", title: "Ok" }]),
     );
     track(
       spyOn(manifestModule, "extractManifestSymbolRecords").mockReturnValue([
@@ -1043,10 +1139,15 @@ describe("executeUpsert remaining runtime branches", () => {
       contextFor(root, commitQuery(), { fs: nodeFilesystem }),
     );
     expect(created.structuredContent?.created).toBe(1);
-    expect(existsSync(path.join(root, ".kb", ".symbol-compiler.lock"))).toBe(false);
+    expect(existsSync(path.join(root, ".kb", ".symbol-compiler.lock"))).toBe(
+      false,
+    );
 
     track(
-      spyOn(symbolRefresh, "refreshSymbolCoordinatesForManifest").mockResolvedValue({
+      spyOn(
+        symbolRefresh,
+        "refreshSymbolCoordinatesForManifest",
+      ).mockResolvedValue({
         refreshed: false,
         found: false,
         outcome: "not_found",
@@ -1066,7 +1167,10 @@ describe("executeUpsert remaining runtime branches", () => {
     ).rejects.toThrow(/could not find SYM-MISS/);
 
     track(
-      spyOn(symbolRefresh, "refreshSymbolCoordinatesForManifest").mockResolvedValue({
+      spyOn(
+        symbolRefresh,
+        "refreshSymbolCoordinatesForManifest",
+      ).mockResolvedValue({
         refreshed: true,
         found: true,
         outcome: "removed",
@@ -1096,7 +1200,10 @@ describe("executeUpsert remaining runtime branches", () => {
       rollback() {},
     };
     track(
-      spyOn(symbolRefresh, "refreshSymbolCoordinatesForManifest").mockResolvedValue({
+      spyOn(
+        symbolRefresh,
+        "refreshSymbolCoordinatesForManifest",
+      ).mockResolvedValue({
         refreshed: true,
         found: true,
         outcome: "updated",
@@ -1104,7 +1211,10 @@ describe("executeUpsert remaining runtime branches", () => {
       }),
     );
     track(
-      spyOn(manifestModule, "readManifestWithCoordinateOverlay").mockImplementation(() => {
+      spyOn(
+        manifestModule,
+        "readManifestWithCoordinateOverlay",
+      ).mockImplementation(() => {
         throw new Error("overlay exploded");
       }),
     );
@@ -1118,11 +1228,16 @@ describe("executeUpsert remaining runtime branches", () => {
         },
         contextFor(root, commitQuery(), { fs: nodeFilesystem }),
       ),
-    ).rejects.toThrow(/could not be compiled after coordinate refresh: overlay exploded/);
+    ).rejects.toThrow(
+      /could not be compiled after coordinate refresh: overlay exploded/,
+    );
 
     spies.pop()?.mockRestore();
     track(
-      spyOn(manifestModule, "readManifestWithCoordinateOverlay").mockImplementation(() => {
+      spyOn(
+        manifestModule,
+        "readManifestWithCoordinateOverlay",
+      ).mockImplementation(() => {
         throw "overlay-bare";
       }),
     );
@@ -1140,9 +1255,10 @@ describe("executeUpsert remaining runtime branches", () => {
 
     spies.pop()?.mockRestore();
     track(
-      spyOn(manifestModule, "readManifestWithCoordinateOverlay").mockReturnValue([
-        { id: "SYM-OTHER", title: "Other" },
-      ]),
+      spyOn(
+        manifestModule,
+        "readManifestWithCoordinateOverlay",
+      ).mockReturnValue([{ id: "SYM-OTHER", title: "Other" }]),
     );
     await expect(
       executeUpsert(
@@ -1157,11 +1273,14 @@ describe("executeUpsert remaining runtime branches", () => {
     ).rejects.toThrow(/no longer contains SYM-GONE/);
 
     track(
-      spyOn(manifestModule, "readManifestWithCoordinateOverlay").mockReturnValue([
-        { id: "SYM-EMPTY", title: "Empty" },
-      ]),
+      spyOn(
+        manifestModule,
+        "readManifestWithCoordinateOverlay",
+      ).mockReturnValue([{ id: "SYM-EMPTY", title: "Empty" }]),
     );
-    track(spyOn(manifestModule, "extractManifestSymbolRecords").mockReturnValue([]));
+    track(
+      spyOn(manifestModule, "extractManifestSymbolRecords").mockReturnValue([]),
+    );
     await expect(
       executeUpsert(
         {
@@ -1179,7 +1298,10 @@ describe("executeUpsert remaining runtime branches", () => {
     // implements REQ-014
     const root = makeTempDir();
     track(
-      spyOn(symbolRefresh, "refreshSymbolCoordinatesForManifest").mockResolvedValue({
+      spyOn(
+        symbolRefresh,
+        "refreshSymbolCoordinatesForManifest",
+      ).mockResolvedValue({
         refreshed: true,
         found: true,
         outcome: "updated",
@@ -1194,7 +1316,10 @@ describe("executeUpsert remaining runtime branches", () => {
       }),
     );
     track(
-      spyOn(manifestModule, "readManifestWithCoordinateOverlay").mockReturnValue([]),
+      spyOn(
+        manifestModule,
+        "readManifestWithCoordinateOverlay",
+      ).mockReturnValue([]),
     );
     let rollbackFailure: unknown;
     try {
@@ -1211,7 +1336,9 @@ describe("executeUpsert remaining runtime branches", () => {
       rollbackFailure = error;
     }
     expect(rollbackFailure).toBeInstanceOf(AggregateError);
-    expect(String(rollbackFailure)).toMatch(/coordinate artifact rollback failed/);
+    expect(String(rollbackFailure)).toMatch(
+      /coordinate artifact rollback failed/,
+    );
 
     track(
       spyOn(sourceAuthoring, "writeSourceForUpsert").mockResolvedValue({
@@ -1239,7 +1366,11 @@ describe("executeUpsert remaining runtime branches", () => {
           root,
           (goal) => {
             if (goal.startsWith("kb_commit_upsert(")) {
-              return { success: false, bindings: {}, error: "commit-after-source" };
+              return {
+                success: false,
+                bindings: {},
+                error: "commit-after-source",
+              };
             }
             return { success: true, bindings: { Results: "[]" } };
           },
@@ -1253,7 +1384,10 @@ describe("executeUpsert remaining runtime branches", () => {
     // implements REQ-014
     const root = makeTempDir();
     track(
-      spyOn(symbolRefresh, "refreshSymbolCoordinatesForManifest").mockResolvedValue({
+      spyOn(
+        symbolRefresh,
+        "refreshSymbolCoordinatesForManifest",
+      ).mockResolvedValue({
         refreshed: true,
         found: true,
         outcome: "updated",
@@ -1266,9 +1400,10 @@ describe("executeUpsert remaining runtime branches", () => {
       }),
     );
     track(
-      spyOn(manifestModule, "readManifestWithCoordinateOverlay").mockReturnValue([
-        { id: "SYM-NOSF", title: "No source file" },
-      ]),
+      spyOn(
+        manifestModule,
+        "readManifestWithCoordinateOverlay",
+      ).mockReturnValue([{ id: "SYM-NOSF", title: "No source file" }]),
     );
     track(
       spyOn(manifestModule, "extractManifestSymbolRecords").mockReturnValue([

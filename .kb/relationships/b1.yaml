@@ -132,3 +132,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6e857d3029f6
+  - type: validates
+    from: TEST-proof-maintenance-roundtrip
+    to: SCEN-kibi-verification-evidence-contract
+    created_at: 2026-09-14T18:51:28.662Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e509d43002f1
+  - type: validates
+    from: TEST-proof-maintenance-roundtrip
+    to: SCEN-core-atomic-upsert-persistence
+    created_at: 2026-09-14T18:51:28.684Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc082e1c7e3a

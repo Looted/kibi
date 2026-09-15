@@ -73,12 +73,13 @@ export function writeCoverageManifestAudit(
   return missingFiles;
 }
 
+// implements REQ-014
+// covered_by TEST-scripts-unit-coverage-runner
 export async function runCoverageManifestCli(
   argv: string[] = process.argv,
 ): Promise<void> {
   const workspaceRoot = argv[2] ?? process.cwd();
-  const coverageDir =
-    argv[3] ?? join(workspaceRoot, "coverage", "unit");
+  const coverageDir = argv[3] ?? join(workspaceRoot, "coverage", "unit");
   const lcov = await Bun.file(join(coverageDir, "lcov.info")).text();
   const missingFiles = writeCoverageManifestAudit(
     workspaceRoot,

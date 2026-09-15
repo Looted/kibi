@@ -56,8 +56,11 @@ if (RUN_NODE_TEST_SUITE) {
       { timeout: 120000 },
     );
 
-    it("should init creates .kb structure", async () => {
-      if (!hasProlog) return;
+    it("should init creates .kb structure", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       const { stdout } = await kibi(sandbox, ["init"]);
 
@@ -80,8 +83,11 @@ if (RUN_NODE_TEST_SUITE) {
       assert.ok(!Object.hasOwn(manifest, "paths"));
     });
 
-    it("should sync imports entities from documents", async () => {
-      if (!hasProlog) return;
+    it("should sync imports entities from documents", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       await kibi(sandbox, ["init"]);
 
@@ -131,37 +137,47 @@ if (RUN_NODE_TEST_SUITE) {
       );
     });
 
-    it("should query returns synced entities", { timeout: 20000 }, async () => {
-      if (!hasProlog) return;
+    it(
+      "should query returns synced entities",
+      { timeout: 20000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
-      await kibi(sandbox, ["init"]);
+        await kibi(sandbox, ["init"]);
 
-      createMarkdownFile(
-        sandbox,
-        ".kb/requirements/req-auth.md",
-        {
-          id: "req-auth",
-          title: "Authentication Required",
-          type: "req",
-          status: "open",
-          tags: ["security"],
-        },
-        "All API endpoints require authentication.",
-      );
+        createMarkdownFile(
+          sandbox,
+          ".kb/requirements/req-auth.md",
+          {
+            id: "req-auth",
+            title: "Authentication Required",
+            type: "req",
+            status: "open",
+            tags: ["security"],
+          },
+          "All API endpoints require authentication.",
+        );
 
-      await kibi(sandbox, ["sync"]);
+        await kibi(sandbox, ["sync"]);
 
-      const { stdout } = await kibi(sandbox, ["query", "req"]);
+        const { stdout } = await kibi(sandbox, ["query", "req"]);
 
-      assert.ok(stdout.includes("Authentication Required"));
-      assert.ok(stdout.includes("security"));
-    });
+        assert.ok(stdout.includes("Authentication Required"));
+        assert.ok(stdout.includes("security"));
+      },
+    );
 
     it(
       "should check validates KB with no violations",
       { timeout: 20000 },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         await kibi(sandbox, ["init"]);
 
@@ -191,8 +207,11 @@ if (RUN_NODE_TEST_SUITE) {
       },
     );
 
-    it("should idempotent sync does not duplicate entities", async () => {
-      if (!hasProlog) return;
+    it("should idempotent sync does not duplicate entities", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       await kibi(sandbox, ["init"]);
 
@@ -228,8 +247,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "should query with ID filter returns specific entity",
       { timeout: 20000 },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         await kibi(sandbox, ["init"]);
 
@@ -273,8 +295,11 @@ if (RUN_NODE_TEST_SUITE) {
       },
     );
 
-    it("should handle empty repository gracefully", async () => {
-      if (!hasProlog) return;
+    it("should handle empty repository gracefully", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       await kibi(sandbox, ["init"]);
 

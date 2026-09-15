@@ -1,6 +1,9 @@
 // implements REQ-cursor-kibi-plugin-v1
 import { afterEach, describe, expect, test } from "bun:test";
-import { isFreshnessLane, isKbFreshnessRelevantPath } from "../src/path-policy.js";
+import {
+  isFreshnessLane,
+  isKbFreshnessRelevantPath,
+} from "../src/path-policy.js";
 
 afterEach(() => {
   process.exitCode = 0;

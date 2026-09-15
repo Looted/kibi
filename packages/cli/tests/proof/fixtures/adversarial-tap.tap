@@ -1,0 +1,6 @@
+TAP version 13
+# Subtest: outer
+    1..1
+    ok 1 - child
+ok 1 - outer
+1..1

@@ -164,8 +164,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "should query existing entities",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const response = await sendJsonRpc(
           sandbox.kibiMcpBin,
@@ -214,8 +217,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "should filter queries by type",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const response = await sendJsonRpc(
           sandbox.kibiMcpBin,
@@ -253,8 +259,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "should filter queries by ID",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const response = await sendJsonRpc(
           sandbox.kibiMcpBin,
@@ -286,8 +295,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "should filter queries by tags",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const response = await sendJsonRpc(
           sandbox.kibiMcpBin,
@@ -321,8 +333,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "should create new entity via kb_upsert",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const response = await sendJsonRpc(
           sandbox.kibiMcpBin,
@@ -399,8 +414,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "should update existing entity via kb_upsert",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const response = await sendJsonRpc(
           sandbox.kibiMcpBin,
@@ -464,8 +482,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "should require an explicit supersession plan for authored requirements",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const deleteResponse = await sendJsonRpc(
           sandbox.kibiMcpBin,
@@ -541,8 +562,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "should reject a contradicting requirement with the actionable structured error",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         // Strict-lane fixtures: one subject fact, two incompatible
         // property-value facts on the same subject/property.
@@ -673,8 +697,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "should run kb_check with a migration rule selected through the generated registry",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const response = await sendJsonRpc(
           sandbox.kibiMcpBin,
@@ -702,8 +729,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "should handle deleting non-existent entity",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const response = await sendJsonRpc(
           sandbox.kibiMcpBin,
@@ -729,8 +759,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "should validate KB via kb_check",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const response = await sendJsonRpc(
           sandbox.kibiMcpBin,
@@ -761,8 +794,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "should return error for invalid method",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const response = await sendJsonRpc(
           sandbox.kibiMcpBin,

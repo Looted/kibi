@@ -5,6 +5,7 @@ import {
   main,
   packedTestIsolationArg,
   runPackedE2E,
+  validatePackedProofSummary,
 } from "../run-packed-e2e.mjs";
 
 function fakeSignalTarget() {
@@ -124,7 +125,7 @@ test("packed runner rejects missing inputs, helpers, and invalid environments", 
 
 test("packed runner maps signal exits and forwards SIGINT/SIGTERM", async () => {
   const signalTarget = fakeSignalTarget();
-  let killed = [];
+  const killed = [];
   const result = await runPackedE2E({
     compiledDirectory: "/tmp/compiled",
     testFiles: ["/tmp/one.test.js"],
@@ -166,7 +167,88 @@ test("packed runner main uses argv and surfaces usage errors", async () => {
 });
 
 test("packed runner picks the Node-version isolation flag that avoids worker IPC", () => {
-  assert.equal(packedTestIsolationArg("22.14.0"), "--experimental-test-isolation=none");
+  assert.equal(
+    packedTestIsolationArg("22.14.0"),
+    "--experimental-test-isolation=none",
+  );
   assert.equal(packedTestIsolationArg("24.0.0"), "--test-isolation=none");
   assert.equal(packedTestIsolationArg("26.7.0"), "--test-isolation=none");
+});
+
+test("proof packed mode requires a runnable test and waits for TAP output", async () => {
+  assert.doesNotThrow(() =>
+    validatePackedProofSummary(
+      "# tests 1\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n",
+    ),
+  );
+  assert.throws(
+    () =>
+      validatePackedProofSummary(
+        "# tests 1\n# pass 0\n# fail 0\n# cancelled 0\n# skipped 1\n# todo 0\n",
+      ),
+    /no passing runnable tests/,
+  );
+  assert.throws(
+    () =>
+      validatePackedProofSummary(
+        "# tests 2\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 1\n# todo 0\n",
+      ),
+    /no passing runnable tests/,
+  );
+  assert.throws(
+    () =>
+      validatePackedProofSummary(
+        "# tests 0\n# pass 0\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n",
+      ),
+    /executed zero tests/,
+  );
+  assert.throws(
+    () => validatePackedProofSummary("# tests 1\n# pass 1\n"),
+    /complete TAP summary/,
+  );
+
+  let receivedArguments;
+  const runProof = (output) =>
+    runPackedE2E({
+      compiledDirectory: "/tmp/compiled",
+      testFiles: ["/tmp/proof.test.js"],
+      proofMode: true,
+      signalTarget: fakeSignalTarget(),
+      importHelpers: async () => ({
+        prepareSharedPackedEnvironment: async () => ({
+          prefix: "/tmp/prefix",
+          tarballsRoot: "/tmp/tarballs",
+        }),
+        cleanupSharedPackedInstallation: () => undefined,
+      }),
+      spawnProcess: (_command, argv, options) => {
+        receivedArguments = { argv, options };
+        const stdout = new EventEmitter();
+        const child = new EventEmitter();
+        child.stdout = stdout;
+        queueMicrotask(() => {
+          stdout.emit("data", output);
+          stdout.emit("close");
+          child.emit("close", 0, null);
+        });
+        return child;
+      },
+      nodeExecutable: "fake-node",
+    });
+  const result = await runProof(
+    "# tests 1\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n",
+  );
+  assert.equal(result, 0);
+  assert.equal(receivedArguments.argv[4], "--test-reporter=tap");
+  assert.deepEqual(receivedArguments.options.stdio, [
+    "ignore",
+    "pipe",
+    "inherit",
+  ]);
+  await assert.rejects(
+    runProof(
+      "# tests 1\n# pass 0\n# fail 0\n# cancelled 0\n# skipped 1\n# todo 0\n",
+    ),
+    /no passing runnable tests/,
+  );
 });

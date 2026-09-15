@@ -1,5 +1,12 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import {
+  mkdir,
+  mkdtemp,
+  readFile,
+  rm,
+  symlink,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { OperationError } from "../../src/cli-errors.js";
@@ -229,11 +236,11 @@ describe("source deletion and relationship patching", () => {
       }),
     ).toThrow(/YAML symbol manifests/);
     expect(() =>
-      renderYamlRelationshipDeletion(
-        ".kb/symbols.yaml",
-        "symbols: [\n",
-        { type: "implements", from: "SYM-1", to: "REQ-1" },
-      ),
+      renderYamlRelationshipDeletion(".kb/symbols.yaml", "symbols: [\n", {
+        type: "implements",
+        from: "SYM-1",
+        to: "REQ-1",
+      }),
     ).toThrow(/invalid YAML/);
     expect(() =>
       renderYamlRelationshipDeletion(".kb/symbols.yaml", "title: none\n", {
@@ -284,9 +291,9 @@ describe("writeSourceForUpsert rollback and format branches", () => {
       context(root, withoutRename),
     );
     expect(result?.receipt.created).toBe(true);
-    expect(await readFile(path.join(root, "docs", "REQ-NORENAME.md"), "utf8")).toContain(
-      "REQ-NORENAME",
-    );
+    expect(
+      await readFile(path.join(root, "docs", "REQ-NORENAME.md"), "utf8"),
+    ).toContain("REQ-NORENAME");
   });
 
   test("rolls back a created file, restores prior bytes, and skips concurrent edits", async () => {
@@ -338,7 +345,10 @@ describe("writeSourceForUpsert rollback and format branches", () => {
       { id: "REQ-OLD", source: "docs/REQ-OLD.md" },
       context(root),
     );
-    await writeFile(path.join(root, "docs", "REQ-OLD.md"), "concurrent writer\n");
+    await writeFile(
+      path.join(root, "docs", "REQ-OLD.md"),
+      "concurrent writer\n",
+    );
     await concurrent?.rollback();
     expect(await readFile(path.join(root, "docs", "REQ-OLD.md"), "utf8")).toBe(
       "concurrent writer\n",
@@ -372,7 +382,9 @@ describe("writeSourceForUpsert rollback and format branches", () => {
         undefined,
         context(root),
       ),
-    ).rejects.toThrow(/YAML source authoring is supported only for symbol manifests/);
+    ).rejects.toThrow(
+      /YAML source authoring is supported only for symbol manifests/,
+    );
   });
 
   test("normalizes absolute workspace paths and writes symbol manifests", async () => {
@@ -400,7 +412,10 @@ describe("writeSourceForUpsert rollback and format branches", () => {
       context(root),
     );
     expect(created?.receipt.path).toBe(".kb/symbols.yaml");
-    const first = await readFile(path.join(root, ".kb", "symbols.yaml"), "utf8");
+    const first = await readFile(
+      path.join(root, ".kb", "symbols.yaml"),
+      "utf8",
+    );
     expect(first).toContain("SYM-NEW");
 
     const updated = await writeSourceForUpsert(
@@ -415,7 +430,10 @@ describe("writeSourceForUpsert rollback and format branches", () => {
       context(root),
     );
     expect(updated?.receipt.created).toBe(false);
-    const after = await readFile(path.join(root, ".kb", "symbols.yaml"), "utf8");
+    const after = await readFile(
+      path.join(root, ".kb", "symbols.yaml"),
+      "utf8",
+    );
     expect(after).toContain("Renamed");
     expect(after).toContain("TEST-1");
 
@@ -430,9 +448,9 @@ describe("writeSourceForUpsert rollback and format branches", () => {
       context(root),
     );
     expect(sibling?.receipt.path).toBe(".kb/symbols.yaml");
-    expect(await readFile(path.join(root, ".kb", "symbols.yaml"), "utf8")).toContain(
-      "SYM-OTHER",
-    );
+    expect(
+      await readFile(path.join(root, ".kb", "symbols.yaml"), "utf8"),
+    ).toContain("SYM-OTHER");
   });
 
   test("renderYamlRelationshipDeletion removes typed targets and ignores missing nodes", async () => {
@@ -485,7 +503,9 @@ describe("writeSourceForUpsert rollback and format branches", () => {
       context(root, limited),
     );
     await created?.rollback();
-    expect(await readFile(path.join(root, "docs", "REQ-LIMIT.md"), "utf8")).toBe("");
+    expect(
+      await readFile(path.join(root, "docs", "REQ-LIMIT.md"), "utf8"),
+    ).toBe("");
 
     await writeFile(
       path.join(root, "docs", "REQ-LIMIT.md"),
@@ -503,9 +523,9 @@ describe("writeSourceForUpsert rollback and format branches", () => {
       context(root, limited),
     );
     await updated?.rollback();
-    expect(await readFile(path.join(root, "docs", "REQ-LIMIT.md"), "utf8")).toContain(
-      "old",
-    );
+    expect(
+      await readFile(path.join(root, "docs", "REQ-LIMIT.md"), "utf8"),
+    ).toContain("old");
   });
 
   test("canonicalSourcePath and writeSourceForUpsert reject unknown types without a path", async () => {
@@ -519,4 +539,3 @@ describe("writeSourceForUpsert rollback and format branches", () => {
     ).toThrow(/No writable source target/);
   });
 });
-

@@ -223,3 +223,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-97006721f48e
+  - type: implements
+    from: SYM-quality-eval-liveCompileEvaluator
+    to: REQ-kibi-change-to-proof-evaluation
+    created_at: 2026-09-14T19:18:51.659Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1716d337e324
+  - type: covered_by
+    from: SYM-quality-eval-liveCompileEvaluator
+    to: TEST-kibi-change-to-proof-evaluation
+    created_at: 2026-09-14T19:18:51.675Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01b6d067fddc

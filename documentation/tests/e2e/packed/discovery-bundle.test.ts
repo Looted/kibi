@@ -231,8 +231,11 @@ This requirement is intentionally not must-priority.
     it(
       "keeps CLI and MCP aligned for search/status/gaps/coverage/graph",
       { timeout: 120000 },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const searchCli = await kibi(sandbox, [
           "search",
@@ -487,8 +490,11 @@ This requirement is intentionally not must-priority.
     it(
       "writes derived diagnostic fields in MCP diagnostic mode",
       { timeout: 120000 },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const proc = await startMcpServer(sandbox, ["--diagnostic-mode"]);
         try {
@@ -528,8 +534,11 @@ This requirement is intentionally not must-priority.
     it(
       "fails closed when isolated core root is missing discovery.pl sibling",
       { timeout: 120000 },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const isolatedDir = join(sandbox.repoDir, "isolated-broken-core");
         const isolatedSrc = join(isolatedDir, "src");

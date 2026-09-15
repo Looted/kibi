@@ -59,7 +59,11 @@ export function isolatedCliSandboxEnv(
   ) {
     env.KIBI_BRANCH = explicit;
   }
-  for (const key of ["KIBI_WORKSPACE", "KIBI_PROJECT_ROOT", "KIBI_ROOT"] as const) {
+  for (const key of [
+    "KIBI_WORKSPACE",
+    "KIBI_PROJECT_ROOT",
+    "KIBI_ROOT",
+  ] as const) {
     const value = overrides[key];
     if (
       typeof value === "string" &&

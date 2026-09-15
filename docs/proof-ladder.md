@@ -78,7 +78,7 @@ pass):
 | `contradictions` | No other current requirement contradicts this one over shared facts. Check completeness itself is visible. | `passed`, `blocked`, `unresolved` |
 | `scenarios` | At least one scenario specifies the requirement (`specified_by`). | `passed`, `missing` |
 | `scenarioTests` | Each scenario is validated by at least one test (`verified_by`/`validates`). | `passed`, `missing` |
-| `passingE2E` | At least one scenario-backed test is end-to-end and carries a valid, fresh, passing `kibi.proof-receipt.v1` bound to the current snapshot, contract hash, and fingerprint. | `passed`, `missing` |
+| `passingE2E` | Every linked scenario has at least one end-to-end test, and every linked E2E proof-bearing test carries a valid, fresh, passing `kibi.proof-receipt.v1` bound to the current snapshot, contract hash, and fingerprint. Per-scenario results are exposed in `scenarioObligations`; unit/integration-only ancillary tests remain nonblocking. | `passed`, `missing`, `unresolved` |
 | `executableSymbols` | Each qualifying E2E test is linked to executable test code via `executable_for`. | `passed`, `missing` |
 | `productionSymbols` | Production symbols implementing the requirement are covered by those passing E2E tests (`covered_by`). | `passed`, `missing`, `blocked` |
 | `sourceCoordinates` | The requirement source and all linked symbols carry exact published coordinates. | `passed`, `missing`, `blocked` |
@@ -107,11 +107,11 @@ maps to `proofStatus: unresolved`, not `proven`.
 - `proofGaps[]` — blocking only. Every entry carries a code (e.g.
   `missing_proof_receipt`, `missing_production_symbol_coverage`), a priority,
   a stage name, and a suggested repair action.
-- `proofAdvisories[]` — receipt-completeness codes (`missing_proof_receipt`,
-  `stale_proof_receipt`, `failed_proof_receipt`, `invalid_proof_receipt`,
-  `proof_contract_mismatch`) are **downgraded to advisories** once the
-  passing-E2E stage already holds strict proof. Extra scenario-backed tests
-  without receipts are useful context, not blockers.
+- `proofAdvisories[]` — explicitly non-blocking context. Receipt-completeness
+  codes (`missing_proof_receipt`, `stale_proof_receipt`,
+  `failed_proof_receipt`, `invalid_proof_receipt`, and
+  `proof_contract_mismatch`) remain blocking for every linked E2E obligation;
+  they are never downgraded because another scenario has a passing receipt.
 - `proofStatus` — the headline:
   - `proven` — all stages passed (`proofGaps` is empty by invariant).
   - `missing` — at least one stage is `missing` (evidence absent).
@@ -127,7 +127,7 @@ maps to `proofStatus: unresolved`, not `proven`.
 | `productionSymbols: blocked` | No passing E2E receipts in the current snapshot at all | Run `kibi prove` to refresh receipts, then re-check |
 | `missing_symbol_coordinates` gap | Symbol has no coordinate entry; often `granularity_reason` missing so the coarse fallback was gated off | `kibi sync --refresh-symbol-coordinates` reports failed ids and reasons; add `symbol_role`/`granularity_reason` where the reason says to |
 | Requirement missing from proof reports entirely | Non-current status or supersession | Coverage `--status not_applicable --by req` lists it with the typed applicability reason |
-| `passingE2e` advisories about other tests | Additional scenario-backed tests lack receipts after strict proof exists | Non-blocking; run `kibi prove` when convenient |
+| `passingE2e.scenarioObligations` has a non-passed status | A linked scenario has no E2E test or one of its E2E proof-bearing tests lacks qualifying evidence | Inspect the scenario's `gaps`, repair every listed receipt, and run `kibi prove` |
 
 ## Related surfaces
 

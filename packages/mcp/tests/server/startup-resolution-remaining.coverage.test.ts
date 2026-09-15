@@ -15,7 +15,8 @@ const dirs: string[] = [];
 
 afterEach(() => {
   for (const spy of spies.splice(0)) spy.mockRestore();
-  for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true });
+  for (const dir of dirs.splice(0))
+    rmSync(dir, { recursive: true, force: true });
   if (process.exitCode === 1) process.exitCode = 0;
 });
 
@@ -57,11 +58,18 @@ describe("startup-resolution remaining package walk and catch-all", () => {
       return original(target);
     });
     spies.push(spy);
-    const nested = path.join(os.tmpdir(), "kibi-mcp-walk", "nested", "server.js");
+    const nested = path.join(
+      os.tmpdir(),
+      "kibi-mcp-walk",
+      "nested",
+      "server.js",
+    );
     expect(() => readRunningPackageInfo(nested)).toThrow(
       /Unable to find package.json/,
     );
-    expect(resolveProjectLocalMcp(path.join(os.tmpdir(), "kibi-mcp-walk"))).toBeNull();
+    expect(
+      resolveProjectLocalMcp(path.join(os.tmpdir(), "kibi-mcp-walk")),
+    ).toBeNull();
     expect(nextAncestorDirectory("/")).toBeUndefined();
     expect(nextAncestorDirectory("/tmp/nested")).toBe("/tmp");
   });

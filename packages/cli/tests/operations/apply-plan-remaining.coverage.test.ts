@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
 // implements REQ-KIBI-BOOTSTRAP-PLAN, REQ-014
 import { createHash } from "node:crypto";
 import {
@@ -9,7 +10,6 @@ import {
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
 
 import * as branchModule from "../../src/commands/branch.js";
 import * as migrateModule from "../../src/commands/migrate.js";
@@ -18,6 +18,8 @@ import {
   bootstrapEmptyKbSnapshotId,
   bootstrapPlanHash,
 } from "../../src/operations/bootstrap/types.js";
+import * as deleteModule from "../../src/operations/mutation/delete.js";
+import * as upsertModule from "../../src/operations/mutation/upsert.js";
 import {
   assertBootstrapRecoveryDependencies,
   assertSourceWriteStaysInWorkspace,
@@ -27,23 +29,21 @@ import {
   type CompilePlanV1,
   compilePlanHash,
 } from "../../src/operations/planning/compile-intent.js";
-import * as deleteModule from "../../src/operations/mutation/delete.js";
-import * as upsertModule from "../../src/operations/mutation/upsert.js";
+import * as checkExecutor from "../../src/public/operations/check-executor.js";
 import * as discoveryExecutors from "../../src/public/operations/discovery-executors.js";
 import type { StatusPayload } from "../../src/public/operations/discovery-executors.js";
 import {
-  buildMigrationPlan,
   type MigrationAction,
+  buildMigrationPlan,
 } from "../../src/public/operations/migration-plan.js";
 import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
-import * as checkExecutor from "../../src/public/operations/check-executor.js";
-import * as reporting from "../../src/public/operations/specs/reporting.js";
 import type {
   OperationContext,
   PrologQueryResult,
 } from "../../src/public/operations/runtime-types.js";
-import { isolateKibiEnv } from "../helpers/in-process-workspace.js";
+import * as reporting from "../../src/public/operations/specs/reporting.js";
 import { asApply } from "../helpers/coverage-casts.js";
+import { isolateKibiEnv } from "../helpers/in-process-workspace.js";
 
 function sha(value: string): string {
   return createHash("sha256").update(value).digest("hex");
@@ -169,16 +169,14 @@ function filesystemContext(
     ...(extra?.omitGit
       ? {}
       : {
-          git:
-            extra?.git ??
-            {
-              workspaceSnapshot: async () => ({
-                version: "kibi.workspace-snapshot.v2" as const,
-                hash: extra?.workspaceHash ?? "a".repeat(64),
-                dirty: false,
-                fileCount: 1,
-              }),
-            },
+          git: extra?.git ?? {
+            workspaceSnapshot: async () => ({
+              version: "kibi.workspace-snapshot.v2" as const,
+              hash: extra?.workspaceHash ?? "a".repeat(64),
+              dirty: false,
+              fileCount: 1,
+            }),
+          },
         }),
     branchAttachment: {
       gitBranch: "develop",
@@ -330,12 +328,15 @@ describe("validateMigrationPlanShape remaining errors", () => {
     // implements REQ-014
     const root = makeTempDir();
     const plan = buildMigrationPlan({ actions: [automaticAction()] });
+    const planAction = plan.actions[0];
+    expect(planAction).toBeDefined();
+    if (!planAction) throw new Error("expected a migration action");
     await expect(
       executeApplyPlan(
         {
           plan,
           approvedPlanHash: "not-a-sha256",
-          approvedActionIds: [plan.actions[0]!.id],
+          approvedActionIds: [planAction.id],
         },
         filesystemContext(root),
       ),
@@ -346,13 +347,16 @@ describe("validateMigrationPlanShape remaining errors", () => {
     // implements REQ-014
     const root = makeTempDir();
     const ready = buildMigrationPlan({ actions: [automaticAction()] });
+    const readyAction = ready.actions[0];
+    expect(readyAction).toBeDefined();
+    if (!readyAction) throw new Error("expected a ready migration action");
     const tampered = { ...ready, planHash: "a".repeat(64) };
     await expect(
       executeApplyPlan(
         {
           plan: tampered,
           approvedPlanHash: tampered.planHash,
-          approvedActionIds: [ready.actions[0]!.id],
+          approvedActionIds: [readyAction.id],
         },
         filesystemContext(root),
       ),
@@ -406,8 +410,18 @@ describe("source journal recovery and write rollback", () => {
           beforeHash: sha(before),
           afterHash: sha(after),
           beforeExisted: true,
-          beforeStage: path.join(root, ".kb", "recovery", `${journalId}-0.before`),
-          afterStage: path.join(root, ".kb", "recovery", `${journalId}-0.after`),
+          beforeStage: path.join(
+            root,
+            ".kb",
+            "recovery",
+            `${journalId}-0.before`,
+          ),
+          afterStage: path.join(
+            root,
+            ".kb",
+            "recovery",
+            `${journalId}-0.after`,
+          ),
         },
       ],
     });
@@ -416,7 +430,9 @@ describe("source journal recovery and write rollback", () => {
       filesystemContext(root),
     );
     expect(result.structuredContent.outcome).toBe("applied");
-    expect(asApply(result.structuredContent).changedPaths).toEqual(["docs/drifted.md"]);
+    expect(asApply(result.structuredContent).changedPaths).toEqual([
+      "docs/drifted.md",
+    ]);
   });
 
   test("treats a missing after-image on a committed journal as incomplete", async () => {
@@ -445,8 +461,18 @@ describe("source journal recovery and write rollback", () => {
           beforeHash: null,
           afterHash: sha(after),
           beforeExisted: false,
-          beforeStage: path.join(root, ".kb", "recovery", `${journalId}-0.before`),
-          afterStage: path.join(root, ".kb", "recovery", `${journalId}-0.after`),
+          beforeStage: path.join(
+            root,
+            ".kb",
+            "recovery",
+            `${journalId}-0.before`,
+          ),
+          afterStage: path.join(
+            root,
+            ".kb",
+            "recovery",
+            `${journalId}-0.after`,
+          ),
         },
       ],
     });
@@ -484,7 +510,9 @@ describe("source journal recovery and write rollback", () => {
       { plan, approvedPlanHash: plan.planHash },
       filesystemContext(root),
     );
-    expect(asApply(recovered.structuredContent).changedPaths).toEqual(["docs/fresh.md"]);
+    expect(asApply(recovered.structuredContent).changedPaths).toEqual([
+      "docs/fresh.md",
+    ]);
 
     const rolled = compilePlan({
       steps: [
@@ -526,7 +554,9 @@ describe("source journal recovery and write rollback", () => {
       { plan: rolled, approvedPlanHash: rolled.planHash },
       filesystemContext(root),
     );
-    expect(asApply(applied.structuredContent).changedPaths).toEqual(["docs/rolled.md"]);
+    expect(asApply(applied.structuredContent).changedPaths).toEqual([
+      "docs/rolled.md",
+    ]);
   });
 
   test("rejects absolute paths, symlink escapes, and beforeHash mismatches", async () => {
@@ -743,7 +773,12 @@ describe("source journal recovery and write rollback", () => {
           beforeHash: null,
           afterHash: sha(body),
           beforeExisted: false,
-          beforeStage: path.join(root, ".kb", "recovery", `${journalId}-0.before`),
+          beforeStage: path.join(
+            root,
+            ".kb",
+            "recovery",
+            `${journalId}-0.before`,
+          ),
           afterStage,
         },
       ],
@@ -872,7 +907,9 @@ describe("bootstrap apply checkpoints and recovery flatten", () => {
       filesystemContext(root),
     );
     expect(repaired.structuredContent.outcome).toBe("partially_applied");
-    expect(asApply(repaired.structuredContent).status).toBe("committed_with_repairs");
+    expect(asApply(repaired.structuredContent).status).toBe(
+      "committed_with_repairs",
+    );
     expect(asApply(repaired.structuredContent).effectFailures).toEqual([
       expect.objectContaining({
         kind: "derived-effect",
@@ -986,7 +1023,10 @@ describe("compile plan remaining commit and readback paths", () => {
       }),
     );
     await expect(
-      executeApplyPlan({ plan, approvedPlanHash: plan.planHash }, filesystemContext(root)),
+      executeApplyPlan(
+        { plan, approvedPlanHash: plan.planHash },
+        filesystemContext(root),
+      ),
     ).rejects.toThrow(/status query returned no payload/);
 
     restoreLastSpy();
@@ -996,7 +1036,10 @@ describe("compile plan remaining commit and readback paths", () => {
       ),
     );
     await expect(
-      executeApplyPlan({ plan, approvedPlanHash: plan.planHash }, filesystemContext(root)),
+      executeApplyPlan(
+        { plan, approvedPlanHash: plan.planHash },
+        filesystemContext(root),
+      ),
     ).rejects.toThrow(/KB snapshot changed since compilation/);
 
     restoreLastSpy();
@@ -1051,7 +1094,9 @@ describe("compile plan remaining commit and readback paths", () => {
       { plan, approvedPlanHash: plan.planHash },
       filesystemContext(root),
     );
-    expect(asApply(forwarded.structuredContent).status).toBe("committed_with_repairs");
+    expect(asApply(forwarded.structuredContent).status).toBe(
+      "committed_with_repairs",
+    );
     expect(asApply(forwarded.structuredContent).effectFailures).toEqual([
       { kind: "derived-effect", errorCode: "X" },
     ]);
@@ -1086,9 +1131,8 @@ describe("compile plan remaining commit and readback paths", () => {
         },
       ],
     });
-    const originalStatus = discoveryExecutors.executeStatus.bind(
-      discoveryExecutors,
-    );
+    const originalStatus =
+      discoveryExecutors.executeStatus.bind(discoveryExecutors);
     let statusCalls = 0;
     track(
       spyOn(discoveryExecutors, "executeStatus").mockImplementation(
@@ -1103,7 +1147,9 @@ describe("compile plan remaining commit and readback paths", () => {
       { plan, approvedPlanHash: plan.planHash },
       filesystemContext(root),
     );
-    expect(asApply(missingStatus.structuredContent).status).toBe("committed_with_repairs");
+    expect(asApply(missingStatus.structuredContent).status).toBe(
+      "committed_with_repairs",
+    );
     expect(
       asApply(missingStatus.structuredContent).effectFailures?.some(
         (failure) => failure.errorCode === "POST_COMMIT_READBACK_FAILED",
@@ -1151,7 +1197,9 @@ describe("compile plan remaining commit and readback paths", () => {
         },
       }),
     );
-    expect(asApply(result.structuredContent).status).toBe("committed_with_repairs");
+    expect(asApply(result.structuredContent).status).toBe(
+      "committed_with_repairs",
+    );
     expect(
       asApply(result.structuredContent).effectFailures?.some((failure) =>
         String(failure.detail).includes("snapshot gone"),
@@ -1196,7 +1244,9 @@ describe("entity deletion source writes", () => {
       outcome: "applied",
       deleted: 1,
     });
-    expect(asApply(result.structuredContent).recoveryJournalId).toMatch(/^source-writes-/);
+    expect(asApply(result.structuredContent).recoveryJournalId).toMatch(
+      /^source-writes-/,
+    );
   });
 
   test("returns repair nextActions when deletion compiled retract fails after source writes", async () => {
@@ -1266,11 +1316,13 @@ describe("migration apply remaining executors and closeout", () => {
     restoreLastSpy();
     let calls = 0;
     track(
-      spyOn(discoveryExecutors, "executeStatus").mockImplementation(async () => {
-        calls += 1;
-        if (calls === 1) return statusResult();
-        return { content: [{ type: "text", text: "none" }] };
-      }),
+      spyOn(discoveryExecutors, "executeStatus").mockImplementation(
+        async () => {
+          calls += 1;
+          if (calls === 1) return statusResult();
+          return { content: [{ type: "text", text: "none" }] };
+        },
+      ),
     );
     await expect(
       executeApplyPlan(
@@ -1481,12 +1533,22 @@ describe("migration apply remaining executors and closeout", () => {
     );
     expect(result.structuredContent.outcome).toBe("applied");
     expect(
-      (result.structuredContent as unknown as { remainingPlan?: { planHash: string } })
-        .remainingPlan?.planHash,
+      (
+        result.structuredContent as unknown as {
+          remainingPlan?: { planHash: string };
+        }
+      ).remainingPlan?.planHash,
     ).toBe(remaining.planHash);
     expect(
-      (result.structuredContent as unknown as { closeout: { proofState: string; kbState: string; snapshotState: string } })
-        .closeout,
+      (
+        result.structuredContent as unknown as {
+          closeout: {
+            proofState: string;
+            kbState: string;
+            snapshotState: string;
+          };
+        }
+      ).closeout,
     ).toMatchObject({
       kbState: "clean_fresh",
       snapshotState: "fresh",
@@ -1542,15 +1604,26 @@ describe("migration apply remaining executors and closeout", () => {
       (
         failedReadback.structuredContent as unknown as {
           actionResults: { actionId: string; detail: string }[];
-          closeout: { taskOutcome: string; kbState: string; snapshotState: string };
+          closeout: {
+            taskOutcome: string;
+            kbState: string;
+            snapshotState: string;
+          };
         }
       ).actionResults.some((row) =>
         row.detail.includes("Post-apply check/coverage readback failed"),
       ),
     ).toBe(true);
     expect(
-      (failedReadback.structuredContent as unknown as { closeout: { taskOutcome: string; kbState: string; snapshotState: string } })
-        .closeout,
+      (
+        failedReadback.structuredContent as unknown as {
+          closeout: {
+            taskOutcome: string;
+            kbState: string;
+            snapshotState: string;
+          };
+        }
+      ).closeout,
     ).toMatchObject({
       taskOutcome: "interim",
       kbState: "dirty",
@@ -1569,10 +1642,12 @@ describe("migration apply remaining executors and closeout", () => {
         content: [{ type: "text", text: "check" }],
         structuredContent: {} as never,
       });
-      const coverageSpy = spyOn(reporting, "executeCoverage").mockResolvedValue({
-        content: [{ type: "text", text: "coverage" }],
-        structuredContent: { summary, rows: [] },
-      });
+      const coverageSpy = spyOn(reporting, "executeCoverage").mockResolvedValue(
+        {
+          content: [{ type: "text", text: "coverage" }],
+          structuredContent: { summary, rows: [] },
+        },
+      );
       const statusSpy = spyOn(
         discoveryExecutors,
         "executeStatus",
@@ -1607,7 +1682,11 @@ describe("migration apply remaining executors and closeout", () => {
           },
           filesystemContext(root, {
             omitProlog: true,
-            ensureProlog: async () => stubProlog()!,
+            ensureProlog: async () => {
+              const prolog = stubProlog();
+              if (!prolog) throw new Error("expected a Prolog fixture");
+              return prolog;
+            },
           }),
         );
       } finally {
@@ -1618,16 +1697,22 @@ describe("migration apply remaining executors and closeout", () => {
     };
     const mixed = await applyWithSummary({ proofProven: 2, proofMissing: 1 });
     expect(
-      (mixed.structuredContent as unknown as { closeout: { proofState: string } }).closeout
-        .proofState,
+      (
+        mixed.structuredContent as unknown as {
+          closeout: { proofState: string };
+        }
+      ).closeout.proofState,
     ).toBe("mixed");
     const unresolved = await applyWithSummary({
       proofProven: 0,
       proofMissing: 4,
     });
     expect(
-      (unresolved.structuredContent as unknown as { closeout: { proofState: string } })
-        .closeout.proofState,
+      (
+        unresolved.structuredContent as unknown as {
+          closeout: { proofState: string };
+        }
+      ).closeout.proofState,
     ).toBe("unresolved");
   });
 
@@ -1679,13 +1764,20 @@ describe("migration apply remaining executors and closeout", () => {
       (
         schemaResult.structuredContent as unknown as {
           actionResults: { detail: string }[];
-          closeout: { taskOutcome: string; kbState: string; snapshotState: string };
+          closeout: {
+            taskOutcome: string;
+            kbState: string;
+            snapshotState: string;
+          };
         }
       ).actionResults[0]?.detail,
     ).toMatch(/Schema migration did not complete/);
     expect(
-      (schemaResult.structuredContent as unknown as { closeout: { taskOutcome: string; snapshotState: string } })
-        .closeout,
+      (
+        schemaResult.structuredContent as unknown as {
+          closeout: { taskOutcome: string; snapshotState: string };
+        }
+      ).closeout,
     ).toMatchObject({
       taskOutcome: "blocked",
       snapshotState: "not_evaluated",
@@ -1731,9 +1823,7 @@ describe("migration apply remaining executors and closeout", () => {
           type: "req",
           id: "REQ-apply",
           properties: { title: "Apply", status: "open" },
-          relationships: [
-            { type: "specified_by", from: "REQ-apply" },
-          ],
+          relationships: [{ type: "specified_by", from: "REQ-apply" }],
         },
       ],
     });
@@ -1750,9 +1840,7 @@ describe("migration apply remaining executors and closeout", () => {
           type: "req",
           id: "REQ-apply",
           properties: { title: "Apply", status: "open" },
-          relationships: [
-            { type: "specified_by", to: "SCEN-apply" },
-          ],
+          relationships: [{ type: "specified_by", to: "SCEN-apply" }],
         },
       ],
     });
@@ -1769,9 +1857,7 @@ describe("migration apply remaining executors and closeout", () => {
           type: "req",
           id: "REQ-apply",
           properties: { title: "Apply", status: "open" },
-          relationships: [
-            { from: "REQ-apply", to: "SCEN-apply" },
-          ],
+          relationships: [{ from: "REQ-apply", to: "SCEN-apply" }],
         },
       ],
     });
@@ -1838,8 +1924,18 @@ describe("apply-plan leftover recovery and bootstrap catch", () => {
           beforeHash: sha(before),
           afterHash: sha(after),
           beforeExisted: true,
-          beforeStage: path.join(root, ".kb", "recovery", `${journalId}-0.before`),
-          afterStage: path.join(root, ".kb", "recovery", `${journalId}-0.after`),
+          beforeStage: path.join(
+            root,
+            ".kb",
+            "recovery",
+            `${journalId}-0.before`,
+          ),
+          afterStage: path.join(
+            root,
+            ".kb",
+            "recovery",
+            `${journalId}-0.after`,
+          ),
         },
       ],
     });
@@ -1924,10 +2020,12 @@ describe("apply-plan leftover recovery and bootstrap catch", () => {
       filesystemContext(root, { fs }),
     );
     expect(result.structuredContent.outcome).toBe("partially_applied");
-    expect(asApply(result.structuredContent).status).toBe("committed_with_repairs");
-    expect(JSON.stringify(asApply(result.structuredContent).effectFailures)).toContain(
-      "journal write boom",
+    expect(asApply(result.structuredContent).status).toBe(
+      "committed_with_repairs",
     );
+    expect(
+      JSON.stringify(asApply(result.structuredContent).effectFailures),
+    ).toContain("journal write boom");
   });
 });
 

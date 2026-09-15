@@ -23,8 +23,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { getKbPlPathOverride, isPrologDebugEnabled } from "./env.js";
 import {
-  extractPrologErrorRecord,
   type PrologErrorRecord,
+  extractPrologErrorRecord,
 } from "./prolog/error-terms.js";
 
 const importMetaDir = path.dirname(fileURLToPath(import.meta.url));
@@ -417,9 +417,7 @@ export class PrologProcess {
                 normalizedGoal,
                 this.errorBuffer,
               ),
-              ...(classified.record
-                ? { errorRecord: classified.record }
-                : {}),
+              ...(classified.record ? { errorRecord: classified.record } : {}),
             });
             return;
           }
@@ -947,9 +945,10 @@ export class PrologProcess {
   }
 
   /** Prefer the structured error term; fall back to text heuristics. */
-  private classifyErrorOutput(
-    errorText: string,
-  ): { message: string; record?: PrologErrorRecord } {
+  private classifyErrorOutput(errorText: string): {
+    message: string;
+    record?: PrologErrorRecord;
+  } {
     const record = extractPrologErrorRecord(errorText);
     if (record) {
       return { message: record.message, record };

@@ -26,7 +26,9 @@ describe("scoreExactPredicates3 remaining exact lanes", () => {
         "The sidebar must remain visually aligned with the canvas.",
       ),
     ).toBe(0.98);
-    expect(scoreExactPredicates3(schema("visual_layout_rule"), "plain")).toBe(0);
+    expect(scoreExactPredicates3(schema("visual_layout_rule"), "plain")).toBe(
+      0,
+    );
 
     expect(
       scoreExactPredicates3(
@@ -44,7 +46,9 @@ describe("scoreExactPredicates3 remaining exact lanes", () => {
         "On save, the overlay must reconcile hashes and clear stale facts.",
       ),
     ).toBe(0.98);
-    expect(scoreExactPredicates3(schema("reconciliation_rule"), "plain")).toBe(0);
+    expect(scoreExactPredicates3(schema("reconciliation_rule"), "plain")).toBe(
+      0,
+    );
 
     expect(
       scoreExactPredicates3(
@@ -52,7 +56,9 @@ describe("scoreExactPredicates3 remaining exact lanes", () => {
         "The writer must be throttled for burst uploads.",
       ),
     ).toBe(0.98);
-    expect(scoreExactPredicates3(schema("throttle_policy_rule"), "plain")).toBe(0);
+    expect(scoreExactPredicates3(schema("throttle_policy_rule"), "plain")).toBe(
+      0,
+    );
 
     expect(
       scoreExactPredicates3(

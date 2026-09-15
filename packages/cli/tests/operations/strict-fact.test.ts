@@ -134,9 +134,7 @@ describe("factKindShapeHints", () => {
         argument_types: ["x", "y"],
       }),
     ).toEqual(
-      expect.arrayContaining([
-        expect.stringContaining("equal lengths"),
-      ]),
+      expect.arrayContaining([expect.stringContaining("equal lengths")]),
     );
     expect(factKindShapeHints({ type: "fact", fact_kind: "rule" })).toEqual(
       expect.arrayContaining([

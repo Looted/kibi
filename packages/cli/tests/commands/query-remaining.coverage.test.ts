@@ -1,13 +1,10 @@
 // implements REQ-014
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
-import { queryCommand } from "../../src/commands/query.js";
 import * as discovery from "../../src/commands/discovery-shared.js";
+import { queryCommand } from "../../src/commands/query.js";
 import type { PrologProcess } from "../../src/prolog.js";
 import * as runtimeTypes from "../../src/public/operations/runtime-types.js";
-import {
-  captureIo,
-  isolateKibiEnv,
-} from "../helpers/in-process-workspace.js";
+import { captureIo, isolateKibiEnv } from "../helpers/in-process-workspace.js";
 
 const restores: Array<() => void> = [];
 

@@ -76,8 +76,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "discovers packed project schemas, withholds incomplete plans, and returns exact contradiction evidence",
       { timeout: 300_000 },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
         mkdirSync(join(sandbox.repoDir, ".kb", "facts"), {
           recursive: true,
         });

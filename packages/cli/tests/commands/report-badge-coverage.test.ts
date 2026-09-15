@@ -1,10 +1,10 @@
 // implements REQ-kibi-html-health-report
 
 import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
+import { EventEmitter } from "node:events";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { EventEmitter } from "node:events";
 import { openReport, reportCommand } from "../../src/commands/report.js";
 
 function coverage(total: number, proven: number) {
@@ -43,9 +43,9 @@ describe("report badge bands and openReport", () => {
       { output: "empty" },
       { cwd: () => root, loadCoverage: async () => coverage(0, 0) },
     );
-    expect(readFileSync(path.join(root, "empty", "badge.svg"), "utf8")).toContain(
-      "no requirements",
-    );
+    expect(
+      readFileSync(path.join(root, "empty", "badge.svg"), "utf8"),
+    ).toContain("no requirements");
 
     await reportCommand(
       { output: "high.htm" },

@@ -83,3 +83,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e3305c9ceceb
+  - type: implements
+    from: SYM-quality-packed-summary
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-09-14T19:07:51.686Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-efa3d31b4aa5
+  - type: covered_by
+    from: SYM-quality-packed-summary
+    to: TEST-proof-runner-integrity
+    created_at: 2026-09-14T19:07:51.693Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa0a09836539

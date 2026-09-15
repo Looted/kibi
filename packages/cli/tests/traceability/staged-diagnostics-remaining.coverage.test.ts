@@ -22,9 +22,7 @@ describe("staged-diagnostics remaining coordinate derivation and empty override"
     restores.push(isolateKibiEnv());
     const derived = collectStagedKibiDiagnostics(
       {
-        sourceChanges: [
-          { path: "src/app.ts", kind: "behavior_source_edit" },
-        ],
+        sourceChanges: [{ path: "src/app.ts", kind: "behavior_source_edit" }],
         symbolsManifest: {
           path: "",
           state: "stale",

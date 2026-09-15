@@ -32,7 +32,11 @@ describe("operation contracts remaining catalog and effect declarations", () => 
       anyOf: [{ type: ["string"] }, { type: "null" }],
     });
     expect(() =>
-      assertUniqueEffectKinds("kb_status", [{ kind: "kb-read" }, { kind: "kb-read" }], 2),
+      assertUniqueEffectKinds(
+        "kb_status",
+        [{ kind: "kb-read" }, { kind: "kb-read" }],
+        2,
+      ),
     ).toThrow(/Duplicate effect contract/);
     expect(() =>
       assertUniqueEffectKinds("kb_status", [{ kind: "kb-read" }], 1),

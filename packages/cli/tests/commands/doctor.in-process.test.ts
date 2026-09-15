@@ -59,9 +59,11 @@ describe("doctorCommand", () => {
     const payload = JSON.parse(io.logText());
     expect(payload.version).toBe("kibi.doctor.v1");
     expect(payload.passed).toBe(true);
-    expect(payload.checks.some((check: { name: string }) => check.name === "SWI-Prolog")).toBe(
-      true,
-    );
+    expect(
+      payload.checks.some(
+        (check: { name: string }) => check.name === "SWI-Prolog",
+      ),
+    ).toBe(true);
   });
 
   test("detects an invalid manifest", async () => {
@@ -196,7 +198,9 @@ describe("doctorCommand", () => {
     writeFileSync(path.join(cwd, ".kb", "config.json"), "{not json", "utf8");
     const io = captureIo();
     restores.push(io.restore);
-    const malformed = await withCwd(cwd, () => doctorCommand({ format: "json" }));
+    const malformed = await withCwd(cwd, () =>
+      doctorCommand({ format: "json" }),
+    );
     expect(malformed.exitCode).toBe(1);
     expect(io.logText()).toContain("malformed");
 
@@ -294,7 +298,9 @@ describe("doctorCommand", () => {
       target: import("node:fs").PathLike,
       options?: unknown,
     ) => {
-      if (String(target).includes(`${path.sep}.git${path.sep}hooks${path.sep}`)) {
+      if (
+        String(target).includes(`${path.sep}.git${path.sep}hooks${path.sep}`)
+      ) {
         throw new Error("EACCES");
       }
       return originalStat(target, options as never);
@@ -342,7 +348,11 @@ describe("doctorCommand", () => {
       options?: unknown,
     ) => {
       const file = String(target);
-      if (file.endsWith(`${path.sep}packages${path.sep}cli${path.sep}package.json`)) {
+      if (
+        file.endsWith(
+          `${path.sep}packages${path.sep}cli${path.sep}package.json`,
+        )
+      ) {
         return JSON.stringify({
           name: "kibi-cli",
           version: "dev",
@@ -367,6 +377,8 @@ describe("doctorCommand", () => {
     restores.push(io.restore);
     const result = await withCwd(cwd, () => doctorCommand({ format: "json" }));
     expect(result.exitCode).toBe(0);
-    expect(io.logText()).toMatch(/package-provenance-unresolved|package-mcp-cli-range-mismatch|dev/);
+    expect(io.logText()).toMatch(
+      /package-provenance-unresolved|package-mcp-cli-range-mismatch|dev/,
+    );
   });
 });

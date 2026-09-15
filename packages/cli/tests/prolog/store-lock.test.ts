@@ -16,10 +16,16 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
 import { afterEach, describe, expect, test } from "bun:test";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import {
   breakStoreLock,
   classifyStoreLockHolder,
@@ -93,7 +99,7 @@ describe("breakStoreLock", () => {
 
   afterEach(() => {
     for (const dir of tempDirs.splice(0)) {
-      void dir; // inside tmpdir; leaving artifacts is acceptable but rare
+      rmSync(dir, { recursive: true, force: true });
     }
   });
 
@@ -110,9 +116,12 @@ describe("breakStoreLock", () => {
   });
 
   test("removes the journal from the store root beside the rdf directory", () => {
-    const rdf = mkdtempSync(join(tmpdir(), "kibi-store-lock-rdf-"));
-    const store = dirname(rdf);
-    tempDirs.push(rdf);
+    // Keep the RDF directory below a private store root. `dirname(rdf)` must
+    // never resolve to the shared system temp directory, or this fixture
+    // leaves/overwrites `.kibi-lock-owner.json` for unrelated test processes.
+    const store = mkdtempSync(join(tmpdir(), "kibi-store-lock-store-"));
+    const rdf = join(store, "rdf");
+    mkdirSync(rdf, { recursive: true });
     tempDirs.push(store);
     writeFileSync(join(rdf, "lock"), "stale");
     writeFileSync(join(store, ".kibi-lock-owner.json"), '{"pid":1}');

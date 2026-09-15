@@ -1,7 +1,7 @@
 ---
 id: REQ-cli-init
 title: Scaffold .kb directory, config, and git hooks
-status: superseded
+status: closed
 created_at: 2026-05-13T10:00:00.000Z
 updated_at: 2026-05-13T10:00:00.000Z
 source: REQ-003
@@ -9,6 +9,7 @@ priority: must
 tags:
   - cli
   - init
+  - historical-status:superseded
 links:
   - type: supersedes
     target: REQ-003
@@ -44,6 +45,8 @@ semantic_inventory:
     payload_hash: 2f34fc8264f888335e8ef75e807f7bc380c57708c5b9efcc3406cb8d53ab1ee3
     reason: No approved domain predicate schema expresses this clause; generic logical_requirement_rule grounding was removed.
 type: req
+proof_exempt: true
+proof_exempt_reason: Historical requirement already retired as superseded before the test-quality audit; retained for provenance, outside current implementation proof scope.
 ---
 
 The `kibi init` command scaffolds the `.kb/` directory structure, creates a default `config.json`,

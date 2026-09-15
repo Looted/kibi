@@ -38,7 +38,9 @@ describe("suggest-predicates remaining routing and ranking branches", () => {
         prolog: null as never,
       },
     );
-    expect(result.structuredContent.recommendedAction).toBe("review_nonlogical");
+    expect(result.structuredContent.recommendedAction).toBe(
+      "review_nonlogical",
+    );
   });
 
   test("unknown schemaId resolves the schema reference without a write plan", async () => {
@@ -63,17 +65,19 @@ describe("suggest-predicates remaining routing and ranking branches", () => {
     expect(result.structuredContent.warnings.join(" ")).toMatch(
       /not available/,
     );
-    expect(result.content[0]?.text).toMatch(/unavailable or semantically inapplicable/);
+    expect(result.content[0]?.text).toMatch(
+      /unavailable or semantically inapplicable/,
+    );
   });
 
   test("duplicate existing schemas are collapsed before ranking", async () => {
     restoreEnv = isolateKibiEnv();
     const duplicate = BUILT_IN_PREDICATE_SCHEMAS[0];
     if (!duplicate) throw new Error("expected built-in schema");
-    const load = spyOn(loader, "loadExistingPredicateSchemas").mockResolvedValue([
-      duplicate,
-      { ...duplicate },
-    ]);
+    const load = spyOn(
+      loader,
+      "loadExistingPredicateSchemas",
+    ).mockResolvedValue([duplicate, { ...duplicate }]);
     spies.push(load);
     const result = await handleKbSuggestPredicates(null, {
       text: "The editor must save changes automatically when the user navigates away.",
@@ -95,7 +99,9 @@ describe("suggest-predicates remaining routing and ranking branches", () => {
       maxCandidates: 0,
     });
     expect(result.structuredContent.candidates).toHaveLength(1);
-    expect(result.structuredContent.candidates[0]?.eligibility).toBe("rejected");
+    expect(result.structuredContent.candidates[0]?.eligibility).toBe(
+      "rejected",
+    );
     expect(result.structuredContent.recommendedAction).toBe(
       "record_ontology_gap",
     );
@@ -136,7 +142,11 @@ describe("suggest-predicates remaining routing and ranking branches", () => {
       if (name === third) {
         return { eligible: true, reasons: [], applicabilityScore: 0.5 };
       }
-      return { eligible: false, reasons: ["unrelated"], applicabilityScore: 0.1 };
+      return {
+        eligible: false,
+        reasons: ["unrelated"],
+        applicabilityScore: 0.1,
+      };
     });
     spies.push(apply);
 
@@ -173,7 +183,11 @@ describe("suggest-predicates remaining routing and ranking branches", () => {
       if (name === third) {
         return { eligible: true, reasons: [], applicabilityScore: 0.65 };
       }
-      return { eligible: false, reasons: ["unrelated"], applicabilityScore: 0.1 };
+      return {
+        eligible: false,
+        reasons: ["unrelated"],
+        applicabilityScore: 0.1,
+      };
     });
     const strong = await handleKbSuggestPredicates(null, {
       text: "The editor must save changes automatically when the user navigates away.",

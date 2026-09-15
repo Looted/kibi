@@ -12,19 +12,19 @@ import { join } from "node:path";
 import {
   EXPECTED_SKILL_IDS,
   HASH_MANIFEST_NAME,
+  type PlannedFile,
   assertCanonicalSourceComplete,
   canonicalSkillsDir,
   computeHashManifest,
   diffMirror,
+  main,
   mirrorSkillsDir,
   parseArgs,
   planSkillMirror,
   processTarget,
-  main,
   repoRootFromScript,
   syncAgentSkills,
   syncAgentSkillsUnlocked,
-  type PlannedFile,
 } from "../sync-agent-skills";
 
 const roots: string[] = [];
@@ -40,9 +40,14 @@ function tempRoot(): string {
   return root;
 }
 
-function writeCanonical(root: string, extraFile?: { skill: string; rel: string; body: string }) {
+function writeCanonical(
+  root: string,
+  extraFile?: { skill: string; rel: string; body: string },
+) {
   for (const id of EXPECTED_SKILL_IDS) {
-    mkdirSync(join(root, "packages/runtime/src/skills", id), { recursive: true });
+    mkdirSync(join(root, "packages/runtime/src/skills", id), {
+      recursive: true,
+    });
     writeFileSync(
       join(root, "packages/runtime/src/skills", id, "SKILL.md"),
       `# ${id}\n`,
@@ -74,9 +79,9 @@ describe("sync-agent-skills argument parsing", () => {
       mode: "check",
       targets: ["cursor"],
     });
-    expect(parseArgs(["--target", "codex", "--target", "cursor"]).targets).toEqual(
-      ["codex", "cursor"],
-    );
+    expect(
+      parseArgs(["--target", "codex", "--target", "cursor"]).targets,
+    ).toEqual(["codex", "cursor"]);
   });
 
   test("rejects unknown flags, positionals, and bad targets", () => {
@@ -92,15 +97,17 @@ describe("sync-agent-skills planning and drift", () => {
     expect(canonicalSkillsDir("/repo")).toBe(
       "/repo/packages/runtime/src/skills",
     );
-    expect(mirrorSkillsDir("/repo", "cursor")).toBe("/repo/packages/cursor/skills");
+    expect(mirrorSkillsDir("/repo", "cursor")).toBe(
+      "/repo/packages/cursor/skills",
+    );
     expect(repoRootFromScript()).toBeTruthy();
   });
 
   test("assertCanonicalSourceComplete fails for missing source, ids, and SKILL.md", () => {
     const root = tempRoot();
-    expect(() =>
-      assertCanonicalSourceComplete(join(root, "missing")),
-    ).toThrow("Canonical skills source missing");
+    expect(() => assertCanonicalSourceComplete(join(root, "missing"))).toThrow(
+      "Canonical skills source missing",
+    );
 
     mkdirSync(join(root, "skills"), { recursive: true });
     expect(() => assertCanonicalSourceComplete(join(root, "skills"))).toThrow(
@@ -108,10 +115,9 @@ describe("sync-agent-skills planning and drift", () => {
     );
 
     writeCanonical(root);
-    rmSync(
-      join(root, "packages/runtime/src/skills/kibi-usage/SKILL.md"),
-      { force: true },
-    );
+    rmSync(join(root, "packages/runtime/src/skills/kibi-usage/SKILL.md"), {
+      force: true,
+    });
     expect(() =>
       assertCanonicalSourceComplete(join(root, "packages/runtime/src/skills")),
     ).toThrow("missing its SKILL.md");
@@ -159,9 +165,7 @@ describe("sync-agent-skills planning and drift", () => {
       join(root, "packages/cursor/skills/extra.txt"),
       "removed-from-canonical\n",
     );
-    rmSync(
-      join(root, "packages/cursor/skills/kibi-usage/resources/guide.md"),
-    );
+    rmSync(join(root, "packages/cursor/skills/kibi-usage/resources/guide.md"));
     const drifted = syncAgentSkillsUnlocked(root, {
       mode: "check",
       targets: ["cursor"],
@@ -190,10 +194,17 @@ describe("sync-agent-skills planning and drift", () => {
 
     writeFileSync(
       join(mirrorRoot, HASH_MANIFEST_NAME),
-      JSON.stringify({ extra: "deadbeef", "kibi-usage/SKILL.md": "abcd" }, null, 2),
+      JSON.stringify(
+        { extra: "deadbeef", "kibi-usage/SKILL.md": "abcd" },
+        null,
+        2,
+      ),
     );
     mkdirSync(join(mirrorRoot, "kibi-usage"), { recursive: true });
-    writeFileSync(join(mirrorRoot, "kibi-usage/SKILL.md"), planned[0]?.content ?? "");
+    writeFileSync(
+      join(mirrorRoot, "kibi-usage/SKILL.md"),
+      planned[0]?.content ?? "",
+    );
     const hashDrift = diffMirror(mirrorRoot, planned, plannedManifest);
     expect(hashDrift.hashManifestDrifted.length).toBeGreaterThan(0);
   });
@@ -209,12 +220,17 @@ describe("sync-agent-skills planning and drift", () => {
     );
     expect(result.drifted).toBe(false);
     expect(
-      readFileSync(join(root, "packages/codex/skills/kibi-usage/SKILL.md"), "utf8"),
+      readFileSync(
+        join(root, "packages/codex/skills/kibi-usage/SKILL.md"),
+        "utf8",
+      ),
     ).toContain("kibi-usage");
   });
 
   test("main exits 2 on invalid flags", async () => {
-    const exitSpy = spyOn(process, "exit").mockImplementation(((code?: number) => {
+    const exitSpy = spyOn(process, "exit").mockImplementation(((
+      code?: number,
+    ) => {
       throw new Error(`exit ${code}`);
     }) as typeof process.exit);
     try {

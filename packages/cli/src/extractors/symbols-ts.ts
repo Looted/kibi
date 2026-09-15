@@ -19,6 +19,7 @@ import { access, readFile } from "node:fs/promises";
 import * as path from "node:path";
 import {
   type ClassDeclaration,
+  type ClassExpression,
   type Node,
   Project,
   ScriptKind,
@@ -287,60 +288,7 @@ function collectSourceSymbols(sourceFile: SourceFile): SourceSymbolAnalysis[] {
           .join("\n"),
       ),
     );
-
-    for (const method of decl.getMethods()) {
-      if (isPrivateClassMember(method)) continue;
-      symbols.push(
-        toSourceSymbolAnalysis(
-          sourceFile,
-          formatMethodSymbolName(decl.getName(), method.getName()),
-          "method",
-          method.getNameNode() ?? method,
-          method,
-          `${method.getFullText()}\n${method
-            .getJsDocs()
-            .map((doc) => doc.getFullText())
-            .join("\n")}`,
-        ),
-      );
-    }
-
-    for (const property of decl.getProperties()) {
-      if (isPrivateClassMember(property)) continue;
-      symbols.push(
-        toSourceSymbolAnalysis(
-          sourceFile,
-          formatMethodSymbolName(decl.getName(), property.getName()),
-          "property",
-          property.getNameNode() ?? property,
-          property,
-          `${property.getFullText()}\n${property
-            .getJsDocs()
-            .map((doc) => doc.getFullText())
-            .join("\n")}`,
-        ),
-      );
-    }
-
-    for (const accessor of [
-      ...decl.getGetAccessors(),
-      ...decl.getSetAccessors(),
-    ]) {
-      if (isPrivateClassMember(accessor)) continue;
-      symbols.push(
-        toSourceSymbolAnalysis(
-          sourceFile,
-          formatMethodSymbolName(decl.getName(), accessor.getName()),
-          "accessor",
-          accessor.getNameNode() ?? accessor,
-          accessor,
-          `${accessor.getFullText()}\n${accessor
-            .getJsDocs()
-            .map((doc) => doc.getFullText())
-            .join("\n")}`,
-        ),
-      );
-    }
+    appendClassMembers(sourceFile, decl, decl.getName(), symbols);
   }
 
   for (const decl of sourceFile.getInterfaces()) {
@@ -399,10 +347,82 @@ function collectSourceSymbols(sourceFile: SourceFile): SourceSymbolAnalysis[] {
           declaration.getText(),
         ),
       );
+      const classExpression = declaration.getInitializerIfKind(
+        SyntaxKind.ClassExpression,
+      );
+      if (classExpression) {
+        appendClassMembers(
+          sourceFile,
+          classExpression,
+          declaration.getName(),
+          symbols,
+        );
+      }
     }
   }
 
   return symbols;
+}
+
+function appendClassMembers(
+  sourceFile: SourceFile,
+  declaration: ClassDeclaration | ClassExpression,
+  className: string | undefined,
+  symbols: SourceSymbolAnalysis[],
+): void {
+  for (const method of declaration.getMethods()) {
+    if (isPrivateClassMember(method)) continue;
+    symbols.push(
+      toSourceSymbolAnalysis(
+        sourceFile,
+        formatMethodSymbolName(className, method.getName()),
+        "method",
+        method.getNameNode() ?? method,
+        method,
+        `${method.getFullText()}\n${method
+          .getJsDocs()
+          .map((doc) => doc.getFullText())
+          .join("\n")}`,
+      ),
+    );
+  }
+
+  for (const property of declaration.getProperties()) {
+    if (isPrivateClassMember(property)) continue;
+    symbols.push(
+      toSourceSymbolAnalysis(
+        sourceFile,
+        formatMethodSymbolName(className, property.getName()),
+        "property",
+        property.getNameNode() ?? property,
+        property,
+        `${property.getFullText()}\n${property
+          .getJsDocs()
+          .map((doc) => doc.getFullText())
+          .join("\n")}`,
+      ),
+    );
+  }
+
+  for (const accessor of [
+    ...declaration.getGetAccessors(),
+    ...declaration.getSetAccessors(),
+  ]) {
+    if (isPrivateClassMember(accessor)) continue;
+    symbols.push(
+      toSourceSymbolAnalysis(
+        sourceFile,
+        formatMethodSymbolName(className, accessor.getName()),
+        "accessor",
+        accessor.getNameNode() ?? accessor,
+        accessor,
+        `${accessor.getFullText()}\n${accessor
+          .getJsDocs()
+          .map((doc) => doc.getFullText())
+          .join("\n")}`,
+      ),
+    );
+  }
 }
 
 function isPrivateClassMember(member: {
@@ -487,26 +507,21 @@ function findNamedDeclaration(
   if (qualifiedMethod) {
     for (const cls of sourceFile.getClasses()) {
       if (cls.getName() !== qualifiedMethod.className) continue;
-      for (const method of cls.getMethods()) {
-        if (method.getName() !== qualifiedMethod.methodName) continue;
-        const nameNode = method.getNameNode();
-        if (!nameNode) continue;
-        return { node: method, getNameNode: () => nameNode };
-      }
-      for (const property of cls.getProperties()) {
-        if (property.getName() !== qualifiedMethod.methodName) continue;
-        const nameNode = property.getNameNode();
-        if (!nameNode) continue;
-        return { node: property, getNameNode: () => nameNode };
-      }
-      for (const accessor of [
-        ...cls.getGetAccessors(),
-        ...cls.getSetAccessors(),
-      ]) {
-        if (accessor.getName() !== qualifiedMethod.methodName) continue;
-        const nameNode = accessor.getNameNode();
-        if (!nameNode) continue;
-        return { node: accessor, getNameNode: () => nameNode };
+      const match = findClassMember(cls, qualifiedMethod.methodName);
+      if (match) return match;
+    }
+
+    for (const statement of sourceFile.getVariableStatements()) {
+      if (!statement.isExported()) continue;
+      for (const declaration of statement.getDeclarations()) {
+        if (declaration.getName() !== qualifiedMethod.className) continue;
+        const classExpression = declaration.getInitializerIfKind(
+          SyntaxKind.ClassExpression,
+        );
+        const match = classExpression
+          ? findClassMember(classExpression, qualifiedMethod.methodName)
+          : null;
+        if (match) return match;
       }
     }
 
@@ -603,6 +618,25 @@ function findNamedDeclaration(
       }
     }
 
+    for (const statement of sourceFile.getVariableStatements()) {
+      if (!statement.isExported()) continue;
+      for (const declaration of statement.getDeclarations()) {
+        const classExpression = declaration.getInitializerIfKind(
+          SyntaxKind.ClassExpression,
+        );
+        if (!classExpression) continue;
+        for (const method of classExpression.getMethods()) {
+          if (method.getName() !== title) continue;
+          const nameNode = method.getNameNode();
+          if (!nameNode) continue;
+          methodCandidates.push({
+            node: method,
+            getNameNode: () => nameNode,
+          });
+        }
+      }
+    }
+
     const uniqueMethod = onlyCandidate(methodCandidates);
     if (uniqueMethod) {
       return uniqueMethod;
@@ -631,6 +665,37 @@ function findNamedDeclaration(
       }
     }
 
+    for (const statement of sourceFile.getVariableStatements()) {
+      if (!statement.isExported()) continue;
+      for (const declaration of statement.getDeclarations()) {
+        const classExpression = declaration.getInitializerIfKind(
+          SyntaxKind.ClassExpression,
+        );
+        if (!classExpression) continue;
+        for (const property of classExpression.getProperties()) {
+          if (property.getName() !== title) continue;
+          const nameNode = property.getNameNode();
+          if (!nameNode) continue;
+          memberCandidates.push({
+            node: property,
+            getNameNode: () => nameNode,
+          });
+        }
+        for (const accessor of [
+          ...classExpression.getGetAccessors(),
+          ...classExpression.getSetAccessors(),
+        ]) {
+          if (accessor.getName() !== title) continue;
+          const nameNode = accessor.getNameNode();
+          if (!nameNode) continue;
+          memberCandidates.push({
+            node: accessor,
+            getNameNode: () => nameNode,
+          });
+        }
+      }
+    }
+
     const uniqueMember = onlyCandidate(memberCandidates);
     if (uniqueMember) {
       return uniqueMember;
@@ -642,6 +707,31 @@ function findNamedDeclaration(
     (a, b) => a.getNameNode().getStart() - b.getNameNode().getStart(),
   );
   return candidates[0] ?? null;
+}
+
+function findClassMember(
+  declaration: ClassDeclaration | ClassExpression,
+  name: string,
+): { node: NamedDeclarationCandidate; getNameNode: () => Node } | null {
+  for (const method of declaration.getMethods()) {
+    if (method.getName() !== name) continue;
+    const nameNode = method.getNameNode();
+    if (nameNode) return { node: method, getNameNode: () => nameNode };
+  }
+  for (const property of declaration.getProperties()) {
+    if (property.getName() !== name) continue;
+    const nameNode = property.getNameNode();
+    if (nameNode) return { node: property, getNameNode: () => nameNode };
+  }
+  for (const accessor of [
+    ...declaration.getGetAccessors(),
+    ...declaration.getSetAccessors(),
+  ]) {
+    if (accessor.getName() !== name) continue;
+    const nameNode = accessor.getNameNode();
+    if (nameNode) return { node: accessor, getNameNode: () => nameNode };
+  }
+  return null;
 }
 
 function parseQualifiedMethodTitle(

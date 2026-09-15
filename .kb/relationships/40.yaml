@@ -80,3 +80,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cc4435f5e2a6
+  - type: executable_for
+    from: SYM-quality-proof-runner-tests
+    to: TEST-proof-runner-integrity
+    created_at: 2026-09-14T18:52:09.213Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a87ef15e3bd1

@@ -26,7 +26,8 @@ describe("schema version helpers", () => {
     );
     expect(getSchemaVersionStatus({ schemaVersion: 1 }).status).toBe("older");
     expect(
-      getSchemaVersionStatus({ schemaVersion: LATEST_KB_SCHEMA_VERSION }).status,
+      getSchemaVersionStatus({ schemaVersion: LATEST_KB_SCHEMA_VERSION })
+        .status,
     ).toBe("current");
     expect(
       getSchemaVersionStatus({ schemaVersion: LATEST_KB_SCHEMA_VERSION + 1 })

@@ -25,6 +25,10 @@ export function isolatedUnitBatchEnv(
 ): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = {
     ...process.env,
+    // Curated Bun batches are test processes even when the caller did not
+    // export NODE_ENV. Several CLI fixtures deliberately exercise the
+    // one-shot Prolog path selected by this mode.
+    NODE_ENV: "test",
     KIBI_ENGINE_IDLE_TIMEOUT_MS: "30000",
     KIBI_RUNTIME_DIR: runtimeDirectory,
   };
@@ -93,6 +97,8 @@ const BATCHES: Batch[] = [
       "test",
       "--timeout",
       String(CLI_ENGINE_BATCH_TIMEOUT_MS),
+      "--isolate",
+      "--max-concurrency=1",
       "./packages/cli",
     ],
   },
@@ -104,6 +110,10 @@ const BATCHES: Batch[] = [
       String(CLI_ENGINE_BATCH_TIMEOUT_MS),
       "./scripts/skillopt-eval/tests",
     ],
+  },
+  {
+    label: "scripts",
+    args: ["test", "--timeout", "15000", "./scripts/tests"],
   },
   {
     label: "mcp",

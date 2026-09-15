@@ -102,6 +102,8 @@ export function fallbackWhenPairMissing<T>(
   return pair === undefined ? fallback : null;
 }
 
+// implements REQ-core-persistence
+// covered_by TEST-cli-prolog-codec
 export function typedLiteralFromParts(
   parts: readonly (string | undefined)[],
   original: string,

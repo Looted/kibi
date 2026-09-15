@@ -4,12 +4,12 @@
 // implements REQ-007
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import fs from "node:fs/promises";
-import { isolateKibiEnv } from "./helpers/in-process-workspace.js";
 import {
   loadMarkdownBody,
   rankEntities,
   snippetFromMatchedLine,
 } from "../src/search-ranking.js";
+import { isolateKibiEnv } from "./helpers/in-process-workspace.js";
 
 const spies: Array<{ mockRestore: () => void }> = [];
 let restoreEnv: (() => void) | undefined;
@@ -92,9 +92,9 @@ describe("search-ranking remaining query, body, and snippet branches", () => {
       "checkout",
       "/workspace",
     );
-    expect(matches.some((match) => match.reasons.includes("markdown body match"))).toBe(
-      true,
-    );
+    expect(
+      matches.some((match) => match.reasons.includes("markdown body match")),
+    ).toBe(true);
     const long = matches.find((match) => match.entity.id === "REQ-CONTENT");
     expect(long?.snippet?.endsWith("...")).toBe(true);
     expect((long?.snippet ?? "").length).toBeLessThanOrEqual(160);
@@ -118,7 +118,9 @@ describe("search-ranking remaining query, body, and snippet branches", () => {
     );
     noNewline.mockRestore();
 
-    const plain = spyOn(fs, "readFile").mockResolvedValue("plain body checkout");
+    const plain = spyOn(fs, "readFile").mockResolvedValue(
+      "plain body checkout",
+    );
     spies.push(plain);
     const ranked = await rankEntities(
       [

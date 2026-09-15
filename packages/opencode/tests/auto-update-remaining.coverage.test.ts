@@ -13,7 +13,8 @@ import * as logger from "../src/logger.js";
 const dirs: string[] = [];
 
 afterEach(() => {
-  for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true });
+  for (const dir of dirs.splice(0))
+    rmSync(dir, { recursive: true, force: true });
   if (process.exitCode === 1) process.exitCode = 0;
 });
 
@@ -71,9 +72,7 @@ describe("auto-update remaining semver prerelease comparison", () => {
       JSON.stringify({ name: "other", version: "1.0.0" }),
     );
     expect(
-      findPackageJsonUp(
-        pathToFileURL(path.join(found, "src", "mod.ts")).href,
-      ),
+      findPackageJsonUp(pathToFileURL(path.join(found, "src", "mod.ts")).href),
     ).toBe(path.join(found, "package.json"));
     expect(
       findPackageJsonUp(

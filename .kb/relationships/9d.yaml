@@ -129,3 +129,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b31a33523db8
+  - type: implements
+    from: SYM-quality-eval-assertLiveHeldOutEvaluation
+    to: REQ-kibi-change-to-proof-evaluation
+    created_at: 2026-09-14T19:19:27.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef7c6e7c029b
+  - type: covered_by
+    from: SYM-quality-eval-assertLiveHeldOutEvaluation
+    to: TEST-kibi-change-to-proof-evaluation
+    created_at: 2026-09-14T19:19:27.539Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ec74f625ace

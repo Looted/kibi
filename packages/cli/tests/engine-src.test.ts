@@ -95,9 +95,9 @@ describe("engine attachment helpers", () => {
     };
     expect(engineAttachmentsMatch(null, left)).toBe(false);
     expect(engineAttachmentsMatch(left, null)).toBe(false);
-    expect(
-      engineAttachmentsMatch(left, { ...left, path: "/tmp/b" }),
-    ).toBe(false);
+    expect(engineAttachmentsMatch(left, { ...left, path: "/tmp/b" })).toBe(
+      false,
+    );
     expect(engineAttachmentsMatch(left, { ...left, ino: 9 })).toBe(false);
     expect(engineAttachmentsMatch(left, { ...left, dev: 1, ino: 2 })).toBe(
       true,
@@ -185,9 +185,9 @@ describe("ensureJournaledBranchStoreAsync", () => {
 
 describe("EngineClient from source", () => {
   test("rejects invalid branch names and serves a typed status command", async () => {
-    expect(() => new EngineClient({ workspaceRoot: tempRoot(), branch: "../x" })).toThrow(
-      /Invalid Kibi engine branch name/,
-    );
+    expect(
+      () => new EngineClient({ workspaceRoot: tempRoot(), branch: "../x" }),
+    ).toThrow(/Invalid Kibi engine branch name/);
     const root = tempRoot();
     const client = new EngineClient({
       workspaceRoot: root,
@@ -436,5 +436,3 @@ describe("EngineClient from source", () => {
     );
   });
 });
-
-

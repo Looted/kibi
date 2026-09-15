@@ -265,7 +265,6 @@ export function publishSharedPackCache(plan: SharedPackCachePlan): {
 // are redirected into the staging tree so one rename can publish both.
 let stagingPackDestination: string | null = null;
 
-
 // Some artifact-only tests intentionally clear KIBI_E2E_PREFIX and create a
 // worker-local fallback installation. Ensure those paths are reclaimed when
 // the isolated Node test worker exits, even though only the parent runner owns
@@ -492,9 +491,10 @@ async function bootstrapSharedInstall(
   // populate a staging tree and hand it over with one atomic rename. Explicit
   // KIBI_TEST_TARBALLS always wins: external artifact roots are not owned by
   // this process, so they must never be cached into a shared area.
-  const cache = source.externalRoot === null
-    ? claimSharedPackCache()
-    : { reusable: false as const, area: "", scratch: null };
+  const cache =
+    source.externalRoot === null
+      ? claimSharedPackCache()
+      : { reusable: false as const, area: "", scratch: null };
   if (cache.reusable) {
     console.log(`📦 Reusing shared pack cache ${cache.area}`);
     const prefix = join(cache.area, "prefix");
@@ -1237,11 +1237,17 @@ export function assertExecutable(filePath: string): void {
 /**
  * Check if Prolog is available in environment
  */
+// executable_for TEST-test-journaled-engine-harness
 export function checkPrologAvailable(): boolean {
   try {
     execFileSync("swipl", ["--version"], { stdio: "pipe" });
     return true;
   } catch {
+    if (process.env.KIBI_PROOF_RUN === "1") {
+      throw new Error(
+        "SWI-Prolog is required for packed proof execution but is not available on PATH",
+      );
+    }
     return false;
   }
 }

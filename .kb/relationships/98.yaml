@@ -90,3 +90,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4f3056208d4c
+  - type: implements
+    from: SYM-quality-producer-validateProofSteps
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-09-14T18:53:32.349Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32a216bc340e
+  - type: covered_by
+    from: SYM-quality-producer-validateProofSteps
+    to: TEST-proof-runner-integrity
+    created_at: 2026-09-14T18:53:32.386Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05b0ee94b991

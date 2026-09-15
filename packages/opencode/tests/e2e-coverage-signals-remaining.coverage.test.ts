@@ -12,7 +12,8 @@ const dirs: string[] = [];
 
 afterEach(() => {
   for (const spy of spies.splice(0)) spy.mockRestore();
-  for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true });
+  for (const dir of dirs.splice(0))
+    rmSync(dir, { recursive: true, force: true });
   if (process.exitCode === 1) process.exitCode = 0;
 });
 
@@ -21,7 +22,10 @@ describe("e2e-coverage-signals remaining test-doc read failures", () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "kibi-e2e-signal-"));
     dirs.push(root);
     mkdirSync(path.join(root, ".kb", "tests"), { recursive: true });
-    writeFileSync(path.join(root, ".kb", "tests", "TEST-1.md"), "---\ntitle: One\n---\n");
+    writeFileSync(
+      path.join(root, ".kb", "tests", "TEST-1.md"),
+      "---\ntitle: One\n---\n",
+    );
     const linkSpy = spyOn(links, "getFileLinkedTargetsByType").mockReturnValue([
       "TEST-1",
     ]);

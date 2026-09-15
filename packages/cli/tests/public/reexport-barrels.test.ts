@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
+import type { ProofReceiptOutcome } from "../../src/proof/receipt-outcome.js";
+import * as receiptOutcome from "../../src/proof/receipt-outcome.js";
 import * as branchResolver from "../../src/public/branch-resolver.js";
 import * as manifest from "../../src/public/extractors/manifest.js";
 import * as markdown from "../../src/public/extractors/markdown.js";
 import * as prolog from "../../src/public/prolog/index.js";
-import type { ProofReceiptOutcome } from "../../src/proof/receipt-outcome.js";
-import * as receiptOutcome from "../../src/proof/receipt-outcome.js";
 
 describe("public re-export barrels", () => {
   test("manifest barrel re-exports extractor functions", () => {

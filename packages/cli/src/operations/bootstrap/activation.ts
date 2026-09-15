@@ -5,12 +5,15 @@ import { readKbManifestStatus } from "../../utils/kb-manifest.js";
 import { KB_PATHS } from "../../utils/kb-paths.js";
 import type { ActivationPolicy, ActivationState } from "./types.js";
 
+// implements REQ-KIBI-BOOTSTRAP-PLAN
+// covered_by TEST-KIBI-BOOTSTRAP-PLAN-APPLY
 export function missingManifestActivation(
   vendored: boolean,
   projectSignal: boolean,
 ): ActivationPolicy {
   return activationFor(
-    vendored && !projectSignal ? "vendored_only" : "root_uninitialized");
+    vendored && !projectSignal ? "vendored_only" : "root_uninitialized",
+  );
 }
 
 function activationFor(state: ActivationState): ActivationPolicy {

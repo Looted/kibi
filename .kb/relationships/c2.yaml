@@ -213,3 +213,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9685fa039c89
+  - type: covered_by
+    from: SYM-mcp-getActiveBranchName
+    to: TEST-mcp-session-state
+    created_at: 2026-09-14T19:10:18.871Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-693db1e88f04

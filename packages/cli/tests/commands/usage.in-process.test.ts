@@ -199,9 +199,11 @@ describe("usageRemediationCommand", () => {
     expect(await usageRemediationCommand({ limit: "nope" })).toEqual({
       exitCode: 1,
     });
-    expect(await usageRemediationCommand({ format: "yaml" as "json" })).toEqual({
-      exitCode: 1,
-    });
+    expect(await usageRemediationCommand({ format: "yaml" as "json" })).toEqual(
+      {
+        exitCode: 1,
+      },
+    );
     const cwd = createTempDir("kibi-remediation-missing-");
     roots.push(cwd);
     expect(await withCwd(cwd, () => usageRemediationCommand({}))).toEqual({

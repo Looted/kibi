@@ -186,8 +186,6 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
-      - type: covered_by
-        target: TEST-coordinate-repair-capability
       - type: implements
         target: REQ-agent-guided-migration-orchestration
   - id: SYM-kibi-migration-config-read
@@ -8675,14 +8673,11 @@ symbols:
     sourceFile: packages/cli/src/commands/sync/manifest.ts
     status: active
     granularity_reason: legacy-link
-    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-007
       - type: covered_by
         target: TEST-cli-sync-discovery-readme-ignore
-      - type: covered_by
-        target: TEST-coordinate-repair-capability
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -13492,14 +13487,11 @@ symbols:
     sourceFile: packages/cli/src/commands/sync/manifest.ts
     status: active
     granularity_reason: legacy-link
-    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-007
       - type: covered_by
         target: TEST-cli-sync-discovery-readme-ignore
-      - type: covered_by
-        target: TEST-coordinate-repair-capability
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -25057,8 +25049,6 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
-        target: TEST-coordinate-repair-capability
-      - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
       - type: covered_by
         target: TEST-kibi-dependency-ordered-repair-plan
@@ -25368,8 +25358,6 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
-      - type: covered_by
-        target: TEST-coordinate-repair-capability
       - type: covered_by
         target: TEST-kibi-dependency-ordered-repair-plan
       - type: implements
@@ -26584,6 +26572,9 @@ symbols:
     status: active
     sourceFile: documentation/tests/e2e/packed/helpers.ts
     symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-proof-runner-integrity
   - id: SYM-auto-B9A2DDEE871F
     title: RunOptions
     status: active
@@ -33435,6 +33426,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-native-report-integrity
       - type: implements
         target: REQ-kibi-verification-evidence-contract
   - id: SYM-convert-junit-xml
@@ -33446,6 +33439,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-native-report-integrity
       - type: implements
         target: REQ-kibi-verification-evidence-contract
   - id: SYM-native-binding
@@ -33531,6 +33526,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-native-report-integrity
       - type: implements
         target: REQ-kibi-verification-evidence-contract
   - id: SYM-playwright-case-id
@@ -34250,6 +34247,8 @@ symbols:
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
       - type: implements
         target: REQ-core-atomic-upsert-persistence
   - id: SYM-prolog-bind-process-exit-handler
@@ -34383,6 +34382,8 @@ symbols:
     sourceFile: packages/cli/src/utils/rule-registry.generated.ts
     granularity_reason: module-level-behavior
     relationships:
+      - type: covered_by
+        target: TEST-rule-registry-single-source
       - type: implements
         target: REQ-006
   - id: SYM-cli-SelectableRuleNames
@@ -34391,6 +34392,8 @@ symbols:
     sourceFile: packages/cli/src/public/operations/specs/check-rules.generated.ts
     granularity_reason: module-level-behavior
     relationships:
+      - type: covered_by
+        target: TEST-rule-registry-single-source
       - type: implements
         target: REQ-006
   - id: SYM-cli-SelectableRulesAllowed
@@ -34399,6 +34402,8 @@ symbols:
     sourceFile: packages/cli/src/public/operations/specs/check-rules.generated.ts
     granularity_reason: module-level-behavior
     relationships:
+      - type: covered_by
+        target: TEST-rule-registry-single-source
       - type: implements
         target: REQ-006
   - id: SYM-cli-mutation-saga-test
@@ -34416,6 +34421,8 @@ symbols:
     sourceFile: packages/mcp/src/server/session.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-mcp-session-state
       - type: implements
         target: REQ-008
   - id: SYM-mcp-getAttachedBranchKbPath
@@ -34424,6 +34431,8 @@ symbols:
     sourceFile: packages/mcp/src/server/session.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-mcp-session-state
       - type: implements
         target: REQ-008
   - id: SYM-mcp-getIsShuttingDown
@@ -34432,6 +34441,8 @@ symbols:
     sourceFile: packages/mcp/src/server/session.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-mcp-session-state
       - type: implements
         target: REQ-008
   - id: SYM-mcp-getActiveBranchName
@@ -34440,6 +34451,8 @@ symbols:
     sourceFile: packages/mcp/src/server/session.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-mcp-session-state
       - type: implements
         target: REQ-008
   - id: SYM-mcp-session-setPrologProcessForTests
@@ -34448,6 +34461,8 @@ symbols:
     sourceFile: packages/mcp/src/server/session.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-mcp-session-state
       - type: implements
         target: REQ-008
   - id: SYM-x-attachedContextWithProlog
@@ -34668,10 +34683,903 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-branch-store-recovery
-  - id: SYM-coordinate-repair-inspect
-    title: inspectCoordinateRepairs
+      - type: implements
+        target: REQ-branch-store-recovery-v3
+  - id: SYM-quality-proof-runner-tests
+    title: proof producer subprocess regressions
     status: active
-    sourceFile: packages/cli/src/public/operations/symbol-repair-plan.ts
+    sourceFile: scripts/tests/run-proof-producer.test.mjs
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-proof-runner-integrity
+  - id: SYM-quality-native-report-tests
+    title: native adapter contract evaluation regressions
+    status: active
+    sourceFile: packages/cli/tests/proof/native-adapter-evaluation.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-native-report-integrity
+  - id: SYM-quality-maintenance-roundtrip-tests
+    title: real source and graph maintenance regressions
+    status: active
+    sourceFile: packages/cli/tests/commands/proof-maintenance-in-process.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-proof-maintenance-roundtrip
+  - id: SYM-quality-maintenance-wrapper-tests
+    title: maintenance command wrapper regressions
+    status: active
+    sourceFile: packages/cli/tests/commands/proof-maintenance-commands.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-proof-maintenance-roundtrip
+  - id: SYM-quality-producer-validateProofSteps
+    title: validateProofSteps
+    status: active
+    sourceFile: scripts/run-proof-producer.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-proof-runner-integrity
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-quality-producer-loadProofSteps
+    title: loadProofSteps
+    status: active
+    sourceFile: scripts/run-proof-producer.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-proof-runner-integrity
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-quality-producer-validateRequestedTestIds
+    title: validateRequestedTestIds
+    status: active
+    sourceFile: scripts/run-proof-producer.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-proof-runner-integrity
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-quality-producer-selectExactProofSteps
+    title: selectExactProofSteps
+    status: active
+    sourceFile: scripts/run-proof-producer.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-proof-runner-integrity
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-quality-producer-terminateStepProcess
+    title: terminateStepProcess
+    status: active
+    sourceFile: scripts/run-proof-producer.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-proof-runner-integrity
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-quality-producer-runProofStep
+    title: runProofStep
+    status: active
+    sourceFile: scripts/run-proof-producer.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-proof-runner-integrity
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-quality-producer-runProofProducer
+    title: runProofProducer
+    status: active
+    sourceFile: scripts/run-proof-producer.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-proof-runner-integrity
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-quality-producer-main
+    title: main
+    status: active
+    sourceFile: scripts/run-proof-producer.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-proof-runner-integrity
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-quality-producer-runProofProducerIfEntrypoint
+    title: runProofProducerIfEntrypoint
+    status: active
+    sourceFile: scripts/run-proof-producer.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-proof-runner-integrity
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-quality-junit-ambiguousNativeBindings
+    title: ambiguousNativeBindings
+    status: active
+    sourceFile: packages/cli/src/proof/producers/junit-adapter.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-native-report-integrity
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-quality-packed-summary
+    title: validatePackedProofSummary
+    status: active
+    sourceFile: scripts/run-packed-e2e.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-proof-runner-integrity
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+  - id: SYM-quality-compile-packed
+    title: compile packed test sources
+    status: active
+    sourceFile: scripts/compile-e2e-packed.mjs
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+  - id: SYM-quality-merge-lcov-diagnostics
+    title: mergeLcovContentsWithDiagnostics
+    status: active
+    sourceFile: scripts/merge-lcov.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-scripts-unit-coverage-runner
+      - type: implements
+        target: REQ-014
+  - id: SYM-quality-maintenance-executeMigrateLegacyReceipts
+    title: executeMigrateLegacyReceipts
+    status: active
+    sourceFile: packages/cli/src/operations/proof/migrate-legacy-receipts.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-proof-maintenance-roundtrip
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-quality-maintenance-executePruneReceipts
+    title: executePruneReceipts
+    status: active
+    sourceFile: packages/cli/src/operations/proof/prune-receipts.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-proof-maintenance-roundtrip
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-quality-maintenance-proofMigrateLegacyCommand
+    title: proofMigrateLegacyCommand
+    status: active
+    sourceFile: packages/cli/src/commands/proof-migrate-legacy.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-proof-maintenance-roundtrip
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-quality-maintenance-proofPruneCommand
+    title: proofPruneCommand
+    status: active
+    sourceFile: packages/cli/src/commands/proof-prune.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-proof-maintenance-roundtrip
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-quality-eval-SearchSourceMatch
+    title: SearchSourceMatch
+    status: active
+    sourceFile: scripts/change-to-proof-eval.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+  - id: SYM-quality-eval-ChangeToProofEvaluation
+    title: ChangeToProofEvaluation
+    status: active
+    sourceFile: scripts/change-to-proof-eval.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+  - id: SYM-quality-eval-liveSearchEvaluator
+    title: liveSearchEvaluator
+    status: active
+    sourceFile: scripts/change-to-proof-eval.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+  - id: SYM-quality-eval-liveCompileEvaluator
+    title: liveCompileEvaluator
+    status: active
+    sourceFile: scripts/change-to-proof-eval.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+  - id: SYM-quality-eval-runLiveHeldOutEvaluation
+    title: runLiveHeldOutEvaluation
+    status: active
+    sourceFile: scripts/change-to-proof-eval.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+  - id: SYM-quality-eval-assertLiveHeldOutEvaluation
+    title: assertLiveHeldOutEvaluation
+    status: active
+    sourceFile: scripts/change-to-proof-eval.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+  - id: SYM-quality-eval-evaluateGoldCorpus
+    title: evaluateGoldCorpus
+    status: active
+    sourceFile: scripts/change-to-proof-eval.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+  - id: SYM-quality-eval-main
+    title: main
+    status: active
+    sourceFile: scripts/change-to-proof-eval.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
+  - id: SYM-quality-coverage-branch-summary
+    title: summarizeBranchCoverage
+    status: active
+    sourceFile: scripts/run-unit-coverage.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-scripts-unit-coverage-runner
+      - type: implements
+        target: REQ-014
+  - id: SYM-quality-inventory-191df9948720
+    title: requireActiveProlog
+    sourceFile: packages/cli/src/commands/check.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-check-integrity
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-quality-inventory-dd324a5a7d94
+    title: checkMustPriorityCoverage
+    sourceFile: packages/cli/src/commands/check.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-check-integrity
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-quality-inventory-8201a4e33563
+    title: findMustPriorityReqs
+    sourceFile: packages/cli/src/commands/check.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-check-integrity
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-quality-inventory-0a51c3fca351
+    title: getAllEntityIds
+    sourceFile: packages/cli/src/commands/check.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-check-integrity
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-quality-inventory-0dc924bdfedd
+    title: checkNoDanglingRefs
+    sourceFile: packages/cli/src/commands/check.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-check-integrity
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-quality-inventory-19e4335e4a46
+    title: checkNoCycles
+    sourceFile: packages/cli/src/commands/check.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-check-integrity
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-quality-inventory-63efea15346c
+    title: checkRequiredFields
+    sourceFile: packages/cli/src/commands/check.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-check-integrity
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-quality-inventory-171f2ce53251
+    title: checkDeprecatedAdrs
+    sourceFile: packages/cli/src/commands/check.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-check-integrity
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-quality-inventory-db28319fe3b6
+    title: checkDomainContradictions
+    sourceFile: packages/cli/src/commands/check.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-check-integrity
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-quality-inventory-0d95a3be9ce1
+    title: checkStrictFactShape
+    sourceFile: packages/cli/src/commands/check.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-check-integrity
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-quality-inventory-d98db976efac
+    title: checkStrictReqFactPairing
+    sourceFile: packages/cli/src/commands/check.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-check-integrity
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-quality-inventory-e70a67dadfef
+    title: checkStrictReadiness
+    sourceFile: packages/cli/src/commands/check.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-check-integrity
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-quality-inventory-078eccf02d7a
+    title: checkSymbolCoverage
+    sourceFile: packages/cli/src/commands/check.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-check-integrity
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-quality-inventory-ac085e9db51d
+    title: missingManifestActivation
+    sourceFile: packages/cli/src/operations/bootstrap/activation.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+  - id: SYM-quality-inventory-4f5a2bd00bb7
+    title: annotateModelRequirementStep
+    sourceFile: packages/cli/src/operations/modeling/model-requirement.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-logical-requirement-coverage
+      - type: implements
+        target: REQ-kibi-logical-requirement-coverage
+  - id: SYM-quality-inventory-879ebaca00d1
+    title: assertFilesystemCapableRuntime
+    sourceFile: packages/cli/src/operations/mutation/delete.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-source-relationship-parity-unit
+      - type: implements
+        target: REQ-011
+      - type: implements
+        target: REQ-kibi-source-relationship-parity
+  - id: SYM-quality-inventory-8cc996295a6e
+    title: executeRelationshipDelete
+    sourceFile: packages/cli/src/operations/mutation/delete.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-source-relationship-parity-unit
+      - type: implements
+        target: REQ-011
+      - type: implements
+        target: REQ-kibi-source-relationship-parity
+  - id: SYM-quality-inventory-a0effbd2aec9
+    title: MigrateLegacyReceiptsArgs
+    sourceFile: packages/cli/src/operations/proof/migrate-legacy-receipts.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-proof-maintenance-roundtrip
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-quality-inventory-d5886bc36c56
+    title: MigrateLegacyReceiptsResult
+    sourceFile: packages/cli/src/operations/proof/migrate-legacy-receipts.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-proof-maintenance-roundtrip
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-quality-inventory-246e98f86c61
+    title: firstTwoDefinedParts
+    sourceFile: packages/cli/src/prolog/codec.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-prolog-codec
+      - type: implements
+        target: REQ-core-persistence
+  - id: SYM-quality-inventory-8c7b67a029ac
+    title: fallbackWhenPairMissing
+    sourceFile: packages/cli/src/prolog/codec.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-prolog-codec
+      - type: implements
+        target: REQ-core-persistence
+  - id: SYM-quality-inventory-462930c7e9c8
+    title: typedLiteralFromParts
+    sourceFile: packages/cli/src/prolog/codec.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-prolog-codec
+      - type: implements
+        target: REQ-core-persistence
+  - id: SYM-quality-inventory-fb246ed248a3
+    title: fileUriLeaf
+    sourceFile: packages/cli/src/prolog/codec.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-prolog-codec
+      - type: implements
+        target: REQ-core-persistence
+  - id: SYM-quality-inventory-664cd37739e9
+    title: entityFromBindingParts
+    sourceFile: packages/cli/src/prolog/codec.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-prolog-codec
+      - type: implements
+        target: REQ-core-persistence
+  - id: SYM-quality-inventory-caa3d152c6f6
+    title: main
+    sourceFile: packages/cursor/src/hook-runner.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1
+  - id: SYM-quality-inventory-69a61f18674b
+    title: isInvokedAsCli
+    sourceFile: packages/cursor/src/hook-runner.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1
+  - id: SYM-quality-inventory-02098b3620d2
+    title: runHookCli
+    sourceFile: packages/cursor/src/hook-runner.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1
+  - id: SYM-quality-inventory-51362d277599
+    title: runHookCliIfMain
+    sourceFile: packages/cursor/src/hook-runner.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1
+  - id: SYM-quality-inventory-e7803f58a33c
+    title: firstDefined
+    sourceFile: packages/mcp/src/server/json-schema-to-zod.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-schema-adapter
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-quality-inventory-7d20be0182d6
+    title: describedAnySchema
+    sourceFile: packages/mcp/src/server/json-schema-to-zod.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-schema-adapter
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-quality-inventory-c15938c764d8
+    title: singleLiteralOrAny
+    sourceFile: packages/mcp/src/server/json-schema-to-zod.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-schema-adapter
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-quality-inventory-7def0c262321
+    title: runCoverageManifestCli
+    sourceFile: scripts/coverage-manifest.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-scripts-unit-coverage-runner
+      - type: implements
+        target: REQ-014
+  - id: SYM-quality-inventory-13d78ccca022
+    title: runCoverageManifestIfMain
+    sourceFile: scripts/coverage-manifest.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-scripts-unit-coverage-runner
+      - type: implements
+        target: REQ-014
+  - id: SYM-quality-inventory-b010f743daad
+    title: LcovMergeResult
+    sourceFile: scripts/merge-lcov.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-scripts-finalize-lcov
+      - type: implements
+        target: REQ-014
+  - id: SYM-quality-inventory-57b01c22b501
+    title: runUnitCoverageIfMain
+    sourceFile: scripts/run-unit-coverage.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-scripts-unit-coverage-runner
+      - type: implements
+        target: REQ-014
+  - id: SYM-quality-inventory-19897951a119
+    title: BranchCoverageSummary
+    sourceFile: scripts/run-unit-coverage.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-scripts-unit-coverage-runner
+      - type: implements
+        target: REQ-014
+  - id: SYM-quality-inventory-15404f76cfa0
+    title: sandboxProbeFailureCode
+    sourceFile: scripts/skillopt-eval/runtime/canary-probes.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-quality-inventory-1e34ff86ea75
+    title: hasRoleKeyReuse
+    sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-launch-accounting
+  - id: SYM-quality-inventory-522c5b9aeb69
+    title: throwIfBundleFailed
+    sourceFile: scripts/skillopt-eval/runtime/staged-mcp.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-quality-inventory-273ca1c87f24
+    title: main
+    sourceFile: scripts/verify-publish-metadata.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
+  - id: SYM-quality-inventory-2a1d9a98f094
+    title: defaultVerifyPublishExit
+    sourceFile: scripts/verify-publish-metadata.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
+  - id: SYM-quality-inventory-44a628f0ebf6
+    title: runVerifyPublishMetadataIfMain
+    sourceFile: scripts/verify-publish-metadata.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
+  - id: SYM-quality-suite-cli-check-integrity
+    title: check.test.ts
+    sourceFile: packages/cli/tests/commands/check.test.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-cli-check-integrity
+  - id: SYM-quality-suite-mcp-schema-adapter
+    title: json-schema-to-zod-remaining.coverage.test.ts
+    sourceFile: packages/mcp/tests/server/json-schema-to-zod-remaining.coverage.test.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-mcp-schema-adapter
+  - id: SYM-quality-capture-io
+    title: captureIo
+    sourceFile: packages/cli/tests/helpers/in-process-workspace.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-cli-quality-diagnostics-contract
+  - id: SYM-quality-staged-parsedCoordinateOrNull
+    title: parsedCoordinateOrNull
+    sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+  - id: SYM-quality-staged-manifestRecordSourcePath
+    title: manifestRecordSourcePath
+    sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+  - id: SYM-analyze-staged-file-coverage
+    title: analyzeStagedFileCoverage
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-file-coverage.ts
+    granularity_reason: legacy-link
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-AUTO-941B0CE68BAF3331
+  - id: SYM-checkDeprecatedAdrs
+    title: checkDeprecatedAdrs
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    granularity_reason: legacy-link
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-checkDomainContradictions
+    title: checkDomainContradictions
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    granularity_reason: legacy-link
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-checkMustPriorityCoverage
+    title: checkMustPriorityCoverage
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    granularity_reason: legacy-link
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-checkNoCycles
+    title: checkNoCycles
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    granularity_reason: legacy-link
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-checkNoDanglingRefs
+    title: checkNoDanglingRefs
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    granularity_reason: legacy-link
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-checkRequiredFields
+    title: checkRequiredFields
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    granularity_reason: legacy-link
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-checkStrictFactShape
+    title: checkStrictFactShape
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    granularity_reason: legacy-link
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-checkStrictReadiness
+    title: checkStrictReadiness
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    granularity_reason: legacy-link
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-checkStrictReqFactPairing
+    title: checkStrictReqFactPairing
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    granularity_reason: legacy-link
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-checkSymbolCoverage
+    title: checkSymbolCoverage
+    status: active
+    sourceFile: packages/cli/src/commands/check.ts
+    granularity_reason: legacy-link
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-004
+      - type: implements
+        target: REQ-cli-check
+  - id: SYM-coordinate-repair-batches
+    title: buildRequirementBatches
+    status: active
+    sourceFile: packages/cli/src/public/operations/repair-plan.ts
+    granularity_reason: extractor-miss
     symbol_role: behavioral
     relationships:
       - type: covered_by
@@ -34682,18 +35590,6 @@ symbols:
         target: REQ-kibi-dependency-ordered-repair-plan
   - id: SYM-coordinate-repair-evidence
     title: addCoordinateRepairEvidence
-    status: active
-    sourceFile: packages/cli/src/public/operations/symbol-repair-plan.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-coordinate-repair-capability
-      - type: covered_by
-        target: TEST-kibi-dependency-ordered-repair-plan
-      - type: implements
-        target: REQ-kibi-dependency-ordered-repair-plan
-  - id: SYM-coordinate-repair-symbol-plan
-    title: buildSymbolRepairPlan
     status: active
     sourceFile: packages/cli/src/public/operations/symbol-repair-plan.ts
     symbol_role: behavioral
@@ -34716,12 +35612,11 @@ symbols:
         target: TEST-kibi-dependency-ordered-repair-plan
       - type: implements
         target: REQ-kibi-dependency-ordered-repair-plan
-  - id: SYM-coordinate-repair-batches
-    title: buildRequirementBatches
+  - id: SYM-coordinate-repair-inspect
+    title: inspectCoordinateRepairs
     status: active
-    sourceFile: packages/cli/src/public/operations/repair-plan.ts
+    sourceFile: packages/cli/src/public/operations/symbol-repair-plan.ts
     symbol_role: behavioral
-    granularity_reason: extractor-miss
     relationships:
       - type: covered_by
         target: TEST-coordinate-repair-capability
@@ -34729,173 +35624,24 @@ symbols:
         target: TEST-kibi-dependency-ordered-repair-plan
       - type: implements
         target: REQ-kibi-dependency-ordered-repair-plan
-  - id: SYM-test-coordinate-repair-capability
-    title: coordinate repair capability
+  - id: SYM-coordinate-repair-symbol-plan
+    title: buildSymbolRepairPlan
     status: active
-    sourceFile: packages/cli/tests/public/operations/symbol-repair-plan.test.ts
+    sourceFile: packages/cli/src/public/operations/symbol-repair-plan.ts
     symbol_role: behavioral
-    granularity_reason: test-suite
     relationships:
-      - type: executable_for
+      - type: covered_by
         target: TEST-coordinate-repair-capability
-  - id: SYM-migration-compare-ready-actions
-    title: compareReadyActionIds
-    status: active
-    sourceFile: packages/cli/src/public/operations/migration-plan.ts
-    symbol_role: behavioral
-    relationships:
-      - type: covered_by
-        target: TEST-agent-guided-migration-orchestration
-      - type: implements
-        target: REQ-agent-guided-migration-orchestration
-  - id: SYM-symbol-repair-plan-type
-    title: SymbolRepairPlan
-    status: active
-    sourceFile: packages/cli/src/public/operations/symbol-repair-plan.ts
-    symbol_role: structural
-    relationships:
       - type: covered_by
         target: TEST-kibi-dependency-ordered-repair-plan
       - type: implements
         target: REQ-kibi-dependency-ordered-repair-plan
-  - id: SYM-symbol-repair-plan-version
-    title: SYMBOL_REPAIR_PLAN_VERSION
-    status: active
-    sourceFile: packages/cli/src/public/operations/symbol-repair-plan.ts
-    symbol_role: structural
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-dependency-ordered-repair-plan
-      - type: implements
-        target: REQ-kibi-dependency-ordered-repair-plan
-  - id: SYM-analyze-staged-file-coverage
-    title: analyzeStagedFileCoverage
-    status: active
-    sourceFile: packages/cli/src/traceability/staged-file-coverage.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-cli-staged-impact-enforcement
-      - type: implements
-        target: REQ-AUTO-941B0CE68BAF3331
-  - id: SYM-checkDeprecatedAdrs
-    title: checkDeprecatedAdrs
-    status: active
-    sourceFile: packages/cli/src/commands/check.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: implements
-        target: REQ-cli-check
-  - id: SYM-checkDomainContradictions
-    title: checkDomainContradictions
-    status: active
-    sourceFile: packages/cli/src/commands/check.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: implements
-        target: REQ-cli-check
-  - id: SYM-checkMustPriorityCoverage
-    title: checkMustPriorityCoverage
-    status: active
-    sourceFile: packages/cli/src/commands/check.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: implements
-        target: REQ-cli-check
-  - id: SYM-checkNoCycles
-    title: checkNoCycles
-    status: active
-    sourceFile: packages/cli/src/commands/check.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: implements
-        target: REQ-cli-check
-  - id: SYM-checkNoDanglingRefs
-    title: checkNoDanglingRefs
-    status: active
-    sourceFile: packages/cli/src/commands/check.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: implements
-        target: REQ-cli-check
-  - id: SYM-checkRequiredFields
-    title: checkRequiredFields
-    status: active
-    sourceFile: packages/cli/src/commands/check.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: implements
-        target: REQ-cli-check
-  - id: SYM-checkStrictFactShape
-    title: checkStrictFactShape
-    status: active
-    sourceFile: packages/cli/src/commands/check.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: implements
-        target: REQ-cli-check
-  - id: SYM-checkStrictReadiness
-    title: checkStrictReadiness
-    status: active
-    sourceFile: packages/cli/src/commands/check.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: implements
-        target: REQ-cli-check
-  - id: SYM-checkStrictReqFactPairing
-    title: checkStrictReqFactPairing
-    status: active
-    sourceFile: packages/cli/src/commands/check.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: implements
-        target: REQ-cli-check
-  - id: SYM-checkSymbolCoverage
-    title: checkSymbolCoverage
-    status: active
-    sourceFile: packages/cli/src/commands/check.ts
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-004
-      - type: implements
-        target: REQ-cli-check
   - id: SYM-findMustPriorityReqs
     title: findMustPriorityReqs
     status: active
     sourceFile: packages/cli/src/commands/check.ts
-    symbol_role: behavioral
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-004
@@ -34905,8 +35651,8 @@ symbols:
     title: getStagedInventory
     status: active
     sourceFile: packages/cli/src/traceability/git-staged.ts
-    symbol_role: behavioral
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
@@ -34916,8 +35662,8 @@ symbols:
     title: getAllEntityIds
     status: active
     sourceFile: packages/cli/src/commands/check.ts
-    symbol_role: behavioral
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-004
@@ -34933,12 +35679,22 @@ symbols:
         target: TEST-cli-staged-impact-enforcement
       - type: implements
         target: REQ-AUTO-941B0CE68BAF3331
+  - id: SYM-migration-compare-ready-actions
+    title: compareReadyActionIds
+    status: active
+    sourceFile: packages/cli/src/public/operations/migration-plan.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
   - id: SYM-requireActiveProlog
     title: requireActiveProlog
     status: active
     sourceFile: packages/cli/src/commands/check.ts
-    symbol_role: behavioral
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-004
@@ -34998,8 +35754,8 @@ symbols:
     title: STAGED_FILE_COVERAGE_RESULT_VERSION
     status: active
     sourceFile: packages/cli/src/traceability/staged-file-coverage.ts
-    symbol_role: type-shape
     granularity_reason: legacy-link
+    symbol_role: type-shape
     relationships:
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
@@ -35029,10 +35785,40 @@ symbols:
     title: supportedStagedFiles
     status: active
     sourceFile: packages/cli/src/traceability/git-staged.ts
-    symbol_role: behavioral
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
       - type: implements
         target: REQ-AUTO-941B0CE68BAF3331
+  - id: SYM-symbol-repair-plan-type
+    title: SymbolRepairPlan
+    status: active
+    sourceFile: packages/cli/src/public/operations/symbol-repair-plan.ts
+    symbol_role: structural
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+  - id: SYM-symbol-repair-plan-version
+    title: SYMBOL_REPAIR_PLAN_VERSION
+    status: active
+    sourceFile: packages/cli/src/public/operations/symbol-repair-plan.ts
+    granularity_reason: legacy-link
+    symbol_role: structural
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-dependency-ordered-repair-plan
+      - type: implements
+        target: REQ-kibi-dependency-ordered-repair-plan
+  - id: SYM-test-coordinate-repair-capability
+    title: coordinate repair capability
+    status: active
+    sourceFile: packages/cli/tests/public/operations/symbol-repair-plan.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-coordinate-repair-capability

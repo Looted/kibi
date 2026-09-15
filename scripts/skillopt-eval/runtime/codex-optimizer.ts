@@ -675,7 +675,7 @@ export async function runCodexSkillOptStep(
                     options.baselineInsertion,
                     interpreted.lastMessage,
                     interpreted.error,
-                  ),
+                ),
             );
             interpreted = interpretAttempt(attempt.result, attempt.lastMessage);
             if (!interpreted.ok) {

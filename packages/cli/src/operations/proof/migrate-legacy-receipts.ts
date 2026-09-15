@@ -101,10 +101,13 @@ export async function executeMigrateLegacyReceipts(
       );
     }
 
-    const properties = projectEntityProperties(test);
+    const properties = Object.fromEntries(
+      Object.entries(projectEntityProperties(test)).filter(
+        ([key]) => key !== "verification_receipts",
+      ),
+    );
     // Drop the legacy lane from the compiled entity; proof_receipts stay
     // untouched so append-only validation keeps holding.
-    properties.verification_receipts = undefined;
     const upsertOptions =
       patchedContent === undefined
         ? {}

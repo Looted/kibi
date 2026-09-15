@@ -35,6 +35,8 @@ export {
   writeSetPrimaryEntityId,
 };
 
+// implements REQ-kibi-logical-requirement-coverage
+// covered_by TEST-kibi-logical-requirement-coverage
 export function annotateModelRequirementStep(
   step: Record<string, unknown>,
   context: {
@@ -74,7 +76,9 @@ export function annotateModelRequirementStep(
           {
             claim_key: context.claimKey,
             claim_text: normalizedClaimText,
-            role: /\b(?:must|shall|should|required|requires?)\b/i.test(claimText)
+            role: /\b(?:must|shall|should|required|requires?)\b/i.test(
+              claimText,
+            )
               ? "normative"
               : "descriptive",
             status: "modeled",

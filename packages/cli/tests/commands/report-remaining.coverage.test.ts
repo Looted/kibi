@@ -1,8 +1,8 @@
 // implements REQ-kibi-html-health-report
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as childProcess from "node:child_process";
-import * as fsPromises from "node:fs/promises";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import * as fsPromises from "node:fs/promises";
 import path from "node:path";
 import { reportCommand } from "../../src/commands/report.js";
 import * as reporting from "../../src/public/operations/specs/reporting.js";
@@ -95,7 +95,11 @@ describe("reportCommand remaining executeCoverageInContext path", () => {
     const io = captureIo();
     restores.push(io.restore);
     const output = await withCwd(cwd, () =>
-      reportCommand({ output: "health-report", tag: " core, ,cli ", limit: "50" }),
+      reportCommand({
+        output: "health-report",
+        tag: " core, ,cli ",
+        limit: "50",
+      }),
     );
     expect(output).toBe(path.join(cwd, "health-report", "index.html"));
     expect(existsSync(output)).toBe(true);
@@ -112,10 +116,7 @@ describe("reportCommand remaining executeCoverageInContext path", () => {
     const closes: Array<{ status?: string }> = [];
     const runtime = spyOn(cliRuntime, "createCliRuntime").mockReturnValue({
       open: async () => ({}),
-      close: async (
-        _context: unknown,
-        info?: { status?: string },
-      ) => {
+      close: async (_context: unknown, info?: { status?: string }) => {
         closes.push(info ?? {});
       },
       afterSuccess: async () => undefined,
@@ -168,16 +169,15 @@ describe("reportCommand remaining executeCoverageInContext path", () => {
     const load = async () => coverageRows();
     const originalRename = fsPromises.rename;
     let failedOnce = false;
-    const rename = spyOn(fsPromises, "rename").mockImplementation(async (
-      from,
-      to,
-    ) => {
-      if (!failedOnce && String(to).endsWith("fail.html")) {
-        failedOnce = true;
-        throw new Error("EIO rename");
-      }
-      return originalRename(from, to);
-    });
+    const rename = spyOn(fsPromises, "rename").mockImplementation(
+      async (from, to) => {
+        if (!failedOnce && String(to).endsWith("fail.html")) {
+          failedOnce = true;
+          throw new Error("EIO rename");
+        }
+        return originalRename(from, to);
+      },
+    );
     restores.push(() => rename.mockRestore());
     await expect(
       withCwd(cwd, () =>
@@ -189,9 +189,7 @@ describe("reportCommand remaining executeCoverageInContext path", () => {
     ).rejects.toThrow(/EIO rename/);
 
     const spawned: string[] = [];
-    const spawn = spyOn(childProcess, "spawn").mockImplementation((
-      command,
-    ) => {
+    const spawn = spyOn(childProcess, "spawn").mockImplementation((command) => {
       spawned.push(String(command));
       const child = {
         once(event: string, listener: () => void) {

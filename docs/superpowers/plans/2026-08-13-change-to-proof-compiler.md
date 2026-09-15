@@ -157,8 +157,9 @@ type CompileIntentInput = {
     id?: string;
     title: string;
     body: string;
-    verificationScope?: "unit" | "integration" | "end_to_end";
-    verificationPerspective?: "internal" | "consumer";
+    scenarioIds?: string[];              // stable scenario draft IDs verified by this test
+    verificationScope?: "unit" | "integration" | "end_to_end"; // defaults to integration
+    verificationPerspective?: "internal" | "consumer";          // defaults to internal
   }>;
   proposalDecisions?: Array<{
     proposalId: string;

@@ -47,31 +47,49 @@ describe("relationship shard leftover branches", () => {
     expect(() => readShard(shard)).toThrow(/expected object/);
 
     const write = (body: string) => fs.writeFileSync(shard, body);
-    write(`relationships:\n  - { type: implements, from: A, to: B, created_at: "t", created_by: x, source: y }\n`);
+    write(
+      'relationships:\n  - { type: implements, from: A, to: B, created_at: "t", created_by: x, source: y }\n',
+    );
     expect(() => readShard(shard)).toThrow(/invalid 'id'/);
 
-    write(`relationships:\n  - { id: r1, from: A, to: B, created_at: "t", created_by: x, source: y }\n`);
+    write(
+      'relationships:\n  - { id: r1, from: A, to: B, created_at: "t", created_by: x, source: y }\n',
+    );
     expect(() => readShard(shard)).toThrow(/invalid 'type'/);
 
-    write(`relationships:\n  - { id: r1, type: implements, to: B, created_at: "t", created_by: x, source: y }\n`);
+    write(
+      'relationships:\n  - { id: r1, type: implements, to: B, created_at: "t", created_by: x, source: y }\n',
+    );
     expect(() => readShard(shard)).toThrow(/invalid 'from'/);
 
-    write(`relationships:\n  - { id: r1, type: implements, from: A, created_at: "t", created_by: x, source: y }\n`);
+    write(
+      'relationships:\n  - { id: r1, type: implements, from: A, created_at: "t", created_by: x, source: y }\n',
+    );
     expect(() => readShard(shard)).toThrow(/invalid 'to'/);
 
-    write(`relationships:\n  - { id: r1, type: implements, from: A, to: B, created_by: x, source: y }\n`);
+    write(
+      "relationships:\n  - { id: r1, type: implements, from: A, to: B, created_by: x, source: y }\n",
+    );
     expect(() => readShard(shard)).toThrow(/invalid 'created_at'/);
 
-    write(`relationships:\n  - { id: r1, type: implements, from: A, to: B, created_at: "t", source: y }\n`);
+    write(
+      'relationships:\n  - { id: r1, type: implements, from: A, to: B, created_at: "t", source: y }\n',
+    );
     expect(() => readShard(shard)).toThrow(/invalid 'created_by'/);
 
-    write(`relationships:\n  - { id: r1, type: implements, from: A, to: B, created_at: "t", created_by: x }\n`);
+    write(
+      'relationships:\n  - { id: r1, type: implements, from: A, to: B, created_at: "t", created_by: x }\n',
+    );
     expect(() => readShard(shard)).toThrow(/invalid 'source'/);
 
-    write(`relationships:\n  - { id: r1, type: implements, from: A, to: B, created_at: "t", created_by: x, source: y, confidence: "high" }\n`);
+    write(
+      'relationships:\n  - { id: r1, type: implements, from: A, to: B, created_at: "t", created_by: x, source: y, confidence: "high" }\n',
+    );
     expect(() => readShard(shard)).toThrow(/Invalid 'confidence'/);
 
-    write(`relationships:\n  - created_at: 2026-03-15T11:45:00.000Z\n    id: r1\n    type: implements\n    from: A\n    to: B\n    created_by: x\n    source: y\n`);
+    write(
+      "relationships:\n  - created_at: 2026-03-15T11:45:00.000Z\n    id: r1\n    type: implements\n    from: A\n    to: B\n    created_by: x\n    source: y\n",
+    );
     const dated = readShard(shard);
     expect(dated[0]?.created_at).toMatch(/2026-03-15T11:45:00/);
   });
@@ -139,8 +157,8 @@ describe("relationship shard leftover branches", () => {
     const kb = tempRoot();
     const created = appendRelationship(kb, { ...base });
     fs.writeFileSync(created.shardPath, "notes: true\n");
-    expect(() =>
-      appendRelationship(kb, { ...base, to: "REQ-009" }),
-    ).toThrow(/missing 'relationships' array/);
+    expect(() => appendRelationship(kb, { ...base, to: "REQ-009" })).toThrow(
+      /missing 'relationships' array/,
+    );
   });
 });

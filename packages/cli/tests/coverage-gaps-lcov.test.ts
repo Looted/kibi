@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { Command } from "commander";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { Command } from "commander";
 
 import { registerFoundationCommands } from "../src/cli-register-foundation.js";
 import { registerJsonOnlyCommands } from "../src/cli-register-json.js";
@@ -105,11 +105,16 @@ describe("coverage gaps: kb-manifest", () => {
       (readKbManifestStatus(root) as unknown as { warning?: string }).warning,
     ).toContain("unreadable");
 
-    rmSync(path.join(root, ".kb", "manifest.json"), { recursive: true, force: true });
+    rmSync(path.join(root, ".kb", "manifest.json"), {
+      recursive: true,
+      force: true,
+    });
     const written = writeKbManifest(root, defaultKbManifest());
     expect(written.endsWith(".kb/manifest.json")).toBe(true);
     expect(readKbManifestStatus(root).state).toBe("ok");
-    expect(readKbManifest(root)?.semanticAdvisorBackfill).toBe("not_applicable");
+    expect(readKbManifest(root)?.semanticAdvisorBackfill).toBe(
+      "not_applicable",
+    );
   });
 });
 
@@ -117,9 +122,9 @@ describe("coverage gaps: result envelope", () => {
   test("maps diagnostics, next actions, and effect failures", () => {
     expect(KIBI_PROTOCOL_VERSION).toBe(1);
     expect(resultVersion({ name: "kb_query" })).toBe("kibi.kb_query.v1");
-    expect(resultVersion({ name: "kb_query", resultVersion: "custom.v1" })).toBe(
-      "custom.v1",
-    );
+    expect(
+      resultVersion({ name: "kb_query", resultVersion: "custom.v1" }),
+    ).toBe("custom.v1");
     expect(operationData({ structuredContent: { ok: true } })).toEqual({
       ok: true,
     });

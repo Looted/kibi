@@ -1,10 +1,16 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
-import { Command } from "commander";
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { runJsonInvocation } from "../src/cli-json-command.js";
+import { Command } from "commander";
 import * as cliInput from "../src/cli-input.js";
+import { runJsonInvocation } from "../src/cli-json-command.js";
 import * as cliLoader from "../src/cli-operation-loader.js";
 import * as cliProtocol from "../src/cli-protocol.js";
 import * as cliRuntime from "../src/runtime/cli-runtime.js";
@@ -150,9 +156,11 @@ describe("runJsonInvocation", () => {
       operation: "kb_skills_list",
       status: "success",
     });
-    expect(printed.data.skills.some((skill: { id: string }) => skill.id === "kibi-usage")).toBe(
-      true,
-    );
+    expect(
+      printed.data.skills.some(
+        (skill: { id: string }) => skill.id === "kibi-usage",
+      ),
+    ).toBe(true);
   });
 
   test("appends diagnostic usage on success when --diagnostic-mode is set", async () => {

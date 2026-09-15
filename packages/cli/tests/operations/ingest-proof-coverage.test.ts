@@ -20,14 +20,20 @@ const contract = {
   success_policy: "all_required_first_attempt",
 } as const;
 
-function artifact(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+function artifact(
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> {
   return {
     version: "kibi.proof-run.v1",
     producer: { name: "kibi-command-producer" },
     integration: "self-proof",
     command_argv: command,
     code_snapshot: SNAPSHOT,
-    environment: { os: "linux", arch: "x86_64", runtime: { name: "node", version: "v24" } },
+    environment: {
+      os: "linux",
+      arch: "x86_64",
+      runtime: { name: "node", version: "v24" },
+    },
     run: {
       outcome: "failed",
       exit_code: 1,
@@ -150,13 +156,19 @@ describe("executeIngestProof guards and selection", () => {
     ).rejects.toThrow(/snapshot unavailable/);
     await expect(
       executeIngestProof(
-        { snapshot: "b".repeat(64), artifact: artifact({ code_snapshot: "b".repeat(64) }) },
+        {
+          snapshot: "b".repeat(64),
+          artifact: artifact({ code_snapshot: "b".repeat(64) }),
+        },
         context(dir, async () => ({ success: true, bindings: {} })),
       ),
     ).rejects.toThrow(/not the live workspace snapshot/);
     await expect(
       executeIngestProof(
-        { snapshot: SNAPSHOT, artifact: artifact({ code_snapshot: "b".repeat(64) }) },
+        {
+          snapshot: SNAPSHOT,
+          artifact: artifact({ code_snapshot: "b".repeat(64) }),
+        },
         context(dir, async () => ({ success: true, bindings: {} })),
       ),
     ).rejects.toThrow(/code_snapshot does not match/);
@@ -197,7 +209,10 @@ describe("executeIngestProof guards and selection", () => {
     await expect(
       executeIngestProof(
         { snapshot: SNAPSHOT, artifact: artifact(), testIds: ["TEST-MISSING"] },
-        context(dir, async () => ({ success: true, bindings: { Results: "[]" } })),
+        context(dir, async () => ({
+          success: true,
+          bindings: { Results: "[]" },
+        })),
       ),
     ).rejects.toThrow(/was not found/);
 
@@ -208,7 +223,7 @@ describe("executeIngestProof guards and selection", () => {
           success: true,
           bindings: {
             Results:
-              "[[TEST-OTHER,test,[id='TEST-OTHER',proof_contract=json('{\"version\":\"kibi.proof-contract.v1\",\"integration\":\"other\",\"required_proofs\":[{\"symbol_id\":\"SYM-1\",\"target\":\"default\"}],\"success_policy\":\"all_required_first_attempt\"}')]]]",
+              '[[TEST-OTHER,test,[id=\'TEST-OTHER\',proof_contract=json(\'{"version":"kibi.proof-contract.v1","integration":"other","required_proofs":[{"symbol_id":"SYM-1","target":"default"}],"success_policy":"all_required_first_attempt"}\')]]]',
           },
         })),
       ),
@@ -223,7 +238,7 @@ describe("executeIngestProof guards and selection", () => {
               success: true,
               bindings: {
                 Results:
-                  "[[TEST-1,test,[id='TEST-1',proof_contract=json('{\"version\":\"old\",\"integration\":\"self-proof\",\"required_proofs\":[],\"success_policy\":\"all_required_first_attempt\"}')]]]",
+                  '[[TEST-1,test,[id=\'TEST-1\',proof_contract=json(\'{"version":"old","integration":"self-proof","required_proofs":[],"success_policy":"all_required_first_attempt"}\')]]]',
               },
             };
           }

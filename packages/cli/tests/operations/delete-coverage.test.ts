@@ -73,7 +73,10 @@ describe("executeDelete guards and relationship preflight", () => {
       ),
     ).rejects.toThrow(/Prolog runtime/);
     await expect(
-      executeDelete({ ids: [] }, contextFor(root, () => ({ success: true, bindings: {} }))),
+      executeDelete(
+        { ids: [] },
+        contextFor(root, () => ({ success: true, bindings: {} })),
+      ),
     ).rejects.toThrow(/exactly one non-empty input/);
     await expect(
       executeDelete(
@@ -248,9 +251,7 @@ describe("executeDelete guards and relationship preflight", () => {
     );
     const result = await executeDelete(
       {
-        relationships: [
-          { type: "verified_by", from: "REQ-MD", to: "TEST-MD" },
-        ],
+        relationships: [{ type: "verified_by", from: "REQ-MD", to: "TEST-MD" }],
       },
       contextFor(
         root,
@@ -295,8 +296,10 @@ describe("executeDelete guards and relationship preflight", () => {
       contextFor(
         root,
         (goal) => {
-          if (goal.startsWith("once(kb_entity(")) return { success: true, bindings: {} };
-          if (goal.includes("Dependents")) return { success: true, bindings: { Dependents: "[]" } };
+          if (goal.startsWith("once(kb_entity("))
+            return { success: true, bindings: {} };
+          if (goal.includes("Dependents"))
+            return { success: true, bindings: { Dependents: "[]" } };
           if (goal.includes("findall(['REQ-AUTH'")) {
             return {
               success: true,
@@ -310,7 +313,9 @@ describe("executeDelete guards and relationship preflight", () => {
         { fs: nodeFilesystem },
       ),
     );
-    expect(req.structuredContent?.deletionPlan?.supersessionRequired).toBe(true);
+    expect(req.structuredContent?.deletionPlan?.supersessionRequired).toBe(
+      true,
+    );
     expect(req.structuredContent?.errors[0]).toContain("supersession");
 
     const factPath = ".kb/facts/FACT-AUTH.md";
@@ -324,8 +329,10 @@ describe("executeDelete guards and relationship preflight", () => {
       contextFor(
         root,
         (goal) => {
-          if (goal.startsWith("once(kb_entity(")) return { success: true, bindings: {} };
-          if (goal.includes("Dependents")) return { success: true, bindings: { Dependents: "[]" } };
+          if (goal.startsWith("once(kb_entity("))
+            return { success: true, bindings: {} };
+          if (goal.includes("Dependents"))
+            return { success: true, bindings: { Dependents: "[]" } };
           if (goal.includes("findall(['FACT-AUTH'")) {
             return {
               success: true,
@@ -339,7 +346,9 @@ describe("executeDelete guards and relationship preflight", () => {
         { fs: nodeFilesystem },
       ),
     );
-    expect(fact.structuredContent?.deletionPlan?.supersessionRequired).toBe(false);
+    expect(fact.structuredContent?.deletionPlan?.supersessionRequired).toBe(
+      false,
+    );
     expect(fact.content[0]?.text).toContain("kb_apply_plan");
   });
 
@@ -349,21 +358,29 @@ describe("executeDelete guards and relationship preflight", () => {
     const blocked = await executeDelete(
       { ids: ["REQ-DEP"] },
       contextFor(root, (goal) => {
-        if (goal.startsWith("once(kb_entity(")) return { success: true, bindings: {} };
+        if (goal.startsWith("once(kb_entity("))
+          return { success: true, bindings: {} };
         if (goal.includes("Dependents")) {
-          return { success: true, bindings: { Dependents: "[[verified_by,TEST-1]]" } };
+          return {
+            success: true,
+            bindings: { Dependents: "[[verified_by,TEST-1]]" },
+          };
         }
         return { success: true, bindings: { Results: "[]" } };
       }),
     );
-    expect(blocked.structuredContent?.errors.join(" ")).toContain("has dependents");
+    expect(blocked.structuredContent?.errors.join(" ")).toContain(
+      "has dependents",
+    );
 
     await expect(
       executeDelete(
         { ids: ["REQ-EMPTY"] },
         contextFor(root, (goal) => {
-          if (goal.startsWith("once(kb_entity(")) return { success: true, bindings: {} };
-          if (goal.includes("Dependents")) return { success: true, bindings: { Dependents: "[]" } };
+          if (goal.startsWith("once(kb_entity("))
+            return { success: true, bindings: {} };
+          if (goal.includes("Dependents"))
+            return { success: true, bindings: { Dependents: "[]" } };
           if (goal.includes("findall(['REQ-EMPTY'")) {
             return { success: true, bindings: { Results: "[]" } };
           }
@@ -377,8 +394,10 @@ describe("executeDelete guards and relationship preflight", () => {
       contextFor(
         root,
         (goal) => {
-          if (goal.startsWith("once(kb_entity(")) return { success: true, bindings: {} };
-          if (goal.includes("Dependents")) return { success: true, bindings: { Dependents: "[]" } };
+          if (goal.startsWith("once(kb_entity("))
+            return { success: true, bindings: {} };
+          if (goal.includes("Dependents"))
+            return { success: true, bindings: { Dependents: "[]" } };
           if (goal.includes("findall(['REQ-PROTO'")) {
             return {
               success: true,
@@ -426,7 +445,10 @@ describe("executeDelete guards and relationship preflight", () => {
           if (goal.includes("kb_relationship(implements")) {
             return { success: true, bindings: {} };
           }
-          if (goal.includes("kb_retract_relationship") || goal.includes("kb_save")) {
+          if (
+            goal.includes("kb_retract_relationship") ||
+            goal.includes("kb_save")
+          ) {
             return { success: true, bindings: {} };
           }
           return { success: false, bindings: {} };
@@ -436,7 +458,8 @@ describe("executeDelete guards and relationship preflight", () => {
     );
     expect(result.structuredContent?.relationships_deleted).toBe(1);
     expect(result.structuredContent?.sync_required).toBe(true);
-    expect(await readFile(path.join(root, relative), "utf8")).not.toContain("REQ-1");
+    expect(await readFile(path.join(root, relative), "utf8")).not.toContain(
+      "REQ-1",
+    );
   });
 });
-

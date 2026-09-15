@@ -12,13 +12,21 @@ afterEach(() => {
 describe("verify-publish-metadata leftover main gate", () => {
   test("runVerifyPublishMetadataIfMain exits only when invoked as main", () => {
     const exits: number[] = [];
-    runVerifyPublishMetadataIfMain(false, () => 7, (code) => {
-      exits.push(code);
-    });
+    runVerifyPublishMetadataIfMain(
+      false,
+      () => 7,
+      (code) => {
+        exits.push(code);
+      },
+    );
     expect(exits).toEqual([]);
-    runVerifyPublishMetadataIfMain(true, () => 3, (code) => {
-      exits.push(code);
-    });
+    runVerifyPublishMetadataIfMain(
+      true,
+      () => 3,
+      (code) => {
+        exits.push(code);
+      },
+    );
     expect(exits).toEqual([3]);
     runVerifyPublishMetadataIfMain(false, () => 0);
     const exit = process.exit;

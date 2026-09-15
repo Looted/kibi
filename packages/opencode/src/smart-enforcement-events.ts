@@ -22,6 +22,7 @@
 
 import * as fs from "node:fs";
 import type { CommentAnalysisResult } from "./comment-analysis.js";
+import { analyzeCodeFile } from "./comment-analysis.js";
 import * as fileFilter from "./file-filter.js";
 import type {
   FileLifecycle,
@@ -32,14 +33,13 @@ import type { KbFreshnessScope } from "./kb-freshness-state.js";
 import * as logger from "./logger.js";
 import type { PathAnalysis, PathKind } from "./path-kind.js";
 import { analyzePath } from "./path-kind.js";
+import type { RuntimeDegradedOverlay } from "./plugin-startup.js";
 import { isMustPriorityRequirement } from "./requirement-doc.js";
-import { analyzeCodeFile } from "./comment-analysis.js";
 import type { RiskClass } from "./risk-classifier.js";
 import { classifyRisk } from "./risk-classifier.js";
-import type { RuntimeDegradedOverlay } from "./plugin-startup.js";
 import type { SyncScheduler } from "./scheduler.js";
-import type { WarningCategory } from "./session-tracker.js";
 import type { SessionEditState } from "./session-edit-state.js";
+import type { WarningCategory } from "./session-tracker.js";
 import type { WorkContext } from "./work-context-resolver.js";
 
 // implements REQ-opencode-kibi-plugin-v1
@@ -184,9 +184,8 @@ function resolveFileEvent(
   env: KibiEventEnv,
   event: PluginEvent,
 ): FileEventResolution | null {
-  const filePath = (
-    event as { type: string; properties: { file: string } }
-  ).properties.file;
+  const filePath = (event as { type: string; properties: { file: string } })
+    .properties.file;
   if (!filePath) return null;
   const eventContext = env.resolveScopedWorkContext(filePath);
   const scopedSessionEditState = env.getSessionEditState(eventContext);
@@ -288,10 +287,7 @@ export function handleFileLifecycleEvent(
 
   const hasMustPriority =
     pathAnalysis.kind === "requirement"
-      ? isMustPriorityRequirement(
-          normalizedFilePath,
-          eventContext.worktreeRoot,
-        )
+      ? isMustPriorityRequirement(normalizedFilePath, eventContext.worktreeRoot)
       : false;
 
   let precomputedSuggestion: CommentAnalysisResult | null = null;
@@ -392,11 +388,7 @@ export function handleFileLifecycleEvent(
       eventContext.worktreeRoot,
     );
     for (const warning of lintWarnings) {
-      env.recordWarning(
-        warning.category,
-        normalizedFilePath,
-        warning.message,
-      );
+      env.recordWarning(warning.category, normalizedFilePath, warning.message);
     }
   }
 
@@ -553,9 +545,7 @@ function scheduleTargetedChecksForRisk(
             "required-fields",
             "no-dangling-refs",
             ...(pathKind === "fact" ? ["strict-fact-shape"] : []),
-            ...(pathKind === "requirement"
-              ? ["strict-req-fact-pairing"]
-              : []),
+            ...(pathKind === "requirement" ? ["strict-req-fact-pairing"] : []),
           ]
         : null;
 
@@ -575,9 +565,7 @@ function scheduleTargetedChecksForRisk(
         merged_degraded: env.getMaintenanceDegraded(),
         overlay_cause: env.runtimeOverlay.primaryCause ?? null,
       });
-      env.log.info(
-        `kibi-opencode: scheduling sync for ${normalizedFilePath}`,
-      );
+      env.log.info(`kibi-opencode: scheduling sync for ${normalizedFilePath}`);
       scopedScheduler.scheduleSync(
         effectiveRiskClass === "traceability_candidate"
           ? "smart-enforcement.traceability"
@@ -609,10 +597,7 @@ function lintRequirementPolicy(
   normalizedFilePath: string,
   worktreeRoot: string,
 ): void {
-  const lintWarnings = env.lintRequirementDoc(
-    normalizedFilePath,
-    worktreeRoot,
-  );
+  const lintWarnings = env.lintRequirementDoc(normalizedFilePath, worktreeRoot);
   for (const warning of lintWarnings) {
     env.recordWarning(warning.category, normalizedFilePath, warning.message);
   }
@@ -706,11 +691,7 @@ function handleReqPolicyCandidate(
       merged_degraded: env.getMaintenanceDegraded(),
       overlay_cause: env.runtimeOverlay.primaryCause ?? null,
     });
-    scopedScheduler.scheduleSync(
-      "file.edited",
-      normalizedFilePath,
-      checkRules,
-    );
+    scopedScheduler.scheduleSync("file.edited", normalizedFilePath, checkRules);
   }
 }
 

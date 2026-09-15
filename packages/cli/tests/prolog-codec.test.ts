@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import { buildPropertyList } from "../src/operations/mutation/serialization";
+import { PrologProcess } from "../src/prolog";
 import {
   escapeAtom,
   escapeAtomContent,
@@ -16,6 +18,7 @@ import {
   toPrologAtom,
   toPrologString,
 } from "../src/prolog/codec";
+import { loadEntities } from "../src/public/operations/discovery-entities";
 
 describe("atom encoding", () => {
   test("escapes single quotes in atom content", () => {
@@ -220,6 +223,50 @@ describe("Prolog property and value parsing", () => {
     expect(
       parsePropertyList("[title=\"Title\",skip=...,tail=...|...,owner='team']"),
     ).toEqual({ title: "Title", owner: "team" });
+  });
+
+  test("round-trips escaped typed strings through entity discovery and upsert serialization", async () => {
+    const semanticText =
+      'line one\\nline two; a "quoted" value; C:\\path [retained]';
+    const semanticInventory = [
+      {
+        claim_key: "CLAIM-ROUNDTRIP",
+        claim_text: semanticText,
+        role: "descriptive",
+        status: "modeled",
+        span: { start: 0, end: semanticText.length },
+      },
+    ];
+    const typedSemanticText = `Term =.. ['^^', ${toPrologString(semanticText)}, 'http://www.w3.org/2001/XMLSchema#string']`;
+    const rawResult = await new PrologProcess({
+      oneShot: true,
+      timeout: 5_000,
+    }).query(
+      `${typedSemanticText}, Results=[['REQ-ROUNDTRIP',req,[semantic_text=Term,semantic_inventory=${toPrologString(JSON.stringify(semanticInventory))}]]]`,
+    );
+    if (!rawResult.success) {
+      throw new Error(rawResult.error ?? "Prolog fixture query failed");
+    }
+    const prolog = { query: async () => rawResult };
+
+    const [entity] = await loadEntities(prolog, {
+      id: "REQ-ROUNDTRIP",
+      type: "req",
+    });
+
+    expect(entity?.semantic_text).toBe(semanticText);
+    expect(entity?.semantic_inventory).toEqual(semanticInventory);
+
+    const serialized = buildPropertyList({
+      type: "req",
+      id: "REQ-ROUNDTRIP",
+      semantic_text: entity?.semantic_text,
+      semantic_inventory: entity?.semantic_inventory,
+    });
+    expect(parsePropertyList(serialized)).toMatchObject({
+      semantic_text: semanticText,
+      semantic_inventory: semanticInventory,
+    });
   });
 });
 

@@ -31,11 +31,8 @@ describe("product-tail predicate rule remaining args branches", () => {
     ];
     for (const statement of statements) {
       expect(
-        detectPredicateRules(
-          payload,
-          statement,
-          PRODUCT_TAIL_PREDICATE_RULES,
-        )?.kind,
+        detectPredicateRules(payload, statement, PRODUCT_TAIL_PREDICATE_RULES)
+          ?.kind,
       ).toBe("predicate");
     }
   });

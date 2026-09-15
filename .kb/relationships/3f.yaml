@@ -216,3 +216,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1926eb27f425
+  - type: implements
+    from: SYM-quality-inventory-171f2ce53251
+    to: REQ-cli-check
+    created_at: 2026-09-14T20:25:35.510Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56b7845a1474
+  - type: covered_by
+    from: SYM-quality-inventory-171f2ce53251
+    to: TEST-cli-check-integrity
+    created_at: 2026-09-14T20:25:35.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82035f5d8c2c

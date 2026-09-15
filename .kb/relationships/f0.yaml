@@ -97,3 +97,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1013f2ea6e70
+  - type: implements
+    from: SYM-quality-inventory-0a51c3fca351
+    to: REQ-cli-check
+    created_at: 2026-09-14T20:23:58.470Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d60572b888af
+  - type: covered_by
+    from: SYM-quality-inventory-0a51c3fca351
+    to: TEST-cli-check-integrity
+    created_at: 2026-09-14T20:23:58.511Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e69ba818882

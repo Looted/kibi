@@ -1,17 +1,14 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { coverageCommand } from "../../src/commands/coverage.js";
+import * as discovery from "../../src/commands/discovery-shared.js";
 import { gapsCommand } from "../../src/commands/gaps.js";
 import { graphCommand } from "../../src/commands/graph.js";
 import { queryCommand } from "../../src/commands/query.js";
 import { searchCommand } from "../../src/commands/search.js";
 import { statusCommand } from "../../src/commands/status.js";
-import * as discovery from "../../src/commands/discovery-shared.js";
-import * as runtimeTypes from "../../src/public/operations/runtime-types.js";
 import type { PrologProcess } from "../../src/prolog.js";
-import {
-  captureIo,
-  isolateKibiEnv,
-} from "../helpers/in-process-workspace.js";
+import * as runtimeTypes from "../../src/public/operations/runtime-types.js";
+import { captureIo, isolateKibiEnv } from "../helpers/in-process-workspace.js";
 
 const restores: Array<() => void> = [];
 
@@ -21,10 +18,7 @@ afterEach(() => {
 
 function reportingResult(text?: string, structured: unknown = { ok: true }) {
   return {
-    content:
-      text === undefined
-        ? []
-        : [{ type: "text" as const, text }],
+    content: text === undefined ? [] : [{ type: "text" as const, text }],
     structuredContent: structured,
   };
 }
@@ -201,10 +195,12 @@ describe("discovery command wrappers", () => {
     expect(await queryCommand("nope", {})).toEqual({ exitCode: 1 });
     expect(io.errorText()).toContain("Invalid type");
 
-    const opSpy = spyOn(runtimeTypes, "executeOperation").mockResolvedValueOnce({
-      content: [],
-      structuredContent: { entities: [] },
-    });
+    const opSpy = spyOn(runtimeTypes, "executeOperation").mockResolvedValueOnce(
+      {
+        content: [],
+        structuredContent: { entities: [] },
+      },
+    );
     expect(await queryCommand("req", { format: "json" })).toEqual({
       exitCode: 0,
     });
@@ -224,9 +220,11 @@ describe("discovery command wrappers", () => {
         ],
       },
     });
-    expect(await queryCommand("req", { format: "table", tag: "auth" })).toEqual({
-      exitCode: 0,
-    });
+    expect(await queryCommand("req", { format: "table", tag: "auth" })).toEqual(
+      {
+        exitCode: 0,
+      },
+    );
     expect(io.logText()).toContain("REQ-LONG-IDENTIF");
 
     opSpy.mockRejectedValueOnce(new Error("prolog down"));
@@ -234,17 +232,19 @@ describe("discovery command wrappers", () => {
     expect(io.errorText()).toContain("prolog down");
     restores.push(() => opSpy.mockRestore());
 
-    const relSpy = spyOn(discovery, "withAttachedBranchProlog").mockImplementation(
-      async (callback) =>
-        callback({
-          query: async () => ({
-            success: true,
-            bindings: {
-              Results:
-                "[[specified_by,REQ-1,SCEN-1],[broken],[specified_by,REQ-1,SCEN-2]]",
-            },
-          }),
-        } as unknown as PrologProcess),
+    const relSpy = spyOn(
+      discovery,
+      "withAttachedBranchProlog",
+    ).mockImplementation(async (callback) =>
+      callback({
+        query: async () => ({
+          success: true,
+          bindings: {
+            Results:
+              "[[specified_by,REQ-1,SCEN-1],[broken],[specified_by,REQ-1,SCEN-2]]",
+          },
+        }),
+      } as unknown as PrologProcess),
     );
     restores.push(() => relSpy.mockRestore());
     expect(

@@ -62,3 +62,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f913bbc8ecf4
+  - type: executable_for
+    from: SYM-quality-suite-mcp-schema-adapter
+    to: TEST-mcp-schema-adapter
+    created_at: 2026-09-14T20:40:26.819Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99b1d7737850

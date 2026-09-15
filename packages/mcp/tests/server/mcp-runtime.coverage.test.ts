@@ -33,7 +33,10 @@ describe("createMcpRuntime remaining branches", () => {
     const cwd = createGitWorkspace();
     roots.push(cwd);
     mkdirSync(path.join(cwd, ".kb", "branches", "main"), { recursive: true });
-    writeFileSync(path.join(cwd, ".kb", "branches", "main", "kb.rdf"), "legacy\n");
+    writeFileSync(
+      path.join(cwd, ".kb", "branches", "main", "kb.rdf"),
+      "legacy\n",
+    );
 
     const warn = mock();
     const original = console.warn;

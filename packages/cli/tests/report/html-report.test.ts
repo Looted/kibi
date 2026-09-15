@@ -422,7 +422,10 @@ describe("renderHtmlReport", () => {
               sourceCoordinates: stage("missing", {
                 requirementSource: "absent",
                 missingSymbols: ["SYM-MISSING"],
-                coordinates: [{ id: "SYM-NO-PATH" }, { path: "src/a.ts", line: 0 }],
+                coordinates: [
+                  { id: "SYM-NO-PATH" },
+                  { path: "src/a.ts", line: 0 },
+                ],
               }),
               passingE2e: stage("passed", {
                 receiptEvidence: [{ state: "passed", scope: "unit" }],
@@ -449,7 +452,12 @@ describe("renderHtmlReport", () => {
                 requirementSource: "present",
                 missingSymbols: ["SYM-MISSING"],
                 coordinates: [
-                  { path: "src/owned.ts", id: "SYM-OWNED", line: 4, endLine: 8 },
+                  {
+                    path: "src/owned.ts",
+                    id: "SYM-OWNED",
+                    line: 4,
+                    endLine: 8,
+                  },
                 ],
               }),
               passingE2e: stage("passed", {

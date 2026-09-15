@@ -1,6 +1,9 @@
 // implements REQ-002
 import { afterEach, describe, expect, test } from "bun:test";
-import { nextAncestorDirectory, resolveWorkspaceRoot } from "../src/workspace.js";
+import {
+  nextAncestorDirectory,
+  resolveWorkspaceRoot,
+} from "../src/workspace.js";
 
 afterEach(() => {
   process.exitCode = 0;

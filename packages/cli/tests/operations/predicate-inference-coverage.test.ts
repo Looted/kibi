@@ -1,6 +1,7 @@
 // implements REQ-mcp-suggest-predicates
 import { describe, expect, test } from "bun:test";
 import { inferArgs } from "../../src/operations/modeling/predicate-inference.js";
+import type { PredicateSchemaCandidate } from "../../src/operations/modeling/predicate-types.js";
 import {
   inferDuration,
   inferDurationUnit,
@@ -18,7 +19,6 @@ import {
   normalizeSubjectKey,
   singularize,
 } from "../../src/operations/modeling/predicate-utils.js";
-import type { PredicateSchemaCandidate } from "../../src/operations/modeling/predicate-types.js";
 
 function schema(
   predicateName: string,
@@ -46,20 +46,40 @@ describe("predicate inference coverage", () => {
       ["transition", "Draft becomes active.", "editor"],
       ["guard", "Save must stay disabled until dirty.", "save"],
       ["guard", "The field is readonly.", "field"],
-      ["exception_rule", "The admin is the only exception to the lock.", "admin"],
-      ["exception_rule", "The worker must continue unless the queue is empty.", "worker"],
-      ["mutual_exclusion", "Plan A and plan B must be mutually exclusive.", "plans"],
+      [
+        "exception_rule",
+        "The admin is the only exception to the lock.",
+        "admin",
+      ],
+      [
+        "exception_rule",
+        "The worker must continue unless the queue is empty.",
+        "worker",
+      ],
+      [
+        "mutual_exclusion",
+        "Plan A and plan B must be mutually exclusive.",
+        "plans",
+      ],
       ["dependency_rule", "Deploy requires tests before release.", "deploy"],
       ["ownership_rule", "The ledger is owned by the finance team.", "ledger"],
       ["retry_policy", "The client must retry up to 3 times.", "client"],
-      ["escalation_rule", "Support must escalate to oncall after 15 minutes.", "support"],
+      [
+        "escalation_rule",
+        "Support must escalate to oncall after 15 minutes.",
+        "support",
+      ],
       [
         "availability_sla",
         "API availability must be at least 99.9 percent monthly.",
         "api",
       ],
       ["notification_route", "Alerts must notify oncall by email.", "alerts"],
-      ["idempotency_rule", "The webhook must be idempotent by request id.", "webhook"],
+      [
+        "idempotency_rule",
+        "The webhook must be idempotent by request id.",
+        "webhook",
+      ],
       [
         "idempotency_rule",
         "The webhook must be deduplicated to prevent redundant requests during retries.",
@@ -86,7 +106,11 @@ describe("predicate inference coverage", () => {
       ["batch_operation_rule", "Imports run as a batch.", "imports"],
       ["consistency_rule", "Replicas stay consistent.", "replicas"],
       ["build_constraint", "Release builds must stay green.", "build"],
-      ["environment_safety_rule", "Prod writes are forbidden in staging.", "env"],
+      [
+        "environment_safety_rule",
+        "Prod writes are forbidden in staging.",
+        "env",
+      ],
       ["schema_invariant_rule", "Ids remain unique.", "schema"],
       ["coding_standard_rule", "Files must use typescript.", "code"],
       ["migration_boundary_rule", "Legacy stores stay isolated.", "migrate"],
@@ -117,7 +141,11 @@ describe("predicate inference coverage", () => {
       ["resource_constraint", "Size must be at least 10 mb.", "payload"],
       ["feature_gate", "Flag `beta_mode` stays disabled.", "flag"],
       ["feature_gate", "Flag stays enabled.", "flag"],
-      ["publishes_event", "Checkout publishes CheckoutCompletedEvent.", "checkout"],
+      [
+        "publishes_event",
+        "Checkout publishes CheckoutCompletedEvent.",
+        "checkout",
+      ],
       ["acceptance_rule", "A passing receipt is observed.", "proof"],
       ["permission_rule", "Agents must not edit compiled stores.", "agents"],
       ["permission_rule", "Owners may approve the change.", "owners"],

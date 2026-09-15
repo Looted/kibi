@@ -1,12 +1,7 @@
 // implements REQ-014
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { createHash } from "node:crypto";
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import * as fs from "node:fs";
 import path from "node:path";
 import {
@@ -72,9 +67,9 @@ type: req
 `,
     );
     const result = await discoverSourceFiles(cwd);
-    expect(result.markdownFiles.some((file) => file.endsWith("README.md"))).toBe(
-      false,
-    );
+    expect(
+      result.markdownFiles.some((file) => file.endsWith("README.md")),
+    ).toBe(false);
     expect(
       result.markdownFiles.some((file) => file.endsWith("REQ-FREE.md")),
     ).toBe(true);
@@ -129,9 +124,9 @@ type: req
     writeFileSync(path.join(cwd, relative), body);
     writePendingSourceReceipt(cwd, relative, sha(body));
     const result = await discoverSourceFiles(cwd, { trackedOnly: true });
-    expect(result.markdownFiles.some((file) => file.endsWith("REQ-PEND.md"))).toBe(
-      true,
-    );
+    expect(
+      result.markdownFiles.some((file) => file.endsWith("REQ-PEND.md")),
+    ).toBe(true);
   });
 });
 
@@ -205,14 +200,14 @@ describe("clearRecoveredPendingSourceReceipts leftover success and ENOENT inspec
   });
 
   test("readTextOrEnoent and unlinkOrEnoent treat missing paths as absent", () => {
-    expect(isFsEnoent(Object.assign(new Error("gone"), { code: "ENOENT" }))).toBe(
-      true,
-    );
+    expect(
+      isFsEnoent(Object.assign(new Error("gone"), { code: "ENOENT" })),
+    ).toBe(true);
     expect(isFsEnoent(new Error("nope"))).toBe(false);
     expect(readTextOrEnoent("/tmp/kibi-missing-receipt-nope.json")).toBeNull();
     expect(unlinkOrEnoent("/tmp/kibi-missing-receipt-nope.json")).toBe(false);
-    expect(() =>
-      readTextOrEnoent("/tmp"),
-    ).toThrow(/Failed to inspect pending source receipt/);
+    expect(() => readTextOrEnoent("/tmp")).toThrow(
+      /Failed to inspect pending source receipt/,
+    );
   });
 });

@@ -84,7 +84,11 @@ describe("exported check Prolog helpers", () => {
       failUnless([
         { includes: "findall(Id", bindings: { Ids: "[REQ-2]" } },
         { includes: "kb_entity('REQ-2', req, Props)", success: false },
-        { includes: "specified_by", success: true, bindings: { ScenarioId: "SCEN-1" } },
+        {
+          includes: "specified_by",
+          success: true,
+          bindings: { ScenarioId: "SCEN-1" },
+        },
       ]),
     );
     expect(testOnly[0]?.description).toContain("test coverage");
@@ -143,7 +147,10 @@ describe("exported check Prolog helpers", () => {
     expect(
       await checkNoCycles(
         failUnless([
-          { includes: "depends_on, From, To), Deps)", bindings: { Deps: "[]" } },
+          {
+            includes: "depends_on, From, To), Deps)",
+            bindings: { Deps: "[]" },
+          },
         ]),
       ),
     ).toEqual([]);
@@ -227,7 +234,7 @@ describe("exported check Prolog helpers", () => {
 
   test("strict fact helpers parse violation terms and empty lists", async () => {
     const term =
-      "[violation(strict_fact_shape,FACT-1,\"bad shape\",\"fix it\",src.md)]";
+      '[violation(strict_fact_shape,FACT-1,"bad shape","fix it",src.md)]';
     for (const [fn, needle] of [
       [checkStrictFactShape, "strict_fact_shape_violation"],
       [checkStrictReqFactPairing, "strict_req_fact_pairing_violation"],
@@ -235,7 +242,9 @@ describe("exported check Prolog helpers", () => {
     ] as const) {
       expect(await fn(failUnless([]))).toEqual([]);
       expect(
-        await fn(failUnless([{ includes: needle, bindings: { Violations: "[]" } }])),
+        await fn(
+          failUnless([{ includes: needle, bindings: { Violations: "[]" } }]),
+        ),
       ).toEqual([]);
       const rows = await fn(
         failUnless([{ includes: needle, bindings: { Violations: term } }]),

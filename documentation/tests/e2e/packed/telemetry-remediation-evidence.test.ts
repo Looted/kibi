@@ -93,8 +93,11 @@ if (RUN_NODE_TEST_SUITE) {
       it(
         "logs equivalent CLI/MCP correlation and emits deterministic exact repairs",
         { timeout: 300_000 },
-        async () => {
-          if (!hasProlog) return;
+        async (testContext) => {
+          if (!hasProlog) {
+            testContext.skip("SWI-Prolog is unavailable");
+            return;
+          }
           const inputPath = join(sandbox.repoDir, "diagnostic-input.json");
           writeFileSync(
             inputPath,

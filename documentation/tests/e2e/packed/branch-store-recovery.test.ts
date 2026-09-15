@@ -70,8 +70,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "enforces exact identity, bounded migration, and explicit recovery",
       { timeout: 120000 },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         assert.strictEqual(
           sandbox.env.KIBI_BRANCH,

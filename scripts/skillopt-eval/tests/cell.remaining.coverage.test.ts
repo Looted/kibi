@@ -126,8 +126,11 @@ function completeEvidence(overrides: Partial<CellEvidence> = {}): CellEvidence {
 
 describe("scoreCell remaining protocol before-order and coverage lookup", () => {
   test("records coverage without a result and fails before-order forbidden tools", () => {
+    expect(manifest.protocolContract).toBeDefined();
+    if (!manifest.protocolContract) {
+      throw new Error("fixture manifest must include a protocol contract");
+    }
     const contract = manifest.protocolContract;
-    if (!contract) throw new Error("expected protocol contract");
     expect(
       migrationApplyContractViolations(
         contract,

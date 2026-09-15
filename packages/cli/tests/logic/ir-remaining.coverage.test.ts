@@ -25,6 +25,14 @@ const atom = (
   extra: Record<string, unknown> = {},
 ) => ({ kind: "atom" as const, name, args, ...extra });
 
+function normalizedOrThrow(result: ReturnType<typeof validateLogicIr>) {
+  expect(result.normalized).toBeDefined();
+  if (!result.normalized) {
+    throw new Error("valid logic IR result is missing its normalized value");
+  }
+  return result.normalized;
+}
+
 describe("validateLogicIr remaining term, temporal, and kind branches", () => {
   test("rejects kind mismatches, max limits, inverted validity, and deep expressions", () => {
     restoreEnv = isolateKibiEnv();
@@ -59,10 +67,13 @@ describe("validateLogicIr remaining term, temporal, and kind branches", () => {
       version: LOGIC_IR_VERSION,
       kind: "constraint",
       modality: "assert",
-      variables: Array.from({ length: LOGIC_RULE_MAX_VARIABLES + 1 }, (_, i) => ({
-        name: `V${i + 1}`,
-        type: "entity",
-      })),
+      variables: Array.from(
+        { length: LOGIC_RULE_MAX_VARIABLES + 1 },
+        (_, i) => ({
+          name: `V${i + 1}`,
+          type: "entity",
+        }),
+      ),
       body: atom("ready"),
     });
     expect(tooManyVars.errors.join(" ")).toMatch(/variables exceed/);
@@ -96,7 +107,9 @@ describe("validateLogicIr remaining term, temporal, and kind branches", () => {
       ruleSchemaId: "1bad",
       scope: "nope",
     });
-    expect(badDates.errors.join(" ")).toMatch(/validFrom|validTo|ruleSchemaId|scope/);
+    expect(badDates.errors.join(" ")).toMatch(
+      /validFrom|validTo|ruleSchemaId|scope/,
+    );
 
     let deep: Record<string, unknown> = atom("leaf");
     for (let i = 0; i <= LOGIC_RULE_MAX_DEPTH; i += 1) {
@@ -187,12 +200,16 @@ describe("validateLogicIr remaining term, temporal, and kind branches", () => {
       exceptions: [
         atom("archived", [{ kind: "var", name: "X", type: "entity" }]),
       ],
-      scope: { authority: " privacy ", name: " retention ", tags: [" b ", "a"] },
+      scope: {
+        authority: " privacy ",
+        name: " retention ",
+        tags: [" b ", "a"],
+      },
     });
     expect(temporal.valid).toBe(true);
-    expect(temporal.normalized?.variables?.some((v) => v.name.startsWith("V"))).toBe(
-      true,
-    );
+    expect(
+      temporal.normalized?.variables?.some((v) => v.name.startsWith("V")),
+    ).toBe(true);
 
     const unsafeAny = validateLogicIr({
       version: LOGIC_IR_VERSION,
@@ -272,8 +289,12 @@ describe("validateLogicIr remaining term, temporal, and kind branches", () => {
       },
     });
     expect(constraint.valid).toBe(true);
-    expect(renderLogicProlog(constraint.normalized!)).toContain("forbid :-");
-    expect(renderLogicProlog(constraint.normalized!)).toContain("count(");
+    expect(renderLogicProlog(normalizedOrThrow(constraint))).toContain(
+      "forbid :-",
+    );
+    expect(renderLogicProlog(normalizedOrThrow(constraint))).toContain(
+      "count(",
+    );
 
     const atomOnly = validateLogicIr({
       version: LOGIC_IR_VERSION,
@@ -282,7 +303,9 @@ describe("validateLogicIr remaining term, temporal, and kind branches", () => {
       head: atom("ready", [{ kind: "number", value: 1, unit: "count" }]),
     });
     expect(atomOnly.valid).toBe(true);
-    expect(renderLogicProlog(atomOnly.normalized!)).toBe("deny(ready(1)).");
+    expect(renderLogicProlog(normalizedOrThrow(atomOnly))).toBe(
+      "deny(ready(1)).",
+    );
 
     const tooManyAtoms = validateLogicIr({
       version: LOGIC_IR_VERSION,
@@ -343,9 +366,7 @@ describe("validateLogicIr remaining term, temporal, and kind branches", () => {
         { name: "Y", type: "entity" },
       ],
       body: atom("ready", [{ kind: "var", name: "X", type: "entity" }]),
-      exceptions: [
-        atom("skip", [{ kind: "var", name: "Y", type: "entity" }]),
-      ],
+      exceptions: [atom("skip", [{ kind: "var", name: "Y", type: "entity" }])],
     });
     expect(unsafeException.errors.join(" ")).toMatch(
       /exception variable Y is not range-restricted/,

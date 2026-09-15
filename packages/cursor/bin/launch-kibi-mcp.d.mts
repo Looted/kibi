@@ -52,5 +52,5 @@ export function launchKibiMcp(
 
 export function runLaunchIfEntrypoint(
   isEntrypoint?: boolean,
-  start?: () => Promise<number | void>,
+  start?: () => Promise<number> | Promise<void>,
 ): Promise<void>;

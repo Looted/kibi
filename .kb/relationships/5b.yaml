@@ -35,16 +35,30 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-e513ac5e5984
   - type: implements
+    from: SYM-quality-inventory-7def0c262321
+    to: REQ-014
+    created_at: 2026-09-14T20:35:46.519Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43623599fda1
+  - type: covered_by
+    from: SYM-quality-inventory-7def0c262321
+    to: TEST-scripts-unit-coverage-runner
+    created_at: 2026-09-14T20:35:46.529Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-767889d1e26a
+  - type: implements
     from: SYM-get-staged-inventory
     to: REQ-AUTO-941B0CE68BAF3331
-    created_at: 2026-09-14T14:42:02.942Z
+    created_at: 2026-09-15T07:41:58.255Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-36e9c7335bc3
   - type: covered_by
     from: SYM-get-staged-inventory
     to: TEST-cli-staged-impact-enforcement
-    created_at: 2026-09-14T14:42:02.948Z
+    created_at: 2026-09-15T07:41:58.262Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-035f1d4d71b0

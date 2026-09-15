@@ -18,7 +18,10 @@ describe("scenarioCoverageWarnings remaining verified_by success", () => {
     restores.push(isolateKibiEnv());
     const warnings = await scenarioCoverageWarnings(
       {
-        query: async () => ({ success: true, bindings: { ScenarioId: "SCEN-1" } }),
+        query: async () => ({
+          success: true,
+          bindings: { ScenarioId: "SCEN-1" },
+        }),
         nextSolution: async () => null,
         save: async () => ({ success: true, bindings: {} }),
       },

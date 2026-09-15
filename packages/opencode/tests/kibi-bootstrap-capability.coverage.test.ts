@@ -176,9 +176,9 @@ describe("kibi-bootstrap capability remaining runtime branches", () => {
     _resetKibiBootstrapCapabilityCacheForTests();
 
     const capability = getKibiBootstrapCommandCapability();
-    expect(capability.supported === true || capability.supported === false).toBe(
-      true,
-    );
+    expect(
+      capability.supported === true || capability.supported === false,
+    ).toBe(true);
   });
 
   test("findSdkPackageJsonForPluginRoot returns undefined when neither layout exists", () => {

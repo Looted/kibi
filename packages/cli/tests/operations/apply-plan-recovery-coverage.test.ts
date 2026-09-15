@@ -1,23 +1,23 @@
+import { afterEach, describe, expect, spyOn, test } from "bun:test";
 // implements REQ-kibi-change-to-proof-plan-compiler, REQ-agent-guided-migration-orchestration
 import { createHash } from "node:crypto";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, spyOn, test } from "bun:test";
 
-import * as discoveryExecutors from "../../src/public/operations/discovery-executors.js";
+import * as syncModule from "../../src/commands/sync.js";
 import { executeApplyPlan } from "../../src/operations/planning/apply-plan.js";
 import {
   type CompilePlanV1,
   compilePlanHash,
 } from "../../src/operations/planning/compile-intent.js";
-import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
+import * as discoveryExecutors from "../../src/public/operations/discovery-executors.js";
 import { buildMigrationPlan } from "../../src/public/operations/migration-plan.js";
+import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
 import type {
   OperationContext,
   PrologQueryResult,
 } from "../../src/public/operations/runtime-types.js";
-import * as syncModule from "../../src/commands/sync.js";
 import { asApply } from "../helpers/coverage-casts.js";
 
 function sha(value: string): string {
@@ -74,9 +74,7 @@ function filesystemContext(workspaceRoot: string): OperationContext {
   };
 }
 
-function automaticAction(
-  overrides: Record<string, unknown> = {},
-) {
+function automaticAction(overrides: Record<string, unknown> = {}) {
   return {
     id: "mig-unknown-0001",
     code: "not_a_real_action",
@@ -127,7 +125,12 @@ describe("source recovery journals", () => {
     mkdirSync(path.join(root, "docs"), { recursive: true });
     mkdirSync(path.join(root, ".kb", "recovery"), { recursive: true });
     writeFileSync(path.join(root, "docs", "recovered.md"), body);
-    const afterStage = path.join(root, ".kb", "recovery", `${journalId}-0.after`);
+    const afterStage = path.join(
+      root,
+      ".kb",
+      "recovery",
+      `${journalId}-0.after`,
+    );
     writeFileSync(afterStage, body);
     writeFileSync(
       path.join(root, ".kb", "recovery", `${journalId}.json`),
@@ -142,7 +145,12 @@ describe("source recovery journals", () => {
             beforeHash: null,
             afterHash,
             beforeExisted: false,
-            beforeStage: path.join(root, ".kb", "recovery", `${journalId}-0.before`),
+            beforeStage: path.join(
+              root,
+              ".kb",
+              "recovery",
+              `${journalId}-0.before`,
+            ),
             afterStage,
           },
         ],
@@ -163,7 +171,9 @@ describe("source recovery journals", () => {
         filesystemContext(root),
       );
       expect(result.structuredContent.outcome).toBe("replayed");
-      expect(asApply(result.structuredContent).recoveryJournalId).toBe(journalId);
+      expect(asApply(result.structuredContent).recoveryJournalId).toBe(
+        journalId,
+      );
       expect(asApply(result.structuredContent).changedEntities).toBe(2);
       expect(syncSpy).toHaveBeenCalled();
     } finally {
@@ -189,8 +199,18 @@ describe("source recovery journals", () => {
             beforeHash: sha("old\n"),
             afterHash: null,
             beforeExisted: true,
-            beforeStage: path.join(root, ".kb", "recovery", `${journalId}-0.before`),
-            afterStage: path.join(root, ".kb", "recovery", `${journalId}-0.after`),
+            beforeStage: path.join(
+              root,
+              ".kb",
+              "recovery",
+              `${journalId}-0.before`,
+            ),
+            afterStage: path.join(
+              root,
+              ".kb",
+              "recovery",
+              `${journalId}-0.after`,
+            ),
           },
         ],
       })}\n`,
@@ -226,12 +246,16 @@ describe("migration expected snapshot guards", () => {
       actions: [automaticAction()],
       expected: { branch: "not-develop" },
     });
+    const wrongBranchAction = wrongBranch.actions[0];
+    expect(wrongBranchAction).toBeDefined();
+    if (!wrongBranchAction)
+      throw new Error("expected a wrong-branch migration action");
     await expect(
       executeApplyPlan(
         {
           plan: wrongBranch,
           approvedPlanHash: wrongBranch.planHash,
-          approvedActionIds: [wrongBranch.actions[0]!.id],
+          approvedActionIds: [wrongBranchAction.id],
         },
         ctx,
       ),
@@ -603,7 +627,9 @@ describe("bootstrap recovery journals", () => {
       ctx,
     );
     expect(result.structuredContent.outcome).toBe("partially_applied");
-    expect(asApply(result.structuredContent).recoveryJournalId).toMatch(/^bootstrap-/);
+    expect(asApply(result.structuredContent).recoveryJournalId).toMatch(
+      /^bootstrap-/,
+    );
   });
 });
 
@@ -707,8 +733,12 @@ describe("compile plan snapshot and derived-commit failures", () => {
       { plan, approvedPlanHash: plan.planHash },
       ctx,
     );
-    expect(asApply(result.structuredContent).status).toBe("committed_with_repairs");
-    expect(asApply(result.structuredContent).recoveryJournalId).toMatch(/^source-writes-/);
+    expect(asApply(result.structuredContent).status).toBe(
+      "committed_with_repairs",
+    );
+    expect(asApply(result.structuredContent).recoveryJournalId).toMatch(
+      /^source-writes-/,
+    );
   });
 
   test("keeps a compile apply committed when final status readback fails", async () => {
@@ -725,7 +755,8 @@ describe("compile plan snapshot and derived-commit failures", () => {
         },
       ],
     });
-    const originalStatus = discoveryExecutors.executeStatus.bind(discoveryExecutors);
+    const originalStatus =
+      discoveryExecutors.executeStatus.bind(discoveryExecutors);
     let statusCalls = 0;
     const statusSpy = spyOn(
       discoveryExecutors,
@@ -742,15 +773,19 @@ describe("compile plan snapshot and derived-commit failures", () => {
         { plan, approvedPlanHash: plan.planHash },
         filesystemContext(root),
       );
-      expect(asApply(result.structuredContent).status).toBe("committed_with_repairs");
+      expect(asApply(result.structuredContent).status).toBe(
+        "committed_with_repairs",
+      );
       expect(
         asApply(result.structuredContent).effectFailures?.some(
           (failure) => failure.kind === "post-commit-readback",
         ),
       ).toBe(true);
-      expect(asApply(result.structuredContent).nextActions?.some((action) => action.operation === "kb_status")).toBe(
-        true,
-      );
+      expect(
+        asApply(result.structuredContent).nextActions?.some(
+          (action) => action.operation === "kb_status",
+        ),
+      ).toBe(true);
     } finally {
       statusSpy.mockRestore();
     }

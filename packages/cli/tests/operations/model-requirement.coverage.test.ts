@@ -47,7 +47,9 @@ describe("model-requirement remaining branches", () => {
     restores.push(isolateKibiEnv());
     const missing = createTempDir("kibi-model-miss-");
     roots.push(missing);
-    expect(await getWorkspaceMigrationWarning(missing)).toContain("manifest is missing");
+    expect(await getWorkspaceMigrationWarning(missing)).toContain(
+      "manifest is missing",
+    );
 
     const ok = createTempDir("kibi-model-ok-");
     roots.push(ok);

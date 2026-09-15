@@ -123,6 +123,7 @@ function restoreEnv(name: string, value: string | undefined): void {
   }
 }
 
+// executable_for TEST-cli-quality-diagnostics-contract
 // implements REQ-test-journaled-engine-harness
 export function captureIo(options: { stdio?: boolean } = {}): {
   logs: string[];
