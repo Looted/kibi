@@ -61,6 +61,7 @@ function dependencies(
         optimizerModel: OPTIMIZER_MODEL,
         authMode: "file",
         paidModelCalls: 2,
+        modelInvocationAttempts: 2,
         modelRuns: [],
         events: [],
       }) satisfies CapabilityCanaryReceipt,

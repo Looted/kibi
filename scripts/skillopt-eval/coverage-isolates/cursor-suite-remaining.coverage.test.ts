@@ -247,16 +247,18 @@ describe("cursor suite leftover branches", () => {
       } as never,
     ]);
     expect(summarized).toHaveLength(3);
-    expect(summarized.find((row) => row.variant === "baseline")?.securityFailures).toBe(
-      1,
-    );
-    expect(summarized.find((row) => row.variant === "skillopt")?.securityFailures).toBe(
-      1,
-    );
+    expect(
+      summarized.find((row) => row.variant === "baseline")?.securityFailures,
+    ).toBe(1);
+    expect(
+      summarized.find((row) => row.variant === "skillopt")?.securityFailures,
+    ).toBe(1);
   });
 
   test("runCursorCompatibilityGate walks train/development/held-out manifests", async () => {
-    const fixtureRunRoot = await mkdtemp(join(tmpdir(), "skillopt-cursor-fix-"));
+    const fixtureRunRoot = await mkdtemp(
+      join(tmpdir(), "skillopt-cursor-fix-"),
+    );
     roots.push(fixtureRunRoot);
     const artifactRoot = join(fixtureRunRoot, "artifacts");
     const development = buildSkillCatalog("kibi-usage").filter(
@@ -362,7 +364,9 @@ describe("cursor suite leftover branches", () => {
   });
 
   test("loadTaskManifest reports missing and invalid task fixtures", async () => {
-    const fixtureRunRoot = await mkdtemp(join(tmpdir(), "skillopt-cursor-miss-"));
+    const fixtureRunRoot = await mkdtemp(
+      join(tmpdir(), "skillopt-cursor-miss-"),
+    );
     roots.push(fixtureRunRoot);
     await expect(
       runCursorCompatibilityGate({
@@ -383,10 +387,9 @@ describe("cursor suite leftover branches", () => {
       (task) => task.split === "development",
     );
     if (bogus === undefined) throw new Error("development task missing");
-    await mkdir(
-      join(fixtureRunRoot, "public", "train", "tasks", bogus.id),
-      { recursive: true },
-    );
+    await mkdir(join(fixtureRunRoot, "public", "train", "tasks", bogus.id), {
+      recursive: true,
+    });
     await writeFile(
       join(fixtureRunRoot, "public", "train", "tasks", bogus.id, "task.json"),
       "{not-json",

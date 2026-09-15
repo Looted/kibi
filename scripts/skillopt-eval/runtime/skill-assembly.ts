@@ -10,8 +10,16 @@ import {
 import { withSharedAdoptionLock } from "../adoption-lock";
 import { CANONICAL_SKILLS, type CanonicalSkill } from "../catalog";
 
+export type SkillSurface = Readonly<{
+  body: string;
+  frontmatterHash: string;
+  resourcesHash: string;
+}>;
+
 export type SkillCandidateSurface = Readonly<{
   body: string;
+  frontmatterHash?: string;
+  resourcesHash?: string;
   manifest?: Readonly<SkillManifest>;
   resources?: Readonly<Record<string, string>>;
 }>;
@@ -30,7 +38,11 @@ export class CandidateSurfaceError extends Error {
   readonly name = "CandidateSurfaceError";
 
   constructor(
-    readonly kind: "frontmatter_changed" | "resources_changed" | "invalid_body",
+    readonly kind:
+      | "baseline_changed"
+      | "frontmatter_changed"
+      | "resources_changed"
+      | "invalid_body",
   ) {
     super(`candidate_surface_${kind}`);
   }
@@ -76,6 +88,18 @@ function assertCandidateSurface(
     throw new CandidateSurfaceError("frontmatter_changed");
   }
   if (
+    candidate.frontmatterHash !== undefined &&
+    candidate.frontmatterHash !== canonicalHash(manifest)
+  ) {
+    throw new CandidateSurfaceError("frontmatter_changed");
+  }
+  if (
+    candidate.resourcesHash !== undefined &&
+    candidate.resourcesHash !== canonicalHash(resources)
+  ) {
+    throw new CandidateSurfaceError("resources_changed");
+  }
+  if (
     candidate.manifest !== undefined &&
     canonicalHash(candidate.manifest) !== canonicalHash(manifest)
   ) {
@@ -98,6 +122,7 @@ export async function assembleCanonicalSkills(
     sourceRepoRoot: string;
     workspace: string;
     targetSkill: CanonicalSkill;
+    baselineSurfaces?: Readonly<Record<CanonicalSkill, SkillSurface>>;
     candidate?: SkillCandidateSurface;
     /** Bundle assembly: swap several skills at once (each validated). */
     candidates?: Readonly<
@@ -115,6 +140,7 @@ async function assembleCanonicalSkillsUnlocked(
     sourceRepoRoot: string;
     workspace: string;
     targetSkill: CanonicalSkill;
+    baselineSurfaces?: Readonly<Record<CanonicalSkill, SkillSurface>>;
     candidate?: SkillCandidateSurface;
     candidates?: Readonly<
       Partial<Record<CanonicalSkill, SkillCandidateSurface>>
@@ -130,6 +156,20 @@ async function assembleCanonicalSkillsUnlocked(
       const bundle = loadBundledSkillFrom(skillsDir, id);
       const markdown = await readFile(join(bundle.rootDir, "SKILL.md"), "utf8");
       const resources = canonicalResources(skillsDir, id, bundle.manifest);
+      const currentSurface: SkillSurface = {
+        body: bundle.body,
+        frontmatterHash: canonicalHash(bundle.manifest),
+        resourcesHash: canonicalHash(resources),
+      };
+      const expectedBaseline = input.baselineSurfaces?.[id];
+      if (
+        expectedBaseline !== undefined &&
+        (expectedBaseline.body !== currentSurface.body ||
+          expectedBaseline.frontmatterHash !== currentSurface.frontmatterHash ||
+          expectedBaseline.resourcesHash !== currentSurface.resourcesHash)
+      ) {
+        throw new CandidateSurfaceError("baseline_changed");
+      }
       const candidate =
         input.candidates?.[id] ??
         (id === input.targetSkill ? input.candidate : undefined);

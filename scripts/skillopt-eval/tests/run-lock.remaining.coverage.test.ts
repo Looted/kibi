@@ -2,10 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { ContractIntegrityError } from "../contracts/common";
-import {
-  assertRunLockMatches,
-  parseRunLockText,
-} from "../contracts/run-lock";
+import { assertRunLockMatches, parseRunLockText } from "../contracts/run-lock";
 
 afterEach(() => {
   if (process.exitCode === 1) process.exitCode = 0;

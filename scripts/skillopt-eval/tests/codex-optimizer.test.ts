@@ -170,10 +170,12 @@ describe("Codex optimizer output", () => {
   });
 
   test("records missing required phrases for an incomplete body", () => {
-    expect(missingRequiredGuidance("short body")).toContain("kb_semantic_advisor");
-    expect(missingRequiredGuidance(`# Kibi Usage\n\n${REQUIRED_GUIDANCE}`)).toEqual(
-      [],
+    expect(missingRequiredGuidance("short body")).toContain(
+      "kb_semantic_advisor",
     );
+    expect(
+      missingRequiredGuidance(`# Kibi Usage\n\n${REQUIRED_GUIDANCE}`),
+    ).toEqual([]);
   });
 
   test("persists failed optimizer output outside the ephemeral workspace", async () => {
@@ -214,6 +216,8 @@ describe("Codex optimizer output", () => {
       exitCode: 0,
     });
     expect(report.missingGuidance).toContain("kb_semantic_advisor");
-    expect(report.missingGuidance).not.toContain("## Required Kibi logic contract");
+    expect(report.missingGuidance).not.toContain(
+      "## Required Kibi logic contract",
+    );
   });
 });

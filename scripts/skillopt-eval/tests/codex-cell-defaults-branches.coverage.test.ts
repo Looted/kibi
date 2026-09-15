@@ -4,8 +4,8 @@ import { createHash } from "node:crypto";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { fixtureSymbolId } from "../fixtures/workspace";
 import { parsePrivateEvaluatorManifest } from "../fixtures/private";
+import { fixtureSymbolId } from "../fixtures/workspace";
 import {
   defaultCodexCellDependencies,
   sealDefaultCellEvidence,
@@ -124,13 +124,15 @@ function receipt(parts: {
   })}\n`;
 }
 
-async function brokerTrace(calls: readonly {
-  tool: string;
-  result?: unknown;
-  omitResult?: boolean;
-  omitParams?: boolean;
-  isError?: boolean;
-}[]): Promise<string> {
+async function brokerTrace(
+  calls: readonly {
+    tool: string;
+    result?: unknown;
+    omitResult?: boolean;
+    omitParams?: boolean;
+    isError?: boolean;
+  }[],
+): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), "skillopt-cell-branch-"));
   roots.push(root);
   const path = join(root, "broker-trace.jsonl");
@@ -191,9 +193,9 @@ describe("sealDefaultCellEvidence remaining closeout and broker branches", () =>
     );
     expect(sealed.finalState.closeout.taskOutcome).toBe("blocked");
     expect(sealed.finalState.complete).toBe(true);
-    expect(sealed.broker.rawCalls.some((call) => call.tool === "kb_query")).toBe(
-      true,
-    );
+    expect(
+      sealed.broker.rawCalls.some((call) => call.tool === "kb_query"),
+    ).toBe(true);
     expect(sealed.diagnostic.complete).toBe(true);
   });
 

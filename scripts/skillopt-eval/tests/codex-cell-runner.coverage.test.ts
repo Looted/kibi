@@ -3,9 +3,12 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { mkdir, mkdtemp, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { FixtureSetupError } from "../runtime/fixture-kb-setup";
+import {
+  FixtureIntegrityError,
+  runCodexCell,
+} from "../runtime/codex-cell-runner";
 import { CallerScoreInjectionError } from "../runtime/codex-cell-types";
-import { FixtureIntegrityError, runCodexCell } from "../runtime/codex-cell-runner";
+import { FixtureSetupError } from "../runtime/fixture-kb-setup";
 import { ProcessControlError } from "../runtime/process";
 import {
   HAPPY_STDOUT,
@@ -49,7 +52,9 @@ function dependencies(
   extras: Partial<Parameters<typeof runCodexCell>[1]> = {},
 ) {
   return {
-    prepareLogin: async ({ privateCodexHome }: { privateCodexHome: string }) => ({
+    prepareLogin: async ({
+      privateCodexHome,
+    }: { privateCodexHome: string }) => ({
       mode: "file" as const,
       env: { CODEX_HOME: privateCodexHome },
       realCodexHome: "/private/real-codex",

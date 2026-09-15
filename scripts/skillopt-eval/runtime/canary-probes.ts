@@ -83,7 +83,9 @@ export async function probeCodexSandbox(
   );
   const expectedOutput = options.probe?.expectedOutput ?? SANDBOX_PROBE_OUTPUT;
   if (result.exitCode !== 0 || result.stdout !== expectedOutput) {
-    throw new RuntimePrerequisiteError(sandboxProbeFailureCode(Boolean(options.probe)));
+    throw new RuntimePrerequisiteError(
+      sandboxProbeFailureCode(Boolean(options.probe)),
+    );
   }
 }
 

@@ -16147,8 +16147,8 @@ symbols:
   - id: SYM-skillopt-codex-optimizer-error
     title: CodexOptimizerError
     status: active
-    sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
-    granularity_reason: legacy-link
+    sourceFile: scripts/skillopt-eval/candidate-body.ts
+    granularity_reason: extractor-miss
     symbol_role: structural
     relationships:
       - type: covered_by
@@ -16157,9 +16157,9 @@ symbols:
         target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-codex-optimizer-error-name
     title: CodexOptimizerError.name
-    sourceFile: scripts/skillopt-eval/runtime/codex-optimizer.ts
+    sourceFile: scripts/skillopt-eval/candidate-body.ts
     symbol_role: behavioral
-    granularity_reason: legacy-link
+    granularity_reason: extractor-miss
     relationships:
       - type: implements
         target: REQ-skillopt-codex-optimization
@@ -16457,15 +16457,6 @@ symbols:
         target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-contract-gates
     title: CODEX_GATES
-    sourceFile: scripts/skillopt-eval/contracts/gates.ts
-    symbol_role: config
-    relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-  - id: SYM-skillopt-development-admission-gate
-    title: DEVELOPMENT_ADMISSION_GATE
     sourceFile: scripts/skillopt-eval/contracts/gates.ts
     symbol_role: config
     relationships:
@@ -17611,7 +17602,7 @@ symbols:
     title: FileBridge.readPrivate
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     symbol_role: behavioral
-    granularity_reason: legacy-link
+    granularity_reason: extractor-miss
     status: active
     relationships:
       - type: covered_by
@@ -17622,7 +17613,7 @@ symbols:
     title: FileBridge.readPublic
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     symbol_role: behavioral
-    granularity_reason: legacy-link
+    granularity_reason: extractor-miss
     status: active
     relationships:
       - type: covered_by
@@ -17633,7 +17624,7 @@ symbols:
     title: FileBridge.resolve
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     symbol_role: behavioral
-    granularity_reason: legacy-link
+    granularity_reason: extractor-miss
     status: active
     relationships:
       - type: covered_by
@@ -17652,7 +17643,7 @@ symbols:
     title: FileBridge.writePrivate
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     symbol_role: behavioral
-    granularity_reason: legacy-link
+    granularity_reason: extractor-miss
     status: active
     relationships:
       - type: covered_by
@@ -17663,7 +17654,7 @@ symbols:
     title: FileBridge.writePublic
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
     symbol_role: behavioral
-    granularity_reason: legacy-link
+    granularity_reason: extractor-miss
     status: active
     relationships:
       - type: covered_by
@@ -21079,7 +21070,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-codex-optimization
   - id: SYM-skillopt-runtime-target-effort
-    title: TARGET_REASONING_EFFORT
+    title: TARGET_EFFORT
     sourceFile: scripts/skillopt-eval/runtime/permissions.ts
     symbol_role: config
     relationships:
@@ -32193,16 +32184,6 @@ symbols:
     sourceFile: scripts/skillopt-eval/bundle-workflow.ts
     granularity_reason: config-artifact
     symbol_role: type-shape
-    relationships:
-      - type: covered_by
-        target: TEST-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-  - id: SYM-skillopt-bundle-resolve-candidates-dir
-    title: resolveBundleCandidatesDir
-    status: active
-    sourceFile: scripts/skillopt-eval/bundle-workflow.ts
-    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-skillopt-codex-optimization

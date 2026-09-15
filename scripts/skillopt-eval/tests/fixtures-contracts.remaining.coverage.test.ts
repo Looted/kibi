@@ -1,10 +1,7 @@
 // implements REQ-skillopt-codex-optimization
 import { describe, expect, test } from "bun:test";
 import { buildPublicCatalog } from "../catalog";
-import {
-  parsePublicTaskManifest,
-  parseTaskSpec,
-} from "../fixtures/contracts";
+import { parsePublicTaskManifest, parseTaskSpec } from "../fixtures/contracts";
 
 describe("fixture contracts remaining superRefine branches", () => {
   test("parseTaskSpec accepts a catalog task and rejects dirty/stale metadata gaps", () => {

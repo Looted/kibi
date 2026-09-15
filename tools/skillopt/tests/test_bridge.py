@@ -5,10 +5,16 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from pydantic import TypeAdapter, ValidationError
 from tools.skillopt.kibi_skillopt.adapter import EnvAdapter
-from tools.skillopt.kibi_skillopt.bridge import BridgeError, FileBridge
+from tools.skillopt.kibi_skillopt.bridge import (
+    BridgeError,
+    FileBridge,
+    read_optimizer_result,
+)
+from tools.skillopt.kibi_skillopt.bridge_runner import sanitized_bridge_environment
 from tools.skillopt.kibi_skillopt.common import JsonValue, contract_hash
-from tools.skillopt.kibi_skillopt.models import BridgeRequest, BridgeResult
+from tools.skillopt.kibi_skillopt.models import BridgeRequest, BridgeResult, OptimizerResult
 
 HASH = "a" * 64
 CORPUS_ROOTS = {
@@ -51,6 +57,20 @@ def request() -> BridgeRequest:
 
 
 class BridgeTests(unittest.TestCase):
+    def test_sanitized_bridge_environment_preserves_target_budget_binding(self) -> None:
+        environment = sanitized_bridge_environment(
+            {
+                "PATH": "/usr/bin",
+                "KIBI_SKILLOPT_TARGET_BUDGET_ROOT": "/tmp/budget",
+                "KIBI_SKILLOPT_MAX_TARGET_EPISODES": "64",
+                "UNTRUSTED_HOST_VALUE": "drop-me",
+            }
+        )
+
+        self.assertEqual(environment["KIBI_SKILLOPT_TARGET_BUDGET_ROOT"], "/tmp/budget")
+        self.assertEqual(environment["KIBI_SKILLOPT_MAX_TARGET_EPISODES"], "64")
+        self.assertNotIn("UNTRUSTED_HOST_VALUE", environment)
+
     def test_file_bridge_round_trip_and_hash_binding(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -63,6 +83,69 @@ class BridgeTests(unittest.TestCase):
             self.assertEqual(payload.batch_id, "batch-001")
             with self.assertRaises(BridgeError):
                 _ = bridge.read_public("../private/secret.json")
+
+    def test_optimizer_rejection_is_hash_bound_and_reason_is_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            adapter = EnvAdapter(
+                run_root=root / "run",
+                skill="kibi-usage",
+                source_lock_hash=HASH,
+                corpus_roots=CORPUS_ROOTS,
+                train_items=(
+                    {
+                        "id": "train-1",
+                        "family": "contract",
+                        "publicClaim": public_claim("train-1"),
+                    },
+                ),
+                development_items=(
+                    {
+                        "id": "dev-1",
+                        "family": "contract",
+                        "publicClaim": public_claim("dev-1"),
+                    },
+                ),
+            )
+            request = adapter.build_optimizer_request(
+                current_body="Use Kibi through MCP.",
+                trajectories=(
+                    {"taskId": "train-1", "family": "contract", "reflection": "missing"},
+                ),
+                previous_development={
+                    "mean": 0.5,
+                    "hardPasses": 1,
+                    "worstFamilyMean": 0.5,
+                },
+                step=1,
+                max_steps=4,
+            )
+            request_hash = contract_hash(request.model_dump(by_alias=True, mode="json"))
+            bridge = FileBridge(root / "public", root / "private")
+            rejection = {
+                "schemaVersion": "1.0.0",
+                "artifactType": "skillopt-optimizer-result",
+                "status": "rejected",
+                "requestHash": request_hash,
+                "reason": "candidate_direct_kb_guidance",
+            }
+            bridge.write_public("optimizer-result.json", json.dumps(rejection))
+
+            # A valid rejection is readable only when it is bound to this request.
+            parsed = read_optimizer_result(bridge, "optimizer-result.json", request)
+            if parsed.status != "rejected":
+                self.fail("expected a rejected optimizer result")
+            self.assertEqual(parsed.reason, "candidate_direct_kb_guidance")
+
+            mismatched = dict(rejection, requestHash="0" * 64)
+            bridge.write_public("optimizer-result.json", json.dumps(mismatched))
+            with self.assertRaises(BridgeError):
+                _ = read_optimizer_result(bridge, "optimizer-result.json", request)
+
+            invalid_reason = dict(rejection, reason="candidate_unknown")
+            result_adapter: TypeAdapter[OptimizerResult] = TypeAdapter(OptimizerResult)
+            with self.assertRaises(ValidationError):
+                _ = result_adapter.validate_python(invalid_reason)
 
     def test_adapter_rejects_held_out_ids_and_resumes_checkpoint(self) -> None:
         adapter = EnvAdapter(

@@ -11,38 +11,18 @@ import { parseHeldOutTaskManifest } from "./fixtures/contracts";
 import type { CodexCellOptions } from "./runtime/codex-cell-types";
 import { SKILLOPT_EVALUATION_BRANCH } from "./runtime/permissions";
 import { ProcessControlError } from "./runtime/process";
+import type {
+  SkillCandidateSurface,
+  SkillSurface,
+} from "./runtime/skill-assembly";
 import { resolveTaskFixture } from "./runtime/task-fixture";
 
 export const BUNDLE_EVALUATION_BRANCH = SKILLOPT_EVALUATION_BRANCH;
 const DEFAULT_BUNDLE_CELL_TIMEOUT_MS = 600_000;
 
 export type BundleArm = "baseline" | "skillopt";
-
-export type BundleCandidatesResolver = (
-  skill: CanonicalSkill,
-) => Promise<string | undefined>;
-
-/**
- * Resolves the skillopt-arm body for a skill from a prior optimization's
- * frozen output when one exists; otherwise the arm falls back to canonical.
- */
-
-// implements REQ-skillopt-codex-optimization
-export function resolveBundleCandidatesDir(
-  candidatesDir: string,
-): BundleCandidatesResolver {
-  return async (skill) => {
-    try {
-      const body = await readFile(
-        join(candidatesDir, skill, "trainer-output", "best_skill.md"),
-        "utf8",
-      );
-      return body.trim().length > 0 ? body : undefined;
-    } catch {
-      return undefined;
-    }
-  };
-}
+export type BundleSurface = SkillSurface;
+export type BundleSurfaces = Readonly<Record<CanonicalSkill, BundleSurface>>;
 
 export type BundleCellSummary = Readonly<{
   arm: BundleArm;
@@ -89,21 +69,9 @@ export function evaluateBundleVerdict(arms: {
   baseline: BundleArmSummary;
   skillopt: BundleArmSummary;
 }): {
-  verdict: "compatible" | "incompatible" | "no-candidate-delta";
+  verdict: "compatible" | "incompatible";
   reasons: readonly string[];
 } {
-  const identical =
-    arms.skillopt.meanScore === arms.baseline.meanScore &&
-    arms.skillopt.hardPasses === arms.baseline.hardPasses &&
-    arms.skillopt.cells === arms.baseline.cells;
-  if (identical) {
-    // With no candidate bodies the two arms are byte-identical assemblies;
-    // report that explicitly instead of dressing it up as compatibility.
-    return {
-      verdict: "no-candidate-delta",
-      reasons: ["bundle:candidate-bodies-match-canonical"],
-    };
-  }
   const reasons: string[] = [];
   if (arms.skillopt.securityFailures > 0)
     reasons.push("bundle:security-failures");
@@ -128,12 +96,17 @@ export type PaidBundleGateOptions = Readonly<{
   env?: NodeJS.ProcessEnv;
   codexExecutable: string;
   bwrapExecutable: string;
+  baselineSurfaces: BundleSurfaces;
+  candidateSurfaces: BundleSurfaces;
   hiddenMarkers?: readonly string[];
   pricingHash?: string;
   priceAmount?: number;
-  resolveCandidates?: BundleCandidatesResolver;
   timeoutMs?: number;
 }>;
+
+export class BundleGateInputError extends Error {
+  readonly name = "BundleGateInputError";
+}
 
 export type BundleCellRunner = (options: CodexCellOptions) => Promise<{
   receipt: {
@@ -164,12 +137,24 @@ export async function runPaidBundleGate(
   dependencies: { runCodexCell: BundleCellRunner },
 ): Promise<PaidBundleGateResult> {
   await mkdir(options.artifactRoot, { recursive: true, mode: 0o700 });
-  const resolveCandidates =
-    options.resolveCandidates ?? (async () => undefined);
-  const candidateBodies = new Map<CanonicalSkill, string>();
-  for (const skill of CANONICAL_SKILLS) {
-    const body = await resolveCandidates(skill);
-    if (body !== undefined) candidateBodies.set(skill, body);
+  const baselineBodyHashes = Object.fromEntries(
+    CANONICAL_SKILLS.map((skill) => [
+      skill,
+      sha256Text(options.baselineSurfaces[skill].body),
+    ]),
+  ) as Record<CanonicalSkill, string>;
+  const candidateBodyHashes = Object.fromEntries(
+    CANONICAL_SKILLS.map((skill) => [
+      skill,
+      sha256Text(options.candidateSurfaces[skill].body),
+    ]),
+  ) as Record<CanonicalSkill, string>;
+  if (
+    !CANONICAL_SKILLS.some(
+      (skill) => baselineBodyHashes[skill] !== candidateBodyHashes[skill],
+    )
+  ) {
+    throw new BundleGateInputError("bundle:no-improvement");
   }
 
   const tasks = buildBundleCatalog();
@@ -193,14 +178,21 @@ export async function runPaidBundleGate(
     });
 
     for (const arm of ["baseline", "skillopt"] as const) {
-      const bundleCandidates: Partial<
-        Record<CanonicalSkill, { body: string }>
-      > = {};
-      if (arm === "skillopt") {
-        for (const [skill, body] of candidateBodies) {
-          bundleCandidates[skill] = { body };
-        }
-      }
+      const selectedSurfaces =
+        arm === "baseline"
+          ? options.baselineSurfaces
+          : options.candidateSurfaces;
+      const bundleCandidates = Object.fromEntries(
+        CANONICAL_SKILLS.map((skill) => {
+          const surface = selectedSurfaces[skill];
+          const candidate: SkillCandidateSurface = {
+            body: surface.body,
+            frontmatterHash: surface.frontmatterHash,
+            resourcesHash: surface.resourcesHash,
+          };
+          return [skill, candidate];
+        }),
+      ) as Record<CanonicalSkill, SkillCandidateSurface>;
       let summary: BundleCellSummary = {
         arm,
         taskId: task.id,
@@ -232,9 +224,8 @@ export async function runPaidBundleGate(
           sourceWorktree: options.sourceWorktree,
           artifactRoot: options.artifactRoot,
           targetSkill: CANONICAL_SKILLS[0],
-          ...(Object.keys(bundleCandidates).length > 0
-            ? { bundleCandidates }
-            : {}),
+          baselineSurfaces: options.baselineSurfaces,
+          bundleCandidates,
           codexExecutable: options.codexExecutable,
           bwrapExecutable: options.bwrapExecutable,
           env: {
@@ -291,6 +282,14 @@ export async function runPaidBundleGate(
     artifactType: "skillopt-bundle-verdict",
     runId: options.runId,
     arms: { baseline: baselineSummary, skillopt: skilloptSummary },
+    surfaces: {
+      baseline: options.baselineSurfaces,
+      candidate: options.candidateSurfaces,
+    },
+    bodyHashes: {
+      baseline: baselineBodyHashes,
+      candidate: candidateBodyHashes,
+    },
     cells,
     verdict,
     reasons,

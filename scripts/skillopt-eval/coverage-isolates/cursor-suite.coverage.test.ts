@@ -9,7 +9,6 @@ import {
   runCursorCompatibilityGate,
   summarizeCursorCells,
 } from "../cursor/suite";
-import type { CursorCellReceipt } from "../cursor/types";
 
 const roots: string[] = [];
 afterEach(async () => {
@@ -140,7 +139,9 @@ describe("cursor suite leftovers", () => {
     ]);
     expect(isolated[0]?.securityFailures).toBe(1);
 
-    const artifactRoot = await mkdtemp(join(tmpdir(), "skillopt-cursor-persist-"));
+    const artifactRoot = await mkdtemp(
+      join(tmpdir(), "skillopt-cursor-persist-"),
+    );
     roots.push(artifactRoot);
     const report = await runCursorCompatibilityGate({
       runId: "empty-candidates",
@@ -166,7 +167,9 @@ describe("cursor suite leftovers", () => {
   });
 
   test("loadTaskManifest reads train/development/held-out locations and missing files", async () => {
-    const fixtureRunRoot = await mkdtemp(join(tmpdir(), "skillopt-cursor-fix-"));
+    const fixtureRunRoot = await mkdtemp(
+      join(tmpdir(), "skillopt-cursor-fix-"),
+    );
     roots.push(fixtureRunRoot);
     await expect(
       runCursorCompatibilityGate({
@@ -208,5 +211,3 @@ describe("cursor suite leftovers", () => {
     ).rejects.toThrow();
   });
 });
-
-export type { CursorCellReceipt };

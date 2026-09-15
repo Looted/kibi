@@ -61,9 +61,7 @@ describe("operator leftover runtime branches", () => {
   test("default which, runProcess close codes, and spawn errors", async () => {
     expect(defaultOperatorDependencies.which("bash")).toBeTruthy();
     expect(defaultOperatorDependencies.cwd.length).toBeGreaterThan(0);
-    expect(defaultOperatorDependencies.randomId()).toMatch(
-      /^[0-9a-f-]{36}$/,
-    );
+    expect(defaultOperatorDependencies.randomId()).toMatch(/^[0-9a-f-]{36}$/);
 
     const ok = await defaultOperatorDependencies.runProcess(
       ["bash", "-c", "printf hi"],
@@ -172,9 +170,12 @@ describe("operator leftover runtime branches", () => {
     ).toMatchObject({
       skill: "kibi-freshness",
     });
-    expect(parseOperatorArgs(["suite"])).toMatchObject({
+    expect(
+      parseOperatorArgs(["suite", "--candidate-manifest", "bundle.json"]),
+    ).toMatchObject({
       command: "suite",
       skill: "bundle",
+      candidateManifest: "bundle.json",
     });
     expect(
       parseOperatorArgs([
@@ -259,9 +260,11 @@ describe("operator leftover runtime branches", () => {
           runCli: async (args) => {
             expect(args[0]).toBe("bundle");
             expect(args).toContain("all");
+            expect(args).toContain("--candidate-manifest");
             return 0;
           },
         }),
+        { candidateManifest: "bundle.json" },
       ),
     ).toBe(0);
 
@@ -320,7 +323,7 @@ describe("operator leftover runtime branches", () => {
     ).toBe(0);
     expect(
       await main(
-        ["suite"],
+        ["suite", "--candidate-manifest", "bundle.json"],
         paidDeps({
           resolveOperatorBase: async () => operatorBase,
         }),

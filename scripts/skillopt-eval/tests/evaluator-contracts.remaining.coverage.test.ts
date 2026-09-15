@@ -29,7 +29,11 @@ function baseManifest(overrides: Record<string, unknown> = {}) {
     },
     isolationSentinels: ["PRIVATE_SENTINEL_secret", "SIBLING_SENTINEL_secret"],
     rubric: [
-      { key: "final_state", points: 60, criticalAssertionKeys: ["final-discovery"] },
+      {
+        key: "final_state",
+        points: 60,
+        criticalAssertionKeys: ["final-discovery"],
+      },
       { key: "protocol", points: 25, criticalAssertionKeys: [] },
       { key: "isolation", points: 15, criticalAssertionKeys: [] },
     ],

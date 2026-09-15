@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { evaluateBundleGate, evaluateSkillGate } from "../scoring/gates";
 import {
-  evaluateBundleGate,
-  evaluateSkillGate,
-} from "../scoring/gates";
-import { passingBundleGateMatrix, passingSkillMatrix } from "./fixtures/scoring-gates-fixtures";
+  passingBundleGateMatrix,
+  passingSkillMatrix,
+} from "./fixtures/scoring-gates-fixtures";
 
 afterEach(() => {
   if (process.exitCode === 1) process.exitCode = 0;

@@ -66,6 +66,9 @@ interface CliRetryOptions {
 
 const DEFAULT_IMPORT_RETRY_DELAY_MS = 2_000;
 const DEFAULT_IMPORT_RETRY_ATTEMPTS = 3;
+const FIXTURE_SOURCE_PATH = "src/fixture.ts";
+const FIXTURE_TEST_PATH = "tests/fixture-family.test.ts";
+const FIXTURE_TEST_TIMEOUT_MS = 10_000;
 
 // implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
@@ -434,11 +437,50 @@ export async function setupThinRootKb(
   await stageCommitAll(workspaceTarget);
 }
 
+async function runSeededFixtureTest(workspaceTarget: string): Promise<void> {
+  const child = Bun.spawn(
+    [
+      process.execPath,
+      "test",
+      "--timeout",
+      String(FIXTURE_TEST_TIMEOUT_MS),
+      FIXTURE_TEST_PATH,
+    ],
+    {
+      cwd: workspaceTarget,
+      env: process.env,
+      stdout: "pipe",
+      stderr: "pipe",
+    },
+  );
+  let timedOut = false;
+  const timeout = setTimeout(() => {
+    timedOut = true;
+    child.kill();
+  }, FIXTURE_TEST_TIMEOUT_MS);
+  const [exitCode, stdout, stderr] = await Promise.all([
+    child.exited,
+    new Response(child.stdout).text(),
+    new Response(child.stderr).text(),
+  ]);
+  clearTimeout(timeout);
+  if (timedOut || exitCode !== 0) {
+    const output = [stderr.trim(), stdout.trim()]
+      .filter((value) => value.length > 0)
+      .join("\n")
+      .slice(0, 2_000);
+    throw new FixtureSetupError(
+      `seeded fixture test failed${timedOut ? " (timed out)" : ` (exit=${exitCode})`}: ${output || "no test output"}`,
+    );
+  }
+}
+
 /**
  * Evaluator-owned staging for tasks declaring initialState.kb "fresh": a
  * committed, seeded, fully-synced KB (probe-verified: kb_status reports
  * dirty=false, syncState=fresh, verification snapshot available) plus one
- * source-linked symbol pair so discovery/query signals have real content.
+ * source-linked symbol pair and its executable coverage test so discovery/query
+ * signals have real content without introducing a seeded validation failure.
  */
 // implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
@@ -454,7 +496,44 @@ export async function setupSeededFreshKb(
     );
   };
   await expectOk(["init"], "kibi init");
+  const fixtureSourcePath = join(workspaceTarget, FIXTURE_SOURCE_PATH);
+  let fixtureSource: string;
+  try {
+    fixtureSource = await readFile(fixtureSourcePath, "utf8");
+  } catch (error) {
+    throw new FixtureSetupError(
+      `seeded fresh fixture requires ${FIXTURE_SOURCE_PATH}: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+  if (!/export\s+const\s+fixtureFamily\s*=/.test(fixtureSource)) {
+    throw new FixtureSetupError(
+      `seeded fresh fixture requires ${FIXTURE_SOURCE_PATH} to export fixtureFamily`,
+    );
+  }
+  await mkdir(join(workspaceTarget, "tests"), {
+    recursive: true,
+    mode: 0o700,
+  });
+  await writeFile(
+    join(workspaceTarget, FIXTURE_TEST_PATH),
+    [
+      'import { expect, test } from "bun:test";',
+      'import { fixtureFamily } from "../src/fixture";',
+      "",
+      'test("public fixture exports its family string", () => {',
+      '  expect(typeof fixtureFamily).toBe("string");',
+      "  expect(fixtureFamily.length).toBeGreaterThan(0);",
+      "});",
+      "",
+    ].join("\n"),
+    "utf8",
+  );
+  await runSeededFixtureTest(workspaceTarget);
   await mkdir(join(workspaceTarget, ".kb", "requirements"), {
+    recursive: true,
+    mode: 0o700,
+  });
+  await mkdir(join(workspaceTarget, ".kb", "tests"), {
     recursive: true,
     mode: 0o700,
   });
@@ -472,6 +551,27 @@ export async function setupSeededFreshKb(
     "utf8",
   );
   await writeFile(
+    join(workspaceTarget, ".kb", "tests", "TEST-SETUP-FIXTURE.md"),
+    [
+      "---",
+      "id: TEST-SETUP-FIXTURE",
+      "title: Seeded fixture symbol coverage",
+      "status: passing",
+      "text_ref: tests/fixture-family.test.ts",
+      "links:",
+      "  - type: validates",
+      "    target: REQ-SETUP-BASE",
+      "verification_scope: unit",
+      "---",
+      "",
+      "# Seeded fixture symbol coverage",
+      "",
+      "This evaluator-owned test keeps the seeded production symbol covered.",
+      "",
+    ].join("\n"),
+    "utf8",
+  );
+  await writeFile(
     join(workspaceTarget, ".kb", "symbols.yaml"),
     [
       "symbols:",
@@ -482,6 +582,8 @@ export async function setupSeededFreshKb(
       "    relationships:",
       "      - type: implements",
       "        target: REQ-SETUP-BASE",
+      "      - type: covered_by",
+      "        target: TEST-SETUP-FIXTURE",
       "",
     ].join("\n"),
     "utf8",
@@ -494,6 +596,7 @@ export async function setupSeededFreshKb(
     "import sync",
     { retryOnInteractivePrologTimeout: true },
   );
+  await expectOk(["check"], "seeded fixture validation");
 }
 
 /**

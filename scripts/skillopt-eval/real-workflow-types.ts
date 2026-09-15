@@ -3,6 +3,7 @@ import { z } from "zod";
 import { CANONICAL_SKILLS, type CanonicalSkill } from "./catalog";
 import { JsonValueSchema, contractHash } from "./contracts/common";
 import type { runCodexCell } from "./runtime/codex-cell-runner";
+import type { TargetEpisodeBudgetReport } from "./target-episode-budget";
 import type { FrozenVariant } from "./variants";
 
 // implements REQ-skillopt-codex-optimization
@@ -25,6 +26,35 @@ export const RootsSchema = z
 export type CorpusRoots = z.infer<typeof RootsSchema>;
 export const ProductionAdoptionSchema = z.literal("external-verdict-required");
 export type ProductionAdoption = z.infer<typeof ProductionAdoptionSchema>;
+// implements REQ-skillopt-codex-optimization
+// covered_by TEST-skillopt-codex-optimization
+export type DevelopmentGate = Readonly<{
+  mean: number;
+  hardPasses: number;
+  worstFamilyMean: number;
+}>;
+export const DevelopmentEvaluationSchema = z
+  .object({
+    mean: z.number().min(0).max(1),
+    hardPasses: z.number().int().min(0),
+    worstFamilyMean: z.number().min(0).max(1),
+    // Python's compact DevelopmentGate intentionally has no security field.
+    // Authoritative TypeScript reviews add the normalized value below.
+    securityFailures: z.number().int().nonnegative().optional(),
+  })
+  .strict();
+const DevelopmentReviewEvaluationSchema = z
+  .object({
+    mean: z.number().min(0).max(1),
+    hardPasses: z.number().int().min(0),
+    worstFamilyMean: z.number().min(0).max(1),
+    securityFailures: z.number().int().nonnegative(),
+  })
+  .strict();
+// The optional field keeps compact trainer and injected test implementations
+// source-compatible; persisted authoritative reviews always normalize it.
+export type DevelopmentEvaluation = DevelopmentGate &
+  Readonly<{ securityFailures?: number }>;
 // implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export const TrainResultSchema = z.looseObject({
@@ -59,29 +89,11 @@ export const ReviewSchema = z
             baselineBodyHash: z.string().regex(/^[a-f0-9]{64}$/),
             candidateBodyHash: z.string().regex(/^[a-f0-9]{64}$/),
             trainerCheckpointHash: z.string().regex(/^[a-f0-9]{64}$/),
-            development: z
-              .object({
-                mean: z.number().min(0).max(1),
-                hardPasses: z.number().int().min(0),
-                worstFamilyMean: z.number().min(0).max(1),
-              })
-              .strict(),
+            development: DevelopmentReviewEvaluationSchema,
             developmentComparators: z
               .object({
-                baseline: z
-                  .object({
-                    mean: z.number().min(0).max(1),
-                    hardPasses: z.number().int().min(0),
-                    worstFamilyMean: z.number().min(0).max(1),
-                  })
-                  .strict(),
-                oneShot: z
-                  .object({
-                    mean: z.number().min(0).max(1),
-                    hardPasses: z.number().int().min(0),
-                    worstFamilyMean: z.number().min(0).max(1),
-                  })
-                  .strict(),
+                baseline: DevelopmentReviewEvaluationSchema,
+                oneShot: DevelopmentReviewEvaluationSchema,
               })
               .strict(),
             developmentEligible: z.boolean(),
@@ -97,6 +109,10 @@ export const ReviewSchema = z
       )
       .min(1),
     sourceModified: z.literal(false),
+    stage: z.enum(["development", "held-out"]),
+    heldOutSkipReason: z
+      .enum(["development-only", "development-gate-ineligible"])
+      .optional(),
     generatedAt: z.iso.datetime(),
   })
   .strict();
@@ -110,11 +126,6 @@ export type PublicTaskDescriptor = Readonly<{
 }>;
 // implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
-export type DevelopmentGate = Readonly<{
-  mean: number;
-  hardPasses: number;
-  worstFamilyMean: number;
-}>;
 // implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
 export type TrainingInput = Readonly<{
@@ -188,6 +199,7 @@ export type RealOptimizationOptions = Readonly<{
   sourceWorktree: string;
   skills: readonly CanonicalSkill[];
   maxSteps: number;
+  developmentOnly?: boolean;
   seedCandidatePath?: string;
   env?: NodeJS.ProcessEnv;
   cellRuntime?: CodexCellRuntime;
@@ -204,8 +216,12 @@ export type RealOptimizationResult = Readonly<{
     candidateBodyHash: string;
   }>[];
   heldOutEligibility: "eligible" | "HELD_OUT_MATRIX_INELIGIBLE" | "not-run";
-  paidModelCalls: number;
-  reason?: "development_gate_ineligible";
+  stage?: "development" | "held-out";
+  // Target and optimizer receipts do not expose one authenticated aggregate
+  // model-call count. Do not turn an unknown count into a false zero.
+  paidModelCalls: number | "unknown";
+  targetEpisodeBudget?: TargetEpisodeBudgetReport;
+  reason?: "development_gate_ineligible" | "development_only";
 }>;
 // implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
@@ -239,7 +255,7 @@ export type RealOptimizationDependencies = Readonly<{
       env: NodeJS.ProcessEnv;
       cellRunner?: HeldOutCellRunner;
     }>,
-  ) => Promise<DevelopmentGate>;
+  ) => Promise<DevelopmentEvaluation>;
   evaluateHeldOut: (
     input: Readonly<{
       skill: CanonicalSkill;

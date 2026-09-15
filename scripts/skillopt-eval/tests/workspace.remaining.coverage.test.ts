@@ -3,10 +3,10 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { buildPublicCatalog } from "../catalog";
 import { parseTaskSpec } from "../fixtures/contracts";
 import { writePublicWorkspace } from "../fixtures/workspace";
 import { CANONICAL_SKILL_ROOT, temporaryRoot } from "./fixture-test-helpers";
-import { buildPublicCatalog } from "../catalog";
 
 const roots: string[] = [];
 
@@ -18,7 +18,9 @@ afterEach(() => {
 
 describe("workspace remaining SkillSourceError branches", () => {
   test("throws when a canonical skill is missing and when materialized files drift", () => {
-    const missingRoot = mkdtempSync(path.join(tmpdir(), "skillopt-missing-skills-"));
+    const missingRoot = mkdtempSync(
+      path.join(tmpdir(), "skillopt-missing-skills-"),
+    );
     roots.push(missingRoot);
     const task = parseTaskSpec(buildPublicCatalog()[0]);
     const workspace = temporaryRoot();
