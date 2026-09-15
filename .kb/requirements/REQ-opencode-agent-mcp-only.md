@@ -1,7 +1,7 @@
 ---
 id: REQ-opencode-agent-mcp-only
 title: Historical OpenCode MCP-only guidance (superseded)
-status: superseded
+status: closed
 created_at: 2026-03-22T00:00:00.000Z
 updated_at: 2026-04-20T00:00:00.000Z
 source: documentation/requirements/REQ-opencode-agent-mcp-only.md
@@ -13,6 +13,7 @@ tags:
   - mcp
   - policy
   - guidance
+  - historical-status:superseded
 links:
   - type: depends_on
     target: REQ-opencode-kibi-plugin-v1
@@ -63,5 +64,7 @@ logic_claims:
   - CLAIM-DCF27799F28A5A70
   - CLAIM-B04A9E566C23EE3C
 type: req
+proof_exempt: true
+proof_exempt_reason: Historical requirement already retired as superseded before the test-quality audit; retained for provenance, outside current implementation proof scope.
 ---
 Superseded historical guidance. The current peer-surface and host-routing contract is defined by REQ-agent-kibi-interface-selection and the canonical Kibi skills.

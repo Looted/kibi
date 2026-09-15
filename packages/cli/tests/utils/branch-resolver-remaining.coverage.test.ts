@@ -1,6 +1,6 @@
 // implements REQ-008
 import { afterEach, describe, expect, test } from "bun:test";
-import { execSync } from "node:child_process";
+import type { execSync } from "node:child_process";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import {
@@ -120,13 +120,17 @@ describe("branch-resolver leftover validation, snapshot, and diagnostic branches
     _setBranchResolverDepsForTests({
       execSync: (() => "bad name\n") as unknown as typeof execSync,
     });
-    expect(resolveActiveBranch("/tmp")).toMatchObject({ code: "UNKNOWN_ERROR" });
+    expect(resolveActiveBranch("/tmp")).toMatchObject({
+      code: "UNKNOWN_ERROR",
+    });
     _setBranchResolverDepsForTests({
       execSync: (() => {
         throw "not-an-error";
       }) as unknown as typeof execSync,
     });
-    expect(resolveActiveBranch("/tmp")).toMatchObject({ code: "UNKNOWN_ERROR" });
+    expect(resolveActiveBranch("/tmp")).toMatchObject({
+      code: "UNKNOWN_ERROR",
+    });
   });
 
   test("blocks attachment on an unreadable migration journal", () => {

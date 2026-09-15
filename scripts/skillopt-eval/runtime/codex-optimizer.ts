@@ -316,208 +316,219 @@ export async function runCodexSkillOptStep(
         run: loginRunForSource(sourceWorktree),
       },
       async (auth) => {
-    const staged = await stageCapabilityCanary(workspace, sourceWorktree, {
-      ...(options.codexExecutable === undefined
-        ? {}
-        : { codexExecutable: options.codexExecutable }),
-      ...(options.bwrapExecutable === undefined
-        ? {}
-        : { systemBwrapExecutable: options.bwrapExecutable }),
-      ...(options.codexExecutable !== undefined &&
-      options.bwrapExecutable !== undefined
-        ? {
-            stagedRuntime: {
-              codexExecutable: options.codexExecutable,
-              bwrapExecutable: options.bwrapExecutable,
-            },
-          }
-        : {}),
-    });
-    // `.runtime` is intentionally read-only inside the Codex sandbox: it
-    // contains the staged executable, broker, and the canary schema. Keep the
-    // optimizer's response contract at the workspace root, whose write access
-    // is explicitly granted by the isolated permission profile. Otherwise the
-    // optimizer can fail before producing a result when Codex tries to open its
-    // response schema/message files through bwrap.
-    const outputSchema = join(
-      workspace.target,
-      ".optimizer-output.schema.json",
-    );
-    const outputLastMessage = join(
-      workspace.target,
-      ".optimizer-output-last-message.json",
-    );
-    await writeFile(
-      outputSchema,
-      JSON.stringify({
-        type: "object",
-        additionalProperties: false,
-        required: ["body"],
-        properties: { body: { type: "string", minLength: 1 } },
-      }),
-      { encoding: "utf8", mode: 0o600 },
-    );
-    await writeFile(outputLastMessage, "", {
-      encoding: "utf8",
-      mode: 0o600,
-    });
-    await writeFile(
-      join(workspace.codexHome, "config.toml"),
-      buildCodexConfig({
-        role: "optimizer",
-        authMode: auth.mode,
-        paths: {
-          workspace: workspace.target,
-          runPrivateHome: workspace.codexHome,
-          realCodexHome: auth.realCodexHome,
-          sourceWorktree,
-          fixtureKb: join(workspace.target, ".kb"),
-          privateScorer: workspace.privateScorer,
-          privateEvidence: workspace.privateEvidence,
-          siblingRuns: workspace.siblingRun,
-        },
-        bwrapExecutable: staged.bwrapExecutable,
-        codexExecutable: staged.codexCommand,
-        mcpServer: staged.mcpServer,
-      }),
-      { encoding: "utf8", mode: 0o600 },
-    );
-    const execArgv = buildCodexExecArgv({
-      codexCommand: staged.codexCommand,
-      workspace: workspace.target,
-      outputSchema,
-      outputLastMessage,
-      role: "optimizer",
-    });
-    const timeoutMs = options.timeoutMs ?? 15 * 60 * 1000;
-    const runAttempt = async (stdin: string) => {
-      await writeFile(outputLastMessage, "", {
-        encoding: "utf8",
-        mode: 0o600,
-      });
-      const result = await runBoundedProcess({
-        argv: execArgv,
-        cwd: workspace.target,
-        env: { ...auth.env, PATH: "/usr/bin:/bin" },
-        timeoutMs,
-        stdin,
-      });
-      const lastMessage = await readFile(outputLastMessage, "utf8").catch(
-        () => "",
-      );
-      return { result, lastMessage };
-    };
-    const interpretAttempt = (
-      result: { exitCode: number; stderr: string },
-      lastMessage: string,
-    ):
-      | { ok: true; body: string; result: { exitCode: number; stderr: string }; lastMessage: string }
-      | {
-          ok: false;
-          error: CodexOptimizerError;
-          result: { exitCode: number; stderr: string };
-          lastMessage: string;
-        } => {
-      if (result.exitCode !== 0) {
-        const stderrTail = result.stderr
-          .trim()
-          .split("\n")
-          .slice(-6)
-          .join(" | ");
-        return {
-          ok: false,
-          error: new CodexOptimizerError(
-            `optimizer_exit:${result.exitCode}${stderrTail ? `:${stderrTail.slice(0, 600)}` : ""}`,
-          ),
-          result,
-          lastMessage,
-        };
-      }
-      try {
-        return {
-          ok: true,
-          body: parseCodexOptimizerBody(lastMessage),
-          result,
-          lastMessage,
-        };
-      } catch (error) {
-        return {
-          ok: false,
-          error:
-            error instanceof CodexOptimizerError
-              ? error
-              : new CodexOptimizerError(
-                  error instanceof Error ? error.message : "optimizer_failed",
-                ),
-          result,
-          lastMessage,
-        };
-      }
-    };
-    const persistFailure = async (
-      attempt: number,
-      error: CodexOptimizerError,
-      result: { exitCode: number; stderr: string },
-      lastMessage: string,
-    ) => {
-      const stderrTail = result.stderr.trim().split("\n").slice(-6).join(" | ");
-      await persistCodexOptimizerFailure(
-        options.artifactRoot,
-        sourceWorktree,
-        {
-          runId: options.runId,
-          skill: options.request.skill,
-          step: options.request.step,
-          attempt,
-          error: error.message,
-          lastMessage,
-          exitCode: result.exitCode,
-          stderrTail: stderrTail.slice(0, 600),
-        },
-      );
-    };
-
-    let attempt = await runAttempt(promptFor(options.request));
-    let interpreted = interpretAttempt(attempt.result, attempt.lastMessage);
-    if (!interpreted.ok) {
-      await persistFailure(
-        1,
-        interpreted.error,
-        interpreted.result,
-        interpreted.lastMessage,
-      );
-      if (isRepairableOptimizerError(interpreted.error)) {
-        attempt = await runAttempt(
-          repairPromptFor(
-            options.request,
-            interpreted.lastMessage,
-            interpreted.error,
-          ),
+        const staged = await stageCapabilityCanary(workspace, sourceWorktree, {
+          ...(options.codexExecutable === undefined
+            ? {}
+            : { codexExecutable: options.codexExecutable }),
+          ...(options.bwrapExecutable === undefined
+            ? {}
+            : { systemBwrapExecutable: options.bwrapExecutable }),
+          ...(options.codexExecutable !== undefined &&
+          options.bwrapExecutable !== undefined
+            ? {
+                stagedRuntime: {
+                  codexExecutable: options.codexExecutable,
+                  bwrapExecutable: options.bwrapExecutable,
+                },
+              }
+            : {}),
+        });
+        // `.runtime` is intentionally read-only inside the Codex sandbox: it
+        // contains the staged executable, broker, and the canary schema. Keep the
+        // optimizer's response contract at the workspace root, whose write access
+        // is explicitly granted by the isolated permission profile. Otherwise the
+        // optimizer can fail before producing a result when Codex tries to open its
+        // response schema/message files through bwrap.
+        const outputSchema = join(
+          workspace.target,
+          ".optimizer-output.schema.json",
         );
-        interpreted = interpretAttempt(attempt.result, attempt.lastMessage);
+        const outputLastMessage = join(
+          workspace.target,
+          ".optimizer-output-last-message.json",
+        );
+        await writeFile(
+          outputSchema,
+          JSON.stringify({
+            type: "object",
+            additionalProperties: false,
+            required: ["body"],
+            properties: { body: { type: "string", minLength: 1 } },
+          }),
+          { encoding: "utf8", mode: 0o600 },
+        );
+        await writeFile(outputLastMessage, "", {
+          encoding: "utf8",
+          mode: 0o600,
+        });
+        await writeFile(
+          join(workspace.codexHome, "config.toml"),
+          buildCodexConfig({
+            role: "optimizer",
+            authMode: auth.mode,
+            paths: {
+              workspace: workspace.target,
+              runPrivateHome: workspace.codexHome,
+              realCodexHome: auth.realCodexHome,
+              sourceWorktree,
+              fixtureKb: join(workspace.target, ".kb"),
+              privateScorer: workspace.privateScorer,
+              privateEvidence: workspace.privateEvidence,
+              siblingRuns: workspace.siblingRun,
+            },
+            bwrapExecutable: staged.bwrapExecutable,
+            codexExecutable: staged.codexCommand,
+            mcpServer: staged.mcpServer,
+          }),
+          { encoding: "utf8", mode: 0o600 },
+        );
+        const execArgv = buildCodexExecArgv({
+          codexCommand: staged.codexCommand,
+          workspace: workspace.target,
+          outputSchema,
+          outputLastMessage,
+          role: "optimizer",
+        });
+        const timeoutMs = options.timeoutMs ?? 15 * 60 * 1000;
+        const runAttempt = async (stdin: string) => {
+          await writeFile(outputLastMessage, "", {
+            encoding: "utf8",
+            mode: 0o600,
+          });
+          const result = await runBoundedProcess({
+            argv: execArgv,
+            cwd: workspace.target,
+            env: { ...auth.env, PATH: "/usr/bin:/bin" },
+            timeoutMs,
+            stdin,
+          });
+          const lastMessage = await readFile(outputLastMessage, "utf8").catch(
+            () => "",
+          );
+          return { result, lastMessage };
+        };
+        const interpretAttempt = (
+          result: { exitCode: number; stderr: string },
+          lastMessage: string,
+        ):
+          | {
+              ok: true;
+              body: string;
+              result: { exitCode: number; stderr: string };
+              lastMessage: string;
+            }
+          | {
+              ok: false;
+              error: CodexOptimizerError;
+              result: { exitCode: number; stderr: string };
+              lastMessage: string;
+            } => {
+          if (result.exitCode !== 0) {
+            const stderrTail = result.stderr
+              .trim()
+              .split("\n")
+              .slice(-6)
+              .join(" | ");
+            return {
+              ok: false,
+              error: new CodexOptimizerError(
+                `optimizer_exit:${result.exitCode}${stderrTail ? `:${stderrTail.slice(0, 600)}` : ""}`,
+              ),
+              result,
+              lastMessage,
+            };
+          }
+          try {
+            return {
+              ok: true,
+              body: parseCodexOptimizerBody(lastMessage),
+              result,
+              lastMessage,
+            };
+          } catch (error) {
+            return {
+              ok: false,
+              error:
+                error instanceof CodexOptimizerError
+                  ? error
+                  : new CodexOptimizerError(
+                      error instanceof Error
+                        ? error.message
+                        : "optimizer_failed",
+                    ),
+              result,
+              lastMessage,
+            };
+          }
+        };
+        const persistFailure = async (
+          attempt: number,
+          error: CodexOptimizerError,
+          result: { exitCode: number; stderr: string },
+          lastMessage: string,
+        ) => {
+          const stderrTail = result.stderr
+            .trim()
+            .split("\n")
+            .slice(-6)
+            .join(" | ");
+          await persistCodexOptimizerFailure(
+            options.artifactRoot,
+            sourceWorktree,
+            {
+              runId: options.runId,
+              skill: options.request.skill,
+              step: options.request.step,
+              attempt,
+              error: error.message,
+              lastMessage,
+              exitCode: result.exitCode,
+              stderrTail: stderrTail.slice(0, 600),
+            },
+          );
+        };
+
+        let attempt = await runAttempt(promptFor(options.request));
+        let interpreted = interpretAttempt(attempt.result, attempt.lastMessage);
         if (!interpreted.ok) {
           await persistFailure(
-            2,
+            1,
             interpreted.error,
             interpreted.result,
             interpreted.lastMessage,
           );
-          throw interpreted.error;
+          if (isRepairableOptimizerError(interpreted.error)) {
+            attempt = await runAttempt(
+              repairPromptFor(
+                options.request,
+                interpreted.lastMessage,
+                interpreted.error,
+              ),
+            );
+            interpreted = interpretAttempt(attempt.result, attempt.lastMessage);
+            if (!interpreted.ok) {
+              await persistFailure(
+                2,
+                interpreted.error,
+                interpreted.result,
+                interpreted.lastMessage,
+              );
+              throw interpreted.error;
+            }
+          } else {
+            throw interpreted.error;
+          }
         }
-      } else {
-        throw interpreted.error;
-      }
-    }
-    await persistCodexOptimizerBody(options.artifactRoot, sourceWorktree, {
-      runId: options.runId,
-      skill: options.request.skill,
-      step: options.request.step,
-      body: interpreted.body,
-    });
-    return {
-      body: interpreted.body,
-      development: options.request.previousDevelopment,
-    };
+        await persistCodexOptimizerBody(options.artifactRoot, sourceWorktree, {
+          runId: options.runId,
+          skill: options.request.skill,
+          step: options.request.step,
+          body: interpreted.body,
+        });
+        return {
+          body: interpreted.body,
+          development: options.request.previousDevelopment,
+        };
       },
     );
   } catch (error) {

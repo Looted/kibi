@@ -236,7 +236,10 @@ describe("legacy storage migration", () => {
       recursive: true,
     });
     mkdirSync(path.join(tmpDir, ".kb", "requirements"), { recursive: true });
-    writeFileSync(path.join(tmpDir, ".kb", "requirements", "REQ-ONE.md"), "body\n");
+    writeFileSync(
+      path.join(tmpDir, ".kb", "requirements", "REQ-ONE.md"),
+      "body\n",
+    );
     writeFileSync(
       path.join(tmpDir, ".kb", "recovery", "pending-sources", "skip.txt"),
       "ignore",
@@ -289,7 +292,13 @@ describe("legacy storage migration", () => {
     expect(legacy.afterHash).toHaveLength(64);
     const explicit = JSON.parse(
       readFileSync(
-        path.join(tmpDir, ".kb", "recovery", "pending-sources", "explicit.json"),
+        path.join(
+          tmpDir,
+          ".kb",
+          "recovery",
+          "pending-sources",
+          "explicit.json",
+        ),
         "utf8",
       ),
     ) as { path: string };

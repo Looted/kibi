@@ -1,10 +1,13 @@
 // implements REQ-014
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { execFileSync } from "node:child_process";
-import * as fs from "node:fs/promises";
 import { mkdirSync, writeFileSync } from "node:fs";
+import * as fs from "node:fs/promises";
 import path from "node:path";
-import { nodeFilesystem, nodeGit } from "../../src/public/operations/node-ports.js";
+import {
+  nodeFilesystem,
+  nodeGit,
+} from "../../src/public/operations/node-ports.js";
 import {
   createGitWorkspace,
   isolateKibiEnv,

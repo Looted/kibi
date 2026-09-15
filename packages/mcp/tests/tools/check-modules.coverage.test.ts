@@ -11,9 +11,16 @@ import {
   formatQualityDiagnosticsText,
   formatViolationText,
 } from "../../src/tools/check-format.js";
-import { analyzeKbCheckImpact, hasImpactOptions } from "../../src/tools/check-impact.js";
+import {
+  analyzeKbCheckImpact,
+  hasImpactOptions,
+} from "../../src/tools/check-impact.js";
 import { runAggregatedChecks } from "../../src/tools/check-prolog.js";
-import type { CheckArgs, CheckResult, Diagnostic } from "../../src/tools/check-types.js";
+import type {
+  CheckArgs,
+  CheckResult,
+  Diagnostic,
+} from "../../src/tools/check-types.js";
 
 const roots: string[] = [];
 afterEach(() => {
@@ -226,7 +233,9 @@ describe("MCP check-format remaining branches", () => {
       } as never),
     ).toContain("unknown-source");
 
-    expect(formatQualityDiagnosticsText([])).toBe("No quality diagnostics found");
+    expect(formatQualityDiagnosticsText([])).toBe(
+      "No quality diagnostics found",
+    );
     expect(
       formatQualityDiagnosticsText([
         {

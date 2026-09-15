@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { GuidanceCache } from "../src/guidance-cache.js";
 import { buildPrompt } from "../src/prompt.js";
-import * as links from "../src/source-linked-guidance.js";
 import type { PromptContext } from "../src/prompt.js";
+import * as links from "../src/source-linked-guidance.js";
 
 const spies: Array<{ mockRestore: () => void }> = [];
 
@@ -18,11 +18,12 @@ const supportedCapability = {
 
 describe("prompt remaining source-link catch and REQ comment guidance", () => {
   test("rethrows a non-Error from source-linked lookup", () => {
-    const spy = spyOn(links, "getSourceLinkedRequirementIds").mockImplementation(
-      () => {
-        throw "not-an-error";
-      },
-    );
+    const spy = spyOn(
+      links,
+      "getSourceLinkedRequirementIds",
+    ).mockImplementation(() => {
+      throw "not-an-error";
+    });
     spies.push(spy);
     const context: PromptContext = {
       recentEdits: [{ path: "src/a.ts", kind: "code" }],

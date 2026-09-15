@@ -336,6 +336,47 @@ describe("enrichSymbolCoordinatesWithTsMorph", () => {
     expectUnchanged(requireEntry(missingResult), missingEntry);
   });
 
+  test("resolves qualified members of an exported class expression", async () => {
+    const fileBridge = writeFixture(
+      workspaceRoot,
+      "fixtures/file-bridge.ts",
+      [
+        "export const FileBridge = class FileBridge {",
+        "  constructor(publicRoot: string, privateRoot: string) {}",
+        '  resolve(name: string, visibility: "public" | "private") { return name + visibility; }',
+        "  async writePublic(name: string, content: string) {}",
+        "  async writePrivate(name: string, content: string) {}",
+        "  async readPublic(name: string) { return name; }",
+        "  async readPrivate(name: string) { return name; }",
+        "};",
+      ].join("\n"),
+    );
+    const entries = [
+      "FileBridge.resolve",
+      "FileBridge.writePublic",
+      "FileBridge.writePrivate",
+      "FileBridge.readPublic",
+      "FileBridge.readPrivate",
+    ].map((title, index) =>
+      createEntry(
+        `SYM-FILE-BRIDGE-${index}`,
+        title,
+        path.relative(workspaceRoot, fileBridge),
+      ),
+    );
+
+    const results = await enrichSymbolCoordinatesWithTsMorph(
+      entries,
+      workspaceRoot,
+    );
+
+    expectCoordinates(requireEntry(results[0]), 3);
+    expectCoordinates(requireEntry(results[1]), 4);
+    expectCoordinates(requireEntry(results[2]), 5);
+    expectCoordinates(requireEntry(results[3]), 6);
+    expectCoordinates(requireEntry(results[4]), 7);
+  });
+
   test("leaves ambiguous internal functions and class members unchanged", async () => {
     const ambiguousFile = writeFixture(
       workspaceRoot,
@@ -462,6 +503,7 @@ describe("enrichSymbolCoordinatesWithTsMorph", () => {
         "export type ParsedAlias = string;",
         "export enum ParsedMode { On }",
         "export const parsedValue = 42;",
+        "export const ParsedBridge = class ParsedBridge { parsedBridgeMethod() { return 3; } };",
       ].join("\n"),
     );
 
@@ -484,6 +526,8 @@ describe("enrichSymbolCoordinatesWithTsMorph", () => {
       ["ParsedAlias", "type"],
       ["ParsedMode", "enum"],
       ["parsedValue", "variable"],
+      ["ParsedBridge", "variable"],
+      ["ParsedBridge.parsedBridgeMethod", "method"],
     ]);
   });
 

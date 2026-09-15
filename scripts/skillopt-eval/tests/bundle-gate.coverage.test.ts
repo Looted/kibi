@@ -3,9 +3,9 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import { runPaidBundleGate } from "../bundle-workflow";
 import { CANONICAL_SKILLS } from "../catalog";
 import { materializeFixtureRun } from "../fixtures/private";
-import { runPaidBundleGate } from "../bundle-workflow";
 import { ProcessControlError } from "../runtime/process";
 import { CANONICAL_SKILL_ROOT } from "./fixture-test-helpers";
 

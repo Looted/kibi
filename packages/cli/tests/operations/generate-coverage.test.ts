@@ -42,7 +42,10 @@ function candidate(overrides: Partial<Candidate> = {}): Candidate {
   };
 }
 
-function context(workspaceRoot: string, extras: Partial<OperationContext> = {}): OperationContext {
+function context(
+  workspaceRoot: string,
+  extras: Partial<OperationContext> = {},
+): OperationContext {
   return {
     workspaceRoot,
     signal: new AbortController().signal,
@@ -112,7 +115,13 @@ describe("selectBootstrapCandidates", () => {
     );
 
     const untyped = selectBootstrapCandidates(
-      [candidate({ entityType: "adr", candidateId: "adr-1", applyPlan: [{ id: "ADR-1" }] })],
+      [
+        candidate({
+          entityType: "adr",
+          candidateId: "adr-1",
+          applyPlan: [{ id: "ADR-1" }],
+        }),
+      ],
       new Set(),
       ["req"],
       1,
@@ -133,7 +142,12 @@ describe("selectBootstrapCandidates", () => {
       confidence: 0.8,
       applyPlan: [{ id: "REQ-2" }],
     });
-    const selected = selectBootstrapCandidates([second, first], new Set(), undefined, 10);
+    const selected = selectBootstrapCandidates(
+      [second, first],
+      new Set(),
+      undefined,
+      10,
+    );
     expect(selected.candidates[0]?.candidateId).toBe("first");
     expect(selected.suppressed[0]?.reason).toBe("duplicate_title");
   });
@@ -211,12 +225,15 @@ describe("executePlanBootstrap", () => {
           },
         }),
       );
-      const expected = result.structuredContent.expected as BootstrapPlanV1["expected"];
+      const expected = result.structuredContent
+        .expected as BootstrapPlanV1["expected"];
       expect(expected.sourceHashes["docs/a.md"]).toMatch(/^[a-f0-9]{64}$/);
       expect(expected.sourceHashes["docs/missing.md"]).toBeNull();
-      expect(result.structuredContent.suppressedCandidates.some((row) => row.reason === "ignored_source")).toBe(
-        true,
-      );
+      expect(
+        result.structuredContent.suppressedCandidates.some(
+          (row) => row.reason === "ignored_source",
+        ),
+      ).toBe(true);
     } finally {
       spy.mockRestore();
     }
@@ -312,7 +329,10 @@ describe("executePlanBootstrap", () => {
   test("records unknown-branch and missing-snapshot binding diagnostics", async () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "kibi-generate-status-"));
     tempDirs.push(root);
-    const discoverySpy = spyOn(discovery, "discoverBootstrap").mockResolvedValue({
+    const discoverySpy = spyOn(
+      discovery,
+      "discoverBootstrap",
+    ).mockResolvedValue({
       activation: {
         activationState: "root_active_thin",
         activationMode: "attached_thin_bootstrap",
@@ -320,7 +340,15 @@ describe("executePlanBootstrap", () => {
         allowCandidateGeneration: false,
         reason: "thin",
       },
-      evidence: [{ provider: "typed_kibi_docs", kind: "typed_markdown", label: "dir", relativePath: "docs", data: {} }],
+      evidence: [
+        {
+          provider: "typed_kibi_docs",
+          kind: "typed_markdown",
+          label: "dir",
+          relativePath: "docs",
+          data: {},
+        },
+      ],
       ignoredSources: [],
       summary: {
         activationState: "root_active_thin",

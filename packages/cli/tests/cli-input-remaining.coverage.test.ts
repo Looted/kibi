@@ -1,5 +1,5 @@
-import * as fsPromises from "node:fs/promises";
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import * as fsPromises from "node:fs/promises";
 import { Readable } from "node:stream";
 import { loadInput } from "../src/cli-input.js";
 
@@ -24,12 +24,12 @@ describe("loadInput leftover stdin and read-error branches", () => {
         value: previous,
       });
     });
-    await expect(loadInput({ input: "-", cwd: process.cwd() })).resolves.toEqual(
-      { ok: true },
-    );
-    await expect(loadInput({ input: "-", cwd: process.cwd() })).rejects.toMatchObject(
-      { code: "STDIN_ALREADY_READ" },
-    );
+    await expect(
+      loadInput({ input: "-", cwd: process.cwd() }),
+    ).resolves.toEqual({ ok: true });
+    await expect(
+      loadInput({ input: "-", cwd: process.cwd() }),
+    ).rejects.toMatchObject({ code: "STDIN_ALREADY_READ" });
   });
 
   test("requires --input when the option is omitted", async () => {
@@ -41,9 +41,9 @@ describe("loadInput leftover stdin and read-error branches", () => {
   test("rethrows a non-Error file-read failure", async () => {
     const previous = process.cwd;
     // Force path.resolve + readFile by pointing at a directory we cannot treat as JSON.
-    await expect(
-      loadInput({ input: "/", cwd: "/" }),
-    ).rejects.toMatchObject({ code: "INPUT_READ_FAILED" });
+    await expect(loadInput({ input: "/", cwd: "/" })).rejects.toMatchObject({
+      code: "INPUT_READ_FAILED",
+    });
     void previous;
   });
 
@@ -66,8 +66,8 @@ describe("loadInput leftover stdin and read-error branches", () => {
     const dir = path.join(os.tmpdir(), `kibi-input-${Date.now()}`);
     mkdirSync(dir, { recursive: true });
     writeFileSync(path.join(dir, "bad.json"), "{}\n");
-    await expect(
-      loadInput({ input: "bad.json", cwd: dir }),
-    ).rejects.toBe("not-syntax");
+    await expect(loadInput({ input: "bad.json", cwd: dir })).rejects.toBe(
+      "not-syntax",
+    );
   });
 });

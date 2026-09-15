@@ -1,4 +1,4 @@
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import * as path from "node:path";
 import {
   type ManifestSymbolRecord,
@@ -98,17 +98,30 @@ function resolveRelativeManifestPaths(
   };
 }
 
-function readHeadFileContent(filePath: string): string | null {
+function readHeadFileContent(
+  filePath: string,
+  cache?: Map<string, string | null>,
+): string | null {
+  const normalizedPath = filePath.replace(/\\/g, "/");
+  const cacheKey = `${process.cwd()}\u0000${normalizedPath}`;
+  if (cache?.has(cacheKey)) {
+    return cache.get(cacheKey) ?? null;
+  }
+
   try {
-    // The manifest can exceed execSync's 1 MiB default maxBuffer; without the
-    // raised limit the read fails with ENOBUFS and is silently treated as
+    // Use argv-based git invocation so a source path cannot alter the command.
+    // The manifest can exceed a shell helper's small default maxBuffer; without
+    // the raised limit the read fails with ENOBUFS and is silently treated as
     // missing, which permanently reports the coordinates manifest as stale.
-    return execSync(`git show HEAD:${filePath}`, {
+    const content = execFileSync("git", ["show", `HEAD:${normalizedPath}`], {
       encoding: "utf8",
       stdio: ["pipe", "pipe", "pipe"],
       maxBuffer: 64 * 1024 * 1024,
     });
+    cache?.set(cacheKey, content);
+    return content;
   } catch {
+    cache?.set(cacheKey, null);
     return null;
   }
 }
@@ -226,7 +239,7 @@ function normalizeManifestSymbolsForSourceFile(
   records: ManifestSymbolRecord[],
   sourceFile: string,
 ): NormalizedManifestSymbol[] {
-  return records
+  const symbols = records
     .filter((record) => {
       if (isDocumentedCoarseRecord(record)) {
         return false;
@@ -248,6 +261,15 @@ function normalizeManifestSymbolsForSourceFile(
       sourceEndColumn: normalizeNumber(record.sourceEndColumn),
     }))
     .sort(compareNormalizedSymbols);
+
+  // Several logical records may own the same declaration. Only identical
+  // validated spans collapse; a stale duplicate still carries null coordinates
+  // and must remain visible to the equality check.
+  return symbols.filter(
+    (symbol, index) =>
+      index === 0 ||
+      JSON.stringify(symbol) !== JSON.stringify(symbols[index - 1]),
+  );
 }
 
 function normalizeAuthoredManifestSymbolsForSourceFile(
@@ -354,10 +376,14 @@ function uniqueSorted(paths: Iterable<string>): string[] {
 function mergeManifestRecordsWithCoordinates(
   manifestRecords: ManifestSymbolRecord[] | null,
   coordinateArtifact: ParsedCoordinateArtifact | null,
+  options: {
+    readonly resolveSourceText?: (sourceFile: string) => string | null;
+  } = {},
 ): ManifestSymbolRecord[] {
   return mergeCoordinatesWithManifest(
     manifestRecords ?? [],
     coordinateArtifact,
+    options,
   );
 }
 
@@ -403,12 +429,18 @@ export function assessStagedSymbolsManifest(options: {
 }): StagedSymbolsManifestAssessment {
   const { sourceFiles, stagedFiles, symbolsManifestPath } = options;
   const paths = resolveRelativeManifestPaths(symbolsManifestPath);
+  // Scope HEAD memoization to one assessment. A long-lived CLI process may
+  // assess several commits in the same checkout; a process-global cache would
+  // otherwise reuse content from the previous HEAD.
+  const headFileContentCache = new Map<string, string | null>();
+  const readAssessmentHeadFileContent = (filePath: string): string | null =>
+    readHeadFileContent(filePath, headFileContentCache);
   const headManifestRecords = parseManifestRecords(
-    readHeadFileContent(paths.symbolsPath),
+    readAssessmentHeadFileContent(paths.symbolsPath),
     paths.symbolsPath,
   );
   const headCoordinateArtifact = parseCoordinateArtifact(
-    readHeadFileContent(paths.coordinatesPath),
+    readAssessmentHeadFileContent(paths.coordinatesPath),
   );
   const {
     stagedCoordinatesFile,
@@ -421,13 +453,33 @@ export function assessStagedSymbolsManifest(options: {
     headCoordinateArtifact,
   });
 
+  const stagedSourceText = new Map(
+    stagedFiles.map(
+      (stagedFile) =>
+        [
+          stagedFile.path.replace(/\\/g, "/"),
+          typeof stagedFile.content === "string" ? stagedFile.content : null,
+        ] as const,
+    ),
+  );
+  const resolveStagedSourceText = (sourceFile: string): string | null => {
+    const normalizedSourceFile = sourceFile.replace(/\\/g, "/");
+    return stagedSourceText.has(normalizedSourceFile)
+      ? (stagedSourceText.get(normalizedSourceFile) ?? null)
+      : readAssessmentHeadFileContent(sourceFile);
+  };
+
   const baselineMergedRecords = mergeManifestRecordsWithCoordinates(
     headManifestRecords,
     headCoordinateArtifact,
+    // Existing bindings must also be valid for the proposed source. Comparing
+    // them against HEAD would miss body edits that leave spans unchanged.
+    { resolveSourceText: resolveStagedSourceText },
   );
   const stagedMergedRecords = mergeManifestRecordsWithCoordinates(
     stagedManifestRecords,
     stagedCoordinateArtifact,
+    { resolveSourceText: resolveStagedSourceText },
   );
 
   const requiredRefreshPaths: string[] = [];
@@ -447,7 +499,25 @@ export function assessStagedSymbolsManifest(options: {
       continue;
     }
 
-    const expectedSymbols = normalizeExpectedSymbolsForStagedFile(sourceFile);
+    const recordsByTitle = new Map<string, ManifestSymbolRecord[]>();
+    for (const record of manifestRecordsForFile) {
+      if (typeof record.title !== "string") continue;
+      const records = recordsByTitle.get(record.title) ?? [];
+      records.push(record);
+      recordsByTitle.set(record.title, records);
+    }
+    // A coarse anchor is allowed to stand in for its extracted declaration
+    // only when every authored record with that title is explicitly coarse.
+    // If a granular record shares the title, keep the declaration in the
+    // equality check so a duplicate anchor cannot hide stale coordinates.
+    const coarseTitles = new Set(
+      [...recordsByTitle.entries()]
+        .filter(([, records]) => records.every(isDocumentedCoarseRecord))
+        .map(([title]) => title),
+    );
+    const expectedSymbols = normalizeExpectedSymbolsForStagedFile(
+      sourceFile,
+    ).filter((symbol) => !coarseTitles.has(symbol.title));
     const baselineSymbols = normalizeManifestSymbolsForSourceFile(
       baselineMergedRecords,
       sourceFile.path,
@@ -490,7 +560,13 @@ export function assessStagedSymbolsManifest(options: {
     return { state: "missing", sourcePaths, path: paths.coordinatesPath };
   }
 
-  return { state: "stale", sourcePaths, path: paths.coordinatesPath };
+  return {
+    state: "stale",
+    sourcePaths: sourcePaths.filter(
+      (sourcePath) => !freshPaths.has(sourcePath),
+    ),
+    path: paths.coordinatesPath,
+  };
 }
 
 export function collectStagedAuthoredSymbolsManifestEvidence(options: {

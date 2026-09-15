@@ -47,12 +47,16 @@ describe("Cursor hook runner CLI", () => {
 
   test("classifies CLI invocation and reports in-process hook errors", async () => {
     expect(isInvokedAsCli(undefined, "file:///tmp/hook.ts")).toBe(false);
-    expect(isInvokedAsCli(hookRunnerPath, `file://${hookRunnerPath}`)).toBe(true);
+    expect(isInvokedAsCli(hookRunnerPath, `file://${hookRunnerPath}`)).toBe(
+      true,
+    );
 
     const writes: string[] = [];
     const write = process.stdout.write.bind(process.stdout);
     process.stdout.write = ((chunk: string | Uint8Array) => {
-      writes.push(typeof chunk === "string" ? chunk : Buffer.from(chunk).toString());
+      writes.push(
+        typeof chunk === "string" ? chunk : Buffer.from(chunk).toString(),
+      );
       return true;
     }) as typeof process.stdout.write;
     const previousArgv = process.argv.slice();
@@ -68,9 +72,9 @@ describe("Cursor hook runner CLI", () => {
       process.argv = previousArgv;
       process.stdout.write = write;
     }
-    expect(writes.some((chunk) => chunk.includes("Kibi hook runner error"))).toBe(
-      true,
-    );
+    expect(
+      writes.some((chunk) => chunk.includes("Kibi hook runner error")),
+    ).toBe(true);
   });
 
   test("loads the module as a CLI entrypoint", async () => {
@@ -82,7 +86,9 @@ describe("Cursor hook runner CLI", () => {
     });
     process.argv[1] = hookRunnerPath;
     try {
-      await import(`${new URL("../src/hook-runner.ts", import.meta.url).href}?cli=${Date.now()}`);
+      await import(
+        `${new URL("../src/hook-runner.ts", import.meta.url).href}?cli=${Date.now()}`
+      );
     } finally {
       if (previousArgv !== undefined) process.argv[1] = previousArgv;
       if (previousStdin) {

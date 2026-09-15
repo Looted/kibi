@@ -90,10 +90,7 @@ describe("fixture-kb-setup", () => {
     const absent = { id: "SYM-1" };
     assertSymbolCoordinatesAbsent(absent, "SYM-1");
     expect(() =>
-      assertSymbolCoordinatesAbsent(
-        { ...absent, sourceLine: 1 },
-        "SYM-1",
-      ),
+      assertSymbolCoordinatesAbsent({ ...absent, sourceLine: 1 }, "SYM-1"),
     ).toThrow(FixtureSetupError);
   });
 

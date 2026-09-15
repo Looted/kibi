@@ -88,8 +88,11 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
   it(
     "drives the packed CLI JSON routes through file and stdin input",
     { timeout: 300_000 },
-    async () => {
-      if (!hasProlog) return;
+    async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
       assert.strictEqual(OPERATIONS.length, 18);
       for (const [index, operation] of OPERATIONS.entries()) {
         const input =
@@ -123,8 +126,11 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
   it(
     "matches the frozen MCP schema fixture without briefing generation",
     { timeout: 120_000 },
-    async () => {
-      if (!hasProlog) return;
+    async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
       const process = startMcpServer(sandbox);
       try {
         await sendMcpRequest(process, 1, "initialize", {
@@ -139,7 +145,10 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
         assert.ifError(response.error);
         const expected = JSON.parse(
           readFileSync(
-            resolve(repoRoot, "packages/mcp/tests/fixtures/contracts/tools-list.base.json"),
+            resolve(
+              repoRoot,
+              "packages/mcp/tests/fixtures/contracts/tools-list.base.json",
+            ),
             "utf8",
           ),
         );
@@ -161,8 +170,11 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
   it(
     "ships all generated skills and resources in Cursor and Codex tarballs",
     { timeout: 120_000 },
-    async () => {
-      if (!hasProlog) return;
+    async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
       for (const tarball of [tarballs.cursor, tarballs.codex]) {
         const listing = await run("tar", ["-tzf", tarball], {
           cwd: sandbox.repoDir,

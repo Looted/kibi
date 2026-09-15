@@ -6,10 +6,7 @@ import { withHeldOutExecutionLease } from "../held-out-execution-lease";
 import { scoreCell } from "../scoring/cell";
 import { resolveIsolationArtifactRoot } from "./artifact-root";
 import { RequiredMcpStartupError } from "./canary-runtime";
-import {
-  persistRefreshedLogin,
-  withCodexAuthLease,
-} from "./codex-auth";
+import { persistRefreshedLogin, withCodexAuthLease } from "./codex-auth";
 import {
   persistCodexEpisode,
   readOptionalArtifact,
@@ -122,173 +119,179 @@ export async function runCodexCell(
         : { candidates: options.bundleCandidates }),
     });
     return await withCodexAuthLease(options.env, async () => {
-    const login = await dependencies.prepareLogin({
-      privateCodexHome: workspace.codexHome,
-      sandboxHome: workspace.sandboxHome,
-      env: options.env,
-    });
-    try {
-    const cellEnv = {
-      ...login.env,
-      KIBI_BRANCH: SKILLOPT_EVALUATION_BRANCH,
-    };
-    // Evaluator-owned precondition setup runs BEFORE staging the broker,
-    // using the production CLI build of the source worktree. The packed
-    // kibi-cli shadow inside the staged MCP runtime deliberately carries no
-    // dependency tree, so resolving its dist/cli.js would fail on the very
-    // first external require; the source build is byte-identical and
-    // dependency-complete. Staging must also complete (and shut down its
-    // engine daemon) before the brokered MCP server attaches the same
-    // branch store, or the two Prolog clients corrupt each other's foreign
-    // term handles. The model never gains direct `.kb` access; the sandbox
-    // deny rule and the broker allowlist stay intact.
-    const stagingCliRoot = resolve(options.sourceWorktree, "packages/cli");
-    await withHeldOutExecutionLease(cellExecutionLockRoot, async () => {
+      const login = await dependencies.prepareLogin({
+        privateCodexHome: workspace.codexHome,
+        sandboxHome: workspace.sandboxHome,
+        env: options.env,
+      });
       try {
-        if (
-          options.evaluatorManifest.fixtureSetup ===
-          "generated_coordinate_divergence"
-        ) {
-          await setupGeneratedCoordinateDivergence(
+        const cellEnv = {
+          ...login.env,
+          KIBI_BRANCH: SKILLOPT_EVALUATION_BRANCH,
+        };
+        // Evaluator-owned precondition setup runs BEFORE staging the broker,
+        // using the production CLI build of the source worktree. The packed
+        // kibi-cli shadow inside the staged MCP runtime deliberately carries no
+        // dependency tree, so resolving its dist/cli.js would fail on the very
+        // first external require; the source build is byte-identical and
+        // dependency-complete. Staging must also complete (and shut down its
+        // engine daemon) before the brokered MCP server attaches the same
+        // branch store, or the two Prolog clients corrupt each other's foreign
+        // term handles. The model never gains direct `.kb` access; the sandbox
+        // deny rule and the broker allowlist stay intact.
+        const stagingCliRoot = resolve(options.sourceWorktree, "packages/cli");
+        await withHeldOutExecutionLease(cellExecutionLockRoot, async () => {
+          try {
+            if (
+              options.evaluatorManifest.fixtureSetup ===
+              "generated_coordinate_divergence"
+            ) {
+              await setupGeneratedCoordinateDivergence(
+                workspace.target,
+                stagingCliRoot,
+                fixtureSymbolId(request.taskId),
+              );
+            } else {
+              const setupMode = options.evaluatorManifest.fixtureSetup;
+              if (setupMode === "seeded_fresh_kb") {
+                await setupSeededFreshKb(workspace.target, stagingCliRoot);
+              } else if (setupMode === "seeded_stale_kb") {
+                await setupSeededStaleKb(workspace.target, stagingCliRoot);
+              } else if (setupMode === "thin_root_kb") {
+                await setupThinRootKb(workspace.target, stagingCliRoot);
+              }
+            }
+          } finally {
+            await stopFixtureEngine(workspace.target);
+          }
+        });
+        const broker = await dependencies.stageBroker(
+          workspace,
+          options.sourceWorktree,
+        );
+        const runtimeRoot = join(workspace.target, ".runtime");
+        await mkdir(runtimeRoot, { recursive: true, mode: 0o700 });
+        const outputSchema = join(runtimeRoot, "episode-output.schema.json");
+        await writeFile(outputSchema, JSON.stringify(EPISODE_OUTPUT_SCHEMA), {
+          mode: 0o600,
+        });
+        await writeFile(
+          join(workspace.codexHome, "config.toml"),
+          buildCodexConfig({
+            role: "target",
+            authMode: login.mode,
+            paths: {
+              workspace: workspace.target,
+              runPrivateHome: workspace.codexHome,
+              realCodexHome: login.realCodexHome,
+              sourceWorktree: options.sourceWorktree,
+              fixtureKb: join(workspace.target, ".kb"),
+              privateScorer: workspace.privateScorer,
+              privateEvidence: workspace.privateEvidence,
+              siblingRuns: workspace.siblingRun,
+            },
+            bwrapExecutable: options.bwrapExecutable,
+            codexExecutable: options.codexExecutable,
+            mcpServer: broker,
+          }),
+          { mode: 0o600 },
+        );
+        let launched = false;
+        try {
+          await dependencies.probeMcp({ ...broker, env: cellEnv });
+          launched = true;
+          const result = await dependencies.run(
+            buildCodexExecArgv({
+              codexCommand: options.codexExecutable,
+              workspace: workspace.target,
+              outputSchema,
+              role: "target",
+            }),
             workspace.target,
-            stagingCliRoot,
-            fixtureSymbolId(request.taskId),
+            cellEnv,
+            options.timeoutMs,
+            request.prompt,
           );
-        } else {
-          const setupMode = options.evaluatorManifest.fixtureSetup;
-          if (setupMode === "seeded_fresh_kb") {
-            await setupSeededFreshKb(workspace.target, stagingCliRoot);
-          } else if (setupMode === "seeded_stale_kb") {
-            await setupSeededStaleKb(workspace.target, stagingCliRoot);
-          } else if (setupMode === "thin_root_kb") {
-            await setupThinRootKb(workspace.target, stagingCliRoot);
+          transcript = result.stdout;
+          stderr = result.stderr;
+          exitCode = result.exitCode;
+        } catch (error) {
+          if (error instanceof ProcessControlError) {
+            transcript = error.result.stdout;
+            stderr = error.result.stderr;
+            exitCode = null;
+            termination = error.kind === "timeout" ? "timeout" : "interrupted";
+          } else if (error instanceof RequiredMcpStartupError) {
+            infrastructureFailure = "required_mcp_startup";
+          } else {
+            throw error;
           }
         }
+        brokerTrace = await readOptionalArtifact(broker.tracePath);
+        diagnosticReceipt = await dependencies.diagnosticReceipt(workspace);
+        if (launched) {
+          finalState = await dependencies.finalState({
+            workspace,
+            broker,
+            requests: options.finalStateRequests,
+            timeoutMs: options.timeoutMs,
+            env: cellEnv,
+            receiptPath: join(artifactDirectory, "final-state.json"),
+          });
+        }
+        const sealedEvidence = await dependencies.evaluateSealedEvidence({
+          finalState,
+          brokerTrace,
+          diagnosticReceipt,
+        });
+        const score = scoreCell(options.evaluatorManifest, {
+          ...sealedEvidence,
+          finalState: { ...sealedEvidence.finalState, snapshot: finalState },
+        });
+        const receipt = replayCodexEpisode({
+          request,
+          transcript,
+          stderr,
+          exitCode,
+          termination,
+          startedAt,
+          finishedAt: dependencies.clock().toISOString(),
+          evidence: { brokerTrace, diagnosticReceipt, finalState },
+          score,
+          hiddenMarkers: options.hiddenMarkers,
+          forbiddenRoots: [
+            options.sourceWorktree,
+            workspace.privateScorer,
+            workspace.privateEvidence,
+            workspace.siblingRun,
+            login.realCodexHome,
+          ],
+          pricingHash: options.pricingHash,
+          priceAmount: options.priceAmount,
+          diagnosticReceiptRequired: !sealedEvidence.diagnostic.complete,
+          ...(infrastructureFailure === undefined
+            ? {}
+            : { infrastructureFailure }),
+        });
+        const receiptPath = await persistCodexEpisode(
+          artifactDirectory,
+          receipt,
+          {
+            transcript,
+            stderr,
+            brokerTrace,
+            diagnosticReceipt,
+            finalState,
+          },
+        );
+        return { receipt, artifactDirectory, receiptPath };
       } finally {
-        await stopFixtureEngine(workspace.target);
-      }
-    });
-    const broker = await dependencies.stageBroker(
-      workspace,
-      options.sourceWorktree,
-    );
-    const runtimeRoot = join(workspace.target, ".runtime");
-    await mkdir(runtimeRoot, { recursive: true, mode: 0o700 });
-    const outputSchema = join(runtimeRoot, "episode-output.schema.json");
-    await writeFile(outputSchema, JSON.stringify(EPISODE_OUTPUT_SCHEMA), {
-      mode: 0o600,
-    });
-    await writeFile(
-      join(workspace.codexHome, "config.toml"),
-      buildCodexConfig({
-        role: "target",
-        authMode: login.mode,
-        paths: {
-          workspace: workspace.target,
-          runPrivateHome: workspace.codexHome,
+        await persistRefreshedLogin({
+          mode: login.mode,
           realCodexHome: login.realCodexHome,
-          sourceWorktree: options.sourceWorktree,
-          fixtureKb: join(workspace.target, ".kb"),
-          privateScorer: workspace.privateScorer,
-          privateEvidence: workspace.privateEvidence,
-          siblingRuns: workspace.siblingRun,
-        },
-        bwrapExecutable: options.bwrapExecutable,
-        codexExecutable: options.codexExecutable,
-        mcpServer: broker,
-      }),
-      { mode: 0o600 },
-    );
-    let launched = false;
-    try {
-      await dependencies.probeMcp({ ...broker, env: cellEnv });
-      launched = true;
-      const result = await dependencies.run(
-        buildCodexExecArgv({
-          codexCommand: options.codexExecutable,
-          workspace: workspace.target,
-          outputSchema,
-          role: "target",
-        }),
-        workspace.target,
-        cellEnv,
-        options.timeoutMs,
-        request.prompt,
-      );
-      transcript = result.stdout;
-      stderr = result.stderr;
-      exitCode = result.exitCode;
-    } catch (error) {
-      if (error instanceof ProcessControlError) {
-        transcript = error.result.stdout;
-        stderr = error.result.stderr;
-        exitCode = null;
-        termination = error.kind === "timeout" ? "timeout" : "interrupted";
-      } else if (error instanceof RequiredMcpStartupError) {
-        infrastructureFailure = "required_mcp_startup";
-      } else {
-        throw error;
+          privateCodexHome: workspace.codexHome,
+        });
       }
-    }
-    brokerTrace = await readOptionalArtifact(broker.tracePath);
-    diagnosticReceipt = await dependencies.diagnosticReceipt(workspace);
-    if (launched) {
-      finalState = await dependencies.finalState({
-        workspace,
-        broker,
-        requests: options.finalStateRequests,
-        timeoutMs: options.timeoutMs,
-        env: cellEnv,
-        receiptPath: join(artifactDirectory, "final-state.json"),
-      });
-    }
-    const sealedEvidence = await dependencies.evaluateSealedEvidence({
-      finalState,
-      brokerTrace,
-      diagnosticReceipt,
-    });
-    const score = scoreCell(options.evaluatorManifest, {
-      ...sealedEvidence,
-      finalState: { ...sealedEvidence.finalState, snapshot: finalState },
-    });
-    const receipt = replayCodexEpisode({
-      request,
-      transcript,
-      stderr,
-      exitCode,
-      termination,
-      startedAt,
-      finishedAt: dependencies.clock().toISOString(),
-      evidence: { brokerTrace, diagnosticReceipt, finalState },
-      score,
-      hiddenMarkers: options.hiddenMarkers,
-      forbiddenRoots: [
-        options.sourceWorktree,
-        workspace.privateScorer,
-        workspace.privateEvidence,
-        workspace.siblingRun,
-        login.realCodexHome,
-      ],
-      pricingHash: options.pricingHash,
-      priceAmount: options.priceAmount,
-      diagnosticReceiptRequired: !sealedEvidence.diagnostic.complete,
-      ...(infrastructureFailure === undefined ? {} : { infrastructureFailure }),
-    });
-    const receiptPath = await persistCodexEpisode(artifactDirectory, receipt, {
-      transcript,
-      stderr,
-      brokerTrace,
-      diagnosticReceipt,
-      finalState,
-    });
-    return { receipt, artifactDirectory, receiptPath };
-    } finally {
-      await persistRefreshedLogin({
-        mode: login.mode,
-        realCodexHome: login.realCodexHome,
-        privateCodexHome: workspace.codexHome,
-      });
-    }
     });
   } finally {
     await workspace.cleanup();

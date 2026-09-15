@@ -79,8 +79,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "should create separate KB for each branch",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         await kibi(sandbox, ["init", "--no-hooks"]);
 
@@ -145,8 +148,11 @@ status: open
     it(
       "should isolate branch KB from develop KB",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         await kibi(sandbox, ["init", "--no-hooks"]);
 
@@ -229,8 +235,11 @@ status: open
     it(
       "should load correct KB when switching branches",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         await kibi(sandbox, ["init", "--no-hooks"]);
 
@@ -298,8 +307,11 @@ status: open
     it(
       "should create branch KB on first sync",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         await kibi(sandbox, ["init", "--no-hooks"]);
 
@@ -353,8 +365,11 @@ status: open
     it(
       "should delete branch document only from branch KB",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         await kibi(sandbox, ["init", "--no-hooks"]);
 
@@ -416,8 +431,11 @@ status: open
     it(
       "should preserve both KBs after merge",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         await kibi(sandbox, ["init", "--no-hooks"]);
 
@@ -506,8 +524,11 @@ status: open
     it(
       "should orphan branch creates independent KB",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         await kibi(sandbox, ["init", "--no-hooks"]);
 
@@ -592,8 +613,11 @@ status: open
     it(
       "should compile an independent exact-branch KB via post-checkout hook",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         // Use real hooks so the post-checkout hook fires on branch creation
         await kibi(sandbox, ["init"]);

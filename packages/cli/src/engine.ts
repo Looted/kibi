@@ -28,6 +28,11 @@ import * as net from "node:net";
 import * as os from "node:os";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
+import type {
+  EngineAttachmentIdentity,
+  EngineCommandV1,
+  EngineRequest,
+} from "./engine-types.js";
 import { PrologProcess, resolveKbPlPath } from "./prolog.js";
 import { parseEntityFromList, parseListOfLists } from "./prolog/codec.js";
 import type { PrologQueryResult } from "./public/operations/runtime-types.js";
@@ -42,11 +47,6 @@ import {
   branchStorePath,
   ensureBranchStoreManifest,
 } from "./utils/branch-store-locator.js";
-import type {
-  EngineAttachmentIdentity,
-  EngineCommandV1,
-  EngineRequest,
-} from "./engine-types.js";
 
 export type {
   EngineAttachmentIdentity,
@@ -62,8 +62,11 @@ const ENGINE_QUERY_CACHE_MAX_ENTRIES = 128;
 const ENGINE_QUERY_CACHE_MAX_RESULT_BYTES = 8 * 1024 * 1024;
 const ENGINE_FRESHNESS_CACHE_MS = 100;
 const ENGINE_PUBLICATION_LOCK_STALE_MS = 5_000;
+const ENGINE_WORKSPACE_WATCHDOG_MS = 30_000;
 
-export function requestEngineSignalShutdown(shutdown: () => unknown): () => void {
+export function requestEngineSignalShutdown(
+  shutdown: () => unknown,
+): () => void {
   return () => {
     void shutdown();
   };
@@ -164,6 +167,16 @@ function engineIdleTimeoutMs(): number {
   return Number.isFinite(configured) && configured >= 100
     ? configured
     : ENGINE_IDLE_TIMEOUT_MS;
+}
+
+function engineWorkspaceWatchdogMs(): number {
+  const configured = Number.parseInt(
+    process.env.KIBI_ENGINE_WORKSPACE_WATCHDOG_MS ?? "",
+    10,
+  );
+  return Number.isFinite(configured) && configured >= 100
+    ? configured
+    : ENGINE_WORKSPACE_WATCHDOG_MS;
 }
 
 type EngineResponse = {
@@ -1583,7 +1596,7 @@ export async function runEngineDaemon(options: {
       );
       void shutdown();
     }
-  }, 30_000);
+  }, engineWorkspaceWatchdogMs());
   workspaceWatchdog.unref();
 
   const scheduleIdleExit = (): void => {

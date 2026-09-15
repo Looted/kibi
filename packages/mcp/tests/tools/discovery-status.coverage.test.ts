@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, mock, test } from "bun:test";
-import type { PrologProcess } from "kibi-runtime";
 import { refreshSymbolCoordinatesForManifest } from "kibi-cli/operations/mutation/symbol-refresh";
+import type { PrologProcess } from "kibi-runtime";
 
 import { createDiscoveryContext } from "../../src/tools/discovery-adapter.js";
 import { handleKbStatus } from "../../src/tools/status.js";

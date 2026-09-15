@@ -13,7 +13,7 @@ tags:
   - evaluation
   - security
   - self-improvement
-verification_scope: end_to_end
+verification_scope: integration
 verification_perspective: internal
 links:
   - type: validates

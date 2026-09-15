@@ -195,8 +195,11 @@ Given a packed runtime, when receipt evidence is evaluated, then it is bound to 
     it(
       "fails closed without a receipt, accepts a current pass, and invalidates it after source drift across CLI and MCP",
       { timeout: 300_000 },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
         const initialStatus = await cliJson<{
           proofSnapshot: string;
           proofSnapshotAvailable: boolean;

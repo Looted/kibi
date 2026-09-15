@@ -1,8 +1,8 @@
 // implements REQ-kibi-operation-interface-parity, REQ-002
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
-import * as discovery from "../../src/public/operations/discovery-executors.js";
-import { executeCheck } from "../../src/public/operations/check-executor.js";
 import * as impact from "../../src/public/impact-diagnostics.js";
+import { executeCheck } from "../../src/public/operations/check-executor.js";
+import * as discovery from "../../src/public/operations/discovery-executors.js";
 import type {
   OperationContext,
   PrologPort,
@@ -18,9 +18,7 @@ afterEach(() => {
   if (process.exitCode === 1) process.exitCode = 0;
 });
 
-function context(
-  overrides: Partial<OperationContext> = {},
-): OperationContext {
+function context(overrides: Partial<OperationContext> = {}): OperationContext {
   const prolog: PrologPort = {
     query: async () => ({ success: true, bindings: {} }),
     nextSolution: async () => null,
@@ -47,7 +45,10 @@ describe("check-executor remaining empty-rule and failure branches", () => {
 
   test("collects full quality diagnostics for an empty explicit rule set", async () => {
     restores.push(isolateKibiEnv());
-    const collect = spyOn(impact, "collectFullKbQualityDiagnostics").mockResolvedValue([
+    const collect = spyOn(
+      impact,
+      "collectFullKbQualityDiagnostics",
+    ).mockResolvedValue([
       {
         id: "telemetry_acceptance_incomplete",
         severity: "review",
@@ -62,11 +63,9 @@ describe("check-executor remaining empty-rule and failure branches", () => {
       new Error("Failed to resolve active branch: detached"),
     );
     spies.push(status);
-    const result = await executeCheck(
-      { rules: [] },
-      context(),
-      { collectFullQualityDiagnosticsForExplicitRules: true },
-    );
+    const result = await executeCheck({ rules: [] }, context(), {
+      collectFullQualityDiagnosticsForExplicitRules: true,
+    });
     expect(collect).toHaveBeenCalled();
     expect(
       (

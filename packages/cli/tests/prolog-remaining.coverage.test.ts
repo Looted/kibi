@@ -1,8 +1,8 @@
-// implements REQ-core-prolog-process-management
-import { EventEmitter } from "node:events";
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import * as childProcess from "node:child_process";
 import type { ChildProcess } from "node:child_process";
+// implements REQ-core-prolog-process-management
+import { EventEmitter } from "node:events";
 import * as fs from "node:fs";
 import { mkdtempSync, rmSync } from "node:fs";
 import Module from "node:module";
@@ -29,12 +29,12 @@ function patchResolveFilename(
 ): () => void {
   const host = nodeModule();
   const original = host._resolveFilename;
-  host._resolveFilename = function (
+  host._resolveFilename = (
     request: string,
     parent: NodeModule | undefined,
     isMain: boolean,
     options?: unknown,
-  ) {
+  ) => {
     if (String(request).includes("kibi-core")) {
       return impl(request);
     }
@@ -74,16 +74,18 @@ function asSpawn(impl: () => FakeChild | never): typeof childProcess.spawn {
   return impl as unknown as typeof childProcess.spawn;
 }
 
-function fakeChild(options: {
-  stdin?: boolean;
-  stdout?: boolean;
-  stderr?: boolean;
-  pid?: number | undefined;
-  exitCode?: number | null;
-  signalCode?: NodeJS.Signals | null;
-  killed?: boolean;
-  echoTrue?: boolean;
-} = {}): FakeChild {
+function fakeChild(
+  options: {
+    stdin?: boolean;
+    stdout?: boolean;
+    stderr?: boolean;
+    pid?: number | undefined;
+    exitCode?: number | null;
+    signalCode?: NodeJS.Signals | null;
+    killed?: boolean;
+    echoTrue?: boolean;
+  } = {},
+): FakeChild {
   const stdout = options.stdout === false ? null : new EventEmitter();
   const stderr = options.stderr === false ? null : new EventEmitter();
   const child = new EventEmitter() as FakeChild;
@@ -100,9 +102,7 @@ function fakeChild(options: {
       : {
           write(chunk: string) {
             if (options.echoTrue && stdout && String(chunk).includes("true.")) {
-              queueMicrotask(() =>
-                stdout.emit("data", Buffer.from("true.\n")),
-              );
+              queueMicrotask(() => stdout.emit("data", Buffer.from("true.\n")));
             }
             return true;
           },
@@ -173,7 +173,9 @@ describe("prolog remaining: interactive start and query errors", () => {
       swiplPath: "/usr/bin/env",
       oneShot: false,
     });
-    await expect(prolog.start()).rejects.toThrow(/Failed to spawn Prolog process/);
+    await expect(prolog.start()).rejects.toThrow(
+      /Failed to spawn Prolog process/,
+    );
     await prolog.terminate();
   });
 
@@ -244,7 +246,9 @@ describe("prolog remaining: interactive start and query errors", () => {
       late.stderr?.emit("data", Buffer.from("ERROR: late load\n"));
       now += 3_000;
     });
-    await expect(lateStart).rejects.toThrow(/Failed to load kb module|late load/);
+    await expect(lateStart).rejects.toThrow(
+      /Failed to load kb module|late load/,
+    );
   });
 
   test("interactive query covers overflow, process death, ERROR, and debug timeout", async () => {
@@ -268,6 +272,11 @@ describe("prolog remaining: interactive start and query errors", () => {
       if (child === undefined) throw new Error("spawn was not called");
       return child;
     };
+    const stdin = (): NonNullable<FakeChild["stdin"]> => {
+      const stream = last().stdin;
+      if (!stream) throw new Error("spawned Prolog child has no stdin");
+      return stream;
+    };
 
     const prolog = new PrologProcess({
       swiplPath: "/usr/bin/env",
@@ -275,8 +284,11 @@ describe("prolog remaining: interactive start and query errors", () => {
       timeout: 200,
     });
     await prolog.start();
-    last().stdin!.write = (chunk: string) => {
-      if (String(chunk).includes("overflow") || String(chunk).includes("catch")) {
+    stdin().write = (chunk: string) => {
+      if (
+        String(chunk).includes("overflow") ||
+        String(chunk).includes("catch")
+      ) {
         last().stdout?.emit("data", Buffer.alloc(8 * 1024 * 1024 + 64, 0x61));
       }
       return true;
@@ -292,7 +304,7 @@ describe("prolog remaining: interactive start and query errors", () => {
       timeout: 500,
     });
     await dead.start();
-    last().stdin!.write = () => {
+    stdin().write = () => {
       last().killed = true;
       last().exitCode = 1;
       return true;
@@ -308,7 +320,7 @@ describe("prolog remaining: interactive start and query errors", () => {
       timeout: 500,
     });
     await errored.start();
-    last().stdin!.write = () => {
+    stdin().write = () => {
       last().stderr?.emit(
         "data",
         Buffer.from("__KIBI_STAGE__:commit\nERROR: existence_error\n"),
@@ -326,7 +338,7 @@ describe("prolog remaining: interactive start and query errors", () => {
       timeout: 80,
     });
     await sleepy.start();
-    last().stdin!.write = () => true;
+    stdin().write = () => true;
     await expect(sleepy.query("sleep(9)")).rejects.toThrow(/timeout/);
     await sleepy.terminate();
   });
@@ -499,10 +511,7 @@ describe("prolog remaining: process-tree teardown and translators", () => {
       appendOutputChunk(chunk: Buffer): void;
     };
 
-    proto.signalProcessTree(
-      { pid: undefined } as ChildProcess,
-      "SIGTERM",
-    );
+    proto.signalProcessTree({ pid: undefined } as ChildProcess, "SIGTERM");
     proto.signalProcessTree({ pid: 0 } as ChildProcess, "SIGTERM");
     proto.signalProcessTree(
       {
@@ -537,7 +546,9 @@ describe("prolog remaining: process-tree teardown and translators", () => {
       signals.push(signal ?? "SIGTERM");
       return true;
     };
-    const hung = proto.terminateProcessTree(stubborn as unknown as ChildProcess);
+    const hung = proto.terminateProcessTree(
+      stubborn as unknown as ChildProcess,
+    );
     await hung;
     expect(signals).toContain("SIGKILL");
 
@@ -608,6 +619,11 @@ describe("prolog remaining: process-tree teardown and translators", () => {
       if (child === undefined) throw new Error("spawn was not called");
       return child;
     };
+    const stdin = (): NonNullable<FakeChild["stdin"]> => {
+      const stream = last().stdin;
+      if (!stream) throw new Error("spawned Prolog child has no stdin");
+      return stream;
+    };
     const prolog = new PrologProcess({
       swiplPath: "/usr/bin/env",
       oneShot: false,
@@ -615,7 +631,7 @@ describe("prolog remaining: process-tree teardown and translators", () => {
     });
     await prolog.start();
     let queryWrites = 0;
-    last().stdin!.write = (chunk: string) => {
+    stdin().write = (chunk: string) => {
       queryWrites += 1;
       last().stdout?.emit(
         "data",
@@ -648,6 +664,11 @@ describe("prolog remaining: process-tree teardown and translators", () => {
       if (child === undefined) throw new Error("spawn was not called");
       return child;
     };
+    const stdin = (): NonNullable<FakeChild["stdin"]> => {
+      const stream = last().stdin;
+      if (!stream) throw new Error("spawned Prolog child has no stdin");
+      return stream;
+    };
     const prolog = new PrologProcess({
       swiplPath: "/usr/bin/env",
       oneShot: false,
@@ -655,7 +676,7 @@ describe("prolog remaining: process-tree teardown and translators", () => {
     });
     await prolog.start();
     const writes: string[] = [];
-    last().stdin!.write = (chunk: string) => {
+    stdin().write = (chunk: string) => {
       writes.push(String(chunk));
       last().stdout?.emit("data", Buffer.from("__KIBI_QUERY_FRAME_END__\n"));
       return true;

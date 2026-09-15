@@ -31,14 +31,24 @@ describe("policy and product predicate rule lanes", () => {
       "The editor must be non-blocking during offline conditions.",
     ];
     for (const statement of statements) {
-      expect(detectPredicateRules(payload, statement, POLICY_PREDICATE_RULES)?.kind).toBe(
-        "predicate",
-      );
+      expect(
+        detectPredicateRules(payload, statement, POLICY_PREDICATE_RULES)?.kind,
+      ).toBe("predicate");
     }
     expect(
-      detectPredicateRules(payload, "Authors must use bananas.", POLICY_PREDICATE_RULES),
+      detectPredicateRules(
+        payload,
+        "Authors must use bananas.",
+        POLICY_PREDICATE_RULES,
+      ),
     ).toBeNull();
-    expect(detectPredicateRules(payload, "unrelated sentence.", POLICY_PREDICATE_RULES)).toBeNull();
+    expect(
+      detectPredicateRules(
+        payload,
+        "unrelated sentence.",
+        POLICY_PREDICATE_RULES,
+      ),
+    ).toBeNull();
   });
 
   test("every product rule matches intended prose including accepts gates", () => {
@@ -58,9 +68,9 @@ describe("policy and product predicate rule lanes", () => {
       "On branch switch, the store must reconcile stale sockets and clear stale locks.",
     ];
     for (const statement of statements) {
-      expect(detectPredicateRules(payload, statement, PRODUCT_PREDICATE_RULES)?.kind).toBe(
-        "predicate",
-      );
+      expect(
+        detectPredicateRules(payload, statement, PRODUCT_PREDICATE_RULES)?.kind,
+      ).toBe("predicate");
     }
     expect(
       detectPredicateRules(
@@ -83,6 +93,12 @@ describe("policy and product predicate rule lanes", () => {
         PRODUCT_PREDICATE_RULES,
       ),
     ).toBeNull();
-    expect(detectPredicateRules(payload, "unrelated sentence.", PRODUCT_PREDICATE_RULES)).toBeNull();
+    expect(
+      detectPredicateRules(
+        payload,
+        "unrelated sentence.",
+        PRODUCT_PREDICATE_RULES,
+      ),
+    ).toBeNull();
   });
 });

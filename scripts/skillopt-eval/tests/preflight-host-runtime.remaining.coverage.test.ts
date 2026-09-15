@@ -3,10 +3,7 @@ import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import {
-  launchAttestation,
-  loadAttestation,
-} from "../preflight-host-runtime";
+import { launchAttestation, loadAttestation } from "../preflight-host-runtime";
 
 const spies: Array<{ mockRestore: () => void }> = [];
 const roots: string[] = [];

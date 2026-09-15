@@ -3,10 +3,7 @@ import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import {
-  type WorkflowDependencies,
-  runWorkflowCommand,
-} from "../cli-workflow";
+import { type WorkflowDependencies, runWorkflowCommand } from "../cli-workflow";
 
 const roots: string[] = [];
 const spies: Array<{ mockRestore: () => void }> = [];

@@ -4,9 +4,9 @@ import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import * as fsp from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import type { QueryResult } from "../../src/prolog.js";
 import { collectFullKbQualityDiagnostics } from "../../src/public/impact/full-kb-quality.js";
 import * as prologJson from "../../src/public/operations/prolog-json.js";
-import type { QueryResult } from "../../src/prolog.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";
 
 const spies: Array<{ mockRestore: () => void }> = [];
@@ -46,11 +46,12 @@ describe("full-kb-quality remaining entity, proof, and telemetry branches", () =
 
   test("fails closed when coverage proof readback throws and skips non-object stages", async () => {
     restores.push(isolateKibiEnv());
-    const coverage = spyOn(prologJson, "runOperationJsonQuery").mockImplementation(
-      async () => {
-        throw new Error("coverage unavailable");
-      },
-    );
+    const coverage = spyOn(
+      prologJson,
+      "runOperationJsonQuery",
+    ).mockImplementation(async () => {
+      throw new Error("coverage unavailable");
+    });
     spies.push(coverage);
     const diagnostics = await collectFullKbQualityDiagnostics({
       prolog: makeProlog(),
@@ -63,7 +64,10 @@ describe("full-kb-quality remaining entity, proof, and telemetry branches", () =
 
   test("keeps object proof stages when coverage evidence is present", async () => {
     restores.push(isolateKibiEnv());
-    const coverage = spyOn(prologJson, "runOperationJsonQuery").mockResolvedValue({
+    const coverage = spyOn(
+      prologJson,
+      "runOperationJsonQuery",
+    ).mockResolvedValue({
       rows: [
         {
           id: "REQ-NORMATIVE",
@@ -106,8 +110,9 @@ describe("full-kb-quality remaining entity, proof, and telemetry branches", () =
       now: new Date("2026-08-10T12:00:00Z"),
     });
     expect(
-      unread.find((diagnostic) => diagnostic.id === "telemetry_evidence_unreadable")
-        ?.message,
+      unread.find(
+        (diagnostic) => diagnostic.id === "telemetry_evidence_unreadable",
+      )?.message,
     ).toMatch(/unreadable: permission denied/);
     unreadable.mockRestore();
 
@@ -118,8 +123,9 @@ describe("full-kb-quality remaining entity, proof, and telemetry branches", () =
       now: new Date("2026-08-10T12:00:00Z"),
     });
     expect(
-      malformed.find((diagnostic) => diagnostic.id === "telemetry_evidence_unreadable")
-        ?.message,
+      malformed.find(
+        (diagnostic) => diagnostic.id === "telemetry_evidence_unreadable",
+      )?.message,
     ).toMatch(/malformed/);
   });
 });

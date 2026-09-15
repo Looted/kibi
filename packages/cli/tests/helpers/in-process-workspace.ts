@@ -1,3 +1,4 @@
+import { spyOn } from "bun:test";
 import { execSync as nodeExecSync } from "node:child_process";
 import {
   chmodSync,
@@ -9,7 +10,6 @@ import {
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { spyOn } from "bun:test";
 import { isolatedCliSandboxEnv } from "./isolated-env.js";
 
 export function createTempDir(prefix = "kibi-inproc-"): string {
@@ -123,9 +123,8 @@ function restoreEnv(name: string, value: string | undefined): void {
   }
 }
 
-export function captureIo(
-  options: { stdio?: boolean } = {},
-): {
+// executable_for TEST-cli-quality-diagnostics-contract
+export function captureIo(options: { stdio?: boolean } = {}): {
   logs: string[];
   errors: string[];
   warns: string[];
@@ -144,9 +143,11 @@ export function captureIo(
     args
       .map((value) => (typeof value === "string" ? value : String(value)))
       .join(" ");
-  const logSpy = spyOn(console, "log").mockImplementation((...args: unknown[]) => {
-    logs.push(stringify(args));
-  });
+  const logSpy = spyOn(console, "log").mockImplementation(
+    (...args: unknown[]) => {
+      logs.push(stringify(args));
+    },
+  );
   const errorSpy = spyOn(console, "error").mockImplementation(
     (...args: unknown[]) => {
       errors.push(stringify(args));

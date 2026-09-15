@@ -195,3 +195,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3e010fd96012
+  - type: implements
+    from: SYM-quality-coverage-branch-summary
+    to: REQ-014
+    created_at: 2026-09-14T19:20:26.114Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ded537b7e0a9
+  - type: covered_by
+    from: SYM-quality-coverage-branch-summary
+    to: TEST-scripts-unit-coverage-runner
+    created_at: 2026-09-14T19:20:26.129Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4699d5ce56b3

@@ -9,9 +9,7 @@ import {
   normalizeSubjectKey,
 } from "../../src/utils/strict-modeling.js";
 
-function claim(
-  overrides: Partial<SemanticClaim> = {},
-): SemanticClaim {
+function claim(overrides: Partial<SemanticClaim> = {}): SemanticClaim {
   return {
     source: ".kb/requirements/sample.md",
     subjectKey: "Widget.State",
@@ -33,12 +31,12 @@ describe("strict-modeling leftover operators and guards", () => {
   });
 
   test("buildStableRequirementIds and write sets cover operators and types", () => {
-    expect(() =>
-      buildStableRequirementIds(claim({ source: "!!!" })),
-    ).toThrow(/source must normalize/);
-    expect(buildStableRequirementIds(claim({ value: "  " })).normalizedValue).toBe(
-      "empty",
+    expect(() => buildStableRequirementIds(claim({ source: "!!!" }))).toThrow(
+      /source must normalize/,
     );
+    expect(
+      buildStableRequirementIds(claim({ value: "  " })).normalizedValue,
+    ).toBe("empty");
     expect(() =>
       buildStrictWriteSet({ claim: claim(), statement: "   " }),
     ).toThrow(/non-empty prose/);

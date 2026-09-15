@@ -323,7 +323,10 @@ describe("migrateCommand remaining runtime branches", () => {
     expect(json.exitCode).toBe(0);
     expect(io.logText()).toContain("applied");
 
-    exec.mockImplementation((async (_runtime: unknown, spec: { name?: string }) => {
+    exec.mockImplementation((async (
+      _runtime: unknown,
+      spec: { name?: string },
+    ) => {
       if (spec.name === "kb_status") {
         return {
           content: [],
@@ -445,5 +448,4 @@ describe("migrateCommand remaining runtime branches", () => {
     expect(io.logText()).toContain("No changes applied.");
     expect(io.logText()).toContain("Use --dry-run to preview or --yes");
   });
-
 });

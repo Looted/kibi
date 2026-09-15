@@ -88,10 +88,7 @@ function setFakePrologDeps(root: string): void {
       },
       mkdirSync: (candidate) => {
         mkdirSync(candidate.toString(), { recursive: true });
-        writeFileSync(
-          path.join(candidate.toString(), "kb.rdf"),
-          "<rdf />\n",
-        );
+        writeFileSync(path.join(candidate.toString(), "kb.rdf"), "<rdf />\n");
         return undefined;
       },
     },
@@ -131,99 +128,108 @@ function setEngineDeps(root: string): void {
   });
 }
 
-describe.serial("session remaining engine, reset, and empty-branch branches", () => {
-  beforeEach(() => {
-    previousExitCode = process.exitCode;
-    restoreEnv();
-    calls.length = 0;
-    queryImpl = async () => ({ success: true });
-    startImpl = async () => {};
-    terminateImpl = async () => {};
-    session.resetSessionStateForTests();
-  });
+describe.serial(
+  "session remaining engine, reset, and empty-branch branches",
+  () => {
+    beforeEach(() => {
+      previousExitCode = process.exitCode;
+      restoreEnv();
+      calls.length = 0;
+      queryImpl = async () => ({ success: true });
+      startImpl = async () => {};
+      terminateImpl = async () => {};
+      session.resetSessionStateForTests();
+    });
 
-  afterEach(() => {
-    for (const spy of spies.splice(0)) spy.mockRestore();
-    session.resetSessionStateForTests();
-    session._resetSessionDepsForTests();
-    restoreEnv();
-    process.exitCode = previousExitCode ?? 0;
-    for (const root of roots.splice(0))
-      rmSync(root, { recursive: true, force: true });
-  });
+    afterEach(() => {
+      for (const spy of spies.splice(0)) spy.mockRestore();
+      session.resetSessionStateForTests();
+      session._resetSessionDepsForTests();
+      restoreEnv();
+      process.exitCode = previousExitCode ?? 0;
+      for (const root of roots.splice(0))
+        rmSync(root, { recursive: true, force: true });
+    });
 
-  test("constructs EngineClient and short-circuits or resets on later ensureProlog calls", async () => {
-    const root = workspace();
-    setEngineDeps(root);
-    process.env.KIBI_BRANCH = "develop";
-    spies.push(
-      spyOn(EngineClient.prototype, "start").mockResolvedValue(undefined),
-      spyOn(EngineClient.prototype, "isRunning").mockReturnValue(true),
-      spyOn(EngineClient.prototype, "terminate").mockResolvedValue(undefined),
-      spyOn(EngineClient.prototype, "getPid").mockReturnValue(42),
-    );
+    test("constructs EngineClient and short-circuits or resets on later ensureProlog calls", async () => {
+      const root = workspace();
+      setEngineDeps(root);
+      process.env.KIBI_BRANCH = "develop";
+      spies.push(
+        spyOn(EngineClient.prototype, "start").mockResolvedValue(undefined),
+        spyOn(EngineClient.prototype, "isRunning").mockReturnValue(true),
+        spyOn(EngineClient.prototype, "terminate").mockResolvedValue(undefined),
+        spyOn(EngineClient.prototype, "getPid").mockReturnValue(42),
+      );
 
-    const first = await session.ensureProlog();
-    expect(first.getPid()).toBe(42);
-    const second = await session.ensureProlog();
-    expect(second).toBe(first);
+      const first = await session.ensureProlog();
+      expect(first.getPid()).toBe(42);
+      const second = await session.ensureProlog();
+      expect(second).toBe(first);
 
-    process.env.KIBI_BRANCH = "feature";
-    const switched = await session.ensureProlog();
-    expect(switched.getPid()).toBe(42);
-    expect(EngineClient.prototype.terminate).toHaveBeenCalled();
-  });
+      process.env.KIBI_BRANCH = "feature";
+      const switched = await session.ensureProlog();
+      expect(switched.getPid()).toBe(42);
+      expect(EngineClient.prototype.terminate).toHaveBeenCalled();
+    });
 
-  test("logs terminate failures when reset generation changes during start", async () => {
-    const root = workspace();
-    setFakePrologDeps(root);
-    process.env.KIBI_BRANCH = "develop";
-    const errors: unknown[][] = [];
-    spies.push(
-      spyOn(console, "error").mockImplementation((...args: unknown[]) => {
-        errors.push(args);
-      }),
-    );
-    startImpl = async () => {
-      await session.resetProlog("during start");
-      session._setPrologProcessForTests({
-        terminate: async () => {
-          throw new Error("stale terminate failed");
-        },
-        isRunning: () => true,
-        getPid: () => 9,
-        start: async () => {},
-        query: async () => ({ success: true, bindings: {} }),
-      } as unknown as NonNullable<ReturnType<typeof session.getPrologProcess>>);
-    };
+    test("logs terminate failures when reset generation changes during start", async () => {
+      const root = workspace();
+      setFakePrologDeps(root);
+      process.env.KIBI_BRANCH = "develop";
+      const errors: unknown[][] = [];
+      spies.push(
+        spyOn(console, "error").mockImplementation((...args: unknown[]) => {
+          errors.push(args);
+        }),
+      );
+      startImpl = async () => {
+        await session.resetProlog("during start");
+        session._setPrologProcessForTests({
+          terminate: async () => {
+            throw new Error("stale terminate failed");
+          },
+          isRunning: () => true,
+          getPid: () => 9,
+          start: async () => {},
+          query: async () => ({ success: true, bindings: {} }),
+        } as unknown as NonNullable<
+          ReturnType<typeof session.getPrologProcess>
+        >);
+      };
 
-    await expect(session.ensureProlog()).rejects.toThrow(
-      /reset while initialization/,
-    );
-    expect(
-      errors.some((args) =>
-        String(args[0]).includes("terminating stale Prolog after reset generation change"),
-      ),
-    ).toBe(true);
-  });
+      await expect(session.ensureProlog()).rejects.toThrow(
+        /reset while initialization/,
+      );
+      expect(
+        errors.some((args) =>
+          String(args[0]).includes(
+            "terminating stale Prolog after reset generation change",
+          ),
+        ),
+      ).toBe(true);
+    });
 
-  test("fails when initializing an empty switched branch cannot kb_save", async () => {
-    const root = workspace();
-    setFakePrologDeps(root);
-    process.env.KIBI_BRANCH = "develop";
-    await session.ensureProlog();
-    queryImpl = async (goal: string) => {
-      if (
-        goal === "kb_save" &&
-        calls.some((item) => item.includes("kb_attach") && item.includes("fresh"))
-      ) {
-        return { success: false, error: "empty save failed" };
-      }
-      return { success: true };
-    };
-    process.env.KIBI_BRANCH = "fresh";
-    await expect(session.ensureProlog()).rejects.toThrow(
-      /Failed to initialize empty branch KB/,
-    );
-  });
-});
+    test("fails when initializing an empty switched branch cannot kb_save", async () => {
+      const root = workspace();
+      setFakePrologDeps(root);
+      process.env.KIBI_BRANCH = "develop";
+      await session.ensureProlog();
+      queryImpl = async (goal: string) => {
+        if (
+          goal === "kb_save" &&
+          calls.some(
+            (item) => item.includes("kb_attach") && item.includes("fresh"),
+          )
+        ) {
+          return { success: false, error: "empty save failed" };
+        }
+        return { success: true };
+      };
+      process.env.KIBI_BRANCH = "fresh";
+      await expect(session.ensureProlog()).rejects.toThrow(
+        /Failed to initialize empty branch KB/,
+      );
+    });
+  },
+);

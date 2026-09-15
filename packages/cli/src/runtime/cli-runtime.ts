@@ -1,12 +1,12 @@
 import path from "node:path";
 
 import { EngineClient } from "../engine.js";
+import type { QueryResult } from "../prolog.js";
+import type { PrologErrorRecord } from "../prolog/error-terms.js";
 import {
   breakStoreLock,
   decideStoreLockTakeover,
 } from "../prolog/store-lock.js";
-import type { PrologErrorRecord } from "../prolog/error-terms.js";
-import type { QueryResult } from "../prolog.js";
 import {
   nodeFilesystem,
   nodeGit,
@@ -24,7 +24,6 @@ import {
   type BranchResolutionError,
   resolveBranchAttachment,
 } from "../utils/branch-resolver.js";
-
 
 /**
  * A store-locked attach failure with a provably dead holder (crashed or

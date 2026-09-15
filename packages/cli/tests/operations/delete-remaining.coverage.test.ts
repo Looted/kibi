@@ -11,6 +11,7 @@ import {
 import os from "node:os";
 import path from "node:path";
 
+import { extractFromMarkdownString } from "../../src/extractors/markdown.js";
 import {
   assertFilesystemCapableRuntime,
   executeDelete,
@@ -72,7 +73,8 @@ function contextFor(
         Array.isArray(goal) ? goal.join(", ") : goal,
       )) as PrologQueryResult,
     nextSolution: async () => null,
-    save: extras.prolog?.save ?? (async () => ({ success: true, bindings: {} })),
+    save:
+      extras.prolog?.save ?? (async () => ({ success: true, bindings: {} })),
   };
   return {
     workspaceRoot,
@@ -94,7 +96,12 @@ function fsWithoutRename(): FilesystemPort {
   };
 }
 
-function writeMarkdown(root: string, relative: string, id: string, extra = ""): string {
+function writeMarkdown(
+  root: string,
+  relative: string,
+  id: string,
+  extra = "",
+): string {
   const absolute = path.join(root, relative);
   mkdirSync(path.dirname(absolute), { recursive: true });
   writeFileSync(
@@ -206,7 +213,11 @@ describe("executeDelete relationship remaining branches", () => {
     const relative = ".kb/symbols.yaml";
     await expect(
       executeDelete(
-        { relationships: [{ type: "implements", from: "SYM-YAML", to: "REQ-1" }] },
+        {
+          relationships: [
+            { type: "implements", from: "SYM-YAML", to: "REQ-1" },
+          ],
+        },
         contextFor(
           root,
           (goal) => {
@@ -228,17 +239,105 @@ describe("executeDelete relationship remaining branches", () => {
           },
         ),
       ),
-    ).rejects.toThrow(/Authored YAML relationship deletion failed[\s\S]*yaml unreadable/);
+    ).rejects.toThrow(
+      /Authored YAML relationship deletion failed[\s\S]*yaml unreadable/,
+    );
   });
 
-  test("skips markdown patches when a live compiled edge and shard already exist", async () => {
+  test("fails closed when an authored Markdown relationship source is unreadable", async () => {
+    // implements REQ-014
+    const root = makeTempDir();
+    const relative = ".kb/requirements/REQ-MD-UNREADABLE.md";
+    await expect(
+      executeDelete(
+        {
+          relationships: [
+            {
+              type: "verified_by",
+              from: "REQ-MD-UNREADABLE",
+              to: "TEST-1",
+            },
+          ],
+        },
+        contextFor(
+          root,
+          (goal) => {
+            if (goal.includes("findall(['REQ-MD-UNREADABLE'")) {
+              return entityGoal("REQ-MD-UNREADABLE", "req", relative);
+            }
+            if (goal.includes("kb_relationship(verified_by")) {
+              return { success: true, bindings: {} };
+            }
+            return { success: false, bindings: {} };
+          },
+          {
+            fs: {
+              ...fsWithoutRename(),
+              readFile: async () => {
+                throw new Error("markdown unreadable");
+              },
+            },
+          },
+        ),
+      ),
+    ).rejects.toThrow(
+      /Authored Markdown relationship deletion failed[\s\S]*markdown unreadable/,
+    );
+  });
+
+  test("fails closed when an authored Markdown source resolves outside the workspace", async () => {
+    // implements REQ-014
+    const root = makeTempDir();
+    const relative = path.resolve(
+      root,
+      "..",
+      "outside-authored-sources",
+      "REQ-OUTSIDE.md",
+    );
+    shardsModule.appendRelationship(path.join(root, ".kb"), {
+      type: "verified_by",
+      from: "REQ-OUTSIDE",
+      to: "TEST-1",
+      created_at: "2026-09-05T00:00:00.000Z",
+      created_by: "test",
+      source: "test://outside",
+    });
+    const before = shardsModule.readAllShards(path.join(root, ".kb"));
+    await expect(
+      executeDelete(
+        {
+          relationships: [
+            { type: "verified_by", from: "REQ-OUTSIDE", to: "TEST-1" },
+          ],
+        },
+        contextFor(
+          root,
+          (goal) => {
+            if (goal.includes("findall(['REQ-OUTSIDE'")) {
+              return entityGoal("REQ-OUTSIDE", "req", relative);
+            }
+            if (goal.includes("kb_relationship(verified_by")) {
+              return { success: true, bindings: {} };
+            }
+            return { success: false, bindings: {} };
+          },
+          { fs: nodeFilesystem },
+        ),
+      ),
+    ).rejects.toThrow(
+      /Authored Markdown relationship deletion failed[\s\S]*workspace-relative path/,
+    );
+    expect(shardsModule.readAllShards(path.join(root, ".kb"))).toEqual(before);
+  });
+
+  test("patches markdown with live edge and shard so reload cannot resurrect the edge", async () => {
     // implements REQ-014
     const root = makeTempDir();
     const relative = writeMarkdown(
       root,
       ".kb/requirements/REQ-LIVE.md",
       "REQ-LIVE",
-      "relationships:\n  - type: verified_by\n    target: TEST-LIVE\n",
+      "title: Live requirement\nlinks:\n  - type: verified_by\n    target: TEST-LIVE\n  - type: specified_by\n    target: SCEN-KEEP\n  - TEST-SCALAR\n",
     );
     shardsModule.appendRelationship(path.join(root, ".kb"), {
       type: "verified_by",
@@ -250,11 +349,16 @@ describe("executeDelete relationship remaining branches", () => {
     });
     const before = readFileSync(path.join(root, relative), "utf8");
     const result = await executeDelete(
-      { relationships: [{ type: "verified_by", from: "REQ-LIVE", to: "TEST-LIVE" }] },
+      {
+        relationships: [
+          { type: "verified_by", from: "REQ-LIVE", to: "TEST-LIVE" },
+        ],
+      },
       contextFor(
         root,
         (goal) => {
-          if (goal.includes("findall(['REQ-LIVE'")) return entityGoal("REQ-LIVE", "req", relative);
+          if (goal.includes("findall(['REQ-LIVE'"))
+            return entityGoal("REQ-LIVE", "req", relative);
           if (goal.includes("kb_relationship(verified_by")) {
             return { success: true, bindings: {} };
           }
@@ -272,7 +376,98 @@ describe("executeDelete relationship remaining branches", () => {
     );
     expect(result.structuredContent?.relationships_deleted).toBe(1);
     expect(result.content[0]?.text).toContain("Run kibi sync");
-    expect(readFileSync(path.join(root, relative), "utf8")).toBe(before);
+    const after = readFileSync(path.join(root, relative), "utf8");
+    expect(after).not.toContain("TEST-LIVE");
+    expect(after).toContain("SCEN-KEEP");
+    expect(after).toContain("TEST-SCALAR");
+    expect(after).toContain("body");
+    expect(after).not.toBe(before);
+    const reloaded = extractFromMarkdownString(
+      after,
+      path.join(root, relative),
+    );
+    expect(reloaded.relationships).not.toContainEqual({
+      type: "verified_by",
+      from: "REQ-LIVE",
+      to: "TEST-LIVE",
+    });
+    expect(reloaded.relationships).toEqual(
+      expect.arrayContaining([
+        { type: "specified_by", from: "REQ-LIVE", to: "SCEN-KEEP" },
+        { type: "relates_to", from: "REQ-LIVE", to: "TEST-SCALAR" },
+      ]),
+    );
+    expect(
+      shardsModule
+        .readAllShards(path.join(root, ".kb"))
+        .some(
+          (record) =>
+            record.type === "verified_by" &&
+            record.from === "REQ-LIVE" &&
+            record.to === "TEST-LIVE",
+        ),
+    ).toBe(false);
+  });
+
+  test("restores authored Markdown and shard bytes when compiled retraction fails", async () => {
+    // implements REQ-014
+    const root = makeTempDir();
+    const relative = writeMarkdown(
+      root,
+      ".kb/requirements/REQ-MD-ROLLBACK.md",
+      "REQ-MD-ROLLBACK",
+      "title: Markdown rollback\nlinks:\n  - type: verified_by\n    target: TEST-ROLLBACK\n",
+    );
+    shardsModule.appendRelationship(path.join(root, ".kb"), {
+      type: "verified_by",
+      from: "REQ-MD-ROLLBACK",
+      to: "TEST-ROLLBACK",
+      created_at: "2026-09-05T00:00:00.000Z",
+      created_by: "test",
+      source: "test://markdown-rollback",
+    });
+    const sourcePath = path.join(root, relative);
+    const beforeSource = readFileSync(sourcePath, "utf8");
+    const beforeShards = shardsModule.readAllShards(path.join(root, ".kb"));
+    await expect(
+      executeDelete(
+        {
+          relationships: [
+            {
+              type: "verified_by",
+              from: "REQ-MD-ROLLBACK",
+              to: "TEST-ROLLBACK",
+            },
+          ],
+        },
+        contextFor(
+          root,
+          (goal) => {
+            if (goal.includes("findall(['REQ-MD-ROLLBACK'")) {
+              return entityGoal("REQ-MD-ROLLBACK", "req", relative);
+            }
+            if (goal.includes("kb_relationship(verified_by")) {
+              return { success: true, bindings: {} };
+            }
+            if (goal.includes("kb_retract_relationship")) {
+              return {
+                success: false,
+                bindings: {},
+                error: "markdown retract exploded",
+              };
+            }
+            return { success: false, bindings: {} };
+          },
+          { fs: nodeFilesystem },
+        ),
+      ),
+    ).rejects.toThrow(
+      /Relationship retraction failed[\s\S]*markdown retract exploded/,
+    );
+    expect(readFileSync(sourcePath, "utf8")).toBe(beforeSource);
+    expect(shardsModule.readAllShards(path.join(root, ".kb"))).toEqual(
+      beforeShards,
+    );
   });
 
   test("patches authored sources without rename and rolls a failed after-image back", async () => {
@@ -285,7 +480,11 @@ describe("executeDelete relationship remaining branches", () => {
       "utf8",
     );
     const ok = await executeDelete(
-      { relationships: [{ type: "implements", from: "SYM-NORENAME", to: "REQ-1" }] },
+      {
+        relationships: [
+          { type: "implements", from: "SYM-NORENAME", to: "REQ-1" },
+        ],
+      },
       contextFor(
         root,
         (goal) => {
@@ -295,7 +494,10 @@ describe("executeDelete relationship remaining branches", () => {
           if (goal.includes("kb_relationship(implements")) {
             return { success: true, bindings: {} };
           }
-          if (goal.includes("kb_retract_relationship") || goal.includes("kb_save")) {
+          if (
+            goal.includes("kb_retract_relationship") ||
+            goal.includes("kb_save")
+          ) {
             return { success: true, bindings: {} };
           }
           return { success: false, bindings: {} };
@@ -304,7 +506,9 @@ describe("executeDelete relationship remaining branches", () => {
       ),
     );
     expect(ok.structuredContent?.relationships_deleted).toBe(1);
-    expect(readFileSync(path.join(root, relative), "utf8")).not.toContain("REQ-1");
+    expect(readFileSync(path.join(root, relative), "utf8")).not.toContain(
+      "REQ-1",
+    );
 
     writeFileSync(
       path.join(root, relative),
@@ -322,7 +526,11 @@ describe("executeDelete relationship remaining branches", () => {
     };
     await expect(
       executeDelete(
-        { relationships: [{ type: "implements", from: "SYM-FAILPATCH", to: "REQ-1" }] },
+        {
+          relationships: [
+            { type: "implements", from: "SYM-FAILPATCH", to: "REQ-1" },
+          ],
+        },
         contextFor(
           root,
           (goal) => {
@@ -337,7 +545,9 @@ describe("executeDelete relationship remaining branches", () => {
           { fs: failingFs },
         ),
       ),
-    ).rejects.toThrow(/Relationship source update failed before compiled mutation[\s\S]*after-image blocked/);
+    ).rejects.toThrow(
+      /Relationship source update failed before compiled mutation[\s\S]*after-image blocked/,
+    );
     expect(readFileSync(path.join(root, relative), "utf8")).toContain("REQ-1");
   });
 
@@ -357,27 +567,42 @@ describe("executeDelete relationship remaining branches", () => {
       "utf8",
     );
     track(
-      spyOn(shardsModule, "removeRelationshipsFromShards").mockImplementation(() => {
-        throw new Error("rename interrupted");
-      }),
+      spyOn(shardsModule, "removeRelationshipsFromShards").mockImplementation(
+        () => {
+          throw new Error("rename interrupted");
+        },
+      ),
     );
     await expect(
       executeDelete(
-        { relationships: [{ type: "relates_to", from: "REQ-SHARD", to: "REQ-TO" }] },
+        {
+          relationships: [
+            { type: "relates_to", from: "REQ-SHARD", to: "REQ-TO" },
+          ],
+        },
         contextFor(root, (goal) =>
           goal.includes("kb_relationship(relates_to")
             ? { success: true, bindings: {} }
             : { success: false, bindings: {} },
         ),
       ),
-    ).rejects.toThrow(/Relationship shard update failed before compiled mutation[\s\S]*rename interrupted/);
+    ).rejects.toThrow(
+      /Relationship shard update failed before compiled mutation[\s\S]*rename interrupted/,
+    );
     expect(
-      readFileSync(shardsModule.computeShardPath(path.join(root, ".kb"), "REQ-SHARD"), "utf8"),
+      readFileSync(
+        shardsModule.computeShardPath(path.join(root, ".kb"), "REQ-SHARD"),
+        "utf8",
+      ),
     ).toBe(original);
 
     const write = writeFileSync;
     track(
-      spyOn(fs, "writeFileSync").mockImplementation(((target, data, options) => {
+      spyOn(fs, "writeFileSync").mockImplementation(((
+        target,
+        data,
+        options,
+      ) => {
         if (String(target).includes(`${path.sep}relationships${path.sep}`)) {
           throw new Error("rollback blocked");
         }
@@ -386,7 +611,11 @@ describe("executeDelete relationship remaining branches", () => {
     );
     await expect(
       executeDelete(
-        { relationships: [{ type: "relates_to", from: "REQ-SHARD", to: "REQ-TO" }] },
+        {
+          relationships: [
+            { type: "relates_to", from: "REQ-SHARD", to: "REQ-TO" },
+          ],
+        },
         contextFor(root, (goal) =>
           goal.includes("kb_relationship(relates_to")
             ? { success: true, bindings: {} }
@@ -409,7 +638,11 @@ describe("executeDelete relationship remaining branches", () => {
     });
     await expect(
       executeDelete(
-        { relationships: [{ type: "relates_to", from: "REQ-RETRACT", to: "REQ-TO" }] },
+        {
+          relationships: [
+            { type: "relates_to", from: "REQ-RETRACT", to: "REQ-TO" },
+          ],
+        },
         contextFor(root, (goal) => {
           if (goal.includes("kb_relationship(relates_to")) {
             return { success: true, bindings: {} };
@@ -426,7 +659,11 @@ describe("executeDelete relationship remaining branches", () => {
 
     const write = writeFileSync;
     track(
-      spyOn(fs, "writeFileSync").mockImplementation(((target, data, options) => {
+      spyOn(fs, "writeFileSync").mockImplementation(((
+        target,
+        data,
+        options,
+      ) => {
         if (
           String(target).includes(`${path.sep}relationships${path.sep}`) &&
           !String(target).includes(".kibi-write-")
@@ -446,7 +683,11 @@ describe("executeDelete relationship remaining branches", () => {
     });
     await expect(
       executeDelete(
-        { relationships: [{ type: "relates_to", from: "REQ-RETRACT-2", to: "REQ-TO" }] },
+        {
+          relationships: [
+            { type: "relates_to", from: "REQ-RETRACT-2", to: "REQ-TO" },
+          ],
+        },
         contextFor(root, (goal) => {
           if (goal.includes("kb_relationship(relates_to")) {
             return { success: true, bindings: {} };
@@ -483,7 +724,9 @@ describe("executeDelete relationship remaining branches", () => {
       ),
     );
     const unchanged = await executeDelete(
-      { relationships: [{ type: "relates_to", from: "REQ-HASH", to: "REQ-TO" }] },
+      {
+        relationships: [{ type: "relates_to", from: "REQ-HASH", to: "REQ-TO" }],
+      },
       contextFor(root, (goal) =>
         goal.includes("kb_relationship(relates_to")
           ? { success: true, bindings: {} }
@@ -522,7 +765,11 @@ describe("executeDelete relationship remaining branches", () => {
       source: "test://hash2",
     });
     const gone = await executeDelete(
-      { relationships: [{ type: "relates_to", from: "REQ-HASH-2", to: "REQ-TO" }] },
+      {
+        relationships: [
+          { type: "relates_to", from: "REQ-HASH-2", to: "REQ-TO" },
+        ],
+      },
       contextFor(root, (goal) =>
         goal.includes("kb_relationship(relates_to")
           ? { success: true, bindings: {} }
@@ -532,7 +779,9 @@ describe("executeDelete relationship remaining branches", () => {
       ),
     );
     expect(
-      gone.structuredContent?.sourceWrites?.some((row) => row.afterHash === null),
+      gone.structuredContent?.sourceWrites?.some(
+        (row) => row.afterHash === null,
+      ),
     ).toBe(true);
   });
 
@@ -554,13 +803,18 @@ describe("executeDelete entity remaining branches", () => {
   test("returns a plan with a null hash when a shared markdown path is exhausted", async () => {
     // implements REQ-014
     const root = makeTempDir();
-    const relative = writeMarkdown(root, ".kb/requirements/SHARED.md", "REQ-ONE");
+    const relative = writeMarkdown(
+      root,
+      ".kb/requirements/SHARED.md",
+      "REQ-ONE",
+    );
     const result = await executeDelete(
       { ids: ["REQ-ONE", "REQ-TWO"] },
       contextFor(
         root,
         (goal) => {
-          if (goal.startsWith("once(kb_entity(")) return { success: true, bindings: {} };
+          if (goal.startsWith("once(kb_entity("))
+            return { success: true, bindings: {} };
           if (goal.includes("Dependents")) {
             return { success: true, bindings: { Dependents: "[]" } };
           }
@@ -575,7 +829,9 @@ describe("executeDelete entity remaining branches", () => {
         { fs: nodeFilesystem },
       ),
     );
-    expect(result.structuredContent?.deletionPlan?.sourceHashes[relative]).toBeNull();
+    expect(
+      result.structuredContent?.deletionPlan?.sourceHashes[relative],
+    ).toBeNull();
     expect(result.structuredContent?.deletionPlan?.entityIds).toEqual([
       "REQ-ONE",
       "REQ-TWO",
@@ -585,13 +841,18 @@ describe("executeDelete entity remaining branches", () => {
   test("records a null source hash when authored bytes cannot be planned", async () => {
     // implements REQ-014
     const root = makeTempDir();
-    const relative = writeMarkdown(root, ".kb/requirements/REQ-MISMATCH.md", "REQ-OTHER");
+    const relative = writeMarkdown(
+      root,
+      ".kb/requirements/REQ-MISMATCH.md",
+      "REQ-OTHER",
+    );
     const result = await executeDelete(
       { ids: ["REQ-MISMATCH"] },
       contextFor(
         root,
         (goal) => {
-          if (goal.startsWith("once(kb_entity(")) return { success: true, bindings: {} };
+          if (goal.startsWith("once(kb_entity("))
+            return { success: true, bindings: {} };
           if (goal.includes("Dependents")) {
             return { success: true, bindings: { Dependents: "[]" } };
           }
@@ -603,7 +864,9 @@ describe("executeDelete entity remaining branches", () => {
         { fs: nodeFilesystem },
       ),
     );
-    expect(result.structuredContent?.deletionPlan?.sourceHashes[relative]).toBeNull();
+    expect(
+      result.structuredContent?.deletionPlan?.sourceHashes[relative],
+    ).toBeNull();
   });
 
   test("plans mdx and yaml authored entities and treats protocol or missing sources as compiled-only", async () => {
@@ -616,17 +879,21 @@ describe("executeDelete entity remaining branches", () => {
       contextFor(
         root,
         (goal) => {
-          if (goal.startsWith("once(kb_entity(")) return { success: true, bindings: {} };
+          if (goal.startsWith("once(kb_entity("))
+            return { success: true, bindings: {} };
           if (goal.includes("Dependents")) {
             return { success: true, bindings: { Dependents: "[]" } };
           }
-          if (goal.includes("findall(['REQ-MDX'")) return entityGoal("REQ-MDX", "req", mdx);
+          if (goal.includes("findall(['REQ-MDX'"))
+            return entityGoal("REQ-MDX", "req", mdx);
           return { success: true, bindings: { Results: "[]" } };
         },
         { fs: nodeFilesystem },
       ),
     );
-    expect(mdxPlan.structuredContent?.deletionPlan?.supersessionRequired).toBe(true);
+    expect(mdxPlan.structuredContent?.deletionPlan?.supersessionRequired).toBe(
+      true,
+    );
 
     const yaml = ".kb/symbols.yaml";
     writeFileSync(
@@ -639,7 +906,8 @@ describe("executeDelete entity remaining branches", () => {
       contextFor(
         root,
         (goal) => {
-          if (goal.startsWith("once(kb_entity(")) return { success: true, bindings: {} };
+          if (goal.startsWith("once(kb_entity("))
+            return { success: true, bindings: {} };
           if (goal.includes("Dependents")) {
             return { success: true, bindings: { Dependents: "[]" } };
           }
@@ -651,7 +919,9 @@ describe("executeDelete entity remaining branches", () => {
         { fs: nodeFilesystem },
       ),
     );
-    expect(yamlPlan.structuredContent?.deletionPlan?.supersessionRequired).toBe(false);
+    expect(yamlPlan.structuredContent?.deletionPlan?.supersessionRequired).toBe(
+      false,
+    );
     expect(
       yamlPlan.structuredContent?.deletionPlan?.sourceWrites?.[0]?.mode,
     ).toBe("write");
@@ -661,7 +931,8 @@ describe("executeDelete entity remaining branches", () => {
       contextFor(
         root,
         (goal) => {
-          if (goal.startsWith("once(kb_entity(")) return { success: true, bindings: {} };
+          if (goal.startsWith("once(kb_entity("))
+            return { success: true, bindings: {} };
           if (goal.includes("Dependents")) {
             return { success: true, bindings: { Dependents: "[]" } };
           }
@@ -689,7 +960,8 @@ describe("executeDelete entity remaining branches", () => {
       contextFor(
         root,
         (goal) => {
-          if (goal.startsWith("once(kb_entity(")) return { success: true, bindings: {} };
+          if (goal.startsWith("once(kb_entity("))
+            return { success: true, bindings: {} };
           if (goal.includes("Dependents")) {
             return { success: true, bindings: { Dependents: "[]" } };
           }
@@ -717,14 +989,21 @@ describe("executeDelete entity remaining branches", () => {
         contextFor(
           root,
           (goal) => {
-            if (goal.startsWith("once(kb_entity(")) return { success: true, bindings: {} };
+            if (goal.startsWith("once(kb_entity("))
+              return { success: true, bindings: {} };
             if (goal.includes("Dependents")) {
               return { success: true, bindings: { Dependents: "[]" } };
             }
-            if (goal.includes("findall(['SYM-A'")) return entityGoal("SYM-A", "symbol", yaml);
-            if (goal.includes("findall(['SYM-B'")) return entityGoal("SYM-B", "symbol", yaml);
+            if (goal.includes("findall(['SYM-A'"))
+              return entityGoal("SYM-A", "symbol", yaml);
+            if (goal.includes("findall(['SYM-B'"))
+              return entityGoal("SYM-B", "symbol", yaml);
             if (goal.startsWith("rdf_transaction")) {
-              return { success: false, bindings: {}, error: "atomic save failed" };
+              return {
+                success: false,
+                bindings: {},
+                error: "atomic save failed",
+              };
             }
             return { success: true, bindings: { Results: "[]" } };
           },
@@ -765,7 +1044,11 @@ describe("executeDelete entity remaining branches", () => {
                   ? { success: false, bindings: {} }
                   : { success: true, bindings: {} },
               nextSolution: async () => null,
-              save: async () => ({ success: false, bindings: {}, error: "save refused" }),
+              save: async () => ({
+                success: false,
+                bindings: {},
+                error: "save refused",
+              }),
             },
           },
         ),
@@ -779,7 +1062,10 @@ describe("executeDelete entity remaining branches", () => {
     const result = await executeDelete(
       { ids: ["REQ-O'NEILL"] },
       contextFor(root, (goal) => {
-        if (goal.includes("REQ-O''NEILL") && goal.startsWith("once(kb_entity")) {
+        if (
+          goal.includes("REQ-O''NEILL") &&
+          goal.startsWith("once(kb_entity")
+        ) {
           return { success: false, bindings: {} };
         }
         return { success: true, bindings: {} };
@@ -807,7 +1093,9 @@ describe("executeDelete entity remaining branches", () => {
           branchAttachment: attachment(root, true),
         }),
       ),
-    ).rejects.toThrow(/Delete blocked: KB is attached through legacy branch storage/);
+    ).rejects.toThrow(
+      /Delete blocked: KB is attached through legacy branch storage/,
+    );
   });
 
   test("assertFilesystemCapableRuntime rejects a missing filesystem port", () => {
@@ -841,7 +1129,11 @@ describe("executeDelete entity remaining branches", () => {
               return { success: true, bindings: {} };
             }
             if (goal.includes("kb_retract_relationship")) {
-              return { success: false, bindings: {}, error: "retract exploded" };
+              return {
+                success: false,
+                bindings: {},
+                error: "retract exploded",
+              };
             }
             return { success: false, bindings: {} };
           },

@@ -25,12 +25,12 @@ import {
   type TrainingInput,
   canonicalHash,
 } from "./real-workflow-types";
+import { CodexOptimizerError } from "./runtime/codex-optimizer";
 import {
   defaultEvaluateDevelopment,
   defaultTrain,
   oneShotVariant,
 } from "./training-setup";
-import { CodexOptimizerError } from "./runtime/codex-optimizer";
 import { createBaselineVariant, freezeCandidateVariant } from "./variants";
 
 export type {

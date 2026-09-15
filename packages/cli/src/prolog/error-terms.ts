@@ -174,9 +174,7 @@ export function parsePrologErrorTerm(
         entityId,
         message: `${verb} does not exist: ${entityId}`,
       };
-      return role === undefined
-        ? record
-        : { ...record, role };
+      return role === undefined ? record : { ...record, role };
     }
     case "contradiction": {
       const conflicts = parsed.pairs.map((pair) => ({
@@ -371,9 +369,7 @@ function substituteRelationshipArgs(
   };
 }
 
-function parseContradictionPairs(
-  listText: string,
-): Array<[string, string]> {
+function parseContradictionPairs(listText: string): Array<[string, string]> {
   const trimmed = listText.trim();
   if (!trimmed.startsWith("[") || !trimmed.endsWith("]")) return [];
   const inner = trimmed.slice(1, -1).trim();
@@ -402,11 +398,7 @@ function parseEntityRole(
 /** Strip SWI quoted-atom quoting and unescape standard character escapes. */
 function unquoteAtom(value: string): string {
   const trimmed = value.trim();
-  if (
-    trimmed.length >= 2 &&
-    trimmed.startsWith("'") &&
-    trimmed.endsWith("'")
-  ) {
+  if (trimmed.length >= 2 && trimmed.startsWith("'") && trimmed.endsWith("'")) {
     const inner = trimmed.slice(1, -1);
     return inner
       .replace(/\\'/g, "'")

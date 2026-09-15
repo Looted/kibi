@@ -400,8 +400,11 @@ if (RUN_NODE_TEST_SUITE) {
       { timeout: 120000 },
     );
 
-    it("should install kibi-cli and show version", async () => {
-      if (!hasProlog) return;
+    it("should install kibi-cli and show version", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       const { stdout, exitCode } = await kibi(sandbox, ["--version"]);
 
@@ -410,8 +413,11 @@ if (RUN_NODE_TEST_SUITE) {
       console.log("  ✓ Version:", stdout.trim());
     });
 
-    it("should run kibi doctor before init (diagnostic mode)", async () => {
-      if (!hasProlog) return;
+    it("should run kibi doctor before init (diagnostic mode)", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       const { stdout, stderr, exitCode } = await kibi(sandbox, ["doctor"]);
 
@@ -429,8 +435,11 @@ if (RUN_NODE_TEST_SUITE) {
       console.log("  ✓ Doctor ran successfully (diagnostic output captured)");
     });
 
-    it("should initialize kibi with hooks", async () => {
-      if (!hasProlog) return;
+    it("should initialize kibi with hooks", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       // Hooks are installed by default, no --hooks flag needed
       const { stdout, exitCode } = await kibi(sandbox, ["init"]);
@@ -444,8 +453,11 @@ if (RUN_NODE_TEST_SUITE) {
       console.log("  ✓ Kibi initialized with hooks");
     });
 
-    it("should pass kibi doctor after init", async () => {
-      if (!hasProlog) return;
+    it("should pass kibi doctor after init", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       const { stdout, exitCode } = await kibi(sandbox, ["doctor"]);
 
@@ -460,8 +472,11 @@ if (RUN_NODE_TEST_SUITE) {
       console.log("  ✓ Doctor passes after init");
     });
 
-    it("should sync entities from markdown files", async () => {
-      if (!hasProlog) return;
+    it("should sync entities from markdown files", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       // Create test markdown files
       createMarkdownFile(
@@ -499,8 +514,11 @@ if (RUN_NODE_TEST_SUITE) {
       console.log("  ✓ Sync imported entities");
     });
 
-    it("should query entities after sync", async () => {
-      if (!hasProlog) return;
+    it("should query entities after sync", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       const { stdout, exitCode } = await kibi(sandbox, ["query", "req"]);
 
@@ -513,8 +531,11 @@ if (RUN_NODE_TEST_SUITE) {
       console.log("  ✓ Query returned entities");
     });
 
-    it("should run kibi check after sync", async () => {
-      if (!hasProlog) return;
+    it("should run kibi check after sync", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       // Run check with extended timeout
       const { stdout, stderr, exitCode } = await kibi(sandbox, ["check"], {
@@ -541,8 +562,11 @@ if (RUN_NODE_TEST_SUITE) {
       console.log(`  ✓ Check completed (exit code: ${exitCode})`);
     });
 
-    it("should run kibi check with a registry-selected migration rule", async () => {
-      if (!hasProlog) return;
+    it("should run kibi check with a registry-selected migration rule", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       // strict-readiness is registry-generated; selecting it end-to-end proves
       // the packed CLI advertises and dispatches every registry rule.
@@ -568,13 +592,19 @@ if (RUN_NODE_TEST_SUITE) {
       );
     });
 
-    it("should generate a self-contained HTML requirement health report", async () => {
-      if (!hasProlog) return;
+    it("should generate a self-contained HTML requirement health report", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
       await verifyHtmlRequirementHealthReport(sandbox);
     });
 
-    it("should have created .kb directory structure", async () => {
-      if (!hasProlog) return;
+    it("should have created .kb directory structure", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       // Check .kb directory exists
       const { exitCode: kbExists } = await run("test", ["-d", ".kb"], {

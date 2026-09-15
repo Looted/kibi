@@ -576,6 +576,11 @@ async function buildArtifact(input: {
       integration.producer === "junit"
         ? convertJUnitXml(native, bindings)
         : convertTap(native, bindings);
+    if (conversion.fatal) {
+      throw new Error(
+        `producer '${integration.producer}' rejected its native report${conversion.diagnostics.length > 0 ? `: ${conversion.diagnostics.join("; ")}` : ""}`,
+      );
+    }
     if (conversion.results.length === 0)
       throw new Error(
         `producer '${integration.producer}' produced no bound proof results${conversion.diagnostics.length > 0 ? `: ${conversion.diagnostics.join("; ")}` : ""}`,

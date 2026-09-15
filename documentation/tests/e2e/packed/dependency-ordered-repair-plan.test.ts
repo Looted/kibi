@@ -193,8 +193,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "fails pagination closed and orders non-auto-applicable batches without writes",
       { timeout: 300_000 },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
         const beforeStatus = await cliJson<{
           snapshotId: string;
           dirty: boolean;

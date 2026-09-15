@@ -20,7 +20,11 @@ describe("defaultCodexLoginRun leftover auth callback", () => {
   test("runs a bounded echo process in the source worktree", async () => {
     const cwd = await mkdtemp(join(tmpdir(), "skillopt-codex-login-"));
     roots.push(cwd);
-    const result = await defaultCodexLoginRun(["echo", "login-ok"], process.env, cwd);
+    const result = await defaultCodexLoginRun(
+      ["echo", "login-ok"],
+      process.env,
+      cwd,
+    );
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("login-ok");
     expect(result.argv).toEqual(["echo", "login-ok"]);

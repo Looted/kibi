@@ -295,13 +295,13 @@ export async function main(): Promise<void> {
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }
 
+// implements REQ-cursor-kibi-plugin-v1
+// covered_by TEST-cursor-kibi-plugin-v1
 export function isInvokedAsCli(
   argv1: string | undefined,
   moduleUrl: string,
 ): boolean {
-  const invokedPath = argv1
-    ? pathToFileURL(path.resolve(argv1)).href
-    : "";
+  const invokedPath = argv1 ? pathToFileURL(path.resolve(argv1)).href : "";
   return moduleUrl === invokedPath;
 }
 

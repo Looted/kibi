@@ -148,9 +148,9 @@ describe("buildSymbolRepairPlan", () => {
     expect(byId["SYM-REFRESH"]?.action).toBe("refresh_coordinates");
     expect(byId["SYM-REMAP"]?.action).toBe("remap");
     expect(
-      (byId["SYM-REMAP"]?.candidates as ReadonlyArray<{ symbolId: string }>).map(
-        (candidate) => candidate.symbolId,
-      ),
+      (
+        byId["SYM-REMAP"]?.candidates as ReadonlyArray<{ symbolId: string }>
+      ).map((candidate) => candidate.symbolId),
     ).toEqual(expect.arrayContaining(["SYM-REFRESH", "SYM-TITLE-ONLY"]));
     expect(byId["SYM-REVIEW"]?.action).toBe("review");
     expect(byId["SYM-DIR"]?.action).toBe("delete_obsolete_symbol");

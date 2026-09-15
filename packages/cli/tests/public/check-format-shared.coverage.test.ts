@@ -1,5 +1,8 @@
 // implements REQ-mcp-tool-check
 import { describe, expect, test } from "bun:test";
+import type { Violation } from "../../src/public/check-types.js";
+import type { ChangedFileImpactResult } from "../../src/public/impact-diagnostics.js";
+import type { QualityDiagnostic } from "../../src/public/impact/types.js";
 import {
   buildStructuredContent,
   buildSummary,
@@ -7,9 +10,6 @@ import {
   formatQualityDiagnosticsText,
   formatViolationText,
 } from "../../src/public/operations/check-format-shared.js";
-import type { ChangedFileImpactResult } from "../../src/public/impact-diagnostics.js";
-import type { QualityDiagnostic } from "../../src/public/impact/types.js";
-import type { Violation } from "../../src/public/check-types.js";
 
 const emptyImpact = {
   impactDiagnostics: [],
@@ -86,7 +86,9 @@ describe("check-format-shared formatters", () => {
     expect(formatImpactText(impact)).toContain("2 impact diagnostics found");
     expect(formatImpactText(impact)).toContain("unknown-source");
 
-    expect(formatQualityDiagnosticsText([])).toBe("No quality diagnostics found");
+    expect(formatQualityDiagnosticsText([])).toBe(
+      "No quality diagnostics found",
+    );
     const qualityText = formatQualityDiagnosticsText(quality);
     expect(qualityText).toContain("2 quality diagnostics found");
     expect(qualityText).toContain("Entity: REQ-1");

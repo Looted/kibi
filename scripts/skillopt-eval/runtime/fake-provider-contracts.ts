@@ -46,7 +46,9 @@ export const ConfigurationSchema = z
   })
   .strict()
   .superRefine((configuration, context) => {
-    if (hasRoleKeyReuse(configuration.providerKeyId, configuration.verifierKeyId)) {
+    if (
+      hasRoleKeyReuse(configuration.providerKeyId, configuration.verifierKeyId)
+    ) {
       context.addIssue({ code: "custom", message: "role_key_reuse" });
     }
     if (

@@ -61,9 +61,7 @@ describe("operator leftover runtime branches", () => {
   test("default which, runProcess close codes, and spawn errors", async () => {
     expect(defaultOperatorDependencies.which("bash")).toBeTruthy();
     expect(defaultOperatorDependencies.cwd.length).toBeGreaterThan(0);
-    expect(defaultOperatorDependencies.randomId()).toMatch(
-      /^[0-9a-f-]{36}$/,
-    );
+    expect(defaultOperatorDependencies.randomId()).toMatch(/^[0-9a-f-]{36}$/);
 
     const ok = await defaultOperatorDependencies.runProcess(
       ["bash", "-c", "printf hi"],

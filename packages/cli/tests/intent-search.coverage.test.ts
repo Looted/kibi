@@ -86,7 +86,10 @@ describe("intent-search leftover ranking and execution", () => {
             sourceLine: 4,
           }),
           entity("REQ-OTHER", "Unrelated login"),
-          entity("REQ-NO-ID", "No identifier", { id: undefined, type: undefined }),
+          entity("REQ-NO-ID", "No identifier", {
+            id: undefined,
+            type: undefined,
+          }),
         ],
         {
           query: "export report",
@@ -121,9 +124,10 @@ describe("intent-search leftover ranking and execution", () => {
         ] as never,
       );
       expect(result.analysis.acceptedCount).toBeGreaterThan(0);
-      expect(result.analysis.topTwoMargin === null || result.analysis.topTwoMargin >= 0).toBe(
-        true,
-      );
+      expect(
+        result.analysis.topTwoMargin === null ||
+          result.analysis.topTwoMargin >= 0,
+      ).toBe(true);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
@@ -149,7 +153,9 @@ describe("intent-search leftover ranking and execution", () => {
       },
       searchEntities: async ({ query }: { query: string }) => ({
         entities: entities.filter((item) =>
-          String(item.title).toLowerCase().includes(query.toLowerCase().slice(0, 3)),
+          String(item.title)
+            .toLowerCase()
+            .includes(query.toLowerCase().slice(0, 3)),
         ),
         count: 1,
       }),

@@ -13,8 +13,8 @@ tags:
 links:
   - type: validates
     target: SCEN-prolog-library-adoption
-verification_scope: end_to_end
-verification_perspective: consumer
+verification_scope: integration
+verification_perspective: internal
 proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof

@@ -175,8 +175,11 @@ if (RUN_NODE_TEST_SUITE) {
       { timeout: 60000 },
     );
 
-    it("scaffolds the documented report workflow and README badge", async () => {
-      if (!hasProlog) return;
+    it("scaffolds the documented report workflow and README badge", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
       await verifyGitHubReportIntegration(sandbox);
     });
   });

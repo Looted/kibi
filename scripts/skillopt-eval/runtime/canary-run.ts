@@ -127,135 +127,143 @@ export async function runModelCanary(
           context.run(argv, workspace.target, childEnv, 15_000),
       },
       async (auth) => {
-    authMode = auth.mode;
-    const staged = await stageCapabilityCanary(
-      workspace,
-      context.sourceWorktree,
-      context.stageDependencies,
-    );
-    const runtimeEnv = {
-      ...auth.env,
-      KIBI_BRANCH: SKILLOPT_EVALUATION_BRANCH,
-      PATH: "/usr/bin:/bin",
-    };
-    await writeFile(
-      join(workspace.codexHome, "config.toml"),
-      buildCodexConfig({
-        role: context.role,
-        authMode,
-        paths: permissionPaths(
+        authMode = auth.mode;
+        const staged = await stageCapabilityCanary(
           workspace,
           context.sourceWorktree,
-          auth.realCodexHome,
-        ),
-        bwrapExecutable: staged.bwrapExecutable,
-        codexExecutable: staged.codexCommand,
-        mcpServer: staged.mcpServer,
-      }),
-      { encoding: "utf8", mode: 0o600 },
-    );
-    const probe = await writeCapabilityProbe(
-      workspace,
-      sourceIsolationDeniedPaths(
-        workspace,
-        context.sourceWorktree,
-        auth.realCodexHome,
-      ),
-    );
-    await context.probeMcp({ ...staged.mcpServer, env: runtimeEnv });
-    await context.probeSandbox({
-      codexCommand: staged.codexCommand,
-      workspace: workspace.target,
-      env: runtimeEnv,
-      run: context.run,
-      probe,
-    });
-    const prompt =
-      context.role === "target"
-        ? `Use shell_command exactly once to execute ${probe.command}. Do not infer or claim success without that tool event. If it exits zero, return probeExecuted=true; otherwise fail.`
-        : [
-            "Call the read-only kibi MCP tool kb_semantic_advisor exactly once with requirement text `A session timeout must be 30 minutes.` and complete diagnostic telemetry (is_autonomous=true, a brief reasoning string, confidence_score=1, attempt_number=1, missing_context empty). Wait for its successful result.",
-            `Then use shell_command exactly once to execute ${probe.command}.`,
-            "Do not call any other shell or MCP tool. Do not infer or claim success without both completed tool calls. If both succeed, return probeExecuted=true; otherwise fail.",
-          ].join(" ");
-    const result = await context.run(
-      buildCodexExecArgv({
-        codexCommand: staged.codexCommand,
-        workspace: workspace.target,
-        outputSchema: staged.schemaPath,
-        role: context.role,
-      }),
-      workspace.target,
-      runtimeEnv,
-      120_000,
-      prompt,
-    );
-    const requiredMcpFailure = codexRequiredMcpFailure(result);
-    if (requiredMcpFailure !== null) throw requiredMcpFailure;
-    paidModelCalls = 1;
-    events = parseJsonLines(result.stdout).map(({ event }) => event);
-    const run = modelRun(context.role, events);
-    if (result.exitCode !== 0) {
-      return {
-        kind: "no-go",
-        authMode,
-        paidModelCalls,
-        reason: summarizeProcessFailure(result),
-        run,
-      };
-    }
-    if (
-      events.some(
-        (event) => event.type === "error" || event.type === "turn.failed",
-      )
-    ) {
-      return {
-        kind: "no-go",
-        authMode,
-        paidModelCalls,
-        reason: "codex_event_failure",
-        run,
-      };
-    }
-    if (!events.some((event) => event.type === "turn.completed")) {
-      return {
-        kind: "no-go",
-        authMode,
-        paidModelCalls,
-        reason: "missing_turn_completed",
-        run,
-      };
-    }
-    const brokerTrace = await readFile(
-      staged.mcpServer.tracePath,
-      "utf8",
-    ).catch((error: unknown) => {
-      if (error instanceof Error && "code" in error && error.code === "ENOENT")
-        return "";
-      throw error;
-    });
-    const diagnosticReceipt = await readFile(
-      join(workspace.target, ".kb/usage.log"),
-      "utf8",
-    ).catch((error: unknown) => {
-      if (error instanceof Error && "code" in error && error.code === "ENOENT")
-        return "";
-      throw error;
-    });
-    if (context.role === "target") {
-      await (context.verifyEvidence ?? verifyProbeEvidence)(events, probe);
-    } else {
-      await (context.verifyEvidence ?? verifyCapabilityEvidence)(
-        events,
-        probe,
-        {
-          brokerTrace,
-          diagnosticReceipt,
-          toolNames: ["kb_semantic_advisor"],
-        },
-      );
-    }
-    return { kind: "pass", authMode, run };
+          context.stageDependencies,
+        );
+        const runtimeEnv = {
+          ...auth.env,
+          KIBI_BRANCH: SKILLOPT_EVALUATION_BRANCH,
+          PATH: "/usr/bin:/bin",
+        };
+        await writeFile(
+          join(workspace.codexHome, "config.toml"),
+          buildCodexConfig({
+            role: context.role,
+            authMode,
+            paths: permissionPaths(
+              workspace,
+              context.sourceWorktree,
+              auth.realCodexHome,
+            ),
+            bwrapExecutable: staged.bwrapExecutable,
+            codexExecutable: staged.codexCommand,
+            mcpServer: staged.mcpServer,
+          }),
+          { encoding: "utf8", mode: 0o600 },
+        );
+        const probe = await writeCapabilityProbe(
+          workspace,
+          sourceIsolationDeniedPaths(
+            workspace,
+            context.sourceWorktree,
+            auth.realCodexHome,
+          ),
+        );
+        await context.probeMcp({ ...staged.mcpServer, env: runtimeEnv });
+        await context.probeSandbox({
+          codexCommand: staged.codexCommand,
+          workspace: workspace.target,
+          env: runtimeEnv,
+          run: context.run,
+          probe,
+        });
+        const prompt =
+          context.role === "target"
+            ? `Use shell_command exactly once to execute ${probe.command}. Do not infer or claim success without that tool event. If it exits zero, return probeExecuted=true; otherwise fail.`
+            : [
+                "Call the read-only kibi MCP tool kb_semantic_advisor exactly once with requirement text `A session timeout must be 30 minutes.` and complete diagnostic telemetry (is_autonomous=true, a brief reasoning string, confidence_score=1, attempt_number=1, missing_context empty). Wait for its successful result.",
+                `Then use shell_command exactly once to execute ${probe.command}.`,
+                "Do not call any other shell or MCP tool. Do not infer or claim success without both completed tool calls. If both succeed, return probeExecuted=true; otherwise fail.",
+              ].join(" ");
+        const result = await context.run(
+          buildCodexExecArgv({
+            codexCommand: staged.codexCommand,
+            workspace: workspace.target,
+            outputSchema: staged.schemaPath,
+            role: context.role,
+          }),
+          workspace.target,
+          runtimeEnv,
+          120_000,
+          prompt,
+        );
+        const requiredMcpFailure = codexRequiredMcpFailure(result);
+        if (requiredMcpFailure !== null) throw requiredMcpFailure;
+        paidModelCalls = 1;
+        events = parseJsonLines(result.stdout).map(({ event }) => event);
+        const run = modelRun(context.role, events);
+        if (result.exitCode !== 0) {
+          return {
+            kind: "no-go",
+            authMode,
+            paidModelCalls,
+            reason: summarizeProcessFailure(result),
+            run,
+          };
+        }
+        if (
+          events.some(
+            (event) => event.type === "error" || event.type === "turn.failed",
+          )
+        ) {
+          return {
+            kind: "no-go",
+            authMode,
+            paidModelCalls,
+            reason: "codex_event_failure",
+            run,
+          };
+        }
+        if (!events.some((event) => event.type === "turn.completed")) {
+          return {
+            kind: "no-go",
+            authMode,
+            paidModelCalls,
+            reason: "missing_turn_completed",
+            run,
+          };
+        }
+        const brokerTrace = await readFile(
+          staged.mcpServer.tracePath,
+          "utf8",
+        ).catch((error: unknown) => {
+          if (
+            error instanceof Error &&
+            "code" in error &&
+            error.code === "ENOENT"
+          )
+            return "";
+          throw error;
+        });
+        const diagnosticReceipt = await readFile(
+          join(workspace.target, ".kb/usage.log"),
+          "utf8",
+        ).catch((error: unknown) => {
+          if (
+            error instanceof Error &&
+            "code" in error &&
+            error.code === "ENOENT"
+          )
+            return "";
+          throw error;
+        });
+        if (context.role === "target") {
+          await (context.verifyEvidence ?? verifyProbeEvidence)(events, probe);
+        } else {
+          await (context.verifyEvidence ?? verifyCapabilityEvidence)(
+            events,
+            probe,
+            {
+              brokerTrace,
+              diagnosticReceipt,
+              toolNames: ["kb_semantic_advisor"],
+            },
+          );
+        }
+        return { kind: "pass", authMode, run };
       },
     );
   } catch (error) {
@@ -272,9 +280,7 @@ export async function runModelCanary(
         authMode,
         paidModelCalls,
         reason: error.message,
-        ...(paidCallHappened()
-          ? { run: modelRun(context.role, events) }
-          : {}),
+        ...(paidCallHappened() ? { run: modelRun(context.role, events) } : {}),
       };
     }
     const reason =

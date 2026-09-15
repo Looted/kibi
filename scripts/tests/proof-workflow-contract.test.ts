@@ -139,6 +139,7 @@ describe("strict proof workflow contract", () => {
     }
     expect(proofPackedRunner).toContain("mkdtemp(");
     expect(proofPackedRunner).toContain("run-packed-e2e.mjs");
+    expect(proofPackedRunner).toContain("KIBI_PROOF_PACKED");
     expect(proofPackedRunner).toContain(
       "rm(compiledDirectory, { recursive: true, force: true })",
     );

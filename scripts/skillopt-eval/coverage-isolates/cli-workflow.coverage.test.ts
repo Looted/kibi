@@ -4,11 +4,8 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { CliUsageError } from "../cli-options";
+import { type WorkflowDependencies, runWorkflowCommand } from "../cli-workflow";
 import { EvaluationInfrastructureError } from "../evaluation-infrastructure";
-import {
-  type WorkflowDependencies,
-  runWorkflowCommand,
-} from "../cli-workflow";
 
 const roots: string[] = [];
 afterEach(async () => {

@@ -2,8 +2,8 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   ATTEMPTS_STATUS,
-  PROOF_BINDING_KINDS,
   PROOF_BINDINGS_SCHEMA,
+  PROOF_BINDING_KINDS,
   PROOF_CONTRACT_SCHEMA,
   PROOF_CONTRACT_VERSION,
   PROOF_INTEGRATION_VERSION,
@@ -72,7 +72,10 @@ describe("proof-protocol leftover validator and constant branches", () => {
     expect(PROOF_RESULT_SCHEMA.required).toContain("attempts");
     expect(PROOF_RUN_ARTIFACT_SCHEMA.required).toContain("proof_results");
     expect(PROOF_CONTRACT_SCHEMA.required).toContain("success_policy");
-    expect(PROOF_BINDINGS_SCHEMA.items.required).toEqual(["symbol_id", "target"]);
+    expect(PROOF_BINDINGS_SCHEMA.items.required).toEqual([
+      "symbol_id",
+      "target",
+    ]);
   });
 
   test("proofRunArtifactErrors covers missing producer, array environment, and non-array results", () => {
@@ -177,12 +180,11 @@ describe("proof-protocol leftover validator and constant branches", () => {
           failure_phase: "later",
         },
         integration: " ",
-        proof_results: [
-          artifact.proof_results[0],
-          artifact.proof_results[0],
-        ],
+        proof_results: [artifact.proof_results[0], artifact.proof_results[0]],
       }).join(" "),
-    ).toMatch(/command_argv|environment|outcome|exit_code|started_at|integration|duplicates/);
+    ).toMatch(
+      /command_argv|environment|outcome|exit_code|started_at|integration|duplicates/,
+    );
   });
 
   test("proofContractErrors and proofBindingsErrors cover duplicates and line/source shapes", () => {
@@ -200,7 +202,9 @@ describe("proof-protocol leftover validator and constant branches", () => {
         ],
         success_policy: "unknown",
       }).join(" "),
-    ).toMatch(/version|integration|duplicates|must be an object|success_policy/);
+    ).toMatch(
+      /version|integration|duplicates|must be an object|success_policy/,
+    );
     expect(proofBindingsErrors("nope")[0]).toContain("array");
     expect(
       proofBindingsErrors([

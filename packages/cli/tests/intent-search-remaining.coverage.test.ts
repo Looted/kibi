@@ -40,7 +40,9 @@ function encodeEntities(rows: Record<string, unknown>[]): string {
 describe("intent-search remaining candidate, graph, and related-id branches", () => {
   test("scans facet corpora, caps oversized candidate sets, and loads related graph ids", async () => {
     restores.push(isolateKibiEnv());
-    const related = entity("TEST-RELATED", "Related coverage", { type: "test" });
+    const related = entity("TEST-RELATED", "Related coverage", {
+      type: "test",
+    });
     const seeded = entity("REQ-EXPORT", "Export csv report for operators", {
       tags: ["download"],
     });

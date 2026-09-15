@@ -16,10 +16,7 @@ afterEach(() => {
 
 const NOW = new Date("2026-08-10T12:00:00.000Z");
 
-function event(
-  minutesBefore: number,
-  overrides: Record<string, unknown> = {},
-) {
+function event(minutesBefore: number, overrides: Record<string, unknown> = {}) {
   return {
     timestamp: new Date(NOW.getTime() - minutesBefore * 60_000).toISOString(),
     status: "error",

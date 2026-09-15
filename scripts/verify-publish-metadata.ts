@@ -178,10 +178,12 @@ export function defaultVerifyPublishExit(code: number): void {
   process.exit(code);
 }
 
+// implements REQ-020
+// covered_by TEST-kibi-distribution-parity-matrix
 export function runVerifyPublishMetadataIfMain(
   isMain = import.meta.main,
   start = main,
-  exit: (code: number) => never | void = defaultVerifyPublishExit,
+  exit: (code: number) => unknown = defaultVerifyPublishExit,
 ): void {
   if (!isMain) return;
   exit(start());

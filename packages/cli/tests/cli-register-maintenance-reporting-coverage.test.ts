@@ -1,20 +1,20 @@
 // implements REQ-kibi-operation-interface-parity
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { Command } from "commander";
+import * as jsonCommand from "../src/cli-json-command.js";
 import { registerMaintenanceCommands } from "../src/cli-register-maintenance.js";
 import { registerReportingCommands } from "../src/cli-register-reporting.js";
-import * as engine from "../src/commands/engine.js";
-import * as gc from "../src/commands/gc.js";
+import * as branch from "../src/commands/branch.js";
+import * as check from "../src/commands/check.js";
+import * as coverage from "../src/commands/coverage.js";
 import * as doctor from "../src/commands/doctor.js";
+import * as engine from "../src/commands/engine.js";
+import * as gaps from "../src/commands/gaps.js";
+import * as gc from "../src/commands/gc.js";
+import * as graph from "../src/commands/graph.js";
+import * as report from "../src/commands/report.js";
 import * as usageMetrics from "../src/commands/usage-metrics.js";
 import * as usageRemediation from "../src/commands/usage-remediation.js";
-import * as branch from "../src/commands/branch.js";
-import * as gaps from "../src/commands/gaps.js";
-import * as report from "../src/commands/report.js";
-import * as coverage from "../src/commands/coverage.js";
-import * as graph from "../src/commands/graph.js";
-import * as check from "../src/commands/check.js";
-import * as jsonCommand from "../src/cli-json-command.js";
 
 const restores: Array<() => void> = [];
 
@@ -25,11 +25,19 @@ afterEach(() => {
 describe("maintenance and reporting command registration", () => {
   test("maintenance actions dispatch to engine, gc, doctor, usage, and branch commands", async () => {
     const spies = [
-      spyOn(engine, "engineStatusCommand").mockResolvedValue(undefined as never),
+      spyOn(engine, "engineStatusCommand").mockResolvedValue(
+        undefined as never,
+      ),
       spyOn(engine, "engineStopCommand").mockResolvedValue(undefined as never),
-      spyOn(engine, "storageStatusCommand").mockResolvedValue(undefined as never),
-      spyOn(engine, "storageCompactCommand").mockResolvedValue(undefined as never),
-      spyOn(engine, "storageExportCommand").mockResolvedValue(undefined as never),
+      spyOn(engine, "storageStatusCommand").mockResolvedValue(
+        undefined as never,
+      ),
+      spyOn(engine, "storageCompactCommand").mockResolvedValue(
+        undefined as never,
+      ),
+      spyOn(engine, "storageExportCommand").mockResolvedValue(
+        undefined as never,
+      ),
       spyOn(gc, "gcCommand").mockResolvedValue(undefined as never),
       spyOn(doctor, "doctorCommand").mockResolvedValue({ exitCode: 0 }),
       spyOn(usageMetrics, "usageMetricsCommand").mockResolvedValue({
@@ -38,10 +46,18 @@ describe("maintenance and reporting command registration", () => {
       spyOn(usageRemediation, "usageRemediationCommand").mockResolvedValue({
         exitCode: 0,
       }),
-      spyOn(branch, "branchEnsureCommand").mockResolvedValue(undefined as never),
-      spyOn(branch, "branchMigrateCommand").mockResolvedValue(undefined as never),
-      spyOn(branch, "branchRecoverCommand").mockResolvedValue(undefined as never),
-      spyOn(branch, "branchRestoreCommand").mockResolvedValue(undefined as never),
+      spyOn(branch, "branchEnsureCommand").mockResolvedValue(
+        undefined as never,
+      ),
+      spyOn(branch, "branchMigrateCommand").mockResolvedValue(
+        undefined as never,
+      ),
+      spyOn(branch, "branchRecoverCommand").mockResolvedValue(
+        undefined as never,
+      ),
+      spyOn(branch, "branchRestoreCommand").mockResolvedValue(
+        undefined as never,
+      ),
     ];
     restores.push(() => {
       for (const spy of spies) spy.mockRestore();
@@ -67,7 +83,9 @@ describe("maintenance and reporting command registration", () => {
     await parse("branch", "migrate", "--from", "main", "--to", "main");
     await parse("branch", "recover", "--recover-journal", "j1");
     await parse("branch", "restore", "--branch", "main");
-    await expect(parse("branch", "nope")).rejects.toThrow(/Unknown branch action/);
+    await expect(parse("branch", "nope")).rejects.toThrow(
+      /Unknown branch action/,
+    );
   });
 
   test("reporting actions take human and JSON input paths", async () => {

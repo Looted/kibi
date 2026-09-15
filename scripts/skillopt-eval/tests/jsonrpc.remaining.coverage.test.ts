@@ -63,16 +63,17 @@ describe("jsonrpc remaining parse and IO error branches", () => {
     const root = await mkdtemp(join(tmpdir(), "skillopt-jsonrpc-"));
     roots.push(root);
     const originalRead = fsPromises.readFile.bind(fsPromises);
-    const read = spyOn(fsPromises, "readFile").mockImplementation(
-      (async (target: unknown, encoding: unknown) => {
-        if (String(target).endsWith("trace.jsonl")) {
-          const error = new Error("EACCES");
-          (error as Error & { code: string }).code = "EACCES";
-          throw error;
-        }
-        return originalRead(target as never, encoding as never);
-      }) as never,
-    );
+    const read = spyOn(fsPromises, "readFile").mockImplementation((async (
+      target: unknown,
+      encoding: unknown,
+    ) => {
+      if (String(target).endsWith("trace.jsonl")) {
+        const error = new Error("EACCES");
+        (error as Error & { code: string }).code = "EACCES";
+        throw error;
+      }
+      return originalRead(target as never, encoding as never);
+    }) as never);
     spies.push(read);
     await expect(
       appendTraceReceipt(join(root, "trace.jsonl"), {

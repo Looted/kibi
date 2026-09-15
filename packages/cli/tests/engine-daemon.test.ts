@@ -3,11 +3,11 @@ import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import * as engine from "../src/engine.js";
 import {
   isEngineDaemonEntrypoint,
   runEngineDaemonCli,
 } from "../src/engine-daemon.js";
+import * as engine from "../src/engine.js";
 
 const roots: string[] = [];
 const initialExitCode = process.exitCode;
@@ -83,7 +83,9 @@ describe("runEngineDaemonCli", () => {
       new Error("daemon boom"),
     );
     const previousExit = process.exitCode;
-    const errorSpy = spyOn(console, "error").mockImplementation(() => undefined);
+    const errorSpy = spyOn(console, "error").mockImplementation(
+      () => undefined,
+    );
 
     await runEngineDaemonCli([
       "--workspace",
@@ -162,20 +164,35 @@ describe("runEngineDaemonCli", () => {
     const moduleUrl = "file:///workspace/packages/cli/dist/engine-daemon.js";
     expect(
       isEngineDaemonEntrypoint(
-        ["node", "/workspace/packages/cli/dist/engine-daemon.js", "--socket", "x"],
+        [
+          "node",
+          "/workspace/packages/cli/dist/engine-daemon.js",
+          "--socket",
+          "x",
+        ],
         moduleUrl,
       ),
     ).toBe(true);
     expect(
-      isEngineDaemonEntrypoint(["node", "test", "./engine-daemon.test.ts"], moduleUrl),
+      isEngineDaemonEntrypoint(
+        ["node", "test", "./engine-daemon.test.ts"],
+        moduleUrl,
+      ),
     ).toBe(false);
     expect(isEngineDaemonEntrypoint(["node"], moduleUrl)).toBe(false);
   });
 
   test("skips the socket error file when --socket is omitted", async () => {
     const previousExit = process.exitCode;
-    const errorSpy = spyOn(console, "error").mockImplementation(() => undefined);
-    await runEngineDaemonCli(["--workspace", "/tmp/kibi-ws", "--branch", "main"]);
+    const errorSpy = spyOn(console, "error").mockImplementation(
+      () => undefined,
+    );
+    await runEngineDaemonCli([
+      "--workspace",
+      "/tmp/kibi-ws",
+      "--branch",
+      "main",
+    ]);
     errorSpy.mockRestore();
     expect(process.exitCode).toBe(1);
     process.exitCode = previousExit;

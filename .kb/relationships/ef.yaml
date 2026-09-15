@@ -62,3 +62,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9d49318a11b1
+  - type: implements
+    from: SYM-quality-eval-main
+    to: REQ-kibi-change-to-proof-evaluation
+    created_at: 2026-09-14T19:20:07.302Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dece1a9cde04
+  - type: covered_by
+    from: SYM-quality-eval-main
+    to: TEST-kibi-change-to-proof-evaluation
+    created_at: 2026-09-14T19:20:07.310Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-693065d1cb39

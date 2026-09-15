@@ -27,7 +27,11 @@ describe("migration plan builders and config status", () => {
   test("buildActionsFromCheck uses description fallbacks and diagnostic files", () => {
     const actions = buildActionsFromCheck({
       violations: [
-        { rule: "symbol-traceability", entityId: "REQ-1", suggestion: "Add a symbol." },
+        {
+          rule: "symbol-traceability",
+          entityId: "REQ-1",
+          suggestion: "Add a symbol.",
+        },
         { description: "No suggestion present" },
         { rule: 1, entityId: 2 },
       ],
@@ -42,13 +46,16 @@ describe("migration plan builders and config status", () => {
         { files: "not-array" },
       ],
     });
-    expect(actions.some((action) => action.code === "check_symbol-traceability")).toBe(
+    expect(
+      actions.some((action) => action.code === "check_symbol-traceability"),
+    ).toBe(true);
+    expect(actions.some((action) => action.invocation.kind === "review")).toBe(
       true,
     );
-    expect(actions.some((action) => action.invocation.kind === "review")).toBe(true);
     expect(
-      actions.find((action) => action.code === "quality_telemetry_completeness_low")
-        ?.affectedFiles,
+      actions.find(
+        (action) => action.code === "quality_telemetry_completeness_low",
+      )?.affectedFiles,
     ).toEqual(["src/a.ts"]);
   });
 
@@ -91,7 +98,9 @@ describe("migration plan builders and config status", () => {
       actions.find((action) => action.code === "symbol_refresh_coordinates")
         ?.autoApplicable,
     ).toBe(true);
-    expect(actions.some((action) => action.id === "symbol-review-symbol")).toBe(true);
+    expect(actions.some((action) => action.id === "symbol-review-symbol")).toBe(
+      true,
+    );
   });
 
   test("buildActionsFromStatus covers store, schema, freshness, and proof gates", () => {
@@ -178,7 +187,10 @@ describe("migration plan builders and config status", () => {
         migrationAction({ id: "b", code: "y", dependsOn: ["a"] }),
       ],
     });
-    expect(cyclic.actions.map((action) => action.id).sort()).toEqual(["a", "b"]);
+    expect(cyclic.actions.map((action) => action.id).sort()).toEqual([
+      "a",
+      "b",
+    ]);
     const merged = mergeMigrationPlans([
       buildMigrationPlan({
         evaluatedDomains: ["schema"],

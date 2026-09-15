@@ -14,7 +14,10 @@ describe("playwright-cases remaining unmatched brace and non-playwright source",
   test("returns empty extraction when Playwright is not imported", () => {
     restores.push(isolateKibiEnv());
     expect(
-      extractPlaywrightCases("src/plain.test.ts", "test('not playwright', () => {})"),
+      extractPlaywrightCases(
+        "src/plain.test.ts",
+        "test('not playwright', () => {})",
+      ),
     ).toEqual({ symbols: [], diagnostics: [] });
   });
 
@@ -26,8 +29,8 @@ test.describe("open suite", () => {
 test("named case", async () => {});
 `;
     const extraction = extractPlaywrightCases("e2e/open.spec.ts", source);
-    expect(extraction.symbols.some((symbol) => symbol.title.includes("named case"))).toBe(
-      true,
-    );
+    expect(
+      extraction.symbols.some((symbol) => symbol.title.includes("named case")),
+    ).toBe(true);
   });
 });

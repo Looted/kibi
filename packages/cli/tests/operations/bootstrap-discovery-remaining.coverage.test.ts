@@ -1,10 +1,10 @@
 // implements REQ-KIBI-BOOTSTRAP-PLAN
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { OperationError } from "../../src/cli-errors.js";
-import { discoverBootstrap } from "../../src/operations/bootstrap/discovery.js";
 import * as activation from "../../src/operations/bootstrap/activation.js";
 import * as discoveryEvidence from "../../src/operations/bootstrap/discovery-evidence.js";
 import { scanEvidence } from "../../src/operations/bootstrap/discovery-evidence.js";
+import { discoverBootstrap } from "../../src/operations/bootstrap/discovery.js";
 import * as kbManifest from "../../src/utils/kb-manifest.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";
 

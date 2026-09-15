@@ -93,7 +93,8 @@ const restores: Array<() => void> = [];
 
 afterEach(() => {
   for (const restore of restores.splice(0)) restore();
-  for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true });
+  for (const root of roots.splice(0))
+    rmSync(root, { recursive: true, force: true });
   if (process.exitCode === 1) process.exitCode = 0;
 });
 

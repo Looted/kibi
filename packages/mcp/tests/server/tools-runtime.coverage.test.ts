@@ -91,13 +91,21 @@ describe("DEFAULT_TOOLS_RUNTIME session wiring", () => {
       {},
     );
     expect(
-      await again.prolog?.queryEntities?.({ type: "req", limit: 10, offset: 0 }),
+      await again.prolog?.queryEntities?.({
+        type: "req",
+        limit: 10,
+        offset: 0,
+      }),
     ).toEqual({
       entities: [],
       count: 0,
     });
     expect(
-      await again.prolog?.searchEntities?.({ query: "x", limit: 10, offset: 0 }),
+      await again.prolog?.searchEntities?.({
+        query: "x",
+        limit: 10,
+        offset: 0,
+      }),
     ).toEqual({
       entities: [],
       count: 0,
@@ -290,12 +298,8 @@ describe("DEFAULT_TOOLS_RUNTIME session wiring", () => {
         }).telemetry,
       ).toEqual({ attempt_number: 2 });
       expect(
-        DEFAULT_TOOLS_RUNTIME.deriveDiagnosticFields(
-          "kb_status",
-          {},
-          null,
-          {},
-        ).result_summary,
+        DEFAULT_TOOLS_RUNTIME.deriveDiagnosticFields("kb_status", {}, null, {})
+          .result_summary,
       ).toBe("kb_status completed");
     } finally {
       rmSync(kbPath, { recursive: true, force: true });

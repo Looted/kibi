@@ -163,17 +163,14 @@
         "node",
         "scripts/run-proof-packed-e2e.mjs",
         "documentation/tests/e2e/packed/fresh-verification-receipts.test.ts"
-      ]
+      ],
+      ["node", "--test", "scripts/tests/run-proof-producer.test.mjs"]
     ]
   },
   {
     "test_id": "TEST-test-journaled-engine-harness",
     "steps": [
-      [
-        "node",
-        "--test",
-        "scripts/tests/run-packed-e2e.test.mjs"
-      ],
+      ["node", "--test", "scripts/tests/run-packed-e2e.test.mjs"],
       [
         "bun",
         "test",
@@ -264,9 +261,14 @@
     "test_id": "TEST-kibi-change-to-proof-plan-compiler",
     "steps": [
       [
-        "node",
-        "scripts/run-proof-packed-e2e.mjs",
-        "documentation/tests/e2e/packed/mcp-cli-operation-parity.test.ts"
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/operations/compile-intent.test.ts",
+        "./packages/cli/tests/operations/compile-intent-coverage.test.ts",
+        "./packages/cli/tests/operations/compile-intent-remaining.coverage.test.ts",
+        "./packages/cli/tests/operations/apply-plan-recovery-coverage.test.ts"
       ]
     ]
   },
@@ -399,7 +401,7 @@
       [
         "node",
         "scripts/run-proof-packed-e2e.mjs",
-        "documentation/tests/e2e/packed/cli-workflows.test.ts"
+        "documentation/tests/e2e/packed/schema-relationship-roundtrip.test.ts"
       ]
     ]
   },
@@ -549,7 +551,7 @@
       [
         "node",
         "scripts/run-proof-packed-e2e.mjs",
-        "documentation/tests/e2e/packed/cli-workflows.test.ts"
+        "documentation/tests/e2e/packed/traceability-gate.test.ts"
       ]
     ]
   },
@@ -589,7 +591,7 @@
       [
         "node",
         "scripts/run-proof-packed-e2e.mjs",
-        "documentation/tests/e2e/packed/cli-status-pre-first-sync.test.ts"
+        "documentation/tests/e2e/packed/github-report-integration.test.ts"
       ]
     ]
   },
@@ -709,7 +711,7 @@
       [
         "node",
         "scripts/run-proof-packed-e2e.mjs",
-        "documentation/tests/e2e/packed/proposition-complete-ingestion.test.ts"
+        "documentation/tests/e2e/packed/mcp-cli-operation-parity.test.ts"
       ]
     ]
   },
@@ -749,7 +751,7 @@
       [
         "node",
         "scripts/run-proof-packed-e2e.mjs",
-        "documentation/tests/e2e/packed/cli-workflows.test.ts"
+        "documentation/tests/e2e/packed/mcp-crud.test.ts"
       ]
     ]
   },
@@ -797,9 +799,12 @@
     "test_id": "TEST-opencode-smart-enforcement",
     "steps": [
       [
-        "node",
-        "scripts/run-proof-packed-e2e.mjs",
-        "documentation/tests/e2e/packed/cli-workflows.test.ts"
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/opencode/tests/smart-enforcement.test.ts",
+        "./packages/opencode/tests/smart-enforcement-policy.test.ts"
       ]
     ]
   },
@@ -807,9 +812,12 @@
     "test_id": "TEST-opencode-smart-enforcement-v1-coverage",
     "steps": [
       [
-        "node",
-        "scripts/run-proof-packed-e2e.mjs",
-        "documentation/tests/e2e/packed/opencode-plugin.test.ts"
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/opencode/tests/smart-enforcement.test.ts",
+        "./packages/opencode/tests/logging-policy.test.ts"
       ]
     ]
   },
@@ -817,9 +825,12 @@
     "test_id": "TEST-prolog-library-adoption-core",
     "steps": [
       [
-        "node",
-        "scripts/run-proof-packed-e2e.mjs",
-        "documentation/tests/e2e/packed/cli-workflows.test.ts"
+        "swipl",
+        "-q",
+        "-s",
+        "packages/core/tests/kb.plt",
+        "-g",
+        "run_tests([derived_chr_pilot,sparql_client_wrapper]),halt"
       ]
     ]
   },
@@ -836,11 +847,7 @@
   {
     "test_id": "TEST-root-suite-batch-diagnostics",
     "steps": [
-      [
-        "node",
-        "scripts/run-proof-packed-e2e.mjs",
-        "documentation/tests/e2e/packed/ci-artifact-only-smoke.test.ts"
-      ]
+      ["bun", "test", "--timeout", "120000", "./test/root-summary.test.ts"]
     ]
   },
   {
@@ -866,6 +873,12 @@
   {
     "test_id": "TEST-skillopt-paid-launch-accounting",
     "steps": [
+      [
+        "bun",
+        "test",
+        "scripts/skillopt-eval/tests/paid-launch-evidence.test.ts",
+        "scripts/skillopt-eval/tests/paid-launch-receipts.test.ts"
+      ],
       [
         "node",
         "scripts/run-proof-packed-e2e.mjs",
@@ -896,6 +909,8 @@
   {
     "test_id": "TEST-vscode-traceability",
     "steps": [
+      ["bun", "test", "packages/vscode/tests/traceability.test.ts"],
+      ["bun", "test", "packages/vscode/tests/activation/extension.test.ts"],
       [
         "node",
         "scripts/run-proof-packed-e2e.mjs",
@@ -906,6 +921,13 @@
   {
     "test_id": "TEST-vscode-traceability-coverage",
     "steps": [
+      [
+        "bun",
+        "test",
+        "packages/vscode/tests/traceability.test.ts",
+        "packages/vscode/tests/activation/treeView.test.ts",
+        "packages/vscode/tests/activation/workspace.test.ts"
+      ],
       [
         "node",
         "scripts/run-proof-packed-e2e.mjs",
@@ -926,6 +948,13 @@
   {
     "test_id": "TEST-skillopt-external-adoption-verdict",
     "steps": [
+      [
+        "bun",
+        "test",
+        "scripts/skillopt-eval/tests/adoption.test.ts",
+        "scripts/skillopt-eval/tests/adoption-exactly-once.test.ts",
+        "scripts/skillopt-eval/tests/adoption-recovery.test.ts"
+      ],
       [
         "node",
         "scripts/run-proof-packed-e2e.mjs",

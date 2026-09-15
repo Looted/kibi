@@ -21,7 +21,9 @@ describe("launch-kibi-mcp remaining package walk to filesystem root", () => {
       return original(target);
     });
     spies.push(spy);
-    expect(packageJsonForResolvedFile("/tmp/kibi-launch-missing/server.js")).toBeNull();
+    expect(
+      packageJsonForResolvedFile("/tmp/kibi-launch-missing/server.js"),
+    ).toBeNull();
     expect(nextAncestorDirectory("/")).toBeUndefined();
     expect(nextAncestorDirectory("/tmp/nested")).toBe("/tmp");
   });

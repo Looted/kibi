@@ -11,8 +11,8 @@ import {
   runRealOptimization,
 } from "../real-workflow";
 import { requireRuntime } from "../real-workflow-types";
-import { freezeCandidateVariant } from "../variants";
 import { CodexOptimizerError } from "../runtime/codex-optimizer";
+import { freezeCandidateVariant } from "../variants";
 import { CANONICAL_SKILL_ROOT } from "./fixture-test-helpers";
 
 const RUN_ID = "00000000-0000-4000-8000-000000000201";
@@ -648,7 +648,7 @@ describe("real SkillOpt workflow", () => {
       );
       expect(result.status).toBe("blocked");
       expect(result.heldOutEligibility).toBe("HELD_OUT_MATRIX_INELIGIBLE");
-      expect(written).toContain("\"status\": \"blocked\"");
+      expect(written).toContain('"status": "blocked"');
     } finally {
       await rm(root, { recursive: true, force: true });
     }

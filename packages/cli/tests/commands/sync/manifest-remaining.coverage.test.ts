@@ -55,37 +55,45 @@ describe("refreshManifestCoordinates leftover artifact and rollback branches", (
     const io = captureIo();
     restores.push(io.restore);
     let published: string | undefined;
-    await refreshManifestCoordinates("/workspace/.kb/symbols.yaml", "/workspace", {
-      readFileSync: ((target: unknown) => {
-        if (String(target).includes("symbols.yaml")) return "original";
-        throw new Error("source unreadable");
-      }) as never,
-      parseYAML: () => ({
-        symbols: [
-          { title: "no-id" },
-          entry({ id: 12 as never, title: 9 as never, sourceFile: 3 as never }),
-          entry({
-            id: "SYM-COARSE",
-            granularity_reason: "test-suite",
-            sourceFile: "src/suite.ts",
-          }),
-        ],
-      }),
-      existsSync: (target) => !String(target).includes("symbol-coordinates"),
-      enrichSymbolCoordinates: async (rows) => rows,
-      dumpYAML: () => "dumped\n",
-      writeFileSync: () => undefined,
-      renameSync: () => undefined,
-      writeCoordinateArtifact: (coords) => {
-        published = JSON.stringify(coords);
-        return "artifact\n";
+    await refreshManifestCoordinates(
+      "/workspace/.kb/symbols.yaml",
+      "/workspace",
+      {
+        readFileSync: ((target: unknown) => {
+          if (String(target).includes("symbols.yaml")) return "original";
+          throw new Error("source unreadable");
+        }) as never,
+        parseYAML: () => ({
+          symbols: [
+            { title: "no-id" },
+            entry({
+              id: 12 as never,
+              title: 9 as never,
+              sourceFile: 3 as never,
+            }),
+            entry({
+              id: "SYM-COARSE",
+              granularity_reason: "test-suite",
+              sourceFile: "src/suite.ts",
+            }),
+          ],
+        }),
+        existsSync: (target) => !String(target).includes("symbol-coordinates"),
+        enrichSymbolCoordinates: async (rows) => rows,
+        dumpYAML: () => "dumped\n",
+        writeFileSync: () => undefined,
+        renameSync: () => undefined,
+        writeCoordinateArtifact: (coords) => {
+          published = JSON.stringify(coords);
+          return "artifact\n";
+        },
+        resolveSymbolsManifestPaths: () => ({
+          symbolsPath: "/workspace/.kb/symbols.yaml",
+          coordinatesPath: "/workspace/.kb/symbol-coordinates.yaml",
+        }),
+        refreshSymbolCoordinates: true,
       },
-      resolveSymbolsManifestPaths: () => ({
-        symbolsPath: "/workspace/.kb/symbols.yaml",
-        coordinatesPath: "/workspace/.kb/symbol-coordinates.yaml",
-      }),
-      refreshSymbolCoordinates: true,
-    });
+    );
     expect(published).toBe("{}");
   });
 

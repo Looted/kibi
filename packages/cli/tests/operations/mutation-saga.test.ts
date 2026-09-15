@@ -39,9 +39,7 @@ describe("MutationSaga", () => {
       onError: "capture",
     });
     const failures = await saga.rollback();
-    expect(failures).toEqual([
-      { step: "loud", error: new Error("captured") },
-    ]);
+    expect(failures).toEqual([{ step: "loud", error: new Error("captured") }]);
   });
 
   test("rollback is a no-op after markCommitted", async () => {

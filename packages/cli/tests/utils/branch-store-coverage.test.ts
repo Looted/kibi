@@ -3,13 +3,13 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {
-  branchStoreReason,
-  inspectBranchStore,
-} from "../../src/utils/branch-store.js";
-import {
   branchStorePath,
   expectedBranchStoreManifest,
 } from "../../src/utils/branch-store-locator.js";
+import {
+  branchStoreReason,
+  inspectBranchStore,
+} from "../../src/utils/branch-store.js";
 
 function tempRoot(): string {
   return mkdtempSync(path.join(os.tmpdir(), "kibi-branch-store-cov-"));

@@ -692,8 +692,11 @@ if (RUN_NODE_TEST_SUITE) {
       it(
         "matches all stable semantic outcomes through source and packed CLI/MCP",
         { timeout: 600_000 },
-        async () => {
-          if (!hasProlog) return;
+        async (testContext) => {
+          if (!hasProlog) {
+            testContext.skip("SWI-Prolog is unavailable");
+            return;
+          }
           const sourceCli = asSourceSandbox(createSandbox());
           const packedCli = createSandbox();
           const sourceMcp = asSourceSandbox(createSandbox());

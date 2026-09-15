@@ -26,6 +26,8 @@ describe("preflight-io remaining path boundary helpers", () => {
       "path-boundary",
     );
     ensureInside(root, join(root, "nested", "lock.json"));
-    expect(parent(join(root, "nested", "lock.json"))).toBe(join(root, "nested"));
+    expect(parent(join(root, "nested", "lock.json"))).toBe(
+      join(root, "nested"),
+    );
   });
 });

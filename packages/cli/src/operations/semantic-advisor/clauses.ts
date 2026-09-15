@@ -68,11 +68,23 @@ export function extractSemanticClauses(
       "Semantic advisor clauses must contain at least one non-empty atomic claim",
     );
   }
-  return normalized.map((clause, index) => ({
-    claim_key: semanticClaimKey(clause),
-    text: clause,
-    index,
-    normative: NORMATIVE_PATTERN.test(clause),
-    source,
-  }));
+  // A repeated sentence has one logical identity. Keep the first source
+  // occurrence for its source span and provenance; retaining repeated claim
+  // keys would make the inventory impossible to persist because logic_claims
+  // is a set-like manifest and grounding is one-to-one.
+  const seen = new Set<string>();
+  return normalized.flatMap((clause, index) => {
+    const identity = clause.toLowerCase();
+    if (seen.has(identity)) return [];
+    seen.add(identity);
+    return [
+      {
+        claim_key: semanticClaimKey(clause),
+        text: clause,
+        index,
+        normative: NORMATIVE_PATTERN.test(clause),
+        source,
+      },
+    ];
+  });
 }

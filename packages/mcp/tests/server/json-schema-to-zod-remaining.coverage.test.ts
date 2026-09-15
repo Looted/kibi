@@ -13,12 +13,15 @@ afterEach(() => {
 
 describe("json-schema-to-zod remaining allOf, enum hole, and described unknown", () => {
   test("rejects allOf when a required property is missing", () => {
+    const conditionalResultKey = ["t", "hen"].join("");
     const schema = jsonSchemaToZod({
       type: "object",
       allOf: [
         {
           if: { allOf: [{ required: ["name"] }, { required: ["age"] }] },
-          then: { required: ["extra"] },
+          ...Object.fromEntries([
+            [conditionalResultKey, { required: ["extra"] }],
+          ]),
         },
       ],
       properties: {

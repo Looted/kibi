@@ -128,7 +128,9 @@ describe("ingestion-boundary remaining inventory and grounding branches", () => 
       [],
       receipt,
     ).errors;
-    expect(spanErrors.join(" ")).toContain("span must select its exact claim_text");
+    expect(spanErrors.join(" ")).toContain(
+      "span must select its exact claim_text",
+    );
 
     const propositionErrors = validateSemanticInventoryBoundary(
       payloadFor(text, [

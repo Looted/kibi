@@ -18,7 +18,10 @@ afterEach(() => {
 
 function writeSkill(rootDir: string, frontmatter: string): void {
   mkdirSync(rootDir, { recursive: true });
-  writeFileSync(path.join(rootDir, "SKILL.md"), `---\n${frontmatter}\n---\nBody\n`);
+  writeFileSync(
+    path.join(rootDir, "SKILL.md"),
+    `---\n${frontmatter}\n---\nBody\n`,
+  );
 }
 
 describe("skill-system validation remaining missing, realpath, and type branches", () => {

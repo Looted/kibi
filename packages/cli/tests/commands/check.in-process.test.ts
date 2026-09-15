@@ -114,7 +114,9 @@ Body.
       checkCommand({ staged: true, kbPath: path.join(cwd, "kb-store") }),
     );
     expect(result.exitCode).toBe(0);
-    expect(io.logText()).toMatch(/No exported symbols|No staged files|No violations/);
+    expect(io.logText()).toMatch(
+      /No exported symbols|No staged files|No violations/,
+    );
   });
 
   test("runs journaled check as json after init", async () => {
@@ -138,7 +140,10 @@ Body.
     const cwd = createGitWorkspace();
     roots.push(cwd);
     mkdirSync(path.join(cwd, ".kb", "branches", "main"), { recursive: true });
-    writeFileSync(path.join(cwd, ".kb", "branches", "main", "kb.rdf"), "legacy\n");
+    writeFileSync(
+      path.join(cwd, ".kb", "branches", "main", "kb.rdf"),
+      "legacy\n",
+    );
     const io = captureIo();
     restores.push(io.restore);
     const result = await withCwd(cwd, () => checkCommand({ staged: true }));
@@ -299,7 +304,10 @@ Login works.
     const cwd = createGitWorkspace();
     roots.push(cwd);
     mkdirSync(path.join(cwd, "src"), { recursive: true });
-    writeFileSync(path.join(cwd, "src", "greet.ts"), "export function greet() { return 1; }\n");
+    writeFileSync(
+      path.join(cwd, "src", "greet.ts"),
+      "export function greet() { return 1; }\n",
+    );
     git(cwd, "add src/greet.ts");
     const overlayDir = mkdtempSync(path.join(os.tmpdir(), "kibi-overlay-"));
     roots.push(overlayDir);
@@ -311,11 +319,14 @@ Login works.
       overlayPath,
       prolog: { query: async () => ({ success: true, bindings: {} }) } as never,
     });
-    const consult = spyOn(tempKb, "consultOverlay").mockResolvedValue(undefined);
-    const cleanup = spyOn(tempKb, "cleanupTempKb").mockResolvedValue(undefined);
-    const validate = spyOn(stagedValidate, "validateStagedSymbols").mockResolvedValue(
-      [],
+    const consult = spyOn(tempKb, "consultOverlay").mockResolvedValue(
+      undefined,
     );
+    const cleanup = spyOn(tempKb, "cleanupTempKb").mockResolvedValue(undefined);
+    const validate = spyOn(
+      stagedValidate,
+      "validateStagedSymbols",
+    ).mockResolvedValue([]);
     restores.push(() => {
       create.mockRestore();
       consult.mockRestore();
@@ -377,7 +388,9 @@ Login works.
     const project = spyOn(tempKb, "projectStagedEntities").mockResolvedValue(
       undefined,
     );
-    const consult = spyOn(tempKb, "consultOverlay").mockResolvedValue(undefined);
+    const consult = spyOn(tempKb, "consultOverlay").mockResolvedValue(
+      undefined,
+    );
     const cleanup = spyOn(tempKb, "cleanupTempKb").mockResolvedValue(undefined);
     const validate = spyOn(stagedValidate, "validateStagedSymbols")
       .mockResolvedValueOnce([
@@ -428,12 +441,14 @@ Login works.
       impact,
       "createSymbolGranularityDiagnostics",
     ).mockReturnValue([]);
-    const quality = spyOn(impact, "createSymbolQualityDiagnostics").mockReturnValue(
-      [],
-    );
-    const review = spyOn(impact, "createSemanticReviewDiagnostics").mockReturnValue(
-      [],
-    );
+    const quality = spyOn(
+      impact,
+      "createSymbolQualityDiagnostics",
+    ).mockReturnValue([]);
+    const review = spyOn(
+      impact,
+      "createSemanticReviewDiagnostics",
+    ).mockReturnValue([]);
     const collected = spyOn(
       stagedDiagnostics,
       "collectStagedKibiDiagnostics",
@@ -500,11 +515,14 @@ Login works.
       overlayPath,
       prolog: { query: async () => ({ success: true, bindings: {} }) } as never,
     });
-    const consult = spyOn(tempKb, "consultOverlay").mockResolvedValue(undefined);
-    const cleanup = spyOn(tempKb, "cleanupTempKb").mockResolvedValue(undefined);
-    const validate = spyOn(stagedValidate, "validateStagedSymbols").mockResolvedValue(
-      [],
+    const consult = spyOn(tempKb, "consultOverlay").mockResolvedValue(
+      undefined,
     );
+    const cleanup = spyOn(tempKb, "cleanupTempKb").mockResolvedValue(undefined);
+    const validate = spyOn(
+      stagedValidate,
+      "validateStagedSymbols",
+    ).mockResolvedValue([]);
     restores.push(() => {
       create.mockRestore();
       consult.mockRestore();
@@ -549,7 +567,8 @@ Login works.
     const previous = process.env.KIBI_DEBUG;
     process.env.KIBI_DEBUG = "1";
     restores.push(() => {
-      if (previous === undefined) Reflect.deleteProperty(process.env, "KIBI_DEBUG");
+      if (previous === undefined)
+        Reflect.deleteProperty(process.env, "KIBI_DEBUG");
       else process.env.KIBI_DEBUG = previous;
     });
     const cwd = createGitWorkspace();
@@ -564,7 +583,9 @@ Login works.
       checkCommand({ staged: true, kbPath: path.join(cwd, "kb-store") }),
     );
     expect(result.exitCode).toBe(0);
-    expect(io.logText() + io.errorText()).toMatch(/skipping working-tree manifest|No exported symbols|No staged files|No violations/);
+    expect(io.logText() + io.errorText()).toMatch(
+      /skipping working-tree manifest|No exported symbols|No staged files|No violations/,
+    );
   });
 
   test("uses a staged symbols manifest with implements, covered_by, and a missing entity id", async () => {
@@ -613,11 +634,14 @@ Login works.
     const project = spyOn(tempKb, "projectStagedEntities").mockResolvedValue(
       undefined,
     );
-    const consult = spyOn(tempKb, "consultOverlay").mockResolvedValue(undefined);
-    const cleanup = spyOn(tempKb, "cleanupTempKb").mockResolvedValue(undefined);
-    const validate = spyOn(stagedValidate, "validateStagedSymbols").mockResolvedValue(
-      [],
+    const consult = spyOn(tempKb, "consultOverlay").mockResolvedValue(
+      undefined,
     );
+    const cleanup = spyOn(tempKb, "cleanupTempKb").mockResolvedValue(undefined);
+    const validate = spyOn(
+      stagedValidate,
+      "validateStagedSymbols",
+    ).mockResolvedValue([]);
     restores.push(() => {
       create.mockRestore();
       project.mockRestore();
@@ -645,11 +669,12 @@ Login works.
     );
     git(cwd, "add src/broken.ts");
     const extract = await import("../../src/traceability/symbol-extract.js");
-    const extractSpy = spyOn(extract, "extractSymbolsFromStagedFile").mockImplementation(
-      () => {
-        throw new Error("parse exploded");
-      },
-    );
+    const extractSpy = spyOn(
+      extract,
+      "extractSymbolsFromStagedFile",
+    ).mockImplementation(() => {
+      throw new Error("parse exploded");
+    });
     const cleanup = spyOn(tempKb, "cleanupTempKb").mockRejectedValue(
       new Error("already gone"),
     );

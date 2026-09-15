@@ -2,17 +2,22 @@
  * Regular (non-query-string) imports for VS Code providers so Bun LCOV records
  * hits that query-string test modules miss.
  */
-import { afterAll, afterEach, describe, expect, mock, spyOn, test } from "bun:test";
+import {
+  afterAll,
+  afterEach,
+  describe,
+  expect,
+  mock,
+  spyOn,
+  test,
+} from "bun:test";
 import * as childProcess from "node:child_process";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { parseRdfRelationships } from "../src/shared/rdf-parser";
 import { buildIndex, queryRelationshipsViaCli } from "../src/symbolIndex";
-import {
-  getVscodeMockModule,
-  resetVscodeMock,
-} from "./shared/vscode-mock";
+import { getVscodeMockModule, resetVscodeMock } from "./shared/vscode-mock";
 
 resetVscodeMock();
 mock.module("vscode", () => getVscodeMockModule());
@@ -107,11 +112,12 @@ describe("VS Code provider LCOV imports", () => {
     );
     expect(lenses?.length).toBe(1);
     if (!lenses?.[0]) throw new Error("expected lens");
-    const resolved = await provider.resolveCodeLens(
-      lenses[0],
-      { isCancellationRequested: false } as never,
-    );
-    expect(resolved!.command?.command).toBe("kibi.browseLinkedEntities");
+    const resolved = await provider.resolveCodeLens(lenses[0], {
+      isCancellationRequested: false,
+    } as never);
+    expect(resolved).toBeDefined();
+    if (!resolved) throw new Error("expected resolved code lens");
+    expect(resolved.command?.command).toBe("kibi.browseLinkedEntities");
     const cancelledResolve = await provider.resolveCodeLens(lenses[0], {
       isCancellationRequested: true,
     } as never);
@@ -164,7 +170,11 @@ describe("VS Code provider LCOV imports", () => {
           ]);
         }
         if (command.includes("FACT-X")) throw new Error("nope");
-        return JSON.stringify({ id: "SYM-BETA", title: "beta", status: "open" });
+        return JSON.stringify({
+          id: "SYM-BETA",
+          title: "beta",
+          status: "open",
+        });
       },
     });
     const hover = await provider.provideHover(
@@ -244,16 +254,16 @@ describe("VS Code provider LCOV imports", () => {
 
 describe("coverage gaps: symbolIndex CLI query and RDF parser", () => {
   test("queryRelationshipsViaCli tries both candidates and parses JSON", () => {
-    const execSpy = spyOn(childProcess, "execSync").mockImplementation(
-      ((cmd: string) => {
-        if (String(cmd).startsWith("kibi query")) {
-          throw new Error("kibi missing");
-        }
-        return JSON.stringify([
-          { type: "implements", from: "SYM-1", to: "REQ-1" },
-        ]);
-      }) as typeof childProcess.execSync,
-    );
+    const execSpy = spyOn(childProcess, "execSync").mockImplementation(((
+      cmd: string,
+    ) => {
+      if (String(cmd).startsWith("kibi query")) {
+        throw new Error("kibi missing");
+      }
+      return JSON.stringify([
+        { type: "implements", from: "SYM-1", to: "REQ-1" },
+      ]);
+    }) as typeof childProcess.execSync);
     const parsed = queryRelationshipsViaCli("SYM-1", os.tmpdir());
     const intercepted = execSpy.mock.calls.length > 0;
     execSpy.mockRestore();

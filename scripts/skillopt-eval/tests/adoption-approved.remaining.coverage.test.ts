@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
-import { AdoptionTransactionError } from "../adoption-types";
-import { defaultRunMirrorSync } from "../adoption-approved";
 import * as skills from "../../sync-agent-skills";
+import { defaultRunMirrorSync } from "../adoption-approved";
+import { AdoptionTransactionError } from "../adoption-types";
 
 const spies: Array<{ mockRestore: () => void }> = [];
 
@@ -18,8 +18,8 @@ describe("adoption-approved remaining mirror-sync wrapping", () => {
       },
     );
     spies.push(spy);
-    await expect(defaultRunMirrorSync("/tmp/missing-skillopt-repo")).rejects.toBeInstanceOf(
-      AdoptionTransactionError,
-    );
+    await expect(
+      defaultRunMirrorSync("/tmp/missing-skillopt-repo"),
+    ).rejects.toBeInstanceOf(AdoptionTransactionError);
   });
 });

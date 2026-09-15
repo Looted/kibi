@@ -3,13 +3,15 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const processImpl = { run: async (_options: unknown) => ({
-  argv: ["uv"],
-  stdout: "",
-  stderr: "",
-  exitCode: 0,
-  signal: null,
-}) };
+const processImpl = {
+  run: async (_options: unknown) => ({
+    argv: ["uv"],
+    stdout: "",
+    stderr: "",
+    exitCode: 0,
+    signal: null,
+  }),
+};
 
 mock.module("../runtime/process", () => ({
   runBoundedProcess: (options: unknown) => processImpl.run(options),
@@ -188,9 +190,9 @@ describe("training-setup default implementations", () => {
     processImpl.run = async () => {
       throw new Error("process_timeout:uv");
     };
-    await expect(defaultTrain(trainingInput(artifactRoot))).rejects.toBeInstanceOf(
-      EvaluationInfrastructureError,
-    );
+    await expect(
+      defaultTrain(trainingInput(artifactRoot)),
+    ).rejects.toBeInstanceOf(EvaluationInfrastructureError);
 
     processImpl.run = async () => ({
       argv: ["uv"],
@@ -208,9 +210,9 @@ describe("training-setup default implementations", () => {
       exitCode: 3,
       signal: null,
     });
-    await expect(defaultTrain(trainingInput(artifactRoot))).rejects.toBeInstanceOf(
-      EvaluationInfrastructureError,
-    );
+    await expect(
+      defaultTrain(trainingInput(artifactRoot)),
+    ).rejects.toBeInstanceOf(EvaluationInfrastructureError);
   });
 
   test("defaultEvaluateDevelopment aggregates cell scores", async () => {
@@ -331,8 +333,13 @@ describe("training-setup default implementations", () => {
       new Error("process_timeout:uv"),
       "/tmp/err.log",
     );
-    expect(timeout.details.criticalFailures).toContain("trainer-process-timeout");
-    const other = trainerProcessThrownInfrastructureError("boom", "/tmp/err.log");
+    expect(timeout.details.criticalFailures).toContain(
+      "trainer-process-timeout",
+    );
+    const other = trainerProcessThrownInfrastructureError(
+      "boom",
+      "/tmp/err.log",
+    );
     expect(other.details.criticalFailures).toContain("trainer-process-error");
     expect(
       trainerProcessInfrastructureError(

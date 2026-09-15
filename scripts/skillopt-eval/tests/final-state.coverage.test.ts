@@ -52,7 +52,10 @@ describe("decodeFinalStatePredicateSnapshot remaining parse and normalize branch
       EvidenceBindingError,
     );
     expect(() =>
-      decodeFinalStatePredicateSnapshot(JSON.stringify({ nope: true }), binding),
+      decodeFinalStatePredicateSnapshot(
+        JSON.stringify({ nope: true }),
+        binding,
+      ),
     ).toThrow(EvidenceBindingError);
     expect(() =>
       decodeFinalStatePredicateSnapshot(

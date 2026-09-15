@@ -64,7 +64,9 @@ describe("staged Codex runtime", () => {
   });
 
   test("fails closed when the installed code-mode host is missing", async () => {
-    const root = await mkdtemp(join(tmpdir(), "skillopt-runtime-missing-host-"));
+    const root = await mkdtemp(
+      join(tmpdir(), "skillopt-runtime-missing-host-"),
+    );
     roots.push(root);
     const source = await fakeExecutables(root);
     await rm(source.codeModeHost);

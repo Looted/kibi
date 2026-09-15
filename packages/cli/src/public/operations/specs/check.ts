@@ -1,8 +1,8 @@
 import { executeCheck } from "../check-executor.js";
 import type { OperationSpec } from "../types.js";
 import {
-  SELECTABLE_RULE_NAMES,
   SELECTABLE_RULES_ALLOWED,
+  SELECTABLE_RULE_NAMES,
 } from "./check-rules.generated.js";
 
 export const checkSpec = {

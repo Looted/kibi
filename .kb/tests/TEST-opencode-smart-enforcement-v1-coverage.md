@@ -10,8 +10,8 @@ links:
     target: REQ-opencode-smart-enforcement-v1
   - type: validates
     target: SCEN-opencode-smart-enforcement-v1-coverage
-verification_scope: end_to_end
-verification_perspective: consumer
+verification_scope: unit
+verification_perspective: internal
 proof_contract:
   version: kibi.proof-contract.v1
   integration: self-proof

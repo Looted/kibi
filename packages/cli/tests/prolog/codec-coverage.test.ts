@@ -83,7 +83,9 @@ describe("prolog codec leftover branches", () => {
     expect(parsePrologValue(`^^("false", '${xsd}#boolean')`)).toBe(false);
     expect(parsePrologValue(`^^([], '${xsd}#string')`)).toEqual([]);
     expect(parsePrologValue(`^^([a,b], '${xsd}#string')`)).toEqual(["a", "b"]);
-    expect(parsePrologValue(`^^("unquoted", '${xsd}#string')`)).toBe("unquoted");
+    expect(parsePrologValue(`^^("unquoted", '${xsd}#string')`)).toBe(
+      "unquoted",
+    );
   });
 
   test("split helpers honor quotes, escapes, and leftover current", () => {
@@ -107,7 +109,10 @@ describe("prolog codec leftover branches", () => {
     expect(parseAtomList("[ ]")).toEqual([]);
     expect(parseAtomList("['a',\"b\",,]")).toEqual(["a", "b"]);
     expect(parseAtomList("a,b")).toEqual(["a", "b"]);
-    expect(parseAtomList("['quoted',\"double\"]")).toEqual(["quoted", "double"]);
+    expect(parseAtomList("['quoted',\"double\"]")).toEqual([
+      "quoted",
+      "double",
+    ]);
     expect(parsePairList("")).toEqual([]);
     expect(parsePairList("[]")).toEqual([]);
     expect(parsePairList("[[a],[b,c]]")).toEqual([["b", "c"]]);

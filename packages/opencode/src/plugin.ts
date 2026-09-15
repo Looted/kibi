@@ -41,13 +41,6 @@ import {
   KibiCheckpointRunner,
 } from "./kibi-checkpoint-runner.js";
 import * as logger from "./logger.js";
-import type { SmartEnforcementState } from "./smart-enforcement-events.js";
-import {
-  type KibiEventEnv,
-  handleFileLifecycleEvent,
-  handleKbToolEvent,
-  isKbToolEventType,
-} from "./smart-enforcement-events.js";
 import { classifyMeaningfulChange } from "./meaningful-change-classifier.js";
 import { type PathKind, analyzePath } from "./path-kind.js";
 import { runPluginStartup } from "./plugin-startup.js";
@@ -61,6 +54,13 @@ import {
   createSessionEditState,
 } from "./session-edit-state.js";
 import { type WarningCategory, getSessionTracker } from "./session-tracker.js";
+import type { SmartEnforcementState } from "./smart-enforcement-events.js";
+import {
+  type KibiEventEnv,
+  handleFileLifecycleEvent,
+  handleKbToolEvent,
+  isKbToolEventType,
+} from "./smart-enforcement-events.js";
 import {
   type StartupNotifierClient,
   notifyStartup,
@@ -541,11 +541,13 @@ const kibiOpencodePlugin: Plugin = async (
     sessionEdits: SessionEditEntry[],
     scopedPathKindCache: Map<string, PathKind>,
   ): RecentEdit[] {
-    enforcementState.recentEdits = sessionEdits.slice(-MAX_RECENT_EDITS).map((entry) => ({
-      path: entry.filePath,
-      kind: scopedPathKindCache.get(entry.filePath) ?? "unknown",
-      timestamp: entry.lastReconciledAt,
-    }));
+    enforcementState.recentEdits = sessionEdits
+      .slice(-MAX_RECENT_EDITS)
+      .map((entry) => ({
+        path: entry.filePath,
+        kind: scopedPathKindCache.get(entry.filePath) ?? "unknown",
+        timestamp: entry.lastReconciledAt,
+      }));
     return enforcementState.recentEdits;
   }
 
@@ -597,7 +599,10 @@ const kibiOpencodePlugin: Plugin = async (
       pathAnalysis.kind === "code" ? precomputedSuggestion : null;
     enforcementState.lastRiskClass = effectiveRiskClass;
     enforcementState.lastRiskFilePath = normalizedFilePath;
-    enforcementState.lastRiskScopeKey = buildRiskPathScopeKey(context, normalizedFilePath);
+    enforcementState.lastRiskScopeKey = buildRiskPathScopeKey(
+      context,
+      normalizedFilePath,
+    );
     return {
       effectiveRiskClass,
       pathAnalysis,
@@ -712,12 +717,14 @@ const kibiOpencodePlugin: Plugin = async (
           ? buildRiskPathScopeKey(promptWorkContext, riskContextFilePath)
           : null;
         let effectiveRiskClass: RiskClass | null =
-          riskScopeKey !== null && enforcementState.lastRiskScopeKey === riskScopeKey
+          riskScopeKey !== null &&
+          enforcementState.lastRiskScopeKey === riskScopeKey
             ? enforcementState.lastRiskClass
             : null;
         if (
           riskContextFilePath &&
-          (enforcementState.lastRiskClass === null || enforcementState.lastRiskScopeKey !== riskScopeKey)
+          (enforcementState.lastRiskClass === null ||
+            enforcementState.lastRiskScopeKey !== riskScopeKey)
         ) {
           const riskCtx = deriveRiskContext(
             promptWorkContext,
@@ -730,7 +737,10 @@ const kibiOpencodePlugin: Plugin = async (
             riskCtx.precomputedSuggestion,
           );
         }
-        if (effectiveRiskClass === null && enforcementState.lastRiskClass !== null) {
+        if (
+          effectiveRiskClass === null &&
+          enforcementState.lastRiskClass !== null
+        ) {
           effectiveRiskClass = enforcementState.lastRiskClass;
         }
 

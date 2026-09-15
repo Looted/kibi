@@ -125,6 +125,8 @@ export function fallbackWhenPairMissing<T>(
   return pair === undefined ? fallback : null;
 }
 
+// implements REQ-core-persistence
+// covered_by TEST-cli-prolog-codec
 export function typedLiteralFromParts(
   parts: readonly (string | undefined)[],
   original: string,
@@ -139,7 +141,23 @@ export function typedLiteralFromParts(
   const datatype = datatypePart.trim();
 
   if (literalValue.startsWith('"') && literalValue.endsWith('"')) {
-    literalValue = literalValue.substring(1, literalValue.length - 1);
+    // Prolog prints typed string literals with the same escape layer used by
+    // JSON (for example, a stored backslash-n is written as `\\\\n`). Decode
+    // the complete quoted token before applying datatype-specific handling;
+    // stripping only the delimiters leaks that transport escaping into the
+    // entity returned by loadEntities.
+    try {
+      const decoded = JSON.parse(literalValue) as unknown;
+      if (typeof decoded === "string") {
+        literalValue = decoded;
+      } else {
+        literalValue = literalValue.substring(1, literalValue.length - 1);
+      }
+    } catch {
+      // Keep the previous tolerant behavior for non-JSON Prolog string
+      // escapes. Schema validation can report malformed values downstream.
+      literalValue = literalValue.substring(1, literalValue.length - 1);
+    }
   }
 
   if (datatype.includes("#integer")) {

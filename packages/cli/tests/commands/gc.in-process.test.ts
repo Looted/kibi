@@ -72,9 +72,9 @@ describe("gcCommand", () => {
       "branches",
       branchStoreKey("old-branch"),
     );
-    expect(await import("node:fs").then((fs) => fs.existsSync(quarantine))).toBe(
-      true,
-    );
+    expect(
+      await import("node:fs").then((fs) => fs.existsSync(quarantine)),
+    ).toBe(true);
 
     writeFileSync(path.join(quarantine, "not-a-dir"), "file\n");
     await withCwd(cwd, () => gcCommand({ purge: true, retentionDays: 0 }));
@@ -105,13 +105,7 @@ describe("gcCommand", () => {
     restores.push(restoreEnv);
     const cwd = createGitWorkspace("keep-branch");
     roots.push(cwd);
-    const keyRoot = path.join(
-      cwd,
-      ".kb",
-      "quarantine",
-      "branches",
-      "deadbeef",
-    );
+    const keyRoot = path.join(cwd, ".kb", "quarantine", "branches", "deadbeef");
     const candidate = path.join(keyRoot, "2020-01-01T00-00-00.000Z");
     mkdirSync(candidate, { recursive: true });
     writeFileSync(path.join(candidate, "quarantine.json"), "{not json", "utf8");

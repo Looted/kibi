@@ -56,11 +56,20 @@ describe("symbols-ts leftover analysis and enrichment", () => {
     expect(ts.language).toBe("typescript");
     expect(ts.module.title).toBe("widget");
 
-    const js = provider.analyzeText("src/legacy.js", "export function jsFn() {}");
+    const js = provider.analyzeText(
+      "src/legacy.js",
+      "export function jsFn() {}",
+    );
     expect(js.language).toBe("javascript");
-    const tsx = provider.analyzeText("src/view.tsx", "export function View() { return null; }");
+    const tsx = provider.analyzeText(
+      "src/view.tsx",
+      "export function View() { return null; }",
+    );
     expect(tsx.symbols.some((symbol) => symbol.name === "View")).toBe(true);
-    const mts = provider.analyzeText("src/mod.mts", "export function mtsFn() {}");
+    const mts = provider.analyzeText(
+      "src/mod.mts",
+      "export function mtsFn() {}",
+    );
     expect(mts.language).toBe("typescript");
     const emptyName = provider.analyzeText(".ts", "export function x() {}");
     expect(emptyName.module.title.length).toBeGreaterThan(0);
@@ -95,11 +104,21 @@ describe("symbols-ts leftover analysis and enrichment", () => {
       root,
     );
     expect(enriched.find((entry) => entry.id === "SYM-1")?.sourceLine).toBe(2);
-    expect(enriched.find((entry) => entry.id === "SYM-2")?.sourceLine).toBeDefined();
-    expect(enriched.find((entry) => entry.id === "SYM-9")?.sourceLine).toBeDefined();
-    expect(enriched.find((entry) => entry.id === "SYM-13")?.sourceLine).toBeUndefined();
-    expect(enriched.find((entry) => entry.id === "SYM-14")?.sourceLine).toBeUndefined();
-    expect(enriched.find((entry) => entry.id === "SYM-15")?.sourceLine).toBeUndefined();
+    expect(
+      enriched.find((entry) => entry.id === "SYM-2")?.sourceLine,
+    ).toBeDefined();
+    expect(
+      enriched.find((entry) => entry.id === "SYM-9")?.sourceLine,
+    ).toBeDefined();
+    expect(
+      enriched.find((entry) => entry.id === "SYM-13")?.sourceLine,
+    ).toBeUndefined();
+    expect(
+      enriched.find((entry) => entry.id === "SYM-14")?.sourceLine,
+    ).toBeUndefined();
+    expect(
+      enriched.find((entry) => entry.id === "SYM-15")?.sourceLine,
+    ).toBeUndefined();
 
     const fallbackRoot = mkdtempSync(path.join(tmpdir(), "kibi-symbols-fb-"));
     roots.push(fallbackRoot);
@@ -110,8 +129,8 @@ describe("symbols-ts leftover analysis and enrichment", () => {
       [{ id: "SYM-FB", title: "exportedFn", sourceFile: "src/odd.ts" }],
       fallbackRoot,
     );
-    expect(fallback[0]?.sourceLine === 1 || fallback[0]?.sourceLine === undefined).toBe(
-      true,
-    );
+    expect(
+      fallback[0]?.sourceLine === 1 || fallback[0]?.sourceLine === undefined,
+    ).toBe(true);
   });
 });

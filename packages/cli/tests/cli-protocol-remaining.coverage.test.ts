@@ -47,7 +47,10 @@ function stubSpec(execute: () => Promise<unknown>, outputSchema?: object) {
 
 describe("executeOperation leftover protocol and error branches", () => {
   test("treats an uncompilable output schema as protocol invalid", async () => {
-    stubSpec(async () => ({ ok: true }), { type: "not-a-real-json-schema", $id: true });
+    stubSpec(async () => ({ ok: true }), {
+      type: "not-a-real-json-schema",
+      $id: true,
+    });
     const result = await executeOperation("kb_status", {}, createContext());
     expect(result.exitCode).toBeGreaterThan(0);
     expect(result.stderr ?? "").toMatch(

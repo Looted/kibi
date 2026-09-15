@@ -339,9 +339,9 @@ describe("verification harness remaining boundary and CLI paths", () => {
       fixture.preflightReceipt,
       JSON.stringify(receipt({ status: "no-go", code: "PREFLIGHT_NO_GO" })),
     );
-    await expect(runVerificationHarness(options(fixture))).rejects.toMatchObject(
-      { check: "preflight-not-qualified" },
-    );
+    await expect(
+      runVerificationHarness(options(fixture)),
+    ).rejects.toMatchObject({ check: "preflight-not-qualified" });
 
     await writeFile(fixture.preflightReceipt, qualified);
     const parsedParent = JSON.parse(parent);
@@ -349,7 +349,9 @@ describe("verification harness remaining boundary and CLI paths", () => {
       fixture.verificationParent,
       JSON.stringify({ ...parsedParent, sourceRoot: "0".repeat(64) }),
     );
-    await expect(runVerificationHarness(options(fixture))).rejects.toMatchObject({
+    await expect(
+      runVerificationHarness(options(fixture)),
+    ).rejects.toMatchObject({
       check: "source-root-mismatch",
     });
 
@@ -357,7 +359,9 @@ describe("verification harness remaining boundary and CLI paths", () => {
       fixture.verificationParent,
       JSON.stringify({ ...parsedParent, invocationHash: "0".repeat(64) }),
     );
-    await expect(runVerificationHarness(options(fixture))).rejects.toMatchObject({
+    await expect(
+      runVerificationHarness(options(fixture)),
+    ).rejects.toMatchObject({
       check: "invocation_binding_mismatch",
     });
 
@@ -368,7 +372,9 @@ describe("verification harness remaining boundary and CLI paths", () => {
         matrixId: "00000000-0000-4000-8000-000000000099",
       }),
     );
-    await expect(runVerificationHarness(options(fixture))).rejects.toMatchObject({
+    await expect(
+      runVerificationHarness(options(fixture)),
+    ).rejects.toMatchObject({
       check: "matrix_binding_mismatch",
     });
   }, 30_000);
@@ -376,9 +382,9 @@ describe("verification harness remaining boundary and CLI paths", () => {
   test("rejects a target path that exists but is not a directory", async () => {
     const fixture = await createFixture();
     await writeFile(fixture.targetRoot, "not-a-directory\n");
-    await expect(runVerificationHarness(options(fixture))).rejects.toMatchObject(
-      { check: "target-root-directory" },
-    );
+    await expect(
+      runVerificationHarness(options(fixture)),
+    ).rejects.toMatchObject({ check: "target-root-directory" });
   }, 30_000);
 
   test("maps CLI, harness, preflight, and contract errors to exit code 2", async () => {
@@ -398,7 +404,10 @@ describe("verification harness remaining boundary and CLI paths", () => {
 
       const missing = harnessArgv(fixture);
       const preflightIndex = missing.indexOf("--preflight-receipt");
-      missing[preflightIndex + 1] = join(fixture.root, "missing-preflight.json");
+      missing[preflightIndex + 1] = join(
+        fixture.root,
+        "missing-preflight.json",
+      );
       expect(await verifyHarnessMain(missing, fixture.sourceRoot)).toBe(2);
       expect(io.stderr.join("")).toContain("lock-missing");
 

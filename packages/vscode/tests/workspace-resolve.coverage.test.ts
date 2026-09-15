@@ -32,7 +32,9 @@ describe("vscode workspace resolution branches", () => {
     expect(workspaceModule.resolveWorkspaceRoot(output as never)).toBe(
       "/workspace",
     );
-    expect(workspaceModule.getWorkspaceFolderUri("/workspace")).toBe(folder.uri);
+    expect(workspaceModule.getWorkspaceFolderUri("/workspace")).toBe(
+      folder.uri,
+    );
   });
 
   test("falls back to KIBI_WORKSPACE_ROOT when the manifest exists", () => {
@@ -54,15 +56,21 @@ describe("vscode workspace resolution branches", () => {
     const vscode = getVscodeMockModule();
     vscode.workspace.workspaceFolders = undefined;
     process.env.KIBI_WORKSPACE_ROOT = "/tmp/kibi-missing-ws";
-    expect(workspaceModule.resolveWorkspaceRoot(output as never)).toBeUndefined();
-    expect(lines.some((line) => line.includes("missing .kb/manifest.json"))).toBe(
-      true,
-    );
+    expect(
+      workspaceModule.resolveWorkspaceRoot(output as never),
+    ).toBeUndefined();
+    expect(
+      lines.some((line) => line.includes("missing .kb/manifest.json")),
+    ).toBe(true);
 
     Reflect.deleteProperty(process.env, "KIBI_WORKSPACE_ROOT");
     lines.length = 0;
-    expect(workspaceModule.resolveWorkspaceRoot(output as never)).toBeUndefined();
-    expect(lines.some((line) => line.includes("activation skipped"))).toBe(true);
+    expect(
+      workspaceModule.resolveWorkspaceRoot(output as never),
+    ).toBeUndefined();
+    expect(lines.some((line) => line.includes("activation skipped"))).toBe(
+      true,
+    );
   });
 
   test("test fs overrides and file URI fallback", () => {
@@ -70,7 +78,9 @@ describe("vscode workspace resolution branches", () => {
     const vscode = getVscodeMockModule();
     vscode.workspace.workspaceFolders = undefined;
     process.env.KIBI_WORKSPACE_ROOT = "/tmp/anywhere";
-    expect(workspaceModule.resolveWorkspaceRoot(output as never)).toBeUndefined();
+    expect(
+      workspaceModule.resolveWorkspaceRoot(output as never),
+    ).toBeUndefined();
     workspaceModule._setWorkspaceFsDepsForTests({});
     expect(workspaceModule.getWorkspaceFolderUri("/tmp/orphan").fsPath).toBe(
       "/tmp/orphan",

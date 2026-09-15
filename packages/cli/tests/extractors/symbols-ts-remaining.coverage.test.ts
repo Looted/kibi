@@ -1,7 +1,7 @@
 // implements REQ-001
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
-import * as fsPromises from "node:fs/promises";
 import { mkdirSync, writeFileSync } from "node:fs";
+import * as fsPromises from "node:fs/promises";
 import path from "node:path";
 import { Project } from "ts-morph";
 import {
@@ -30,9 +30,15 @@ describe("symbols-ts leftover script kinds, fallback, and fail-closed matches", 
     const provider = createTsMorphSourceAnalysisProvider();
     expect(provider.supportsFile("src/a.cts")).toBe(true);
     expect(provider.supportsFile("src/a.cjs")).toBe(true);
-    const cts = provider.analyzeText("src/mod.cts", "export function ctsFn() {}");
+    const cts = provider.analyzeText(
+      "src/mod.cts",
+      "export function ctsFn() {}",
+    );
     expect(cts.language).toBe("typescript");
-    const cjs = provider.analyzeText("src/mod.cjs", "export function cjsFn() {}");
+    const cjs = provider.analyzeText(
+      "src/mod.cjs",
+      "export function cjsFn() {}",
+    );
     expect(cjs.language).toBe("javascript");
     const anon = provider.analyzeText(
       "src/anon.ts",
@@ -47,12 +53,16 @@ describe("symbols-ts leftover script kinds, fallback, and fail-closed matches", 
     const root = createTempDir("kibi-symbols-fb-");
     roots.push(root);
     mkdirSync(path.join(root, "src"), { recursive: true });
-    writeFileSync(path.join(root, "src", "widget.ts"), "export function exportedFn() {}\n");
-    const add = spyOn(Project.prototype, "addSourceFileAtPath").mockImplementation(
-      () => {
-        throw new Error("parse denied");
-      },
+    writeFileSync(
+      path.join(root, "src", "widget.ts"),
+      "export function exportedFn() {}\n",
     );
+    const add = spyOn(
+      Project.prototype,
+      "addSourceFileAtPath",
+    ).mockImplementation(() => {
+      throw new Error("parse denied");
+    });
     restores.push(() => add.mockRestore());
     const enriched = await enrichSymbolCoordinatesWithTsMorph(
       [
@@ -91,10 +101,18 @@ export function special$name() {}
       ],
       root,
     );
-    expect(enriched.find((row) => row.id === "SYM-DUP")?.sourceLine).toBeUndefined();
-    expect(enriched.find((row) => row.id === "SYM-RUN")?.sourceLine).toBeUndefined();
-    expect(enriched.find((row) => row.id === "SYM-SPEC")?.sourceLine).toBeDefined();
-    expect(enriched.find((row) => row.id === "SYM-DOT")?.sourceLine).toBeUndefined();
+    expect(
+      enriched.find((row) => row.id === "SYM-DUP")?.sourceLine,
+    ).toBeUndefined();
+    expect(
+      enriched.find((row) => row.id === "SYM-RUN")?.sourceLine,
+    ).toBeUndefined();
+    expect(
+      enriched.find((row) => row.id === "SYM-SPEC")?.sourceLine,
+    ).toBeDefined();
+    expect(
+      enriched.find((row) => row.id === "SYM-DOT")?.sourceLine,
+    ).toBeUndefined();
   });
 
   test("warns and falls back when coordinate enrichment throws", async () => {
@@ -103,28 +121,34 @@ export function special$name() {}
     const root = createTempDir("kibi-symbols-throw-");
     roots.push(root);
     mkdirSync(path.join(root, "src"), { recursive: true });
-    writeFileSync(path.join(root, "src", "widget.ts"), "export function exportedFn() {}\n");
+    writeFileSync(
+      path.join(root, "src", "widget.ts"),
+      "export function exportedFn() {}\n",
+    );
     const io = {
       warns: [] as string[],
     };
-    const warn = spyOn(console, "warn").mockImplementation((...args: unknown[]) => {
-      io.warns.push(String(args[0]));
-    });
-    restores.push(() => warn.mockRestore());
-    const line = spyOn(Project.prototype, "addSourceFileAtPath").mockImplementation(
-      function (this: Project, filePath: string) {
-        const sf = Project.prototype.createSourceFile.call(
-          this,
-          filePath,
-          "export function exportedFn() {}",
-          { overwrite: true },
-        );
-        spyOn(sf, "getLineAndColumnAtPos").mockImplementation(() => {
-          throw new Error("span denied");
-        });
-        return sf;
+    const warn = spyOn(console, "warn").mockImplementation(
+      (...args: unknown[]) => {
+        io.warns.push(String(args[0]));
       },
     );
+    restores.push(() => warn.mockRestore());
+    const line = spyOn(
+      Project.prototype,
+      "addSourceFileAtPath",
+    ).mockImplementation(function (this: Project, filePath: string) {
+      const sf = Project.prototype.createSourceFile.call(
+        this,
+        filePath,
+        "export function exportedFn() {}",
+        { overwrite: true },
+      );
+      spyOn(sf, "getLineAndColumnAtPos").mockImplementation(() => {
+        throw new Error("span denied");
+      });
+      return sf;
+    });
     restores.push(() => line.mockRestore());
     const enriched = await enrichSymbolCoordinatesWithTsMorph(
       [{ id: "SYM-1", title: "exportedFn", sourceFile: "src/widget.ts" }],
@@ -152,20 +176,21 @@ export function special$name() {}
       if (accessCalls >= 2) throw new Error("vanished");
     });
     restores.push(() => access.mockRestore());
-    const line = spyOn(Project.prototype, "addSourceFileAtPath").mockImplementation(
-      function (this: Project, filePath: string) {
-        const sf = Project.prototype.createSourceFile.call(
-          this,
-          filePath,
-          "export function exportedFn() {}",
-          { overwrite: true },
-        );
-        spyOn(sf, "getLineAndColumnAtPos").mockImplementation(() => {
-          throw new Error("span denied");
-        });
-        return sf;
-      },
-    );
+    const line = spyOn(
+      Project.prototype,
+      "addSourceFileAtPath",
+    ).mockImplementation(function (this: Project, filePath: string) {
+      const sf = Project.prototype.createSourceFile.call(
+        this,
+        filePath,
+        "export function exportedFn() {}",
+        { overwrite: true },
+      );
+      spyOn(sf, "getLineAndColumnAtPos").mockImplementation(() => {
+        throw new Error("span denied");
+      });
+      return sf;
+    });
     restores.push(() => line.mockRestore());
     const enriched = await enrichSymbolCoordinatesWithTsMorph(
       [{ id: "SYM-1", title: "exportedFn", sourceFile: "src/widget.ts" }],
@@ -188,14 +213,21 @@ export function special$name() {}
       path.join(root, "src", "widget.ts"),
       "export function exportedFn() {}\n",
     );
-    const add = spyOn(Project.prototype, "addSourceFileAtPath").mockImplementation(
-      () => {
-        throw new Error("parse denied");
-      },
-    );
+    const add = spyOn(
+      Project.prototype,
+      "addSourceFileAtPath",
+    ).mockImplementation(() => {
+      throw new Error("parse denied");
+    });
     restores.push(() => add.mockRestore());
     const enriched = await enrichSymbolCoordinatesWithTsMorph(
-      [{ id: "SYM-MISS", title: "noSuchTokenXYZ", sourceFile: "src/widget.ts" }],
+      [
+        {
+          id: "SYM-MISS",
+          title: "noSuchTokenXYZ",
+          sourceFile: "src/widget.ts",
+        },
+      ],
       root,
     );
     expect(enriched[0]?.title).toBe("noSuchTokenXYZ");
@@ -231,9 +263,17 @@ export class Only { run() {} value = 1; get label() { return 1 } }
       ],
       root,
     );
-    expect(enriched.find((row) => row.id === "SYM-INT")?.sourceLine).toBeDefined();
-    expect(enriched.find((row) => row.id === "SYM-RUN")?.sourceLine).toBeDefined();
-    expect(enriched.find((row) => row.id === "SYM-VAL")?.sourceLine).toBeDefined();
-    expect(enriched.find((row) => row.id === "SYM-LAB")?.sourceLine).toBeDefined();
+    expect(
+      enriched.find((row) => row.id === "SYM-INT")?.sourceLine,
+    ).toBeDefined();
+    expect(
+      enriched.find((row) => row.id === "SYM-RUN")?.sourceLine,
+    ).toBeDefined();
+    expect(
+      enriched.find((row) => row.id === "SYM-VAL")?.sourceLine,
+    ).toBeDefined();
+    expect(
+      enriched.find((row) => row.id === "SYM-LAB")?.sourceLine,
+    ).toBeDefined();
   });
 });

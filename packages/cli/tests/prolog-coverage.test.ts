@@ -178,7 +178,11 @@ describe("PrologProcess leftover interactive and translation paths", () => {
     const proto = Object.getPrototypeOf(prolog) as {
       translateError(text: string): string;
       extractBindings(output: string): Record<string, string>;
-      addDiagnosticStage(message: string, goal: string, diagnostics: string): string;
+      addDiagnosticStage(
+        message: string,
+        goal: string,
+        diagnostics: string,
+      ): string;
     };
     expect(proto.translateError.call(prolog, "stale_snapshot")).toContain(
       "stale_snapshot",
@@ -282,4 +286,3 @@ describe("PrologProcess leftover interactive and translation paths", () => {
     await prolog.terminate();
   });
 });
-

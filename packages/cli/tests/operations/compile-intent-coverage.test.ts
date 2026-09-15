@@ -158,7 +158,9 @@ describe("compile-intent validation and source planning", () => {
       )
     ).structuredContent;
     expect(plan.version).toBe(COMPILE_PLAN_VERSION);
-    expect(plan.expected.sourceHashes["docs/present.md"]).toMatch(/^[a-f0-9]{64}$/);
+    expect(plan.expected.sourceHashes["docs/present.md"]).toMatch(
+      /^[a-f0-9]{64}$/,
+    );
     expect(plan.expected.sourceHashes["docs/missing.md"]).toBeNull();
     expect(plan.sourceWrites).toEqual([
       expect.objectContaining({ path: "docs/present.md", mode: "write" }),
@@ -210,7 +212,9 @@ describe("compile-intent validation and source planning", () => {
               verificationPerspective: "internal",
             },
           ],
-          proposalDecisions: [{ proposalId: "PROP-PLACEHOLDER", decision: "accept" }],
+          proposalDecisions: [
+            { proposalId: "PROP-PLACEHOLDER", decision: "accept" },
+          ],
         },
         contextFor(root, query),
       )
@@ -257,7 +261,10 @@ describe("compile-intent validation and source planning", () => {
     });
     const plan = (
       await executeCompileIntent(
-        { intent: "Customer data must be retained for 7 years.", mode: "create" },
+        {
+          intent: "Customer data must be retained for 7 years.",
+          mode: "create",
+        },
         contextFor(root, dup),
       )
     ).structuredContent;
@@ -302,7 +309,9 @@ describe("compile-intent validation and source planning", () => {
       )
     ).structuredContent;
     expect(plan.target.requirementId).toBe("REQ-KEEP");
-    expect(plan.contradictionAnalysis.witnesses.length).toBeGreaterThanOrEqual(0);
+    expect(plan.contradictionAnalysis.witnesses.length).toBeGreaterThanOrEqual(
+      0,
+    );
   });
 
   test("uses proof snapshots, unresolved updates, missing ids, and test-only drafts", async () => {
@@ -316,8 +325,10 @@ describe("compile-intent validation and source planning", () => {
       return { success: true, bindings: { Results: "[]" } };
     });
     const ctx = contextFor(root, query);
+    const prolog = ctx.prolog;
+    if (!prolog) throw new Error("expected a Prolog context");
     (ctx as { prolog: PrologPort }).prolog = {
-      ...ctx.prolog!,
+      ...prolog,
       queryStatusJson: async () => ({
         success: true,
         bindings: {
@@ -373,6 +384,111 @@ describe("compile-intent validation and source planning", () => {
     expect(noFs.expected.sourceHashes["docs/present.md"]).toBeNull();
   });
 
+  test("uses explicit stable scenario associations for reordered and many-to-many tests", async () => {
+    const root = await mkdtemp(
+      path.join(tmpdir(), "kibi-compile-associations-"),
+    );
+    workspaces.push(root);
+    const plan = (
+      await executeCompileIntent(
+        {
+          intent: "Customer data must be retained for 7 years.",
+          mode: "create",
+          scenarioDrafts: [
+            { id: "SCEN-A", title: "A", body: "Given A." },
+            { id: "SCEN-B", title: "B", body: "Given B." },
+          ],
+          testDrafts: [
+            {
+              id: "TEST-B",
+              title: "Test B",
+              body: "It handles B.",
+              scenarioIds: ["SCEN-B"],
+            },
+            {
+              id: "TEST-A",
+              title: "Test A",
+              body: "It handles A.",
+              scenarioIds: ["SCEN-A"],
+            },
+            {
+              id: "TEST-BOTH",
+              title: "Test both",
+              body: "It handles both.",
+              scenarioIds: ["SCEN-B", "SCEN-A"],
+            },
+          ],
+        },
+        contextFor(root, quietQuery()),
+      )
+    ).structuredContent;
+    const testStep = (id: string) =>
+      plan.steps.find((step) => step.type === "test" && step.id === id) as
+        | { relationships?: unknown[]; properties?: unknown }
+        | undefined;
+    expect(testStep("TEST-B")?.relationships).toEqual([
+      { type: "verified_by", from: "SCEN-B", to: "TEST-B" },
+    ]);
+    expect(testStep("TEST-B")?.properties).toEqual(
+      expect.objectContaining({
+        verification_scope: "integration",
+        verification_perspective: "internal",
+      }),
+    );
+    expect(testStep("TEST-A")?.relationships).toEqual([
+      { type: "verified_by", from: "SCEN-A", to: "TEST-A" },
+    ]);
+    expect(testStep("TEST-BOTH")?.relationships).toEqual([
+      { type: "verified_by", from: "SCEN-B", to: "TEST-BOTH" },
+      { type: "verified_by", from: "SCEN-A", to: "TEST-BOTH" },
+    ]);
+    expect(
+      plan.diagnostics.some((diagnostic) => /unresolved/.test(diagnostic)),
+    ).toBe(false);
+  });
+
+  test("rejects positional and unknown scenario associations", async () => {
+    const root = await mkdtemp(
+      path.join(tmpdir(), "kibi-compile-association-gaps-"),
+    );
+    workspaces.push(root);
+    const plan = (
+      await executeCompileIntent(
+        {
+          intent: "Customer data must be retained for 7 years.",
+          mode: "create",
+          scenarioDrafts: [
+            { id: "SCEN-A", title: "A", body: "Given A." },
+            { id: "SCEN-B", title: "B", body: "Given B." },
+          ],
+          testDrafts: [
+            { id: "TEST-POSITIONAL", title: "Positional", body: "No mapping." },
+            {
+              id: "TEST-UNKNOWN",
+              title: "Unknown",
+              body: "Bad mapping.",
+              scenarioIds: ["SCEN-MISSING"],
+            },
+            {
+              id: "TEST-DUPLICATE-SCENARIO",
+              title: "Duplicate mapping",
+              body: "Ambiguous mapping.",
+              scenarioIds: ["SCEN-A", "SCEN-A"],
+            },
+          ],
+        },
+        contextFor(root, quietQuery()),
+      )
+    ).structuredContent;
+    const testSteps = plan.steps.filter((step) => step.type === "test");
+    expect(testSteps[0]?.relationships).toEqual([]);
+    expect(testSteps[1]?.relationships).toEqual([]);
+    expect(plan.status).toBe("needs_resolution");
+    expect(plan.diagnostics.join(" ")).toMatch(
+      /must declare scenarioIds|unknown scenario ID|repeats or omits|has no test draft/,
+    );
+  });
+
   test("emits proposals for scenarios, symbols, and tests and applies accepted ones", async () => {
     const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-prop-"));
     workspaces.push(root);
@@ -409,7 +525,10 @@ describe("compile-intent validation and source planning", () => {
     ).structuredContent;
     const accepted = first.proposals
       .filter((proposal) => proposal.candidateType !== "req")
-      .map((proposal) => ({ proposalId: proposal.proposalId, decision: "accept" as const }));
+      .map((proposal) => ({
+        proposalId: proposal.proposalId,
+        decision: "accept" as const,
+      }));
     const applied = (
       await executeCompileIntent(
         {
@@ -428,4 +547,3 @@ describe("compile-intent validation and source planning", () => {
     expect(applied.target.requirementId).toBe("REQ-KEEP");
   });
 });
-

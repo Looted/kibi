@@ -131,7 +131,9 @@ describe("operator coverage leftovers", () => {
       command: "optimize",
       skill: "bundle",
     });
-    expect(parseOperatorArgs(["optimize", "--skill", "kibi-freshness"])).toMatchObject({
+    expect(
+      parseOperatorArgs(["optimize", "--skill", "kibi-freshness"]),
+    ).toMatchObject({
       skill: "kibi-freshness",
     });
     expect(parseOperatorArgs(["suite"])).toMatchObject({

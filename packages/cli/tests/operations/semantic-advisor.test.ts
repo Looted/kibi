@@ -436,7 +436,7 @@ describe("semantic advisor operation", () => {
     );
   });
 
-  test("rejects duplicate propositions and spans instead of deduplicating prose", () => {
+  test("canonicalizes repeated identical claims while retaining the first span", () => {
     const text = "The service must log exports. The service must log exports.";
     const payload = {
       type: "req",
@@ -446,20 +446,23 @@ describe("semantic advisor operation", () => {
     };
     const semantic = analyzeSemanticAdvisorInput({ payload });
 
-    expect(semantic.receipt.propositions).toHaveLength(2);
-    expect(semantic.receipt.propositions[0]?.claim_key).toBe(
-      semantic.receipt.propositions[1]?.claim_key,
-    );
+    expect(semantic.receipt.propositions).toHaveLength(1);
+    expect(semantic.receipt.propositions[0]?.span).toEqual({
+      start: 0,
+      end: Buffer.byteLength("The service must log exports", "utf8"),
+    });
     const contract = semantic.receipt.inventory_contract;
     const withInventory = {
       ...payload,
       properties: {
         ...payload.properties,
-        logic_claims: [semantic.receipt.propositions[0]?.claim_key],
+        logic_claims: semantic.receipt.logic_coverage.expected_claim_keys,
         semantic_inventory_version: contract.version,
         semantic_source_field: contract.source_field,
         semantic_source_hash: contract.source_hash,
-        semantic_inventory: semantic.receipt.propositions,
+        semantic_inventory: semantic.receipt.propositions.map(
+          (proposition) => ({ ...proposition, status: "ontology_gap" }),
+        ),
       },
     };
     expect(
@@ -468,8 +471,49 @@ describe("semantic advisor operation", () => {
         [],
         analyzeSemanticAdvisorInput({ payload: withInventory }).receipt,
       ).errors,
-    ).toEqual(
-      expect.arrayContaining([expect.stringContaining("duplicate claim_key")]),
-    );
+    ).toEqual([]);
+  });
+
+  test("keeps a later distinct clause indexed and interpreted after deduplication", () => {
+    const repeated = "The service must log exports.";
+    const distinct = "The service must rotate logs.";
+    const distinctClause = "The service must rotate logs";
+    const text = `${repeated} ${repeated} ${distinct}`;
+    const distinctKey = semanticClaimKey(distinct);
+    const result = analyzeSemanticAdvisorInput({
+      payload: {
+        type: "req",
+        id: "REQ-DUPLICATE-INDEX",
+        properties: { title: "Logs", status: "open", semantic_text: text },
+      },
+      interpretations: [
+        {
+          claim_key: distinctKey,
+          claim_text: distinct,
+          ir: {
+            version: "kibi.logic.v1",
+            kind: "atom",
+            modality: "oblige",
+            head: { kind: "atom", name: "rotate_logs", args: [] },
+          },
+        },
+      ],
+    });
+
+    expect(result.receipt.propositions).toHaveLength(2);
+    expect(result.receipt.propositions[1]).toMatchObject({
+      claim_key: distinctKey,
+      claim_text: distinctClause,
+      status: "modeled",
+      span: {
+        start: Buffer.byteLength(`${repeated} ${repeated} `, "utf8"),
+        end:
+          Buffer.byteLength(`${repeated} ${repeated} `, "utf8") +
+          Buffer.byteLength(distinctClause, "utf8"),
+      },
+    });
+    expect(result.receipt.clauses[1]?.index).toBe(2);
+    expect(result.receipt.interpretations[0]?.claim_key).toBe(distinctKey);
+    expect(result.receipt.interpretations[0]?.valid).toBe(true);
   });
 });

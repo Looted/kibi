@@ -20,10 +20,7 @@ afterEach(() => {
   }
 });
 
-const skillRoot = path.resolve(
-  __dirname,
-  "../../src/public/skills/kibi-usage",
-);
+const skillRoot = path.resolve(__dirname, "../../src/public/skills/kibi-usage");
 
 describe("skills commands", () => {
   test("lists bundled skills as json and table", async () => {
@@ -31,9 +28,9 @@ describe("skills commands", () => {
     restores.push(io.restore);
     await skillsListCommand({ format: "json" });
     const listed = JSON.parse(io.logText());
-    expect(listed.some((skill: { id: string }) => skill.id === "kibi-usage")).toBe(
-      true,
-    );
+    expect(
+      listed.some((skill: { id: string }) => skill.id === "kibi-usage"),
+    ).toBe(true);
     await skillsListCommand({});
     expect(io.logText()).toContain("kibi-usage");
   });
@@ -81,7 +78,9 @@ describe("skills commands", () => {
     expect(missing).toEqual({ exitCode: 1 });
     expect(io.errorText().length).toBeGreaterThan(0);
 
-    const invalidRoot = mkdtempSync(path.join(os.tmpdir(), "kibi-skill-invalid-"));
+    const invalidRoot = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-skill-invalid-"),
+    );
     roots.push(invalidRoot);
     writeFileSync(path.join(invalidRoot, "SKILL.md"), "not a skill\n");
     await skillsValidateCommand(invalidRoot, { format: "table" });

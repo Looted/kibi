@@ -68,7 +68,9 @@ describe("runtime skill operations", () => {
       createHash("sha256").update(body, "utf8").digest("hex"),
     );
     expect(sc.sourceType).toBe("bundled");
-    expect(result.content[0]?.text).toContain("Loaded bundled skill kibi-usage");
+    expect(result.content[0]?.text).toContain(
+      "Loaded bundled skill kibi-usage",
+    );
   });
 
   test("skillsLoadSpec rejects empty and unknown ids", async () => {
@@ -78,9 +80,9 @@ describe("runtime skill operations", () => {
     await expect(
       skillsLoadSpec.execute({ id: "   " }, testContext()),
     ).rejects.toThrow("id must be a non-empty string");
-    await expect(
-      skillsLoadSpec.execute({}, testContext()),
-    ).rejects.toThrow("id must be a non-empty string");
+    await expect(skillsLoadSpec.execute({}, testContext())).rejects.toThrow(
+      "id must be a non-empty string",
+    );
     await expect(
       skillsLoadSpec.execute({ id: "missing-skill" }, testContext()),
     ).rejects.toThrow("Skill not found: missing-skill");
@@ -97,10 +99,7 @@ describe("runtime skill operations", () => {
     );
 
     await expect(
-      skillsReadSpec.execute(
-        { id: "kibi-usage", resource: "" },
-        testContext(),
-      ),
+      skillsReadSpec.execute({ id: "kibi-usage", resource: "" }, testContext()),
     ).rejects.toThrow("resource must be a non-empty string");
     await expect(
       skillsReadSpec.execute({ id: "kibi-usage" }, testContext()),

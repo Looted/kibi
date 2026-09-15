@@ -223,3 +223,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-261fc3c0fb62
+  - type: implements
+    from: SYM-quality-inventory-1e34ff86ea75
+    to: REQ-skillopt-paid-launch-accounting
+    created_at: 2026-09-14T20:38:10.566Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebd3deed8524
+  - type: covered_by
+    from: SYM-quality-inventory-1e34ff86ea75
+    to: TEST-skillopt-paid-launch-accounting
+    created_at: 2026-09-14T20:38:10.585Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a182a7ec4c58

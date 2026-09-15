@@ -266,9 +266,7 @@ function richStatusPayload(overrides: Record<string, unknown> = {}) {
       staleReasons: [{ entityIds: ["SYM-1"] }, "stale"],
       proofSnapshotAvailable: true,
       proofSnapshotDirty: true,
-      proofSnapshotChanges: [
-        { path: "src/editor.ts", snapshotRelevant: true },
-      ],
+      proofSnapshotChanges: [{ path: "src/editor.ts", snapshotRelevant: true }],
       acceptedLimitations: ["operator"],
       operatorAcceptance: true,
       branchAttachment: {
@@ -306,7 +304,14 @@ function richQueryPayload() {
   };
 }
 
-function richCoverage(kind: "summary-proven" | "rows-proven" | "rows-mixed" | "rows-empty" | "incomplete") {
+function richCoverage(
+  kind:
+    | "summary-proven"
+    | "rows-proven"
+    | "rows-mixed"
+    | "rows-empty"
+    | "incomplete",
+) {
   if (kind === "incomplete") {
     return { repairPlan: { scope: { complete: false } } };
   }
@@ -339,7 +344,10 @@ function finalStateFor(
 ): string {
   const query = richQueryPayload();
   const check = {
-    structuredContent: { kibiProtocol: 1, data: { count: 1, violations: [{}] } },
+    structuredContent: {
+      kibiProtocol: 1,
+      data: { count: 1, violations: [{}] },
+    },
   };
   const coverageWrapped = {
     structuredContent: { ...(coverage as unknown as object), notes: extraText },
@@ -619,7 +627,11 @@ describe("sealDefaultCellEvidence signal and forbidden branches", () => {
     const rich = sealDefaultCellEvidence(
       { evaluatorManifest: manifest, finalStateRequests: requests },
       {
-        finalState: finalStateFor(richStatusPayload(), richCoverage("summary-proven"), SIGNAL_TEXT),
+        finalState: finalStateFor(
+          richStatusPayload(),
+          richCoverage("summary-proven"),
+          SIGNAL_TEXT,
+        ),
         brokerTrace,
         diagnosticReceipt:
           'not-json\n[]\n{"tool":"kb_query","status":"success","telemetry":null}\n',
@@ -678,10 +690,7 @@ describe("sealDefaultCellEvidence signal and forbidden branches", () => {
     const unresolved = sealDefaultCellEvidence(
       { evaluatorManifest: manifest, finalStateRequests: requests },
       {
-        finalState: finalStateFor(
-          { dirty: false },
-          richCoverage("rows-empty"),
-        ),
+        finalState: finalStateFor({ dirty: false }, richCoverage("rows-empty")),
         brokerTrace: "",
         diagnosticReceipt: "",
       },
@@ -737,10 +746,7 @@ describe("sealDefaultCellEvidence signal and forbidden branches", () => {
     const rawStatus = sealDefaultCellEvidence(
       { evaluatorManifest: manifest, finalStateRequests: requests },
       {
-        finalState: finalStateFor(
-          { syncState: "fresh", dirty: true },
-          null,
-        ),
+        finalState: finalStateFor({ syncState: "fresh", dirty: true }, null),
         brokerTrace: "",
         diagnosticReceipt: "",
       },

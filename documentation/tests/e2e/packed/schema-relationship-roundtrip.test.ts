@@ -463,8 +463,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "round-trips the exact entity schema and timestamped typed relationships",
       { timeout: 120_000 },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
         await packedEightEntitySchemaRoundTrip(sandbox);
         await packedTypedRelationshipRoundTrip(sandbox);
       },

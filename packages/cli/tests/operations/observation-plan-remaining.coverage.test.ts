@@ -14,7 +14,11 @@ describe("observation-plan remaining nonlogical review target", () => {
   test("links a nonlogical observation to review:nonlogical", () => {
     restores.push(isolateKibiEnv());
     const [fact] = observationPlan(
-      { type: "req", id: "REQ-OBS", properties: { text_ref: "narrative only" } },
+      {
+        type: "req",
+        id: "REQ-OBS",
+        properties: { text_ref: "narrative only" },
+      },
       "Observation",
       ["review:nonlogical"],
     );

@@ -80,3 +80,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-831127a30937
+  - type: implements
+    from: SYM-quality-inventory-fb246ed248a3
+    to: REQ-core-persistence
+    created_at: 2026-09-14T20:32:10.618Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3a9c259c91dd
+  - type: covered_by
+    from: SYM-quality-inventory-fb246ed248a3
+    to: TEST-cli-prolog-codec
+    created_at: 2026-09-14T20:32:10.631Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52c3b76543ce

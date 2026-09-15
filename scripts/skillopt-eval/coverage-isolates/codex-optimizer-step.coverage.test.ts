@@ -175,7 +175,9 @@ describe("runCodexSkillOptStep", () => {
   });
 
   test("rejects incomplete optimizer output instead of persisting a stitched body", async () => {
-    const artifactRoot = await mkdtemp(join(tmpdir(), "skillopt-opt-incomplete-"));
+    const artifactRoot = await mkdtemp(
+      join(tmpdir(), "skillopt-opt-incomplete-"),
+    );
     roots.push(artifactRoot);
     lastMessageBody = `${"Safe portable guidance. ".repeat(80)}npx --no-install kibi`;
     await expect(

@@ -172,7 +172,9 @@ describe("verifyPublishMetadata", () => {
       expect(logs.join("\n")).toContain("Publish metadata OK");
       writeFileSync(manifestPath, JSON.stringify({ name: "kibi-runtime" }));
       expect(main()).toBe(1);
-      expect(errors.join("\n")).toContain("Publish metadata verification failed");
+      expect(errors.join("\n")).toContain(
+        "Publish metadata verification failed",
+      );
     } finally {
       writeFileSync(manifestPath, original);
       console.log = log;

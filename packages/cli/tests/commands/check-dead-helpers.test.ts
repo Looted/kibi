@@ -19,9 +19,7 @@ type QueryResult = {
   error?: string;
 };
 
-function prolog(
-  handler: (goal: string) => QueryResult,
-): PrologProcess {
+function prolog(handler: (goal: string) => QueryResult): PrologProcess {
   return {
     query: async (goal: string | string[]) =>
       handler(Array.isArray(goal) ? goal.join(", ") : goal),
@@ -212,7 +210,7 @@ describe("exported check helpers", () => {
 
   test("strict Prolog violation helpers parse rows and ignore empty lists", async () => {
     const rows =
-      "[violation(strict-fact-shape,FACT-1,\"bad shape\",\"fix it\",'.kb/facts/FACT-1.md')]";
+      '[violation(strict-fact-shape,FACT-1,"bad shape","fix it",\'.kb/facts/FACT-1.md\')]';
     const fact = await checkStrictFactShape(
       prolog(() => ({ success: true, bindings: { Violations: rows } })),
     );

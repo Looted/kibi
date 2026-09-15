@@ -258,3 +258,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ad78f36df484
+  - type: covered_by
+    from: SYM-cli-SelectableRulesAllowed
+    to: TEST-rule-registry-single-source
+    created_at: 2026-09-14T19:10:03.768Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b7e6eb5113c
+  - type: implements
+    from: SYM-quality-inventory-b010f743daad
+    to: REQ-014
+    created_at: 2026-09-14T20:36:34.584Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6282d1bb908
+  - type: covered_by
+    from: SYM-quality-inventory-b010f743daad
+    to: TEST-scripts-finalize-lcov
+    created_at: 2026-09-14T20:36:34.604Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-279a305bbc38

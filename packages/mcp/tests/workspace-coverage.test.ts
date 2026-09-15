@@ -1,4 +1,12 @@
-import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from "bun:test";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  spyOn,
+  test,
+} from "bun:test";
 import fs from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import * as fsPromises from "node:fs/promises";
@@ -220,9 +228,9 @@ describe("coverage gaps: type-only modules and kb freshness", () => {
       expect(failed.dirMissing).toBe(true);
       expect(failed.errorMessage).toContain("not-an-error");
       statSpy.mockRestore();
-      expect(await readFile(path.join(branchPath, "CURRENT"), "utf8")).toContain(
-        "generation",
-      );
+      expect(
+        await readFile(path.join(branchPath, "CURRENT"), "utf8"),
+      ).toContain("generation");
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
     }

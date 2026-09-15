@@ -1,3 +1,4 @@
-{"id":"compile-property","intent":"Customer data must be retained for 7 years.","assertivePropositions":1,"expectedStatus":"ready"}
-{"id":"compile-ambiguity","intent":"The service may retain data for a while.","assertivePropositions":1,"expectedStatus":"needs_resolution"}
-{"id":"compile-contradiction","intent":"Customer data must be retained for 1 day.","assertivePropositions":1,"expectedStatus":"blocked"}
+{"id":"compile-property","intent":"Customer data must be retained for 7 years.","requirementId":"REQ-HO-PROPERTY","assertivePropositions":1,"expectedPropositionKeys":["CLAIM-050EC50164EF340A"],"expectedStatus":"ready"}
+{"id":"compile-ambiguity","intent":"The service may retain data for a while.","requirementId":"REQ-HO-AMBIGUOUS","assertivePropositions":1,"expectedPropositionKeys":["CLAIM-3E43A9808E820D57"],"expectedStatus":"needs_resolution"}
+{"id":"compile-contradiction","intent":"Customer data must be retained for 1 day.","requirementId":"REQ-HO-CONTRADICTION","assertivePropositions":1,"expectedPropositionKeys":["CLAIM-669B4A49A1AF0153"],"expectedStatus":"blocked"}
+{"id":"compile-negation","intent":"The service must not retain expired data.","requirementId":"REQ-HO-NEGATION","assertivePropositions":1,"expectedPropositionKeys":["CLAIM-D626B145DD1C7C2C"],"expectedStatus":"ready"}

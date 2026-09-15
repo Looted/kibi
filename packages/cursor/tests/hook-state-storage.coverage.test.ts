@@ -1,7 +1,13 @@
 // implements REQ-cursor-kibi-plugin-v1
 // implements REQ-cursor-stop-job-vs-plan
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
-import fs, { mkdirSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from "node:fs";
+import fs, {
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  utimesSync,
+  writeFileSync,
+} from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {
@@ -33,7 +39,9 @@ describe("cursor hook-state storage", () => {
   test("resolves state directories and loads empty or invalid state", () => {
     expect(resolveStateDir(undefined, undefined)).toBeUndefined();
     expect(resolveStateDir("/tmp/plugin", "c1")).toBe("/tmp/plugin");
-    expect(resolveStateDir(undefined, "conv/id")).toContain("kibi-cursor-hook-state");
+    expect(resolveStateDir(undefined, "conv/id")).toContain(
+      "kibi-cursor-hook-state",
+    );
     expect(loadHookState(undefined)).toEqual(emptyHookState());
     const dir = mkdtempSync(path.join(os.tmpdir(), "kibi-hook-state-"));
     dirs.push(dir);
@@ -56,9 +64,10 @@ describe("cursor hook-state storage", () => {
     expect(next.mcpState).toBe("observed");
     expect(loadHookState(dir).dirtyPaths).toEqual(["one", "two"]);
     expect(loadHookState(dir).kbCheckRun).toBe(true);
-    expect(updateHookState(undefined, (state) => ({ ...state, kbCheckRun: true })).kbCheckRun).toBe(
-      true,
-    );
+    expect(
+      updateHookState(undefined, (state) => ({ ...state, kbCheckRun: true }))
+        .kbCheckRun,
+    ).toBe(true);
   });
 
   test("removes a stale lock and continues when the lock is busy", () => {

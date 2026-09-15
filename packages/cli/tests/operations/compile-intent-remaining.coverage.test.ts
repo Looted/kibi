@@ -4,10 +4,8 @@ import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import * as intentSearch from "../../src/intent-search.js";
+import { executeCompileIntent } from "../../src/operations/planning/compile-intent.js";
 import * as advisorModule from "../../src/operations/semantic-advisor/analyze-prose.js";
-import {
-  executeCompileIntent,
-} from "../../src/operations/planning/compile-intent.js";
 import { semanticClaimKey } from "../../src/operations/semantic-advisor/clauses.js";
 import * as discovery from "../../src/public/operations/discovery-executors.js";
 import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
@@ -299,7 +297,9 @@ describe("executeCompileIntent leftover planning branches", () => {
       )
     ).structuredContent;
     expect(
-      plan.propositions.some((proposition) => proposition.status === "nonlogical"),
+      plan.propositions.some(
+        (proposition) => proposition.status === "nonlogical",
+      ),
     ).toBe(true);
   });
 
@@ -341,78 +341,80 @@ describe("executeCompileIntent leftover planning branches", () => {
     restores.push(restoreEnv);
     const root = await mkdtemp(path.join(tmpdir(), "kibi-compile-propose-"));
     workspaces.push(root);
-    const search = spyOn(intentSearch, "executeIntentSearch").mockResolvedValue({
-      matches: [
-        {
-          entity: { id: "REQ-KEEP", type: "req", title: "Keep" },
-          score: 0.95,
-          reasons: ["title"],
-          evidence: {
-            normalizedScore: 0.95,
-            matchedFacets: [],
-            sourceMatches: [],
-            graphPaths: [],
-            abstentionEligible: false,
+    const search = spyOn(intentSearch, "executeIntentSearch").mockResolvedValue(
+      {
+        matches: [
+          {
+            entity: { id: "REQ-KEEP", type: "req", title: "Keep" },
+            score: 0.95,
+            reasons: ["title"],
+            evidence: {
+              normalizedScore: 0.95,
+              matchedFacets: [],
+              sourceMatches: [],
+              graphPaths: [],
+              abstentionEligible: false,
+            },
           },
-        },
-        {
-          entity: { id: "SCEN-KEEP", type: "scenario", title: "Scene" },
-          score: 0.7,
-          reasons: ["body"],
-          evidence: {
-            normalizedScore: 0.7,
-            matchedFacets: [],
-            sourceMatches: [],
-            graphPaths: [],
-            abstentionEligible: false,
+          {
+            entity: { id: "SCEN-KEEP", type: "scenario", title: "Scene" },
+            score: 0.7,
+            reasons: ["body"],
+            evidence: {
+              normalizedScore: 0.7,
+              matchedFacets: [],
+              sourceMatches: [],
+              graphPaths: [],
+              abstentionEligible: false,
+            },
           },
-        },
-        {
-          entity: { id: "SYM-KEEP", type: "symbol", title: "sym" },
-          score: 0.6,
-          reasons: ["name"],
-          evidence: {
-            normalizedScore: 0.6,
-            matchedFacets: [],
-            sourceMatches: [],
-            graphPaths: [],
-            abstentionEligible: false,
+          {
+            entity: { id: "SYM-KEEP", type: "symbol", title: "sym" },
+            score: 0.6,
+            reasons: ["name"],
+            evidence: {
+              normalizedScore: 0.6,
+              matchedFacets: [],
+              sourceMatches: [],
+              graphPaths: [],
+              abstentionEligible: false,
+            },
           },
-        },
-        {
-          entity: { id: "TEST-KEEP", type: "test", title: "test" },
-          score: 0.5,
-          reasons: ["body"],
-          evidence: {
-            normalizedScore: 0.5,
-            matchedFacets: [],
-            sourceMatches: [],
-            graphPaths: [],
-            abstentionEligible: false,
+          {
+            entity: { id: "TEST-KEEP", type: "test", title: "test" },
+            score: 0.5,
+            reasons: ["body"],
+            evidence: {
+              normalizedScore: 0.5,
+              matchedFacets: [],
+              sourceMatches: [],
+              graphPaths: [],
+              abstentionEligible: false,
+            },
           },
-        },
-        {
-          entity: { id: "ADR-KEEP", type: "adr", title: "adr" },
-          score: 0.4,
-          reasons: ["title"],
-          evidence: {
-            normalizedScore: 0.4,
-            matchedFacets: [],
-            sourceMatches: [],
-            graphPaths: [],
-            abstentionEligible: false,
+          {
+            entity: { id: "ADR-KEEP", type: "adr", title: "adr" },
+            score: 0.4,
+            reasons: ["title"],
+            evidence: {
+              normalizedScore: 0.4,
+              matchedFacets: [],
+              sourceMatches: [],
+              graphPaths: [],
+              abstentionEligible: false,
+            },
           },
+        ],
+        analysis: {
+          rankingMode: "intent-v1",
+          candidateCount: 5,
+          acceptedCount: 5,
+          topScore: 0.95,
+          topTwoMargin: 0.25,
+          abstained: false,
         },
-      ],
-      analysis: {
-        rankingMode: "intent-v1",
-        candidateCount: 5,
-        acceptedCount: 5,
-        topScore: 0.95,
-        topTwoMargin: 0.25,
-        abstained: false,
-      },
-    } as never);
+      } as never,
+    );
     restores.push(() => search.mockRestore());
     const plan = (
       await executeCompileIntent(
@@ -450,7 +452,9 @@ describe("executeCompileIntent leftover planning branches", () => {
       )
     ).structuredContent;
     expect(
-      withDecisions.proposals.some((proposal) => proposal.decision === "accept"),
+      withDecisions.proposals.some(
+        (proposal) => proposal.decision === "accept",
+      ),
     ).toBe(true);
   });
 

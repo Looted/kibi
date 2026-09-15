@@ -103,7 +103,9 @@ describe("evaluateContractAgainstRun remaining branches", () => {
       ]),
       contract,
     );
-    expect(evaluation.gaps[0]?.reason).toContain("first attempt outcome is 'failed'");
+    expect(evaluation.gaps[0]?.reason).toContain(
+      "first attempt outcome is 'failed'",
+    );
   });
 
   test("rejects aggregate runs whose process exit code is non-zero", () => {
@@ -111,7 +113,9 @@ describe("evaluateContractAgainstRun remaining branches", () => {
       artifact({ exit_code: 2 }, [result()]),
       contract,
     );
-    expect(evaluation.gaps[0]?.reason).toContain("aggregate run exit code is 2");
+    expect(evaluation.gaps[0]?.reason).toContain(
+      "aggregate run exit code is 2",
+    );
   });
 
   test("promotes interrupted and timed_out obligation outcomes on a passing run", () => {
@@ -130,6 +134,8 @@ describe("evaluateContractAgainstRun remaining branches", () => {
       contract,
     );
     expect(failed.outcome).toBe("failed");
-    expect(failed.gaps[0]?.reason).toContain("proof result outcome is 'failed'");
+    expect(failed.gaps[0]?.reason).toContain(
+      "proof result outcome is 'failed'",
+    );
   });
 });
