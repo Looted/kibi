@@ -133,6 +133,20 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-b424d33cef0f
   - type: implements
+    from: SYM-engine-janitor-options
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-15T07:55:49.007Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b036cb284aa0
+  - type: covered_by
+    from: SYM-engine-janitor-options
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-09-15T07:55:49.026Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86bf19e96637
+  - type: implements
     from: SYM-quality-staged-manifestRecordSourcePath
     to: REQ-cli-staged-impact-enforcement
     created_at: 2026-09-15T01:06:58.508Z

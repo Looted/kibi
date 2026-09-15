@@ -66,3 +66,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-86447682c283
+  - type: implements
+    from: SYM-store-lock-takeover-decision
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-15T07:54:22.529Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-baa2343be4f4
+  - type: covered_by
+    from: SYM-store-lock-takeover-decision
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-09-15T07:54:22.561Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2bfb643dc8fe

@@ -286,51 +286,51 @@ coordinates:
   SYM-ArtifactPath-appendText:
     identityHash: aa5810981eb90a3b2bebc811facac30361ad9640f0ee4b82337b009ebeb13c6f
     sourceHash: 2bd16634f8365541ecd945e4b218b09c0079131269183e9879e3cf470ce23356
-    sourceColumn: 8
-    sourceEndColumn: 3
-    sourceEndLine: 224
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 266
     sourceFile: scripts/skillopt-eval/artifact-path.ts
-    sourceLine: 217
+    sourceLine: 1
   SYM-ArtifactPath-close:
     identityHash: e8c1e5d9ad2ccde4b0eade3ebeb7c2bd3e29cd4adb8b1615dcdd8ee35a13c70b
     sourceHash: 2bd16634f8365541ecd945e4b218b09c0079131269183e9879e3cf470ce23356
-    sourceColumn: 8
-    sourceEndColumn: 3
-    sourceEndLine: 248
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 266
     sourceFile: scripts/skillopt-eval/artifact-path.ts
-    sourceLine: 244
+    sourceLine: 1
   SYM-ArtifactPath-create:
     identityHash: 6ce3a04973a43f6410169a44e6a4af8a604fc25cf8f6601d2f4caf4f5aef89ca
     sourceHash: 2bd16634f8365541ecd945e4b218b09c0079131269183e9879e3cf470ce23356
-    sourceColumn: 15
-    sourceEndColumn: 3
-    sourceEndLine: 209
+    sourceColumn: 9
+    sourceEndColumn: 28
+    sourceEndLine: 264
     sourceFile: scripts/skillopt-eval/artifact-path.ts
-    sourceLine: 178
+    sourceLine: 264
   SYM-ArtifactPath-readText:
     identityHash: 59255592303f41e28efe1ec001519122dbde0a5bef342c485ff1c99eca72dcd2
     sourceHash: 2bd16634f8365541ecd945e4b218b09c0079131269183e9879e3cf470ce23356
-    sourceColumn: 8
-    sourceEndColumn: 3
-    sourceEndLine: 215
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 266
     sourceFile: scripts/skillopt-eval/artifact-path.ts
-    sourceLine: 211
+    sourceLine: 1
   SYM-ArtifactPath-remove:
     identityHash: 94233eb46ef8996e424f79d2313a2120d5382f849a37d9619b314c8c9e3ba75c
     sourceHash: 2bd16634f8365541ecd945e4b218b09c0079131269183e9879e3cf470ce23356
-    sourceColumn: 8
-    sourceEndColumn: 3
-    sourceEndLine: 230
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 266
     sourceFile: scripts/skillopt-eval/artifact-path.ts
-    sourceLine: 226
+    sourceLine: 1
   SYM-ArtifactPath-writeText:
     identityHash: 8c57d3e50a5c4bbfd1aa55afec9661b3f1c69e88ae6ad8cd59ebf3116876adc3
     sourceHash: 2bd16634f8365541ecd945e4b218b09c0079131269183e9879e3cf470ce23356
-    sourceColumn: 8
-    sourceEndColumn: 3
-    sourceEndLine: 242
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 266
     sourceFile: scripts/skillopt-eval/artifact-path.ts
-    sourceLine: 232
+    sourceLine: 1
   SYM-ArtifactPathError:
     identityHash: a52a83d301175a1fc0c29dba0b38adb5dea20dd5b82f9fd970029a2a5ff0ce8c
     sourceHash: 6354d2c17f0bc8048f5c5857baf2425dc7ce4635caf2112db0b8c2f3e6d812f3
@@ -1605,36 +1605,36 @@ coordinates:
     sourceLine: 60
   SYM-BranchStoreInspection:
     identityHash: 2bbe5579c29af8a4591fcd006198cc139054897184e9f44756c10fe2091bf9b0
-    sourceHash: 87fd8b42918b980c27bb5a8550a8c58635cb0227de5527586abfa8f901b65dcd
+    sourceHash: 190114171500844c5932a1a66a3919b5f41a2c28b57a8b969d66f3cd2ced83e0
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 26
+    sourceEndLine: 30
     sourceFile: packages/cli/src/utils/branch-store.ts
-    sourceLine: 20
+    sourceLine: 24
   SYM-branchStoreReason:
     identityHash: 75b56e18d813c78ef2ff26336c1a1f7ec61cb31a5e3caa5360d0ab1fc14cb426
-    sourceHash: 87fd8b42918b980c27bb5a8550a8c58635cb0227de5527586abfa8f901b65dcd
+    sourceHash: 190114171500844c5932a1a66a3919b5f41a2c28b57a8b969d66f3cd2ced83e0
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 202
+    sourceEndLine: 187
     sourceFile: packages/cli/src/utils/branch-store.ts
-    sourceLine: 189
+    sourceLine: 174
   SYM-BranchStoreState:
     identityHash: 3677815e1814c3e7993349e7b348896c29e05471e7af24a3a192ab6006b13242
-    sourceHash: 87fd8b42918b980c27bb5a8550a8c58635cb0227de5527586abfa8f901b65dcd
+    sourceHash: 190114171500844c5932a1a66a3919b5f41a2c28b57a8b969d66f3cd2ced83e0
     sourceColumn: 12
     sourceEndColumn: 17
-    sourceEndLine: 18
+    sourceEndLine: 22
     sourceFile: packages/cli/src/utils/branch-store.ts
-    sourceLine: 14
+    sourceLine: 18
   SYM-break-store-lock:
     identityHash: 646072b06a6d3343967bdce96e37db19a9358afd5c21e37b9255c667b17b0b63
-    sourceHash: de8fb86e089e04dc9116e36828edac7bbba2fdf7f3eba99bf205cb42227a4378
+    sourceHash: 683be83c5f508679a4594809d76b8c78ac20fcb827b08566094a3349aced8a3d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 105
+    sourceEndLine: 144
     sourceFile: packages/cli/src/prolog/store-lock.ts
-    sourceLine: 94
+    sourceLine: 133
   SYM-BRIDGE-ARTIFACT-ROOT-ENV:
     identityHash: 2956f3d15d2aad183c18d69281455f7621c16c7b72b09606052f22c6e913b4c8
     sourceHash: 55fbe9dcaa5002fa8d4442f66f19e1a757170b6a2419456600640537c5ca4cbd
@@ -2541,7 +2541,7 @@ coordinates:
     sourceLine: 22
   SYM-classify-store-lock-holder:
     identityHash: 574a4e6f4eec3637ae2c6227086827d54f040d363da126ef4dabe50818f5af14
-    sourceHash: de8fb86e089e04dc9116e36828edac7bbba2fdf7f3eba99bf205cb42227a4378
+    sourceHash: 683be83c5f508679a4594809d76b8c78ac20fcb827b08566094a3349aced8a3d
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 87
@@ -3125,12 +3125,12 @@ coordinates:
     sourceLine: 1242
   SYM-cli-engine-commands:
     identityHash: 161c0f03fcdb099699efa090ac191e33402b167cae0809c0e56ec0427d00be11
-    sourceHash: 9f3626ec6f5b11c29bd1e2d08567f2f95f7c460556e854df4e9e363d67e33049
+    sourceHash: a6290cb4f9d25d02b2f47427aeaaa3c348041e765e5095baac5fd4fbdff25da8
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 153
+    sourceEndLine: 158
     sourceFile: packages/cli/src/commands/engine.ts
-    sourceLine: 135
+    sourceLine: 140
   SYM-cli-engine-daemon:
     identityHash: b9850bf8dc107086101595d8d2d2a0d1d6eb8e0b165628fd4bb246dc16e3e880
     sourceHash: 5abe0f8435f362e8beb4f587648ea246e5b92295b8c3368192aedfed1acae716
@@ -3277,7 +3277,7 @@ coordinates:
     sourceLine: 444
   SYM-cli-engine-status-command:
     identityHash: 1a47612cf09e2676ac63986046048c188bd0f84dddc194c1743ac13c04b3d7e1
-    sourceHash: 9f3626ec6f5b11c29bd1e2d08567f2f95f7c460556e854df4e9e363d67e33049
+    sourceHash: a6290cb4f9d25d02b2f47427aeaaa3c348041e765e5095baac5fd4fbdff25da8
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 63
@@ -3285,7 +3285,7 @@ coordinates:
     sourceLine: 35
   SYM-cli-engine-stop-command:
     identityHash: 25f81d556ddc46e96d43c20d29fd9dd445e7cc471ebfadd4cfbc7947abf47cd5
-    sourceHash: 9f3626ec6f5b11c29bd1e2d08567f2f95f7c460556e854df4e9e363d67e33049
+    sourceHash: a6290cb4f9d25d02b2f47427aeaaa3c348041e765e5095baac5fd4fbdff25da8
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 76
@@ -4549,7 +4549,7 @@ coordinates:
     sourceLine: 1
   SYM-cli-PrologErrorCode:
     identityHash: 7d7a9c94fb911faabe0c40a8a4e20ae0a8bf4e46feff3de9dbb302f782eb0905
-    sourceHash: ffd5f711ae9585075592bde24d06ebccb70e11e329534dc7718561ed803606ba
+    sourceHash: 33f1704c26d73016316a247cc6663d7a9e857329e1317abed1e7703be50cc57e
     sourceColumn: 12
     sourceEndColumn: 23
     sourceEndLine: 43
@@ -4557,7 +4557,7 @@ coordinates:
     sourceLine: 36
   SYM-cli-PrologErrorConflict:
     identityHash: 3ec46d0a3d991c639d92a35d4190c03ea230bd8619997cb6bc9b82995795422c
-    sourceHash: ffd5f711ae9585075592bde24d06ebccb70e11e329534dc7718561ed803606ba
+    sourceHash: 33f1704c26d73016316a247cc6663d7a9e857329e1317abed1e7703be50cc57e
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 56
@@ -4565,7 +4565,7 @@ coordinates:
     sourceLine: 53
   SYM-cli-PrologErrorRecord:
     identityHash: 70063d4b3cb2b8c8dee70e2a97ae4a119252c789a70cc418d9e416d0687482cc
-    sourceHash: ffd5f711ae9585075592bde24d06ebccb70e11e329534dc7718561ed803606ba
+    sourceHash: 33f1704c26d73016316a247cc6663d7a9e857329e1317abed1e7703be50cc57e
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 80
@@ -4573,7 +4573,7 @@ coordinates:
     sourceLine: 72
   SYM-cli-PrologErrorRelationship:
     identityHash: 0a513a776d404881c0ef8d5d6be916bedf99de7c09883e7cd26df02849d1b109
-    sourceHash: ffd5f711ae9585075592bde24d06ebccb70e11e329534dc7718561ed803606ba
+    sourceHash: 33f1704c26d73016316a247cc6663d7a9e857329e1317abed1e7703be50cc57e
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 50
@@ -4581,7 +4581,7 @@ coordinates:
     sourceLine: 46
   SYM-cli-PrologErrorTermPrefix:
     identityHash: e7337f099bf609d8887fb0664e4304aee562439bc9d8b015d585c447c26c5f99
-    sourceHash: ffd5f711ae9585075592bde24d06ebccb70e11e329534dc7718561ed803606ba
+    sourceHash: 33f1704c26d73016316a247cc6663d7a9e857329e1317abed1e7703be50cc57e
     sourceColumn: 13
     sourceEndColumn: 57
     sourceEndLine: 33
@@ -5341,15 +5341,15 @@ coordinates:
     sourceLine: 10
   SYM-cli-storage-export-command:
     identityHash: 1ce4ba15313346c7a03c55c4edcaed782cf0405b4a2e3e1390b55a2e4a25998b
-    sourceHash: 9f3626ec6f5b11c29bd1e2d08567f2f95f7c460556e854df4e9e363d67e33049
+    sourceHash: a6290cb4f9d25d02b2f47427aeaaa3c348041e765e5095baac5fd4fbdff25da8
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 168
+    sourceEndLine: 173
     sourceFile: packages/cli/src/commands/engine.ts
-    sourceLine: 155
+    sourceLine: 160
   SYM-cli-storage-status-command:
     identityHash: cd01c6ce335df3c825a434ed82b4d7e087ed6dae1847073ff1a9cb51b4530042
-    sourceHash: 9f3626ec6f5b11c29bd1e2d08567f2f95f7c460556e854df4e9e363d67e33049
+    sourceHash: a6290cb4f9d25d02b2f47427aeaaa3c348041e765e5095baac5fd4fbdff25da8
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 80
@@ -6533,7 +6533,7 @@ coordinates:
     sourceLine: 33
   SYM-current-boot-id:
     identityHash: cc2a69481134dd303d5fab22d135c3b9a4e8403c303c1e472fc9b323457494eb
-    sourceHash: de8fb86e089e04dc9116e36828edac7bbba2fdf7f3eba99bf205cb42227a4378
+    sourceHash: 683be83c5f508679a4594809d76b8c78ac20fcb827b08566094a3349aced8a3d
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 57
@@ -7061,12 +7061,12 @@ coordinates:
     sourceLine: 138
   SYM-decide-store-lock-takeover:
     identityHash: ad18ab6bfe81aed33bfec9a7adf99c2d59afa5cd25160368cc577e21484c194b
-    sourceHash: de8fb86e089e04dc9116e36828edac7bbba2fdf7f3eba99bf205cb42227a4378
+    sourceHash: 683be83c5f508679a4594809d76b8c78ac20fcb827b08566094a3349aced8a3d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 139
+    sourceEndLine: 178
     sourceFile: packages/cli/src/prolog/store-lock.ts
-    sourceLine: 117
+    sourceLine: 156
   SYM-DEFAULT_FINAL_STATE_REQUESTS:
     identityHash: 24354f5c2069bce3c137f73f485ffe4c1f305bea59f1d7f67eb6a2ae6dad0645
     sourceHash: 51607c234bdef77e8b85a7247a32f5f05e6292e5a8d80b30251f37be6677ad2a
@@ -7931,6 +7931,22 @@ coordinates:
     sourceEndLine: 12
     sourceFile: packages/opencode/src/enforcement-scope.ts
     sourceLine: 6
+  SYM-engine-janitor-command:
+    identityHash: 758b0472be7d4923ae03c008c379e3e49d7a3576161c23597a401ef5cd2b164a
+    sourceHash: a6290cb4f9d25d02b2f47427aeaaa3c348041e765e5095baac5fd4fbdff25da8
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 138
+    sourceFile: packages/cli/src/commands/engine.ts
+    sourceLine: 95
+  SYM-engine-janitor-options:
+    identityHash: cb4256ca60ba5f0d5e9ed4d9e8ac983a495e179e1e4b7b00c9aef342034a4f80
+    sourceHash: a6290cb4f9d25d02b2f47427aeaaa3c348041e765e5095baac5fd4fbdff25da8
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 86
+    sourceFile: packages/cli/src/commands/engine.ts
+    sourceLine: 82
   SYM-enrichSymbolCoordinates:
     identityHash: 7737499e7e9885afd20bbaecaf2a4c4bf36fab88b94cc24434fd8934d44cc6a6
     sourceHash: ffe57ec6a23306bf16e55da519647192c4cbe798d8de7e436a288564fb1b2271
@@ -8997,12 +9013,12 @@ coordinates:
     sourceLine: 186
   SYM-inspectBranchStore:
     identityHash: 48aef7e83b422af9baf3c3f02098665170a52b106f0dfafc81c702bb32df2fd7
-    sourceHash: 87fd8b42918b980c27bb5a8550a8c58635cb0227de5527586abfa8f901b65dcd
+    sourceHash: 190114171500844c5932a1a66a3919b5f41a2c28b57a8b969d66f3cd2ced83e0
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 141
+    sourceEndLine: 145
     sourceFile: packages/cli/src/utils/branch-store.ts
-    sourceLine: 32
+    sourceLine: 36
   SYM-installGitHooks:
     identityHash: 8d527e8ad281a8abf0c730a5637006ec882354bebe3d9b8d5cfd5a340938ebaa
     sourceHash: ee639701d887dad7a55b4d18b18571a45bd0f57387160af269368867e57754f6
@@ -9037,7 +9053,7 @@ coordinates:
     sourceLine: 406
   SYM-is-process-alive:
     identityHash: 1865060d050d7a831a6bda844f1977cc8ca80a53313c4a5b9cf4df2ec01a370c
-    sourceHash: de8fb86e089e04dc9116e36828edac7bbba2fdf7f3eba99bf205cb42227a4378
+    sourceHash: 683be83c5f508679a4594809d76b8c78ac20fcb827b08566094a3349aced8a3d
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 69
@@ -9179,6 +9195,22 @@ coordinates:
     sourceEndLine: 19
     sourceFile: packages/cli/src/public/skill-system/paths.ts
     sourceLine: 16
+  SYM-janitor-finding:
+    identityHash: d79ed5a39d91bf0be1e2cee926bddc0af6e0acc24ebe56e54020a5d880ce121e
+    sourceHash: 17c8d6a085b87d5bea98563d06d1228a06132982f3535f6a4c574afffafaba0a
+    sourceColumn: 12
+    sourceEndColumn: 62
+    sourceEndLine: 59
+    sourceFile: packages/cli/src/prolog/janitor.ts
+    sourceLine: 59
+  SYM-janitor-options:
+    identityHash: e34f4cfe47280540d59c46c2df449a4371846e52a552b3ffbb3d51ff03c1a2c1
+    sourceHash: 17c8d6a085b87d5bea98563d06d1228a06132982f3535f6a4c574afffafaba0a
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 70
+    sourceFile: packages/cli/src/prolog/janitor.ts
+    sourceLine: 61
   SYM-json-digest:
     identityHash: a74657cc220882be61003fc20afc73dea660a3bc905637c02176432c4b1339b3
     sourceHash: 12442043ac639befe25814efeef22725d784205496511100356e06c44b904d31
@@ -15027,6 +15059,14 @@ coordinates:
     sourceEndLine: 91
     sourceFile: packages/cli/src/search-ranking.ts
     sourceLine: 57
+  SYM-read-store-lock-owner:
+    identityHash: 6c59681aa95d4147b170b1200ef9faf36b55691bd3f2dbba93588b5b4ef4109c
+    sourceHash: 683be83c5f508679a4594809d76b8c78ac20fcb827b08566094a3349aced8a3d
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 126
+    sourceFile: packages/cli/src/prolog/store-lock.ts
+    sourceLine: 96
   SYM-read-sync-semantic-cache:
     identityHash: 57dd4bb833991696f193d09bfcfbe4c1e63b9ce86d50c2ef066814eadf99af13
     sourceHash: 5f54f57750df6ce634e6806d72833eac7e20b88a037d6820e56da2b88f58fa6f
@@ -16107,6 +16147,14 @@ coordinates:
     sourceEndLine: 14
     sourceFile: packages/cli/src/public/skill-system/validation.ts
     sourceLine: 14
+  SYM-retry-attach-after-breaking-stale-lock:
+    identityHash: b85832002bd99a144e6912b8ca773f3fc12d9367aa300b18544530e1f1ed8c86
+    sourceHash: 683be83c5f508679a4594809d76b8c78ac20fcb827b08566094a3349aced8a3d
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 224
+    sourceFile: packages/cli/src/prolog/store-lock.ts
+    sourceLine: 192
   SYM-RUN_ID:
     identityHash: 80f7ce695a392e2982ac0d0895b2f8328d8bf8c7b059835ed6733eb9400a832e
     sourceHash: ebea90ac4f601a730db79a2bc39b495cc9c8da47754e1dc83936d3982ace661a
@@ -16131,6 +16179,14 @@ coordinates:
     sourceEndLine: 39
     sourceFile: packages/cli/src/public/proof-protocol.ts
     sourceLine: 33
+  SYM-run-janitor:
+    identityHash: 2cf762bae879463a5bfc09295b9aa050f5a7c0f8b7e2fcdcd07b9ee0a20baf4a
+    sourceHash: 17c8d6a085b87d5bea98563d06d1228a06132982f3535f6a4c574afffafaba0a
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 209
+    sourceFile: packages/cli/src/prolog/janitor.ts
+    sourceLine: 204
   SYM-run-proof-producer:
     identityHash: 99eb248923307414781fcaf9035b6ee43b00a9ec55844af27aa1157c9298503e
     sourceHash: 8d14f61938fcac5f4f4a6fd0bb72e7e65d7638c922d9780bf214bba928348021
@@ -19638,27 +19694,27 @@ coordinates:
   SYM-skillopt-file-bridge-read-private:
     identityHash: e7e5daa0474b93c855fcb61e98780c0c72058c10c25099a8fcadb7a845545f3c
     sourceHash: 72dad01588e12e8800ddc5672e660b297e2a6087c0d2137d1bec96ba8115f26f
-    sourceColumn: 8
-    sourceEndColumn: 3
-    sourceEndLine: 219
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 223
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
-    sourceLine: 217
+    sourceLine: 1
   SYM-skillopt-file-bridge-read-public:
     identityHash: de68e28931d4ccbd520471d6a787e24be63faf81c56558327e2fa6cc709d8241
     sourceHash: 72dad01588e12e8800ddc5672e660b297e2a6087c0d2137d1bec96ba8115f26f
-    sourceColumn: 8
-    sourceEndColumn: 3
-    sourceEndLine: 214
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 223
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
-    sourceLine: 212
+    sourceLine: 1
   SYM-skillopt-file-bridge-resolve:
     identityHash: 7c8ccb2d148176c1939f84640a8d0c4625add458faeca050f66c44852b5e87df
     sourceHash: 72dad01588e12e8800ddc5672e660b297e2a6087c0d2137d1bec96ba8115f26f
-    sourceColumn: 2
-    sourceEndColumn: 3
-    sourceEndLine: 199
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 223
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
-    sourceLine: 189
+    sourceLine: 1
   SYM-skillopt-file-bridge-tests:
     identityHash: c7a0c746113ee4b4670bd94337ef09ed77d3ae9cbbf6b496fdf37b926f3b9c9f
     sourceHash: 648891874606009cf7286a17b85d9bb1da0f978538f589be1bd21942b0bedd0d
@@ -19670,19 +19726,19 @@ coordinates:
   SYM-skillopt-file-bridge-write-private:
     identityHash: 3994401bd753406acf56facf9fa60ebdfda8d78a204431d11b965d0946035e40
     sourceHash: 72dad01588e12e8800ddc5672e660b297e2a6087c0d2137d1bec96ba8115f26f
-    sourceColumn: 8
-    sourceEndColumn: 3
-    sourceEndLine: 209
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 223
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
-    sourceLine: 207
+    sourceLine: 1
   SYM-skillopt-file-bridge-write-public:
     identityHash: f91722f6aa9ec2ca9150fb2a81585e2d751a8a0928794324b3ad278fb21e1b98
     sourceHash: 72dad01588e12e8800ddc5672e660b297e2a6087c0d2137d1bec96ba8115f26f
-    sourceColumn: 8
-    sourceEndColumn: 3
-    sourceEndLine: 204
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 223
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
-    sourceLine: 202
+    sourceLine: 1
   SYM-skillopt-file-identity:
     identityHash: fde7fd1062a46ee25d47f1cfccb43a7843a0cdd27367ceef3e43ff16f35f80e4
     sourceHash: 3acb15536a2388291c9f33474569a203a849f3040170114ed65d8b8f9e53e020
@@ -23779,6 +23835,14 @@ coordinates:
     sourceEndLine: 20
     sourceFile: packages/cli/src/public/skill-system/errors.ts
     sourceLine: 20
+  SYM-socket-finding:
+    identityHash: 35f0007c9a97da15a8dfe45b8522b54f6abdf59c0ac9fc299b03bb517af91e29
+    sourceHash: 17c8d6a085b87d5bea98563d06d1228a06132982f3535f6a4c574afffafaba0a
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 57
+    sourceFile: packages/cli/src/prolog/janitor.ts
+    sourceLine: 51
   SYM-source-authoring-manifest-relationships:
     identityHash: fd5253c753e450198b40b9f0acedf24b323dd7a09009dfa1d0d593bdb05d07af
     sourceHash: 642408e0a70391070525d9856c8f4e733af9d89bd733195cb71d202e7738c213
@@ -23987,6 +24051,46 @@ coordinates:
     sourceEndLine: 21
     sourceFile: packages/opencode/src/startup-notifier.ts
     sourceLine: 16
+  SYM-store-lock-finding:
+    identityHash: a8da377386721d14840d9ac6f4bd342ec747f67d0e812c2412a37109cfadf2b7
+    sourceHash: 17c8d6a085b87d5bea98563d06d1228a06132982f3535f6a4c574afffafaba0a
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 49
+    sourceFile: packages/cli/src/prolog/janitor.ts
+    sourceLine: 40
+  SYM-store-lock-holder-state:
+    identityHash: f35b437e66a5cfd5460c70b3e96634b47a6a2cc546b8124c76770d06a503a009
+    sourceHash: 683be83c5f508679a4594809d76b8c78ac20fcb827b08566094a3349aced8a3d
+    sourceColumn: 12
+    sourceEndColumn: 73
+    sourceEndLine: 71
+    sourceFile: packages/cli/src/prolog/store-lock.ts
+    sourceLine: 71
+  SYM-store-lock-journal-reason:
+    identityHash: 38c5dfa3f5ba7cce239fc81df5836d5ed2141d3df4dd8084086220b1834fc620
+    sourceHash: 190114171500844c5932a1a66a3919b5f41a2c28b57a8b969d66f3cd2ced83e0
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 172
+    sourceFile: packages/cli/src/utils/branch-store.ts
+    sourceLine: 153
+  SYM-store-lock-retry-context:
+    identityHash: 5f8d4f878769179005e0879485351fb3dc7d63fc9612442a33a59fc655a8b6ef
+    sourceHash: 683be83c5f508679a4594809d76b8c78ac20fcb827b08566094a3349aced8a3d
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 182
+    sourceFile: packages/cli/src/prolog/store-lock.ts
+    sourceLine: 180
+  SYM-store-lock-takeover-decision:
+    identityHash: a5d49c3bb93a8da4124c43b62f03124070f778ff1a0ae37fed36155e80b86e38
+    sourceHash: 683be83c5f508679a4594809d76b8c78ac20fcb827b08566094a3349aced8a3d
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 149
+    sourceFile: packages/cli/src/prolog/store-lock.ts
+    sourceLine: 146
   SYM-StoredHeldOutTerminalReceipt:
     identityHash: 94660d1f1c382de1ef241c2f9b8a09f44cda019620c83b48f89314607d3c758b
     sourceHash: 1e8c79e914ab44d0a302807cdbf32724131dff2b4a45b22a83b7f708e2dbe18f
@@ -24091,6 +24195,30 @@ coordinates:
     sourceEndLine: 79
     sourceFile: scripts/skillopt-eval/real-workflow.ts
     sourceLine: 49
+  SYM-sweep-runtime-sockets:
+    identityHash: 7a7b9ccc0acac7c5e92aecadb63b480490771275ca68328ef12550976381b8b7
+    sourceHash: 17c8d6a085b87d5bea98563d06d1228a06132982f3535f6a4c574afffafaba0a
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 200
+    sourceFile: packages/cli/src/prolog/janitor.ts
+    sourceLine: 152
+  SYM-sweep-store-lock:
+    identityHash: 4b7a8e9b406c4e7fdeb29faada7cc8174aa58867d3ef9b9cb47746d44a186c15
+    sourceHash: 17c8d6a085b87d5bea98563d06d1228a06132982f3535f6a4c574afffafaba0a
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 124
+    sourceFile: packages/cli/src/prolog/janitor.ts
+    sourceLine: 74
+  SYM-sweep-workspace-store-locks:
+    identityHash: 944cf66c4352704004336fb5f0bbf0aa4e9a1fbddf584e5b6def66f34d154d2c
+    sourceHash: 17c8d6a085b87d5bea98563d06d1228a06132982f3535f6a4c574afffafaba0a
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 145
+    sourceFile: packages/cli/src/prolog/janitor.ts
+    sourceLine: 128
   SYM-SYMBOL_COORDINATES_FORMAT_VERSION:
     identityHash: ba4baf0bcefd498144dfa9466110924b101037202f668f345f4e175148fa56d2
     sourceHash: 34be6bf937dc2c0c2586b0652d89c5ad918b08d5dfa7ddb1246a6e42d6da8a4b

@@ -216,4 +216,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3f3e50df8d51
-
+  - type: implements
+    from: SYM-socket-finding
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-15T07:58:29.025Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-307f3a04a941
+  - type: covered_by
+    from: SYM-socket-finding
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-09-15T07:58:29.040Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73fb083e03e5
