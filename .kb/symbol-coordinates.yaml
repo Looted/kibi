@@ -429,12 +429,12 @@ coordinates:
     sourceLine: 25
   SYM-assessStagedSymbolsManifest:
     identityHash: f4a1e52ebc4ea3d500e3d4d7a228c1c3912fce3b527cf51ca0e534b7f595b2ed
-    sourceHash: 068267a84eaa86f221f2329f978f8be92c432658edc1a5e670a796952c83f784
+    sourceHash: 18184375ada7e98737b8f0d8152d26553cb4126f928104463634794c642cec06
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 494
+    sourceEndLine: 558
     sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
-    sourceLine: 399
+    sourceLine: 433
   SYM-atomicPublish:
     identityHash: 36f67c69781fd348cde3c2c8206256e34b686c419e8b10ddbaa513af6762a5f5
     sourceHash: 17dd73b561e15061c6a39b071657cd2c07fa23950d9b635a21bfcec82b123d87
@@ -477,7 +477,7 @@ coordinates:
     sourceLine: 31
   SYM-AuditedNoImpactOverrideInput:
     identityHash: 70945ca7fc34e4e9472857db2211be84b431079fc528df6b22550da5f7768936
-    sourceHash: c964263124542bbd49a8e41248a062bd62a498eceab0a8dc401af63a027c2a9a
+    sourceHash: 691053bf1c35d0a12b9c8dc3a0ea93fa592f844ac88582a31d41d1e7182d979f
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 57
@@ -1517,7 +1517,7 @@ coordinates:
     sourceLine: 19
   SYM-BehaviorSourceEditInput:
     identityHash: 930be01fccd3e71ef7ca00b7afe50e5c3a1e65d30b696bddb546bc209c9090d6
-    sourceHash: c964263124542bbd49a8e41248a062bd62a498eceab0a8dc401af63a027c2a9a
+    sourceHash: 691053bf1c35d0a12b9c8dc3a0ea93fa592f844ac88582a31d41d1e7182d979f
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 47
@@ -2421,55 +2421,55 @@ coordinates:
     sourceLine: 112
   SYM-checkCommand:
     identityHash: 225d0f47ecd24137f6c6b8651decea7be72d53ec89da5d9f50eac4bb6a479623
-    sourceHash: 722f054f2514ad6dd448383fbf6ba2df0139937d1896f3a1b67629247c5f1223
+    sourceHash: 20dbb6eb7e7dff7665e5d32ef9012f87a13016913d243985fdd294e5a4a0f4e2
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1035
+    sourceEndLine: 1041
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 607
+    sourceLine: 613
   SYM-checkDeprecatedAdrs:
     identityHash: 126c8823f17484e23ba93357c596af3d8c7a658de0f44438ddc33fdb57886e12
-    sourceHash: 722f054f2514ad6dd448383fbf6ba2df0139937d1896f3a1b67629247c5f1223
+    sourceHash: 20dbb6eb7e7dff7665e5d32ef9012f87a13016913d243985fdd294e5a4a0f4e2
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1400
+    sourceEndLine: 1406
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 1350
+    sourceLine: 1356
   SYM-checkDomainContradictions:
     identityHash: 08d394d7c67fa47cb854eca499542f9040ce435fc9a2f90f0fc1a0ae7c712ebf
-    sourceHash: 722f054f2514ad6dd448383fbf6ba2df0139937d1896f3a1b67629247c5f1223
+    sourceHash: 20dbb6eb7e7dff7665e5d32ef9012f87a13016913d243985fdd294e5a4a0f4e2
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1430
+    sourceEndLine: 1436
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 1402
+    sourceLine: 1408
   SYM-checkMustPriorityCoverage:
     identityHash: 43601f90ea0f61ef93f6a7a4ff19dd3a6330aa451e1e4523ca4343e97ba950f9
-    sourceHash: 722f054f2514ad6dd448383fbf6ba2df0139937d1896f3a1b67629247c5f1223
+    sourceHash: 20dbb6eb7e7dff7665e5d32ef9012f87a13016913d243985fdd294e5a4a0f4e2
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1091
+    sourceEndLine: 1097
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 1037
+    sourceLine: 1043
   SYM-checkNoCycles:
     identityHash: 555d99c1f1aa7ebe33b8be40673203b0bd36759b6ae3f8eb245ec05a87c45cb3
-    sourceHash: 722f054f2514ad6dd448383fbf6ba2df0139937d1896f3a1b67629247c5f1223
+    sourceHash: 20dbb6eb7e7dff7665e5d32ef9012f87a13016913d243985fdd294e5a4a0f4e2
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1302
+    sourceEndLine: 1308
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 1201
+    sourceLine: 1207
   SYM-checkNoDanglingRefs:
     identityHash: 7f5866d1f7871cc9ccacf1b82a0a95a4e0d826eb0c1bf7a4f63a174c5a71be56
-    sourceHash: 722f054f2514ad6dd448383fbf6ba2df0139937d1896f3a1b67629247c5f1223
+    sourceHash: 20dbb6eb7e7dff7665e5d32ef9012f87a13016913d243985fdd294e5a4a0f4e2
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1199
+    sourceEndLine: 1205
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 1134
+    sourceLine: 1140
   SYM-CheckOptions:
     identityHash: d81c300fdded3f9ead854c1c28c7ff985cd4d8cbf6af6afe147f8dc5f924ac80
-    sourceHash: 722f054f2514ad6dd448383fbf6ba2df0139937d1896f3a1b67629247c5f1223
+    sourceHash: 20dbb6eb7e7dff7665e5d32ef9012f87a13016913d243985fdd294e5a4a0f4e2
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 107
@@ -2485,12 +2485,12 @@ coordinates:
     sourceLine: 22
   SYM-checkRequiredFields:
     identityHash: fd92c46ba14cfa849f469ad66132ed4c758f76ea3661818230ac65ece2fbe914
-    sourceHash: 722f054f2514ad6dd448383fbf6ba2df0139937d1896f3a1b67629247c5f1223
+    sourceHash: 20dbb6eb7e7dff7665e5d32ef9012f87a13016913d243985fdd294e5a4a0f4e2
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1348
+    sourceEndLine: 1354
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 1304
+    sourceLine: 1310
   SYM-CheckRunner:
     identityHash: f1879622e2bedb399a823dcc201271baf376bd79008edb2078f6386d37976357
     sourceHash: d79651b4cf2925b8cab8402eb4d36a24c94bcb9120fae1cdbe24a36cb80440ab
@@ -2501,36 +2501,36 @@ coordinates:
     sourceLine: 35
   SYM-checkStrictFactShape:
     identityHash: 694e7ff234a70e8273bdd1cc5dcce446f4c2759884c13c00d4de79fec291b3ab
-    sourceHash: 722f054f2514ad6dd448383fbf6ba2df0139937d1896f3a1b67629247c5f1223
+    sourceHash: 20dbb6eb7e7dff7665e5d32ef9012f87a13016913d243985fdd294e5a4a0f4e2
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1455
+    sourceEndLine: 1461
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 1432
+    sourceLine: 1438
   SYM-checkStrictReadiness:
     identityHash: 614d2c5b0584619f863b161607e8806b596682bcb8590a97a4218e2324c6d8a7
-    sourceHash: 722f054f2514ad6dd448383fbf6ba2df0139937d1896f3a1b67629247c5f1223
+    sourceHash: 20dbb6eb7e7dff7665e5d32ef9012f87a13016913d243985fdd294e5a4a0f4e2
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1505
+    sourceEndLine: 1511
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 1482
+    sourceLine: 1488
   SYM-checkStrictReqFactPairing:
     identityHash: 2f103f00857aa92e93905bc83930695f3b5dc7f65498a8b721f02adc28e7b68a
-    sourceHash: 722f054f2514ad6dd448383fbf6ba2df0139937d1896f3a1b67629247c5f1223
+    sourceHash: 20dbb6eb7e7dff7665e5d32ef9012f87a13016913d243985fdd294e5a4a0f4e2
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1480
+    sourceEndLine: 1486
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 1457
+    sourceLine: 1463
   SYM-checkSymbolCoverage:
     identityHash: b9ea684fba7f0f3c4943e1e0380d2c68327d79bd642dace3aa3a1300dee9300f
-    sourceHash: 722f054f2514ad6dd448383fbf6ba2df0139937d1896f3a1b67629247c5f1223
+    sourceHash: 20dbb6eb7e7dff7665e5d32ef9012f87a13016913d243985fdd294e5a4a0f4e2
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1540
+    sourceEndLine: 1546
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 1507
+    sourceLine: 1513
   SYM-checkWorkspaceHealth:
     identityHash: ceabc70059b2d20e37d514b6235f085e828208a1ea33c81f47ea9138fa1eb760
     sourceHash: 3754f3115b4e3484287616c213883a0fd988990817e8b1d36e397abb5166f8ac
@@ -2557,7 +2557,7 @@ coordinates:
     sourceLine: 67
   SYM-classifyKibiImpactEvidence:
     identityHash: 4d8c876819f8ba7afe581b2aff43e726775160552c80d5f27a209b342fe6b357
-    sourceHash: c964263124542bbd49a8e41248a062bd62a498eceab0a8dc401af63a027c2a9a
+    sourceHash: 691053bf1c35d0a12b9c8dc3a0ea93fa592f844ac88582a31d41d1e7182d979f
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 137
@@ -5869,20 +5869,20 @@ coordinates:
     sourceLine: 164
   SYM-collectStagedAuthoredSymbolsManifestEvidence:
     identityHash: e29969e804ad42478770f16451d009c78464d8d886ec3a134db33bc6b12554ce
-    sourceHash: 068267a84eaa86f221f2329f978f8be92c432658edc1a5e670a796952c83f784
+    sourceHash: 18184375ada7e98737b8f0d8152d26553cb4126f928104463634794c642cec06
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 566
+    sourceEndLine: 630
     sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
-    sourceLine: 496
+    sourceLine: 560
   SYM-collectStagedKibiDiagnostics:
     identityHash: 43214479607be953518b744621b0b6f7113b795ee8f1f66866423bf5b0fedaf9
-    sourceHash: 81b167219841bf18bce778654ddfe3e738d3b7e7c3d2920b3dd883bb416fcdf2
+    sourceHash: bbc77c640a763f0bb79fb0864ceb6f28585bd858f051b13a56bfdb059e9fec2b
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 164
+    sourceEndLine: 270
     sourceFile: packages/cli/src/traceability/staged-diagnostics.ts
-    sourceLine: 115
+    sourceLine: 218
   SYM-command-environment:
     identityHash: f92296d9d63f00a6847e211e72d5006b66266a9178545cf68b2e128960e33631
     sourceHash: af56c04d446a1a512a35f9e66e93c6f0f5ff8ed8a35c07d3004bcef0a4e720fd
@@ -6395,6 +6395,14 @@ coordinates:
     sourceEndLine: 276
     sourceFile: scripts/run-unit-coverage.ts
     sourceLine: 63
+  SYM-create-missing-override-rationale-diagnostic:
+    identityHash: f9c2e8955f6eb04a9d01a1f946702609f32df86327c35b1bf45b1db17b3c3b3f
+    sourceHash: bbc77c640a763f0bb79fb0864ceb6f28585bd858f051b13a56bfdb059e9fec2b
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 209
+    sourceFile: packages/cli/src/traceability/staged-diagnostics.ts
+    sourceLine: 187
   SYM-createAtomically:
     identityHash: 948fafa62e117f281be0ffb8ee0b0e2770b160db79536f40dd2ac52f8b3e6772
     sourceHash: 9c800cfd2cbdd01aa8d0f818b4e54f59d85f17b0acbb9dc858cb0bcbeaaebca8
@@ -8301,12 +8309,12 @@ coordinates:
     sourceLine: 99
   SYM-findMustPriorityReqs:
     identityHash: 7de86c5e6068e771ab51c417fbd49e99b57abf6ca1245e2489e4358a251d4eee
-    sourceHash: 722f054f2514ad6dd448383fbf6ba2df0139937d1896f3a1b67629247c5f1223
+    sourceHash: 20dbb6eb7e7dff7665e5d32ef9012f87a13016913d243985fdd294e5a4a0f4e2
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1111
+    sourceEndLine: 1117
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 1093
+    sourceLine: 1099
   SYM-fingerprint-component-names:
     identityHash: 43f9226f48213ea1e991c7dcadb8eb14f612e4e1f023bb73cd937cc671e6398b
     sourceHash: 12442043ac639befe25814efeef22725d784205496511100356e06c44b904d31
@@ -8453,12 +8461,12 @@ coordinates:
     sourceLine: 201
   SYM-getAllEntityIds:
     identityHash: ec096a98ba62cc3cc9ca112664d0d1c535b88c99a6f1e35d36983e39dffea4d5
-    sourceHash: 722f054f2514ad6dd448383fbf6ba2df0139937d1896f3a1b67629247c5f1223
+    sourceHash: 20dbb6eb7e7dff7665e5d32ef9012f87a13016913d243985fdd294e5a4a0f4e2
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1133
+    sourceEndLine: 1139
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 1113
+    sourceLine: 1119
   SYM-getBehavioralSymbolNames:
     identityHash: aed0801fb7be06513976596f147541bf67d5c8a6d818f7000dbb5670d61f279c
     sourceHash: 02544c399433fee0518fe4fe08f276ddcad71919a65538a6e175d65a7d9a5bc2
@@ -8469,12 +8477,12 @@ coordinates:
     sourceLine: 135
   SYM-getBehaviorSourcePaths:
     identityHash: 02b23592c7eae22dd5ada25c8e71086d92b1772015bddebcdd5c3ae518d1ed80
-    sourceHash: dc4e522527692897198dbb1ea2c29237adc039882fcc72c461736b0929cf089e
+    sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 168
+    sourceEndLine: 194
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 163
+    sourceLine: 189
   SYM-getCachedPluginVersion:
     identityHash: 448517bb2bbf7dd12543066a83cc10741909397e93fd6fdc4ff8c61a8c45cd28
     sourceHash: 7b0f9072cf2f80905f13b337def6160d9a83f0011f8152d6be72a5f0301aeec5
@@ -8517,28 +8525,28 @@ coordinates:
     sourceLine: 279
   SYM-getFreshSymbolsManifestSourcePaths:
     identityHash: e57bb190d8e06e59a399b89f5df3f981bad5e8127957812136218ced7aad135f
-    sourceHash: dc4e522527692897198dbb1ea2c29237adc039882fcc72c461736b0929cf089e
+    sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 192
+    sourceEndLine: 218
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 184
+    sourceLine: 210
   SYM-getKbCoveredSourcePaths:
     identityHash: 94918237fe86747c5718dcc5892a537778f398f0d2ef6f17cbf157b0120509be
-    sourceHash: dc4e522527692897198dbb1ea2c29237adc039882fcc72c461736b0929cf089e
+    sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 181
+    sourceEndLine: 207
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 171
+    sourceLine: 197
   SYM-getKbEvidencePaths:
     identityHash: 7934f09922f994a35352b7b359fe9dab12a1f7fe59a2e8d324ccb98f0f8de1bb
-    sourceHash: dc4e522527692897198dbb1ea2c29237adc039882fcc72c461736b0929cf089e
+    sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 210
+    sourceEndLine: 236
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 198
+    sourceLine: 224
   SYM-getKbExistenceTargets:
     identityHash: 94f87481e48bf5ecf1d38e5b7e9f50381b6e8667d660f1940d84f19f6a1c6eaa
     sourceHash: d91ddd1eacccf5e939a6847a3da5ed6132b67f728617a670c5628e4e0f4a0724
@@ -8557,12 +8565,12 @@ coordinates:
     sourceLine: 335
   SYM-getMissingBehaviorSourcePaths:
     identityHash: fccf34a255b5588260e74172b0a0ac7ba961d903491d7f8fdb98e2e385bb717b
-    sourceHash: dc4e522527692897198dbb1ea2c29237adc039882fcc72c461736b0929cf089e
+    sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 234
+    sourceEndLine: 260
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 224
+    sourceLine: 250
   SYM-getNonBehavioralSymbolNames:
     identityHash: c9a6b70e19701a17ddf3bcf681ce5e88cd25dafc97a8f740077c4bd4e17d4854
     sourceHash: 02544c399433fee0518fe4fe08f276ddcad71919a65538a6e175d65a7d9a5bc2
@@ -8765,12 +8773,12 @@ coordinates:
     sourceLine: 112
   SYM-hasOverrideRationale:
     identityHash: cc4bb573c68085db64df095b4fb725d3d450eca2cc581789f3b2e37f0fe5c151
-    sourceHash: dc4e522527692897198dbb1ea2c29237adc039882fcc72c461736b0929cf089e
+    sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 218
+    sourceEndLine: 244
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 213
+    sourceLine: 239
   SYM-hasTraversal:
     identityHash: 13c74b35cd06b774082f666ae3e3d8040d32bdfea4913dbf0d6b71168ee2b04e
     sourceHash: f34d98cc1814cf48e5e953b1b3aa33a5b06a122a4ece896cdf0fceafbac0568f
@@ -9053,7 +9061,7 @@ coordinates:
     sourceLine: 111
   SYM-isAuditedNoImpactOverrideAllowed:
     identityHash: c57d50e666cf6b8bbf3cb132c9cffa34afecd679b3692c5044e0a5fb5f1f3aa9
-    sourceHash: c964263124542bbd49a8e41248a062bd62a498eceab0a8dc401af63a027c2a9a
+    sourceHash: 691053bf1c35d0a12b9c8dc3a0ea93fa592f844ac88582a31d41d1e7182d979f
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 160
@@ -9069,7 +9077,7 @@ coordinates:
     sourceLine: 129
   SYM-isBehaviorSourceEdit:
     identityHash: a688bc85ae2ca2d0667144a83b46bfaabd111c0c98f90a82780baddbb338fa15
-    sourceHash: c964263124542bbd49a8e41248a062bd62a498eceab0a8dc401af63a027c2a9a
+    sourceHash: 691053bf1c35d0a12b9c8dc3a0ea93fa592f844ac88582a31d41d1e7182d979f
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 192
@@ -9133,7 +9141,7 @@ coordinates:
     sourceLine: 247
   SYM-isSupportedBehaviorSourcePath:
     identityHash: 5868c1594f17bda76f8959aa6450d1da6c5944b4187ecabc304aa23892514408
-    sourceHash: c964263124542bbd49a8e41248a062bd62a498eceab0a8dc401af63a027c2a9a
+    sourceHash: 691053bf1c35d0a12b9c8dc3a0ea93fa592f844ac88582a31d41d1e7182d979f
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 202
@@ -10125,7 +10133,7 @@ coordinates:
     sourceLine: 36
   SYM-KIBI-ENTITY-SCHEMA-DOC:
     identityHash: ad814394d202bec4d6d266dd15e5a17dc7c7b5154cc845eda9b6522cbee4d2bd
-    sourceHash: dc4e522527692897198dbb1ea2c29237adc039882fcc72c461736b0929cf089e
+    sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
     sourceColumn: 13
     sourceEndColumn: 61
     sourceEndLine: 12
@@ -10149,7 +10157,7 @@ coordinates:
     sourceLine: 28
   SYM-KIBI-IMPACT-DIAGNOSTIC-IDS:
     identityHash: 353c3be3a4be1be44da7e4446775c27dfaff5752d8ea1e3a84e1280b86f86ec2
-    sourceHash: c964263124542bbd49a8e41248a062bd62a498eceab0a8dc401af63a027c2a9a
+    sourceHash: 691053bf1c35d0a12b9c8dc3a0ea93fa592f844ac88582a31d41d1e7182d979f
     sourceColumn: 13
     sourceEndColumn: 10
     sourceEndLine: 18
@@ -10157,11 +10165,19 @@ coordinates:
     sourceLine: 14
   SYM-KIBI-IMPACT-DIAGNOSTICS:
     identityHash: c3f2e6af5bf2fafa9c38d4ed11dd6d563c56f024d3c3632f34944bbe3502f031
-    sourceHash: c964263124542bbd49a8e41248a062bd62a498eceab0a8dc401af63a027c2a9a
+    sourceHash: 691053bf1c35d0a12b9c8dc3a0ea93fa592f844ac88582a31d41d1e7182d979f
     sourceColumn: 13
     sourceEndColumn: 1
     sourceEndLine: 111
     sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
+    sourceLine: 80
+  SYM-kibi-impact-symbols-manifest-file-detail:
+    identityHash: 13b56c2da29ca88288cffe6fb6c77f3d202277cfc5ca936fe768233d7d991f42
+    sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 91
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
     sourceLine: 80
   SYM-kibi-launcher-argument-inference:
     identityHash: e467582212d7a89988b5c2e23f74d7e1d953d14bdcd52d92487c03163251aba3
@@ -10325,7 +10341,7 @@ coordinates:
     sourceLine: 14
   SYM-KIBI-NO-IMPACT-DECLARATION:
     identityHash: 6f1e4be39624835dccdf1548c06a53209212d6218b4448820964c65a55d3f0b3
-    sourceHash: dc4e522527692897198dbb1ea2c29237adc039882fcc72c461736b0929cf089e
+    sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
     sourceColumn: 13
     sourceEndColumn: 61
     sourceEndLine: 21
@@ -10493,7 +10509,7 @@ coordinates:
     sourceLine: 4
   SYM-KIBI-STAGED-IMPACT-EVIDENCE-DOC:
     identityHash: 952d3dd3c13ddb9e9f4934a0e5955e971b41ba3cd6e4d284d7989badf1976ccd
-    sourceHash: dc4e522527692897198dbb1ea2c29237adc039882fcc72c461736b0929cf089e
+    sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
     sourceColumn: 13
     sourceEndColumn: 48
     sourceEndLine: 10
@@ -10501,7 +10517,7 @@ coordinates:
     sourceLine: 9
   SYM-KIBI-SYMBOL-COORDINATES-PATH:
     identityHash: 9b2d949c56c91256ff01d01892fa666bda85ba0bb61ac1af9b40b42c598f8c68
-    sourceHash: dc4e522527692897198dbb1ea2c29237adc039882fcc72c461736b0929cf089e
+    sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
     sourceColumn: 13
     sourceEndColumn: 73
     sourceEndLine: 18
@@ -10509,7 +10525,7 @@ coordinates:
     sourceLine: 18
   SYM-KIBI-SYMBOLS-MANIFEST-PATH:
     identityHash: 919a5acc0b9133f7ea4c29a9529cc428968c9f586b1175c62ace508cec1bb8d1
-    sourceHash: dc4e522527692897198dbb1ea2c29237adc039882fcc72c461736b0929cf089e
+    sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
     sourceColumn: 13
     sourceEndColumn: 60
     sourceEndLine: 15
@@ -10621,7 +10637,7 @@ coordinates:
     sourceLine: 7
   SYM-KibiEntityType:
     identityHash: 86cc7f81e214bf23edcd68c169228d136a45fb8cd80d84699dc806ea4b6ec9a5
-    sourceHash: dc4e522527692897198dbb1ea2c29237adc039882fcc72c461736b0929cf089e
+    sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
     sourceColumn: 12
     sourceEndColumn: 11
     sourceEndLine: 32
@@ -10629,15 +10645,15 @@ coordinates:
     sourceLine: 24
   SYM-KibiImpactDiagnostic:
     identityHash: ddddc0d71aeae14509bd9daf995195442c517ee357c248516ec0264535b3caf8
-    sourceHash: 81b167219841bf18bce778654ddfe3e738d3b7e7c3d2920b3dd883bb416fcdf2
+    sourceHash: bbc77c640a763f0bb79fb0864ceb6f28585bd858f051b13a56bfdb059e9fec2b
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 44
+    sourceEndLine: 51
     sourceFile: packages/cli/src/traceability/staged-diagnostics.ts
-    sourceLine: 32
+    sourceLine: 33
   SYM-KibiImpactDiagnosticContract:
     identityHash: 597e0f20aa22d3b13658f59c0a68da37c229a470df52c2a9b5d541bfae949799
-    sourceHash: c964263124542bbd49a8e41248a062bd62a498eceab0a8dc401af63a027c2a9a
+    sourceHash: 691053bf1c35d0a12b9c8dc3a0ea93fa592f844ac88582a31d41d1e7182d979f
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 32
@@ -10645,15 +10661,15 @@ coordinates:
     sourceLine: 28
   SYM-KibiImpactDiagnosticId:
     identityHash: a79c90400b6a318b96c4ed7f1c54e27ec62f92608f36890cf536d34d068bb9b9
-    sourceHash: 81b167219841bf18bce778654ddfe3e738d3b7e7c3d2920b3dd883bb416fcdf2
+    sourceHash: bbc77c640a763f0bb79fb0864ceb6f28585bd858f051b13a56bfdb059e9fec2b
     sourceColumn: 12
     sourceEndColumn: 45
-    sourceEndLine: 30
+    sourceEndLine: 31
     sourceFile: packages/cli/src/traceability/staged-diagnostics.ts
-    sourceLine: 18
+    sourceLine: 19
   SYM-KibiImpactDiagnosticId-contract:
     identityHash: a5459f1faec526b014e59c670c6d3e756031ff7b96f24d571d467c6fa55ad467
-    sourceHash: c964263124542bbd49a8e41248a062bd62a498eceab0a8dc401af63a027c2a9a
+    sourceHash: 691053bf1c35d0a12b9c8dc3a0ea93fa592f844ac88582a31d41d1e7182d979f
     sourceColumn: 12
     sourceEndColumn: 46
     sourceEndLine: 21
@@ -10661,15 +10677,15 @@ coordinates:
     sourceLine: 20
   SYM-KibiImpactEvidence:
     identityHash: 38aba781931040d2fb7a89dd305a6e4d46e955bfcb85063d36dbb4bd0d68c219
-    sourceHash: dc4e522527692897198dbb1ea2c29237adc039882fcc72c461736b0929cf089e
+    sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 156
+    sourceEndLine: 182
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 149
+    sourceLine: 175
   SYM-KibiImpactEvidenceInput:
     identityHash: f500e1bd96b26479ca9be1394ea6c83fcb26e4ad457f0046e17544a2fffe4907
-    sourceHash: c964263124542bbd49a8e41248a062bd62a498eceab0a8dc401af63a027c2a9a
+    sourceHash: 691053bf1c35d0a12b9c8dc3a0ea93fa592f844ac88582a31d41d1e7182d979f
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 40
@@ -10677,7 +10693,7 @@ coordinates:
     sourceLine: 34
   SYM-KibiImpactEvidenceKind:
     identityHash: 86082417cd019f2a9a9a57b9969f26ed67300074491633de9c10caaa825dbcf5
-    sourceHash: c964263124542bbd49a8e41248a062bd62a498eceab0a8dc401af63a027c2a9a
+    sourceHash: 691053bf1c35d0a12b9c8dc3a0ea93fa592f844ac88582a31d41d1e7182d979f
     sourceColumn: 12
     sourceEndColumn: 24
     sourceEndLine: 26
@@ -10685,7 +10701,7 @@ coordinates:
     sourceLine: 23
   SYM-KibiImpactKbArtifact:
     identityHash: 59ecbec0ea2adb88f8dc4706cea4b2a96d09233d75321fe0780a0dab51cc0971
-    sourceHash: dc4e522527692897198dbb1ea2c29237adc039882fcc72c461736b0929cf089e
+    sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 71
@@ -10693,39 +10709,39 @@ coordinates:
     sourceLine: 60
   SYM-KibiImpactKbChangesMode:
     identityHash: 18d25e1f96fd9f3d9a509a47de4ea257b09d479aaa5e5098cc19c47aee8f4750
-    sourceHash: dc4e522527692897198dbb1ea2c29237adc039882fcc72c461736b0929cf089e
+    sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 121
+    sourceEndLine: 147
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 117
+    sourceLine: 143
   SYM-KibiImpactMissingMode:
     identityHash: b4e19810ab12fd27a70bbc719b4b871c199d91e42d5b4c10927fac99cf730069
-    sourceHash: dc4e522527692897198dbb1ea2c29237adc039882fcc72c461736b0929cf089e
+    sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 133
+    sourceEndLine: 159
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 131
+    sourceLine: 157
   SYM-KibiImpactMode:
     identityHash: f9979c973e2be5b02e9033e8d3310f939816178c6bfcd9a2ed76cdac6a2cfc8f
-    sourceHash: dc4e522527692897198dbb1ea2c29237adc039882fcc72c461736b0929cf089e
+    sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
     sourceColumn: 12
     sourceEndColumn: 26
-    sourceEndLine: 139
+    sourceEndLine: 165
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 136
+    sourceLine: 162
   SYM-KibiImpactNoImpactOverrideMode:
     identityHash: 879886bdaf9dc13aaaf96377353b730207e09dadaa6c5832d87dd100b9b748cc
-    sourceHash: dc4e522527692897198dbb1ea2c29237adc039882fcc72c461736b0929cf089e
+    sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 128
+    sourceEndLine: 154
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 124
+    sourceLine: 150
   SYM-KibiImpactSourceChange:
     identityHash: d68fee53332654747b8dbe92e46f33e1b5076b514c61fe7ccc563321f41d94f8
-    sourceHash: dc4e522527692897198dbb1ea2c29237adc039882fcc72c461736b0929cf089e
+    sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 52
@@ -10733,28 +10749,28 @@ coordinates:
     sourceLine: 47
   SYM-KibiImpactSymbolsManifest:
     identityHash: c34520d5f84ed209fbacaea382a8fd7527ddbb72813aa888790173bbecd9c331
-    sourceHash: dc4e522527692897198dbb1ea2c29237adc039882fcc72c461736b0929cf089e
+    sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 90
-    sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 83
-  SYM-KibiNoImpactOverride:
-    identityHash: 02a1c1729aaeb986b47fe41ce830cfdc5bf89e1e6562161d6e685c293b3bc9eb
-    sourceHash: dc4e522527692897198dbb1ea2c29237adc039882fcc72c461736b0929cf089e
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 114
+    sourceEndLine: 116
     sourceFile: packages/cli/src/traceability/evidence-model.ts
     sourceLine: 103
+  SYM-KibiNoImpactOverride:
+    identityHash: 02a1c1729aaeb986b47fe41ce830cfdc5bf89e1e6562161d6e685c293b3bc9eb
+    sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 140
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    sourceLine: 129
   SYM-KibiNoImpactReason:
     identityHash: b5e8a5f8a59320de47024046e0fc3b5aeb75ef3dce6426db6425885784c36bd0
-    sourceHash: dc4e522527692897198dbb1ea2c29237adc039882fcc72c461736b0929cf089e
+    sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
     sourceColumn: 12
     sourceEndColumn: 33
-    sourceEndLine: 95
+    sourceEndLine: 121
     sourceFile: packages/cli/src/traceability/evidence-model.ts
-    sourceLine: 93
+    sourceLine: 119
   SYM-kibiOpencodePlugin:
     identityHash: a2aea0d2b451e30dd1e29894eaf8a87dc8d00a8213cf6e82b954544809ffc47c
     sourceHash: f1ec58daeb6a1665b2ed36dccb553a73d8525e2e8a0075225cb927613dbda55a
@@ -10923,6 +10939,14 @@ coordinates:
     sourceEndLine: 9
     sourceFile: packages/opencode/src/logger.ts
     sourceLine: 9
+  SYM-manifest-record-source-path:
+    identityHash: 2541c15074014e5b5dbc4dc1a9080b87bf94eb8129f79ed731ffe69dd4891163
+    sourceHash: 18184375ada7e98737b8f0d8152d26553cb4126f928104463634794c642cec06
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 158
+    sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
+    sourceLine: 149
   SYM-ManifestError:
     identityHash: f9027f0bcbf8e5af3b26d97ea3c357cc1575be1e3b19739a0752ecec8054e8b9
     sourceHash: dce2b3b2a5136c96319eebb687e9cb380c9943b3d7748bec2881644f96a02ea0
@@ -13307,6 +13331,14 @@ coordinates:
     sourceEndLine: 295
     sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
     sourceLine: 228
+  SYM-parsed-coordinate-or-null:
+    identityHash: 968ef114bb87c11f45d2666a32c75648b50ae264252f6703855576f1430f8d9c
+    sourceHash: 18184375ada7e98737b8f0d8152d26553cb4126f928104463634794c642cec06
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 147
+    sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
+    sourceLine: 138
   SYM-ParsedCoordinateArtifact:
     identityHash: 50530216f93c5a818820a0893f31e25cd3775340b9e6ec4cb56f38d62bce341a
     sourceHash: 34be6bf937dc2c0c2586b0652d89c5ad918b08d5dfa7ddb1246a6e42d6da8a4b
@@ -13317,7 +13349,7 @@ coordinates:
     sourceLine: 54
   SYM-ParsedKibiImpactOverride:
     identityHash: c793a90077a6dc141a97aa560e0b2179a0659c9ed9d16db7798d2270e9815d01
-    sourceHash: c964263124542bbd49a8e41248a062bd62a498eceab0a8dc401af63a027c2a9a
+    sourceHash: 691053bf1c35d0a12b9c8dc3a0ea93fa592f844ac88582a31d41d1e7182d979f
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 52
@@ -13341,7 +13373,7 @@ coordinates:
     sourceLine: 231
   SYM-parseKibiImpactOverride:
     identityHash: d8c7744a2a206731f323d16d038336d47a0c2a252ee68a34bded4a5e2d6554b8
-    sourceHash: c964263124542bbd49a8e41248a062bd62a498eceab0a8dc401af63a027c2a9a
+    sourceHash: 691053bf1c35d0a12b9c8dc3a0ea93fa592f844ac88582a31d41d1e7182d979f
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 150
@@ -15285,12 +15317,12 @@ coordinates:
     sourceLine: 67
   SYM-requireActiveProlog:
     identityHash: 035882fdd264226dca29e3ab75a67719f23e6df601c7b28243f5dcb6778699af
-    sourceHash: 722f054f2514ad6dd448383fbf6ba2df0139937d1896f3a1b67629247c5f1223
+    sourceHash: 20dbb6eb7e7dff7665e5d32ef9012f87a13016913d243985fdd294e5a4a0f4e2
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 604
+    sourceEndLine: 610
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 595
+    sourceLine: 601
   SYM-requirement-extract-heuristic-claim:
     identityHash: 23b00834f27b24a4574b110bad6e8cc12f3f5175d9d52b396a2a8115e648b7c3
     sourceHash: 2dca582258659262da36dac9292f7a5a8db257e5f7d71cff076c08b8d9cf1900
@@ -23197,7 +23229,7 @@ coordinates:
     sourceLine: 71
   SYM-SourceChangeKind:
     identityHash: f9cb1a26a668ef25ebfa07a04ffb74d3a19df5b90eaf15f836b2834a2695dfbf
-    sourceHash: dc4e522527692897198dbb1ea2c29237adc039882fcc72c461736b0929cf089e
+    sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
     sourceColumn: 12
     sourceEndColumn: 31
     sourceEndLine: 44
@@ -23341,20 +23373,20 @@ coordinates:
     sourceLine: 23
   SYM-StagedAuthoredSymbolsManifestEvidence:
     identityHash: 86d24a3fb61d0d23e6db6aa5b813ce772c523b957fd2acf4339fc2bf8aa47222
-    sourceHash: 068267a84eaa86f221f2329f978f8be92c432658edc1a5e670a796952c83f784
+    sourceHash: 18184375ada7e98737b8f0d8152d26553cb4126f928104463634794c642cec06
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 67
+    sourceEndLine: 74
     sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
-    sourceLine: 63
+    sourceLine: 70
   SYM-StagedSymbolsManifestAssessment:
     identityHash: 48c6a72f2ee00e90924f641bd8901c8b057d9954c066235dd22869a7aae1e38f
-    sourceHash: 068267a84eaa86f221f2329f978f8be92c432658edc1a5e670a796952c83f784
+    sourceHash: 18184375ada7e98737b8f0d8152d26553cb4126f928104463634794c642cec06
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 61
+    sourceEndLine: 68
     sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
-    sourceLine: 57
+    sourceLine: 58
   SYM-StartupNotifierClient:
     identityHash: 89f6a51664c6dcf1acb122703bb9a8cedd4888a819201fd0e8612ee19e81fad3
     sourceHash: 884a5b84ce32640cefdb7f96ed7a49ed237e00fc1af2de5e23d6d02f637aa802

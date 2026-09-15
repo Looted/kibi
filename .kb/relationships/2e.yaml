@@ -126,3 +126,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-373a2233fa9b
+  - type: implements
+    from: SYM-parsed-coordinate-or-null
+    to: REQ-cli-staged-impact-enforcement
+    created_at: 2026-09-15T15:45:13.362Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4aedfedd6e4
+  - type: covered_by
+    from: SYM-parsed-coordinate-or-null
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-15T15:45:13.375Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d089d963a62a

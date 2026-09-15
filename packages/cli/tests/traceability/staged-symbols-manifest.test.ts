@@ -123,6 +123,62 @@ describe("assessStagedSymbolsManifest", () => {
     }
   });
 
+  it("reports per-file uncovered symbols when extraction outruns the manifest", () => {
+    const oldSource = `export function app() {\n  return "ok";\n}\n`;
+    writeFile(tmpDir, "src/app.ts", oldSource);
+    writeFile(
+      tmpDir,
+      ".kb/symbols.yaml",
+      "symbols:\n  - id: SYMBOL-CUSTOM-001\n    title: app\n    sourceFile: src/app.ts\n    sourceLine: 1\n    sourceColumn: 16\n    sourceEndLine: 3\n    sourceEndColumn: 1\n",
+    );
+    writeFile(
+      tmpDir,
+      ".kb/symbol-coordinates.yaml",
+      appCoordinatesArtifact(oldSource, 1),
+    );
+    commitAll(tmpDir, "initial");
+
+    writeFile(
+      tmpDir,
+      "src/app.ts",
+      `export function app() {\n  return "ok";\n}\n\nexport interface AppConfig {\n  name: string;\n}\n`,
+    );
+    execSync("git add src/app.ts .kb/symbol-coordinates.yaml", {
+      cwd: tmpDir,
+      stdio: "pipe",
+    });
+
+    const previousCwd = process.cwd();
+    process.chdir(tmpDir);
+    try {
+      const sourceFile = createSourceStagedFile(tmpDir);
+      const coordinatesFile: StagedFile = {
+        path: ".kb/symbol-coordinates.yaml",
+        status: "M",
+        hunkRanges: [],
+        content: readFileSync(
+          path.join(tmpDir, ".kb", "symbol-coordinates.yaml"),
+          "utf8",
+        ),
+      };
+      const result = assessStagedSymbolsManifest({
+        symbolsManifestPath: ".kb/symbols.yaml",
+        sourceFiles: [sourceFile],
+        stagedFiles: [sourceFile, coordinatesFile],
+      });
+      expect(result.state).toBe("stale");
+      expect(result.fileDetails?.[0]).toMatchObject({
+        path: "src/app.ts",
+        expectedCount: 2,
+        coveredCount: 1,
+        missing: [{ title: "AppConfig", line: 5 }],
+        extra: [],
+      });
+    } finally {
+      process.chdir(previousCwd);
+    }
+  });
+
   it("supports the canonical .yml twin of .kb/symbols.yaml", () => {
     writeFile(
       tmpDir,
@@ -480,6 +536,15 @@ describe("assessStagedSymbolsManifest", () => {
         state: "stale",
         sourcePaths: ["src/app.ts"],
         path: ".kb/symbol-coordinates.yaml",
+        fileDetails: [
+          {
+            path: "src/app.ts",
+            expectedCount: 2,
+            coveredCount: 1,
+            missing: [{ title: "helper", line: 6 }],
+            extra: [],
+          },
+        ],
       });
     } finally {
       process.chdir(previousCwd);

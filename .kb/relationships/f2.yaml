@@ -90,3 +90,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cd8f235a5007
+  - type: implements
+    from: SYM-kibi-impact-symbols-manifest-file-detail
+    to: REQ-cli-staged-impact-enforcement
+    created_at: 2026-09-15T15:43:59.973Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0fa53188cee0
+  - type: covered_by
+    from: SYM-kibi-impact-symbols-manifest-file-detail
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-15T15:43:59.984Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69803e415f50

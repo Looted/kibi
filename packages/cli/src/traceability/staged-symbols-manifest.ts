@@ -12,6 +12,7 @@ import {
 import { analyzeSourceText } from "../extractors/symbols-coordinator.js";
 import { isCoarseGranularityReason } from "../public/symbol-granularity.js";
 import { resolveSymbolsManifestPaths } from "../utils/manifest-paths.js";
+import type { KibiImpactSymbolsManifestFileDetail } from "./evidence-model.js";
 import type { StagedFile } from "./git-staged.js";
 
 interface NormalizedManifestSymbol {
@@ -58,6 +59,12 @@ export interface StagedSymbolsManifestAssessment {
   state: "fresh" | "stale" | "missing" | "not_required";
   sourcePaths: string[];
   path: string;
+  /**
+   * Per-file extraction-vs-evidence diffs for the source paths whose symbol
+   * output changed. Lets diagnostics name the uncovered symbols instead of
+   * reporting a bare "stale" verdict.
+   */
+  fileDetails?: KibiImpactSymbolsManifestFileDetail[];
 }
 
 export interface StagedAuthoredSymbolsManifestEvidence {
@@ -396,6 +403,33 @@ function getEffectiveManifestRecords(options: {
   };
 }
 
+/** Max missing/extra symbol titles surfaced per file before "+N more". */
+const MAX_DETAIL_ITEMS = 6;
+
+function diffSymbolEvidence(
+  sourcePath: string,
+  expectedSymbols: NormalizedManifestSymbol[],
+  stagedSymbols: NormalizedManifestSymbol[],
+): KibiImpactSymbolsManifestFileDetail {
+  const stagedTitles = new Set(stagedSymbols.map((symbol) => symbol.title));
+  const expectedTitles = new Set(expectedSymbols.map((symbol) => symbol.title));
+  const missing = expectedSymbols
+    .filter((symbol) => !stagedTitles.has(symbol.title))
+    .map((symbol) => ({ title: symbol.title, line: symbol.sourceLine ?? 0 }))
+    .sort((left, right) => left.title.localeCompare(right.title));
+  const extra = stagedSymbols
+    .filter((symbol) => !expectedTitles.has(symbol.title))
+    .map((symbol) => symbol.title)
+    .sort();
+  return {
+    path: sourcePath,
+    expectedCount: expectedSymbols.length,
+    coveredCount: stagedSymbols.length,
+    missing: missing.slice(0, MAX_DETAIL_ITEMS),
+    extra: extra.slice(0, MAX_DETAIL_ITEMS),
+  };
+}
+
 export function assessStagedSymbolsManifest(options: {
   symbolsManifestPath: string;
   sourceFiles: StagedFile[];
@@ -432,6 +466,7 @@ export function assessStagedSymbolsManifest(options: {
 
   const requiredRefreshPaths: string[] = [];
   const freshPaths = new Set<string>();
+  const symbolDetails: KibiImpactSymbolsManifestFileDetail[] = [];
 
   for (const sourceFile of sourceFiles) {
     const manifestRecordsForFile = (stagedManifestRecords ?? []).filter(
@@ -459,14 +494,22 @@ export function assessStagedSymbolsManifest(options: {
 
     requiredRefreshPaths.push(sourceFile.path);
 
-    if (!stagedCoordinatesFile || stagedCoordinateArtifact === null) {
+    // Without a usable staged coordinate artifact there is nothing to diff
+    // against: every extracted symbol counts as uncovered evidence.
+    const stagedSymbols =
+      stagedCoordinateArtifact === null
+        ? []
+        : normalizeManifestSymbolsForSourceFile(
+            stagedMergedRecords,
+            sourceFile.path,
+          );
+    symbolDetails.push(
+      diffSymbolEvidence(sourceFile.path, expectedSymbols, stagedSymbols),
+    );
+
+    if (!stagedCoordinatesFile) {
       continue;
     }
-
-    const stagedSymbols = normalizeManifestSymbolsForSourceFile(
-      stagedMergedRecords,
-      sourceFile.path,
-    );
 
     if (signaturesEqual(expectedSymbols, stagedSymbols)) {
       freshPaths.add(sourceFile.path);
@@ -486,11 +529,32 @@ export function assessStagedSymbolsManifest(options: {
     return { state: "fresh", sourcePaths, path: paths.coordinatesPath };
   }
 
+  // Details are only meaningful for the states whose diagnostics fire; a
+  // fresh refresh carries no uncovered symbols by definition.
+  const detailSpread =
+    symbolDetails.length > 0
+      ? {
+          fileDetails: symbolDetails.sort((left, right) =>
+            left.path.localeCompare(right.path),
+          ),
+        }
+      : {};
+
   if (!stagedCoordinatesFile) {
-    return { state: "missing", sourcePaths, path: paths.coordinatesPath };
+    return {
+      state: "missing",
+      sourcePaths,
+      path: paths.coordinatesPath,
+      ...detailSpread,
+    };
   }
 
-  return { state: "stale", sourcePaths, path: paths.coordinatesPath };
+  return {
+    state: "stale",
+    sourcePaths,
+    path: paths.coordinatesPath,
+    ...detailSpread,
+  };
 }
 
 export function collectStagedAuthoredSymbolsManifestEvidence(options: {

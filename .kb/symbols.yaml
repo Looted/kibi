@@ -35036,3 +35036,43 @@ symbols:
         target: TEST-cli-staged-impact-enforcement
       - type: implements
         target: REQ-AUTO-941B0CE68BAF3331
+  - id: SYM-kibi-impact-symbols-manifest-file-detail
+    title: KibiImpactSymbolsManifestFileDetail
+    status: active
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+  - id: SYM-create-missing-override-rationale-diagnostic
+    title: createMissingOverrideRationaleDiagnostic
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-diagnostics.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+  - id: SYM-manifest-record-source-path
+    title: manifestRecordSourcePath
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+  - id: SYM-parsed-coordinate-or-null
+    title: parsedCoordinateOrNull
+    status: active
+    sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement

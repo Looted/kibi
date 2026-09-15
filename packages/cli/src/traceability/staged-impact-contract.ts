@@ -86,7 +86,7 @@ export const KIBI_IMPACT_DIAGNOSTICS: Record<
     title: "Behavior edit requires staged Kibi impact evidence",
     resolution: [
       "Query Kibi via visible MCP tools or the trusted project-local CLI (peer surfaces): use kb_search for discovery, then kb_query for exact follow-up.",
-      "MCP writes update KB state but do not stage tracked evidence; also stage related KB entity markdown under .kb/, authored .kb/symbols.yaml metadata, or refreshed .kb/symbol-coordinates.yaml.",
+      "MCP writes update KB state but do not stage tracked evidence; also stage related KB entity markdown under .kb/, authored .kb/symbols.yaml metadata (the Detail lines name the symbols lacking evidence), or refreshed .kb/symbol-coordinates.yaml.",
       "Re-run or let the hook run kibi check --staged.",
     ],
   },
@@ -94,9 +94,9 @@ export const KIBI_IMPACT_DIAGNOSTICS: Record<
     id: "symbols_manifest_stale",
     title: "Symbol coordinates evidence is stale for changed extraction output",
     resolution: [
-      "Refresh symbol coordinates for the changed source file with kibi sync --refresh-symbol-coordinates.",
-      "Stage .kb/symbol-coordinates.yaml in the same change as the behavior edit, and stage .kb/symbols.yaml only if migration cleanup changed it.",
-      "Re-run or let the hook run kibi check --staged.",
+      "Read the Detail lines: they name the extracted symbols the staged .kb/symbols.yaml evidence does not cover.",
+      "Author .kb/symbols.yaml entries for the uncovered symbols (kibi upsert, with implements/covered_by links), then refresh symbol coordinates with kibi sync --refresh-symbol-coordinates.",
+      "Stage .kb/symbol-coordinates.yaml and .kb/symbols.yaml in the same change as the behavior edit, then re-run or let the hook run kibi check --staged.",
     ],
   },
   kibi_impact_override_missing_rationale: {
