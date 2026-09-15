@@ -17,7 +17,7 @@ operator: eq
 value_type: string
 value_string: all_index_paths
 claim_key: CLAIM-F51B8CA6D6AB3904
-claim_text: The staged check must inventory every path in the Git index before filtering.
+claim_text: The staged check must inventory every path in the Git index before filtering
 id: FACT-PROP-AE73F1EFA515B861
 type: fact
 ---
