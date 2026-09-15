@@ -60,6 +60,27 @@ describe("receiptBindingHash", () => {
     ).not.toBe(receiptBindingHash(contract, doc));
   });
 
+  test("changes when the code scope changes", () => {
+    const scopeA = [{ symbolId: "SYM-a", sourceHash: "hash-1" }];
+    const scopeB = [{ symbolId: "SYM-a", sourceHash: "hash-2" }];
+    const base = receiptBindingHash(contract, doc, scopeA);
+    expect(receiptBindingHash(contract, doc, scopeA)).toBe(base);
+    expect(receiptBindingHash(contract, doc, scopeB)).not.toBe(base);
+    expect(receiptBindingHash(contract, doc)).not.toBe(base);
+  });
+
+  test("code scope ordering does not change the binding", () => {
+    const forward = receiptBindingHash(contract, doc, [
+      { symbolId: "SYM-a", sourceHash: "h1" },
+      { symbolId: "SYM-b", sourceHash: "h2" },
+    ]);
+    const backward = receiptBindingHash(contract, doc, [
+      { symbolId: "SYM-b", sourceHash: "h2" },
+      { symbolId: "SYM-a", sourceHash: "h1" },
+    ]);
+    expect(forward).toBe(backward);
+  });
+
   test("ignores receipt-block differences once the caller strips them", () => {
     const withReceipts = `---
 id: TEST-binding

@@ -1,4 +1,6 @@
 import { join } from "node:path";
+
+import { resolveBoundSymbolScope } from "../../../extractors/manifest.js";
 import { PROOF_RECEIPT_MAX_AGE_SECONDS } from "../../proof-receipt.js";
 import { executeStatus } from "../discovery-executors.js";
 import {
@@ -206,6 +208,7 @@ async function perContractTestBindings(
     return null;
   }
   const entries: string[] = [];
+  const manifestPath = join(context.workspaceRoot, ".kb", "symbols.yaml");
   for (const test of tests) {
     const testId = typeof test.id === "string" ? test.id : "";
     const contract =
@@ -222,9 +225,21 @@ async function perContractTestBindings(
       const absolute = join(context.workspaceRoot, source);
       const authored = await context.fs.readFile(absolute);
       const stripped = removeFrontmatterBlock(authored, "proof_receipts");
+      const rawBindings: ReadonlyArray<{ symbol_id?: unknown }> = Array.isArray(
+        test.proof_bindings,
+      )
+        ? (test.proof_bindings as ReadonlyArray<{ symbol_id?: unknown }>)
+        : [];
+      const boundIds = rawBindings
+        .map((binding) =>
+          typeof binding.symbol_id === "string" ? binding.symbol_id : "",
+        )
+        .filter((id) => id !== "");
+      const codeScope = resolveBoundSymbolScope(manifestPath, boundIds);
       const binding = receiptBindingHash(
         contract as never,
         stripped ?? authored,
+        codeScope,
       );
       entries.push(`${toPrologAtom(testId)}: ${toPrologAtom(binding)}`);
     } catch {

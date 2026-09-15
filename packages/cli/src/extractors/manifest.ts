@@ -547,6 +547,39 @@ export function readManifestWithCoordinateOverlay(
   });
 }
 
+export interface ReceiptCodeScopeEntry {
+  readonly symbolId: string;
+  readonly sourceHash: string;
+}
+
+/**
+ * Resolve the code scope of a receipt binding: for each proof-bound symbol,
+ * its coordinate-recorded source hash. A receipt's binding covers these, so
+ * editing the production code behind a test stales only that test's receipts
+ * (per-contract binding mode).
+ */
+// implements REQ-kibi-proof-evidence-protocol
+export function resolveBoundSymbolScope(
+  manifestPath: string,
+  symbolIds: readonly string[],
+): ReceiptCodeScopeEntry[] {
+  const wanted = new Set(symbolIds);
+  if (wanted.size === 0) return [];
+  const records = readManifestWithCoordinateOverlay(manifestPath);
+  const scope: { symbolId: string; sourceHash: string }[] = [];
+  for (const record of records) {
+    const symbolId =
+      typeof record.id === "string" ? record.id : undefined;
+    if (symbolId === undefined || !wanted.has(symbolId)) continue;
+    const sourceHash = (record as { sourceHash?: unknown }).sourceHash;
+    if (typeof sourceHash === "string" && sourceHash !== "") {
+      scope.push({ symbolId, sourceHash });
+    }
+  }
+  scope.sort((left, right) => left.symbolId.localeCompare(right.symbolId));
+  return scope;
+}
+
 function generateId(filePath: string, title: string): string {
   const hash = createHash("sha256");
   hash.update(`${filePath}:${title}`);
