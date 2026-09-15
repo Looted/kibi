@@ -31,19 +31,22 @@ const sourceSurface = {
   resourcesHash: "b".repeat(64),
 } as const;
 
-const tasks: PublicTaskDescriptor[] = ["one", "two", "three", "four"].map(
-  (family) => ({
-    id: `kibi-usage-${family}-development-1`,
-    family,
-    split: "development" as const,
-    publicClaim: {
-      taskId: `kibi-usage-${family}-development-1`,
-      text: `Public task ${family}`,
-      publicManifestHash: "a".repeat(64),
-      workspaceHash: "b".repeat(64),
-    },
-  }),
-);
+const tasks: PublicTaskDescriptor[] = [
+  "discovery-exact-lookup",
+  "safe-mutation-direction",
+  "fact-predicate-modeling",
+  "validation-recovery",
+].map((family) => ({
+  id: `kibi-usage-${family}-development-1`,
+  family,
+  split: "development" as const,
+  publicClaim: {
+    taskId: `kibi-usage-${family}-development-1`,
+    text: `Public task ${family}`,
+    publicManifestHash: "a".repeat(64),
+    workspaceHash: "b".repeat(64),
+  },
+}));
 
 function candidateManifest() {
   return composeCampaignManifest({
@@ -660,6 +663,229 @@ describe("campaign confirmation", () => {
     } finally {
       await rm(first.parent, { recursive: true, force: true });
       await rm(second.parent, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("campaign evidence integrity", () => {
+  test("package rejects resealed derived evidence that mismatches verified cells", async () => {
+    const manifest = await actualCandidateManifest();
+    const fake = dependencies();
+    const evaluationOutput = await tempArtifact("integrity-evaluation");
+    try {
+      const evaluation = await runEvaluateCampaign({
+        sourceRoot: process.cwd(),
+        artifactRoot: evaluationOutput.root,
+        skill: "kibi-usage",
+        manifests: [manifest],
+        repeats: 1,
+        maxTargetEpisodes: 8,
+        allowPaid: true,
+        runId: "00000000-0000-4000-8000-000000000007",
+        dependencies: defaultCellDependencies(fake.deps, { surface }),
+      });
+      const packageDependencies = defaultCellDependencies(fake.deps, {
+        surface,
+        assemble: writeAssembledSkills,
+      });
+      const { contentHash: _contentHash, ...body } = evaluation;
+      const forgedAggregate = {
+        ...body.aggregate,
+        candidates: body.aggregate.candidates.map((arm) => ({
+          ...arm,
+          mean: 100,
+          hardPasses: arm.cells,
+          securityFailures: 0,
+        })),
+        noRegression: true,
+        regressions: [],
+      };
+      const originalFamily = body.cells[0]?.family;
+      if (originalFamily === undefined) throw new Error("family_cell_missing");
+      const duplicateCell = body.cells[1];
+      if (duplicateCell === undefined)
+        throw new Error("duplicate_cell_missing");
+      const forgedFamily = "forged-family";
+      const relabelFamilies = <
+        T extends { families: Readonly<Record<string, unknown>> },
+      >(
+        arm: T,
+      ): T => ({
+        ...arm,
+        families: Object.fromEntries(
+          Object.entries(arm.families).map(([family, summary]) => [
+            family === originalFamily ? forgedFamily : family,
+            summary,
+          ]),
+        ),
+      });
+      const cases = [
+        {
+          name: "aggregate",
+          patch: { aggregate: forgedAggregate },
+          error: "evaluation_aggregate_mismatch",
+        },
+        {
+          name: "pairings",
+          patch: { pairings: body.pairings.slice(0, -1) },
+          error: "evaluation_pairing_mismatch",
+        },
+        {
+          name: "run-summary",
+          patch: {
+            runs: body.runs.map((run) => ({ ...run, repeats: 2 as const })),
+          },
+          error: "cell_count_mismatch",
+        },
+        {
+          name: "family",
+          patch: {
+            cells: body.cells.map((cell) =>
+              cell.family === originalFamily
+                ? { ...cell, family: forgedFamily }
+                : cell,
+            ),
+            aggregate: {
+              ...body.aggregate,
+              baseline: relabelFamilies(body.aggregate.baseline),
+              candidates: body.aggregate.candidates.map(relabelFamilies),
+            },
+          },
+          error: "cell_family_mismatch",
+        },
+        {
+          name: "cell-multiset",
+          patch: {
+            cells: body.cells.map((cell, index) =>
+              index === 0 ? duplicateCell : cell,
+            ),
+          },
+          error: "cell_duplicate",
+        },
+      ] as const;
+      for (const [index, testCase] of cases.entries()) {
+        const packageOutput = await tempArtifact(`integrity-${index}`);
+        try {
+          const forgedBody = { ...body, ...testCase.patch };
+          const forged = {
+            ...forgedBody,
+            contentHash: contractHash(JsonValueSchema.parse(forgedBody)),
+          };
+          await expect(
+            runPackageCampaign({
+              sourceRoot: process.cwd(),
+              artifactRoot: packageOutput.root,
+              manifests: [manifest],
+              evaluation: forged,
+              dependencies: packageDependencies,
+            }),
+          ).rejects.toThrow(testCase.error);
+        } finally {
+          await rm(packageOutput.parent, { recursive: true, force: true });
+        }
+      }
+    } finally {
+      await rm(evaluationOutput.parent, { recursive: true, force: true });
+    }
+  });
+
+  test("confirmation rejects prior cells with altered security fields before the canary", async () => {
+    const priorOutput = await tempArtifact("security-prior");
+    const confirmOutput = await tempArtifact("security-confirm");
+    const fake = dependencies();
+    try {
+      const prior = await runEvaluateCampaign({
+        sourceRoot: process.cwd(),
+        artifactRoot: priorOutput.root,
+        skill: "kibi-usage",
+        manifests: [candidateManifest()],
+        repeats: 1,
+        maxTargetEpisodes: 8,
+        allowPaid: true,
+        runId: "00000000-0000-4000-8000-000000000008",
+        dependencies: defaultCellDependencies(fake.deps),
+      });
+      const compromised = prior.cells.find(
+        (cell) => cell.securityFailures.length > 0,
+      );
+      if (compromised === undefined) throw new Error("security_cell_missing");
+      const { contentHash: _contentHash, ...body } = prior;
+      const tamperedBody = {
+        ...body,
+        cells: body.cells.map((cell) =>
+          cell === compromised
+            ? { ...cell, securityFailures: [], isolationSentinels: [] }
+            : cell,
+        ),
+      };
+      const tampered = {
+        ...tamperedBody,
+        contentHash: contractHash(JsonValueSchema.parse(tamperedBody)),
+      };
+      fake.calls.length = 0;
+      await expect(
+        runConfirmCampaign({
+          sourceRoot: process.cwd(),
+          artifactRoot: confirmOutput.root,
+          previousEvaluation: tampered,
+          repeats: 1,
+          maxTargetEpisodes: 8,
+          allowPaid: true,
+          runId: "00000000-0000-4000-8000-000000000009",
+          dependencies: defaultCellDependencies(fake.deps),
+        }),
+      ).rejects.toThrow("prior_cell_evidence_mismatch");
+      expect(fake.calls).not.toContain("canary");
+    } finally {
+      await rm(priorOutput.parent, { recursive: true, force: true });
+      await rm(confirmOutput.parent, { recursive: true, force: true });
+    }
+  });
+
+  test("confirmation rejects prior cells whose family leaves the task catalog", async () => {
+    const priorOutput = await tempArtifact("family-prior");
+    const confirmOutput = await tempArtifact("family-confirm");
+    const fake = dependencies();
+    try {
+      const prior = await runEvaluateCampaign({
+        sourceRoot: process.cwd(),
+        artifactRoot: priorOutput.root,
+        skill: "kibi-usage",
+        manifests: [candidateManifest()],
+        repeats: 1,
+        maxTargetEpisodes: 8,
+        allowPaid: true,
+        runId: "family-prior-run",
+        dependencies: fake.deps,
+      });
+      const { contentHash: _contentHash, ...body } = prior;
+      const tamperedBody = {
+        ...body,
+        cells: body.cells.map((cell, index) =>
+          index === 0 ? { ...cell, family: "unbound-family" } : cell,
+        ),
+      };
+      const tampered = {
+        ...tamperedBody,
+        contentHash: contractHash(JsonValueSchema.parse(tamperedBody)),
+      };
+      fake.calls.length = 0;
+      await expect(
+        runConfirmCampaign({
+          sourceRoot: process.cwd(),
+          artifactRoot: confirmOutput.root,
+          previousEvaluation: tampered,
+          repeats: 1,
+          maxTargetEpisodes: 8,
+          allowPaid: true,
+          runId: "family-confirm-run",
+          dependencies: fake.deps,
+        }),
+      ).rejects.toThrow("cell_family_mismatch");
+      expect(fake.calls).not.toContain("canary");
+    } finally {
+      await rm(priorOutput.parent, { recursive: true, force: true });
+      await rm(confirmOutput.parent, { recursive: true, force: true });
     }
   });
 });

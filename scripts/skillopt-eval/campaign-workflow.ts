@@ -584,6 +584,72 @@ function buildPairings(
   return pairings;
 }
 
+function canonicalValueHash(value: unknown): string {
+  return contractHash(JsonValueSchema.parse(value));
+}
+
+function assertDerivedEvaluationConsistent(
+  evaluation: CampaignEvaluation,
+): void {
+  const cells = evaluation.cells as readonly CampaignCell[];
+  const baselineHash = sha256Text(evaluation.baselineBody);
+  const candidateHashes = evaluation.candidates.map(
+    (candidate) => candidate.frozenBodyHash,
+  );
+  const baseline = summarizeArm("baseline", baselineHash, cells);
+  const candidates = candidateHashes.map((hash, index) =>
+    summarizeArm(`candidate-${index + 1}`, hash, cells),
+  );
+  const recomputedAggregate = {
+    baseline,
+    candidates,
+    ...compareAggregates(baseline, candidates),
+  };
+  if (
+    canonicalValueHash(evaluation.aggregate) !==
+    canonicalValueHash(recomputedAggregate)
+  ) {
+    throw new CampaignArtifactError("evaluation_aggregate_mismatch");
+  }
+  const persistedPairings = evaluation.pairings
+    .map((pairing) => canonicalValueHash(pairing))
+    .sort();
+  const recomputedPairings = buildPairings(cells, candidateHashes, baselineHash)
+    .map((pairing) => canonicalValueHash(pairing))
+    .sort();
+  if (
+    persistedPairings.length !== recomputedPairings.length ||
+    persistedPairings.some((hash, index) => hash !== recomputedPairings[index])
+  ) {
+    throw new CampaignArtifactError("evaluation_pairing_mismatch");
+  }
+  const familyByTask = new Map(
+    buildSkillCatalog(evaluation.skill)
+      .filter((task) => task.split === "development")
+      .map((task) => [task.id, task.family]),
+  );
+  for (const cell of cells) {
+    const family = familyByTask.get(cell.taskId);
+    if (family === undefined || family !== cell.family)
+      throw new CampaignArtifactError("evaluation_family_mismatch");
+  }
+  const runIds = new Set(evaluation.runs.map((run) => run.runId));
+  for (const run of evaluation.runs) {
+    const runCells = cells.filter((cell) => cell.runId === run.runId);
+    const repeats = runCells.reduce(
+      (max, cell) => Math.max(max, cell.localRep),
+      0,
+    );
+    if (runCells.length !== run.cellCount || repeats !== run.repeats) {
+      throw new CampaignArtifactError("evaluation_run_summary_mismatch");
+    }
+  }
+  for (const cell of cells) {
+    if (!runIds.has(cell.runId))
+      throw new CampaignArtifactError("evaluation_run_summary_mismatch");
+  }
+}
+
 type CampaignCohort = Readonly<{
   runId: string;
   repeats: 1 | 2 | 3;
@@ -593,7 +659,7 @@ type CampaignCohort = Readonly<{
 function validateCellSet(
   cells: readonly CampaignCell[],
   cohorts: readonly CampaignCohort[],
-  tasks: readonly PublicTaskDescriptor[],
+  tasks: readonly Pick<PublicTaskDescriptor, "id" | "family">[],
   baselineHash: string,
   candidateHashes: readonly string[],
 ): void {
@@ -611,8 +677,11 @@ function validateCellSet(
       throw new CampaignArtifactError("cell_run_unbound");
     if (cell.localRep > cohort.repeats)
       throw new CampaignArtifactError("cell_repeat_unbound");
-    if (!tasks.some((task) => task.id === cell.taskId))
+    const task = tasks.find((candidate) => candidate.id === cell.taskId);
+    if (task === undefined)
       throw new CampaignArtifactError("cell_task_unbound");
+    if (task.family !== cell.family)
+      throw new CampaignArtifactError("cell_family_mismatch");
     if (
       cell.pairKey !== campaignPairKey(cell.runId, cell.taskId, cell.localRep)
     ) {
@@ -937,6 +1006,13 @@ async function verifyPersistedCampaignCell(
       contractHash(JsonValueSchema.parse(cell.usage)) ||
     contractHash(JsonValueSchema.parse(verified.violations)) !==
       contractHash(JsonValueSchema.parse(cell.violations)) ||
+    contractHash(JsonValueSchema.parse(verified.isolationSentinels)) !==
+      contractHash(JsonValueSchema.parse(cell.isolationSentinels)) ||
+    contractHash(
+      JsonValueSchema.parse([
+        ...new Set([...verified.violations, ...verified.isolationSentinels]),
+      ]),
+    ) !== contractHash(JsonValueSchema.parse(cell.securityFailures)) ||
     contractHash(JsonValueSchema.parse(verified.artifactRefs)) !==
       contractHash(JsonValueSchema.parse(cell.artifactRefs))
   ) {
@@ -1106,15 +1182,21 @@ function validateDevelopmentTasks(
   const expected = buildSkillCatalog(skill).filter(
     (task) => task.split === "development",
   );
+  const expectedById = new Map(expected.map((task) => [task.id, task]));
   if (
     tasks.length !== expected.length ||
     tasks.some((task) => task.split !== "development") ||
     new Set(tasks.map((task) => task.id)).size !== tasks.length ||
-    tasks.some(
-      (task) =>
-        task.family.length === 0 ||
-        !PublicTaskClaimSchema.safeParse(task.publicClaim).success,
-    )
+    tasks.some((task) => {
+      const canonical = expectedById.get(task.id);
+      const publicClaim = PublicTaskClaimSchema.safeParse(task.publicClaim);
+      return (
+        canonical === undefined ||
+        task.family !== canonical.family ||
+        !publicClaim.success ||
+        publicClaim.data.taskId !== task.id
+      );
+    })
   ) {
     throw new CampaignArtifactError("development_task_set_invalid");
   }
@@ -1557,6 +1639,35 @@ export async function loadVerifiedCampaignEvaluation(
     sha256Text(evaluation.baselineBody),
     ...evaluation.candidates.map((candidate) => candidate.frozenBodyHash),
   ]);
+  const canonicalTasks = buildSkillCatalog(evaluation.skill)
+    .filter((task) => task.split === "development")
+    .map((task) => ({ id: task.id, family: task.family }));
+  const cohorts = evaluation.runs.map((run) => ({
+    runId: run.runId,
+    repeats: run.repeats,
+    artifactRoot: run.artifactRoot,
+  }));
+  validateCellSet(
+    evaluation.cells as readonly CampaignCell[],
+    cohorts,
+    canonicalTasks,
+    sha256Text(evaluation.baselineBody),
+    evaluation.candidates.map((candidate) => candidate.frozenBodyHash),
+  );
+  const currentRuns = evaluation.runs.filter(
+    (run) => run.runId === evaluation.runId,
+  );
+  if (
+    currentRuns.length !== 1 ||
+    currentRuns[0]?.kind !== "new" ||
+    currentRuns[0].repeats !== evaluation.context.repeats ||
+    currentRuns[0].cellCount > evaluation.context.maxTargetEpisodes ||
+    evaluation.runs.some(
+      (run) => run.runId !== evaluation.runId && run.kind !== "prior",
+    )
+  ) {
+    throw new CampaignArtifactError("package_evidence_run_summary_mismatch");
+  }
   const seenRunIds = new Set<string>();
   let expectedCellCount = 0;
   for (const run of evaluation.runs) {
@@ -1586,6 +1697,7 @@ export async function loadVerifiedCampaignEvaluation(
   }
   if (expectedCellCount !== evaluation.cells.length)
     throw new CampaignArtifactError("package_evidence_foreign_cell");
+  assertDerivedEvaluationConsistent(evaluation);
   return evaluation;
 }
 
@@ -1649,6 +1761,7 @@ async function verifyPriorCampaignBeforeCanary(
       campaignCohortHash(input.identity, cohort.runId),
     );
   }
+  assertDerivedEvaluationConsistent(input.prior);
 }
 
 function assertSameCandidateSurface(
