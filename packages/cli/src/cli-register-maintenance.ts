@@ -20,6 +20,22 @@ export function registerMaintenanceCommands(program: Command): void {
     .action(async () =>
       (await import("./commands/engine.js")).engineStopCommand(),
     );
+  engine
+    .command("janitor")
+    .description(
+      "Classify and clean stale engine daemons and branch-store locks (crashed engines, removed worktrees)",
+    )
+    .option(
+      "--all",
+      "Also sweep runtime-directory daemon sockets from other workspaces",
+      false,
+    )
+    .option("--apply", "Execute cleanups (default: report only)", false)
+    .option("--format <format>", "Output format: json|table", "table")
+    .action(
+      async (options: { all?: boolean; apply?: boolean; format?: string }) =>
+        (await import("./commands/engine.js")).engineJanitorCommand(options),
+    );
 
   const storage = program
     .command("storage")

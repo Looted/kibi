@@ -19,7 +19,12 @@
 import { existsSync, rmSync } from "node:fs";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import type { PrologStoreLockOwner } from "./error-terms.js";
+import { escapeAtom } from "./codec.js";
+import type {
+  PrologErrorRecord,
+  PrologStoreLockOwner,
+} from "./error-terms.js";
+import type { QueryResult } from "../prolog.js";
 
 /**
  * Stewardship for the branch-store lock.
@@ -133,22 +138,48 @@ export function decideStoreLockTakeover(
   }
 }
 
-/** Best-effort host qualifier for cross-machine mounts. */
-export function hostMatchesJournal(): boolean {
-  // The journal currently records only a boot id; a future revision may add a
-  // hostname. Everything on a locally mounted path shares this host.
-  return true;
+export interface StoreLockRetryContext {
+  readonly query: (goal: string) => Promise<QueryResult>;
 }
 
-// Re-exported for callers that already hold a decoded owner JSON string.
-export function parseStoreLockOwner(
-  ownerJson: string,
-): PrologStoreLockOwner | null {
-  try {
-    const parsed = JSON.parse(ownerJson) as PrologStoreLockOwner;
-    if (parsed === null || typeof parsed !== "object") return null;
-    return parsed;
-  } catch {
-    return null;
+/**
+ * A store-locked attach failure with a provably dead holder (crashed or
+ * killed engine, removed worktree) is safe to auto-heal: break the stale
+ * lock artifacts and retry once on the same port. Live or unverifiable
+ * holders are surfaced with the holder identity and remediation. Shared by
+ * the CLI runtime and the engine daemon attach paths.
+ */
+// implements REQ-core-journaled-engine-persistence
+export async function retryAttachAfterBreakingStaleLock(
+  prolog: StoreLockRetryContext,
+  kbPath: string,
+  failed: QueryResult,
+): Promise<QueryResult> {
+  const record: PrologErrorRecord | undefined = failed.errorRecord;
+  const storeLocked = record?.storeLocked;
+  if (storeLocked === undefined) return failed;
+  const decision = decideStoreLockTakeover(storeLocked.owner);
+  if (decision.action !== "break") {
+    const holderSummary =
+      storeLocked.owner === null
+        ? decision.reason
+        : `pid ${storeLocked.owner.pid ?? "?"} (${decision.reason})`;
+    return {
+      ...failed,
+      error: `${failed.error}
+Store lock holder: ${holderSummary}. Close that session, or run 'kibi engine stop' for its workspace, then retry.`,
+    };
   }
+  const lockDirectory =
+    storeLocked.lockDirectory !== ""
+      ? storeLocked.lockDirectory
+      : join(kbPath, "rdf");
+  breakStoreLock(lockDirectory);
+  const retried = await prolog.query(`kb_attach('${escapeAtom(kbPath)}')`);
+  if (retried.success) {
+    console.warn(
+      `[KIBI] Broke a stale branch-store lock (${decision.reason}) and reattached.`,
+    );
+  }
+  return retried;
 }

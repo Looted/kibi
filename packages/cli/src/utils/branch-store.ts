@@ -140,6 +140,52 @@ export function inspectBranchStore(
   }
 }
 
+/**
+ * Surface a stale branch-store lock journal: the recorded holder is
+ * provably dead (crashed engine, killed prove run). The next attach will
+ * auto-heal; the reason exists so operators see the state before it bites.
+ */
+// implements REQ-core-journaled-engine-persistence
+export function storeLockJournalReason(
+  storePath: string,
+): Record<string, unknown> | null {
+  const journalPath = path.join(storePath, ".kibi-lock-owner.json");
+  if (!existsSync(journalPath)) return null;
+  let owner: {
+    pid?: unknown;
+    workspaceRoot?: unknown;
+    bootId?: unknown;
+  };
+  try {
+    owner = JSON.parse(readFileSync(journalPath, "utf8"));
+  } catch {
+    return null;
+  }
+  if (owner === null || typeof owner !== "object") return null;
+  const pid = typeof owner.pid === "number" ? owner.pid : undefined;
+  if (pid === undefined) return null;
+  let alive: boolean;
+  try {
+    process.kill(pid, 0);
+    alive = true;
+  } catch (error) {
+    alive = (error as NodeJS.ErrnoException | null)?.code === "EPERM";
+  }
+  if (alive) return null;
+  const workspaceRoot =
+    typeof owner.workspaceRoot === "string" ? owner.workspaceRoot : "unknown";
+  return {
+    code: "store_lock_stale",
+    path: journalPath,
+    entityIds: [],
+    detail: `Branch store lock journal records holder pid ${pid} for ${workspaceRoot}, which is no longer running.`,
+    remediation: {
+      command_argv: ["kibi", "engine", "janitor", "--apply"],
+      applyRequired: false,
+    },
+  };
+}
+
 export function branchStoreReason(
   inspection: BranchStoreInspection,
 ): Record<string, unknown> | null {
