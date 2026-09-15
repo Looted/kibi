@@ -886,8 +886,8 @@
       [
         "bun",
         "test",
-        "scripts/skillopt-eval/tests/paid-launch-evidence.test.ts",
-        "scripts/skillopt-eval/tests/paid-launch-receipts.test.ts"
+        "./scripts/skillopt-eval/tests/paid-launch-evidence.test.ts",
+        "./scripts/skillopt-eval/tests/paid-launch-receipts.test.ts"
       ],
       [
         "node",
@@ -919,8 +919,8 @@
   {
     "test_id": "TEST-vscode-traceability",
     "steps": [
-      ["bun", "test", "packages/vscode/tests/traceability.test.ts"],
-      ["bun", "test", "packages/vscode/tests/activation/extension.test.ts"],
+      ["bun", "test", "./packages/vscode/tests/traceability.test.ts"],
+      ["bun", "test", "./packages/vscode/tests/activation/extension.test.ts"],
       [
         "node",
         "scripts/run-proof-packed-e2e.mjs",
@@ -934,9 +934,9 @@
       [
         "bun",
         "test",
-        "packages/vscode/tests/traceability.test.ts",
-        "packages/vscode/tests/activation/treeView.test.ts",
-        "packages/vscode/tests/activation/workspace.test.ts"
+        "./packages/vscode/tests/traceability.test.ts",
+        "./packages/vscode/tests/activation/treeView.test.ts",
+        "./packages/vscode/tests/activation/workspace.test.ts"
       ],
       [
         "node",
@@ -961,9 +961,9 @@
       [
         "bun",
         "test",
-        "scripts/skillopt-eval/tests/adoption.test.ts",
-        "scripts/skillopt-eval/tests/adoption-exactly-once.test.ts",
-        "scripts/skillopt-eval/tests/adoption-recovery.test.ts"
+        "./scripts/skillopt-eval/tests/adoption.test.ts",
+        "./scripts/skillopt-eval/tests/adoption-exactly-once.test.ts",
+        "./scripts/skillopt-eval/tests/adoption-recovery.test.ts"
       ],
       [
         "node",

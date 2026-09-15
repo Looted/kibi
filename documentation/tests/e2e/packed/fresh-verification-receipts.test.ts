@@ -320,7 +320,10 @@ Given a packed runtime, when receipt evidence is evaluated, then it is bound to 
           "json",
         ]);
         const staleRow = receiptRow(staleCoverage);
-        assert.strictEqual(staleRow.proofStages.passingE2e.status, "missing");
+        assert.strictEqual(
+          staleRow.proofStages.passingE2e.status,
+          "unresolved",
+        );
         assert.ok(staleRow.proofGaps.includes("stale_proof_receipt"));
       },
     );

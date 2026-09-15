@@ -63,6 +63,16 @@ describe("strict proof workflow contract", () => {
         expect(step.length).toBeGreaterThan(0);
         expect(step[0]).not.toBe("sh");
         expect(step[0]).not.toBe("bash");
+        if (step[0] === "bun" && step[1] === "test") {
+          for (const argument of step.slice(2)) {
+            if (
+              argument.includes("/") &&
+              /\.(?:test|spec)\.[cm]?[jt]sx?$/.test(argument)
+            ) {
+              expect(argument.startsWith("./")).toBe(true);
+            }
+          }
+        }
       }
 
       const markdown = readFileSync(
