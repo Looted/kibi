@@ -103,9 +103,12 @@ export async function engineJanitorCommand(
     all: options.all === true,
     apply: options.apply === true,
   });
-  const cleaned = findings.filter((f: { action: string }) => f.action !== "keep").length;
+  const cleanable = findings.filter((f) => f.action !== "keep").length;
+  const cleaned = options.apply === true ? cleanable : 0;
   if (options.format === "json") {
-    console.log(JSON.stringify({ findings, cleaned, total: findings.length }));
+    console.log(
+      JSON.stringify({ findings, cleaned, cleanable, total: findings.length }),
+    );
     return;
   }
   if (findings.length === 0) {
@@ -128,7 +131,9 @@ export async function engineJanitorCommand(
     );
   }
   console.log(
-    `${findings.length} finding(s), ${cleaned} cleaned${options.apply === true ? "" : " (report only; re-run with --apply)"}`,
+    options.apply === true
+      ? `${findings.length} finding(s), ${cleaned} cleaned`
+      : `${findings.length} finding(s), ${cleanable} cleanable (report only; re-run with --apply)`,
   );
 }
 

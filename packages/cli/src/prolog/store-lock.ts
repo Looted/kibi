@@ -87,6 +87,45 @@ export function classifyStoreLockHolder(
 }
 
 /**
+ * Read an ownership journal from a branch store. Older builds kept the
+ * journal beside the rdf lock; the store-root location wins when both exist.
+ * Shared by the janitor sweep and the status stale-reason surfacing so both
+ * classify the same evidence with the same boot-id-aware semantics.
+ */
+// implements REQ-core-journaled-engine-persistence
+export function readStoreLockOwner(
+  storePath: string,
+): { owner: PrologStoreLockOwner; journalPath: string } | null {
+  const candidates = [
+    join(storePath, ".kibi-lock-owner.json"),
+    join(storePath, "rdf", ".kibi-lock-owner.json"),
+  ];
+  for (const journalPath of candidates) {
+    if (!existsSync(journalPath)) continue;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(readFileSync(journalPath, "utf8"));
+    } catch {
+      continue;
+    }
+    if (parsed === null || typeof parsed !== "object") continue;
+    const record = parsed as Record<string, unknown>;
+    const owner: PrologStoreLockOwner = {
+      ...(typeof record.pid === "number" ? { pid: record.pid } : {}),
+      ...(typeof record.workspaceRoot === "string"
+        ? { workspaceRoot: record.workspaceRoot }
+        : {}),
+      ...(typeof record.bootId === "string" ? { bootId: record.bootId } : {}),
+      ...(typeof record.startedAt === "string"
+        ? { startedAt: record.startedAt }
+        : {}),
+    };
+    return { owner, journalPath };
+  }
+  return null;
+}
+
+/**
  * Remove the stale lock artifacts so a fresh attach can take the store.
  * The rdf lock lives inside the persistency directory; the ownership journal
  * lives at the branch-store root (older builds kept it beside the lock).

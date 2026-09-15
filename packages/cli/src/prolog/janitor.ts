@@ -19,8 +19,10 @@
 import { existsSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import {
+  breakStoreLock,
   classifyStoreLockHolder,
   isProcessAlive,
+  readStoreLockOwner,
   type StoreLockHolderState,
 } from "./store-lock.js";
 
@@ -67,53 +69,32 @@ export interface JanitorOptions {
   readonly apply?: boolean;
 }
 
-function readLockOwner(
-  storePath: string,
-): { pid?: number; workspaceRoot?: string; bootId?: string; startedAt?: string } | null {
-  const journalPath = join(storePath, ".kibi-lock-owner.json");
-  if (!existsSync(journalPath)) return null;
-  try {
-    const parsed = JSON.parse(readFileSync(journalPath, "utf8")) as {
-      pid?: unknown;
-      workspaceRoot?: unknown;
-      bootId?: unknown;
-      startedAt?: unknown;
-    };
-    if (parsed === null || typeof parsed !== "object") return null;
-    return {
-      ...(typeof parsed.pid === "number" ? { pid: parsed.pid } : {}),
-      ...(typeof parsed.workspaceRoot === "string"
-        ? { workspaceRoot: parsed.workspaceRoot }
-        : {}),
-      ...(typeof parsed.bootId === "string" ? { bootId: parsed.bootId } : {}),
-      ...(typeof parsed.startedAt === "string"
-        ? { startedAt: parsed.startedAt }
-        : {}),
-    };
-  } catch {
-    return null;
-  }
-}
-
 /** Scan one branch store's ownership journal and clean stale artifacts. */
+// implements REQ-core-journaled-engine-persistence
 export function sweepStoreLock(
   storePath: string,
   apply: boolean,
 ): StoreLockFinding | null {
-  const owner = readLockOwner(storePath);
-  if (owner === null) return null;
+  const journal = readStoreLockOwner(storePath);
+  if (journal === null) return null;
+  const owner = journal.owner;
   const holderState = classifyStoreLockHolder(owner);
+  const workspaceRoot = owner.workspaceRoot;
   const workspaceExists =
-    owner.workspaceRoot !== undefined && existsSync(owner.workspaceRoot);
+    workspaceRoot !== undefined && existsSync(workspaceRoot);
+  const workspaceVerifiablyGone =
+    workspaceRoot !== undefined && !workspaceExists;
   let action: StoreLockFinding["action"];
   if (holderState === "dead") {
     action = "clean";
   } else if (
     (holderState === "alive" || holderState === "self") &&
-    !workspaceExists
+    workspaceVerifiablyGone
   ) {
-    // A live daemon whose workspace is gone can never serve again; the
-    // watchdog should have stopped it already — this is the backstop.
+    // A live daemon whose workspace is verifiably gone can never serve
+    // again; the watchdog should have stopped it already — this is the
+    // backstop. A journal without workspaceRoot stays hands-off: absence of
+    // evidence is not evidence of a removed workspace.
     action = "kill-and-clean";
   } else {
     action = "keep";
@@ -126,21 +107,14 @@ export function sweepStoreLock(
         // Already gone — fall through to artifact cleanup.
       }
     }
-    for (const candidate of [
-      join(storePath, ".kibi-lock-owner.json"),
-      join(storePath, "rdf", "lock"),
-    ]) {
-      if (existsSync(candidate)) {
-        rmSync(candidate, { force: true });
-      }
-    }
+    // Same artifact sweep as the attach-takeover path, so the janitor and
+    // the takeover agree on what stale artifacts exist.
+    breakStoreLock(join(storePath, "rdf"));
   }
   return {
     kind: "store-lock",
     storePath,
-    ...(owner.workspaceRoot !== undefined
-      ? { workspaceRoot: owner.workspaceRoot }
-      : {}),
+    ...(workspaceRoot !== undefined ? { workspaceRoot } : {}),
     ...(owner.pid !== undefined ? { pid: owner.pid } : {}),
     ...(owner.startedAt !== undefined ? { startedAt: owner.startedAt } : {}),
     holderState,
@@ -150,6 +124,7 @@ export function sweepStoreLock(
 }
 
 /** Scan all branch stores under <workspaceRoot>/.kb/branches. */
+// implements REQ-core-journaled-engine-persistence
 export function sweepWorkspaceStoreLocks(
   options: JanitorOptions,
 ): StoreLockFinding[] {
@@ -173,6 +148,7 @@ export function sweepWorkspaceStoreLocks(
  * Sweep runtime-directory daemon sockets. A socket is stale when its pid
  * file records a dead process or a connect attempt is refused.
  */
+// implements REQ-core-journaled-engine-persistence
 export function sweepRuntimeSockets(
   options: JanitorOptions,
 ): SocketFinding[] {
@@ -185,8 +161,16 @@ export function sweepRuntimeSockets(
     const pidPath = `${socketPath}.pid`;
     let pid: number | undefined;
     if (existsSync(pidPath)) {
-      const parsed = Number.parseInt(readFileSync(pidPath, "utf8").trim(), 10);
-      if (Number.isInteger(parsed) && parsed > 0) pid = parsed;
+      try {
+        const parsed = Number.parseInt(
+          readFileSync(pidPath, "utf8").trim(),
+          10,
+        );
+        if (Number.isInteger(parsed) && parsed > 0) pid = parsed;
+      } catch {
+        // The daemon being swept removed its pid file mid-scan; leave the
+        // pid unknown rather than failing the whole run.
+      }
     }
     const holderState =
       pid === undefined ? "unknown" : isProcessAlive(pid) ? "alive" : "dead";
@@ -216,6 +200,7 @@ export function sweepRuntimeSockets(
 }
 
 /** Full janitor sweep across branch stores and (optionally) runtime sockets. */
+// implements REQ-core-journaled-engine-persistence
 export function runJanitor(options: JanitorOptions): JanitorFinding[] {
   return [
     ...sweepWorkspaceStoreLocks(options),

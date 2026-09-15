@@ -277,7 +277,11 @@ function parseStoreLockedContext(
       ...(originalError !== "" ? { originalError } : {}),
     };
   } catch {
-    return { owner: null, lockDirectory };
+    return {
+      owner: null,
+      lockDirectory,
+      ...(originalError !== "" ? { originalError } : {}),
+    };
   }
 }
 
