@@ -232,6 +232,44 @@ describe("kibi check --staged stale symbols manifest detection", () => {
   );
 
   test(
+    "names the uncovered symbol when a new export is staged without manifest entries",
+    async () => {
+      writeFiles(tmpDir, createTrackedFixture());
+      commitAll(tmpDir, "initial");
+      commitRefreshedManifest(kibiBin, tmpDir);
+
+      writeFiles(tmpDir, {
+        "src/greet.ts": `export function greet() {
+  return "hello";
+}
+
+export interface GreetOptions {
+  loud: boolean;
+}
+`,
+      });
+      execSync("git add src/greet.ts", { cwd: tmpDir, stdio: "pipe" });
+
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--staged"],
+        tmpDir,
+      );
+
+      const output = stdoutToString(stdout || stderr);
+      expect(status).toBe(1);
+      expect(output).toContain("symbols_manifest_stale");
+      expect(output).toContain(
+        "Not in .kb/symbols.yaml: GreetOptions (line 5)",
+      );
+      expect(output).toContain(
+        "Author .kb/symbols.yaml entries for the uncovered symbols",
+      );
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
     "passes when the refreshed symbols manifest is staged with the source edit",
     async () => {
       writeFiles(tmpDir, createTrackedFixture());

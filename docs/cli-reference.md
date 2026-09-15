@@ -460,6 +460,8 @@ Validates knowledge base integrity and runs inference rules.
 
 When `kibi check --staged` reports `kibi_impact_evidence_missing`, first use Kibi discovery (`kb_search`, then `kb_query`) through visible MCP tools or trusted CLI JSON routes to inspect existing requirements, scenarios, tests, facts, and symbols for the edited source file. If the edit changes behavior, update the KB through either peer surface and also stage tracked evidence that the commit can carry: related entity markdown under `.kb/`, authored `.kb/symbols.yaml` entries, or refreshed `.kb/symbol-coordinates.yaml` output.
 
+Both `kibi_impact_evidence_missing` and `symbols_manifest_stale` carry `Detail:` lines that name the cause per file: how many symbols the extractor finds in the staged source content, how many the staged evidence covers, and exactly which symbols are missing from `.kb/symbols.yaml` (with their definition lines). When the Detail lines list uncovered symbols, fix the cause first — author `.kb/symbols.yaml` entries for those symbols (`kibi upsert`, with `implements`/`covered_by` links) — and only then refresh coordinates with `kibi sync --refresh-symbol-coordinates`; the same comparison drives the printed `Suggestion:`. Detail lines cap at six names per list with an `… and N more` marker.
+
 KB writes through MCP or CLI JSON routes update branch state, but they do not automatically stage markdown or manifest files. The staged hook can only accept evidence present in the staged change-set, so run the required sync/authoring step and `git add` the tracked evidence before rerunning `kibi check --staged`.
 
 **Examples:**

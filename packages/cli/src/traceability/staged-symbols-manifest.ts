@@ -12,6 +12,7 @@ import {
 import { analyzeSourceText } from "../extractors/symbols-coordinator.js";
 import { isCoarseGranularityReason } from "../public/symbol-granularity.js";
 import { resolveSymbolsManifestPaths } from "../utils/manifest-paths.js";
+import type { KibiImpactSymbolsManifestFileDetail } from "./evidence-model.js";
 import type { StagedFile } from "./git-staged.js";
 
 interface NormalizedManifestSymbol {
@@ -58,6 +59,12 @@ export interface StagedSymbolsManifestAssessment {
   state: "fresh" | "stale" | "missing" | "not_required";
   sourcePaths: string[];
   path: string;
+  /**
+   * Per-file extraction-vs-evidence diffs for the source paths whose symbol
+   * output changed. Lets diagnostics name the uncovered symbols instead of
+   * reporting a bare "stale" verdict.
+   */
+  fileDetails?: KibiImpactSymbolsManifestFileDetail[];
 }
 
 export interface StagedAuthoredSymbolsManifestEvidence {
@@ -422,6 +429,38 @@ function getEffectiveManifestRecords(options: {
   };
 }
 
+/** Max missing/extra symbol titles surfaced per file before "+N more". */
+const MAX_DETAIL_ITEMS = 6;
+
+function diffSymbolEvidence(
+  sourcePath: string,
+  expectedSymbols: NormalizedManifestSymbol[],
+  stagedSymbols: NormalizedManifestSymbol[],
+): KibiImpactSymbolsManifestFileDetail | null {
+  const stagedTitles = new Set(stagedSymbols.map((symbol) => symbol.title));
+  const expectedTitles = new Set(expectedSymbols.map((symbol) => symbol.title));
+  const missing = expectedSymbols
+    .filter((symbol) => !stagedTitles.has(symbol.title))
+    .map((symbol) => ({ title: symbol.title, line: symbol.sourceLine ?? 0 }))
+    .sort((left, right) => left.title.localeCompare(right.title));
+  const extra = stagedSymbols
+    .filter((symbol) => !expectedTitles.has(symbol.title))
+    .map((symbol) => symbol.title)
+    .sort();
+  // Pure coordinate drift (titles unchanged) has no symbol-level remedy to
+  // name; leave the detail out so the diagnostic stays verdict + refresh.
+  if (missing.length === 0 && extra.length === 0) {
+    return null;
+  }
+  return {
+    path: sourcePath,
+    expectedCount: expectedSymbols.length,
+    coveredCount: stagedSymbols.length,
+    missing: missing.slice(0, MAX_DETAIL_ITEMS),
+    extra: extra.slice(0, MAX_DETAIL_ITEMS),
+  };
+}
+
 export function assessStagedSymbolsManifest(options: {
   symbolsManifestPath: string;
   sourceFiles: StagedFile[];
@@ -484,6 +523,7 @@ export function assessStagedSymbolsManifest(options: {
 
   const requiredRefreshPaths: string[] = [];
   const freshPaths = new Set<string>();
+  const symbolDetails: KibiImpactSymbolsManifestFileDetail[] = [];
 
   for (const sourceFile of sourceFiles) {
     const manifestRecordsForFile = (stagedManifestRecords ?? []).filter(
@@ -529,14 +569,27 @@ export function assessStagedSymbolsManifest(options: {
 
     requiredRefreshPaths.push(sourceFile.path);
 
-    if (!stagedCoordinatesFile || stagedCoordinateArtifact === null) {
-      continue;
+    // Without a usable staged coordinate artifact there is nothing to diff
+    // against: every extracted symbol counts as uncovered evidence.
+    const stagedSymbols =
+      stagedCoordinateArtifact === null
+        ? []
+        : normalizeManifestSymbolsForSourceFile(
+            stagedMergedRecords,
+            sourceFile.path,
+          );
+    const detail = diffSymbolEvidence(
+      sourceFile.path,
+      expectedSymbols,
+      stagedSymbols,
+    );
+    if (detail !== null) {
+      symbolDetails.push(detail);
     }
 
-    const stagedSymbols = normalizeManifestSymbolsForSourceFile(
-      stagedMergedRecords,
-      sourceFile.path,
-    );
+    if (!stagedCoordinatesFile) {
+      continue;
+    }
 
     if (signaturesEqual(expectedSymbols, stagedSymbols)) {
       freshPaths.add(sourceFile.path);
@@ -556,8 +609,28 @@ export function assessStagedSymbolsManifest(options: {
     return { state: "fresh", sourcePaths, path: paths.coordinatesPath };
   }
 
+  // Details are only meaningful for the states whose diagnostics fire; a
+  // fresh refresh carries no uncovered symbols by definition, and the stale
+  // state cites only the non-fresh paths, so details follow that filter.
+  const nonFreshDetails = symbolDetails.filter(
+    (detail) => !freshPaths.has(detail.path),
+  );
+  const detailSpread =
+    nonFreshDetails.length > 0
+      ? {
+          fileDetails: nonFreshDetails.sort((left, right) =>
+            left.path.localeCompare(right.path),
+          ),
+        }
+      : {};
+
   if (!stagedCoordinatesFile) {
-    return { state: "missing", sourcePaths, path: paths.coordinatesPath };
+    return {
+      state: "missing",
+      sourcePaths,
+      path: paths.coordinatesPath,
+      ...detailSpread,
+    };
   }
 
   return {
@@ -566,6 +639,7 @@ export function assessStagedSymbolsManifest(options: {
       (sourcePath) => !freshPaths.has(sourcePath),
     ),
     path: paths.coordinatesPath,
+    ...detailSpread,
   };
 }
 

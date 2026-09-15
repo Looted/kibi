@@ -331,6 +331,9 @@ function formatStagedKibiDiagnostics(
       if (diagnostic.files.length > 0) {
         lines.push(`  Files: ${diagnostic.files.join(", ")}`);
       }
+      for (const detail of diagnostic.details ?? []) {
+        lines.push(`  Detail: ${detail}`);
+      }
       if (diagnostic.docs.length > 0) {
         lines.push(`  Docs: ${diagnostic.docs.join(", ")}`);
       }
@@ -582,6 +585,9 @@ function buildStagedKibiImpactEvidence(options: {
       path: stagedSymbolsManifest.path,
       state: stagedSymbolsManifest.state,
       sourcePaths: stagedSymbolsManifest.sourcePaths,
+      ...(stagedSymbolsManifest.fileDetails
+        ? { fileDetails: stagedSymbolsManifest.fileDetails }
+        : {}),
     },
     mode:
       resolvedKbArtifacts.length > 0

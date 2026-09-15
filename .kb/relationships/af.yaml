@@ -62,3 +62,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c4e1f95377c8
+  - type: implements
+    from: SYM-create-missing-override-rationale-diagnostic
+    to: REQ-cli-staged-impact-enforcement
+    created_at: 2026-09-15T15:44:23.728Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-de2c3338747d
+  - type: covered_by
+    from: SYM-create-missing-override-rationale-diagnostic
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-15T15:44:23.739Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d732bf58716b

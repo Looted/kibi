@@ -71,6 +71,26 @@ export interface KibiImpactKbArtifact {
 }
 
 /**
+ * Per-file explanation of why symbol evidence does not match extraction.
+ *
+ * Titles come from comparing the extractor's view of the staged source content
+ * against the staged manifest+coordinates records for the same path, so the
+ * diagnostic can name the exact symbols a commit's evidence is missing.
+ */
+export interface KibiImpactSymbolsManifestFileDetail {
+  /** Repo-relative staged source path the diff describes. */
+  path: string;
+  /** Symbol count extraction finds in the staged source content. */
+  expectedCount: number;
+  /** Symbol count the staged manifest+coordinates evidence covers. */
+  coveredCount: number;
+  /** Extracted symbols with no evidence entry (title + definition line). */
+  missing: Array<{ title: string; line: number }>;
+  /** Evidence entries the extractor no longer finds at the recorded shape. */
+  extra: string[];
+}
+
+/**
  * Deterministic symbol coordinates artifact state for the staged change-set.
  *
  * - `not_required`: symbol extraction output did not change for the listed
@@ -87,6 +107,12 @@ export interface KibiImpactSymbolsManifest {
   state: "not_required" | "fresh" | "stale" | "missing";
   /** Repo-relative staged source paths whose symbol output this state describes. */
   sourcePaths: string[];
+  /**
+   * Per-file extraction-vs-evidence diffs for the paths this state describes.
+   * Present only when extraction output changed; lets diagnostics name the
+   * uncovered symbols instead of reporting a bare "stale" verdict.
+   */
+  fileDetails?: readonly KibiImpactSymbolsManifestFileDetail[];
 }
 
 /** Supported audited reasons for a no-impact override. */

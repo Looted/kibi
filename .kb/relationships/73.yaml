@@ -195,3 +195,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a6dc30fbd275
+  - type: implements
+    from: SYM-runtime-directory
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-15T17:18:02.487Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12b09e9a7a71
+  - type: covered_by
+    from: SYM-runtime-directory
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-09-15T17:18:02.502Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b64d9a281f86
