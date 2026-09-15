@@ -17,7 +17,7 @@
 */
 
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import * as path from "node:path";
 import { load as parseYAML } from "js-yaml";
 import { DEFAULT_COORDINATES_PATH } from "../utils/manifest-paths.js";
@@ -559,13 +559,36 @@ export interface ReceiptCodeScopeEntry {
  * (per-contract binding mode).
  */
 // implements REQ-kibi-proof-evidence-protocol
+// Receipt-binding scope reads run once per proof-bearing test; a campaign
+// touches dozens-to-hundreds of tests, so the parsed overlay is memoized per
+// manifest state (path + mtime + size) and invalidated when the file changes.
+const boundSymbolScopeCache = new Map<
+  string,
+  { stamp: string; records: ManifestSymbolRecord[] }
+>();
+
+function boundSymbolScopeRecords(manifestPath: string): ManifestSymbolRecord[] {
+  let stamp = "";
+  try {
+    const stats = statSync(manifestPath);
+    stamp = `${stats.mtimeMs}:${stats.size}`;
+  } catch {
+    stamp = "missing";
+  }
+  const hit = boundSymbolScopeCache.get(manifestPath);
+  if (hit && hit.stamp === stamp) return hit.records;
+  const records = readManifestWithCoordinateOverlay(manifestPath);
+  boundSymbolScopeCache.set(manifestPath, { stamp, records });
+  return records;
+}
+
 export function resolveBoundSymbolScope(
   manifestPath: string,
   symbolIds: readonly string[],
 ): ReceiptCodeScopeEntry[] {
   const wanted = new Set(symbolIds);
   if (wanted.size === 0) return [];
-  const records = readManifestWithCoordinateOverlay(manifestPath);
+  const records = boundSymbolScopeRecords(manifestPath);
   const scope: { symbolId: string; sourceHash: string }[] = [];
   for (const record of records) {
     const symbolId =
