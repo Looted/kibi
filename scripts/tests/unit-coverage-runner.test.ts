@@ -36,6 +36,7 @@ describe("unit coverage runner contract", () => {
       paths: ["./packages/runtime"],
     });
     const zcode = COVERAGE_SHARDS.find((shard) => shard.label === "zcode");
+    expect(zcode?.setup).toEqual(["run", "build:zcode"]);
     expect(zcode?.paths).toContain(
       "./packages/zcode/tests/hook-runner.test.ts",
     );

@@ -73,6 +73,8 @@ export const COVERAGE_SHARDS: readonly {
   readonly label: string;
   readonly paths: readonly string[];
   readonly timeoutMs?: number;
+  /** Build generated package assets before tests that execute the built tree. */
+  readonly setup?: readonly string[];
   /** Query-string `?case=` imports poison Bun's line map; still run the tests. */
   readonly mergeLcov?: boolean;
 }[] = [
@@ -182,7 +184,11 @@ export const COVERAGE_SHARDS: readonly {
   { label: "codex", paths: ["./packages/codex"] },
   { label: "cursor", paths: ["./packages/cursor"] },
   { label: "runtime", paths: ["./packages/runtime"] },
-  { label: "zcode", paths: ZCODE_UNIT_TESTS },
+  {
+    label: "zcode",
+    paths: ZCODE_UNIT_TESTS,
+    setup: ["run", "build:zcode"],
+  },
   {
     label: "skillopt",
     paths: ["./scripts/skillopt-eval/tests"],
@@ -286,6 +292,7 @@ async function runBunTest(
   paths: readonly string[],
   coverageDir: string,
   timeoutMs = DEFAULT_SHARD_TIMEOUT_MS,
+  setup?: readonly string[],
 ): Promise<number> {
   const args: string[] = [...COVERAGE_ARGS];
   const coverageDirIndex = args.indexOf("--coverage-dir");
@@ -296,6 +303,13 @@ async function runBunTest(
     join(tmpdir(), "kibi-unit-coverage-runtime-"),
   );
   try {
+    if (setup !== undefined) {
+      const setupResult = childProcess.spawnSync("bun", [...setup], {
+        stdio: "inherit",
+        env: isolatedUnitBatchEnv(runtimeDirectory),
+      });
+      if ((setupResult.status ?? 1) !== 0) return setupResult.status ?? 1;
+    }
     const result = childProcess.spawnSync("bun", [...args, ...paths], {
       stdio: "inherit",
       env: isolatedUnitBatchEnv(runtimeDirectory),
@@ -367,6 +381,7 @@ export async function runUnitCoverage(): Promise<void> {
       shard.paths,
       shardCoverageDir,
       shard.timeoutMs ?? DEFAULT_SHARD_TIMEOUT_MS,
+      shard.setup,
     );
     if (exitCode !== 0) failedShards.push(`${shard.label} (exit ${exitCode})`);
 

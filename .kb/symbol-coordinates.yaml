@@ -381,12 +381,12 @@ coordinates:
     sourceLine: 215
   SYM-assertCanonicalSourceComplete:
     identityHash: 54a4ce3ec494ed37f6cff8b46254790be999f7d9be443db70b46ca96d8705951
-    sourceHash: 50c38c740d07c2d0d8c1ef54b79abc9b05f6aafab76784d54a97b72301f70fa0
+    sourceHash: 3f67a257e1d6f3d98a8658d7e66f226b5678c339a67027642f115ad06279cfe2
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 280
+    sourceEndLine: 290
     sourceFile: scripts/sync-agent-skills.ts
-    sourceLine: 252
+    sourceLine: 262
   SYM-assertComponentsAreNotSymlinks:
     identityHash: 09b96cea4a148f938603198ee22d7b7977c501f1e7dd2ba1921c7e4c6ae17ad7
     sourceHash: 9da15c5698a95352c1052ebb8bfb20be4e65471d941de3c427be888b8383e75e
@@ -2413,12 +2413,12 @@ coordinates:
     sourceLine: 194
   SYM-canonicalSkillsDir:
     identityHash: 6c49e754c766e8077005713eafd58699f8bab51e57dee8079ad9bc21c6d5ed05
-    sourceHash: 50c38c740d07c2d0d8c1ef54b79abc9b05f6aafab76784d54a97b72301f70fa0
+    sourceHash: 3f67a257e1d6f3d98a8658d7e66f226b5678c339a67027642f115ad06279cfe2
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 246
+    sourceEndLine: 256
     sourceFile: scripts/sync-agent-skills.ts
-    sourceLine: 244
+    sourceLine: 254
   SYM-checkCommand:
     identityHash: 225d0f47ecd24137f6c6b8651decea7be72d53ec89da5d9f50eac4bb6a479623
     sourceHash: decc497f0d4f1af043f8397346e86c99f7c6c027f6d365b6748af0811bd8369f
@@ -5909,12 +5909,12 @@ coordinates:
     sourceLine: 364
   SYM-computeHashManifest:
     identityHash: fc02c28b544f60170671c334eba7a4f17ab364221ab0e8b95865b5236f73a62e
-    sourceHash: 50c38c740d07c2d0d8c1ef54b79abc9b05f6aafab76784d54a97b72301f70fa0
+    sourceHash: 3f67a257e1d6f3d98a8658d7e66f226b5678c339a67027642f115ad06279cfe2
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 337
+    sourceEndLine: 347
     sourceFile: scripts/sync-agent-skills.ts
-    sourceLine: 328
+    sourceLine: 338
   SYM-consultOverlay:
     identityHash: 533487724c53fe0e37514a3e3056b6a0c68a692fd2c46dfcae1aee38d4b8f55f
     sourceHash: 11136a31548d5369b4177dbf486cc1602db63425f1d87cbdefaaa11878653354
@@ -6389,10 +6389,10 @@ coordinates:
     sourceLine: 621
   SYM-COVERAGE_SHARDS:
     identityHash: a85045cd5ad8cac175a632809ca7b95f87d288d8bb58c3154c5d4864f49e51aa
-    sourceHash: 07100ce2cf2e6397446bf86d74a206bfb26fc96818547fd2f182521504b14398
+    sourceHash: af8edc85456dad9bcfdc4ba2f953235fd50dc68865bc99f9581fc0806687e171
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 283
+    sourceEndLine: 289
     sourceFile: scripts/run-unit-coverage.ts
     sourceLine: 72
   SYM-create-missing-override-rationale-diagnostic:
@@ -7277,12 +7277,12 @@ coordinates:
     sourceLine: 120
   SYM-diffMirror:
     identityHash: e17a394f453a3a05385defd1a43083b2db23edc19ce1355d2e20bc945b39cc96
-    sourceHash: 50c38c740d07c2d0d8c1ef54b79abc9b05f6aafab76784d54a97b72301f70fa0
+    sourceHash: 3f67a257e1d6f3d98a8658d7e66f226b5678c339a67027642f115ad06279cfe2
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 422
+    sourceEndLine: 432
     sourceFile: scripts/sync-agent-skills.ts
-    sourceLine: 367
+    sourceLine: 377
   SYM-discoverSourceFiles:
     identityHash: 695c38767117f37c878bf9a1a0116aca64e2dfefbecf0889a4cef9c27a08da6f
     sourceHash: dd57c9a4f93c26ce10ca3a2aac333ce3b9d76c9880322f28682a71eb6d6fc02b
@@ -11781,12 +11781,12 @@ coordinates:
     sourceLine: 176
   SYM-mirrorSkillsDir:
     identityHash: 791b45e0bd6f96e76fa830cdcdc89d7128967f00952a59de8d0d7a545ef12628
-    sourceHash: 50c38c740d07c2d0d8c1ef54b79abc9b05f6aafab76784d54a97b72301f70fa0
+    sourceHash: 3f67a257e1d6f3d98a8658d7e66f226b5678c339a67027642f115ad06279cfe2
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 250
+    sourceEndLine: 260
     sourceFile: scripts/sync-agent-skills.ts
-    sourceLine: 248
+    sourceLine: 258
   SYM-model-requirement-core-handler:
     identityHash: fb7d5dd986f3a6e52c0068a6b83620b6cfffdf08ec9c7311babeee3fd39de3d5
     sourceHash: 7aaf243e6a217871cf725da05c145370395f7635cac491c3fa473243c3cd24bd
@@ -13341,12 +13341,12 @@ coordinates:
     sourceLine: 84
   SYM-parseArgs:
     identityHash: 348150e3b108dd35bb405014902970b8c6fbf7e7b8243ed1e7fd2c1654e33fe4
-    sourceHash: 50c38c740d07c2d0d8c1ef54b79abc9b05f6aafab76784d54a97b72301f70fa0
+    sourceHash: 3f67a257e1d6f3d98a8658d7e66f226b5678c339a67027642f115ad06279cfe2
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 223
+    sourceEndLine: 233
     sourceFile: scripts/sync-agent-skills.ts
-    sourceLine: 192
+    sourceLine: 202
   SYM-parseCompiledRelationshipRows:
     identityHash: 1e6acf4c35eb3f54fa09e445c43941891c6ceddb87cc9190dec5ce738deb9a2e
     sourceHash: a09fc7e0d9733500de49cb2cb01d4d3a2908bb338e0bdd1221f0af9a6c07f998
@@ -13461,20 +13461,20 @@ coordinates:
     sourceLine: 615
   SYM-PlannedFile:
     identityHash: c85441468f24e5700fcb6c48bdd0f3ac62bdfc8584dd08138b86951f42c250fa
-    sourceHash: 50c38c740d07c2d0d8c1ef54b79abc9b05f6aafab76784d54a97b72301f70fa0
+    sourceHash: 3f67a257e1d6f3d98a8658d7e66f226b5678c339a67027642f115ad06279cfe2
     sourceColumn: 10
     sourceEndColumn: 1
-    sourceEndLine: 305
+    sourceEndLine: 315
     sourceFile: scripts/sync-agent-skills.ts
-    sourceLine: 300
+    sourceLine: 310
   SYM-planSkillMirror:
     identityHash: 0e023fe30dd4e23b828acaf97011fe383d94eb41d5c3ea54487381cb03b43319
-    sourceHash: 50c38c740d07c2d0d8c1ef54b79abc9b05f6aafab76784d54a97b72301f70fa0
+    sourceHash: 3f67a257e1d6f3d98a8658d7e66f226b5678c339a67027642f115ad06279cfe2
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 326
+    sourceEndLine: 336
     sourceFile: scripts/sync-agent-skills.ts
-    sourceLine: 307
+    sourceLine: 317
   SYM-playwright-case-id:
     identityHash: 38fd7ba829790bcf78531e665f019f95ef67cb0b7738dd0c0a831422be7ecf6b
     sourceHash: bf0a377d78500bb84d548af6e4947030d0f05cf1a42329027fd67f0c57a2bac8
@@ -13877,12 +13877,12 @@ coordinates:
     sourceLine: 153
   SYM-processTarget:
     identityHash: 07ff53bba9361e361601bad08f4f1dcf6f50227bd1e336b033de971cd46d4cdf
-    sourceHash: 50c38c740d07c2d0d8c1ef54b79abc9b05f6aafab76784d54a97b72301f70fa0
+    sourceHash: 3f67a257e1d6f3d98a8658d7e66f226b5678c339a67027642f115ad06279cfe2
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 496
+    sourceEndLine: 506
     sourceFile: scripts/sync-agent-skills.ts
-    sourceLine: 467
+    sourceLine: 477
   SYM-producer-kind:
     identityHash: cd5067fda6fd9d4d80a41dc84d5e9a2aeb441e23baefa27f9077e8876213c569
     sourceHash: d890379bd06f6fb3b0f3a28eb7bdacda245aed32e4e90349b33d1c6a0799cecf
@@ -14469,12 +14469,12 @@ coordinates:
     sourceLine: 1
   SYM-quality-coverage-branch-summary:
     identityHash: c306ba36be5c79747a5f6bbbcb20c8d482fa2216a2560ab2d7e580a0a1ab8233
-    sourceHash: 07100ce2cf2e6397446bf86d74a206bfb26fc96818547fd2f182521504b14398
+    sourceHash: af8edc85456dad9bcfdc4ba2f953235fd50dc68865bc99f9581fc0806687e171
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 345
+    sourceEndLine: 359
     sourceFile: scripts/run-unit-coverage.ts
-    sourceLine: 333
+    sourceLine: 347
   SYM-quality-eval-assertLiveHeldOutEvaluation:
     identityHash: 5bf15e6c7fdd419a4c6b0864a9eaa23560bba0046f8ec79d4debca886d0205fe
     sourceHash: 9f05a9f40bcbc9a1cd059eb0e936224ed343d3973425314de08bf69c30465092
@@ -14613,12 +14613,12 @@ coordinates:
     sourceLine: 601
   SYM-quality-inventory-19897951a119:
     identityHash: 061698f963a7ea72645e5d1947c188d07ab9c4d75def7b101b32e228466ab2f2
-    sourceHash: 07100ce2cf2e6397446bf86d74a206bfb26fc96818547fd2f182521504b14398
+    sourceHash: af8edc85456dad9bcfdc4ba2f953235fd50dc68865bc99f9581fc0806687e171
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 326
+    sourceEndLine: 340
     sourceFile: scripts/run-unit-coverage.ts
-    sourceLine: 322
+    sourceLine: 336
   SYM-quality-inventory-19e4335e4a46:
     identityHash: 9c20dd87fe5f780f4222967cb93d3e49378e8e542f5030897146e4d48c828acc
     sourceHash: decc497f0d4f1af043f8397346e86c99f7c6c027f6d365b6748af0811bd8369f
@@ -14701,12 +14701,12 @@ coordinates:
     sourceLine: 28
   SYM-quality-inventory-57b01c22b501:
     identityHash: 78ea1f43c4d04db40676c9cd76ccb56b00028df956a0acb97a3651fb71a522f1
-    sourceHash: 07100ce2cf2e6397446bf86d74a206bfb26fc96818547fd2f182521504b14398
+    sourceHash: af8edc85456dad9bcfdc4ba2f953235fd50dc68865bc99f9581fc0806687e171
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 472
+    sourceEndLine: 487
     sourceFile: scripts/run-unit-coverage.ts
-    sourceLine: 467
+    sourceLine: 482
   SYM-quality-inventory-63efea15346c:
     identityHash: 70f7641b28e89bdbce32ac91307cbc7f27e955eae406f80b6703a098fd1f1ff5
     sourceHash: decc497f0d4f1af043f8397346e86c99f7c6c027f6d365b6748af0811bd8369f
@@ -15397,12 +15397,12 @@ coordinates:
     sourceLine: 504
   SYM-repoRootFromScript:
     identityHash: 5fd10db76dfe977139050b9457c0a09d1bad8078d7618b1b2fbedf294ab12cb9
-    sourceHash: 50c38c740d07c2d0d8c1ef54b79abc9b05f6aafab76784d54a97b72301f70fa0
+    sourceHash: 3f67a257e1d6f3d98a8658d7e66f226b5678c339a67027642f115ad06279cfe2
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 242
+    sourceEndLine: 252
     sourceFile: scripts/sync-agent-skills.ts
-    sourceLine: 239
+    sourceLine: 249
   SYM-repositoryMatches:
     identityHash: 1ca86047193d6fcbff52d86820c0bafc0c041cf921aee4768336dff5937af8f4
     sourceHash: 4b6890c49fc4fa7b1552fa6bbfb818219426c0f137fa98713b4e20466aace480
@@ -16013,12 +16013,12 @@ coordinates:
     sourceLine: 453
   SYM-requireSelectedTargets:
     identityHash: 332504f3b52c215e5752f483e7ae34ab5f7031871db605412c62cdffffe82633
-    sourceHash: 50c38c740d07c2d0d8c1ef54b79abc9b05f6aafab76784d54a97b72301f70fa0
+    sourceHash: 3f67a257e1d6f3d98a8658d7e66f226b5678c339a67027642f115ad06279cfe2
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 230
+    sourceEndLine: 240
     sourceFile: scripts/sync-agent-skills.ts
-    sourceLine: 225
+    sourceLine: 235
   SYM-ReservedPredicateMatrix:
     identityHash: 4ca5726acc88b4e97ff3e14943f03126f39e3a2763a1fc7bead44ac6c2861182
     sourceHash: 46753e8311d3f77ddfd750248ad423bd0ae9c9385f5254309f904e614fffd673
@@ -16277,12 +16277,12 @@ coordinates:
     sourceLine: 96
   SYM-runSyncAgentSkillsIfMain:
     identityHash: ce8ce20abf084ead0b9aedd0726c384d272fd5d6e528e5a92cc2eb348404ed2c
-    sourceHash: 50c38c740d07c2d0d8c1ef54b79abc9b05f6aafab76784d54a97b72301f70fa0
+    sourceHash: 3f67a257e1d6f3d98a8658d7e66f226b5678c339a67027642f115ad06279cfe2
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 583
+    sourceEndLine: 593
     sourceFile: scripts/sync-agent-skills.ts
-    sourceLine: 576
+    sourceLine: 586
   SYM-runtime-Clock:
     identityHash: b26d57dd49ad2cd18a7f86d15e04eb8872406bbbc73b39bfaf4d3c88be0b7919
     sourceHash: 139d8b88117ffef91fde7cdfb5190f336bcaabae0db34978186e026d8b952919
@@ -16477,12 +16477,12 @@ coordinates:
     sourceLine: 268
   SYM-scripts-runUnitCoverage:
     identityHash: 0a45c2accda0d8883b93684564d0b93a415b99a57df65b9e95b13bbd99484197
-    sourceHash: 07100ce2cf2e6397446bf86d74a206bfb26fc96818547fd2f182521504b14398
+    sourceHash: af8edc85456dad9bcfdc4ba2f953235fd50dc68865bc99f9581fc0806687e171
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 465
+    sourceEndLine: 480
     sourceFile: scripts/run-unit-coverage.ts
-    sourceLine: 348
+    sourceLine: 362
   SYM-scripts-skillopt-eval-scoring-held-out-predicate-PredicateVariant:
     identityHash: c6dc8fabae506a1b9a264ba37e1a306b5be1a7ad79cd5868fa59028d6ad4ed45
     sourceHash: 5ccd52c4ed95f251cdd24b198169d25b4b26a27a3a7d281e45e166f7cc03c7c0
@@ -24541,28 +24541,28 @@ coordinates:
     sourceLine: 34
   SYM-sync-agent-skills-locked:
     identityHash: 4f10be28734587805ef56732437333657d4ae4f049186160d9ea558c96da6989
-    sourceHash: 50c38c740d07c2d0d8c1ef54b79abc9b05f6aafab76784d54a97b72301f70fa0
+    sourceHash: 3f67a257e1d6f3d98a8658d7e66f226b5678c339a67027642f115ad06279cfe2
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 529
+    sourceEndLine: 539
     sourceFile: scripts/sync-agent-skills.ts
-    sourceLine: 517
+    sourceLine: 527
   SYM-sync-agent-skills-main:
     identityHash: 5ff96137425b7a832051f7dffa2ddf91fdfd4f30ea70aee36944ddea2f027d74
-    sourceHash: 50c38c740d07c2d0d8c1ef54b79abc9b05f6aafab76784d54a97b72301f70fa0
+    sourceHash: 3f67a257e1d6f3d98a8658d7e66f226b5678c339a67027642f115ad06279cfe2
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 568
+    sourceEndLine: 578
     sourceFile: scripts/sync-agent-skills.ts
-    sourceLine: 531
+    sourceLine: 541
   SYM-sync-agent-skills-unlocked:
     identityHash: b1c19bd6b17a58db8fbae202751f16714854bd6f357f8dda4b362acaa553e84f
-    sourceHash: 50c38c740d07c2d0d8c1ef54b79abc9b05f6aafab76784d54a97b72301f70fa0
+    sourceHash: 3f67a257e1d6f3d98a8658d7e66f226b5678c339a67027642f115ad06279cfe2
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 515
+    sourceEndLine: 525
     sourceFile: scripts/sync-agent-skills.ts
-    sourceLine: 498
+    sourceLine: 508
   SYM-sync-assert-relationships-cleared:
     identityHash: 3239a140655c5b0c1dcb154b092ad0b17d2a2fa6e4812fda9111863546c9d8a7
     sourceHash: 99a5e26191ff84561d49d990b6e75ec64be6ffbfd18870255c419fff7765d04b
@@ -24637,12 +24637,12 @@ coordinates:
     sourceLine: 113
   SYM-SyncOptions:
     identityHash: bfbc23cb3cf23a8c68342d92f91db3f9ed6a1845e59db5d5d3e0089aaa409874
-    sourceHash: 50c38c740d07c2d0d8c1ef54b79abc9b05f6aafab76784d54a97b72301f70fa0
+    sourceHash: 3f67a257e1d6f3d98a8658d7e66f226b5678c339a67027642f115ad06279cfe2
     sourceColumn: 10
     sourceEndColumn: 1
-    sourceEndLine: 184
+    sourceEndLine: 194
     sourceFile: scripts/sync-agent-skills.ts
-    sourceLine: 181
+    sourceLine: 191
   SYM-syncPluginManifestVersions:
     identityHash: dd95b5cb9a68104bfbe11faa3a3d53e725044c1392bdf3c7c34e25fee72e069b
     sourceHash: 6aa6bee9df735ba5502cf57ab2d728e49eff098d521573c28b3f151356f8ded6
@@ -24701,7 +24701,7 @@ coordinates:
     sourceLine: 62
   SYM-Target:
     identityHash: 7a73acb9fa66090cc4c1a6fbeef2bc71638a3df1cd85113def5d5f57cb9c72d8
-    sourceHash: 50c38c740d07c2d0d8c1ef54b79abc9b05f6aafab76784d54a97b72301f70fa0
+    sourceHash: 3f67a257e1d6f3d98a8658d7e66f226b5678c339a67027642f115ad06279cfe2
     sourceColumn: 5
     sourceEndColumn: 43
     sourceEndLine: 56
@@ -25365,12 +25365,12 @@ coordinates:
     sourceLine: 36
   SYM-transformZcodeSkillFrontmatter:
     identityHash: 2421a2ff51940dd91577d027c99a28dded48fa38380bc91f5154f80097b2daad
-    sourceHash: 50c38c740d07c2d0d8c1ef54b79abc9b05f6aafab76784d54a97b72301f70fa0
+    sourceHash: 3f67a257e1d6f3d98a8658d7e66f226b5678c339a67027642f115ad06279cfe2
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 168
+    sourceEndLine: 178
     sourceFile: scripts/sync-agent-skills.ts
-    sourceLine: 137
+    sourceLine: 143
   SYM-updateGitIgnore:
     identityHash: b9d10bf438a59b7341334176ea0cedbc826d1d705c0d1e11a39daf6232d2b37a
     sourceHash: ee639701d887dad7a55b4d18b18571a45bd0f57387160af269368867e57754f6

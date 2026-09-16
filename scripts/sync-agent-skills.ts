@@ -81,7 +81,13 @@ interface ParsedFrontmatter {
 }
 
 function parseSimpleFrontmatter(content: string): ParsedFrontmatter {
-  const lines = content.split("\n");
+  // Git checkouts on Windows can provide CRLF files, and editors may preserve
+  // a UTF-8 BOM. Normalize only the parser view: transformed skill bodies and
+  // resource files must continue to use their original bytes.
+  const lines = content
+    .replace(/^\uFEFF/, "")
+    .replace(/\r\n?/g, "\n")
+    .split("\n");
   if (lines[0] !== "---") {
     throw new Error("Skill frontmatter must start with a `---` line");
   }
@@ -137,8 +143,12 @@ function parseSimpleFrontmatter(content: string): ParsedFrontmatter {
 export function transformZcodeSkillFrontmatter(content: Buffer): Buffer {
   const text = content.toString("utf8");
   const frontmatter = parseSimpleFrontmatter(text);
+  const normalizedLines = text
+    .replace(/^\uFEFF/, "")
+    .replace(/\r\n?/g, "\n")
+    .split("\n");
+  const closingIndex = normalizedLines.indexOf("---", 1);
   const lines = text.split("\n");
-  const closingIndex = lines.indexOf("---", 1);
   const body = lines.slice(closingIndex + 1).join("\n");
 
   const metadataKeys = frontmatter.order.filter(

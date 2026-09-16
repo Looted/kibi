@@ -25,6 +25,7 @@ import {
   repoRootFromScript,
   syncAgentSkills,
   syncAgentSkillsUnlocked,
+  transformZcodeSkillFrontmatter,
 } from "../sync-agent-skills";
 
 const roots: string[] = [];
@@ -93,6 +94,21 @@ describe("sync-agent-skills argument parsing", () => {
 });
 
 describe("sync-agent-skills planning and drift", () => {
+  test("parses BOM-prefixed CRLF frontmatter while preserving the body bytes", () => {
+    const body = "# body\r\n\r\nbody bytes stay CRLF\r\n";
+    const transformed = transformZcodeSkillFrontmatter(
+      Buffer.from(
+        `\uFEFF---\r\nid: kibi-usage\r\nname: Usage\r\ndescription: Guidance\r\nresources:\r\n  - resources/guide.md\r\n---\r\n${body}`,
+        "utf8",
+      ),
+    ).toString("utf8");
+
+    expect(transformed).toContain("name: Usage\ndescription: Guidance\n");
+    expect(transformed).toContain("metadata:\n  id: kibi-usage\n");
+    expect(transformed.endsWith(body)).toBe(true);
+    expect(transformed).not.toContain("\uFEFF");
+  });
+
   test("repo helpers resolve canonical and mirror directories", () => {
     expect(canonicalSkillsDir("/repo")).toBe(
       "/repo/packages/runtime/src/skills",
