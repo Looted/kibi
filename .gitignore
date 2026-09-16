@@ -46,6 +46,10 @@ documentation/tests/e2e/packed/.compiled/
 .kibi/
 .playwright-mcp/
 
+# --- Mutation testing ---
+.stryker-tmp/
+reports/mutation/
+
 # --- Bun ---
 .bun/
 
