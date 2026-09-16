@@ -50,6 +50,14 @@ function topLevelFrontmatterKeys(text: string): string[] {
   return keys;
 }
 
+function skillBodyAfterFrontmatter(text: string): string {
+  const lines = text.split("\n");
+  const end = lines.findIndex(
+    (line, index) => index > 0 && line.replace(/\r$/, "") === "---",
+  );
+  return lines.slice(end + 1).join("\n");
+}
+
 describe("kibi-zcode skills", () => {
   test("required skill directories and SKILL.md exist", () => {
     for (const skillName of requiredSkills) {
@@ -132,28 +140,31 @@ describe("kibi-zcode skills", () => {
     }
   });
 
+  test("finds CRLF frontmatter delimiters without normalizing body bytes", () => {
+    expect(skillBodyAfterFrontmatter("---\r\nname: test\r\n---\r\nbody\r\n")).toBe(
+      "body\r\n",
+    );
+  });
+
   test("skill bodies are byte-identical to the canonical bundled skills", () => {
     for (const skillName of requiredSkills) {
-      const bodyAfterFrontmatter = (filePath: string): string => {
-        const lines = fs.readFileSync(filePath, "utf8").split("\n");
-        const end = lines.findIndex(
-          (line, index) => index > 0 && line === "---",
-        );
-        return lines.slice(end + 1).join("\n");
-      };
-
       expect(
-        bodyAfterFrontmatter(path.join(skillsRoot, skillName, "SKILL.md")),
+        skillBodyAfterFrontmatter(
+          fs.readFileSync(path.join(skillsRoot, skillName, "SKILL.md"), "utf8"),
+        ),
       ).toBe(
-        bodyAfterFrontmatter(
-          path.join(
-            packageRoot,
-            "..",
-            "runtime",
-            "src",
-            "skills",
-            skillName,
-            "SKILL.md",
+        skillBodyAfterFrontmatter(
+          fs.readFileSync(
+            path.join(
+              packageRoot,
+              "..",
+              "runtime",
+              "src",
+              "skills",
+              skillName,
+              "SKILL.md",
+            ),
+            "utf8",
           ),
         ),
       );
