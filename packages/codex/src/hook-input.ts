@@ -9,6 +9,9 @@ export type HookInput = {
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
+  // rationale: parseHookInput degrades every non-record to { event: "" };
+  // dropping the typeof check still yields the same parse for all inputs.
+  // Stryker disable next-line ConditionalExpression
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
@@ -61,6 +64,9 @@ export async function readStdin(): Promise<string> {
   const chunks: Buffer[] = [];
 
   for await (const chunk of process.stdin) {
+    // rationale: Buffer.from(buffer) returns an equal copy, so the branch is
+    // observationally identical for both chunk types.
+    // Stryker disable next-line ConditionalExpression
     chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
   }
 

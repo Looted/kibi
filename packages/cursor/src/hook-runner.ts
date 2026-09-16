@@ -73,10 +73,16 @@ function isEditLikeTool(toolName: string | undefined): boolean {
 }
 
 function isKnownEditableTool(toolName: string | undefined): boolean {
+  // rationale: Set.has(undefined) is false, so the undefined guard is
+  // subsumed by the membership check.
+  // Stryker disable next-line ConditionalExpression
   return toolName !== undefined && editableTools.has(toolName);
 }
 
 function isPlanDeliveryTool(toolName: string | undefined): boolean {
+  // rationale: Set.has(undefined) is false, so the undefined guard is
+  // subsumed by the membership check.
+  // Stryker disable next-line ConditionalExpression
   return toolName !== undefined && planDeliveryTools.has(toolName);
 }
 
@@ -234,9 +240,13 @@ export async function runHook(
       }
 
       if (isEditLikeTool(input.toolName)) {
+        // rationale: the runner only ever passes "read" or "write"; an empty
+        // kind selects the same write bucket.
+        // Stryker disable StringLiteral
         if (hasGuidedPath(state, "write", relativePath)) {
           return emptyResult();
         }
+        // Stryker restore
 
         const guidance = writeGuidance(primaryPath, {
           cwd,
@@ -248,7 +258,10 @@ export async function runHook(
           return emptyResult();
         }
 
+        // rationale: same bucket equivalence as the lookup above.
+        // Stryker disable StringLiteral
         rememberGuidedPath(stateDir, "write", relativePath);
+        // Stryker restore
         return { additional_context: guidance };
       }
 
@@ -259,7 +272,11 @@ export async function runHook(
       const state = loadHookState(stateDir);
       const shouldClearSession =
         state.dirtyPaths.length > 0 ||
+        // rationale: mutation tools always produce a stop followup message,
+        // and that branch clears the session before this flag is consulted.
+        // Stryker disable ConditionalExpression
         state.kbMutationTools.length > 0 ||
+        // Stryker restore
         state.kbCheckRun ||
         state.planDelivered;
 

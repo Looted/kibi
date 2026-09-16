@@ -19,7 +19,13 @@ export type HookInput = {
   status?: HookStopStatus;
 };
 
+// rationale: parseHookInput degrades every non-record to { event: "" };
+// dropping the typeof check still yields the same parse for all inputs.
+// Stryker disable next-line ConditionalExpression
 function isRecord(value: unknown): value is Record<string, unknown> {
+  // rationale: parseHookInput degrades every non-record to { event: "" };
+  // dropping the typeof check still yields the same parse for all inputs.
+  // Stryker disable next-line ConditionalExpression
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
@@ -60,6 +66,8 @@ function readStringArray(
 
 function normalizeEventName(event: string): string {
   const trimmed = event.trim();
+  // rationale: the string ops on an empty trimmed value already return "".
+  // Stryker disable next-line ConditionalExpression, BlockStatement
   if (trimmed.length === 0) {
     return "";
   }
@@ -145,6 +153,9 @@ export async function readStdin(): Promise<string> {
   const chunks: Buffer[] = [];
 
   for await (const chunk of process.stdin) {
+    // rationale: Buffer.from(buffer) returns an equal copy, so the branch is
+    // observationally identical for both chunk types.
+    // Stryker disable next-line ConditionalExpression
     chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
   }
 
