@@ -76,3 +76,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-29461a687f2a
+  - type: implements
+    from: SYM-skillopt-linux-with-exclusive-mirror-writer-lock
+    to: REQ-skillopt-automatic-adoption
+    created_at: 2026-09-16T08:38:19.138Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7524f3a51ef

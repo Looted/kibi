@@ -111,3 +111,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b2eb75099676
+  - type: implements
+    from: SYM-skillopt-windows-with-shared-adoption-lock
+    to: REQ-skillopt-automatic-adoption
+    created_at: 2026-09-16T08:38:57.112Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c5d55030fa1b
