@@ -32472,6 +32472,23 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-generated-coordinate-repair
+  - id: SYM-boundSymbolScopeRecords
+    title: boundSymbolScopeRecords
+    sourceFile: packages/cli/src/extractors/manifest.ts
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+  - id: SYM-resolveBoundSymbolScope
+    title: resolveBoundSymbolScope
+    sourceFile: packages/cli/src/extractors/manifest.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
       - type: implements
         target: REQ-generated-coordinate-persistence
   - id: SYM-coordinateIdentityKey
@@ -36671,6 +36688,38 @@ symbols:
         target: TEST-core-journaled-engine-persistence
       - type: implements
         target: REQ-core-journaled-engine-persistence
+  - id: SYM-sweepRuntimeSockets
+    title: sweepRuntimeSockets
+    status: active
+    sourceFile: packages/cli/src/prolog/janitor.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-engineJanitorCommand
+    title: engineJanitorCommand
+    status: active
+    sourceFile: packages/cli/src/commands/engine.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-executeIngestProof
+    title: executeIngestProof
+    status: active
+    sourceFile: packages/cli/src/operations/proof/ingest-proof.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
   - id: SYM-sweep-runtime-sockets
     title: sweepRuntimeSockets
     status: active
