@@ -1,8 +1,9 @@
-import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
 import { describe, expect, test } from "bun:test";
+
+import { buildZcodePackageOnce } from "./build-once";
 
 const testRoot = import.meta.dir;
 const packageRoot = (() => {
@@ -162,7 +163,7 @@ describe("kibi-zcode plugin manifest", () => {
   });
 
   test("build copies manifest-referenced assets into dist", () => {
-    execSync("bun run build", { cwd: packageRoot, stdio: "ignore" });
+    buildZcodePackageOnce(packageRoot);
 
     for (const asset of manifestAssets) {
       expect(fs.existsSync(path.join(packageRoot, "dist", asset))).toBe(true);

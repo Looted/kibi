@@ -12,6 +12,11 @@ const workspaceStateRoot = "workspaces";
  * Hook state lives under a per-workspace directory keyed by the resolved Kibi
  * project root, so edits in one project can never surface as reminders in
  * another (worktrees included — their roots differ from the main checkout).
+ * Within a workspace, state is namespaced per host session so one session
+ * cannot consume, clear, or acknowledge another session's pending work.
+ * Session ids are hashed before they touch the filesystem; missing ids fall
+ * into a dedicated `unattributed` bucket that never touches identified
+ * sessions.
  */
 export function resolveWorkspaceStateDir(
   pluginData: string | undefined,
@@ -25,6 +30,24 @@ export function resolveWorkspaceStateDir(
     .update(path.resolve(workspaceRoot))
     .digest("hex");
   return path.join(pluginData, workspaceStateRoot, workspaceKey);
+}
+
+export function resolveSessionStateDir(
+  pluginData: string | undefined,
+  workspaceRoot: string,
+  sessionId: string | undefined,
+): string | undefined {
+  const workspaceDir = resolveWorkspaceStateDir(pluginData, workspaceRoot);
+  if (!workspaceDir) {
+    return undefined;
+  }
+
+  const trimmed = sessionId?.trim() ?? "";
+  const sessionKey =
+    trimmed.length > 0
+      ? createHash("sha256").update(trimmed).digest("hex").slice(0, 32)
+      : "unattributed";
+  return path.join(workspaceDir, "sessions", sessionKey);
 }
 
 export type HookState = {
@@ -113,11 +136,20 @@ function journalPath(pluginData: string): string {
 
 function applyJournalEvent(state: HookState, event: JournalEvent): HookState {
   switch (event.kind) {
-    case "add_dirty_paths":
+    case "add_dirty_paths": {
+      // A later edit invalidates a previous impact check for that exact path:
+      // a check must not cover a newer edit merely because the filename
+      // matches. Path-specific invalidation keeps still-current checks for
+      // other files intact.
+      const editedPaths = event.dirtyPaths.map(normalizeDirtyPath);
       return {
         ...state,
-        dirtyPaths: mergeDirtyPathValues(state.dirtyPaths, event.dirtyPaths),
+        dirtyPaths: mergeDirtyPathValues(state.dirtyPaths, editedPaths),
+        impactCheckedPaths: state.impactCheckedPaths.filter(
+          (checkedPath) => !editedPaths.includes(checkedPath),
+        ),
       };
+    }
     case "record_kb_check":
       return {
         ...state,
@@ -230,9 +262,13 @@ export function addDirtyPaths(
   dirtyPaths: readonly string[],
 ): HookState {
   const initialState = loadHookState(pluginData);
+  const editedPaths = dirtyPaths.map(normalizeDirtyPath);
   const fallbackState: HookState = {
     ...initialState,
-    dirtyPaths: mergeDirtyPathValues(initialState.dirtyPaths, dirtyPaths),
+    dirtyPaths: mergeDirtyPathValues(initialState.dirtyPaths, editedPaths),
+    impactCheckedPaths: initialState.impactCheckedPaths.filter(
+      (checkedPath) => !editedPaths.includes(checkedPath),
+    ),
   };
 
   if (!pluginData) {

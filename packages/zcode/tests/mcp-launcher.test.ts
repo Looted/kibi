@@ -9,6 +9,13 @@ import { PassThrough } from "node:stream";
 import { Writable } from "node:stream";
 import { fileURLToPath } from "node:url";
 
+import {
+  cleanupRoots,
+  createFixtureWorkspace,
+  hermeticEnv,
+  workspaceKey,
+} from "./launcher-fixture";
+
 const require = createRequire(import.meta.url);
 const launcherPath = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -16,14 +23,28 @@ const launcherPath = path.resolve(
 );
 const launcher = require(launcherPath) as {
   main: () => Promise<void>;
+  LAUNCH_FAILED_INSTRUCTIONS_PREFIX: string;
+  MISSING_KIBI_MCP_INSTRUCTIONS: string;
   UNCONFIGURED_WORKSPACE_TOOL_MESSAGE: string;
   createLineReader: (onLine: (line: string) => void) => (chunk: Buffer) => void;
-  probeKibiMcp: (options?: Record<string, unknown>) => Promise<boolean>;
+  findGlobalKibiMcpCommand: (
+    env?: NodeJS.ProcessEnv,
+  ) => { command: string; args: string[]; via: string } | null;
+  probeKibiMcp: (options?: Record<string, unknown>) => Promise<{
+    status: "available" | "missing" | "launch_failed";
+    detail?: string;
+  }>;
   proxyKibiMcp: (options?: Record<string, unknown>) => Promise<number>;
   resolveKibiWorkspace: (
     startDir: string | undefined,
     env?: NodeJS.ProcessEnv,
   ) => { root: string; optedIn: boolean };
+  resolveLaunchTarget: (
+    workspaceRoot: string,
+    env?: NodeJS.ProcessEnv,
+  ) => { command: string; args: string[]; via: string } | null;
+  resolveLocalEntry: (workspaceRoot: string) => string | null;
+  resolveWindowsShimEntry: (shimPath: string) => string | null;
   runLauncher: (options?: Record<string, unknown>) => Promise<number>;
   serveSilent: (options?: Record<string, unknown>) => Promise<number>;
   signalExitCode: (signal: string) => number;
@@ -33,24 +54,19 @@ const launcher = require(launcherPath) as {
   ) => Record<string, unknown> | null;
 };
 
-const tempRoots: string[] = [];
+const roots: string[] = [];
 
-function createTempRoot(prefix: string): string {
+function tempRoot(prefix: string): string {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
-  tempRoots.push(root);
+  roots.push(root);
   return root;
-}
-
-function optInWorkspace(root: string): void {
-  fs.mkdirSync(path.join(root, ".kb"), { recursive: true });
-  fs.writeFileSync(path.join(root, ".kb", "manifest.json"), "{}");
 }
 
 type FakeChild = EventEmitter & {
   stdin: PassThrough;
   stdout: PassThrough;
   stderr: PassThrough;
-  kill: () => boolean;
+  kill: (signal?: string) => boolean;
   killed: boolean;
 };
 
@@ -153,26 +169,27 @@ async function spawnLauncher(options: {
 }
 
 afterEach(() => {
-  for (const root of tempRoots.splice(0)) {
-    fs.rmSync(root, { recursive: true, force: true });
-  }
+  cleanupRoots(roots);
 });
 
 describe("zcode MCP launcher workspace gate", () => {
   test("mirrors the workspace opt-in semantics of the hook runner", () => {
-    const workspace = createTempRoot("kibi-zcode-launcher-");
-    optInWorkspace(workspace);
-    const nested = path.join(workspace, "src");
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-zcode-launcher-wsgate-",
+      installPackage: false,
+    });
+    roots.push(fixture.base);
+    const nested = path.join(fixture.workspaceRoot, "src");
     fs.mkdirSync(nested);
-    const unrelated = createTempRoot("kibi-zcode-launcher-nested-");
+    const unrelated = tempRoot("kibi-zcode-launcher-nested-");
     fs.mkdirSync(path.join(unrelated, ".git"), { recursive: true });
 
-    expect(launcher.resolveKibiWorkspace(workspace)).toEqual({
-      root: workspace,
+    expect(launcher.resolveKibiWorkspace(fixture.workspaceRoot)).toEqual({
+      root: fixture.workspaceRoot,
       optedIn: true,
     });
     expect(launcher.resolveKibiWorkspace(nested)).toEqual({
-      root: workspace,
+      root: fixture.workspaceRoot,
       optedIn: true,
     });
     expect(launcher.resolveKibiWorkspace(unrelated)).toEqual({
@@ -181,13 +198,18 @@ describe("zcode MCP launcher workspace gate", () => {
     });
     expect(
       launcher.resolveKibiWorkspace(undefined, {
-        KIBI_WORKSPACE: workspace,
+        KIBI_WORKSPACE: fixture.workspaceRoot,
       } as NodeJS.ProcessEnv),
-    ).toEqual({ root: workspace, optedIn: true });
+    ).toEqual({ root: fixture.workspaceRoot, optedIn: true });
   });
 
   test("serves a silent zero-tool server in unconfigured workspaces", async () => {
-    const cwd = createTempRoot("kibi-zcode-launcher-off-");
+    const cwd = tempRoot("kibi-zcode-launcher-off-");
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-zcode-launcher-off-pkg-",
+      installPackage: true,
+    });
+    roots.push(fixture.base);
 
     const run = await spawnLauncher({
       cwd,
@@ -208,10 +230,12 @@ describe("zcode MCP launcher workspace gate", () => {
     expect(run.stdout).toContain('"tools":[]');
     expect(run.stdout).not.toContain("instructions");
     expect(run.spawnCalls).toHaveLength(0);
+    // The unconfigured workspace must never launch the installed server.
+    expect(fs.existsSync(fixture.sentinelPath)).toBe(false);
   });
 
   test("explains explicit initialization instead of prompting in unconfigured workspaces", async () => {
-    const cwd = createTempRoot("kibi-zcode-launcher-call-");
+    const cwd = tempRoot("kibi-zcode-launcher-call-");
 
     const run = await spawnLauncher({
       cwd,
@@ -229,16 +253,91 @@ describe("zcode MCP launcher workspace gate", () => {
     expect(run.stdout).toContain("Kibi is not configured for this workspace");
   });
 
-  test("proxies the project-local kibi-mcp in configured workspaces", async () => {
-    const workspace = createTempRoot("kibi-zcode-launcher-on-");
-    optInWorkspace(workspace);
+  test("resolves the project-local entry through process.execPath", () => {
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-zcode-launcher-resolve-",
+      withSpaces: true,
+      installPackage: true,
+    });
+    roots.push(fixture.base);
+
+    const entryPath = fixture.entryPath as string;
+    const target = launcher.resolveLaunchTarget(
+      fixture.workspaceRoot,
+      hermeticEnv(),
+    );
+    expect(target?.via).toBe("project-local");
+    expect(target?.command).toBe(process.execPath);
+    expect(target?.args).toEqual([entryPath]);
+    expect(launcher.resolveLocalEntry(fixture.workspaceRoot)).toBe(entryPath);
+  });
+
+  test("falls back to the POSIX PATH entry when no project-local install exists", () => {
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-zcode-launcher-global-",
+      installPackage: false,
+    });
+    roots.push(fixture.base);
+
+    const shimDir = tempRoot("kibi-zcode-launcher-shimdir-");
+    const shimPath = path.join(shimDir, "kibi-mcp");
+    fs.writeFileSync(shimPath, "#!/bin/sh\nnode bin/kibi-mcp.js\n");
+    fs.chmodSync(shimPath, 0o755);
+
+    const target = launcher.resolveLaunchTarget(
+      fixture.workspaceRoot,
+      hermeticEnv({ PATH: shimDir }),
+    );
+    expect(target?.via).toBe("global-path");
+    expect(target?.command).toBe(shimPath);
+    expect(target?.args).toEqual([]);
+
+    // Without anything on PATH and no project-local install, the server is
+    // genuinely missing.
+    expect(
+      launcher.resolveLaunchTarget(fixture.workspaceRoot, hermeticEnv()),
+    ).toBeNull();
+    expect(launcher.findGlobalKibiMcpCommand(hermeticEnv())).toBeNull();
+  });
+
+  test("resolves the JS entry behind Windows .cmd shims without a shell", () => {
+    const shimDir = tempRoot("kibi-zcode-launcher-cmdshim-");
+    const entry = path.join(
+      shimDir,
+      "node_modules",
+      "kibi-mcp",
+      "bin",
+      "kibi-mcp.js",
+    );
+    fs.mkdirSync(path.dirname(entry), { recursive: true });
+    fs.writeFileSync(entry, "// fixture entry\n");
+
+    const siblingLayout = path.join(shimDir, "kibi-mcp.cmd");
+    fs.writeFileSync(
+      siblingLayout,
+      '@ECHO off\r\nnode "%~dp0\\node_modules\\kibi-mcp\\bin\\kibi-mcp.js" %*\r\n',
+    );
+    expect(launcher.resolveWindowsShimEntry(siblingLayout)).toBe(entry);
+
+    // A shim without a resolvable target reports nothing instead of guessing.
+    const bareShim = path.join(shimDir, "kibi-mcp-other.cmd");
+    fs.writeFileSync(bareShim, "@ECHO off\r\nrem nothing here\r\n");
+    expect(launcher.resolveWindowsShimEntry(bareShim)).toBeNull();
+  });
+
+  test("proxies the resolved entry in configured workspaces", async () => {
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-zcode-launcher-on-",
+      installPackage: true,
+    });
+    roots.push(fixture.base);
     const spawnCalls: SpawnCall[] = [];
     const children: FakeChild[] = [];
     let probeSeen = false;
 
     const run = await spawnLauncher({
-      cwd: workspace,
-      env: { HOME: "/home/agent", PATH: "/usr/bin" } as NodeJS.ProcessEnv,
+      cwd: fixture.workspaceRoot,
+      env: hermeticEnv({ HOME: "/home/agent" }),
       requests: [
         JSON.stringify({
           jsonrpc: "2.0",
@@ -279,30 +378,31 @@ describe("zcode MCP launcher workspace gate", () => {
 
     expect(run.exitCode).toBe(0);
     expect(spawnCalls).toHaveLength(2);
-    expect(spawnCalls[0]?.command).toBe(
-      process.platform === "win32" ? "npx.cmd" : "npx",
-    );
-    expect(spawnCalls[0]?.args).toEqual([
-      "--no-install",
-      "kibi-mcp",
-      "--print-resolution",
-    ]);
-    expect(spawnCalls[1]?.args).toEqual(["--no-install", "kibi-mcp"]);
-    expect(spawnCalls[1]?.opts.cwd).toBe(workspace);
+    // Shell-free launch on every platform: the resolved entry under the same
+    // Node binary, with no --no-install shell indirection anywhere.
+    const entryPath = fixture.entryPath as string;
+    expect(spawnCalls[0]?.command).toBe(process.execPath);
+    expect(spawnCalls[0]?.args).toEqual([entryPath, "--print-resolution"]);
+    expect(spawnCalls[1]?.args).toEqual([entryPath]);
+    expect(spawnCalls[1]?.opts.cwd).toBe(fixture.workspaceRoot);
     expect((spawnCalls[1]?.opts.env as NodeJS.ProcessEnv).KIBI_WORKSPACE).toBe(
-      workspace,
+      fixture.workspaceRoot,
     );
     expect(run.stdout).toContain('"kibi-mcp"');
     expect(run.stdout).not.toContain('"kibi-zcode-launcher"');
     expect(children[1]?.stdin.writable).toBe(true);
   });
 
-  test("starts cleanly with instructions when the configured workspace lacks kibi-mcp", async () => {
-    const workspace = createTempRoot("kibi-zcode-launcher-missing-");
-    optInWorkspace(workspace);
+  test("starts cleanly with missing-server instructions when nothing resolves", async () => {
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-zcode-launcher-missing-",
+      installPackage: false,
+    });
+    roots.push(fixture.base);
 
     const run = await spawnLauncher({
-      cwd: workspace,
+      cwd: fixture.workspaceRoot,
+      env: hermeticEnv(),
       requests: [
         JSON.stringify({
           jsonrpc: "2.0",
@@ -317,7 +417,249 @@ describe("zcode MCP launcher workspace gate", () => {
     expect(run.stderr).toBe("");
     expect(run.stdout).toContain("kibi-zcode-launcher");
     expect(run.stdout).toContain("instructions");
-    expect(run.stdout).toContain("npm install --save-dev kibi-mcp");
+    expect(run.stdout).toContain("no kibi-mcp executable is resolvable");
+  });
+
+  test("distinguishes launch failures from a missing server", async () => {
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-zcode-launcher-fail-",
+      installPackage: true,
+    });
+    roots.push(fixture.base);
+
+    // The entry exists (a real spawn works, see the subprocess suite) but the
+    // server exits nonzero during the probe: a launch failure, not a missing
+    // installation.
+    const probe = await launcher.probeKibiMcp({
+      cwd: fixture.workspaceRoot,
+      env: { ...process.env, KIBI_FIXTURE_PRINT_EXIT: "3" },
+    });
+    expect(probe.status).toBe("launch_failed");
+    expect(probe.detail).toContain("exit code 3");
+
+    const run = await spawnLauncher({
+      cwd: fixture.workspaceRoot,
+      env: hermeticEnv({ HOME: "/home/agent" }),
+      requests: [
+        JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "initialize",
+          params: {},
+        }),
+      ],
+      spawnImpl: (command, args, opts) => {
+        const child = makeFakeChild();
+        queueMicrotask(() => child.emit("close", 5));
+        void command;
+        void args;
+        void opts;
+        return child;
+      },
+    });
+    expect(run.exitCode).toBe(0);
+    expect(run.stdout).toContain(launcher.LAUNCH_FAILED_INSTRUCTIONS_PREFIX);
+    expect(run.stdout).toContain("exit code 5");
+    expect(run.stdout).not.toContain("no kibi-mcp executable is resolvable");
+  });
+
+  test("probe spawn errors surface as launch failures, not missing", async () => {
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-zcode-launcher-spawnerr-",
+      installPackage: true,
+    });
+    roots.push(fixture.base);
+
+    const probe = await launcher.probeKibiMcp({
+      cwd: fixture.workspaceRoot,
+      env: process.env,
+      spawnImpl: () => {
+        throw new Error("EACCES: spawn blocked");
+      },
+    });
+
+    expect(probe.status).toBe("launch_failed");
+    expect(probe.detail).toContain("EACCES");
+  });
+
+  test("the probe kills probes that never exit", async () => {
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-zcode-launcher-stuck-",
+      installPackage: true,
+    });
+    roots.push(fixture.base);
+    const stuckChild = makeFakeChild();
+    const probe = await launcher.probeKibiMcp({
+      cwd: fixture.workspaceRoot,
+      env: process.env,
+      spawnImpl: () => stuckChild,
+      timeoutMs: 15,
+    });
+
+    expect(probe.status).toBe("launch_failed");
+    expect(stuckChild.killed).toBe(true);
+  });
+
+  test("the probe tolerates kill failures on timed-out probes", async () => {
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-zcode-launcher-sticky-",
+      installPackage: true,
+    });
+    roots.push(fixture.base);
+    const stuckChild = makeFakeChild();
+    stuckChild.kill = () => {
+      throw new Error("already reaped");
+    };
+    const probe = await launcher.probeKibiMcp({
+      cwd: fixture.workspaceRoot,
+      env: process.env,
+      spawnImpl: () => stuckChild,
+      timeoutMs: 15,
+    });
+
+    expect(probe.status).toBe("launch_failed");
+  });
+
+  test("proxy reports a missing server on stderr with exit code 1", async () => {
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-zcode-launcher-proxymiss-",
+      installPackage: false,
+    });
+    roots.push(fixture.base);
+    const stdin = new PassThrough();
+    const stdout = new PassThrough();
+    const err = makeWriteSink();
+
+    const exitCode = await launcher.proxyKibiMcp({
+      workspaceRoot: fixture.workspaceRoot,
+      env: hermeticEnv(),
+      spawnImpl: () => makeFakeChild(),
+      stdin,
+      stdout,
+      stderr: err.stream,
+    });
+
+    expect(exitCode).toBe(1);
+    err.stream.end();
+    await err.done;
+    expect(err.text()).toContain("no longer resolvable");
+  });
+
+  test("proxy failures surface as a nonzero exit instead of a broken handshake", async () => {
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-zcode-launcher-proxyfail-",
+      installPackage: true,
+    });
+    roots.push(fixture.base);
+    const stdin = new PassThrough();
+    const stdout = new PassThrough();
+    const exitCode = await launcher.proxyKibiMcp({
+      workspaceRoot: fixture.workspaceRoot,
+      env: hermeticEnv(),
+      spawnImpl: () => {
+        throw new Error("spawn blocked");
+      },
+      stdin,
+      stdout,
+    });
+
+    expect(exitCode).toBe(1);
+  });
+
+  test("proxy child startup errors surface on stderr with exit code 1", async () => {
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-zcode-launcher-proxyerr-",
+      installPackage: true,
+    });
+    roots.push(fixture.base);
+    const stdin = new PassThrough();
+    const stdout = new PassThrough();
+    const err = makeWriteSink();
+    const child = makeFakeChild();
+
+    const exitPromise = launcher.proxyKibiMcp({
+      workspaceRoot: fixture.workspaceRoot,
+      env: hermeticEnv(),
+      spawnImpl: () => child,
+      stdin,
+      stdout,
+      stderr: err.stream,
+    });
+    queueMicrotask(() => child.emit("error", new Error("no such binary")));
+
+    expect(await exitPromise).toBe(1);
+    err.stream.end();
+    await err.done;
+    expect(err.text()).toContain("Failed to start kibi-mcp");
+  });
+
+  test("proxied children mirror exit state and receive forwarded input", async () => {
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-zcode-launcher-proxyio-",
+      installPackage: true,
+    });
+    roots.push(fixture.base);
+    const stdin = new PassThrough();
+    const child = makeFakeChild();
+    const out = makeWriteSink();
+
+    const exitPromise = launcher.proxyKibiMcp({
+      workspaceRoot: fixture.workspaceRoot,
+      env: hermeticEnv({ HOME: "/h" }),
+      spawnImpl: () => child,
+      stdin,
+      stdout: out.stream,
+    });
+
+    const forwarded: string[] = [];
+    child.stdin.on("data", (chunk: Buffer) =>
+      forwarded.push(chunk.toString("utf8")),
+    );
+    stdin.write(
+      `${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "ping" })}\n`,
+    );
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(forwarded.join("")).toContain('"ping"');
+
+    child.stdout.emit("data", Buffer.from("hello\n"));
+    stdin.end();
+    child.emit("close", 0);
+    const exitCode = await exitPromise;
+    out.stream.end();
+    await out.done;
+
+    expect(exitCode).toBe(0);
+    expect(out.text()).toBe("hello\n");
+  });
+
+  test("proxy forwards termination signals to the child and mirrors the signal exit", async () => {
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-zcode-launcher-proxysig-",
+      installPackage: true,
+    });
+    roots.push(fixture.base);
+    const stdin = new PassThrough();
+    const stdout = new PassThrough();
+    const child = makeFakeChild();
+    let forwarded: string | undefined;
+    child.kill = (signal?: string) => {
+      forwarded = signal;
+      child.killed = true;
+      return true;
+    };
+
+    const exitPromise = launcher.proxyKibiMcp({
+      workspaceRoot: fixture.workspaceRoot,
+      env: hermeticEnv(),
+      spawnImpl: () => child,
+      stdin,
+      stdout,
+    });
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    process.emit("SIGTERM", "SIGTERM");
+
+    expect(await exitPromise).toBe(143);
+    expect(forwarded).toBe("SIGTERM");
   });
 });
 
@@ -430,85 +772,25 @@ describe("zcode MCP launcher server helpers", () => {
     expect(out.text()).toContain('"tools":[]');
   });
 
-  test("the probe reports unavailable servers and spawn failures", async () => {
-    const spawnCalls: string[][] = [];
-    const failingChild = makeFakeChild();
-    const unavailable = await launcher.probeKibiMcp({
-      cwd: os.tmpdir(),
-      env: {},
-      spawnImpl: (command: string, args: string[]) => {
-        spawnCalls.push([command, ...args]);
-        queueMicrotask(() => failingChild.emit("close", 1));
-        return failingChild;
-      },
-    });
-    expect(unavailable).toBe(false);
-
-    const errorChild = makeFakeChild();
-    const spawnFailed = await launcher.probeKibiMcp({
-      cwd: os.tmpdir(),
-      env: {},
-      spawnImpl: () => {
-        queueMicrotask(() => errorChild.emit("error", new Error("ENOENT")));
-        return errorChild;
-      },
-    });
-    expect(spawnFailed).toBe(false);
-    expect(spawnCalls[0]?.slice(0, 3)).toEqual([
-      "npx",
-      "--no-install",
-      "kibi-mcp",
-    ]);
-  });
-
-  test("proxy failures surface as a nonzero exit instead of a broken handshake", async () => {
+  test("serveSilent keeps serving when the client's stream rejects writes", async () => {
     const stdin = new PassThrough();
-    const stdout = new PassThrough();
-    const exitCode = await launcher.proxyKibiMcp({
-      workspaceRoot: os.tmpdir(),
-      env: {},
-      spawnImpl: () => {
-        throw new Error("spawn blocked");
+    const brokenStdout = {
+      write: () => {
+        throw new Error("EPIPE");
       },
+      on: () => {},
+    };
+
+    const exitPromise = launcher.serveSilent({
       stdin,
-      stdout,
+      stdout: brokenStdout,
     });
-
-    expect(exitCode).toBe(1);
-  });
-
-  test("proxied children mirror exit state and receive forwarded input", async () => {
-    const stdin = new PassThrough();
-    const child = makeFakeChild();
-    const out = makeWriteSink();
-
-    const exitPromise = launcher.proxyKibiMcp({
-      workspaceRoot: os.tmpdir(),
-      env: { HOME: "/h" } as NodeJS.ProcessEnv,
-      spawnImpl: () => child,
-      stdin,
-      stdout: out.stream,
-    });
-
-    const forwarded: string[] = [];
-    child.stdin.on("data", (chunk: Buffer) =>
-      forwarded.push(chunk.toString("utf8")),
-    );
     stdin.write(
-      `${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "ping" })}\n`,
+      `${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" })}\n`,
     );
-    await new Promise((resolve) => setTimeout(resolve, 10));
-    expect(forwarded.join("")).toContain('"ping"');
-
-    child.stdout.emit("data", Buffer.from("hello\n"));
     stdin.end();
-    child.emit("close", 0);
-    const exitCode = await exitPromise;
-    out.stream.end();
-    await out.done;
 
-    expect(exitCode).toBe(0);
-    expect(out.text()).toBe("hello\n");
+    expect(await exitPromise).toBe(0);
   });
 
   test("signals map onto conventional exit codes", () => {
@@ -523,7 +805,7 @@ describe("zcode MCP launcher server helpers", () => {
     const previousStdout = process.stdout;
     const previousExitCode = process.exitCode;
     const previousCwd = process.cwd;
-    const unconfigured = createTempRoot("kibi-zcode-main-");
+    const unconfigured = tempRoot("kibi-zcode-main-");
     const stdin = new PassThrough();
     const out = makeWriteSink();
     Object.defineProperty(process, "stdin", {
@@ -567,111 +849,14 @@ describe("zcode MCP launcher server helpers", () => {
     process.exitCode = previousExitCode;
   });
 
-  test("the probe reports spawn failures that throw synchronously", async () => {
-    const available = await launcher.probeKibiMcp({
-      cwd: os.tmpdir(),
-      env: {},
-      spawnImpl: () => {
-        throw new Error("spawn refused");
-      },
+  test("workspace state keys stay stable for the shared fixture", () => {
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-zcode-launcher-key-",
+      installPackage: false,
     });
-
-    expect(available).toBe(false);
-  });
-
-  test("the probe kills probes that never exit and reports them unavailable", async () => {
-    const stuckChild = makeFakeChild();
-    const available = await launcher.probeKibiMcp({
-      cwd: os.tmpdir(),
-      env: {},
-      spawnImpl: () => stuckChild,
-      timeoutMs: 15,
-    });
-
-    expect(available).toBe(false);
-    expect(stuckChild.killed).toBe(true);
-  });
-
-  test("the probe tolerates kill failures on timed-out probes", async () => {
-    const stuckChild = makeFakeChild();
-    stuckChild.kill = () => {
-      throw new Error("already reaped");
-    };
-    const available = await launcher.probeKibiMcp({
-      cwd: os.tmpdir(),
-      env: {},
-      spawnImpl: () => stuckChild,
-      timeoutMs: 15,
-    });
-
-    expect(available).toBe(false);
-  });
-
-  test("serveSilent keeps serving when the client's stream rejects writes", async () => {
-    const stdin = new PassThrough();
-    const brokenStdout = {
-      write: () => {
-        throw new Error("EPIPE");
-      },
-      on: () => {},
-    };
-
-    const exitPromise = launcher.serveSilent({
-      stdin,
-      stdout: brokenStdout,
-    });
-    stdin.write(
-      `${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" })}\n`,
+    roots.push(fixture.base);
+    expect(workspaceKey(fixture.workspaceRoot)).toBe(
+      workspaceKey(fixture.workspaceRoot),
     );
-    stdin.end();
-
-    expect(await exitPromise).toBe(0);
-  });
-
-  test("proxy child startup errors surface on stderr with exit code 1", async () => {
-    const stdin = new PassThrough();
-    const stdout = new PassThrough();
-    const err = makeWriteSink();
-    const child = makeFakeChild();
-
-    const exitPromise = launcher.proxyKibiMcp({
-      workspaceRoot: os.tmpdir(),
-      env: {},
-      spawnImpl: () => child,
-      stdin,
-      stdout,
-      stderr: err.stream,
-    });
-    queueMicrotask(() => child.emit("error", new Error("no such binary")));
-
-    expect(await exitPromise).toBe(1);
-    err.stream.end();
-    await err.done;
-    expect(err.text()).toContain("Failed to start kibi-mcp");
-  });
-
-  test("proxy forwards termination signals to the child and mirrors the signal exit", async () => {
-    const stdin = new PassThrough();
-    const stdout = new PassThrough();
-    const child = makeFakeChild();
-    let forwarded: string | undefined;
-    child.kill = (signal?: string) => {
-      forwarded = signal;
-      child.killed = true;
-      return true;
-    };
-
-    const exitPromise = launcher.proxyKibiMcp({
-      workspaceRoot: os.tmpdir(),
-      env: {},
-      spawnImpl: () => child,
-      stdin,
-      stdout,
-    });
-    await new Promise((resolve) => setTimeout(resolve, 10));
-    process.emit("SIGTERM", "SIGTERM");
-
-    expect(await exitPromise).toBe(143);
-    expect(forwarded).toBe("SIGTERM");
   });
 });

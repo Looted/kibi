@@ -3,6 +3,8 @@ export type HookEvent = "SessionStart" | "PreToolUse" | "PostToolUse" | "Stop";
 
 export type HookInput = {
   event: string;
+  /** Host session identity (ZCode delivers `session_id`); may be absent. */
+  sessionId?: string;
   cwd?: string;
   toolName?: string;
   toolInput?: unknown;
@@ -46,9 +48,14 @@ export function parseHookInput(input: unknown): HookInput {
     "current_working_directory",
     "workspace",
   ]);
+  const sessionId = readString(input, ["session_id", "sessionId"]);
   const toolName = readString(input, ["toolName", "tool_name", "tool"]);
   const toolInput = input.toolInput ?? input.tool_input ?? input.input;
   const parsed: HookInput = { event };
+
+  if (sessionId !== undefined) {
+    parsed.sessionId = sessionId;
+  }
 
   if (cwd !== undefined) {
     parsed.cwd = cwd;

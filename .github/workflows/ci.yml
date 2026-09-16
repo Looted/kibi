@@ -310,6 +310,39 @@ jobs:
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
         timeout-minutes: 15
 
+  zcode-windows:
+    # Native Windows execution for the ZCode adapter: the MCP launcher's
+    # shell-free launch strategy and hook path canonicalization are the
+    # platform-sensitive surfaces, so their suites run under real Windows.
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.3.10'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+        env:
+          NODE_INSTALLER: npm
+
+      - name: Install JS deps
+        run: bun install --frozen-lockfile
+
+      - name: Build ZCode plugin package
+        run: bun run build:zcode
+
+      - name: Run ZCode plugin tests
+        run: bun test --timeout 30000 ./packages/zcode
+
   publish-dry-run:
     runs-on: ubuntu-latest
     needs: [build-and-test, prolog-unit-coverage]

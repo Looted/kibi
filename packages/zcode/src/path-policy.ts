@@ -1,4 +1,6 @@
 // implements REQ-zcode-kibi-plugin-v1
+import path from "node:path";
+
 const explicitPathKeys = new Set([
   "absolute_path",
   "file",
@@ -130,8 +132,58 @@ export function extractExplicitPathFields(input: unknown): string[] {
   return [...new Set(paths)];
 }
 
+export type CanonicalWorkspacePath = {
+  /** Normalized path relative to the Kibi workspace root (forward slashes). */
+  workspaceRelative: string;
+  /** Absolute platform path after resolving dot segments. */
+  absolute: string;
+};
+
+/**
+ * Canonical identity for a path named by a tool call or check argument.
+ *
+ * Relative paths resolve against the originating event's cwd (editor-style
+ * arguments) or against the Kibi workspace root (kb_check contract:
+ * repo-relative sourceFiles); the result is normalized relative to the
+ * workspace root. Paths outside the workspace return undefined so they are
+ * never reinterpreted as workspace-internal files, and deleted or renamed
+ * paths keep working because existence is never required.
+ */
+export function canonicalizeWorkspacePath(
+  workspaceRoot: string,
+  options: {
+    eventCwd?: string | undefined;
+    base?: string | undefined;
+    rawPath: string;
+  },
+): CanonicalWorkspacePath | undefined {
+  const trimmed = options.rawPath.trim().replaceAll("\\", "/");
+  if (trimmed.length === 0) return undefined;
+
+  const base = options.base ?? options.eventCwd ?? workspaceRoot;
+  const absolute = path.isAbsolute(trimmed)
+    ? path.resolve(trimmed)
+    : path.resolve(base, trimmed);
+
+  const workspaceRelative = path
+    .relative(workspaceRoot, absolute)
+    .replaceAll("\\", "/");
+  // An empty relative path names the workspace root itself; an absolute
+  // remainder means the path sits on a different drive (Windows).
+  if (
+    workspaceRelative.length === 0 ||
+    workspaceRelative.startsWith("../") ||
+    path.isAbsolute(workspaceRelative)
+  ) {
+    return undefined;
+  }
+
+  return { workspaceRelative, absolute };
+}
+
+/** Canonical KB knowledge lanes live directly under the workspace `.kb/`. */
 export function isDirectKbPath(candidate: string): boolean {
-  return pathSegments(candidate).includes(".kb");
+  return pathSegments(candidate)[0] === ".kb";
 }
 
 export function isMeaningfulTrackedPath(candidate: string): boolean {
@@ -142,7 +194,7 @@ export function isMeaningfulTrackedPath(candidate: string): boolean {
     return false;
   }
 
-  if (segments.includes(".kb")) {
+  if (segments[0] === ".kb") {
     return isCanonicalKbKnowledgePath(segments);
   }
 
@@ -177,7 +229,7 @@ export function isSourceImpactRelevantPath(candidate: string): boolean {
   const segments = pathSegments(normalized);
 
   if (
-    segments.includes(".kb") ||
+    segments[0] === ".kb" ||
     segments.includes("dist") ||
     segments.includes("tests") ||
     segments.includes("test") ||

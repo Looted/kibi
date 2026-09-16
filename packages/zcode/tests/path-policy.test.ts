@@ -9,8 +9,10 @@ import {
 
 describe("ZCode hook path policy", () => {
   test("recognizes direct .kb paths without flagging similarly named paths", () => {
+    // Classification runs on canonical workspace-relative paths produced by
+    // canonicalizeWorkspacePath; raw absolute paths are normalized first.
     expect(isDirectKbPath(".kb/config.json")).toBe(true);
-    expect(isDirectKbPath("/workspace/.kb/entities/REQ-001.md")).toBe(true);
+    expect(isDirectKbPath(".kb/entities/REQ-001.md")).toBe(true);
     expect(isDirectKbPath("src/.kb-helper.ts")).toBe(false);
     expect(isDirectKbPath("docs/kb/config.json")).toBe(false);
   });

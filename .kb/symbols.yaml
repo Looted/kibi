@@ -29983,6 +29983,130 @@ symbols:
         target: TEST-codex-consumer-local-mcp-registration-v1
       - type: implements
         target: REQ-codex-consumer-local-mcp-registration-v1
+  - id: SYM-zcode-test-FIXTURE_SERVER_NAME
+    title: FIXTURE_SERVER_NAME
+    sourceFile: packages/zcode/tests/launcher-fixture.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-test-FIXTURE_ENTRY_SCRIPT
+    title: FIXTURE_ENTRY_SCRIPT
+    sourceFile: packages/zcode/tests/launcher-fixture.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-test-FixtureWorkspace
+    title: FixtureWorkspace
+    sourceFile: packages/zcode/tests/launcher-fixture.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-test-createFixtureWorkspace
+    title: createFixtureWorkspace
+    sourceFile: packages/zcode/tests/launcher-fixture.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-test-hermeticEnv
+    title: hermeticEnv
+    sourceFile: packages/zcode/tests/launcher-fixture.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-test-workspaceKey
+    title: workspaceKey
+    sourceFile: packages/zcode/tests/launcher-fixture.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-test-cleanupRoots
+    title: cleanupRoots
+    sourceFile: packages/zcode/tests/launcher-fixture.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-test-buildZcodePackageOnce
+    title: buildZcodePackageOnce
+    sourceFile: packages/zcode/tests/build-once.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-CanonicalWorkspacePath
+    title: CanonicalWorkspacePath
+    sourceFile: packages/zcode/src/path-policy.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-canonicalizeWorkspacePath
+    title: canonicalizeWorkspacePath
+    sourceFile: packages/zcode/src/path-policy.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-extractMutatedWorkspacePaths
+    title: extractMutatedWorkspacePaths
+    sourceFile: packages/zcode/src/hook-runner.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-canonicalizeCheckSourceFiles
+    title: canonicalizeCheckSourceFiles
+    sourceFile: packages/zcode/src/hook-runner.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-zcode-resolveSessionStateDir
+    title: resolveSessionStateDir
+    sourceFile: packages/zcode/src/hook-state.ts
+    links:
+      - REQ-zcode-kibi-plugin-v1
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
   - id: SYM-zcode-ZcodeHookEvent
     title: ZcodeHookEvent
     sourceFile: packages/zcode/src/hook-runner.ts

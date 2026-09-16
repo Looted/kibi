@@ -9,7 +9,7 @@ import {
   clearDirtyPaths,
   loadHookState,
   recordKbMcpTool,
-  resolveWorkspaceStateDir,
+  resolveSessionStateDir,
 } from "./hook-state.js";
 import { extractKbMcpToolCall } from "./kb-mcp-tools.js";
 import {
@@ -19,6 +19,7 @@ import {
   impactCheckReminder,
 } from "./messages.js";
 import {
+  canonicalizeWorkspacePath,
   extractExplicitPathFields,
   isDirectKbPath,
   isMeaningfulTrackedPath,
@@ -52,6 +53,49 @@ export type HookEnvironment = {
 };
 
 const editableTools = new Set(["Edit", "MultiEdit", "Write", "apply_patch"]);
+
+/**
+ * Tools that actually mutate files. Only these create dirty paths: a path
+ * argument inside a read-only tool call (Read, Grep, search tools, …) is not
+ * evidence that the file changed.
+ */
+function isMutatingTool(toolName: string | undefined): boolean {
+  return toolName !== undefined && editableTools.has(toolName);
+}
+
+/** Canonical workspace-relative dirty paths for one mutation event. */
+export function extractMutatedWorkspacePaths(
+  workspaceRoot: string,
+  eventCwd: string | undefined,
+  toolInput: unknown,
+): string[] {
+  return extractExplicitPathFields(toolInput)
+    .map(
+      (rawPath) =>
+        canonicalizeWorkspacePath(workspaceRoot, {
+          eventCwd,
+          rawPath,
+        })?.workspaceRelative,
+    )
+    .filter((candidate): candidate is string => candidate !== undefined)
+    .filter(isMeaningfulTrackedPath);
+}
+
+/** Canonical workspace-relative forms of kb_check sourceFiles (repo-relative contract). */
+export function canonicalizeCheckSourceFiles(
+  workspaceRoot: string,
+  sourceFiles: readonly string[],
+): string[] {
+  return sourceFiles
+    .map(
+      (rawPath) =>
+        canonicalizeWorkspacePath(workspaceRoot, {
+          base: workspaceRoot,
+          rawPath,
+        })?.workspaceRelative,
+    )
+    .filter((candidate): candidate is string => candidate !== undefined);
+}
 
 const zcodeHookEvents: readonly ZcodeHookEvent[] = [
   "SessionStart",
@@ -100,7 +144,15 @@ export async function runHook(
   if (!workspace.optedIn) {
     return defaultResult();
   }
-  const stateDir = resolveWorkspaceStateDir(pluginData, workspace.root);
+  // State is namespaced per host session (ZCode `session_id`) so concurrent
+  // sessions in one workspace cannot consume, clear, or acknowledge each
+  // other's pending work. Events without a session id use a dedicated
+  // `unattributed` bucket that never touches identified sessions.
+  const stateDir = resolveSessionStateDir(
+    pluginData,
+    workspace.root,
+    input.sessionId,
+  );
 
   switch (input.event) {
     case "SessionStart":
@@ -109,7 +161,17 @@ export async function runHook(
     case "PreToolUse": {
       const explicitPaths = extractExplicitPathFields(input.toolInput);
       const hasDirectKbEdit =
-        isEditLikeTool(input.toolName) && explicitPaths.some(isDirectKbPath);
+        isEditLikeTool(input.toolName) &&
+        explicitPaths.some((rawPath) => {
+          const canonical = canonicalizeWorkspacePath(workspace.root, {
+            eventCwd: input.cwd,
+            rawPath,
+          });
+          return (
+            canonical !== undefined &&
+            isDirectKbPath(canonical.workspaceRelative)
+          );
+        });
 
       if (hasDirectKbEdit) {
         return contextResult(input.event, DIRECT_KB_EDIT_WARNING);
@@ -123,16 +185,28 @@ export async function runHook(
       if (kbToolCall) {
         recordKbMcpTool(stateDir, kbToolCall.toolName, {
           impactCheckRun: kbToolCall.impactCheckRun,
-          sourceFiles: kbToolCall.sourceFiles,
+          // kb_check sourceFiles follow the repo-relative contract: normalize
+          // them against the workspace root so a check acknowledges exactly
+          // the canonical paths dirty tracking recorded.
+          sourceFiles: canonicalizeCheckSourceFiles(
+            workspace.root,
+            kbToolCall.sourceFiles,
+          ),
         });
       }
 
-      const dirtyPaths = extractExplicitPathFields(input.toolInput).filter(
-        isMeaningfulTrackedPath,
-      );
+      // Only file-mutating tool events create dirty paths; a path argument
+      // inside a read-only tool call is not evidence of a change.
+      if (isMutatingTool(input.toolName)) {
+        const dirtyPaths = extractMutatedWorkspacePaths(
+          workspace.root,
+          input.cwd,
+          input.toolInput,
+        );
 
-      if (dirtyPaths.length > 0) {
-        addDirtyPaths(stateDir, dirtyPaths);
+        if (dirtyPaths.length > 0) {
+          addDirtyPaths(stateDir, dirtyPaths);
+        }
       }
 
       return defaultResult();

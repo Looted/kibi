@@ -159,6 +159,15 @@ describe("ci.yml CI workflow contract", () => {
     }
   });
 
+  test("zcode-windows: native Windows job builds and tests the adapter", () => {
+    const jobBlock = extractJobBlock(workflowContent, "zcode-windows");
+    expect(jobBlock).not.toBe("");
+    expect(jobBlock).toContain("runs-on: windows-latest");
+    expect(jobBlock).toContain("fetch-depth: 1");
+    expect(jobBlock).toContain("bun run build:zcode");
+    expect(jobBlock).toContain("./packages/zcode");
+  });
+
   test("publish-dry-run: explicit shallow checkout", () => {
     const block = extractJobBlock(workflowContent, "publish-dry-run");
     expect(block).toContain("actions/checkout@v6");

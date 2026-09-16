@@ -21,6 +21,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { spawn } = require("node:child_process");
+const { createRequire } = require("node:module");
 
 const KIBI_WORKSPACE_ENV_KEYS = [
   "KIBI_WORKSPACE",
@@ -30,12 +31,18 @@ const KIBI_WORKSPACE_ENV_KEYS = [
 const SERVER_NAME = "kibi-zcode-launcher";
 const SERVER_VERSION = "0.1.0";
 const PROBE_TIMEOUT_MS = 8000;
+const KIBI_MCP_PACKAGE = "kibi-mcp";
 
 const MISSING_KIBI_MCP_INSTRUCTIONS =
   "This workspace is configured for Kibi (.kb/manifest.json found), but no " +
   "kibi-mcp executable is resolvable from the workspace. Install kibi-mcp " +
   "in the project (for example: npm install --save-dev kibi-mcp) or globally, " +
   "then restart the ZCode session. No KB tools are exposed in this session.";
+
+const LAUNCH_FAILED_INSTRUCTIONS_PREFIX =
+  "This workspace is configured for Kibi and a kibi-mcp installation was " +
+  "found, but launching it failed. No KB tools are exposed in this session. " +
+  "Launch failure: ";
 
 const UNCONFIGURED_WORKSPACE_TOOL_MESSAGE =
   "Kibi is not configured for this workspace, so no KB tools are available. " +
@@ -199,15 +206,164 @@ function serveSilent(options = {}) {
   });
 }
 
-function npxCommand() {
-  return process.platform === "win32" ? "npx.cmd" : "npx";
+/**
+ * Resolve the kibi-mcp JavaScript entry point with Node's own resolution from
+ * the workspace (workspace node_modules first, walking up), preserving the
+ * project-local precedence of the previous `npx --no-install kibi-mcp` setup.
+ * Running the resolved entry through process.execPath keeps launching
+ * shell-free and Windows-safe: npm-style .cmd shims cannot be spawned without
+ * a command interpreter, which used to make correctly configured Windows
+ * workspaces look like they had no kibi-mcp at all.
+ */
+function resolveLocalEntry(workspaceRoot) {
+  const marker = path.join(workspaceRoot, "package.json");
+  if (!fs.existsSync(marker)) return null;
+  try {
+    const requireFromWorkspace = createRequire(marker);
+    const pkgJsonPath = requireFromWorkspace.resolve(
+      `${KIBI_MCP_PACKAGE}/package.json`,
+    );
+    const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, "utf8"));
+    const bin =
+      typeof pkg.bin === "string"
+        ? pkg.bin
+        : isRecord(pkg.bin)
+          ? pkg.bin[KIBI_MCP_PACKAGE]
+          : undefined;
+    if (typeof bin !== "string" || bin.length === 0) return null;
+    const entry = path.resolve(path.dirname(pkgJsonPath), bin);
+    if (!fs.existsSync(entry)) return null;
+    return entry;
+  } catch {
+    return null;
+  }
 }
 
 /**
- * Probe the project-local kibi-mcp exactly like a plain MCP config:
- * `npx --no-install kibi-mcp` resolves from the workspace (or global install)
- * and refuses to install anything. `--print-resolution` exits quickly, so the
- * handshake budget is not spent waiting for a server that cannot start.
+ * Find a globally installed kibi-mcp on PATH. POSIX spawn resolves commands
+ * through PATH itself; on Windows the npm shim is a .cmd/.bat batch file that
+ * cannot be spawned shell-free, so the underlying script is resolved from the
+ * standard npm global layout (shim sibling `node_modules/kibi-mcp`) or from
+ * the path the shim itself references, and executed via process.execPath.
+ */
+function findGlobalKibiMcpCommand(env = process.env) {
+  const dirs = (env.PATH || env.Path || "")
+    .split(path.delimiter)
+    .filter((dir) => dir.length > 0);
+  const names =
+    process.platform === "win32"
+      ? [
+          `${KIBI_MCP_PACKAGE}.exe`,
+          `${KIBI_MCP_PACKAGE}.cmd`,
+          `${KIBI_MCP_PACKAGE}.bat`,
+          KIBI_MCP_PACKAGE,
+        ]
+      : [KIBI_MCP_PACKAGE];
+
+  for (const dir of dirs) {
+    for (const name of names) {
+      const candidate = path.join(dir, name);
+      try {
+        fs.accessSync(candidate, fs.constants.X_OK);
+      } catch {
+        continue;
+      }
+      if (process.platform === "win32") {
+        const extension = path.extname(candidate).toLowerCase();
+        if (extension === ".cmd" || extension === ".bat") {
+          const entry = resolveWindowsShimEntry(candidate);
+          if (entry) {
+            return {
+              command: process.execPath,
+              args: [entry],
+              via: "global-shim",
+            };
+          }
+          continue;
+        }
+      }
+      return { command: candidate, args: [], via: "global-path" };
+    }
+  }
+  return null;
+}
+
+/**
+ * Best-effort recovery of the JS entry behind an npm Windows shim: standard
+ * global installs place the package next to the shim under node_modules, and
+ * the shim itself references `<shimDir>\node_modules\<pkg>\bin\<target>`.
+ */
+function resolveWindowsShimEntry(shimPath) {
+  const shimDir = path.dirname(shimPath);
+  const siblingPackage = path.join(
+    shimDir,
+    "node_modules",
+    KIBI_MCP_PACKAGE,
+    "package.json",
+  );
+  const viaSibling = readPackageBinEntry(siblingPackage);
+  if (viaSibling) return viaSibling;
+
+  try {
+    const shimSource = fs.readFileSync(shimPath, "utf8");
+    const match = shimSource.match(
+      /node_modules[\\/]+kibi-mcp[\\/]+bin[\\/][^\s"%]+/,
+    );
+    if (!match) return null;
+    const referenced = match[0].replaceAll("\\", "/");
+    const marker = "node_modules/";
+    const offset = referenced.toLowerCase().indexOf(marker);
+    if (offset === -1) return null;
+    const entry = path.join(
+      shimDir,
+      referenced.slice(offset).replaceAll("/", path.sep),
+    );
+    return fs.existsSync(entry) ? entry : null;
+  } catch {
+    return null;
+  }
+}
+
+function readPackageBinEntry(pkgJsonPath) {
+  try {
+    const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, "utf8"));
+    const bin =
+      typeof pkg.bin === "string"
+        ? pkg.bin
+        : isRecord(pkg.bin)
+          ? pkg.bin[KIBI_MCP_PACKAGE]
+          : undefined;
+    if (typeof bin !== "string" || bin.length === 0) return null;
+    const entry = path.resolve(path.dirname(pkgJsonPath), bin);
+    return fs.existsSync(entry) ? entry : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Decide how kibi-mcp would be launched from the workspace without spawning
+ * anything: null means genuinely missing; otherwise the returned command/args
+ * run shell-free on every platform (spawn on POSIX performs PATH lookup, and
+ * Windows never routes .cmd shims through a command interpreter).
+ */
+function resolveLaunchTarget(workspaceRoot, env = process.env) {
+  const localEntry = resolveLocalEntry(workspaceRoot);
+  if (localEntry) {
+    return {
+      command: process.execPath,
+      args: [localEntry],
+      via: "project-local",
+    };
+  }
+  return findGlobalKibiMcpCommand(env);
+}
+
+/**
+ * Probe classifies the outcome instead of collapsing every failure into
+ * "missing": a resolution miss is missing; a spawn/runtime failure on an
+ * installed server is reported as launch_failed so the session gets an
+ * accurate hint instead of a wrong install instruction.
  */
 function probeKibiMcp(options = {}) {
   const {
@@ -216,43 +372,48 @@ function probeKibiMcp(options = {}) {
     spawnImpl = spawn,
     timeoutMs = PROBE_TIMEOUT_MS,
   } = options;
+  const target = resolveLaunchTarget(cwd, env);
+  if (!target) return Promise.resolve({ status: "missing" });
   return new Promise((resolveProbe) => {
     let settled = false;
-    const done = (available) => {
+    const done = (status, detail) => {
       if (settled) return;
       settled = true;
-      resolveProbe(available);
+      resolveProbe({ status, detail });
     };
     let child;
     try {
       child = spawnImpl(
-        npxCommand(),
-        ["--no-install", "kibi-mcp", "--print-resolution"],
+        target.command,
+        [...target.args, "--print-resolution"],
         {
           cwd,
           env,
           stdio: "ignore",
         },
       );
-    } catch {
-      done(false);
+    } catch (error) {
+      done("launch_failed", error?.message ?? String(error));
       return;
     }
     const timer = setTimeout(() => {
-      done(false);
+      done("launch_failed", `probe timed out after ${timeoutMs}ms`);
       try {
         child.kill("SIGKILL");
       } catch {
         // Already gone.
       }
     }, timeoutMs);
-    child.once("error", () => {
+    child.once("error", (error) => {
       clearTimeout(timer);
-      done(false);
+      done("launch_failed", error?.message ?? String(error));
     });
     child.once("close", (code) => {
       clearTimeout(timer);
-      done(code === 0);
+      done(
+        code === 0 ? "available" : "launch_failed",
+        `probe exit code ${code}`,
+      );
     });
   });
 }
@@ -261,6 +422,8 @@ function probeKibiMcp(options = {}) {
  * Proxy the real kibi-mcp: stdio passes through untouched and the launcher
  * mirrors the child's exit state. Host shutdown signals are forwarded so the
  * child terminates even when a launcher detaches it from the process group.
+ * The launch target is resolved shell-free (see resolveLaunchTarget), so the
+ * same strategy works on Windows without a command interpreter.
  */
 function proxyKibiMcp(options = {}) {
   const {
@@ -271,11 +434,18 @@ function proxyKibiMcp(options = {}) {
     stdout = process.stdout,
     stderr = process.stderr,
   } = options;
+  const target = resolveLaunchTarget(workspaceRoot, env);
+  if (!target) {
+    stderr.write(
+      "[kibi-zcode] kibi-mcp is no longer resolvable from the workspace\n",
+    );
+    return Promise.resolve(1);
+  }
   const childEnv = { ...env, KIBI_WORKSPACE: workspaceRoot };
   return new Promise((resolveExit) => {
     let child;
     try {
-      child = spawnImpl(npxCommand(), ["--no-install", "kibi-mcp"], {
+      child = spawnImpl(target.command, [...target.args], {
         cwd: workspaceRoot,
         env: childEnv,
         stdio: ["pipe", "pipe", "pipe"],
@@ -373,8 +543,8 @@ async function runLauncher(options = {}) {
     });
   }
 
-  const available = await probeKibiMcp({ cwd: workspace.root, env, spawnImpl });
-  if (available) {
+  const probe = await probeKibiMcp({ cwd: workspace.root, env, spawnImpl });
+  if (probe.status === "available") {
     return proxyKibiMcp({
       workspaceRoot: workspace.root,
       env,
@@ -382,6 +552,13 @@ async function runLauncher(options = {}) {
       stdin,
       stdout,
       stderr,
+    });
+  }
+  if (probe.status === "launch_failed") {
+    return serveSilent({
+      stdin,
+      stdout,
+      instructions: `${LAUNCH_FAILED_INSTRUCTIONS_PREFIX}${probe.detail ?? "unknown error"}`,
     });
   }
   return serveSilent({
@@ -398,13 +575,18 @@ async function main() {
 if (require.main === module) main();
 
 module.exports = {
+  LAUNCH_FAILED_INSTRUCTIONS_PREFIX,
   MISSING_KIBI_MCP_INSTRUCTIONS,
-  main,
   UNCONFIGURED_WORKSPACE_TOOL_MESSAGE,
   createLineReader,
-  proxyKibiMcp,
+  findGlobalKibiMcpCommand,
+  main,
   probeKibiMcp,
+  proxyKibiMcp,
   resolveKibiWorkspace,
+  resolveLaunchTarget,
+  resolveLocalEntry,
+  resolveWindowsShimEntry,
   runLauncher,
   serveSilent,
   signalExitCode,

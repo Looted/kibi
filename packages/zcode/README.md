@@ -58,10 +58,15 @@ All hooks are advisory; the hard enforcement gate remains the
   freshness checks.
 - **PreToolUse** (`Edit|MultiEdit|Write|apply_patch`): direct `.kb/` edits get
   an advisory `additionalContext` warning to use Kibi MCP tools instead.
-- **PostToolUse**: records `kb_*` MCP tool usage and meaningful changed paths
-  in per-workspace plugin state (silent output).
-- **Stop**: emits an impact-check or freshness reminder when tracked paths
-  changed during the session without a corresponding `kb_check`.
+- **PostToolUse**: records `kb_*` MCP tool usage (including impact checks)
+  and canonical workspace-relative paths from file-mutating tools only
+  (`Edit`, `MultiEdit`, `Write`, `apply_patch`); read-only tool calls with
+  path arguments never count as changes. State is namespaced per host session
+  (`session_id`, hashed on disk), and a later edit to a path invalidates an
+  earlier impact check for that exact path.
+- **Stop**: emits an impact-check or freshness reminder naming canonical
+  workspace-relative paths that changed during this session without a
+  corresponding covering `kb_check`.
 
 ## Development
 
@@ -77,14 +82,22 @@ bun run typecheck:zcode  # tsc --noEmit
 
 ## Install (dogfood / local marketplace)
 
-1. `bun run build:zcode`
-2. ZCode → **Settings → Plugin Management → Discover** → **`+`** → add this
-   repository as a marketplace (the manifest lives at
-   `.claude-plugin/marketplace.json`)
+1. `bun run build:zcode` in this repository — a marketplace install from a
+   local directory copies the plugin directory as-is, so a tree without a
+   build is missing `dist/hook-runner.js` and every hook fails to start.
+2. ZCode → **Settings → Plugin Management → Discover** → **`+`** → choose
+   **local directory** and select the repository root (the directory that
+   contains `.claude-plugin/marketplace.json`).
 3. Install `kibi-zcode` from the **Kibi** marketplace.
 
 Restart the ZCode session after rebuilding the plugin so hooks and MCP pick up
 the new `dist/` output.
+
+**GitHub-source installs are unsupported**: the source tree does not contain
+the generated `dist/hook-runner.js`, so adding `Looted/kibi` as a GitHub
+marketplace cannot produce a working plugin. `prepack` builds only run for
+npm packaging flows (`npm pack`, `npm install kibi-zcode`); ZCode's
+marketplace copy never builds anything.
 
 Manual MCP fallback (no plugin install required):
 
