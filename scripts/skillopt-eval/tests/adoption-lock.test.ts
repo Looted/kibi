@@ -61,6 +61,23 @@ test("Given a symlinked global lock path When automatic locking starts Then it r
   // Given
   const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-adoption-lock-"));
   roots.push(repoRoot);
+  if (process.platform === "win32") {
+    const outside = join(repoRoot, "outside-state");
+    await mkdir(outside);
+    // Junctions do not require the symbolic-link privilege on Windows. The
+    // reparse point is deliberately the state directory, not the lock file.
+    await symlink(outside, join(repoRoot, ".kibi"), "junction");
+    let called = false;
+    const settled = await settle(
+      withExclusiveAdoptionLock(repoRoot, async () => {
+        called = true;
+      }),
+    );
+    expect(settled.ok).toBe(false);
+    expect(String(settled.error)).toContain("adoption directory reparse point");
+    expect(called).toBe(false);
+    return;
+  }
   const outside = join(repoRoot, "outside.lock");
   await mkdir(join(repoRoot, ".kibi"), { mode: 0o700 });
   await writeFile(outside, "lock");
@@ -113,6 +130,21 @@ test("Given a symlinked mirror writer lock path When standalone mirror writing s
   // Given
   const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-adoption-lock-"));
   roots.push(repoRoot);
+  if (process.platform === "win32") {
+    const outside = join(repoRoot, "outside-state");
+    await mkdir(outside);
+    await symlink(outside, join(repoRoot, ".kibi"), "junction");
+    let called = false;
+    const settled = await settle(
+      withExclusiveMirrorWriterLock(repoRoot, async () => {
+        called = true;
+      }),
+    );
+    expect(settled.ok).toBe(false);
+    expect(String(settled.error)).toContain("adoption directory reparse point");
+    expect(called).toBe(false);
+    return;
+  }
   const outside = join(repoRoot, "outside-mirror-writer.lock");
   await mkdir(join(repoRoot, ".kibi"), { mode: 0o700 });
   await writeFile(outside, "lock");

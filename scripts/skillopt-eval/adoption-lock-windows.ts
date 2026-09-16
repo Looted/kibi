@@ -63,8 +63,11 @@ const WINDOWS_API: NativeWindowsApi | undefined =
 
 const GENERIC_READ = 0x80000000;
 const FILE_SHARE_READ = 0x00000001;
+const FILE_SHARE_WRITE = 0x00000002;
+const OPEN_EXISTING = 3;
 const OPEN_ALWAYS = 4;
 const FILE_ATTRIBUTE_NORMAL = 0x00000080;
+const FILE_FLAG_BACKUP_SEMANTICS = 0x02000000;
 const FILE_FLAG_OPEN_REPARSE_POINT = 0x00200000;
 const ERROR_SHARING_VIOLATION = 32;
 const FILE_TYPE_DISK = 1;
@@ -150,9 +153,14 @@ export function throwIfWindowsDirectoryIdentityDrift(
 
 async function ensureWindowsStateDirectory(
   stateRoot: string,
-): Promise<FileIdentity> {
+): Promise<Readonly<{ identity: FileIdentity; handle: WindowsHandle }>> {
   await mkdir(stateRoot, { recursive: true });
-  return directoryIdentity(await lstat(stateRoot));
+  const metadata = await lstat(stateRoot);
+  const handle = await openWindowsStateDirectory(stateRoot);
+  return {
+    identity: { dev: metadata.dev, ino: metadata.ino },
+    handle,
+  };
 }
 
 function normalizedHandle(value: WindowsHandle): bigint {
@@ -168,10 +176,17 @@ export function isValidWindowsHandle(
   return normalized !== 0n && normalized !== INVALID_HANDLE_VALUE;
 }
 
-function inspectHandle(handle: WindowsHandle): void {
+function inspectHandle(
+  handle: WindowsHandle,
+  kind: "file" | "directory",
+): void {
   const api = native();
   if (api.GetFileType(handle) !== FILE_TYPE_DISK) {
-    throw new Error("adoption lock is not a disk file");
+    throw new Error(
+      kind === "directory"
+        ? "adoption directory is not a disk file"
+        : "adoption lock is not a disk file",
+    );
   }
 
   // FILE_ATTRIBUTE_TAG_INFO lets us inspect the final path component without
@@ -189,9 +204,18 @@ function inspectHandle(handle: WindowsHandle): void {
   }
   const attributes = tagInfo[0] ?? 0;
   if ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) !== 0) {
-    throw new Error("adoption file reparse point");
+    throw new Error(
+      kind === "directory"
+        ? "adoption directory reparse point"
+        : "adoption file reparse point",
+    );
   }
-  if ((attributes & FILE_ATTRIBUTE_DIRECTORY) !== 0) {
+  const isDirectory = (attributes & FILE_ATTRIBUTE_DIRECTORY) !== 0;
+  if (kind === "directory") {
+    if (!isDirectory) throw new Error("adoption path is not a directory");
+    return;
+  }
+  if (isDirectory) {
     throw new Error("adoption path is not a file");
   }
 
@@ -237,7 +261,7 @@ async function openWindowsLock(
     if (isValidWindowsHandle(handle)) {
       const normalized = normalizedHandle(handle);
       try {
-        inspectHandle(normalized);
+        inspectHandle(normalized, "file");
         return normalized;
       } catch (error) {
         closeHandle(normalized);
@@ -255,34 +279,75 @@ async function openWindowsLock(
   }
 }
 
+async function openWindowsStateDirectory(
+  stateRoot: string,
+): Promise<WindowsHandle> {
+  const api = native();
+  const path = wideString(stateRoot);
+  const handle = api.CreateFileW(
+    ptr(path),
+    0,
+    FILE_SHARE_READ | FILE_SHARE_WRITE,
+    null,
+    OPEN_EXISTING,
+    FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
+    0n,
+  );
+  if (!isValidWindowsHandle(handle)) {
+    throw windowsError("CreateFileW", api.GetLastError());
+  }
+
+  const normalized = normalizedHandle(handle);
+  try {
+    inspectHandle(normalized, "directory");
+    return normalized;
+  } catch (error) {
+    closeHandle(normalized);
+    throw error;
+  }
+}
+
 async function secureLockHandle(
   repoRoot: string,
   fileName: "adoption.lock" | "mirror-writer.lock",
   mode: LockMode,
-): Promise<Readonly<{ path: string; handle: WindowsHandle }>> {
+): Promise<
+  Readonly<{
+    path: string;
+    handle: WindowsHandle;
+    directoryHandle: WindowsHandle;
+  }>
+> {
   const stateRoot = join(repoRoot, ".kibi");
-  const stateRootIdentity = await ensureWindowsStateDirectory(stateRoot);
+  const stateRootInfo = await ensureWindowsStateDirectory(stateRoot);
+  const stateRootIdentity = stateRootInfo.identity;
   const lockPath = join(stateRoot, fileName);
-  const before = await existingLock(lockPath);
-  const handle = await openWindowsLock(lockPath, mode);
+  const directoryHandle = stateRootInfo.handle;
 
   try {
-    // Re-check the parent after opening the lock. The first lstat only
-    // establishes the directory we intended to use; this closes the same
-    // replacement race guarded by Linux secureLockHandle.
-    const stateRootCurrent = directoryIdentity(await lstat(stateRoot));
-    throwIfWindowsDirectoryIdentityDrift(stateRootCurrent, stateRootIdentity);
-    const after = await lstat(lockPath);
-    const afterLock = rejectExistingLockMetadata(after);
-    if (
-      before !== undefined &&
-      !sameIdentity(before.identity, afterLock.identity)
-    ) {
-      throw new Error("adoption lock inode drift");
+    const before = await existingLock(lockPath);
+    const handle = await openWindowsLock(lockPath, mode);
+    try {
+      // Re-check the parent after opening the lock. The first lstat only
+      // establishes the directory we intended to use; this closes the same
+      // replacement race guarded by Linux secureLockHandle.
+      const stateRootCurrent = directoryIdentity(await lstat(stateRoot));
+      throwIfWindowsDirectoryIdentityDrift(stateRootCurrent, stateRootIdentity);
+      const after = await lstat(lockPath);
+      const afterLock = rejectExistingLockMetadata(after);
+      if (
+        before !== undefined &&
+        !sameIdentity(before.identity, afterLock.identity)
+      ) {
+        throw new Error("adoption lock inode drift");
+      }
+      return { path: lockPath, handle, directoryHandle };
+    } catch (error) {
+      closeHandle(handle);
+      throw error;
     }
-    return { path: lockPath, handle };
   } catch (error) {
-    closeHandle(handle);
+    closeHandle(directoryHandle);
     throw error;
   }
 }
@@ -302,7 +367,11 @@ async function holdLock<T>(
     });
     return await operation();
   } finally {
-    closeHandle(lock.handle);
+    try {
+      closeHandle(lock.handle);
+    } finally {
+      closeHandle(lock.directoryHandle);
+    }
   }
 }
 

@@ -17269,10 +17269,10 @@ coordinates:
     sourceLine: 101
   SYM-skillopt-adoption-lock-tests:
     identityHash: cfcb25cf069648368655bcee9d3c0b01b016ea1b69f7a3ce38b58108dedcc34c
-    sourceHash: 9dd2073331dbca749db29bb1a9e72b2903929224356e4bca3baeeccbb988e14f
+    sourceHash: bfa663b0dbc90795df064f1ed0f2490837c5ca2c1bba97a869dba12ae042f169
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 220
+    sourceEndLine: 252
     sourceFile: scripts/skillopt-eval/tests/adoption-lock.test.ts
     sourceLine: 1
   SYM-skillopt-adoption-once-fixture-adoption-id-of:
@@ -23725,44 +23725,44 @@ coordinates:
     sourceLine: 32
   SYM-skillopt-windows-is-valid-handle:
     identityHash: 4d2846358b22cd842e70f72be88ad97c348b5a5516db17fab60e913ba56ef913
-    sourceHash: fd70bd38d278852ab09f305c18a8cbb9b2dc3111f72a634b56ab50adc71f966c
+    sourceHash: 1ab52d7805567d151411f804f13290419798b1795d35bea77cc0a42f7006ef6e
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 169
+    sourceEndLine: 177
     sourceFile: scripts/skillopt-eval/adoption-lock-windows.ts
-    sourceLine: 163
+    sourceLine: 171
   SYM-skillopt-windows-throw-if-directory-identity-drift:
     identityHash: 25f19e4c7af7b4dd04fba1da321a6c831da8a3d25304275eda8c0d4d838af886
-    sourceHash: fd70bd38d278852ab09f305c18a8cbb9b2dc3111f72a634b56ab50adc71f966c
+    sourceHash: 1ab52d7805567d151411f804f13290419798b1795d35bea77cc0a42f7006ef6e
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 149
+    sourceEndLine: 152
     sourceFile: scripts/skillopt-eval/adoption-lock-windows.ts
-    sourceLine: 142
+    sourceLine: 145
   SYM-skillopt-windows-with-exclusive-adoption-lock:
     identityHash: 71a3ee79955fb6072174755d409e267055f1a8a2c6ec12cb8fed4247ad7bf56a
-    sourceHash: fd70bd38d278852ab09f305c18a8cbb9b2dc3111f72a634b56ab50adc71f966c
+    sourceHash: 1ab52d7805567d151411f804f13290419798b1795d35bea77cc0a42f7006ef6e
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 316
+    sourceEndLine: 385
     sourceFile: scripts/skillopt-eval/adoption-lock-windows.ts
-    sourceLine: 310
+    sourceLine: 379
   SYM-skillopt-windows-with-exclusive-mirror-writer-lock:
     identityHash: febb0cb121a84c35a0dc1f8fd3797fec759328b96ef23fe14ce1b8d60ccc1ba0
-    sourceHash: fd70bd38d278852ab09f305c18a8cbb9b2dc3111f72a634b56ab50adc71f966c
+    sourceHash: 1ab52d7805567d151411f804f13290419798b1795d35bea77cc0a42f7006ef6e
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 340
+    sourceEndLine: 409
     sourceFile: scripts/skillopt-eval/adoption-lock-windows.ts
-    sourceLine: 328
+    sourceLine: 397
   SYM-skillopt-windows-with-shared-adoption-lock:
     identityHash: 37757657efc9b4e886fef2695eae3529d75e7e4514e018def9ac7e56308efc10
-    sourceHash: fd70bd38d278852ab09f305c18a8cbb9b2dc3111f72a634b56ab50adc71f966c
+    sourceHash: 1ab52d7805567d151411f804f13290419798b1795d35bea77cc0a42f7006ef6e
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 325
+    sourceEndLine: 394
     sourceFile: scripts/skillopt-eval/adoption-lock-windows.ts
-    sourceLine: 319
+    sourceLine: 388
   SYM-skillopt-with-exclusive-adoption-lock:
     identityHash: d5e31863397959485f3836832ba4b33cea7efd6ab648849fd661bd1e8ffccd59
     sourceHash: b321cd8605999cb31eb093bb0b249d63890c8488f0bf8e918a8827126de7ce3a
