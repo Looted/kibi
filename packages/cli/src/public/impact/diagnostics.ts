@@ -7,6 +7,7 @@ import {
   extractSymbolsFromStagedFile,
 } from "../../traceability/symbol-extract.js";
 import {
+  ALLOWED_GRANULARITY_REASONS_PROSE,
   getBehavioralSymbolNames,
   getNonBehavioralSymbolNames,
   isAllowedGranularityReason,
@@ -151,7 +152,7 @@ export function createSymbolGranularityDiagnostics(
       files: [result.entity.source, result.sourceFile],
       docs: ["docs/symbol-traceability-taxonomy.md"],
       message: `Symbol ${result.entity.id} links ${result.sourceFile} coarsely while granular symbols are available (behavioral only): ${behavioralNames.join(", ")}`,
-      suggestion: `Move ownership/coverage/test relationships to the narrow behavioral symbol, add a manifest behavioral anchor, or add granularity_reason with config-artifact, module-level-behavior, extractor-miss, or legacy-link when the coarse symbol is intentional.${ignoredSymbolsSuggestion}`,
+      suggestion: `Move ownership/coverage/test relationships to the narrow behavioral symbol, add a manifest behavioral anchor, or add granularity_reason with ${ALLOWED_GRANULARITY_REASONS_PROSE} when the coarse symbol is intentional.${ignoredSymbolsSuggestion}`,
     });
   }
 

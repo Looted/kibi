@@ -7,7 +7,9 @@
   "private": false,
   "license": "AGPL-3.0-or-later",
   "author": "Piotr Franczyk",
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "test": "bun run test:unit && bun run test:e2e:local",
     "test:unit": "bun ./test/root.test.ts",
@@ -73,7 +75,9 @@
     "release:bun": "bun run build && ./scripts/publish-selective.sh",
     "changeset": "changeset",
     "version-packages": "changeset version && bun run scripts/sync-plugin-manifest-versions.ts",
-    "release": "changeset publish"
+    "release": "changeset publish",
+    "symbols:generate": "node scripts/generate-symbol-classification.mjs",
+    "symbols:check": "node scripts/generate-symbol-classification.mjs --check"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",
