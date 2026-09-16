@@ -57,6 +57,18 @@ const CLI_ROOT_TESTS = readdirSync("./packages/cli/tests")
   .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
   .map((entry) => `./packages/cli/tests/${entry}`);
 
+const ZCODE_ARTIFACT_TESTS = new Set([
+  "install-artifact.test.ts",
+  "mcp-launcher.subprocess.test.ts",
+  "packed-consumer-smoke.test.ts",
+]);
+const ZCODE_UNIT_TESTS = readdirSync("./packages/zcode/tests")
+  .filter(
+    (entry) =>
+      /\.(?:test|spec)\.ts$/.test(entry) && !ZCODE_ARTIFACT_TESTS.has(entry),
+  )
+  .map((entry) => `./packages/zcode/tests/${entry}`);
+
 export const COVERAGE_SHARDS: readonly {
   readonly label: string;
   readonly paths: readonly string[];
@@ -170,6 +182,7 @@ export const COVERAGE_SHARDS: readonly {
   { label: "codex", paths: ["./packages/codex"] },
   { label: "cursor", paths: ["./packages/cursor"] },
   { label: "runtime", paths: ["./packages/runtime"] },
+  { label: "zcode", paths: ZCODE_UNIT_TESTS },
   {
     label: "skillopt",
     paths: ["./scripts/skillopt-eval/tests"],

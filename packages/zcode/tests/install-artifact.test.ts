@@ -28,6 +28,10 @@ const requiredPluginFiles = [
   path.join("skills", "kibi-traceability", "SKILL.md"),
 ];
 
+function tarPath(relative: string): string {
+  return relative.split(path.sep).join("/");
+}
+
 const tempRoots: string[] = [];
 afterAll(() => {
   for (const root of tempRoots.splice(0)) {
@@ -121,21 +125,26 @@ describe("kibi-zcode distribution artifacts", () => {
       )
         .toString()
         .split("\n")
-        .map((entry) => entry.replace(/^package\//, "").trim())
+        .map((entry) =>
+          entry
+            .replace(/^package\//, "")
+            .trim()
+            .replaceAll("\\", "/"),
+        )
         .filter((entry) => entry.length > 0),
     );
 
     for (const relative of requiredPluginFiles) {
-      expect(listed.has(relative), `packed artifact missing ${relative}`).toBe(
-        true,
-      );
+      expect(
+        listed.has(tarPath(relative)),
+        `packed artifact missing ${relative}`,
+      ).toBe(true);
     }
     // Generated mirrors of the remaining skills travel with the package.
     for (const skill of ["kibi-usage", "kibi-traceability"]) {
+      const resourcesPrefix = `${tarPath(path.join("skills", skill, "resources"))}/`;
       expect(
-        [...listed].some((entry) =>
-          entry.startsWith(path.join("skills", skill, "resources") + path.sep),
-        ),
+        [...listed].some((entry) => entry.startsWith(resourcesPrefix)),
         `packed artifact missing resources for ${skill}`,
       ).toBe(true);
     }

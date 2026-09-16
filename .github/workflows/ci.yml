@@ -340,8 +340,19 @@ jobs:
       - name: Build ZCode plugin package
         run: bun run build:zcode
 
-      - name: Run ZCode plugin tests
+      - name: Build MCP API for packed consumer smoke test
+        run: |
+          bun run build:cli
+          bun run build:runtime
+          bun run build:mcp
+
+      - name: Run ZCode adapter tests
         run: bun test --timeout 30000 ./packages/zcode
+        env:
+          KIBI_ZCODE_PACKED_SMOKE: "1"
+
+      - name: Run agent-skill locking tests
+        run: bun test --timeout 30000 ./scripts/tests/sync-agent-skills.test.ts ./scripts/tests/sync-agent-skills.coverage.test.ts ./scripts/skillopt-eval/tests/adoption-lock.test.ts ./scripts/skillopt-eval/tests/adoption-lock.contention.test.ts
 
   publish-dry-run:
     runs-on: ubuntu-latest

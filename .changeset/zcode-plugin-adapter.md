@@ -43,6 +43,13 @@ adopted Kibi.
   `process.execPath`, so it also works on Windows without command
   interpreters) when it does, and a guidance session that distinguishes a
   missing installation from a launch failure.
+- The launcher resolves export-restricted local `kibi-mcp` installs through
+  their public Node entry and declared `bin`, so a working local package wins
+  over PATH while a broken local package is surfaced rather than silently
+  replaced. Skill mirroring uses real platform-specific locks: Linux retains
+  its secure `flock` checks and native Windows uses kernel share-mode locks.
+  The ZCode build, copied-install checks, packed-consumer resolution smoke, and
+  relevant locking tests run in the native Windows CI job.
 - Packaging: `files` ships the manifest, launcher, hooks, skills, command, and
   built `dist/`; `scripts/sync-plugin-manifest-versions.ts` keeps the plugin
   manifest version in sync with the package version; root scripts gained

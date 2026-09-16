@@ -19,12 +19,9 @@
 import { existsSync, rmSync } from "node:fs";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { escapeAtom } from "./codec.js";
-import type {
-  PrologErrorRecord,
-  PrologStoreLockOwner,
-} from "./error-terms.js";
 import type { QueryResult } from "../prolog.js";
+import { escapeAtom } from "./codec.js";
+import type { PrologErrorRecord, PrologStoreLockOwner } from "./error-terms.js";
 
 /**
  * Stewardship for the branch-store lock.

@@ -128,80 +128,92 @@ test("Given a symlinked mirror writer lock path When standalone mirror writing s
   expect(String(settled.error)).toContain("symlink");
 });
 
-test("Given a lock path replaced after descriptor validation When exclusive locking starts Then flock keeps the validated descriptor", async () => {
-  // Given
-  const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-adoption-lock-"));
-  roots.push(repoRoot);
-  const lockPath = join(repoRoot, ".kibi", "adoption.lock");
-  let swapped = false;
+test.skipIf(process.platform !== "linux")(
+  "Given a lock path replaced after descriptor validation When exclusive locking starts Then flock keeps the validated descriptor",
+  async () => {
+    // Given
+    const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-adoption-lock-"));
+    roots.push(repoRoot);
+    const lockPath = join(repoRoot, ".kibi", "adoption.lock");
+    let swapped = false;
 
-  // When
-  const settled = await settle(
-    withExclusiveAdoptionLock(repoRoot, async () => "locked", {
-      beforeFlock: async () => {
-        await rename(lockPath, join(repoRoot, ".kibi", "retired.lock"));
-        swapped = true;
-      },
-    }),
-  );
+    // When
+    const settled = await settle(
+      withExclusiveAdoptionLock(repoRoot, async () => "locked", {
+        beforeFlock: async () => {
+          await rename(lockPath, join(repoRoot, ".kibi", "retired.lock"));
+          swapped = true;
+        },
+      }),
+    );
 
-  // Then
-  expect(settled.ok).toBe(true);
-  expect(settled.value).toBe("locked");
-  expect(swapped).toBe(true);
-});
+    // Then
+    expect(settled.ok).toBe(true);
+    expect(settled.value).toBe("locked");
+    expect(swapped).toBe(true);
+  },
+);
 
-test("Given a lock file owned by a different euid When locking starts Then it rejects the lock", async () => {
-  // Given
-  const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-adoption-lock-"));
-  roots.push(repoRoot);
-  await mkdir(join(repoRoot, ".kibi"), { mode: 0o700 });
-  const lockPath = join(repoRoot, ".kibi", "adoption.lock");
-  // Create lock with mode 0o777 owned by someone else
-  await writeFile(lockPath, "lock\n", { mode: 0o777 });
+test.skipIf(process.platform !== "linux")(
+  "Given a lock file owned by a different euid When locking starts Then it rejects the lock",
+  async () => {
+    // Given
+    const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-adoption-lock-"));
+    roots.push(repoRoot);
+    await mkdir(join(repoRoot, ".kibi"), { mode: 0o700 });
+    const lockPath = join(repoRoot, ".kibi", "adoption.lock");
+    // Create lock with mode 0o777 owned by someone else
+    await writeFile(lockPath, "lock\n", { mode: 0o777 });
 
-  // When
-  const settled = await settle(
-    withExclusiveAdoptionLock(repoRoot, async () => undefined),
-  );
+    // When
+    const settled = await settle(
+      withExclusiveAdoptionLock(repoRoot, async () => undefined),
+    );
 
-  // Then
-  expect(settled.ok).toBe(false);
-  const msg = String(settled.error);
-  // The lock exists, but may have wrong uid or mode
-  expect(msg.includes("not private") || msg.includes("not owned")).toBe(true);
-});
+    // Then
+    expect(settled.ok).toBe(false);
+    const msg = String(settled.error);
+    // The lock exists, but may have wrong uid or mode
+    expect(msg.includes("not private") || msg.includes("not owned")).toBe(true);
+  },
+);
 
-test("Given a lock file with group-other permissions When locking starts Then it rejects the lock", async () => {
-  // Given
-  const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-adoption-lock-"));
-  roots.push(repoRoot);
-  await mkdir(join(repoRoot, ".kibi"), { mode: 0o700 });
-  const lockPath = join(repoRoot, ".kibi", "adoption.lock");
-  await writeFile(lockPath, "lock\n", { mode: 0o644 });
+test.skipIf(process.platform !== "linux")(
+  "Given a lock file with group-other permissions When locking starts Then it rejects the lock",
+  async () => {
+    // Given
+    const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-adoption-lock-"));
+    roots.push(repoRoot);
+    await mkdir(join(repoRoot, ".kibi"), { mode: 0o700 });
+    const lockPath = join(repoRoot, ".kibi", "adoption.lock");
+    await writeFile(lockPath, "lock\n", { mode: 0o644 });
 
-  // When
-  const settled = await settle(
-    withExclusiveAdoptionLock(repoRoot, async () => undefined),
-  );
+    // When
+    const settled = await settle(
+      withExclusiveAdoptionLock(repoRoot, async () => undefined),
+    );
 
-  // Then
-  expect(settled.ok).toBe(false);
-  expect(String(settled.error)).toContain("not private");
-});
+    // Then
+    expect(settled.ok).toBe(false);
+    expect(String(settled.error)).toContain("not private");
+  },
+);
 
-test("Given a .kibi directory with group-other permissions When locking starts Then it rejects the directory", async () => {
-  // Given
-  const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-adoption-lock-"));
-  roots.push(repoRoot);
-  await mkdir(join(repoRoot, ".kibi"), { mode: 0o755 });
+test.skipIf(process.platform !== "linux")(
+  "Given a .kibi directory with group-other permissions When locking starts Then it rejects the directory",
+  async () => {
+    // Given
+    const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-adoption-lock-"));
+    roots.push(repoRoot);
+    await mkdir(join(repoRoot, ".kibi"), { mode: 0o755 });
 
-  // When
-  const settled = await settle(
-    withExclusiveAdoptionLock(repoRoot, async () => undefined),
-  );
+    // When
+    const settled = await settle(
+      withExclusiveAdoptionLock(repoRoot, async () => undefined),
+    );
 
-  // Then
-  expect(settled.ok).toBe(false);
-  expect(String(settled.error)).toContain("not private");
-});
+    // Then
+    expect(settled.ok).toBe(false);
+    expect(String(settled.error)).toContain("not private");
+  },
+);

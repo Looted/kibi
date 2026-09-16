@@ -27,5 +27,5 @@ test("Given a hardlinked adoption lock When exclusive locking starts Then it rej
   } catch (caught) {
     error = caught;
   }
-  expect(String(error)).toContain("adoption lock inode drift");
+  expect(String(error)).toMatch(/adoption lock (inode drift|hardlink)/);
 });

@@ -1,5 +1,6 @@
 // implements REQ-zcode-kibi-plugin-v1
 import { afterEach, describe, expect, test } from "bun:test";
+import { execFileSync } from "node:child_process";
 import { EventEmitter } from "node:events";
 import fs from "node:fs";
 import { createRequire } from "node:module";
@@ -270,6 +271,109 @@ describe("zcode MCP launcher workspace gate", () => {
     expect(target?.command).toBe(process.execPath);
     expect(target?.args).toEqual([entryPath]);
     expect(launcher.resolveLocalEntry(fixture.workspaceRoot)).toBe(entryPath);
+  });
+
+  test("resolves the public export when package.json is not exported", () => {
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-zcode-launcher-exports-",
+      installPackage: true,
+    });
+    roots.push(fixture.base);
+
+    const packageJsonPath = path.join(
+      fixture.packageRoot as string,
+      "package.json",
+    );
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+    expect(packageJson.exports).toEqual({ ".": "./dist/server.js" });
+
+    const nodeBin = Bun.which("node") ?? "node";
+    const packagePathError = execFileSync(
+      nodeBin,
+      [
+        "-e",
+        [
+          "const { createRequire } = require('node:module');",
+          "const requireFromWorkspace = createRequire(process.argv[1]);",
+          "try { requireFromWorkspace.resolve('kibi-mcp/package.json'); }",
+          "catch (error) { process.stdout.write(error.code ?? String(error)); }",
+        ].join(" "),
+        path.join(fixture.workspaceRoot, "package.json"),
+      ],
+      { encoding: "utf8" },
+    );
+    expect(packagePathError).toBe("ERR_PACKAGE_PATH_NOT_EXPORTED");
+
+    const target = launcher.resolveLaunchTarget(
+      fixture.workspaceRoot,
+      hermeticEnv(),
+    );
+    expect(target?.via).toBe("project-local");
+    expect(target?.command).toBe(process.execPath);
+    expect(target?.args).toEqual([fixture.entryPath as string]);
+  });
+
+  test("project-local kibi-mcp takes precedence over an isolated global entry", () => {
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-zcode-launcher-local-first-",
+      installPackage: true,
+    });
+    roots.push(fixture.base);
+    const globalDir = tempRoot("kibi-zcode-launcher-global-first-");
+    const globalEntry = path.join(globalDir, "kibi-mcp");
+    fs.writeFileSync(globalEntry, "#!/bin/sh\nexit 0\n");
+    fs.chmodSync(globalEntry, 0o755);
+
+    const target = launcher.resolveLaunchTarget(
+      fixture.workspaceRoot,
+      hermeticEnv({ PATH: globalDir }),
+    );
+    expect(target?.via).toBe("project-local");
+    expect(target?.args).toEqual([fixture.entryPath as string]);
+  });
+
+  test("resolves a workspace-linked local package through its public entry", () => {
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-zcode-launcher-link-",
+      installPackage: true,
+      workspaceLink: true,
+    });
+    roots.push(fixture.base);
+
+    const target = launcher.resolveLaunchTarget(
+      fixture.workspaceRoot,
+      hermeticEnv(),
+    );
+    expect(target?.via).toBe("project-local");
+    expect(target?.command).toBe(process.execPath);
+    expect(target?.args).toEqual([fixture.entryPath as string]);
+  });
+
+  test("does not fall back globally when a local package is broken", () => {
+    const fixture = createFixtureWorkspace({
+      prefix: "kibi-zcode-launcher-local-broken-",
+      installPackage: true,
+    });
+    roots.push(fixture.base);
+    const packageJsonPath = path.join(
+      fixture.packageRoot as string,
+      "package.json",
+    );
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+    packageJson.bin = { "kibi-mcp": "bin/missing-kibi-mcp.js" };
+    fs.writeFileSync(packageJsonPath, `${JSON.stringify(packageJson)}\n`);
+
+    const globalDir = tempRoot("kibi-zcode-launcher-broken-global-");
+    const globalEntry = path.join(globalDir, "kibi-mcp");
+    fs.writeFileSync(globalEntry, "#!/bin/sh\nexit 0\n");
+    fs.chmodSync(globalEntry, 0o755);
+
+    expect(
+      launcher.resolveLaunchTarget(
+        fixture.workspaceRoot,
+        hermeticEnv({ PATH: globalDir }),
+      ),
+    ).toBeNull();
   });
 
   test("falls back to the POSIX PATH entry when no project-local install exists", () => {

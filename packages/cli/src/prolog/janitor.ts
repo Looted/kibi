@@ -16,14 +16,14 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { existsSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import {
+  type StoreLockHolderState,
   breakStoreLock,
   classifyStoreLockHolder,
   isProcessAlive,
   readStoreLockOwner,
-  type StoreLockHolderState,
 } from "./store-lock.js";
 
 /**
@@ -149,9 +149,7 @@ export function sweepWorkspaceStoreLocks(
  * file records a dead process or a connect attempt is refused.
  */
 // implements REQ-core-journaled-engine-persistence
-export function sweepRuntimeSockets(
-  options: JanitorOptions,
-): SocketFinding[] {
+export function sweepRuntimeSockets(options: JanitorOptions): SocketFinding[] {
   if (!options.all) return [];
   if (!existsSync(options.runtimeDirectory)) return [];
   const findings: SocketFinding[] = [];

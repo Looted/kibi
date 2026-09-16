@@ -81,6 +81,7 @@ export function createFixtureWorkspace(options: {
   installPackage?: boolean;
   withSpaces?: boolean;
   gitBoundary?: boolean;
+  workspaceLink?: boolean;
 }): FixtureWorkspace {
   const base = fs.mkdtempSync(path.join(os.tmpdir(), options.prefix));
   const workspaceRoot = options.withSpaces
@@ -105,19 +106,38 @@ export function createFixtureWorkspace(options: {
   let packageRoot: string | undefined;
 
   if (options.installPackage !== false) {
-    packageRoot = path.join(workspaceRoot, "node_modules", "kibi-mcp");
+    const linkedPackageRoot = path.join(base, "kibi-mcp-workspace");
+    packageRoot = options.workspaceLink
+      ? linkedPackageRoot
+      : path.join(workspaceRoot, "node_modules", "kibi-mcp");
     const binDir = path.join(packageRoot, "bin");
+    const distDir = path.join(packageRoot, "dist");
     fs.mkdirSync(binDir, { recursive: true });
+    fs.mkdirSync(distDir, { recursive: true });
+    if (options.workspaceLink) {
+      fs.mkdirSync(path.join(workspaceRoot, "node_modules"), {
+        recursive: true,
+      });
+      fs.symlinkSync(
+        packageRoot,
+        path.join(workspaceRoot, "node_modules", "kibi-mcp"),
+        process.platform === "win32" ? "junction" : "dir",
+      );
+    }
     const entryName = options.withSpaces ? "kibi mcp.js" : "kibi-mcp.js";
     entryPath = path.join(binDir, entryName);
     fs.writeFileSync(entryPath, FIXTURE_ENTRY_SCRIPT);
+    // Match the published package: resolution uses the public dist export,
+    // while launching uses the separately declared bin.
+    fs.writeFileSync(path.join(distDir, "server.js"), "// public entry stub\n");
     fs.writeFileSync(
       path.join(packageRoot, "package.json"),
       `${JSON.stringify(
         {
           name: "kibi-mcp",
           version: "1.0.0",
-          bin: path.join("bin", entryName),
+          bin: { "kibi-mcp": path.join("bin", entryName) },
+          exports: { ".": "./dist/server.js" },
         },
         null,
         2,

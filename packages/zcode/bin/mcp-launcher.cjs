@@ -207,36 +207,105 @@ function serveSilent(options = {}) {
 }
 
 /**
- * Resolve the kibi-mcp JavaScript entry point with Node's own resolution from
- * the workspace (workspace node_modules first, walking up), preserving the
- * project-local precedence of the previous `npx --no-install kibi-mcp` setup.
- * Running the resolved entry through process.execPath keeps launching
- * shell-free and Windows-safe: npm-style .cmd shims cannot be spawned without
- * a command interpreter, which used to make correctly configured Windows
- * workspaces look like they had no kibi-mcp at all.
+ * Find a project-local package candidate using the same node_modules ancestor
+ * layout that createRequire uses. This is only used to distinguish a genuinely
+ * missing package from an installed-but-broken package; the actual entry point
+ * is always resolved through the package's public exports below.
  */
-function resolveLocalEntry(workspaceRoot) {
+function findLocalPackageDirectory(workspaceRoot) {
+  let current = path.resolve(workspaceRoot);
+  while (current !== undefined) {
+    const candidate = path.join(current, "node_modules", KIBI_MCP_PACKAGE);
+    try {
+      fs.lstatSync(candidate);
+      return candidate;
+    } catch {
+      // Keep walking toward the filesystem root.
+    }
+    current = nextAncestorDirectory(current);
+  }
+  return null;
+}
+
+/**
+ * Derive the owning package manifest from the public entry returned by
+ * require.resolve. This intentionally walks from the resolved file rather
+ * than resolving `kibi-mcp/package.json`, which is commonly blocked by the
+ * package's exports map.
+ */
+function findOwningPackageManifest(resolvedEntry) {
+  let current = path.dirname(path.resolve(resolvedEntry));
+  while (current !== undefined) {
+    const candidate = path.join(current, "package.json");
+    try {
+      const packageJson = JSON.parse(fs.readFileSync(candidate, "utf8"));
+      if (packageJson.name === KIBI_MCP_PACKAGE) {
+        return { path: candidate, packageJson };
+      }
+    } catch {
+      // There is no readable manifest at this ancestor.
+    }
+    current = nextAncestorDirectory(current);
+  }
+  return null;
+}
+
+function isReadableFile(entry) {
+  try {
+    if (!fs.statSync(entry).isFile()) return false;
+    // The launcher invokes JavaScript bins with process.execPath, so the bin
+    // itself must be a readable regular file, not an OS-executable file.
+    fs.accessSync(entry, fs.constants.R_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function readDeclaredBinEntry(packageJsonPath, packageJson) {
+  const bin =
+    typeof packageJson.bin === "string"
+      ? packageJson.bin
+      : isRecord(packageJson.bin)
+        ? packageJson.bin[KIBI_MCP_PACKAGE]
+        : undefined;
+  if (typeof bin !== "string" || bin.length === 0) return null;
+  const entry = path.resolve(path.dirname(packageJsonPath), bin);
+  return isReadableFile(entry) ? entry : null;
+}
+
+function resolveLocalInstallation(workspaceRoot) {
+  const localPackageDirectory = findLocalPackageDirectory(workspaceRoot);
   const marker = path.join(workspaceRoot, "package.json");
-  if (!fs.existsSync(marker)) return null;
+  if (!fs.existsSync(marker)) {
+    return localPackageDirectory ? { found: true, entry: null } : null;
+  }
+
   try {
     const requireFromWorkspace = createRequire(marker);
-    const pkgJsonPath = requireFromWorkspace.resolve(
-      `${KIBI_MCP_PACKAGE}/package.json`,
+    // Resolve only the package's public entry. Do not import or execute it.
+    const resolvedEntry = requireFromWorkspace.resolve(KIBI_MCP_PACKAGE);
+    const owningManifest = findOwningPackageManifest(resolvedEntry);
+    if (!owningManifest) return { found: true, entry: null };
+    const entry = readDeclaredBinEntry(
+      owningManifest.path,
+      owningManifest.packageJson,
     );
-    const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, "utf8"));
-    const bin =
-      typeof pkg.bin === "string"
-        ? pkg.bin
-        : isRecord(pkg.bin)
-          ? pkg.bin[KIBI_MCP_PACKAGE]
-          : undefined;
-    if (typeof bin !== "string" || bin.length === 0) return null;
-    const entry = path.resolve(path.dirname(pkgJsonPath), bin);
-    if (!fs.existsSync(entry)) return null;
-    return entry;
+    return { found: true, entry };
   } catch {
-    return null;
+    return localPackageDirectory ? { found: true, entry: null } : null;
   }
+}
+
+/**
+ * Resolve the project-local kibi-mcp executable through Node's public package
+ * entry and its owning manifest. Running the declared bin through
+ * process.execPath keeps launching shell-free and Windows-safe. A discovered
+ * local package that cannot be resolved completely is deliberately returned as
+ * a blocked local installation so global PATH fallback cannot mask it.
+ */
+function resolveLocalEntry(workspaceRoot) {
+  return resolveLocalInstallation(workspaceRoot)?.entry ?? null;
 }
 
 /**
@@ -327,15 +396,7 @@ function resolveWindowsShimEntry(shimPath) {
 function readPackageBinEntry(pkgJsonPath) {
   try {
     const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, "utf8"));
-    const bin =
-      typeof pkg.bin === "string"
-        ? pkg.bin
-        : isRecord(pkg.bin)
-          ? pkg.bin[KIBI_MCP_PACKAGE]
-          : undefined;
-    if (typeof bin !== "string" || bin.length === 0) return null;
-    const entry = path.resolve(path.dirname(pkgJsonPath), bin);
-    return fs.existsSync(entry) ? entry : null;
+    return readDeclaredBinEntry(pkgJsonPath, pkg);
   } catch {
     return null;
   }
@@ -348,14 +409,15 @@ function readPackageBinEntry(pkgJsonPath) {
  * Windows never routes .cmd shims through a command interpreter).
  */
 function resolveLaunchTarget(workspaceRoot, env = process.env) {
-  const localEntry = resolveLocalEntry(workspaceRoot);
-  if (localEntry) {
+  const localInstallation = resolveLocalInstallation(workspaceRoot);
+  if (localInstallation?.entry) {
     return {
       command: process.execPath,
-      args: [localEntry],
+      args: [localInstallation.entry],
       via: "project-local",
     };
   }
+  if (localInstallation?.found) return null;
   return findGlobalKibiMcpCommand(env);
 }
 

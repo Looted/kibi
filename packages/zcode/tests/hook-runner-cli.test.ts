@@ -1,7 +1,7 @@
 // implements REQ-zcode-kibi-plugin-v1
 import { describe, expect, test } from "bun:test";
 import { Readable } from "node:stream";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { isInvokedAsCli, main, runHookCli } from "../src/hook-runner";
 
@@ -47,9 +47,9 @@ describe("ZCode hook runner CLI", () => {
 
   test("classifies CLI invocation and reports in-process hook errors", async () => {
     expect(isInvokedAsCli(undefined, "file:///tmp/hook.ts")).toBe(false);
-    expect(isInvokedAsCli(hookRunnerPath, `file://${hookRunnerPath}`)).toBe(
-      true,
-    );
+    expect(
+      isInvokedAsCli(hookRunnerPath, pathToFileURL(hookRunnerPath).href),
+    ).toBe(true);
 
     const writes: string[] = [];
     const write = process.stdout.write.bind(process.stdout);
