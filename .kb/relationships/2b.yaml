@@ -244,3 +244,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4cdebe1f2186
+  - type: implements
+    from: SYM-ROLE_INFERENCE
+    to: REQ-symbol-behavioral-anchors
+    created_at: 2026-09-16T02:44:00.256Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23499bd36ef4
+  - type: covered_by
+    from: SYM-ROLE_INFERENCE
+    to: TEST-cli-symbol-behavioral-anchors
+    created_at: 2026-09-16T02:44:00.274Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0e56ec5eed24

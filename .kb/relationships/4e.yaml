@@ -111,3 +111,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-654ffa7f8bfb
+  - type: implements
+    from: SYM-ALLOWED_GRANULARITY_REASONS_PROSE
+    to: REQ-symbol-behavioral-anchors
+    created_at: 2026-09-16T02:44:43.133Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-afd6da887055
+  - type: covered_by
+    from: SYM-ALLOWED_GRANULARITY_REASONS_PROSE
+    to: TEST-cli-symbol-behavioral-anchors
+    created_at: 2026-09-16T02:44:43.145Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb6e16019d9c

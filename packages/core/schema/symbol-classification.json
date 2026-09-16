@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "granularity_reasons": {
+    "allowed": [
+      "config-artifact",
+      "module-level-behavior",
+      "extractor-miss",
+      "legacy-link",
+      "test-suite"
+    ],
+    "coarse": [
+      "config-artifact",
+      "module-level-behavior",
+      "extractor-miss",
+      "test-suite"
+    ],
+    "notes": {
+      "coarse": "Granularity reasons that document coarse file/module-level coverage for which generated per-symbol coordinates are not expected. legacy-link is intentionally excluded: it is a canonical reason but still coordinates a real extractable symbol."
+    }
+  },
+  "symbol_roles": [
+    "behavioral",
+    "structural",
+    "type-shape",
+    "config",
+    "module",
+    "unknown"
+  ],
+  "role_inference": {
+    "function": "behavioral",
+    "class": "behavioral",
+    "method": "behavioral",
+    "property": "behavioral",
+    "accessor": "behavioral",
+    "interface": "type-shape",
+    "type": "type-shape",
+    "enum": "type-shape",
+    "variable": "unknown",
+    "unknown": "unknown"
+  },
+  "traceability_relationship_types": [
+    "implements",
+    "covered_by",
+    "executable_for"
+  ]
+}

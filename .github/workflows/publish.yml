@@ -84,6 +84,8 @@ jobs:
         run: bun run schema:check
       - name: Verify generated rule registry parity
         run: bun run rules:check
+      - name: Verify generated symbol classification parity
+        run: bun run symbols:check
 
       - name: Build runtime package
         run: bun run build:runtime
