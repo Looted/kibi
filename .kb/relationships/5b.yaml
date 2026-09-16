@@ -62,3 +62,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-035f1d4d71b0
+  - type: implements
+    from: SYM-current-proof-binding-mode
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-09-16T14:10:54.980Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2fdb1ddb600

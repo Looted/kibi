@@ -1,4 +1,6 @@
 import { join } from "node:path";
+
+import { resolveBoundSymbolScope } from "../../../extractors/manifest.js";
 import { PROOF_RECEIPT_MAX_AGE_SECONDS } from "../../proof-receipt.js";
 import { executeStatus } from "../discovery-executors.js";
 import {
@@ -185,15 +187,23 @@ export const findGapsSpec = {
 
 /**
  * Per-contract receipt binding (W2): compute the current binding hash for
- * every receipt-bearing test (contract + receipt-stripped authored document)
- * and hand the Prolog coverage stage a TestId -> BindingHash dict. Opt-in via
- * KIBI_PROOF_BINDING_MODE=per-contract; the default stays strict_snapshot.
+ * every receipt-bearing test (contract + receipt-stripped authored document
+ * + bound-symbol code scope) and hand the Prolog coverage stage a
+ * TestId -> BindingHash dict. This is the default binding mode since slice 3;
+ * KIBI_PROOF_BINDING_MODE=strict-snapshot opts out (receipts then match only
+ * against the whole-workspace snapshot they were proven on).
  */
 // implements REQ-kibi-proof-evidence-protocol
+export function currentProofBindingMode(): "per_contract" | "strict_snapshot" {
+  return process.env.KIBI_PROOF_BINDING_MODE?.trim() === "strict-snapshot"
+    ? "strict_snapshot"
+    : "per_contract";
+}
+
 async function perContractTestBindings(
   context: OperationContext,
 ): Promise<string | null> {
-  if (process.env.KIBI_PROOF_BINDING_MODE !== "per-contract") return null;
+  if (currentProofBindingMode() !== "per_contract") return null;
   const { loadEntities } = await import("../discovery-entities.js");
   const { receiptBindingHash } = await import("../../proof-fingerprint.js");
   const { removeFrontmatterBlock } = await import(
@@ -206,6 +216,7 @@ async function perContractTestBindings(
     return null;
   }
   const entries: string[] = [];
+  const manifestPath = join(context.workspaceRoot, ".kb", "symbols.yaml");
   for (const test of tests) {
     const testId = typeof test.id === "string" ? test.id : "";
     const contract =
@@ -222,9 +233,21 @@ async function perContractTestBindings(
       const absolute = join(context.workspaceRoot, source);
       const authored = await context.fs.readFile(absolute);
       const stripped = removeFrontmatterBlock(authored, "proof_receipts");
+      const rawBindings: ReadonlyArray<{ symbol_id?: unknown }> = Array.isArray(
+        test.proof_bindings,
+      )
+        ? (test.proof_bindings as ReadonlyArray<{ symbol_id?: unknown }>)
+        : [];
+      const boundIds = rawBindings
+        .map((binding) =>
+          typeof binding.symbol_id === "string" ? binding.symbol_id : "",
+        )
+        .filter((id) => id !== "");
+      const codeScope = resolveBoundSymbolScope(manifestPath, boundIds);
       const binding = receiptBindingHash(
         contract as never,
         stripped ?? authored,
+        codeScope,
       );
       entries.push(`${toPrologAtom(testId)}: ${toPrologAtom(binding)}`);
     } catch {

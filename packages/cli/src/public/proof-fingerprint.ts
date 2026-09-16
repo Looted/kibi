@@ -72,16 +72,29 @@ export function proofContractHash(contract: ProofContract): string {
  * or document does. Callers pass the receipt-stripped document content.
  */
 // implements REQ-kibi-proof-evidence-protocol
+export interface ReceiptCodeScopeEntry {
+  readonly symbolId: string;
+  readonly sourceHash: string;
+}
+
 export function receiptBindingHash(
   contract: ProofContract,
   receiptStrippedTestDocument: string,
+  codeScope: readonly ReceiptCodeScopeEntry[] = [],
 ): string {
+  const scope = codeScope
+    .map((entry) => ({
+      symbolId: entry.symbolId,
+      sourceHash: entry.sourceHash,
+    }))
+    .sort((left, right) => left.symbolId.localeCompare(right.symbolId));
   return jsonDigest({
     binding: "kibi.receipt-binding.v1",
     contract: proofContractHash(contract),
     testDoc: createHash("sha256")
       .update(receiptStrippedTestDocument)
       .digest("hex"),
+    codeScope: scope,
   });
 }
 

@@ -58,6 +58,27 @@ describe("receiptBindingHash", () => {
     ).not.toBe(receiptBindingHash(contract, doc));
   });
 
+  test("changes when the code scope changes", () => {
+    const scopeA = [{ symbolId: "SYM-a", sourceHash: "hash-1" }];
+    const scopeB = [{ symbolId: "SYM-a", sourceHash: "hash-2" }];
+    const base = receiptBindingHash(contract, doc, scopeA);
+    expect(receiptBindingHash(contract, doc, scopeA)).toBe(base);
+    expect(receiptBindingHash(contract, doc, scopeB)).not.toBe(base);
+    expect(receiptBindingHash(contract, doc)).not.toBe(base);
+  });
+
+  test("code scope ordering does not change the binding", () => {
+    const forward = receiptBindingHash(contract, doc, [
+      { symbolId: "SYM-a", sourceHash: "h1" },
+      { symbolId: "SYM-b", sourceHash: "h2" },
+    ]);
+    const backward = receiptBindingHash(contract, doc, [
+      { symbolId: "SYM-b", sourceHash: "h2" },
+      { symbolId: "SYM-a", sourceHash: "h1" },
+    ]);
+    expect(forward).toBe(backward);
+  });
+
   test("ignores receipt-block differences once the caller strips them", () => {
     const withReceipts = `---
 id: TEST-binding
@@ -74,6 +95,26 @@ Body text.
     expect(receiptBindingHash(contract, strip(doc))).toBe(
       receiptBindingHash(contract, strip(withReceipts)),
     );
+  });
+});
+
+describe("currentProofBindingMode", () => {
+  test("defaults to per_contract and opts out only for strict-snapshot", async () => {
+    const { currentProofBindingMode } = await import(
+      "../../src/public/operations/specs/reporting.js"
+    );
+    const previous = process.env.KIBI_PROOF_BINDING_MODE;
+    try {
+      delete process.env.KIBI_PROOF_BINDING_MODE;
+      expect(currentProofBindingMode()).toBe("per_contract");
+      process.env.KIBI_PROOF_BINDING_MODE = "per-contract";
+      expect(currentProofBindingMode()).toBe("per_contract");
+      process.env.KIBI_PROOF_BINDING_MODE = "strict-snapshot";
+      expect(currentProofBindingMode()).toBe("strict_snapshot");
+    } finally {
+      if (previous === undefined) delete process.env.KIBI_PROOF_BINDING_MODE;
+      else process.env.KIBI_PROOF_BINDING_MODE = previous;
+    }
   });
 });
 

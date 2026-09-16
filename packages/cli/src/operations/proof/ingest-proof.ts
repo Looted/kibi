@@ -33,6 +33,8 @@ import {
   proofReceiptHistoryErrors,
 } from "../../public/proof-receipt.js";
 import { projectEntityProperties } from "../mutation/entity-projection.js";
+import { join } from "node:path";
+import { resolveBoundSymbolScope } from "../../extractors/manifest.js";
 import { resolveContainedSourcePath } from "../mutation/source-authoring.js";
 import { executeUpsert } from "../mutation/upsert.js";
 import {
@@ -269,8 +271,9 @@ export async function executeIngestProof(
     const environmentHash = canonicalEnvironmentHash(artifact.environment);
     const artifactDigest = jsonDigest(artifact);
     // Per-contract receipt binding (W2): hash the receipt-stripped authored
-    // document together with the contract so the receipt survives unrelated
-    // workspace changes and stales only when its own inputs change.
+    // document, the contract, and the bound symbols' source hashes so the
+    // receipt survives unrelated workspace changes and stales only when its
+    // own inputs (contract, document, production code scope) change.
     let bindingHash: string | undefined;
     const source = typeof test.source === "string" ? test.source : "";
     if (context.fs && source !== "" && /\.(md|mdx)$/i.test(source)) {
@@ -281,7 +284,11 @@ export async function executeIngestProof(
         );
         const authored = await context.fs.readFile(absolute);
         const stripped = removeFrontmatterBlock(authored, "proof_receipts");
-        bindingHash = receiptBindingHash(contract, stripped ?? authored);
+        const codeScope = resolveBoundSymbolScope(
+          join(context.workspaceRoot, ".kb", "symbols.yaml"),
+          bindings.map((binding) => binding.symbol_id),
+        );
+        bindingHash = receiptBindingHash(contract, stripped ?? authored, codeScope);
       } catch {
         bindingHash = undefined;
       }

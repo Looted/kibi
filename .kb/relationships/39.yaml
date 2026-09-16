@@ -48,3 +48,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-20663ff15903
+  - type: implements
+    from: SYM-COARSE_GRANULARITY_REASONS_PARENTHESIZED
+    to: REQ-symbol-behavioral-anchors
+    created_at: 2026-09-16T02:45:32.886Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16f8f1dbd2f1
+  - type: covered_by
+    from: SYM-COARSE_GRANULARITY_REASONS_PARENTHESIZED
+    to: TEST-cli-symbol-behavioral-anchors
+    created_at: 2026-09-16T02:45:32.900Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09c0d637204f

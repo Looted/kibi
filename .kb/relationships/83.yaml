@@ -150,3 +150,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3168106a9fb2
+  - type: implements
+    from: SYM-receipt-code-scope-entry
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-09-16T14:10:28.679Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37c7558a45aa

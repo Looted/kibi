@@ -97,3 +97,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b5799f15493d
+  - type: implements
+    from: SYM-proof-fingerprint-receipt-code-scope-entry
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-09-16T14:11:09.080Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-857e549987f1

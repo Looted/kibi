@@ -17,7 +17,7 @@
 */
 
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import * as path from "node:path";
 import { load as parseYAML } from "js-yaml";
 import { DEFAULT_COORDINATES_PATH } from "../utils/manifest-paths.js";
@@ -545,6 +545,62 @@ export function readManifestWithCoordinateOverlay(
   return mergeCoordinatesWithManifest(manifestRecords, coordinateArtifact, {
     resolveSourceText: sourceTextResolver(manifestPath),
   });
+}
+
+export interface ReceiptCodeScopeEntry {
+  readonly symbolId: string;
+  readonly sourceHash: string;
+}
+
+/**
+ * Resolve the code scope of a receipt binding: for each proof-bound symbol,
+ * its coordinate-recorded source hash. A receipt's binding covers these, so
+ * editing the production code behind a test stales only that test's receipts
+ * (per-contract binding mode).
+ */
+// implements REQ-kibi-proof-evidence-protocol
+// Receipt-binding scope reads run once per proof-bearing test; a campaign
+// touches dozens-to-hundreds of tests, so the parsed overlay is memoized per
+// manifest state (path + mtime + size) and invalidated when the file changes.
+const boundSymbolScopeCache = new Map<
+  string,
+  { stamp: string; records: ManifestSymbolRecord[] }
+>();
+
+function boundSymbolScopeRecords(manifestPath: string): ManifestSymbolRecord[] {
+  let stamp = "";
+  try {
+    const stats = statSync(manifestPath);
+    stamp = `${stats.mtimeMs}:${stats.size}`;
+  } catch {
+    stamp = "missing";
+  }
+  const hit = boundSymbolScopeCache.get(manifestPath);
+  if (hit && hit.stamp === stamp) return hit.records;
+  const records = readManifestWithCoordinateOverlay(manifestPath);
+  boundSymbolScopeCache.set(manifestPath, { stamp, records });
+  return records;
+}
+
+export function resolveBoundSymbolScope(
+  manifestPath: string,
+  symbolIds: readonly string[],
+): ReceiptCodeScopeEntry[] {
+  const wanted = new Set(symbolIds);
+  if (wanted.size === 0) return [];
+  const records = boundSymbolScopeRecords(manifestPath);
+  const scope: { symbolId: string; sourceHash: string }[] = [];
+  for (const record of records) {
+    const symbolId =
+      typeof record.id === "string" ? record.id : undefined;
+    if (symbolId === undefined || !wanted.has(symbolId)) continue;
+    const sourceHash = (record as { sourceHash?: unknown }).sourceHash;
+    if (typeof sourceHash === "string" && sourceHash !== "") {
+      scope.push({ symbolId, sourceHash });
+    }
+  }
+  scope.sort((left, right) => left.symbolId.localeCompare(right.symbolId));
+  return scope;
 }
 
 function generateId(filePath: string, title: string): string {

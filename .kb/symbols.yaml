@@ -2180,10 +2180,10 @@ symbols:
         target: REQ-kibi-operation-interface-parity
   - id: SYM-ALLOWED_GRANULARITY_REASONS
     title: ALLOWED_GRANULARITY_REASONS
-    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
     symbol_role: config
     status: active
-    granularity_reason: legacy-link
+    granularity_reason: module-level-behavior
     relationships:
       - type: covered_by
         target: TEST-cli-symbol-behavioral-anchors
@@ -8050,13 +8050,15 @@ symbols:
         target: REQ-002
   - id: SYM-GranularityReason
     title: GranularityReason
-    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
     symbol_role: type-shape
+    status: active
+    granularity_reason: module-level-behavior
     relationships:
-      - type: implements
-        target: REQ-symbol-behavioral-anchors
       - type: covered_by
         target: TEST-cli-symbol-behavioral-anchors
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
   - id: SYM-GranularSymbolCandidate
     title: GranularSymbolCandidate
     sourceFile: packages/cli/src/public/symbol-granularity.ts
@@ -8623,10 +8625,10 @@ symbols:
         target: REQ-cli-staged-impact-enforcement
   - id: SYM-COARSE_GRANULARITY_REASONS
     title: COARSE_GRANULARITY_REASONS
-    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
     symbol_role: config
     status: active
-    granularity_reason: legacy-link
+    granularity_reason: module-level-behavior
     relationships:
       - type: covered_by
         target: TEST-cli-symbol-behavioral-anchors
@@ -8634,13 +8636,15 @@ symbols:
         target: REQ-symbol-behavioral-anchors
   - id: SYM-CoarseGranularityReason
     title: CoarseGranularityReason
-    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
     symbol_role: type-shape
+    status: active
+    granularity_reason: module-level-behavior
     relationships:
-      - type: implements
-        target: REQ-symbol-behavioral-anchors
       - type: covered_by
         target: TEST-cli-symbol-behavioral-anchors
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
   - id: SYM-isCoarseGranularityReason
     title: isCoarseGranularityReason
     sourceFile: packages/cli/src/public/symbol-granularity.ts
@@ -22666,10 +22670,10 @@ symbols:
         target: REQ-skillopt-external-adoption-verdict
   - id: SYM-SYMBOL_ROLES
     title: SYMBOL_ROLES
-    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
     symbol_role: config
     status: active
-    granularity_reason: legacy-link
+    granularity_reason: module-level-behavior
     relationships:
       - type: covered_by
         target: TEST-cli-symbol-behavioral-anchors
@@ -22765,13 +22769,15 @@ symbols:
         target: TEST-cli-symbol-behavioral-anchors
   - id: SYM-SymbolRole
     title: SymbolRole
-    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
     symbol_role: type-shape
+    status: active
+    granularity_reason: module-level-behavior
     relationships:
-      - type: implements
-        target: REQ-symbol-behavioral-anchors
       - type: covered_by
         target: TEST-cli-symbol-behavioral-anchors
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
   - id: SYM-SYMBOLS-MANIFEST-COMMENT-BLOCK
     title: SYMBOLS_MANIFEST_COMMENT_BLOCK
     sourceFile: packages/cli/src/commands/sync/manifest.ts
@@ -23371,10 +23377,10 @@ symbols:
         target: REQ-mcp-tool-upsert
   - id: SYM-TRACEABILITY_RELATIONSHIP_TYPES
     title: TRACEABILITY_RELATIONSHIP_TYPES
-    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
     symbol_role: config
     status: active
-    granularity_reason: legacy-link
+    granularity_reason: module-level-behavior
     relationships:
       - type: covered_by
         target: TEST-cli-symbol-behavioral-anchors
@@ -23396,15 +23402,17 @@ symbols:
         target: REQ-vscode-traceability
   - id: SYM-TraceabilityRelationshipType
     title: TraceabilityRelationshipType
-    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
     symbol_role: type-shape
+    status: active
+    granularity_reason: module-level-behavior
     relationships:
-      - type: implements
-        target: REQ-symbol-behavioral-anchors
       - type: covered_by
         target: TEST-cli-symbol-behavioral-anchors
       - type: covered_by
         target: TEST-mcp-upsert-symbol-behavioral-anchors
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
   - id: SYM-updateGitIgnore
     title: updateGitIgnore
     status: active
@@ -36667,3 +36675,75 @@ symbols:
         target: TEST-skillopt-automatic-adoption
       - type: implements
         target: REQ-skillopt-automatic-adoption
+  - id: SYM-ROLE_INFERENCE
+    title: ROLE_INFERENCE
+    status: active
+    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+  - id: SYM-ALLOWED_GRANULARITY_REASONS_PROSE
+    title: ALLOWED_GRANULARITY_REASONS_PROSE
+    status: active
+    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+  - id: SYM-COARSE_GRANULARITY_REASONS_PROSE
+    title: COARSE_GRANULARITY_REASONS_PROSE
+    status: active
+    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+  - id: SYM-COARSE_GRANULARITY_REASONS_PARENTHESIZED
+    title: COARSE_GRANULARITY_REASONS_PARENTHESIZED
+    status: active
+    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+  - id: SYM-receipt-code-scope-entry
+    title: ReceiptCodeScopeEntry
+    status: active
+    sourceFile: packages/cli/src/extractors/manifest.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-resolve-bound-symbol-scope
+    title: resolveBoundSymbolScope
+    status: active
+    sourceFile: packages/cli/src/extractors/manifest.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-current-proof-binding-mode
+    title: currentProofBindingMode
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-proof-fingerprint-receipt-code-scope-entry
+    title: ReceiptCodeScopeEntry
+    status: active
+    sourceFile: packages/cli/src/public/proof-fingerprint.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract

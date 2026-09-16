@@ -39,6 +39,7 @@ import {
 } from "../../extractors/symbols-coordinator.js";
 import {
   COARSE_GRANULARITY_REASONS,
+  COARSE_GRANULARITY_REASONS_PARENTHESIZED,
   isCoarseGranularityReason,
 } from "../../public/symbol-granularity.js";
 import { resolveSymbolsManifestPaths } from "../../utils/manifest-paths.js";
@@ -82,7 +83,7 @@ export const SYMBOLS_MANIFEST_COMMENT_BLOCK = `# symbols.yaml
 #   The AST extractor locates per-declaration spans for code files. When it
 #   cannot find a declaration, a title-match or whole-file coarse span is
 #   published ONLY for symbols that declare a coarse granularity_reason
-#   (config-artifact, module-level-behavior, extractor-miss, test-suite).
+#   (${COARSE_GRANULARITY_REASONS.join(", ")}).
 #   A symbol without granularity_reason whose extraction misses gets no
 #   coordinate entry at all and is reported as failed; add symbol_role and
 #   granularity_reason to opt it into the coarse fallback.
@@ -225,7 +226,7 @@ function manifestEntryIdentity(entry: ManifestSymbolEntry): {
 function coarseAnchorFailureReason(entry: ManifestSymbolEntry): string {
   const reason = entry.granularity_reason;
   if (!isCoarseGranularityReason(reason)) {
-    return "extractor produced no coordinates; add symbol_role and granularity_reason (config-artifact, module-level-behavior, extractor-miss, test-suite) to enable the whole-file coarse fallback";
+    return `extractor produced no coordinates; add symbol_role and granularity_reason ${COARSE_GRANULARITY_REASONS_PARENTHESIZED} to enable the whole-file coarse fallback`;
   }
   return "extractor produced no coordinates and the whole-file coarse fallback found no span for this symbol";
 }

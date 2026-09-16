@@ -2,6 +2,7 @@ import path from "node:path";
 import { Project, ScriptKind, SyntaxKind } from "ts-morph";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import {
+  ALLOWED_GRANULARITY_REASONS_PROSE,
   type GranularSymbolCandidate,
   type SymbolKind,
   getBehavioralSymbolNames,
@@ -146,6 +147,6 @@ export async function validateSymbolGranularity(
       ? ` Non-behavioral symbols in the file were ignored for this decision: ${summarized(nonBehavioral)}.`
       : "";
   throw new Error(
-    `Symbol ${String(entity.id)} links ${entity.sourceFile} coarsely while granular symbols are available (behavioral only): ${summarized(behavioral)}. Move relationships to a behavioral symbol, add a manifest behavioral anchor, or set granularity_reason to config-artifact, module-level-behavior, extractor-miss, legacy-link, or test-suite.${ignored}`,
+    `Symbol ${String(entity.id)} links ${entity.sourceFile} coarsely while granular symbols are available (behavioral only): ${summarized(behavioral)}. Move relationships to a behavioral symbol, add a manifest behavioral anchor, or set granularity_reason to ${ALLOWED_GRANULARITY_REASONS_PROSE}.${ignored}`,
   );
 }

@@ -46,7 +46,7 @@ type FullKbQualityDiagnosticsOptions = {
   readonly checkedAt?: string;
 };
 
-type CoveragePayload = Readonly<{
+type CoverageEvidencePayload = Readonly<{
   readonly rows?: readonly Readonly<Record<string, unknown>>[];
 }>;
 
@@ -635,17 +635,6 @@ function stringArrayField(value: unknown): readonly string[] | undefined {
   return Array.isArray(value) ? value.map(String) : undefined;
 }
 
-function proofStage(
-  row: Readonly<Record<string, unknown>>,
-): Readonly<Record<string, unknown>> | undefined {
-  const stages = row.proofStages;
-  if (!stages || typeof stages !== "object" || Array.isArray(stages)) {
-    return undefined;
-  }
-  const passingE2e = (stages as Record<string, unknown>).passingE2e;
-  return passingE2eStage(passingE2e);
-}
-
 async function loadCoverageProofEvidence(
   prolog: Pick<PrologPort, "query">,
   requirementCount: number,
@@ -669,12 +658,16 @@ async function loadCoverageProofEvidence(
   ) {
     return new Map();
   }
-  let payload: CoveragePayload;
+  let payload: CoverageEvidencePayload;
   try {
-    payload = await runOperationJsonQuery<CoveragePayload>(
+    // W1 push-down: the slim evidence projection returns only the fields the
+    // quality diagnostics consume, keeping the response far below the output
+    // capacity limit on large KBs (the full coverage report rows were the
+    // original ENOBUFS offender).
+    payload = await runOperationJsonQuery<CoverageEvidencePayload>(
       prolog as PrologPort,
       "discovery.pl",
-      `discovery:coverage_report_json('req', ${toPrologList([])}, true, true, ${requirementCount}, 0, ${toPrologAtom(proofSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`,
+      `discovery:coverage_evidence_json(${toPrologList([])}, ${toPrologAtom(proofSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`,
       "Quality diagnostic coverage evidence",
     );
   } catch {
@@ -694,26 +687,17 @@ async function loadCoverageProofEvidence(
   for (const row of payload.rows ?? []) {
     const id = typeof row.id === "string" ? row.id : undefined;
     if (id === undefined) continue;
-    const passingE2e = proofStage(row);
-    const proofGaps = stringArrayField(row.proofGaps);
-    const passingE2eTests = stringArrayField(passingE2e?.tests);
+    const passingE2eTests = stringArrayField(row.passingE2eTests) ?? [];
     evidence.set(id, {
       ...(typeof row.proofStatus === "string"
         ? { proofStatus: row.proofStatus }
         : {}),
-      ...(typeof passingE2e?.status === "string"
-        ? { passingE2eStatus: passingE2e.status }
+      ...(typeof row.passingE2eStatus === "string"
+        ? { passingE2eStatus: row.passingE2eStatus }
         : {}),
-      ...(passingE2eTests !== undefined ? { passingE2eTests } : {}),
-      ...(proofGaps !== undefined
-        ? {
-            receiptGapCodes: proofGaps.filter(
-              (gap) =>
-                gap.includes("proof_receipt") ||
-                gap.includes("proof_contract") ||
-                gap.includes("proof_snapshot"),
-            ),
-          }
+      passingE2eTests,
+      ...(Array.isArray(row.receiptGapCodes)
+        ? { receiptGapCodes: row.receiptGapCodes.map(String) }
         : {}),
     });
   }
