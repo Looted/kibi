@@ -7,7 +7,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
 import {
   EXPECTED_SKILL_IDS,
@@ -111,10 +111,10 @@ describe("sync-agent-skills planning and drift", () => {
 
   test("repo helpers resolve canonical and mirror directories", () => {
     expect(canonicalSkillsDir("/repo")).toBe(
-      "/repo/packages/runtime/src/skills",
+      resolve("/repo", "packages", "runtime", "src", "skills"),
     );
     expect(mirrorSkillsDir("/repo", "cursor")).toBe(
-      "/repo/packages/cursor/skills",
+      resolve("/repo", "packages", "cursor", "skills"),
     );
     expect(repoRootFromScript()).toBeTruthy();
   });
