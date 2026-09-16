@@ -181,3 +181,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b1525bb58db7
+  - type: covered_by
+    from: SYM-skillopt-with-exclusive-adoption-lock
+    to: TEST-skillopt-automatic-adoption
+    created_at: 2026-09-16T13:11:20.081Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b77d705f2eaf

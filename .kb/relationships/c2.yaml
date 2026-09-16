@@ -227,3 +227,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-293cf932ac5d
+  - type: covered_by
+    from: SYM-skillopt-lock-dispatch-throw-if-directory-inode-drift
+    to: TEST-skillopt-automatic-adoption
+    created_at: 2026-09-16T13:11:09.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dac0d89ae561

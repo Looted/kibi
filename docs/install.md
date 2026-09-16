@@ -360,6 +360,9 @@ for hook behavior and local testing details.
 a `/kibi-bootstrap` command, advisory lifecycle hooks, and MCP configuration. It
 builds on `kibi-core`, `kibi-cli`, and `kibi-mcp` and does not replace them.
 
+Local ZCode development, package builds, and tests currently use Linux/WSL.
+The launcher retains shell-free runtime handling for Windows npm shims.
+
 Install through the repo marketplace from a **locally built checkout**:
 
 1. Clone this repository and run `bun run build:zcode` in it. A marketplace

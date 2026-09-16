@@ -22030,20 +22030,22 @@ symbols:
     title: withExclusiveAdoptionLock
     sourceFile: scripts/skillopt-eval/adoption-lock.ts
     symbol_role: behavioral
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-automatic-adoption
       - type: covered_by
         target: TEST-skillopt-automatic-adoption
+      - type: implements
+        target: REQ-skillopt-automatic-adoption
   - id: SYM-skillopt-with-shared-adoption-lock
     title: withSharedAdoptionLock
     sourceFile: scripts/skillopt-eval/adoption-lock.ts
     symbol_role: behavioral
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-automatic-adoption
       - type: covered_by
         target: TEST-skillopt-automatic-adoption
+      - type: implements
+        target: REQ-skillopt-automatic-adoption
   - id: SYM-skillopt-workflow-options
     title: WorkflowOptions
     sourceFile: scripts/skillopt-eval/cli-options.ts
@@ -23674,11 +23676,12 @@ symbols:
     title: withExclusiveMirrorWriterLock
     sourceFile: scripts/skillopt-eval/adoption-lock.ts
     symbol_role: behavioral
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-automatic-adoption
       - type: covered_by
         target: TEST-skillopt-automatic-adoption
+      - type: implements
+        target: REQ-skillopt-automatic-adoption
   - id: SYM-withHeldOutExecutionLease
     title: withHeldOutExecutionLease
     sourceFile: scripts/skillopt-eval/held-out-execution-lease.ts
@@ -36650,114 +36653,6 @@ symbols:
         target: TEST-kibi-verification-evidence-contract
       - type: implements
         target: REQ-kibi-verification-evidence-contract
-  - id: SYM-skillopt-linux-throw-if-directory-inode-drift
-    title: throwIfDirectoryInodeDrift
-    status: active
-    tags:
-      - skillopt
-      - locking
-      - linux
-    sourceFile: scripts/skillopt-eval/adoption-lock-linux.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-skillopt-automatic-adoption
-  - id: SYM-skillopt-linux-with-exclusive-adoption-lock
-    title: withExclusiveAdoptionLock
-    status: active
-    tags:
-      - skillopt
-      - locking
-      - linux
-    sourceFile: scripts/skillopt-eval/adoption-lock-linux.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-skillopt-automatic-adoption
-  - id: SYM-skillopt-linux-with-shared-adoption-lock
-    title: withSharedAdoptionLock
-    status: active
-    tags:
-      - skillopt
-      - locking
-      - linux
-    sourceFile: scripts/skillopt-eval/adoption-lock-linux.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-skillopt-automatic-adoption
-  - id: SYM-skillopt-linux-with-exclusive-mirror-writer-lock
-    title: withExclusiveMirrorWriterLock
-    status: active
-    tags:
-      - skillopt
-      - locking
-      - linux
-    sourceFile: scripts/skillopt-eval/adoption-lock-linux.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-skillopt-automatic-adoption
-  - id: SYM-skillopt-windows-throw-if-directory-identity-drift
-    title: throwIfWindowsDirectoryIdentityDrift
-    status: active
-    tags:
-      - skillopt
-      - locking
-      - windows
-    sourceFile: scripts/skillopt-eval/adoption-lock-windows.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-skillopt-automatic-adoption
-  - id: SYM-skillopt-windows-is-valid-handle
-    title: isValidWindowsHandle
-    status: active
-    tags:
-      - skillopt
-      - locking
-      - windows
-    sourceFile: scripts/skillopt-eval/adoption-lock-windows.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-skillopt-automatic-adoption
-  - id: SYM-skillopt-windows-with-exclusive-adoption-lock
-    title: withExclusiveAdoptionLock
-    status: active
-    tags:
-      - skillopt
-      - locking
-      - windows
-    sourceFile: scripts/skillopt-eval/adoption-lock-windows.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-skillopt-automatic-adoption
-  - id: SYM-skillopt-windows-with-shared-adoption-lock
-    title: withSharedAdoptionLock
-    status: active
-    tags:
-      - skillopt
-      - locking
-      - windows
-    sourceFile: scripts/skillopt-eval/adoption-lock-windows.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-skillopt-automatic-adoption
-  - id: SYM-skillopt-windows-with-exclusive-mirror-writer-lock
-    title: withExclusiveMirrorWriterLock
-    status: active
-    tags:
-      - skillopt
-      - locking
-      - windows
-    sourceFile: scripts/skillopt-eval/adoption-lock-windows.ts
-    symbol_role: behavioral
-    relationships:
-      - type: implements
-        target: REQ-skillopt-automatic-adoption
   - id: SYM-skillopt-lock-dispatch-throw-if-directory-inode-drift
     title: throwIfDirectoryInodeDrift
     status: active
@@ -36768,5 +36663,7 @@ symbols:
     sourceFile: scripts/skillopt-eval/adoption-lock.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-skillopt-automatic-adoption
       - type: implements
         target: REQ-skillopt-automatic-adoption

@@ -6,7 +6,8 @@ Kibi now ships a native ZCode plugin. Teams working in ZCode get the four
 bundled Kibi workflow skills, a `/kibi-bootstrap` slash command, advisory
 lifecycle hooks, and the Kibi MCP server without hand-editing any ZCode
 configuration — and without the plugin making a sound in workspaces that never
-adopted Kibi.
+adopted Kibi. Local ZCode development, package builds, and tests use Linux/WSL
+in this release.
 
 - Install via the repo marketplace from a locally built checkout: run
   `bun run build:zcode`, then in ZCode open Settings → Plugin Management →
@@ -46,10 +47,8 @@ adopted Kibi.
 - The launcher resolves export-restricted local `kibi-mcp` installs through
   their public Node entry and declared `bin`, so a working local package wins
   over PATH while a broken local package is surfaced rather than silently
-  replaced. Skill mirroring uses real platform-specific locks: Linux retains
-  its secure `flock` checks and native Windows uses kernel share-mode locks.
-  The ZCode build, copied-install checks, packed-consumer resolution smoke, and
-  relevant locking tests run in the native Windows CI job.
+  replaced. Its shell-free `process.execPath` launch path retains the runtime
+  handling needed for Windows npm shims.
 - Packaging: `files` ships the manifest, launcher, hooks, skills, command, and
   built `dist/`; `scripts/sync-plugin-manifest-versions.ts` keeps the plugin
   manifest version in sync with the package version; root scripts gained

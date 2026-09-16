@@ -310,50 +310,6 @@ jobs:
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
         timeout-minutes: 15
 
-  zcode-windows:
-    # Native Windows execution for the ZCode adapter: the MCP launcher's
-    # shell-free launch strategy and hook path canonicalization are the
-    # platform-sensitive surfaces, so their suites run under real Windows.
-    runs-on: windows-latest
-    timeout-minutes: 30
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 1
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: '1.3.10'
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: '24'
-        env:
-          NODE_INSTALLER: npm
-
-      - name: Install JS deps
-        run: bun install --frozen-lockfile
-
-      - name: Build ZCode plugin package
-        run: bun run build:zcode
-
-      - name: Build MCP API for packed consumer smoke test
-        run: |
-          bun run build:cli
-          bun run build:runtime
-          bun run build:mcp
-
-      - name: Run ZCode adapter tests
-        run: bun test --timeout 30000 ./packages/zcode
-        env:
-          KIBI_ZCODE_PACKED_SMOKE: "1"
-
-      - name: Run agent-skill locking tests
-        run: bun test --timeout 30000 ./scripts/tests/sync-agent-skills.test.ts ./scripts/tests/sync-agent-skills.coverage.test.ts ./scripts/skillopt-eval/tests/adoption-lock.test.ts ./scripts/skillopt-eval/tests/adoption-lock.contention.test.ts
-
   publish-dry-run:
     runs-on: ubuntu-latest
     needs: [build-and-test, prolog-unit-coverage]

@@ -1,14 +1,15 @@
-import {
-  throwIfDirectoryInodeDrift as throwIfLinuxDirectoryInodeDrift,
-  withExclusiveAdoptionLock as withLinuxExclusiveAdoptionLock,
-  withExclusiveMirrorWriterLock as withLinuxExclusiveMirrorWriterLock,
-  withSharedAdoptionLock as withLinuxSharedAdoptionLock,
-} from "./adoption-lock-linux";
-import {
-  withExclusiveAdoptionLock as withWindowsExclusiveAdoptionLock,
-  withExclusiveMirrorWriterLock as withWindowsExclusiveMirrorWriterLock,
-  withSharedAdoptionLock as withWindowsSharedAdoptionLock,
-} from "./adoption-lock-windows";
+import { dlopen } from "bun:ffi";
+import { constants } from "node:fs";
+import { lstat, open } from "node:fs/promises";
+import { join } from "node:path";
+import { ensureSecureDirectory } from "./adoption-durable";
+
+type LockMode = "-s" | "-x";
+
+type LockRequest = Readonly<{
+  fileName: "adoption.lock" | "mirror-writer.lock";
+  mode: LockMode;
+}>;
 
 type AdoptionLockOptions = Readonly<{
   beforeFlock?: (
@@ -16,48 +17,122 @@ type AdoptionLockOptions = Readonly<{
   ) => Promise<void>;
 }>;
 
-type LockBackend = Readonly<{
-  withExclusiveAdoptionLock<T>(
-    repoRoot: string,
-    operation: () => Promise<T>,
-    options?: AdoptionLockOptions,
-  ): Promise<T>;
-  withSharedAdoptionLock<T>(
-    repoRoot: string,
-    operation: () => Promise<T>,
-    options?: AdoptionLockOptions,
-  ): Promise<T>;
-  withExclusiveMirrorWriterLock<T>(
-    repoRoot: string,
-    operation: () => Promise<T>,
-    options?: AdoptionLockOptions,
-  ): Promise<T>;
-}>;
+// Linux/WSL is the supported skill-adoption environment. Keep the module
+// importable by native Windows consumers that only use packaged runtime code.
+const FLOCK =
+  process.platform === "linux"
+    ? dlopen("libc.so.6", {
+        flock: { args: ["i32", "i32"], returns: "i32" },
+      }).symbols.flock
+    : undefined;
 
-// Both backends are statically linked so platform selection cannot turn a
-// missing native library into a runtime fallback. Each backend guards its
-// platform-specific dlopen at module evaluation time.
-const backend: LockBackend =
-  process.platform === "win32"
-    ? {
-        withExclusiveAdoptionLock: withWindowsExclusiveAdoptionLock,
-        withSharedAdoptionLock: withWindowsSharedAdoptionLock,
-        withExclusiveMirrorWriterLock: withWindowsExclusiveMirrorWriterLock,
-      }
-    : {
-        withExclusiveAdoptionLock: withLinuxExclusiveAdoptionLock,
-        withSharedAdoptionLock: withLinuxSharedAdoptionLock,
-        withExclusiveMirrorWriterLock: withLinuxExclusiveMirrorWriterLock,
-      };
+const LOCK_FLAGS = {
+  shared: 1,
+  exclusive: 2,
+  nonBlocking: 4,
+  unlock: 8,
+} as const;
+
+function lockFlag(mode: LockMode): number {
+  return mode === "-s" ? LOCK_FLAGS.shared : LOCK_FLAGS.exclusive;
+}
 
 // implements REQ-skillopt-automatic-adoption
 export function throwIfDirectoryInodeDrift(
   current: { readonly dev: number | bigint; readonly ino: number | bigint },
   identity: { readonly dev: number | bigint; readonly ino: number | bigint },
 ): void {
-  // This helper is part of the existing exported API and is Linux's inode
-  // guard. Windows performs its equivalent checks through the native handle.
-  throwIfLinuxDirectoryInodeDrift(current, identity);
+  if (current.dev !== identity.dev || current.ino !== identity.ino) {
+    throw new Error("adoption .kibi directory inode drift");
+  }
+}
+
+function currentEuid(): number {
+  const euid = process.geteuid?.();
+  if (euid === undefined) throw new Error("current euid unavailable");
+  return euid;
+}
+
+async function secureLockHandle(
+  repoRoot: string,
+  fileName: LockRequest["fileName"],
+): Promise<
+  Readonly<{ path: string; handle: Awaited<ReturnType<typeof open>> }>
+> {
+  if (FLOCK === undefined) throw new Error("Linux adoption locks unavailable");
+
+  const stateRoot = join(repoRoot, ".kibi");
+  await ensureSecureDirectory(stateRoot);
+
+  // Capture .kibi directory identity for TOCTOU detection
+  const kibiInitial = await lstat(stateRoot);
+  const kibiIdentity = { dev: kibiInitial.dev, ino: kibiInitial.ino };
+
+  const lockPath = join(stateRoot, fileName);
+  let handle: Awaited<ReturnType<typeof open>> | undefined;
+  try {
+    handle = await open(
+      lockPath,
+      constants.O_CREAT | constants.O_RDWR | constants.O_NOFOLLOW,
+      0o600,
+    );
+    const opened = await handle.stat();
+    if (opened.uid !== currentEuid())
+      throw new Error("adoption lock not owned by current euid");
+    if ((opened.mode & 0o077) !== 0)
+      throw new Error("adoption lock is not private");
+
+    // Verify .kibi directory identity hasn't been swapped while opening.
+    const kibiCurrent = await lstat(stateRoot);
+    throwIfDirectoryInodeDrift(kibiCurrent, kibiIdentity);
+
+    const current = await lstat(lockPath);
+    if (
+      !opened.isFile() ||
+      opened.nlink !== 1 ||
+      current.dev !== opened.dev ||
+      current.ino !== opened.ino
+    ) {
+      throw new Error("adoption lock inode drift");
+    }
+    return { path: lockPath, handle };
+  } catch (error) {
+    await handle?.close();
+    if (error instanceof Error && "code" in error && error.code === "ELOOP") {
+      throw new Error("adoption file symlink");
+    }
+    throw error;
+  }
+}
+
+async function flockDescriptor(
+  descriptor: number,
+  mode: LockMode,
+): Promise<void> {
+  if (FLOCK === undefined) throw new Error("Linux adoption locks unavailable");
+  while (FLOCK(descriptor, lockFlag(mode) | LOCK_FLAGS.nonBlocking) !== 0) {
+    await Bun.sleep(5);
+  }
+}
+
+async function holdLock<T>(
+  repoRoot: string,
+  request: LockRequest,
+  operation: () => Promise<T>,
+  options: AdoptionLockOptions | undefined,
+): Promise<T> {
+  const lock = await secureLockHandle(repoRoot, request.fileName);
+  try {
+    await options?.beforeFlock?.({
+      path: lock.path,
+      descriptor: lock.handle.fd,
+    });
+    await flockDescriptor(lock.handle.fd, request.mode);
+    return await operation();
+  } finally {
+    FLOCK?.(lock.handle.fd, LOCK_FLAGS.unlock);
+    await lock.handle.close();
+  }
 }
 
 // implements REQ-skillopt-automatic-adoption
@@ -66,7 +141,12 @@ export function withExclusiveAdoptionLock<T>(
   operation: () => Promise<T>,
   options?: AdoptionLockOptions,
 ): Promise<T> {
-  return backend.withExclusiveAdoptionLock(repoRoot, operation, options);
+  return holdLock(
+    repoRoot,
+    { fileName: "adoption.lock", mode: "-x" },
+    operation,
+    options,
+  );
 }
 
 // implements REQ-skillopt-automatic-adoption
@@ -75,7 +155,12 @@ export function withSharedAdoptionLock<T>(
   operation: () => Promise<T>,
   options?: AdoptionLockOptions,
 ): Promise<T> {
-  return backend.withSharedAdoptionLock(repoRoot, operation, options);
+  return holdLock(
+    repoRoot,
+    { fileName: "adoption.lock", mode: "-s" },
+    operation,
+    options,
+  );
 }
 
 // implements REQ-skillopt-automatic-adoption
@@ -84,5 +169,10 @@ export function withExclusiveMirrorWriterLock<T>(
   operation: () => Promise<T>,
   options?: AdoptionLockOptions,
 ): Promise<T> {
-  return backend.withExclusiveMirrorWriterLock(repoRoot, operation, options);
+  return holdLock(
+    repoRoot,
+    { fileName: "mirror-writer.lock", mode: "-x" },
+    operation,
+    options,
+  );
 }

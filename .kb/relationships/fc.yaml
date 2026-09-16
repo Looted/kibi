@@ -286,10 +286,3 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-475a7c0104d7
-  - type: implements
-    from: SYM-skillopt-windows-throw-if-directory-identity-drift
-    to: REQ-skillopt-automatic-adoption
-    created_at: 2026-09-16T08:38:30.054Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-84f6aab58410

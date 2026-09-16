@@ -70,6 +70,9 @@ All hooks are advisory; the hard enforcement gate remains the
 
 ## Development
 
+Local development, package builds, and tests currently use Linux/WSL. The
+launcher retains shell-free runtime handling for Windows npm shims.
+
 ```bash
 bun run build:zcode      # tsc + copy plugin assets + sync skills mirror
 bun test packages/zcode  # unit tests

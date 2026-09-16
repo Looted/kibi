@@ -7,40 +7,13 @@ import {
   withExclusiveMirrorWriterLock,
   withSharedAdoptionLock,
 } from "../adoption-lock";
-import {
-  isValidWindowsHandle,
-  throwIfWindowsDirectoryIdentityDrift,
-} from "../adoption-lock-windows";
 
 const roots: string[] = [];
+const linuxTest = test.skipIf(process.platform !== "linux");
 
 afterEach(async () => {
   for (const root of roots.splice(0))
     await rm(root, { recursive: true, force: true });
-});
-
-test("Windows handle validation rejects null, zero, and the u64 invalid sentinel", () => {
-  expect(isValidWindowsHandle(null)).toBe(false);
-  expect(isValidWindowsHandle(0)).toBe(false);
-  expect(isValidWindowsHandle(0n)).toBe(false);
-  expect(isValidWindowsHandle(0xffffffffffffffffn)).toBe(false);
-  expect(isValidWindowsHandle(1)).toBe(true);
-  expect(isValidWindowsHandle(0xfffffffffffffffen)).toBe(true);
-});
-
-test("Windows state-directory identity validation rejects a replacement", () => {
-  expect(() =>
-    throwIfWindowsDirectoryIdentityDrift(
-      { dev: 2, ino: 9 },
-      { dev: 1, ino: 9 },
-    ),
-  ).toThrow("adoption .kibi directory inode drift");
-  expect(() =>
-    throwIfWindowsDirectoryIdentityDrift(
-      { dev: 1, ino: 9 },
-      { dev: 1, ino: 9 },
-    ),
-  ).not.toThrow();
 });
 
 async function waitForFile(path: string): Promise<void> {
@@ -57,7 +30,7 @@ async function waitForFile(path: string): Promise<void> {
   }
 }
 
-test("shared adoption locks coexist", async () => {
+linuxTest("shared adoption locks coexist", async () => {
   const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-adoption-shared-"));
   roots.push(repoRoot);
   let releaseFirst: (() => void) | undefined;
@@ -84,7 +57,7 @@ test("shared adoption locks coexist", async () => {
   await first;
 });
 
-test.each([
+linuxTest.each([
   ["exclusive adoption blocks shared", "exclusive", "shared"],
   ["shared adoption blocks exclusive", "shared", "exclusive"],
 ] as const)("%s", async (_name, firstMode, secondMode) => {
@@ -130,7 +103,7 @@ test.each([
   expect(secondEntered).toBe(true);
 });
 
-test("an operation exception releases the adoption lock", async () => {
+linuxTest("an operation exception releases the adoption lock", async () => {
   const repoRoot = await mkdtemp(
     join(tmpdir(), "skillopt-adoption-exception-"),
   );
@@ -146,42 +119,49 @@ test("an operation exception releases the adoption lock", async () => {
   ).resolves.toBe("released");
 });
 
-test("an exclusive adoption lock blocks the writer lock sequence", async () => {
-  const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-adoption-writer-"));
-  roots.push(repoRoot);
-  let releaseAdoption: (() => void) | undefined;
-  let adoptionStarted: (() => void) | undefined;
-  let writerEntered = false;
-  const started = new Promise<void>((resolve) => {
-    adoptionStarted = resolve;
-  });
-  const adoption = withExclusiveAdoptionLock(repoRoot, async () => {
-    adoptionStarted?.();
-    await new Promise<void>((resolve) => {
-      releaseAdoption = resolve;
+linuxTest(
+  "an exclusive adoption lock blocks the writer lock sequence",
+  async () => {
+    const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-adoption-writer-"));
+    roots.push(repoRoot);
+    let releaseAdoption: (() => void) | undefined;
+    let adoptionStarted: (() => void) | undefined;
+    let writerEntered = false;
+    const started = new Promise<void>((resolve) => {
+      adoptionStarted = resolve;
     });
-  });
-  await started;
+    const adoption = withExclusiveAdoptionLock(repoRoot, async () => {
+      adoptionStarted?.();
+      await new Promise<void>((resolve) => {
+        releaseAdoption = resolve;
+      });
+    });
+    await started;
 
-  const writer = withSharedAdoptionLock(repoRoot, async () =>
-    withExclusiveMirrorWriterLock(repoRoot, async () => {
-      writerEntered = true;
-    }),
-  );
-  await Bun.sleep(30);
-  expect(writerEntered).toBe(false);
-  releaseAdoption?.();
-  await adoption;
-  await writer;
-  expect(writerEntered).toBe(true);
-});
+    const writer = withSharedAdoptionLock(repoRoot, async () =>
+      withExclusiveMirrorWriterLock(repoRoot, async () => {
+        writerEntered = true;
+      }),
+    );
+    await Bun.sleep(30);
+    expect(writerEntered).toBe(false);
+    releaseAdoption?.();
+    await adoption;
+    await writer;
+    expect(writerEntered).toBe(true);
+  },
+);
 
-test("a terminated process releases an exclusive adoption lock", async () => {
-  const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-adoption-process-"));
-  roots.push(repoRoot);
-  const marker = join(repoRoot, "child-locked");
-  const lockModule = new URL("../adoption-lock.ts", import.meta.url).href;
-  const harness = `
+linuxTest(
+  "a terminated process releases an exclusive adoption lock",
+  async () => {
+    const repoRoot = await mkdtemp(
+      join(tmpdir(), "skillopt-adoption-process-"),
+    );
+    roots.push(repoRoot);
+    const marker = join(repoRoot, "child-locked");
+    const lockModule = new URL("../adoption-lock.ts", import.meta.url).href;
+    const harness = `
     import { writeFile } from "node:fs/promises";
     import { withExclusiveAdoptionLock } from ${JSON.stringify(lockModule)};
     await withExclusiveAdoptionLock(${JSON.stringify(repoRoot)}, async () => {
@@ -189,31 +169,32 @@ test("a terminated process releases an exclusive adoption lock", async () => {
       await new Promise(() => {});
     });
   `;
-  const child = Bun.spawn([process.execPath, "-e", harness], {
-    cwd: process.cwd(),
-    stdout: "ignore",
-    stderr: "pipe",
-  });
-
-  try {
-    await waitForFile(marker);
-    let entered = false;
-    const contender = withSharedAdoptionLock(repoRoot, async () => {
-      entered = true;
+    const child = Bun.spawn([process.execPath, "-e", harness], {
+      cwd: process.cwd(),
+      stdout: "ignore",
+      stderr: "pipe",
     });
-    await Bun.sleep(30);
-    expect(entered).toBe(false);
-    child.kill();
-    await child.exited;
-    await contender;
-    expect(entered).toBe(true);
-  } finally {
-    child.kill();
-    await child.exited;
-  }
-});
 
-test("mirror writers serialize independently", async () => {
+    try {
+      await waitForFile(marker);
+      let entered = false;
+      const contender = withSharedAdoptionLock(repoRoot, async () => {
+        entered = true;
+      });
+      await Bun.sleep(30);
+      expect(entered).toBe(false);
+      child.kill();
+      await child.exited;
+      await contender;
+      expect(entered).toBe(true);
+    } finally {
+      child.kill();
+      await child.exited;
+    }
+  },
+);
+
+linuxTest("mirror writers serialize independently", async () => {
   const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-mirror-contention-"));
   roots.push(repoRoot);
   let releaseFirst: (() => void) | undefined;

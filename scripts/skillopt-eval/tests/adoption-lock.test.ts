@@ -35,130 +35,111 @@ async function settle<T>(promise: Promise<T>): Promise<{
   }
 }
 
-test("Given an exclusive adoption swap When a shared reader starts during the swap Then it observes only the post-swap snapshot", async () => {
-  // Given
-  const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-adoption-lock-"));
-  roots.push(repoRoot);
-  let bytes = "pre";
-  let reader: Promise<string> | undefined;
+test.skipIf(process.platform !== "linux")(
+  "Given an exclusive adoption swap When a shared reader starts during the swap Then it observes only the post-swap snapshot",
+  async () => {
+    // Given
+    const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-adoption-lock-"));
+    roots.push(repoRoot);
+    let bytes = "pre";
+    let reader: Promise<string> | undefined;
 
-  // When
-  await withExclusiveAdoptionLock(repoRoot, async () => {
-    bytes = "mixed";
-    reader = withSharedAdoptionLock(repoRoot, async () => bytes);
-    await new Promise<void>((resolve) => setTimeout(resolve, 25));
-    bytes = "post";
-  });
-
-  // Then
-  if (reader === undefined) throw new Error("reader was not started");
-  const settled = await settle(reader);
-  expect(settled.ok).toBe(true);
-  expect(settled.value).toBe("post");
-});
-
-test("Given a symlinked global lock path When automatic locking starts Then it rejects without following the link", async () => {
-  // Given
-  const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-adoption-lock-"));
-  roots.push(repoRoot);
-  if (process.platform === "win32") {
-    const outside = join(repoRoot, "outside-state");
-    await mkdir(outside);
-    // Junctions do not require the symbolic-link privilege on Windows. The
-    // reparse point is deliberately the state directory, not the lock file.
-    await symlink(outside, join(repoRoot, ".kibi"), "junction");
-    let called = false;
-    const settled = await settle(
-      withExclusiveAdoptionLock(repoRoot, async () => {
-        called = true;
-      }),
-    );
-    expect(settled.ok).toBe(false);
-    expect(String(settled.error)).toContain("adoption directory reparse point");
-    expect(called).toBe(false);
-    return;
-  }
-  const outside = join(repoRoot, "outside.lock");
-  await mkdir(join(repoRoot, ".kibi"), { mode: 0o700 });
-  await writeFile(outside, "lock");
-  await symlink(outside, join(repoRoot, ".kibi/adoption.lock"));
-
-  // When
-  const settled = await settle(
-    withExclusiveAdoptionLock(repoRoot, async () => undefined),
-  );
-
-  // Then
-  expect(settled.ok).toBe(false);
-  expect(String(settled.error)).toContain("symlink");
-});
-
-test("Given concurrent standalone mirror writers When the first writer holds its lock Then the second writer waits for release", async () => {
-  // Given
-  const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-adoption-lock-"));
-  roots.push(repoRoot);
-  let releaseFirst: (() => void) | undefined;
-  let secondEntered = false;
-  let resolveFirstStarted: (() => void) | undefined;
-  const firstStarted = new Promise<void>((resolve) => {
-    resolveFirstStarted = resolve;
-  });
-  const first = withExclusiveMirrorWriterLock(repoRoot, async () => {
-    resolveFirstStarted?.();
-    await new Promise<void>((resolve) => {
-      releaseFirst = resolve;
+    // When
+    await withExclusiveAdoptionLock(repoRoot, async () => {
+      bytes = "mixed";
+      reader = withSharedAdoptionLock(repoRoot, async () => bytes);
+      await new Promise<void>((resolve) => setTimeout(resolve, 25));
+      bytes = "post";
     });
-  });
-  await firstStarted;
 
-  // When
-  const second = withExclusiveMirrorWriterLock(repoRoot, async () => {
-    secondEntered = true;
-  });
-  await new Promise<void>((resolve) => setTimeout(resolve, 25));
+    // Then
+    if (reader === undefined) throw new Error("reader was not started");
+    const settled = await settle(reader);
+    expect(settled.ok).toBe(true);
+    expect(settled.value).toBe("post");
+  },
+);
 
-  // Then
-  expect(secondEntered).toBe(false);
-  if (releaseFirst === undefined) throw new Error("first writer did not hold");
-  releaseFirst();
-  await first;
-  await second;
-  expect(secondEntered).toBe(true);
-});
+test.skipIf(process.platform !== "linux")(
+  "Given a symlinked global lock path When automatic locking starts Then it rejects without following the link",
+  async () => {
+    // Given
+    const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-adoption-lock-"));
+    roots.push(repoRoot);
+    const outside = join(repoRoot, "outside.lock");
+    await mkdir(join(repoRoot, ".kibi"), { mode: 0o700 });
+    await writeFile(outside, "lock");
+    await symlink(outside, join(repoRoot, ".kibi/adoption.lock"));
 
-test("Given a symlinked mirror writer lock path When standalone mirror writing starts Then it rejects without following the link", async () => {
-  // Given
-  const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-adoption-lock-"));
-  roots.push(repoRoot);
-  if (process.platform === "win32") {
-    const outside = join(repoRoot, "outside-state");
-    await mkdir(outside);
-    await symlink(outside, join(repoRoot, ".kibi"), "junction");
-    let called = false;
+    // When
     const settled = await settle(
-      withExclusiveMirrorWriterLock(repoRoot, async () => {
-        called = true;
-      }),
+      withExclusiveAdoptionLock(repoRoot, async () => undefined),
     );
+
+    // Then
     expect(settled.ok).toBe(false);
-    expect(String(settled.error)).toContain("adoption directory reparse point");
-    expect(called).toBe(false);
-    return;
-  }
-  const outside = join(repoRoot, "outside-mirror-writer.lock");
-  await mkdir(join(repoRoot, ".kibi"), { mode: 0o700 });
-  await writeFile(outside, "lock");
-  await symlink(outside, join(repoRoot, ".kibi/mirror-writer.lock"));
+    expect(String(settled.error)).toContain("symlink");
+  },
+);
 
-  // When
-  const settled = await settle(
-    withExclusiveMirrorWriterLock(repoRoot, async () => undefined),
-  );
+test.skipIf(process.platform !== "linux")(
+  "Given concurrent standalone mirror writers When the first writer holds its lock Then the second writer waits for release",
+  async () => {
+    // Given
+    const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-adoption-lock-"));
+    roots.push(repoRoot);
+    let releaseFirst: (() => void) | undefined;
+    let secondEntered = false;
+    let resolveFirstStarted: (() => void) | undefined;
+    const firstStarted = new Promise<void>((resolve) => {
+      resolveFirstStarted = resolve;
+    });
+    const first = withExclusiveMirrorWriterLock(repoRoot, async () => {
+      resolveFirstStarted?.();
+      await new Promise<void>((resolve) => {
+        releaseFirst = resolve;
+      });
+    });
+    await firstStarted;
 
-  // Then
-  expect(settled.ok).toBe(false);
-  expect(String(settled.error)).toContain("symlink");
-});
+    // When
+    const second = withExclusiveMirrorWriterLock(repoRoot, async () => {
+      secondEntered = true;
+    });
+    await new Promise<void>((resolve) => setTimeout(resolve, 25));
+
+    // Then
+    expect(secondEntered).toBe(false);
+    if (releaseFirst === undefined)
+      throw new Error("first writer did not hold");
+    releaseFirst();
+    await first;
+    await second;
+    expect(secondEntered).toBe(true);
+  },
+);
+
+test.skipIf(process.platform !== "linux")(
+  "Given a symlinked mirror writer lock path When standalone mirror writing starts Then it rejects without following the link",
+  async () => {
+    // Given
+    const repoRoot = await mkdtemp(join(tmpdir(), "skillopt-adoption-lock-"));
+    roots.push(repoRoot);
+    const outside = join(repoRoot, "outside-mirror-writer.lock");
+    await mkdir(join(repoRoot, ".kibi"), { mode: 0o700 });
+    await writeFile(outside, "lock");
+    await symlink(outside, join(repoRoot, ".kibi/mirror-writer.lock"));
+
+    // When
+    const settled = await settle(
+      withExclusiveMirrorWriterLock(repoRoot, async () => undefined),
+    );
+
+    // Then
+    expect(settled.ok).toBe(false);
+    expect(String(settled.error)).toContain("symlink");
+  },
+);
 
 test.skipIf(process.platform !== "linux")(
   "Given a lock path replaced after descriptor validation When exclusive locking starts Then flock keeps the validated descriptor",
