@@ -13,9 +13,11 @@ export function isPathOutOfBounds(pathLike: string): boolean {
     normalized.includes("/../")
   );
 }
+// implements REQ-reusable-skill-subsystem
 export function isWithinRoot(rootDir: string, candidatePath: string): boolean {
   const rel = relative(rootDir, candidatePath);
-  return rel === "" || (!rel.startsWith("..") && !isAbsolute(rel));
+  // An empty rel (candidate === root) already satisfies both checks below.
+  return !rel.startsWith("..") && !isAbsolute(rel);
 }
 export function resolveSkillFilePath(pathLike: string): string {
   const resolved = resolve(pathLike);

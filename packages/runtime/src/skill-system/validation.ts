@@ -16,9 +16,13 @@ export function assertMaxBytes(pathLike: string, maxBytes: number): void {
   const size = fs.statSync(pathLike).size;
   if (size > maxBytes) throw new SkillOversizeError(pathLike, maxBytes, size);
 }
+// implements REQ-reusable-skill-subsystem
 export function parseSkillBundle(rootDir: string): SkillBundle {
   const path = resolve(rootDir, SKILL_FILE_NAME);
   assertMaxBytes(path, SKILL_MARKDOWN_MAX_BYTES);
+  // rationale: Bun treats the empty encoding as utf8 (verified), so
+  // gray-matter parses identical content either way.
+  // Stryker disable next-line StringLiteral
   const parsed = matter(fs.readFileSync(path, "utf8"));
   const [error] = validateManifestData(parsed.data);
   if (error) throw error;
@@ -28,6 +32,7 @@ export function parseSkillBundle(rootDir: string): SkillBundle {
     rootDir: resolve(rootDir),
   };
 }
+// implements REQ-reusable-skill-subsystem
 export function validateSkillBundle(pathLike: string): {
   valid: boolean;
   errors: SkillValidationError[];
@@ -41,6 +46,9 @@ export function validateSkillBundle(pathLike: string): {
         new SkillValidationError("SKILL.md", `Missing ${SKILL_FILE_NAME}`),
       ],
     };
+  // rationale: Bun treats the empty encoding as utf8 (verified), so
+  // gray-matter parses identical content either way.
+  // Stryker disable next-line StringLiteral
   const parsed = matter(fs.readFileSync(path, "utf8"));
   errors.push(...validateManifestData(parsed.data));
   if (errors.length === 0)

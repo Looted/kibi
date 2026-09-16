@@ -32472,6 +32472,158 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-generated-coordinate-repair
+  - id: SYM-validateBundleContents
+    title: validateBundleContents
+    status: active
+    sourceFile: packages/runtime/src/skill-system/validation.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-validateManifestData
+    title: validateManifestData
+    status: active
+    sourceFile: packages/runtime/src/skill-system/validation.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-coerceManifest
+    title: coerceManifest
+    status: active
+    sourceFile: packages/runtime/src/skill-system/validation.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-isStringArray
+    title: isStringArray
+    status: active
+    sourceFile: packages/runtime/src/skill-system/validation.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-assertNonEmptyString
+    title: assertNonEmptyString
+    status: active
+    sourceFile: packages/runtime/src/skill-operations.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-executeSkillsList
+    title: executeSkillsList
+    status: active
+    sourceFile: packages/runtime/src/skill-operations.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-executeSkillsLoad
+    title: executeSkillsLoad
+    status: active
+    sourceFile: packages/runtime/src/skill-operations.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-executeSkillsRead
+    title: executeSkillsRead
+    status: active
+    sourceFile: packages/runtime/src/skill-operations.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-defaultBundledSkillsDir
+    title: defaultBundledSkillsDir
+    status: active
+    sourceFile: packages/runtime/src/skill-system/loader.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-currentBundledSkillsDir
+    title: currentBundledSkillsDir
+    status: active
+    sourceFile: packages/runtime/src/skill-system/loader.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-listFrom
+    title: listFrom
+    status: active
+    sourceFile: packages/runtime/src/skill-system/loader.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-findRoot
+    title: findRoot
+    status: active
+    sourceFile: packages/runtime/src/skill-system/loader.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-listRoots
+    title: listRoots
+    status: active
+    sourceFile: packages/runtime/src/skill-system/loader.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-readBundle
+    title: readBundle
+    status: active
+    sourceFile: packages/runtime/src/skill-system/loader.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-isPathOutOfBounds
+    title: isPathOutOfBounds
+    status: active
+    sourceFile: packages/runtime/src/skill-system/paths.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-isWithinRoot
+    title: isWithinRoot
+    status: active
+    sourceFile: packages/runtime/src/skill-system/paths.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-normalizeResourcePath
+    title: normalizeResourcePath
+    status: active
+    sourceFile: packages/runtime/src/skill-system/paths.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-resolveSkillFilePath
+    title: resolveSkillFilePath
+    status: active
+    sourceFile: packages/runtime/src/skill-system/paths.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-SKILL_FILE_NAMERuntime
+    title: SKILL_FILE_NAME
+    status: active
+    sourceFile: packages/runtime/src/skill-system/paths.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
   - id: SYM-boundSymbolScopeRecords
     title: boundSymbolScopeRecords
     sourceFile: packages/cli/src/extractors/manifest.ts
