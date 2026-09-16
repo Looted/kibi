@@ -187,15 +187,23 @@ export const findGapsSpec = {
 
 /**
  * Per-contract receipt binding (W2): compute the current binding hash for
- * every receipt-bearing test (contract + receipt-stripped authored document)
- * and hand the Prolog coverage stage a TestId -> BindingHash dict. Opt-in via
- * KIBI_PROOF_BINDING_MODE=per-contract; the default stays strict_snapshot.
+ * every receipt-bearing test (contract + receipt-stripped authored document
+ * + bound-symbol code scope) and hand the Prolog coverage stage a
+ * TestId -> BindingHash dict. This is the default binding mode since slice 3;
+ * KIBI_PROOF_BINDING_MODE=strict-snapshot opts out (receipts then match only
+ * against the whole-workspace snapshot they were proven on).
  */
 // implements REQ-kibi-proof-evidence-protocol
+export function currentProofBindingMode(): "per_contract" | "strict_snapshot" {
+  return process.env.KIBI_PROOF_BINDING_MODE?.trim() === "strict-snapshot"
+    ? "strict_snapshot"
+    : "per_contract";
+}
+
 async function perContractTestBindings(
   context: OperationContext,
 ): Promise<string | null> {
-  if (process.env.KIBI_PROOF_BINDING_MODE !== "per-contract") return null;
+  if (currentProofBindingMode() !== "per_contract") return null;
   const { loadEntities } = await import("../discovery-entities.js");
   const { receiptBindingHash } = await import("../../proof-fingerprint.js");
   const { removeFrontmatterBlock } = await import(
