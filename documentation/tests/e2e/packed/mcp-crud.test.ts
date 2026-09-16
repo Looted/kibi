@@ -164,8 +164,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "should query existing entities",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const response = await sendJsonRpc(
           sandbox.kibiMcpBin,
@@ -214,8 +217,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "should filter queries by type",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const response = await sendJsonRpc(
           sandbox.kibiMcpBin,
@@ -253,8 +259,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "should filter queries by ID",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const response = await sendJsonRpc(
           sandbox.kibiMcpBin,
@@ -286,8 +295,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "should filter queries by tags",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const response = await sendJsonRpc(
           sandbox.kibiMcpBin,
@@ -321,8 +333,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "should create new entity via kb_upsert",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const response = await sendJsonRpc(
           sandbox.kibiMcpBin,
@@ -399,8 +414,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "should update existing entity via kb_upsert",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const response = await sendJsonRpc(
           sandbox.kibiMcpBin,
@@ -464,8 +482,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "should require an explicit supersession plan for authored requirements",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const deleteResponse = await sendJsonRpc(
           sandbox.kibiMcpBin,
@@ -539,10 +560,180 @@ if (RUN_NODE_TEST_SUITE) {
     );
 
     it(
+      "should reject a contradicting requirement with the actionable structured error",
+      { timeout: TEST_TIMEOUT_MS },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        // Strict-lane fixtures: one subject fact, two incompatible
+        // property-value facts on the same subject/property.
+        const upsert = async (
+          id: number,
+          name: string,
+          args: Record<string, unknown>,
+        ) =>
+          sendJsonRpc(sandbox.kibiMcpBin, sandbox.repoDir, sandbox.env, {
+            jsonrpc: "2.0",
+            id,
+            method: "tools/call",
+            params: { name, arguments: args },
+          });
+
+        await upsert(20, "kb_upsert", {
+          type: "fact",
+          id: "FACT-E2E-SUBJ",
+          properties: {
+            title: "E2E session subject",
+            status: "active",
+            source: "test://e2e-contradiction",
+            fact_kind: "subject",
+            subject_key: "e2e.session",
+          },
+          document: { path: ".kb/facts/FACT-E2E-SUBJ.md" },
+        });
+        await upsert(21, "kb_upsert", {
+          type: "fact",
+          id: "FACT-E2E-PROP-A",
+          properties: {
+            title: "E2E timeout 30 minutes",
+            status: "active",
+            source: "test://e2e-contradiction",
+            fact_kind: "property_value",
+            subject_key: "e2e.session",
+            property_key: "timeout_minutes",
+            operator: "eq",
+            value_type: "int",
+            value_int: 30,
+          },
+          document: { path: ".kb/facts/FACT-E2E-PROP-A.md" },
+        });
+        await upsert(22, "kb_upsert", {
+          type: "req",
+          id: "REQ-E2E-A",
+          properties: {
+            title: "Requirement A: 30 min timeout",
+            status: "open",
+            source: "test://e2e-contradiction",
+          },
+          relationships: [
+            { type: "constrains", from: "REQ-E2E-A", to: "FACT-E2E-SUBJ" },
+            {
+              type: "requires_property",
+              from: "REQ-E2E-A",
+              to: "FACT-E2E-PROP-A",
+            },
+          ],
+          document: { path: ".kb/requirements/REQ-E2E-A.md" },
+        });
+        await upsert(23, "kb_upsert", {
+          type: "fact",
+          id: "FACT-E2E-PROP-B",
+          properties: {
+            title: "E2E timeout 60 minutes",
+            status: "active",
+            source: "test://e2e-contradiction",
+            fact_kind: "property_value",
+            subject_key: "e2e.session",
+            property_key: "timeout_minutes",
+            operator: "eq",
+            value_type: "int",
+            value_int: 60,
+          },
+          document: { path: ".kb/facts/FACT-E2E-PROP-B.md" },
+        });
+
+        const conflicting = await upsert(24, "kb_upsert", {
+          type: "req",
+          id: "REQ-E2E-B",
+          properties: {
+            title: "Requirement B: 60 min timeout",
+            status: "open",
+            source: "test://e2e-contradiction",
+          },
+          relationships: [
+            { type: "constrains", from: "REQ-E2E-B", to: "FACT-E2E-SUBJ" },
+            {
+              type: "requires_property",
+              from: "REQ-E2E-B",
+              to: "FACT-E2E-PROP-B",
+            },
+          ],
+          document: { path: ".kb/requirements/REQ-E2E-B.md" },
+        });
+
+        // The rejection must carry the actionable contradiction text, parsed
+        // from the structured Prolog error term end to end.
+        const responseText = JSON.stringify(conflicting);
+        assert.ok(
+          /Contradiction detected for requirement REQ-E2E-B/i.test(
+            responseText,
+          ),
+          "Expected the contradiction rejection message",
+        );
+        assert.ok(
+          responseText.includes("Conflicts with REQ-E2E-A"),
+          "Expected the conflicting requirement id in the message",
+        );
+        assert.ok(
+          responseText.includes("To resolve:"),
+          "Expected remediation guidance in the message",
+        );
+
+        // The failed write must not persist the conflicting requirement.
+        const queryResponse = await upsert(25, "kb_query", {
+          id: "REQ-E2E-B",
+        });
+        const queryText = JSON.stringify(queryResponse.result ?? {});
+        assert.ok(
+          !queryText.includes("Requirement B: 60 min timeout"),
+          "The rejected requirement must not be queryable",
+        );
+      },
+    );
+
+    it(
+      "should run kb_check with a migration rule selected through the generated registry",
+      { timeout: TEST_TIMEOUT_MS },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        const response = await sendJsonRpc(
+          sandbox.kibiMcpBin,
+          sandbox.repoDir,
+          sandbox.env,
+          {
+            jsonrpc: "2.0",
+            id: 26,
+            method: "tools/call",
+            params: {
+              name: "kb_check",
+              arguments: { rules: ["strict-readiness"] },
+            },
+          },
+        );
+
+        assert.ok(response.result, "strict-readiness must be selectable");
+        const result = response.result as {
+          content: Array<{ type: string; text: string }>;
+        };
+        assert.ok(result.content && result.content.length > 0);
+      },
+    );
+
+    it(
       "should handle deleting non-existent entity",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const response = await sendJsonRpc(
           sandbox.kibiMcpBin,
@@ -568,8 +759,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "should validate KB via kb_check",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const response = await sendJsonRpc(
           sandbox.kibiMcpBin,
@@ -600,8 +794,11 @@ if (RUN_NODE_TEST_SUITE) {
     it(
       "should return error for invalid method",
       { timeout: TEST_TIMEOUT_MS },
-      async () => {
-        if (!hasProlog) return;
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
 
         const response = await sendJsonRpc(
           sandbox.kibiMcpBin,

@@ -6,3 +6,59 @@ relationships:
     created_at: "2026-08-16T19:47:37.168Z"
     created_by: kibi/upsert
     source: mcp://kibi/upsert
+  - type: covered_by
+    from: SYM-cli-engine-client-query-batch
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:29:07.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc459f7beafd
+  - type: covered_by
+    from: SYM-skillopt-held-out-predicate-gate
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T18:19:43.924Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-237440bd08cf
+  - type: implements
+    from: SYM-x-runPackedE2EIfEntrypoint
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-09-09T12:51:12.995Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16e08e0da8c3
+  - type: covered_by
+    from: SYM-x-runPackedE2EIfEntrypoint
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-09-11T00:06:56.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e513ac5e5984
+  - type: implements
+    from: SYM-quality-inventory-7def0c262321
+    to: REQ-014
+    created_at: 2026-09-14T20:35:46.519Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43623599fda1
+  - type: covered_by
+    from: SYM-quality-inventory-7def0c262321
+    to: TEST-scripts-unit-coverage-runner
+    created_at: 2026-09-14T20:35:46.529Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-767889d1e26a
+  - type: implements
+    from: SYM-get-staged-inventory
+    to: REQ-AUTO-941B0CE68BAF3331
+    created_at: 2026-09-15T07:41:58.255Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36e9c7335bc3
+  - type: covered_by
+    from: SYM-get-staged-inventory
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-15T07:41:58.262Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-035f1d4d71b0

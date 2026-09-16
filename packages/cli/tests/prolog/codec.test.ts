@@ -20,6 +20,7 @@ import { describe, expect, test } from "bun:test";
 import {
   escapeAtom,
   escapeAtomContent,
+  normalizeEntityId,
   parseAtomList,
   parseEntityFromBinding,
   parseEntityFromList,
@@ -32,6 +33,7 @@ import {
   splitTopLevel,
   splitTopLevelGeneral,
   toPrologAtom,
+  toPrologString,
 } from "../../src/prolog/codec";
 
 const xsd = "http://www.w3.org/2001/XMLSchema";
@@ -48,6 +50,16 @@ describe("atom escaping helpers", () => {
     expect(toPrologAtom("simple_atom42")).toBe("simple_atom42");
     expect(toPrologAtom("Needs'Quotes")).toBe("'Needs''Quotes'");
     expect(toPrologAtom("has-hyphen")).toBe("'has-hyphen'");
+  });
+
+  test("round-trips Unicode, quotes, literal escapes, and newlines", () => {
+    const slash = "\\";
+    const value = `owner's ${slash}n ${slash} and\nnext \u00e9`;
+
+    expect(parsePrologValue(toPrologAtom(value))).toBe(value);
+    expect(
+      parsePrologValue(`^^(${toPrologString(value)}, '${xsd}#string')`),
+    ).toBe(value);
   });
 });
 
@@ -76,6 +88,38 @@ describe("parseListOfLists", () => {
 
   test("skips empty inner lists", () => {
     expect(parseListOfLists("[[],[a],[b,c],[]]")).toEqual([["a"], ["b", "c"]]);
+  });
+
+  test("preserves nested long metadata and the following row", () => {
+    const metadata = JSON.stringify({
+      propositions: Array.from({ length: 160 }, (_, index) => ({
+        claim_key: `CLAIM-${index}`,
+        claim_text: `Keep [brackets], commas, \"quotes\", and C:\\tmp\\file ${index}`,
+      })),
+    });
+    const row = `['REQ-LONG-METADATA',req,[title='owner''s [audit], note',sourceFile='src/source-cell.ts',sourceLine=^^(\"11\", '${xsd}#integer'),sourceEndLine=^^(\"19\", '${xsd}#integer'),semantic_inventory=${toPrologString(metadata)}]]`;
+    const rows = parseListOfLists(`[${row},['REQ-AFTER',req,[title='after']]]`);
+
+    expect(metadata.length).toBeGreaterThan(10_000);
+    expect(rows).toHaveLength(2);
+    expect(parseEntityFromList(rows[0] ?? [])).toEqual({
+      id: "REQ-LONG-METADATA",
+      type: "req",
+      title: "owner's [audit], note",
+      sourceFile: "src/source-cell.ts",
+      sourceLine: 11,
+      sourceEndLine: 19,
+      semantic_inventory: JSON.parse(metadata),
+    });
+    expect(rows[1]?.[0]).toBe("'REQ-AFTER'");
+  });
+
+  test("fails closed instead of returning rows before malformed input", () => {
+    expect(
+      parseListOfLists(
+        "[[REQ-COMPLETE,req,[title=ok]],[REQ-BROKEN,req,[title='unterminated]]",
+      ),
+    ).toEqual([]);
   });
 });
 
@@ -145,6 +189,28 @@ describe("parseEntityFromList", () => {
       path: "source.ts",
       type: "fact",
     });
+  });
+});
+
+describe("parseTriples", () => {
+  test("keeps generic triple columns raw for caller-specific normalization", () => {
+    expect(
+      parseTriples(
+        "[['file:///tmp/REQ-005','kb:entity/SCEN-005','https://example.test/reason'],[verified_by,'kb:entity/TEST-005','file:///tmp/SCEN-005']]",
+      ),
+    ).toEqual([
+      [
+        "file:///tmp/REQ-005",
+        "kb:entity/SCEN-005",
+        "https://example.test/reason",
+      ],
+      ["verified_by", "kb:entity/TEST-005", "file:///tmp/SCEN-005"],
+    ]);
+    expect(normalizeEntityId("file:///tmp/REQ-005")).toBe("REQ-005");
+    expect(normalizeEntityId("kb:entity/SCEN-005")).toBe("SCEN-005");
+    expect(normalizeEntityId("https://example.test/SCEN-005")).toBe(
+      "https://example.test/SCEN-005",
+    );
   });
 });
 

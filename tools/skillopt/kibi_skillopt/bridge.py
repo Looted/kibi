@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
+from pydantic import TypeAdapter
+
 from .common import JsonValue, canonical_json, contract_hash, parse_json_value
 from .lineage import parse_trajectories
 from .models import (
@@ -16,6 +18,8 @@ from .models import (
     OptimizerRequest,
     OptimizerResult,
 )
+
+_optimizer_result_adapter: TypeAdapter[OptimizerResult] = TypeAdapter(OptimizerResult)
 
 
 class BridgeError(ValueError):
@@ -157,7 +161,7 @@ def read_optimizer_result(
     payload = parse_json_value(bridge.read_public(name))
     if not isinstance(payload, dict):
         raise BridgeError("optimizer_result_not_object")
-    result = OptimizerResult.model_validate(payload)
+    result = _optimizer_result_adapter.validate_python(payload)
     request_hash = contract_hash(request.model_dump(by_alias=True, mode="json"))
     if result.request_hash != request_hash:
         raise BridgeError("optimizer_request_hash_mismatch")

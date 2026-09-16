@@ -14,6 +14,7 @@ import { RuntimePrerequisiteError } from "./canary-errors";
 export type StagedCodexRuntime = Readonly<{
   codexExecutable: string;
   bwrapExecutable: string;
+  codeModeHostExecutable: string;
 }>;
 
 export type CodexRuntimeLease = StagedCodexRuntime &
@@ -27,14 +28,16 @@ export type CodexRuntimeStagingDependencies = Readonly<{
   systemBwrapExecutable?: string | null;
 }>;
 
+export function falseIfEnoent(error: unknown): boolean {
+  return error instanceof Error && "code" in error && error.code === "ENOENT";
+}
+
 async function executableFile(path: string): Promise<boolean> {
   try {
     await access(path, fsConstants.X_OK);
     return true;
   } catch (error) {
-    if (error instanceof Error && "code" in error && error.code === "ENOENT") {
-      return false;
-    }
+    if (falseIfEnoent(error)) return false;
     throw error;
   }
 }
@@ -51,9 +54,22 @@ export async function stageCodexRuntime(
   const installedCodex = await realpath(
     dependencies.codexExecutable ?? Bun.which("codex") ?? "codex",
   );
+  const installedCodeModeHost = resolve(
+    dirname(installedCodex),
+    "codex-code-mode-host",
+  );
+  if (!(await executableFile(installedCodeModeHost))) {
+    throw new RuntimePrerequisiteError("missing_code_mode_host");
+  }
   const codexExecutable = resolve(resolvedRuntimeRoot, "codex");
+  const codeModeHostExecutable = resolve(
+    resolvedRuntimeRoot,
+    "codex-code-mode-host",
+  );
   await cp(installedCodex, codexExecutable);
   await chmod(codexExecutable, 0o500);
+  await cp(installedCodeModeHost, codeModeHostExecutable);
+  await chmod(codeModeHostExecutable, 0o500);
 
   const bundledSource = resolve(
     dirname(installedCodex),
@@ -75,7 +91,7 @@ export async function stageCodexRuntime(
       })();
   await cp(bwrapSource, bwrapExecutable);
   await chmod(bwrapExecutable, 0o500);
-  return { codexExecutable, bwrapExecutable };
+  return { codexExecutable, bwrapExecutable, codeModeHostExecutable };
 }
 
 // implements REQ-skillopt-codex-optimization

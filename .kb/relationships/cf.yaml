@@ -97,3 +97,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5c31ae0cbe49
+  - type: covered_by
+    from: SYM-kibi-icons
+    to: TEST-005
+    created_at: 2026-09-05T14:46:58.265Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f2d69c15e765
+  - type: covered_by
+    from: SYM-getFreshSymbolsManifestSourcePaths
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:17:47.417Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1199d7846af7
+  - type: covered_by
+    from: SYM-cli-discovery-renderDiscoveryTable
+    to: TEST-mcp-search-discovery
+    created_at: 2026-09-05T17:36:42.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-25878dc23d43
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-2-inferOfflineBehaviorRuleArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:43:09.362Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01f36863e79d
+  - type: implements
+    from: SYM-quality-inventory-dd324a5a7d94
+    to: REQ-cli-check
+    created_at: 2026-09-14T20:23:09.559Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9caf70528875
+  - type: covered_by
+    from: SYM-quality-inventory-dd324a5a7d94
+    to: TEST-cli-check-integrity
+    created_at: 2026-09-14T20:23:09.575Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9fa774acd7a1
+  - type: implements
+    from: SYM-checkNoDanglingRefs
+    to: REQ-cli-check
+    created_at: 2026-09-15T07:38:44.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d6bc01efc91
+  - type: covered_by
+    from: SYM-checkNoDanglingRefs
+    to: TEST-004
+    created_at: 2026-09-15T07:38:44.490Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c65c380f495d

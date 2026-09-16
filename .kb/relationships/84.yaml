@@ -118,3 +118,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9ab02175efdc
+  - type: covered_by
+    from: SYM-kibi-check-format-impact
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-09-05T14:41:00.101Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c0ecdcb2a3c
+  - type: covered_by
+    from: SYM-canonical-planLegacyStorageMigration
+    to: TEST-cli-canonical-runtime
+    created_at: 2026-09-05T15:06:10.948Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9153fd454598
+  - type: covered_by
+    from: SYM-canonical-planLegacyStorageMigration
+    to: TEST-cli-canonical-init
+    created_at: 2026-09-05T15:10:55.426Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51d33098e155
+  - type: executable_for
+    from: SYM-e2e-test-skillopt-predicate-first-requirements
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T15:50:22.370Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4bef0abbf363
+  - type: covered_by
+    from: SYM-skillopt-predicate-case-by-id
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T18:20:01.827Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-39a24931be16

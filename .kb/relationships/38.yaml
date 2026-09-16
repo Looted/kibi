@@ -94,3 +94,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0b8557f766ba
+  - type: covered_by
+    from: SYM-core-relationship-type
+    to: TEST-003
+    created_at: 2026-09-05T14:38:22.439Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5832b113d8ba
+  - type: covered_by
+    from: SYM-core-relationship-type
+    to: TEST-001
+    created_at: 2026-09-05T14:49:53.870Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-540016602054
+  - type: covered_by
+    from: SYM-branchMigrateCommand
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-09-05T15:04:38.741Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5afc00703f89
+  - type: covered_by
+    from: SYM-auto-711E3868D47B
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:18:03.519Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e723de3a456c
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-2-inferReleaseGateRuleArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:43:31.976Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84bea8fa45cf
+  - type: covered_by
+    from: SYM-modeling-predicate-utils-clampScore
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:45:08.934Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e01d6980d92
+  - type: covered_by
+    from: SYM-predicate-build-suggestion
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:46:52.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fda7d393d2da
+  - type: covered_by
+    from: SYM-frozenHashes
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:11:51.658Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-166199c9a68e
+  - type: covered_by
+    from: SYM-setWorkspaceFsDepsForTests
+    to: TEST-vscode-traceability-coverage
+    created_at: 2026-09-05T18:28:28.130Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb5df659f1e4

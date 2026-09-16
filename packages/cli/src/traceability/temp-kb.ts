@@ -3,6 +3,13 @@ import { cp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { isCliTraceOrDebugEnabled } from "../env.js";
+
+export function skipNonIntegerFactNumber(
+  field: string,
+  value: number,
+): boolean {
+  return field === "value_int" && !Number.isInteger(value);
+}
 import type {
   ExtractedEntity,
   ExtractedRelationship,
@@ -140,7 +147,7 @@ function serializeTypedFactFields(entity: ExtractedEntity): string[] {
   for (const field of FACT_NUMBER_FIELDS) {
     const value = getEntityField(entity, field);
     if (value !== undefined && value !== null && typeof value === "number") {
-      if (field === "value_int" && !Number.isInteger(value)) {
+      if (skipNonIntegerFactNumber(field, value)) {
         continue;
       }
       fields.push(`${field}=${value}`);

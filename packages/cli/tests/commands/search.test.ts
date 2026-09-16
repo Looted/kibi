@@ -102,7 +102,7 @@ describe("kibi search", () => {
     execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
 
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
-  }, 30000);
+  }, 120000);
 
   afterAll(() => {
     if (tmpDir && existsSync(tmpDir)) {

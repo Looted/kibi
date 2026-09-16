@@ -1,3 +1,6 @@
+import { join } from "node:path";
+
+import { resolveBoundSymbolScope } from "../../../extractors/manifest.js";
 import { PROOF_RECEIPT_MAX_AGE_SECONDS } from "../../proof-receipt.js";
 import { executeStatus } from "../discovery-executors.js";
 import {
@@ -17,7 +20,10 @@ import {
 } from "../prolog-json.js";
 import { type RepairPlan, buildRepairPlan } from "../repair-plan.js";
 import type { OperationContext } from "../runtime-types.js";
-import { buildSymbolRepairPlan } from "../symbol-repair-plan.js";
+import {
+  addCoordinateRepairEvidence,
+  buildSymbolRepairPlan,
+} from "../symbol-repair-plan.js";
 import type { OperationResult, OperationSpec } from "../types.js";
 import { readWorkspaceSnapshot } from "../workspace-snapshot.js";
 
@@ -53,6 +59,8 @@ export type CoverageInput = {
   readonly by?: "req" | "symbol" | "type";
   readonly tags?: readonly string[];
   readonly includePassing?: boolean;
+  /** Requirement proof-status filter (req mode). Implies include-passing. */
+  readonly statuses?: readonly string[];
   readonly includeTransitive?: boolean;
   readonly limit?: number;
   readonly offset?: number;
@@ -103,6 +111,22 @@ function validateEntityType(type?: string): void {
       `Invalid type '${type}'. Valid types: ${ENTITY_TYPES.join(", ")}. Use a single type value, or omit this parameter to query all entities.`,
     );
   }
+}
+
+const COVERAGE_PROOF_STATUSES: ReadonlySet<string> = new Set([
+  "proven",
+  "missing",
+  "unresolved",
+  "not_applicable",
+]);
+
+function validateCoverageStatus(status: string): string {
+  if (!COVERAGE_PROOF_STATUSES.has(status)) {
+    throw new Error(
+      `Invalid coverage status '${status}'. Valid statuses: ${[...COVERAGE_PROOF_STATUSES].join(", ")}.`,
+    );
+  }
+  return status;
 }
 
 export async function executeFindGaps(
@@ -161,6 +185,79 @@ export const findGapsSpec = {
   execute: executeFindGaps,
 } as const satisfies OperationSpec<FindGapsInput, FindGapsPayload>;
 
+/**
+ * Per-contract receipt binding (W2): compute the current binding hash for
+ * every receipt-bearing test (contract + receipt-stripped authored document
+ * + bound-symbol code scope) and hand the Prolog coverage stage a
+ * TestId -> BindingHash dict. This is the default binding mode since slice 3;
+ * KIBI_PROOF_BINDING_MODE=strict-snapshot opts out (receipts then match only
+ * against the whole-workspace snapshot they were proven on).
+ */
+// implements REQ-kibi-proof-evidence-protocol
+export function currentProofBindingMode(): "per_contract" | "strict_snapshot" {
+  return process.env.KIBI_PROOF_BINDING_MODE?.trim() === "strict-snapshot"
+    ? "strict_snapshot"
+    : "per_contract";
+}
+
+async function perContractTestBindings(
+  context: OperationContext,
+): Promise<string | null> {
+  if (currentProofBindingMode() !== "per_contract") return null;
+  const { loadEntities } = await import("../discovery-entities.js");
+  const { receiptBindingHash } = await import("../../proof-fingerprint.js");
+  const { removeFrontmatterBlock } = await import(
+    "../../../operations/proof/receipt-document.js"
+  );
+  let tests: Record<string, unknown>[];
+  try {
+    tests = await loadEntities(context.prolog as never, { type: "test" });
+  } catch {
+    return null;
+  }
+  const entries: string[] = [];
+  const manifestPath = join(context.workspaceRoot, ".kb", "symbols.yaml");
+  for (const test of tests) {
+    const testId = typeof test.id === "string" ? test.id : "";
+    const contract =
+      test.proof_contract !== undefined &&
+      test.proof_contract !== null &&
+      typeof test.proof_contract === "object"
+        ? (test.proof_contract as Record<string, unknown>)
+        : undefined;
+    const source = typeof test.source === "string" ? test.source : "";
+    if (testId === "" || contract === undefined || source === "") continue;
+    if (!/\.(md|mdx)$/i.test(source)) continue;
+    if (!context.fs) continue;
+    try {
+      const absolute = join(context.workspaceRoot, source);
+      const authored = await context.fs.readFile(absolute);
+      const stripped = removeFrontmatterBlock(authored, "proof_receipts");
+      const rawBindings: ReadonlyArray<{ symbol_id?: unknown }> = Array.isArray(
+        test.proof_bindings,
+      )
+        ? (test.proof_bindings as ReadonlyArray<{ symbol_id?: unknown }>)
+        : [];
+      const boundIds = rawBindings
+        .map((binding) =>
+          typeof binding.symbol_id === "string" ? binding.symbol_id : "",
+        )
+        .filter((id) => id !== "");
+      const codeScope = resolveBoundSymbolScope(manifestPath, boundIds);
+      const binding = receiptBindingHash(
+        contract as never,
+        stripped ?? authored,
+        codeScope,
+      );
+      entries.push(`${toPrologAtom(testId)}: ${toPrologAtom(binding)}`);
+    } catch {
+      // Unreadable documents keep strict semantics for that test.
+    }
+  }
+  if (entries.length === 0) return null;
+  return `_{${entries.join(", ")}}`;
+}
+
 export async function executeCoverage(
   input: CoverageInput,
   context: OperationContext,
@@ -171,13 +268,34 @@ export async function executeCoverage(
       ? snapshotEvidence.snapshot.hash
       : "unknown";
     const checkedAt = context.clock().toISOString();
+    const statuses = (input.statuses ?? []).map((status) =>
+      validateCoverageStatus(status),
+    );
+    const bindingsDict =
+      statuses.length === 0 && (input.by ?? "req") === "req"
+        ? await perContractTestBindings(context)
+        : null;
+    const goal =
+      bindingsDict !== null
+        ? `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, per_contract, ${bindingsDict}, ${input.includeTransitive ?? true}, ${input.limit ?? 100}, ${input.offset ?? 0}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`
+        : statuses.length > 0
+          ? `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${toPrologList(statuses)}, ${input.includeTransitive ?? true}, ${input.limit ?? 100}, ${input.offset ?? 0}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`
+          : `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${input.includeTransitive ?? true}, ${input.limit ?? 100}, ${input.offset ?? 0}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`;
     const payload = await runOperationJsonQuery<CoveragePayload>(
       requireProlog(context),
       "discovery.pl",
-      `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${input.includeTransitive ?? true}, ${input.limit ?? 100}, ${input.offset ?? 0}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`,
+      goal,
       "Coverage execution",
     );
-    const repairPlan = buildRepairPlan(payload, input, codeSnapshot);
+    const rows =
+      (input.by ?? "req") === "req"
+        ? await addCoordinateRepairEvidence(payload.rows, context)
+        : payload.rows;
+    const repairPlan = buildRepairPlan(
+      { ...payload, rows },
+      input,
+      codeSnapshot,
+    );
     const symbolRepairPlan =
       input.by === "symbol"
         ? await buildSymbolRepairPlan(payload.rows, context)
@@ -231,6 +349,7 @@ export async function executeCoverage(
       : coveragePlan;
     const enrichedPayload = {
       ...payload,
+      rows,
       ...(repairPlan !== undefined ? { repairPlan } : {}),
       ...(legacyMigrationPlan !== undefined ? { legacyMigrationPlan } : {}),
       ...(symbolRepairPlan !== undefined ? { symbolRepairPlan } : {}),
@@ -278,6 +397,15 @@ export const coverageSpec = {
       by: { type: "string", enum: ["req", "symbol", "type"], default: "req" },
       tags: { type: "array", items: { type: "string" } },
       includePassing: { type: "boolean", default: false },
+      statuses: {
+        type: "array",
+        items: {
+          type: "string",
+          enum: ["proven", "missing", "unresolved", "not_applicable"],
+        },
+        description:
+          "Requirement proof-status filter (req mode): include only rows whose proofStatus is listed. Selecting statuses implies include-passing; not_applicable rows carry their typed applicability reason in proofStages.applicability.reason. The summary always reflects the whole KB.",
+      },
       includeTransitive: { type: "boolean", default: true },
       limit: { type: "integer", default: 100 },
       offset: { type: "integer", default: 0 },

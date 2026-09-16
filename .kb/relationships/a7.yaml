@@ -157,3 +157,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-44c01b74eddb
+  - type: covered_by
+    from: SYM-kibi-migration-plan-status-actions
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-09-05T15:01:21.510Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bcb028e91440
+  - type: covered_by
+    from: SYM-cli-engine-client-is-running
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:28:52.696Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ed1cc7a1d38
+  - type: covered_by
+    from: SYM-fingerprint-drift
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:29:45.010Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c90d8fe82a6
+  - type: covered_by
+    from: SYM-semantic-advisor-canonicalize
+    to: TEST-mcp-semantic-advisor-preflight
+    created_at: 2026-09-05T17:38:57.937Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7601f189341c
+  - type: covered_by
+    from: SYM-PredicateVariant
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:09:24.290Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e22ef6e1bd74

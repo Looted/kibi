@@ -13,6 +13,9 @@ if (testInput === undefined || process.argv.length !== 3) {
 }
 
 const repoRoot = process.cwd();
+// Packed tests resolve repo-root anchors (e.g. the frozen MCP contract
+// fixtures) against this root; a sandbox helper may chdir the process.
+process.env.KIBI_PROOF_REPO_ROOT = repoRoot;
 const packedRoot = path.resolve(repoRoot, "documentation/tests/e2e/packed");
 const testSource = path.resolve(repoRoot, testInput);
 const relativeTestSource = path.relative(packedRoot, testSource);
@@ -37,7 +40,10 @@ function run(command, args) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       cwd: repoRoot,
-      env: process.env,
+      env: {
+        ...process.env,
+        KIBI_PROOF_PACKED: "1",
+      },
       stdio: "inherit",
     });
     child.once("error", reject);

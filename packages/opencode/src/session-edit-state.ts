@@ -8,6 +8,14 @@ import * as path from "node:path";
 
 export type EditEventKind = string;
 
+export function pushEventHintIfKind(
+  hints: Array<{ kind: string; timestamp: number }>,
+  kind: string | undefined,
+  timestamp: number,
+): void {
+  if (kind) hints.push({ kind, timestamp });
+}
+
 export interface SessionEditEntry {
   /** Relative file path (relative to worktree root). */
   filePath: string;
@@ -246,9 +254,7 @@ export function createSessionEditState(opts: {
     entry.currentHash = hashFile(abs);
     entry.lastReconciledAt = timestamp ?? now();
 
-    if (kind) {
-      entry.eventHints.push({ kind, timestamp: timestamp ?? now() });
-    }
+    pushEventHintIfKind(entry.eventHints, kind, timestamp ?? now());
   }
 
   return {

@@ -87,11 +87,14 @@ function parseArgs(argv: string[]): ParsedArgs {
   }
 
   targets.push(...(limitTargets ?? (["cursor", "codex"] as const)));
+  return { mode, targets: requireSelectedTargets(targets) };
+}
+
+export function requireSelectedTargets<T>(targets: readonly T[]): T[] {
   if (targets.length === 0) {
     throw new UsageError("No targets selected");
   }
-
-  return { mode, targets };
+  return [...targets];
 }
 
 class UsageError extends Error {
@@ -388,7 +391,7 @@ export function syncAgentSkills(
   });
 }
 
-async function main(argv: string[]): Promise<void> {
+export async function main(argv: string[]): Promise<void> {
   let options: ParsedArgs;
   try {
     options = parseArgs(argv);
@@ -432,9 +435,17 @@ const args = process.argv.slice(2);
 const invokedDirectly =
   process.argv[1] !== undefined &&
   resolve(process.argv[1]) === fileURLToPath(import.meta.url);
-if (invokedDirectly) {
-  await main(args);
+
+export async function runSyncAgentSkillsIfMain(
+  isMain = invokedDirectly,
+  argv = args,
+  start = main,
+): Promise<void> {
+  if (!isMain) return;
+  await start(argv);
 }
+
+await runSyncAgentSkillsIfMain();
 
 export {
   assertCanonicalSourceComplete,

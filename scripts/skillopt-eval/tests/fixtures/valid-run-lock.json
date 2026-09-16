@@ -11,9 +11,9 @@
     "version": "codex-cli 1.2.3",
     "sha256": "0101010101010101010101010101010101010101010101010101010101010101"
   },
-  "cliArgs": ["exec", "--json", "--model", "gpt-5.4-mini"],
+  "cliArgs": ["exec", "--json", "--model", "gpt-5.6-luna"],
   "artifactRoot": ".artifacts/skillopt/00000000-0000-4000-8000-000000000001",
-  "targetModel": "gpt-5.4-mini",
+  "targetModel": "gpt-5.6-luna",
   "optimizerModel": "gpt-5.6-sol",
   "skillopt": {
     "package": "skillopt",
@@ -37,11 +37,7 @@
     "currency": "USD",
     "source": "Pinned public list-price snapshot for estimates; not invoices",
     "models": {
-      "gpt-5.4-mini": {
-        "inputPerMillionTokens": 0.4,
-        "cachedInputPerMillionTokens": 0.1,
-        "outputPerMillionTokens": 1.6
-      },
+      "gpt-5.6-luna": null,
       "gpt-5.6-sol": {
         "inputPerMillionTokens": 5,
         "cachedInputPerMillionTokens": 0.5,
@@ -49,7 +45,7 @@
       }
     }
   },
-  "pricingHash": "6fc51350249bd59ac3bcd57949978364870db1aab8d1ccafa1b7794d32900aa3",
+  "pricingHash": "3c8c0251d2399a7bce9630e042ee81dd46c95664d1a5f1bdca8edd036eb12e65",
   "baselineSkillHashes": {
     "kibi-usage": {
       "bodyHash": "7777777777777777777777777777777777777777777777777777777777777777",

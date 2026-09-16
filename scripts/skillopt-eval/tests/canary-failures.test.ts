@@ -24,7 +24,7 @@ import {
   RuntimePrerequisiteError,
 } from "../runtime/canary-runtime";
 import { createIsolationWorkspace } from "../runtime/isolation-workspace";
-import type { ProcessResult } from "../runtime/process";
+import { ProcessControlError, type ProcessResult } from "../runtime/process";
 import { runCapabilityCanary as baseRunCapabilityCanary } from "../runtime/workspace";
 
 const roots: string[] = [];
@@ -44,11 +44,16 @@ beforeAll(async () => {
     encoding: "utf8",
     mode: 0o700,
   });
+  await writeFile(join(root, "codex-code-mode-host"), "#!/bin/sh\nexit 0\n", {
+    encoding: "utf8",
+    mode: 0o700,
+  });
   await writeFile(fakeBwrapExecutable, "#!/bin/sh\nexit 0\n", {
     encoding: "utf8",
     mode: 0o700,
   });
   await chmod(fakeCodexExecutable, 0o500);
+  await chmod(join(root, "codex-code-mode-host"), 0o500);
   await chmod(fakeBwrapExecutable, 0o500);
 });
 afterAll(async () => {
@@ -258,8 +263,144 @@ describe("Codex capability canary failures", () => {
     expect(receipt).toMatchObject({
       verdict: "no-go",
       reason: "codex_exit:17:no_stderr",
+      phase: "model",
+      modelInvocationAttempts: 1,
     });
   });
+
+  test("classifies login and sandbox timeouts as pre-model failures", async () => {
+    // Given
+    const fixture = await authEnvironment();
+    const loginCalls: string[] = [];
+    const timeoutResult = (
+      argv: readonly [string, ...string[]],
+      stderr: string,
+    ): ProcessControlError =>
+      new ProcessControlError("timeout", {
+        argv,
+        stdout: "",
+        stderr,
+        exitCode: -1,
+        signal: "SIGTERM",
+      });
+
+    // When
+    const loginTimeout = await runCapabilityCanary(
+      {
+        runId: "login-timeout",
+        sourceWorktree: process.cwd(),
+        artifactRoot: fixture.artifactRoot,
+        env: fixture.env,
+      },
+      {
+        ...passingPrerequisites,
+        run: async (argv) => {
+          loginCalls.push(argv.join(" "));
+          if (argv.join(" ") === "codex login status")
+            throw timeoutResult(argv, "login timed out");
+          return {
+            argv,
+            stdout: completedProbeEvents,
+            stderr: "",
+            exitCode: 0,
+            signal: null,
+          };
+        },
+      },
+    );
+    const sandboxTimeout = await runCapabilityCanary(
+      {
+        runId: "sandbox-timeout",
+        sourceWorktree: process.cwd(),
+        artifactRoot: fixture.artifactRoot,
+        env: fixture.env,
+      },
+      {
+        ...passingPrerequisites,
+        probeSandbox: async () => {
+          throw timeoutResult(["bwrap", "probe"], "sandbox timed out");
+        },
+        run: fakeRunner(completedProbeEvents),
+      },
+    );
+
+    // Then
+    expect(loginTimeout).toMatchObject({
+      verdict: "no-go",
+      phase: "login",
+      paidModelCalls: 0,
+      modelInvocationAttempts: 0,
+      diagnostic: "login:timeout:login timed out",
+    });
+    expect(loginCalls).toEqual(["codex login status"]);
+    expect(sandboxTimeout).toMatchObject({
+      verdict: "no-go",
+      phase: "sandbox-probe",
+      paidModelCalls: 0,
+      modelInvocationAttempts: 0,
+      diagnostic: "sandbox-probe:timeout:sandbox timed out",
+    });
+  });
+
+  test.each(["timeout", "interrupted", "spawn"] as const)(
+    "accounts for a model %s and preserves partial output",
+    async (kind) => {
+      // Given
+      const fixture = await authEnvironment();
+      let modelCalls = 0;
+      const partialStdout = `${JSON.stringify({ type: "turn.started" })}\n${JSON.stringify({ type: "item.started" })}\n`;
+
+      // When
+      const receipt = await runCapabilityCanary(
+        {
+          runId: `model-${kind}`,
+          sourceWorktree: process.cwd(),
+          artifactRoot: fixture.artifactRoot,
+          env: fixture.env,
+        },
+        {
+          ...passingPrerequisites,
+          run: async (argv) => {
+            if (argv.join(" ") === "codex login status")
+              return {
+                argv,
+                stdout: "",
+                stderr: "Logged in using ChatGPT\n",
+                exitCode: 0,
+                signal: null,
+              };
+            modelCalls += 1;
+            throw new ProcessControlError(kind, {
+              argv,
+              stdout: partialStdout,
+              stderr: "model diagnostic\n".repeat(100),
+              exitCode: -1,
+              signal: kind === "spawn" ? null : "SIGTERM",
+            });
+          },
+        },
+      );
+
+      // Then
+      const attempts = kind === "spawn" ? 0 : 1;
+      expect(receipt).toMatchObject({
+        verdict: "no-go",
+        phase: "model",
+        paidModelCalls: attempts,
+        modelInvocationAttempts: attempts,
+      });
+      expect(receipt.diagnostic).toContain("model diagnostic");
+      expect(receipt.diagnostic?.length).toBeLessThanOrEqual(600);
+      expect(modelCalls).toBe(1);
+      expect(receipt.modelRuns).toHaveLength(kind === "spawn" ? 0 : 1);
+      if (kind !== "spawn") {
+        expect(receipt.events).toEqual([
+          { type: "turn.started" },
+          { type: "item.started" },
+        ]);
+      }
+    },
+  );
 
   test("classifies Codex MCP handshake failure before paid calls", async () => {
     // Given
@@ -337,8 +478,10 @@ describe("Codex capability canary failures", () => {
     expect(receipt).toMatchObject({
       verdict: "no-go",
       reason: "missing_probe_execution",
-      paidModelCalls: 2,
+      paidModelCalls: 1,
+      modelInvocationAttempts: 1,
     });
+    expect(receipt.modelRuns).toHaveLength(1);
   });
 
   test("runs the identical probe with target and optimizer model identities", async () => {
@@ -383,12 +526,12 @@ describe("Codex capability canary failures", () => {
       verdict: "pass",
       paidModelCalls: 2,
       modelRuns: [
-        { role: "target", model: "gpt-5.4-mini" },
+        { role: "target", model: "gpt-5.6-luna" },
         { role: "optimizer", model: "gpt-5.6-sol" },
       ],
     });
     expect(modelArgv.map((argv) => argv[argv.indexOf("--model") + 1])).toEqual([
-      "gpt-5.4-mini",
+      "gpt-5.6-luna",
       "gpt-5.6-sol",
     ]);
   });

@@ -14,13 +14,14 @@ import {
   writeCapabilityProbe,
 } from "./canary-runtime";
 import type { McpServerLaunch, probeCodexSandbox } from "./canary-runtime";
-import { CodexAuthError, prepareExistingLogin } from "./codex-auth";
+import { CodexAuthError, withPreparedLogin } from "./codex-auth";
 import {
   type IsolationWorkspace,
   createIsolationWorkspace,
 } from "./isolation-workspace";
 import {
   type CanaryModel,
+  type CanaryPhase,
   type CanaryRole,
   type CanaryRunner,
   type CapabilityCanaryModelRun,
@@ -42,13 +43,17 @@ export type ModelCanaryResult =
   | Readonly<{
       kind: "pass";
       authMode: "file" | "keyring";
+      modelInvocationAttempts: 1;
       run: CapabilityCanaryModelRun;
     }>
   | Readonly<{
       kind: "no-go";
       authMode: "file" | "keyring" | null;
       paidModelCalls: 0 | 1;
+      modelInvocationAttempts: 0 | 1;
       reason: string;
+      phase?: CanaryPhase;
+      diagnostic?: string;
       run?: CapabilityCanaryModelRun;
     }>;
 
@@ -71,6 +76,41 @@ function modelRun(
 ): CapabilityCanaryModelRun {
   const model: CanaryModel = role === "target" ? TARGET_MODEL : OPTIMIZER_MODEL;
   return { role, model, events };
+}
+
+const MAX_DIAGNOSTIC_LENGTH = 600;
+
+function bounded(text: string): string {
+  return text.trim().replaceAll("\n", " | ").slice(0, MAX_DIAGNOSTIC_LENGTH);
+}
+
+function partialEvents(
+  stdout: string,
+): readonly Readonly<Record<string, unknown>>[] {
+  const events: Readonly<Record<string, unknown>>[] = [];
+  for (const line of stdout.split("\n")) {
+    if (line.trim() === "") continue;
+    try {
+      const parsed = parseJsonLines(`${line}\n`);
+      for (const { event } of parsed) events.push(event);
+    } catch {
+      break;
+    }
+  }
+  return events;
+}
+
+function diagnosticFor(phase: CanaryPhase, error: unknown): string {
+  if (error instanceof ProcessControlError) {
+    const detail =
+      bounded(error.result.stderr) ||
+      bounded(error.result.stdout) ||
+      "no_output";
+    return bounded(`${phase}:${error.kind}:${detail}`);
+  }
+  const detail =
+    error instanceof Error ? `${error.name}:${error.message}` : "UnknownError";
+  return bounded(`${phase}:${detail}`);
 }
 
 function permissionPaths(
@@ -113,173 +153,244 @@ export async function runModelCanary(
   });
   let authMode: "file" | "keyring" | null = null;
   let events: readonly Readonly<Record<string, unknown>>[] = [];
-  let paidModelCalls: 0 | 1 = 0;
+  let modelInvocationAttempts: 0 | 1 = 0;
+  let phase: CanaryPhase = "login";
+  // Narrowing helper: assignments inside the retry closure are invisible to
+  // control-flow analysis at the catch site, so compare through a function.
+  const modelCallHappened = (): boolean => modelInvocationAttempts === 1;
+  const currentPhase = (): CanaryPhase => phase;
   try {
-    const auth = await prepareExistingLogin({
-      privateCodexHome: workspace.codexHome,
-      sandboxHome: workspace.sandboxHome,
-      env: context.env,
-      run: (argv, childEnv) =>
-        context.run(argv, workspace.target, childEnv, 15_000),
-    });
-    authMode = auth.mode;
-    const staged = await stageCapabilityCanary(
-      workspace,
-      context.sourceWorktree,
-      context.stageDependencies,
-    );
-    const runtimeEnv = {
-      ...auth.env,
-      KIBI_BRANCH: SKILLOPT_EVALUATION_BRANCH,
-      PATH: "/usr/bin:/bin",
-    };
-    await writeFile(
-      join(workspace.codexHome, "config.toml"),
-      buildCodexConfig({
-        role: context.role,
-        authMode,
-        paths: permissionPaths(
+    return await withPreparedLogin(
+      {
+        privateCodexHome: workspace.codexHome,
+        sandboxHome: workspace.sandboxHome,
+        env: context.env,
+        run: (argv, childEnv) =>
+          context.run(argv, workspace.target, childEnv, 15_000),
+      },
+      async (auth) => {
+        authMode = auth.mode;
+        phase = "staging";
+        const staged = await stageCapabilityCanary(
           workspace,
           context.sourceWorktree,
-          auth.realCodexHome,
-        ),
-        bwrapExecutable: staged.bwrapExecutable,
-        codexExecutable: staged.codexCommand,
-        mcpServer: staged.mcpServer,
-      }),
-      { encoding: "utf8", mode: 0o600 },
+          context.stageDependencies,
+        );
+        const runtimeEnv = {
+          ...auth.env,
+          KIBI_BRANCH: SKILLOPT_EVALUATION_BRANCH,
+          PATH: "/usr/bin:/bin",
+        };
+        await writeFile(
+          join(workspace.codexHome, "config.toml"),
+          buildCodexConfig({
+            role: context.role,
+            authMode,
+            paths: permissionPaths(
+              workspace,
+              context.sourceWorktree,
+              auth.realCodexHome,
+            ),
+            bwrapExecutable: staged.bwrapExecutable,
+            codexExecutable: staged.codexCommand,
+            mcpServer: staged.mcpServer,
+          }),
+          { encoding: "utf8", mode: 0o600 },
+        );
+        const probe = await writeCapabilityProbe(
+          workspace,
+          sourceIsolationDeniedPaths(
+            workspace,
+            context.sourceWorktree,
+            auth.realCodexHome,
+          ),
+        );
+        phase = "mcp-probe";
+        await context.probeMcp({ ...staged.mcpServer, env: runtimeEnv });
+        phase = "sandbox-probe";
+        await context.probeSandbox({
+          codexCommand: staged.codexCommand,
+          workspace: workspace.target,
+          env: runtimeEnv,
+          run: context.run,
+          probe,
+        });
+        const prompt =
+          context.role === "target"
+            ? `Use shell_command exactly once to execute ${probe.command}. Do not infer or claim success without that tool event. If it exits zero, return probeExecuted=true; otherwise fail.`
+            : [
+                "Call the read-only kibi MCP tool kb_semantic_advisor exactly once with requirement text `A session timeout must be 30 minutes.` and complete diagnostic telemetry (is_autonomous=true, a brief reasoning string, confidence_score=1, attempt_number=1, missing_context empty). Wait for its successful result.",
+                `Then use shell_command exactly once to execute ${probe.command}.`,
+                "Do not call any other shell or MCP tool. Do not infer or claim success without both completed tool calls. If both succeed, return probeExecuted=true; otherwise fail.",
+              ].join(" ");
+        phase = "model";
+        modelInvocationAttempts = 1;
+        const result = await context.run(
+          buildCodexExecArgv({
+            codexCommand: staged.codexCommand,
+            workspace: workspace.target,
+            outputSchema: staged.schemaPath,
+            role: context.role,
+          }),
+          workspace.target,
+          runtimeEnv,
+          120_000,
+          prompt,
+        );
+        const requiredMcpFailure = codexRequiredMcpFailure(result);
+        if (requiredMcpFailure !== null) {
+          phase = "mcp-probe";
+          modelInvocationAttempts = 0;
+          throw requiredMcpFailure;
+        }
+        events = parseJsonLines(result.stdout).map(({ event }) => event);
+        const run = modelRun(context.role, events);
+        if (result.exitCode !== 0) {
+          return {
+            kind: "no-go",
+            authMode,
+            paidModelCalls: modelInvocationAttempts,
+            modelInvocationAttempts,
+            reason: summarizeProcessFailure(result),
+            phase,
+            diagnostic: bounded(summarizeProcessFailure(result)),
+            run,
+          };
+        }
+        if (
+          events.some(
+            (event) => event.type === "error" || event.type === "turn.failed",
+          )
+        ) {
+          return {
+            kind: "no-go",
+            authMode,
+            paidModelCalls: modelInvocationAttempts,
+            modelInvocationAttempts,
+            reason: "codex_event_failure",
+            phase,
+            diagnostic: "model:codex_event_failure",
+            run,
+          };
+        }
+        if (!events.some((event) => event.type === "turn.completed")) {
+          return {
+            kind: "no-go",
+            authMode,
+            paidModelCalls: modelInvocationAttempts,
+            modelInvocationAttempts,
+            reason: "missing_turn_completed",
+            phase,
+            diagnostic: "model:missing_turn_completed",
+            run,
+          };
+        }
+        const brokerTrace = await readFile(
+          staged.mcpServer.tracePath,
+          "utf8",
+        ).catch((error: unknown) => {
+          if (
+            error instanceof Error &&
+            "code" in error &&
+            error.code === "ENOENT"
+          )
+            return "";
+          throw error;
+        });
+        const diagnosticReceipt = await readFile(
+          join(workspace.target, ".kb/usage.log"),
+          "utf8",
+        ).catch((error: unknown) => {
+          if (
+            error instanceof Error &&
+            "code" in error &&
+            error.code === "ENOENT"
+          )
+            return "";
+          throw error;
+        });
+        if (context.role === "target") {
+          await (context.verifyEvidence ?? verifyProbeEvidence)(events, probe);
+        } else {
+          await (context.verifyEvidence ?? verifyCapabilityEvidence)(
+            events,
+            probe,
+            {
+              brokerTrace,
+              diagnosticReceipt,
+              toolNames: ["kb_semantic_advisor"],
+            },
+          );
+        }
+        return {
+          kind: "pass",
+          authMode,
+          modelInvocationAttempts,
+          run,
+        };
+      },
     );
-    const probe = await writeCapabilityProbe(
-      workspace,
-      sourceIsolationDeniedPaths(
-        workspace,
-        context.sourceWorktree,
-        auth.realCodexHome,
-      ),
-    );
-    await context.probeMcp({ ...staged.mcpServer, env: runtimeEnv });
-    await context.probeSandbox({
-      codexCommand: staged.codexCommand,
-      workspace: workspace.target,
-      env: runtimeEnv,
-      run: context.run,
-      probe,
-    });
-    const prompt =
-      context.role === "target"
-        ? `Use shell_command exactly once to execute ${probe.command}. Do not infer or claim success without that tool event. If it exits zero, return probeExecuted=true; otherwise fail.`
-        : [
-            "Call the read-only kibi MCP tool kb_semantic_advisor exactly once with requirement text `A session timeout must be 30 minutes.` and complete diagnostic telemetry (is_autonomous=true, a brief reasoning string, confidence_score=1, attempt_number=1, missing_context empty). Wait for its successful result.",
-            `Then use shell_command exactly once to execute ${probe.command}.`,
-            "Do not call any other shell or MCP tool. Do not infer or claim success without both completed tool calls. If both succeed, return probeExecuted=true; otherwise fail.",
-          ].join(" ");
-    const result = await context.run(
-      buildCodexExecArgv({
-        codexCommand: staged.codexCommand,
-        workspace: workspace.target,
-        outputSchema: staged.schemaPath,
-        role: context.role,
-      }),
-      workspace.target,
-      runtimeEnv,
-      120_000,
-      prompt,
-    );
-    const requiredMcpFailure = codexRequiredMcpFailure(result);
-    if (requiredMcpFailure !== null) throw requiredMcpFailure;
-    paidModelCalls = 1;
-    events = parseJsonLines(result.stdout).map(({ event }) => event);
-    const run = modelRun(context.role, events);
-    if (result.exitCode !== 0) {
-      return {
-        kind: "no-go",
-        authMode,
-        paidModelCalls,
-        reason: summarizeProcessFailure(result),
-        run,
-      };
-    }
-    if (
-      events.some(
-        (event) => event.type === "error" || event.type === "turn.failed",
-      )
-    ) {
-      return {
-        kind: "no-go",
-        authMode,
-        paidModelCalls,
-        reason: "codex_event_failure",
-        run,
-      };
-    }
-    if (!events.some((event) => event.type === "turn.completed")) {
-      return {
-        kind: "no-go",
-        authMode,
-        paidModelCalls,
-        reason: "missing_turn_completed",
-        run,
-      };
-    }
-    const brokerTrace = await readFile(
-      staged.mcpServer.tracePath,
-      "utf8",
-    ).catch((error: unknown) => {
-      if (error instanceof Error && "code" in error && error.code === "ENOENT")
-        return "";
-      throw error;
-    });
-    const diagnosticReceipt = await readFile(
-      join(workspace.target, ".kb/usage.log"),
-      "utf8",
-    ).catch((error: unknown) => {
-      if (error instanceof Error && "code" in error && error.code === "ENOENT")
-        return "";
-      throw error;
-    });
-    if (context.role === "target") {
-      await (context.verifyEvidence ?? verifyProbeEvidence)(events, probe);
-    } else {
-      await (context.verifyEvidence ?? verifyCapabilityEvidence)(
-        events,
-        probe,
-        {
-          brokerTrace,
-          diagnosticReceipt,
-          toolNames: ["kb_semantic_advisor"],
-        },
-      );
-    }
-    return { kind: "pass", authMode, run };
   } catch (error) {
+    if (error instanceof ProcessControlError) {
+      const failurePhase = currentPhase();
+      if (failurePhase === "model") {
+        modelInvocationAttempts = error.kind === "spawn" ? 0 : 1;
+        if (modelCallHappened()) events = partialEvents(error.result.stdout);
+      }
+      const run = modelCallHappened()
+        ? modelRun(context.role, events)
+        : undefined;
+      return {
+        kind: "no-go",
+        authMode,
+        paidModelCalls: modelInvocationAttempts,
+        modelInvocationAttempts,
+        reason: error.message,
+        phase: failurePhase,
+        diagnostic: diagnosticFor(failurePhase, error),
+        ...(run === undefined ? {} : { run }),
+      };
+    }
     if (
       error instanceof CodexAuthError ||
-      error instanceof ProcessControlError ||
       error instanceof JsonLinesError ||
       error instanceof CanaryEvidenceError ||
       error instanceof RuntimePrerequisiteError ||
       error instanceof RequiredMcpStartupError
     ) {
+      const failurePhase = currentPhase();
+      const run = modelCallHappened()
+        ? modelRun(context.role, events)
+        : undefined;
+      const reason = error.message;
       return {
         kind: "no-go",
         authMode,
-        paidModelCalls,
-        reason: error.message,
-        ...(paidModelCalls === 1
-          ? { run: modelRun(context.role, events) }
-          : {}),
+        paidModelCalls: modelInvocationAttempts,
+        modelInvocationAttempts,
+        reason,
+        phase: failurePhase,
+        diagnostic: diagnosticFor(failurePhase, error),
+        ...(run === undefined ? {} : { run }),
       };
     }
     const reason =
       error instanceof Error
         ? `${error.name}:${error.message}`.slice(0, 600)
         : "UnknownError";
+    const run = modelCallHappened()
+      ? modelRun(context.role, events)
+      : undefined;
+    const failurePhase = currentPhase();
     return {
       kind: "no-go",
       authMode,
-      paidModelCalls,
+      paidModelCalls: modelInvocationAttempts,
+      modelInvocationAttempts,
       reason: `canary_infrastructure:${reason}`,
-      ...(paidModelCalls === 1 ? { run: modelRun(context.role, events) } : {}),
+      phase: failurePhase,
+      diagnostic: diagnosticFor(failurePhase, error),
+      ...(run === undefined ? {} : { run }),
     };
   } finally {
     await workspace.cleanup();

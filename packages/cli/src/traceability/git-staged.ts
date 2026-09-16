@@ -1,4 +1,4 @@
-import { execSync } from "node:child_process";
+import { execFileSync, execSync } from "node:child_process";
 import { isCliTraceOrDebugEnabled } from "../env.js";
 import { isEntityLanePath, isSymbolsManifestPath } from "../utils/kb-paths.js";
 
@@ -18,7 +18,25 @@ export interface StagedFile {
   content?: string; // staged file content (UTF-8)
 }
 
+export type StagedAnalysisDepth = "symbol" | "metadata" | "file" | "none";
+export type StagedDisposition = "checked" | "advisory" | "skipped";
+export type StagedSkipReason =
+  | "binary"
+  | "unsupported_encoding"
+  | "symlink"
+  | "submodule";
+
+/** Complete Git-index record used by staged validation before any filtering. */
+export interface StagedPath extends StagedFile {
+  analysisDepth: StagedAnalysisDepth;
+  disposition: StagedDisposition;
+  gitMode?: string;
+  previousContent?: string;
+  skipReason?: StagedSkipReason;
+}
+
 type ExecFn = (cmd: string, opts: { encoding: "utf8" }) => string;
+export type GitArgsExecFn = (args: readonly string[]) => Buffer;
 
 // Staged manifests (e.g., .kb/symbols.yaml) can exceed Node's default 1 MiB
 // exec buffer; without a larger bound the staged file is silently skipped and
@@ -27,6 +45,24 @@ const GIT_EXEC_MAX_BUFFER = 64 * 1024 * 1024;
 
 function defaultExec(cmd: string, opts: { encoding: "utf8" }): string {
   return execSync(cmd, { ...opts, maxBuffer: GIT_EXEC_MAX_BUFFER });
+}
+
+function defaultGitArgsExec(args: readonly string[]): Buffer {
+  return execFileSync("git", args, {
+    encoding: "buffer",
+    maxBuffer: GIT_EXEC_MAX_BUFFER,
+    stdio: ["ignore", "pipe", "ignore"],
+  });
+}
+
+function runGitArgs(args: readonly string[], exec: GitArgsExecFn): Buffer {
+  try {
+    return exec(args);
+  } catch (err: unknown) {
+    const e = err as { message?: unknown } | undefined;
+    const message = e?.message ? String(e.message) : String(err);
+    throw new Error(`git command failed: git ${args.join(" ")} -> ${message}`);
+  }
 }
 
 function runGit(cmd: string, exec: ExecFn): string {
@@ -111,6 +147,170 @@ function isEntityMarkdown(p: string): boolean {
 function isManifestFile(p: string): boolean {
   const posix = p.replaceAll("\\", "/");
   return SUPPORTED_MANIFEST.has(posix) || isSymbolsManifestPath(posix);
+}
+
+function isRelationshipShard(p: string): boolean {
+  const posix = p.replaceAll("\\", "/");
+  return (
+    posix.startsWith(".kb/relationships/") &&
+    (posix.endsWith(".yaml") || posix.endsWith(".yml"))
+  );
+}
+
+function isKibiMetadataPath(p: string): boolean {
+  const posix = p.replaceAll("\\", "/");
+  return (
+    isEntityMarkdown(posix) ||
+    isManifestFile(posix) ||
+    isRelationshipShard(posix) ||
+    posix === ".kb/manifest.json"
+  );
+}
+
+function decodeText(
+  buffer: Buffer,
+): { content: string } | { skipReason: "binary" | "unsupported_encoding" } {
+  if (buffer.includes(0)) return { skipReason: "binary" };
+  try {
+    return {
+      content: new TextDecoder("utf-8", { fatal: true }).decode(buffer),
+    };
+  } catch {
+    return { skipReason: "unsupported_encoding" };
+  }
+}
+
+function parseMode(output: Buffer): string | undefined {
+  const text = output.toString("utf8");
+  return text.match(/^(\d{6})\s/)?.[1];
+}
+
+function normalizeNewFileHunks(ranges: HunkRange[], content: string): void {
+  const lineCount = Math.max(1, content.split(/\r?\n/).length);
+  for (const range of ranges) {
+    if (range.end === Number.MAX_SAFE_INTEGER) range.end = lineCount;
+  }
+}
+
+/**
+ * Read every staged path from the index, preserving records that staged symbol
+ * validation cannot inspect deeply. Blob contents always come from Git rather
+ * than the working tree.
+ */
+// implements REQ-014
+export function getStagedInventory(
+  exec: GitArgsExecFn = defaultGitArgsExec,
+): StagedPath[] {
+  let parsed: ReturnType<typeof parseNameStatusNull>;
+  try {
+    parsed = parseNameStatusNull(
+      runGitArgs(
+        ["diff", "--cached", "--name-status", "-z", "--diff-filter=ACMRD"],
+        exec,
+      ).toString("utf8"),
+    );
+  } catch (error) {
+    throw new Error(`failed to list staged files: ${String(error)}`);
+  }
+
+  return parsed.map((entry): StagedPath => {
+    const status = (entry.status[0] as Status) || "M";
+    const oldPath = status === "R" ? entry.parts[0] : undefined;
+    const path =
+      status === "R"
+        ? (entry.parts[1] ?? entry.parts[0] ?? "")
+        : (entry.parts[0] ?? "");
+    const lookupPath = status === "D" ? (oldPath ?? path) : path;
+    const modeArgs =
+      status === "D"
+        ? ["ls-tree", "-z", "HEAD", "--", lookupPath]
+        : ["ls-files", "--stage", "-z", "--", lookupPath];
+    const gitMode = parseMode(runGitArgs(modeArgs, exec));
+
+    if (gitMode === "120000" || gitMode === "160000") {
+      return {
+        path,
+        status,
+        ...(oldPath ? { oldPath } : {}),
+        hunkRanges: [],
+        gitMode,
+        analysisDepth: "none",
+        disposition: "skipped",
+        skipReason: gitMode === "120000" ? "symlink" : "submodule",
+      };
+    }
+
+    const diffText = runGitArgs(
+      ["diff", "--cached", "-U0", "--", path],
+      exec,
+    ).toString("utf8");
+    const isNewFile = status === "A" || /\bdev\/null\b/.test(diffText);
+    const hunkRanges = parseHunksFromDiff(diffText, isNewFile);
+    const blobArgs =
+      status === "D" ? ["show", `HEAD:${lookupPath}`] : ["show", `:${path}`];
+    const decoded = decodeText(runGitArgs(blobArgs, exec));
+    if ("skipReason" in decoded) {
+      return {
+        path,
+        status,
+        ...(oldPath ? { oldPath } : {}),
+        hunkRanges,
+        diffText,
+        ...(gitMode ? { gitMode } : {}),
+        analysisDepth: "none",
+        disposition: "skipped",
+        skipReason: decoded.skipReason,
+      };
+    }
+
+    normalizeNewFileHunks(hunkRanges, decoded.content);
+    const deleted = status === "D";
+    const analysisDepth: StagedAnalysisDepth = deleted
+      ? "file"
+      : hasSupportedExt(path)
+        ? "symbol"
+        : isKibiMetadataPath(path)
+          ? "metadata"
+          : "file";
+    const content = deleted ? undefined : decoded.content;
+    const previousContent = deleted ? decoded.content : undefined;
+    return {
+      path,
+      status,
+      ...(oldPath ? { oldPath } : {}),
+      hunkRanges,
+      diffText,
+      ...(content !== undefined ? { content } : {}),
+      ...(previousContent !== undefined ? { previousContent } : {}),
+      ...(gitMode ? { gitMode } : {}),
+      analysisDepth,
+      disposition: analysisDepth === "file" ? "advisory" : "checked",
+    };
+  });
+}
+
+/** Convert the complete inventory to the historical supported staged-file set. */
+export function supportedStagedFiles(
+  inventory: readonly StagedPath[],
+): StagedFile[] {
+  return inventory.flatMap((entry) => {
+    if (
+      entry.status === "D" ||
+      entry.disposition === "skipped" ||
+      (entry.analysisDepth !== "symbol" && entry.analysisDepth !== "metadata")
+    ) {
+      return [];
+    }
+    const {
+      analysisDepth: _analysisDepth,
+      disposition: _disposition,
+      gitMode: _gitMode,
+      previousContent: _previousContent,
+      skipReason: _skipReason,
+      ...file
+    } = entry;
+    return [file];
+  });
 }
 
 /**

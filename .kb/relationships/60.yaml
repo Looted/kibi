@@ -13,3 +13,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-988eb625f58b
+  - type: covered_by
+    from: SYM-SourceAnalysisResult
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:23:48.622Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a169be8ef48
+  - type: implements
+    from: SYM-janitor-finding
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-15T07:59:02.342Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23909acc3387
+  - type: covered_by
+    from: SYM-janitor-finding
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-09-15T07:59:02.349Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf0ee4247b74

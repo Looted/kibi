@@ -104,3 +104,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9e084e82d4b0
+  - type: covered_by
+    from: SYM-codex-HookEvent
+    to: TEST-codex-kibi-plugin-v1
+    created_at: 2026-09-05T15:20:04.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd2303e7aa29
+  - type: executable_for
+    from: SYM-e2e-test-opencode-smart-enforcement
+    to: TEST-opencode-smart-enforcement
+    created_at: 2026-09-05T15:48:26.165Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d8282eea02e
+  - type: covered_by
+    from: SYM-auto-9673173700B2
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:19:28.329Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d5162d9fee0
+  - type: covered_by
+    from: SYM-predicate-default-usage-hints
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:47:19.994Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c73c11a10e8
+  - type: covered_by
+    from: SYM-skillopt-bind-physical-cells
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:13:26.473Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-201c14d1e09f
+  - type: covered_by
+    from: SYM-scripts-skillopt-eval-scoring-held-out-predicate-PredicateVariant
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T18:19:11.010Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ec130bc4598

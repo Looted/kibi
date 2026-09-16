@@ -22,7 +22,11 @@ export type FrozenVariant = VariantSurface &
     status: "frozen";
     body: string;
     bodyHash: string;
-    provenance: "canonical" | "codex-one-shot" | "skillopt";
+    provenance:
+      | "canonical"
+      | "codex-one-shot"
+      | "codex-one-shot-unavailable"
+      | "skillopt";
     sourceRequestHash?: string;
   }>;
 
@@ -72,7 +76,7 @@ export type CandidateValidationErrorCode =
   | "direct_kb_guidance"
   | "prohibited_host_or_provider_claim";
 
-function sha256Text(value: string): string {
+export function sha256Text(value: string): string {
   return createHash("sha256").update(value, "utf8").digest("hex");
 }
 
@@ -170,7 +174,7 @@ export function freezeCandidateVariant(
     body: string;
     frontmatterHash: string;
     resourcesHash: string;
-    provenance: "codex-one-shot" | "skillopt";
+    provenance: "codex-one-shot" | "codex-one-shot-unavailable" | "skillopt";
     sourceRequestHash?: string;
   }>,
 ): FrozenVariant {

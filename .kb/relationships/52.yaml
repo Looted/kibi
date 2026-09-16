@@ -118,3 +118,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8f95a1418577
+  - type: constrains
+    from: REQ-symbol-behavioral-anchors
+    to: FACT-SUBJ-REQ-SYMBOL-BEHAVIORAL-ANCHORS
+    created_at: 2026-09-05T14:19:24.820Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af8ce9057c20
+  - type: requires_property
+    from: REQ-symbol-behavioral-anchors
+    to: FACT-PROP-REQ-SYMBOL-BEHAVIORAL-ANCHORS-C01
+    created_at: 2026-09-05T14:19:24.837Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b83904d7a66
+  - type: covered_by
+    from: SYM-cli-impact-narrowerExtractedSymbols
+    to: TEST-audit-quality-diagnostics-v1
+    created_at: 2026-09-05T15:03:43.326Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5df92dfe44d2
+  - type: covered_by
+    from: SYM-KIBI-SYMBOLS-MANIFEST-PATH
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:13:07.890Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af8ab19c9c7b
+  - type: covered_by
+    from: SYM-getBehavioralSymbolNames
+    to: TEST-cli-symbol-behavioral-anchors
+    created_at: 2026-09-05T18:22:11.587Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-729491463d31

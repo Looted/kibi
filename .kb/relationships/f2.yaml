@@ -55,3 +55,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-90e102ae8416
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-2-inferBatchOperationRuleArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:42:37.538Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d9b966d299f
+  - type: covered_by
+    from: SYM-PredicateReplicate
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-10T15:00:55.505Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-905e607d4959
+  - type: implements
+    from: SYM-PredicateReplicate
+    to: REQ-skillopt-external-adoption-verdict
+    created_at: 2026-09-10T15:00:55.541Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8cdf15c3e23c
+  - type: implements
+    from: SYM-symbol-repair-plan-type
+    to: REQ-kibi-dependency-ordered-repair-plan
+    created_at: 2026-09-14T13:38:10.190Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da699c26a586
+  - type: covered_by
+    from: SYM-symbol-repair-plan-type
+    to: TEST-kibi-dependency-ordered-repair-plan
+    created_at: 2026-09-14T13:38:10.198Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd8f235a5007
+  - type: implements
+    from: SYM-kibi-impact-symbols-manifest-file-detail
+    to: REQ-cli-staged-impact-enforcement
+    created_at: 2026-09-15T15:43:59.973Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0fa53188cee0
+  - type: covered_by
+    from: SYM-kibi-impact-symbols-manifest-file-detail
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-15T15:43:59.984Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69803e415f50

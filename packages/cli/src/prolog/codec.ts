@@ -15,11 +15,21 @@
 
 /**
  * Escape a string for use as a Prolog atom.
- * Doubles single-quote characters per ISO Prolog standard.
+ * Escapes backslashes/control characters and doubles single quotes per ISO
+ * Prolog syntax.
  */
 export function escapeAtom(value: string): string {
   // implements REQ-009
-  return value.replace(/'/g, "''");
+  return value
+    .replaceAll("\\", "\\\\")
+    .replaceAll("\u0007", "\\a")
+    .replaceAll("\u0008", "\\b")
+    .replaceAll("\u000c", "\\f")
+    .replaceAll("\n", "\\n")
+    .replaceAll("\r", "\\r")
+    .replaceAll("\t", "\\t")
+    .replaceAll("\u000b", "\\v")
+    .replaceAll("'", "''");
 }
 
 /**
@@ -29,9 +39,7 @@ export function escapeAtom(value: string): string {
 export function toPrologAtom(value: string): string {
   // implements REQ-009
   const simplePrologAtom = /^[a-z][a-zA-Z0-9_]*$/;
-  return simplePrologAtom.test(value)
-    ? value
-    : `'${value.replace(/'/g, "''")}'`;
+  return simplePrologAtom.test(value) ? value : `'${escapeAtom(value)}'`;
 }
 
 /**
@@ -56,73 +64,107 @@ export function toPrologString(value: string): string {
  */
 export function escapeAtomContent(value: string): string {
   // implements REQ-009
-  return value.replace(/'/g, "''");
+  return escapeAtom(value);
 }
 
+/**
+ * Parse a Prolog list of list rows without decoding or normalizing columns.
+ * Malformed outer collections fail closed rather than returning a partial
+ * projection.
+ */
 export function parseListOfLists(listStr: string): string[][] {
   // implements REQ-009
-  const cleaned = listStr.trim().replace(/^\[/, "").replace(/\]$/, "");
-
-  if (cleaned === "") {
-    return [];
-  }
-
-  const results: string[][] = [];
-  let depth = 0;
-  let current = "";
-  let currentList: string[] = [];
-
-  for (let i = 0; i < cleaned.length; i++) {
-    const char = cleaned[i];
-
-    if (char === "[") {
-      depth++;
-      if (depth > 1) current += char;
-    } else if (char === "]") {
-      depth--;
-      if (depth === 0) {
-        if (current) {
-          currentList.push(current.trim());
-          current = "";
-        }
-        if (currentList.length > 0) {
-          results.push(currentList);
-          currentList = [];
-        }
-      } else {
-        current += char;
-      }
-    } else if (char === "," && depth === 1) {
-      if (current) {
-        currentList.push(current.trim());
-        current = "";
-      }
-    } else if (char === "," && depth === 0) {
-      // Skip comma between lists
-    } else {
-      current += char;
-    }
-  }
-
-  return results;
+  return parseListRows(listStr).flatMap((row) => {
+    const scanned = scanTopLevelGeneral(row, ",");
+    if (!scanned.balanced) return [];
+    const columns = scanned.parts.map((column) => column.trim());
+    return columns.length === 0 || (columns.length === 1 && columns[0] === "")
+      ? []
+      : [columns];
+  });
 }
 
-export function parseEntityFromBinding(
-  // implements REQ-009
-  bindingStr: string,
-): Record<string, unknown> {
-  const cleaned = bindingStr.trim().replace(/^\[/, "").replace(/\]$/, "");
-  const parts = splitTopLevelGeneral(cleaned, ",");
+export function firstTwoDefinedParts(
+  parts: readonly (string | undefined)[],
+): [string, string] | undefined {
+  const first = parts[0];
+  const second = parts[1];
+  if (first === undefined || second === undefined) {
+    return undefined;
+  }
+  return [first, second];
+}
 
+export function fallbackWhenPairMissing<T>(
+  pair: [string, string] | undefined,
+  fallback: T,
+): T | null {
+  return pair === undefined ? fallback : null;
+}
+
+// implements REQ-core-persistence
+// covered_by TEST-cli-prolog-codec
+export function typedLiteralFromParts(
+  parts: readonly (string | undefined)[],
+  original: string,
+): unknown {
+  const pair = firstTwoDefinedParts(parts);
+  if (!pair) {
+    return original;
+  }
+  const [literalPart, datatypePart] = pair;
+
+  let literalValue = literalPart.trim();
+  const datatype = datatypePart.trim();
+
+  const decodedLiteral = decodePrologQuotedLiteral(literalValue, '"');
+  if (decodedLiteral !== undefined) {
+    literalValue = decodedLiteral;
+  } else if (literalValue.startsWith('"') && literalValue.endsWith('"')) {
+    literalValue = literalValue.substring(1, literalValue.length - 1);
+  }
+
+  if (datatype.includes("#integer")) {
+    return Number.parseInt(literalValue, 10);
+  }
+  if (datatype.includes("#decimal") || datatype.includes("#double")) {
+    return Number.parseFloat(literalValue);
+  }
+  if (datatype.includes("#boolean")) {
+    return literalValue === "true";
+  }
+
+  if (literalValue.startsWith("[") && literalValue.endsWith("]")) {
+    const listContent = literalValue.substring(1, literalValue.length - 1);
+    if (listContent === "") {
+      return [];
+    }
+    return splitTopLevelGeneral(listContent, ",").map((item) => item.trim());
+  }
+
+  return literalValue;
+}
+
+export function fileUriLeaf(value: string): string {
+  const lastSlash = value.lastIndexOf("/");
+  if (lastSlash !== -1) {
+    return value.substring(lastSlash + 1);
+  }
+  return value;
+}
+
+export function entityFromBindingParts(
+  parts: readonly (string | undefined)[],
+): Record<string, unknown> {
   if (parts.length < 3) {
     return {};
   }
 
-  const idPart = parts[0];
-  const typePart = parts[1];
-  if (idPart === undefined || typePart === undefined) {
+  const pair = firstTwoDefinedParts(parts);
+  if (!pair) {
     return {};
   }
+  const [idPart, typePart] = pair;
 
   const id = idPart.trim();
   const type = typePart.trim();
@@ -130,6 +172,14 @@ export function parseEntityFromBinding(
 
   const props = parsePropertyList(propsStr);
   return { ...props, id: normalizeEntityId(stripOuterQuotes(id)), type };
+}
+
+export function parseEntityFromBinding(
+  // implements REQ-009
+  bindingStr: string,
+): Record<string, unknown> {
+  const cleaned = bindingStr.trim().replace(/^\[/, "").replace(/\]$/, "");
+  return entityFromBindingParts(splitTopLevelGeneral(cleaned, ","));
 }
 
 export function parseEntityFromList(data: string[]): Record<string, unknown> {
@@ -232,66 +282,29 @@ export function parsePrologValue(valueInput: string): unknown {
 
     const parts = splitTopLevelGeneral(innerContent, ",");
     if (parts.length >= 2) {
-      const literalPart = parts[0];
-      const datatypePart = parts[1];
-      if (literalPart === undefined || datatypePart === undefined) {
-        return value;
-      }
-
-      let literalValue = literalPart.trim();
-      const datatype = datatypePart.trim();
-
-      if (literalValue.startsWith('"') && literalValue.endsWith('"')) {
-        literalValue = literalValue.substring(1, literalValue.length - 1);
-      }
-
-      // Parse typed literals based on datatype
-      if (datatype.includes("#integer")) {
-        return Number.parseInt(literalValue, 10);
-      }
-      if (datatype.includes("#decimal") || datatype.includes("#double")) {
-        return Number.parseFloat(literalValue);
-      }
-      if (datatype.includes("#boolean")) {
-        return literalValue === "true";
-      }
-
-      // Handle array notation for string values
-      if (literalValue.startsWith("[") && literalValue.endsWith("]")) {
-        const listContent = literalValue.substring(1, literalValue.length - 1);
-        if (listContent === "") {
-          return [];
-        }
-        return splitTopLevelGeneral(listContent, ",").map((item) =>
-          item.trim(),
-        );
-      }
-
-      return literalValue;
+      return typedLiteralFromParts(parts, value);
     }
   }
 
   // Handle URI
   if (value.startsWith("file:///")) {
-    const lastSlash = value.lastIndexOf("/");
-    if (lastSlash !== -1) {
-      return value.substring(lastSlash + 1);
-    }
-    return value;
+    return fileUriLeaf(value);
   }
 
   // Handle quoted string
   if (value.startsWith('"') && value.endsWith('"')) {
-    try {
-      return JSON.parse(value) as unknown;
-    } catch {
-      return value.substring(1, value.length - 1);
-    }
+    return (
+      decodePrologQuotedLiteral(value, '"') ??
+      value.substring(1, value.length - 1)
+    );
   }
 
   // Handle quoted atom
   if (value.startsWith("'") && value.endsWith("'")) {
-    return value.substring(1, value.length - 1);
+    return (
+      decodePrologQuotedLiteral(value, "'") ??
+      value.substring(1, value.length - 1)
+    );
   }
 
   // Handle list
@@ -311,46 +324,79 @@ export function parsePrologValue(valueInput: string): unknown {
 
 export function splitTopLevelGeneral(str: string, delimiter: string): string[] {
   // implements REQ-009
+  return scanTopLevelGeneral(str, delimiter).parts;
+}
+
+type PrologQuote = "'" | '"';
+
+type TopLevelScan = {
+  readonly parts: string[];
+  readonly balanced: boolean;
+};
+
+function scanTopLevelGeneral(str: string, delimiter: string): TopLevelScan {
   const results: string[] = [];
   let current = "";
-  let depth = 0;
-  let inDoubleQuotes = false;
-  let inSingleQuotes = false;
+  let quote: PrologQuote | null = null;
+  const delimiters: string[] = [];
+  let balanced = true;
 
   for (let i = 0; i < str.length; i++) {
     const char = str[i];
-    const prevChar = i > 0 ? str[i - 1] : "";
 
-    if (char === '"' && !inSingleQuotes && prevChar !== "\\") {
-      inDoubleQuotes = !inDoubleQuotes;
+    if (quote !== null) {
       current += char;
-    } else if (char === "'" && !inDoubleQuotes && prevChar !== "\\") {
-      inSingleQuotes = !inSingleQuotes;
+      if (char === "\\") {
+        const escaped = str[i + 1];
+        if (escaped !== undefined) {
+          current += escaped;
+          i++;
+        }
+      } else if (char === quote) {
+        const doubledPrologQuote = quote === "'" && str[i + 1] === "'";
+        if (doubledPrologQuote) {
+          current += str[i + 1] ?? "";
+          i++;
+        } else {
+          quote = null;
+        }
+      }
+      continue;
+    }
+
+    if (char === "'" || char === '"') {
+      quote = char;
       current += char;
-    } else if (
-      !inDoubleQuotes &&
-      !inSingleQuotes &&
-      (char === "[" || char === "(")
-    ) {
-      depth++;
+      continue;
+    }
+
+    if (char === "[" || char === "(" || char === "{") {
+      delimiters.push(char);
       current += char;
-    } else if (
-      !inDoubleQuotes &&
-      !inSingleQuotes &&
-      (char === "]" || char === ")")
-    ) {
-      depth--;
+      continue;
+    }
+
+    if (char === "]" || char === ")" || char === "}") {
+      const expectedOpening = char === "]" ? "[" : char === ")" ? "(" : "{";
+      if (delimiters.at(-1) !== expectedOpening) {
+        balanced = false;
+      } else {
+        delimiters.pop();
+      }
       current += char;
-    } else if (
-      !inDoubleQuotes &&
-      !inSingleQuotes &&
-      depth === 0 &&
-      char === delimiter
+      continue;
+    }
+
+    if (
+      delimiters.length === 0 &&
+      delimiter.length > 0 &&
+      str.startsWith(delimiter, i)
     ) {
       if (current) {
         results.push(current);
         current = "";
       }
+      i += delimiter.length - 1;
     } else {
       current += char;
     }
@@ -360,7 +406,10 @@ export function splitTopLevelGeneral(str: string, delimiter: string): string[] {
     results.push(current);
   }
 
-  return results;
+  return {
+    parts: results,
+    balanced: balanced && quote === null && delimiters.length === 0,
+  };
 }
 
 export function splitTopLevel(str: string, delimiter: string): string[] {
@@ -370,15 +419,18 @@ export function splitTopLevel(str: string, delimiter: string): string[] {
 
 function stripOuterQuotes(value: string): string {
   if (value.startsWith("'") && value.endsWith("'")) {
-    return value.slice(1, -1);
+    return decodePrologQuotedLiteral(value, "'") ?? value.slice(1, -1);
   }
   if (value.startsWith('"') && value.endsWith('"')) {
-    return value.slice(1, -1);
+    return decodePrologQuotedLiteral(value, '"') ?? value.slice(1, -1);
   }
   return value;
 }
 
-function normalizeEntityId(value: string): string {
+export function normalizeEntityId(value: string): string {
+  if (value.startsWith("kb:entity/")) {
+    return value.slice("kb:entity/".length);
+  }
   if (!value.startsWith("file:///")) {
     return value;
   }
@@ -453,43 +505,29 @@ function parseListRows(raw: string): string[] {
     return [];
   }
 
+  if (!trimmed.startsWith("[") || !trimmed.endsWith("]")) {
+    return [];
+  }
+
   const content = unwrapList(trimmed);
   if (content.length === 0) {
     return [];
   }
 
-  const rows: string[] = [];
-  let depth = 0;
-  let current = "";
-
-  for (let i = 0; i < content.length; i++) {
-    const ch = content[i];
-    if (ch === "[") {
-      depth++;
-      if (depth > 1) {
-        current += ch;
-      }
-      continue;
-    }
-
-    if (ch === "]") {
-      depth--;
-      if (depth === 0) {
-        rows.push(current.trim());
-        current = "";
-      } else {
-        current += ch;
-      }
-      continue;
-    }
-
-    if (ch === "," && depth === 0) {
-      continue;
-    }
-
-    current += ch;
+  const scanned = scanTopLevelGeneral(content, ",");
+  if (!scanned.balanced) {
+    return [];
   }
 
+  const rows: string[] = [];
+  for (const term of scanned.parts) {
+    const row = term.trim();
+    if (row.length === 0) continue;
+    if (!row.startsWith("[") || !row.endsWith("]")) {
+      return [];
+    }
+    rows.push(row.slice(1, -1).trim());
+  }
   return rows;
 }
 
@@ -553,13 +591,13 @@ export function parseViolationRows(raw: string): ParsedViolation[] {
       continue;
     }
 
-    const rule = rulePart.trim().replace(/^'|'$/g, "");
-    const entityId = entityIdPart.trim().replace(/^'|'$/g, "");
-    const description = descriptionPart.trim().replace(/^"|"$/g, "");
-    const suggestion = suggestionPart.trim().replace(/^"|"$/g, "");
+    const rule = stripQuotes(rulePart.trim());
+    const entityId = stripQuotes(entityIdPart.trim());
+    const description = stripQuotes(descriptionPart.trim());
+    const suggestion = stripQuotes(suggestionPart.trim());
     const source =
       parts.length >= 5
-        ? parts[4]?.trim().replace(/^'|'$/g, "") || undefined
+        ? stripQuotes(parts[4]?.trim() ?? "") || undefined
         : undefined;
 
     violations.push({
@@ -576,12 +614,108 @@ export function parseViolationRows(raw: string): ParsedViolation[] {
 
 function stripQuotes(value: string): string {
   if (value.startsWith("'") && value.endsWith("'")) {
-    return value.slice(1, -1);
+    return decodePrologQuotedLiteral(value, "'") ?? value.slice(1, -1);
   }
 
   if (value.startsWith('"') && value.endsWith('"')) {
-    return value.slice(1, -1);
+    return decodePrologQuotedLiteral(value, '"') ?? value.slice(1, -1);
   }
 
   return value;
+}
+
+/** Decode one Prolog quoted literal without decoding an escaped value twice. */
+function decodePrologQuotedLiteral(
+  value: string,
+  quote: PrologQuote,
+): string | undefined {
+  if (!value.startsWith(quote) || !value.endsWith(quote) || value.length < 2) {
+    return undefined;
+  }
+
+  const content = value.slice(1, -1);
+  let decoded = "";
+  for (let index = 0; index < content.length; index++) {
+    const char = content[index];
+    if (char === undefined) continue;
+
+    if (quote === "'" && char === "'") {
+      if (content[index + 1] !== "'") return undefined;
+      decoded += "'";
+      index++;
+      continue;
+    }
+    if (char !== "\\") {
+      decoded += char;
+      continue;
+    }
+
+    const escaped = content[index + 1];
+    if (escaped === undefined) return undefined;
+    index++;
+    switch (escaped) {
+      case "a":
+        decoded += "\u0007";
+        break;
+      case "b":
+        decoded += "\b";
+        break;
+      case "e":
+        decoded += "\u001b";
+        break;
+      case "f":
+        decoded += "\f";
+        break;
+      case "n":
+        decoded += "\n";
+        break;
+      case "r":
+        decoded += "\r";
+        break;
+      case "t":
+        decoded += "\t";
+        break;
+      case "v":
+        decoded += "\u000b";
+        break;
+      case "\\":
+        decoded += "\\";
+        break;
+      case "'":
+        decoded += "'";
+        break;
+      case '"':
+        decoded += '"';
+        break;
+      case "u": {
+        const code = content.slice(index + 1, index + 5);
+        if (!/^[0-9A-Fa-f]{4}$/.test(code)) return undefined;
+        decoded += String.fromCodePoint(Number.parseInt(code, 16));
+        index += 4;
+        break;
+      }
+      case "U": {
+        const code = content.slice(index + 1, index + 9);
+        if (!/^[0-9A-Fa-f]{8}$/.test(code)) return undefined;
+        const codePoint = Number.parseInt(code, 16);
+        if (codePoint > 0x10ffff) return undefined;
+        decoded += String.fromCodePoint(codePoint);
+        index += 8;
+        break;
+      }
+      case "x": {
+        let end = index + 1;
+        while (/[0-9A-Fa-f]/.test(content[end] ?? "")) end++;
+        if (end === index + 1 || content[end] !== "\\") return undefined;
+        const codePoint = Number.parseInt(content.slice(index + 1, end), 16);
+        if (codePoint > 0x10ffff) return undefined;
+        decoded += String.fromCodePoint(codePoint);
+        index = end;
+        break;
+      }
+      default:
+        return undefined;
+    }
+  }
+  return decoded;
 }

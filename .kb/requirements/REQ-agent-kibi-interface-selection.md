@@ -24,10 +24,10 @@ links:
     target: TEST-agent-kibi-interface-selection
 semantic_text: Agent-facing guidance must treat the Kibi public MCP and CLI surfaces as peers. Guidance must not present MCP as the only public surface. Guidance may name either public surface when that is the clearest route for the user. Guidance must keep historical policy changes visible through supersession links, not rewritten prose.
 semantic_clauses:
-  - Agent-facing guidance must treat the Kibi public MCP and CLI surfaces as peers.
-  - Guidance must not present MCP as the only public surface.
-  - Guidance may name either public surface when that is the clearest route for the user.
-  - Guidance must keep historical policy changes visible through supersession links, not rewritten prose.
+  - Agent-facing guidance must treat the Kibi public MCP and CLI surfaces as peers
+  - Guidance must not present MCP as the only public surface
+  - Guidance may name either public surface when that is the clearest route for the user
+  - Guidance must keep historical policy changes visible through supersession links, not rewritten prose
 semantic_inventory_version: kibi.semantic-inventory.v1
 semantic_source_field: semantic_text
 semantic_source_hash: 9d2ebc0267c4e29f1a9abe87102d1dace6aeb6b22fc78ec79b12522eab235a4d
@@ -40,39 +40,31 @@ semantic_inventory:
   - claim_key: CLAIM-C1862263F103BE07
     claim_text: Agent-facing guidance must treat the Kibi public MCP and CLI surfaces as peers
     role: normative
-    status: ontology_gap
+    status: modeled
     span:
       start: 0
       end: 78
-    payload_hash: 9b2b851cface81db89d05f96b0a59db186d280c3f38b4396c020579e171e90f4
-    reason: No approved domain predicate schema expresses this clause; generic logical_requirement_rule grounding was removed.
   - claim_key: CLAIM-83CB27CE535B006D
     claim_text: Guidance must not present MCP as the only public surface
     role: normative
-    status: ontology_gap
+    status: modeled
     span:
       start: 80
       end: 136
-    payload_hash: 9b2b851cface81db89d05f96b0a59db186d280c3f38b4396c020579e171e90f4
-    reason: No approved domain predicate schema expresses this clause; generic logical_requirement_rule grounding was removed.
   - claim_key: CLAIM-B2AE424C29508FFF
     claim_text: Guidance may name either public surface when that is the clearest route for the user
     role: normative
-    status: ontology_gap
+    status: modeled
     span:
       start: 138
       end: 222
-    payload_hash: 9b2b851cface81db89d05f96b0a59db186d280c3f38b4396c020579e171e90f4
-    reason: No approved domain predicate schema expresses this clause; generic logical_requirement_rule grounding was removed.
   - claim_key: CLAIM-954E745065BDCD3D
     claim_text: Guidance must keep historical policy changes visible through supersession links, not rewritten prose
     role: normative
-    status: ontology_gap
+    status: modeled
     span:
       start: 224
       end: 324
-    payload_hash: 9b2b851cface81db89d05f96b0a59db186d280c3f38b4396c020579e171e90f4
-    reason: No approved domain predicate schema expresses this clause; generic logical_requirement_rule grounding was removed.
 type: req
 ---
 

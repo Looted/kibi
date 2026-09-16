@@ -103,8 +103,11 @@ if (RUN_NODE_TEST_SUITE) {
       { timeout: 120000 },
     );
 
-    it("should have kibi-mcp binary available", async () => {
-      if (!hasProlog) return;
+    it("should have kibi-mcp binary available", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       // Check kibi-mcp binary exists (we use node to run it directly)
       const { exitCode } = await run("test", ["-f", sandbox.kibiMcpBin], {
@@ -117,8 +120,11 @@ if (RUN_NODE_TEST_SUITE) {
       console.log("  ✓ kibi-mcp binary available at:", sandbox.kibiMcpBin);
     });
 
-    it("should start MCP server and respond to initialize", async () => {
-      if (!hasProlog) return;
+    it("should start MCP server and respond to initialize", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       const mcpProcess = spawn("node", [sandbox.kibiMcpBin], {
         cwd: sandbox.repoDir,
@@ -201,8 +207,11 @@ if (RUN_NODE_TEST_SUITE) {
       });
     });
 
-    it("should list available tools", async () => {
-      if (!hasProlog) return;
+    it("should list available tools", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       const mcpProcess = spawn("node", [sandbox.kibiMcpBin], {
         cwd: sandbox.repoDir,
@@ -255,6 +264,7 @@ if (RUN_NODE_TEST_SUITE) {
                       "kb_compile_intent",
                       "kb_apply_plan",
                       "kb_ingest_proof",
+                      "kb_job_status",
                     ]);
                     assert.ok(
                       !toolNames.includes("kb_briefing_generate"),
@@ -307,8 +317,11 @@ if (RUN_NODE_TEST_SUITE) {
       });
     });
 
-    it("should expose the cold-start bootstrap prompt", async () => {
-      if (!hasProlog) return;
+    it("should expose the cold-start bootstrap prompt", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       const mcpProcess = spawn("node", [sandbox.kibiMcpBin], {
         cwd: sandbox.repoDir,
@@ -393,8 +406,11 @@ if (RUN_NODE_TEST_SUITE) {
       });
     });
 
-    it("should query entities via kb_query tool", async () => {
-      if (!hasProlog) return;
+    it("should query entities via kb_query tool", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       const mcpProcess = spawn("node", [sandbox.kibiMcpBin], {
         cwd: sandbox.repoDir,
@@ -492,8 +508,11 @@ if (RUN_NODE_TEST_SUITE) {
       });
     });
 
-    it("should handle graceful shutdown", async () => {
-      if (!hasProlog) return;
+    it("should handle graceful shutdown", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       const mcpProcess: ChildProcess = spawn("node", [sandbox.kibiMcpBin], {
         cwd: sandbox.repoDir,
@@ -510,8 +529,11 @@ if (RUN_NODE_TEST_SUITE) {
       console.log("  ✓ MCP server shutdown gracefully");
     });
 
-    it("should create usage.log when started with --diagnostic-mode", async () => {
-      if (!hasProlog) return;
+    it("should create usage.log when started with --diagnostic-mode", async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
 
       const mcpProcess: ChildProcess = spawn(
         "node",

@@ -90,3 +90,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1388b81b02bc
+  - type: executable_for
+    from: SYM-e2e-test-014
+    to: TEST-014
+    created_at: 2026-09-05T14:53:33.258Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33d25206f841
+  - type: covered_by
+    from: SYM-syncPluginManifestVersions
+    to: TEST-014
+    created_at: 2026-09-05T14:54:50.826Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebc8916082f9
+  - type: covered_by
+    from: SYM-cursor-clearDirtyPaths
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-09-05T15:38:07.199Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7018a0d466f6
+  - type: covered_by
+    from: SYM-proof-runs-dir
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:32:58.128Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-45583c32eea2
+  - type: covered_by
+    from: SYM-PlannedFile
+    to: TEST-skill-cli-load-validate
+    created_at: 2026-09-05T18:01:55.806Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-683d4170adce
+  - type: covered_by
+    from: SYM-skillopt-parse-generated-artifact-receipt
+    to: TEST-skillopt-paid-launch-accounting
+    created_at: 2026-09-05T18:18:27.680Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b424d33cef0f
+  - type: implements
+    from: SYM-engine-janitor-options
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-15T07:55:49.007Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b036cb284aa0
+  - type: covered_by
+    from: SYM-engine-janitor-options
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-09-15T07:55:49.026Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86bf19e96637
+  - type: implements
+    from: SYM-quality-staged-manifestRecordSourcePath
+    to: REQ-cli-staged-impact-enforcement
+    created_at: 2026-09-15T01:06:58.508Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11983766a524
+  - type: covered_by
+    from: SYM-quality-staged-manifestRecordSourcePath
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-15T01:06:58.529Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c56c206127e2

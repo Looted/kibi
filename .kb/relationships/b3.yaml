@@ -27,27 +27,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fce1172d2449
-  - type: implements
-    from: SYM-mcp-session-isShuttingDown
-    to: REQ-002
-    created_at: 2026-08-22T20:07:54.442Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-a808d05a250f
-  - type: covered_by
-    from: SYM-mcp-session-isShuttingDown
-    to: TEST-005
-    created_at: 2026-08-22T20:07:54.454Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4d0d6eaaff78
-  - type: covered_by
-    from: SYM-mcp-session-isShuttingDown
-    to: TEST-kibi-change-to-proof-plan-compiler
-    created_at: 2026-08-22T20:07:54.458Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-e2ce40412bbb
   - type: covered_by
     from: SYM-kibi-bootstrap-cli-src-operations-planning-apply-plan-orderbootstrapactions
     to: TEST-kibi-change-to-proof-plan-compiler
@@ -83,3 +62,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-77fe7dde2539
+  - type: covered_by
+    from: SYM-ReleaseContext
+    to: TEST-014
+    created_at: 2026-09-05T14:54:14.565Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d14afca596c7
+  - type: covered_by
+    from: SYM-cursor-parseStdinJson
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-09-05T15:39:31.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da288ee63ba0
+  - type: covered_by
+    from: SYM-FixtureAuthorizationClaim
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:07:30.278Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bce233c57786
+  - type: relates_to
+    from: REQ-003
+    to: FACT-CLI-COMMAND-SET-CORE
+    created_at: 2026-09-14T18:41:46.446Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b845d8387f7
+  - type: implements
+    from: SYM-coordinate-repair-evidence-type
+    to: REQ-kibi-dependency-ordered-repair-plan
+    created_at: 2026-09-15T07:40:54.334Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8762917300f7
+  - type: covered_by
+    from: SYM-coordinate-repair-evidence-type
+    to: TEST-coordinate-repair-capability
+    created_at: 2026-09-15T07:40:54.343Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c1fa43c6c28
+  - type: covered_by
+    from: SYM-coordinate-repair-evidence-type
+    to: TEST-kibi-dependency-ordered-repair-plan
+    created_at: 2026-09-15T07:40:54.348Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1866d376460
+  - type: implements
+    from: SYM-staged-file-coverage-result
+    to: REQ-AUTO-941B0CE68BAF3331
+    created_at: 2026-09-15T07:44:37.074Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e90c70b7cdb3
+  - type: covered_by
+    from: SYM-staged-file-coverage-result
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-15T07:44:37.082Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-26497843d97e

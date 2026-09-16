@@ -122,3 +122,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7476ecd6be6d
+  - type: constrains
+    from: REQ-cursor-worktree-kibi-continuity
+    to: FACT-SUBJ-REQ-CURSOR-WORKTREE-KIBI-CONTINUITY
+    created_at: 2026-09-05T14:12:20.703Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3ac8c8751ae
+  - type: requires_property
+    from: REQ-cursor-worktree-kibi-continuity
+    to: FACT-PROP-REQ-CURSOR-WORKTREE-KIBI-CONTINUITY-C01
+    created_at: 2026-09-05T14:12:20.720Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1040b0569208
+  - type: covered_by
+    from: SYM-cli-impact-narrowerManifestSymbols
+    to: TEST-audit-quality-diagnostics-v1
+    created_at: 2026-09-05T15:03:48.645Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-249d54dee05f
+  - type: covered_by
+    from: SYM-consultOverlay
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:17:16.427Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d6a5dfe017d
+  - type: covered_by
+    from: SYM-cli-engine-client-compact
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:28:33.235Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df008d00c34e
+  - type: covered_by
+    from: SYM-skillopt-predicate-materialize-corpus
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T18:20:44.259Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5cbecd74a860

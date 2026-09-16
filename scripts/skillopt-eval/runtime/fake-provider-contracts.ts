@@ -1,7 +1,14 @@
 import { z } from "zod";
 
 export const HashSchema = z.string().regex(/^[a-f0-9]{64}$/);
-export const ModelSchema = z.enum(["gpt-5.4-mini", "gpt-5.6-sol"]);
+export const ModelSchema = z.enum(["gpt-5.6-luna", "gpt-5.6-sol"]);
+
+export function hasRoleKeyReuse(
+  providerKeyId: string,
+  verifierKeyId: string,
+): boolean {
+  return providerKeyId === verifierKeyId;
+}
 
 export const ConfigurationSchema = z
   .object({
@@ -39,7 +46,9 @@ export const ConfigurationSchema = z
   })
   .strict()
   .superRefine((configuration, context) => {
-    if (configuration.providerKeyId === configuration.verifierKeyId) {
+    if (
+      hasRoleKeyReuse(configuration.providerKeyId, configuration.verifierKeyId)
+    ) {
       context.addIssue({ code: "custom", message: "role_key_reuse" });
     }
     if (

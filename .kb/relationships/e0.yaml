@@ -157,3 +157,101 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fa395ec72c82
+  - type: covered_by
+    from: SYM-SymbolCoordinates
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:24:09.659Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-88f321cca256
+  - type: executable_for
+    from: SYM-e2e-test-opencode-kibi-plugin-v1
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-09-05T15:47:47.170Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-740760956a81
+  - type: covered_by
+    from: SYM-auto-CF2DCAD0569D
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:20:22.344Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebaeee6b52c1
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-1-inferAuditEventRuleArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:41:25.518Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-168b9b5c9c4a
+  - type: covered_by
+    from: SYM-resetBundledSkillsDir
+    to: TEST-skill-cli-load-validate
+    created_at: 2026-09-05T18:05:21.330Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7984e50eead9
+  - type: covered_by
+    from: SYM-COVERAGE_SHARDS
+    to: TEST-root-suite-batch-diagnostics
+    created_at: 2026-09-05T18:06:08.520Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c1a4181f5d2
+  - type: implements
+    from: SYM-x-oc-PluginEvent
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-09-13T20:10:50.301Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3237cc16bc1a
+  - type: covered_by
+    from: SYM-x-oc-PluginEvent
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-09-13T20:10:50.319Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4223aec24989
+  - type: covered_by
+    from: SYM-x-oc-PluginEvent
+    to: TEST-opencode-kibi-plugin-v1-coverage
+    created_at: 2026-09-14T04:47:02.403Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee25ac2c7d66
+  - type: covered_by
+    from: SYM-x-oc-PluginEvent
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-09-14T06:25:19.676Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23e7728c6b7c
+  - type: implements
+    from: SYM-quality-inventory-19897951a119
+    to: REQ-014
+    created_at: 2026-09-14T20:37:23.069Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c7d7ac87215
+  - type: covered_by
+    from: SYM-quality-inventory-19897951a119
+    to: TEST-scripts-unit-coverage-runner
+    created_at: 2026-09-14T20:37:23.092Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9958cf6a4c62
+  - type: implements
+    from: SYM-quality-inventory-44a628f0ebf6
+    to: REQ-020
+    created_at: 2026-09-14T20:39:42.609Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec19f9210828
+  - type: covered_by
+    from: SYM-quality-inventory-44a628f0ebf6
+    to: TEST-014
+    created_at: 2026-09-14T20:39:42.629Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a420347c6fd2

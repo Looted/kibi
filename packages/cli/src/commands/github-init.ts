@@ -111,7 +111,7 @@ export function parseGitHubRemote(url: string): GitHubRepo | undefined {
   }
 
   const patterns: RegExp[] = [
-    /^https?:\/\/(?:www\.)?github\.com\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/i,
+    /^https?:\/\/(?:[^/@]+@)?(?:www\.)?github\.com\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/i,
     /^git@github\.com:([^/]+)\/([^/]+?)(?:\.git)?\/?$/i,
     /^ssh:\/\/(?:git@)?github\.com(?::\d+)?\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/i,
     /^git:\/\/github\.com\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/i,
@@ -392,6 +392,17 @@ function normalizeNewlines(value: string): string {
   return unix.endsWith("\n") ? unix : `${unix}\n`;
 }
 
+export function skipBlankLines(
+  lines: readonly string[],
+  start: number,
+): number {
+  let peek = start;
+  while (peek < lines.length && (lines[peek] ?? "").trim() === "") {
+    peek += 1;
+  }
+  return peek;
+}
+
 function findBadgeClusterEnd(lines: readonly string[], start: number): number {
   let index = start;
   while (index < lines.length && (lines[index] ?? "").trim() === "") {
@@ -407,10 +418,7 @@ function findBadgeClusterEnd(lines: readonly string[], start: number): number {
       continue;
     }
     if (line.trim() === "") {
-      let peek = index + 1;
-      while (peek < lines.length && (lines[peek] ?? "").trim() === "") {
-        peek += 1;
-      }
+      const peek = skipBlankLines(lines, index + 1);
       if (peek < lines.length && BADGE_OR_IMAGE_LINE.test(lines[peek] ?? "")) {
         index = peek;
         continue;

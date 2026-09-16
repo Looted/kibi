@@ -48,3 +48,80 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d489db4c3b5f
+  - type: covered_by
+    from: SYM-markdown-extractFromMarkdownString
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:26:48.120Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-910586ef811a
+  - type: covered_by
+    from: SYM-mcp-startup-resolution-resolveProjectLocalMcp
+    to: TEST-cursor-agent-plugin-v1
+    created_at: 2026-09-05T15:36:41.599Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33e86e51d923
+  - type: covered_by
+    from: SYM-markdown-extractFromMarkdownString
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-09-05T17:13:13.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20158606344c
+  - type: covered_by
+    from: SYM-ArtifactPath-appendText
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:06:40.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-439676957817
+  - type: covered_by
+    from: SYM-receiptBindsCell
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:12:54.186Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-874f5f6727e9
+  - type: executable_for
+    from: SYM-cli-mutation-saga-test
+    to: TEST-mutation-saga-compensation
+    created_at: 2026-09-07T11:51:49.525Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4cf2cda6c588
+  - type: covered_by
+    from: SYM-sync-tracked-relationship-files
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-09T03:35:37.698Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab50a1c3c5f1
+  - type: implements
+    from: SYM-quality-eval-SearchSourceMatch
+    to: REQ-kibi-change-to-proof-evaluation
+    created_at: 2026-09-14T19:18:04.448Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71282e1b4d5f
+  - type: covered_by
+    from: SYM-quality-eval-SearchSourceMatch
+    to: TEST-kibi-change-to-proof-evaluation
+    created_at: 2026-09-14T19:18:04.460Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-654ffa7f8bfb
+  - type: implements
+    from: SYM-ALLOWED_GRANULARITY_REASONS_PROSE
+    to: REQ-symbol-behavioral-anchors
+    created_at: 2026-09-16T02:44:43.133Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-afd6da887055
+  - type: covered_by
+    from: SYM-ALLOWED_GRANULARITY_REASONS_PROSE
+    to: TEST-cli-symbol-behavioral-anchors
+    created_at: 2026-09-16T02:44:43.145Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb6e16019d9c

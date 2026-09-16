@@ -39,6 +39,7 @@ import {
 } from "../../extractors/symbols-coordinator.js";
 import {
   COARSE_GRANULARITY_REASONS,
+  COARSE_GRANULARITY_REASONS_PARENTHESIZED,
   isCoarseGranularityReason,
 } from "../../public/symbol-granularity.js";
 import { resolveSymbolsManifestPaths } from "../../utils/manifest-paths.js";
@@ -77,18 +78,16 @@ export const SYMBOLS_MANIFEST_COMMENT_BLOCK = `# symbols.yaml
 #   id, title, sourceFile, links, status, tags, owner, priority
 # Generated coordinates are stored separately in symbol-coordinates.yaml.
 # Run \`kibi sync --refresh-symbol-coordinates\` to refresh them.
+#
+# Coordinate refresh granularity gate:
+#   The AST extractor locates per-declaration spans for code files. When it
+#   cannot find a declaration, a title-match or whole-file coarse span is
+#   published ONLY for symbols that declare a coarse granularity_reason
+#   (${COARSE_GRANULARITY_REASONS.join(", ")}).
+#   A symbol without granularity_reason whose extraction misses gets no
+#   coordinate entry at all and is reported as failed; add symbol_role and
+#   granularity_reason to opt it into the coarse fallback.
 `;
-
-const SYMBOL_COORD_EXTENSIONS = new Set([
-  ".ts",
-  ".tsx",
-  ".js",
-  ".jsx",
-  ".mts",
-  ".cts",
-  ".mjs",
-  ".cjs",
-]);
 
 const GENERATED_COORD_FIELDS = [
   "sourceLine",
@@ -218,6 +217,20 @@ function manifestEntryIdentity(entry: ManifestSymbolEntry): {
   };
 }
 
+/**
+ * Typed reason an eligible (code-file) symbol still has no coordinates after
+ * enrichment: the AST extractor missed and the symbol either lacks a coarse
+ * granularity_reason (so the whole-file fallback is gated off) or the
+ * fallback itself produced no span.
+ */
+function coarseAnchorFailureReason(entry: ManifestSymbolEntry): string {
+  const reason = entry.granularity_reason;
+  if (!isCoarseGranularityReason(reason)) {
+    return `extractor produced no coordinates; add symbol_role and granularity_reason ${COARSE_GRANULARITY_REASONS_PARENTHESIZED} to enable the whole-file coarse fallback`;
+  }
+  return "extractor produced no coordinates and the whole-file coarse fallback found no span for this symbol";
+}
+
 export async function refreshManifestCoordinates(
   // implements REQ-003
   manifestPath: string,
@@ -316,8 +329,8 @@ export async function refreshManifestCoordinates(
   parsed.symbols = strippedEnriched;
 
   let refreshed = 0;
-  let failed = 0;
   let unchanged = 0;
+  const failures: { id: string; reason: string }[] = [];
 
   for (let i = 0; i < before.length; i++) {
     const previous = before[i] ?? ({} as ManifestSymbolEntry);
@@ -348,10 +361,13 @@ export async function refreshManifestCoordinates(
       );
 
     if (eligible && !hasAllGeneratedCoordinates(current)) {
-      failed++;
-    } else {
-      unchanged++;
+      failures.push({
+        id: typeof current.id === "string" ? current.id : `#${i}`,
+        reason: coarseAnchorFailureReason(current),
+      });
+      continue;
     }
+    unchanged++;
   }
 
   const dumped = resolved.dumpYAML(parsed, {
@@ -390,9 +406,33 @@ export async function refreshManifestCoordinates(
     throw error;
   }
 
-  console.log(
-    `\u2713 Refreshed symbol coordinates in ${path.relative(workspaceRoot, manifestPath)} (refreshed=${refreshed}, unchanged=${unchanged}, failed=${failed})`,
-  );
+  // The generated coordinates live in the artifact beside the manifest, not
+  // in the authored symbols.yaml this command also rewrites; naming the
+  // artifact keeps diff audits pointed at the file that actually changed.
+  const counts = `(refreshed=${refreshed}, unchanged=${unchanged}, failed=${failures.length})`;
+  if (coordinatesPath !== null) {
+    console.log(
+      `\u2713 Refreshed symbol coordinates in ${path.relative(workspaceRoot, coordinatesPath)} ${counts}`,
+    );
+  } else {
+    console.log(
+      `\u2713 Normalized symbol manifest ${path.relative(workspaceRoot, manifestPath)} ${counts}`,
+    );
+  }
+  const maxReportedFailures = 10;
+  for (const failure of failures.slice(0, maxReportedFailures)) {
+    console.log(`  failed ${failure.id}: ${failure.reason}`);
+  }
+  if (failures.length > maxReportedFailures) {
+    console.log(
+      `  ... and ${failures.length - maxReportedFailures} more failed symbol(s)`,
+    );
+  }
+  if (failures.length > 0) {
+    console.log(
+      "  Symbols without a published coordinate entry are dropped from coverage on the next plain sync until they succeed.",
+    );
+  }
 }
 
 export function hasAllGeneratedCoordinates(
@@ -419,9 +459,9 @@ export function isEligibleForCoordinateRefresh(
     ? sourceFile
     : path.resolve(workspaceRoot, sourceFile);
 
-  if (!resolved.existsSync(absolute)) return false;
-  const ext = path.extname(absolute).toLowerCase();
-  return SYMBOL_COORD_EXTENSIONS.has(ext);
+  // Non-JS/TS files also undergo coordinate extraction through the text
+  // heuristic. A miss there must be reported just like an AST extraction miss.
+  return resolved.existsSync(absolute);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

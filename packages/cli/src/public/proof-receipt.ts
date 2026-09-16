@@ -61,6 +61,7 @@ export const PROOF_RECEIPT_SCHEMA = {
     finished_at: { type: "string", minLength: 1 },
     artifact_digest: { type: "string", pattern: "^[a-f0-9]{64}$" },
     contract_hash: { type: "string", pattern: "^[a-f0-9]{64}$" },
+    binding_hash: { type: "string", pattern: "^[a-f0-9]{64}$" },
     fingerprint: { type: "string", pattern: "^[a-f0-9]{64}$" },
     fingerprint_components: {
       type: "object",
@@ -201,6 +202,13 @@ export type ProofReceipt = Readonly<{
   }[];
 }>;
 
+export function finishedAtPrecedesStartedAt(
+  startedAt: number | null,
+  finishedAt: number | null,
+): boolean {
+  return startedAt !== null && finishedAt !== null && finishedAt < startedAt;
+}
+
 function timestamp(value: unknown): number | null {
   if (typeof value !== "string") return null;
   if (
@@ -303,6 +311,12 @@ export function validProofReceiptShape(
   if (!hex64(row.code_snapshot) || !hex64(row.environment_hash)) return false;
   if (!hex64(row.artifact_digest)) return false;
   if (!hex64(row.contract_hash) || !hex64(row.fingerprint)) return false;
+  if (
+    row.binding_hash !== undefined &&
+    (typeof row.binding_hash !== "string" || !hex64(row.binding_hash))
+  ) {
+    return false;
+  }
   if (!validFingerprintComponents(row.fingerprint_components)) return false;
   if (!nonEmptyString(row.integration_id)) return false;
   const producer = isRecord(row.producer) ? row.producer : null;
@@ -340,7 +354,7 @@ export function validProofReceiptShape(
   const startedAt = timestamp(row.started_at);
   const finishedAt = timestamp(row.finished_at);
   if (startedAt === null || finishedAt === null) return false;
-  return finishedAt >= startedAt;
+  return !finishedAtPrecedesStartedAt(startedAt, finishedAt);
 }
 
 /**
@@ -377,11 +391,7 @@ export function proofReceiptHistoryErrors(
       );
       continue;
     }
-    const startedAt = timestamp(receipt.started_at);
     const finishedAt = timestamp(receipt.finished_at);
-    if (startedAt !== null && finishedAt !== null && finishedAt < startedAt) {
-      errors.push(`${prefix}.finished_at must not precede started_at`);
-    }
     if (
       finishedAt !== null &&
       index > 0 &&

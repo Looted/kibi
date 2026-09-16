@@ -10,6 +10,10 @@ import type {
 } from "./predicate-types.js";
 import { hashId, normalizeOptionalString } from "./predicate-utils.js";
 
+export function optionalPredicateName(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
+}
+
 // implements REQ-mcp-suggest-predicates
 export function schemaForCandidate(schema: PredicateSchemaCandidate): Omit<
   PredicateSchemaCandidate,
@@ -77,9 +81,7 @@ export function predicateSchemaFromEntity(
 ): PredicateSchemaCandidate[] {
   if (entity.fact_kind !== "predicate_schema") return [];
   const predicateName = normalizeOptionalString(
-    typeof entity.predicate_name === "string"
-      ? entity.predicate_name
-      : undefined,
+    optionalPredicateName(entity.predicate_name),
   );
   if (!predicateName) return [];
   const usageHints = usageHintsFromEntity(entity);

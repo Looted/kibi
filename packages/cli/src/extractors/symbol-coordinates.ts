@@ -137,7 +137,6 @@ export function coarseCoordinateSpan(
       };
     }
   }
-
   const lines = content.split(/\r?\n/);
   const lastLine = lines[lines.length - 1] ?? "";
   return {

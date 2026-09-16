@@ -83,3 +83,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fda81f41e6d3
+  - type: covered_by
+    from: SYM-getBehaviorSourcePaths
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:17:42.381Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b38842f3a1e
+  - type: covered_by
+    from: SYM-mcp-collectQueryPlanSafetyViolations
+    to: TEST-001
+    created_at: 2026-09-05T15:35:38.764Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e1cd3c21b6c
+  - type: covered_by
+    from: SYM-coarseCoordinateSpan
+    to: TEST-generated-coordinate-repair
+    created_at: 2026-09-05T16:56:50.870Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-155093522281
+  - type: covered_by
+    from: SYM-cli-report-brand-tokens
+    to: TEST-kibi-branded-health-report
+    created_at: 2026-09-05T16:58:43.450Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d19380e2af2
+  - type: covered_by
+    from: SYM-cli-report-proof-gates
+    to: TEST-kibi-branded-health-report
+    created_at: 2026-09-05T16:59:09.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-13cdf7cbd4ed
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-3-inferStateTransitionArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:44:17.619Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b567263350fc
+  - type: covered_by
+    from: SYM-HeldOutEligibilityReceipt
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:07:56.014Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf79b94214f7

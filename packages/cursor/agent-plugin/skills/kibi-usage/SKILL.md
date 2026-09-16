@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware operations safely across MCP or the trusted local CLI, including partial completion repair.
-version: 2.1.0
+version: 2.1.2
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -68,12 +68,29 @@ mutability, and Prolog requirements of each operation.
    Kibi never Git-stages or commits those files. Do not read or edit `.kb`
    directly.
 5. Finish with targeted and final `kb_check`, then read status/coverage and
-   state freshness, verification, proof, and limitations separately.
+   report the five independent closeout fields (not one inferred success flag).
 
 Run `kb_check` with specific rules during iteration and the unfiltered final
 check. Never fire `kb_upsert` calls in parallel; create or confirm endpoint
 entities before linking them. The canonical MCP names are `kb_search`,
 `kb_query`, `kb_upsert`, and `kb_check`.
+
+For a task that explicitly supplies a malformed concrete mutation payload, locate and read that public request artifact before choosing an entity, preserving its exact entity ID, type, requested changes, and every intended relationship and endpoint. Do not substitute a seeded or convenient entity for the requested target. Start with kb_search, then exact-filter those targets with kb_query, and run kb_validate_upsert on that same payload; validation is not completion. Correct only diagnosed pre-commit errors and revalidate the corrected payload. Once authorized, apply the identical corrected and authorized payload with kb_upsert. If it returns committed_with_repairs, treat the mutation as committed, follow only the required repair actions, and neither retry it nor trigger unrelated semantic backfill for a schema-only repair. Exact-read every changed entity and relationship endpoint with kb_query, then finish with an unfiltered kb_check followed by a final kb_status.
+
+## Closeout fields
+
+End every task with these five independent fields:
+
+```text
+taskOutcome: complete | interim | blocked
+kbState: clean_fresh | stale | dirty | legacy_compat | not_evaluated
+verificationState: fresh | dirty | unavailable | not_evaluated
+proofState: proven | mixed | unresolved | not_evaluated
+limitationDisposition: none | accepted | unaccepted | not_applicable
+```
+
+`taskOutcome` is whether the requested work finished. The other fields are
+observed system state. A clean check can coexist with unresolved proof.
 
 ## Exact Git attachment
 
@@ -119,18 +136,29 @@ For an existing product KB that needs semantic backfill, read
 
 ## Predicate Ontology Decision Tree
 
-Call `kb_semantic_advisor`, `kb_model_requirement`, or `kb_suggest_predicates`
-before encoding a normative clause. Use `fact_kind: predicate` with
-`requires_predicate` when a suitable schema exists; use `fact_kind: observation`
-for an ontology gap. Keep the `REQ -> TEST` chain and use `verified_by` for
-proof-bearing links. Relationship direction is fixed, and every `from` in a
-relationship batch must equal the upserted entity ID.
+Call `kb_semantic_advisor` on the complete prose before encoding a clause.
+Set requirement `logic_claims` to exactly the assertive `claim_key` values.
+For each relational clause, call `kb_suggest_predicates` with that clause and
+`existingLogicClaims`. If lexical rank is a false positive, retry with the
+reviewed `schemaId`. If `binding_status` is `incomplete`, supply
+`argumentBindings` and retry. Persist `fact_kind: predicate` with the same
+`claim_key` / `claim_text`, then link `REQ -> fact` with `requires_predicate`.
+Use `kb_model_requirement` for strict scalar clauses. Use
+`fact_kind: observation` only for a true ontology gap. The manifest is not
+grounding: run `logic-coverage` so each key binds to one ground fact.
+Relationship direction is fixed, and every `from` in a relationship batch
+must equal the upserted entity ID.
+
+For conditional relational claims, after the initial `kb_suggest_predicates` and before any `kb_upsert`—including one needed for a missing schema—call read-only `kb_model_requirement` to preview suitable scalar or typed-rule modeling. Treat the preview as advisory: do not apply an irrelevant result or create unrequested facts, and retain an approved ground-predicate plan when it captures the whole claim. Preserve supplied arity, ordered argument roles, polarity, bound values, and one claim key per actual assertion; never split arguments across clauses or schemas or alter values to force uniqueness.
 
 ## Symbol-First Traceability
 
-Represent implementation ownership with a `symbol` entity and an `implements`
-relationship from the symbol to the requirement. Do not rely on legacy
-`// implements REQ-xxx` comments as the traceability record.
+Represent implementation ownership with a `symbol` entity that has
+`sourceFile`, `implements` to the requirement, and `covered_by` to the test.
+Prolog `symbol-coverage` also requires the test to `validates` the requirement
+(or the requirement `verified_by` the test). `covered_by` alone is not
+enough. Do not rely on legacy `// implements REQ-xxx` comments as the
+traceability record.
 
 ## Complete Logical Coverage
 

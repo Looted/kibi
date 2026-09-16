@@ -26,6 +26,7 @@ import type { PrologProcess } from "../../prolog.js";
 import { toPrologAtom, toPrologString } from "../../prolog/codec.js";
 import { loadEntities } from "../../public/operations/discovery-entities.js";
 import { appendOnlyProofReceiptHistoryErrors } from "../../public/proof-receipt.js";
+import { findUntrackedDocumentMatches } from "./untracked-targets.js";
 
 // Field categorization for typed fact serialization
 // NOTE: base entity fields (status, owner, priority, severity) are NOT listed here —
@@ -611,11 +612,19 @@ function semanticEntityContext(
   return ` (${details.join("; ")})`;
 }
 
+export function relationshipFailureMessage(
+  singleError: string | undefined,
+  batchError: string | undefined,
+): string {
+  return singleError || batchError || "Unknown error";
+}
+
 // implements REQ-core-persistence
 export async function persistRelationships(
   prolog: PrologProcess,
   results: ExtractionResult[],
   shardRelationships: ExtractedRelationship[],
+  options: { workspaceRoot?: string } = {},
 ): Promise<{ relationshipCount: number; kbModified: boolean }> {
   let relCount = 0;
   let kbModified = false;
@@ -717,10 +726,10 @@ export async function persistRelationships(
             rel: item.rel,
             fromId: item.fromId,
             toId: item.toId,
-            error:
-              single.error ||
-              (relationshipBatchRunner ? batch.error : undefined) ||
-              "Unknown error",
+            error: relationshipFailureMessage(
+              single.error,
+              relationshipBatchRunner ? batch.error : undefined,
+            ),
           });
         }
       } catch (error) {
@@ -822,6 +831,15 @@ export async function persistRelationships(
       console.warn(
         "  Create the missing docs (e.g., docs/requirements/REQ-*.md) or remove stale relationships.",
       );
+      const untrackedMatches =
+        options.workspaceRoot !== undefined
+          ? findUntrackedDocumentMatches(options.workspaceRoot, [...missingIds])
+          : new Map<string, string>();
+      for (const [id, docPath] of untrackedMatches) {
+        console.warn(
+          `  Note: document for ${id} exists at ${docPath} but is untracked, so sync ignores it. Stage it with \`git add ${docPath}\` (staging is enough; no commit required) and sync again.`,
+        );
+      }
     } else if (invalidRels.length > 0) {
       console.warn(
         "\nTip: Check that relationship types and directions match the allowed schema (e.g., implements symbol→req, verified_by req→test).",

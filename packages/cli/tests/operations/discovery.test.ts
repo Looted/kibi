@@ -307,10 +307,11 @@ describe("shared discovery operation executors", () => {
         }),
       }),
     );
-    expect(query).toHaveBeenCalledTimes(1);
-    expect(query.mock.calls[0]?.[0]).toContain(
-      "status:kb_status_json(JsonString)",
-    );
+    const statusQueries = query.mock.calls
+      .map(([goal]) => String(goal))
+      .filter((goal) => goal.includes("status:kb_status_json"));
+    expect(statusQueries).toHaveLength(1);
+    expect(statusQueries[0]).toContain("status:kb_status_json(JsonString)");
     rmSync(workspaceRoot, { recursive: true, force: true });
   });
 

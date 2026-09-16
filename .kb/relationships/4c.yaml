@@ -97,3 +97,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-70f2fc3460fe
+  - type: covered_by
+    from: SYM-cli-engine-publication-lock-path
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:30:48.200Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46fa896243d1
+  - type: covered_by
+    from: SYM-cursor-normalizePath
+    to: TEST-cursor-worktree-kibi-continuity
+    created_at: 2026-09-05T16:55:10.920Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba81065fc311
+  - type: covered_by
+    from: SYM-KibiTreeDataProvider
+    to: TEST-vscode-traceability-coverage
+    created_at: 2026-09-05T18:26:26.719Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee91373aaf2c
+  - type: implements
+    from: SYM-break-store-lock
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-14T12:37:37.407Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ebe7f20f47e
+  - type: covered_by
+    from: SYM-break-store-lock
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-09-14T17:05:09.506Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0455abb1b9de
+  - type: implements
+    from: SYM-quality-producer-main
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-09-14T18:55:55.394Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8999d70e999f
+  - type: covered_by
+    from: SYM-quality-producer-main
+    to: TEST-proof-runner-integrity
+    created_at: 2026-09-14T18:55:55.412Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da7b732fa248

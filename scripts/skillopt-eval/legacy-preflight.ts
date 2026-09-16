@@ -1,6 +1,6 @@
 import { writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
-import { sourceWorktreeIsClean } from "./legacy-preflight-source";
+import { pathsFor, sourceWorktreeIsClean } from "./legacy-preflight-source";
 import {
   resolveArtifactRoot,
   resolveIsolationArtifactRoot,
@@ -16,7 +16,11 @@ import {
   stageCapabilityCanary,
   writeCapabilityProbe,
 } from "./runtime/canary-runtime";
-import { CodexAuthError, prepareExistingLogin } from "./runtime/codex-auth";
+import {
+  type AuthPreparation,
+  CodexAuthError,
+  withPreparedLogin,
+} from "./runtime/codex-auth";
 import {
   type CapabilityCanaryReceipt,
   OPTIMIZER_MODEL,
@@ -82,7 +86,7 @@ export type PreflightDependencies = Readonly<{
   probeSandbox: typeof probeCodexSandbox;
 }>;
 
-const runtimeDependencies: PreflightDependencies = {
+export const defaultPreflightDependencies: PreflightDependencies = {
   run: (argv, cwd, env, timeoutMs, stdin) =>
     runBoundedProcess({ argv, cwd, env, timeoutMs, stdin }),
   sourceClean: sourceWorktreeIsClean,
@@ -119,42 +123,15 @@ function noGo(
   return { ...baseReceipt(config, state), verdict: "no-go", reason };
 }
 
-function pathsFor(
-  workspace: IsolationWorkspace,
-  sourceWorktree: string,
-  realCodexHome: string,
-) {
-  return {
-    workspace: workspace.target,
-    runPrivateHome: workspace.codexHome,
-    realCodexHome,
-    sourceWorktree,
-    fixtureKb: join(workspace.target, ".kb"),
-    privateScorer: workspace.privateScorer,
-    privateEvidence: workspace.privateEvidence,
-    siblingRuns: workspace.siblingRun,
-  } as const;
-}
-
 async function prepareConfig(
   options: Readonly<{
     workspace: IsolationWorkspace;
     sourceWorktree: string;
-    env: NodeJS.ProcessEnv;
-    dependencies: PreflightDependencies;
     staged: StagedCanaryRuntime;
+    auth: AuthPreparation;
   }>,
 ) {
-  const runAuth = (
-    argv: readonly [string, ...string[]],
-    env: NodeJS.ProcessEnv,
-  ) => options.dependencies.run(argv, options.workspace.target, env, 15_000);
-  const auth = await prepareExistingLogin({
-    privateCodexHome: options.workspace.codexHome,
-    sandboxHome: options.workspace.sandboxHome,
-    env: options.env,
-    run: runAuth,
-  });
+  const { auth } = options;
   const config = buildCodexConfig({
     role: "target",
     authMode: auth.mode,
@@ -177,7 +154,7 @@ async function prepareConfig(
 // implements REQ-skillopt-codex-optimization
 export async function runPreflight(
   config: PreflightConfig,
-  dependencies: PreflightDependencies = runtimeDependencies,
+  dependencies: PreflightDependencies = defaultPreflightDependencies,
 ): Promise<PreflightReceipt> {
   const sourceWorktree = resolve(config.sourceWorktree ?? process.cwd());
   const configuredArtifactRoot = await resolveArtifactRoot(config.artifactRoot);
@@ -213,38 +190,52 @@ export async function runPreflight(
     if (version.exitCode !== 0)
       return noGo(config, state, "missing_host:codex");
     state = { ...state, codexVersion: version.stdout.trim() };
-    const auth = await prepareConfig({
-      workspace,
-      sourceWorktree,
-      env,
-      dependencies,
-      staged,
-    });
-    state = { ...state, authMode: auth.mode };
-    const doctor = await dependencies.run(
-      [staged.codexCommand, "--strict-config", "doctor", "--json"],
-      workspace.target,
-      auth.env,
-      30_000,
+    return await withPreparedLogin(
+      {
+        privateCodexHome: workspace.codexHome,
+        sandboxHome: workspace.sandboxHome,
+        env,
+        run: (argv, childEnv) =>
+          dependencies.run(argv, workspace.target, childEnv, 15_000),
+      },
+      async (preparedAuth) => {
+        const auth = await prepareConfig({
+          workspace,
+          sourceWorktree,
+          staged,
+          auth: preparedAuth,
+        });
+        state = { ...state, authMode: auth.mode };
+        const doctor = await dependencies.run(
+          [staged.codexCommand, "--strict-config", "doctor", "--json"],
+          workspace.target,
+          auth.env,
+          30_000,
+        );
+        if (doctor.exitCode !== 0) return noGo(config, state, "config_invalid");
+        await dependencies.probeRequiredMcp({
+          ...staged.mcpServer,
+          env: auth.env,
+        });
+        const probe = await writeCapabilityProbe(
+          workspace,
+          sourceIsolationDeniedPaths(
+            workspace,
+            sourceWorktree,
+            auth.realCodexHome,
+          ),
+        );
+        await dependencies.probeSandbox({
+          codexCommand: staged.codexCommand,
+          workspace: workspace.target,
+          env: auth.env,
+          run: dependencies.run,
+          probe,
+        });
+        state = { ...state, configValid: true };
+        return { ...baseReceipt(config, state), verdict: "pass" };
+      },
     );
-    if (doctor.exitCode !== 0) return noGo(config, state, "config_invalid");
-    await dependencies.probeRequiredMcp({
-      ...staged.mcpServer,
-      env: auth.env,
-    });
-    const probe = await writeCapabilityProbe(
-      workspace,
-      sourceIsolationDeniedPaths(workspace, sourceWorktree, auth.realCodexHome),
-    );
-    await dependencies.probeSandbox({
-      codexCommand: staged.codexCommand,
-      workspace: workspace.target,
-      env: auth.env,
-      run: dependencies.run,
-      probe,
-    });
-    state = { ...state, configValid: true };
-    return { ...baseReceipt(config, state), verdict: "pass" };
   } catch (error) {
     if (error instanceof CodexAuthError)
       return noGo(config, state, error.message);

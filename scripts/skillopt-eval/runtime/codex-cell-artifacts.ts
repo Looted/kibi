@@ -2,13 +2,19 @@ import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { CodexEpisodeReceipt } from "./codex-episode";
 
+export function emptyIfEnoent(error: unknown): string | undefined {
+  if (error instanceof Error && "code" in error && error.code === "ENOENT") {
+    return "";
+  }
+  return undefined;
+}
+
 export async function readOptionalArtifact(path: string): Promise<string> {
   try {
     return await readFile(path, "utf8");
   } catch (error) {
-    if (error instanceof Error && "code" in error && error.code === "ENOENT") {
-      return "";
-    }
+    const empty = emptyIfEnoent(error);
+    if (empty !== undefined) return empty;
     throw error;
   }
 }

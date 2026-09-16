@@ -27,3 +27,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9e9222b9d36c
+  - type: covered_by
+    from: SYM-semanticClaimKey
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-09-05T17:14:07.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da060915c358
+  - type: covered_by
+    from: SYM-modeling-predicate-utils-inferScope
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:45:55.248Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d723e3ec3458
+  - type: covered_by
+    from: SYM-BoundPhysicalCell
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:07:24.621Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5694334953d9

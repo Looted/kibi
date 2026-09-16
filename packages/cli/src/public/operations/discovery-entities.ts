@@ -11,6 +11,9 @@ export type EntityQueryInput = {
   readonly id?: string;
   readonly tags?: readonly string[];
   readonly sourceFile?: string;
+  /** Page size for index-backed queries; bounds each query's output. */
+  readonly limit?: number;
+  readonly offset?: number;
 };
 
 export const VALID_ENTITY_TYPES = [
@@ -63,6 +66,10 @@ export function buildEntityGoal(input: EntityQueryInput): string {
   }
   if (type) {
     const safeType = escapeAtomContent(type);
+    if (input.limit !== undefined) {
+      const offset = input.offset ?? 0;
+      return `kb_query_entities('${safeType}', none, [], none, ${input.limit}, ${offset}, Results, Count)`;
+    }
     return `findall([Id,'${safeType}',Props], kb_entity(Id, '${safeType}', Props), Results)`;
   }
   return "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)";

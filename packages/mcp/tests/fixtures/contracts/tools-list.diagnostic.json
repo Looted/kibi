@@ -1678,6 +1678,14 @@
             "default": 0,
             "type": "integer"
           },
+          "statuses": {
+            "description": "Requirement proof-status filter (req mode): include only rows whose proofStatus is listed. Selecting statuses implies include-passing; not_applicable rows carry their typed applicability reason in proofStages.applicability.reason. The summary always reflects the whole KB.",
+            "items": {
+              "enum": ["proven", "missing", "unresolved", "not_applicable"],
+              "type": "string"
+            },
+            "type": "array"
+          },
           "tags": {
             "items": {
               "type": "string"
@@ -2837,6 +2845,10 @@
                   "description": "Kibi-derived kibi.proof-receipt.v1. Receipts are never caller-authored; kb_ingest_proof derives them from kibi.proof-run.v1 artifacts.",
                   "properties": {
                     "artifact_digest": {
+                      "pattern": "^[a-f0-9]{64}$",
+                      "type": "string"
+                    },
+                    "binding_hash": {
                       "pattern": "^[a-f0-9]{64}$",
                       "type": "string"
                     },
@@ -4031,6 +4043,11 @@
             },
             "type": "object"
           },
+          "async": {
+            "default": false,
+            "description": "When true, start the check as a background job and return a kibi.job.v1 receipt immediately instead of holding the request until the tool timeout. Poll kb_job_status with the returned jobId. Use for full checks on large KBs that exceed the configured tool timeout.",
+            "type": "boolean"
+          },
           "includeImpactDiagnostics": {
             "description": "When true, include changed-file impact diagnostics such as symbol_granularity_violation and symbol_semantic_review_needed in structured output.",
             "type": "boolean"
@@ -4045,7 +4062,7 @@
             "type": "integer"
           },
           "rules": {
-            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, source-relationship-parity, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, logic-coverage, rule-safety, rule-verifiability, semantic-completeness, query-plan-safety. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
+            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, source-relationship-parity, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, logic-coverage, rule-safety, rule-verifiability, query-plan-safety, req-status-vocabulary, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, strict-readiness, semantic-completeness. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
             "items": {
               "enum": [
                 "must-priority-coverage",
@@ -4057,14 +4074,16 @@
                 "required-fields",
                 "deprecated-adr-no-successor",
                 "domain-contradictions",
-                "strict-fact-shape",
-                "strict-req-fact-pairing",
-                "predicate-verifiability",
                 "logic-coverage",
                 "rule-safety",
                 "rule-verifiability",
-                "semantic-completeness",
-                "query-plan-safety"
+                "query-plan-safety",
+                "req-status-vocabulary",
+                "strict-fact-shape",
+                "strict-req-fact-pairing",
+                "predicate-verifiability",
+                "strict-readiness",
+                "semantic-completeness"
               ],
               "type": "string"
             },
@@ -5432,6 +5451,15 @@
                 "id": {
                   "type": "string"
                 },
+                "scenarioIds": {
+                  "description": "Stable scenario draft IDs verified by this test. Required when multiple scenario drafts are supplied.",
+                  "items": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "maxItems": 20,
+                  "type": "array"
+                },
                 "title": {
                   "minLength": 1,
                   "type": "string"
@@ -6386,6 +6414,22 @@
         ],
         "type": "object"
       }
+    },
+    {
+      "description": "Poll a background job started with async:true (e.g. kb_check async jobs). Returns the kibi.job.v1 state: running, succeeded (with the full result), or failed (with the error).",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": {},
+        "properties": {
+          "jobId": {
+            "description": "The jobId from the kibi.job.v1 receipt.",
+            "type": "string"
+          }
+        },
+        "required": ["jobId"],
+        "type": "object"
+      },
+      "name": "kb_job_status"
     }
   ]
 }

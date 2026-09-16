@@ -69,3 +69,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f11563cf2523
+  - type: constrains
+    from: REQ-opencode-guidance-caching
+    to: FACT-SUBJ-REQ-OPENCODE-GUIDANCE-CACHING
+    created_at: 2026-09-05T14:13:51.155Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b562ea0e133
+  - type: requires_property
+    from: REQ-opencode-guidance-caching
+    to: FACT-PROP-REQ-OPENCODE-GUIDANCE-CACHING-C01
+    created_at: 2026-09-05T14:13:51.170Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c2aa69bf7cc
+  - type: covered_by
+    from: SYM-scripts-mergeLcovContents
+    to: TEST-011
+    created_at: 2026-09-05T14:52:40.943Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-00eede8d623a
+  - type: covered_by
+    from: SYM-codex-HookResult
+    to: TEST-codex-kibi-plugin-v1
+    created_at: 2026-09-05T15:20:14.438Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-637428dabdfa
+  - type: covered_by
+    from: SYM-kibi-usage-fact-lanes-guidance
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T18:18:57.715Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-727b389f7bc3

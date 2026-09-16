@@ -21,13 +21,17 @@ export type ParsedOperatorArgs = Readonly<{
   command: OperatorCommand;
   maxSteps: number;
   seedCandidate?: string;
+  candidateManifest?: string;
   skill: CanonicalSkill | "bundle";
+  developmentOnly?: boolean;
 }>;
 
 export type OperatorRunOptions = Readonly<{
   maxSteps?: number;
   seedCandidate?: string;
+  candidateManifest?: string;
   skill?: CanonicalSkill | "bundle";
+  developmentOnly?: boolean;
 }>;
 
 export class OperatorUsageError extends Error {
@@ -108,8 +112,8 @@ export async function resolveOperatorBase(
   },
 ): Promise<string> {
   const candidates = [
-    options.runtimeDir,
     options.cacheRoot,
+    options.runtimeDir,
     options.tempRoot ?? tmpdir(),
   ].filter((value): value is string => value !== undefined && value !== "");
 
@@ -241,28 +245,51 @@ export function parseOperatorArgs(args: readonly string[]): ParsedOperatorArgs {
   const command = args[0];
   if (command !== "smoke" && command !== "optimize" && command !== "suite") {
     throw new OperatorUsageError(
-      "Usage: bun run scripts/skillopt-eval/operator.ts <smoke|optimize|suite> [--skill kibi-usage|kibi-freshness|kibi-traceability|kibi-bootstrap] [--max-steps 1..4] [--seed-candidate PATH]",
+      "Usage: bun run scripts/skillopt-eval/operator.ts <smoke|optimize|suite> [--skill kibi-usage|kibi-freshness|kibi-traceability|kibi-bootstrap] [--max-steps 1..4] [--seed-candidate PATH] [--candidate-manifest PATH] [--development-only]",
     );
   }
   let maxSteps = 1;
   let skill: CanonicalSkill | "bundle" =
     command === "suite" ? "bundle" : "kibi-usage";
   let seedCandidate: string | undefined;
+  let candidateManifest: string | undefined;
+  let developmentOnly = false;
   for (let index = 1; index < args.length; index += 1) {
     const arg = args[index];
+    if (arg === "--development-only") {
+      if (command !== "optimize") {
+        throw new OperatorUsageError(
+          "--development-only is only valid for optimize",
+        );
+      }
+      developmentOnly = true;
+      continue;
+    }
     if (
       arg === "--max-steps" ||
       arg === "--seed-candidate" ||
-      arg === "--skill"
+      arg === "--skill" ||
+      arg === "--candidate-manifest"
     ) {
-      if (command !== "optimize") {
+      if (arg === "--candidate-manifest") {
+        if (command !== "suite")
+          throw new OperatorUsageError(
+            "--candidate-manifest is only valid for suite",
+          );
+      } else if (command !== "optimize") {
         throw new OperatorUsageError(`${arg} is only valid for optimize`);
       }
       const value = args[index + 1];
       if (value === undefined || value.startsWith("--")) {
         throw new OperatorUsageError(`${arg} requires a value`);
       }
-      if (arg === "--seed-candidate") {
+      if (arg === "--candidate-manifest") {
+        if (candidateManifest !== undefined)
+          throw new OperatorUsageError(
+            "--candidate-manifest may be supplied once",
+          );
+        candidateManifest = value;
+      } else if (arg === "--seed-candidate") {
         seedCandidate = value;
       } else if (arg === "--skill") {
         if (value === "bundle") skill = value;
@@ -286,11 +313,16 @@ export function parseOperatorArgs(args: readonly string[]): ParsedOperatorArgs {
     }
     throw new OperatorUsageError(`Unknown operator option: ${arg}`);
   }
+  if (command === "suite" && candidateManifest === undefined) {
+    throw new OperatorUsageError("suite requires --candidate-manifest PATH");
+  }
   return {
     command,
     maxSteps,
     skill,
+    developmentOnly,
     ...(seedCandidate === undefined ? {} : { seedCandidate }),
+    ...(candidateManifest === undefined ? {} : { candidateManifest }),
   };
 }
 
@@ -300,6 +332,9 @@ export async function runOperatorCommand(
   dependencies: OperatorDependencies = defaultOperatorDependencies,
   options: OperatorRunOptions = {},
 ): Promise<number> {
+  if (command === "suite" && options.candidateManifest === undefined) {
+    throw new OperatorUsageError("suite requires --candidate-manifest PATH");
+  }
   await ensureUvPin(dependencies);
   await ensureCodexLogin(dependencies);
   if (command === "smoke") {
@@ -328,6 +363,8 @@ export async function runOperatorCommand(
       layout.fixtureRunRoot,
       "--skill",
       "all",
+      "--candidate-manifest",
+      resolve(dependencies.cwd, options.candidateManifest as string),
     ]);
   }
   const maxSteps = options.maxSteps ?? 1;
@@ -357,6 +394,7 @@ export async function runOperatorCommand(
     layout.fixtureRunRoot,
     "--max-steps",
     String(maxSteps),
+    ...(options.developmentOnly === true ? ["--development-only"] : []),
     ...(options.seedCandidate === undefined
       ? []
       : ["--seed-candidate", resolve(dependencies.cwd, options.seedCandidate)]),
@@ -381,9 +419,13 @@ export async function main(
     return await runOperatorCommand(parsed.command, dependencies, {
       maxSteps: parsed.maxSteps,
       skill: parsed.skill,
+      developmentOnly: parsed.developmentOnly,
       ...(parsed.seedCandidate === undefined
         ? {}
         : { seedCandidate: parsed.seedCandidate }),
+      ...(parsed.candidateManifest === undefined
+        ? {}
+        : { candidateManifest: parsed.candidateManifest }),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

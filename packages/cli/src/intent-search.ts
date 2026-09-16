@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { escapeAtom, parseTriples } from "./prolog/codec.js";
+import { escapeAtom, normalizeEntityId, parseTriples } from "./prolog/codec.js";
 import {
   type VALID_ENTITY_TYPES,
   loadEntities,
@@ -475,7 +475,7 @@ export async function rankIntentEntities(
   };
 }
 
-function graphGoal(seedIds: readonly string[], depth: 1 | 2): string {
+export function graphGoal(seedIds: readonly string[], depth: 1 | 2): string {
   const ids = seedIds.map((id) => `'${escapeAtom(id)}'`).join(",");
   const relationships = GRAPH_RELATIONSHIPS.join(",");
   if (depth === 1) {
@@ -493,7 +493,11 @@ async function queryGraphEdges(
   if (!result.success) return [];
   return parseTriples(result.bindings.Edges ?? "[]")
     .slice(0, MAX_GRAPH_EDGES)
-    .map(([relationship, from, to]) => ({ relationship, from, to }));
+    .map(([relationship, from, to]) => ({
+      relationship,
+      from: normalizeEntityId(from),
+      to: normalizeEntityId(to),
+    }));
 }
 
 async function loadIntentCandidates(

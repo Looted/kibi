@@ -181,3 +181,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-630aab83d80d
+  - type: covered_by
+    from: SYM-StrictWriteSet
+    to: TEST-001
+    created_at: 2026-09-05T14:50:51.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5fe55e086ebe
+  - type: covered_by
+    from: SYM-KIBI-STAGED-IMPACT-EVIDENCE-DOC
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:12:57.417Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1502057590c1
+  - type: covered_by
+    from: SYM-cli-engine-client-query-status
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:29:17.121Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b468b15cd15
+  - type: covered_by
+    from: SYM-cli-engine-daemon
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:29:54.948Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36edd9fbddaa
+  - type: implements
+    from: SYM-skillopt-codex-optimizer-missing-guidance
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-09-08T00:33:35.363Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68969b3c998f
+  - type: covered_by
+    from: SYM-skillopt-codex-optimizer-missing-guidance
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-09-08T00:33:35.374Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-261fc3c0fb62
+  - type: implements
+    from: SYM-quality-inventory-1e34ff86ea75
+    to: REQ-skillopt-paid-launch-accounting
+    created_at: 2026-09-14T20:38:10.566Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ebd3deed8524
+  - type: covered_by
+    from: SYM-quality-inventory-1e34ff86ea75
+    to: TEST-skillopt-paid-launch-accounting
+    created_at: 2026-09-14T20:38:10.585Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a182a7ec4c58

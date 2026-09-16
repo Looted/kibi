@@ -6,6 +6,10 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import * as path from "node:path";
 import {
+  classifyStoreLockHolder,
+  readStoreLockOwner,
+} from "../prolog/store-lock.js";
+import {
   branchStoreManifestMatches,
   branchStorePath,
   legacyBranchStorePath,
@@ -138,6 +142,33 @@ export function inspectBranchStore(
       recoveryRequired: true,
     };
   }
+}
+
+/**
+ * Surface a stale branch-store lock journal: the recorded holder is
+ * provably dead (crashed engine, killed prove run). The next attach will
+ * auto-heal; the reason exists so operators see the state before it bites.
+ */
+// implements REQ-core-journaled-engine-persistence
+export function storeLockJournalReason(
+  storePath: string,
+): Record<string, unknown> | null {
+  const journal = readStoreLockOwner(storePath);
+  if (journal === null) return null;
+  const owner = journal.owner;
+  // Same boot-id-aware classification as the janitor and the attach
+  // takeover, so all three surfaces reach the same verdict on a journal.
+  if (classifyStoreLockHolder(owner) !== "dead") return null;
+  return {
+    code: "store_lock_stale",
+    path: journal.journalPath,
+    entityIds: [],
+    detail: `Branch store lock journal records holder pid ${owner.pid} for ${owner.workspaceRoot ?? "unknown"}, which is no longer running.`,
+    remediation: {
+      command_argv: ["kibi", "engine", "janitor", "--apply"],
+      applyRequired: false,
+    },
+  };
 }
 
 export function branchStoreReason(

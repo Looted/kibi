@@ -101,3 +101,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eac5498e53a2
+  - type: covered_by
+    from: SYM-auto-EE0B2692CF85
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:21:04.461Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1c3dac8436b
+  - type: covered_by
+    from: SYM-cli-search-command
+    to: TEST-mcp-search-discovery
+    created_at: 2026-09-05T17:36:47.478Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b5ddd68df2d
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-2-inferMigrationBoundaryRuleArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:43:04.814Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa89e57e1cfc
+  - type: covered_by
+    from: SYM-mcp-Diagnostic
+    to: TEST-mcp-tool-check-coverage
+    created_at: 2026-09-06T09:06:12.470Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f78664d6ec6e

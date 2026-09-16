@@ -37,7 +37,7 @@ priority: must
     execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
 
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
-  }, 30000); // kibi init + sync can take ~10s; allow 30s for slower CI environments
+  }, 120000); // journaled-engine init + sync exceeds 30s under prove load
 
   afterAll(() => {
     if (tmpDir && existsSync(tmpDir)) {

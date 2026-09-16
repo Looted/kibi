@@ -142,19 +142,42 @@ describe("SkillOpt documentation contract", () => {
         Notes:
           "Non-authoritative Cursor compatibility lane. `qualify` checks version, session, models, and Kibi MCP approval with no paid call. `compat --skill S --candidate PATH --fixture-run-root PATH` runs frozen candidate bodies through the shared fixtures, evaluator broker, independent verifier, and sealed scorer. Cursor results never feed Codex gates or adoption.",
       },
+      {
+        Script: "`skillopt:history`",
+        Command: "`bun run scripts/skillopt-eval/inspect-history.ts`",
+        Notes:
+          "Screens historical SkillOpt candidates offline without authentication, model calls, training, mutation, or adoption.",
+      },
+      {
+        Script: "`skillopt:screen`",
+        Command: "`bun run scripts/skillopt-eval/screen-history.ts`",
+        Notes:
+          "Paid, bounded public-development comparison of explicitly selected historical candidates against the current baseline; never trains, runs held-out, or adopts.",
+      },
+      {
+        Script: "`skillopt:campaign`",
+        Command: "`bun run scripts/skillopt-eval/campaign.ts`",
+        Notes:
+          "Portable revision, composition, evaluation, confirmation, and packaging with explicit budgets and immutable evidence.",
+      },
     ]);
 
     expect(skilloptScripts).toEqual([
+      "skillopt:campaign",
       "skillopt:cursor",
+      "skillopt:history",
       "skillopt:optimize",
+      "skillopt:screen",
       "skillopt:smoke",
     ]);
     expect(packageJson.scripts).toMatchObject({
       "skillopt:smoke": "bun run scripts/skillopt-eval/operator.ts smoke",
       "skillopt:optimize": "bun run scripts/skillopt-eval/operator.ts optimize",
+      "skillopt:history": "bun run scripts/skillopt-eval/inspect-history.ts",
     });
     expect(docs).toContain("bun run skillopt:smoke");
     expect(docs).toContain("bun run skillopt:optimize");
+    expect(docs).toContain("bun run skillopt:history");
     expect(docs).toContain(
       "bun run scripts/skillopt-eval/operator.ts optimize --skill kibi-usage --max-steps 4",
     );
@@ -168,6 +191,11 @@ describe("SkillOpt documentation contract", () => {
     expect(artifacts.map((row) => row.Path)).toEqual([
       "`$OPERATOR_BASE/optimize/<run-id>/skills/`",
       "`$OPERATOR_BASE/optimize/<run-id>/skills/kibi-usage/**/accepted-output/`",
+      "`accepted-output/model-paragraph.md`",
+      "`accepted-output/baseline-body.md`",
+      "`accepted-output/composed-body.md`",
+      "`accepted-output/baseline-insertion-plan.json`",
+      "`accepted-output/composition-receipt.json`",
       "`$OPERATOR_BASE/optimize/<run-id>/steps/`",
       "`$OPERATOR_BASE/optimize/<run-id>/best_skill.md`",
       "`$OPERATOR_BASE/optimize/<run-id>/runtime_state.json`",

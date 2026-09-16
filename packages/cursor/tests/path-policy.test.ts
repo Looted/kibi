@@ -45,6 +45,9 @@ describe("Cursor hook path policy", () => {
     expect(isMeaningfulTrackedPath(".kb/config.json")).toBe(false);
     expect(isMeaningfulTrackedPath(".kb/requirements/REQ.md")).toBe(true);
     expect(isMeaningfulTrackedPath(".kb/symbols.yaml")).toBe(true);
+    expect(isMeaningfulTrackedPath(".kb")).toBe(false);
+    expect(isMeaningfulTrackedPath(".kb/")).toBe(false);
+    expect(isMeaningfulTrackedPath("repo/.kb/config.json")).toBe(false);
     expect(isMeaningfulTrackedPath(".kb/branches/main/store.pl")).toBe(false);
     expect(isMeaningfulTrackedPath("dist/hook-runner.js")).toBe(false);
     expect(isMeaningfulTrackedPath("docs/generated.json")).toBe(false);
@@ -53,6 +56,8 @@ describe("Cursor hook path policy", () => {
 
   test("Given freshness and source candidates When classifying Then only eligible paths match", () => {
     expect(isKbFreshnessRelevantPath(".kb/symbols.yaml")).toBe(true);
+    expect(isKbFreshnessRelevantPath(".kb/symbol-coordinates.yaml")).toBe(true);
+    expect(isKbFreshnessRelevantPath("documentation/guide.md")).toBe(true);
     expect(isKbFreshnessRelevantPath("packages/core/src/kb.pl")).toBe(true);
     expect(isKbFreshnessRelevantPath("packages/cursor/src/hook.ts")).toBe(
       false,

@@ -3,6 +3,10 @@ import assert from "node:assert";
 import { readFileSync, writeFileSync } from "node:fs";
 import type { Server } from "node:http";
 import { join, resolve } from "node:path";
+
+// Packed tests run with the repo root as cwd, but sandbox helpers may
+// chdir the process; anchor repo-root reads explicitly.
+const repoRoot = process.env.KIBI_PROOF_REPO_ROOT ?? process.cwd();
 import { after, before, describe, it } from "node:test";
 import {
   type Tarballs,
@@ -84,8 +88,11 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
   it(
     "drives the packed CLI JSON routes through file and stdin input",
     { timeout: 300_000 },
-    async () => {
-      if (!hasProlog) return;
+    async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
       assert.strictEqual(OPERATIONS.length, 18);
       for (const [index, operation] of OPERATIONS.entries()) {
         const input =
@@ -119,8 +126,11 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
   it(
     "matches the frozen MCP schema fixture without briefing generation",
     { timeout: 120_000 },
-    async () => {
-      if (!hasProlog) return;
+    async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
       const process = startMcpServer(sandbox);
       try {
         await sendMcpRequest(process, 1, "initialize", {
@@ -136,6 +146,7 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
         const expected = JSON.parse(
           readFileSync(
             resolve(
+              repoRoot,
               "packages/mcp/tests/fixtures/contracts/tools-list.base.json",
             ),
             "utf8",
@@ -148,7 +159,7 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
         const tools = response.result?.tools as
           | readonly Record<string, unknown>[]
           | undefined;
-        assert.strictEqual(tools?.length, 21);
+        assert.strictEqual(tools?.length, 22);
         assert.ok(!tools?.some((tool) => tool.name === "kb_briefing_generate"));
       } finally {
         process.kill();
@@ -159,8 +170,11 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
   it(
     "ships all generated skills and resources in Cursor and Codex tarballs",
     { timeout: 120_000 },
-    async () => {
-      if (!hasProlog) return;
+    async (testContext) => {
+      if (!hasProlog) {
+        testContext.skip("SWI-Prolog is unavailable");
+        return;
+      }
       for (const tarball of [tarballs.cursor, tarballs.codex]) {
         const listing = await run("tar", ["-tzf", tarball], {
           cwd: sandbox.repoDir,

@@ -1,14 +1,19 @@
 import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
 import { test } from "node:test";
-import { runPackedE2E } from "../run-packed-e2e.mjs";
+import {
+  main,
+  packedTestIsolationArg,
+  runPackedE2E,
+  validatePackedProofSummary,
+} from "../run-packed-e2e.mjs";
 
 function fakeSignalTarget() {
   return new EventEmitter();
 }
 
 // executable_for TEST-test-journaled-engine-harness
-test("packed runner prepares once, propagates both paths, and preserves bounded concurrency", async () => {
+test("packed runner prepares once, propagates both paths, and serializes file execution", async () => {
   const calls = [];
   let prepareCount = 0;
   let cleanupCount = 0;
@@ -45,7 +50,9 @@ test("packed runner prepares once, propagates both paths, and preserves bounded 
   assert.equal(calls[0].command, "fake-node");
   assert.deepEqual(calls[0].argv, [
     "--test",
-    "--test-concurrency=2",
+    "--test-concurrency=1",
+    "--test-force-exit",
+    packedTestIsolationArg(),
     "/tmp/one.test.js",
     "/tmp/two.test.js",
   ]);
@@ -87,4 +94,161 @@ test("packed runner cleans up after child failure and spawn error", async () => 
     }
     assert.equal(cleanupCount, 1);
   }
+});
+
+test("packed runner rejects missing inputs, helpers, and invalid environments", async () => {
+  await assert.rejects(
+    () => runPackedE2E({ compiledDirectory: "", testFiles: [] }),
+    /Usage:/,
+  );
+  await assert.rejects(
+    () =>
+      runPackedE2E({
+        compiledDirectory: "/tmp/compiled-missing-helpers",
+        testFiles: ["/tmp/one.test.js"],
+      }),
+    /Packed E2E helper is missing/,
+  );
+  await assert.rejects(
+    () =>
+      runPackedE2E({
+        compiledDirectory: "/tmp/compiled",
+        testFiles: ["/tmp/one.test.js"],
+        importHelpers: async () => ({
+          prepareSharedPackedEnvironment: async () => ({ prefix: 1 }),
+          cleanupSharedPackedInstallation: () => undefined,
+        }),
+      }),
+    /invalid shared environment/,
+  );
+});
+
+test("packed runner maps signal exits and forwards SIGINT/SIGTERM", async () => {
+  const signalTarget = fakeSignalTarget();
+  const killed = [];
+  const result = await runPackedE2E({
+    compiledDirectory: "/tmp/compiled",
+    testFiles: ["/tmp/one.test.js"],
+    signalTarget,
+    importHelpers: async () => ({
+      prepareSharedPackedEnvironment: async () => ({
+        prefix: "/tmp/prefix",
+        tarballsRoot: "/tmp/tarballs",
+      }),
+      cleanupSharedPackedInstallation: () => undefined,
+    }),
+    spawnProcess: () => {
+      const child = new EventEmitter();
+      child.kill = (signal) => {
+        killed.push(signal);
+        queueMicrotask(() => child.emit("exit", null, signal));
+        return true;
+      };
+      queueMicrotask(() => {
+        signalTarget.emit("SIGINT");
+        signalTarget.emit("SIGTERM");
+      });
+      return child;
+    },
+  });
+  assert.equal(result, 128);
+  assert.ok(killed.includes("SIGINT"));
+  assert.ok(killed.includes("SIGTERM"));
+});
+
+test("packed runner main uses argv and surfaces usage errors", async () => {
+  const previous = process.argv.slice();
+  process.argv = ["node", "scripts/run-packed-e2e.mjs"];
+  try {
+    await assert.rejects(() => main(), /Usage:/);
+  } finally {
+    process.argv = previous;
+  }
+});
+
+test("packed runner picks the Node-version isolation flag that avoids worker IPC", () => {
+  assert.equal(
+    packedTestIsolationArg("22.14.0"),
+    "--experimental-test-isolation=none",
+  );
+  assert.equal(packedTestIsolationArg("24.0.0"), "--test-isolation=none");
+  assert.equal(packedTestIsolationArg("26.7.0"), "--test-isolation=none");
+});
+
+test("proof packed mode requires a runnable test and waits for TAP output", async () => {
+  assert.doesNotThrow(() =>
+    validatePackedProofSummary(
+      "# tests 1\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n",
+    ),
+  );
+  assert.throws(
+    () =>
+      validatePackedProofSummary(
+        "# tests 1\n# pass 0\n# fail 0\n# cancelled 0\n# skipped 1\n# todo 0\n",
+      ),
+    /no passing runnable tests/,
+  );
+  assert.throws(
+    () =>
+      validatePackedProofSummary(
+        "# tests 2\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 1\n# todo 0\n",
+      ),
+    /no passing runnable tests/,
+  );
+  assert.throws(
+    () =>
+      validatePackedProofSummary(
+        "# tests 0\n# pass 0\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n",
+      ),
+    /executed zero tests/,
+  );
+  assert.throws(
+    () => validatePackedProofSummary("# tests 1\n# pass 1\n"),
+    /complete TAP summary/,
+  );
+
+  let receivedArguments;
+  const runProof = (output) =>
+    runPackedE2E({
+      compiledDirectory: "/tmp/compiled",
+      testFiles: ["/tmp/proof.test.js"],
+      proofMode: true,
+      signalTarget: fakeSignalTarget(),
+      importHelpers: async () => ({
+        prepareSharedPackedEnvironment: async () => ({
+          prefix: "/tmp/prefix",
+          tarballsRoot: "/tmp/tarballs",
+        }),
+        cleanupSharedPackedInstallation: () => undefined,
+      }),
+      spawnProcess: (_command, argv, options) => {
+        receivedArguments = { argv, options };
+        const stdout = new EventEmitter();
+        const child = new EventEmitter();
+        child.stdout = stdout;
+        queueMicrotask(() => {
+          stdout.emit("data", output);
+          stdout.emit("close");
+          child.emit("close", 0, null);
+        });
+        return child;
+      },
+      nodeExecutable: "fake-node",
+    });
+  const result = await runProof(
+    "# tests 1\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n",
+  );
+  assert.equal(result, 0);
+  assert.equal(receivedArguments.argv[4], "--test-reporter=tap");
+  assert.deepEqual(receivedArguments.options.stdio, [
+    "ignore",
+    "pipe",
+    "inherit",
+  ]);
+  await assert.rejects(
+    runProof(
+      "# tests 1\n# pass 0\n# fail 0\n# cancelled 0\n# skipped 1\n# todo 0\n",
+    ),
+    /no passing runnable tests/,
+  );
 });

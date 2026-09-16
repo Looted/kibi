@@ -51,7 +51,7 @@ interface PackageJson {
   repository?: string | { url?: string };
 }
 
-function repoRootFromScript(): string {
+export function repoRootFromScript(): string {
   const here = dirname(fileURLToPath(import.meta.url));
   return resolve(here, "../../..");
 }
@@ -95,7 +95,7 @@ function singleLineAgentJson(value: unknown): string {
   return JSON.stringify(value);
 }
 
-function formatAgentJson(
+export function formatAgentJson(
   value: unknown,
   column: number,
   depth: number,
@@ -123,7 +123,7 @@ function formatAgentJson(
   return `{\n${parts.join(",\n")}\n${pad}}`;
 }
 
-function formatAgentJsonDocument(value: unknown): string {
+export function formatAgentJsonDocument(value: unknown): string {
   return `${formatAgentJson(value, 0, 0)}\n`;
 }
 
@@ -145,7 +145,7 @@ function walkFiles(rootDir: string): string[] {
   return out.sort();
 }
 
-function assertCanonicalSourceComplete(canonicalRoot: string): void {
+export function assertCanonicalSourceComplete(canonicalRoot: string): void {
   if (!existsSync(canonicalRoot)) {
     throw new Error(
       `Canonical skills source missing: ${canonicalRoot}. Run this script from the kibi repo root.`,
@@ -204,7 +204,7 @@ function buildAgentPluginMcpJson(): object {
   };
 }
 
-function repositoryUrl(packageJson: PackageJson): string {
+export function repositoryUrl(packageJson: PackageJson): string {
   const repo = packageJson.repository;
   if (typeof repo === "string") return repo;
   if (repo !== null && typeof repo === "object" && "url" in repo) {
@@ -255,13 +255,15 @@ export function buildAgentPluginUnlocked(
   return resolvedTarget;
 }
 
-async function main(argv: string[]): Promise<void> {
+export async function main(
+  argv: string[],
+  repoRoot: string = repoRootFromScript(),
+): Promise<void> {
   for (const arg of argv) {
     if (arg === "--write") continue;
     process.stderr.write(`build-agent-plugin: unknown flag: ${arg}\n`);
     process.exit(2);
   }
-  const repoRoot = repoRootFromScript();
   try {
     const targetRoot = buildAgentPluginUnlocked(repoRoot);
     process.stdout.write(
@@ -278,9 +280,17 @@ const args = process.argv.slice(2);
 const invokedDirectly =
   process.argv[1] !== undefined &&
   resolve(process.argv[1]) === fileURLToPath(import.meta.url);
-if (invokedDirectly) {
-  await main(args);
+
+export async function runBuildAgentPluginIfMain(
+  isMain = invokedDirectly,
+  argv = args,
+  start = main,
+): Promise<void> {
+  if (!isMain) return;
+  await start(argv);
 }
+
+await runBuildAgentPluginIfMain();
 
 export {
   AGENT_MCP_SCHEMA,
@@ -289,4 +299,5 @@ export {
   agentPluginRoot,
   buildAgentPluginMcpJson,
   buildPluginManifest,
+  canonicalSkillsDir,
 };

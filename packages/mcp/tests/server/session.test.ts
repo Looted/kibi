@@ -204,19 +204,19 @@ describe.serial("session module", () => {
     test("should export prologProcess as mutable variable", async () => {
       const session = await importSession();
       session.resetSessionStateForTests();
-      expect(session.prologProcess).toBeDefined();
-      expect(typeof session.prologProcess).toBe("object");
+      expect(session.getPrologProcess()).toBeDefined();
+      expect(typeof session.getPrologProcess()).toBe("object");
     });
 
     test("should export activeBranchName as mutable variable", async () => {
       const session = await importSession();
       session.resetSessionStateForTests();
-      expect(typeof session.activeBranchName).toBe("string");
+      expect(typeof session.getActiveBranchName()).toBe("string");
     });
 
     test("should export isShuttingDown as mutable variable", async () => {
       const session = await importSession();
-      expect(typeof session.isShuttingDown).toBe("boolean");
+      expect(typeof session.getIsShuttingDown()).toBe("boolean");
     });
 
     test("should export inFlightRequests as a Map", async () => {
@@ -334,7 +334,7 @@ describe.serial("session module", () => {
 
       try {
         await session.ensureProlog();
-        expect(session.prologProcess).toBeDefined();
+        expect(session.getPrologProcess()).toBeDefined();
 
         const deferred = createDeferred<void>();
         session.inFlightRequests.set("req-1", deferred.promise);
@@ -386,7 +386,7 @@ describe.serial("session module", () => {
 
       try {
         await session.ensureProlog();
-        expect(session.prologProcess).toBeDefined();
+        expect(session.getPrologProcess()).toBeDefined();
 
         session.inFlightRequests.set("req-timeout", new Promise(() => {}));
 
@@ -696,7 +696,7 @@ describe.serial("session module", () => {
 
       expect(instances).toHaveLength(1);
       expect(instances[0]?.terminate).toHaveBeenCalledTimes(1);
-      expect(session.prologProcess).toBeNull();
+      expect(session.getPrologProcess()).toBeNull();
 
       const second = await session.ensureProlog();
 
@@ -1153,7 +1153,7 @@ describe.serial("session module", () => {
 
         await session.resetProlog("cover terminate failure");
 
-        expect(session.prologProcess).toBeNull();
+        expect(session.getPrologProcess()).toBeNull();
         expect(consoleErrorMock).toHaveBeenCalledWith(
           "[KIBI-MCP] Error resetting Prolog worker:",
           terminateError,
@@ -1172,7 +1172,7 @@ describe.serial("session module", () => {
       expect(mockIsValidBranchName).toHaveBeenCalledWith("override-only");
       expect(mockResolveActiveBranch).not.toHaveBeenCalled();
       expect(mockResolveBranchAttachment).not.toHaveBeenCalled();
-      expect(session.activeBranchName).toBe("override-only");
+      expect(session.getActiveBranchName()).toBe("override-only");
     });
 
     test("ensureProlog reports branch resolution diagnostics when active branch lookup fails", async () => {
@@ -1270,7 +1270,7 @@ describe.serial("session module", () => {
         expect(mockPrologProcessInstance.query).toHaveBeenCalledWith(
           "kb_attach('/mock/kb/path')",
         );
-        expect(session.activeBranchName).toBe("detach-warning-b");
+        expect(session.getActiveBranchName()).toBe("detach-warning-b");
       } finally {
         console.error = originalConsoleError;
       }

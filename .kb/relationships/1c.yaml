@@ -90,3 +90,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-248e617d323e
+  - type: covered_by
+    from: SYM-KibiImpactEvidence
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:13:38.605Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b77127b6cc39
+  - type: covered_by
+    from: SYM-environment-hash
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:29:29.631Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad8cefd22395
+  - type: covered_by
+    from: SYM-proof-bindings-schema
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:31:22.488Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfbda7fa9f68
+  - type: covered_by
+    from: SYM-modeling-predicate-inference-2-inferAbstractionBoundaryRuleArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:42:33.056Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37011a061a1d
+  - type: covered_by
+    from: SYM-normalizeResourcePath
+    to: TEST-skill-cli-load-validate
+    created_at: 2026-09-05T18:04:39.325Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3f52f2cb8063
+  - type: covered_by
+    from: SYM-skillopt-predicate-development-case-id
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T18:20:24.239Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-29078c3b45f3
+  - type: covered_by
+    from: SYM-auto-4682A3D1BEB4
+    to: TEST-mcp-search-discovery
+    created_at: 2026-09-06T09:05:57.227Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-679ecdf87456

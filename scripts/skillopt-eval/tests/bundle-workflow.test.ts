@@ -1,11 +1,10 @@
 import { afterEach, describe, expect, setDefaultTimeout, test } from "bun:test";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   type BundleCellSummary,
   evaluateBundleVerdict,
-  resolveBundleCandidatesDir,
   summarizeBundleArm,
 } from "../bundle-workflow";
 
@@ -87,41 +86,18 @@ describe("paid bundle gate", () => {
     ]);
   });
 
-  test("byte-identical assemblies report no-candidate-delta", () => {
+  test("equal scores do not imply identical assemblies", () => {
     const same = {
       cells: 16,
-      hardPasses: 6,
-      meanScore: 71.5,
+      hardPasses: 8,
+      meanScore: 80,
       securityFailures: 0,
     };
     const result = evaluateBundleVerdict({
       baseline: { arm: "baseline", ...same },
       skillopt: { arm: "skillopt", ...same },
     });
-    expect(result.verdict).toBe("no-candidate-delta");
-    expect(result.reasons).toContain("bundle:candidate-bodies-match-canonical");
-  });
-
-  test("candidate resolver reads frozen best_skill.md per skill", async () => {
-    const root = await mkdtemp(join(tmpdir(), "bundle-candidates-"));
-    roots.push(root);
-    await mkdir(join(root, "kibi-usage", "trainer-output"), {
-      recursive: true,
-    });
-    await writeFile(
-      join(root, "kibi-usage", "trainer-output", "best_skill.md"),
-      "## optimized usage body\n",
-    );
-    const resolver = resolveBundleCandidatesDir(root);
-    expect(await resolver("kibi-usage")).toBe("## optimized usage body\n");
-    expect(await resolver("kibi-freshness")).toBeUndefined();
-  });
-
-  test("resolver survives a missing candidates directory", async () => {
-    const resolver = resolveBundleCandidatesDir(
-      join(tmpdir(), "does-not-exist-skillopt"),
-    );
-    expect(await resolver("kibi-usage")).toBeUndefined();
+    expect(result.verdict).toBe("compatible");
   });
 
   test("bundle verdict artifact is written with external adoption gate", async () => {
@@ -138,8 +114,8 @@ describe("paid bundle gate", () => {
         runId: "r",
         arms: {},
         cells: [],
-        verdict: "no-candidate-delta",
-        reasons: ["bundle:candidate-bodies-match-canonical"],
+        verdict: "compatible",
+        reasons: [],
         productionAdoption: "external-verdict-required",
       }),
     );

@@ -97,3 +97,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b65e64230d6
+  - type: covered_by
+    from: SYM-core-entity-property-schema
+    to: TEST-001
+    created_at: 2026-09-05T14:49:41.482Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-74cb3192bfb4
+  - type: covered_by
+    from: SYM-kibi-migration-config-read
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-09-05T15:00:49.881Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3e63f18d14b5
+  - type: executable_for
+    from: SYM-e2e-test-agent-kibi-interface-selection
+    to: TEST-agent-kibi-interface-selection
+    created_at: 2026-09-05T15:01:34.488Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23aaafa3bd24
+  - type: covered_by
+    from: SYM-atomicPublish
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:24:41.549Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-869ecda9230f
+  - type: covered_by
+    from: SYM-atomicPublish
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:27:57.218Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0256ccf6aeca

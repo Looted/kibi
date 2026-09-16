@@ -1,48 +1,37 @@
-export const SYMBOL_ROLES = [
-  "behavioral",
-  "structural",
-  "type-shape",
-  "config",
-  "module",
-  "unknown",
-] as const;
+import {
+  ALLOWED_GRANULARITY_REASONS,
+  ALLOWED_GRANULARITY_REASONS_PROSE,
+  COARSE_GRANULARITY_REASONS,
+  COARSE_GRANULARITY_REASONS_PARENTHESIZED,
+  COARSE_GRANULARITY_REASONS_PROSE,
+  ROLE_INFERENCE,
+  SYMBOL_ROLES,
+  TRACEABILITY_RELATIONSHIP_TYPES,
+  type CoarseGranularityReason,
+  type GranularityReason,
+  type SymbolRole,
+  type TraceabilityRelationshipType,
+} from "./symbol-granularity.generated.js";
 
-export type SymbolRole = (typeof SYMBOL_ROLES)[number];
-
-export const TRACEABILITY_RELATIONSHIP_TYPES = [
-  "implements",
-  "covered_by",
-  "executable_for",
-] as const;
-
-export type TraceabilityRelationshipType =
-  (typeof TRACEABILITY_RELATIONSHIP_TYPES)[number];
-
-export const ALLOWED_GRANULARITY_REASONS = [
-  "config-artifact",
-  "module-level-behavior",
-  "extractor-miss",
-  "legacy-link",
-  "test-suite",
-] as const;
-
-export type GranularityReason = (typeof ALLOWED_GRANULARITY_REASONS)[number];
-
-/**
- * Granularity reasons that document coarse file/module-level coverage for which
- * generated per-symbol coordinates are not expected. These anchors legitimately
- * carry no coordinate artifact entries. `legacy-link` is intentionally excluded:
- * it is a canonical reason but still coordinates a real extractable symbol.
- */
-export const COARSE_GRANULARITY_REASONS = [
-  "config-artifact",
-  "module-level-behavior",
-  "extractor-miss",
-  "test-suite",
-] as const;
-
-export type CoarseGranularityReason =
-  (typeof COARSE_GRANULARITY_REASONS)[number];
+// The vocabulary is GENERATED from packages/core/schema/symbol-classification.json
+// (scripts/generate-symbol-classification.mjs) so the TS constants, the manifest
+// gate copy, the sync failure suggestions, and the Prolog facts share one source.
+export {
+  ALLOWED_GRANULARITY_REASONS,
+  ALLOWED_GRANULARITY_REASONS_PROSE,
+  COARSE_GRANULARITY_REASONS,
+  COARSE_GRANULARITY_REASONS_PARENTHESIZED,
+  COARSE_GRANULARITY_REASONS_PROSE,
+  ROLE_INFERENCE,
+  SYMBOL_ROLES,
+  TRACEABILITY_RELATIONSHIP_TYPES,
+};
+export type {
+  CoarseGranularityReason,
+  GranularityReason,
+  SymbolRole,
+  TraceabilityRelationshipType,
+} from "./symbol-granularity.generated.js";
 
 export type SymbolKind =
   | "function"
@@ -75,21 +64,7 @@ const coarseGranularityReasonSet: ReadonlySet<string> = new Set(
 );
 
 export function inferSymbolRole(kind: SymbolKind): SymbolRole {
-  switch (kind) {
-    case "function":
-    case "class":
-    case "method":
-    case "property":
-    case "accessor":
-      return "behavioral";
-    case "interface":
-    case "type":
-    case "enum":
-      return "type-shape";
-    case "variable":
-    case "unknown":
-      return "unknown";
-  }
+  return ROLE_INFERENCE[kind] ?? "unknown";
 }
 
 export const inferSymbolRoleFromKind = inferSymbolRole;

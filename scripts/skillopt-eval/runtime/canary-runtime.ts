@@ -106,9 +106,7 @@ export async function stageCapabilityCanary(
   const mcpServer = await stageKibiMcpBroker(
     workspace,
     sourceWorktree,
-    dependencies.nodeCommand === undefined
-      ? {}
-      : { nodeCommand: dependencies.nodeCommand },
+    nodeCommandOptions(dependencies.nodeCommand),
   );
   return {
     schemaPath,
@@ -126,7 +124,13 @@ function stringEnvironment(env: NodeJS.ProcessEnv): Record<string, string> {
   );
 }
 
-function startupFailureDetail(error: unknown): string {
+export function nodeCommandOptions(
+  nodeCommand: string | undefined,
+): { nodeCommand: string } | Record<string, never> {
+  return nodeCommand === undefined ? {} : { nodeCommand };
+}
+
+export function startupFailureDetail(error: unknown): string {
   if (!(error instanceof Error)) return "unknown";
   if ("code" in error && typeof error.code === "string") {
     return error.code.toLowerCase();

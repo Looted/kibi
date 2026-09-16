@@ -47,6 +47,23 @@ describe("SkillOpt operator entrypoints", () => {
     expect(existsSync(base)).toBe(true);
   });
 
+  test("prefers a writable cache root over a writable runtime dir", async () => {
+    const cacheRoot = await mkdtemp(join(tmpdir(), "skillopt-operator-cache-"));
+    const runtimeDir = await mkdtemp(
+      join(tmpdir(), "skillopt-operator-runtime-"),
+    );
+    roots.push(cacheRoot, runtimeDir);
+
+    const base = await resolveOperatorBase({
+      runtimeDir,
+      cacheRoot,
+      tempRoot: "/missing-temp",
+    });
+
+    expect(base).toBe(join(cacheRoot, "kibi-skillopt", "operator"));
+    expect(existsSync(base)).toBe(true);
+  });
+
   test("smoke verifies pin and login then invokes paid canary", async () => {
     const root = await mkdtemp(join(tmpdir(), "skillopt-operator-smoke-"));
     roots.push(root);
@@ -214,6 +231,7 @@ describe("SkillOpt operator entrypoints", () => {
     const exitCode = await runOperatorCommand("optimize", dependencies, {
       maxSteps: 4,
       seedCandidate: "candidate.md",
+      developmentOnly: true,
     });
 
     expect(exitCode).toBe(0);
@@ -223,6 +241,7 @@ describe("SkillOpt operator entrypoints", () => {
       "--seed-candidate",
       join(root, "candidate.md"),
     ]);
+    expect(cliCalls[0]).toContain("--development-only");
   });
 
   test("parseOperatorArgs accepts optimize --max-steps", () => {
@@ -238,12 +257,17 @@ describe("SkillOpt operator entrypoints", () => {
       command: "optimize",
       maxSteps: 3,
       skill: "kibi-usage",
+      developmentOnly: false,
       seedCandidate: ".git/skillopt-candidates/run/candidate_skill.md",
     });
     expect(parseOperatorArgs(["smoke"])).toEqual({
       command: "smoke",
       maxSteps: 1,
       skill: "kibi-usage",
+      developmentOnly: false,
     });
+    expect(parseOperatorArgs(["optimize", "--development-only"])).toMatchObject(
+      { command: "optimize", developmentOnly: true },
+    );
   });
 });

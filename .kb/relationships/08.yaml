@@ -97,3 +97,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f394a5f01fd7
+  - type: covered_by
+    from: SYM-cli-persistEntities
+    to: TEST-audit-quality-diagnostics-v1
+    created_at: 2026-09-05T15:03:54.166Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7d875e06047
+  - type: covered_by
+    from: SYM-StagedSymbolsManifestAssessment
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:15:06.861Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a6853349436
+  - type: covered_by
+    from: SYM-cli-persistEntities
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-09-05T17:11:53.831Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bda25ebb8c0e
+  - type: covered_by
+    from: SYM-auto-AD376CE47FDF
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:19:49.810Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7f156a52636a
+  - type: covered_by
+    from: SYM-assertFixtureAuthorizationClaim
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:11:08.083Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd318c4bd3da

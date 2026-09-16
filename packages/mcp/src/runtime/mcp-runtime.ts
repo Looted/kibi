@@ -13,7 +13,7 @@ import { resolveBranchAttachment } from "kibi-runtime";
 // implements REQ-kibi-operation-interface-parity
 export interface McpSession<TProlog = PrologPort> {
   readonly workspaceRoot: string;
-  readonly activeBranchName: () => string | Promise<string>;
+  readonly activeBranchName?: () => string | Promise<string>;
   readonly attachedBranchKbPath: () => string | null | Promise<string | null>;
   readonly ensureProlog: () => Promise<TProlog>;
   readonly adaptProlog: (prolog: TProlog) => PrologPort;
@@ -31,6 +31,13 @@ export interface McpSession<TProlog = PrologPort> {
 
 export interface McpOperationRuntime<TProlog> extends OperationRuntime {
   sessionProlog(context: OperationContext): TProlog | undefined;
+}
+
+export function attachedContextWithProlog<T extends object>(
+  withAttachment: T,
+  prolog: PrologPort,
+): T & { prolog: PrologPort } {
+  return { ...withAttachment, prolog };
 }
 
 // implements REQ-kibi-operation-interface-parity
@@ -91,7 +98,7 @@ export function createMcpRuntime<TProlog = PrologPort>(
         );
       }
       if (options.prolog) {
-        return { ...withAttachment, prolog: options.prolog };
+        return attachedContextWithProlog(withAttachment, options.prolog);
       }
       const sessionProlog = await session.ensureProlog();
       const operationContext: OperationContext = {

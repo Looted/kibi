@@ -1,3 +1,13 @@
+export function isTrailingCommaBeforeCloser(
+  character: string,
+  nextCharacter: string | undefined,
+): boolean {
+  return (
+    character === "," &&
+    (nextCharacter === ")" || nextCharacter === "]" || nextCharacter === "}")
+  );
+}
+
 function normalizeDiffContent(line: string): string {
   let normalized = "";
   let quote: '"' | "'" | "`" | null = null;
@@ -62,10 +72,7 @@ function removeSyntacticTrailingCommas(content: string): string {
     }
 
     const nextCharacter = content[index + 1];
-    if (
-      character === "," &&
-      (nextCharacter === ")" || nextCharacter === "]" || nextCharacter === "}")
-    ) {
+    if (isTrailingCommaBeforeCloser(character, nextCharacter)) {
       continue;
     }
 

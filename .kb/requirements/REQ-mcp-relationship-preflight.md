@@ -16,6 +16,22 @@ links:
   - type: verified_by
     target: TEST-mcp-relationship-preflight
 type: req
+semantic_text: MCP relationship validation must reject malformed tuples, invalid targets, and source mismatches with actionable diagnostics before a mutation is persisted.
+logic_claims:
+  - CLAIM-C62B5CEF66028568
+semantic_clauses:
+  - MCP relationship validation must reject malformed tuples, invalid targets, and source mismatches with actionable diagnostics before a mutation is persisted
+semantic_inventory_version: kibi.semantic-inventory.v1
+semantic_source_field: semantic_text
+semantic_source_hash: 1c8ac8a39b75a0ad7fc84c5324b2f6c0845b39c8ee1acc648c2f2063f79744b6
+semantic_inventory:
+  - claim_key: CLAIM-C62B5CEF66028568
+    claim_text: MCP relationship validation must reject malformed tuples, invalid targets, and source mismatches with actionable diagnostics before a mutation is persisted
+    role: normative
+    status: modeled
+    span:
+      start: 0
+      end: 155
 ---
 
 MCP relationship validation must reject malformed tuples, invalid targets, and source mismatches with actionable diagnostics before a mutation is persisted.

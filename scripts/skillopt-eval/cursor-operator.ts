@@ -102,7 +102,7 @@ export function parseCursorArgs(args: readonly string[]): ParsedCursorArgs {
   };
 }
 
-async function loadText(path: string): Promise<string> {
+export async function loadText(path: string): Promise<string> {
   return await readFile(resolve(path), "utf8");
 }
 

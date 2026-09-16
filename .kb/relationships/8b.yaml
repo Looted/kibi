@@ -167,3 +167,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4820ecb69c8b
+  - type: covered_by
+    from: SYM-scripts-coverageManifest-sourceFilesInLcov
+    to: TEST-011
+    created_at: 2026-09-05T14:52:25.399Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b61b8fe5cd22
+  - type: covered_by
+    from: SYM-cli-impact-createSymbolQualityDiagnostics
+    to: TEST-audit-quality-diagnostics-v1
+    created_at: 2026-09-05T15:03:27.369Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2dec5c4fe38d
+  - type: covered_by
+    from: SYM-cli-impact-createSymbolQualityDiagnostics
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:16:26.423Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7973d586031c
+  - type: covered_by
+    from: SYM-readCoordinateArtifact
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:27:20.799Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-974038d99aec
+  - type: covered_by
+    from: SYM-mcp-session-initiateGracefulShutdown
+    to: TEST-mcp-search-discovery
+    created_at: 2026-09-05T17:37:17.118Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7351d4ce2a48
+  - type: covered_by
+    from: SYM-VerificationHarnessOptions
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:10:52.815Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-941b40db7577
+  - type: covered_by
+    from: SYM-skillopt-scoring-cell
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T18:21:19.745Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1b870f26efb
+  - type: covered_by
+    from: SYM-cli-impact-createSymbolQualityDiagnostics
+    to: TEST-cli-symbol-behavioral-anchors
+    created_at: 2026-09-05T18:22:01.070Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f240351c0f88

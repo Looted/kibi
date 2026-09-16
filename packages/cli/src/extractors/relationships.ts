@@ -115,7 +115,7 @@ export function extractRelationshipShard(
  * Converts a RelationshipRecord to an ExtractedRelationship.
  * Returns null if the record is invalid.
  */
-function convertRecordToRelationship(
+export function convertRecordToRelationship(
   record: RelationshipRecord,
 ): ExtractedRelationship | null {
   // Validate type

@@ -125,3 +125,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2cd405e0570e
+  - type: covered_by
+    from: SYM-KibiImpactSymbolsManifest
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:14:25.484Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86223fde8d17
+  - type: covered_by
+    from: SYM-SymbolCoordinatesArtifact
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:24:15.009Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ee691cc9bad
+  - type: covered_by
+    from: SYM-semantic-advisor-CORE_PREDICATE_RULES
+    to: TEST-mcp-semantic-advisor-preflight
+    created_at: 2026-09-05T17:38:29.282Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a292a86ac19e
+  - type: covered_by
+    from: SYM-prolog-register-process-exit-once
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-09-09T03:37:17.663Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4b8cad771e99
+  - type: covered_by
+    from: SYM-prolog-register-process-exit-once
+    to: TEST-005
+    created_at: 2026-09-09T06:03:54.506Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a091df2175bc
+  - type: implements
+    from: SYM-prolog-register-process-exit-once
+    to: REQ-core-prolog-process-management
+    created_at: 2026-09-09T06:03:54.510Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b24bbe55ef13
+  - type: implements
+    from: SYM-sweep-workspace-store-locks
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-15T07:39:09.910Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-368084d606b7
+  - type: covered_by
+    from: SYM-sweep-workspace-store-locks
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-09-15T07:39:09.922Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f11e0da0e824

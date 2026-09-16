@@ -27,3 +27,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-11cefe2c61b7
+  - type: covered_by
+    from: SYM-SkillManifest
+    to: TEST-skill-cli-load-validate
+    created_at: 2026-09-05T18:02:15.264Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-15e7e337c8b3
+  - type: covered_by
+    from: SYM-SourceTreeHash
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:10:07.008Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7dd6363b035
+  - type: covered_by
+    from: SYM-buildFixtureAuthorizationClaim
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:11:24.465Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3b1bf3175c5
+  - type: covered_by
+    from: SYM-skillopt-model-schema
+    to: TEST-skillopt-paid-launch-accounting
+    created_at: 2026-09-05T18:18:07.820Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-35dd768f5ef0

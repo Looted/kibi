@@ -178,3 +178,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-467c497de202
+  - type: covered_by
+    from: SYM-classifyKibiImpactEvidence
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:15:28.680Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a38e2c6ff399
+  - type: covered_by
+    from: SYM-refreshManifestCoordinates
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:27:31.560Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a39e7704d68b
+  - type: covered_by
+    from: SYM-cli-symbol-granularity-validate
+    to: TEST-cli-symbol-behavioral-anchors
+    created_at: 2026-09-05T18:22:06.381Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dfca57681da4
+  - type: implements
+    from: SYM-cli-SagaRollbackFailure
+    to: REQ-014
+    created_at: 2026-09-07T11:46:41.444Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2da203d852cc
+  - type: covered_by
+    from: SYM-cli-SagaRollbackFailure
+    to: TEST-mcp-upsert-coverage
+    created_at: 2026-09-09T03:34:19.781Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b60f9212b3f9
+  - type: covered_by
+    from: SYM-cli-SagaRollbackFailure
+    to: TEST-011
+    created_at: 2026-09-09T06:03:07.478Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5bf729012249
+  - type: covered_by
+    from: SYM-refreshManifestCoordinates
+    to: TEST-coordinate-repair-capability
+    created_at: 2026-09-14T13:27:58.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-580868ac07d0

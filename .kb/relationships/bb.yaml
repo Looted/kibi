@@ -272,3 +272,87 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ca6697577933
+  - type: covered_by
+    from: SYM-mcp-buildStructuredContent
+    to: TEST-audit-quality-diagnostics-v1
+    created_at: 2026-09-05T15:04:13.880Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92e1097173f1
+  - type: covered_by
+    from: SYM-mcp-buildStructuredContent
+    to: TEST-mcp-tool-check-coverage
+    created_at: 2026-09-05T17:49:11.216Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93e49b7f18ca
+  - type: covered_by
+    from: SYM-HeldOutExecutionLeaseError
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:08:16.165Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d33887192e50
+  - type: executable_for
+    from: SYM-test-root-cli-engine-batch-timeout
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-09-05T18:50:43.761Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c16c4013e01
+  - type: implements
+    from: SYM-x-oc-KibiEventEnv
+    to: REQ-opencode-kibi-plugin-v1
+    created_at: 2026-09-13T20:11:25.216Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fff375f375bd
+  - type: covered_by
+    from: SYM-x-oc-KibiEventEnv
+    to: TEST-opencode-kibi-plugin-v1
+    created_at: 2026-09-13T20:11:25.234Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa91009ffd6a
+  - type: covered_by
+    from: SYM-x-oc-KibiEventEnv
+    to: TEST-opencode-kibi-plugin-v1-coverage
+    created_at: 2026-09-14T04:44:53.938Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-977c6c8326b2
+  - type: covered_by
+    from: SYM-x-oc-KibiEventEnv
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-09-14T06:25:05.542Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-720bae7050bf
+  - type: implements
+    from: SYM-store-lock-retry-context
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-15T07:54:53.371Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67d13d4a103a
+  - type: covered_by
+    from: SYM-store-lock-retry-context
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-09-15T07:54:53.415Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5e53072bda73
+  - type: implements
+    from: SYM-quality-inventory-57b01c22b501
+    to: REQ-014
+    created_at: 2026-09-14T20:36:59.018Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47f815c16890
+  - type: covered_by
+    from: SYM-quality-inventory-57b01c22b501
+    to: TEST-scripts-unit-coverage-runner
+    created_at: 2026-09-14T20:36:59.040Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5be2042f3b9

@@ -371,6 +371,12 @@ function buildSnippet(
       isPhraseSearchMatch(buildSearchTextForms(line), queryForms),
     ) ?? lines[0];
 
+  return snippetFromMatchedLine(matchedLine);
+}
+
+export function snippetFromMatchedLine(
+  matchedLine: string | undefined,
+): string | undefined {
   if (!matchedLine) {
     return undefined;
   }

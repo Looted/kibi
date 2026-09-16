@@ -8,6 +8,15 @@ import type {
   PublicPredicateSchema,
 } from "./predicate-cases";
 
+export function assertMatchingSemanticClass(
+  expected: PredicateSemanticClass,
+  actual: PredicateSemanticClass,
+): void {
+  if (actual !== expected) {
+    throw new Error("semantic class mismatch in predicate case registry");
+  }
+}
+
 // implements REQ-skillopt-predicate-first-requirements
 
 /**
@@ -240,9 +249,7 @@ function caseFor(
   claim: PublicClaim,
   expectation: PrivateExpectation,
 ): PredicateCase {
-  if (expectation.semanticClass !== semanticClass) {
-    throw new Error("semantic class mismatch in predicate case registry");
-  }
+  assertMatchingSemanticClass(semanticClass, expectation.semanticClass);
   return {
     semanticClass,
     caseId,

@@ -83,3 +83,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6c9de1de90db
+  - type: covered_by
+    from: SYM-extractFromManifest
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:25:28.921Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d9951f133e5
+  - type: covered_by
+    from: SYM-cli-engine-migration
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:30:16.271Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef7d55ff35be
+  - type: covered_by
+    from: SYM-cursor-CursorHookResult
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-09-05T15:37:30.061Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e5ca35cbfa1
+  - type: executable_for
+    from: SYM-e2e-test-mcp-relationship-preflight
+    to: TEST-mcp-relationship-preflight
+    created_at: 2026-09-05T15:46:07.592Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1eaa336286b9
+  - type: covered_by
+    from: SYM-producer-kinds
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:31:01.823Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80199e23c1be
+  - type: covered_by
+    from: SYM-modeling-predicate-utils-escapeRegExp
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:45:14.184Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d99ffd780d98
+  - type: covered_by
+    from: SYM-auto-B722155D82DD
+    to: TEST-mcp-search-discovery
+    created_at: 2026-09-06T09:06:01.047Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c16c4c5f88f

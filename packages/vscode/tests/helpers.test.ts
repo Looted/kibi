@@ -54,6 +54,13 @@ describe("categorizeEntities", () => {
     expect(result.reqs).toEqual(["REQ-001"]);
   });
 
+  test("duplicate unknown ids stay in other once", () => {
+    const result = categorizeEntities([
+      { type: "relates_to", from: "CUSTOM-1", to: "CUSTOM-1" },
+    ]);
+    expect(result.other).toEqual(["CUSTOM-1"]);
+  });
+
   test("duplicate IDs are deduplicated", () => {
     const result = categorizeEntities([
       { type: "verified_by", from: "REQ-001", to: "TEST-001" },
@@ -393,5 +400,33 @@ describe("buildHoverMarkdown", () => {
     const result = buildHoverMarkdown(symbolInfo, entities);
     expect(result).toContain("Requirement with & special <chars>");
     expect(result).toContain("tag-with-dash, tag_with_underscore");
+  });
+
+  test("unknown entity types and empty tags use fallback formatting", () => {
+    const result = buildHoverMarkdown(
+      { id: "SYM-X", title: "X", file: "src/x.ts", line: 1 },
+      [
+        {
+          id: "CUSTOM-1",
+          type: "custom",
+          title: "Custom",
+          status: "open",
+          tags: [],
+        },
+      ],
+    );
+    expect(result).toContain("📄 **CUSTOM-1**");
+    expect(result).toContain("tags: none");
+  });
+});
+
+describe("formatLensTitle unknown categories", () => {
+  test("falls back to sliced labels for unmapped categories", () => {
+    const result = formatLensTitle(
+      { others: ["X-1"], mystery: ["Y-1", "Y-2"] },
+      [],
+    );
+    expect(result).toContain("1 other");
+    expect(result).toContain("2 mystery");
   });
 });

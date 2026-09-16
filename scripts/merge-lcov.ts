@@ -36,6 +36,13 @@ type LcovRecord = {
   readonly lines: Map<number, LineCoverage>;
 };
 
+// implements REQ-014
+// covered_by TEST-scripts-finalize-lcov
+export type LcovMergeResult = Readonly<{
+  lcov: string;
+  diagnostics: readonly string[];
+}>;
+
 function numericField(record: string, field: string): number {
   const match = record.match(new RegExp(`^${field}:(\\d+)$`, "m"));
   return match === null ? 0 : Number(match[1]);
@@ -137,6 +144,7 @@ function mergeBranch(
 function mergeRecord(
   existing: LcovRecord | undefined,
   incoming: LcovRecord,
+  diagnostics: string[],
 ): LcovRecord {
   if (existing === undefined) {
     return {
@@ -150,7 +158,16 @@ function mergeRecord(
   const lines = new Map(existing.lines);
   for (const [lineNumber, incomingLine] of incoming.lines) {
     const existingLine = lines.get(lineNumber);
-    if (existingLine === undefined || incomingLine.hits > existingLine.hits) {
+    if (existingLine === undefined) {
+      lines.set(lineNumber, incomingLine);
+      continue;
+    }
+    if (incomingLine.suffix !== existingLine.suffix) {
+      diagnostics.push(
+        `LCOV line metadata conflict for ${incoming.sourceFile}:${lineNumber}; retained the suffix from the higher-hit observation`,
+      );
+    }
+    if (incomingLine.hits > existingLine.hits) {
       lines.set(lineNumber, incomingLine);
     }
   }
@@ -163,6 +180,16 @@ function mergeRecord(
       incomingFunction.hits > existingFunction.hits
     ) {
       functions.set(key, incomingFunction);
+    }
+  }
+  for (const existingFunction of existing.functions.values()) {
+    const incomingLine = [...incoming.functions.values()].find(
+      (candidate) => candidate.name === existingFunction.name,
+    );
+    if (incomingLine && incomingLine.line !== existingFunction.line) {
+      diagnostics.push(
+        `LCOV function coordinate conflict for ${incoming.sourceFile}:${existingFunction.name} (${existingFunction.line} vs ${incomingLine.line})`,
+      );
     }
   }
 
@@ -239,7 +266,14 @@ function renderRecord(record: LcovRecord): string {
 
 // implements REQ-014
 export function mergeLcovContents(contents: readonly string[]): string {
+  return mergeLcovContentsWithDiagnostics(contents).lcov;
+}
+
+export function mergeLcovContentsWithDiagnostics(
+  contents: readonly string[],
+): LcovMergeResult {
   const merged = new Map<string, LcovRecord>();
+  const diagnostics: string[] = [];
   for (const content of contents) {
     for (const rawRecord of content
       .split("end_of_record")
@@ -249,13 +283,15 @@ export function mergeLcovContents(contents: readonly string[]): string {
       if (record === null) continue;
       merged.set(
         record.sourceFile,
-        mergeRecord(merged.get(record.sourceFile), record),
+        mergeRecord(merged.get(record.sourceFile), record, diagnostics),
       );
     }
   }
 
-  return (
-    [...merged.values()].map(renderRecord).join("\n") +
-    (merged.size > 0 ? "\n" : "")
-  );
+  const lcov =
+    [...merged.values()]
+      .sort((left, right) => left.sourceFile.localeCompare(right.sourceFile))
+      .map(renderRecord)
+      .join("\n") + (merged.size > 0 ? "\n" : "");
+  return { lcov, diagnostics };
 }

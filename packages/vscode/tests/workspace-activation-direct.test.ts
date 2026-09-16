@@ -39,7 +39,9 @@ beforeEach(() => {
   });
 });
 
-afterEach(() => {
+afterEach(async () => {
+  const workspaceModule = await importWorkspaceModule();
+  workspaceModule._resetWorkspaceFsDepsForTests();
   Object.assign(vscode.workspace as Record<string, unknown>, {
     workspaceFolders: undefined,
   });

@@ -64,6 +64,40 @@ export function proofContractHash(contract: ProofContract): string {
   return jsonDigest(contract);
 }
 
+/**
+ * Per-contract receipt binding: hashes what the receipt's validity actually
+ * depends on — the test's proof contract and the test's authored document
+ * with any receipt block removed — so a receipt stays valid while unrelated
+ * workspace state changes, and goes stale the moment the test's own contract
+ * or document does. Callers pass the receipt-stripped document content.
+ */
+// implements REQ-kibi-proof-evidence-protocol
+export interface ReceiptCodeScopeEntry {
+  readonly symbolId: string;
+  readonly sourceHash: string;
+}
+
+export function receiptBindingHash(
+  contract: ProofContract,
+  receiptStrippedTestDocument: string,
+  codeScope: readonly ReceiptCodeScopeEntry[] = [],
+): string {
+  const scope = codeScope
+    .map((entry) => ({
+      symbolId: entry.symbolId,
+      sourceHash: entry.sourceHash,
+    }))
+    .sort((left, right) => left.symbolId.localeCompare(right.symbolId));
+  return jsonDigest({
+    binding: "kibi.receipt-binding.v1",
+    contract: proofContractHash(contract),
+    testDoc: createHash("sha256")
+      .update(receiptStrippedTestDocument)
+      .digest("hex"),
+    codeScope: scope,
+  });
+}
+
 export type ProofIntegrationExecution = Readonly<{
   id: string;
   producer: string;

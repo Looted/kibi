@@ -118,3 +118,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d77a4ef6acc1
+  - type: covered_by
+    from: SYM-core-journaled-tag-index
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:33:04.851Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-345b14752582
+  - type: covered_by
+    from: SYM-attachment-failure-message
+    to: TEST-cli-branch-store-recovery
+    created_at: 2026-09-14T12:39:59.225Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99ed57f24e69
+  - type: implements
+    from: SYM-attachment-failure-message
+    to: REQ-branch-store-recovery-v3
+    created_at: 2026-09-14T19:11:53.408Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5a677a445fc9
+  - type: implements
+    from: SYM-quality-inventory-273ca1c87f24
+    to: REQ-020
+    created_at: 2026-09-14T20:38:56.243Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37cc6bf4bfd7
+  - type: covered_by
+    from: SYM-quality-inventory-273ca1c87f24
+    to: TEST-014
+    created_at: 2026-09-14T20:38:56.261Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-829f7aed758d

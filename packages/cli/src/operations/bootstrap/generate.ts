@@ -12,7 +12,17 @@ import type {
   Candidate,
   PlanBootstrapArgs,
   PlanBootstrapResult,
+  SourceOnlySignal,
 } from "./types.js";
+
+export function filterSourceOnlySignals(
+  signals: readonly SourceOnlySignal[],
+  entityTypes: readonly string[] | undefined,
+): readonly SourceOnlySignal[] {
+  return entityTypes && entityTypes.length > 0
+    ? signals.filter((signal) => entityTypes.includes(signal.kind))
+    : signals;
+}
 import { bootstrapEmptyKbSnapshotId } from "./types.js";
 
 function clamp(value: number, minimum: number, maximum: number): number {
@@ -235,12 +245,10 @@ export async function executePlanBootstrap(
         includeGenericMarkdown,
       )
     : { candidates: [], sourceOnlySignals: [] };
-  const filteredSignals =
-    args.entityTypes && args.entityTypes.length > 0
-      ? built.sourceOnlySignals.filter((signal) =>
-          args.entityTypes?.includes(signal.kind),
-        )
-      : built.sourceOnlySignals;
+  const filteredSignals = filterSourceOnlySignals(
+    built.sourceOnlySignals,
+    args.entityTypes,
+  );
   const selected = selectBootstrapCandidates(
     built.candidates.filter(
       (candidate) => candidate.confidence >= minConfidence,

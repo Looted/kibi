@@ -136,7 +136,7 @@ function isReviewableCoverageDepth(
   );
 }
 
-function uniqueStrings(values: readonly string[]): readonly string[] {
+export function uniqueStrings(values: readonly string[]): readonly string[] {
   return [...new Set(values)].toSorted((left, right) =>
     left.localeCompare(right),
   );

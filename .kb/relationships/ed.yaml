@@ -97,3 +97,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-40d9e7bd0069
+  - type: executable_for
+    from: SYM-e2e-test-cli-sync-discovery-readme-ignore
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:22:44.520Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc476621149e
+  - type: covered_by
+    from: SYM-auto-1B73A7391533
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-05T17:16:00.666Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ef5eba98f143
+  - type: covered_by
+    from: SYM-modeling-predicate-utils-inferDurationUnit
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:45:24.500Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53aad31fcdf4
+  - type: implements
+    from: SYM-read-store-lock-owner
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-15T07:19:26.475Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c4a33018f55
+  - type: covered_by
+    from: SYM-read-store-lock-owner
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-09-15T07:19:26.486Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d746dad0bf4d
+  - type: implements
+    from: SYM-quality-inventory-879ebaca00d1
+    to: REQ-011
+    created_at: 2026-09-14T20:28:44.866Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bec30ef2ac11
+  - type: implements
+    from: SYM-quality-inventory-879ebaca00d1
+    to: REQ-kibi-source-relationship-parity
+    created_at: 2026-09-14T20:28:44.909Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53b075e8f775
+  - type: covered_by
+    from: SYM-quality-inventory-879ebaca00d1
+    to: TEST-cli-source-relationship-parity-unit
+    created_at: 2026-09-14T20:28:44.919Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-108e77e1a0bb

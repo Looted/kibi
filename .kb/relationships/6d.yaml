@@ -146,3 +146,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3ab1b03898cc
+  - type: constrains
+    from: REQ-generated-coordinate-persistence
+    to: FACT-SUBJ-REQ-GENERATED-COORDINATE-PERSISTENCE
+    created_at: 2026-09-05T14:34:06.271Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd525a596761
+  - type: requires_property
+    from: REQ-generated-coordinate-persistence
+    to: FACT-PROP-REQ-GENERATED-COORDINATE-PERSISTENCE-C01
+    created_at: 2026-09-05T14:34:06.290Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80178cc0423f
+  - type: covered_by
+    from: SYM-KibiImpactDiagnosticContract
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:13:23.185Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97ebde81dcc3
+  - type: covered_by
+    from: SYM-modeling-predicate-utils-inferSubject
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:46:00.385Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d495a9c9e022
+  - type: covered_by
+    from: SYM-modeling-predicate-utils-normalizeSubjectKey
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:46:31.219Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60f5620c27bd

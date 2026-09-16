@@ -36,6 +36,44 @@ type NoReplaceIntent = Readonly<{
 }>;
 
 // implements REQ-skillopt-automatic-adoption
+export function throwIfIntentDrift(drifted: boolean): void {
+  if (drifted) throw new Error("adoption no-replace intent drift");
+}
+
+// implements REQ-skillopt-automatic-adoption
+export function intentIdentityDrifted(
+  stage: {
+    isSymbolicLink(): boolean;
+    isFile(): boolean;
+    dev: number;
+    ino: number;
+    nlink: number;
+  },
+  destination: {
+    isSymbolicLink(): boolean;
+    isFile(): boolean;
+    dev: number;
+    ino: number;
+    nlink: number;
+  },
+  intent: { dev: string; ino: string; hash: string },
+  currentHash: string,
+): boolean {
+  return (
+    stage.isSymbolicLink() ||
+    destination.isSymbolicLink() ||
+    !stage.isFile() ||
+    !destination.isFile() ||
+    stage.dev !== destination.dev ||
+    stage.ino !== destination.ino ||
+    String(stage.dev) !== intent.dev ||
+    String(stage.ino) !== intent.ino ||
+    stage.nlink !== 2 ||
+    destination.nlink !== 2 ||
+    currentHash !== intent.hash
+  );
+}
+
 export function intentPath(path: string): string {
   return `${path}.install-intent.json`;
 }
@@ -134,19 +172,14 @@ export async function finalizeIntent(
   const stage = await lstatSecure(intent.stage);
   const destination = await lstatSecure(path);
   if (
-    stage.isSymbolicLink() ||
-    destination.isSymbolicLink() ||
-    !stage.isFile() ||
-    !destination.isFile() ||
-    stage.dev !== destination.dev ||
-    stage.ino !== destination.ino ||
-    String(stage.dev) !== intent.dev ||
-    String(stage.ino) !== intent.ino ||
-    stage.nlink !== 2 ||
-    destination.nlink !== 2 ||
-    hash(await readFile(path)) !== intent.hash
+    intentIdentityDrifted(
+      stage,
+      destination,
+      intent,
+      hash(await readFile(path)),
+    )
   ) {
-    throw new Error("adoption no-replace intent drift");
+    throwIfIntentDrift(true);
   }
   await rm(intent.stage);
   await fault(injection, "stage-unlink");

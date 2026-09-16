@@ -243,6 +243,10 @@ export function predicateBindingFailure(
         failure: "malformed-snapshot",
       };
     default:
-      return error.reason satisfies never;
+      return unexpectedPredicateBindingReason(String(error.reason));
   }
+}
+
+export function unexpectedPredicateBindingReason(reason: string): never {
+  throw new Error(`unexpected predicate binding reason: ${reason}`);
 }

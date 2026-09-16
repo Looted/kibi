@@ -34,7 +34,7 @@ const packageJson: unknown = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
 );
 
-function packageVersion(value: unknown): string {
+export function packageVersion(value: unknown): string {
   if (
     value !== null &&
     typeof value === "object" &&
@@ -44,6 +44,21 @@ function packageVersion(value: unknown): string {
     return value.version;
   }
   return "0.1.0";
+}
+
+export function isCliEntrypoint(
+  argv1: string | undefined,
+  moduleUrl: string,
+): boolean {
+  return (
+    argv1 !== undefined && moduleUrl === pathToFileURL(resolve(argv1)).href
+  );
+}
+
+export function exitCodeFromCliFailure(error: unknown): number {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(message);
+  return 1;
 }
 
 // implements REQ-kibi-operation-interface-parity
@@ -73,9 +88,7 @@ export async function main(): Promise<never> {
     await buildProgram().parseAsync(process.argv);
     exitCode = process.exitCode ?? 0;
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error(message);
-    exitCode = 1;
+    exitCode = exitCodeFromCliFailure(error);
   }
   await Promise.all(
     [process.stdout, process.stderr].map((stream) =>
@@ -85,10 +98,12 @@ export async function main(): Promise<never> {
   process.exit(exitCode);
 }
 
-const entryPath = process.argv[1];
-if (
-  entryPath !== undefined &&
-  import.meta.url === pathToFileURL(resolve(entryPath)).href
-) {
-  void main();
+export async function runCliIfEntrypoint(
+  isEntrypoint = isCliEntrypoint(process.argv[1], import.meta.url),
+  start = main,
+): Promise<void> {
+  if (!isEntrypoint) return;
+  await start();
 }
+
+void runCliIfEntrypoint();

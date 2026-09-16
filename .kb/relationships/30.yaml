@@ -111,3 +111,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d5a47d3af98e
+  - type: covered_by
+    from: SYM-migrateCommand
+    to: TEST-001
+    created_at: 2026-09-05T14:51:22.298Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c5911fd1d8f
+  - type: covered_by
+    from: SYM-mergeCoordinatesWithManifest
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:27:04.388Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d49b1044a3d
+  - type: covered_by
+    from: SYM-rankEntities
+    to: TEST-mcp-search-discovery
+    created_at: 2026-09-05T17:37:38.009Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2052565bd482
+  - type: covered_by
+    from: SYM-modeling-predicate-utils-singularize
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:46:42.006Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f376acdaf98a
+  - type: covered_by
+    from: SYM-detectPosture
+    to: TEST-opencode-smart-enforcement
+    created_at: 2026-09-05T18:00:55.209Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6fa57424f60d
+  - type: covered_by
+    from: SYM-SkillResourceNotFoundError
+    to: TEST-skill-cli-load-validate
+    created_at: 2026-09-05T18:02:37.731Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-670268908925
+  - type: covered_by
+    from: SYM-ArtifactPath
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-05T18:06:35.489Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e59e043c1123

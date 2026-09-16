@@ -15,6 +15,7 @@ import {
   effectiveProofFingerprint,
   jsonDigest,
   proofContractHash,
+  receiptBindingHash,
 } from "../../public/proof-fingerprint.js";
 import {
   PROOF_CONTRACT_VERSION,
@@ -32,7 +33,14 @@ import {
   proofReceiptHistoryErrors,
 } from "../../public/proof-receipt.js";
 import { projectEntityProperties } from "../mutation/entity-projection.js";
+import { join } from "node:path";
+import { resolveBoundSymbolScope } from "../../extractors/manifest.js";
+import { resolveContainedSourcePath } from "../mutation/source-authoring.js";
 import { executeUpsert } from "../mutation/upsert.js";
+import {
+  patchReceiptsIntoDocument,
+  removeFrontmatterBlock,
+} from "./receipt-document.js";
 
 // implements REQ-kibi-proof-evidence-protocol
 export type IngestProofArgs = Readonly<{
@@ -262,6 +270,29 @@ export async function executeIngestProof(
     const evaluation = evaluateContractAgainstRun(artifact, contract);
     const environmentHash = canonicalEnvironmentHash(artifact.environment);
     const artifactDigest = jsonDigest(artifact);
+    // Per-contract receipt binding (W2): hash the receipt-stripped authored
+    // document, the contract, and the bound symbols' source hashes so the
+    // receipt survives unrelated workspace changes and stales only when its
+    // own inputs (contract, document, production code scope) change.
+    let bindingHash: string | undefined;
+    const source = typeof test.source === "string" ? test.source : "";
+    if (context.fs && source !== "" && /\.(md|mdx)$/i.test(source)) {
+      try {
+        const absolute = resolveContainedSourcePath(
+          context.workspaceRoot,
+          source,
+        );
+        const authored = await context.fs.readFile(absolute);
+        const stripped = removeFrontmatterBlock(authored, "proof_receipts");
+        const codeScope = resolveBoundSymbolScope(
+          join(context.workspaceRoot, ".kb", "symbols.yaml"),
+          bindings.map((binding) => binding.symbol_id),
+        );
+        bindingHash = receiptBindingHash(contract, stripped ?? authored, codeScope);
+      } catch {
+        bindingHash = undefined;
+      }
+    }
     const receipt: ProofReceipt = {
       version: PROOF_RECEIPT_VERSION,
       receipt_id: `PR-${jsonDigest({
@@ -279,6 +310,7 @@ export async function executeIngestProof(
       finished_at: artifact.run.finished_at,
       artifact_digest: artifactDigest,
       contract_hash: proofContractHash(contract),
+      ...(bindingHash !== undefined ? { binding_hash: bindingHash } : {}),
       fingerprint,
       fingerprint_components: components,
       integration_id: effectiveIntegrationId,
@@ -346,6 +378,31 @@ export async function executeIngestProof(
       );
     const properties = projectEntityProperties(test);
     properties.proof_receipts = undefined;
+    // Surgical receipt append: splice only the proof_receipts block into the
+    // authored document so unrelated frontmatter keeps its authored form.
+    // Canonical re-rendering here would change non-receipt bytes, shift the
+    // workspace snapshot hash mid-campaign, and make later integrations in
+    // the same `kibi prove --all` refuse with "changed the tracked
+    // workspace". Falls back to the canonical render when the document is
+    // not a patchable markdown file.
+    let sourceDocumentOverride: string | undefined;
+    const source = typeof test.source === "string" ? test.source : "";
+    if (context.fs && source !== "" && /\.(md|mdx)$/i.test(source)) {
+      try {
+        const absolute = resolveContainedSourcePath(
+          context.workspaceRoot,
+          source,
+        );
+        const before = await context.fs.readFile(absolute);
+        sourceDocumentOverride =
+          patchReceiptsIntoDocument(before, nextReceipts) ?? undefined;
+      } catch {
+        sourceDocumentOverride = undefined;
+      }
+    }
+    // exactOptionalPropertyTypes: only pass the override when one exists.
+    const upsertOptions =
+      sourceDocumentOverride === undefined ? {} : { sourceDocumentOverride };
     const upsert = await executeUpsert(
       {
         type: "test",
@@ -353,6 +410,7 @@ export async function executeIngestProof(
         properties: { ...properties, proof_receipts: nextReceipts },
       },
       context,
+      upsertOptions,
     );
     void upsert;
     if (receipt.outcome === "passed") passed += 1;

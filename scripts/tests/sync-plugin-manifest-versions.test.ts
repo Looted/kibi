@@ -14,7 +14,10 @@ import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { syncPluginManifestVersions } from "../sync-plugin-manifest-versions.ts";
+import {
+  runSyncPluginManifestVersionsCli,
+  syncPluginManifestVersions,
+} from "../sync-plugin-manifest-versions.ts";
 
 const testDir = dirname(fileURLToPath(import.meta.url));
 
@@ -90,5 +93,57 @@ describe("syncPluginManifestVersions", () => {
     expect(readFileSync(cursorPluginPath, "utf8")).toContain(
       '"keywords": ["kibi", "mcp"]',
     );
+  });
+
+  test("rejects non-object manifests and missing package identity", async () => {
+    const workspaceRoot = mkdtempSync(
+      join(tmpdir(), "kibi-plugin-manifest-bad-"),
+    );
+    await writeJson(join(workspaceRoot, "packages/cli/package.json"), [
+      "not-an-object",
+    ]);
+    await expect(syncPluginManifestVersions(workspaceRoot)).rejects.toThrow(
+      /Expected a JSON object/,
+    );
+
+    await writeJson(join(workspaceRoot, "packages/cli/package.json"), {
+      version: "1.0.0",
+    });
+    await expect(syncPluginManifestVersions(workspaceRoot)).rejects.toThrow(
+      /Missing package name/,
+    );
+
+    await writeJson(join(workspaceRoot, "packages/cli/package.json"), {
+      name: "kibi-cli",
+    });
+    await expect(syncPluginManifestVersions(workspaceRoot)).rejects.toThrow(
+      /Missing package version/,
+    );
+  });
+
+  test("CLI runner logs each synced plugin manifest", async () => {
+    const workspaceRoot = mkdtempSync(
+      join(tmpdir(), "kibi-plugin-manifest-cli-"),
+    );
+    await writeJson(join(workspaceRoot, "packages/codex/package.json"), {
+      name: "kibi-codex",
+      version: "3.0.0",
+    });
+    await writeJson(
+      join(workspaceRoot, "packages/codex/.codex-plugin/plugin.json"),
+      { name: "kibi-codex", version: "0.1.0" },
+    );
+    const logs: string[] = [];
+    const log = console.log.bind(console);
+    console.log = ((chunk: unknown) => {
+      logs.push(String(chunk));
+    }) as typeof console.log;
+    try {
+      await runSyncPluginManifestVersionsCli(workspaceRoot);
+      expect(logs.join("\n")).toContain("Synced");
+      expect(logs.join("\n")).toContain("0.1.0 -> 3.0.0");
+    } finally {
+      console.log = log;
+    }
   });
 });

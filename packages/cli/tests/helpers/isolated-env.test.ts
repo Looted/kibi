@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { isolateKibiEnv } from "./in-process-workspace.js";
 import { isolatedCliSandboxEnv } from "./isolated-env.js";
 
 describe("isolatedCliSandboxEnv", () => {
@@ -29,5 +30,36 @@ describe("isolatedCliSandboxEnv", () => {
         process.env.KIBI_BRANCH = original;
       }
     }
+  });
+
+  test("strips leaked proof-producer env unless the caller sets it", () => {
+    const original = process.env.KIBI_PROOF_RUN;
+    process.env.KIBI_PROOF_RUN = "1";
+    process.env.KIBI_PROOF_WORKSPACE = "/workspace";
+    try {
+      const stripped = isolatedCliSandboxEnv();
+      expect(stripped.KIBI_PROOF_RUN).toBeUndefined();
+      expect(stripped.KIBI_PROOF_WORKSPACE).toBeUndefined();
+      expect(
+        isolatedCliSandboxEnv({ KIBI_PROOF_RUN: "sandbox" }).KIBI_PROOF_RUN,
+      ).toBe("sandbox");
+    } finally {
+      if (original === undefined) {
+        Reflect.deleteProperty(process.env, "KIBI_PROOF_RUN");
+      } else {
+        process.env.KIBI_PROOF_RUN = original;
+      }
+      Reflect.deleteProperty(process.env, "KIBI_PROOF_WORKSPACE");
+    }
+  });
+});
+
+describe("isolateKibiEnv", () => {
+  test("clears KIBI_NODE_PATH set during the isolated region", () => {
+    const previous = process.env.KIBI_NODE_PATH;
+    const restore = isolateKibiEnv();
+    process.env.KIBI_NODE_PATH = "/tmp/missing-node";
+    restore();
+    expect(process.env.KIBI_NODE_PATH).toBe(previous as never);
   });
 });

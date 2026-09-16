@@ -41,3 +41,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9b7bcddf4d03
+  - type: covered_by
+    from: SYM-NpmFixtureResult
+    to: TEST-014
+    created_at: 2026-09-05T14:53:54.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-236a9f612343
+  - type: covered_by
+    from: SYM-ExtractionResult
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:23:12.110Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8fe64d6c1abb
+  - type: covered_by
+    from: SYM-extractSemanticClauses
+    to: TEST-kibi-logical-requirement-coverage
+    created_at: 2026-09-05T17:12:47.628Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d63b222bc854
+  - type: implements
+    from: SYM-skillopt-runtime-with-prepared-login
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-09-08T00:34:22.057Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fa241d6cef47
+  - type: covered_by
+    from: SYM-skillopt-runtime-with-prepared-login
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-09-08T00:34:22.065Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c3ae26de7a0
+  - type: implements
+    from: SYM-coordinate-repair-batches
+    to: REQ-kibi-dependency-ordered-repair-plan
+    created_at: 2026-09-14T13:27:05.926Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0836945f46e9
+  - type: covered_by
+    from: SYM-coordinate-repair-batches
+    to: TEST-coordinate-repair-capability
+    created_at: 2026-09-14T13:27:05.934Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-760ac4daaf8d
+  - type: covered_by
+    from: SYM-coordinate-repair-batches
+    to: TEST-kibi-dependency-ordered-repair-plan
+    created_at: 2026-09-14T13:27:05.939Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-796eb2d4b014

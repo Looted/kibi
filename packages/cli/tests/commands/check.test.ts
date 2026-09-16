@@ -161,6 +161,32 @@ links:
   execSync("git add .kb", { cwd: root, stdio: "pipe" });
 }
 
+function writeLargeQualityDiagnosticFixture(root: string): void {
+  const reqDir = path.join(root, ".kb/requirements");
+  mkdirSync(reqDir, { recursive: true });
+  for (const ordinal of Array.from({ length: 64 }, (_, index) => index + 1)) {
+    const id = `REQ-LARGE-CHECK-${String(ordinal).padStart(3, "0")}`;
+    writeFileSync(
+      path.join(reqDir, `${id}.md`),
+      `---
+id: ${id}
+title: Large structured check requirement ${ordinal}
+type: req
+status: open
+priority: should
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: .kb/requirements/${id}.md
+---
+
+# Large structured check requirement ${ordinal}
+`,
+    );
+  }
+
+  execSync("git add .kb", { cwd: root, stdio: "pipe" });
+}
+
 function writeUmbrellaBroadRequirementFixture(root: string): void {
   writeBroadRequirementFixture(root);
   writeFileSync(
@@ -428,6 +454,45 @@ describe("kibi check", () => {
       ).toBe(true);
     },
     TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "flushes large structured check output before Bun and Node exit",
+    async () => {
+      writeLargeQualityDiagnosticFixture(tmpDir);
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+      for (const runtime of ["bun", "node"] as const) {
+        const result = spawnSync(runtime, [kibiBin, "check", "--input", "-"], {
+          cwd: tmpDir,
+          encoding: "utf8",
+          input: "{}\n",
+          maxBuffer: 8 * 1024 * 1024,
+          timeout: TEST_TIMEOUT_MS,
+        });
+
+        expect(result.error).toBeUndefined();
+        expect(result.status).toBe(0);
+        const stdout = result.stdout ?? "";
+        expect(Buffer.byteLength(stdout, "utf8")).toBeGreaterThan(128 * 1024);
+
+        const parsed = JSON.parse(stdout) as {
+          readonly kibiProtocol?: number;
+          readonly operation?: string;
+          readonly status?: string;
+          readonly data?: {
+            readonly qualityDiagnostics?: readonly unknown[];
+          };
+        };
+        expect(parsed).toMatchObject({
+          kibiProtocol: 1,
+          operation: "kb_check",
+          status: "success",
+        });
+        expect(parsed.data?.qualityDiagnostics?.length).toBeGreaterThan(0);
+      }
+    },
+    TEST_TIMEOUT_MS * 2,
   );
 
   test(

@@ -41,3 +41,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-912eb5053a47
+  - type: covered_by
+    from: SYM-cli-engine-client
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:28:18.369Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c7c32649e11b

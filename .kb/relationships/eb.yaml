@@ -27,3 +27,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d1775a450228
+  - type: covered_by
+    from: SYM-mcp-formatQualityDiagnosticsText
+    to: TEST-audit-quality-diagnostics-v1
+    created_at: 2026-09-05T15:04:18.987Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55ca1a6c7e63
+  - type: covered_by
+    from: SYM-KibiImpactKbArtifact
+    to: TEST-cli-staged-impact-enforcement
+    created_at: 2026-09-05T15:13:53.829Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32009f9ba084
+  - type: covered_by
+    from: SYM-cli-engine-client-invalidate-cache
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:28:47.834Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6c5267f7345
+  - type: covered_by
+    from: SYM-mcp-analyzeKbCheckImpact
+    to: TEST-mcp-tool-check-coverage
+    created_at: 2026-09-05T17:49:06.648Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-834a2b24ba47
+  - type: covered_by
+    from: SYM-mcp-formatQualityDiagnosticsText
+    to: TEST-mcp-tool-check-coverage
+    created_at: 2026-09-05T17:49:21.188Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d08319c41f34

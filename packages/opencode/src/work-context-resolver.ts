@@ -31,7 +31,7 @@ export interface WorkContext {
   agentIdentity: string;
 }
 
-interface GitMetadata {
+export interface GitMetadata {
   worktreeRoot: string;
   gitDir: string;
   commonGitDir: string;
@@ -92,14 +92,19 @@ function directorySearchStart(candidatePath: string): string {
   return stats?.isDirectory() ? resolved : dirname(resolved);
 }
 
+export function nextAncestorDirectory(current: string): string | undefined {
+  const parent = dirname(current);
+  return parent === current ? undefined : parent;
+}
+
 function findGitMetadata(
   candidatePath: string,
   searchBoundary?: string,
 ): GitMetadata | null {
-  let current = directorySearchStart(candidatePath);
+  let current: string | undefined = directorySearchStart(candidatePath);
   const boundary = searchBoundary ? resolve(searchBoundary) : null;
 
-  while (true) {
+  while (current !== undefined) {
     const dotGitPath = join(current, ".git");
     const dotGitStats = safeStat(dotGitPath);
 
@@ -128,12 +133,9 @@ function findGitMetadata(
       return null;
     }
 
-    const parent = dirname(current);
-    if (parent === current) {
-      return null;
-    }
-    current = parent;
+    current = nextAncestorDirectory(current);
   }
+  return null;
 }
 
 function hasRootKbConfig(root: string): boolean {
@@ -163,7 +165,7 @@ function authorityRootFromCommonGitDir(commonGitDir: string): string | null {
   return basename(commonGitDir) === ".git" ? dirname(commonGitDir) : null;
 }
 
-function authorityRootFromLinkedGitDir(gitDir: string): string | null {
+export function authorityRootFromLinkedGitDir(gitDir: string): string | null {
   const normalizedGitDir = resolve(gitDir);
   const marker = `${sep}.git${sep}worktrees${sep}`;
   const markerIndex = normalizedGitDir.indexOf(marker);
@@ -174,21 +176,17 @@ function authorityRootFromLinkedGitDir(gitDir: string): string | null {
   return normalizedGitDir.slice(0, markerIndex);
 }
 
-function ancestorKbRoots(start: string): string[] {
+export function ancestorKbRoots(start: string): string[] {
   const roots: string[] = [];
-  let current = resolve(start);
+  let current: string | undefined = resolve(start);
 
-  while (true) {
+  while (current !== undefined) {
     if (hasRootKbConfig(current)) {
       roots.push(current);
     }
-
-    const parent = dirname(current);
-    if (parent === current) {
-      return roots;
-    }
-    current = parent;
+    current = nextAncestorDirectory(current);
   }
+  return roots;
 }
 
 function resolveAuthorityRoot(
@@ -214,7 +212,7 @@ function resolveAuthorityRoot(
   );
 }
 
-function resolveBranch(git: GitMetadata | null): string {
+export function resolveBranch(git: GitMetadata | null): string {
   if (!git) {
     return "unknown";
   }

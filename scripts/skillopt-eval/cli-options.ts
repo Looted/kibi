@@ -1,3 +1,4 @@
+export const CLI_OPTIONS_MODULE = true;
 import { join } from "node:path";
 import { CANONICAL_SKILLS, type CanonicalSkill } from "./catalog";
 import type { CodexCellRuntime } from "./real-workflow";
@@ -20,8 +21,10 @@ export type WorkflowOptions = Readonly<{
   skill: CanonicalSkill | "all" | undefined;
   allowPaid: boolean;
   maxSteps: number;
+  developmentOnly?: boolean;
   sourceRoot?: string;
   seedCandidate?: string;
+  candidateManifest?: string;
   cellRuntime?: CodexCellRuntime;
 }>;
 
@@ -45,16 +48,21 @@ export function parseRunId(args: readonly string[], usage: string): string {
 
 // implements REQ-skillopt-codex-optimization
 // covered_by TEST-skillopt-codex-optimization
-export function parseWorkflowOptions(args: readonly string[]): WorkflowOptions {
+export function parseWorkflowOptions(
+  args: readonly string[],
+  command?: string,
+): WorkflowOptions {
   let runId: string | undefined;
   let artifactRoot: string | undefined;
   let fake = false;
   let skill: CanonicalSkill | "all" | undefined;
   let allowPaid = false;
   let maxSteps = 1;
+  let developmentOnly = false;
   let fixtureRunRoot: string | undefined;
   let sourceRoot: string | undefined;
   let seedCandidate: string | undefined;
+  let candidateManifest: string | undefined;
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
     if (arg === "--fake") {
@@ -63,6 +71,15 @@ export function parseWorkflowOptions(args: readonly string[]): WorkflowOptions {
     }
     if (arg === "--allow-paid") {
       allowPaid = true;
+      continue;
+    }
+    if (arg === "--development-only") {
+      if (command !== undefined && command !== "optimize") {
+        throw new CliUsageError(
+          "--development-only is only valid for optimize",
+        );
+      }
+      developmentOnly = true;
       continue;
     }
     if (arg === "--skill" || arg === "--max-steps") {
@@ -77,6 +94,21 @@ export function parseWorkflowOptions(args: readonly string[]): WorkflowOptions {
         }
         maxSteps = parsed;
       }
+      index += 1;
+      continue;
+    }
+    if (arg === "--candidate-manifest") {
+      if (command !== undefined && command !== "bundle") {
+        throw new CliUsageError(
+          "--candidate-manifest is only valid for bundle",
+        );
+      }
+      const value = args[index + 1];
+      if (value === undefined || value.startsWith("--"))
+        throw new CliUsageError("--candidate-manifest requires a value");
+      if (candidateManifest !== undefined)
+        throw new CliUsageError("--candidate-manifest may be supplied once");
+      candidateManifest = value;
       index += 1;
       continue;
     }
@@ -113,11 +145,13 @@ export function parseWorkflowOptions(args: readonly string[]): WorkflowOptions {
     skill,
     allowPaid,
     maxSteps,
+    developmentOnly,
     ...(fixtureRunRoot === undefined
       ? {}
       : { cellRuntime: { fixtureRunRoot } }),
     ...(sourceRoot === undefined ? {} : { sourceRoot }),
     ...(seedCandidate === undefined ? {} : { seedCandidate }),
+    ...(candidateManifest === undefined ? {} : { candidateManifest }),
   };
 }
 
@@ -128,7 +162,7 @@ export function printHelp(): void {
     `${[
       "Usage: cli.ts <command> [options]",
       "Commands: preflight, smoke, dry-run, prepare, optimize, evaluate, bundle, run, resume, status, report, approve, adopt, prototype",
-      "Workflow options: --run-id RUN_ID --artifact-root PATH [--fake] [--skill SKILL|all] [--max-steps 1..4] [--fixture-run-root PATH] [--seed-candidate PATH]",
+      "Workflow options: --run-id RUN_ID --artifact-root PATH [--fake] [--skill SKILL|all] [--max-steps 1..4] [--development-only] [--fixture-run-root PATH] [--seed-candidate PATH] [--candidate-manifest PATH]",
       "Real optimize requires --allow-paid after preflight and smoke; eligible candidates remain review-only until an external verdict authorizes adoption.",
     ].join("\n")}\n`,
   );

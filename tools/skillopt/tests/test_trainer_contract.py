@@ -4,13 +4,17 @@ import json
 import sys
 import tempfile
 import unittest
+from collections.abc import Sequence
 from pathlib import Path
+from typing import final
 from unittest.mock import patch
 
+from skillopt.datasets.base import BatchSpec
+from skillopt.engine import trainer as reflact_trainer
 from tools.skillopt.kibi_skillopt.adapter import EnvAdapter
 from tools.skillopt.kibi_skillopt.common import JsonValue, contract_hash, parse_json_value
-from tools.skillopt.kibi_skillopt.models import OptimizerResult, TrainTrajectory
-from tools.skillopt.kibi_skillopt.trainer import run_training
+from tools.skillopt.kibi_skillopt.models import OptimizerAcceptedResult, TrainTrajectory
+from tools.skillopt.kibi_skillopt.trainer import build_training_config, run_training
 
 HASH = "a" * 64
 CORPUS_ROOTS = {
@@ -86,10 +90,11 @@ class TrainerContractTests(unittest.TestCase):
                     )
                     return {"best_selection_hard": 0.5, "total_steps": 4}
 
-            optimized = OptimizerResult.model_validate(
+            optimized = OptimizerAcceptedResult.model_validate(
                 {
                     "schemaVersion": "1.0.0",
                     "artifactType": "skillopt-optimizer-result",
+                    "status": "accepted",
                     "requestHash": HASH,
                     "body": "Use Kibi through MCP.",
                     "development": DEVELOPMENT,
@@ -174,10 +179,11 @@ class TrainerContractTests(unittest.TestCase):
                     )
                     return {"best_selection_hard": 0.5}
 
-            optimized = OptimizerResult.model_validate(
+            optimized = OptimizerAcceptedResult.model_validate(
                 {
                     "schemaVersion": "1.0.0",
                     "artifactType": "skillopt-optimizer-result",
+                    "status": "accepted",
                     "requestHash": HASH,
                     "body": "Use Kibi through MCP.",
                     "development": DEVELOPMENT,
@@ -198,6 +204,131 @@ class TrainerContractTests(unittest.TestCase):
             # Then
             self.assertEqual(calls, 1)
             self.assertEqual(first, second)
+
+    def test_rejected_optimizer_proposal_is_a_bounded_no_patch_step(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            out_root = root / "training"
+            initial_body = "canonical body\n"
+            initial_path = root / "initial-skill.md"
+            _ = initial_path.write_text(initial_body, encoding="utf-8")
+
+            @final
+            class FakeAdapter:
+                def __init__(self) -> None:
+                    self.reflect_calls: int = 0
+                    self.rollout_skills: list[str] = []
+
+                def setup(self, config: dict[str, JsonValue]) -> None:
+                    del config
+
+                def get_dataloader(self) -> None:
+                    return None
+
+                def requires_ray(self) -> bool:
+                    return False
+
+                def build_env_from_batch(
+                    self, batch: BatchSpec, **kwargs: JsonValue
+                ) -> list[dict[str, JsonValue]]:
+                    del kwargs
+                    if batch.phase == "train":
+                        return self.build_train_env(batch.batch_size, batch.seed)
+                    return self.build_eval_env(batch.batch_size, batch.split, batch.seed)
+
+                def build_train_env(
+                    self, batch_size: int, seed: int, **kwargs: JsonValue
+                ) -> list[dict[str, JsonValue]]:
+                    del kwargs
+                    return [{"id": f"train-{seed}"} for _ in range(batch_size)]
+
+                def build_eval_env(
+                    self, env_num: int, split: str, seed: int, **kwargs: JsonValue
+                ) -> list[dict[str, JsonValue]]:
+                    del kwargs
+                    return [{"id": f"{split}-{seed}"} for _ in range(env_num)]
+
+                def rollout(
+                    self,
+                    env_manager: Sequence[object],
+                    skill_content: str,
+                    out_dir: str,
+                    **kwargs: JsonValue,
+                ) -> list[dict[str, JsonValue]]:
+                    del out_dir, kwargs
+                    self.rollout_skills.append(skill_content)
+                    return [
+                        {
+                            "id": f"task-{index}",
+                            "hard": 1,
+                            "soft": 1.0,
+                            "task_type": "contract",
+                        }
+                        for index, _item in enumerate(env_manager)
+                    ]
+
+                def reflect(
+                    self,
+                    results: list[dict[str, JsonValue]],
+                    skill_content: str,
+                    out_dir: str,
+                    **kwargs: JsonValue,
+                ) -> list[dict[str, JsonValue] | None]:
+                    del results, skill_content, out_dir, kwargs
+                    self.reflect_calls += 1
+                    if self.reflect_calls == 1:
+                        # This represents the rejected direct-.kb proposal. It
+                        # must not reach the trainer's candidate evaluation.
+                        return []
+                    return [
+                        {
+                            "source_type": "failure",
+                            "patch": {
+                                "skill_candidates": [
+                                    {
+                                        "title": "valid proposal",
+                                        "new_skill": "valid body\n",
+                                        "change_summary": ["repair"],
+                                    }
+                                ]
+                            },
+                        }
+                    ]
+
+                def get_task_types(self) -> list[str]:
+                    return ["contract"]
+
+            adapter = FakeAdapter()
+            config = build_training_config(out_root, max_steps=2)
+            config.update(
+                {
+                    "skill_init": str(initial_path),
+                    "train_size": 2,
+                    "batch_size": 1,
+                    "num_epochs": 1,
+                    "eval_test": False,
+                }
+            )
+            merged_patch = {
+                "reasoning": "stub optimizer",
+                "skill_candidates": [
+                    {
+                        "title": "valid proposal",
+                        "new_skill": "valid body\n",
+                        "change_summary": ["repair"],
+                    }
+                ],
+            }
+
+            with patch.object(reflact_trainer, "merge_patches", return_value=merged_patch):
+                result = reflact_trainer.ReflACTTrainer(  # type: ignore[arg-type]
+                    config, adapter
+                ).train()
+
+            self.assertEqual(adapter.reflect_calls, 2)
+            self.assertNotIn("rejected direct-.kb proposal\n", adapter.rollout_skills)
+            self.assertEqual(result["total_steps"], 2)
+            self.assertEqual((out_root / "best_skill.md").read_text(encoding="utf-8"), initial_body)
 
 
 class TrainEntrypointTests(unittest.TestCase):

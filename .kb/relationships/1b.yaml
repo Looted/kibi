@@ -62,3 +62,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8d2a1ad7a4c2
+  - type: covered_by
+    from: SYM-kibi-migration-action-default
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-09-05T15:00:38.469Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c6719deae54
+  - type: covered_by
+    from: SYM-cli-engine-format-attachment-mismatch
+    to: TEST-core-journaled-engine-delta-sync
+    created_at: 2026-09-05T15:30:05.576Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68b4cb495edc
+  - type: implements
+    from: SYM-store-lock-holder-state
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-15T07:55:21.674Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32c5e576ed52
+  - type: covered_by
+    from: SYM-store-lock-holder-state
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-09-15T07:55:21.693Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-716473d0aac2
+  - type: relates_to
+    from: REQ-006
+    to: FACT-CHECK-RULESET-CORE-3
+    created_at: 2026-09-14T18:42:28.144Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-86108de55a32
+  - type: implements
+    from: SYM-quality-producer-loadProofSteps
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-09-14T18:53:53.933Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-788794ad543c
+  - type: covered_by
+    from: SYM-quality-producer-loadProofSteps
+    to: TEST-proof-runner-integrity
+    created_at: 2026-09-14T18:53:53.945Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2eb75099676

@@ -83,7 +83,7 @@ This section provides guidance on selecting the appropriate entity type for your
 |--------------|----------|----------------|--------------------------------------------------|
 | id           | Yes      | string         | Unique identifier                                |
 | title        | Yes      | string         | Requirement summary                              |
-| status       | Yes      | string         | open, in_progress, closed, deprecated            |
+| status       | Yes      | string         | open, in_progress, closed, deprecated. ADR vocabulary such as `accepted` compiles but is not a requirement status: it silently removes the requirement from the proof ladder, and `kibi check` reports it under `req-status-vocabulary`. Superseded requirements keep their status and gain a `supersedes` link from the successor. |
 | created_at   | Yes      | ISO 8601       | Creation timestamp                               |
 | updated_at   | Yes      | ISO 8601       | Last update timestamp                            |
 | source       | Yes      | string         | Provenance                                       |
@@ -93,6 +93,8 @@ This section provides guidance on selecting the appropriate entity type for your
 | severity     | No       | string         | Severity level                                   |
 | links[]      | No       | array[string]  | URLs or entity IDs (for relationships)           |
 | text_ref     | No       | string         | Independent code/doc evidence pointer            |
+| proof_exempt | No       | boolean        | Marks a current requirement as intentionally outside E2E-proof scope. Requires `proof_exempt_reason`; coverage reports the requirement `not_applicable` with that reason |
+| proof_exempt_reason | No | string        | Required when `proof_exempt` is true — the reviewable justification surfaced in coverage rows |
 | semantic_text | No      | string         | Requirement-only normalized authored prose that anchors semantic byte spans |
 | logic_claims | No       | array[string]  | Requirement-only manifest of stable atomic claim keys |
 | semantic_clauses | No | array[string] | Reviewed atomic decomposition override used against the exact semantic source |
@@ -180,7 +182,7 @@ relationship:
 **Strict Fact Modeling (Normative Lane):**
 
 - Preserve readable requirement prose, but decompose the entire assertive body into atomic propositions with `kb_semantic_advisor`. Context-only rationale, examples, and subjective commentary remain in the inventory as `nonlogical` and do not enter `logic_claims`.
-- For a current requirement write, persist the receipt's `inventory_contract` as `semantic_inventory_version`, `semantic_source_field`, and `semantic_source_hash`. Ledger spans are UTF-8 byte offsets into that exact field; duplicate keys/spans, source drift, and silent omission are rejected before mutation.
+- For a current requirement write, persist the receipt's `inventory_contract` as `semantic_inventory_version`, `semantic_source_field`, and `semantic_source_hash`. Ledger spans are UTF-8 byte offsets into that exact field; the advisor canonicalizes repeated identical normalized claims to one proposition at the first source occurrence, while duplicate keys/spans in a submitted ledger, source drift, and silent omission are rejected before mutation.
 - Store exactly all returned assertive keys in the requirement `logic_claims` manifest. Each `modeled` entry must resolve through exactly one `requires_property`, `requires_predicate`, or `requires_rule` edge to a fact carrying the same `claim_key`; explicit `ambiguous`, `ontology_gap`, or `missing` entries remain ingestible but unresolved.
 - `logic-coverage` checks manifest-to-ground-fact correspondence and is enabled by default. Requirements without manifests remain a gradual-backfill case; quality diagnostics identify every current requirement with this debt, while the default rule prevents explicitly modeled manifests from drifting.
 

@@ -575,7 +575,7 @@ export function extractSymbolsFromStagedFile(
   return results;
 }
 
-function isPrivateClassMember(member: {
+export function isPrivateClassMember(member: {
   getName?: () => string;
   getScope?: () => Scope;
 }): boolean {

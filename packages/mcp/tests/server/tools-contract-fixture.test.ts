@@ -2,7 +2,9 @@ import { describe, expect, test } from "bun:test";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 
+import { DIAGNOSTIC_TELEMETRY_SCHEMA } from "../../src/diagnostics.js";
 import { registerAllTools } from "../../src/server/tools.js";
 import {
   TOOLS,
@@ -23,6 +25,7 @@ type ContractSeed = {
 type CapturedTool = {
   name: string;
   description: string;
+  inputSchema: { _zod?: unknown };
 };
 
 const CONTRACT_FIXTURES_ROOT = path.resolve(
@@ -199,9 +202,21 @@ function createRegisteredToolsSnapshot(): CapturedTool[] {
   const server = {
     registerTool: (
       name: string,
-      config: { description: string; inputSchema: JsonRecord },
+      config: {
+        description: string;
+        inputSchema: { _zod?: unknown };
+        outputSchema?: { _zod?: unknown };
+        annotations?: Record<string, unknown>;
+      },
     ) => {
-      registered.push({ name, description: config.description });
+      registered.push({
+        name,
+        description: config.description,
+        // The registration surface receives the Zod-converted schema; the
+        // tools-list fixture must reflect the wire output, so keep the Zod
+        // schema and convert at snapshot time.
+        inputSchema: config.inputSchema,
+      });
     },
   } as unknown as McpServer;
 
@@ -267,16 +282,40 @@ describe("mcp contract fixtures", () => {
     const seed = loadSeed();
     const registered = createRegisteredToolsSnapshot();
     const toolDefinitions = new Map(TOOLS.map((tool) => [tool.name, tool]));
+    const registeredByName = new Map(
+      registered.map((tool) => [tool.name, tool]),
+    );
 
-    expect(registered.map((tool) => tool.name)).toHaveLength(21);
+    // 21 canonical catalog operations + the MCP-server-native kb_job_status
+    // poll tool (see jobs.ts).
+    expect(registered.map((tool) => tool.name)).toHaveLength(22);
     expect(registered.map((tool) => tool.name)).not.toContain(
       "kb_briefing_generate",
     );
 
-    const baseTools = buildToolListSnapshot(TOOLS);
+    // The tools-list fixture must reflect the wire surface: the 21 canonical
+    // catalog operations plus the server-native kb_job_status poll tool that
+    // registerAllTools adds after the catalog (see jobs.ts).
+    const jobStatus = registeredByName.get("kb_job_status");
+    const jobStatusFixture = jobStatus
+      ? {
+          name: "kb_job_status",
+          description: jobStatus.description,
+          inputSchema: stableSchema(
+            z.toJSONSchema(jobStatus.inputSchema as never),
+          ) as JsonRecord,
+        }
+      : null;
+    const baseTools = {
+      tools: [
+        ...buildToolListSnapshot(TOOLS).tools,
+        ...(jobStatusFixture ? [jobStatusFixture] : []),
+      ],
+    };
     const diagnosticTools = buildToolListSnapshot(
       withDiagnosticTelemetrySchema(TOOLS),
     );
+    if (jobStatusFixture) diagnosticTools.tools.push(jobStatusFixture);
 
     if (updateFixtures) {
       writeFileSync(
@@ -296,10 +335,6 @@ describe("mcp contract fixtures", () => {
         stableSchemaStringify(readJson(TOOL_LIST_DIAGNOSTIC_PATH)),
       );
     }
-
-    const registeredByName = new Map(
-      registered.map((tool) => [tool.name, tool]),
-    );
 
     for (const operationName of OPERATION_NAMES) {
       const tool = registeredByName.get(operationName);

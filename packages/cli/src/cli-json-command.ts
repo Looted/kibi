@@ -1,3 +1,4 @@
+import { once } from "node:events";
 import type { Command } from "commander";
 import { InputError } from "./cli-errors.js";
 import { loadInput } from "./cli-input.js";
@@ -7,6 +8,12 @@ import { prepareOperationInput } from "./cli-validate.js";
 import { appendCliDiagnosticUsage } from "./public/diagnostic-usage.js";
 import type { OperationName } from "./public/operations/types.js";
 import { createCliRuntime } from "./runtime/cli-runtime.js";
+
+export function writeOptionalStderr(stderr: string | undefined): void {
+  if (stderr !== undefined) {
+    process.stderr.write(stderr);
+  }
+}
 
 // implements REQ-kibi-operation-interface-parity
 export type JsonInvocation = {
@@ -56,6 +63,14 @@ function structuredResult(stdout: string | undefined): unknown {
   } catch {
     return undefined;
   }
+}
+
+async function writeAndWaitForDrain(
+  stream: NodeJS.WriteStream,
+  value: string,
+): Promise<void> {
+  if (stream.write(value)) return;
+  await once(stream, "drain");
 }
 
 // implements REQ-kibi-operation-interface-parity
@@ -160,10 +175,8 @@ export async function runJsonInvocation(
     });
   }
   if (result.stdout !== undefined) {
-    process.stdout.write(result.stdout);
+    await writeAndWaitForDrain(process.stdout, result.stdout);
   }
-  if (result.stderr !== undefined) {
-    process.stderr.write(result.stderr);
-  }
+  writeOptionalStderr(result.stderr);
   process.exitCode = result.exitCode;
 }

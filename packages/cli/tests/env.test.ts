@@ -11,13 +11,18 @@ import {
 const originalEnv = { ...process.env };
 
 afterEach(() => {
-  process.env = { ...originalEnv };
+  for (const key of Object.keys(process.env)) {
+    if (!(key in originalEnv)) Reflect.deleteProperty(process.env, key);
+  }
+  for (const [key, value] of Object.entries(originalEnv)) {
+    if (value === undefined) Reflect.deleteProperty(process.env, key);
+    else process.env[key] = value;
+  }
 });
 
 /** Bun >=1.4 coerces undefined assignments into the string "undefined". */
 function unsetEnv(key: string) {
-  const { [key]: _omitted, ...rest } = process.env;
-  process.env = rest;
+  Reflect.deleteProperty(process.env, key);
 }
 
 describe("cli env helpers", () => {

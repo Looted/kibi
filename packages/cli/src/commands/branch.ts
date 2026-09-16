@@ -141,6 +141,16 @@ function writeMigrationJournal(
   });
 }
 
+export function completeBranchJournalPaths(
+  paths: readonly string[],
+): [string, string, string, string] {
+  const [sourcePath, targetPath, stagingPath, backupPath] = paths;
+  if (!sourcePath || !targetPath || !stagingPath || !backupPath) {
+    throw new Error("Branch migration journal is incomplete");
+  }
+  return [sourcePath, targetPath, stagingPath, backupPath];
+}
+
 function recoverBranchMigration(
   workspaceRoot: string,
   id: string,
@@ -160,10 +170,8 @@ function recoverBranchMigration(
   if (paths.some((candidate) => !candidate.startsWith(`${root}${path.sep}`))) {
     throw new Error("Branch migration journal path escapes workspace");
   }
-  const [sourcePath, targetPath, stagingPath, backupPath] = paths;
-  if (!sourcePath || !targetPath || !stagingPath || !backupPath) {
-    throw new Error("Branch migration journal is incomplete");
-  }
+  const [sourcePath, targetPath, stagingPath, backupPath] =
+    completeBranchJournalPaths(paths);
   console.log(`Branch migration recovery preview: ${id}`);
   console.log(`State: ${String(journal.state)}`);
   console.log(`Source: ${sourcePath}`);

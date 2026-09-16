@@ -153,3 +153,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-41fef9130346
+  - type: covered_by
+    from: SYM-skillopt-fake-provider-zero-budget-parent
+    to: TEST-skillopt-paid-launch-accounting
+    created_at: 2026-09-05T18:18:02.512Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c40b6327f9e0
+  - type: implements
+    from: SYM-quality-producer-runProofProducer
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-09-14T18:55:35.892Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c2a8722887a4
+  - type: covered_by
+    from: SYM-quality-producer-runProofProducer
+    to: TEST-proof-runner-integrity
+    created_at: 2026-09-14T18:55:35.907Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1f57053ffed

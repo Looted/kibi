@@ -224,7 +224,7 @@ describe.serial("direct session edge coverage", () => {
   test("covers same-branch refresh attach failure, retry failure, and retry success", async () => {
     process.env.KIBI_BRANCH = "develop";
     await session.ensureProlog();
-    const attachedPath = session.attachedBranchKbPath;
+    const attachedPath = session.getAttachedBranchKbPath();
     if (attachedPath === null) throw new Error("Expected attached branch path");
     writeFileSync(
       path.join(attachedPath, "kb.rdf"),
@@ -289,7 +289,7 @@ describe.serial("direct session edge coverage", () => {
     });
 
     const refreshed = await session.ensureProlog();
-    const activeProcess = session.prologProcess;
+    const activeProcess = session.getPrologProcess();
     if (activeProcess === null)
       throw new Error("Expected active Prolog process");
     expect(refreshed).toBe(activeProcess);

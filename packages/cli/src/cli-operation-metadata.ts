@@ -142,14 +142,20 @@ const METADATA_BY_NAME = new Map(
   CLI_OPERATION_METADATA.map((metadata) => [metadata.name, metadata]),
 );
 
-export function getCliOperationMetadata(
+export function requireCliOperationMetadata(
+  metadata: CliOperationMetadata | undefined,
   name: OperationName,
 ): CliOperationMetadata {
-  const metadata = METADATA_BY_NAME.get(name);
   if (metadata === undefined) {
     throw new RangeError(`Unknown Kibi CLI operation: ${name}`);
   }
   return metadata;
+}
+
+export function getCliOperationMetadata(
+  name: OperationName,
+): CliOperationMetadata {
+  return requireCliOperationMetadata(METADATA_BY_NAME.get(name), name);
 }
 
 export function isOperationName(name: string): name is OperationName {

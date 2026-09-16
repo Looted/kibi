@@ -8,7 +8,7 @@ import {
   type SourceLocation,
   executeIntentSearch,
 } from "../../intent-search.js";
-import { parseTriples } from "../../prolog/codec.js";
+import { normalizeEntityId, parseTriples } from "../../prolog/codec.js";
 import { loadEntities } from "../../public/operations/discovery-entities.js";
 import { executeStatus } from "../../public/operations/discovery-executors.js";
 import type {
@@ -54,6 +54,8 @@ export type TestDraft = Readonly<{
   id?: string;
   title: string;
   body: string;
+  /** Stable IDs of the scenario drafts that this test verifies. */
+  scenarioIds?: readonly string[];
   verificationScope?: "unit" | "integration" | "end_to_end";
   verificationPerspective?: "internal" | "consumer";
 }>;
@@ -423,10 +425,18 @@ async function contradictionAnalysis(
   if (!result.success) return { outcome: "unresolved", witnesses: [] };
   const rows = parseTriples(result.bindings.Rows ?? "[]");
   const witnesses = rows
+    .map(([left, right, reason]) => ({
+      left: normalizeEntityId(left),
+      right: normalizeEntityId(right),
+      reason,
+    }))
     .filter(
-      ([left, right]) => left === requirementId || right === requirementId,
+      ({ left, right }) => left === requirementId || right === requirementId,
     )
-    .map(([left, right, reason]) => ({ requirements: [left, right], reason }));
+    .map(({ left, right, reason }) => ({
+      requirements: [left, right],
+      reason,
+    }));
   return {
     outcome: witnesses.length > 0 ? "conflict" : "no_conflict",
     witnesses,
@@ -492,6 +502,7 @@ function draftId(prefix: string, title: string, index: number): string {
   return `${prefix}-${slug(title)}-${shortHash(`${title}\0${index}`).toUpperCase()}`;
 }
 
+// implements REQ-kibi-change-to-proof-plan-compiler
 function draftSteps(
   requirementId: string,
   scenarios: readonly ScenarioDraft[],
@@ -500,8 +511,17 @@ function draftSteps(
   const diagnostics: string[] = [];
   const steps: PlanStep[] = [];
   const scenarioIds: string[] = [];
+  const linkedScenarioIds = new Set<string>();
+  const duplicateScenarioIds = new Set<string>();
+  const testIds = new Set<string>();
   scenarios.forEach((scenario, index) => {
     const id = text(scenario.id) || draftId("SCEN", scenario.title, index);
+    if (scenarioIds.includes(id)) {
+      duplicateScenarioIds.add(id);
+      diagnostics.push(
+        `unresolved duplicate scenario draft ID ${id}; scenario associations are ambiguous.`,
+      );
+    }
     scenarioIds.push(id);
     steps.push({
       type: "scenario",
@@ -517,11 +537,61 @@ function draftSteps(
   });
   tests.forEach((test, index) => {
     const id = text(test.id) || draftId("TEST", test.title, index);
-    if (scenarioIds.length === 0)
+    if (testIds.has(id)) {
       diagnostics.push(
-        `Test draft ${id} has no scenario draft; proof-bearing tests require a scenario relationship.`,
+        `unresolved duplicate test draft ID ${id}; test associations are ambiguous.`,
       );
-    const scenarioId = scenarioIds[index] ?? scenarioIds[0];
+    }
+    testIds.add(id);
+    const requestedScenarioIds = test.scenarioIds?.map(text) ?? null;
+    const soleScenarioId =
+      scenarioIds.length === 1 ? scenarioIds[0] : undefined;
+    const associatedScenarioIds =
+      requestedScenarioIds !== null
+        ? Array.from(new Set(requestedScenarioIds.filter(Boolean)))
+        : soleScenarioId !== undefined
+          ? [soleScenarioId]
+          : [];
+    if (scenarioIds.length === 0) {
+      diagnostics.push(
+        `unresolved test draft ${id} has no scenario draft; proof-bearing tests require a scenario relationship.`,
+      );
+    } else if (requestedScenarioIds === null && scenarioIds.length > 1) {
+      diagnostics.push(
+        `unresolved test draft ${id} must declare scenarioIds when multiple scenario drafts exist; positional association is not supported.`,
+      );
+    } else if (
+      requestedScenarioIds !== null &&
+      associatedScenarioIds.length === 0
+    ) {
+      diagnostics.push(
+        `unresolved test draft ${id} must reference at least one scenario ID in scenarioIds.`,
+      );
+    }
+    if (
+      requestedScenarioIds !== null &&
+      (requestedScenarioIds.some((scenarioId) => !scenarioId) ||
+        requestedScenarioIds.filter(Boolean).length !==
+          associatedScenarioIds.length)
+    ) {
+      diagnostics.push(
+        `unresolved test draft ${id} repeats or omits scenario IDs; associations must be unique and non-empty.`,
+      );
+    }
+    const validScenarioIds = associatedScenarioIds.filter(
+      (scenarioId) =>
+        scenarioIds.includes(scenarioId) &&
+        !duplicateScenarioIds.has(scenarioId),
+    );
+    for (const scenarioId of associatedScenarioIds) {
+      if (!scenarioIds.includes(scenarioId)) {
+        diagnostics.push(
+          `unresolved test draft ${id} references unknown scenario ID ${scenarioId}.`,
+        );
+      }
+    }
+    for (const scenarioId of validScenarioIds)
+      linkedScenarioIds.add(scenarioId);
     steps.push({
       type: "test",
       id,
@@ -530,14 +600,23 @@ function draftSteps(
         status: "draft",
         body: test.body.trim(),
         source: "mcp://kibi/compile-intent",
-        verification_scope: test.verificationScope ?? "end_to_end",
-        verification_perspective: test.verificationPerspective ?? "consumer",
+        verification_scope: test.verificationScope ?? "integration",
+        verification_perspective: test.verificationPerspective ?? "internal",
       },
-      relationships: scenarioId
-        ? [{ type: "verified_by", from: scenarioId, to: id }]
-        : [],
+      relationships: validScenarioIds.map((scenarioId) => ({
+        type: "verified_by",
+        from: scenarioId,
+        to: id,
+      })),
     });
   });
+  for (const scenarioId of scenarioIds) {
+    if (!linkedScenarioIds.has(scenarioId)) {
+      diagnostics.push(
+        `unresolved scenario draft ${scenarioId} has no test draft; add a test with scenarioIds to establish executable coverage.`,
+      );
+    }
+  }
   if (scenarioIds.length > 0) {
     steps.push({
       type: "req",

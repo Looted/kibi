@@ -134,6 +134,19 @@ function actionSort(left: MigrationAction, right: MigrationAction): number {
   );
 }
 
+export function compareReadyActionIds(
+  left: string,
+  right: string,
+  byId: ReadonlyMap<string, MigrationAction>,
+): number {
+  const leftAction = byId.get(left);
+  const rightAction = byId.get(right);
+  if (leftAction === undefined || rightAction === undefined) {
+    return left.localeCompare(right);
+  }
+  return actionSort(leftAction, rightAction);
+}
+
 /** Return actions in a deterministic dependency-first order for agents and the applier. */
 function dependencyOrder(
   actions: readonly MigrationAction[],
@@ -168,14 +181,7 @@ function dependencyOrder(
       }
       ready.push(candidateId);
       queued.add(candidateId);
-      ready.sort((left, right) => {
-        const leftAction = byId.get(left);
-        const rightAction = byId.get(right);
-        if (leftAction === undefined || rightAction === undefined) {
-          return left.localeCompare(right);
-        }
-        return actionSort(leftAction, rightAction);
-      });
+      ready.sort((left, right) => compareReadyActionIds(left, right, byId));
     }
   }
   // Preserve cyclic/missing-dependency actions in canonical order; validation will block them.
@@ -387,7 +393,9 @@ export function buildActionsFromCoverage(input: {
     const req =
       typeof batch.requirementId === "string" ? batch.requirementId : "";
     const ready = batch.state === "ready";
-    const automatic = phase === "source_coordinates";
+    const automatic =
+      phase === "source_coordinates" &&
+      batch.writePolicy === "refresh_then_sync";
     actions.push(
       migrationAction({
         id: `coverage-${id}`,
@@ -444,7 +452,7 @@ export function buildActionsFromCoverage(input: {
             }
           : {
               kind: "review",
-              instruction: `Review ${action} for ${symbolId} using current extraction and Git evidence.`,
+              instruction: `Review ${action} for ${symbolId} using current extraction and Git evidence. Query the symbol and validate/upsert a corrected sourceFile/title or an intentional granularity_reason: extractor-miss when extraction cannot locate it.`,
             },
         affectedEntityIds: [symbolId],
         evidence: { repair },

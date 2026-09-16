@@ -28,8 +28,14 @@ import * as net from "node:net";
 import * as os from "node:os";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
+import type {
+  EngineAttachmentIdentity,
+  EngineCommandV1,
+  EngineRequest,
+} from "./engine-types.js";
 import { PrologProcess, resolveKbPlPath } from "./prolog.js";
 import { parseEntityFromList, parseListOfLists } from "./prolog/codec.js";
+import { retryAttachAfterBreakingStaleLock } from "./prolog/store-lock.js";
 import type { PrologQueryResult } from "./public/operations/runtime-types.js";
 import type {
   PrologEntityQueryInput,
@@ -43,6 +49,12 @@ import {
   ensureBranchStoreManifest,
 } from "./utils/branch-store-locator.js";
 
+export type {
+  EngineAttachmentIdentity,
+  EngineCommandV1,
+  EngineRequest,
+} from "./engine-types.js";
+
 export const ENGINE_PROTOCOL_VERSION = 1;
 export const ENGINE_IDLE_TIMEOUT_MS = 10 * 60 * 1000;
 export const ENGINE_PACKAGE_VERSIONS =
@@ -51,14 +63,15 @@ const ENGINE_QUERY_CACHE_MAX_ENTRIES = 128;
 const ENGINE_QUERY_CACHE_MAX_RESULT_BYTES = 8 * 1024 * 1024;
 const ENGINE_FRESHNESS_CACHE_MS = 100;
 const ENGINE_PUBLICATION_LOCK_STALE_MS = 5_000;
+const ENGINE_WORKSPACE_WATCHDOG_MS = 30_000;
 
-export type EngineAttachmentIdentity = Readonly<{
-  // implements REQ-core-journaled-engine-persistence
-  path: string;
-  generation: string;
-  dev: number;
-  ino: number;
-}>;
+export function requestEngineSignalShutdown(
+  shutdown: () => unknown,
+): () => void {
+  return () => {
+    void shutdown();
+  };
+}
 
 export function readJournalGeneration(branchPath: string): string {
   // implements REQ-core-journaled-engine-persistence
@@ -157,83 +170,15 @@ function engineIdleTimeoutMs(): number {
     : ENGINE_IDLE_TIMEOUT_MS;
 }
 
-export type EngineCommandV1 =
-  | Readonly<{ version: 1; kind: "status" }>
-  | Readonly<{
-      version: 1;
-      kind: "entities";
-      type?: string;
-      id?: string;
-      tags?: readonly string[];
-      sourceFile?: string;
-      limit: number;
-      offset: number;
-    }>
-  | Readonly<{
-      version: 1;
-      kind: "search";
-      query: string;
-      type?: string;
-      limit: number;
-      offset: number;
-    }>
-  | Readonly<{ version: 1; kind: "checkpoint" }>
-  | Readonly<{ version: 1; kind: "compact" }>
-  | Readonly<{ version: 1; kind: "save" }>
-  | Readonly<{ version: 1; kind: "check"; rule?: string }>
-  | Readonly<{
-      version: 1;
-      kind: "relationship";
-      action: "assert" | "retract";
-      type: string;
-      from: string;
-      to: string;
-    }>
-  | Readonly<{
-      version: 1;
-      kind: "persistence";
-      action: "checkpoint" | "compact" | "save" | "export";
-      targetDirectory?: string;
-    }>
-  | Readonly<{
-      version: 1;
-      kind: "lifecycle";
-      action: "stop" | "cancel";
-      requestId?: number;
-    }>
-  | Readonly<{ version: 1; kind: "stop" }>
-  | Readonly<{ version: 1; kind: "cancel"; requestId: number }>;
-
-export type EngineRequest = {
-  readonly id: number;
-  readonly method:
-    | "query"
-    | "command"
-    | "entities"
-    | "search"
-    | "kbStatus"
-    | "status"
-    | "checkpoint"
-    | "compact"
-    | "export"
-    | "stop"
-    | "cancel";
-  readonly protocolVersion?: number;
-  readonly packageVersions?: string;
-  readonly workspaceRoot?: string;
-  readonly branch?: string;
-  readonly goal?: string;
-  readonly type?: string;
-  readonly entityId?: string;
-  readonly searchQuery?: string;
-  readonly tags?: readonly string[];
-  readonly sourceFile?: string;
-  readonly limit?: number;
-  readonly offset?: number;
-  readonly targetDirectory?: string;
-  readonly cancelOf?: number;
-  readonly command?: EngineCommandV1;
-};
+function engineWorkspaceWatchdogMs(): number {
+  const configured = Number.parseInt(
+    process.env.KIBI_ENGINE_WORKSPACE_WATCHDOG_MS ?? "",
+    10,
+  );
+  return Number.isFinite(configured) && configured >= 100
+    ? configured
+    : ENGINE_WORKSPACE_WATCHDOG_MS;
+}
 
 type EngineResponse = {
   readonly id: number;
@@ -393,7 +338,7 @@ function parseFrames(
   return buffer.subarray(cursor);
 }
 
-function runtimeDirectory(): string {
+export function runtimeDirectory(): string {
   const configured =
     process.env.KIBI_RUNTIME_DIR ??
     process.env.XDG_RUNTIME_DIR ??
@@ -1556,8 +1501,19 @@ export async function runEngineDaemon(options: {
   const attached = await prolog.query(
     `kb_attach('${quoteProlog(branchPath)}')`,
   );
-  if (!attached.success)
-    throw new Error(attached.error ?? "Failed to attach branch KB");
+  if (!attached.success) {
+    // The daemon hosts the branch store for every later request, so a
+    // store-locked startup with a provably dead holder is auto-healed here
+    // exactly like the CLI runtime path; live holders abort the startup
+    // with the holder identity surfaced.
+    const recovered = await retryAttachAfterBreakingStaleLock(
+      prolog,
+      branchPath,
+      attached,
+    );
+    if (!recovered.success)
+      throw new Error(recovered.error ?? "Failed to attach branch KB");
+  }
   const attachedIdentity = readEngineAttachmentIdentity(branchPath);
   const coreModuleDir = path.dirname(resolveKbPlPath());
   for (const [fileName, label] of [
@@ -1639,6 +1595,28 @@ export async function runEngineDaemon(options: {
       return result;
     }
   };
+
+  // A daemon whose workspace vanished (git worktree remove --force, deleted
+  // checkout) can never serve a request again, but it would keep holding the
+  // branch-store lock and wedge every later operation behind an opaque
+  // "KB locked". Detect the loss and shut down cleanly instead.
+  let workspaceMissingStreak = 0;
+  const workspaceWatchdog = setInterval(() => {
+    if (shuttingDown) return;
+    // Two consecutive misses before giving up: a transient blip (slow
+    // rename, network mount hiccup) must not stop a healthy daemon.
+    if (!existsSync(options.workspaceRoot)) {
+      workspaceMissingStreak += 1;
+      if (workspaceMissingStreak < 2) return;
+      console.error(
+        `[KIBI] workspace ${options.workspaceRoot} no longer exists; stopping engine`,
+      );
+      void shutdown();
+      return;
+    }
+    workspaceMissingStreak = 0;
+  }, engineWorkspaceWatchdogMs());
+  workspaceWatchdog.unref();
 
   const scheduleIdleExit = (): void => {
     if (activeClients > 0) return;
@@ -1993,6 +1971,7 @@ export async function runEngineDaemon(options: {
     process.off("SIGTERM", requestSignalShutdown);
     process.off("SIGINT", requestSignalShutdown);
     if (idleTimer) clearTimeout(idleTimer);
+    clearInterval(workspaceWatchdog);
     const saved = await prolog.query("kb_save").catch(() => null);
     if (saved?.success) {
       try {
@@ -2029,9 +2008,7 @@ export async function runEngineDaemon(options: {
   // Detached engines must cross the same durability boundary when a service
   // manager or a test harness terminates them as they do for an RPC stop.
   // implements REQ-test-journaled-engine-harness
-  const requestSignalShutdown = (): void => {
-    void shutdown();
-  };
+  const requestSignalShutdown = requestEngineSignalShutdown(shutdown);
   process.once("SIGTERM", requestSignalShutdown);
   process.once("SIGINT", requestSignalShutdown);
 

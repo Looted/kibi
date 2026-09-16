@@ -167,6 +167,15 @@ Before declaring tests passing:
 - Reset mutable module/global state between tests.
 - Verify both isolated test runs and full-suite runs.
 
+### Coverage policy: assert behavior, not lines
+
+The suite carries historical coverage-chasing inflation (dozens of `*.coverage.test.ts` files from repeated 100%-coverage rounds). Policy going forward:
+
+- Write tests that assert observable behavior (outputs, state transitions, error contracts), not tests that exist to execute lines.
+- Do not add new files whose primary purpose is raising the coverage number; existing coverage-named tests may be consolidated or deleted when the code they cover is touched.
+- Do not refactor production code solely to make it easier to cover. If code is hard to test, prefer extracting a behavior-focused seam over a coverage-cast (`as never`) workaround.
+- Coverage is a floor check in CI, not a target to maximize.
+
 ## Session Artifact Cleanup
 
 Before staging, committing, or handing off:

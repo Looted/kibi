@@ -37,6 +37,16 @@ function requireProlog(context: OperationContext) {
   return context.prolog;
 }
 
+export function assertFilesystemCapableRuntime(
+  fs: OperationContext["fs"],
+): asserts fs is NonNullable<OperationContext["fs"]> {
+  if (!fs) {
+    throw new Error(
+      "Relationship source patch requires a filesystem-capable runtime",
+    );
+  }
+}
+
 async function loadEntity(
   prolog: NonNullable<OperationContext["prolog"]>,
   id: string,
@@ -78,7 +88,9 @@ function fileHash(pathname: string): string | null {
   return createHash("sha256").update(readFileSync(pathname)).digest("hex");
 }
 
-async function executeRelationshipDelete(
+// implements REQ-011
+// covered_by TEST-cli-source-relationship-parity-unit
+export async function executeRelationshipDelete(
   selectors: readonly RelationshipSelector[],
   context: OperationContext,
 ): Promise<DeletePayload> {
@@ -137,17 +149,21 @@ async function executeRelationshipDelete(
       `once(kb_relationship(${toPrologAtom(selector.type)}, ${toPrologAtom(selector.from)}, ${toPrologAtom(selector.to)}))`,
     );
     let sourceRemoved = false;
-    let authoredYamlSource = false;
+    let authoredSourceKind: "YAML" | "Markdown" | undefined;
     if (context.fs) {
       // Authored YAML symbol relationships remain authoritative even when the
       // compiled edge or relationship shard is present. Patch the source first
       // so the next sync cannot recreate a relationship the caller deleted.
-      // Legacy Markdown declarations retain their fallback-only behavior.
+      // Legacy Markdown declarations are authoritative by the same rule.
       try {
         const entity = await loadEntity(prolog, selector.from);
         const source = typeof entity.source === "string" ? entity.source : "";
         if (sourceIsAuthored(source)) {
-          authoredYamlSource = /\.(?:ya?ml)$/i.test(source);
+          authoredSourceKind = /\.(?:ya?ml)$/i.test(
+            source.replaceAll("\\", "/"),
+          )
+            ? "YAML"
+            : "Markdown";
           const relative = normalizeAuthoredSourcePath(
             context.workspaceRoot,
             source,
@@ -157,28 +173,25 @@ async function executeRelationshipDelete(
             relative,
           );
           const isYaml = /\.(?:ya?ml)$/i.test(relative);
-          authoredYamlSource = isYaml;
-          if (isYaml || (!liveResult.success && matchingShard.length === 0)) {
-            const previous = sourcePatches.get(relative);
-            const before =
-              previous?.before ?? (await context.fs.readFile(absolute));
-            const current = previous?.after ?? before;
-            const rendered = isYaml
-              ? renderYamlRelationshipDeletion(relative, current, selector)
-              : renderMarkdownRelationshipDeletion(relative, current, selector);
-            if (rendered.removed) {
-              sourcePatches.set(relative, {
-                before,
-                after: rendered.body,
-              });
-              sourceRemoved = true;
-            }
+          const previous = sourcePatches.get(relative);
+          const before =
+            previous?.before ?? (await context.fs.readFile(absolute));
+          const current = previous?.after ?? before;
+          const rendered = isYaml
+            ? renderYamlRelationshipDeletion(relative, current, selector)
+            : renderMarkdownRelationshipDeletion(relative, current, selector);
+          if (rendered.removed) {
+            sourcePatches.set(relative, {
+              before,
+              after: rendered.body,
+            });
+            sourceRemoved = true;
           }
         }
       } catch (error) {
-        if (authoredYamlSource) {
+        if (authoredSourceKind !== undefined) {
           throw new Error(
-            `Authored YAML relationship deletion failed for ${selector.from}: ${error instanceof Error ? error.message : String(error)}`,
+            `Authored ${authoredSourceKind} relationship deletion failed for ${selector.from}: ${error instanceof Error ? error.message : String(error)}`,
           );
         }
         // The normal typed preflight below reports a deterministic not-found
@@ -260,10 +273,7 @@ async function executeRelationshipDelete(
     relative: string,
     body: string,
   ): Promise<void> => {
-    if (!context.fs)
-      throw new Error(
-        "Relationship source patch requires a filesystem-capable runtime",
-      );
+    assertFilesystemCapableRuntime(context.fs);
     const absolute = resolveContainedSourcePath(
       context.workspaceRoot,
       relative,

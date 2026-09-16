@@ -87,7 +87,7 @@ When prose contains a machine-checkable rule, do not store it only in `text_ref`
 3. Model every assertive proposition: use `kb_suggest_predicates` for approved ground ontology claims, strict facts for scalar claims, and `kb_model_requirement` with a validated `kibi.logic.v1` object for conditions, exceptions, modalities, quantifiers, cardinality, or bounded temporal rules. Preserve `claim_key` and `claim_text` on each ground fact/rule, replace stale manifests with the exact current assertive key set, persist the complete `semantic_inventory` plus its `inventory_contract`, and link with `requires_predicate`, `requires_property`, or `requires_rule`. Ambiguity, ontology gaps, and missing interpretations remain explicitly unresolved.
 4. Use snake_case field names exactly as the MCP schema shows. `kb_upsert.properties` rejects camelCase aliases such as `subjectKey`, `propertyKey`, `predicateName`, and generic `value`.
 
-Semantic advisor modeling suggestions remain advisory and do not auto-create facts. The proposition ledger is a mutation contract for current requirements: `kb_validate_upsert` and `kb_upsert` reject source/hash/span drift, duplicate identities, omitted assertions, invalid `nonlogical` classifications, and modeled entries whose linked fact claim keys do not match. Review every proposition and still run `kb_check`; successful ingestion proves accounting integrity, not domain truth or contradiction safety.
+Semantic advisor modeling suggestions remain advisory and do not auto-create facts. The proposition ledger is a mutation contract for current requirements: the advisor canonicalizes repeated identical normalized claims to one proposition at the first source occurrence; `kb_validate_upsert` and `kb_upsert` still reject source/hash/span drift, duplicate identities in a submitted ledger, omitted assertions, invalid `nonlogical` classifications, and modeled entries whose linked fact claim keys do not match. Review every proposition and still run `kb_check`; successful ingestion proves accounting integrity, not domain truth or contradiction safety.
 
 ### `kb_model_requirement`
 
@@ -235,7 +235,7 @@ Compile complete post-change intent into a deterministic, snapshot-bound plan wi
 - `mode` (required): `create` or `update`.
 - `requirementId` (optional): Exact update target; automatic update selection is gated by score and runner-up margin.
 - `title`, `clauses`, `semanticFacets`, `sourceLocations`, `interpretations` (optional): Context for title, proposition decomposition, host-agent facets, changed-code evidence, and typed rule IR.
-- `scenarioDrafts`, `testDrafts` (optional): Draft traceability artifacts. Tests are linked through scenarios with `verified_by`.
+- `scenarioDrafts`, `testDrafts` (optional): Draft traceability artifacts. Tests are linked through scenarios with `verified_by`; when multiple scenarios are supplied, each test must declare stable `scenarioIds` (a single scenario remains backward-compatible). Draft tests default to ancillary `integration`/`internal` evidence; explicitly declare `end_to_end`/`consumer` when that is the intended proof-bearing scope.
 - `proposalDecisions` (optional): Explicit `accept`/`reject` decisions for returned traceability proposals; pending proposals are excluded from executable steps.
 
 **Returns:**
@@ -387,6 +387,7 @@ Generate curated structural coverage and conservative end-to-end requirement pro
 - `by` (optional): `req`, `symbol`, or `type`
 - `tags` (optional): Tag filter
 - `includePassing` (optional): Include requirements with a proven or not-applicable proof outcome in addition to rows that still require repair
+- `statuses` (optional, req mode): Requirement proof-status filter (`proven`, `missing`, `unresolved`, `not_applicable`); selecting statuses implies include-passing and returns only rows whose `proofStatus` is listed. `not_applicable` rows carry their typed applicability reason in `proofStages.applicability.reason`. The summary always reflects the whole KB.
 - `includeTransitive` (optional): Include transitive symbol coverage
 - `includeMigrationPreview` (optional): Add a deterministic read-only legacy proposition migration preview
 - `migrationLimit` / `migrationOffset` (optional): Page ready semantic-inventory requirement batches; the default limit is one and the maximum is ten
@@ -396,7 +397,7 @@ Generate curated structural coverage and conservative end-to-end requirement pro
 **Returns:**
 Coverage summary rows, status metadata, and—when `by: "req"`—a deterministic `kibi.repair-plan.v1` read-only migration plan.
 
-For requirement coverage, summaries distinguish evaluated must-priority requirements from rows marked `notApplicable`. Requirement rows retain compatibility-oriented `coverageStatus` and add a separate `kibi.requirement-proof.v2` result with `proofStatus` (`proven`, `unresolved`, `missing`, or `not_applicable` for a non-current requirement), inspectable `proofStages`, blocking `proofGaps`, non-blocking `proofAdvisories`, and ranked `proofRepairs`. A row is proven only when semantic inventory and grounding, contradiction analysis, scenario-backed fresh passing E2E receipt evidence, executable test symbols, production ownership/coverage, and exact source coordinates all pass. Extra scenario-backed tests that still lack receipts after that strict proof exists are advisories, not proof gaps. A proven row never includes blocking `proofGaps`.
+For requirement coverage, summaries distinguish evaluated must-priority requirements from rows marked `notApplicable`. Requirement rows retain compatibility-oriented `coverageStatus` and add a separate `kibi.requirement-proof.v3` result with `proofStatus` (`proven`, `unresolved`, `missing`, or `not_applicable` for a non-current requirement), inspectable `proofStages`, blocking `proofGaps`, non-blocking `proofAdvisories`, and ranked `proofRepairs`. A row is proven only when semantic inventory and grounding, contradiction analysis, every linked scenario's qualifying fresh passing E2E receipt evidence, executable test symbols, production ownership/coverage, and exact source coordinates all pass. Every linked E2E proof-bearing test is mandatory: missing, stale, failed, invalid, snapshot-unavailable, or contract-mismatched evidence remains a blocking `proofGap`, with per-scenario diagnostics in `proofStages.passingE2e.scenarioObligations`. Unit/integration-only ancillary evidence remains nonblocking when the scenario has qualifying E2E evidence. A proven row never includes blocking `proofGaps`.
 
 `repairPlan` turns those row-local gaps into dependency-ordered batches across the returned requirement scope. Each batch identifies one requirement and phase, groups same-phase repairs, declares `state: ready|blocked`, lists prior `dependsOn` batches, and carries `workflowSteps`, targeted `validationRules`, and a conservative write policy. Plans are always `readOnly: true`; batches are always `autoApplicable: false`, so callers must query current endpoints, review semantic choices, validate payloads, and execute upserts sequentially. `scope.complete: false` and `status: partial` mean pagination omitted actionable requirements; rerun with `offset: 0` and a larger `limit` before treating the result as a project migration plan. `planId` remains stable for the same snapshot, filters, proof evidence, and gaps while volatile receipt age/check-time fields are ignored.
 
@@ -525,13 +526,14 @@ directly.
 Run KB validation rules after mutations. Agents can also opt into read-only changed-file impact diagnostics for source edits while the edit context is still fresh. The MCP tool and CLI JSON route are peer interactive gates; CLI staged checks and git hooks remain the commit-time enforcement gate.
 
 **Parameters:**
-- `rules` (optional): Validation rule subset (`must-priority-coverage`, `symbol-coverage`, `symbol-traceability`, `no-dangling-refs`, `no-cycles`, `required-fields`, `deprecated-adr-no-successor`, `domain-contradictions`, `strict-fact-shape`, `strict-req-fact-pairing`, `predicate-verifiability`, `logic-coverage`, `query-plan-safety`). Canonical rules populate blocking `violations[]`. `strict-fact-shape`, `strict-req-fact-pairing`, and `predicate-verifiability` are advisory modeling checks: they run by default and report as non-blocking `qualityDiagnostics`. Migration diagnostics (`strict-readiness`, `semantic-completeness`) run only when explicitly selected. `logic-coverage` is enabled by default, validates explicitly declared requirement manifests against linked ground facts, and leaves requirements without a manifest as gradual-backfill debt reported by quality diagnostics. `domain-contradictions` compares strict property constraints and exact opposite predicate polarities over the same namespace, predicate name, and ordered arguments. It does not infer arbitrary equivalence between differently shaped predicates.
+- `rules` (optional): Validation rule subset. The allowed names are maintained in `packages/core/schema/rule-registry.json` (single source for the tool schema, the TS rule registry, and the Prolog check dispatch): `must-priority-coverage`, `symbol-coverage`, `symbol-traceability`, `no-dangling-refs`, `source-relationship-parity`, `no-cycles`, `required-fields`, `deprecated-adr-no-successor`, `domain-contradictions`, `strict-fact-shape`, `strict-req-fact-pairing`, `predicate-verifiability`, `logic-coverage`, `rule-safety`, `rule-verifiability`, `query-plan-safety`, `req-status-vocabulary`, `strict-readiness`, `semantic-completeness`. Canonical rules populate blocking `violations[]`. `req-status-vocabulary` rejects requirement statuses outside the canonical+legacy vocabulary (`open`, `in_progress`, `closed`; legacy `active`, `approved`) — e.g. ADR vocabulary such as `accepted` compiles but silently falls out of the proof ladder. `strict-fact-shape`, `strict-req-fact-pairing`, and `predicate-verifiability` are advisory modeling checks: they run by default and report as non-blocking `qualityDiagnostics`. Migration diagnostics (`strict-readiness`, `semantic-completeness`) run only when explicitly selected. `logic-coverage` is enabled by default, validates explicitly declared requirement manifests against linked ground facts, and leaves requirements without a manifest as gradual-backfill debt reported by quality diagnostics. `domain-contradictions` compares strict property constraints and exact opposite predicate polarities over the same namespace, predicate name, and ordered arguments. It does not infer arbitrary equivalence between differently shaped predicates.
 - `sourceFiles` (optional): Repo-relative source paths to inspect for changed-file impact diagnostics.
 - `staged` (optional): Inspect staged source changes when building impact diagnostics.
 - `includeWorkingTreeDiff` (optional): Include unstaged working-tree content/diffs for the supplied `sourceFiles`.
 - `includeImpactDiagnostics` (optional): Include changed-file diagnostics such as `symbol_granularity_violation` and `symbol_semantic_review_needed` in structured output.
 - `maxDiagnostics` (optional): Cap returned impact diagnostics. Graph validation violations are not capped by this value.
 - `workspaceRoot` (optional): Workspace root for impact diagnostics. Defaults to the MCP server workspace.
+- `async` (optional, default `false`): Start the check as a background job and return a `kibi.job.v1` receipt (`jobId`, `status: "running"`, `pollWith: "kb_job_status"`) immediately instead of holding the request until the tool timeout. Use for full checks on large KBs that would exceed `KIBI_MCP_TOOL_TIMEOUT_MS`. Poll `kb_job_status` until `status` is `succeeded` (full result under `result`) or `failed` (error under `error`). Jobs are process-local: they are not persisted and are dropped on server restart.
 
 **Returns:**
 Validation report with any hard violations found and suggested fixes. `structuredContent.violations[]` is the blocking correctness lane: graph, schema, contradiction, query-plan, and staged enforcement failures live there and continue to drive `count` and failure status. `structuredContent.qualityDiagnostics[]` is the additive audit-quality lane for non-blocking modeling, coverage-depth, symbol fanout, duplicate-coordinate, broad-requirement, status, strict-fact, and telemetry-acceptance review signals.
@@ -555,6 +557,27 @@ with an explicit hash/action approval through `kb_apply_plan`.
   "includeImpactDiagnostics": true,
   "includeWorkingTreeDiff": true
 }
+```
+
+### `kb_job_status`
+
+Poll a background job started by a long-running operation called with
+`async: true` (currently `kb_check`). This tool is MCP-server-native: jobs
+live in the server process, so there is no CLI counterpart and no persistence
+across restarts.
+
+**Parameters:**
+- `jobId` (required): The `jobId` from the `kibi.job.v1` receipt returned by the async call.
+
+**Returns:**
+A `kibi.job.v1` object: `status` is `running`, `succeeded` (full result
+envelope under `result`), `failed` (error message under `error`), or
+`unknown` (no such job in this server process).
+
+**Example:**
+```json
+{ "kb_check": { "async": true } }
+{ "kb_job_status": { "jobId": "job-kb_check-1-9f2a" } }
 ```
 
 ## Discoverability

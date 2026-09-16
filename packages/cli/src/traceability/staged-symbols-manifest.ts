@@ -1,4 +1,4 @@
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import * as path from "node:path";
 import {
   type ManifestSymbolRecord,
@@ -12,6 +12,7 @@ import {
 import { analyzeSourceText } from "../extractors/symbols-coordinator.js";
 import { isCoarseGranularityReason } from "../public/symbol-granularity.js";
 import { resolveSymbolsManifestPaths } from "../utils/manifest-paths.js";
+import type { KibiImpactSymbolsManifestFileDetail } from "./evidence-model.js";
 import type { StagedFile } from "./git-staged.js";
 
 interface NormalizedManifestSymbol {
@@ -58,6 +59,12 @@ export interface StagedSymbolsManifestAssessment {
   state: "fresh" | "stale" | "missing" | "not_required";
   sourcePaths: string[];
   path: string;
+  /**
+   * Per-file extraction-vs-evidence diffs for the source paths whose symbol
+   * output changed. Lets diagnostics name the uncovered symbols instead of
+   * reporting a bare "stale" verdict.
+   */
+  fileDetails?: KibiImpactSymbolsManifestFileDetail[];
 }
 
 export interface StagedAuthoredSymbolsManifestEvidence {
@@ -98,17 +105,30 @@ function resolveRelativeManifestPaths(
   };
 }
 
-function readHeadFileContent(filePath: string): string | null {
+function readHeadFileContent(
+  filePath: string,
+  cache?: Map<string, string | null>,
+): string | null {
+  const normalizedPath = filePath.replace(/\\/g, "/");
+  const cacheKey = `${process.cwd()}\u0000${normalizedPath}`;
+  if (cache?.has(cacheKey)) {
+    return cache.get(cacheKey) ?? null;
+  }
+
   try {
-    // The manifest can exceed execSync's 1 MiB default maxBuffer; without the
-    // raised limit the read fails with ENOBUFS and is silently treated as
+    // Use argv-based git invocation so a source path cannot alter the command.
+    // The manifest can exceed a shell helper's small default maxBuffer; without
+    // the raised limit the read fails with ENOBUFS and is silently treated as
     // missing, which permanently reports the coordinates manifest as stale.
-    return execSync(`git show HEAD:${filePath}`, {
+    const content = execFileSync("git", ["show", `HEAD:${normalizedPath}`], {
       encoding: "utf8",
       stdio: ["pipe", "pipe", "pipe"],
       maxBuffer: 64 * 1024 * 1024,
     });
+    cache?.set(cacheKey, content);
+    return content;
   } catch {
+    cache?.set(cacheKey, null);
     return null;
   }
 }
@@ -128,6 +148,28 @@ function parseManifestRecords(
   }
 }
 
+export function parsedCoordinateOrNull(
+  parse: () => ParsedCoordinateArtifact,
+): ParsedCoordinateArtifact | null {
+  try {
+    const parsed = parse();
+    return parsed.status === "invalid" ? null : parsed;
+  } catch {
+    return null;
+  }
+}
+
+export function manifestRecordSourcePath(record: {
+  sourceFile?: unknown;
+  source?: unknown;
+}): string | null {
+  return typeof record.sourceFile === "string"
+    ? record.sourceFile
+    : typeof record.source === "string"
+      ? record.source
+      : null;
+}
+
 function parseCoordinateArtifact(
   content: string | null | undefined,
 ): ParsedCoordinateArtifact | null {
@@ -139,12 +181,7 @@ function parseCoordinateArtifact(
     return null;
   }
 
-  try {
-    const parsed = parseStrict(content);
-    return parsed.status === "invalid" ? null : parsed;
-  } catch {
-    return null;
-  }
+  return parsedCoordinateOrNull(() => parseStrict(content));
 }
 
 function normalizeNumber(value: unknown): number | null {
@@ -209,7 +246,7 @@ function normalizeManifestSymbolsForSourceFile(
   records: ManifestSymbolRecord[],
   sourceFile: string,
 ): NormalizedManifestSymbol[] {
-  return records
+  const symbols = records
     .filter((record) => {
       if (isDocumentedCoarseRecord(record)) {
         return false;
@@ -231,6 +268,15 @@ function normalizeManifestSymbolsForSourceFile(
       sourceEndColumn: normalizeNumber(record.sourceEndColumn),
     }))
     .sort(compareNormalizedSymbols);
+
+  // Several logical records may own the same declaration. Only identical
+  // validated spans collapse; a stale duplicate still carries null coordinates
+  // and must remain visible to the equality check.
+  return symbols.filter(
+    (symbol, index) =>
+      index === 0 ||
+      JSON.stringify(symbol) !== JSON.stringify(symbols[index - 1]),
+  );
 }
 
 function normalizeAuthoredManifestSymbolsForSourceFile(
@@ -337,10 +383,14 @@ function uniqueSorted(paths: Iterable<string>): string[] {
 function mergeManifestRecordsWithCoordinates(
   manifestRecords: ManifestSymbolRecord[] | null,
   coordinateArtifact: ParsedCoordinateArtifact | null,
+  options: {
+    readonly resolveSourceText?: (sourceFile: string) => string | null;
+  } = {},
 ): ManifestSymbolRecord[] {
   return mergeCoordinatesWithManifest(
     manifestRecords ?? [],
     coordinateArtifact,
+    options,
   );
 }
 
@@ -379,6 +429,38 @@ function getEffectiveManifestRecords(options: {
   };
 }
 
+/** Max missing/extra symbol titles surfaced per file before "+N more". */
+const MAX_DETAIL_ITEMS = 6;
+
+function diffSymbolEvidence(
+  sourcePath: string,
+  expectedSymbols: NormalizedManifestSymbol[],
+  stagedSymbols: NormalizedManifestSymbol[],
+): KibiImpactSymbolsManifestFileDetail | null {
+  const stagedTitles = new Set(stagedSymbols.map((symbol) => symbol.title));
+  const expectedTitles = new Set(expectedSymbols.map((symbol) => symbol.title));
+  const missing = expectedSymbols
+    .filter((symbol) => !stagedTitles.has(symbol.title))
+    .map((symbol) => ({ title: symbol.title, line: symbol.sourceLine ?? 0 }))
+    .sort((left, right) => left.title.localeCompare(right.title));
+  const extra = stagedSymbols
+    .filter((symbol) => !expectedTitles.has(symbol.title))
+    .map((symbol) => symbol.title)
+    .sort();
+  // Pure coordinate drift (titles unchanged) has no symbol-level remedy to
+  // name; leave the detail out so the diagnostic stays verdict + refresh.
+  if (missing.length === 0 && extra.length === 0) {
+    return null;
+  }
+  return {
+    path: sourcePath,
+    expectedCount: expectedSymbols.length,
+    coveredCount: stagedSymbols.length,
+    missing: missing.slice(0, MAX_DETAIL_ITEMS),
+    extra: extra.slice(0, MAX_DETAIL_ITEMS),
+  };
+}
+
 export function assessStagedSymbolsManifest(options: {
   symbolsManifestPath: string;
   sourceFiles: StagedFile[];
@@ -386,12 +468,18 @@ export function assessStagedSymbolsManifest(options: {
 }): StagedSymbolsManifestAssessment {
   const { sourceFiles, stagedFiles, symbolsManifestPath } = options;
   const paths = resolveRelativeManifestPaths(symbolsManifestPath);
+  // Scope HEAD memoization to one assessment. A long-lived CLI process may
+  // assess several commits in the same checkout; a process-global cache would
+  // otherwise reuse content from the previous HEAD.
+  const headFileContentCache = new Map<string, string | null>();
+  const readAssessmentHeadFileContent = (filePath: string): string | null =>
+    readHeadFileContent(filePath, headFileContentCache);
   const headManifestRecords = parseManifestRecords(
-    readHeadFileContent(paths.symbolsPath),
+    readAssessmentHeadFileContent(paths.symbolsPath),
     paths.symbolsPath,
   );
   const headCoordinateArtifact = parseCoordinateArtifact(
-    readHeadFileContent(paths.coordinatesPath),
+    readAssessmentHeadFileContent(paths.coordinatesPath),
   );
   const {
     stagedCoordinatesFile,
@@ -404,27 +492,43 @@ export function assessStagedSymbolsManifest(options: {
     headCoordinateArtifact,
   });
 
+  const stagedSourceText = new Map(
+    stagedFiles.map(
+      (stagedFile) =>
+        [
+          stagedFile.path.replace(/\\/g, "/"),
+          typeof stagedFile.content === "string" ? stagedFile.content : null,
+        ] as const,
+    ),
+  );
+  const resolveStagedSourceText = (sourceFile: string): string | null => {
+    const normalizedSourceFile = sourceFile.replace(/\\/g, "/");
+    return stagedSourceText.has(normalizedSourceFile)
+      ? (stagedSourceText.get(normalizedSourceFile) ?? null)
+      : readAssessmentHeadFileContent(sourceFile);
+  };
+
   const baselineMergedRecords = mergeManifestRecordsWithCoordinates(
     headManifestRecords,
     headCoordinateArtifact,
+    // Existing bindings must also be valid for the proposed source. Comparing
+    // them against HEAD would miss body edits that leave spans unchanged.
+    { resolveSourceText: resolveStagedSourceText },
   );
   const stagedMergedRecords = mergeManifestRecordsWithCoordinates(
     stagedManifestRecords,
     stagedCoordinateArtifact,
+    { resolveSourceText: resolveStagedSourceText },
   );
 
   const requiredRefreshPaths: string[] = [];
   const freshPaths = new Set<string>();
+  const symbolDetails: KibiImpactSymbolsManifestFileDetail[] = [];
 
   for (const sourceFile of sourceFiles) {
     const manifestRecordsForFile = (stagedManifestRecords ?? []).filter(
       (record) => {
-        const recordSource =
-          typeof record.sourceFile === "string"
-            ? record.sourceFile
-            : typeof record.source === "string"
-              ? record.source
-              : null;
+        const recordSource = manifestRecordSourcePath(record);
         return recordSource === sourceFile.path;
       },
     );
@@ -435,7 +539,25 @@ export function assessStagedSymbolsManifest(options: {
       continue;
     }
 
-    const expectedSymbols = normalizeExpectedSymbolsForStagedFile(sourceFile);
+    const recordsByTitle = new Map<string, ManifestSymbolRecord[]>();
+    for (const record of manifestRecordsForFile) {
+      if (typeof record.title !== "string") continue;
+      const records = recordsByTitle.get(record.title) ?? [];
+      records.push(record);
+      recordsByTitle.set(record.title, records);
+    }
+    // A coarse anchor is allowed to stand in for its extracted declaration
+    // only when every authored record with that title is explicitly coarse.
+    // If a granular record shares the title, keep the declaration in the
+    // equality check so a duplicate anchor cannot hide stale coordinates.
+    const coarseTitles = new Set(
+      [...recordsByTitle.entries()]
+        .filter(([, records]) => records.every(isDocumentedCoarseRecord))
+        .map(([title]) => title),
+    );
+    const expectedSymbols = normalizeExpectedSymbolsForStagedFile(
+      sourceFile,
+    ).filter((symbol) => !coarseTitles.has(symbol.title));
     const baselineSymbols = normalizeManifestSymbolsForSourceFile(
       baselineMergedRecords,
       sourceFile.path,
@@ -447,14 +569,27 @@ export function assessStagedSymbolsManifest(options: {
 
     requiredRefreshPaths.push(sourceFile.path);
 
-    if (!stagedCoordinatesFile || stagedCoordinateArtifact === null) {
-      continue;
+    // Without a usable staged coordinate artifact there is nothing to diff
+    // against: every extracted symbol counts as uncovered evidence.
+    const stagedSymbols =
+      stagedCoordinateArtifact === null
+        ? []
+        : normalizeManifestSymbolsForSourceFile(
+            stagedMergedRecords,
+            sourceFile.path,
+          );
+    const detail = diffSymbolEvidence(
+      sourceFile.path,
+      expectedSymbols,
+      stagedSymbols,
+    );
+    if (detail !== null) {
+      symbolDetails.push(detail);
     }
 
-    const stagedSymbols = normalizeManifestSymbolsForSourceFile(
-      stagedMergedRecords,
-      sourceFile.path,
-    );
+    if (!stagedCoordinatesFile) {
+      continue;
+    }
 
     if (signaturesEqual(expectedSymbols, stagedSymbols)) {
       freshPaths.add(sourceFile.path);
@@ -474,11 +609,38 @@ export function assessStagedSymbolsManifest(options: {
     return { state: "fresh", sourcePaths, path: paths.coordinatesPath };
   }
 
+  // Details are only meaningful for the states whose diagnostics fire; a
+  // fresh refresh carries no uncovered symbols by definition, and the stale
+  // state cites only the non-fresh paths, so details follow that filter.
+  const nonFreshDetails = symbolDetails.filter(
+    (detail) => !freshPaths.has(detail.path),
+  );
+  const detailSpread =
+    nonFreshDetails.length > 0
+      ? {
+          fileDetails: nonFreshDetails.sort((left, right) =>
+            left.path.localeCompare(right.path),
+          ),
+        }
+      : {};
+
   if (!stagedCoordinatesFile) {
-    return { state: "missing", sourcePaths, path: paths.coordinatesPath };
+    return {
+      state: "missing",
+      sourcePaths,
+      path: paths.coordinatesPath,
+      ...detailSpread,
+    };
   }
 
-  return { state: "stale", sourcePaths, path: paths.coordinatesPath };
+  return {
+    state: "stale",
+    sourcePaths: sourcePaths.filter(
+      (sourcePath) => !freshPaths.has(sourcePath),
+    ),
+    path: paths.coordinatesPath,
+    ...detailSpread,
+  };
 }
 
 export function collectStagedAuthoredSymbolsManifestEvidence(options: {

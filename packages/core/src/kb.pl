@@ -71,6 +71,7 @@
 :- use_module(library(thread)).
 :- use_module(library(filesex)).
 :- use_module(library(readutil)).
+:- use_module(library(http/json)).
 :- use_module(library(aggregate), [aggregate_all/3]).
 :- use_module(library(lists), [sum_list/2]).
 :- use_module(library(ordsets)).
@@ -156,8 +157,14 @@ kb_attach_journaled(Directory) :-
     ;   make_directory_path(PersistencyDirectory)
     ),
     % rdf_persistency owns the database lock for the lifetime of the engine.
-    rdf_attach_db(PersistencyDirectory,
-                  [access(read_write), silent(true), concurrency(4)]),
+    % A failed attach throws a structured store_locked term carrying the
+    % ownership journal (if any) so callers can surface the holder or take
+    % over when the holder is provably dead.
+    catch(rdf_attach_db(PersistencyDirectory,
+                        [access(read_write), silent(true), concurrency(4)]),
+          error(permission_error(_, _, _), Original),
+          kb_throw_store_locked(PersistencyDirectory, Directory, Original)),
+    catch(kb_write_lock_owner(Directory), _, true),
     % Create RDF graph name from directory.  Do not unload a graph here:
     % rdf_attach_db has already restored it from its snapshot/journal.  A
     % staged migration can have been atomically moved after the graph was
@@ -229,6 +236,58 @@ kb_attach_legacy(Directory) :-
     kb_rebuild_indexes.
 
 
+%% Store lock ownership journal.
+% rdf_persistency holds the branch-store lock while an engine is attached, but
+% records nothing about the holder. The journal bridges that gap: kibi writes
+% who attached (pid, workspace, boot id, started at) next to the lock so a
+% later store_locked failure can surface the holder and self-heal when the
+% holder is provably dead (crash, kill, removed worktree).
+% implements REQ-core-journaled-engine-persistence
+
+kb_lock_owner_path(Directory, Path) :-
+    atom_concat(Directory, '/.kibi-lock-owner.json', Path).
+
+kb_write_lock_owner(Directory) :-
+    kb_lock_owner_path(Directory, Path),
+    current_prolog_flag(pid, Pid),
+    (   exists_file('/proc/sys/kernel/random/boot_id')
+    ->  catch((   read_file_to_string('/proc/sys/kernel/random/boot_id',
+                                 BootIdRaw, []),
+                  split_string(BootIdRaw, "\r\n", "\r\n", [BootId|_])),
+              _,
+              BootId = "")
+    ;   BootId = ""
+    ),
+    get_time(Now),
+    format_time(atom(StartedAt), '%FT%TZ', Now),
+    atom_concat(Path, '.tmp', TmpPath),
+    setup_call_cleanup(
+        open(TmpPath, write, Stream),
+        json_write_dict(Stream,
+                        json([pid:Pid,
+                              workspaceRoot:Directory,
+                              bootId:BootId,
+                              startedAt:StartedAt]),
+                        []),
+        (close(Stream), rename_file(TmpPath, Path))).
+
+kb_remove_lock_owner :-
+    (   kb_attached(Directory)
+    ->  kb_lock_owner_path(Directory, Path),
+        catch(delete_file(Path), _, true)
+    ;   true
+    ).
+
+kb_throw_store_locked(PersistencyDirectory, Directory, Original) :-
+    kb_lock_owner_path(Directory, Path),
+    (   exists_file(Path)
+    ->  catch(read_file_to_string(Path, OwnerJson, []), _, OwnerJson = "")
+    ;   OwnerJson = ""
+    ),
+    term_string(Original, OriginalText),
+    throw(error(permission_error(attach, kb_store, Directory),
+                kb_store_locked(OwnerJson, PersistencyDirectory, OriginalText))).
+
 %% kb_detach
 % Safely detach from KB without persisting pending changes.
 % Call kb_save/0 explicitly before kb_detach/0 when durability is required.
@@ -238,7 +297,8 @@ kb_detach :-
     ->  (
             (   kb_storage_mode(journaled)
             ->  catch(rdf_flush_journals([min_size(16384)]), _, true),
-                catch(rdf_detach_db, _, true)
+                catch(rdf_detach_db, _, true),
+                catch(kb_remove_lock_owner, _, true)
             ;   true
             ),
             % Unload RDF graph from memory to prevent duplication on reattach

@@ -90,3 +90,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f3296117b818
+  - type: constrains
+    from: REQ-agent-guided-migration-orchestration
+    to: FACT-SUBJ-REQ-AGENT-GUIDED-MIGRATION-ORCHESTRATION
+    created_at: 2026-09-05T14:33:49.894Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06a62b4647df
+  - type: requires_property
+    from: REQ-agent-guided-migration-orchestration
+    to: FACT-PROP-REQ-AGENT-GUIDED-MIGRATION-ORCHESTRATION-C01
+    created_at: 2026-09-05T14:33:49.913Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d31229aba2c
+  - type: covered_by
+    from: SYM-SYMBOLS-MANIFEST-COMMENT-BLOCK
+    to: TEST-cli-sync-discovery-readme-ignore
+    created_at: 2026-09-05T15:23:32.768Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-10bcebd05a39
+  - type: covered_by
+    from: SYM-SkillOversizeError
+    to: TEST-skill-cli-load-validate
+    created_at: 2026-09-05T18:02:24.261Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a96cbe981e61
+  - type: covered_by
+    from: SYM-skillopt-parse-launcher-session
+    to: TEST-skillopt-paid-launch-accounting
+    created_at: 2026-09-05T18:18:32.867Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c4ddc4c46e6
+  - type: covered_by
+    from: SYM-skillopt-parse-root-authorization
+    to: TEST-skillopt-paid-launch-accounting
+    created_at: 2026-09-05T18:18:37.966Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-85702bb8b8a9

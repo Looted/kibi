@@ -5,6 +5,9 @@
     find_gaps_json/8,
     coverage_report_json/7,
     coverage_report_json/10,
+    coverage_report_json/11,
+    coverage_report_json/12,
+    coverage_evidence_json/5,
     graph_expand_json/8
 ]).
 
@@ -14,7 +17,7 @@
 :- use_module(library(lists)).
 :- use_module(library(pairs)).
 :- use_module('kb.pl').
-:- use_module('requirement_proof.pl', [requirement_proof_context/1, requirement_proof_context/4, requirement_proof/4]).
+:- use_module('requirement_proof.pl', [requirement_proof_context/1, requirement_proof_context/4, requirement_proof_context/6, requirement_proof/4]).
 :- use_module('status.pl', [status_meta_dict/1]).
 :- use_module('../schema/relationships.pl', [relationship_type/1]).
 
@@ -35,12 +38,104 @@ coverage_report_json(By, Tags, IncludePassing, IncludeTransitive, Limit, Offset,
     coverage_report_json(By, Tags, IncludePassing, IncludeTransitive, Limit, Offset, unknown, '1970-01-01T00:00:00Z', 604800, JsonString).
 
 coverage_report_json(By, Tags, IncludePassing, IncludeTransitive, Limit, Offset, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
-    coverage_rows(By, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows0, Summary),
+    coverage_report_json(By, Tags, IncludePassing, strict_snapshot, _{}, IncludeTransitive, Limit, Offset, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString).
+
+% Slim per-requirement proof evidence for quality diagnostics (W1 push-down).
+% Projects only the fields the quality diagnostics consume - proof status,
+% the passing-e2e stage summary, and receipt-related gap codes - instead of
+% the full coverage row set, keeping the response small on large KBs.
+coverage_evidence_json(Tags, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
+    requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, ProofContext),
+    findall(Evidence,
+        (   kb_entity(Id, req, Props),
+            matches_tags(Tags, Props),
+            requirement_proof(Id, Props, ProofContext, Proof),
+            coverage_evidence_row(Id, Proof, Evidence)
+        ),
+        Evidences),
+    Response = _{rows: Evidences},
+    dict_json_string(Response, JsonString).
+
+coverage_evidence_row(Id, Proof, Evidence) :-
+    (   get_dict(proofStatus, Proof, ProofStatus)
+    ->  true
+    ;   ProofStatus = unknown
+    ),
+    (   get_dict(proofStages, Proof, Stages),
+        get_dict(passingE2e, Stages, PassingE2e),
+        get_dict(status, PassingE2e, PassingE2eStatus)
+    ->  (   get_dict(tests, PassingE2e, PassingE2eTests)
+        ->  true
+        ;   PassingE2eTests = []
+        )
+    ;   PassingE2eStatus = unknown,
+        PassingE2eTests = []
+    ),
+    (   get_dict(proofGaps, Proof, Gaps)
+    ->  include(coverage_evidence_receipt_gap, Gaps, ReceiptGapCodes)
+    ;   ReceiptGapCodes = []
+    ),
+    Evidence = _{
+        id: Id,
+        proofStatus: ProofStatus,
+        passingE2eStatus: PassingE2eStatus,
+        passingE2eTests: PassingE2eTests,
+        receiptGapCodes: ReceiptGapCodes
+    }.
+
+coverage_evidence_receipt_gap(Gap) :-
+    (   atom(Gap)
+    ->  Atom = Gap
+    ;   format(atom(Atom), "~w", [Gap])
+    ),
+    (   sub_atom(Atom, _, _, _, 'proof_receipt')
+    ;   sub_atom(Atom, _, _, _, 'proof_contract')
+    ;   sub_atom(Atom, _, _, _, 'proof_snapshot')
+    ).
+
+% Per-contract receipt binding (W2): BindingMode strict_snapshot | per_contract
+% with TestBindings mapping TestId -> current binding hash.
+coverage_report_json(By, Tags, IncludePassing, BindingMode, TestBindings, IncludeTransitive, Limit, Offset, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
+    % Binding mode applies to requirement rows only; other By values keep
+    % their snapshot-era arity so type/symbol reports are unchanged.
+    (   By == req
+    ->  coverage_rows(req, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, BindingMode, TestBindings, Rows0, Summary)
+    ;   coverage_rows(By, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows0, Summary)
+    ),
     sort_dict_rows(Rows0, SortedRows),
     paginate_rows(SortedRows, Offset, Limit, Rows),
     status_meta_dict(Meta),
     Response = _{summary: Summary, rows: Rows, meta: Meta},
     dict_json_string(Response, JsonString).
+
+% implements REQ-kibi-coverage-status-filter
+% Proof-status filtered report. The status filter selects requirement rows by
+% proofStatus (proven, missing, unresolved, not_applicable) and replaces the
+% default include-passing filtering, so callers can enumerate exactly one
+% slice — e.g. every not_applicable row together with its typed applicability
+% reason — without diffing full exports by hand. The summary is always
+% computed over all rows so filtered responses keep whole-KB counts.
+coverage_report_json(By, Tags, IncludePassing, StatusFilter, IncludeTransitive, Limit, Offset, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
+    status_filtered_coverage_rows(By, Tags, IncludePassing, StatusFilter, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, MatchedRows0, Summary),
+    sort_dict_rows(MatchedRows0, SortedRows),
+    paginate_rows(SortedRows, Offset, Limit, Rows),
+    status_meta_dict(Meta),
+    Response = _{summary: Summary, rows: Rows, meta: Meta},
+    dict_json_string(Response, JsonString).
+
+status_filtered_coverage_rows(By, Tags, IncludePassing, [], IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary) :-
+    !,
+    coverage_rows(By, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary).
+status_filtered_coverage_rows(req, Tags, _IncludePassing, StatusFilter, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, MatchedRows, Summary) :-
+    !,
+    coverage_rows(req, Tags, true, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows0, Summary),
+    include(req_row_proof_status_in(StatusFilter), Rows0, MatchedRows).
+status_filtered_coverage_rows(By, Tags, _IncludePassing, _StatusFilter, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary) :-
+    coverage_rows(By, Tags, true, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary).
+
+req_row_proof_status_in(StatusFilter, Row) :-
+    Status = Row.proofStatus,
+    memberchk(Status, StatusFilter).
 
 graph_expand_json(SeedIds, Relationships, Direction, Depth, EntityTypes, MaxNodes, MaxEdges, JsonString) :-
     sort(SeedIds, SeedSet),
@@ -103,9 +198,9 @@ relationship_count(Id, Relationship, Count) :-
         (kb_relationship(Relationship, Id, _); kb_relationship(Relationship, _, Id)),
         Count).
 
-coverage_rows(req, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary) :-
+coverage_rows(req, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, BindingMode, TestBindings, Rows, Summary) :-
     !,
-    requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, ProofContext),
+    requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, BindingMode, TestBindings, ProofContext),
     findall(Row,
         requirement_coverage_row(Tags, IncludeTransitive, ProofContext, Row),
         AllRows),
@@ -142,6 +237,10 @@ coverage_rows(type, _Tags, _IncludePassing, _IncludeTransitive, _VerificationSna
     maplist(type_pair_row, Pairs, Rows),
     length(Rows, Total),
     Summary = _{total: Total}.
+
+coverage_rows(req, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary) :-
+    !,
+    coverage_rows(req, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, strict_snapshot, _{}, Rows, Summary).
 
 requirement_coverage_row(Tags, IncludeTransitive, ProofContext, Row) :-
     kb_entity(Id, req, Props),

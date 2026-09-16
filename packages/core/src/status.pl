@@ -112,9 +112,10 @@ freshness_state(DataFile, false, fresh) :-
 freshness_state(_, true, unknown).
 
 stale_reasons(Reasons, Count, Truncated) :-
-    findall(Reason, stale_indexed_source_reason(Reason), IndexedReasons),
-    findall(Reason, stale_knowledge_lane_reason(Reason), KnowledgeReasons),
-    findall(Reason, stale_documentation_reason(Reason), DocumentationReasons),
+    entity_source_id_index(Index),
+    findall(Reason, stale_indexed_source_reason(Index, Reason), IndexedReasons),
+    findall(Reason, stale_knowledge_lane_reason(Index, Reason), KnowledgeReasons),
+    findall(Reason, stale_documentation_reason(Index, Reason), DocumentationReasons),
     append(IndexedReasons, KnowledgeReasons, IndexedAndKnowledge),
     append(IndexedAndKnowledge, DocumentationReasons, Reasons0),
     sort(Reasons0, Sorted),
@@ -124,25 +125,25 @@ stale_reasons(Reasons, Count, Truncated) :-
     ;   Reasons = Sorted, Truncated = false
     ).
 
-stale_indexed_source_reason(Reason) :-
+stale_indexed_source_reason(Index, Reason) :-
     attached_workspace_root(WorkspaceRoot),
     kb:kb_indexed_sources(Sources),
+    kb_snapshot_time(SnapshotTime),
     member(SourceAtom, Sources),
     repo_relative_source(SourceAtom, RelativeSource),
     directory_file_path(WorkspaceRoot, RelativeSource, SourcePath),
     (   exists_file(SourcePath)
     ->  time_file(SourcePath, FileTime),
-        kb_snapshot_time(SnapshotTime),
         FileTime > SnapshotTime,
         Code = indexed_source_newer
     ;   exists_directory(SourcePath)
     ->  fail
     ;   Code = indexed_source_missing
     ),
-    entity_ids_for_source(RelativeSource, EntityIds),
+    entity_ids_for_source(Index, RelativeSource, EntityIds),
     Reason = _{code: Code, path: RelativeSource, entityIds: EntityIds}.
 
-stale_knowledge_lane_reason(Reason) :-
+stale_knowledge_lane_reason(Index, Reason) :-
     attached_workspace_root(WorkspaceRoot),
     knowledge_lane(Lane),
     directory_file_path(WorkspaceRoot, '.kb', KbRoot),
@@ -151,17 +152,17 @@ stale_knowledge_lane_reason(Reason) :-
     kb_snapshot_time(SnapshotTime),
     directory_tree_newer_path(LaneRoot, SnapshotTime, Path),
     workspace_relative_path(WorkspaceRoot, Path, RelativePath),
-    entity_ids_for_source(RelativePath, EntityIds),
+    entity_ids_for_source(Index, RelativePath, EntityIds),
     Reason = _{code: knowledge_source_newer, path: RelativePath, entityIds: EntityIds}.
 
-stale_documentation_reason(Reason) :-
+stale_documentation_reason(Index, Reason) :-
     attached_workspace_root(WorkspaceRoot),
     directory_file_path(WorkspaceRoot, 'documentation', DocumentationRoot),
     exists_directory(DocumentationRoot),
     kb_snapshot_time(SnapshotTime),
     directory_tree_newer_path(DocumentationRoot, SnapshotTime, Path),
     workspace_relative_path(WorkspaceRoot, Path, RelativePath),
-    entity_ids_for_source(RelativePath, EntityIds),
+    entity_ids_for_source(Index, RelativePath, EntityIds),
     Reason = _{code: documentation_source_newer, path: RelativePath, entityIds: EntityIds}.
 
 kb_snapshot_time(SnapshotTime) :-
@@ -173,15 +174,33 @@ kb_snapshot_time(SnapshotTime) :-
     ;   SnapshotTime = 0
     ).
 
-entity_ids_for_source(RelativeSource, EntityIds) :-
-    findall(Id,
-        (kb_entity(Id, _Type, Props),
-         entity_source_property(Props, RawSource),
-         source_value_atom(RawSource, SourceAtom),
-         repo_relative_source(SourceAtom, RelativeSource),
-         Id \= '') ,
-        Ids0),
-    sort(Ids0, EntityIds).
+% One pass over all entities builds the repo-relative source -> entity-id
+% lookup used by every stale reason. The previous per-path full enumeration
+% made kb_status_json quadratic (paths x entities) and could wedge large KBs
+% for minutes whenever mtime churn (e.g. a git checkout) marked whole lanes
+% newer than the snapshot.
+entity_source_id_index(Index) :-
+    findall(RelativeSource-Id,
+        (   kb_entity(Id, _Type, Props),
+            entity_source_property(Props, RawSource),
+            source_value_atom(RawSource, SourceAtom),
+            repo_relative_source(SourceAtom, RelativeSource),
+            Id \= ''
+        ),
+        Pairs),
+    sort(Pairs, Sorted),
+    group_pairs_by_key(Sorted, Grouped),
+    maplist(sorted_id_values, Grouped, GroupedEntries),
+    dict_create(Index, source_index, GroupedEntries).
+
+sorted_id_values(RelativeSource-Ids0, RelativeSource-Ids) :-
+    sort(Ids0, Ids).
+
+entity_ids_for_source(Index, RelativeSource, EntityIds) :-
+    (   get_dict(RelativeSource, Index, Ids)
+    ->  EntityIds = Ids
+    ;   EntityIds = []
+    ).
 
 entity_source_property(Props, RawSource) :-
     memberchk(sourceFile=RawSource, Props),

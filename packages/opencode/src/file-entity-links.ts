@@ -5,6 +5,10 @@ import { loadKbSyncPaths } from "./file-filter.js";
 
 // ── Shared types ────────────────────────────────────────────────────
 
+export function emptyLinkedTargets(): { ids: []; source: "none" } {
+  return { ids: [], source: "none" };
+}
+
 export type SymbolsManifestRow = {
   id?: string;
   sourceFile?: string;
@@ -267,7 +271,7 @@ export function getFileLinkedEntityIds(
 
     return { ids: orderedIds.slice(0, 3), source: "symbols" };
   } catch {
-    return { ids: [], source: "none" };
+    return emptyLinkedTargets();
   }
 }
 

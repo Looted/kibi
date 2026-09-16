@@ -9,6 +9,14 @@ type PrologQueryLike = {
   query: (goal: string) => Promise<PrologQueryResult>;
 };
 
+export function parseMaybeDoubleEncodedJson(rawJson: string): unknown {
+  let parsed: unknown = JSON.parse(rawJson);
+  if (typeof parsed === "string") {
+    parsed = JSON.parse(parsed);
+  }
+  return parsed;
+}
+
 function isPrologProcess(value: unknown): value is PrologProcess {
   return (
     value instanceof PrologProcess ||
@@ -92,12 +100,7 @@ export async function runJsonModuleQuery<T>(
     throw new Error(`${errorLabel} query returned no JsonString binding`);
   }
 
-  let parsed: unknown = JSON.parse(rawJson);
-  if (typeof parsed === "string") {
-    parsed = JSON.parse(parsed);
-  }
-
-  return parsed as T;
+  return parseMaybeDoubleEncodedJson(rawJson) as T;
 }
 
 async function runInteractiveModuleQuery(

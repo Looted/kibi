@@ -80,7 +80,7 @@ tags: [authentication, session]
     execSync("git add .kb", { cwd: tmpDir, stdio: "pipe" });
 
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
-  }, 30000); // kibi init + sync can take ~10s; allow 30s for slower CI environments
+  }, 120000); // journaled-engine init + sync exceeds 30s under prove load
 
   afterAll(() => {
     if (tmpDir && existsSync(tmpDir)) {
@@ -92,7 +92,7 @@ tags: [authentication, session]
     const output = execSync(`bun ${kibiBin} coverage --by req --format json`, {
       cwd: tmpDir,
       encoding: "utf8",
-      timeout: 10000, // 10 second timeout for the command
+      timeout: 120000,
     });
 
     const result = JSON.parse(output) as {
@@ -169,7 +169,7 @@ tags: [authentication, session]
     const req2Row = result.rows.find((row) => row.id === "REQ-002");
     expect(req2Row?.coverageStatus).toBe("not_applicable");
     expect(req2Row?.coverageDepth).toBe("no_test_evidence");
-  }, 30000); // 30 second test timeout
+  }, 120000);
   test("previews one source-bound migration batch without mutating the KB", () => {
     const kbPath = path.join(branchStorePath(tmpDir, "main"), "kb.rdf");
     const before = readFileSync(kbPath, "utf8");
@@ -178,14 +178,14 @@ tags: [authentication, session]
       execSync(command, {
         cwd: tmpDir,
         encoding: "utf8",
-        timeout: 15000,
+        timeout: 120000,
       }),
     ) as { legacyMigrationPlan: LegacyMigrationPlan };
     const second = JSON.parse(
       execSync(command, {
         cwd: tmpDir,
         encoding: "utf8",
-        timeout: 15000,
+        timeout: 120000,
       }),
     ) as { legacyMigrationPlan: LegacyMigrationPlan };
     const migration = first.legacyMigrationPlan;
@@ -244,17 +244,17 @@ tags: [authentication, session]
       {
         cwd: tmpDir,
         encoding: "utf8",
-        timeout: 15000,
+        timeout: 120000,
       },
     );
     expect(table).toContain("Legacy migration preview");
     expect(table).toContain("REQ-001");
-  }, 45000);
+  }, 120000);
   test("shows table output by default and exposes no-include-transitive option", () => {
     const tableOutput = execSync(`bun ${kibiBin} coverage --by req`, {
       cwd: tmpDir,
       encoding: "utf8",
-      timeout: 10000, // 10 second timeout for the command
+      timeout: 120000,
     });
     expect(tableOutput).toContain("ID");
     expect(tableOutput).toContain("Coverage");
@@ -271,7 +271,7 @@ tags: [authentication, session]
       timeout: 5000,
     });
     expect(helpOutput).toContain("--no-include-transitive");
-  }, 30000); // 30 second test timeout
+  }, 120000);
 
   test("renders full coverage depth labels in the human table", () => {
     const rendered = renderCoverageTable({

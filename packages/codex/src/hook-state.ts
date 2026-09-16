@@ -1,11 +1,31 @@
 // implements REQ-codex-kibi-plugin-v1
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
 const stateFileName = "hook-state.json";
 const journalFileName = "hook-state.events.jsonl";
 const maxDirtyPaths = 50;
+const workspaceStateRoot = "workspaces";
+
+/**
+ * Hook state lives under a per-workspace directory keyed by the resolved Kibi
+ * project root, so edits in one project can never surface as reminders in
+ * another (worktrees included — their roots differ from the main checkout).
+ */
+export function resolveWorkspaceStateDir(
+  pluginData: string | undefined,
+  workspaceRoot: string,
+): string | undefined {
+  if (!pluginData) {
+    return undefined;
+  }
+
+  const workspaceKey = createHash("sha256")
+    .update(path.resolve(workspaceRoot))
+    .digest("hex");
+  return path.join(pluginData, workspaceStateRoot, workspaceKey);
+}
 
 export type HookState = {
   dirtyPaths: string[];

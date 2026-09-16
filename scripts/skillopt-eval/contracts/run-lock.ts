@@ -72,7 +72,7 @@ export const PricingTableSchema = z
     source: NonEmptyStringSchema,
     models: z
       .object({
-        "gpt-5.4-mini": ModelPricingSchema,
+        "gpt-5.6-luna": ModelPricingSchema.nullable(),
         "gpt-5.6-sol": ModelPricingSchema,
       })
       .strict(),
@@ -100,7 +100,7 @@ export function createRunLockSchema(sourceLockPath = DEFAULT_SOURCE_LOCK_PATH) {
         codexExecutable: ExecutableIdentitySchema,
         cliArgs: z.array(NonEmptyStringSchema).min(1),
         artifactRoot: NonEmptyStringSchema,
-        targetModel: z.literal("gpt-5.4-mini"),
+        targetModel: z.literal("gpt-5.6-luna"),
         optimizerModel: z.literal("gpt-5.6-sol"),
         skillopt: z
           .object({
@@ -199,7 +199,13 @@ export function assertRunLockMatches(expected: RunLock, actual: RunLock): void {
   if (expected.dirtyState.isDirty || actual.dirtyState.isDirty) {
     throw new ContractIntegrityError("dirty run lock", "dirtyState");
   }
-  if (runLockHash(expected) !== runLockHash(actual)) {
+  assertMatchingRunLockHash(expected, actual);
+}
+
+export function assertMatchingRunLockHash(
+  expected: RunLock,
+  actual: RunLock,
+): void {
+  if (runLockHash(expected) !== runLockHash(actual))
     throw new ContractIntegrityError("immutable run lock mismatch", "runLock");
-  }
 }

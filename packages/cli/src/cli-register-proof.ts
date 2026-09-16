@@ -64,7 +64,7 @@ export function registerProofCommand(program: Command): void {
 
   const proof = program
     .command("proof")
-    .description("Inspect proof integration");
+    .description("Inspect proof integration and maintain proof evidence");
   proof
     .command("inspect")
     .description(
@@ -82,6 +82,42 @@ export function registerProofCommand(program: Command): void {
         }
         process.stdout.write(renderInspection(result));
         return undefined;
+      }),
+    );
+  proof
+    .command("prune")
+    .description(
+      "Shrink each test's proof_receipts history to its newest entries (re-proving the same snapshot appends duplicates; prune removes the superseded ones)",
+    )
+    .option("--test <id>", "Prune a single test entity")
+    .option(
+      "--keep <n>",
+      "Number of newest receipts to keep per test (default 1)",
+      "1",
+    )
+    .action(
+      withExitCode(async (options: { test?: string; keep?: string }) => {
+        return await (
+          await import("./commands/proof-prune.js")
+        ).proofPruneCommand({
+          ...(options.test === undefined ? {} : { test: options.test }),
+          ...(options.keep === undefined ? {} : { keep: options.keep }),
+        });
+      }),
+    );
+  proof
+    .command("migrate-legacy")
+    .description(
+      "Remove legacy verification_receipts blocks from test documents that already carry a proof_contract",
+    )
+    .option("--test <id>", "Migrate a single test entity")
+    .action(
+      withExitCode(async (options: { test?: string }) => {
+        return await (
+          await import("./commands/proof-migrate-legacy.js")
+        ).proofMigrateLegacyCommand({
+          ...(options.test === undefined ? {} : { test: options.test }),
+        });
       }),
     );
 }

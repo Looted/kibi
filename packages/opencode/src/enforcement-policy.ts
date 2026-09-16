@@ -56,7 +56,7 @@ export interface EnforcementPolicyInput {
   posture?: RepoPosture | undefined;
 }
 
-interface NormalizedPolicyEvent extends EnforcementLifecycleEvent {
+export interface NormalizedPolicyEvent extends EnforcementLifecycleEvent {
   pathKind: PathKind;
   linkedEntityResult: PolicyLinkedEntityResult;
   e2eSignal: E2eCoverageSignal;
@@ -432,24 +432,42 @@ export function computeEnforcementPolicy(
     };
   }
 
+  return advisoryResultFromEvents(relevantEvents, {
+    affectedPaths,
+    e2eReminder,
+    reminderKindsToMark,
+  });
+}
+
+// Defensive empty-list checkpoint. `computeEnforcementPolicy` returns earlier
+// when `relevantEvents` is empty; tests call this helper directly so the
+// branch stays executable and covered.
+export function advisoryResultFromEvents(
+  relevantEvents: readonly NormalizedPolicyEvent[],
+  extras: {
+    affectedPaths: string[];
+    e2eReminder: string | null;
+    reminderKindsToMark: ReminderKind[];
+  },
+): EnforcementPolicyResult {
   const firstRelevantEvent = relevantEvents[0];
   if (!firstRelevantEvent) {
     return {
       kind: "checkpoint_passed",
-      affectedPaths,
+      affectedPaths: extras.affectedPaths,
       dirtyFileCount: 0,
-      e2eReminder,
-      reminderKindsToMark,
+      e2eReminder: extras.e2eReminder,
+      reminderKindsToMark: extras.reminderKindsToMark,
       text: null,
     };
   }
 
   return {
     kind: "advisory_guidance",
-    affectedPaths,
+    affectedPaths: extras.affectedPaths,
     dirtyFileCount: relevantEvents.length,
-    e2eReminder,
-    reminderKindsToMark,
+    e2eReminder: extras.e2eReminder,
+    reminderKindsToMark: extras.reminderKindsToMark,
     text: advisoryText(firstRelevantEvent),
   };
 }

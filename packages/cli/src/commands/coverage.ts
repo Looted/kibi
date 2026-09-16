@@ -8,6 +8,7 @@ interface CoverageOptions {
   by?: "req" | "symbol" | "type";
   tag?: string;
   includePassing?: boolean;
+  status?: string;
   includeTransitive?: boolean;
   limit?: string;
   offset?: string;
@@ -30,6 +31,12 @@ export async function coverageCommand(options: CoverageOptions): Promise<void> {
           .filter(Boolean)
       : [],
     includePassing: options.includePassing ?? false,
+    statuses: options.status
+      ? options.status
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean)
+      : [],
     includeTransitive: options.includeTransitive ?? true,
     limit: Number.parseInt(options.limit || "100", 10),
     offset: Number.parseInt(options.offset || "0", 10),

@@ -90,6 +90,7 @@ jobs:
           name: unit-coverage
           path: |
             coverage/unit/lcov.info
+            coverage/unit/coverage-summary.txt
             coverage/unit/source-manifest.txt
             coverage/unit/missing-source-files.txt
             coverage/unit/failed-shards.txt
@@ -135,13 +136,15 @@ jobs:
       - name: Typecheck and compile e2e tests
         run: |
           bun run compile:e2e:packed
+        env:
+          KIBI_E2E_COMPILED_DIR: ${{ runner.temp }}/kibi-e2e-packed-compiled
 
       - name: Upload compiled e2e tests
         if: ${{ github.actor != 'nektos/act' }}
         uses: actions/upload-artifact@v5
         with:
           name: kibi-e2e-tests-compiled
-          path: /tmp/kibi-e2e-packed-compiled
+          path: ${{ runner.temp }}/kibi-e2e-packed-compiled
           retention-days: 1
 
   packed-e2e-cli-regression:
@@ -172,13 +175,13 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: kibi-e2e-tests-compiled
-          path: /tmp/kibi-e2e-packed-compiled
+          path: ${{ runner.temp }}/kibi-e2e-packed-compiled
       - name: Run CLI regression tests
         run: |
           NODE_OPTIONS='--enable-source-maps' node scripts/run-packed-e2e.mjs \
-            /tmp/kibi-e2e-packed-compiled \
-            /tmp/kibi-e2e-packed-compiled/cli-workflows.test.js \
-            /tmp/kibi-e2e-packed-compiled/cli-query-regression.test.js
+            $RUNNER_TEMP/kibi-e2e-packed-compiled \
+            $RUNNER_TEMP/kibi-e2e-packed-compiled/cli-workflows.test.js \
+            $RUNNER_TEMP/kibi-e2e-packed-compiled/cli-query-regression.test.js
         env:
           KIBI_E2E_ALLOW_PATCHED_INSTALL: "0"
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
@@ -213,7 +216,7 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: kibi-e2e-tests-compiled
-          path: /tmp/kibi-e2e-packed-compiled
+          path: ${{ runner.temp }}/kibi-e2e-packed-compiled
       - name: Setup pnpm
         run: |
           corepack enable
@@ -221,9 +224,9 @@ jobs:
       - name: Run MCP packed regression tests
         run: |
           NODE_OPTIONS='--enable-source-maps' node scripts/run-packed-e2e.mjs \
-            /tmp/kibi-e2e-packed-compiled \
-            /tmp/kibi-e2e-packed-compiled/mcp-protocol-regression.test.js \
-            /tmp/kibi-e2e-packed-compiled/mcp-pnpm-upgrade-stale-path.test.js
+            $RUNNER_TEMP/kibi-e2e-packed-compiled \
+            $RUNNER_TEMP/kibi-e2e-packed-compiled/mcp-protocol-regression.test.js \
+            $RUNNER_TEMP/kibi-e2e-packed-compiled/mcp-pnpm-upgrade-stale-path.test.js
         env:
           KIBI_E2E_ALLOW_PATCHED_INSTALL: "0"
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
@@ -256,10 +259,10 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: kibi-e2e-tests-compiled
-          path: /tmp/kibi-e2e-packed-compiled
+          path: ${{ runner.temp }}/kibi-e2e-packed-compiled
       - name: Run tarball verification
         run: |
-          NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 /tmp/kibi-e2e-packed-compiled/cli-verify-tarball-core.test.js
+          NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 "$RUNNER_TEMP/kibi-e2e-packed-compiled/cli-verify-tarball-core.test.js"
         env:
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
         timeout-minutes: 5
@@ -298,10 +301,10 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: kibi-e2e-tests-compiled
-          path: /tmp/kibi-e2e-packed-compiled
+          path: ${{ runner.temp }}/kibi-e2e-packed-compiled
       - name: Run branch workflow tests
         run: |
-          NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 /tmp/kibi-e2e-packed-compiled/branch-workflow.test.js
+          NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 "$RUNNER_TEMP/kibi-e2e-packed-compiled/branch-workflow.test.js"
         env:
           KIBI_E2E_ALLOW_PATCHED_INSTALL: "0"
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages

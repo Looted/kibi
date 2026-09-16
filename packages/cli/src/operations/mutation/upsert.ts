@@ -36,6 +36,7 @@ import {
   validateStrictLanePairing,
   validateSupersedesSourceHistory,
 } from "./relationships.js";
+import { MutationSaga } from "./saga.js";
 import {
   writePendingSourceReceipt,
   writeSourceForUpsert,
@@ -47,7 +48,6 @@ import {
 } from "./symbol-compiler-lock.js";
 import { validateSymbolGranularity } from "./symbol-granularity.js";
 import { refreshSymbolCoordinatesForManifest } from "./symbol-refresh.js";
-import type { ArtifactPublicationReceipt } from "./symbol-refresh.js";
 import type { RelationshipInput, UpsertInput, UpsertPayload } from "./types.js";
 import { validateUpsertInput } from "./validation.js";
 import { scenarioCoverageWarnings } from "./warnings.js";
@@ -226,9 +226,29 @@ function reextractCanonicalSymbolEntity(
   };
 }
 
+// implements REQ-kibi-operation-interface-parity
+export type UpsertExecutionOptions = Readonly<{
+  /**
+   * Internal escape hatch for proof-receipt ingest: when provided, the
+   * authored document is written with exactly these bytes instead of the
+   * canonical re-render. Receipt appends must not canonicalize unrelated
+   * frontmatter — a mid-campaign reformat would change the workspace
+   * snapshot hash and make every later `kibi prove` integration refuse.
+   */
+  // implements REQ-kibi-operation-interface-parity
+  readonly sourceDocumentOverride?: string;
+  /**
+   * Internal escape hatch for `kibi proof prune`: the prune maintenance
+   * command deliberately shrinks a test's receipt history to its newest
+   * entries. Everything else keeps the append-only invariant fail-closed.
+   */
+  readonly allowReceiptsPrune?: boolean;
+}>;
+
 export async function executeUpsert(
   input: UpsertInput,
   context: OperationContext,
+  options: UpsertExecutionOptions = {},
 ): Promise<OperationResult<UpsertPayload>> {
   const branchAttachment =
     context.branchAttachment ?? resolveBranchAttachment(context.workspaceRoot);
@@ -244,15 +264,17 @@ export async function executeUpsert(
     );
   }
   const prolog = requireProlog(context);
+  // Declared compensation list for the multi-surface mutation. Steps register
+  // as they succeed (authored source -> relationship shards -> coordinates);
+  // a failure rolls them back in reverse under the symbol compiler lock, and
+  // the compiled commit marks the point of no return.
+  const saga = new MutationSaga();
   let sourceWrite: Awaited<ReturnType<typeof writeSourceForUpsert>> = null;
   let commitEntity: Readonly<Record<string, unknown>> | undefined;
-  let sourceRolledBack = false;
-  let compiledCommitted = false;
   let relationshipCount = 0;
   let changeKind: "created" | "updated" | null = null;
   let semanticAdvisor: SemanticAdvisorReceipt | undefined;
   let compilerLock: SymbolCompilerLockHandle | undefined;
-  let coordinatePublication: ArtifactPublicationReceipt | undefined;
   let operationFailure: { readonly error: unknown } | undefined;
   const relationshipShardBefore = new Map<string, string | null>();
   const relationshipShardAfterHash = new Map<string, string | null>();
@@ -269,7 +291,9 @@ export async function executeUpsert(
       compilerLock = await acquireSymbolCompilerLock(context.workspaceRoot);
     }
     const validated = validateUpsertInput(input, context.clock());
-    await validateAppendOnlyProofReceipts(validated.entity, context);
+    if (options.allowReceiptsPrune !== true) {
+      await validateAppendOnlyProofReceipts(validated.entity, context);
+    }
     validateRelationshipSources(input.id, validated.relationships);
     await validateSymbolGranularity(
       validated.entity,
@@ -337,8 +361,15 @@ export async function executeUpsert(
           validated.entity,
           existing,
           context,
+          options.sourceDocumentOverride,
         );
         if (sourceWrite !== null) {
+          const sourceStep = sourceWrite;
+          saga.add({
+            name: "authored-source",
+            rollback: () => sourceStep.rollback(),
+            onError: "capture",
+          });
           // The authored path is the entity's canonical identity. Runtime
           // transport provenance (mcp://...) must never survive a source-first
           // write or a later delete/sync cycle.
@@ -382,6 +413,18 @@ export async function executeUpsert(
         });
         relationshipShardAfterHash.set(shardPath, fileHash(shardPath));
       }
+      saga.add({
+        name: "relationship-shards",
+        rollback: () => {
+          for (const [shardPath, before] of relationshipShardBefore) {
+            restoreRelationshipShard(
+              shardPath,
+              before,
+              relationshipShardAfterHash.get(shardPath) ?? null,
+            );
+          }
+        },
+      });
     }
 
     // Coordinates are generated compiler state owned by
@@ -401,7 +444,14 @@ export async function executeUpsert(
         path.resolve(context.workspaceRoot, sourceWrite.receipt.path),
         context,
       );
-      coordinatePublication = refresh.publication;
+      const coordinatePublication = refresh.publication;
+      if (coordinatePublication !== undefined) {
+        saga.add({
+          name: "symbol-coordinates",
+          rollback: () => coordinatePublication.rollback(),
+          onError: "capture",
+        });
+      }
       if (!refresh.found || refresh.outcome === "removed") {
         throw new Error(
           `Coordinate refresh could not find ${input.id} in the authored symbol manifest`,
@@ -433,18 +483,11 @@ export async function executeUpsert(
     });
     const written = await prolog.query(transaction);
     if (!written.success) {
-      await sourceWrite?.rollback();
-      sourceRolledBack = sourceWrite !== null;
-      for (const [shardPath, before] of relationshipShardBefore) {
-        restoreRelationshipShard(
-          shardPath,
-          before,
-          relationshipShardAfterHash.get(shardPath) ?? null,
-        );
-      }
-      throw new Error(formatUpsertError(input.id, written.error));
+      throw new Error(
+        formatUpsertError(input.id, written.error, written.errorRecord),
+      );
     }
-    compiledCommitted = true;
+    saga.markCommitted();
     // The combined commit is the sole mutation boundary. Invalidate reads only
     // after Prolog reports success so a failed/rolled-back commit does not
     // disturb callers' view of the current snapshot.
@@ -473,7 +516,20 @@ export async function executeUpsert(
     for (const [shardPath, before] of relationshipShardBefore) {
       const afterHash = fileHash(shardPath);
       const beforeHash = before === null ? null : textHash(before);
-      if (afterHash === null || afterHash === beforeHash) continue;
+      const expectedAfterHash =
+        relationshipShardAfterHash.get(shardPath) ?? null;
+      if (afterHash === null) {
+        if (expectedAfterHash !== null) {
+          const relative = path
+            .relative(context.workspaceRoot, shardPath)
+            .replaceAll("\\", "/");
+          shardWarnings.push(
+            `Relationship shard vanished after write: ${relative}`,
+          );
+        }
+        continue;
+      }
+      if (afterHash === beforeHash) continue;
       const relative = path
         .relative(context.workspaceRoot, shardPath)
         .replaceAll("\\", "/");
@@ -544,38 +600,12 @@ export async function executeUpsert(
       structuredContent: payload,
     };
   } catch (error) {
-    let coordinateRollbackError: unknown;
-    if (!compiledCommitted && coordinatePublication !== undefined) {
-      try {
-        coordinatePublication.rollback();
-      } catch (rollbackError) {
-        coordinateRollbackError = rollbackError;
-      }
-    }
-    if (!compiledCommitted) {
-      for (const [shardPath, before] of relationshipShardBefore) {
-        try {
-          restoreRelationshipShard(
-            shardPath,
-            before,
-            relationshipShardAfterHash.get(shardPath) ?? null,
-          );
-        } catch {
-          // Preserve the original failure; the next check/sync reports any
-          // canonical source path that could not be restored.
-        }
-      }
-    }
-    if (!compiledCommitted && sourceWrite !== null && !sourceRolledBack) {
-      try {
-        await sourceWrite.rollback();
-        sourceRolledBack = true;
-      } catch {
-        // Preserve the original mutation error; the recovery journal can
-        // reconcile a failed source rollback on the next sync.
-      }
-    }
-    if (compiledCommitted) {
+    // Roll back every completed pre-commit surface in reverse order, exactly
+    // once. After the compiled commit this is a no-op: post-commit failures
+    // return committed-with-repairs results instead of undoing committed
+    // state.
+    const rollbackFailures = await saga.rollback();
+    if (saga.committed) {
       const detail = error instanceof Error ? error.message : String(error);
       return {
         content: [
@@ -615,10 +645,28 @@ export async function executeUpsert(
         },
       };
     }
-    if (coordinateRollbackError !== undefined) {
+    const coordinateFailure = rollbackFailures.find(
+      (failure) => failure.step === "symbol-coordinates",
+    );
+    if (coordinateFailure !== undefined) {
       const failure = new AggregateError(
-        [error, coordinateRollbackError],
+        [error, coordinateFailure.error],
         `Upsert failed and coordinate artifact rollback failed for ${input.id}`,
+      );
+      operationFailure = { error: failure };
+      throw failure;
+    }
+    const sourceFailure = rollbackFailures.find(
+      (failure) => failure.step === "authored-source",
+    );
+    if (sourceFailure !== undefined) {
+      const rollbackMessage =
+        sourceFailure.error instanceof Error
+          ? sourceFailure.error.message
+          : String(sourceFailure.error);
+      const failure = new AggregateError(
+        [error, sourceFailure.error],
+        `Upsert failed and authored source rollback failed for ${input.id}: ${rollbackMessage}`,
       );
       operationFailure = { error: failure };
       throw failure;

@@ -34,3 +34,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-089988472f2d
+  - type: covered_by
+    from: SYM-cli-report-brand-wordmark
+    to: TEST-kibi-branded-health-report
+    created_at: 2026-09-05T16:58:48.589Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ffa49d9a567f
+  - type: covered_by
+    from: SYM-handleKbSemanticAdvisor
+    to: TEST-mcp-semantic-advisor-preflight
+    created_at: 2026-09-05T17:38:14.383Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46932e33ed4b
+  - type: covered_by
+    from: SYM-skillopt-python-env-adapter
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-10T15:00:27.565Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e69834eeaabf
+  - type: implements
+    from: SYM-skillopt-python-env-adapter
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-09-10T15:00:27.605Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f91a4e4bbc8f
+  - type: implements
+    from: SYM-skillopt-python-env-adapter
+    to: REQ-skillopt-external-adoption-verdict
+    created_at: 2026-09-10T15:00:27.612Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55428fce602a
+  - type: implements
+    from: SYM-classify-store-lock-holder
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-14T12:37:50.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bcab03371d81
+  - type: covered_by
+    from: SYM-classify-store-lock-holder
+    to: TEST-core-journaled-engine-persistence
+    created_at: 2026-09-14T17:05:25.410Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8e3874db2f81

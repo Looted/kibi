@@ -30,6 +30,7 @@ import type { SparqlArgs } from "../tools/sparql.js";
 import type { StatusArgs } from "../tools/status.js";
 import type { SuggestPredicatesArgs } from "../tools/suggest-predicates.js";
 import type { UpsertArgs } from "../tools/upsert.js";
+import { startJob } from "./jobs.js";
 import type { ToolHandler, ToolsRuntime } from "./tool-types.js";
 
 type ToolRegistrar<TProlog> = (
@@ -187,8 +188,27 @@ export function registerConfiguredTools<TProlog>(
   });
   register({
     name: "kb_check",
-    execute: async (context, args) =>
-      runtime.handleKbCheck(prologFor(context), args as CheckArgs),
+    execute: async (context, args) => {
+      const { async: asyncMode, ...checkArgs } = args as Record<
+        string,
+        unknown
+      > & { async?: boolean };
+      if (asyncMode !== true) {
+        return runtime.handleKbCheck(
+          prologFor(context),
+          args as unknown as CheckArgs,
+        );
+      }
+      // Long-KB full checks can exceed the tool timeout. Detach into a job
+      // and return the kibi.job.v1 receipt immediately; the agent polls
+      // kb_job_status for the terminal state and full result.
+      return startJob("kb_check", () =>
+        runtime.handleKbCheck(
+          prologFor(context),
+          checkArgs as unknown as CheckArgs,
+        ),
+      );
+    },
   });
   register({
     name: "kb_model_requirement",

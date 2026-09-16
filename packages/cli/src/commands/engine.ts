@@ -79,6 +79,64 @@ export async function storageStatusCommand(): Promise<void> {
   await engineStatusCommand();
 }
 
+export interface EngineJanitorOptions {
+  readonly all?: boolean;
+  readonly apply?: boolean;
+  readonly format?: string;
+}
+
+/**
+ * Classify and (optionally) clean stale engine daemons and branch-store
+ * locks: crashed engines leave ownership journals behind, worktree removals
+ * strand live daemons, dead daemons leave sockets. Report-only by default;
+ `--apply` executes the clean actions.
+ */
+// implements REQ-core-journaled-engine-persistence
+export async function engineJanitorCommand(
+  options: EngineJanitorOptions,
+): Promise<void> {
+  const { runtimeDirectory } = await import("../engine.js");
+  const { runJanitor } = await import("../prolog/janitor.js");
+  const findings = runJanitor({
+    workspaceRoot: workspaceRoot(),
+    runtimeDirectory: runtimeDirectory(),
+    all: options.all === true,
+    apply: options.apply === true,
+  });
+  const cleanable = findings.filter((f) => f.action !== "keep").length;
+  const cleaned = options.apply === true ? cleanable : 0;
+  if (options.format === "json") {
+    console.log(
+      JSON.stringify({ findings, cleaned, cleanable, total: findings.length }),
+    );
+    return;
+  }
+  if (findings.length === 0) {
+    console.log("No engine or lock artifacts found.");
+    return;
+  }
+  for (const finding of findings) {
+    const holder =
+      "pid" in finding && finding.pid !== undefined ? ` pid=${finding.pid}` : "";
+    const workspace =
+      finding.kind === "store-lock" && finding.workspaceRoot !== undefined
+        ? ` workspace=${finding.workspaceRoot}`
+        : "";
+    const scope =
+      finding.kind === "store-lock"
+        ? `store ${finding.storePath}`
+        : `socket ${finding.socketPath}`;
+    console.log(
+      `[${finding.action}] ${scope}${holder}${workspace} holder=${finding.holderState}`,
+    );
+  }
+  console.log(
+    options.apply === true
+      ? `${findings.length} finding(s), ${cleaned} cleaned`
+      : `${findings.length} finding(s), ${cleanable} cleanable (report only; re-run with --apply)`,
+  );
+}
+
 export async function storageCompactCommand(): Promise<void> {
   const root = workspaceRoot();
   const attachment = resolveBranchAttachment(root);

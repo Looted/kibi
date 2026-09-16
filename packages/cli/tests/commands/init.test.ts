@@ -63,7 +63,7 @@ describe("kibi init", () => {
     expect(existsSync(path.join(tmpDir, ".kb/branches"))).toBe(true);
     // The explicit test branch remains main.
     expect(existsSync(branchStorePath(tmpDir, "main"))).toBe(true);
-  }, 30000);
+  }, 120000);
 
   test("copies schema files to .kb/schema/", () => {
     execSync("git init -b main", { cwd: tmpDir });
@@ -79,7 +79,7 @@ describe("kibi init", () => {
     expect(existsSync(path.join(tmpDir, ".kb/schema/validation.pl"))).toBe(
       true,
     );
-  }, 30000);
+  }, 120000);
 
   test("creates a Kibi-owned lifecycle manifest without path or check policy", () => {
     execSync("git init -b main", { cwd: tmpDir });
@@ -133,7 +133,7 @@ describe("kibi init", () => {
     expect(content).toContain(".kb/migrations/");
     expect(content).toContain(".kb/usage.log");
     expect(content).not.toMatch(/^\.kb\/$/m);
-  }, 30000);
+  }, 120000);
 
   test("does not scaffold a user-editable check policy", () => {
     execSync("git init -b main", { cwd: tmpDir });
@@ -176,7 +176,7 @@ describe("kibi init", () => {
 
     expect(out).toContain("Bootstrap Kibi for this repository");
     expect(out).not.toContain("already has seeded Kibi knowledge");
-  }, 30000);
+  }, 120000);
 
   test("routes an initialized seeded repository to normal Kibi work", () => {
     execSync("git init -b main", { cwd: tmpDir });
@@ -206,7 +206,7 @@ describe("kibi init", () => {
 
     expect(out).toContain("already has seeded Kibi knowledge");
     expect(out).not.toContain("Bootstrap Kibi for this repository");
-  }, 30000);
+  }, 120000);
 
   test("supports the cold-start init, plan, approved apply, and status lifecycle", () => {
     execSync("git init -b main", { cwd: tmpDir });
@@ -453,5 +453,5 @@ describe("kibi init", () => {
     expect(readFileSync(path.join(tmpDir, ".gitignore"), "utf8")).toContain(
       "kibi-report/",
     );
-  }, 30000);
+  }, 120000);
 });

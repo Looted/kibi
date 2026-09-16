@@ -1,5 +1,7 @@
 import path from "node:path";
 
+import { retryAttachAfterBreakingStaleLock } from "../prolog/store-lock.js";
+
 import { EngineClient } from "../engine.js";
 import {
   nodeFilesystem,
@@ -14,7 +16,21 @@ import type {
   PrologPort,
   RuntimeOptions,
 } from "../public/operations/runtime-types.js";
-import { resolveBranchAttachment } from "../utils/branch-resolver.js";
+import {
+  type BranchResolutionError,
+  resolveBranchAttachment,
+} from "../utils/branch-resolver.js";
+
+export function attachmentFailureMessage(
+  attachment: BranchResolutionError,
+): string {
+  const isNonGitContext =
+    attachment.code === "NOT_A_GIT_REPO" ||
+    attachment.code === "GIT_NOT_AVAILABLE";
+  return isNonGitContext
+    ? "Kibi requires an active Git branch outside a repository; set KIBI_BRANCH explicitly for a standalone workspace."
+    : `Failed to resolve active branch: ${attachment.error}`;
+}
 
 type ManagedPrologPort = PrologPort & {
   readonly start?: () => Promise<void>;
@@ -152,15 +168,8 @@ export function createCliRuntime(
 
       const attachment = resolveBranchAttachment(root);
       if ("error" in attachment) {
-        const isNonGitContext =
-          attachment.code === "NOT_A_GIT_REPO" ||
-          attachment.code === "GIT_NOT_AVAILABLE";
         await (merged.prolog as ManagedPrologPort | undefined)?.terminate?.();
-        throw new Error(
-          isNonGitContext
-            ? "Kibi requires an active Git branch outside a repository; set KIBI_BRANCH explicitly for a standalone workspace."
-            : `Failed to resolve active branch: ${attachment.error}`,
-        );
+        throw new Error(attachmentFailureMessage(attachment));
       }
       if (attachment.migrationRequired) {
         console.warn(
@@ -175,9 +184,16 @@ export function createCliRuntime(
         await prolog.start?.();
         const kbPath = attachment.storePath;
         if (!usesEngine) {
-          const attached = await prolog.query(
+          let attached = await prolog.query(
             `kb_attach('${quoteProlog(kbPath)}')`,
           );
+          if (!attached.success) {
+            attached = await retryAttachAfterBreakingStaleLock(
+              prolog,
+              kbPath,
+              attached,
+            );
+          }
           if (!attached.success) {
             throw new Error(attached.error ?? "Failed to attach branch KB");
           }

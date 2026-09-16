@@ -69,3 +69,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-49ded2c14629
+  - type: covered_by
+    from: SYM-predicate-catalog-part-4
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-05T17:47:10.770Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e15b2d2bdad
+  - type: covered_by
+    from: SYM-skillopt-decode-final-state-predicate-snapshot
+    to: TEST-skillopt-predicate-first-requirements
+    created_at: 2026-09-05T18:19:16.246Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-22a380ad06b9

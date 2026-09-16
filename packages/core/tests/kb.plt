@@ -8,6 +8,19 @@
 :- use_module(library(plunit)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(filesex)).
+:- use_module(library(process)).
+:- use_module(library(readutil)).
+
+:- dynamic test_kb_root/1.
+:- dynamic test_kb_store/1.
+:- dynamic test_kb_store_sequence/1.
+:- dynamic test_source_directory/1.
+:- dynamic isolation_child_process/1.
+:- dynamic isolation_child_barrier/1.
+:- prolog_load_context(directory, TestDirectory),
+   assertz(test_source_directory(TestDirectory)).
+:- initialization(init_test_kb_root).
+:- at_halt(cleanup_test_kb_root).
 
 :- multifile user:term_expansion/2.
 
@@ -23,8 +36,27 @@ user:term_expansion((test(Name, Options0) :- Body), (test(Name, Options) :- Body
     ;   Options = [nondet|Options0]
     ).
 
-% Test KB directory
-test_kb_dir('/tmp/kibi-test-kb').
+% Every PLUnit process owns one private root. Each test removes only its
+% child store during cleanup; the root remains stable until process exit.
+% Keeping both levels process-local prevents concurrent swipl invocations from
+% attaching to or deleting the same RDF store.
+init_test_kb_root :-
+    tmp_file(kibi_test_kb, Root),
+    make_directory_path(Root),
+    assertz(test_kb_root(Root)),
+    assertz(test_kb_store_sequence(0)).
+
+test_kb_dir(Dir) :-
+    (   test_kb_store(Dir)
+    ->  true
+    ;   test_kb_root(Root),
+        retract(test_kb_store_sequence(Previous)),
+        Next is Previous + 1,
+        assertz(test_kb_store_sequence(Next)),
+        format(atom(StoreName), 'store-~d', [Next]),
+        directory_file_path(Root, StoreName, Dir),
+        assertz(test_kb_store(Dir))
+    ).
 
 :- begin_tests(kb_basic).
 
@@ -39,6 +71,39 @@ test(attach_creates_directory, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)
     kb_attach(Dir),
     exists_directory(Dir),
     kb_detach.
+
+test(two_process_stores_are_isolated, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    test_kb_root(Root),
+    make_directory_path(Root),
+    test_source_directory(TestDirectory),
+    directory_file_path(TestDirectory, 'kb.plt', TestSource),
+    directory_file_path(Root, ready_a, ReadyA),
+    directory_file_path(Root, ready_b, ReadyB),
+    directory_file_path(Root, done_a, DoneA),
+    directory_file_path(Root, done_b, DoneB),
+    directory_file_path(Root, release, Release),
+    directory_file_path(Root, cleanup, Cleanup),
+    assertz(isolation_child_barrier(Release)),
+    assertz(isolation_child_barrier(Cleanup)),
+    start_isolation_writer(TestSource, 'PROC-STORE-A', ReadyA, DoneA, Release, Cleanup, PidA),
+    start_isolation_writer(TestSource, 'PROC-STORE-B', ReadyB, DoneB, Release, Cleanup, PidB),
+    wait_for_isolation_files([ReadyA, ReadyB], 1000),
+    write_isolation_barrier(Release),
+    wait_for_isolation_files([DoneA, DoneB], 1000),
+    read_isolation_store(ReadyA, StoreA),
+    read_isolation_store(ReadyB, StoreB),
+    assertion(StoreA \= StoreB),
+    kb_attach(StoreA),
+    assertion(kb_entity('PROC-STORE-A', fact, _)),
+    assertion(\+ kb_entity('PROC-STORE-B', _, _)),
+    kb_detach,
+    kb_attach(StoreB),
+    assertion(kb_entity('PROC-STORE-B', fact, _)),
+    assertion(\+ kb_entity('PROC-STORE-A', _, _)),
+    kb_detach,
+    write_isolation_barrier(Cleanup),
+    wait_isolation_child(PidA),
+    wait_isolation_child(PidB).
 
 :- end_tests(kb_basic).
 
@@ -1564,6 +1629,48 @@ test(requirement_proof_rejects_structural_coverage_without_semantics_or_scenario
     json_string_dict(GapsJsonString, GapsReport),
     coverage_row(GapsReport.rows, 'REQ-PROOF-STRUCTURAL-ONLY', _).
 
+test(requirement_proof_fails_closed_on_dangling_declared_scenario, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-PROOF-DANGLING-SCENARIO', "Dangling scenario target", active, []),
+    assert_fixture_entity(req, 'REQ-PROOF-DANGLING-WRONG-TYPE', "Wrong type scenario target", active, []),
+    assert_fixture_entity(scenario, 'SCEN-PROOF-DANGLING-VALID', "Valid scenario target", active, []),
+    assert_fixture_entity(test, 'TEST-PROOF-DANGLING-E2E', "Valid scenario E2E", passing, [verification_scope=end_to_end]),
+    kb_assert_relationship(specified_by, 'REQ-PROOF-DANGLING-SCENARIO', 'SCEN-PROOF-DANGLING-VALID', []),
+    % Preserve a declared edge whose target was removed or has the wrong type.
+    assert_raw_relationship(specified_by, 'REQ-PROOF-DANGLING-SCENARIO', 'SCEN-PROOF-DANGLING-MISSING'),
+    assert_raw_relationship(specified_by, 'REQ-PROOF-DANGLING-SCENARIO', 'REQ-PROOF-DANGLING-WRONG-TYPE'),
+    kb_assert_relationship(verified_by, 'SCEN-PROOF-DANGLING-VALID', 'TEST-PROOF-DANGLING-E2E', []),
+    coverage_report_json(req, [], true, true, 100, 0, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-PROOF-DANGLING-SCENARIO', Row),
+    assertion(Row.proofStages.scenarios.status == missing),
+    assertion(Row.proofStages.scenarios.scenarios == ['SCEN-PROOF-DANGLING-VALID']),
+    assertion(Row.proofStages.scenarios.scenarioTargets == ['REQ-PROOF-DANGLING-WRONG-TYPE', 'SCEN-PROOF-DANGLING-MISSING', 'SCEN-PROOF-DANGLING-VALID']),
+    assertion(Row.proofStages.scenarios.invalidScenarioTargets == ['REQ-PROOF-DANGLING-WRONG-TYPE', 'SCEN-PROOF-DANGLING-MISSING']),
+    assertion(memberchk(missing_scenario, Row.proofGaps)).
+
+test(requirement_proof_fails_closed_on_dangling_declared_scenario_test, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-PROOF-DANGLING-TEST', "Dangling scenario test target", active, []),
+    assert_fixture_entity(req, 'REQ-PROOF-DANGLING-TEST-WRONG-TYPE', "Wrong type scenario test target", active, []),
+    assert_fixture_entity(scenario, 'SCEN-PROOF-DANGLING-TEST', "Scenario with mixed test targets", active, []),
+    assert_fixture_entity(test, 'TEST-PROOF-DANGLING-TEST-VALID', "Valid scenario E2E", passing, [verification_scope=end_to_end]),
+    kb_assert_relationship(specified_by, 'REQ-PROOF-DANGLING-TEST', 'SCEN-PROOF-DANGLING-TEST', []),
+    kb_assert_relationship(verified_by, 'SCEN-PROOF-DANGLING-TEST', 'TEST-PROOF-DANGLING-TEST-VALID', []),
+    % Keep the valid target and retain malformed declared targets for proof diagnostics.
+    assert_raw_relationship(verified_by, 'SCEN-PROOF-DANGLING-TEST', 'TEST-PROOF-DANGLING-TEST-MISSING'),
+    assert_raw_relationship(verified_by, 'SCEN-PROOF-DANGLING-TEST', 'REQ-PROOF-DANGLING-TEST-WRONG-TYPE'),
+    coverage_report_json(req, [], true, true, 100, 0, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-PROOF-DANGLING-TEST', Row),
+    assertion(Row.proofStages.scenarioTests.status == missing),
+    assertion(Row.proofStages.scenarioTests.tests == ['TEST-PROOF-DANGLING-TEST-VALID']),
+    assertion(Row.proofStages.scenarioTests.scenarioTestTargets == ['REQ-PROOF-DANGLING-TEST-WRONG-TYPE', 'TEST-PROOF-DANGLING-TEST-MISSING', 'TEST-PROOF-DANGLING-TEST-VALID']),
+    assertion(Row.proofStages.scenarioTests.invalidScenarioTestTargets == ['REQ-PROOF-DANGLING-TEST-WRONG-TYPE', 'TEST-PROOF-DANGLING-TEST-MISSING']),
+    scenario_obligation_for(Row.proofStages.passingE2e.scenarioObligations, 'SCEN-PROOF-DANGLING-TEST', Obligation),
+    assertion(Obligation.tests == ['TEST-PROOF-DANGLING-TEST-VALID']),
+    assertion(Obligation.invalidScenarioTestTargets == ['REQ-PROOF-DANGLING-TEST-WRONG-TYPE', 'TEST-PROOF-DANGLING-TEST-MISSING']),
+    assertion(memberchk(missing_scenario_test, Obligation.gaps)),
+    assertion(memberchk(missing_scenario_test, Row.proofGaps)).
+
 test(requirement_proof_marks_noncurrent_requirements_not_applicable, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-PROOF-OLD', "Superseded proof requirement", superseded, [priority=must]),
     coverage_report_json(req, [], true, true, 100, 0, JsonString),
@@ -1667,6 +1774,14 @@ test(requirement_proof_requires_the_complete_semantic_scenario_e2e_symbol_chain,
         '2026-08-10T12:00:00Z',
         ReceiptJson
     ),
+    proof_receipt_json(
+        'TEST-PROOF-COMPLETE-SECOND-E2E',
+        Snapshot,
+        passed,
+        '2026-08-10T11:55:00Z',
+        '2026-08-10T12:00:00Z',
+        SecondReceiptJson
+    ),
     Inventory = [_{
         claim_key: ClaimKey,
         claim_text: "Coverage reports expose conservative proof outcomes",
@@ -1698,6 +1813,14 @@ test(requirement_proof_requires_the_complete_semantic_scenario_e2e_symbol_chain,
         verification_scope=end_to_end,
         proof_receipts=ReceiptJson
     ]),
+    assert_fixture_entity(scenario, 'SCEN-PROOF-COMPLETE-SECOND', "Inspect a second requirement proof path", active, []),
+    assert_fixture_entity(test, 'TEST-PROOF-COMPLETE-SECOND-E2E', "Second requirement proof E2E", passing, [
+        verification_scope=end_to_end,
+        proof_receipts=SecondReceiptJson
+    ]),
+    assert_fixture_entity(test, 'TEST-PROOF-COMPLETE-SECOND-UNIT', "Second requirement proof unit helper", active, [
+        verification_scope=unit
+    ]),
     assert_fixture_entity(symbol, 'SYM-PROOF-PRODUCTION', "requirement_proof", active, [
         sourceFile="packages/core/src/requirement_proof.pl",
         sourceLine=10,
@@ -1716,13 +1839,18 @@ test(requirement_proof_requires_the_complete_semantic_scenario_e2e_symbol_chain,
     kb_assert_relationship(requires_property, 'REQ-PROOF-COMPLETE', 'FACT-PROOF-PROPERTY', []),
     kb_assert_relationship(specified_by, 'REQ-PROOF-COMPLETE', 'SCEN-PROOF-COMPLETE', []),
     kb_assert_relationship(verified_by, 'SCEN-PROOF-COMPLETE', 'TEST-PROOF-COMPLETE-E2E', []),
+    kb_assert_relationship(specified_by, 'REQ-PROOF-COMPLETE', 'SCEN-PROOF-COMPLETE-SECOND', []),
+    kb_assert_relationship(verified_by, 'SCEN-PROOF-COMPLETE-SECOND', 'TEST-PROOF-COMPLETE-SECOND-E2E', []),
+    kb_assert_relationship(verified_by, 'SCEN-PROOF-COMPLETE-SECOND', 'TEST-PROOF-COMPLETE-SECOND-UNIT', []),
     kb_assert_relationship(implements, 'SYM-PROOF-PRODUCTION', 'REQ-PROOF-COMPLETE', []),
     kb_assert_relationship(covered_by, 'SYM-PROOF-PRODUCTION', 'TEST-PROOF-COMPLETE-E2E', []),
+    kb_assert_relationship(covered_by, 'SYM-PROOF-PRODUCTION', 'TEST-PROOF-COMPLETE-SECOND-E2E', []),
     kb_assert_relationship(executable_for, 'SYM-PROOF-E2E', 'TEST-PROOF-COMPLETE-E2E', []),
+    kb_assert_relationship(executable_for, 'SYM-PROOF-E2E', 'TEST-PROOF-COMPLETE-SECOND-E2E', []),
     coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, JsonString),
     json_string_dict(JsonString, Report),
     coverage_row(Report.rows, 'REQ-PROOF-COMPLETE', Row),
-    assertion(Row.testCount == 1),
+    assertion(Row.testCount == 3),
     assertion(Row.proofStatus == proven),
     assertion(Row.proofGaps == []),
     assertion(Row.proofAdvisories == []),
@@ -1732,8 +1860,8 @@ test(requirement_proof_requires_the_complete_semantic_scenario_e2e_symbol_chain,
     assertion(Row.proofStages.semanticInventory.status == passed),
     assertion(Row.proofStages.logicGrounding.status == passed),
     assertion(Row.proofStages.contradictions.outcome == no_conflict_found),
-    assertion(Row.proofStages.passingE2e.tests == ['TEST-PROOF-COMPLETE-E2E']),
-    Row.proofStages.passingE2e.receiptEvidence = [ReceiptEvidence],
+    assertion(Row.proofStages.passingE2e.tests == ['TEST-PROOF-COMPLETE-E2E', 'TEST-PROOF-COMPLETE-SECOND-E2E']),
+    evidence_for_test(Row.proofStages.passingE2e.receiptEvidence, 'TEST-PROOF-COMPLETE-E2E', ReceiptEvidence),
     assertion(ReceiptEvidence.state == passed),
     assertion(ReceiptEvidence.codeSnapshot == Snapshot),
     assertion(ReceiptEvidence.receiptId == 'PR-TEST000000001'),
@@ -1756,9 +1884,37 @@ test(requirement_proof_requires_the_complete_semantic_scenario_e2e_symbol_chain,
     coverage_row(MismatchReport.rows, 'REQ-PROOF-COMPLETE', MismatchRow),
     assertion(MismatchRow.proofStatus == unresolved),
     assertion(MismatchRow.proofStages.logicGrounding.claimTextMismatchClaims == [ClaimKey]),
-    assertion(memberchk(ambiguous_logic_grounding, MismatchRow.proofGaps)).
+    assertion(memberchk(ambiguous_logic_grounding, MismatchRow.proofGaps)),
+    proof_receipt_json(
+        'TEST-PROOF-COMPLETE-FAILED',
+        Snapshot,
+        failed,
+        '2026-08-10T11:55:00Z',
+        '2026-08-10T12:00:00Z',
+        FailedReceiptJson
+    ),
+    assert_fixture_entity(scenario, 'SCEN-PROOF-COMPLETE-NO-TEST', "Missing scenario evidence", active, []),
+    assert_fixture_entity(scenario, 'SCEN-PROOF-COMPLETE-FAILED', "Failed scenario evidence", active, []),
+    assert_fixture_entity(test, 'TEST-PROOF-COMPLETE-FAILED', "Failed requirement proof E2E", passing, [
+        verification_scope=end_to_end,
+        proof_receipts=FailedReceiptJson
+    ]),
+    kb_assert_relationship(specified_by, 'REQ-PROOF-COMPLETE', 'SCEN-PROOF-COMPLETE-NO-TEST', []),
+    kb_assert_relationship(specified_by, 'REQ-PROOF-COMPLETE', 'SCEN-PROOF-COMPLETE-FAILED', []),
+    kb_assert_relationship(verified_by, 'SCEN-PROOF-COMPLETE-FAILED', 'TEST-PROOF-COMPLETE-FAILED', []),
+    coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, IncompleteJson),
+    json_string_dict(IncompleteJson, IncompleteReport),
+    coverage_row(IncompleteReport.rows, 'REQ-PROOF-COMPLETE', IncompleteRow),
+    assertion(IncompleteRow.proofStatus == missing),
+    assertion(memberchk(missing_scenario_test, IncompleteRow.proofGaps)),
+    assertion(memberchk(failed_proof_receipt, IncompleteRow.proofGaps)),
+    assertion(memberchk('TEST-PROOF-COMPLETE-FAILED', IncompleteRow.proofStages.passingE2e.failedReceiptTests)),
+    scenario_obligation_for(IncompleteRow.proofStages.passingE2e.scenarioObligations, 'SCEN-PROOF-COMPLETE-NO-TEST', NoTestObligation),
+    assertion(memberchk(missing_scenario_test, NoTestObligation.gaps)),
+    scenario_obligation_for(IncompleteRow.proofStages.passingE2e.scenarioObligations, 'SCEN-PROOF-COMPLETE-FAILED', FailedObligation),
+    assertion(memberchk(failed_proof_receipt, FailedObligation.gaps)).
 
-test(requirement_proof_extra_missing_receipts_are_advisories_when_strict_proof_exists, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+test(requirement_proof_extra_missing_receipts_block_when_strict_proof_exists, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     ClaimKey = 'CLAIM-ABCDEF0123456789',
     ClaimKeyString = "CLAIM-ABCDEF0123456789",
     Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
@@ -1840,10 +1996,9 @@ test(requirement_proof_extra_missing_receipts_are_advisories_when_strict_proof_e
     coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, JsonString),
     json_string_dict(JsonString, Report),
     coverage_row(Report.rows, 'REQ-PROOF-ADVISORY', Row),
-    assertion(Row.proofStatus == proven),
-    assertion(Row.proofGaps == []),
-    assertion(memberchk(missing_proof_receipt, Row.proofAdvisories)),
-    assertion(\+ memberchk(missing_proof_receipt, Row.proofGaps)),
+    assertion(Row.proofStatus == unresolved),
+    assertion(memberchk(missing_proof_receipt, Row.proofGaps)),
+    assertion(Row.proofAdvisories == []),
     assertion(Row.source == '.kb/requirements/REQ-PROOF-ADVISORY.md'),
     assertion(Row.proofStages.sourceCoordinates.requirementPath == '.kb/requirements/REQ-PROOF-ADVISORY.md'),
     assertion(memberchk(_{id: 'SCEN-PROOF-ADVISORY', path: '.kb/scenarios/SCEN-PROOF-ADVISORY.md'}, Row.proofStages.scenarios.sources)),
@@ -3488,7 +3643,8 @@ test(legacy_conversion_and_persistent_helpers_are_exercised, [setup(setup_kb), c
     \+ changeset(_, upsert, 'ENTITY-2', req-[id='ENTITY-2']).
 
 test(cleanup_temp_file_removes_existing_temp_file, [setup(setup_kb), cleanup(cleanup_kb)]) :-
-    TempFile = '/tmp/kibi-test-kb/temp-artifact.tmp',
+    test_kb_dir(KbDir),
+    directory_file_path(KbDir, 'temp-artifact.tmp', TempFile),
     open(TempFile, write, Stream),
     close(Stream),
     exists_file(TempFile),
@@ -3496,6 +3652,113 @@ test(cleanup_temp_file_removes_existing_temp_file, [setup(setup_kb), cleanup(cle
     \+ exists_file(TempFile).
 
 :- end_tests(kb_internal_coverage_gaps).
+
+:- begin_tests(requirement_applicability).
+
+test(req_status_vocabulary_accepts_canonical_and_legacy_statuses, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(req, 'REQ-CANON-OPEN', "Canonical open", open, []),
+    assert_fixture_entity(req, 'REQ-CANON-INPROG', "Canonical in_progress", in_progress, []),
+    assert_fixture_entity(req, 'REQ-CANON-CLOSED', "Canonical closed", closed, []),
+    assert_fixture_entity(req, 'REQ-LEGACY-ACTIVE', "Legacy active", active, []),
+    assert_fixture_entity(req, 'REQ-LEGACY-APPROVED', "Legacy approved", approved, []),
+    checks:check_req_status_vocabulary(Violations),
+    Violations == [].
+
+test(req_status_vocabulary_rejects_adr_statuses_on_requirements, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(req, 'REQ-ACCEPTED-STATUS', "Accepted status", accepted, [source="docs/requirements/REQ-ACCEPTED-STATUS.md"]),
+    checks:check_req_status_vocabulary([violation('req-status-vocabulary', 'REQ-ACCEPTED-STATUS', Description, Suggestion, Source)]),
+    assertion(sub_string(Description, _, _, _, "accepted")),
+    assertion(sub_string(Suggestion, _, _, _, "proof_exempt")),
+    Source == 'REQ-ACCEPTED-STATUS.md'.
+
+test(req_status_vocabulary_is_wired_into_check_all, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(req, 'REQ-BAD-STATUS', "Bad status", accepted, []),
+    checks:check_all(Dict),
+    member('REQ-BAD-STATUS'-_, Pairs),
+    dict_pairs(Dict, _, Pairs0),
+    assertion(member(req_status_vocabulary-_, Pairs0)),
+    checks:check_req_status_vocabulary([_|_]).
+
+test(requirement_proof_reports_typed_reason_for_noncurrent_status, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(req, 'REQ-ACCEPTED-NONCURRENT', "Accepted noncurrent", accepted, []),
+    kb_entity('REQ-ACCEPTED-NONCURRENT', req, Props),
+    requirement_proof:requirement_proof_context(unknown, "1970-01-01T00:00:00Z", 604800, Context),
+    requirement_proof:requirement_proof('REQ-ACCEPTED-NONCURRENT', Props, Context, Proof),
+    Proof.proofStatus == not_applicable,
+    Proof.proofGaps == [],
+    Applicability = Proof.proofStages.applicability,
+    Applicability.status == not_applicable,
+    sub_atom(Applicability.reason, _, _, _, "status 'accepted' is not a current requirement status").
+
+test(requirement_proof_reports_superseded_reason, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(req, 'REQ-OLD-SUPERSEDED', "Old requirement", closed, []),
+    assert_fixture_entity(req, 'REQ-NEW-CURRENT', "New requirement", open, [priority=must]),
+    kb_assert_relationship(supersedes, 'REQ-NEW-CURRENT', 'REQ-OLD-SUPERSEDED', []),
+    kb_entity('REQ-OLD-SUPERSEDED', req, Props),
+    requirement_proof:requirement_proof_context(unknown, "1970-01-01T00:00:00Z", 604800, Context),
+    requirement_proof:requirement_proof('REQ-OLD-SUPERSEDED', Props, Context, Proof),
+    Applicability = Proof.proofStages.applicability,
+    Applicability.status == not_applicable,
+    sub_atom(Applicability.reason, _, _, _, "superseded").
+
+test(requirement_proof_exempts_current_requirement_with_reason, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(req, 'REQ-EXEMPT', "Exempt requirement", open, [
+        priority=must,
+        proof_exempt=true,
+        proof_exempt_reason="toolchain currency: verified by CI, not product E2E"
+    ]),
+    kb_entity('REQ-EXEMPT', req, Props),
+    requirement_proof:requirement_proof_context(unknown, "1970-01-01T00:00:00Z", 604800, Context),
+    requirement_proof:requirement_proof('REQ-EXEMPT', Props, Context, Proof),
+    Proof.proofStatus == not_applicable,
+    Proof.proofGaps == [],
+    Applicability = Proof.proofStages.applicability,
+    Applicability.status == not_applicable,
+    sub_atom(Applicability.reason, _, _, _, "toolchain currency").
+
+test(requirement_proof_ignores_exemption_without_reason, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(req, 'REQ-EXEMPT-NO-REASON', "Exempt without reason", open, [
+        priority=must,
+        proof_exempt=true
+    ]),
+    kb_entity('REQ-EXEMPT-NO-REASON', req, Props),
+    requirement_proof:requirement_proof_context(unknown, "1970-01-01T00:00:00Z", 604800, Context),
+    requirement_proof:requirement_proof('REQ-EXEMPT-NO-REASON', Props, Context, Proof),
+    \+ Proof.proofStatus == not_applicable,
+    \+ dict_has_key(Proof.proofStages, applicability).
+
+test(coverage_report_status_filter_returns_only_matching_rows, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    seed_coverage_depth_fixture,
+    coverage_report_json(req, [], false, [not_applicable], true, 100, 0, unknown, "1970-01-01T00:00:00Z", 604800, JsonString),
+    json_string_dict(JsonString, Report),
+    Report.rows == [].
+test(coverage_report_status_filter_includes_not_applicable_with_reason, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(req, 'REQ-NA-STATUS', "N/A via status", accepted, []),
+    coverage_report_json(req, [], false, [not_applicable], true, 100, 0, unknown, "1970-01-01T00:00:00Z", 604800, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-NA-STATUS', Row),
+    Row.proofStatus == not_applicable,
+    sub_atom(Row.proofStages.applicability.reason, _, _, _, "accepted"),
+    Report.summary.total >= 1.
+
+test(coverage_report_status_filter_can_enumerate_missing_rows, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    seed_coverage_depth_fixture,
+    coverage_report_json(req, [], false, [missing], true, 100, 0, unknown, "1970-01-01T00:00:00Z", 604800, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-UNIT-ONLY', Row),
+    Row.proofStatus == missing,
+    forall(member(R, Report.rows), R.proofStatus == missing).
+
+test(production_symbol_stage_reports_reason_with_status, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(req, 'REQ-STAGE-REASON', "Stage reason", active, [priority=must]),
+    kb_entity('REQ-STAGE-REASON', req, Props),
+    requirement_proof:production_symbol_stage('REQ-STAGE-REASON', [], Stage, _),
+    Stage.status == missing,
+    sub_atom(Stage.reason, _, _, _, "no production symbols implement").
+
+dict_has_key(Dict, Key) :- is_dict(Dict), get_dict(Key, Dict, _).
+
+:- end_tests(requirement_applicability).
 
 % Test setup/cleanup helpers
 assert_fixture_entity(Type, Id, Title, Status, ExtraProps) :-
@@ -3551,6 +3814,94 @@ proof_receipt_json_with_id(ReceiptId, TestId, Snapshot, Outcome, StartedAt, Fini
     },
     atom_json_dict(JsonAtom, [Receipt], []),
     atom_string(JsonAtom, Json).
+
+start_isolation_writer(TestSource, EntityId, Ready, Done, Release, Cleanup, Pid) :-
+    format(string(Goal),
+        "isolation_child_writer(~q,~q,~q,~q,~q)",
+        [EntityId, Ready, Done, Release, Cleanup]),
+    process_create(path(swipl), ['-q', '-s', TestSource, '-g', Goal, '-t', halt],
+        [process(Pid), stdout(null), stderr(null)]),
+    assertz(isolation_child_process(Pid)).
+
+isolation_child_writer(EntityId, Ready, Done, Release, Cleanup) :-
+    tmp_file(kibi_isolation_child, ChildRoot),
+    make_directory_path(ChildRoot),
+    directory_file_path(ChildRoot, store, Store),
+    catch(
+        setup_call_cleanup(
+            kb_attach(Store),
+            (
+                write_isolation_store(Ready, ChildRoot),
+                wait_for_isolation_file(Release, 1000),
+                kb_assert_entity(fact, [
+                    id=EntityId,
+                    title="isolated process marker",
+                    status=active,
+                    created_at="2026-09-14T00:00:00Z",
+                    updated_at="2026-09-14T00:00:00Z",
+                    source="test://process-isolation"
+                ]),
+                kb_save,
+                write_isolation_store(Done, ChildRoot),
+                wait_for_isolation_file(Cleanup, 1000)
+            ),
+            kb_detach
+        ),
+        Error,
+        (delete_directory_and_contents(ChildRoot), throw(Error))
+    ),
+    delete_directory_and_contents(ChildRoot).
+
+write_isolation_store(Path, Store) :-
+    setup_call_cleanup(
+        open(Path, write, Stream, [encoding(utf8)]),
+        format(Stream, '~w~n', [Store]),
+        close(Stream)
+    ).
+
+read_isolation_store(Path, Store) :-
+    read_file_to_string(Path, Contents, []),
+    split_string(Contents, "\n", " \t\r", [StoreString|_]),
+    atom_string(ChildRoot, StoreString),
+    directory_file_path(ChildRoot, store, Store).
+
+write_isolation_barrier(Path) :-
+    setup_call_cleanup(open(Path, write, Stream), true, close(Stream)).
+
+wait_for_isolation_files(Paths, Attempts) :-
+    (   isolation_files_exist(Paths)
+    ->  true
+    ;   Attempts > 0
+    ->  sleep(0.01),
+        NextAttempts is Attempts - 1,
+        wait_for_isolation_files(Paths, NextAttempts)
+    ;   throw(error(timeout_error(isolation_barrier, Paths), wait_for_isolation_files/2))
+    ).
+
+wait_for_isolation_file(Path, Attempts) :-
+    wait_for_isolation_files([Path], Attempts).
+
+isolation_files_exist([]).
+isolation_files_exist([Path|Rest]) :-
+    exists_file(Path),
+    isolation_files_exist(Rest).
+
+wait_isolation_child(Pid) :-
+    process_wait(Pid, Status),
+    retractall(isolation_child_process(Pid)),
+    assertion(Status == exit(0)).
+
+evidence_for_test([Evidence|_], TestId, Evidence) :-
+    Evidence.testId == TestId,
+    !.
+evidence_for_test([_|Rest], TestId, Evidence) :-
+    evidence_for_test(Rest, TestId, Evidence).
+
+scenario_obligation_for([Obligation|_], ScenarioId, Obligation) :-
+    Obligation.scenarioId == ScenarioId,
+    !.
+scenario_obligation_for([_|Rest], ScenarioId, Obligation) :-
+    scenario_obligation_for(Rest, ScenarioId, Obligation).
 
 assert_raw_entity(Type, Id, Props) :-
     kb:kb_graph(Graph),
@@ -3765,9 +4116,26 @@ cleanup_kb :-
     cleanup_test_kb.
 
 cleanup_test_kb :-
+    cleanup_isolation_children,
     kb_detach,
-    test_kb_dir(Dir),
-    (   exists_directory(Dir)
-    ->  delete_directory_and_contents(Dir)
+    (   retract(test_kb_store(Dir))
+    ->  (   exists_directory(Dir)
+        ->  delete_directory_and_contents(Dir)
+        ;   true
+        )
     ;   true
     ).
+
+cleanup_test_kb_root :-
+    cleanup_test_kb,
+    test_kb_root(Root),
+    (   exists_directory(Root)
+    ->  delete_directory_and_contents(Root)
+    ;   true
+    ).
+
+cleanup_isolation_children :-
+    forall(retract(isolation_child_barrier(Path)),
+           catch(write_isolation_barrier(Path), _, true)),
+    forall(retract(isolation_child_process(Pid)),
+           catch(process_wait(Pid, _), _, true)).

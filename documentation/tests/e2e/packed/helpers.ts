@@ -6,6 +6,7 @@ import {
   mkdtempSync,
   readFileSync,
   readdirSync,
+  renameSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -111,6 +112,158 @@ function resolveNpmCache(fallbackPath: string | (() => string)): {
   mkdirSync(cachePath, { recursive: true });
   return { path: cachePath, owned: true };
 }
+
+// ---------------------------------------------------------------------------
+// Runner-agnostic shared pack cache.
+//
+// Packed-test runners routinely execute many suites in separate processes
+// (proof campaigns spawn one process per contract; CI shards run one suite per
+// job). Without sharing, every process packs all workspace packages and
+// bootstraps its own installation. This cache lets ANY runner opt in by
+// setting KIBI_E2E_PACK_CACHE_KEY to a provenance string that identifies the
+// bits being produced (a workspace snapshot hash, a CI run id + sha, a release
+// tag). Processes sharing a key share one packed tarball set and one installed
+// prefix; processes with different keys never see each other's artifacts.
+//
+// Env contract:
+// - KIBI_E2E_PACK_CACHE_KEY: enables the cache when set (sanitized to
+//   [A-Za-z0-9._-]). Unset keeps today's per-process behavior byte-identical.
+// - KIBI_E2E_PACK_CACHE_ROOT: base directory for cache areas
+//   (default: os.tmpdir()). Point it at a mounted volume to share across
+//   CI jobs.
+// Precedence: explicit KIBI_TEST_TARBALLS / KIBI_E2E_PREFIX always win; the
+// shared cache is consulted only for the local workspace pack path.
+// Cache areas are never owned by test processes: cleanup must never remove
+// state another runner may still be using. Prune with
+// scripts/prune-e2e-pack-cache.mjs.
+// ---------------------------------------------------------------------------
+
+interface SharedPackCacheArea {
+  /** Final published cache area (complete and reusable). */
+  readonly area: string;
+  readonly prefix: string;
+  readonly tarballsRoot: string;
+}
+
+interface SharedPackCachePlan {
+  readonly reusable: boolean;
+  readonly area: string;
+  /** Staging directory this process populates; published by atomic rename. */
+  readonly scratch: string | null;
+}
+
+function sharedPackCacheConfig(): { key: string; root: string } | null {
+  const rawKey = process.env.KIBI_E2E_PACK_CACHE_KEY?.trim();
+  if (!rawKey) return null;
+  const key = rawKey.replaceAll(/[^A-Za-z0-9._-]/g, "_");
+  if (key.length === 0) return null;
+  const root = resolve(
+    REPO_ROOT,
+    process.env.KIBI_E2E_PACK_CACHE_ROOT?.trim() || tmpdir(),
+  );
+  return { key, root };
+}
+
+function sharedPackCacheArea(config: { key: string; root: string }): string {
+  // Namespace by repository so two projects sharing a temp or cache root can
+  // never collide on the same key.
+  const namespace = createHash("sha256")
+    .update(resolve(REPO_ROOT))
+    .digest("hex")
+    .slice(0, 12);
+  return join(config.root, "kibi-e2e-pack", namespace, config.key);
+}
+
+function sharedPackCacheComplete(area: string): boolean {
+  if (!hasInstalledKibi(join(area, "prefix"))) return false;
+  for (const pkg of packagesForPack) {
+    if (findPrePackedTarball(join(area, "tarballs"), pkg) === null) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Read-only view of the shared pack cache for the current environment.
+ * Returns null when no cache key is configured or the published area is
+ * missing or incomplete. Runners can use this to report reuse without
+ * triggering population.
+ */
+// implements REQ-test-journaled-engine-harness
+export function resolveSharedPackCache(): SharedPackCacheArea | null {
+  const config = sharedPackCacheConfig();
+  if (!config) return null;
+  const area = sharedPackCacheArea(config);
+  if (!sharedPackCacheComplete(area)) return null;
+  return {
+    area,
+    prefix: join(area, "prefix"),
+    tarballsRoot: join(area, "tarballs"),
+  };
+}
+
+/**
+ * Claim the shared pack cache for this process. Returns a reusable published
+ * area when one is complete, or a staging plan whose scratch directory this
+ * process populates before publishing with an atomic rename. Publishing is
+ * single-flight: a sibling that published first wins the rename, and the
+ * loser keeps using its own staging paths (still valid, reclaimed at exit).
+ * Exported so runners and tests can drive the staging protocol directly.
+ */
+// implements REQ-test-journaled-engine-harness
+export function claimSharedPackCache(): SharedPackCachePlan {
+  const config = sharedPackCacheConfig();
+  if (!config) return { reusable: false, area: "", scratch: null };
+  const area = sharedPackCacheArea(config);
+  if (sharedPackCacheComplete(area)) {
+    return {
+      reusable: true,
+      area,
+      scratch: null,
+    };
+  }
+  // Pack/install run against the staging tree, then one rename publishes
+  // tarballs and prefix together, so partially populated areas are never
+  // visible under the final name.
+  mkdirSync(dirname(area), { recursive: true });
+  const scratch = mkdtempSync(`${area}.tmp-`);
+  ownedSharedPaths.add(scratch);
+  return {
+    reusable: false,
+    area,
+    scratch,
+  };
+}
+
+/**
+ * Publish a claimed staging tree; returns the paths the process should use,
+ * or null when a sibling published first (the staging tree remains complete
+ * and owned by this process). Exported alongside claimSharedPackCache.
+ */
+// implements REQ-test-journaled-engine-harness
+export function publishSharedPackCache(plan: SharedPackCachePlan): {
+  prefix: string;
+  tarballsRoot: string;
+} | null {
+  if (plan.reusable || plan.scratch === null) return null;
+  try {
+    renameSync(plan.scratch, plan.area);
+  } catch {
+    // A sibling published first (or the rename raced); keep using the staging
+    // tree, which remains complete and is reclaimed at process exit.
+    return null;
+  }
+  ownedSharedPaths.delete(plan.scratch);
+  return {
+    prefix: join(plan.area, "prefix"),
+    tarballsRoot: join(plan.area, "tarballs"),
+  };
+}
+
+// When a shared-pack-cache claim is staging, npm pack and the installation
+// are redirected into the staging tree so one rename can publish both.
+let stagingPackDestination: string | null = null;
 
 // Some artifact-only tests intentionally clear KIBI_E2E_PREFIX and create a
 // worker-local fallback installation. Ensure those paths are reclaimed when
@@ -333,7 +486,30 @@ async function bootstrapSharedInstall(
     };
   }
 
+  // Runner-agnostic shared pack cache: a complete published area replaces
+  // both the pack and the install for this process. Publishing runners
+  // populate a staging tree and hand it over with one atomic rename. Explicit
+  // KIBI_TEST_TARBALLS always wins: external artifact roots are not owned by
+  // this process, so they must never be cached into a shared area.
+  const cache =
+    source.externalRoot === null
+      ? claimSharedPackCache()
+      : { reusable: false as const, area: "", scratch: null };
+  if (cache.reusable) {
+    console.log(`📦 Reusing shared pack cache ${cache.area}`);
+    const prefix = join(cache.area, "prefix");
+    const tarballsRoot = join(cache.area, "tarballs");
+    sharedPrefixPath = prefix;
+    return { prefix, tarballsRoot };
+  }
+  const cacheScratch = cache.scratch;
+  if (cacheScratch !== null) {
+    stagingPackDestination = join(cacheScratch, "tarballs");
+    mkdirSync(stagingPackDestination, { recursive: true });
+  }
+
   const tarballs = await packAll();
+  stagingPackDestination = null;
   const installKey = [
     tarballs.core,
     tarballs.cli,
@@ -353,7 +529,13 @@ async function bootstrapSharedInstall(
     };
   }
 
-  const npmPrefix = allocateSharedPrefixPath();
+  // A staging claim installs into the staging tree itself so publishing is a
+  // single rename of tarballs and prefix together.
+  const npmPrefix =
+    cacheScratch !== null
+      ? join(cacheScratch, "prefix")
+      : allocateSharedPrefixPath();
+  mkdirSync(npmPrefix, { recursive: true });
   const npmBinary = resolveNpmBinary();
   const npmDir = dirname(npmBinary);
   const gitDir = dirname(resolveGitBinary());
@@ -394,6 +576,15 @@ async function bootstrapSharedInstall(
   } catch (error) {
     sharedInstallations.delete(installKey);
     throw error;
+  }
+  const published = publishSharedPackCache(cache);
+  if (published) {
+    console.log(`📦 Published shared pack cache ${cache.area}`);
+    sharedPrefixPath = published.prefix;
+    return {
+      prefix: published.prefix,
+      tarballsRoot: published.tarballsRoot,
+    };
   }
   sharedPrefixPath = npmPrefix;
   return {
@@ -543,7 +734,11 @@ export async function packAll(): Promise<Tarballs> {
     // Keep workspace packs out of package directories. The destination is
     // owned by this helper process and is reclaimed with the other shared
     // packed-test paths; operator-provided artifact roots remain untouched.
-    const packDestination = createOwnedPackedTempDirectory();
+    // A shared-pack-cache staging claim redirects the pack into its staging
+    // tree so publishing is a single rename.
+    const packDestination =
+      stagingPackDestination ?? createOwnedPackedTempDirectory();
+    const stagingRedirect = stagingPackDestination !== null;
 
     try {
       for (const pkg of packagesForPack) {
@@ -590,8 +785,12 @@ export async function packAll(): Promise<Tarballs> {
       tarballRoots.set(source.key, packDestination);
       return tarballs as Tarballs;
     } catch (error) {
-      rmSync(packDestination, { recursive: true, force: true });
-      ownedSharedPaths.delete(packDestination);
+      // A staging redirect is owned by the shared-cache claim, which reclaims
+      // the whole staging tree on failure; only clean up self-owned dirs here.
+      if (!stagingRedirect) {
+        rmSync(packDestination, { recursive: true, force: true });
+        ownedSharedPaths.delete(packDestination);
+      }
       throw error;
     }
   })();
@@ -1038,11 +1237,17 @@ export function assertExecutable(filePath: string): void {
 /**
  * Check if Prolog is available in environment
  */
+// executable_for TEST-test-journaled-engine-harness
 export function checkPrologAvailable(): boolean {
   try {
     execFileSync("swipl", ["--version"], { stdio: "pipe" });
     return true;
   } catch {
+    if (process.env.KIBI_PROOF_RUN === "1") {
+      throw new Error(
+        "SWI-Prolog is required for packed proof execution but is not available on PATH",
+      );
+    }
     return false;
   }
 }

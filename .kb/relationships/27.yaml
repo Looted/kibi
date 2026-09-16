@@ -41,3 +41,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a4293c9e9ee7
+  - type: constrains
+    from: REQ-cli-status-pre-first-sync
+    to: FACT-SUBJ-REQ-CLI-STATUS-PRE-FIRST-SYNC
+    created_at: 2026-09-05T14:11:40.762Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ed7fab110e0
+  - type: requires_property
+    from: REQ-cli-status-pre-first-sync
+    to: FACT-PROP-REQ-CLI-STATUS-PRE-FIRST-SYNC-C01
+    created_at: 2026-09-05T14:11:40.777Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-92ea671d54cc
+  - type: requires_property
+    from: REQ-cli-status-pre-first-sync
+    to: FACT-PROP-REQ-CLI-STATUS-PRE-FIRST-SYNC-C02
+    created_at: 2026-09-05T14:11:40.779Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3bfd8d4f6105
+  - type: executable_for
+    from: SYM-e2e-test-opencode-smart-enforcement-v1-coverage
+    to: TEST-opencode-smart-enforcement-v1-coverage
+    created_at: 2026-09-05T15:48:47.222Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f795a0e351a

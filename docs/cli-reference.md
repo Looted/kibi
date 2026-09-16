@@ -57,7 +57,7 @@ not infer or write product knowledge.
 
 **Behavior:**
 - Creates `.kb/` directory structure with canonical knowledge lanes (`requirements/`, `scenarios/`, `tests/`, `facts/`, `adr/`, `flags/`, `events/`)
-- Installs git hooks (pre-commit, post-checkout, post-merge, post-rewrite) by default
+- Installs git hooks (pre-commit, post-checkout, post-merge, post-rewrite) by default. Hooks resolve the `kibi` binary at run time (PATH first, then `node_modules/.bin` walking up from the repository root), so they work with both global and project-local installs even though git does not put `node_modules/.bin` on the hook's `PATH`.
 - Ignores derived `.kb/` runtime state in `.gitignore` (`.kb/branches/`, `.kb/recovery/`, `.kb/proof/runs/`, `.kb/briefs/`, `.kb/migrations/`, `.kb/usage.log`). Authored knowledge under `.kb/` stays tracked. `kibi migrate` also removes the pre-canonical blanket `.kb/` ignore stanza so migrated knowledge files are not left Git-ignored.
 - Creates Kibi-owned `.kb/manifest.json` (lifecycle metadata only; not a user configuration file)
 - Creates `.kb/symbols.yaml` and `.kb/symbol-coordinates.yaml` when they do not already exist
@@ -98,6 +98,7 @@ Extracts entities and relationships from project documents and updates the knowl
 - `--validate-only` - Perform validation without making mutations
 - `--rebuild` - Rebuild branch snapshot from scratch (discards current KB)
 - `--refresh-symbol-coordinates` - Refresh symbol location data in `.kb/symbol-coordinates.yaml` during sync. Explicit refreshes are fatal on artifact errors, force coordinate-bearing symbols to persist even when normalized hashes match cached state, and only then advance the sync cache (version 2, workspace-root-relative keys; the artifact is a compiler dependency of `symbols.yaml`).
+  Extraction misses are reported as failed, including Python and other files handled by the text heuristic. If a qualified symbol title cannot be located, query and validate/upsert a corrected title/sourceFile or an intentional `granularity_reason: extractor-miss` before refreshing. Coverage only offers automatic coordinate repair when current extraction or an explicit coarse anchor can produce coordinates.
 
 **Notes (sync + MCP):**
 
@@ -158,6 +159,12 @@ that skips tests bound to the listed integrations. A selector that matches no
 proof-bearing test is an error, so a typo cannot silently prove nothing.
 The exit code is non-zero when any proof fails or a producer errors.
 
+Producer child processes run with `KIBI_PROOF_RUN=1` (plus
+`KIBI_PROOF_OUTPUT`, `KIBI_PROOF_SNAPSHOT`, and other `KIBI_PROOF_*`
+variables). Runner configurations that need proof-run-aware behavior —
+disabling retries, for example — should branch on `KIBI_PROOF_RUN` instead of
+inferring a proof run from output-path variables.
+
 ## `kibi proof inspect`
 
 Detects languages, build systems, test frameworks, CI workflows, configured
@@ -172,6 +179,36 @@ See [proving requirements](proving-requirements.md) for the full workflow:
 proof contracts, integration configuration, the artifact reference, adapter
 authoring, and troubleshooting. Playwright is an optional first-party
 producer (`kibi-cli/playwright-reporter`); Kibi itself is runner-neutral.
+See [the proof ladder](proof-ladder.md) for what each proof stage and status
+means.
+
+### `kibi proof prune`
+
+Shrinks each test's `proof_receipts` history to its newest entries.
+Re-proving the same snapshot appends a receipt per run, so duplicate passed
+blocks accumulate; prune keeps the newest `--keep <n>` (default 1) per test
+and reports the before/after counts. This is the one sanctioned
+history-shrinking mutation — pruned histories remain ordered, structurally
+valid evidence, and current-binding rules still apply to the newest receipt.
+
+```bash
+kibi proof prune              # keep the newest receipt per test
+kibi proof prune --keep 3     # keep the newest three
+kibi proof prune --test TEST-E2E-EDITOR-001
+```
+
+### `kibi proof migrate-legacy`
+
+Removes legacy `verification_receipts` frontmatter blocks from test
+documents that already carry a `proof_contract`. The old blocks contain
+stale snapshot hashes and make live-receipt greps error-prone. The block is
+spliced out of the authored document and the compiled property is dropped —
+nothing else in the document is rewritten.
+
+```bash
+kibi proof migrate-legacy
+kibi proof migrate-legacy --test TEST-LEGACY-001
+```
 
 ## `kibi query [type]`
 
@@ -299,21 +336,22 @@ Generates curated coverage reports.
 
 **Syntax:**
 ```bash
-kibi coverage [--by req|symbol|type] [--tag TAGS] [--include-passing] [--no-include-transitive] [--limit N] [--offset N] [--include-migration-preview] [--migration-limit N] [--migration-offset N] [--migration-predicate-limit N] [--migration-predicate-min-score 0..1] [--format json|table]
+kibi coverage [--by req|symbol|type] [--tag TAGS] [--include-passing] [--status STATUSES] [--no-include-transitive] [--limit N] [--offset N] [--include-migration-preview] [--migration-limit N] [--migration-offset N] [--migration-predicate-limit N] [--migration-predicate-min-score 0..1] [--format json|table]
 ```
 
 **Notes:**
 - Requirement coverage summaries distinguish evaluated must-priority requirements from `not_applicable` rows.
 - `--include-passing` adds rows with a proven or not-applicable proof outcome back into requirement results; compatibility-oriented structural coverage remains visible on every returned row.
+- `--status <statuses>` (comma-separated: `proven`, `missing`, `unresolved`, `not_applicable`) selects requirement rows by `proofStatus` and implies include-passing. Use it to enumerate one slice — e.g. `kibi coverage --by req --status not_applicable` lists every out-of-scope requirement with its typed applicability reason (`proofStages.applicability.reason`: superseded, a status-vocabulary mismatch, or a proof exemption). The summary always reflects the whole KB; pagination applies to the filtered rows.
 - Requirement coverage rows include coverage-depth labels when evidence can be classified: `direct_passing_e2e`, `scenario_passing_e2e`, `unit_only`, `open_or_nonpassing_tests_only`, `scenario_only_no_test`, or `no_test_evidence`.
 - Coverage-depth labels are informational. They do not change existing covered/uncovered pass-fail semantics, and typed test fields (`verification_scope`, then `verification_perspective`) take precedence over legacy `e2e` tags or `/e2e/` path heuristics.
-- Requirement rows also expose the additive `kibi.requirement-proof.v3` contract. `proofStatus` is `proven`, `unresolved`, `missing`, or `not_applicable` for a non-current requirement, and is intentionally independent from compatibility-oriented `coverageStatus`.
-- `proofStages` records semantic inventory, logical grounding, contradiction, scenario, scenario-test, passing E2E, executable-symbol, production-symbol, and exact source-coordinate evidence. `proofGaps` lists only blocking issues that prevent `proven`. `proofAdvisories` lists non-blocking extra-evidence issues, such as additional scenario-backed tests that still lack a receipt after strict proof already exists. `proofRepairs` ranks concrete recovery actions for blocking gaps only.
+- Requirement rows also expose the additive `kibi.requirement-proof.v3` contract. `proofStatus` is `proven`, `unresolved`, `missing`, or `not_applicable` for a non-current requirement, and is intentionally independent from compatibility-oriented `coverageStatus`. See `docs/proof-ladder.md` for the per-stage semantics.
+- `proofStages` records semantic inventory, logical grounding, contradiction, scenario, scenario-test, passing E2E, executable-symbol, production-symbol, and exact source-coordinate evidence. `proofGaps` lists only blocking issues that prevent `proven`. The passing-E2E stage exposes per-scenario `scenarioObligations`; every linked E2E proof-bearing test is mandatory, while unit/integration-only ancillary tests remain nonblocking when the scenario has qualifying E2E evidence. `proofAdvisories` is reserved for explicitly non-blocking context; missing, stale, failed, invalid, snapshot-unavailable, and contract-mismatched E2E evidence remains in `proofGaps`. `proofRepairs` ranks concrete recovery actions for blocking gaps only.
 - Requirement reports also include `repairPlan` (`kibi.repair-plan.v1`). It groups gaps into one small batch per requirement and dependency phase, marks only the earliest unresolved batch `ready`, and links later batches through `dependsOn`. Every batch is read-only guidance with `autoApplicable: false`, a reviewed `workflowSteps` sequence, targeted `validationRules`, and a sequential-write policy.
 - Requirement and symbol reports also include the shared `migrationPlan` (`kibi.migration-plan.v2`). Apply only ready automatic actions after explicitly approving its exact hash and action IDs; review, operator, and E2E execution actions remain agent/operator work.
 - `repairPlan.scope.complete` is false and `status` is `partial` whenever `limit`/`offset` exclude actionable requirements. Increase the limit and reset the offset before using a plan as a project-wide migration inventory. The plan ID is stable for the same snapshot, filters, evidence, and gaps; receipt ages and check timestamps do not churn it.
 - `--include-migration-preview` adds `kibi.legacy-migration-plan.v1` for ready semantic-inventory batches. It defaults to one requirement, reconstructs normalized authored Markdown with exact SHA-256 source identity and UTF-8 proposition spans, ranks project-local schemas before built-ins, and emits review-only property patches. The patch stores authored prose in requirement-only `semantic_text` and never replaces an independent `text_ref`; only an existing `semantic_text` that differs from the current normalized Markdown blocks the batch as source drift. All candidates remain `writeEligible: false` and all batches `autoApplicable: false`.
-- The passing-E2E stage requires append-only proof-receipt history on a scenario-backed test. New evidence is produced by `kibi prove` as `kibi.proof-receipt.v1`. Only a fresh passed receipt bound to the live `proofSnapshot`, current contract hash, and effective execution fingerprint qualifies; authored `status: passing` remains structural metadata.
+- The passing-E2E stage requires append-only proof-receipt history for every linked scenario-backed E2E test. New evidence is produced by `kibi prove` as `kibi.proof-receipt.v1`. Only a fresh passed receipt bound to the live `proofSnapshot`, current contract hash, and effective execution fingerprint qualifies; authored `status: passing` remains structural metadata.
 - Symbol rows classify `traceabilityRole` as `production`, `executable_test`, or `mixed`. Executable-only test symbols are `not_applicable` to production coverage instead of being counted as fully covered.
 
 ## `kibi report`
@@ -404,7 +442,8 @@ Validates knowledge base integrity and runs inference rules.
 - Detects dangling references (entities that reference non-existent IDs)
 - Detects cycles in dependency graphs
 - Supports strict advisory modeling checks (`strict-fact-shape`, `strict-req-fact-pairing`, `predicate-verifiability`) that run by default as non-blocking `qualityDiagnostics`, and default-off migration diagnostics (`strict-readiness`, `semantic-completeness`) that run only when explicitly selected with `--rules`. Canonical rules always populate blocking `violations[]`. `--rules` is an invocation-time diagnostic filter only; leftover `.kb/config.json` cannot disable canonical checks.
-- With `--staged`, runs commit-time changed-file impact enforcement for behavior-changing source edits, including missing Kibi impact evidence, stale symbol coordinates, and changed behavioral symbols that are only linked through coarse class/module ownership
+- With `--staged`, inventories every index path before analysis. TypeScript and JavaScript keep their blocking symbol checks; Kibi metadata is validated through its typed lanes; every other readable UTF-8 text file receives advisory file-level ownership and impact-evidence checks.
+- Staged deletions and renames retain committed content and ownership for removal review. Binary blobs, unsupported encodings, symlinks, and submodules are reported with explicit skipped reasons and remain non-blocking.
 - Reports blocking `violations[]` with actionable suggestions and additive `qualityDiagnostics[]` audit signals for modeling quality, coverage depth, broad requirements, duplicate coordinates, symbol fanout, and strict-fact review
 - When `.kb/usage.log` exists, an unfiltered check also turns failed or insufficient `kibi.telemetry-acceptance.v1` metrics into ranked, non-blocking `category: telemetry` quality diagnostics; a missing log is skipped because diagnostic logging is opt-in
 - Keeps advisory quality diagnostics non-blocking by default: `review`, `info`, and non-blocking `warning` diagnostics do not change the exit code; hard violations, `severity: "error"`, or `blocking: true` still fail the check
@@ -420,6 +459,8 @@ Validates knowledge base integrity and runs inference rules.
 ### Staged Impact Evidence
 
 When `kibi check --staged` reports `kibi_impact_evidence_missing`, first use Kibi discovery (`kb_search`, then `kb_query`) through visible MCP tools or trusted CLI JSON routes to inspect existing requirements, scenarios, tests, facts, and symbols for the edited source file. If the edit changes behavior, update the KB through either peer surface and also stage tracked evidence that the commit can carry: related entity markdown under `.kb/`, authored `.kb/symbols.yaml` entries, or refreshed `.kb/symbol-coordinates.yaml` output.
+
+Both `kibi_impact_evidence_missing` and `symbols_manifest_stale` carry `Detail:` lines that name the cause per file: how many symbols the extractor finds in the staged source content, how many the staged evidence covers, and exactly which symbols are missing from `.kb/symbols.yaml` (with their definition lines). When the Detail lines list uncovered symbols, fix the cause first — author `.kb/symbols.yaml` entries for those symbols (`kibi upsert`, with `implements`/`covered_by` links) — and only then refresh coordinates with `kibi sync --refresh-symbol-coordinates`; the same comparison drives the printed `Suggestion:`. Detail lines cap at six names per list with an `… and N more` marker.
 
 KB writes through MCP or CLI JSON routes update branch state, but they do not automatically stage markdown or manifest files. The staged hook can only accept evidence present in the staged change-set, so run the required sync/authoring step and `git add` the tracked evidence before rerunning `kibi check --staged`.
 
@@ -448,11 +489,14 @@ kibi check --rules predicate-verifiability
 
 # Audit Prolog validation query plans
 kibi check --rules query-plan-safety
+
+# Audit requirement status vocabulary (catches ADR statuses on reqs)
+kibi check --rules req-status-vocabulary
 ```
 
 While editing, agents can run impact diagnostics through MCP `kb_check({sourceFiles:[...], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})` or the equivalent `kibi check --input <file|->` JSON route. `kibi check --staged` remains the commit-time git-hook gate once files are staged.
 
-Structured JSON output preserves the same two-lane model used by MCP: hard correctness failures appear under `structuredContent.violations[]`, while advisory audit signals appear under `structuredContent.qualityDiagnostics[]`. Advisory-only output is still a successful check; integrations should inspect `blocking` and `severity` instead of treating every diagnostic as a failure.
+Structured JSON output preserves the same two-lane model used by MCP: hard correctness failures appear under `structuredContent.violations[]`, while advisory audit signals appear under `structuredContent.qualityDiagnostics[]`. For `--staged`, one envelope is emitted for every outcome. `structuredContent.staged.files[]` records each path's Git status, analysis depth, disposition, ownership, evidence, provider, and skipped reason; file-level advisory findings appear in `structuredContent.diagnostics[]`. Advisory-only output is still a successful check; integrations should inspect `blocking` and `severity` instead of treating every diagnostic as a failure.
 
 **See also:** [Staged Symbol Traceability](#staged-symbol-traceability) for `--staged` usage details.
 
@@ -483,6 +527,7 @@ artifacts are executing.
 - SWI-Prolog not found → See [install guide](install.md)
 - `.kb/` missing → Run `kibi init`
 - Git hooks missing → Run `kibi init`
+- Git hooks use the legacy template without kibi CLI resolution → Run `kibi init` to regenerate them
 - Config invalid → Check `.kb/manifest.json` syntax; leftover `.kb/config.json` is retired with `kibi migrate --yes`
 
 ## Release package validation
@@ -711,7 +756,7 @@ XB
 
 ## Staged Symbol Traceability
 
-The `kibi check --staged` command enforces traceability on code before commit.
+The `kibi check --staged` command inventories every staged path and enforces traceability on code before commit.
 
 **Purpose:**
 Every new or modified code symbol (function, class, method, accessor, behavioral class property, or module) must be explicitly linked to at least one requirement before it can be committed. This prevents "orphan" code from being merged and catches edits hidden behind broad class/module links when a narrower changed anchor exists.
@@ -726,13 +771,17 @@ Every new or modified code symbol (function, class, method, accessor, behavioral
 kibi check --staged
 ```
 
-This command scans only files staged for commit and reports any new or modified symbols that do not have requirement links (either via inline comments or explicit KB relationships). It also reports stale symbol-coordinate evidence and `symbol_granularity_violation` when a changed behavioral member such as `UploadPageComponent.processingProgressLabel` is covered only by a coarse class/module relationship without an audited `granularity_reason`. If violations are found and this is run as a pre-commit hook, the commit will be blocked.
+This command reads blob content from the Git index rather than the working tree. It reports any new or modified TypeScript/JavaScript symbols that do not have requirement links (either via inline comments or explicit KB relationships). It also reports stale symbol-coordinate evidence and `symbol_granularity_violation` when a changed behavioral member such as `UploadPageComponent.processingProgressLabel` is covered only by a coarse class/module relationship without an audited `granularity_reason`. If violations are found and this is run as a pre-commit hook, the commit will be blocked.
+
+Readable UTF-8 files outside the TypeScript/JavaScript and Kibi metadata lanes receive advisory file-level checks. This includes Python, shell scripts, YAML and Compose files, Dockerfiles, Markdown, JSON, and other text formats. Kibi resolves ownership only from real source-linked symbol entities and typed `implements` relationships in committed knowledge plus the staged KB changes. Unstaged KB edits and unrelated staged entities do not satisfy the advisory check.
+
+The text and JSON output include the complete path inventory, counts by analysis depth, and an explicit reason for skipped content. “No staged files found” is reserved for an empty Git index. Binary blobs, non-UTF-8 text, symlinks, and submodules are reported but do not block the commit.
 
 The staged CLI gate does not prove that linked prose still matches the source edit. Use an impact-enabled `kb_check` through MCP or CLI JSON mode while editing to get `symbol_semantic_review_needed` guidance and inspect linked requirements/scenarios/tests before deciding whether to update KB entities.
 
 Quality diagnostics may also appear during full or staged checks. They are designed to surface auditability problems automatically without creating a new command agents must remember: broad requirement reviews, multi-requirement symbol fanout, mixed-purpose class/component reviews, duplicate symbol-coordinate reviews, status misuse, strict-fact modeling gaps, and coverage-depth labels are review signals unless explicitly marked blocking.
 
-**Scope Note**: Staged check handles explicitly modeled symbols and extracted TypeScript/JavaScript anchors, including exported class methods, accessors, and behavior-bearing class properties. Automatic extraction of framework-specific `test()` or `it()` callbacks is not currently supported.
+**Scope Note**: Staged symbol checks handle explicitly modeled symbols and extracted TypeScript/JavaScript anchors, including exported class methods, accessors, and behavior-bearing class properties. Other readable text currently receives file-level analysis. Automatic extraction of framework-specific `test()` or `it()` callbacks is not currently supported.
 
 **Inline Directive Syntax (Optional):**
 
@@ -748,9 +797,11 @@ Link to multiple requirements:
 export class MyClass { } // implements REQ-001, REQ-002
 ```
 
-**Supported languages:**
-- TypeScript (`.ts`, `.tsx`)
-- JavaScript (`.js`, `.jsx`)
+**Analysis depth:**
+- Symbol-level: TypeScript and JavaScript (`.ts`, `.tsx`, `.js`, `.jsx`, `.mts`, `.cts`, `.mjs`, `.cjs`)
+- Metadata: Kibi entity Markdown, symbol manifests, coordinate manifests, relationship shards, and `.kb/manifest.json`
+- Advisory file-level: all other readable UTF-8 files
+- Explicitly skipped: binary blobs, unsupported encodings, symlinks, and submodules
 
 **CLI Flags for staged checking:**
 - `--staged` - Only check staged files

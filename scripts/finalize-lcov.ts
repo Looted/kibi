@@ -50,6 +50,12 @@ export async function finalizeLcov(coverageDir: string): Promise<string> {
   return lcovPath;
 }
 
-if (import.meta.main) {
-  await finalizeLcov(process.argv[2] ?? "coverage/unit");
+export async function finalizeLcovIfMain(
+  isMain = import.meta.main,
+  argv: readonly string[] = process.argv,
+): Promise<void> {
+  if (!isMain) return;
+  await finalizeLcov(argv[2] ?? "coverage/unit");
 }
+
+await finalizeLcovIfMain();

@@ -87,3 +87,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-af88b62f3e2b
+  - type: implements
+    from: SYM-deriveFileOperationReminder
+    to: REQ-opencode-file-context-guidance-v1
+    created_at: 2026-09-05T15:57:46.292Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad776091d6b2
+  - type: covered_by
+    from: SYM-deriveFileOperationReminder
+    to: TEST-opencode-file-context-guidance-v1
+    created_at: 2026-09-05T15:57:46.297Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0514cf76613c
+  - type: covered_by
+    from: SYM-json-digest
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-05T17:30:05.050Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50de82bd95bb
+  - type: covered_by
+    from: SYM-parseArgs
+    to: TEST-skill-cli-load-validate
+    created_at: 2026-09-05T18:04:43.957Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5033601e47e2
+  - type: implements
+    from: SYM-upsert-execution-options
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-09-08T00:34:28.656Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-973caddaaeb6
+  - type: covered_by
+    from: SYM-upsert-execution-options
+    to: TEST-mcp-upsert-coverage
+    created_at: 2026-09-09T03:37:28.755Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-174c64f7232e
+  - type: covered_by
+    from: SYM-upsert-execution-options
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-09T06:04:06.617Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1080f8f30f69
+  - type: validates
+    from: TEST-cli-check-integrity
+    to: SCEN-005
+    created_at: 2026-09-14T20:22:04.877Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56342b0710b4

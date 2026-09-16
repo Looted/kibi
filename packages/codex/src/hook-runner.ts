@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 // implements REQ-codex-kibi-plugin-v1
-import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -10,10 +9,10 @@ import {
   clearDirtyPaths,
   loadHookState,
   recordKbMcpTool,
+  resolveWorkspaceStateDir,
 } from "./hook-state.js";
 import { extractKbMcpToolCall } from "./kb-mcp-tools.js";
 import {
-  BOOTSTRAP_REMINDER,
   DIRECT_KB_EDIT_WARNING,
   freshnessReminder,
   impactCheckReminder,
@@ -24,6 +23,7 @@ import {
   isMeaningfulTrackedPath,
   isSourceImpactRelevantPath,
 } from "./path-policy.js";
+import { resolveKibiWorkspace } from "./workspace-optin.js";
 
 export type HookResult = {
   continue: true;
@@ -42,14 +42,6 @@ function defaultResult(): HookResult {
   return { continue: true };
 }
 
-function hasKibiConfig(cwd: string | undefined): boolean {
-  if (!cwd) {
-    return false;
-  }
-
-  return fs.existsSync(path.join(cwd, ".kb", "manifest.json"));
-}
-
 function isEditLikeTool(toolName: string | undefined): boolean {
   return toolName === undefined || editableTools.has(toolName);
 }
@@ -61,11 +53,17 @@ export async function runHook(
   const input = parseHookInput(rawInput);
   const pluginData = environment.pluginData ?? process.env.PLUGIN_DATA;
 
+  // Workspaces that never adopted Kibi must stay silent: no reminders, no
+  // tracking, and no state writes. The resolution is shared by every event so
+  // a subdirectory session maps to the same workspace root as its repository.
+  const workspace = resolveKibiWorkspace(input.cwd ?? process.cwd());
+  if (!workspace.optedIn) {
+    return defaultResult();
+  }
+  const stateDir = resolveWorkspaceStateDir(pluginData, workspace.root);
+
   switch (input.event) {
     case "SessionStart":
-      if (!hasKibiConfig(input.cwd ?? process.cwd())) {
-        return { continue: true, systemMessage: BOOTSTRAP_REMINDER };
-      }
       return defaultResult();
 
     case "PreToolUse": {
@@ -83,7 +81,7 @@ export async function runHook(
     case "PostToolUse": {
       const kbToolCall = extractKbMcpToolCall(input.toolName, input.toolInput);
       if (kbToolCall) {
-        recordKbMcpTool(pluginData, kbToolCall.toolName, {
+        recordKbMcpTool(stateDir, kbToolCall.toolName, {
           impactCheckRun: kbToolCall.impactCheckRun,
           sourceFiles: kbToolCall.sourceFiles,
         });
@@ -94,19 +92,19 @@ export async function runHook(
       );
 
       if (dirtyPaths.length > 0) {
-        addDirtyPaths(pluginData, dirtyPaths);
+        addDirtyPaths(stateDir, dirtyPaths);
       }
 
       return defaultResult();
     }
 
     case "Stop": {
-      const state = loadHookState(pluginData);
+      const state = loadHookState(stateDir);
       const uncheckedSourcePaths = state.dirtyPaths
         .filter(isSourceImpactRelevantPath)
         .filter((sourcePath) => !state.impactCheckedPaths.includes(sourcePath));
       if (uncheckedSourcePaths.length > 0) {
-        clearDirtyPaths(pluginData);
+        clearDirtyPaths(stateDir);
         return {
           continue: true,
           systemMessage: impactCheckReminder(uncheckedSourcePaths),
@@ -118,7 +116,7 @@ export async function runHook(
       );
 
       if (freshnessPaths.length > 0) {
-        clearDirtyPaths(pluginData);
+        clearDirtyPaths(stateDir);
         return {
           continue: true,
           systemMessage: freshnessReminder(freshnessPaths),
@@ -126,7 +124,7 @@ export async function runHook(
       }
 
       if (state.dirtyPaths.length > 0 || state.kbCheckRun) {
-        clearDirtyPaths(pluginData);
+        clearDirtyPaths(stateDir);
       }
 
       return defaultResult();
@@ -137,23 +135,40 @@ export async function runHook(
   }
 }
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
   const result = await runHook(parseStdinJson(await readStdin()));
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }
 
-const invokedPath = process.argv[1]
-  ? pathToFileURL(path.resolve(process.argv[1])).href
-  : "";
+// implements REQ-codex-kibi-plugin-v1
+export function isInvokedAsCli(
+  argv1: string | undefined,
+  moduleUrl: string,
+): boolean {
+  const invokedPath = argv1 ? pathToFileURL(path.resolve(argv1)).href : "";
+  return moduleUrl === invokedPath;
+}
 
-if (import.meta.url === invokedPath) {
-  main().catch((error: unknown) => {
+export async function runHookCli(): Promise<void> {
+  try {
+    await main();
+  } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Unknown hook error";
     process.stdout.write(
       `${JSON.stringify({ continue: true, systemMessage: `Kibi hook runner error: ${message}` })}\n`,
     );
-  });
+  }
 }
+
+export async function runHookCliIfMain(
+  isMain = isInvokedAsCli(process.argv[1], import.meta.url),
+  start = runHookCli,
+): Promise<void> {
+  if (!isMain) return;
+  await start();
+}
+
+void runHookCliIfMain();
 
 export const hookRunnerPath = fileURLToPath(import.meta.url);

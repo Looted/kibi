@@ -147,12 +147,17 @@ export async function syncPluginManifestVersions(
   return results;
 }
 
-if (import.meta.main) {
-  const workspaceRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
+export async function runSyncPluginManifestVersionsCli(
+  workspaceRoot = join(dirname(fileURLToPath(import.meta.url)), ".."),
+): Promise<void> {
   const results = await syncPluginManifestVersions(workspaceRoot);
   for (const result of results) {
     console.log(
       `Synced ${relative(workspaceRoot, result.manifestPath)}: ${result.previousVersion} -> ${result.packageVersion}`,
     );
   }
+}
+
+if (import.meta.main) {
+  await runSyncPluginManifestVersionsCli();
 }

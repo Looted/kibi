@@ -268,4 +268,46 @@ describe("bridge CLI", () => {
     await expect(attempt).rejects.toThrow("bridge_execution_failed");
     expect(cellLaunches).toBe(0);
   });
+
+  test("Given an injected pipe When bridgeMain runs Then it writes the bound result to that pipe", async () => {
+    const request = {
+      schemaVersion: "1.0.0" as const,
+      artifactType: "skillopt-bridge-request" as const,
+      runId: "00000000-0000-4000-8000-000000000023",
+      batchId: "bridge-pipe-1",
+      skill: "kibi-usage" as const,
+      phase: "train" as const,
+      candidateBody: "Use the Kibi MCP workflow.\n",
+      taskIds: ["kibi-usage-safe-mutation-direction-development-1"],
+      publicClaim: {
+        taskId: "kibi-usage-safe-mutation-direction-development-1",
+        text: "Use the Kibi MCP workflow.",
+        publicManifestHash: "a".repeat(64),
+        workspaceHash: "b".repeat(64),
+      },
+      sourceLockHash: "c".repeat(64),
+    };
+    let written: unknown;
+    const exitCode = await bridgeMain(["--pipe", "--fake"], undefined, {
+      readRequest: async () => request,
+      writeResult: async (result) => {
+        written = result;
+      },
+    });
+    expect(exitCode).toBe(0);
+    expect(written).toEqual(
+      expect.objectContaining({
+        artifactType: "skillopt-bridge-result",
+        runId: request.runId,
+        batchId: request.batchId,
+        rows: [
+          expect.objectContaining({
+            id: request.taskIds[0],
+            status: "completed",
+            hard: 1,
+          }),
+        ],
+      }),
+    );
+  });
 });

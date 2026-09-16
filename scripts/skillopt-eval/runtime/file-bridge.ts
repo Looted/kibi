@@ -176,18 +176,21 @@ export async function readBridgeResult(
 }
 
 // implements REQ-skillopt-codex-optimization
-export class FileBridge {
-  constructor(
-    private readonly publicRoot: string,
-    private readonly privateRoot: string,
-  ) {}
+export const FileBridge = class FileBridge {
+  readonly #publicRoot: string;
+  readonly #privateRoot: string;
+
+  constructor(publicRoot: string, privateRoot: string) {
+    this.#publicRoot = publicRoot;
+    this.#privateRoot = privateRoot;
+  }
 
   // implements REQ-skillopt-codex-optimization
   resolve(name: string, visibility: "public" | "private"): string {
     if (isAbsolute(name))
       throw new BridgeVisibilityError("absolute_bridge_path");
     const root = resolve(
-      visibility === "public" ? this.publicRoot : this.privateRoot,
+      visibility === "public" ? this.#publicRoot : this.#privateRoot,
     );
     const path = resolve(root, name);
     const escaped = relative(root, path).startsWith("..");
@@ -214,4 +217,6 @@ export class FileBridge {
   async readPrivate(name: string): Promise<string> {
     return readFile(this.resolve(name, "private"), "utf8");
   }
-}
+};
+
+export type FileBridge = InstanceType<typeof FileBridge>;

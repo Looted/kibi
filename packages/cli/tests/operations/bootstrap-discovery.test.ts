@@ -182,6 +182,18 @@ describe("bootstrap discovery", () => {
     }
   });
 
+  it("treats a missing source file list as empty instead of crashing", async () => {
+    if (!fixture) throw new Error("missing fixture");
+    await expect(
+      classifyActivation(
+        runtime(fixture.root),
+        undefined as unknown as string[],
+      ),
+    ).resolves.toMatchObject({
+      activationState: expect.stringMatching(/^root_|vendored_only/),
+    });
+  });
+
   it("formats source module analysis when source files have no symbols", async () => {
     if (!fixture) throw new Error("missing fixture");
     fs.mkdirSync(path.join(fixture.root, "src"), { recursive: true });

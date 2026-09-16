@@ -123,7 +123,19 @@ export async function doctorCommand(
   return { exitCode: 1 };
 }
 
-async function packageMigrationActions(
+export async function detectExecuteApplyPlanExport(
+  load: () => Promise<{ executeApplyPlan?: unknown }> = () =>
+    import("../public/operations/index.js"),
+): Promise<boolean> {
+  try {
+    const operations = await load();
+    return typeof operations.executeApplyPlan === "function";
+  } catch {
+    return false;
+  }
+}
+
+export async function packageMigrationActions(
   runtime: Readonly<Record<string, unknown>>,
 ) {
   const actions = [];
@@ -227,14 +239,7 @@ async function runtimeProvenance(): Promise<Record<string, unknown>> {
   }
   const core = resolveInstalledPackageInfo("kibi-core");
   const mcp = resolveInstalledPackageInfo("kibi-mcp");
-  let executeApplyPlanExported: boolean | undefined;
-  try {
-    const operations = await import("../public/operations/index.js");
-    executeApplyPlanExported =
-      typeof operations.executeApplyPlan === "function";
-  } catch {
-    executeApplyPlanExported = false;
-  }
+  const executeApplyPlanExported = await detectExecuteApplyPlanExport();
   return {
     cliVersion: typeof cli.version === "string" ? cli.version : "unknown",
     coreVersion: core.version,
@@ -295,12 +300,17 @@ function packageInfoFromManifest(
   };
 }
 
-function nearestNamedPackageManifest(
+export function nextAncestorDirectory(current: string): string | undefined {
+  const parent = path.dirname(current);
+  return parent === current ? undefined : parent;
+}
+
+export function nearestNamedPackageManifest(
   startDir: string,
   name: string,
 ): string | undefined {
-  let current = startDir;
-  while (true) {
+  let current: string | undefined = startDir;
+  while (current !== undefined) {
     const candidate = path.join(current, "package.json");
     try {
       const metadata = JSON.parse(readFileSync(candidate, "utf8")) as {
@@ -310,10 +320,9 @@ function nearestNamedPackageManifest(
     } catch {
       // Keep walking; an unrelated or absent manifest is not a match.
     }
-    const parent = path.dirname(current);
-    if (parent === current) return undefined;
-    current = parent;
+    current = nextAncestorDirectory(current);
   }
+  return undefined;
 }
 
 function resolveInstalledPackageInfo(name: string): InstalledPackageInfo {
@@ -615,8 +624,14 @@ function checkPreCommitHook(): {
     // Read hook content to determine whether it's using the new staged check
     const content = readFileSync(preCommitPath, "utf-8");
 
-    const usesKibi = content.includes("kibi check");
-    const usesStaged = content.includes("kibi check --staged");
+    // Current templates resolve the kibi binary into KIBI_BIN before invoking
+    // it (git hooks do not get node_modules/.bin on PATH); legacy templates
+    // invoked bare `kibi`.
+    const resolvesKibi = content.includes("KIBI_BIN=");
+    const usesKibi = resolvesKibi || content.includes("kibi check");
+    const usesStaged =
+      content.includes('"$KIBI_BIN" check --staged') ||
+      content.includes("kibi check --staged");
 
     if (!usesKibi) {
       // Fail if hook doesn't invoke kibi at all
@@ -629,9 +644,22 @@ function checkPreCommitHook(): {
 
     if (preCommitExecutable) {
       if (usesStaged) {
+        if (!resolvesKibi) {
+          // Functional template that invokes bare `kibi`: it fails whenever
+          // kibi is installed only as a project dependency.
+          return {
+            passed: true,
+            message:
+              "Installed and executable (legacy template without kibi CLI resolution — run 'kibi init' to regenerate so hooks work with local installs)",
+            remediation:
+              "Run: kibi init to update git hooks to the latest template",
+          };
+        }
+
         return {
           passed: true,
-          message: "Installed and executable (uses 'kibi check --staged')",
+          message:
+            "Installed and executable (resolves kibi CLI; uses 'kibi check --staged')",
         };
       }
 
@@ -639,7 +667,7 @@ function checkPreCommitHook(): {
       return {
         passed: true,
         message:
-          "Installed and executable (uses legacy 'kibi check' — consider running 'kibi init' to update hooks to use '--staged')",
+          "Installed and executable (uses legacy 'kibi check' — consider running 'kibi init' to update hooks to use '--staged' with CLI resolution)",
         remediation:
           "Run: kibi init to update git hooks to the latest template",
       };
@@ -692,10 +720,13 @@ function checkPostRewriteHook(): {
     const postRewriteStats = statSync(postRewritePath);
     const postRewriteExecutable = (postRewriteStats.mode & 0o111) !== 0;
 
-    // Read hook content to verify it invokes kibi
+    // Read hook content to verify it invokes kibi. Current templates invoke
+    // the resolved KIBI_BIN; legacy templates invoked bare `kibi sync`.
     const content = readFileSync(postRewritePath, "utf-8");
 
-    const usesKibi = content.includes("kibi sync");
+    const usesKibi =
+      content.includes('"$KIBI_BIN" sync') || content.includes("kibi sync");
+    const resolvesKibi = content.includes("KIBI_BIN=");
 
     if (!usesKibi) {
       return {
@@ -706,6 +737,15 @@ function checkPostRewriteHook(): {
     }
 
     if (postRewriteExecutable) {
+      if (!resolvesKibi) {
+        return {
+          passed: true,
+          message:
+            "Installed and executable (legacy template without kibi CLI resolution — run 'kibi init' to regenerate so hooks work with local installs)",
+          remediation:
+            "Run: kibi init to update git hooks to the latest template",
+        };
+      }
       return {
         passed: true,
         message: "Installed and executable",

@@ -116,6 +116,17 @@ function contentHash(content: string): string {
   return createHash("sha256").update(content).digest("hex");
 }
 
+export function restoreOrUnlinkCoordinateArtifact(
+  targetPath: string,
+  before: string | null,
+): void {
+  if (before === null) {
+    unlinkSync(targetPath);
+    return;
+  }
+  replaceArtifactAtomically(targetPath, before);
+}
+
 function replaceArtifactAtomically(targetPath: string, content: string): void {
   const temporary = `${targetPath}.kibi-tmp-${process.pid}`;
   try {
@@ -157,11 +168,7 @@ function publishArtifact(
           `coordinate artifact changed after publication; refusing rollback: ${targetPath}`,
         );
       }
-      if (before === null) {
-        unlinkSync(targetPath);
-      } else {
-        replaceArtifactAtomically(targetPath, before);
-      }
+      restoreOrUnlinkCoordinateArtifact(targetPath, before);
     },
   };
 }

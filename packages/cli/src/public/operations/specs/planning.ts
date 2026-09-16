@@ -143,6 +143,13 @@ export const compileIntentSpec = {
             id: { type: "string" },
             title: { type: "string", minLength: 1 },
             body: { type: "string", minLength: 1 },
+            scenarioIds: {
+              type: "array",
+              items: { type: "string", minLength: 1 },
+              maxItems: 20,
+              description:
+                "Stable scenario draft IDs verified by this test. Required when multiple scenario drafts are supplied.",
+            },
             verificationScope: {
               type: "string",
               enum: ["unit", "integration", "end_to_end"],

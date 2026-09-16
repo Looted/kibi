@@ -71,8 +71,11 @@ test(test_entity_with_verification_fields_valid) :-
     validate_entity(test, Props).
 
 test(test_entity_with_verification_contract_valid) :-
-    Contract = "{\"version\":\"kibi.verification-contract.v1\",\"runner\":\"pnpm\",\"command_argv\":[\"pnpm\",\"run\",\"e2e\"],\"required_case_symbols\":[\"SYM-CASE\"],\"required_projects\":[\"chromium\"],\"success_policy\":\"all_required_cases_first_attempt\"}",
-    Props = [id='TEST-CONTRACT', title="Contracted test", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="tests/TEST-CONTRACT.md", verification_scope=end_to_end, verification_contract=Contract],
+    % proof_contract superseded the embedded verification_contract field when
+    % verification became runner-neutral; the JSON payload stays opaque to the
+    % Prolog validator (list_or_json).
+    Contract = "{\"version\":\"kibi.proof-contract.v1\",\"runner\":\"pnpm\",\"command_argv\":[\"pnpm\",\"run\",\"e2e\"],\"required_case_symbols\":[\"SYM-CASE\"],\"required_projects\":[\"chromium\"],\"success_policy\":\"all_required_cases_first_attempt\"}",
+    Props = [id='TEST-CONTRACT', title="Contracted test", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="tests/TEST-CONTRACT.md", verification_scope=end_to_end, proof_contract=Contract],
     validate_entity(test, Props).
 
 test(test_entity_with_invalid_verification_scope_invalid) :-

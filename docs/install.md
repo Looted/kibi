@@ -214,13 +214,57 @@ Then run `/plugins`, choose **Kibi Plugins**, and install `kibi-codex`.
 
 The marketplace lives at `.agents/plugins/marketplace.json` and points Codex at
 `./packages/codex`, where the plugin manifest, skills, hooks, and MCP config are
-stored. Codex resolves that path relative to the marketplace root.
+stored. Codex resolves that path relative to the marketplace root. Local
+marketplace installs copy the plugin directory as-is, so run `bun run build:codex`
+first: an install from a tree without a build is missing `dist/hook-runner.js`
+and every lifecycle hook then fails to start. (Packed npm installs run the
+build automatically via `prepack`.)
 
-The plugin's `.mcp.json` deliberately leaves `cwd` unset. Codex then launches
-`npx --no-install kibi-mcp` from the active task workspace, so the MCP server
-comes from the consumer project's local dependencies. Do not change this to
-`cwd: "."`: that would run from the installed plugin cache instead. The manual
-project-level MCP configuration below remains an independent fallback.
+#### Workspace opt-in rule
+
+The plugin may be installed and enabled globally, but it only activates in
+workspaces that opted into Kibi:
+
+- A workspace is opted in when its Kibi project root owns `.kb/manifest.json`
+  (the manifest `kibi init` creates). Installing the plugin, having `kibi-mcp`
+  on `PATH`, or enabling the plugin in `~/.codex/config.toml` never counts.
+- Project-root resolution honors the standard `KIBI_WORKSPACE`,
+  `KIBI_PROJECT_ROOT`, and `KIBI_ROOT` environment overrides, then walks up
+  from the session directory and stops at the first `.kb/manifest.json`
+  (opted in) or `.git` boundary (not opted in). Subdirectories of an opted-in
+  repository map to that repository; a Git worktree is evaluated by its own
+  root and never inherits the main checkout's state; an unrelated enclosing
+  repository never leaks opt-in into a nested project.
+- In unconfigured workspaces every hook exits successfully and silently —
+  no bootstrap prompts, no edit tracking, no reminders, no state writes — and
+  the MCP server starts with an empty tool catalog. Nothing is initialized or
+  written unless you explicitly ask for it (`kibi init` or the kibi-bootstrap
+  skill).
+- In opted-in workspaces the plugin behaves as before: hooks warn about direct
+  `.kb` edits, track changed paths, and surface freshness/impact reminders at
+  session stop, scoped to the workspace they were generated in, so activity in
+  one project cannot generate reminders in another.
+
+#### Codex host limitations and the MCP launcher
+
+Codex (verified against `codex-cli 0.153.4`) has no workspace-scoped or
+content-conditional activation for plugins or their MCP servers: plugin
+enablement is global, and legacy `.codex-plugin` MCP entries support no
+placeholder expansion or plugin-root environment. To keep non-Kibi workspaces
+free of MCP startup errors, the plugin's `.mcp.json` therefore inlines a
+launcher (`node -e`, built from `packages/codex/bin/mcp-launcher.cjs`) that:
+
+- resolves the workspace from the active session cwd and the opt-in rule above;
+- serves a silent MCP server with zero tools in unconfigured workspaces;
+- probes and proxies the project-local `kibi-mcp` (`npx --no-install
+  kibi-mcp`, exactly the previous config) in opted-in workspaces, with
+  `KIBI_WORKSPACE` set to the resolved root;
+- starts cleanly with a guidance message when an opted-in workspace has no
+  resolvable `kibi-mcp` executable — the MCP handshake still succeeds, so no
+  startup error is reported.
+
+The launcher is a supported stdio server from Codex's point of view; it simply
+stays empty unless the workspace opted in.
 
 For local development or npm package smoke testing, you can also install the
 adapter package with your project-local dependencies:
@@ -236,7 +280,7 @@ developing/testing.
 The installed plugin package contributes:
 
 - `.codex-plugin/plugin.json` manifest
-- `.mcp.json` MCP config pointing to your local `kibi-mcp` and inheriting the active task cwd
+- `.mcp.json` MCP config with the inline workspace-opt-in launcher
 - `hooks/hooks.json` lifecycle hooks
 - `skills/*/SKILL.md` Kibi workflow guidance
 
