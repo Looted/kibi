@@ -6,25 +6,28 @@ import {
   writeFileSync,
 } from "node:fs";
 import * as path from "node:path";
-import { OperationError } from "../../cli-errors.js";
+import { InputError, OperationError } from "../../cli-errors.js";
 
 /**
- * Workspace-scoped mutex serializing every writer of the symbol compiler
- * surface: authored manifest edits, targeted coordinate refresh, full
- * coordinate refresh, ordinary manifest compilation, and the RDF commit that
- * consumes them. Atomic rename prevents torn files but not lost updates, so
- * concurrent read-modify-write cycles must hold this lock across their whole
- * sequence.
+ * Portable cooperative mutex for Kibi source mutations. The lock protects
+ * cooperating Kibi writers; arbitrary external processes remain outside this
+ * protocol and cannot be CAS-protected by it.
  */
 
-const LOCK_FILE_RELATIVE = path.join(".kb", ".symbol-compiler.lock");
+const DEFAULT_LOCK_FILE_RELATIVE = path.join(
+  ".kb",
+  "recovery",
+  "source-authoring.lock",
+);
 const OWNER_FILE = "owner.json";
 const DEFAULT_TIMEOUT_MS = 15_000;
 const RETRY_INTERVAL_MS = 25;
 const MAX_RELEASE_FILESYSTEM_ATTEMPTS = 3;
+/** Bounded rereads for the transient mkdir->owner and unlink->rmdir windows. */
+const MAX_MISSING_OWNER_REREADS = 4;
 
 // implements REQ-generated-coordinate-persistence
-export interface SymbolCompilerLockFileSystem {
+export interface WorkspaceMutationLockFileSystem {
   readonly mkdirSync: (
     target: string,
     options?: { readonly recursive?: boolean },
@@ -39,7 +42,7 @@ export interface SymbolCompilerLockFileSystem {
   readonly rmdirSync: (target: string) => void;
 }
 
-const NODE_FILE_SYSTEM: SymbolCompilerLockFileSystem = {
+const NODE_FILE_SYSTEM: WorkspaceMutationLockFileSystem = {
   mkdirSync: (target, options) => {
     mkdirSync(target, options);
   },
@@ -52,17 +55,18 @@ const NODE_FILE_SYSTEM: SymbolCompilerLockFileSystem = {
 };
 
 // implements REQ-generated-coordinate-persistence
-export interface SymbolCompilerLockOptions {
+export interface WorkspaceMutationLockOptions {
+  readonly lockFileRelative?: string;
   readonly timeoutMs?: number;
   readonly now?: () => number;
   readonly sleep?: (ms: number) => Promise<void>;
-  readonly fileSystem?: SymbolCompilerLockFileSystem;
+  readonly fileSystem?: WorkspaceMutationLockFileSystem;
   readonly isProcessAlive?: (pid: number) => boolean;
 }
 
 // implements REQ-generated-coordinate-persistence
-export class SymbolCompilerLockError extends Error {
-  override readonly name = "SymbolCompilerLockError";
+export class WorkspaceMutationLockError extends Error {
+  override readonly name = "WorkspaceMutationLockError";
 }
 
 interface LockRecord {
@@ -71,8 +75,8 @@ interface LockRecord {
   readonly acquiredAt: number;
 }
 
-function lockPath(workspaceRoot: string): string {
-  return path.join(workspaceRoot, LOCK_FILE_RELATIVE);
+function lockPath(workspaceRoot: string, lockFileRelative: string): string {
+  return path.join(workspaceRoot, lockFileRelative);
 }
 
 function randomToken(): string {
@@ -150,7 +154,7 @@ function manualCleanupGuidance(target: string, ownerPath: string): string {
 }
 
 function removeLockDirectory(
-  fileSystem: SymbolCompilerLockFileSystem,
+  fileSystem: WorkspaceMutationLockFileSystem,
   target: string,
 ): void {
   const result = retryTransientFilesystemOperation(() =>
@@ -159,13 +163,13 @@ function removeLockDirectory(
   if (result.ok) return;
 
   const ownerPath = path.join(target, OWNER_FILE);
-  throw new SymbolCompilerLockError(
-    `failed to remove symbol compiler lock directory at ${target} after ${result.attempts} attempt(s): ${errorDetail(result.error)}; lock remains fail-closed. ${manualCleanupGuidance(target, ownerPath)}`,
+  throw new WorkspaceMutationLockError(
+    `failed to remove workspace mutation lock directory at ${target} after ${result.attempts} attempt(s): ${errorDetail(result.error)}; lock remains fail-closed. ${manualCleanupGuidance(target, ownerPath)}`,
   );
 }
 
 function removeLockOwner(
-  fileSystem: SymbolCompilerLockFileSystem,
+  fileSystem: WorkspaceMutationLockFileSystem,
   target: string,
   ownerPath: string,
   ignoreMissing: boolean,
@@ -178,31 +182,69 @@ function removeLockOwner(
   const code = errorCode(result.error);
   if (ignoreMissing && code === "ENOENT") return;
 
-  throw new SymbolCompilerLockError(
-    `failed to remove symbol compiler lock owner at ${ownerPath} after ${result.attempts} attempt(s): ${errorDetail(result.error)}; lock remains fail-closed. ${manualCleanupGuidance(target, ownerPath)}`,
+  throw new WorkspaceMutationLockError(
+    `failed to remove workspace mutation lock owner at ${ownerPath} after ${result.attempts} attempt(s): ${errorDetail(result.error)}; lock remains fail-closed. ${manualCleanupGuidance(target, ownerPath)}`,
   );
 }
 
-function existingLockDescription(
-  fileSystem: SymbolCompilerLockFileSystem,
+type LockObservation =
+  | { readonly kind: "live"; readonly description: string }
+  | { readonly kind: "missing"; readonly description: string }
+  | { readonly kind: "recovery"; readonly description: string };
+
+function observeExistingLock(
+  fileSystem: WorkspaceMutationLockFileSystem,
   target: string,
   ownerPath: string,
-): string {
+  isProcessAlive: (pid: number) => boolean,
+): LockObservation {
+  let record: LockRecord | null = null;
+  let source = "lock owner metadata";
+  let ownerMissing = false;
   try {
-    const record = readLockRecord(fileSystem.readFileSync(ownerPath));
-    return record === null
-      ? "lock owner metadata is corrupt"
-      : `held by pid ${record.pid}`;
-  } catch {
+    record = readLockRecord(fileSystem.readFileSync(ownerPath));
+  } catch (ownerError) {
+    ownerMissing = errorCode(ownerError) === "ENOENT";
     try {
-      const legacyRecord = readLockRecord(fileSystem.readFileSync(target));
-      return legacyRecord === null
-        ? "legacy or corrupt lock"
-        : `legacy lock held by pid ${legacyRecord.pid}`;
+      source = "legacy lock metadata";
+      record = readLockRecord(fileSystem.readFileSync(target));
     } catch {
-      return "lock is initializing or corrupt";
+      // A lock directory without readable owner metadata is the normal
+      // mkdir->owner-publish window (and the unlink->rmdir release window):
+      // callers reread it a bounded number of times before failing closed.
+      // Any other owner read failure is not a creation gap.
+      if (ownerMissing) {
+        return {
+          kind: "missing",
+          description: "lock owner metadata is missing",
+        };
+      }
+      return {
+        kind: "recovery",
+        description: "lock owner metadata is missing or unverifiable",
+      };
     }
   }
+  if (record === null) {
+    return {
+      kind: "recovery",
+      description: `${source} is corrupt or unverifiable`,
+    };
+  }
+  try {
+    if (isProcessAlive(record.pid)) {
+      return { kind: "live", description: `held by pid ${record.pid}` };
+    }
+  } catch {
+    return {
+      kind: "recovery",
+      description: `holder pid ${record.pid} could not be verified as live`,
+    };
+  }
+  return {
+    kind: "recovery",
+    description: `holder pid ${record.pid} is not live`,
+  };
 }
 
 function defaultIsProcessAlive(pid: number): boolean {
@@ -210,58 +252,14 @@ function defaultIsProcessAlive(pid: number): boolean {
     process.kill(pid, 0);
     return true;
   } catch (error) {
-    return !(
+    if (
       error instanceof Error &&
       "code" in error &&
       (error as NodeJS.ErrnoException).code === "ESRCH"
-    );
+    )
+      return false;
+    throw error;
   }
-}
-
-type StaleLockOutcome = "stolen" | "live" | "unknown";
-
-/**
- * Read the current lock owner record and steal the lock only when the
- * recorded holder pid is provably dead. A readable owner.json identifies a
- * directory lock; a readable lock path itself identifies a legacy file lock.
- * Corrupt, missing, or unreadable metadata stays fail-closed: an
- * initializing writer must never be stolen from, and a live holder (or an
- * unverifiable pid) keeps the mutex.
- */
-function stealStaleLockIfHolderIsDead(
-  fileSystem: SymbolCompilerLockFileSystem,
-  target: string,
-  ownerPath: string,
-  isProcessAlive: (pid: number) => boolean,
-): StaleLockOutcome {
-  let record: LockRecord | null = null;
-  let legacyFileLock = false;
-  try {
-    record = readLockRecord(fileSystem.readFileSync(ownerPath));
-  } catch {
-    try {
-      record = readLockRecord(fileSystem.readFileSync(target));
-      legacyFileLock = true;
-    } catch {
-      return "unknown";
-    }
-  }
-  if (record === null) return "unknown";
-  if (isProcessAlive(record.pid)) return "live";
-  try {
-    if (legacyFileLock) {
-      const removal = retryTransientFilesystemOperation(() =>
-        fileSystem.unlinkSync(target),
-      );
-      if (!removal.ok) return "unknown";
-      return "stolen";
-    }
-    removeLockOwner(fileSystem, target, ownerPath, true);
-    removeLockDirectory(fileSystem, target);
-  } catch {
-    return "unknown";
-  }
-  return "stolen";
 }
 
 async function defaultSleep(ms: number): Promise<void> {
@@ -269,7 +267,7 @@ async function defaultSleep(ms: number): Promise<void> {
 }
 
 // implements REQ-generated-coordinate-persistence
-export interface SymbolCompilerLockHandle {
+export interface WorkspaceMutationLockHandle {
   /**
    * Remove this handle's validated owner metadata and then its empty lock
    * directory. Transient cleanup errors are retried; exhausted or permanent
@@ -281,8 +279,8 @@ export interface SymbolCompilerLockHandle {
 }
 
 // implements REQ-generated-coordinate-persistence
-export function releaseSymbolCompilerLock(
-  handle: SymbolCompilerLockHandle | undefined,
+export function releaseWorkspaceMutationLock(
+  handle: WorkspaceMutationLockHandle | undefined,
   operationFailure?: { readonly error: unknown },
   committed = false,
 ): void {
@@ -292,15 +290,15 @@ export function releaseSymbolCompilerLock(
   } catch (releaseError) {
     if (committed) {
       throw new OperationError(
-        "SYMBOL_COMPILER_LOCK_RELEASE_FAILED",
-        `Mutation committed, but symbol compiler lock release failed: ${errorDetail(releaseError)}; do not retry the mutation until the lock is manually verified and released`,
+        "SOURCE_MUTATION_LOCK_RELEASE_FAILED",
+        `Mutation committed, but workspace source lock release failed: ${errorDetail(releaseError)}; do not retry the mutation until the lock is manually verified and released`,
         false,
       );
     }
     if (operationFailure !== undefined) {
       throw new AggregateError(
         [operationFailure.error, releaseError],
-        "Operation failed and symbol compiler lock release failed",
+        "Operation failed and workspace mutation lock release failed",
       );
     }
     throw releaseError;
@@ -308,22 +306,48 @@ export function releaseSymbolCompilerLock(
 }
 
 /**
- * Acquire the workspace symbol compiler lock without a callback shape, for
+ * Classify the failure of an operation whose authoritative commit already
+ * happened. Typed operation errors keep their code and retryability; generic
+ * failures are wrapped immediately as non-retryable so callers never read a
+ * committed mutation as an invitation to retry.
+ */
+export function classifySourceMutationFailure(
+  operation: string,
+  error: unknown,
+  committed: boolean,
+): unknown {
+  if (!committed) return error;
+  if (error instanceof OperationError || error instanceof InputError) {
+    return error;
+  }
+  const detail = error instanceof Error ? error.message : String(error);
+  return new OperationError(
+    "SOURCE_MUTATION_POST_COMMIT_FAILED",
+    `${operation} committed, but a postcommit step failed: ${detail}; do not retry the original mutation; inspect the committed snapshot and recovery metadata before repairing`,
+    false,
+  );
+}
+
+/**
+ * Acquire the workspace workspace mutation lock without a callback shape, for
  * operations whose lock must span several awaits (source publication,
  * coordinate refresh, canonical re-extraction, and the RDF commit).
  */
 // implements REQ-generated-coordinate-persistence
-export async function acquireSymbolCompilerLock(
+export async function acquireWorkspaceMutationLock(
   workspaceRoot: string,
-  options: SymbolCompilerLockOptions = {},
-): Promise<SymbolCompilerLockHandle> {
+  options: WorkspaceMutationLockOptions = {},
+): Promise<WorkspaceMutationLockHandle> {
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const now = options.now ?? Date.now;
   const sleep = options.sleep ?? defaultSleep;
   const fileSystem = options.fileSystem ?? NODE_FILE_SYSTEM;
   const isProcessAlive = options.isProcessAlive ?? defaultIsProcessAlive;
 
-  const target = lockPath(workspaceRoot);
+  const target = lockPath(
+    workspaceRoot,
+    options.lockFileRelative ?? DEFAULT_LOCK_FILE_RELATIVE,
+  );
   const ownerPath = path.join(target, OWNER_FILE);
   const token = randomToken();
   const deadline = now() + timeoutMs;
@@ -333,16 +357,18 @@ export async function acquireSymbolCompilerLock(
     fileSystem.mkdirSync(parentPath, { recursive: true }),
   );
   if (!parentResult.ok) {
-    throw new SymbolCompilerLockError(
-      `failed to create symbol compiler lock parent at ${parentPath} after ${parentResult.attempts} attempt(s): ${errorDetail(parentResult.error)}`,
+    throw new WorkspaceMutationLockError(
+      `failed to create workspace mutation lock parent at ${parentPath} after ${parentResult.attempts} attempt(s): ${errorDetail(parentResult.error)}`,
     );
   }
 
   let acquired = false;
   let lastBlocker = "unknown";
+  let lastObservationMissing = false;
+  let missingOwnerRereads = 0;
   while (now() < deadline) {
     const targetResult = retryTransientFilesystemOperation(() => {
-      // Directory creation is the atomic, cross-platform lock authority.
+      // Directory creation is the sole atomic lock authority.
       fileSystem.mkdirSync(target);
     });
     if (targetResult.ok) {
@@ -350,29 +376,57 @@ export async function acquireSymbolCompilerLock(
       break;
     }
     if (errorCode(targetResult.error) !== "EEXIST") {
-      throw new SymbolCompilerLockError(
-        `failed to acquire symbol compiler lock directory at ${target} after ${targetResult.attempts} attempt(s): ${errorDetail(targetResult.error)}`,
+      throw new WorkspaceMutationLockError(
+        `failed to acquire workspace mutation lock directory at ${target} after ${targetResult.attempts} attempt(s): ${errorDetail(targetResult.error)}`,
       );
     }
-    lastBlocker = existingLockDescription(fileSystem, target, ownerPath);
-
-    if (
-      stealStaleLockIfHolderIsDead(
-        fileSystem,
-        target,
-        ownerPath,
-        isProcessAlive,
-      ) === "stolen"
-    ) {
-      continue;
+    const observation = observeExistingLock(
+      fileSystem,
+      target,
+      ownerPath,
+      isProcessAlive,
+    );
+    lastBlocker = observation.description;
+    lastObservationMissing = observation.kind === "missing";
+    if (observation.kind === "missing") {
+      // A missing owner is usually another holder's transient
+      // mkdir->owner-publish or unlink->rmdir window. Reread a bounded number
+      // of times; never reclaim the lock automatically.
+      if (missingOwnerRereads < MAX_MISSING_OWNER_REREADS) {
+        missingOwnerRereads += 1;
+        await sleep(RETRY_INTERVAL_MS);
+        continue;
+      }
+      throw new OperationError(
+        "SOURCE_MUTATION_LOCK_RECOVERY_REQUIRED",
+        `workspace mutation lock at ${target} requires operator recovery: ${observation.description} after ${missingOwnerRereads} reread(s). Quiesce all Kibi and source-mutating writers, then manually verify the owner metadata and remove the lock only after confirming no operation is active`,
+        false,
+      );
     }
-
+    if (observation.kind === "recovery") {
+      throw new OperationError(
+        "SOURCE_MUTATION_LOCK_RECOVERY_REQUIRED",
+        `workspace mutation lock at ${target} requires operator recovery: ${observation.description}. Quiesce all Kibi and source-mutating writers, then manually verify the owner metadata and remove the lock only after confirming no operation is active`,
+        false,
+      );
+    }
     await sleep(RETRY_INTERVAL_MS);
   }
 
   if (!acquired) {
-    throw new SymbolCompilerLockError(
-      `symbol compiler lock is ${lastBlocker}; refused after ${timeoutMs}ms to avoid a lost update`,
+    if (lastObservationMissing) {
+      // The deadline expired inside a sustained missing-owner window: that is
+      // a fail-closed recovery state, not a busy holder.
+      throw new OperationError(
+        "SOURCE_MUTATION_LOCK_RECOVERY_REQUIRED",
+        `workspace mutation lock at ${target} requires operator recovery: ${lastBlocker} for the whole acquisition window. Quiesce all Kibi and source-mutating writers, then manually verify the owner metadata and remove the lock only after confirming no operation is active`,
+        false,
+      );
+    }
+    throw new OperationError(
+      "SOURCE_MUTATION_LOCK_TIMEOUT",
+      `workspace mutation lock is ${lastBlocker}; acquisition timed out after ${timeoutMs}ms while the live owner remained in place; retry after the owner releases the lock to avoid a lost update`,
+      true,
     );
   }
 
@@ -416,8 +470,8 @@ export async function acquireSymbolCompilerLock(
       cleanupFailures.length === 0
         ? "lock directory cleanup completed"
         : `lock remains fail-closed at ${target}; ${cleanupFailures.join("; ")}`;
-    throw new SymbolCompilerLockError(
-      `failed to initialize symbol compiler lock owner at ${ownerPath}: ${errorDetail(error)}; ${cleanupContext}`,
+    throw new WorkspaceMutationLockError(
+      `failed to initialize workspace mutation lock owner at ${ownerPath}: ${errorDetail(error)}; ${cleanupContext}`,
     );
   }
 
@@ -431,15 +485,15 @@ export async function acquireSymbolCompilerLock(
           fileSystem.readFileSync(ownerPath),
         );
         if (!readResult.ok) {
-          throw new SymbolCompilerLockError(
-            `failed to validate symbol compiler lock owner at ${ownerPath} after ${readResult.attempts} attempt(s): ${errorDetail(readResult.error)}; lock remains fail-closed. ${manualCleanupGuidance(target, ownerPath)}`,
+          throw new WorkspaceMutationLockError(
+            `failed to validate workspace mutation lock owner at ${ownerPath} after ${readResult.attempts} attempt(s): ${errorDetail(readResult.error)}; lock remains fail-closed. ${manualCleanupGuidance(target, ownerPath)}`,
           );
         }
 
         const record = readLockRecord(readResult.value);
         if (record === null) {
-          throw new SymbolCompilerLockError(
-            `refused to release symbol compiler lock with corrupt owner metadata at ${ownerPath}; lock remains fail-closed. ${manualCleanupGuidance(target, ownerPath)}`,
+          throw new WorkspaceMutationLockError(
+            `refused to release workspace mutation lock with corrupt owner metadata at ${ownerPath}; lock remains fail-closed. ${manualCleanupGuidance(target, ownerPath)}`,
           );
         }
         if (record.token !== token) {
@@ -458,23 +512,21 @@ export async function acquireSymbolCompilerLock(
 }
 
 /**
- * Run `operation` while holding the workspace symbol compiler lock.
+ * Run `operation` while holding the workspace mutation lock.
  *
- * Atomic directory creation is the lock authority. Owner metadata is
- * release authorization and diagnostics: every existing target, including a
- * legacy file or a directory with missing/corrupt metadata, blocks contenders
- * until timeout. A well-formed owner record whose holder pid is provably
- * dead is stolen immediately instead of blocking for the full timeout;
- * corrupt metadata and live holders stay fail-closed.
- * Release failures propagate so successful work is never reported unlocked.
+ * Atomic directory creation is the sole lock authority. Owner metadata is
+ * release authorization and diagnostics. Every existing target, including a
+ * legacy file or a directory with missing/corrupt metadata, blocks or fails
+ * closed without mutating the lock path. Release failures propagate so
+ * successful work is never reported unlocked.
  */
 // implements REQ-generated-coordinate-persistence
-export async function withSymbolCompilerLock<T>(
+export async function withWorkspaceMutationLock<T>(
   workspaceRoot: string,
   operation: () => Promise<T>,
-  options: SymbolCompilerLockOptions = {},
+  options: WorkspaceMutationLockOptions = {},
 ): Promise<T> {
-  const handle = await acquireSymbolCompilerLock(workspaceRoot, options);
+  const handle = await acquireWorkspaceMutationLock(workspaceRoot, options);
   let operationFailure: { readonly error: unknown } | undefined;
   try {
     return await operation();
@@ -482,6 +534,6 @@ export async function withSymbolCompilerLock<T>(
     operationFailure = { error };
     throw error;
   } finally {
-    releaseSymbolCompilerLock(handle, operationFailure);
+    releaseWorkspaceMutationLock(handle, operationFailure);
   }
 }

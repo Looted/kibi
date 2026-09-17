@@ -284,4 +284,102 @@ Must remain independently testable.
       ),
     ).rejects.toThrow(/committed or repair_required journal/);
   });
+
+  test("a journalless plan with an early committed step fails as a non-retryable partial commit", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    mkdirSync(path.join(cwd, ".kb"), { recursive: true });
+    const plan = compilePlan({
+      steps: [
+        {
+          type: "req",
+          id: "REQ-partial-a",
+          properties: { title: "Partial A", status: "open" },
+          relationships: [],
+        },
+        {
+          type: "req",
+          id: "REQ-partial-b",
+          properties: { title: "Partial B", status: "open" },
+          relationships: [],
+        },
+      ],
+    });
+    await expect(
+      executeApplyPlan(
+        { plan, approvedPlanHash: plan.planHash },
+        filesystemContext(cwd, {
+          query: {
+            query: async (goal): Promise<PrologQueryResult> => {
+              if (goal.includes("kb_commit_upsert")) {
+                return goal.includes("REQ-partial-a")
+                  ? { success: true, bindings: { ChangeKind: "created" } }
+                  : { success: false, bindings: {}, error: "step boom" };
+              }
+              return { success: true, bindings: { Results: "[]" } };
+            },
+            queryStatusJson: async () => ({ success: true, bindings: {} }),
+            nextSolution: async () => null,
+            save: async () => ({ success: true, bindings: {} }),
+          },
+        }),
+      ),
+    ).rejects.toMatchObject({
+      code: "PARTIAL_COMMIT_REPAIR_REQUIRED",
+      retryable: false,
+    });
+  });
+
+  test("a pending source receipt failure after source commitment exposes the recovery journal", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    mkdirSync(path.join(cwd, ".kb", "recovery"), { recursive: true });
+    // A file where the pending-source receipt directory belongs makes the
+    // postcommit receipt publication fail after the sources are committed.
+    writeFileSync(
+      path.join(cwd, ".kb", "recovery", "pending-sources"),
+      "not-a-directory",
+    );
+    const body = "Requirement body for receipt journal\n";
+    const plan = compilePlan({
+      sourceWrites: [
+        {
+          path: "docs/REQ-receipt-journal.md",
+          mode: "write",
+          beforeHash: null,
+          afterHash: sha(body),
+          body,
+        },
+      ],
+    });
+    await expect(
+      executeApplyPlan(
+        { plan, approvedPlanHash: plan.planHash },
+        filesystemContext(cwd),
+      ),
+    ).rejects.toMatchObject({
+      code: "SOURCE_COMMIT_REPAIR_REQUIRED",
+      retryable: false,
+    });
+    const journal = JSON.parse(
+      readFileSync(
+        path.join(
+          cwd,
+          ".kb",
+          "recovery",
+          `source-writes-${plan.planHash.slice(0, 16)}.json`,
+        ),
+        "utf8",
+      ),
+    ) as { state: string };
+    expect(journal.state).toBe("repair_required");
+    // The authoritative committed bytes stay in place.
+    expect(
+      readFileSync(path.join(cwd, "docs", "REQ-receipt-journal.md"), "utf8"),
+    ).toBe(body);
+  });
 });

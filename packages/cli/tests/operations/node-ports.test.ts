@@ -4,6 +4,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import { acquireWorkspaceMutationLock } from "../../src/operations/mutation/workspace-mutation-lock.js";
 import { nodeGit } from "../../src/public/operations/node-ports.js";
 
 describe("node workspace snapshot", () => {
@@ -140,6 +141,9 @@ Body
     });
 
     const clean = await nodeGit.workspaceSnapshot?.(workspaceRoot);
+    const lock = await acquireWorkspaceMutationLock(workspaceRoot);
+    const whileLocked = await nodeGit.workspaceSnapshot?.(workspaceRoot);
+    lock.release();
     writeFileSync(
       path.join(workspaceRoot, ".kb", "migrations", "recovery.json"),
       '{"state":"operator-recovery"}\n',
@@ -149,6 +153,15 @@ Body
     const sourceChanged = await nodeGit.workspaceSnapshot?.(workspaceRoot);
 
     expect(clean).toMatchObject({ dirty: false, changeCount: 0, changes: [] });
+    expect(whileLocked?.hash).toBe(clean?.hash);
+    expect(whileLocked?.fileCount).toBe(clean?.fileCount);
+    expect(
+      (whileLocked?.changes ?? []).filter(
+        ({ snapshotRelevant }) => snapshotRelevant,
+      ),
+    ).toEqual(
+      (clean?.changes ?? []).filter(({ snapshotRelevant }) => snapshotRelevant),
+    );
     expect(operationalOnly).toMatchObject({
       dirty: false,
       changeCount: 1,

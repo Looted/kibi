@@ -3,6 +3,7 @@ import { spawnSync } from "node:child_process";
 import * as fs from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { OperationError } from "../../src/cli-errors.js";
 import {
   type SymbolCompilerLockFileSystem,
   acquireSymbolCompilerLock,
@@ -741,6 +742,36 @@ describe("symbol compiler lock", () => {
     } finally {
       firstHandle.release();
       secondHandle.release();
+    }
+  });
+
+  test("reports committed release failure as a non-retryable operation error", async () => {
+    const { workspace } = emptyWorkspace();
+    const handle = await acquireSymbolCompilerLock(workspace, {
+      fileSystem: fileSystem({
+        rmdirSync: () => {
+          throw fileSystemError("EBUSY", "directory busy");
+        },
+      }),
+    });
+    expect(() => releaseSymbolCompilerLock(handle, undefined, true)).toThrow(
+      OperationError,
+    );
+    let thrown: unknown;
+    try {
+      releaseSymbolCompilerLock(handle, undefined, true);
+    } catch (error) {
+      thrown = error;
+    }
+    expect(thrown).toMatchObject({
+      code: "SYMBOL_COMPILER_LOCK_RELEASE_FAILED",
+      retryable: false,
+    });
+    try {
+      // The lock intentionally remains fail-closed for operator cleanup.
+      releaseSymbolCompilerLock(handle);
+    } catch {
+      // Ignore: the first non-committed release reports the workspace error.
     }
   });
 });
