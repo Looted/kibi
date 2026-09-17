@@ -911,6 +911,39 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-441a2880328bebc0cf05302c
+    test_id: TEST-mcp-cli-help
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: c679ec25919c58945fa3faf5d4350507d064967c4735f2fd0a7db029674a0f16
+    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
+    started_at: '2026-09-17T12:12:34.195Z'
+    finished_at: '2026-09-17T12:43:12.850Z'
+    artifact_digest: 2bed769d4b03dd2d41d372116e328be4361bfbfafcab96b71b1d28cea658f414
+    contract_hash: 34d35c88b20d47c5676f86b8028fbe51a7254960b43bc4e32a6f8767ade5794e
+    binding_hash: c04c6e44103c749585603fa81f725795a2a79d729eb6f953be80e16e7a23cc1f
+    fingerprint: e3fea3cc80a52cd2040d69808f02b2123af055c11cbff5a9583f6a2492b137de
+    fingerprint_components:
+      contract: 34d35c88b20d47c5676f86b8028fbe51a7254960b43bc4e32a6f8767ade5794e
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-mcp-cli-help
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 
 The test verifies that the `kibi-mcp` binary correctly handles help requests without entering an interactive loop.
