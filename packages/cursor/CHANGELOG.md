@@ -1,5 +1,45 @@
 # kibi-cursor
 
+## 2.0.0
+
+### Major Changes
+
+- 812c201: Kibi's proof layer is now runner-neutral: any test runner, script, or harness can prove requirements, and Playwright is no longer built into the proof model.
+
+  - `kibi prove` replaces `kibi verify` as the single command to run configured proof producers and record evidence. Proof contracts (`kibi.proof-contract.v1`) declare explicit obligations (`symbol_id` + `target`) executed by a configured integration in `.kb/proof/integrations.json`; `kibi proof inspect` discovers test infrastructure deterministically; one producer run can satisfy many test contracts, and re-ingestion is idempotent.
+  - Evidence moves to the `kibi.proof-run.v1` artifact (typed environment, run-level outcome, factual attempt history with `native_case`/`aggregate_run` provenance) evaluated into `kibi.proof-receipt.v1` receipts bound to the live snapshot, contract hash, and effective execution fingerprint. Command proof is the universal fallback, so every project can prove requirements without a first-party framework adapter; strict first-attempt policy never upgrades unknown attempt history into passing evidence.
+  - Breaking removals: `kibi verify`, `kb_ingest_verification`, `kibi.playwright-run.v1`, `verification_contract`/`verification_receipts` entity fields (replaced by `proof_contract`/`proof_bindings`/`proof_receipts`), the `required_case_symbols`×`required_projects` Cartesian contract, and `retries` fields. Migrate by re-running `kibi prove` after bootstrap configures proof for your repository.
+
+  DRY: hard cutover to the proof-evidence protocol across CLI, MCP, runtime skills, Prolog proof evaluation, coverage/repair/report surfaces, agent skills, and repository self-proof (packed e2e steps now execute through `kibi prove --all`).
+
+### Patch Changes
+
+- b0271ac: Cursor now starts the bundled Kibi MCP server reliably when it launches plugin processes from a home directory or another unrelated working directory. Consumer workspaces with spaces continue to resolve their project-local `kibi-mcp` installation, while the portable Agent Plugin keeps its separate `npx --no-install` configuration.
+
+  - Fix `kibi-cursor` MCP launcher arguments to use Cursor's `${CURSOR_PLUGIN_ROOT}` expansion.
+  - Add source-install manifest regression coverage for consumer-local resolution from unrelated host directories.
+
+- b1682f1: Agents receive clearer guidance for repairing the actual supplied mutation request and preserving approved predicate bindings. The scoped additions retain the existing workflow while separating payload recovery from conditional relational modeling.
+
+  - Update `kibi-usage` to 2.1.2 in CLI/runtime sources and the generated Codex/Cursor distributions.
+  - Preserve the other three skills and all existing resource content.
+  - Retain production-adoption safeguards; development comparisons are not held-out evidence.
+
+- ee0dc49: Plugin hooks, the Cursor MCP launcher, and skill validation now expose the
+  same entry paths tests already spawn as processes. In-process coverage can
+  exercise stdin, CLI guards, and realpath failures instead of leaving those
+  lines invisible to Codecov.
+
+  - Export hook CLI helpers and Agent Plugin / launcher internals for tests.
+  - Use a namespace `fs` import in skill validation so realpath errors are testable.
+
+- 5999143: Agent-facing skill docs now use the current status field names, so agents following the freshness and E2E receipt workflows look for fields that actually exist in `kb_status` output instead of stale ones.
+
+  - Bundled `kibi-freshness` and `kibi-usage` skills (all agent mirrors) now reference `proofSnapshotChanges` and `proofSnapshot` (previously `verificationSnapshotChanges`/`verificationSnapshot` from the pre-proof-architecture status schema).
+  - The skillopt-eval harness reads `proofSnapshot*` status fields and its held-out eval prompts name the current fields, so "dirty editor path" evidence gathering works against live status output again.
+
+  Dry: completes the `verificationSnapshot*` → `proofSnapshot*` rename from the proof architecture change in the surfaces that earlier commit missed.
+
 ## 1.0.1
 
 ### Patch Changes
