@@ -32700,6 +32700,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: implements
         target: REQ-kibi-fresh-verification-receipts
