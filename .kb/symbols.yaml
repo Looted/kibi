@@ -32624,7 +32624,7 @@ symbols:
         target: TEST-kibi-fresh-verification-receipts
       - type: implements
         target: REQ-reusable-skill-subsystem
-  - id: SYM-isPathOutOfBounds
+  - id: SYM-isPathOutOfBoundsRuntime
     title: isPathOutOfBounds
     status: active
     sourceFile: packages/runtime/src/skill-system/paths.ts
@@ -32632,7 +32632,7 @@ symbols:
     relationships:
       - type: implements
         target: REQ-reusable-skill-subsystem
-  - id: SYM-isWithinRoot
+  - id: SYM-isWithinRootRuntime
     title: isWithinRoot
     status: active
     sourceFile: packages/runtime/src/skill-system/paths.ts
@@ -32640,7 +32640,7 @@ symbols:
     relationships:
       - type: implements
         target: REQ-reusable-skill-subsystem
-  - id: SYM-normalizeResourcePath
+  - id: SYM-normalizeResourcePathRuntime
     title: normalizeResourcePath
     status: active
     sourceFile: packages/runtime/src/skill-system/paths.ts
@@ -32648,7 +32648,7 @@ symbols:
     relationships:
       - type: implements
         target: REQ-reusable-skill-subsystem
-  - id: SYM-resolveSkillFilePath
+  - id: SYM-resolveSkillFilePathRuntime
     title: resolveSkillFilePath
     status: active
     sourceFile: packages/runtime/src/skill-system/paths.ts
@@ -32687,10 +32687,55 @@ symbols:
         target: TEST-cli-symbol-behavioral-anchors
       - type: implements
         target: REQ-symbol-behavioral-anchors
+  - id: SYM-BranchCoverageSummary
+    title: BranchCoverageSummary
+    status: active
+    sourceFile: scripts/run-unit-coverage.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-014
+  - id: SYM-COVERAGE_SHARDS
+    title: COVERAGE_SHARDS
+    status: active
+    sourceFile: scripts/run-unit-coverage.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-014
+  - id: SYM-runUnitCoverage
+    title: runUnitCoverage
+    status: active
+    sourceFile: scripts/run-unit-coverage.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-014
+  - id: SYM-runUnitCoverageIfMain
+    title: runUnitCoverageIfMain
+    status: active
+    sourceFile: scripts/run-unit-coverage.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-014
+  - id: SYM-summarizeBranchCoverage
+    title: summarizeBranchCoverage
+    status: active
+    sourceFile: scripts/run-unit-coverage.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-014
   - id: SYM-currentProofBindingMode
     title: currentProofBindingMode
+    status: active
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
+      - type: implements
         target: REQ-kibi-fresh-verification-receipts
   - id: SYM-resolveBoundSymbolScope
     title: resolveBoundSymbolScope
