@@ -1,9 +1,0 @@
----
-"kibi-cli": minor
----
-
-Proof campaigns stop repacking the world. `kibi prove` now shares one packed-tarball cache area across all contracts in a campaign: the first packed contract packs the workspace packages and bootstraps the shared installation once, and every later contract process reuses it — on this project's own suite that replaces roughly eighty repeated `npm pack` and install cycles with one, cutting a full prove run from about three hours to well under two. The cache is keyed by the campaign's workspace snapshot, so artifacts from a different code state can never be reused.
-
-The mechanism itself is runner-agnostic and lives in the packed-test harness, not in prove: any test runner or CI job that executes the packed suites can opt in by setting `KIBI_E2E_PACK_CACHE_KEY` to its own provenance identifier (a run id, a commit sha, a release tag) and optionally `KIBI_E2E_PACK_CACHE_ROOT` to a shared volume. Cache areas are namespaced per repository and per key, published atomically so concurrent runners never observe a half-populated area, and are never deleted by test processes — prune old areas with the new `scripts/prune-e2e-pack-cache.mjs [--keep <n>] [--root <dir>]`. Explicit `KIBI_TEST_TARBALLS` and `KIBI_E2E_PREFIX` configurations keep their exact current behavior and always take precedence over the shared cache.
-
-Technical summary: `documentation/tests/e2e/packed/helpers.ts` adds the documented env contract, `resolveSharedPackCache`/`claimSharedPackCache`/`publishSharedPackCache` with single-flight atomic-rename publication, staging redirection of npm pack and the shared install, and namespace isolation by repository path; `prove.ts` seeds `KIBI_E2E_PACK_CACHE_KEY` from the proof snapshot; new behavior tests cover reuse, precedence, race resolution, key sanitization, and incomplete-area rejection.

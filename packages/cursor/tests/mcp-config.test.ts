@@ -89,7 +89,10 @@ describe("kibi-cursor MCP config", () => {
     expect(kibiServer).toBeTruthy();
     expect(kibiServer).toMatchObject({
       command: "node",
-      args: ["bin/launch-kibi-mcp.mjs", "${workspaceFolder}"],
+      args: [
+        "${CURSOR_PLUGIN_ROOT}/bin/launch-kibi-mcp.mjs",
+        "${workspaceFolder}",
+      ],
     } as const);
     expect(kibiServer?.args).not.toContain("--diagnostic-mode");
   });

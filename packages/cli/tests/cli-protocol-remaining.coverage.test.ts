@@ -90,6 +90,24 @@ describe("executeOperation leftover protocol and error branches", () => {
     expect(result.stderr).toContain("VALIDATION_FAILED");
   });
 
+  test("reports a typed non-retryable operation error without exit-code guessing", async () => {
+    stubSpec(async () => {
+      throw new OperationError(
+        "SOURCE_MUTATION_LOCK_RECOVERY_REQUIRED",
+        "lock requires operator recovery",
+        false,
+      );
+    });
+    const result = await executeOperation("kb_status", {}, createContext());
+    expect(result.exitCode).toBe(1);
+    expect(JSON.parse(result.stdout ?? "")).toMatchObject({
+      error: {
+        code: "SOURCE_MUTATION_LOCK_RECOVERY_REQUIRED",
+        retryable: false,
+      },
+    });
+  });
+
   test("wraps a generic Error as OPERATION_FAILED", async () => {
     stubSpec(async () => {
       throw new Error("boom");

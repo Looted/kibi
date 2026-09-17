@@ -1,5 +1,50 @@
 # kibi-vscode
 
+## 1.0.1
+
+### Patch Changes
+
+- Updated dependencies [4b8594f]
+- Updated dependencies [198d083]
+- Updated dependencies [e09882a]
+- Updated dependencies [d53e77a]
+- Updated dependencies [8b49574]
+- Updated dependencies [a379c9a]
+- Updated dependencies [3de05e9]
+- Updated dependencies [7dfd0a5]
+- Updated dependencies [0fba134]
+- Updated dependencies [d53e77a]
+- Updated dependencies [121a83c]
+- Updated dependencies [e6cd1f1]
+- Updated dependencies [940bda8]
+- Updated dependencies [acde181]
+- Updated dependencies [ebe2d36]
+- Updated dependencies [b1682f1]
+- Updated dependencies [63c1fa6]
+- Updated dependencies [11ba1ef]
+- Updated dependencies [7de82d4]
+- Updated dependencies [dd6bab9]
+- Updated dependencies [b7d12c2]
+- Updated dependencies [ef0462c]
+- Updated dependencies [812c201]
+- Updated dependencies [f71e7eb]
+- Updated dependencies [b1682f1]
+- Updated dependencies [a3878e9]
+- Updated dependencies [9ea635e]
+- Updated dependencies [70b954d]
+- Updated dependencies [5999143]
+- Updated dependencies [af143b5]
+- Updated dependencies [a6dddfc]
+- Updated dependencies [b482a40]
+- Updated dependencies [87e7613]
+- Updated dependencies [964ffee]
+- Updated dependencies [c4c3832]
+- Updated dependencies [d53e77a]
+- Updated dependencies [4153ada]
+- Updated dependencies [4a60507]
+- Updated dependencies [e499c83]
+  - kibi-cli@2.0.0
+
 ## 1.0.0
 
 ### Major Changes

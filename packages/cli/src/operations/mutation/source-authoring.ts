@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { dump as dumpYaml, load as loadYaml } from "js-yaml";
@@ -696,13 +697,20 @@ export async function writeSourceForUpsert(
       ? sourceDocumentOverride
       : renderSourceDocument(input, entity, before, relative);
   await context.fs.mkdir(path.dirname(absolute));
-  const temporary = `${absolute}.kibi-source-${digest(relative).slice(0, 12)}`;
-  await context.fs.writeFile(temporary, after);
-  if (context.fs.rename) {
-    await context.fs.rename(temporary, absolute);
-  } else {
-    await context.fs.writeFile(absolute, after);
+  const temporary = `${absolute}.kibi-source-${process.pid}-${randomUUID()}`;
+  try {
+    await context.fs.writeFile(temporary, after);
+    if (context.fs.rename) {
+      await context.fs.rename(temporary, absolute);
+    } else {
+      await context.fs.writeFile(absolute, after);
+      await context.fs.unlink?.(temporary).catch(() => undefined);
+    }
+  } catch (error) {
+    // A failed rename must not leak the unique temp file into the authored
+    // tree; the published target (if any) is untouched at this point.
     await context.fs.unlink?.(temporary).catch(() => undefined);
+    throw error;
   }
   const receipt: SourceWriteReceipt = {
     path: relative,
@@ -711,61 +719,79 @@ export async function writeSourceForUpsert(
     afterHash: digest(after),
     created: before === undefined,
   };
-  const pendingReceipt = pendingReceiptPath(context.workspaceRoot, relative);
-  if (
-    receipt.afterHash !== null &&
-    (before === undefined || fs.existsSync(pendingReceipt))
-  ) {
-    writePendingSourceReceipt(
-      context.workspaceRoot,
-      relative,
-      receipt.afterHash,
-    );
-  }
-  return {
-    receipt,
-    rollback: async () => {
-      const fsPort = context.fs;
-      if (fsPort === undefined) return;
-      // Compare before restore: a concurrent writer may have replaced the file
-      // after our publication. Never clobber newer bytes; keep the recovery
-      // receipt so the next sync reconciles deterministically instead.
-      let current: string | undefined;
+  const rollback = async (): Promise<void> => {
+    const fsPort = context.fs;
+    if (fsPort === undefined) return;
+    // Compare before restore: a concurrent writer may have replaced the file
+    // after our publication. Never clobber newer bytes; keep the recovery
+    // receipt so the next sync reconciles deterministically instead.
+    let current: string | undefined;
+    try {
+      current = await fsPort.readFile(absolute);
+    } catch {
+      current = undefined;
+    }
+    if (current !== undefined && digest(current) !== digest(after)) {
+      writePendingSourceReceipt(
+        context.workspaceRoot,
+        relative,
+        receipt.afterHash as string,
+      );
+      console.warn(
+        `Skipped source rollback for ${relative}: file changed after the Kibi write; kept concurrent content and recorded recovery metadata.`,
+      );
+      return;
+    }
+    if (before === undefined) {
+      if (fsPort.unlink) await fsPort.unlink(absolute);
+      else await fsPort.writeFile(absolute, "");
       try {
-        current = await fsPort.readFile(absolute);
+        fs.unlinkSync(pendingReceiptPath(context.workspaceRoot, relative));
       } catch {
-        current = undefined;
+        // The pending receipt is advisory recovery metadata.
       }
-      if (current !== undefined && digest(current) !== digest(after)) {
-        writePendingSourceReceipt(
-          context.workspaceRoot,
-          relative,
-          receipt.afterHash as string,
-        );
-        console.warn(
-          `Skipped source rollback for ${relative}: file changed after the Kibi write; kept concurrent content and recorded recovery metadata.`,
-        );
-        return;
-      }
-      if (before === undefined) {
-        if (fsPort.unlink) await fsPort.unlink(absolute);
-        else await fsPort.writeFile(absolute, "");
-        try {
-          fs.unlinkSync(pendingReceiptPath(context.workspaceRoot, relative));
-        } catch {
-          // The pending receipt is advisory recovery metadata.
-        }
-      } else {
-        const rollbackTemp = `${absolute}.kibi-rollback-${digest(relative).slice(0, 12)}`;
+    } else {
+      const rollbackTemp = `${absolute}.kibi-rollback-${process.pid}-${randomUUID()}`;
+      try {
         await fsPort.writeFile(rollbackTemp, before);
         if (fsPort.rename) await fsPort.rename(rollbackTemp, absolute);
         else {
           await fsPort.writeFile(absolute, before);
           await fsPort.unlink?.(rollbackTemp).catch(() => undefined);
         }
+      } catch (error) {
+        await fsPort.unlink?.(rollbackTemp).catch(() => undefined);
+        throw error;
       }
-    },
+    }
   };
+  const pendingReceipt = pendingReceiptPath(context.workspaceRoot, relative);
+  try {
+    if (
+      receipt.afterHash !== null &&
+      (before === undefined || fs.existsSync(pendingReceipt))
+    ) {
+      writePendingSourceReceipt(
+        context.workspaceRoot,
+        relative,
+        receipt.afterHash,
+      );
+    }
+  } catch (receiptError) {
+    // The source bytes are already published but the caller has not received
+    // the rollback handle yet. Unwind the publication here so no failed call
+    // ever leaves a half-registered source write behind.
+    try {
+      await rollback();
+    } catch (rollbackError) {
+      throw new AggregateError(
+        [receiptError, rollbackError],
+        `Source published for ${relative}, but pending receipt publication and rollback both failed; recover from the pending-source receipt or restore the authored file manually`,
+      );
+    }
+    throw receiptError;
+  }
+  return { receipt, rollback };
 }
 
 /** Resolve and normalize the canonical authored path for an entity. */

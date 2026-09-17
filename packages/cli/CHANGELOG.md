@@ -1,5 +1,237 @@
 # kibi-cli
 
+## 2.0.0
+
+### Major Changes
+
+- 812c201: Kibi's proof layer is now runner-neutral: any test runner, script, or harness can prove requirements, and Playwright is no longer built into the proof model.
+
+  - `kibi prove` replaces `kibi verify` as the single command to run configured proof producers and record evidence. Proof contracts (`kibi.proof-contract.v1`) declare explicit obligations (`symbol_id` + `target`) executed by a configured integration in `.kb/proof/integrations.json`; `kibi proof inspect` discovers test infrastructure deterministically; one producer run can satisfy many test contracts, and re-ingestion is idempotent.
+  - Evidence moves to the `kibi.proof-run.v1` artifact (typed environment, run-level outcome, factual attempt history with `native_case`/`aggregate_run` provenance) evaluated into `kibi.proof-receipt.v1` receipts bound to the live snapshot, contract hash, and effective execution fingerprint. Command proof is the universal fallback, so every project can prove requirements without a first-party framework adapter; strict first-attempt policy never upgrades unknown attempt history into passing evidence.
+  - Breaking removals: `kibi verify`, `kb_ingest_verification`, `kibi.playwright-run.v1`, `verification_contract`/`verification_receipts` entity fields (replaced by `proof_contract`/`proof_bindings`/`proof_receipts`), the `required_case_symbols`×`required_projects` Cartesian contract, and `retries` fields. Migrate by re-running `kibi prove` after bootstrap configures proof for your repository.
+
+  DRY: hard cutover to the proof-evidence protocol across CLI, MCP, runtime skills, Prolog proof evaluation, coverage/repair/report surfaces, agent skills, and repository self-proof (packed e2e steps now execute through `kibi prove --all`).
+
+### Minor Changes
+
+- 4b8594f: Proof runs are now self-identifying, failures are attributable, and integration selection finally matches real repositories. `kibi prove` sets `KIBI_PROOF_RUN=1` in every producer child process, so runner configs that must behave differently under proof (disabling retries, for example) can branch on a stable marker instead of guessing from output-path variables — this fixes silent contract violations like proof runs executing with Playwright retries enabled. When a run fails, gap reasons now name the failing member results instead of an opaque "run did not pass", so one slow scenario no longer hides why four domain contracts were refused. `--integration` accepts multiple comma-separated ids, `--integration-except` skips integrations without `--all`, and a selector that matches nothing is now a loud error instead of a silent no-op.
+
+  Two long-standing consumer sharp edges are fixed: the symbol compiler lock is stolen immediately when its recorded holder pid is provably dead instead of blocking writes for the full timeout, and `kb_suggest_predicates` now defers to the semantic advisor's nonlogical classification (`review_nonlogical`) instead of emitting predicate suggestions for rationale, example, or subjective prose.
+
+  The built-in predicate catalog grows ten consumer-escalated families — fail-closed authorization, deployment preconditions, data-migration sequencing, diagnostic visibility, mutation authority, request deduplication, async boundaries, canonical identifiers, responsive breakpoints, and operational pauses — and retrieval ranking no longer lets an exact-pattern miss veto strong lexical and semantic evidence, so claims like "must complete in < 500ms", "read canonical data only", and "renderer-neutral persistence" now ground to precise predicates.
+
+  Technical summary: `commandEnvironment` exports `KIBI_PROOF_RUN`; `evaluateContractAgainstRun` adds failing-member attribution to run-failure gap reasons; `prove` selectors parse comma-separated id sets with fail-fast empty matching; `acquireSymbolCompilerLock` steals well-formed locks with dead holder pids; `suggest-predicates` routes all-nonlogical inputs to `review_nonlogical`; `rankSchema` treats exact-score 0 as a miss rather than a veto; `resource_constraint`, `failure_behavior`, `migration_boundary_rule`, and `abstraction_boundary_rule` gain retrieval cues and intent rules; `predicate-catalog-5.ts` and `predicate-usage-hints-4.ts` add the ten new families.
+
+- 198d083: Per-contract receipt binding is now the default. Every prove campaign writes receipts with a binding hash (contract + receipt-stripped test document + bound-symbol source hashes), and coverage matches receipts by that binding — so editing an unrelated file, requirement, or piece of symbol metadata no longer invalidates the repository's proof evidence, and editing one test's contract, document, or its bound production code stales exactly that test. Set `KIBI_PROOF_BINDING_MODE=strict-snapshot` to opt out and restore whole-snapshot matching. Receipts written before this change keep their snapshot semantics until each contract is re-proven, so no existing evidence is invalidated by the flip itself.
+
+  Technical summary: `reporting.ts` exports `currentProofBindingMode` (default `per_contract`, `strict-snapshot` opt-out) and the coverage executor hands the Prolog stage the per-test binding dict by default; the strict equality / ratchet baseline semantics are unchanged by this slice.
+
+- e09882a: The KB check-rule catalog now has a single source of truth. Adding or renaming a validation rule previously required editing three places in lockstep (the TypeScript rule registry, the kb_check input schema, and the Prolog check dispatch) and a missed edit could silently produce a clean-looking check that ran nothing. All rule names, descriptions, enforcement classes, and Prolog predicate mappings are now defined once in `packages/core/schema/rule-registry.json`; a generator emits the TypeScript registry, the kb_check input enum, and the Prolog registry facts, and CI fails when the generated files drift. Selecting an unknown rule name in Prolog now fails loudly with a typed error instead of returning an empty result, and `strict-readiness` — already documented and implemented but missing from the input schema — is now a selectable kb_check rule.
+- a379c9a: Proof campaigns stop poisoning themselves, and the failure modes that used to cost days of source archaeology now tell you what they need. Receipt ingest no longer canonicalizes the whole test document: `kibi prove --all` splices only the `proof_receipts` block into each test file, so hand-authored frontmatter (inline tags, non-millisecond timestamps) keeps its bytes and the workspace snapshot hash stays stable across a campaign — the mid-run "changed the tracked workspace during proof execution" refusals caused by ingest's own reformatting are gone. When a refusal does fire, the error now lists which paths moved (snapshot-relevant first, capped at ten with a "+N more"), so you can see what kibi thinks changed instead of diffing by hand.
+
+  New proof maintenance commands close the receipt long tail: `kibi proof prune --keep <n>` (default 1) shrinks duplicate passed receipts — re-proving the same snapshot appends one block per run, and consumers used to dedupe them by hand — while `kibi proof migrate-legacy` removes legacy `verification_receipts` frontmatter blocks from tests that already carry a `proof_contract`, both via surgical document patches. `kibi coverage --by req` gains `--status <statuses>` (comma-separated `proven|missing|unresolved|not_applicable`) to enumerate one proof-status slice; `not_applicable` rows include their typed applicability reason.
+
+  Sync and symbol sharp edges get the missing diagnostics. `sync --refresh-symbol-coordinates` now prints failed symbol ids with typed reasons ("add symbol_role and granularity_reason … to enable the whole-file coarse fallback") instead of a bare `failed=47`, its success line names the artifact it actually wrote (`.kb/symbol-coordinates.yaml`, not `symbols.yaml`), and the generated `symbols.yaml` header documents the granularity gate that decides when the coarse fallback applies. Upsert rejects symbol `sourceFile` values pointing into `.kb/` (their coordinates never merge into the engine, so coverage would report `missing_symbol_coordinates` forever) and rejects `proof_exempt` without a reason. Sync, finally, warns when a missing relationship target matches an untracked `.kb` document — "stage it with `git add` and sync again" instead of a misleading "target entity does not exist" — and Prolog query timeouts now carry the wedged-engine remediation ("run `kibi engine stop`, then `kibi sync --rebuild` if needed").
+
+  Technical summary: `ingest-proof.ts` writes a receipt-only `sourceDocumentOverride` through `executeUpsert`/`writeSourceForUpsert` (new `receipt-document.ts` splices frontmatter blocks byte-safely); `prove.ts` appends `describeWorkspaceDrift` to snapshot refusals; new `operations/proof/prune-receipts.ts` and `migrate-legacy-receipts.ts` with an `allowReceiptsPrune` carve-out in the append-only validation; `reporting.ts`/`coverage.ts`/`cli-register-reporting.ts` add the `statuses` input and `--status` flag hitting `coverage_report_json/11`; `manifest.ts` collects failures with `coarseAnchorFailureReason` and documents the gate in `SYMBOLS_MANIFEST_COMMENT_BLOCK`; `validation.ts` adds `.kb/`-sourceFile and exemption-pairing rejection; new `sync/untracked-targets.ts` powers the persistence tip; `prolog.ts` extends the timeout diagnostic.
+
+- 11ba1ef: The lock stewardship loop closes. `kibi engine janitor` now sweeps stale engine artifacts: branch-store lock journals whose recorded holder is provably dead are cleaned (journal + rdf lock), a live daemon stranded by a removed worktree is stopped and cleaned, and — with `--all` — runtime-directory sockets left by dead daemons anywhere on the machine are removed. The command reports by default and executes with `--apply`, printing one line per finding (holder pid, workspace, holder state, action). `kibi status` now surfaces a `store_lock_stale` stale reason when the current workspace's branch store carries a dead-holder journal, so the state is visible before it wedges an operation.
+
+  This slice also completes the self-healing loop: the engine daemon's own attach path now performs the same classify-break-retry takeover as the CLI runtime, so a store locked by a crashed engine heals no matter which surface hits it first. Hardening from the code review: attach failures preserve the original error inside the structured context (a permissions problem is no longer re-branded as a lock with an unknown holder), the workspace watchdog requires two consecutive misses before stopping a daemon, and duplicated owner parsing/dead helpers were consolidated.
+
+  Technical summary: `prolog/janitor.ts` adds `sweepStoreLock`/`sweepWorkspaceStoreLocks`/`sweepRuntimeSockets`/`runJanitor` with journal classification via the shared boot-id-aware holder check; `engine.ts` wires `retryAttachAfterBreakingStaleLock` (moved from cli-runtime to `prolog/store-lock.ts`) into the daemon attach and hardens the watchdog; `kb.pl` preserves the original attach error in `kb_store_locked/3` and journals unconditionally with a boot-id read fallback; `discovery-executors.ts` surfaces the `store_lock_stale` stale reason; new `engine janitor` subcommand with report/apply modes and seven behavior tests.
+
+- 7de82d4: Proof receipts learn what they actually depend on. Opting in with `KIBI_PROOF_BINDING_MODE=per-contract`, each receipt now records a `binding_hash` — a digest of the test's proof contract plus its receipt-stripped authored document — and stays valid while that pair is unchanged, even as unrelated files, requirements, or symbol metadata change around it. A KB-only edit (a new covered_by link, a coordinate refresh) no longer invalidates every receipt in the repository, ending the re-prove-everything treadmill: only the tests whose own contract or document changed go stale, and a scoped `kibi prove --requirement …` refreshes exactly those. The default remains today's strict whole-snapshot binding; per-contract mode is strictly opt-in until it bakes in, and receipts written by older builds keep their snapshot semantics.
+
+  Technical summary: `proof-fingerprint.ts` adds `receiptBindingHash` (contract hash + sha256 over the receipt-stripped document, versioned domain tag); `ingest-proof.ts` writes the optional `binding_hash` field at ingest; `proof-receipt.ts` accepts it as optional in schema and shape validation; `requirement_proof.pl` gains `requirement_proof_context/6` (binding mode + TestBindings dict) with `receipt_for_current_mode/4` selecting receipts by binding hash and falling back to snapshot matching for receipts without a binding hash; `discovery.pl` exposes `coverage_report_json/12` threading the mode and dict through; the coverage spec executor computes the bindings dict only when the opt-in env is set.
+
+- f71e7eb: Per-contract receipt bindings now cover production code, not just the test's own inputs. When `KIBI_PROOF_BINDING_MODE=per-contract` is set, a receipt's binding hash additionally includes the coordinate-recorded source hashes of every symbol the test binds via `proof_bindings` — sorted for stability, so formatting-only reordering changes nothing while any real edit to a bound symbol's source file produces a new hash. Editing the production code behind one test now stales exactly that test's receipts; all other tests keep their valid evidence. No Prolog-side change: the binding hash stays an opaque value the coverage stage compares.
+
+  Technical summary: `extractors/manifest.ts` adds `resolveBoundSymbolScope` (proof-bound symbol ids to their `sourceHash` values from the coordinate overlay, canonical ordering); `proof-fingerprint.ts` extends `receiptBindingHash` with the optional code scope (typed `ReceiptCodeScopeEntry[]`); `ingest-proof.ts` and the coverage spec executor resolve the scope from `.kb/symbols.yaml` for the bound symbol ids; two new behavior tests cover scope sensitivity and order invariance.
+
+- 70b954d: Proof campaigns stop repacking the world. `kibi prove` now shares one packed-tarball cache area across all contracts in a campaign: the first packed contract packs the workspace packages and bootstraps the shared installation once, and every later contract process reuses it — on this project's own suite that replaces roughly eighty repeated `npm pack` and install cycles with one, cutting a full prove run from about three hours to well under two. The cache is keyed by the campaign's workspace snapshot, so artifacts from a different code state can never be reused.
+
+  The mechanism itself is runner-agnostic and lives in the packed-test harness, not in prove: any test runner or CI job that executes the packed suites can opt in by setting `KIBI_E2E_PACK_CACHE_KEY` to its own provenance identifier (a run id, a commit sha, a release tag) and optionally `KIBI_E2E_PACK_CACHE_ROOT` to a shared volume. Cache areas are namespaced per repository and per key, published atomically so concurrent runners never observe a half-populated area, and are never deleted by test processes — prune old areas with the new `scripts/prune-e2e-pack-cache.mjs [--keep <n>] [--root <dir>]`. Explicit `KIBI_TEST_TARBALLS` and `KIBI_E2E_PREFIX` configurations keep their exact current behavior and always take precedence over the shared cache.
+
+  Technical summary: `documentation/tests/e2e/packed/helpers.ts` adds the documented env contract, `resolveSharedPackCache`/`claimSharedPackCache`/`publishSharedPackCache` with single-flight atomic-rename publication, staging redirection of npm pack and the shared install, and namespace isolation by repository path; `prove.ts` seeds `KIBI_E2E_PACK_CACHE_KEY` from the proof snapshot; new behavior tests cover reuse, precedence, race resolution, key sanitization, and incomplete-area rejection.
+
+- a6dddfc: Concurrent source mutations are now safe by default. Every `kb_upsert`, `kb_delete`, and `kb_apply_plan` that authors tracked source files takes a cooperative workspace lock (`.kb/recovery/source-authoring.lock`) spanning validation, source publication, the compiled commit, and rollback, so two agents editing the same repository can no longer interleave a read-modify-write cycle and silently lose an update. The lock is taken with a single atomic directory creation: a live holder simply makes peers wait (then fail with a retryable timeout), while a dead, missing, or corrupt holder fails closed with a non-retryable recovery-required error instead of being silently taken over — an operator verifies and clears the lock manually. After a mutation commits, a failure while releasing the lock or publishing receipts is reported as a committed, non-retryable state rather than an error that invites a duplicate retry, and source snapshots ignore the lock lane so holding it never marks a workspace dirty.
+
+  Technical summary: new `operations/mutation/workspace-mutation-lock.ts` (atomic mkdir acquisition, PID-liveness fail-closed observation, bounded reread of a briefly missing owner across the mkdir→publish and unlink→rmdir windows without automatic reclaim, token-checked release, `SOURCE_MUTATION_LOCK_TIMEOUT`/`SOURCE_MUTATION_LOCK_RECOVERY_REQUIRED`/`SOURCE_MUTATION_LOCK_RELEASE_FAILED` errors with `retryable` classification on `OperationError`); `OperationContext.sourceMutationLockHeld` prevents recursive acquisition and orders the source lock before the existing symbol-compiler lock; commit milestones (`onCommitted`, `saga.committed`) classify postcommit receipt/status failures; committed mutations report generic postcommit failures as non-retryable `SOURCE_MUTATION_POST_COMMIT_FAILED` (symbol-lock release: `SYMBOL_COMPILER_LOCK_RELEASE_FAILED`); journalless compile plans expose non-retryable `PARTIAL_COMMIT_REPAIR_REQUIRED` after an early committed step, and postcommit pending-receipt failures surface `SOURCE_COMMIT_REPAIR_REQUIRED` with the recovery journal; source-publication helpers roll back and clean unique temp files when a later fallible step or a rename fails.
+
+- 87e7613: Staged checks now account for every path in the Git index, so Python, shell, YAML, Dockerfiles, Markdown, JSON, and other readable text changes no longer disappear behind a misleading “No staged files found” result. These formats receive advisory ownership and impact review, while binary files, unsupported encodings, symlinks, and submodules are listed with clear skipped reasons.
+
+  Preserve the existing JavaScript and TypeScript enforcement contract, read staged and deleted content from Git, resolve file ownership only from committed plus staged Kibi evidence, and emit a single structured JSON envelope with per-file coverage for every staged-check outcome.
+
+- c4c3832: "Access denied or KB locked" finally says who is holding the lock and heals itself when the holder is dead. Kibi engines now record an ownership journal (pid, workspace, boot id, started-at) at the branch-store root while they are attached, published atomically so concurrent readers never see a partial write. When a later attach fails because the store is locked, the error carries the holder's identity, and — when the holder is provably dead (a crashed or killed engine, a `git worktree remove --force`, a reboot) — Kibi breaks the stale lock automatically, reports the takeover, and continues instead of wedging every later operation behind an opaque permission error. Live holders are surfaced by name with the exact remediation ("close that session, or run `kibi engine stop` for its workspace") instead of a generic message.
+
+  Engine daemons also stop outliving their workspace: a daemon whose workspace root disappears is now detected within thirty seconds and shuts down cleanly, releasing the store lock — the orphaned-daemon lock jam no longer requires manual `rdf/lock` cleanup.
+
+  Technical summary: `kb.pl` writes `.kibi-lock-owner.json` on attach (removes it on `kb_detach`) and throws `permission_error(attach, kb_store, …)` with a `kb_store_locked(OwnerJson, LockDir)` context when `rdf_attach_db` cannot take the lock; the CLI error decoder parses that context into a typed `storeLocked` record; the CLI runtime attach path consults a new lock-stewardship module (`prolog/store-lock.ts`) that classifies holders via `kill(pid,0)` plus a Linux boot-id check (defending against PID reuse across reboots) and breaks locks only for provably dead holders; `engine.ts` adds a workspace watchdog interval that shuts the daemon down when its workspace root vanishes.
+
+- 4153ada: The symbol-classification vocabulary — granularity reasons, coarse reasons, symbol roles, role inference, and traceability relationship types — now has a single source: `packages/core/schema/symbol-classification.json`, generated into both the TypeScript constants and Prolog facts (`bun run symbols:generate`, drift-checked by `symbols:check` in CI alongside the schema and rule registries). The user-facing suggestions that used to restate the vocabulary by hand now read from the generated lists, which fixes real drift: the mixed-symbol-role advisory listed only four of the five allowed granularity reasons (it omitted `test-suite`), while the manifest gate and sync failure message listed only the coarse set. The manifest header comment is generated from the same list. No behavior change beyond the corrected suggestion text.
+
+  Technical summary: `packages/core/schema/symbol-classification.json` is the source; `scripts/generate-symbol-classification.mjs` emits `symbol-granularity.generated.ts` (constants, role-inference map, prose lists) and `symbol_classification.pl` (facts); `symbol-granularity.ts` re-exports the generated vocabulary and drives `inferSymbolRole` from the generated role-inference map; `sync/manifest.ts`, `impact/diagnostics.ts`, and `operations/mutation/symbol-granularity.ts` consume the generated prose lists.
+
+### Patch Changes
+
+- d53e77a: Compile-intent plans now keep each proof-bearing test attached to the scenario IDs it actually verifies, so multiple scenarios cannot silently inherit positional associations. Draft tests default to ancillary integration and internal verification until an author explicitly declares end-to-end consumer evidence, and duplicate or unknown associations remain unresolved.
+
+  The change-to-proof evaluator exercises the compile API against an isolated Prolog fixture with independently seeded requirements and contradiction facts. Its search cases exercise the production ranker over fixed fixture entities, including supplied source context and unrelated-source abstention; they do not claim full KB-backed retrieval or independent source discovery.
+
+- 8b49574: The published CLI now loads the HTML report stylesheet with a Node-compatible `import.meta.url` path, so `kibi-cli` builds under `tsc`. Type-only telemetry, proof, apply-plan, and engine contracts live in `.d.ts` files, which the existing coverage ignore already excludes.
+
+  - Replace Bun-only `import.meta.dir` in the HTML report
+  - Rename extracted type modules to `.d.ts` so the unit-coverage manifest does not require them
+
+- 3de05e9: Unit coverage can now reach leftover CLI, OpenCode, MCP, and SkillOpt
+  branches without changing product behavior. Helpers that were previously
+  private (package version, pending relationship recovery, relationship-delete
+  migration, advisory empty-event policy, daemon and CLI entrypoints, comment
+  suggestion reset, source-hash warnings) are testable, and a vanished
+  relationship shard after a successful commit is reported as a repair instead
+  of being silently skipped.
+
+  - Export small CLI, OpenCode, MCP, and SkillOpt test seams and report vanished relationship shards.
+  - Keep migration `--yes` and legacy-delete blocks unchanged.
+
+- 7dfd0a5: The journaled engine daemon now starts under Node, not only Bun. Hosts that spawn `engine-daemon.js` with Node 22.14 and earlier never set `import.meta.main`, so the process exited immediately and clients waited until timeout. The entry check now compares `argv[1]` to the module URL so `kibi` and unit tests can attach to a live daemon again.
+- 0fba134: Reconnect to the live branch generation before journaled sync mutations. A daemon left attached to a replaced store is stopped and restarted so relationship deletes and cache recovery no longer require `--rebuild`.
+- d53e77a: When a workspace disappears while Kibi is running, the detached engine now notices and shuts down so later commands do not inherit a stale lock or socket. Proof runs also reject packed suites that finish without executing a runnable test, which keeps reported verification aligned with work that actually ran.
+
+  - Add a bounded watchdog override for integration fixtures.
+  - Require a complete, non-empty TAP result from packed proof runs.
+
+- 121a83c: Type-only CLI contracts now live in dedicated type modules so unit coverage measures executable logic instead of interface declarations. Public imports stay the same. Agents and CI still see the same runtime behavior.
+
+  - Move telemetry, proof-protocol, apply-plan, and engine types into sibling `*-types.ts` files
+  - Re-export those types from the original modules so public paths do not change
+
+- e6cd1f1: Kibi now explains when a symbol needs an authored anchor before its coordinates can be refreshed. Python methods such as `Service.decide` no longer silently repeat an ineffective automatic repair, while symbols that extraction can locate still receive automatic refresh guidance.
+
+  - Count text-heuristic coordinate misses as failures, including non-JS/TS sources.
+  - Inspect current extraction and explicit coarse anchors before classifying requirement and symbol coordinate repairs as automatic.
+  - Cover repeated refreshes, authored coarse-anchor recovery, mixed repair batches, and supported text/AST extraction.
+  - Restore the CLI test helper exit code explicitly so expected error-path assertions do not leave a failing process status.
+
+- 940bda8: Git hooks installed by `kibi init` now work when kibi is installed as a project dependency, not only globally. Previously the hooks invoked bare `kibi`, but git does not put `node_modules/.bin` on a hook's `PATH`, so in projects with a local install every hook failed with `kibi: not found` — and the pre-commit hook blocked all commits. Hooks now resolve the binary at run time (PATH first, then `node_modules/.bin` walking up from the repository root, covering monorepo workspace roots) and print actionable guidance if kibi cannot be found. `kibi doctor` detects hooks from older templates and recommends re-running `kibi init`; existing repositories should re-run `kibi init` once to regenerate their hooks.
+
+  Technical details: the four hook templates in `init-helpers.ts` share a `KIBI_BIN` resolver prelude (POSIX sh, no external commands); `doctor` hook validation accepts both resolved (`"$KIBI_BIN" ...`) and legacy (bare `kibi ...`) invocations, flagging the latter as legacy; unit tests gained behavioral coverage executing the generated pre-commit with a restricted `PATH` against a stubbed local install, a parent-directory install, and an unresolvable install.
+
+- acde181: `kibi init --github` now recognizes GitHub remotes that include HTTPS
+  credentials, such as `https://x-access-token:…@github.com/owner/repo`. CI
+  and Cloud Agent checkouts rewrite remotes that way, so the README badge
+  URL is written instead of being skipped as an unknown repository.
+
+  - Accept optional userinfo on HTTPS GitHub remotes in `parseGitHubRemote`.
+
+- ebe2d36: The HTML health report now loads its stylesheet from a static CSS file instead of inlining hundreds of CSS lines in TypeScript. The rendered report looks the same for operators. Unit coverage no longer treats those stylesheet lines as executable TypeScript, so the number reflects real report logic.
+
+  - Extract report CSS to `html-report.css` with brand token placeholders
+  - Copy the stylesheet into `dist/report` during the `kibi-cli` build
+
+- b1682f1: Agents receive clearer guidance for repairing the actual supplied mutation request and preserving approved predicate bindings. The scoped additions retain the existing workflow while separating payload recovery from conditional relational modeling.
+
+  - Update `kibi-usage` to 2.1.2 in CLI/runtime sources and the generated Codex/Cursor distributions.
+  - Preserve the other three skills and all existing resource content.
+  - Retain production-adoption safeguards; development comparisons are not held-out evidence.
+
+- 63c1fa6: The engine janitor is now more careful about what it cleans. A live engine holding a branch-store lock is only stopped when its workspace is verifiably gone — a lock journal that merely lacks the workspace path is now reported and left alone instead of being treated as a stranded daemon. The socket sweep no longer aborts when a daemon removes its pid file mid-scan, and the janitor now detects and cleans legacy ownership journals kept beside the rdf lock, matching the attach-takeover path. `kibi engine janitor --format json` reports `cleaned` honestly (0 in report-only mode) alongside a new `cleanable` count. `kibi status` stale-lock detection now uses the same boot-id-aware classification as the janitor, so a live pid recorded under a previous boot is correctly reported as stale, and corrupt ownership journals no longer hide the original attach error carried by `kb_store_locked/3` diagnostics.
+
+  Technical summary: `sweepStoreLock` requires positive workspace-removal evidence for `kill-and-clean` and reuses `breakStoreLock` for its artifact sweep (adding the legacy beside-lock journal location); `sweepRuntimeSockets` guards the pid-file read against TOCTOU races with the daemons being swept; journal reading is consolidated into a new `readStoreLockOwner` in `prolog/store-lock.ts`, and `classifyStoreLockHolder` is now shared by the janitor, the `kibi status` stale reason, and the attach-takeover path so all three reach the same verdict; `parseStoreLockedContext` threads `originalError` through the corrupt-journal branch. Nine new behavior tests cover the fixed paths.
+
+- dd6bab9: Temporary KB validation now keeps one persistent Prolog session for the full staged-check flow, so entities and relationships written early in the flow remain visible to later queries. This prevents staged proof checks from losing their in-memory state between writes and reads.
+
+  Technical summary: request `oneShot: false` from the temporary KB Prolog factory and cover staged write visibility across multiple queries.
+
+- b7d12c2: Prolog errors now cross the runtime boundary as structured terms instead of flattened text. When a KB mutation fails — a stale snapshot, a locked audit journal, a contradiction, a missing entity, or an invalid relationship — the CLI classifies the actual Prolog error term rather than pattern-matching SWI-Prolog's human-readable output, so error messages can no longer be misclassified by coincidental words in diagnostics. The public query results additionally carry a typed `errorRecord` field (code, entity id, relationship triple, contradiction conflicts) that surfaces like MCP can rely on, and user-facing error text is unchanged.
+- ef0462c: The Kibi engine no longer waits out its full query timeout when the underlying SWI-Prolog child dies unexpectedly. Previously, if the interactive `swipl` process was killed by an external signal (for example the kernel OOM killer), the engine kept treating the dead child as healthy — `exitCode` stays null on signal deaths and `killed` only reflects Node-initiated kills — so in-flight queries hung for the entire 120-second timeout, fixture imports retried three times against a wedged daemon, and shutdown could stall behind the same dead-process query. Signal-killed children are now detected at startup and before/during every query, failing fast with a clear error instead of a silent multi-minute hang.
+
+  Technical summary: `PrologProcess.waitForReady`, `isProcessUsable`, and `isRunning` now also check `child.signalCode`; the query-timeout diagnostic message includes the terminating signal.
+
+- b1682f1: Kibi CLI now preserves quoted Prolog text and large structured responses when reading optimization evidence. This prevents Unicode, escape sequences, nested metadata, and pipe-delivered JSON from being silently corrupted or truncated during SkillOpt evaluations.
+
+  - Harden Prolog response parsing and atom/string escaping.
+  - Normalize entity endpoints at graph and quality-evidence callers.
+  - Use bounded paginated entity projection when full KB quality reads exceed the Prolog transport capacity.
+  - Wait for stdout backpressure before completing JSON CLI operations.
+
+- a3878e9: Unit coverage can now execute leftover defensive branches in CLI, MCP, and
+  OpenCode without lowering Codecov gates. Previously unreachable catch,
+  tie-break, workspace-escape, and package-walk paths are exported as small
+  helpers and covered by in-process remaining-coverage tests.
+
+  - Export leftover defensive helpers and add remaining-coverage tests.
+  - Keep migration `--yes` and delete `migrationRequired` blocks unchanged.
+
+- 9ea635e: Proof workflows no longer wedge tests that collect a lot of receipt history. Running `kibi prove` many times on the same contracted test could push its receipt history past the 50-entry storage cap, leaving the test entity permanently invalid — `kibi check` flagged it, and no mutation could repair it because receipts are append-only. Proof ingest now rotates the oldest receipts at the cap, so the newest evidence is always kept and the test stays valid; the append-only rule still forbids rewriting or shrinking history, and only permits the exact cap-rotation shape ingest produces.
+
+  - Rotation only triggers when appending would exceed the cap, drops the minimum number of oldest entries, and preserves the 49 newest historical receipts verbatim.
+  - Receipt-history append-only validation accepts only that exact rotation shape; pruning without appending, multi-receipt replacement, and below-cap trimming remain rejected.
+
+- 5999143: Agent-facing skill docs now use the current status field names, so agents following the freshness and E2E receipt workflows look for fields that actually exist in `kb_status` output instead of stale ones.
+
+  - Bundled `kibi-freshness` and `kibi-usage` skills (all agent mirrors) now reference `proofSnapshotChanges` and `proofSnapshot` (previously `verificationSnapshotChanges`/`verificationSnapshot` from the pre-proof-architecture status schema).
+  - The skillopt-eval harness reads `proofSnapshot*` status fields and its held-out eval prompts name the current fields, so "dirty editor path" evidence gathering works against live status output again.
+
+  Dry: completes the `verificationSnapshot*` → `proofSnapshot*` rename from the proof architecture change in the surfaces that earlier commit missed.
+
+- af143b5: Upsert mutation rollback is now a declared compensation list instead of hand-tracked state. The upsert operation touches several workspace surfaces (authored document, relationship shards, generated symbol coordinates, compiled KB); when a commit fails, undoing those surfaces previously relied on a dozen local variables and duplicated rollback blocks inside the error handler. The steps now register named rollbacks as they succeed and one rollback pass walks them in reverse — with the same guarantees (hash-guarded shard restore, never clobbering concurrent writers, no rollback after the compiled commit). A failed rollback of the authored document now also aggregates its error with the original failure instead of hiding it.
+- b482a40: `kibi check --staged` now tells you what to fix, not just that you failed. The `symbols_manifest_stale` and `kibi_impact_evidence_missing` errors carry `Detail:` lines that name, per staged file, how many symbols the extractor finds, how many the staged evidence covers, and exactly which symbols are missing from `.kb/symbols.yaml` — with their definition lines. When uncovered symbols are the cause, the `Suggestion:` now leads with authoring the missing manifest entries (`kibi upsert`, with `implements`/`covered_by` links) before the coordinates refresh; when the evidence has merely drifted, it keeps the refresh-coordinates guidance. The same detail is available to tooling in the `evidence` field of the JSON output's `qualityDiagnostics`.
+
+  Technical summary: `assessStagedSymbolsManifest` returns per-file `fileDetails` (expected/covered counts, missing titles with lines, extra titles, capped at six names with an `… and N more` marker); the diff threads through `KibiImpactSymbolsManifest` into `collectStagedKibiDiagnostics`, which renders `Detail:` lines and selects the cause-appropriate suggestion; the `symbols_manifest_stale` resolution contract and `docs/cli-reference.md` staged-impact-evidence section were updated to match.
+
+- 964ffee: Status and bootstrap activation no longer crash when a host (or a leaked test mock) omits the source-file list. `kibi status` now treats a missing glob result as "no source files" and still reports store and bootstrap posture.
+- d53e77a: CLI proof ingestion now handles common JUnit and TAP reports more reliably,
+  including nested cases, retries, plans, bailouts, and malformed input. Querying
+  an entity and using the returned fields in a later update now preserves quoted,
+  newline, and backslash content exactly, so semantic evidence remains bound to
+  the authored source. Proof maintenance commands also exercise real source and
+  graph persistence across interruption and reload boundaries.
+  Repeated identical requirement sentences now share one logical proposition while
+  the authored source text and source hash remain unchanged, so advisor output can
+  cross the upsert boundary without manufacturing duplicate claim identities.
+  Relationship deletes now update authored Markdown relationship declarations even
+  when a live compiled edge and relationship shard exist, preventing the next sync
+  from resurrecting an explicitly deleted edge. Source symbol analysis also
+  recognizes members of exported class expressions such as `FileBridge`.
+
+  - Use maintained SAX XML parsing with strict failure diagnostics for malformed,
+    conflicting, or ambiguous native reports.
+  - Validate TAP subtest plans and hierarchy identities before producing evidence.
+  - Decode typed Prolog string literals before returning entities from discovery.
+  - Canonicalize repeated semantic advisor claims to the first source occurrence
+    before building the unique logic-claim manifest.
+  - Add end-to-end maintenance and interruption coverage for persisted proof data.
+  - Patch authored Markdown relationship declarations before compiled retraction
+    and fail closed when that source cannot be read.
+  - Resolve coordinates for exported class-expression methods, properties, and
+    accessors without losing qualified symbol identity.
+  - Compare mixed granular/coarse symbol manifests by exempting only exact
+    declarations with canonical coarse reasons, while continuing to block stale
+    granular coordinates, unknown reasons, and newly extracted exports.
+  - Validate existing bindings against staged source bytes, including body-only
+    changes, and scope HEAD caching to each assessment. Accept identical validated
+    declaration spans from multiple logical owners without hiding stale duplicates.
+
+- 4a60507: Source discovery no longer crashes when a host or leaked test mock returns a non-array file list from the markdown glob. Sync treats that as “no documents found” and continues pending-receipt and manifest checks instead of throwing.
+- e499c83: Developers and CI now measure line coverage for CLI commands that used to
+  look untested because the suite only spawned the `kibi` binary. The daemon
+  entry is the same program; tests can call it without going through
+  `process.argv`. Coverage numbers reflect those modules instead of silently
+  omitting them.
+
+  - Export `runEngineDaemonCli` from `engine-daemon.ts` and add in-process command tests.
+
+- Updated dependencies [d53e77a]
+- Updated dependencies [e09882a]
+- Updated dependencies [a379c9a]
+- Updated dependencies [11ba1ef]
+- Updated dependencies [7de82d4]
+- Updated dependencies [30dbb06]
+- Updated dependencies [c4c3832]
+  - kibi-core@0.12.0
+
 ## 1.0.1
 
 ### Patch Changes

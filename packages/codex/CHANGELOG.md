@@ -1,5 +1,79 @@
 # kibi-codex
 
+## 2.0.0
+
+### Major Changes
+
+- 812c201: Kibi's proof layer is now runner-neutral: any test runner, script, or harness can prove requirements, and Playwright is no longer built into the proof model.
+
+  - `kibi prove` replaces `kibi verify` as the single command to run configured proof producers and record evidence. Proof contracts (`kibi.proof-contract.v1`) declare explicit obligations (`symbol_id` + `target`) executed by a configured integration in `.kb/proof/integrations.json`; `kibi proof inspect` discovers test infrastructure deterministically; one producer run can satisfy many test contracts, and re-ingestion is idempotent.
+  - Evidence moves to the `kibi.proof-run.v1` artifact (typed environment, run-level outcome, factual attempt history with `native_case`/`aggregate_run` provenance) evaluated into `kibi.proof-receipt.v1` receipts bound to the live snapshot, contract hash, and effective execution fingerprint. Command proof is the universal fallback, so every project can prove requirements without a first-party framework adapter; strict first-attempt policy never upgrades unknown attempt history into passing evidence.
+  - Breaking removals: `kibi verify`, `kb_ingest_verification`, `kibi.playwright-run.v1`, `verification_contract`/`verification_receipts` entity fields (replaced by `proof_contract`/`proof_bindings`/`proof_receipts`), the `required_case_symbols`×`required_projects` Cartesian contract, and `retries` fields. Migrate by re-running `kibi prove` after bootstrap configures proof for your repository.
+
+  DRY: hard cutover to the proof-evidence protocol across CLI, MCP, runtime skills, Prolog proof evaluation, coverage/repair/report surfaces, agent skills, and repository self-proof (packed e2e steps now execute through `kibi prove --all`).
+
+### Minor Changes
+
+- 6cb8c7f: The Kibi plugin for Codex now stays silent and inactive in workspaces that never
+  opted into Kibi, even though the plugin itself is installed and enabled
+  globally. Unconfigured workspaces no longer see bootstrap prompts, edit
+  tracking, freshness reminders, or MCP startup errors, while opted-in workspaces
+  keep the full workflow with reminders scoped per workspace (worktrees
+  included).
+
+  - Workspace opt-in is defined by `.kb/manifest.json` at the resolved Kibi
+    project root (honoring the standard `KIBI_WORKSPACE`, `KIBI_PROJECT_ROOT`,
+    and `KIBI_ROOT` environment overrides). Project-root resolution walks up from
+    the session directory and stops at the `.git` boundary, so subdirectories map
+    to their repository, Git worktrees stay independent, and unrelated enclosing
+    repositories never leak opt-in.
+  - Every hook event exits successfully and silently in unconfigured workspaces;
+    no hook state is written there, and hook state is now namespaced under
+    `workspaces/<hash-of-root>` so one project's activity can never surface as
+    reminders in another.
+  - `.mcp.json` now launches an inline workspace-aware launcher (`node -e`,
+    built from `bin/mcp-launcher.cjs`): it serves a clean zero-tool MCP session
+    in unconfigured workspaces, proxies the project-local `kibi-mcp`
+    (`npx --no-install kibi-mcp`, unchanged resolution semantics) in opted-in
+    workspaces, and starts with guidance instead of a handshake failure when an
+    opted-in workspace lacks a resolvable `kibi-mcp`. Codex (verified against
+    codex-cli 0.153.4) has no workspace-scoped MCP activation, so the launcher is
+    the supported way to keep non-Kibi workspaces free of MCP startup errors.
+  - Explicit initialization is unchanged and remains opt-in: run `kibi init` or
+    the kibi-bootstrap skill; the plugin never initializes a workspace on its own.
+  - Packaging: the packed plugin is verified to ship `dist/hook-runner.js` and
+    the compiled hook assets; local marketplace installs should run
+    `bun run build:codex` before installing (a source-tree install without a
+    build is missing the hook runner entirely).
+
+### Patch Changes
+
+- d3a5a6e: Codex plugin installations now include a self-contained hook runner, so lifecycle hooks work directly from a source checkout as well as from a packed package. The runner keeps the existing Kibi workspace opt-in and per-workspace state behavior while covering SessionStart, PreToolUse, PostToolUse, and Stop.
+
+  - Bundle the Codex hook runner into the published `bin` artifact and check it for deterministic drift.
+  - Point the hook manifest at the host-provided `$PLUGIN_ROOT` executable path.
+
+- b1682f1: Agents receive clearer guidance for repairing the actual supplied mutation request and preserving approved predicate bindings. The scoped additions retain the existing workflow while separating payload recovery from conditional relational modeling.
+
+  - Update `kibi-usage` to 2.1.2 in CLI/runtime sources and the generated Codex/Cursor distributions.
+  - Preserve the other three skills and all existing resource content.
+  - Retain production-adoption safeguards; development comparisons are not held-out evidence.
+
+- ee0dc49: Plugin hooks, the Cursor MCP launcher, and skill validation now expose the
+  same entry paths tests already spawn as processes. In-process coverage can
+  exercise stdin, CLI guards, and realpath failures instead of leaving those
+  lines invisible to Codecov.
+
+  - Export hook CLI helpers and Agent Plugin / launcher internals for tests.
+  - Use a namespace `fs` import in skill validation so realpath errors are testable.
+
+- 5999143: Agent-facing skill docs now use the current status field names, so agents following the freshness and E2E receipt workflows look for fields that actually exist in `kb_status` output instead of stale ones.
+
+  - Bundled `kibi-freshness` and `kibi-usage` skills (all agent mirrors) now reference `proofSnapshotChanges` and `proofSnapshot` (previously `verificationSnapshotChanges`/`verificationSnapshot` from the pre-proof-architecture status schema).
+  - The skillopt-eval harness reads `proofSnapshot*` status fields and its held-out eval prompts name the current fields, so "dirty editor path" evidence gathering works against live status output again.
+
+  Dry: completes the `verificationSnapshot*` → `proofSnapshot*` rename from the proof architecture change in the surfaces that earlier commit missed.
+
 ## 1.0.0
 
 ### Major Changes

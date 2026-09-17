@@ -1,5 +1,46 @@
 # kibi-opencode
 
+## 2.0.0
+
+### Major Changes
+
+- 812c201: Kibi's proof layer is now runner-neutral: any test runner, script, or harness can prove requirements, and Playwright is no longer built into the proof model.
+
+  - `kibi prove` replaces `kibi verify` as the single command to run configured proof producers and record evidence. Proof contracts (`kibi.proof-contract.v1`) declare explicit obligations (`symbol_id` + `target`) executed by a configured integration in `.kb/proof/integrations.json`; `kibi proof inspect` discovers test infrastructure deterministically; one producer run can satisfy many test contracts, and re-ingestion is idempotent.
+  - Evidence moves to the `kibi.proof-run.v1` artifact (typed environment, run-level outcome, factual attempt history with `native_case`/`aggregate_run` provenance) evaluated into `kibi.proof-receipt.v1` receipts bound to the live snapshot, contract hash, and effective execution fingerprint. Command proof is the universal fallback, so every project can prove requirements without a first-party framework adapter; strict first-attempt policy never upgrades unknown attempt history into passing evidence.
+  - Breaking removals: `kibi verify`, `kb_ingest_verification`, `kibi.playwright-run.v1`, `verification_contract`/`verification_receipts` entity fields (replaced by `proof_contract`/`proof_bindings`/`proof_receipts`), the `required_case_symbols`×`required_projects` Cartesian contract, and `retries` fields. Migrate by re-running `kibi prove` after bootstrap configures proof for your repository.
+
+  DRY: hard cutover to the proof-evidence protocol across CLI, MCP, runtime skills, Prolog proof evaluation, coverage/repair/report surfaces, agent skills, and repository self-proof (packed e2e steps now execute through `kibi prove --all`).
+
+### Patch Changes
+
+- 3de05e9: Unit coverage can now reach leftover CLI, OpenCode, MCP, and SkillOpt
+  branches without changing product behavior. Helpers that were previously
+  private (package version, pending relationship recovery, relationship-delete
+  migration, advisory empty-event policy, daemon and CLI entrypoints, comment
+  suggestion reset, source-hash warnings) are testable, and a vanished
+  relationship shard after a successful commit is reported as a repair instead
+  of being silently skipped.
+
+  - Export small CLI, OpenCode, MCP, and SkillOpt test seams and report vanished relationship shards.
+  - Keep migration `--yes` and legacy-delete blocks unchanged.
+
+- 2cc5646: OpenCode bootstrap capability detection can now be reset between tests so cached host probes do not leak across cases. Plugin behavior for operators is unchanged; only the test-facing cache helper is new.
+- a3878e9: Unit coverage can now execute leftover defensive branches in CLI, MCP, and
+  OpenCode without lowering Codecov gates. Previously unreachable catch,
+  tie-break, workspace-escape, and package-walk paths are exported as small
+  helpers and covered by in-process remaining-coverage tests.
+
+  - Export leftover defensive helpers and add remaining-coverage tests.
+  - Keep migration `--yes` and delete `migrationRequired` blocks unchanged.
+
+- Updated dependencies [4b8594f]
+- Updated dependencies [b1682f1]
+- Updated dependencies [ee0dc49]
+- Updated dependencies [812c201]
+- Updated dependencies [5999143]
+  - kibi-runtime@2.0.0
+
 ## 1.0.0
 
 ### Major Changes

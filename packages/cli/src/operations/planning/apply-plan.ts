@@ -1,7 +1,8 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { existsSync, realpathSync } from "node:fs";
 import path from "node:path";
 
+import { OperationError } from "../../cli-errors.js";
 import {
   branchEnsureCommand,
   branchMigrateCommand,
@@ -33,6 +34,11 @@ import type {
   UpsertInput,
 } from "../mutation/types.js";
 import { executeUpsert } from "../mutation/upsert.js";
+import {
+  type WorkspaceMutationLockHandle,
+  acquireWorkspaceMutationLock,
+  releaseWorkspaceMutationLock,
+} from "../mutation/workspace-mutation-lock.js";
 import {
   type CompilePlanV1,
   type PlanStep,
@@ -463,6 +469,7 @@ async function applySourceWrites(
   writes: readonly SourceWritePlan[],
   planHash: string,
   allowReplay = false,
+  onCommitted: () => void = () => undefined,
 ): Promise<{
   paths: string[];
   rollback: () => Promise<void>;
@@ -575,6 +582,7 @@ async function applySourceWrites(
           `MUTATION_ALREADY_COMMITTED: source plan ${planHash} already crossed the authoritative commit boundary; use kb_apply_plan recoveryJournalId=${journalId} instead of retrying the original mutation`,
         );
       }
+      onCommitted();
       for (const entry of prior.entries) {
         if (entry.mode === "write" && entry.afterHash !== null) {
           writePendingSourceReceipt(
@@ -626,6 +634,7 @@ async function applySourceWrites(
   const originals: Array<{ absolute: string; body: string | undefined }> = [];
   const entries: JournalEntry[] = [];
   const paths: string[] = [];
+  let sourceCommitted = false;
   try {
     // Validate every target and hash before touching the working tree.
     for (const write of writes) {
@@ -749,17 +758,25 @@ async function applySourceWrites(
         }
         await context.fs.unlink(absolute);
       } else {
-        const staged = `${absolute}.kibi-stage-${journalId}-${index}`;
-        await context.fs.writeFile(staged, write.body ?? "");
-        if (context.fs.rename) {
-          await context.fs.rename(staged, absolute);
-        } else {
-          // Test and constrained host ports may not expose rename. Keep the
-          // compatibility fallback explicit; production nodeFilesystem uses
-          // same-directory rename for atomic replacement.
-          await context.fs.writeFile(absolute, write.body ?? "");
+        const staged = `${absolute}.kibi-stage-${journalId}-${index}-${randomUUID()}`;
+        try {
+          await context.fs.writeFile(staged, write.body ?? "");
+          if (context.fs.rename) {
+            await context.fs.rename(staged, absolute);
+          } else {
+            // Test and constrained host ports may not expose rename. Keep the
+            // compatibility fallback explicit; production nodeFilesystem uses
+            // same-directory rename for atomic replacement.
+            await context.fs.writeFile(absolute, write.body ?? "");
+            if (context.fs.unlink)
+              await context.fs.unlink(staged).catch(() => undefined);
+          }
+        } catch (error) {
+          // A failed rename must not leak the unique staged temp file into
+          // the authored tree; rollback of originals happens in the caller.
           if (context.fs.unlink)
             await context.fs.unlink(staged).catch(() => undefined);
+          throw error;
         }
       }
     }
@@ -767,6 +784,8 @@ async function applySourceWrites(
       journalPath,
       `${JSON.stringify({ version: 1, planHash, state: "sources_committed", entries }, null, 2)}\n`,
     );
+    sourceCommitted = true;
+    onCommitted();
     // A newly authored file is intentionally excluded from ordinary Git
     // discovery until the operator stages it. The receipt binds that pending
     // input to the exact bytes committed by this plan.
@@ -780,6 +799,20 @@ async function applySourceWrites(
       }
     }
   } catch (error) {
+    if (sourceCommitted) {
+      // The authoritative source bytes must remain in place once the commit
+      // milestone has fired. A pending receipt failure is repair metadata
+      // failure, not permission to roll back the committed mutation. Surface
+      // the recovery journal instead of a generic exception so callers never
+      // read the committed plan as retryable.
+      await markSourceJournal(context, journalId, "repair_required");
+      if (error instanceof OperationError) throw error;
+      throw new OperationError(
+        "SOURCE_COMMIT_REPAIR_REQUIRED",
+        `Source plan ${planHash} committed its authoritative bytes, but postcommit repair metadata failed: ${error instanceof Error ? error.message : String(error)}; recovery journal ${journalId} is marked repair_required; use kb_apply_plan recoveryJournalId=${journalId} instead of retrying the original mutation`,
+        false,
+      );
+    }
     for (const original of [...originals].reverse()) {
       try {
         if (original.body === undefined && context.fs.unlink) {
@@ -842,6 +875,7 @@ async function markSourceJournal(
 async function executeSourceRecovery(
   args: Extract<ApplyPlanArgs, { recoveryJournalId: string }>,
   context: OperationContext,
+  onCommitted: () => void = () => undefined,
 ): Promise<{
   content: Array<{ type: "text"; text: string }>;
   structuredContent: ApplyPlanResult;
@@ -902,6 +936,7 @@ async function executeSourceRecovery(
     writes,
     journal.planHash,
     true,
+    onCommitted,
   );
   for (const write of writes) {
     if (write.mode === "write" && write.afterHash !== null) {
@@ -960,6 +995,7 @@ async function executeBootstrapPlan(
   recovery = false,
   remainingActions?: readonly BootstrapAction[],
   priorResults: readonly BootstrapActionResult[] = [],
+  onCommitted: () => void = () => undefined,
 ): Promise<{
   content: Array<{ type: "text"; text: string }>;
   structuredContent: ApplyPlanResult;
@@ -1079,6 +1115,7 @@ async function executeBootstrapPlan(
           asUpsert(action.payload as PlanStep),
           operationContext,
         );
+        onCommitted();
         const payload = result.structuredContent;
         if (payload && typeof payload === "object") {
           const row = payload as Record<string, unknown>;
@@ -1320,9 +1357,10 @@ async function executeBootstrapPlan(
 }
 
 // implements REQ-kibi-change-to-proof-plan-compiler, REQ-agent-guided-migration-orchestration
-export async function executeApplyPlan(
+async function executeApplyPlanUnlocked(
   args: ApplyPlanArgs,
   context: OperationContext,
+  onCommitted: () => void = () => undefined,
 ): Promise<{
   content: Array<{ type: "text"; text: string }>;
   structuredContent: ApplyPlanResult;
@@ -1444,13 +1482,22 @@ export async function executeApplyPlan(
               : []
             : [],
         ),
+        onCommitted,
       );
     }
-    return executeSourceRecovery(args, context);
+    return executeSourceRecovery(args, context, onCommitted);
   }
-  if (isBootstrapApplyArgs(args)) return executeBootstrapPlan(args, context);
+  if (isBootstrapApplyArgs(args))
+    return executeBootstrapPlan(
+      args,
+      context,
+      false,
+      undefined,
+      [],
+      onCommitted,
+    );
   if (isMigrationApplyArgs(args)) {
-    return applyMigrationPlan(args, context);
+    return applyMigrationPlan(args, context, onCommitted);
   }
   if (isEntityDeletionApplyArgs(args)) {
     validateEntityDeletionPlan(args);
@@ -1458,6 +1505,8 @@ export async function executeApplyPlan(
       context,
       args.plan.sourceWrites ?? [],
       args.plan.planHash,
+      false,
+      onCommitted,
     );
     const operationContext = {
       ...context,
@@ -1473,6 +1522,7 @@ export async function executeApplyPlan(
         operationContext,
       );
       payload = result.structuredContent as DeletePayload;
+      onCommitted();
       await markSourceJournal(
         operationContext,
         sourceWrites.journalId,
@@ -1555,18 +1605,26 @@ export async function executeApplyPlan(
     operationContext,
     args.plan.sourceWrites,
     args.plan.planHash,
+    false,
+    onCommitted,
   );
   const notes: string[] = [
     "Plan steps and tracked source writes are validated before sequential application; source writes are journaled for replay.",
   ];
   let changedEntities = 0;
   let changedRelationships = 0;
+  let appliedSteps = 0;
   const effectFailures: Readonly<Record<string, unknown>>[] = [];
   const nextActions: Readonly<Record<string, unknown>>[] = [];
   let compiledCommit = false;
   try {
     for (const step of steps) {
       const result = await executeUpsert(step, operationContext);
+      appliedSteps += 1;
+      // Each step's compiled commit is an authoritative mutation boundary.
+      // Mark it immediately so a later step's failure can never be mistaken
+      // for a retryable whole-plan failure.
+      onCommitted();
       const payload = result.structuredContent;
       if (payload && typeof payload === "object") {
         const row = payload as {
@@ -1586,6 +1644,7 @@ export async function executeApplyPlan(
       }
     }
     compiledCommit = true;
+    onCommitted();
   } catch (error) {
     if (sourceWrites.journalId !== null) {
       effectFailures.push({
@@ -1600,10 +1659,22 @@ export async function executeApplyPlan(
           "Authoritative source files are committed but compiled effects failed; replay the recovery journal instead of retrying the original mutation.",
         required: true,
       });
+      onCommitted();
       await markSourceJournal(
         operationContext,
         sourceWrites.journalId,
         "repair_required",
+      );
+    } else if (appliedSteps > 0) {
+      // A journalless plan (sourceWrites: []) already committed earlier steps
+      // when a later step failed. Expose an explicit non-retryable
+      // partial-commit error instead of a generic exception that invites a
+      // blind retry of the whole plan.
+      if (error instanceof OperationError) throw error;
+      throw new OperationError(
+        "PARTIAL_COMMIT_REPAIR_REQUIRED",
+        `Plan ${args.plan.planHash} committed ${appliedSteps} of ${steps.length} step(s) before failing: ${error instanceof Error ? error.message : String(error)}. This plan carries no recovery journal; do not retry the original plan; inspect the committed snapshot and apply a fresh plan for the remaining steps`,
+        false,
       );
     } else {
       throw error;
@@ -1710,9 +1781,45 @@ export async function executeApplyPlan(
   };
 }
 
+export async function executeApplyPlan(
+  args: ApplyPlanArgs,
+  context: OperationContext,
+): Promise<{
+  content: Array<{ type: "text"; text: string }>;
+  structuredContent: ApplyPlanResult;
+}> {
+  if (!context.fs || context.sourceMutationLockHeld === true)
+    return executeApplyPlanUnlocked(args, context);
+  const lock: WorkspaceMutationLockHandle = await acquireWorkspaceMutationLock(
+    context.workspaceRoot,
+  );
+  let operationFailure: { readonly error: unknown } | undefined;
+  let committed = false;
+  try {
+    const result = await executeApplyPlanUnlocked(
+      args,
+      {
+        ...context,
+        sourceMutationLockHeld: true,
+      },
+      () => {
+        committed = true;
+      },
+    );
+    committed = true;
+    return result;
+  } catch (error) {
+    operationFailure = { error };
+    throw error;
+  } finally {
+    releaseWorkspaceMutationLock(lock, operationFailure, committed);
+  }
+}
+
 async function applyMigrationPlan(
   args: Extract<ApplyPlanArgs, { plan: MigrationPlan }>,
   context: OperationContext,
+  onCommitted: () => void = () => undefined,
 ): Promise<{
   content: Array<{ type: "text"; text: string }>;
   structuredContent: ApplyPlanResult;
@@ -1772,6 +1879,7 @@ async function applyMigrationPlan(
     }
     try {
       await applyMigrationAction(action, context);
+      onCommitted();
       results.push({
         actionId: action.id,
         outcome: "applied",

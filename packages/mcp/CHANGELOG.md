@@ -1,5 +1,87 @@
 # kibi-mcp
 
+## 2.0.0
+
+### Major Changes
+
+- 812c201: Kibi's proof layer is now runner-neutral: any test runner, script, or harness can prove requirements, and Playwright is no longer built into the proof model.
+
+  - `kibi prove` replaces `kibi verify` as the single command to run configured proof producers and record evidence. Proof contracts (`kibi.proof-contract.v1`) declare explicit obligations (`symbol_id` + `target`) executed by a configured integration in `.kb/proof/integrations.json`; `kibi proof inspect` discovers test infrastructure deterministically; one producer run can satisfy many test contracts, and re-ingestion is idempotent.
+  - Evidence moves to the `kibi.proof-run.v1` artifact (typed environment, run-level outcome, factual attempt history with `native_case`/`aggregate_run` provenance) evaluated into `kibi.proof-receipt.v1` receipts bound to the live snapshot, contract hash, and effective execution fingerprint. Command proof is the universal fallback, so every project can prove requirements without a first-party framework adapter; strict first-attempt policy never upgrades unknown attempt history into passing evidence.
+  - Breaking removals: `kibi verify`, `kb_ingest_verification`, `kibi.playwright-run.v1`, `verification_contract`/`verification_receipts` entity fields (replaced by `proof_contract`/`proof_bindings`/`proof_receipts`), the `required_case_symbols`×`required_projects` Cartesian contract, and `retries` fields. Migrate by re-running `kibi prove` after bootstrap configures proof for your repository.
+
+  DRY: hard cutover to the proof-evidence protocol across CLI, MCP, runtime skills, Prolog proof evaluation, coverage/repair/report surfaces, agent skills, and repository self-proof (packed e2e steps now execute through `kibi prove --all`).
+
+### Minor Changes
+
+- 4b8594f: Proof runs are now self-identifying, failures are attributable, and integration selection finally matches real repositories. `kibi prove` sets `KIBI_PROOF_RUN=1` in every producer child process, so runner configs that must behave differently under proof (disabling retries, for example) can branch on a stable marker instead of guessing from output-path variables — this fixes silent contract violations like proof runs executing with Playwright retries enabled. When a run fails, gap reasons now name the failing member results instead of an opaque "run did not pass", so one slow scenario no longer hides why four domain contracts were refused. `--integration` accepts multiple comma-separated ids, `--integration-except` skips integrations without `--all`, and a selector that matches nothing is now a loud error instead of a silent no-op.
+
+  Two long-standing consumer sharp edges are fixed: the symbol compiler lock is stolen immediately when its recorded holder pid is provably dead instead of blocking writes for the full timeout, and `kb_suggest_predicates` now defers to the semantic advisor's nonlogical classification (`review_nonlogical`) instead of emitting predicate suggestions for rationale, example, or subjective prose.
+
+  The built-in predicate catalog grows ten consumer-escalated families — fail-closed authorization, deployment preconditions, data-migration sequencing, diagnostic visibility, mutation authority, request deduplication, async boundaries, canonical identifiers, responsive breakpoints, and operational pauses — and retrieval ranking no longer lets an exact-pattern miss veto strong lexical and semantic evidence, so claims like "must complete in < 500ms", "read canonical data only", and "renderer-neutral persistence" now ground to precise predicates.
+
+  Technical summary: `commandEnvironment` exports `KIBI_PROOF_RUN`; `evaluateContractAgainstRun` adds failing-member attribution to run-failure gap reasons; `prove` selectors parse comma-separated id sets with fail-fast empty matching; `acquireSymbolCompilerLock` steals well-formed locks with dead holder pids; `suggest-predicates` routes all-nonlogical inputs to `review_nonlogical`; `rankSchema` treats exact-score 0 as a miss rather than a veto; `resource_constraint`, `failure_behavior`, `migration_boundary_rule`, and `abstraction_boundary_rule` gain retrieval cues and intent rules; `predicate-catalog-5.ts` and `predicate-usage-hints-4.ts` add the ten new families.
+
+- a379c9a: Long KB validation no longer dies at the tool timeout. `kb_check` accepts `async: true`: instead of holding the request until `KIBI_MCP_TOOL_TIMEOUT_MS` expires — which on large knowledge bases meant the CLI succeeding in seconds while the same check timed out at the MCP layer — the tool returns a `kibi.job.v1` receipt immediately and the check runs in a detached job. Poll the new `kb_job_status` tool with the returned `jobId` until it reports `succeeded` (full result envelope included) or `failed` (error message included). Jobs are process-local by design: bounded in-memory history, not persisted, dropped on server restart, so a stale `jobId` answers `unknown` with that explanation rather than a mystery error.
+
+  Technical summary: `server/jobs.ts` adds the bounded job registry (`startJob`/`getJob`/`jobSnapshot`, oldest-finished eviction at 32); `tool-registration.ts` detaches `kb_check` into a job when `args.async === true`, keeping the synchronous path untouched; `registerAllTools` registers `kb_job_status` as an MCP-server-native companion outside the canonical operation catalog; `checkSpec` gains the documented `async` flag and frozen contract fixtures are regenerated.
+
+### Patch Changes
+
+- 3de05e9: Unit coverage can now reach leftover CLI, OpenCode, MCP, and SkillOpt
+  branches without changing product behavior. Helpers that were previously
+  private (package version, pending relationship recovery, relationship-delete
+  migration, advisory empty-event policy, daemon and CLI entrypoints, comment
+  suggestion reset, source-hash warnings) are testable, and a vanished
+  relationship shard after a successful commit is reported as a repair instead
+  of being silently skipped.
+
+  - Export small CLI, OpenCode, MCP, and SkillOpt test seams and report vanished relationship shards.
+  - Keep migration `--yes` and legacy-delete blocks unchanged.
+
+- fdf0b3d: Packed `kibi-mcp` tarballs could previously ship without `dist/server/session.js`, which made the MCP server fail on startup with `Cannot find module '.../dist/server/session.js'` and left every `kibi_kb_*` tool unusable. The packaging pipeline now rejects incomplete builds before they can be packed or released, so dogfood and consumer installs always receive a complete server bundle.
+
+  - Added a `dist/server/session.js` existence check to `scripts/verify-package-contract.mjs` so the `prepack` gate fails on stale or partial builds.
+  - Added `dist/server/session.js` to the required-entry assertions in the packed tarball regression test (`cli-verify-tarball-core.test.ts`).
+  - Made `kibi-mcp` build clean `dist/` before compiling (`clean` + `build` scripts) to prevent stale artifacts from surviving incremental compiles, matching the pattern already used by `opencode`, `codex`, `cursor`, and `vscode`.
+
+- b14741a: MCP session tests can now replace the live Prolog process after a reset without
+  rewriting the session module. That lets unit coverage exercise terminate and
+  save-failure paths that previously required a real engine.
+
+  - Add `_setPrologProcessForTests` as a test-only seam on the session process slot.
+
+- b1682f1: Kibi CLI now preserves quoted Prolog text and large structured responses when reading optimization evidence. This prevents Unicode, escape sequences, nested metadata, and pipe-delivered JSON from being silently corrupted or truncated during SkillOpt evaluations.
+
+  - Harden Prolog response parsing and atom/string escaping.
+  - Normalize entity endpoints at graph and quality-evidence callers.
+  - Use bounded paginated entity projection when full KB quality reads exceed the Prolog transport capacity.
+  - Wait for stdout backpressure before completing JSON CLI operations.
+
+- a3878e9: Unit coverage can now execute leftover defensive branches in CLI, MCP, and
+  OpenCode without lowering Codecov gates. Previously unreachable catch,
+  tie-break, workspace-escape, and package-walk paths are exported as small
+  helpers and covered by in-process remaining-coverage tests.
+
+  - Export leftover defensive helpers and add remaining-coverage tests.
+  - Keep migration `--yes` and delete `migrationRequired` blocks unchanged.
+
+- 05bff59: Server session state is now encapsulated behind accessor functions instead of live exported bindings. This is an internal robustness cleanup: the MCP server's mutable session state (Prolog worker, active branch, attached KB path, shutdown flag) previously lived in `export let` module bindings, which made state transitions invisible to consumers holding an old reference and made test resets fragile. Behavior, startup, branch switching, and shutdown semantics are unchanged.
+- Updated dependencies [4b8594f]
+- Updated dependencies [d53e77a]
+- Updated dependencies [e09882a]
+- Updated dependencies [a379c9a]
+- Updated dependencies [b1682f1]
+- Updated dependencies [ee0dc49]
+- Updated dependencies [11ba1ef]
+- Updated dependencies [7de82d4]
+- Updated dependencies [812c201]
+- Updated dependencies [30dbb06]
+- Updated dependencies [5999143]
+- Updated dependencies [c4c3832]
+  - kibi-runtime@2.0.0
+  - kibi-core@0.12.0
+
 ## 1.0.0
 
 ### Major Changes

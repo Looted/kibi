@@ -1,6 +1,7 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { InputError, OperationError } from "../../cli-errors.js";
 import {
   parseEntityFromList,
   parseListOfLists,
@@ -30,6 +31,12 @@ import {
   writePendingSourceReceipt,
 } from "./source-authoring.js";
 import type { DeleteInput, DeletePayload } from "./types.js";
+import {
+  type WorkspaceMutationLockHandle,
+  acquireWorkspaceMutationLock,
+  classifySourceMutationFailure,
+  releaseWorkspaceMutationLock,
+} from "./workspace-mutation-lock.js";
 
 function requireProlog(context: OperationContext) {
   if (context.prolog === undefined)
@@ -90,9 +97,10 @@ function fileHash(pathname: string): string | null {
 
 // implements REQ-011
 // covered_by TEST-cli-source-relationship-parity-unit
-export async function executeRelationshipDelete(
+async function executeRelationshipDeleteUnlocked(
   selectors: readonly RelationshipSelector[],
   context: OperationContext,
+  onCommitted: () => void = () => undefined,
 ): Promise<DeletePayload> {
   const prolog = requireProlog(context);
   const allowed = new Set<string>(RELATIONSHIP_TYPES);
@@ -279,12 +287,19 @@ export async function executeRelationshipDelete(
       relative,
     );
     await context.fs.mkdir(path.dirname(absolute));
-    const temporary = `${absolute}.kibi-relationship-${process.pid}-${Date.now()}`;
-    await context.fs.writeFile(temporary, body);
-    if (context.fs.rename) await context.fs.rename(temporary, absolute);
-    else {
-      await context.fs.writeFile(absolute, body);
+    const temporary = `${absolute}.kibi-relationship-${process.pid}-${randomUUID()}`;
+    try {
+      await context.fs.writeFile(temporary, body);
+      if (context.fs.rename) await context.fs.rename(temporary, absolute);
+      else {
+        await context.fs.writeFile(absolute, body);
+        await context.fs.unlink?.(temporary).catch(() => undefined);
+      }
+    } catch (error) {
+      // A failed rename must not leak the unique temp file into the authored
+      // tree; the published target (if any) is untouched at this point.
       await context.fs.unlink?.(temporary).catch(() => undefined);
+      throw error;
     }
   };
   try {
@@ -316,6 +331,9 @@ export async function executeRelationshipDelete(
       retracted += 1;
     }
     if (retracted > 0) await saveMutation(prolog, "delete");
+    // The compiled mutation is now authoritative. Receipt publication below
+    // must not make the enclosing operation look retryable.
+    onCommitted();
   } catch (error) {
     const paths = [
       ...new Set(shardRemovals.flatMap((item) => item.shardPaths)),
@@ -393,6 +411,40 @@ export async function executeRelationshipDelete(
   };
 }
 
+export async function executeRelationshipDelete(
+  selectors: readonly RelationshipSelector[],
+  context: OperationContext,
+  onCommitted: () => void = () => undefined,
+): Promise<DeletePayload> {
+  if (!context.fs || context.sourceMutationLockHeld === true)
+    return executeRelationshipDeleteUnlocked(selectors, context, onCommitted);
+  const lock = await acquireWorkspaceMutationLock(context.workspaceRoot);
+  let operationFailure: { readonly error: unknown } | undefined;
+  let committed = false;
+  try {
+    const result = await executeRelationshipDeleteUnlocked(
+      selectors,
+      context,
+      () => {
+        committed = true;
+        onCommitted();
+      },
+    );
+    committed = true;
+    return result;
+  } catch (error) {
+    const failure = classifySourceMutationFailure(
+      "Relationship delete",
+      error,
+      committed,
+    );
+    operationFailure = { error: failure };
+    throw failure;
+  } finally {
+    releaseWorkspaceMutationLock(lock, operationFailure, committed);
+  }
+}
+
 export async function executeDelete(
   input: DeleteInput,
   context: OperationContext,
@@ -411,7 +463,15 @@ export async function executeDelete(
     );
   }
   const prolog = requireProlog(context);
+  let sourceMutationLock: WorkspaceMutationLockHandle | undefined;
+  let committed = false;
+  let operationFailure: { readonly error: unknown } | undefined;
   try {
+    if (context.fs && context.sourceMutationLockHeld !== true) {
+      sourceMutationLock = await acquireWorkspaceMutationLock(
+        context.workspaceRoot,
+      );
+    }
     const ids = input.ids ?? [];
     const relationships = input.relationships ?? [];
     if ((ids.length === 0) === (relationships.length === 0))
@@ -425,7 +485,10 @@ export async function executeDelete(
         );
       const payload = await executeRelationshipDelete(
         relationships as readonly RelationshipSelector[],
-        context,
+        { ...context, sourceMutationLockHeld: true },
+        () => {
+          committed = true;
+        },
       );
       return {
         content: [
@@ -572,6 +635,7 @@ export async function executeDelete(
     try {
       if (goals.length > 0) await saveAtomicMutation(prolog, goals, "delete");
       else await saveMutation(prolog, "delete");
+      committed = true;
     } catch (error) {
       for (const [source, body] of sourceBodies) {
         await context.fs?.writeFile(
@@ -596,8 +660,29 @@ export async function executeDelete(
       structuredContent: payload,
     };
   } catch (error) {
-    throw new Error(
+    // Typed operation errors keep their code and retryability. After the
+    // commit milestone, a generic failure is already a committed mutation:
+    // wrap it as non-retryable immediately instead of only when lock release
+    // also fails.
+    if (error instanceof OperationError || error instanceof InputError) {
+      operationFailure = { error };
+      throw error;
+    }
+    if (committed) {
+      const failure = classifySourceMutationFailure("Delete", error, true);
+      operationFailure = { error: failure };
+      throw failure;
+    }
+    const failure = new Error(
       `Delete execution failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
+    operationFailure = { error: failure };
+    throw failure;
+  } finally {
+    releaseWorkspaceMutationLock(
+      sourceMutationLock,
+      operationFailure,
+      committed,
     );
   }
 }

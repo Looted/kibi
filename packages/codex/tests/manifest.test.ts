@@ -33,6 +33,7 @@ const packageRoot = (() => {
 const packageJsonPath = path.join(packageRoot, "package.json");
 const manifestPath = path.join(packageRoot, ".codex-plugin", "plugin.json");
 const scriptPath = path.join(packageRoot, "scripts", "copy-plugin-assets.ts");
+const hookBundlePath = path.join(packageRoot, "bin", "hook-runner.mjs");
 
 const manifestAssets = [
   path.join(".codex-plugin", "plugin.json"),
@@ -68,6 +69,8 @@ describe("kibi-codex plugin manifest", () => {
 
   test("manifests references existing source assets", () => {
     expect(fs.existsSync(scriptPath)).toBe(true);
+    expect(fs.existsSync(hookBundlePath)).toBe(true);
+    expect(fs.statSync(hookBundlePath).size).toBeGreaterThan(0);
 
     for (const asset of manifestAssets) {
       expect(fs.existsSync(path.join(packageRoot, asset))).toBe(true);

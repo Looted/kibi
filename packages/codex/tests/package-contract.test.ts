@@ -36,6 +36,7 @@ describe("kibi-codex package contract", () => {
       ".mcp.json",
       "hooks",
       "skills",
+      "bin",
       "dist",
       "CHANGELOG.md",
     ]);
