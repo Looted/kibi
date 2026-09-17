@@ -69,6 +69,19 @@ describe("publish.yml CI workflow contract", () => {
     expect(block).toContain("packages/runtime/*.tgz");
   });
 
+  test("checks Codex hook bundle drift before build regeneration", () => {
+    const block = extractJobBlock(workflowContent, "build-and-check");
+    const dependencyInstall = block.indexOf("bun install --frozen-lockfile");
+    const driftCheck = block.indexOf(
+      "bun run --filter kibi-codex check:hook-bundle",
+    );
+    const codexBuild = block.indexOf("bun run build:codex");
+
+    expect(dependencyInstall).toBeGreaterThanOrEqual(0);
+    expect(driftCheck).toBeGreaterThan(dependencyInstall);
+    expect(codexBuild).toBeGreaterThan(driftCheck);
+  });
+
   test("keeps package packing and smoke-install order canonical", () => {
     const block = extractJobBlock(workflowContent, "build-and-check");
     const packOrder = [

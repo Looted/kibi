@@ -131,6 +131,19 @@ describe("ci.yml CI workflow contract", () => {
     expect(block).not.toContain("fetch-depth: 0");
   });
 
+  test("checks Codex hook bundle drift before build regeneration", () => {
+    const block = extractJobBlock(workflowContent, "build-and-test");
+    const dependencyInstall = block.indexOf("bun install --frozen-lockfile");
+    const driftCheck = block.indexOf(
+      "bun run --filter kibi-codex check:hook-bundle",
+    );
+    const codexBuild = block.indexOf("bun run build:codex");
+
+    expect(dependencyInstall).toBeGreaterThanOrEqual(0);
+    expect(driftCheck).toBeGreaterThan(dependencyInstall);
+    expect(codexBuild).toBeGreaterThan(driftCheck);
+  });
+
   test("build-and-test: unit coverage runs on pull requests and pushes", () => {
     const block = extractJobBlock(workflowContent, "build-and-test");
     expect(block).toContain("- name: Run unit tests with coverage");
