@@ -32478,6 +32478,8 @@ symbols:
     sourceFile: packages/runtime/src/skill-system/validation.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
       - type: implements
         target: REQ-reusable-skill-subsystem
   - id: SYM-validateManifestData
@@ -32486,6 +32488,8 @@ symbols:
     sourceFile: packages/runtime/src/skill-system/validation.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
       - type: implements
         target: REQ-reusable-skill-subsystem
   - id: SYM-coerceManifest
@@ -32494,6 +32498,8 @@ symbols:
     sourceFile: packages/runtime/src/skill-system/validation.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
       - type: implements
         target: REQ-reusable-skill-subsystem
   - id: SYM-isStringArray
@@ -32502,6 +32508,8 @@ symbols:
     sourceFile: packages/runtime/src/skill-system/validation.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
       - type: implements
         target: REQ-reusable-skill-subsystem
   - id: SYM-assertNonEmptyString
@@ -32510,6 +32518,8 @@ symbols:
     sourceFile: packages/runtime/src/skill-operations.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
       - type: implements
         target: REQ-reusable-skill-subsystem
   - id: SYM-executeSkillsList
@@ -32518,6 +32528,8 @@ symbols:
     sourceFile: packages/runtime/src/skill-operations.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
       - type: implements
         target: REQ-reusable-skill-subsystem
   - id: SYM-executeSkillsLoad
@@ -32526,6 +32538,8 @@ symbols:
     sourceFile: packages/runtime/src/skill-operations.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
       - type: implements
         target: REQ-reusable-skill-subsystem
   - id: SYM-executeSkillsRead
@@ -32534,6 +32548,8 @@ symbols:
     sourceFile: packages/runtime/src/skill-operations.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
       - type: implements
         target: REQ-reusable-skill-subsystem
   - id: SYM-defaultBundledSkillsDir
@@ -32634,6 +32650,8 @@ symbols:
     sourceFile: packages/runtime/src/skill-system/paths.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
       - type: implements
         target: REQ-reusable-skill-subsystem
   - id: SYM-ReceiptCodeScopeEntry
@@ -32642,6 +32660,8 @@ symbols:
     sourceFile: packages/cli/src/extractors/manifest.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
       - type: implements
         target: REQ-kibi-fresh-verification-receipts
   - id: SYM-symbol-classification
@@ -32667,6 +32687,8 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
       - type: implements
         target: REQ-kibi-fresh-verification-receipts
       - type: implements
