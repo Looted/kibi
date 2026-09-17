@@ -17,6 +17,7 @@
     ".mcp.json",
     "hooks",
     "skills",
+    "bin",
     "dist",
     "CHANGELOG.md"
   ],
@@ -32,7 +33,9 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && bun run scripts/build-mcp-config.ts && bun run scripts/copy-plugin-assets.ts && bun run ../../scripts/sync-agent-skills.ts --write --target codex",
+    "build": "tsc -p tsconfig.json && bun run build:hook-bundle && bun run scripts/build-mcp-config.ts && bun run scripts/copy-plugin-assets.ts && bun run ../../scripts/sync-agent-skills.ts --write --target codex",
+    "build:hook-bundle": "bun run scripts/build-hook-bundle.ts",
+    "check:hook-bundle": "bun run scripts/build-hook-bundle.ts --check",
     "dev": "tsc -p tsconfig.json --watch",
     "clean": "rm -rf dist",
     "prepack": "npm run build"

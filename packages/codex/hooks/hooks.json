@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$PLUGIN_ROOT/dist/hook-runner.js\""
+            "command": "node \"$PLUGIN_ROOT/bin/hook-runner.mjs\""
           }
         ]
       }
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$PLUGIN_ROOT/dist/hook-runner.js\""
+            "command": "node \"$PLUGIN_ROOT/bin/hook-runner.mjs\""
           }
         ]
       }
@@ -27,7 +27,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$PLUGIN_ROOT/dist/hook-runner.js\""
+            "command": "node \"$PLUGIN_ROOT/bin/hook-runner.mjs\""
           }
         ]
       }
@@ -37,7 +37,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$PLUGIN_ROOT/dist/hook-runner.js\""
+            "command": "node \"$PLUGIN_ROOT/bin/hook-runner.mjs\""
           }
         ]
       }
