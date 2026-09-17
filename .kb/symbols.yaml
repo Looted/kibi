@@ -32559,6 +32559,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-skill-cli-load-validate
+      - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: implements
         target: REQ-reusable-skill-subsystem
@@ -32568,6 +32570,8 @@ symbols:
     sourceFile: packages/runtime/src/skill-system/loader.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: implements
@@ -32579,6 +32583,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-skill-cli-load-validate
+      - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: implements
         target: REQ-reusable-skill-subsystem
@@ -32588,6 +32594,8 @@ symbols:
     sourceFile: packages/runtime/src/skill-system/loader.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: implements
@@ -32599,6 +32607,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-skill-cli-load-validate
+      - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: implements
         target: REQ-reusable-skill-subsystem
@@ -32608,6 +32618,8 @@ symbols:
     sourceFile: packages/runtime/src/skill-system/loader.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: implements
