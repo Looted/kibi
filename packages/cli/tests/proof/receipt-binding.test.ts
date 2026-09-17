@@ -105,14 +105,15 @@ describe("currentProofBindingMode", () => {
     );
     const previous = process.env.KIBI_PROOF_BINDING_MODE;
     try {
-      delete process.env.KIBI_PROOF_BINDING_MODE;
+      process.env.KIBI_PROOF_BINDING_MODE = undefined;
       expect(currentProofBindingMode()).toBe("per_contract");
       process.env.KIBI_PROOF_BINDING_MODE = "per-contract";
       expect(currentProofBindingMode()).toBe("per_contract");
       process.env.KIBI_PROOF_BINDING_MODE = "strict-snapshot";
       expect(currentProofBindingMode()).toBe("strict_snapshot");
     } finally {
-      if (previous === undefined) delete process.env.KIBI_PROOF_BINDING_MODE;
+      if (previous === undefined)
+        process.env.KIBI_PROOF_BINDING_MODE = undefined;
       else process.env.KIBI_PROOF_BINDING_MODE = previous;
     }
   });

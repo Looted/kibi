@@ -204,13 +204,21 @@ coordinates:
     sourceFile: packages/mcp/src/server/tools.ts
     sourceLine: 136
   SYM-ALLOWED_GRANULARITY_REASONS:
-    identityHash: 4f376bd211e155b743ff71aa9a7984d5ea0ac5f53f35445b360cde3cf4fee8ac
-    sourceHash: 02544c399433fee0518fe4fe08f276ddcad71919a65538a6e175d65a7d9a5bc2
+    identityHash: 3f4dd4a579c984ba82c46be806c9756b8f9753d0083c5ed3f076657161269e7f
+    sourceHash: d9d0be881396bc0e6e23743552c6a487dc95448be74bac7a3ec712dabaee6d94
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 27
-    sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 21
+    sourceEndLine: 17
+    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
+    sourceLine: 11
+  SYM-ALLOWED_GRANULARITY_REASONS_PROSE:
+    identityHash: 420a6dc7cb175dd8d048a3956fbb47d0a7f03bafd58aa0d195da5b6236789836
+    sourceHash: d9d0be881396bc0e6e23743552c6a487dc95448be74bac7a3ec712dabaee6d94
+    sourceColumn: 13
+    sourceEndColumn: 86
+    sourceEndLine: 66
+    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
+    sourceLine: 65
   SYM-analyze-staged-file-coverage:
     identityHash: 3eabd682fdb750cbd6ed8e548630dfe38e9c44284d01605bd6d138e966ac5c15
     sourceHash: 0c4af7a505b22f9e31323928a85c8f0e396d2a41c10d463dac4c26b76dac25a9
@@ -3733,20 +3741,20 @@ coordinates:
     sourceLine: 254
   SYM-cli-impact-createSemanticReviewDiagnostics:
     identityHash: 9876819afceb1d5f91e4d357a97d9e2f64f0098fe35466115e13219df3c796c6
-    sourceHash: 63d434c2644b6f4567e1c61ccb361674422427d153a9c1214f7033efc8e45abe
+    sourceHash: bf60230622824e96479fa4c227344f16bdc52c4e7559ea0bba3c4ce351c9c574
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 185
+    sourceEndLine: 186
     sourceFile: packages/cli/src/public/impact/diagnostics.ts
-    sourceLine: 161
+    sourceLine: 162
   SYM-cli-impact-createSymbolGranularityDiagnostics:
     identityHash: bec0061690c6fac1e32db8692e5df666be40f765b0d81f12085813935589acba
-    sourceHash: 63d434c2644b6f4567e1c61ccb361674422427d153a9c1214f7033efc8e45abe
+    sourceHash: bf60230622824e96479fa4c227344f16bdc52c4e7559ea0bba3c4ce351c9c574
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 159
+    sourceEndLine: 160
     sourceFile: packages/cli/src/public/impact/diagnostics.ts
-    sourceLine: 110
+    sourceLine: 111
   SYM-cli-impact-createSymbolQualityDiagnostics:
     identityHash: 9be0c469ac9aa2ea289a84ce1a65867384978690413bc5a59ea06c94fc6615b4
     sourceHash: c43cc1748b93a40a92b2202e428225dea5f7855eb5f764c1446fe32887e29f9f
@@ -3765,20 +3773,20 @@ coordinates:
     sourceLine: 21
   SYM-cli-impact-hasBlockingImpactDiagnostics:
     identityHash: 3ffd5dcc8bfb41c8f734f8f0e17fb8bea7f9fafd377961ca03ef36fd332cb48d
-    sourceHash: 63d434c2644b6f4567e1c61ccb361674422427d153a9c1214f7033efc8e45abe
+    sourceHash: bf60230622824e96479fa4c227344f16bdc52c4e7559ea0bba3c4ce351c9c574
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 191
+    sourceEndLine: 192
     sourceFile: packages/cli/src/public/impact/diagnostics.ts
-    sourceLine: 187
+    sourceLine: 188
   SYM-cli-impact-hasBlockingQualityDiagnostics:
     identityHash: 8f7c40b94b3dac66f13d042aac008745a28bd509cfae6936f5c0c3a00135ef9e
-    sourceHash: 63d434c2644b6f4567e1c61ccb361674422427d153a9c1214f7033efc8e45abe
+    sourceHash: bf60230622824e96479fa4c227344f16bdc52c4e7559ea0bba3c4ce351c9c574
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 199
+    sourceEndLine: 200
     sourceFile: packages/cli/src/public/impact/diagnostics.ts
-    sourceLine: 193
+    sourceLine: 194
   SYM-cli-impact-hasMeaningfulSourceDiff:
     identityHash: 11b1339208d381c42d5724afb8eb10506e1125cd5800d22f89c606876cbdd1ab
     sourceHash: 753af8f9c4f81eb4e155d4d2ea6d6d0c065e60d07c6447a03c67b350518d38ef
@@ -5373,12 +5381,12 @@ coordinates:
     sourceLine: 92
   SYM-cli-symbol-granularity-validate:
     identityHash: 92eb8343b6ef3e5e4a3f2ad3bdc7b00b301491e8c2fd64edc820499a5215be20
-    sourceHash: 8b831da42b3229e693c7dbf86e7987d861254a85a38a42d137a9c21d7c892e2a
+    sourceHash: 287200b5b2718c3a00be53a51bd15c09db8867ca2300cdfda351608fef907693
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 151
+    sourceEndLine: 152
     sourceFile: packages/cli/src/operations/mutation/symbol-granularity.ts
-    sourceLine: 108
+    sourceLine: 109
   SYM-cli-sync-extract-relationship-shard:
     identityHash: c37d70aba167952f9e1c3069461ef0e0aeb36dc6853b36b1fd55f26d312a25b6
     sourceHash: f9ec0c066744c1162ec73854857c2767a0d01c1016802891073fe4a7cacaec78
@@ -5532,13 +5540,29 @@ coordinates:
     sourceFile: scripts/skillopt-eval/cli.ts
     sourceLine: 15
   SYM-COARSE_GRANULARITY_REASONS:
-    identityHash: abed7d4888229c1a4d5b5e147644bb1a94a65ae68df0e4392556a5108c3816a3
-    sourceHash: 02544c399433fee0518fe4fe08f276ddcad71919a65538a6e175d65a7d9a5bc2
+    identityHash: 1c474bbe7b5d70aa7f44c48bc9f3991cd11981155f41c1794e98e7a648339d17
+    sourceHash: d9d0be881396bc0e6e23743552c6a487dc95448be74bac7a3ec712dabaee6d94
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 42
-    sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 37
+    sourceEndLine: 26
+    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
+    sourceLine: 21
+  SYM-COARSE_GRANULARITY_REASONS_PARENTHESIZED:
+    identityHash: 0c0f5382869cdb74e4462b2b32cbdb10f3e88101222172ad8dc1b9fabe42149a
+    sourceHash: d9d0be881396bc0e6e23743552c6a487dc95448be74bac7a3ec712dabaee6d94
+    sourceColumn: 13
+    sourceEndColumn: 72
+    sourceEndLine: 74
+    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
+    sourceLine: 73
+  SYM-COARSE_GRANULARITY_REASONS_PROSE:
+    identityHash: 580118474ed6dcbe6aed9b07509e0d24ee92cef52b62d1841ffdfb4f68822270
+    sourceHash: d9d0be881396bc0e6e23743552c6a487dc95448be74bac7a3ec712dabaee6d94
+    sourceColumn: 13
+    sourceEndColumn: 73
+    sourceEndLine: 70
+    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
+    sourceLine: 69
   SYM-coarseCoordinateSpan:
     identityHash: 0f5068521faca3696e400e5475b6f89041ac487f218ae5f14bff40ea04186326
     sourceHash: 34be6bf937dc2c0c2586b0652d89c5ad918b08d5dfa7ddb1246a6e42d6da8a4b
@@ -5548,13 +5572,13 @@ coordinates:
     sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
     sourceLine: 117
   SYM-CoarseGranularityReason:
-    identityHash: d6593f1c0355b58c8ef448514e9bc36afdd41da1fcf9e8a448d4dbc2737d7eb2
-    sourceHash: 02544c399433fee0518fe4fe08f276ddcad71919a65538a6e175d65a7d9a5bc2
+    identityHash: 0bdf9834406605ba1a55066693d499f563672c83253db1bb0ff24507c998beb6
+    sourceHash: d9d0be881396bc0e6e23743552c6a487dc95448be74bac7a3ec712dabaee6d94
     sourceColumn: 12
     sourceEndColumn: 46
-    sourceEndLine: 45
-    sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 44
+    sourceEndLine: 29
+    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
+    sourceLine: 28
   SYM-codex-adapterKind:
     identityHash: 08986e4907d853b408310025e6625dd5297aadea247da0c80b0f2545076f213e
     sourceHash: 789ea945b92cf438f18a6ebf5cc8f4a775179747dab5f6173fced1a6656a81fe
@@ -6571,6 +6595,14 @@ coordinates:
     sourceEndLine: 45
     sourceFile: packages/runtime/src/skill-system/loader.ts
     sourceLine: 43
+  SYM-currentProofBindingMode:
+    identityHash: 84fe74a879d9f2e26b1ffe5522d8760e4d407418b8a7619525e0c8a581cafd01
+    sourceHash: 921e8d1d75335cf70655df1847dc8525bc50f2f2da1919e9ffd0682d583114e0
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 201
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    sourceLine: 197
   SYM-cursor-adapterKind:
     identityHash: 4f6e87bfebe00bab848bb833209e1f725f1a94a704ae33f4845cd445095a3293
     sourceHash: e42274e9b62da7f404eb39076cee969075177cc0cee5214a4a08ca99f8697e96
@@ -8573,12 +8605,12 @@ coordinates:
     sourceLine: 1121
   SYM-getBehavioralSymbolNames:
     identityHash: aed0801fb7be06513976596f147541bf67d5c8a6d818f7000dbb5670d61f279c
-    sourceHash: 02544c399433fee0518fe4fe08f276ddcad71919a65538a6e175d65a7d9a5bc2
+    sourceHash: d343a223d75ddfd74c507075abb730964ab304730011c205d505507c473d5dca
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 143
+    sourceEndLine: 118
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 135
+    sourceLine: 110
   SYM-getBehaviorSourcePaths:
     identityHash: 02b23592c7eae22dd5ada25c8e71086d92b1772015bddebcdd5c3ae518d1ed80
     sourceHash: 92a8b0c5600b8e42864034a8b9bb5a10cd2a17e544bf98199ca228e8e8a4d522
@@ -8677,12 +8709,12 @@ coordinates:
     sourceLine: 250
   SYM-getNonBehavioralSymbolNames:
     identityHash: c9a6b70e19701a17ddf3bcf681ce5e88cd25dafc97a8f740077c4bd4e17d4854
-    sourceHash: 02544c399433fee0518fe4fe08f276ddcad71919a65538a6e175d65a7d9a5bc2
+    sourceHash: d343a223d75ddfd74c507075abb730964ab304730011c205d505507c473d5dca
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 155
+    sourceEndLine: 130
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 145
+    sourceLine: 120
   SYM-getSchemaVersionStatus:
     identityHash: 0be228ea4c54c6e4ac676189e4115a242601efd310e01091d1a8073ab6929414
     sourceHash: decd782ebc5fc3247708fc5d04595172211497fc9e0e6abd24f858b7dc55155f
@@ -8709,12 +8741,12 @@ coordinates:
     sourceLine: 352
   SYM-getSymbolRole:
     identityHash: 30a96a50549301176d67e94dea2c77f41202773c8ba5acc8077780deceb7fcfd
-    sourceHash: 02544c399433fee0518fe4fe08f276ddcad71919a65538a6e175d65a7d9a5bc2
+    sourceHash: d343a223d75ddfd74c507075abb730964ab304730011c205d505507c473d5dca
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 127
+    sourceEndLine: 102
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 123
+    sourceLine: 98
   SYM-getWorkspaceFolderUri:
     identityHash: 49fb74d03d0eb73360636200c98cc7f426a64bfc9d3967785ec69c4635844ee3
     sourceHash: ca4fbc3daceaaf0f82b85fd454bbd52a84ff3a7647406e3db68f2eb536760448
@@ -8740,21 +8772,21 @@ coordinates:
     sourceFile: packages/cli/src/traceability/git-staged.ts
     sourceLine: 39
   SYM-GranularityReason:
-    identityHash: d43817e0404b3f717de09f9cc530649301ee015ce53c396328efdc39e5272733
-    sourceHash: 02544c399433fee0518fe4fe08f276ddcad71919a65538a6e175d65a7d9a5bc2
+    identityHash: 26d86bca9adf3708e1f61c3ce90d56dc5d1762446e3d1e9ad552d1de3d7f3e56
+    sourceHash: d9d0be881396bc0e6e23743552c6a487dc95448be74bac7a3ec712dabaee6d94
     sourceColumn: 12
     sourceEndColumn: 77
-    sourceEndLine: 29
-    sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 29
+    sourceEndLine: 19
+    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
+    sourceLine: 19
   SYM-GranularSymbolCandidate:
     identityHash: 8009a32e90827ac61faf507180e937ecfcac09363af7c3e17f138325edf86539
-    sourceHash: 02544c399433fee0518fe4fe08f276ddcad71919a65538a6e175d65a7d9a5bc2
+    sourceHash: d343a223d75ddfd74c507075abb730964ab304730011c205d505507c473d5dca
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 65
+    sourceEndLine: 54
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 61
+    sourceLine: 50
   SYM-GuidanceCache:
     identityHash: 81e15e2dc7204e5bf2e682c2634c8ca7521631e7aa5e92d50a70593627ffa110
     sourceHash: 55060cfeb22f2e7cc23b47cc8faf744d789ace405714630f3df4ba163db5f18e
@@ -8853,12 +8885,12 @@ coordinates:
     sourceLine: 13
   SYM-hasAllGeneratedCoordinates:
     identityHash: 9e1a8080da78c61b7fe5d49f1bcdbadbfb8f9c1fc468a10735d8841d089ed20e
-    sourceHash: 7937ae9d6a21fa09e5ef69569850f73a1e68443a2759768d4d52766174e8038d
+    sourceHash: 35ae9fb9622786345a935726813fb43bb5d5c8856c05ec76c4a0818834ad06ae
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 447
+    sourceEndLine: 448
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 437
+    sourceLine: 438
   SYM-hashFixtureClaimRoot:
     identityHash: f7eea547f5e777a5c639d0ae0cf99acb00dfa285a318787aaee41556927a9c69
     sourceHash: c34f5b3c5f7db4bd9eccb6304a6c0837725d3506864f6e015b45933037e9ee7d
@@ -9029,20 +9061,20 @@ coordinates:
     sourceLine: 18
   SYM-inferSymbolRole:
     identityHash: c928b9a6b260507907cb3627b6ca406b6d3c43e44fd0b921be2760a700b98e02
-    sourceHash: 02544c399433fee0518fe4fe08f276ddcad71919a65538a6e175d65a7d9a5bc2
+    sourceHash: d343a223d75ddfd74c507075abb730964ab304730011c205d505507c473d5dca
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 93
+    sourceEndLine: 68
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 77
+    sourceLine: 66
   SYM-inferSymbolRoleFromKind:
     identityHash: 02047e7a84206983c0ce5e25eae1db272ada1ad369d35352b9775121d15b01b6
-    sourceHash: 02544c399433fee0518fe4fe08f276ddcad71919a65538a6e175d65a7d9a5bc2
+    sourceHash: d343a223d75ddfd74c507075abb730964ab304730011c205d505507c473d5dca
     sourceColumn: 13
     sourceEndColumn: 54
-    sourceEndLine: 95
+    sourceEndLine: 70
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 95
+    sourceLine: 70
   SYM-info:
     identityHash: 853083808419266524482b7c81d984f84fb6c6acb236df43f7abc0fad9b8ad61
     sourceHash: 53a986bfbe1042aaa46a79ff2185411029d18177b29619cfd66b1dec2612d2db
@@ -9157,12 +9189,12 @@ coordinates:
     sourceLine: 56
   SYM-isAllowedGranularityReason:
     identityHash: 08f9e757648f5c250f3663fc8b5130fd01118b4b8f493d540669110982993650
-    sourceHash: 02544c399433fee0518fe4fe08f276ddcad71919a65538a6e175d65a7d9a5bc2
+    sourceHash: d343a223d75ddfd74c507075abb730964ab304730011c205d505507c473d5dca
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 115
+    sourceEndLine: 90
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 111
+    sourceLine: 86
   SYM-isAuditedNoImpactOverrideAllowed:
     identityHash: c57d50e666cf6b8bbf3cb132c9cffa34afecd679b3692c5044e0a5fb5f1f3aa9
     sourceHash: 691053bf1c35d0a12b9c8dc3a0ea93fa592f844ac88582a31d41d1e7182d979f
@@ -9173,12 +9205,12 @@ coordinates:
     sourceLine: 152
   SYM-isBehavioralSymbol:
     identityHash: 17d31c80a32166144b2852d8d953d119c34b2ed9a20d60328eca8141de147818
-    sourceHash: 02544c399433fee0518fe4fe08f276ddcad71919a65538a6e175d65a7d9a5bc2
+    sourceHash: d343a223d75ddfd74c507075abb730964ab304730011c205d505507c473d5dca
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 133
+    sourceEndLine: 108
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 129
+    sourceLine: 104
   SYM-isBehaviorSourceEdit:
     identityHash: a688bc85ae2ca2d0667144a83b46bfaabd111c0c98f90a82780baddbb338fa15
     sourceHash: 691053bf1c35d0a12b9c8dc3a0ea93fa592f844ac88582a31d41d1e7182d979f
@@ -9189,28 +9221,28 @@ coordinates:
     sourceLine: 162
   SYM-isCoarseGranularityAnchor:
     identityHash: 8a29392035d5211d94ca9ee8fc2c921c466003887a87731ce3499218d37229ff
-    sourceHash: 7937ae9d6a21fa09e5ef69569850f73a1e68443a2759768d4d52766174e8038d
+    sourceHash: 35ae9fb9622786345a935726813fb43bb5d5c8856c05ec76c4a0818834ad06ae
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 117
+    sourceEndLine: 118
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 114
+    sourceLine: 115
   SYM-isCoarseGranularityReason:
     identityHash: 9d7e7d412f3cf9a0072940e0bceae45673c1583365d106178ff0252c55d7a7a7
-    sourceHash: 02544c399433fee0518fe4fe08f276ddcad71919a65538a6e175d65a7d9a5bc2
+    sourceHash: d343a223d75ddfd74c507075abb730964ab304730011c205d505507c473d5dca
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 121
+    sourceEndLine: 96
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 117
+    sourceLine: 92
   SYM-isEligibleForCoordinateRefresh:
     identityHash: 052325b389e49a4702725e5e756699b14e91224b62d4787a01844de62145dca0
-    sourceHash: 7937ae9d6a21fa09e5ef69569850f73a1e68443a2759768d4d52766174e8038d
+    sourceHash: 35ae9fb9622786345a935726813fb43bb5d5c8856c05ec76c4a0818834ad06ae
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 464
+    sourceEndLine: 465
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 449
+    sourceLine: 450
   SYM-isErrno:
     identityHash: 3480131938a7e44bcf07de65a5c96f41aee98f59cf239bf3d37eb01bec3a7103
     sourceHash: 9c800cfd2cbdd01aa8d0f818b4e54f59d85f17b0acbb9dc858cb0bcbeaaebca8
@@ -9269,20 +9301,20 @@ coordinates:
     sourceLine: 72
   SYM-isSymbolRole:
     identityHash: 15143a7fea1d7ff6d183562b8eac8733fe90460a0e0afb962534e561cad0d6b4
-    sourceHash: 02544c399433fee0518fe4fe08f276ddcad71919a65538a6e175d65a7d9a5bc2
+    sourceHash: d343a223d75ddfd74c507075abb730964ab304730011c205d505507c473d5dca
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 101
+    sourceEndLine: 76
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 97
+    sourceLine: 72
   SYM-isTraceabilityRelationshipType:
     identityHash: c1315f4898cad655d0c989f6cfd3e6601f1b9c6ff5b9f0fbbf21aacc25818d72
-    sourceHash: 02544c399433fee0518fe4fe08f276ddcad71919a65538a6e175d65a7d9a5bc2
+    sourceHash: d343a223d75ddfd74c507075abb730964ab304730011c205d505507c473d5dca
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 109
+    sourceEndLine: 84
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 103
+    sourceLine: 78
   SYM-isValidCoordinateSpan:
     identityHash: 5199917bc442fe6eef9cd498bc8f74253419cb2d1bb40c6d9525f55e9cf05109
     sourceHash: 34be6bf937dc2c0c2586b0652d89c5ad918b08d5dfa7ddb1246a6e42d6da8a4b
@@ -12805,12 +12837,12 @@ coordinates:
     sourceLine: 42
   SYM-operation-coverage-spec:
     identityHash: 6a16da59c677700cfb20bcf4af2613a14c3f4b888f5952fe28717f28c48dd997
-    sourceHash: 9351bc5dcee7fab18515fbfd807338236fa7de4a84fac1474dd8300fdf70624f
+    sourceHash: 921e8d1d75335cf70655df1847dc8525bc50f2f2da1919e9ffd0682d583114e0
     sourceColumn: 13
     sourceEndColumn: 66
-    sourceEndLine: 445
+    sourceEndLine: 453
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
-    sourceLine: 381
+    sourceLine: 389
   SYM-operation-delete-spec:
     identityHash: 8ff97c87f8b3cc7e1232aa430c6b315c0992d4d3fd92b42ffedbbca5733149df
     sourceHash: d29ab8cc501be67d3ccbd9dc2f549fb2614d87fbf1114cc53bc13eb4615821c2
@@ -12837,15 +12869,15 @@ coordinates:
     sourceLine: 121
   SYM-operation-executeCoverage:
     identityHash: 500270043515efb85844a93b27dbcab02c8ce3cf6a8e25d968cb97859f512d3b
-    sourceHash: 9351bc5dcee7fab18515fbfd807338236fa7de4a84fac1474dd8300fdf70624f
+    sourceHash: 921e8d1d75335cf70655df1847dc8525bc50f2f2da1919e9ffd0682d583114e0
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 379
+    sourceEndLine: 387
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
-    sourceLine: 253
+    sourceLine: 261
   SYM-operation-find-gaps-spec:
     identityHash: 2e6477af494135131288b254167439552a506a3e030973ecdd7382108997cb91
-    sourceHash: 9351bc5dcee7fab18515fbfd807338236fa7de4a84fac1474dd8300fdf70624f
+    sourceHash: 921e8d1d75335cf70655df1847dc8525bc50f2f2da1919e9ffd0682d583114e0
     sourceColumn: 13
     sourceEndColumn: 66
     sourceEndLine: 186
@@ -12861,12 +12893,12 @@ coordinates:
     sourceLine: 196
   SYM-operation-graph-spec:
     identityHash: 2ba6b8aa7701da967cbac38a1340343ac0aeedfda723a3908cdb4effe8309dff
-    sourceHash: 9351bc5dcee7fab18515fbfd807338236fa7de4a84fac1474dd8300fdf70624f
+    sourceHash: 921e8d1d75335cf70655df1847dc8525bc50f2f2da1919e9ffd0682d583114e0
     sourceColumn: 13
     sourceEndColumn: 60
-    sourceEndLine: 507
+    sourceEndLine: 515
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
-    sourceLine: 482
+    sourceLine: 490
   SYM-operation-list-specs:
     identityHash: 0fe59eb83a14be06e365a8ebece38f72af9b2cd6bb614e4105ba3e26071d820b
     sourceHash: 89e0391cff0ca2359ccba245fc583197802b3b2d84e9de13c6a386602044eff4
@@ -15365,12 +15397,12 @@ coordinates:
     sourceLine: 223
   SYM-refreshManifestCoordinates:
     identityHash: e209eb0c1711ed1ff0b5fc4777c2a11c85e3911c1635f63f881c9169b17fed5e
-    sourceHash: 7937ae9d6a21fa09e5ef69569850f73a1e68443a2759768d4d52766174e8038d
+    sourceHash: 35ae9fb9622786345a935726813fb43bb5d5c8856c05ec76c4a0818834ad06ae
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 435
+    sourceEndLine: 436
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 233
+    sourceLine: 234
   SYM-RefreshResult:
     identityHash: 0a19a10a682d5b2c9100b2988e461121a09169f3bae085060c700121d6729450
     sourceHash: aa406c07a1f33ff566c63dc51da64264e735567fcc297008034c827822c72fce
@@ -15541,7 +15573,7 @@ coordinates:
     sourceLine: 24
   SYM-reqcompiler-coverage-input:
     identityHash: f462a6c49c8668858611cdabb7d9a1960ed97fc93a221d7355c31060896d2ce3
-    sourceHash: 9351bc5dcee7fab18515fbfd807338236fa7de4a84fac1474dd8300fdf70624f
+    sourceHash: 921e8d1d75335cf70655df1847dc8525bc50f2f2da1919e9ffd0682d583114e0
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 72
@@ -15549,7 +15581,7 @@ coordinates:
     sourceLine: 58
   SYM-reqcompiler-coverage-payload:
     identityHash: 2ed2e0483a8aec292368cc1ba7f29c4eff94b762162c6faed03058c9ed437e2f
-    sourceHash: 9351bc5dcee7fab18515fbfd807338236fa7de4a84fac1474dd8300fdf70624f
+    sourceHash: 921e8d1d75335cf70655df1847dc8525bc50f2f2da1919e9ffd0682d583114e0
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 82
@@ -15573,7 +15605,7 @@ coordinates:
     sourceLine: 5
   SYM-reqcompiler-find-gaps-execute:
     identityHash: ac4e327c0dcd3974ff97d79d3259044f0984addf6aaa88f858600a79fc56541e
-    sourceHash: 9351bc5dcee7fab18515fbfd807338236fa7de4a84fac1474dd8300fdf70624f
+    sourceHash: 921e8d1d75335cf70655df1847dc8525bc50f2f2da1919e9ffd0682d583114e0
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 161
@@ -15581,7 +15613,7 @@ coordinates:
     sourceLine: 132
   SYM-reqcompiler-find-gaps-input:
     identityHash: d28fedc343dcf98729de5fd100064b70f1d01121355507c2481b21acf4eb1684
-    sourceHash: 9351bc5dcee7fab18515fbfd807338236fa7de4a84fac1474dd8300fdf70624f
+    sourceHash: 921e8d1d75335cf70655df1847dc8525bc50f2f2da1919e9ffd0682d583114e0
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 50
@@ -15589,7 +15621,7 @@ coordinates:
     sourceLine: 42
   SYM-reqcompiler-find-gaps-payload:
     identityHash: 565fff9009121df365be5fdcdd08da8738f4951622e0c38748dc24099fc970ec
-    sourceHash: 9351bc5dcee7fab18515fbfd807338236fa7de4a84fac1474dd8300fdf70624f
+    sourceHash: 921e8d1d75335cf70655df1847dc8525bc50f2f2da1919e9ffd0682d583114e0
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 56
@@ -15597,15 +15629,15 @@ coordinates:
     sourceLine: 52
   SYM-reqcompiler-graph-execute:
     identityHash: a708e8754471325c35a6d7309a6f6ad85ff0746b81fbd4de9398e82d518ae656
-    sourceHash: 9351bc5dcee7fab18515fbfd807338236fa7de4a84fac1474dd8300fdf70624f
+    sourceHash: 921e8d1d75335cf70655df1847dc8525bc50f2f2da1919e9ffd0682d583114e0
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 480
+    sourceEndLine: 488
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
-    sourceLine: 447
+    sourceLine: 455
   SYM-reqcompiler-graph-input:
     identityHash: cb909b1b84e47408806b99c915a34027752be53e231dab611b71e2edee67b458
-    sourceHash: 9351bc5dcee7fab18515fbfd807338236fa7de4a84fac1474dd8300fdf70624f
+    sourceHash: 921e8d1d75335cf70655df1847dc8525bc50f2f2da1919e9ffd0682d583114e0
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 92
@@ -15613,7 +15645,7 @@ coordinates:
     sourceLine: 84
   SYM-reqcompiler-graph-payload:
     identityHash: 02a1ccca45bab3cd55d343ccb9a57bfacca9f049a7593a161da73f2fb047d606
-    sourceHash: 9351bc5dcee7fab18515fbfd807338236fa7de4a84fac1474dd8300fdf70624f
+    sourceHash: 921e8d1d75335cf70655df1847dc8525bc50f2f2da1919e9ffd0682d583114e0
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 99
@@ -16323,6 +16355,14 @@ coordinates:
     sourceEndLine: 221
     sourceFile: packages/cli/src/prolog/store-lock.ts
     sourceLine: 189
+  SYM-ROLE_INFERENCE:
+    identityHash: 39886b5e5cf9f8c10671befe7b4f2dbaa6c88a3b887ea4841264216212477550
+    sourceHash: d9d0be881396bc0e6e23743552c6a487dc95448be74bac7a3ec712dabaee6d94
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 53
+    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
+    sourceLine: 42
   SYM-RUN_ID:
     identityHash: 80f7ce695a392e2982ac0d0895b2f8328d8bf8c7b059835ed6733eb9400a832e
     sourceHash: ebea90ac4f601a730db79a2bc39b495cc9c8da47754e1dc83936d3982ace661a
@@ -24420,12 +24460,20 @@ coordinates:
     sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
     sourceLine: 13
   SYM-SYMBOL_ROLES:
-    identityHash: 3152a9888995b7a31787e28aae21fa4b820a9178c21f9c452fdea10aba9039c1
-    sourceHash: 02544c399433fee0518fe4fe08f276ddcad71919a65538a6e175d65a7d9a5bc2
+    identityHash: e3dfd62df42ee58bdb3edf4a443452c793aa248f3538ceee23f882fa8109acce
+    sourceHash: d9d0be881396bc0e6e23743552c6a487dc95448be74bac7a3ec712dabaee6d94
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 8
-    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceEndLine: 38
+    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
+    sourceLine: 31
+  SYM-symbol-classification:
+    identityHash: 72b95271f11c0929124c848ba33e383650c217b2f8134376a466b5f223acf9ed
+    sourceHash: 5354d72fda225fe3ece346d4d20ea5e2d054124066e8393d71d23ba74dec28e1
+    sourceColumn: 10
+    sourceEndColumn: 31
+    sourceEndLine: 1
+    sourceFile: packages/core/src/symbol_classification.pl
     sourceLine: 1
   SYM-symbol-repair-plan-type:
     identityHash: 70db6ab6b17a3ab5c1a436fac9301dddfb429198c1b8e920f6cbfb4f6ab513ce
@@ -24525,12 +24573,12 @@ coordinates:
     sourceLine: 23
   SYM-SymbolGranularitySourceSymbolKind:
     identityHash: 3b26359cfc2d328e5810b4b4e43b4e33a7c9337f01b98edf3c17dc252b1ac0e1
-    sourceHash: 02544c399433fee0518fe4fe08f276ddcad71919a65538a6e175d65a7d9a5bc2
+    sourceHash: d343a223d75ddfd74c507075abb730964ab304730011c205d505507c473d5dca
     sourceColumn: 12
     sourceEndColumn: 42
-    sourceEndLine: 59
+    sourceEndLine: 48
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 59
+    sourceLine: 48
   SYM-SymbolIndex:
     identityHash: a2398bdea5ca1e80c77fa66e7a95355127bf4be391b477375795e4914e18c247
     sourceHash: da09e93ed7c07debb3109f61705f299a7f3ae24825f174b4336ad954a4471c90
@@ -24541,28 +24589,28 @@ coordinates:
     sourceLine: 37
   SYM-SymbolKind:
     identityHash: e41b76867f0b228135be662172c99387529c59858ed733bb23dc9a6f53c2aaab
-    sourceHash: 02544c399433fee0518fe4fe08f276ddcad71919a65538a6e175d65a7d9a5bc2
+    sourceHash: d343a223d75ddfd74c507075abb730964ab304730011c205d505507c473d5dca
     sourceColumn: 12
     sourceEndColumn: 14
-    sourceEndLine: 57
+    sourceEndLine: 46
     sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 47
+    sourceLine: 36
   SYM-SymbolRole:
-    identityHash: d4acbd732d5580ddcb5059e7c514975ffca8f5ac8344645a57277d9e5006a955
-    sourceHash: 02544c399433fee0518fe4fe08f276ddcad71919a65538a6e175d65a7d9a5bc2
+    identityHash: 642279607d5ae7974c414fe968a96b4e8cea9922ad983b6429c7953e7d2b5b5a
+    sourceHash: d9d0be881396bc0e6e23743552c6a487dc95448be74bac7a3ec712dabaee6d94
     sourceColumn: 12
     sourceEndColumn: 55
-    sourceEndLine: 10
-    sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 10
+    sourceEndLine: 40
+    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
+    sourceLine: 40
   SYM-SYMBOLS-MANIFEST-COMMENT-BLOCK:
     identityHash: 5b708458d71002ed87f6040f87bc22cfb63fb09027344126828c02ae21d0534a
-    sourceHash: 7937ae9d6a21fa09e5ef69569850f73a1e68443a2759768d4d52766174e8038d
+    sourceHash: 35ae9fb9622786345a935726813fb43bb5d5c8856c05ec76c4a0818834ad06ae
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 89
+    sourceEndLine: 90
     sourceFile: packages/cli/src/commands/sync/manifest.ts
-    sourceLine: 75
+    sourceLine: 76
   SYM-SymbolsManifestRow:
     identityHash: 904dc9000ec20249d44383f8105d402ba9aa3941def238c24926931ef8d9bb79
     sourceHash: 7ac6d7983596514c56eb7263ba5821220048e1f867a4756a9d1a64df21972909
@@ -25372,13 +25420,13 @@ coordinates:
     sourceFile: packages/mcp/src/server/tool-types.ts
     sourceLine: 46
   SYM-TRACEABILITY_RELATIONSHIP_TYPES:
-    identityHash: 7602d9a9d0077cf4fe99d87536f54bd367ad04d3113c464edf6a15b3e3cb56f9
-    sourceHash: 02544c399433fee0518fe4fe08f276ddcad71919a65538a6e175d65a7d9a5bc2
+    identityHash: 3173ff9d1291e4594fbdc1c0f0f347eb82083e5dfbcb266332d4ff95162d4e37
+    sourceHash: d9d0be881396bc0e6e23743552c6a487dc95448be74bac7a3ec712dabaee6d94
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 16
-    sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 12
+    sourceEndLine: 59
+    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
+    sourceLine: 55
   SYM-TraceabilityRegistrationResult:
     identityHash: 50f599627e7ca70f7955411644b46f74d432e423b282605d16eed4583d3ab61c
     sourceHash: 9462b147c64fe5a5ed127cf3e4cf67c281c098cff9a27816b0a350cad12b4ac5
@@ -25388,13 +25436,13 @@ coordinates:
     sourceFile: packages/vscode/src/activation/traceability.ts
     sourceLine: 16
   SYM-TraceabilityRelationshipType:
-    identityHash: 03bcfe89e2a5f3061349e6e41a83d4f3b04de3ca48a0c8bf35c8b743f8364c6f
-    sourceHash: 02544c399433fee0518fe4fe08f276ddcad71919a65538a6e175d65a7d9a5bc2
+    identityHash: 653cece099380d1474b5cd0d556d33a0de464b3a14a508af7003d9b3305964ad
+    sourceHash: d9d0be881396bc0e6e23743552c6a487dc95448be74bac7a3ec712dabaee6d94
     sourceColumn: 12
     sourceEndColumn: 51
-    sourceEndLine: 19
-    sourceFile: packages/cli/src/public/symbol-granularity.ts
-    sourceLine: 18
+    sourceEndLine: 62
+    sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
+    sourceLine: 61
   SYM-TrainerRequestPayload:
     identityHash: 8ea3b9dae2415c378cc261c0f21126dbd8780a0becf950154ca39857d26a552e
     sourceHash: 55fbe9dcaa5002fa8d4442f66f19e1a757170b6a2419456600640537c5ca4cbd

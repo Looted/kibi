@@ -4,12 +4,12 @@ import {
   COARSE_GRANULARITY_REASONS,
   COARSE_GRANULARITY_REASONS_PARENTHESIZED,
   COARSE_GRANULARITY_REASONS_PROSE,
-  ROLE_INFERENCE,
-  SYMBOL_ROLES,
-  TRACEABILITY_RELATIONSHIP_TYPES,
   type CoarseGranularityReason,
   type GranularityReason,
+  ROLE_INFERENCE,
+  SYMBOL_ROLES,
   type SymbolRole,
+  TRACEABILITY_RELATIONSHIP_TYPES,
   type TraceabilityRelationshipType,
 } from "./symbol-granularity.generated.js";
 

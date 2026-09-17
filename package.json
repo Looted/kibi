@@ -7,9 +7,7 @@
   "private": false,
   "license": "AGPL-3.0-or-later",
   "author": "Piotr Franczyk",
-  "workspaces": [
-    "packages/*"
-  ],
+  "workspaces": ["packages/*"],
   "scripts": {
     "test": "bun run test:unit && bun run test:e2e:local",
     "test:unit": "bun ./test/root.test.ts",
