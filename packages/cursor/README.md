@@ -56,22 +56,28 @@ cp -r "$(npm root)/kibi-cursor" ~/.cursor/plugins/local/kibi-cursor
 ## MCP configuration
 
 The plugin bundles `mcp.json` with a thin launcher that locates and starts the
-`kibi-mcp` package installed in the opened project. The launcher runs from the
-consumer workspace and sets `KIBI_WORKSPACE` to that root; it never downloads,
-bundles, or falls back to a global Kibi runtime:
+`kibi-mcp` package installed in the opened project. The launcher starts the
+resolved child from the consumer workspace and sets `KIBI_WORKSPACE` to that
+root; it never downloads, bundles, or falls back to a global Kibi runtime:
 
 ```json
 {
   "mcpServers": {
     "kibi": {
       "command": "node",
-      "args": ["bin/launch-kibi-mcp.mjs", "${workspaceFolder}"]
+      "args": [
+        "${CURSOR_PLUGIN_ROOT}/bin/launch-kibi-mcp.mjs",
+        "${workspaceFolder}"
+      ]
     }
   }
 }
 ```
 
 Toggle the bundled MCP server from **Settings → Features → Model Context Protocol** after installing the plugin.
+
+Cursor expands `${CURSOR_PLUGIN_ROOT}` to the installed plugin directory and
+`${workspaceFolder}` to the opened workspace before starting the command.
 
 Manual MCP fallback (no plugin install required):
 
