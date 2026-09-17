@@ -44,7 +44,7 @@ function parseHookInput(input) {
 async function readStdin() {
   const chunks = [];
   for await (const chunk of process.stdin) {
-    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+    chunks.push(Buffer.from(chunk));
   }
   return Buffer.concat(chunks).toString("utf8");
 }
