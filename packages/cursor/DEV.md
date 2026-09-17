@@ -19,9 +19,10 @@ Do **not** rely on a symlink into `~/.cursor/plugins/local` for repo dogfood. Cu
 
 ```bash
 bun install
-bun run build
 ./scripts/sync-cursor-dogfood.sh
 ```
+
+`sync-cursor-dogfood.sh` runs `bun run build` first so `packages/mcp/dist` and `packages/cursor/dist` exist before Cursor starts project MCP, then copies plugin rules into `.cursor/rules/`.
 
 Then reload Cursor (**Developer: Reload Window**).
 
@@ -38,9 +39,10 @@ Because this repo uses local build artifacts, rerun the full build whenever you:
 Use:
 
 ```bash
-bun run build
 ./scripts/sync-cursor-dogfood.sh
 ```
+
+That script rebuilds all workspace packages, then refreshes `.cursor/rules/`.
 
 If you are only iterating on `packages/cursor/src/`, you can keep the plugin build hot with:
 
@@ -56,7 +58,7 @@ That watch mode updates `packages/cursor/dist/`, but version bumps and cross-pac
 2. The build writes compiled output into `packages/mcp/dist/` and `packages/cursor/dist/`.
 3. Cursor loads `.cursor/mcp.json` from the workspace and starts `packages/mcp/bin/kibi-mcp` from the current worktree when built, otherwise from the primary checkout.
 4. Cursor loads `.cursor/hooks.json` from the workspace and runs the local hook runner on agent events.
-5. `./scripts/sync-cursor-dogfood.sh` copies plugin rules into `.cursor/rules/` so rule dogfood does not require a marketplace install.
+5. `./scripts/sync-cursor-dogfood.sh` runs `bun run build` first, then copies plugin rules into `.cursor/rules/` so rule dogfood does not require a marketplace install.
 6. `scripts/build-agent-plugin.ts` regenerates the committed portable Agent Plugin artifact at `packages/cursor/agent-plugin/` (root `plugin.json` + `skills/` + Agent-Plugins-compliant `mcp.json`). The repo marketplace serves it at `plugins/kibi-agent-plugin` (symlink → `packages/cursor/agent-plugin`).
 7. Reloading Cursor picks up the refreshed local artifacts.
 
@@ -65,9 +67,9 @@ That watch mode updates `packages/cursor/dist/`, but version bumps and cross-pac
 When Cursor opens a git worktree as the workspace root:
 
 - Project MCP only loads if that worktree has `.cursor/mcp.json` (commit/copy it, or open a worktree that already has it).
-- The checked-in resolver prefers a valid worktree MCP build, then derives the primary checkout only from the linked worktree's absolute `git-common-dir`. It rejects missing artifacts, unavailable runtimes or SWI-Prolog, and package-version mismatches.
+- The checked-in resolver prefers a valid worktree MCP build, then derives the primary checkout only from the linked worktree's absolute `git-common-dir`. It rejects unavailable runtimes or SWI-Prolog and package-version mismatches. If neither checkout already has a trusted MCP dist, it compiles `build:cli`, `build:runtime`, and `build:mcp` once in the opened worktree (stderr only) and never runs installers or searches global/cache fallbacks.
 - The selected build directory is the MCP runtime working directory, while `KIBI_WORKSPACE` remains the opened worktree so Kibi data never moves to the primary checkout.
-- Keep at least one version-compatible built primary checkout (`bun run build` on the main tree) so sparse worktrees can still start MCP. The resolver never installs packages or searches global/cache fallbacks.
+- Keep at least one version-compatible built primary checkout (`./scripts/sync-cursor-dogfood.sh` or `bun run build` on the main tree) so sparse worktrees can still start MCP without compiling there. The resolver never installs packages or searches global/cache fallbacks.
 - Marketplace/plugin MCP uses the packaged `bin/launch-kibi-mcp.mjs` adapter. It resolves `kibi-mcp` from the opened workspace's `node_modules`, runs it with that workspace as cwd, and sets `KIBI_WORKSPACE`; run `bun install` in the worktree before enabling it. The adapter never downloads or uses a global package. Disable the plugin MCP entry and keep project dogfood MCP when testing the monorepo resolver.
 - After changing dogfood MCP or re-syncing the local plugin, reload Cursor (**Developer: Reload Window**).
 - If both project and plugin `kibi` MCP servers appear, disable the duplicate plugin entry in Customize / MCP settings so dogfood uses `.cursor/mcp.json`.
@@ -114,7 +116,7 @@ bun test packages/cursor/tests/dogfood-config.test.ts
 ## Common Issues
 
 **MCP shows error/degraded:**
-- Run `bun run build` and `./scripts/sync-cursor-dogfood.sh` (on the worktree or primary checkout)
+- Run `./scripts/sync-cursor-dogfood.sh` (on the worktree or primary checkout). A first Cursor MCP start on an unbuilt checkout also compiles local MCP dist once; later starts reuse `packages/mcp/dist`.
 - Confirm `bun run packages/mcp/bin/kibi-mcp --diagnostic-mode` works from the resolved root
 - For worktrees without a local build, confirm the primary checkout has `packages/mcp/dist`
 - If the local plugin was hand-edited, re-run `./scripts/sync-cursor-plugin-local.sh` so it matches `packages/cursor/mcp.json` (do not point it at `.opencode/bin/kibi-mcp`)

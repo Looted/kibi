@@ -148,6 +148,7 @@ describe("Cursor worktree MCP resolver", () => {
     const result = runResolver(fixture, fixture.worktreeRoot);
 
     expectLaunch(result, fixture.primaryRoot, fixture.worktreeRoot);
+    expect(result.stderr).not.toContain("building local MCP dist");
   });
 
   test("does not use a build from an unrelated checkout", () => {
@@ -232,5 +233,50 @@ describe("Cursor worktree MCP resolver", () => {
     const result = runResolver(fixture, fixture.worktreeRoot);
 
     expectLaunch(result, fixture.primaryRoot, fixture.worktreeRoot);
+  });
+
+  test("builds local MCP dist when no trusted runtime exists", () => {
+    const fixture = createFixture();
+    fs.mkdirSync(path.join(fixture.worktreeRoot, "packages", "mcp", "bin"), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(fixture.worktreeRoot, "packages", "mcp", "bin", "kibi-mcp"),
+      "#!/usr/bin/env node\n",
+    );
+    writeFakeCommand(
+      fixture.binRoot,
+      "bun",
+      [
+        'if printf "%s" "$*" | grep -q "build:mcp"; then',
+        "  mkdir -p packages/mcp/dist",
+        "  exit 0",
+        "fi",
+        'if printf "%s" "$*" | grep -q "build:"; then',
+        "  exit 0",
+        "fi",
+        'printf "runtime=%s\\n" "$PWD"',
+        'printf "workspace=%s\\n" "$KIBI_WORKSPACE"',
+        'printf "launcher=%s\\n" "$2"',
+        'printf "arguments=%s\\n" "$*"',
+      ].join("\n"),
+    );
+
+    const result = runResolver(fixture, fixture.worktreeRoot);
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain(`runtime=${fixture.worktreeRoot}\n`);
+    expect(result.stdout).toContain(`workspace=${fixture.worktreeRoot}\n`);
+    expect(result.stdout).toContain(
+      `launcher=${path.join(fixture.worktreeRoot, "packages", "mcp", "bin", "kibi-mcp")}\n`,
+    );
+    expect(result.stdout).toContain("arguments=run ");
+    expect(result.stdout).toContain(" --diagnostic-mode\n");
+    expect(result.stderr).toContain("building local MCP dist");
+    expect(
+      fs
+        .statSync(path.join(fixture.worktreeRoot, "packages", "mcp", "dist"))
+        .isDirectory(),
+    ).toBe(true);
   });
 });
