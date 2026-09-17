@@ -101,3 +101,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2ba66216763d
+  - type: covered_by
+    from: SYM-isPathOutOfBoundsRuntime
+    to: TEST-mcp-skills-resource-discoverability
+    created_at: 2026-09-17T21:08:29.118Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b5519542f60

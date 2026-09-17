@@ -32630,6 +32630,8 @@ symbols:
     sourceFile: packages/runtime/src/skill-system/paths.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-mcp-skills-resource-discoverability
       - type: implements
         target: REQ-reusable-skill-subsystem
   - id: SYM-isWithinRootRuntime
@@ -32638,6 +32640,8 @@ symbols:
     sourceFile: packages/runtime/src/skill-system/paths.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-mcp-skills-resource-discoverability
       - type: implements
         target: REQ-reusable-skill-subsystem
   - id: SYM-normalizeResourcePathRuntime
@@ -32646,6 +32650,8 @@ symbols:
     sourceFile: packages/runtime/src/skill-system/paths.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-mcp-skills-resource-discoverability
       - type: implements
         target: REQ-reusable-skill-subsystem
   - id: SYM-resolveSkillFilePathRuntime
@@ -32654,6 +32660,8 @@ symbols:
     sourceFile: packages/runtime/src/skill-system/paths.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-mcp-skills-resource-discoverability
       - type: implements
         target: REQ-reusable-skill-subsystem
   - id: SYM-SKILL_FILE_NAMERuntime
