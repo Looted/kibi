@@ -259,6 +259,58 @@ describe("temp-kb", () => {
       }
     });
 
+    it("keeps staged writes visible across queries with a persistent factory", async () => {
+      let factoryOptions: { timeout: number; oneShot: boolean } | undefined;
+      _setPrologFactory((opts) => {
+        factoryOptions = opts;
+        return new PrologProcess(opts);
+      });
+
+      const ctx = await createTempKb(baseKbDir);
+      try {
+        expect(factoryOptions).toEqual({ timeout: 120000, oneShot: false });
+
+        await projectStagedEntities(ctx.prolog, [
+          makeExtractionResult({
+            id: "REQ-PERSISTENT",
+            type: "req",
+            title: "Persistent requirement",
+            status: "open",
+            source: ".kb/requirements/REQ-PERSISTENT.md",
+            relationships: [
+              {
+                type: "verified_by",
+                from: "REQ-PERSISTENT",
+                to: "TEST-PERSISTENT",
+              },
+            ],
+          }),
+          makeExtractionResult({
+            id: "TEST-PERSISTENT",
+            type: "test",
+            title: "Persistent test",
+            status: "passing",
+            source: ".kb/tests/TEST-PERSISTENT.md",
+          }),
+        ]);
+
+        expect(
+          await querySucceeds(
+            ctx.prolog,
+            "kb_entity('REQ-PERSISTENT', req, _)",
+          ),
+        ).toBe(true);
+        expect(
+          await querySucceeds(
+            ctx.prolog,
+            "kb_relationship(verified_by, 'REQ-PERSISTENT', 'TEST-PERSISTENT')",
+          ),
+        ).toBe(true);
+      } finally {
+        await cleanupTempKb(ctx.tempDir);
+      }
+    });
+
     it("creates empty overlay file", async () => {
       const ctx = await createTempKb(baseKbDir);
       try {
@@ -944,6 +996,62 @@ describe("temp-kb", () => {
       } finally {
         await cleanupTempKb(ctx.tempDir);
       }
+    });
+
+    it("keeps process-local overlay facts visible across production queries", async () => {
+      const runValidation = async (oneShot: boolean) => {
+        _setPrologFactory((opts) => new PrologProcess({ ...opts, oneShot }));
+        const ctx = await createTempKb(baseKbDir);
+
+        try {
+          await Bun.write(
+            ctx.overlayPath,
+            createOverlayFacts([
+              {
+                id: "SYM-PROCESS-OVERLAY",
+                name: "processOverlay",
+                kind: "function",
+                role: "behavioral",
+                location: {
+                  file: "src/process-overlay.ts",
+                  startLine: 4,
+                  endLine: 8,
+                },
+                hunkRanges: [],
+                reqLinks: [],
+              },
+            ]),
+          );
+          await consultOverlay(ctx);
+
+          const overlayVisible = await querySucceeds(
+            ctx.prolog,
+            "kb:changed_symbol('SYM-PROCESS-OVERLAY')",
+          );
+          const violations = await validateStagedSymbols({
+            minLinks: 1,
+            prolog: ctx.prolog,
+          });
+
+          return { overlayVisible, violations };
+        } finally {
+          await cleanupTempKb(ctx.tempDir);
+          resetModuleState();
+        }
+      };
+
+      const oneShotResult = await runValidation(true);
+      expect(oneShotResult.overlayVisible).toBe(false);
+      expect(oneShotResult.violations).toEqual([]);
+
+      const persistentResult = await runValidation(false);
+      expect(persistentResult.overlayVisible).toBe(true);
+      expect(persistentResult.violations).toEqual([
+        expect.objectContaining({
+          symbolId: "SYM-PROCESS-OVERLAY",
+          requiredLinks: 1,
+        }),
+      ]);
     });
 
     it("executable_for symbol is excluded from staged ownership gate", async () => {

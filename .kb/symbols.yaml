@@ -22596,6 +22596,16 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-002
+  - id: SYM-skipNonIntegerFactNumber
+    title: skipNonIntegerFactNumber
+    sourceFile: packages/cli/src/traceability/temp-kb.ts
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
   - id: SYM-suggest-predicates-core-handler
     title: handleKbSuggestPredicates
     status: active
