@@ -10,15 +10,19 @@ import { pathToFileURL } from "node:url";
 
 import { afterAll, describe, expect, test } from "bun:test";
 
-import { buildZcodePackageOnce } from "./build-once";
-
 const packageRoot = path.resolve(import.meta.dir, "..");
 const repoRoot = path.resolve(packageRoot, "../..");
+const coreRoot = path.join(repoRoot, "packages", "core");
+const runtimeRoot = path.join(repoRoot, "packages", "runtime");
 const mcpRoot = path.join(repoRoot, "packages", "mcp");
-const launcherPath = path.join(packageRoot, "bin", "mcp-launcher.cjs");
+const buildLockPath = path.join(repoRoot, ".zcode-proof-build.lock");
+let inProcessBuildLock = Promise.resolve();
 
 const roots: string[] = [];
-const enabled = process.env.KIBI_ZCODE_PACKED_SMOKE === "1";
+const enabled =
+  process.platform !== "win32" &&
+  (process.env.KIBI_ZCODE_PACKED_SMOKE === "1" ||
+    process.env.KIBI_PROOF_RUN === "1");
 
 afterAll(() => {
   for (const root of roots.splice(0)) {
@@ -33,20 +37,52 @@ function runBun(args: string[], cwd: string): void {
   });
 }
 
-function ensureMcpApiBuild(): void {
-  if (fs.existsSync(path.join(mcpRoot, "dist", "server.js"))) return;
-
-  // The packed artifact must be built from the API package, not from a fake
-  // fixture. Its declarations depend on the first-party CLI/runtime builds.
-  runBun(["run", "build:cli"], repoRoot);
-  runBun(["run", "build:runtime"], repoRoot);
-  runBun(["run", "build:mcp"], repoRoot);
+function withBuildLock(operation: () => void): void {
+  const deadline = Date.now() + 180_000;
+  for (;;) {
+    try {
+      const handle = fs.openSync(buildLockPath, "wx");
+      try {
+        operation();
+      } finally {
+        fs.closeSync(handle);
+        fs.rmSync(buildLockPath, { force: true });
+      }
+      return;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+      if (Date.now() > deadline)
+        throw new Error(`timed out waiting for build lock ${buildLockPath}`);
+      try {
+        const stats = fs.statSync(buildLockPath);
+        if (Date.now() - stats.mtimeMs > 180_000)
+          fs.rmSync(buildLockPath, { force: true });
+      } catch {
+        // The lock vanished between acquisition and inspection.
+      }
+      Bun.sleepSync(100);
+    }
+  }
 }
 
-function makeMcpTarball(): string {
-  ensureMcpApiBuild();
+function buildProofArtifacts(): Promise<void> {
+  const build = inProcessBuildLock.then(() => {
+    withBuildLock(() => {
+      // Always build the complete first-party runtime chain before packing. A
+      // pre-existing dist directory may belong to a different source snapshot.
+      runBun(["run", "build:cli"], repoRoot);
+      runBun(["run", "build:runtime"], repoRoot);
+      runBun(["run", "build:mcp"], repoRoot);
+      runBun(["run", "build:zcode"], repoRoot);
+    });
+  });
+  inProcessBuildLock = build.catch(() => undefined);
+  return build;
+}
+
+function makeTarball(packageDirectory: string, packagePrefix: string): string {
   const destination = fs.mkdtempSync(
-    path.join(os.tmpdir(), "kibi-zcode-mcp-pack-"),
+    path.join(os.tmpdir(), `${packagePrefix}-pack-`),
   );
   roots.push(destination);
   const npm = process.platform === "win32" ? "npm.cmd" : "npm";
@@ -54,17 +90,28 @@ function makeMcpTarball(): string {
     npm,
     ["pack", "--ignore-scripts", "--pack-destination", destination],
     {
-      cwd: mcpRoot,
+      cwd: packageDirectory,
       stdio: "inherit",
     },
   );
   const tarball = fs
     .readdirSync(destination)
-    .find((entry) => entry.startsWith("kibi-mcp-") && entry.endsWith(".tgz"));
+    .find(
+      (entry) =>
+        entry.startsWith(`${packagePrefix}-`) && entry.endsWith(".tgz"),
+    );
   if (tarball === undefined) {
-    throw new Error("npm pack did not produce a kibi-mcp tarball");
+    throw new Error(`npm pack did not produce a ${packagePrefix} tarball`);
   }
   return path.join(destination, tarball);
+}
+
+function makeMcpTarball(): string {
+  return makeTarball(mcpRoot, "kibi-mcp");
+}
+
+function makeZcodeTarball(): string {
+  return makeTarball(packageRoot, "kibi-zcode");
 }
 
 function isolatedConsumerEnv(): NodeJS.ProcessEnv {
@@ -73,6 +120,7 @@ function isolatedConsumerEnv(): NodeJS.ProcessEnv {
 
 async function runShippedLauncher(
   workspaceRoot: string,
+  launcherPath: string,
   env: NodeJS.ProcessEnv,
 ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
   const node = Bun.which("node") ?? "node";
@@ -90,8 +138,12 @@ async function runShippedLauncher(
       jsonrpc: "2.0",
       id: 1,
       method: "initialize",
-      params: { protocolVersion: "2025-06-18" },
-    })}\n${JSON.stringify({ jsonrpc: "2.0", id: 2, method: "tools/list" })}\n`,
+      params: {
+        protocolVersion: "2025-06-18",
+        capabilities: {},
+        clientInfo: { name: "kibi-zcode-proof", version: "1.0.0" },
+      },
+    })}\n${JSON.stringify({ jsonrpc: "2.0", id: 2, method: "tools/list" })}\n${JSON.stringify({ jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "kb_status", arguments: {} } })}\n`,
   );
   child.stdin.end();
 
@@ -112,8 +164,11 @@ describe("packed kibi-mcp consumer resolution", () => {
   test.skipIf(!enabled)(
     "installs the local MCP tarball and launches it through the shipped Node launcher",
     async () => {
-      buildZcodePackageOnce(packageRoot);
-      const tarball = makeMcpTarball();
+      await buildProofArtifacts();
+      const coreTarball = makeTarball(coreRoot, "kibi-core");
+      const runtimeTarball = makeTarball(runtimeRoot, "kibi-runtime");
+      const mcpTarball = makeMcpTarball();
+      const zcodeTarball = makeZcodeTarball();
       const consumerRoot = fs.mkdtempSync(
         path.join(os.tmpdir(), "kibi-zcode-packed-consumer-"),
       );
@@ -135,22 +190,46 @@ describe("packed kibi-mcp consumer resolution", () => {
           "--no-package-lock",
           "--no-audit",
           "--no-fund",
-          tarball,
+          zcodeTarball,
+          mcpTarball,
+          runtimeTarball,
+          coreTarball,
         ],
         { cwd: consumerRoot, stdio: "inherit" },
       );
 
-      const installedRoot = path.join(consumerRoot, "node_modules", "kibi-mcp");
-      const installedEntry = path.join(installedRoot, "bin", "kibi-mcp");
+      const installedMcpRoot = path.join(
+        consumerRoot,
+        "node_modules",
+        "kibi-mcp",
+      );
+      const installedZcodeRoot = path.join(
+        consumerRoot,
+        "node_modules",
+        "kibi-zcode",
+      );
+      const installedEntry = path.join(installedMcpRoot, "bin", "kibi-mcp");
+      const installedLauncher = path.join(
+        installedZcodeRoot,
+        "bin",
+        "mcp-launcher.cjs",
+      );
+      expect(fs.existsSync(installedLauncher)).toBe(true);
       expect(fs.existsSync(installedEntry)).toBe(true);
 
-      const env = isolatedConsumerEnv();
+      const env = {
+        ...isolatedConsumerEnv(),
+        // Keep the consumer isolated from project-local/global package bins,
+        // while retaining git for Kibi's branch-name validation.
+        PATH: path.dirname(Bun.which("git") ?? "git"),
+        KIBI_BRANCH: "packed-consumer",
+      };
       const node = Bun.which("node") ?? "node";
       const resolution = spawnSync(
         node,
         [
           "-e",
-          `const launcher = require(${JSON.stringify(launcherPath)}); process.stdout.write(JSON.stringify(launcher.resolveLaunchTarget(process.cwd(), process.env)));`,
+          `const launcher = require(${JSON.stringify(installedLauncher)}); process.stdout.write(JSON.stringify(launcher.resolveLaunchTarget(process.cwd(), process.env)));`,
         ],
         { cwd: consumerRoot, env, encoding: "utf8" },
       );
@@ -169,46 +248,64 @@ describe("packed kibi-mcp consumer resolution", () => {
         `${path.sep}node_modules${path.sep}kibi-mcp${path.sep}`,
       );
 
-      // `--print-resolution` is the real package's dependency/API probe. If
-      // it cannot start, retain the resolution assertion but diagnose the
-      // actual missing runtime prerequisite instead of substituting a fixture.
+      // `--print-resolution` is the real package's dependency/API probe. Any
+      // failure is a failed consumer proof, never an optional prerequisite.
       const preflight = spawnSync(
         node,
         [installedEntry, "--print-resolution"],
         { cwd: consumerRoot, env, encoding: "utf8" },
       );
-      if (preflight.status !== 0) {
-        console.warn(
-          `[packed-consumer] skipping probe/handshake/proxy: packed kibi-mcp runtime prerequisite unavailable (${(preflight.stderr || preflight.stdout).trim() || `exit ${preflight.status}`})`,
-        );
-        return;
-      }
+      expect(preflight.status, preflight.stderr || preflight.stdout).toBe(0);
+      const preflightResult = JSON.parse(preflight.stdout) as {
+        packageName?: string;
+        resolved?: string;
+      };
+      expect(preflightResult.packageName).toBe("kibi-mcp");
+      expect(path.resolve(preflightResult.resolved ?? "")).toBe(
+        path.resolve(installedMcpRoot, "dist", "server.js"),
+      );
 
       // Resolution alone does not import the MCP API. Check the shipped
-      // server module too, so a registry/runtime version mismatch is reported
-      // as the real unavailable prerequisite rather than replaced by a fake
-      // server response.
+      // server module too, so a registry/runtime mismatch fails the proof.
       const serverImport = spawnSync(
         node,
         [
           "--input-type=module",
           "-e",
-          `await import(${JSON.stringify(pathToFileURL(path.join(installedRoot, "dist", "server.js")).href)});`,
+          `await import(${JSON.stringify(pathToFileURL(path.join(installedMcpRoot, "dist", "server.js")).href)});`,
         ],
         { cwd: consumerRoot, env, encoding: "utf8" },
       );
-      if (serverImport.status !== 0) {
-        console.warn(
-          `[packed-consumer] skipping probe/handshake/proxy: packed kibi-mcp API prerequisite unavailable (${(serverImport.stderr || serverImport.stdout).trim() || `exit ${serverImport.status}`})`,
-        );
-        return;
-      }
+      expect(
+        serverImport.status,
+        serverImport.stderr || serverImport.stdout,
+      ).toBe(0);
 
-      const run = await runShippedLauncher(consumerRoot, env);
+      const run = await runShippedLauncher(
+        consumerRoot,
+        installedLauncher,
+        env,
+      );
       expect(run.exitCode, run.stderr || run.stdout).toBe(0);
-      expect(run.stdout).toContain('"kibi-mcp"');
-      expect(run.stdout).toContain('"tools"');
+      expect(run.stderr).toBe("");
+      const responses = run.stdout
+        .trim()
+        .split("\n")
+        .map((line) => JSON.parse(line) as Record<string, unknown>);
+      const initialize = responses.find((response) => response.id === 1);
+      const tools = responses.find((response) => response.id === 2);
+      const status = responses.find((response) => response.id === 3);
+      expect(initialize?.result).toMatchObject({
+        serverInfo: { name: "kibi-mcp" },
+      });
+      expect(tools?.result).toMatchObject({
+        tools: expect.arrayContaining([
+          expect.objectContaining({ name: "kb_search" }),
+        ]),
+      });
+      expect(status?.error).toBeUndefined();
+      expect(status?.result).toBeDefined();
     },
-    120_000,
+    300_000,
   );
 });

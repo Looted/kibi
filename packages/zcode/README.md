@@ -3,6 +3,8 @@
 ZCode plugin adapter for Kibi: bundled Kibi skills, a `/kibi-bootstrap` slash
 command, advisory lifecycle hooks, and the workspace-gated Kibi MCP server.
 
+The ZCode adapter is optional: installing `kibi-zcode` does not install or modify Kibi core/runtime packages.
+
 This package mirrors the architecture of `kibi-codex` (plugin manifest +
 skills + hooks + MCP), declared in ZCode's native plugin format.
 
@@ -102,7 +104,9 @@ marketplace cannot produce a working plugin. `prepack` builds only run for
 npm packaging flows (`npm pack`, `npm install kibi-zcode`); ZCode's
 marketplace copy never builds anything.
 
-Manual MCP fallback (no plugin install required):
+Manual MCP fallback (no plugin install required). Use this only when the
+marketplace plugin install path is unused; it invokes the `kibi-mcp` executable
+directly:
 
 ```json
 {

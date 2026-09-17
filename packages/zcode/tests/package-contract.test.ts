@@ -8,6 +8,7 @@ const packageRoot = path.resolve(
   "..",
 );
 const packageJsonPath = path.join(packageRoot, "package.json");
+const readmePath = path.join(packageRoot, "README.md");
 
 describe("kibi-zcode package contract", () => {
   test("package.json contains the required public package contract metadata", () => {
@@ -54,6 +55,41 @@ describe("kibi-zcode package contract", () => {
     const declaredTypes = packageJson.types;
     expect(exportsTypes).toBe(declaredTypes);
     expect(declaredTypes).toBe("./dist/index.d.ts");
+  });
+
+  test("optional package contract has no install lifecycle or core runtime mutation", () => {
+    const raw = fs.readFileSync(packageJsonPath, "utf8");
+    const packageJson = JSON.parse(raw) as {
+      scripts?: Record<string, string>;
+      dependencies?: Record<string, string>;
+    };
+    const installLifecycleNames = [
+      "preinstall",
+      "install",
+      "postinstall",
+      "prepare",
+    ];
+
+    for (const lifecycleName of installLifecycleNames) {
+      expect(packageJson.scripts?.[lifecycleName]).toBeUndefined();
+    }
+    expect(packageJson.dependencies).toBeUndefined();
+  });
+
+  test("README declares the ZCode adapter optional", () => {
+    const readme = fs.readFileSync(readmePath, "utf8");
+
+    expect(readme).toContain(
+      "The ZCode adapter is optional: installing `kibi-zcode` does not install or modify Kibi core/runtime packages.",
+    );
+  });
+
+  test("manual MCP fallback is only for unused marketplace installs and invokes kibi-mcp", () => {
+    const readme = fs.readFileSync(readmePath, "utf8");
+
+    expect(readme).toContain("marketplace plugin install path is unused");
+    expect(readme).toContain('"command": "npx"');
+    expect(readme).toContain('"args": ["--no-install", "kibi-mcp"]');
   });
 
   test("package exports adapter entrypoint", async () => {

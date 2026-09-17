@@ -76,3 +76,4 @@ artifacts/skillopt/
 .env
 .omo
 .zcode/
+.slim/deepwork/

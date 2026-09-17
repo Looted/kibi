@@ -8109,12 +8109,12 @@ coordinates:
     sourceLine: 116
   SYM-execute-ingest-proof:
     identityHash: cb968bafe7d9d580f61a9c725c6344f3ed839234bdc99e6d5d3ed9072ba01395
-    sourceHash: 149056936b8c407e63ec220d2e73db5ae5ad5352592b35bd7714213e1dd6cbbc
+    sourceHash: c1a6d0ff2afbe83b56b8da610110b834fa4fb88c132e95e7dcf210b66ef58efd
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 445
+    sourceEndLine: 522
     sourceFile: packages/cli/src/operations/proof/ingest-proof.ts
-    sourceLine: 156
+    sourceLine: 232
   SYM-execute-model-requirement:
     identityHash: 5f994a22338ad9cfd1fc95aa6cbfca981432eb412836757ccb1ac367b136a026
     sourceHash: 7aaf243e6a217871cf725da05c145370395f7635cac491c3fa473243c3cd24bd
@@ -9005,7 +9005,7 @@ coordinates:
     sourceLine: 46
   SYM-ingest-proof-args:
     identityHash: 8acbc5604755731c9c898c9a60d2361d9446e05533276c1e5e293bcdcb0ee852
-    sourceHash: 149056936b8c407e63ec220d2e73db5ae5ad5352592b35bd7714213e1dd6cbbc
+    sourceHash: c1a6d0ff2afbe83b56b8da610110b834fa4fb88c132e95e7dcf210b66ef58efd
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 50
@@ -9013,7 +9013,7 @@ coordinates:
     sourceLine: 46
   SYM-ingest-proof-result:
     identityHash: ab2dbf6ff4ba90fd396b7c6e501fd7b9b023b27dd5bb789c5b79c232e0d68c8f
-    sourceHash: 149056936b8c407e63ec220d2e73db5ae5ad5352592b35bd7714213e1dd6cbbc
+    sourceHash: c1a6d0ff2afbe83b56b8da610110b834fa4fb88c132e95e7dcf210b66ef58efd
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 71
@@ -9029,7 +9029,7 @@ coordinates:
     sourceLine: 16
   SYM-ingest-proof-test-result:
     identityHash: a879510e82484ec688d7b047497b05541274dadeceea9ed2ddee61159731d772
-    sourceHash: 149056936b8c407e63ec220d2e73db5ae5ad5352592b35bd7714213e1dd6cbbc
+    sourceHash: c1a6d0ff2afbe83b56b8da610110b834fa4fb88c132e95e7dcf210b66ef58efd
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 60
@@ -24885,10 +24885,10 @@ coordinates:
     sourceLine: 93
   SYM-test-ingest-proof:
     identityHash: d4a52b8570166f3c3d14286b54928ae410e65a3b581739f017f5620a6ebaee1b
-    sourceHash: a1d6bdd6794be5329034741d7a36967e23a551ef1f1b36f2260cedf1fb6ff0c9
+    sourceHash: 14405f7685ccbf6ce4950a8e32a6088cb14981f71619b78297851ded24cb7866
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 694
+    sourceEndLine: 939
     sourceFile: packages/cli/tests/operations/ingest-proof.test.ts
     sourceLine: 1
   SYM-test-journaled-engine-benchmark:
@@ -25867,6 +25867,102 @@ coordinates:
     sourceEndLine: 140
     sourceFile: packages/zcode/src/path-policy.ts
     sourceLine: 135
+  SYM-zcode-case-advisory-hooks:
+    identityHash: 9f0ab2d8b7f70f6c3f5a630e213488dd0556bbafa55951a938543e82fa32aed3
+    sourceHash: bc6764f31e39ac6055f831243f3528f58086945ca03ab5ab3df2d615ed0d772f
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 1318
+    sourceFile: packages/zcode/tests/hook-runner.test.ts
+    sourceLine: 1
+  SYM-zcode-case-canonicalize-check-source-files:
+    identityHash: 16c1211147647c78ef96ecb3e2102a8910719d83deb3117064b2abe0378baa19
+    sourceHash: bc6764f31e39ac6055f831243f3528f58086945ca03ab5ab3df2d615ed0d772f
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 1318
+    sourceFile: packages/zcode/tests/hook-runner.test.ts
+    sourceLine: 1
+  SYM-zcode-case-canonicalize-workspace-path:
+    identityHash: 07d297e416e44c811ecf74e52fb351d7660dd296ff12eed7b6bf2f60e0db025f
+    sourceHash: bc6764f31e39ac6055f831243f3528f58086945ca03ab5ab3df2d615ed0d772f
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 1318
+    sourceFile: packages/zcode/tests/hook-runner.test.ts
+    sourceLine: 1
+  SYM-zcode-case-hooks-no-kb-mutation:
+    identityHash: 5d9e2043dddbf562b8407de4cb12680a3e4632f5089349ac6353b0c7388e1863
+    sourceHash: bc6764f31e39ac6055f831243f3528f58086945ca03ab5ab3df2d615ed0d772f
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 1318
+    sourceFile: packages/zcode/tests/hook-runner.test.ts
+    sourceLine: 1
+  SYM-zcode-case-manual-mcp-fallback:
+    identityHash: 37fe0ce94635e0d41e923ec6c9b6bb2815072652316f8627a9b60577081f3a6a
+    sourceHash: 19a9708bb9efdbb2bc24e30dab672aad43b09b6e5ff924fc57c6298d0340a8da
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 103
+    sourceFile: packages/zcode/tests/package-contract.test.ts
+    sourceLine: 1
+  SYM-zcode-case-mutated-workspace-paths:
+    identityHash: 4fcb8d0af7920970b8a9ce6e449f4b209a81b7f6f339cb2f647c7ca6b34bd25d
+    sourceHash: bc6764f31e39ac6055f831243f3528f58086945ca03ab5ab3df2d615ed0d772f
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 1318
+    sourceFile: packages/zcode/tests/hook-runner.test.ts
+    sourceLine: 1
+  SYM-zcode-case-optional-package-contract:
+    identityHash: 2aa79269ee2f896e8fb2ef40d416328b0ea8f68309def761d7b294bb3db7d87a
+    sourceHash: 19a9708bb9efdbb2bc24e30dab672aad43b09b6e5ff924fc57c6298d0340a8da
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 103
+    sourceFile: packages/zcode/tests/package-contract.test.ts
+    sourceLine: 1
+  SYM-zcode-case-packed-consumer-install-launch:
+    identityHash: eb046879fc79208dc926208053eeed4ebb80d19df1ca997591711a9d41c89749
+    sourceHash: fe9840e01b7470fb2c5fc3b8b65ba25126f6e905f6088ad3f1a8ba933f8fb30a
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 312
+    sourceFile: packages/zcode/tests/packed-consumer-smoke.test.ts
+    sourceLine: 1
+  SYM-zcode-case-readme-optional-adapter:
+    identityHash: 7d6b3a62988d7b11ebba4a0d55b0f563e5d6310f5a70b9feccfefaa1cb8de040
+    sourceHash: 19a9708bb9efdbb2bc24e30dab672aad43b09b6e5ff924fc57c6298d0340a8da
+    sourceColumn: 8
+    sourceEndColumn: 50
+    sourceEndLine: 79
+    sourceFile: packages/zcode/tests/package-contract.test.ts
+    sourceLine: 79
+  SYM-zcode-case-session-state-isolation:
+    identityHash: afc8a36af5ece6a2dd080a6b8004103b5bf4f517d388440e5beb4a8d0b2c24d3
+    sourceHash: bc6764f31e39ac6055f831243f3528f58086945ca03ab5ab3df2d615ed0d772f
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 1318
+    sourceFile: packages/zcode/tests/hook-runner.test.ts
+    sourceLine: 1
+  SYM-zcode-case-shipped-plugin-payload:
+    identityHash: e8111d855bee43b1c01f12b6ab8221e997ff78bcc3568f70ea485c6ea4f2aaaa
+    sourceHash: a9958e545da4cc32d730b2ef3af6d1af755bbd76319950fd419b984fe730d261
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 153
+    sourceFile: packages/zcode/tests/install-artifact.test.ts
+    sourceLine: 1
+  SYM-zcode-case-unconfigured-workspace-silent:
+    identityHash: f7e9b01fe9520f4fc007ed237f221cbe847c8fa8cb3c5c921b527b6ece858818
+    sourceHash: bc6764f31e39ac6055f831243f3528f58086945ca03ab5ab3df2d615ed0d772f
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 1318
+    sourceFile: packages/zcode/tests/hook-runner.test.ts
+    sourceLine: 1
   SYM-zcode-clearDirtyPaths:
     identityHash: 9552df7ca05fbd0a20cd547e39732bc3451af28a4b7c73e21c74de6fef67f721
     sourceHash: efeb5ce7de63f7c23b7919f54c336d606fb27a7d82266fb220376fadbafe3945
@@ -26043,6 +26139,14 @@ coordinates:
     sourceEndLine: 252
     sourceFile: packages/zcode/src/hook-runner.ts
     sourceLine: 249
+  SYM-zcode-mcp-launcher:
+    identityHash: 8aad7bf61e908eac82512a14bc38cf9420a813e7686cd3623068874b868ef648
+    sourceHash: 4ded80e920136869dc22f9dcb9c67ca23775120c8ac692428ccd391903c0ceff
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 657
+    sourceFile: packages/zcode/bin/mcp-launcher.cjs
+    sourceLine: 1
   SYM-zcode-mcp-registration-config:
     identityHash: a49902dfe1abb97958a5441b1232d9235135aea24308be1265c4be0c751661e5
     sourceHash: 1092ccd64b242aca660c344b13043b689e86fb1a551dde0d6f049a71438705e4
@@ -26075,6 +26179,94 @@ coordinates:
     sourceEndLine: 92
     sourceFile: packages/zcode/src/hook-input.ts
     sourceLine: 85
+  SYM-zcode-proof-buildProofResults:
+    identityHash: 963c2343a3a035d90752c9dac9d9dd2156719c286279028529da82914a3a6882
+    sourceHash: 140b1b1763aa4e09f1b56b6acad210c832a834bca27ef5c285406849eaa0fe2b
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 193
+    sourceFile: scripts/run-zcode-proof.mjs
+    sourceLine: 157
+  SYM-zcode-proof-main:
+    identityHash: 60cafc949d5effdc5c12ce93e37d4f9f7a693081477e01123dbd01fc55523a50
+    sourceHash: 140b1b1763aa4e09f1b56b6acad210c832a834bca27ef5c285406849eaa0fe2b
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 319
+    sourceFile: scripts/run-zcode-proof.mjs
+    sourceLine: 317
+  SYM-zcode-proof-nativeId:
+    identityHash: 7de3e8c02943c0998abaf5bbd9e134e439f9111fceddbb86e9ddf8b4257912c7
+    sourceHash: 140b1b1763aa4e09f1b56b6acad210c832a834bca27ef5c285406849eaa0fe2b
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 155
+    sourceFile: scripts/run-zcode-proof.mjs
+    sourceLine: 153
+  SYM-zcode-proof-parseJUnitCases:
+    identityHash: 66864b0da2af4f5c6019d89a74ab18c0e14b594e95cc916493a98cc7503431ea
+    sourceHash: 140b1b1763aa4e09f1b56b6acad210c832a834bca27ef5c285406849eaa0fe2b
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 151
+    sourceFile: scripts/run-zcode-proof.mjs
+    sourceLine: 126
+  SYM-zcode-proof-proofArtifact:
+    identityHash: e393344200c0b95f19ff31ac0823c8889763a7e45198893bb184f4aa72def67f
+    sourceHash: 140b1b1763aa4e09f1b56b6acad210c832a834bca27ef5c285406849eaa0fe2b
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 230
+    sourceFile: scripts/run-zcode-proof.mjs
+    sourceLine: 195
+  SYM-zcode-proof-runZcodeProof:
+    identityHash: 82b83d8ff03611c725436d468943adf6b3f839628041b9a4791f592be32c8551
+    sourceHash: 140b1b1763aa4e09f1b56b6acad210c832a834bca27ef5c285406849eaa0fe2b
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 315
+    sourceFile: scripts/run-zcode-proof.mjs
+    sourceLine: 259
+  SYM-zcode-proof-validateProofTestIds:
+    identityHash: ae14e8631792d1b057d1887d26bf30d229312a587a8d7a8b12e61b372843a568
+    sourceHash: 140b1b1763aa4e09f1b56b6acad210c832a834bca27ef5c285406849eaa0fe2b
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 257
+    sourceFile: scripts/run-zcode-proof.mjs
+    sourceLine: 247
+  SYM-zcode-proof-ZCODE_BUN_TEST_ARGS:
+    identityHash: 6296486af8707872f08ded8e19af4a113c4e4121c0e31dc7ab66ca1f4b1179b9
+    sourceHash: 140b1b1763aa4e09f1b56b6acad210c832a834bca27ef5c285406849eaa0fe2b
+    sourceColumn: 13
+    sourceEndColumn: 2
+    sourceEndLine: 28
+    sourceFile: scripts/run-zcode-proof.mjs
+    sourceLine: 18
+  SYM-zcode-proof-ZCODE_NATIVE_CASES:
+    identityHash: c6380c3b210804c7f8dd728aee86f779a4363f23600c8f14f4d4536d6d251d51
+    sourceHash: 140b1b1763aa4e09f1b56b6acad210c832a834bca27ef5c285406849eaa0fe2b
+    sourceColumn: 13
+    sourceEndColumn: 2
+    sourceEndLine: 107
+    sourceFile: scripts/run-zcode-proof.mjs
+    sourceLine: 34
+  SYM-zcode-proof-ZCODE_PROOF_COMMAND:
+    identityHash: ef16a71b71c0c4d10536fc3f7cc5c6a6a83422a6da59b5c9515bfe1a24bb27f8
+    sourceHash: 140b1b1763aa4e09f1b56b6acad210c832a834bca27ef5c285406849eaa0fe2b
+    sourceColumn: 13
+    sourceEndColumn: 74
+    sourceEndLine: 17
+    sourceFile: scripts/run-zcode-proof.mjs
+    sourceLine: 17
+  SYM-zcode-proof-ZCODE_TEST_ID:
+    identityHash: d81110f906217b91bab92f783a81edf8b3d125963a15633ef375ce3e090476eb
+    sourceHash: 140b1b1763aa4e09f1b56b6acad210c832a834bca27ef5c285406849eaa0fe2b
+    sourceColumn: 13
+    sourceEndColumn: 56
+    sourceEndLine: 16
+    sourceFile: scripts/run-zcode-proof.mjs
+    sourceLine: 16
   SYM-zcode-readStdin:
     identityHash: 1aa69bf4dc1b77044750d061587c940e5a1bfd5fbe8dfffb711c500329228e1b
     sourceHash: 5272d8586d4f989ab6ac07a877af0d80e58d1172935b211114bf45a97507aa53

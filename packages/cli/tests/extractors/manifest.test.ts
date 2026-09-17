@@ -7,6 +7,7 @@ import {
   extractFromManifestString,
   extractManifestSymbolRecordsString,
   readManifestWithCoordinateOverlay,
+  resolveBoundSymbolScope,
 } from "../../src/extractors/manifest";
 import {
   coordinateIdentityHash,
@@ -474,6 +475,65 @@ symbols:
     expect(() =>
       readManifestWithCoordinateOverlay(symbolsPath, coordinatesPath),
     ).toThrow(ManifestError);
+
+    cleanup();
+  });
+
+  test("resolves only requested bound symbols with propagated hashes in sorted order", () => {
+    const sourceHashA = "a".repeat(64);
+    const sourceHashZ = "b".repeat(64);
+    const manifestPath = setupTestFile(
+      "bound-symbol-scope.yaml",
+      `symbols:
+  - id: SYM-Z
+    title: Zulu
+    sourceHash: ${sourceHashZ}
+  - id: SYM-UNREQUESTED
+    title: Unrequested
+    sourceHash: ${"c".repeat(64)}
+  - id: SYM-A
+    title: Alpha
+    sourceHash: ${sourceHashA}
+`,
+    );
+
+    expect(
+      resolveBoundSymbolScope(manifestPath, [
+        "SYM-Z",
+        "SYM-A",
+        "SYM-A",
+      ]),
+    ).toEqual([
+      { symbolId: "SYM-A", sourceHash: sourceHashA },
+      { symbolId: "SYM-Z", sourceHash: sourceHashZ },
+    ]);
+
+    cleanup();
+  });
+
+  test("omits missing and unbound requested symbols", () => {
+    const manifestPath = setupTestFile(
+      "bound-symbol-scope-missing.yaml",
+      `symbols:
+  - id: SYM-BOUND
+    title: Bound
+    sourceHash: ${"b".repeat(64)}
+  - id: SYM-EMPTY-HASH
+    title: Empty hash
+    sourceHash: ""
+  - id: SYM-UNBOUND
+    title: Unbound
+`,
+    );
+
+    expect(
+      resolveBoundSymbolScope(manifestPath, [
+        "SYM-BOUND",
+        "SYM-EMPTY-HASH",
+        "SYM-UNBOUND",
+        "SYM-MISSING",
+      ]),
+    ).toEqual([{ symbolId: "SYM-BOUND", sourceHash: "b".repeat(64) }]);
 
     cleanup();
   });

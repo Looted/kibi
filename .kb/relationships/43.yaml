@@ -118,3 +118,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-863ccde8b4e7
+  - type: implements
+    from: SYM-zcode-runHook
+    to: REQ-zcode-advisory-enforcement-boundary-v1
+    created_at: 2026-09-17T08:00:37.286Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb72339b983b

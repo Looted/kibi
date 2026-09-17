@@ -781,6 +781,138 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-2f65cd8d28ea374adb6bb446
+    test_id: TEST-mcp-upsert-coverage
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 3754e5b395adff6929063205f7100d6fefed2c1f077b500b8577207a4a3aa0e0
+    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
+    started_at: '2026-09-16T15:45:49.528Z'
+    finished_at: '2026-09-16T16:20:34.944Z'
+    artifact_digest: f417379bb36dbb64c2b3bf9b6df976afa77cf62d8f9ccb8b5c48629f09cca2db
+    contract_hash: 055806307e945b298ebab39469f941cc0fcf7425ce4a136ffc5fe60bfbc34e19
+    binding_hash: fc525e5f8275f1f3e47fde61f421e7465d0b9586e2c6106fac559ffc05c10efb
+    fingerprint: 1d13e50c7e4dd185aecbbc35beff8ed1abef6876b32ddeb020b692022dda832c
+    fingerprint_components:
+      contract: 055806307e945b298ebab39469f941cc0fcf7425ce4a136ffc5fe60bfbc34e19
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-mcp-upsert-coverage
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-6bc74c251c8a16e27715bada
+    test_id: TEST-mcp-upsert-coverage
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 8dc34d39cf985d3e5df0bcdde99c308d04f86514b186af167d5be76cc0fc3094
+    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
+    started_at: '2026-09-17T06:17:38.049Z'
+    finished_at: '2026-09-17T06:43:07.823Z'
+    artifact_digest: ec3f1974d62da99628239f1200bbda8ef950deb601f213ec579673524ea351b8
+    contract_hash: 055806307e945b298ebab39469f941cc0fcf7425ce4a136ffc5fe60bfbc34e19
+    binding_hash: fc525e5f8275f1f3e47fde61f421e7465d0b9586e2c6106fac559ffc05c10efb
+    fingerprint: 1d13e50c7e4dd185aecbbc35beff8ed1abef6876b32ddeb020b692022dda832c
+    fingerprint_components:
+      contract: 055806307e945b298ebab39469f941cc0fcf7425ce4a136ffc5fe60bfbc34e19
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-mcp-upsert-coverage
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-bbb695a19f9f4f563f9d8c35
+    test_id: TEST-mcp-upsert-coverage
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 7838c8d4b64cce3eea025880c2e41caf951cc18119d89a0341e4740db8b6d4f5
+    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
+    started_at: '2026-09-17T08:09:25.677Z'
+    finished_at: '2026-09-17T08:36:01.670Z'
+    artifact_digest: 8ebc5eee389b1228bff96b811288e92dc5524a9c8d4dbeadffef2f1e8b9ff94e
+    contract_hash: 055806307e945b298ebab39469f941cc0fcf7425ce4a136ffc5fe60bfbc34e19
+    binding_hash: fc525e5f8275f1f3e47fde61f421e7465d0b9586e2c6106fac559ffc05c10efb
+    fingerprint: 1d13e50c7e4dd185aecbbc35beff8ed1abef6876b32ddeb020b692022dda832c
+    fingerprint_components:
+      contract: 055806307e945b298ebab39469f941cc0fcf7425ce4a136ffc5fe60bfbc34e19
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-mcp-upsert-coverage
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-afbcfc3b655450732154bea0
+    test_id: TEST-mcp-upsert-coverage
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 9a73dc3467418fb64f2e17d0361eea4efb2cd22d7381e7013cabbe40dfbbe18f
+    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
+    started_at: '2026-09-17T09:04:59.435Z'
+    finished_at: '2026-09-17T09:29:50.490Z'
+    artifact_digest: f314032733573b51820781ce480a234e8f7de3b391f577804eca19ab9701fab9
+    contract_hash: 055806307e945b298ebab39469f941cc0fcf7425ce4a136ffc5fe60bfbc34e19
+    binding_hash: fc525e5f8275f1f3e47fde61f421e7465d0b9586e2c6106fac559ffc05c10efb
+    fingerprint: 1d13e50c7e4dd185aecbbc35beff8ed1abef6876b32ddeb020b692022dda832c
+    fingerprint_components:
+      contract: 055806307e945b298ebab39469f941cc0fcf7425ce4a136ffc5fe60bfbc34e19
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-mcp-upsert-coverage
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 
 Validation steps:

@@ -181,3 +181,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-81701d535fc3
+  - type: executable_for
+    from: SYM-zcode-case-mutated-workspace-paths
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-09-17T04:35:26.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-657c035b1654

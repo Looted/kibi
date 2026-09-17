@@ -66,6 +66,31 @@ function createTempRoot(prefix: string): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
 }
 
+function snapshotFiles(root: string): string[] {
+  const snapshot: string[] = [];
+
+  function visit(current: string, relativeRoot: string): void {
+    const entries = fs
+      .readdirSync(current, { withFileTypes: true })
+      .sort((left, right) => left.name.localeCompare(right.name));
+    for (const entry of entries) {
+      const relativePath = path.join(relativeRoot, entry.name);
+      const absolutePath = path.join(current, entry.name);
+      if (entry.isDirectory()) {
+        snapshot.push(`${relativePath}\0<directory>`);
+        visit(absolutePath, relativePath);
+      } else {
+        snapshot.push(
+          `${relativePath}\0${fs.readFileSync(absolutePath).toString("base64")}`,
+        );
+      }
+    }
+  }
+
+  visit(root, "");
+  return snapshot;
+}
+
 function optInWorkspace(root: string): void {
   fs.mkdirSync(path.join(root, ".kb"), { recursive: true });
   fs.writeFileSync(path.join(root, ".kb", "manifest.json"), "{}");
@@ -223,6 +248,77 @@ describe("ZCode hook runner workspace opt-in", () => {
         )
       ).hookSpecificOutput,
     ).not.toHaveProperty("permissionDecision");
+  });
+
+  test("hook outputs are advisory and never hard deny", async () => {
+    const { cwd, pluginData } = workspaceFixture("kibi-zcode-advisory");
+
+    for (const event of [
+      "SessionStart",
+      "PreToolUse",
+      "PostToolUse",
+      "Stop",
+    ] as const) {
+      const result = await runHook(
+        {
+          hook_event_name: event,
+          session_id: "advisory-session",
+          cwd,
+          tool_name: event === "PreToolUse" ? "Write" : "CallMcpTool",
+          tool_input:
+            event === "PreToolUse"
+              ? { file_path: ".kb/requirements/REQ-1.md" }
+              : { toolName: "kb_status", arguments: {} },
+        },
+        { pluginData },
+      );
+
+      expect(result.continue).toBe(true);
+      expect(result).not.toHaveProperty("decision");
+      expect(result).not.toHaveProperty("permissionDecision");
+      expect(result.hookSpecificOutput).not.toHaveProperty("decision");
+      expect(result.hookSpecificOutput).not.toHaveProperty(
+        "permissionDecision",
+      );
+    }
+  });
+
+  test("hook events never mutate .kb contents", async () => {
+    const { cwd, pluginData } = workspaceFixture("kibi-zcode-kb-snapshot");
+    const requirementPath = path.join(cwd, ".kb", "requirements", "REQ-1.md");
+    fs.mkdirSync(path.dirname(requirementPath), { recursive: true });
+    fs.writeFileSync(requirementPath, "# fixture requirement\n");
+    const before = snapshotFiles(path.join(cwd, ".kb"));
+
+    const events = [
+      {
+        hook_event_name: "SessionStart" as const,
+      },
+      {
+        hook_event_name: "PreToolUse" as const,
+        tool_name: "Write",
+        tool_input: { file_path: ".kb/requirements/REQ-1.md" },
+      },
+      {
+        hook_event_name: "PostToolUse" as const,
+        tool_name: "CallMcpTool",
+        tool_input: { toolName: "kb_status", arguments: {} },
+      },
+      {
+        hook_event_name: "PostToolUse" as const,
+        tool_name: "Write",
+        tool_input: { file_path: ".kb/requirements/REQ-1.md" },
+      },
+      { hook_event_name: "Stop" as const },
+    ];
+
+    for (const event of events) {
+      await runHook(
+        { ...event, session_id: "kb-snapshot-session", cwd },
+        { pluginData },
+      );
+      expect(snapshotFiles(path.join(cwd, ".kb"))).toEqual(before);
+    }
   });
 
   test("PreToolUse canonicalizes absolute and ./-prefixed .kb targets", async () => {

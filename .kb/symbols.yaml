@@ -30553,9 +30553,12 @@ symbols:
       - REQ-zcode-kibi-plugin-v1
     status: active
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-advisory-enforcement-boundary-v1
       - type: implements
         target: REQ-zcode-kibi-plugin-v1
   - id: SYM-zcode-runHookCli
@@ -36721,6 +36724,8 @@ symbols:
     sourceFile: packages/cli/src/extractors/manifest.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
       - type: implements
         target: REQ-kibi-verification-evidence-contract
   - id: SYM-resolve-bound-symbol-scope
@@ -36729,6 +36734,8 @@ symbols:
     sourceFile: packages/cli/src/extractors/manifest.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
       - type: implements
         target: REQ-kibi-verification-evidence-contract
   - id: SYM-current-proof-binding-mode
@@ -36737,6 +36744,8 @@ symbols:
     sourceFile: packages/cli/src/public/operations/specs/reporting.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
       - type: implements
         target: REQ-kibi-verification-evidence-contract
   - id: SYM-proof-fingerprint-receipt-code-scope-entry
@@ -36745,5 +36754,240 @@ symbols:
     sourceFile: packages/cli/src/public/proof-fingerprint.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
       - type: implements
         target: REQ-kibi-verification-evidence-contract
+  - id: SYM-zcode-case-packed-consumer-install-launch
+    title: Packed ZCode consumer installs and launches project-local MCP
+    status: active
+    sourceFile: packages/zcode/tests/packed-consumer-smoke.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-case-mutated-workspace-paths
+    title: ZCode records affected workspace paths
+    status: active
+    sourceFile: packages/zcode/tests/hook-runner.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-case-canonicalize-check-source-files
+    title: ZCode canonicalizes check source files
+    status: active
+    sourceFile: packages/zcode/tests/hook-runner.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-case-unconfigured-workspace-silent
+    title: ZCode is silent in an unconfigured workspace
+    status: active
+    sourceFile: packages/zcode/tests/hook-runner.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-case-session-state-isolation
+    title: ZCode isolates session state
+    status: active
+    sourceFile: packages/zcode/tests/hook-runner.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-case-canonicalize-workspace-path
+    title: ZCode canonicalizes workspace paths
+    status: active
+    sourceFile: packages/zcode/tests/hook-runner.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-case-optional-package-contract
+    title: 'Optional package contract: no install lifecycle or core runtime mutation'
+    status: active
+    sourceFile: packages/zcode/tests/package-contract.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-case-readme-optional-adapter
+    title: README declares the ZCode adapter optional
+    status: active
+    sourceFile: packages/zcode/tests/package-contract.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-case-manual-mcp-fallback
+    title: Manual MCP fallback for unused marketplace installs invokes kibi-mcp
+    status: active
+    sourceFile: packages/zcode/tests/package-contract.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-case-advisory-hooks
+    title: Hook outputs are advisory and never hard deny
+    status: active
+    sourceFile: packages/zcode/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-case-hooks-no-kb-mutation
+    title: Hook events never mutate .kb contents
+    status: active
+    sourceFile: packages/zcode/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-case-shipped-plugin-payload
+    title: Packed artifact ships plugin manifest, hooks, launcher, skills, and command
+    status: active
+    sourceFile: packages/zcode/tests/install-artifact.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-zcode-kibi-plugin-v1
+  - id: SYM-zcode-mcp-launcher
+    title: ZCode MCP launcher (manual kibi-mcp entry point)
+    status: active
+    sourceFile: packages/zcode/bin/mcp-launcher.cjs
+    granularity_reason: config-artifact
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-manual-mcp-configuration-v1
+  - id: SYM-zcode-proof-parseJUnitCases
+    title: parseJUnitCases
+    status: active
+    sourceFile: scripts/run-zcode-proof.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+  - id: SYM-zcode-proof-buildProofResults
+    title: buildProofResults
+    status: active
+    sourceFile: scripts/run-zcode-proof.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+  - id: SYM-zcode-proof-proofArtifact
+    title: proofArtifact
+    status: active
+    sourceFile: scripts/run-zcode-proof.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+  - id: SYM-zcode-proof-validateProofTestIds
+    title: validateProofTestIds
+    status: active
+    sourceFile: scripts/run-zcode-proof.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+  - id: SYM-zcode-proof-runZcodeProof
+    title: runZcodeProof
+    status: active
+    sourceFile: scripts/run-zcode-proof.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+  - id: SYM-zcode-proof-main
+    title: main
+    status: active
+    sourceFile: scripts/run-zcode-proof.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+  - id: SYM-zcode-proof-nativeId
+    title: nativeId
+    status: active
+    sourceFile: scripts/run-zcode-proof.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+  - id: SYM-zcode-proof-ZCODE_TEST_ID
+    title: ZCODE_TEST_ID
+    status: active
+    sourceFile: scripts/run-zcode-proof.mjs
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+  - id: SYM-zcode-proof-ZCODE_PROOF_COMMAND
+    title: ZCODE_PROOF_COMMAND
+    status: active
+    sourceFile: scripts/run-zcode-proof.mjs
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+  - id: SYM-zcode-proof-ZCODE_BUN_TEST_ARGS
+    title: ZCODE_BUN_TEST_ARGS
+    status: active
+    sourceFile: scripts/run-zcode-proof.mjs
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+  - id: SYM-zcode-proof-ZCODE_NATIVE_CASES
+    title: ZCODE_NATIVE_CASES
+    status: active
+    sourceFile: scripts/run-zcode-proof.mjs
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
