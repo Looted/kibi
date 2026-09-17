@@ -16,10 +16,10 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, test } from "bun:test";
 import {
   runJanitor,
   sweepRuntimeSockets,

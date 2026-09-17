@@ -7,7 +7,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
 import {
   EXPECTED_SKILL_IDS,
@@ -25,6 +25,7 @@ import {
   repoRootFromScript,
   syncAgentSkills,
   syncAgentSkillsUnlocked,
+  transformZcodeSkillFrontmatter,
 } from "../sync-agent-skills";
 
 const roots: string[] = [];
@@ -66,14 +67,14 @@ function writeCanonical(
 }
 
 describe("sync-agent-skills argument parsing", () => {
-  test("defaults to write mode for both targets", () => {
+  test("defaults to write mode for all targets", () => {
     expect(parseArgs([])).toEqual({
       mode: "write",
-      targets: ["cursor", "codex"],
+      targets: ["cursor", "codex", "zcode"],
     });
     expect(parseArgs(["--write"])).toEqual({
       mode: "write",
-      targets: ["cursor", "codex"],
+      targets: ["cursor", "codex", "zcode"],
     });
     expect(parseArgs(["--check", "--target", "cursor"])).toEqual({
       mode: "check",
@@ -93,12 +94,27 @@ describe("sync-agent-skills argument parsing", () => {
 });
 
 describe("sync-agent-skills planning and drift", () => {
+  test("parses BOM-prefixed CRLF frontmatter while preserving the body bytes", () => {
+    const body = "# body\r\n\r\nbody bytes stay CRLF\r\n";
+    const transformed = transformZcodeSkillFrontmatter(
+      Buffer.from(
+        `\uFEFF---\r\nid: kibi-usage\r\nname: Usage\r\ndescription: Guidance\r\nresources:\r\n  - resources/guide.md\r\n---\r\n${body}`,
+        "utf8",
+      ),
+    ).toString("utf8");
+
+    expect(transformed).toContain("name: Usage\ndescription: Guidance\n");
+    expect(transformed).toContain("metadata:\n  id: kibi-usage\n");
+    expect(transformed.endsWith(body)).toBe(true);
+    expect(transformed).not.toContain("\uFEFF");
+  });
+
   test("repo helpers resolve canonical and mirror directories", () => {
     expect(canonicalSkillsDir("/repo")).toBe(
-      "/repo/packages/runtime/src/skills",
+      resolve("/repo", "packages", "runtime", "src", "skills"),
     );
     expect(mirrorSkillsDir("/repo", "cursor")).toBe(
-      "/repo/packages/cursor/skills",
+      resolve("/repo", "packages", "cursor", "skills"),
     );
     expect(repoRootFromScript()).toBeTruthy();
   });
@@ -179,6 +195,7 @@ describe("sync-agent-skills planning and drift", () => {
     const planned: PlannedFile[] = planSkillMirror(
       canonicalSkillsDir(root),
       "kibi-usage",
+      "cursor",
     );
     const plannedManifest = computeHashManifest(planned);
     const mirrorRoot = join(root, "mirror");
@@ -225,6 +242,46 @@ describe("sync-agent-skills planning and drift", () => {
         "utf8",
       ),
     ).toContain("kibi-usage");
+  });
+
+  test("processTarget rewrites zcode SKILL.md frontmatter and keeps resources identical", () => {
+    const root = tempRoot();
+    for (const id of EXPECTED_SKILL_IDS) {
+      const skillDir = join(root, "packages/runtime/src/skills", id);
+      mkdirSync(skillDir, { recursive: true });
+      writeFileSync(
+        join(skillDir, "SKILL.md"),
+        `---\nid: ${id}\nname: ${id}\ndescription: ${id} guidance\nversion: 1.0.0\ntags:\n  - kibi\n---\n# ${id}\n`,
+      );
+      mkdirSync(join(skillDir, "resources"), { recursive: true });
+      writeFileSync(join(skillDir, "resources/guide.md"), "guide\n");
+    }
+
+    const result = processTarget(
+      root,
+      canonicalSkillsDir(root),
+      "zcode",
+      "write",
+    );
+    expect(result.drifted).toBe(false);
+
+    const raw = readFileSync(
+      join(root, "packages/zcode/skills/kibi-usage/SKILL.md"),
+      "utf8",
+    );
+    expect(raw).toMatch(/^name: kibi-usage$/m);
+    expect(raw).toMatch(/^description: kibi-usage guidance$/m);
+    expect(raw).toMatch(/^license: AGPL-3\.0-or-later$/m);
+    expect(raw).toMatch(/^metadata:\n {2}id: kibi-usage/m);
+    expect(raw).toMatch(/^ {4}- kibi$/m);
+    expect(raw).not.toMatch(/^id: /m);
+    expect(raw).toContain("# kibi-usage\n");
+    expect(
+      readFileSync(
+        join(root, "packages/zcode/skills/kibi-usage/resources/guide.md"),
+        "utf8",
+      ),
+    ).toBe("guide\n");
   });
 
   test("main exits 2 on invalid flags", async () => {

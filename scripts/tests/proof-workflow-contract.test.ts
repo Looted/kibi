@@ -12,6 +12,8 @@ const integrations = JSON.parse(
     producer: string;
     command: string[];
     artifact?: string;
+    producer_version?: string;
+    targets?: string[];
   }>;
 };
 const steps = JSON.parse(
@@ -47,11 +49,51 @@ describe("strict proof workflow contract", () => {
     for (const integration of integrations.integrations) {
       expect(ids.has(integration.id)).toBe(false);
       ids.add(integration.id);
-      expect(integration.producer).toBe("command");
       expect(integration.command.length).toBeGreaterThan(0);
       expect(integration.command[0]).not.toBe("sh");
       expect(integration.command[0]).not.toBe("bash");
     }
+
+    const selfProof = integrations.integrations.find(
+      (integration) => integration.id === "self-proof",
+    );
+    expect(selfProof).toMatchObject({
+      id: "self-proof",
+      producer: "command",
+      command: ["node", "scripts/run-proof-producer.mjs"],
+      artifact: ".kb/proof/runs/self-proof.json",
+      targets: ["default"],
+    });
+
+    const zcodeNative = integrations.integrations.find(
+      (integration) => integration.id === "zcode-native",
+    );
+    expect(zcodeNative).toMatchObject({
+      id: "zcode-native",
+      producer: "zcode-native",
+      producer_version: "1.0.0",
+      command: ["node", "scripts/run-zcode-proof.mjs"],
+      artifact: ".kb/proof/runs/zcode-native.json",
+      targets: ["default"],
+    });
+    expect(zcodeNative?.producer).not.toBe("command");
+
+    const zcodeSteps = steps.find(
+      (entry) => entry.test_id === "TEST-zcode-kibi-plugin-v1",
+    )?.steps;
+    expect(zcodeSteps).toContainEqual(["node", "scripts/run-zcode-proof.mjs"]);
+
+    const verificationEvidenceSteps = steps.find(
+      (entry) => entry.test_id === "TEST-kibi-verification-evidence-contract",
+    )?.steps;
+    expect(verificationEvidenceSteps).toContainEqual([
+      "bun",
+      "test",
+      "--timeout",
+      "120000",
+      "./packages/cli/tests/proof/receipt-binding.test.ts",
+      "./packages/cli/tests/extractors/manifest.test.ts",
+    ]);
 
     expect(steps.length).toBeGreaterThan(0);
     for (const entry of steps) {
@@ -88,7 +130,9 @@ describe("strict proof workflow contract", () => {
           success_policy?: string;
         };
       };
-      expect(parsed.proof_contract?.integration).toBe("self-proof");
+      expect(["self-proof", "zcode-native"]).toContain(
+        parsed.proof_contract?.integration ?? "",
+      );
       expect(parsed.proof_contract?.success_policy).toBe(
         "all_required_first_attempt",
       );
@@ -157,8 +201,8 @@ describe("strict proof workflow contract", () => {
 
   test("ratchet baseline records the stricter per-scenario proof gaps", () => {
     expect(baseline.mode).toBe("ratchet");
-    expect(baseline.currentRequirements).toBe(101);
-    expect(baseline.proofProven).toBe(63);
+    expect(baseline.currentRequirements).toBe(104);
+    expect(baseline.proofProven).toBe(66);
     expect(baseline.currentUnproven).toBe(38);
     expect(baseline.trackedGaps).toEqual({
       missing_passing_e2e: 21,

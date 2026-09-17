@@ -8,6 +8,15 @@
       "artifact": ".kb/proof/runs/self-proof.json",
       "targets": ["default"],
       "description": "Repository self-proof: packed end-to-step commands selected by kibi prove."
+    },
+    {
+      "id": "zcode-native",
+      "producer": "zcode-native",
+      "producer_version": "1.0.0",
+      "command": ["node", "scripts/run-zcode-proof.mjs"],
+      "artifact": ".kb/proof/runs/zcode-native.json",
+      "targets": ["default"],
+      "description": "Self-emitting native ZCode proof producer."
     }
   ]
 }

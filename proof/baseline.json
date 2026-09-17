@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v1",
   "mode": "ratchet",
-  "currentRequirements": 101,
-  "proofProven": 63,
+  "currentRequirements": 104,
+  "proofProven": 66,
   "currentUnproven": 38,
   "trackedGaps": {
     "missing_passing_e2e": 21,

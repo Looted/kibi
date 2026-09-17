@@ -144,6 +144,82 @@ function parseBindings(test: Record<string, unknown>): ProofBinding[] {
   });
 }
 
+function enforceNativeCaseBindings(
+  testId: string,
+  contract: ProofContract,
+  bindings: readonly ProofBinding[],
+  artifact: ProofRunArtifact,
+): void {
+  const requiredKeys = new Set(
+    contract.required_proofs.map(
+      (obligation) => `${obligation.target}\0${obligation.symbol_id}`,
+    ),
+  );
+  const nativeResults = artifact.proof_results.filter(
+    (result) =>
+      result.binding === "native_case" &&
+      requiredKeys.has(`${result.target}\0${result.symbol_id}`),
+  );
+  const seenNativeIds = new Set<string>();
+
+  for (const result of nativeResults) {
+    const nativeId =
+      typeof result.native_id === "string" ? result.native_id : "";
+    const resultLabel = `${result.symbol_id}/${result.target}`;
+    if (!nativeId) {
+      throw new Error(
+        `Proof ingest failed: test ${testId} native_case result ${resultLabel} has no native_id`,
+      );
+    }
+    if (seenNativeIds.has(nativeId)) {
+      throw new Error(
+        `Proof ingest failed: test ${testId} duplicate native result for native_id '${nativeId}'`,
+      );
+    }
+    seenNativeIds.add(nativeId);
+
+    const matchingBindings = bindings.filter(
+      (binding) =>
+        binding.symbol_id === result.symbol_id &&
+        binding.target === result.target,
+    );
+    if (matchingBindings.length === 0) {
+      throw new Error(
+        `Proof ingest failed: test ${testId} native_case result ${resultLabel} has no matching proof_binding`,
+      );
+    }
+    if (matchingBindings.length !== 1) {
+      throw new Error(
+        `Proof ingest failed: test ${testId} native_case result ${resultLabel} has an ambiguous proof_binding`,
+      );
+    }
+
+    const binding = matchingBindings[0];
+    if (binding === undefined) {
+      throw new Error(
+        `Proof ingest failed: test ${testId} native_case result ${resultLabel} has an ambiguous proof_binding`,
+      );
+    }
+    const boundNativeIds = [binding.native_id, ...(binding.aliases ?? [])].filter(
+      (value): value is string => typeof value === "string" && value !== "",
+    );
+    if (!boundNativeIds.includes(nativeId)) {
+      throw new Error(
+        `Proof ingest failed: test ${testId} native_case result ${resultLabel} native_id '${nativeId}' does not match its proof_binding native_id or aliases`,
+      );
+    }
+
+    const ambiguousOwners = bindings.filter((candidate) =>
+      [candidate.native_id, ...(candidate.aliases ?? [])].includes(nativeId),
+    );
+    if (ambiguousOwners.length !== 1) {
+      throw new Error(
+        `Proof ingest failed: test ${testId} native_id '${nativeId}' has an ambiguous proof_binding`,
+      );
+    }
+  }
+}
+
 function existingReceipts(
   test: Record<string, unknown>,
 ): Record<string, unknown>[] {
@@ -262,6 +338,7 @@ export async function executeIngestProof(
         `Proof ingest failed: artifact command_argv does not match the configured command for integration '${effectiveIntegrationId}'`,
       );
     const bindings = parseBindings(test);
+    enforceNativeCaseBindings(testId, contract, bindings, artifact);
     const { fingerprint, components } = effectiveProofFingerprint({
       contract,
       integration: toExecution(integration),

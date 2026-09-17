@@ -35,6 +35,20 @@ describe("unit coverage runner contract", () => {
       label: "runtime",
       paths: ["./packages/runtime"],
     });
+    const zcode = COVERAGE_SHARDS.find((shard) => shard.label === "zcode");
+    expect(zcode?.setup).toEqual(["run", "build:zcode"]);
+    expect(zcode?.paths).toContain(
+      "./packages/zcode/tests/hook-runner.test.ts",
+    );
+    expect(zcode?.paths).not.toContain(
+      "./packages/zcode/tests/install-artifact.test.ts",
+    );
+    expect(zcode?.paths).not.toContain(
+      "./packages/zcode/tests/mcp-launcher.subprocess.test.ts",
+    );
+    expect(zcode?.paths).not.toContain(
+      "./packages/zcode/tests/packed-consumer-smoke.test.ts",
+    );
     expect(
       COVERAGE_SHARDS.filter((shard) => shard.label.startsWith("cli.")).map(
         (shard) => shard.label,
