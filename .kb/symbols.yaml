@@ -32542,6 +32542,8 @@ symbols:
     sourceFile: packages/runtime/src/skill-system/loader.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
       - type: implements
         target: REQ-reusable-skill-subsystem
   - id: SYM-currentBundledSkillsDir
@@ -32550,6 +32552,8 @@ symbols:
     sourceFile: packages/runtime/src/skill-system/loader.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
       - type: implements
         target: REQ-reusable-skill-subsystem
   - id: SYM-listFrom
@@ -32558,6 +32562,8 @@ symbols:
     sourceFile: packages/runtime/src/skill-system/loader.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
       - type: implements
         target: REQ-reusable-skill-subsystem
   - id: SYM-findRoot
@@ -32566,6 +32572,8 @@ symbols:
     sourceFile: packages/runtime/src/skill-system/loader.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
       - type: implements
         target: REQ-reusable-skill-subsystem
   - id: SYM-listRoots
@@ -32574,6 +32582,8 @@ symbols:
     sourceFile: packages/runtime/src/skill-system/loader.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
       - type: implements
         target: REQ-reusable-skill-subsystem
   - id: SYM-readBundle
@@ -32582,6 +32592,8 @@ symbols:
     sourceFile: packages/runtime/src/skill-system/loader.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
       - type: implements
         target: REQ-reusable-skill-subsystem
   - id: SYM-isPathOutOfBounds
@@ -32631,6 +32643,22 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+  - id: SYM-symbol-classification
+    title: symbol_classification
+    status: active
+    symbol_role: type-shape
+    sourceFile: packages/core/src/symbol_classification.pl
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+  - id: SYM-currentProofBindingMode
+    title: currentProofBindingMode
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+        target: TEST-kibi-fresh-verification-receipts
         target: REQ-kibi-fresh-verification-receipts
   - id: SYM-resolveBoundSymbolScope
     title: resolveBoundSymbolScope
