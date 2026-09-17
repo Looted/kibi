@@ -498,11 +498,7 @@ symbols:
     );
 
     expect(
-      resolveBoundSymbolScope(manifestPath, [
-        "SYM-Z",
-        "SYM-A",
-        "SYM-A",
-      ]),
+      resolveBoundSymbolScope(manifestPath, ["SYM-Z", "SYM-A", "SYM-A"]),
     ).toEqual([
       { symbolId: "SYM-A", sourceHash: sourceHashA },
       { symbolId: "SYM-Z", sourceHash: sourceHashZ },

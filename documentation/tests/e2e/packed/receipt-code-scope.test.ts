@@ -11,7 +11,10 @@ import {
   packAll,
   stageSourceFile,
 } from "./helpers.js";
-import { startMcpServer, sendMcpRequest } from "./mcp-cli-operation-parity-support.js";
+import {
+  sendMcpRequest,
+  startMcpServer,
+} from "./mcp-cli-operation-parity-support.js";
 
 const RUN_NODE_TEST_SUITE =
   typeof (globalThis as { Bun?: unknown }).Bun === "undefined";
@@ -95,7 +98,11 @@ if (RUN_NODE_TEST_SUITE) {
           }),
         );
         for (const command of ["validate-upsert", "upsert"]) {
-          const result = await kibi(sandbox, [command, "--input", upsertRequest]);
+          const result = await kibi(sandbox, [
+            command,
+            "--input",
+            upsertRequest,
+          ]);
           assert.strictEqual(result.exitCode, 0, result.stdout + result.stderr);
         }
 
@@ -193,7 +200,11 @@ fs.writeFileSync(process.env.KIBI_PROOF_OUTPUT, JSON.stringify(artifact, null, 2
           "process.exit(0);\n",
         );
 
-        const prove = await kibi(sandbox, ["prove", "--test", "TEST-PACKED-COV"]);
+        const prove = await kibi(sandbox, [
+          "prove",
+          "--test",
+          "TEST-PACKED-COV",
+        ]);
         assert.strictEqual(prove.exitCode, 0, prove.stdout + prove.stderr);
 
         // The minted receipt carries a GENERATED code scope entry for the
@@ -253,7 +264,11 @@ fs.writeFileSync(process.env.KIBI_PROOF_OUTPUT, JSON.stringify(artifact, null, 2
           }),
         );
         for (const command of ["validate-upsert", "upsert"]) {
-          const result = await kibi(sandbox, [command, "--input", upsertRequest]);
+          const result = await kibi(sandbox, [
+            command,
+            "--input",
+            upsertRequest,
+          ]);
           assert.strictEqual(result.exitCode, 0, result.stdout + result.stderr);
         }
         writeFileSync(
@@ -345,7 +360,11 @@ fs.writeFileSync(process.env.KIBI_PROOF_OUTPUT, JSON.stringify(artifact, null, 2
           "process.exit(0);\n",
         );
 
-        const prove = await kibi(sandbox, ["prove", "--test", "TEST-PACKED-COV"]);
+        const prove = await kibi(sandbox, [
+          "prove",
+          "--test",
+          "TEST-PACKED-COV",
+        ]);
         assert.strictEqual(prove.exitCode, 0, prove.stdout + prove.stderr);
 
         // Invalidate: the bound source's content hash changes.
@@ -362,7 +381,11 @@ fs.writeFileSync(process.env.KIBI_PROOF_OUTPUT, JSON.stringify(artifact, null, 2
           "json",
           "--include-passing",
         ]);
-        assert.strictEqual(coverage.exitCode, 0, coverage.stdout + coverage.stderr);
+        assert.strictEqual(
+          coverage.exitCode,
+          0,
+          coverage.stdout + coverage.stderr,
+        );
         const payload = JSON.parse(coverage.stdout) as {
           data?: {
             rows?: Array<{

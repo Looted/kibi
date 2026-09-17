@@ -200,7 +200,10 @@ function enforceNativeCaseBindings(
         `Proof ingest failed: test ${testId} native_case result ${resultLabel} has an ambiguous proof_binding`,
       );
     }
-    const boundNativeIds = [binding.native_id, ...(binding.aliases ?? [])].filter(
+    const boundNativeIds = [
+      binding.native_id,
+      ...(binding.aliases ?? []),
+    ].filter(
       (value): value is string => typeof value === "string" && value !== "",
     );
     if (!boundNativeIds.includes(nativeId)) {
