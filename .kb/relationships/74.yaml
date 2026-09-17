@@ -160,3 +160,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-89901751047c
+  - type: constrains
+    from: REQ-zcode-manual-mcp-configuration-v1
+    to: FACT-SUBJECT-ZCODE-DOCUMENTATION
+    created_at: 2026-09-17T05:39:50.117Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e0cbe6684567
+  - type: constrains
+    from: REQ-zcode-manual-mcp-configuration-v1
+    to: FACT-SUBJECT-ZCODE-MANUAL-MCP-CONFIG
+    created_at: 2026-09-17T05:39:50.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c07c3b4cc5e
+  - type: requires_property
+    from: REQ-zcode-manual-mcp-configuration-v1
+    to: FACT-PROP-ZCODE-DOCS-OPTIONAL
+    created_at: 2026-09-17T05:39:50.160Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc1cd5772308
+  - type: requires_property
+    from: REQ-zcode-manual-mcp-configuration-v1
+    to: FACT-PROP-ZCODE-MANUAL-MCP-ENTRY-POINT
+    created_at: 2026-09-17T05:39:50.187Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8cfee51a5b65
+  - type: requires_predicate
+    from: REQ-zcode-manual-mcp-configuration-v1
+    to: FACT-PRED-ZCODE-DOCS-MANUAL-MCP-PATH
+    created_at: 2026-09-17T05:39:50.210Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-62e99e08c762
+  - type: specified_by
+    from: REQ-zcode-manual-mcp-configuration-v1
+    to: SCEN-zcode-manual-mcp-configuration-v1
+    created_at: 2026-09-17T05:49:39.117Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c8204964b01

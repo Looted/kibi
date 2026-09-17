@@ -220,3 +220,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-693db1e88f04
+  - type: implements
+    from: SYM-skillopt-lock-dispatch-throw-if-directory-inode-drift
+    to: REQ-skillopt-automatic-adoption
+    created_at: 2026-09-16T08:39:14.460Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-293cf932ac5d
+  - type: covered_by
+    from: SYM-skillopt-lock-dispatch-throw-if-directory-inode-drift
+    to: TEST-skillopt-automatic-adoption
+    created_at: 2026-09-16T13:11:09.479Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dac0d89ae561
+  - type: implements
+    from: SYM-zcode-proof-ZCODE_NATIVE_CASES
+    to: REQ-kibi-verification-receipts-v2
+    created_at: 2026-09-17T08:55:49.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-224773bfe5d0
+  - type: covered_by
+    from: SYM-zcode-proof-ZCODE_NATIVE_CASES
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-09-17T08:55:49.740Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bbb8dada9d1d

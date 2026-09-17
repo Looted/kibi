@@ -181,3 +181,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b1525bb58db7
+  - type: covered_by
+    from: SYM-skillopt-with-exclusive-adoption-lock
+    to: TEST-skillopt-automatic-adoption
+    created_at: 2026-09-16T13:11:20.081Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b77d705f2eaf
+  - type: verified_by
+    from: SCEN-zcode-kibi-plugin-v1
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-09-17T05:45:49.823Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-50027599f267

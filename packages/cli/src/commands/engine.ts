@@ -117,7 +117,9 @@ export async function engineJanitorCommand(
   }
   for (const finding of findings) {
     const holder =
-      "pid" in finding && finding.pid !== undefined ? ` pid=${finding.pid}` : "";
+      "pid" in finding && finding.pid !== undefined
+        ? ` pid=${finding.pid}`
+        : "";
     const workspace =
       finding.kind === "store-lock" && finding.workspaceRoot !== undefined
         ? ` workspace=${finding.workspaceRoot}`

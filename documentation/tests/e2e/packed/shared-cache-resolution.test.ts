@@ -268,18 +268,14 @@ if (fixtureChild) {
     const childArgs = process.versions.bun
       ? ["test", testFile]
       : ["--test", "--test-concurrency=1", "--test-force-exit", testFile];
-    const child = spawnSync(
-      process.execPath,
-      childArgs,
-      {
-        cwd: process.cwd(),
-        env: {
-          ...process.env,
-          KIBI_CACHE_RESOLUTION_FIXTURE: "1",
-        },
-        encoding: "utf8",
+    const child = spawnSync(process.execPath, childArgs, {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        KIBI_CACHE_RESOLUTION_FIXTURE: "1",
       },
-    );
+      encoding: "utf8",
+    });
 
     if (child.error) throw child.error;
     if (child.status !== 0) {

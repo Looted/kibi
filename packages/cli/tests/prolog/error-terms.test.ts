@@ -31,7 +31,7 @@ describe("parsePrologErrorTerm", () => {
 
   test("parses store_locked errors that carry the original attach error", () => {
     const record = parsePrologErrorTerm(
-      'error(permission_error(attach,kb_store,\'/tmp/kb/branches/x\'),kb_store_locked(\'{"pid":123,"workspaceRoot":"/ws"}\',\'/tmp/kb/branches/x/rdf\',\'error(permission_error(open,source_sink,lock_file))\'))',
+      "error(permission_error(attach,kb_store,'/tmp/kb/branches/x'),kb_store_locked('{\"pid\":123,\"workspaceRoot\":\"/ws\"}','/tmp/kb/branches/x/rdf','error(permission_error(open,source_sink,lock_file))'))",
     );
     expect(record?.storeLocked?.owner?.pid).toBe(123);
     expect(record?.storeLocked?.originalError).toBe(
@@ -41,7 +41,7 @@ describe("parsePrologErrorTerm", () => {
 
   test("preserves the original attach error when the owner journal is corrupt", () => {
     const record = parsePrologErrorTerm(
-      'error(permission_error(attach,kb_store,\'/tmp/kb/branches/x\'),kb_store_locked(\'{not-json\',\'/tmp/kb/branches/x/rdf\',\'error(permission_error(open,source_sink,lock_file))\'))',
+      "error(permission_error(attach,kb_store,'/tmp/kb/branches/x'),kb_store_locked('{not-json','/tmp/kb/branches/x/rdf','error(permission_error(open,source_sink,lock_file))'))",
     );
     expect(record?.storeLocked?.owner).toBeNull();
     expect(record?.storeLocked?.originalError).toBe(

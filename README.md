@@ -347,6 +347,7 @@ See [generic-agent onboarding](docs/generic-agent-onboarding.md) for the copy-pa
 | `kibi-opencode` | Optional OpenCode guidance and maintenance adapter |
 | `kibi-codex` | Optional Codex skills, MCP, and lifecycle adapter |
 | `kibi-cursor` | Optional Cursor rules, skills, MCP, and advisory hooks |
+| `kibi-zcode` | Optional ZCode skills, command, MCP, and advisory hooks |
 | `kibi-vscode` | VS Code knowledge explorer and traceability integration |
 
 ## Documentation

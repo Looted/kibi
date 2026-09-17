@@ -1,0 +1,12 @@
+{
+  "name": "kibi",
+  "description": "Kibi plugins for ZCode: requirement-traceable agent workflows backed by the Kibi MCP.",
+  "plugins": [
+    {
+      "name": "kibi-zcode",
+      "source": "./packages/zcode",
+      "description": "Kibi ZCode plugin: bundled Kibi skills, a kibi-bootstrap command, advisory lifecycle hooks, and the workspace-gated Kibi MCP server.",
+      "category": "Productivity"
+    }
+  ]
+}

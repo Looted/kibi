@@ -14,8 +14,8 @@ import { resolveBranchAttachment } from "../../utils/branch-resolver.js";
 import {
   type BranchStoreInspection,
   branchStoreReason,
-  storeLockJournalReason,
   inspectBranchStore,
+  storeLockJournalReason,
 } from "../../utils/branch-store.js";
 import {
   loadEntities,

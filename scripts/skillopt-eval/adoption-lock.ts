@@ -17,9 +17,14 @@ type AdoptionLockOptions = Readonly<{
   ) => Promise<void>;
 }>;
 
-const FLOCK = dlopen("libc.so.6", {
-  flock: { args: ["i32", "i32"], returns: "i32" },
-}).symbols.flock;
+// Linux/WSL is the supported skill-adoption environment. Keep the module
+// importable by native Windows consumers that only use packaged runtime code.
+const FLOCK =
+  process.platform === "linux"
+    ? dlopen("libc.so.6", {
+        flock: { args: ["i32", "i32"], returns: "i32" },
+      }).symbols.flock
+    : undefined;
 
 const LOCK_FLAGS = {
   shared: 1,
@@ -32,6 +37,7 @@ function lockFlag(mode: LockMode): number {
   return mode === "-s" ? LOCK_FLAGS.shared : LOCK_FLAGS.exclusive;
 }
 
+// implements REQ-skillopt-automatic-adoption
 export function throwIfDirectoryInodeDrift(
   current: { readonly dev: number | bigint; readonly ino: number | bigint },
   identity: { readonly dev: number | bigint; readonly ino: number | bigint },
@@ -53,6 +59,8 @@ async function secureLockHandle(
 ): Promise<
   Readonly<{ path: string; handle: Awaited<ReturnType<typeof open>> }>
 > {
+  if (FLOCK === undefined) throw new Error("Linux adoption locks unavailable");
+
   const stateRoot = join(repoRoot, ".kibi");
   await ensureSecureDirectory(stateRoot);
 
@@ -101,6 +109,7 @@ async function flockDescriptor(
   descriptor: number,
   mode: LockMode,
 ): Promise<void> {
+  if (FLOCK === undefined) throw new Error("Linux adoption locks unavailable");
   while (FLOCK(descriptor, lockFlag(mode) | LOCK_FLAGS.nonBlocking) !== 0) {
     await Bun.sleep(5);
   }
@@ -121,11 +130,12 @@ async function holdLock<T>(
     await flockDescriptor(lock.handle.fd, request.mode);
     return await operation();
   } finally {
-    FLOCK(lock.handle.fd, LOCK_FLAGS.unlock);
+    FLOCK?.(lock.handle.fd, LOCK_FLAGS.unlock);
     await lock.handle.close();
   }
 }
 
+// implements REQ-skillopt-automatic-adoption
 export function withExclusiveAdoptionLock<T>(
   repoRoot: string,
   operation: () => Promise<T>,
@@ -139,6 +149,7 @@ export function withExclusiveAdoptionLock<T>(
   );
 }
 
+// implements REQ-skillopt-automatic-adoption
 export function withSharedAdoptionLock<T>(
   repoRoot: string,
   operation: () => Promise<T>,
@@ -152,6 +163,7 @@ export function withSharedAdoptionLock<T>(
   );
 }
 
+// implements REQ-skillopt-automatic-adoption
 export function withExclusiveMirrorWriterLock<T>(
   repoRoot: string,
   operation: () => Promise<T>,

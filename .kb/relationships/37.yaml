@@ -48,3 +48,122 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-995a2a6fe689
+  - type: constrains
+    from: REQ-zcode-kibi-plugin-v1
+    to: FACT-SUBJECT-6F1948BE213B3014
+    created_at: 2026-09-16T15:25:19.018Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f661eed654bd
+  - type: constrains
+    from: REQ-zcode-kibi-plugin-v1
+    to: FACT-SUBJECT-ZCODE-LOCAL-OPERATIONS
+    created_at: 2026-09-17T05:22:16.428Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-76c8dd97700f
+  - type: requires_property
+    from: REQ-zcode-kibi-plugin-v1
+    to: FACT-PROP-ZCODE-OPTIONAL
+    created_at: 2026-09-17T05:22:16.460Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c7903d60186
+  - type: requires_property
+    from: REQ-zcode-kibi-plugin-v1
+    to: FACT-PROP-ZCODE-LOGIC-PROVIDER
+    created_at: 2026-09-17T05:22:16.466Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e0f684a8bcf
+  - type: requires_property
+    from: REQ-zcode-kibi-plugin-v1
+    to: FACT-PROP-ZCODE-COMMAND-PROVIDER
+    created_at: 2026-09-17T05:22:16.473Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-585cad4bb241
+  - type: requires_property
+    from: REQ-zcode-kibi-plugin-v1
+    to: FACT-PROP-ZCODE-MCP-PROVIDER
+    created_at: 2026-09-17T05:22:16.485Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-383bc9e37003
+  - type: requires_property
+    from: REQ-zcode-kibi-plugin-v1
+    to: FACT-PROP-ZCODE-MCP-RESOLVER
+    created_at: 2026-09-17T05:22:16.492Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a91c612f2343
+  - type: requires_predicate
+    from: REQ-zcode-kibi-plugin-v1
+    to: FACT-PRED-ZCODE-NO-CORE-RUNTIME-MODIFICATION
+    created_at: 2026-09-17T05:22:16.497Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-70bac92902e5
+  - type: requires_predicate
+    from: REQ-zcode-kibi-plugin-v1
+    to: FACT-PRED-ZCODE-MANIFEST
+    created_at: 2026-09-17T05:22:16.507Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b39155775c7c
+  - type: requires_predicate
+    from: REQ-zcode-kibi-plugin-v1
+    to: FACT-PRED-ZCODE-SKILLS
+    created_at: 2026-09-17T05:22:16.511Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c67fce45f2b
+  - type: requires_predicate
+    from: REQ-zcode-kibi-plugin-v1
+    to: FACT-PRED-ZCODE-BOOTSTRAP
+    created_at: 2026-09-17T05:22:16.518Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23cd5792d19b
+  - type: requires_predicate
+    from: REQ-zcode-kibi-plugin-v1
+    to: FACT-PRED-ZCODE-HOOKS
+    created_at: 2026-09-17T05:22:16.523Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-349d77ce8521
+  - type: requires_predicate
+    from: REQ-zcode-kibi-plugin-v1
+    to: FACT-PRED-ZCODE-MCP-CONFIG
+    created_at: 2026-09-17T05:22:16.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90395a86e28f
+  - type: requires_predicate
+    from: REQ-zcode-kibi-plugin-v1
+    to: FACT-PRED-ZCODE-NO-HOOK-OUTPUT-UNOWNED
+    created_at: 2026-09-17T05:22:16.534Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd1e20f3e736
+  - type: requires_predicate
+    from: REQ-zcode-kibi-plugin-v1
+    to: FACT-PRED-ZCODE-NO-MCP-TOOLS-UNOWNED
+    created_at: 2026-09-17T05:22:16.541Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d88aed148013
+  - type: specified_by
+    from: REQ-zcode-kibi-plugin-v1
+    to: SCEN-zcode-kibi-plugin-v1
+    created_at: 2026-09-17T05:48:34.374Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7737fe569ba9
+  - type: specified_by
+    from: REQ-zcode-kibi-plugin-v1
+    to: SCEN-zcode-unowned-workspace-silence-v1
+    created_at: 2026-09-17T05:48:34.398Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7412cc1f98f5

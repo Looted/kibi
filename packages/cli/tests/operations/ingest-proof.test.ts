@@ -109,6 +109,47 @@ function baseArtifact(
   };
 }
 
+function nativeArtifact(
+  resultOverrides: Record<string, unknown> = {},
+): Record<string, unknown> {
+  return baseArtifact({
+    proof_results: [
+      {
+        symbol_id: "SYM-CASE-1",
+        target: "default",
+        outcome: "passed",
+        binding: "native_case",
+        native_id: "native-case-1",
+        attempts: {
+          status: "complete",
+          entries: [{ outcome: "passed", duration_ms: 10 }],
+        },
+        ...resultOverrides,
+      },
+    ],
+  });
+}
+
+function proofBindingsField(bindings: readonly Record<string, unknown>[]): string {
+  return `,proof_bindings=${JSON.stringify(JSON.stringify(bindings))}`;
+}
+
+function entityQuery(extra: string) {
+  return mock(async (goal: string): Promise<PrologQueryResult> => {
+    if (goal.includes("kb_entity('TEST-001'")) {
+      return {
+        success: true,
+        bindings: {
+          Results: `[[TEST-001,test,[${testProps(extra)}]]]`,
+        },
+      };
+    }
+    if (goal.includes("kb_commit_upsert"))
+      return { success: true, bindings: { ChangeKind: "updated" } };
+    return { success: true, bindings: { Results: "[]" } };
+  });
+}
+
 function withTempWorkspace(run: (dir: string) => Promise<void>): Promise<void> {
   const dir = mkdtempSync(path.join(tmpdir(), "ingest-proof-test-"));
   mkdirSync(path.join(dir, ".kb", "proof"), { recursive: true });
@@ -203,6 +244,184 @@ describe("kb_ingest_proof", () => {
         .map(([goal]) => String(goal))
         .find((goal) => goal.includes("kb_commit_upsert"));
       expect(commitGoal).toContain("proof_receipts");
+    });
+  });
+
+  test("rejects a native result whose native_id does not match its binding", async () => {
+    await withTempWorkspace(async (dir) => {
+      const bindings = [
+        {
+          symbol_id: "SYM-CASE-1",
+          target: "default",
+          native_id: "native-case-1",
+        },
+      ];
+      await expect(
+        executeIngestProof(
+          {
+            snapshot: SNAPSHOT,
+            artifact: nativeArtifact({ native_id: "different-native-case" }),
+            testIds: ["TEST-001"],
+          },
+          context(
+            dir,
+            entityQuery(
+              `,proof_contract=${JSON.stringify(JSON.stringify(contract))}${proofBindingsField(bindings)}`,
+            ),
+          ),
+        ),
+      ).rejects.toThrow(/does not match its proof_binding/);
+    });
+  });
+
+  test("allows a native result to use a declared binding alias", async () => {
+    await withTempWorkspace(async (dir) => {
+      const bindings = [
+        {
+          symbol_id: "SYM-CASE-1",
+          target: "default",
+          native_id: "native-case-1",
+          aliases: ["native-case-alias"],
+        },
+      ];
+      const result = await executeIngestProof(
+        {
+          snapshot: SNAPSHOT,
+          artifact: nativeArtifact({ native_id: "native-case-alias" }),
+          testIds: ["TEST-001"],
+        },
+        context(
+          dir,
+          entityQuery(
+            `,proof_contract=${JSON.stringify(JSON.stringify(contract))}${proofBindingsField(bindings)}`,
+          ),
+        ),
+      );
+      expect(result.structuredContent.passed).toBe(1);
+      expect(result.structuredContent.failed).toBe(0);
+    });
+  });
+
+  test("rejects a required native result without a matching binding", async () => {
+    await withTempWorkspace(async (dir) => {
+      await expect(
+        executeIngestProof(
+          {
+            snapshot: SNAPSHOT,
+            artifact: nativeArtifact(),
+            testIds: ["TEST-001"],
+          },
+          context(
+            dir,
+            entityQuery(`,proof_contract=${JSON.stringify(JSON.stringify(contract))}`),
+          ),
+        ),
+      ).rejects.toThrow(/no matching proof_binding/);
+    });
+  });
+
+  test("rejects duplicate and ambiguous bindings for native results", async () => {
+    await withTempWorkspace(async (dir) => {
+      const duplicateBindings = [
+        {
+          symbol_id: "SYM-CASE-1",
+          target: "default",
+          native_id: "native-case-1",
+        },
+        {
+          symbol_id: "SYM-CASE-1",
+          target: "default",
+          native_id: "native-case-alternate",
+        },
+      ];
+      await expect(
+        executeIngestProof(
+          {
+            snapshot: SNAPSHOT,
+            artifact: nativeArtifact(),
+            testIds: ["TEST-001"],
+          },
+          context(
+            dir,
+            entityQuery(
+              `,proof_contract=${JSON.stringify(JSON.stringify(contract))}${proofBindingsField(duplicateBindings)}`,
+            ),
+          ),
+        ),
+      ).rejects.toThrow(/duplicates target\/symbol_id/);
+
+      const ambiguousBindings = [
+        {
+          symbol_id: "SYM-CASE-1",
+          target: "default",
+          native_id: "native-case-1",
+        },
+        {
+          symbol_id: "SYM-OTHER",
+          target: "default",
+          native_id: "other-native",
+          aliases: ["native-case-1"],
+        },
+      ];
+      await expect(
+        executeIngestProof(
+          {
+            snapshot: SNAPSHOT,
+            artifact: nativeArtifact(),
+            testIds: ["TEST-001"],
+          },
+          context(
+            dir,
+            entityQuery(
+              `,proof_contract=${JSON.stringify(JSON.stringify(contract))}${proofBindingsField(ambiguousBindings)}`,
+            ),
+          ),
+        ),
+      ).rejects.toThrow(/ambiguous proof_binding/);
+    });
+  });
+
+  test("rejects duplicate native results", async () => {
+    await withTempWorkspace(async (dir) => {
+      const twoObligationContract = {
+        ...contract,
+        required_proofs: [
+          { symbol_id: "SYM-CASE-1", target: "default" },
+          { symbol_id: "SYM-CASE-2", target: "default" },
+        ],
+      };
+      const bindings = [
+        {
+          symbol_id: "SYM-CASE-1",
+          target: "default",
+          native_id: "native-case-1",
+        },
+      ];
+      const artifact = nativeArtifact();
+      const firstResult = (artifact.proof_results as Record<string, unknown>[])[0];
+      if (firstResult === undefined) throw new Error("expected native result");
+      const duplicateArtifact = {
+        ...artifact,
+        proof_results: [
+          firstResult,
+          { ...firstResult, symbol_id: "SYM-CASE-2" },
+        ],
+      };
+      await expect(
+        executeIngestProof(
+          {
+            snapshot: SNAPSHOT,
+            artifact: duplicateArtifact,
+            testIds: ["TEST-001"],
+          },
+          context(
+            dir,
+            entityQuery(
+              `,proof_contract=${JSON.stringify(JSON.stringify(twoObligationContract))}${proofBindingsField(bindings)}`,
+            ),
+          ),
+        ),
+      ).rejects.toThrow(/duplicate native result/);
     });
   });
 
@@ -407,9 +626,21 @@ describe("kb_ingest_proof", () => {
           },
         ],
       });
+      const secondBindings = [
+        {
+          symbol_id: "SYM-CASE-2",
+          target: "default",
+          native_id: "tests/flow.spec.ts::case-2",
+        },
+        {
+          symbol_id: "SYM-CASE-3",
+          target: "postgres-16",
+          native_id: "tests/db.spec.ts::case-3",
+        },
+      ];
       const entities: Record<string, string> = {
         "TEST-001": `,proof_contract=${JSON.stringify(JSON.stringify(contract))}`,
-        "TEST-002": `,proof_contract=${JSON.stringify(JSON.stringify(secondContract))}`,
+        "TEST-002": `,proof_contract=${JSON.stringify(JSON.stringify(secondContract))},proof_bindings=${JSON.stringify(JSON.stringify(secondBindings))}`,
       };
       const query = mock(async (goal: string): Promise<PrologQueryResult> => {
         for (const [id, extra] of Object.entries(entities)) {
@@ -444,6 +675,7 @@ describe("kb_ingest_proof", () => {
             target: "default",
             outcome: "passed",
             binding: "native_case",
+            native_id: "tests/flow.spec.ts::case-1",
             attempts: { status: "unavailable" },
           },
         ],
@@ -458,7 +690,13 @@ describe("kb_ingest_proof", () => {
                 success: true,
                 bindings: {
                   Results: `[[TEST-001,test,[${testProps(
-                    `,proof_contract=${JSON.stringify(JSON.stringify(contract))}`,
+                    `,proof_contract=${JSON.stringify(JSON.stringify(contract))},proof_bindings=${JSON.stringify(JSON.stringify([
+                      {
+                        symbol_id: "SYM-CASE-1",
+                        target: "default",
+                        native_id: "tests/flow.spec.ts::case-1",
+                      },
+                    ]))}`,
                   )}]]]`,
                 },
               };
@@ -540,6 +778,7 @@ describe("kb_ingest_proof", () => {
             target: "default",
             outcome: "passed",
             binding: "native_case",
+            native_id: "tests/flow.spec.ts::case-1",
             attempts: {
               status: "complete",
               entries: [{ outcome: "passed", duration_ms: 10 }],
@@ -557,7 +796,13 @@ describe("kb_ingest_proof", () => {
                 success: true,
                 bindings: {
                   Results: `[[TEST-001,test,[${testProps(
-                    `,proof_contract=${JSON.stringify(JSON.stringify(contract))}`,
+                    `,proof_contract=${JSON.stringify(JSON.stringify(contract))},proof_bindings=${JSON.stringify(JSON.stringify([
+                      {
+                        symbol_id: "SYM-CASE-1",
+                        target: "default",
+                        native_id: "tests/flow.spec.ts::case-1",
+                      },
+                    ]))}`,
                   )}]]]`,
                 },
               };

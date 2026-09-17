@@ -230,3 +230,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fbb54a3d2f17
+  - type: relates_to
+    from: ADR-zcode-runtime-foundation-vs-package-dependencies
+    to: REQ-zcode-kibi-plugin-v1
+    created_at: 2026-09-17T05:45:07.214Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b25c18d151f
+  - type: relates_to
+    from: ADR-zcode-runtime-foundation-vs-package-dependencies
+    to: REQ-zcode-advisory-enforcement-boundary-v1
+    created_at: 2026-09-17T05:45:07.250Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44c88c97fae1

@@ -2,13 +2,14 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
 import {
   EXPECTED_SKILL_IDS,
   HASH_MANIFEST_NAME,
   canonicalSkillsDir,
   main,
+  mirrorSkillsDir,
   parseArgs,
   processTarget,
   syncAgentSkills,
@@ -48,6 +49,15 @@ function writeCanonical(root: string): void {
 }
 
 describe("sync-agent-skills remaining CLI and drift branches", () => {
+  test("repo helper expectations use host-native absolute paths", () => {
+    expect(canonicalSkillsDir("/repo")).toBe(
+      resolve("/repo", "packages", "runtime", "src", "skills"),
+    );
+    expect(mirrorSkillsDir("/repo", "cursor")).toBe(
+      resolve("/repo", "packages", "cursor", "skills"),
+    );
+  });
+
   test("parseArgs accepts write after check and both targets", () => {
     expect(parseArgs(["--check", "--write", "--target", "codex"])).toEqual({
       mode: "write",

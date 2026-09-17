@@ -1,0 +1,21 @@
+{
+  "name": "kibi-zcode",
+  "version": "0.1.0",
+  "description": "Kibi ZCode plugin manifest for integrating the Kibi MCP, bundled Kibi skills, and advisory workflow hooks into ZCode sessions.",
+  "author": {
+    "name": "Piotr Franczyk"
+  },
+  "license": "AGPL-3.0-or-later",
+  "skills": "skills",
+  "commands": "commands",
+  "hooks": "hooks",
+  "mcpServers": {
+    "kibi": {
+      "command": "node",
+      "args": ["${ZCODE_PLUGIN_ROOT}/bin/mcp-launcher.cjs"],
+      "cwd": "${ZCODE_PROJECT_DIR}",
+      "enabled": true,
+      "timeoutMs": 60000
+    }
+  }
+}

@@ -150,3 +150,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3168106a9fb2
+  - type: implements
+    from: SYM-receipt-code-scope-entry
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-09-16T14:10:28.679Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37c7558a45aa
+  - type: covered_by
+    from: SYM-receipt-code-scope-entry
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-16T15:42:22.160Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-476cf5910e2b
+  - type: executable_for
+    from: SYM-zcode-case-unconfigured-workspace-silent
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-09-17T04:35:49.970Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7b90658a2e8

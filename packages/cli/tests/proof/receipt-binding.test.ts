@@ -17,19 +17,17 @@
  */
 
 import { describe, expect, test } from "bun:test";
+import { removeFrontmatterBlock } from "../../src/operations/proof/receipt-document.js";
+import { receiptBindingHash } from "../../src/public/proof-fingerprint.js";
 import {
   PROOF_RECEIPT_SCHEMA,
   validProofReceiptShape,
 } from "../../src/public/proof-receipt.js";
-import { receiptBindingHash } from "../../src/public/proof-fingerprint.js";
-import { removeFrontmatterBlock } from "../../src/operations/proof/receipt-document.js";
 
 const contract = {
   version: "kibi.proof-contract.v1" as const,
   integration: "self-proof",
-  required_proofs: [
-    { symbol_id: "SYM-test-binding", target: "default" },
-  ],
+  required_proofs: [{ symbol_id: "SYM-test-binding", target: "default" }],
   success_policy: "all_required_first_attempt" as const,
 };
 

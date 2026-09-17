@@ -882,6 +882,171 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-58177e39cec25c06c7a3f7b5
+    test_id: TEST-kibi-conservative-requirement-proof
+    scope: integration
+    outcome: passed
+    code_snapshot: 3754e5b395adff6929063205f7100d6fefed2c1f077b500b8577207a4a3aa0e0
+    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
+    started_at: '2026-09-16T15:45:49.528Z'
+    finished_at: '2026-09-16T16:20:34.944Z'
+    artifact_digest: f417379bb36dbb64c2b3bf9b6df976afa77cf62d8f9ccb8b5c48629f09cca2db
+    contract_hash: 6fca1d15c40cc5f85c9d09af7fad4174203475e2a02e3622b2365c88b14c613a
+    binding_hash: c792aeace09fa101c4fa8641774eac84d4aa589dce0de33ee43ee79538356a77
+    fingerprint: c90e7768818b86786448ca4566590ae7fef4aebb5e037def02aa82cc030005b9
+    fingerprint_components:
+      contract: 6fca1d15c40cc5f85c9d09af7fad4174203475e2a02e3622b2365c88b14c613a
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-test-conservative-requirement-proof-chain
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-5ab44638c03c78200b9fda29
+    test_id: TEST-kibi-conservative-requirement-proof
+    scope: integration
+    outcome: passed
+    code_snapshot: 8dc34d39cf985d3e5df0bcdde99c308d04f86514b186af167d5be76cc0fc3094
+    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
+    started_at: '2026-09-17T06:17:38.049Z'
+    finished_at: '2026-09-17T06:43:07.823Z'
+    artifact_digest: ec3f1974d62da99628239f1200bbda8ef950deb601f213ec579673524ea351b8
+    contract_hash: 6fca1d15c40cc5f85c9d09af7fad4174203475e2a02e3622b2365c88b14c613a
+    binding_hash: c792aeace09fa101c4fa8641774eac84d4aa589dce0de33ee43ee79538356a77
+    fingerprint: c90e7768818b86786448ca4566590ae7fef4aebb5e037def02aa82cc030005b9
+    fingerprint_components:
+      contract: 6fca1d15c40cc5f85c9d09af7fad4174203475e2a02e3622b2365c88b14c613a
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-test-conservative-requirement-proof-chain
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-6b6d545db27ebf56e7c9d332
+    test_id: TEST-kibi-conservative-requirement-proof
+    scope: integration
+    outcome: passed
+    code_snapshot: 7838c8d4b64cce3eea025880c2e41caf951cc18119d89a0341e4740db8b6d4f5
+    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
+    started_at: '2026-09-17T08:09:25.677Z'
+    finished_at: '2026-09-17T08:36:01.670Z'
+    artifact_digest: 8ebc5eee389b1228bff96b811288e92dc5524a9c8d4dbeadffef2f1e8b9ff94e
+    contract_hash: 6fca1d15c40cc5f85c9d09af7fad4174203475e2a02e3622b2365c88b14c613a
+    binding_hash: c792aeace09fa101c4fa8641774eac84d4aa589dce0de33ee43ee79538356a77
+    fingerprint: c90e7768818b86786448ca4566590ae7fef4aebb5e037def02aa82cc030005b9
+    fingerprint_components:
+      contract: 6fca1d15c40cc5f85c9d09af7fad4174203475e2a02e3622b2365c88b14c613a
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-test-conservative-requirement-proof-chain
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-53afd940c982ca71ab83c2af
+    test_id: TEST-kibi-conservative-requirement-proof
+    scope: integration
+    outcome: passed
+    code_snapshot: 9a73dc3467418fb64f2e17d0361eea4efb2cd22d7381e7013cabbe40dfbbe18f
+    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
+    started_at: '2026-09-17T09:04:59.435Z'
+    finished_at: '2026-09-17T09:29:50.490Z'
+    artifact_digest: f314032733573b51820781ce480a234e8f7de3b391f577804eca19ab9701fab9
+    contract_hash: 6fca1d15c40cc5f85c9d09af7fad4174203475e2a02e3622b2365c88b14c613a
+    binding_hash: c792aeace09fa101c4fa8641774eac84d4aa589dce0de33ee43ee79538356a77
+    fingerprint: c90e7768818b86786448ca4566590ae7fef4aebb5e037def02aa82cc030005b9
+    fingerprint_components:
+      contract: 6fca1d15c40cc5f85c9d09af7fad4174203475e2a02e3622b2365c88b14c613a
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-test-conservative-requirement-proof-chain
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-c67577de10413c42f41ec95e
+    test_id: TEST-kibi-conservative-requirement-proof
+    scope: integration
+    outcome: passed
+    code_snapshot: c679ec25919c58945fa3faf5d4350507d064967c4735f2fd0a7db029674a0f16
+    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
+    started_at: '2026-09-17T12:12:34.195Z'
+    finished_at: '2026-09-17T12:43:12.850Z'
+    artifact_digest: 2bed769d4b03dd2d41d372116e328be4361bfbfafcab96b71b1d28cea658f414
+    contract_hash: 6fca1d15c40cc5f85c9d09af7fad4174203475e2a02e3622b2365c88b14c613a
+    binding_hash: c792aeace09fa101c4fa8641774eac84d4aa589dce0de33ee43ee79538356a77
+    fingerprint: c90e7768818b86786448ca4566590ae7fef4aebb5e037def02aa82cc030005b9
+    fingerprint_components:
+      contract: 6fca1d15c40cc5f85c9d09af7fad4174203475e2a02e3622b2365c88b14c613a
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-test-conservative-requirement-proof-chain
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 
 Verifies the conservative requirement-proof contract through core Prolog, the CLI command surface, and the MCP adapter. It covers structural false positives, complete proof chains, semantic-inventory RDF round trips, refresh-before-extract source-coordinate persistence, executable-versus-production symbol classification, stable proof gaps, ranked repairs, and compatibility of existing coverage fields.

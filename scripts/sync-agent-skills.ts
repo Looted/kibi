@@ -4,16 +4,25 @@
  * Canonical agent skill bundle generator.
  *
  * Reads the canonical skill source from `packages/runtime/src/skills/`,
- * generates committed mirrors under `packages/cursor/skills/` and
- * `packages/codex/skills/`, and emits a SHA-256 hash manifest at
- * `<target>/.canon-hash.json` so drift can be detected deterministically.
+ * generates committed mirrors under `packages/cursor/skills/`,
+ * `packages/codex/skills/`, and `packages/zcode/skills/`, and emits a SHA-256
+ * hash manifest at `<target>/.canon-hash.json` so drift can be detected
+ * deterministically.
+ *
+ * The cursor and codex mirrors are byte-identical copies. The zcode mirror
+ * rewrites each SKILL.md frontmatter for the ZCode skill loader, which marks a
+ * skill `safeToAutoLoad` only when every top-level frontmatter key belongs to
+ * its recognized set (`name`, `description`, `when_to_use`, `license`,
+ * `metadata`). Canonical kibi keys (`id`, `version`, `kibiCompatibility`,
+ * `tags`, `resources`) are preserved verbatim, nested under `metadata:`.
+ * Skill bodies and resource files stay byte-identical.
  *
  * Modes:
  *   --write (default)  Rewrite mirror directories and hash manifest.
  *   --check            Non-mutating: exit 0 if mirrors match canonical
  *                      source; exit 1 with a diff summary on drift.
- *   --target <name>    Limit to a single mirror ("cursor" or "codex").
- *                      When omitted, both mirrors are processed.
+ *   --target <name>    Limit to a single mirror ("cursor", "codex", or
+ *                      "zcode"). When omitted, all mirrors are processed.
  *
  * The generator must fail loudly when any expected canonical skill ID is
  * missing.
@@ -44,7 +53,140 @@ const EXPECTED_SKILL_IDS = [
 
 const HASH_MANIFEST_NAME = ".canon-hash.json";
 
-type Target = "cursor" | "codex";
+type Target = "cursor" | "codex" | "zcode";
+
+const ALL_TARGETS: readonly Target[] = ["cursor", "codex", "zcode"];
+
+const ZCODE_SKILL_LICENSE = "AGPL-3.0-or-later";
+
+/**
+ * Frontmatter keys the ZCode skill loader recognizes; a skill is marked
+ * `safeToAutoLoad` only when every top-level key is in this set.
+ */
+const ZCODE_RECOGNIZED_FRONTMATTER_KEYS = new Set([
+  "name",
+  "description",
+  "when_to_use",
+  "license",
+  "metadata",
+]);
+
+interface ParsedFrontmatter {
+  /** Top-level keys in canonical order. */
+  order: readonly string[];
+  /** Raw single-line values keyed by frontmatter key. */
+  values: Readonly<Record<string, string>>;
+  /** Raw list-item texts keyed by frontmatter key. */
+  lists: Readonly<Record<string, readonly string[]>>;
+}
+
+function parseSimpleFrontmatter(content: string): ParsedFrontmatter {
+  // Git checkouts on Windows can provide CRLF files, and editors may preserve
+  // a UTF-8 BOM. Normalize only the parser view: transformed skill bodies and
+  // resource files must continue to use their original bytes.
+  const lines = content
+    .replace(/^\uFEFF/, "")
+    .replace(/\r\n?/g, "\n")
+    .split("\n");
+  if (lines[0] !== "---") {
+    throw new Error("Skill frontmatter must start with a `---` line");
+  }
+  const closingIndex = lines.indexOf("---", 1);
+  if (closingIndex === -1) {
+    throw new Error("Skill frontmatter is missing its closing `---` line");
+  }
+
+  const order: string[] = [];
+  const values: Record<string, string> = {};
+  const lists: Record<string, string[]> = {};
+
+  for (const line of lines.slice(1, closingIndex)) {
+    const listItem = line.match(/^\s+-\s?(.*)$/);
+    if (listItem) {
+      const current = order.at(-1);
+      if (current === undefined) {
+        throw new Error(`List item outside a frontmatter key: ${line}`);
+      }
+      lists[current] ??= [];
+      lists[current].push(listItem[1] ?? "");
+      continue;
+    }
+
+    if (/^\s/.test(line)) {
+      throw new Error(`Unsupported nested frontmatter line: ${line}`);
+    }
+
+    const entry = line.match(/^([A-Za-z0-9_-]+):(.*)$/);
+    if (!entry) {
+      if (line.trim().length === 0) continue;
+      throw new Error(`Invalid frontmatter line: ${line}`);
+    }
+
+    const key = entry[1] ?? "";
+    if (order.includes(key)) {
+      throw new Error(`Duplicate frontmatter key: ${key}`);
+    }
+    order.push(key);
+    values[key] = (entry[2] ?? "").trim();
+    lists[key] = [];
+  }
+
+  return { order, values, lists };
+}
+
+/**
+ * Rewrite canonical skill frontmatter into the ZCode-recognized shape:
+ * `name`/`description` stay top-level, `license` is added, and every other
+ * canonical key is preserved verbatim under `metadata:` (indented lines are
+ * retained for human readers; the ZCode loader keys off the top level only).
+ */
+export function transformZcodeSkillFrontmatter(content: Buffer): Buffer {
+  const text = content.toString("utf8");
+  const frontmatter = parseSimpleFrontmatter(text);
+  const normalizedLines = text
+    .replace(/^\uFEFF/, "")
+    .replace(/\r\n?/g, "\n")
+    .split("\n");
+  const closingIndex = normalizedLines.indexOf("---", 1);
+  const lines = text.split("\n");
+  const body = lines.slice(closingIndex + 1).join("\n");
+
+  const metadataKeys = frontmatter.order.filter(
+    (key) => key !== "name" && key !== "description",
+  );
+
+  const out: string[] = ["---", `name: ${frontmatter.values.name ?? ""}`];
+  if (frontmatter.values.description !== undefined) {
+    out.push(`description: ${frontmatter.values.description}`);
+  }
+  out.push(`license: ${ZCODE_SKILL_LICENSE}`);
+  out.push("metadata:");
+  for (const key of metadataKeys) {
+    const list = frontmatter.lists[key] ?? [];
+    if (list.length === 0) {
+      out.push(`  ${key}: ${frontmatter.values[key] ?? ""}`);
+      continue;
+    }
+    out.push(`  ${key}:`);
+    for (const item of list) {
+      out.push(`    - ${item}`);
+    }
+  }
+  out.push("---");
+
+  return Buffer.from(`${out.join("\n")}\n${body}`, "utf8");
+}
+
+function transformMirrorFile(
+  target: Target,
+  relPath: string,
+  content: Buffer,
+): Buffer {
+  if (target !== "zcode" || relPath !== "SKILL.md") {
+    return content;
+  }
+  return transformZcodeSkillFrontmatter(content);
+}
 
 interface SyncOptions {
   mode: "write" | "check";
@@ -71,9 +213,9 @@ function parseArgs(argv: string[]): ParsedArgs {
       mode = "check";
     } else if (arg === "--target") {
       const next = argv[i + 1];
-      if (next !== "cursor" && next !== "codex") {
+      if (next !== "cursor" && next !== "codex" && next !== "zcode") {
         throw new UsageError(
-          `--target requires one of: cursor, codex (got: ${String(next)})`,
+          `--target requires one of: cursor, codex, zcode (got: ${String(next)})`,
         );
       }
       limitTargets ??= [];
@@ -86,7 +228,7 @@ function parseArgs(argv: string[]): ParsedArgs {
     }
   }
 
-  targets.push(...(limitTargets ?? (["cursor", "codex"] as const)));
+  targets.push(...(limitTargets ?? ALL_TARGETS));
   return { mode, targets: requireSelectedTargets(targets) };
 }
 
@@ -175,6 +317,7 @@ interface PlannedFile {
 function planSkillMirror(
   canonicalRoot: string,
   skillId: string,
+  target: Target,
 ): PlannedFile[] {
   const skillRoot = join(canonicalRoot, skillId);
   const files = walkFiles(skillRoot);
@@ -183,7 +326,11 @@ function planSkillMirror(
     return {
       relPath: `${skillId}/${relPath}`,
       absoluteSource,
-      content: readFileSync(absoluteSource),
+      content: transformMirrorFile(
+        target,
+        relPath,
+        readFileSync(absoluteSource),
+      ),
     };
   });
 }
@@ -336,7 +483,7 @@ function processTarget(
   const mirrorRoot = mirrorSkillsDir(repoRoot, target);
   const planned: PlannedFile[] = [];
   for (const id of EXPECTED_SKILL_IDS) {
-    planned.push(...planSkillMirror(canonicalRoot, id));
+    planned.push(...planSkillMirror(canonicalRoot, id, target));
   }
   const plannedManifest = computeHashManifest(planned);
 
@@ -399,7 +546,7 @@ export async function main(argv: string[]): Promise<void> {
     const message = error instanceof Error ? error.message : String(error);
     process.stderr.write(`sync-agent-skills: ${message}\n`);
     process.stderr.write(
-      "Usage: sync-agent-skills.ts [--write|--check] [--target cursor|codex]\n",
+      "Usage: sync-agent-skills.ts [--write|--check] [--target cursor|codex|zcode]\n",
     );
     process.exit(2);
   }

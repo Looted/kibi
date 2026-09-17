@@ -6,7 +6,10 @@ import {
   branchStorePath,
   ensureBranchStoreManifest,
 } from "../../src/utils/branch-store-locator.js";
-import { inspectBranchStore, storeLockJournalReason } from "../../src/utils/branch-store.js";
+import {
+  inspectBranchStore,
+  storeLockJournalReason,
+} from "../../src/utils/branch-store.js";
 
 describe("inspectBranchStore", () => {
   const roots: string[] = [];
