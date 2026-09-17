@@ -73,15 +73,14 @@ function isEditLikeTool(toolName: string | undefined): boolean {
 }
 
 function isKnownEditableTool(toolName: string | undefined): boolean {
-  // rationale: Set.has(undefined) is false, so the undefined guard is
-  // subsumed by the membership check.
+  // rationale: the undefined check narrows the type for Set<string>.has;
+  // at runtime Set.has(undefined) is false, so the result is the same.
   // Stryker disable next-line ConditionalExpression
   return toolName !== undefined && editableTools.has(toolName);
 }
 
 function isPlanDeliveryTool(toolName: string | undefined): boolean {
-  // rationale: Set.has(undefined) is false, so the undefined guard is
-  // subsumed by the membership check.
+  // rationale: same type-narrowing as isKnownEditableTool above.
   // Stryker disable next-line ConditionalExpression
   return toolName !== undefined && planDeliveryTools.has(toolName);
 }
@@ -271,14 +270,7 @@ export async function runHook(
     case "stop": {
       const state = loadHookState(stateDir);
       const shouldClearSession =
-        state.dirtyPaths.length > 0 ||
-        // rationale: mutation tools always produce a stop followup message,
-        // and that branch clears the session before this flag is consulted.
-        // Stryker disable ConditionalExpression
-        state.kbMutationTools.length > 0 ||
-        // Stryker restore
-        state.kbCheckRun ||
-        state.planDelivered;
+        state.dirtyPaths.length > 0 || state.kbCheckRun || state.planDelivered;
 
       if (input.status === "aborted" || input.status === "error") {
         if (shouldClearSession) {

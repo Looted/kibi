@@ -101,12 +101,17 @@ kills the mutant.
 
 Exclusions are marked inline with `// Stryker disable` directives and a
 `rationale:` comment; grep for `Stryker disable` in the scoped packages for
-the authoritative list. As of the initial 100% pass the excluded mutants fall
-into these groups:
+the authoritative list. Where the surrounding code was genuinely redundant
+(a dead `planDelivered` early return, a `normalizeEventName` empty guard,
+a no-op blank-path guard), it was simplified or deleted instead — prefer
+deletion over exclusion. Every surviving exclusion was re-verified by
+hand-applying the mutant and probing both the Bun test runner and the Node
+production runtime; the remaining excluded mutants fall into these groups:
 
 | Where | Equivalence argument |
 | --- | --- |
-| `packages/runtime/src/skill-operations.ts` | The non-string ternary fallbacks are re-validated by `assertNonEmptyString`; the `"utf8"` hash encoding is identical to Bun's empty encoding (verified). |
+| `packages/runtime/src/skill-system/validation.ts` | `readFileSync(SKILL.md, "")` yields a Buffer under both runtimes, and gray-matter parses a Buffer identically to a string (verified empirically under Node and Bun) — no test can distinguish. |
+| `packages/runtime/src/skill-operations.ts` | — (killed: an interaction test now pins the `hash.update(body, "utf8")` call via a crypto spy). |
 | `packages/runtime/src/skill-system/validation.ts` | `"utf8"` read encoding is identical to Bun's empty encoding (verified). |
 | `packages/runtime/src/skill-system/loader.ts` | Module-init skills-directory literal (per-test coverage attribution impossible; behavior pinned by the canonical-usage test); `listRoots` directory filter and the empty declared-resources fallback are observationally equivalent. |
 | `packages/codex/src/hook-input.ts`, `packages/cursor/src/hook-input.ts` | `isRecord` type-check removal and stdin chunk buffering are unobservable through `parseHookInput`/`readStdin`; the empty-event guard is inert for empty strings. |
@@ -114,5 +119,6 @@ into these groups:
 | `packages/codex/src/hook-state.ts`, `packages/cursor/src/hook-state*.ts` | Redundant guards whose removal converges on the same state (blank-name, blank-path, missing-dir early returns); journal events subsumed by the snapshot write; Bun empty-encoding equivalents. |
 | `packages/codex/src/path-policy.ts`, `packages/cursor/src/path-policy.ts` | Extension-computation fallback literals (`?? ""`, `: ""`, `includes("")`) yield non-matching extensions for every input. |
 | `packages/cursor/src/kb-mcp-tools.ts` | `extractKbMcpToolName` fallbacks re-derive the same name from the same inputs. |
-| `packages/cursor/src/messages.ts` | `hasFollowupWork`/`planDelivered` early return is behaviorally redundant (the fall-through returns undefined under the same condition); duplicate impact-check branch; unmatched switch case. |
+| `packages/cursor/src/messages.ts` | Unmatched `"mcp"` switch case (an unmatched case already returns undefined). |
 | `packages/cursor/src/hook-state-storage.ts` | `sleepSync`/retry pacing is outcome-neutral; lock-outcome booleans converge; coercion tolerates primitives; Bun empty-encoding equivalents. |
+| `packages/cursor/src/hook-runner.ts`, `packages/cursor/src/hook-state-storage.ts` (type-narrowing guards) | `toolName !== undefined` and `lane === undefined` checks narrow types for `Set<string>.has`; at runtime `Set.has(undefined)` is false, so the outcome is identical with or without them. |

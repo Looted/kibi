@@ -48,13 +48,6 @@ export function rememberGuidedPath(
 ): HookState {
   return updateHookState(stateDir, (state) => {
     const normalized = normalizePath(guidedPath);
-    // rationale: mergeStringPaths already drops blank entries, so the guard
-    // is behaviorally redundant.
-    // Stryker disable next-line ConditionalExpression, BlockStatement
-    if (normalized.length === 0) {
-      return state;
-    }
-
     if (kind === "read") {
       return {
         ...state,

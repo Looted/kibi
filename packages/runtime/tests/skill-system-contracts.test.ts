@@ -497,6 +497,41 @@ describe("bundled skill operations", () => {
     );
   });
 
+  test("skillsLoad hashes the body as UTF-8 text", async () => {
+    const {
+      tags: _tags,
+      resources: _resources,
+      ...noOptional
+    } = validFrontmatter({
+      id: "hashed",
+    });
+    writeSkill("hashed", noOptional);
+    const crypto = await import("node:crypto");
+    const updates: Array<string | Buffer>[] = [];
+    const realCreateHash = crypto.createHash;
+    const createSpy = spyOn(crypto, "createHash").mockImplementation(((
+      algorithm: string,
+    ) => {
+      const hash = realCreateHash(algorithm);
+      const originalUpdate = hash.update.bind(hash);
+      hash.update = ((data: string | Buffer, encoding?: BufferEncoding) => {
+        updates.push([data, encoding as BufferEncoding]);
+        return originalUpdate(data, encoding);
+      }) as typeof hash.update;
+      return hash;
+    }) as typeof crypto.createHash);
+    try {
+      await skillsLoadSpec.execute({ id: "hashed" }, testContext());
+    } finally {
+      createSpy.mockRestore();
+    }
+    expect(updates.length).toBeGreaterThan(0);
+    for (const [data, encoding] of updates) {
+      expect(encoding).toBe("utf8");
+      expect(typeof data).toBe("string");
+    }
+  });
+
   test("load announces an empty resource roster as none", async () => {
     const {
       tags: _tags,

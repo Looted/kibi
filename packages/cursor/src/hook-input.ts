@@ -66,12 +66,6 @@ function readStringArray(
 
 function normalizeEventName(event: string): string {
   const trimmed = event.trim();
-  // rationale: the string ops on an empty trimmed value already return "".
-  // Stryker disable next-line ConditionalExpression, BlockStatement
-  if (trimmed.length === 0) {
-    return "";
-  }
-
   return trimmed.charAt(0).toLowerCase() + trimmed.slice(1);
 }
 
@@ -153,10 +147,7 @@ export async function readStdin(): Promise<string> {
   const chunks: Buffer[] = [];
 
   for await (const chunk of process.stdin) {
-    // rationale: Buffer.from(buffer) returns an equal copy, so the branch is
-    // observationally identical for both chunk types.
-    // Stryker disable next-line ConditionalExpression
-    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+    chunks.push(Buffer.from(chunk));
   }
 
   return Buffer.concat(chunks).toString("utf8");

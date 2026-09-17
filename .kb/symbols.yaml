@@ -32624,10 +32624,10 @@ symbols:
     relationships:
       - type: implements
         target: REQ-reusable-skill-subsystem
-  - id: SYM-boundSymbolScopeRecords
-    title: boundSymbolScopeRecords
-    sourceFile: packages/cli/src/extractors/manifest.ts
+  - id: SYM-ReceiptCodeScopeEntry
+    title: ReceiptCodeScopeEntry
     status: active
+    sourceFile: packages/cli/src/extractors/manifest.ts
     granularity_reason: legacy-link
     relationships:
       - type: implements

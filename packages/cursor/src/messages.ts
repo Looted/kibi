@@ -41,31 +41,6 @@ export function stopFollowupMessage(state: HookState): string | undefined {
     (sourcePath) => !state.impactCheckedPaths.includes(sourcePath),
   );
   const freshnessPaths = state.dirtyPaths.filter(isKbFreshnessRelevantPath);
-  // rationale: the fall-through branches return undefined exactly when
-  // hasFollowupWork is false, so flipping or dropping any term of the
-  // disjunction is observationally equivalent.
-  // rationale: the fall-through branches return undefined exactly when
-  // hasFollowupWork is false, so flipping or dropping any term of the
-  // disjunction is observationally equivalent.
-  // Stryker disable ConditionalExpression, EqualityOperator, LogicalOperator
-  const hasFollowupWork =
-    uncheckedSourcePaths.length > 0 ||
-    (freshnessPaths.length > 0 && !state.kbCheckRun);
-  // Stryker restore
-
-  // rationale: when hasFollowupWork is false the fall-through branches return
-  // undefined, so this early return is behaviorally redundant.
-  // Stryker disable next-line ConditionalExpression, BlockStatement
-  if (state.planDelivered && !hasFollowupWork) {
-    return undefined;
-  }
-
-  // rationale: this branch duplicates the unconditional check below; the
-  // impactCheckRun term cannot change the returned message.
-  // Stryker disable next-line ConditionalExpression, BooleanLiteral, BlockStatement
-  if (uncheckedSourcePaths.length > 0 && !state.impactCheckRun) {
-    return impactCheckFollowup(uncheckedSourcePaths);
-  }
 
   if (uncheckedSourcePaths.length > 0) {
     return impactCheckFollowup(uncheckedSourcePaths);

@@ -78,8 +78,8 @@ function isCanonicalKbKnowledgePath(segments: readonly string[]): boolean {
     return false;
   }
   const lane = segments[1];
-  // rationale: Set.has(undefined) is false for both canonical sets, so the
-  // guard is behaviorally redundant.
+  // rationale: the undefined check narrows the type for Set<string>.has;
+  // at runtime Set.has(undefined) is false, so the result is the same.
   // Stryker disable next-line ConditionalExpression, BlockStatement
   if (lane === undefined) {
     return false;

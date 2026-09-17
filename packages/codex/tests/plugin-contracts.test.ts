@@ -2,7 +2,7 @@
 // journaling, MCP tool-call extraction, path policy, workspace opt-in,
 // reminders, and the hook runner. Each assertion pins observable output or
 // error contracts so the mutation suite fails if a contract breaks.
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -428,7 +428,7 @@ describe("Codex hook state journal", () => {
     expect(loadHookState(pluginData).impactCheckedPaths).toStrictEqual([]);
   });
 
-  test("the snapshot file round-trips the exact state JSON", () => {
+  test("a kb_check without the impact option leaves impact state unset", () => {
     const pluginData = createTempRoot("kibi-codex-contracts-");
     tempRoots.push(pluginData);
 
@@ -510,6 +510,24 @@ describe("Codex hook state journal", () => {
       recordKbMcpTool(undefined, "kb_check", { impactCheckRun: true })
         .impactCheckedPaths,
     ).toStrictEqual([]);
+  });
+
+  test("Stop clears checked-but-unbounded state even without a check flag", async () => {
+    const cwd = createTempRoot("kibi-codex-cwd-");
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(cwd, pluginData);
+    optInWorkspace(cwd);
+    const stateDir = resolveWorkspaceStateDir(pluginData, cwd);
+
+    saveHookState(stateDir, {
+      dirtyPaths: ["src/a.ts"],
+      kbCheckRun: false,
+      impactCheckRun: false,
+      impactCheckedPaths: ["src/a.ts"],
+    });
+    const result = await runHook({ event: "Stop", cwd }, { pluginData });
+    expect(result).toEqual({ continue: true });
+    expect(loadHookState(stateDir).dirtyPaths).toEqual([]);
   });
 
   test("a kb_check without the impact option leaves impact state unset", () => {

@@ -3,7 +3,7 @@
 // guidance/advisory messages, and the hook runner. Each assertion pins
 // observable output or error contracts so the mutation suite fails if a
 // contract breaks.
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";

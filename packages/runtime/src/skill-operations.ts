@@ -9,10 +9,7 @@ import {
 } from "./skills.js";
 
 function assertNonEmptyString(value: string, field: string): void {
-  // rationale: both call sites coerce via guarded ternaries first, so value
-  // is always a string here and the typeof check cannot distinguish.
-  // Stryker disable next-line ConditionalExpression
-  if (typeof value !== "string" || value.trim() === "") {
+  if (value.trim() === "") {
     throw new Error(`${field} must be a non-empty string`);
   }
 }
@@ -43,20 +40,13 @@ async function executeSkillsLoad(
     readonly sourceType: "bundled";
   }>
 > {
-  // rationale: the non-string fallback is redundant, assertNonEmptyString
-  // re-validates the type, so both branches throw the same error.
-  // Stryker disable next-line ConditionalExpression
   const id = typeof input.id === "string" ? input.id : "";
   assertNonEmptyString(id, "id");
   const bundle = loadBundledSkill(id);
   const resources = bundle.manifest.resources ?? [];
-  // rationale: Bun treats the empty encoding as utf8 (verified), so the
-  // digest is identical either way.
-  // Stryker disable StringLiteral
   const contentHash = createHash("sha256")
     .update(bundle.body, "utf8")
     .digest("hex");
-  // Stryker restore
   const resourceList = resources.length === 0 ? "none" : resources.join(", ");
   return {
     content: [
@@ -79,12 +69,7 @@ async function executeSkillsRead(
   input: Readonly<Record<string, unknown>>,
   _context: OperationContext,
 ): Promise<OperationResult<{ readonly content: string }>> {
-  // rationale: the non-string fallbacks are redundant, assertNonEmptyString
-  // re-validates the type, so both branches throw the same error.
-  // Stryker disable next-line ConditionalExpression
   const id = typeof input.id === "string" ? input.id : "";
-  // rationale: same redundancy as above; the assert re-validates the type.
-  // Stryker disable next-line ConditionalExpression
   const resource = typeof input.resource === "string" ? input.resource : "";
   assertNonEmptyString(id, "id");
   assertNonEmptyString(resource, "resource");

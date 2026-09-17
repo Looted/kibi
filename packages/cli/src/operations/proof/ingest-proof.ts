@@ -1,3 +1,5 @@
+import { join } from "node:path";
+import { resolveBoundSymbolScope } from "../../extractors/manifest.js";
 import {
   type ProofGap,
   evaluateContractAgainstRun,
@@ -33,8 +35,6 @@ import {
   proofReceiptHistoryErrors,
 } from "../../public/proof-receipt.js";
 import { projectEntityProperties } from "../mutation/entity-projection.js";
-import { join } from "node:path";
-import { resolveBoundSymbolScope } from "../../extractors/manifest.js";
 import { resolveContainedSourcePath } from "../mutation/source-authoring.js";
 import { executeUpsert } from "../mutation/upsert.js";
 import {
@@ -365,7 +365,11 @@ export async function executeIngestProof(
           join(context.workspaceRoot, ".kb", "symbols.yaml"),
           bindings.map((binding) => binding.symbol_id),
         );
-        bindingHash = receiptBindingHash(contract, stripped ?? authored, codeScope);
+        bindingHash = receiptBindingHash(
+          contract,
+          stripped ?? authored,
+          codeScope,
+        );
       } catch {
         bindingHash = undefined;
       }
