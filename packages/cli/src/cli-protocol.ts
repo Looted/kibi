@@ -49,7 +49,7 @@ function errorResult(
       error: {
         code: error.code,
         message: error.detail,
-        retryable: error.exitCode === 1,
+        retryable: error.retryable,
       },
     },
   );

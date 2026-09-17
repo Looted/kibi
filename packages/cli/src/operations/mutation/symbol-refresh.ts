@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import {
   existsSync,
   readFileSync,
@@ -128,7 +128,7 @@ export function restoreOrUnlinkCoordinateArtifact(
 }
 
 function replaceArtifactAtomically(targetPath: string, content: string): void {
-  const temporary = `${targetPath}.kibi-tmp-${process.pid}`;
+  const temporary = `${targetPath}.kibi-tmp-${process.pid}-${randomUUID()}`;
   try {
     writeFileSync(temporary, content, "utf8");
     renameSync(temporary, targetPath);

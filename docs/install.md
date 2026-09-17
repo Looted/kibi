@@ -215,10 +215,11 @@ Then run `/plugins`, choose **Kibi Plugins**, and install `kibi-codex`.
 The marketplace lives at `.agents/plugins/marketplace.json` and points Codex at
 `./packages/codex`, where the plugin manifest, skills, hooks, and MCP config are
 stored. Codex resolves that path relative to the marketplace root. Local
-marketplace installs copy the plugin directory as-is, so run `bun run build:codex`
-first: an install from a tree without a build is missing `dist/hook-runner.js`
-and every lifecycle hook then fails to start. (Packed npm installs run the
-build automatically via `prepack`.)
+marketplace installs copy the plugin directory as-is. The committed
+`bin/hook-runner.mjs` makes lifecycle hooks work from an unbuilt source
+checkout; run `bun run build:codex` when you also need refreshed generated
+skills or MCP configuration. (Packed npm installs run the build automatically
+via `prepack`.)
 
 #### Workspace opt-in rule
 

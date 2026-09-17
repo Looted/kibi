@@ -7,10 +7,13 @@
 /**
  * Launch the kibi-mcp package installed by the consumer project.
  *
- * Cursor starts plugin MCP commands with the plugin directory as their cwd.
- * This adapter deliberately knows nothing about the Kibi source tree: it only
- * resolves a consumer workspace, finds that workspace's kibi-mcp package, and
- * runs its declared bin with the consumer as both cwd and KIBI_WORKSPACE.
+ * Cursor resolves this command from the plugin-root manifest, but the process
+ * cwd is host-controlled and is not a reliable consumer workspace (it may be
+ * the plugin directory or another host directory). This adapter deliberately
+ * knows nothing about the Kibi source tree: it resolves the unrelated consumer
+ * workspace from Cursor's workspace-folder data or explicit environment,
+ * finds that workspace's kibi-mcp package, and runs its declared bin with the
+ * consumer as both cwd and KIBI_WORKSPACE.
  */
 
 import { spawn } from "node:child_process";

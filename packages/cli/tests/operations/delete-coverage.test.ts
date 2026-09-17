@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { existsSync, readdirSync } from "node:fs";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { OperationError } from "../../src/cli-errors.js";
 import { executeDelete } from "../../src/operations/mutation/delete.js";
 import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
 import type {
@@ -461,5 +463,317 @@ describe("executeDelete guards and relationship preflight", () => {
     expect(await readFile(path.join(root, relative), "utf8")).not.toContain(
       "REQ-1",
     );
+  });
+
+  test("releases the source lock after a rolled-back relationship retraction", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-rel-rollback-"));
+    workspaces.push(root);
+    const relative = ".kb/requirements/REQ-ROLL.md";
+    await mkdir(path.join(root, ".kb", "requirements"), { recursive: true });
+    const original =
+      "---\nid: REQ-ROLL\ntype: req\nrelationships:\n  - type: verified_by\n    target: TEST-ROLL\n---\nbody\n";
+    await writeFile(path.join(root, relative), original);
+    const context = contextFor(
+      root,
+      (goal) => {
+        if (goal.includes("findall(['REQ-ROLL'")) {
+          return {
+            success: true,
+            bindings: {
+              Results: `[['REQ-ROLL',req,[id='REQ-ROLL',source="${relative}"]]]`,
+            },
+          };
+        }
+        if (goal.includes("kb_relationship(verified_by"))
+          return { success: true, bindings: {} };
+        if (goal.includes("kb_retract_relationship"))
+          return { success: false, bindings: {} };
+        return { success: false, bindings: {} };
+      },
+      { fs: nodeFilesystem },
+    );
+
+    await expect(
+      executeDelete(
+        {
+          relationships: [
+            { type: "verified_by", from: "REQ-ROLL", to: "TEST-ROLL" },
+          ],
+        },
+        context,
+      ),
+    ).rejects.toThrow(/Relationship retraction failed/);
+
+    expect(await readFile(path.join(root, relative), "utf8")).toBe(original);
+    expect(
+      existsSync(path.join(root, ".kb", "recovery", "source-authoring.lock")),
+    ).toBe(false);
+  });
+
+  test("unwinds earlier source patches when a later batch write fails", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-rel-batch-"));
+    workspaces.push(root);
+    await mkdir(path.join(root, ".kb"), { recursive: true });
+    const docs = path.join(root, "docs");
+    await mkdir(docs, { recursive: true });
+    const originalA =
+      "---\nid: REQ-A\ntype: req\nrelationships:\n  - type: verified_by\n    target: TEST-A\n---\nbody a\n";
+    const originalB =
+      "---\nid: REQ-B\ntype: req\nrelationships:\n  - type: verified_by\n    target: TEST-B\n---\nbody b\n";
+    await writeFile(path.join(docs, "REQ-A.md"), originalA);
+    await writeFile(path.join(docs, "REQ-B.md"), originalB);
+    let failedRename = false;
+    const batchFilesystem = {
+      ...nodeFilesystem,
+      rename: async (from: string, to: string) => {
+        if (!failedRename && from.includes("REQ-B")) {
+          failedRename = true;
+          throw new Error("rename boom");
+        }
+        await nodeFilesystem.rename?.(from, to);
+      },
+    };
+    await expect(
+      executeDelete(
+        {
+          relationships: [
+            { type: "verified_by", from: "REQ-A", to: "TEST-A" },
+            { type: "verified_by", from: "REQ-B", to: "TEST-B" },
+          ],
+        },
+        contextFor(
+          root,
+          (goal) => {
+            if (goal.includes("findall(['REQ-A'")) {
+              return {
+                success: true,
+                bindings: {
+                  Results: `[['REQ-A',req,[id='REQ-A',source="docs/REQ-A.md"]]]`,
+                },
+              };
+            }
+            if (goal.includes("findall(['REQ-B'")) {
+              return {
+                success: true,
+                bindings: {
+                  Results: `[['REQ-B',req,[id='REQ-B',source="docs/REQ-B.md"]]]`,
+                },
+              };
+            }
+            if (goal.includes("kb_relationship(verified_by"))
+              return { success: true, bindings: {} };
+            return { success: false, bindings: {} };
+          },
+          { fs: batchFilesystem },
+        ),
+      ),
+    ).rejects.toThrow(/Relationship source update failed/);
+
+    // The first published patch was unwound before the failure surfaced, and
+    // no unique temp file from the failed rename leaked into the tree.
+    expect(await readFile(path.join(docs, "REQ-A.md"), "utf8")).toBe(originalA);
+    expect(await readFile(path.join(docs, "REQ-B.md"), "utf8")).toBe(originalB);
+    expect(
+      readdirSync(docs).filter((name) => name.includes(".kibi-relationship-")),
+    ).toEqual([]);
+  });
+
+  test("reports an ordinary postcommit failure as non-retryable when release succeeds", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-rel-postcommit-"));
+    workspaces.push(root);
+    const relative = ".kb/requirements/REQ-POST.md";
+    await mkdir(path.join(root, ".kb", "requirements"), { recursive: true });
+    await mkdir(path.join(root, ".kb", "recovery"), { recursive: true });
+    await writeFile(
+      path.join(root, relative),
+      "---\nid: REQ-POST\ntype: req\nrelationships:\n  - type: verified_by\n    target: TEST-POST\n---\nbody\n",
+    );
+    await writeFile(
+      path.join(root, ".kb", "recovery", "pending-sources"),
+      "not-a-directory",
+    );
+    const context = contextFor(
+      root,
+      (goal) => {
+        if (goal.includes("findall(['REQ-POST'")) {
+          return {
+            success: true,
+            bindings: {
+              Results: `[['REQ-POST',req,[id='REQ-POST',source="${relative}"]]]`,
+            },
+          };
+        }
+        if (goal.includes("kb_relationship(verified_by"))
+          return { success: true, bindings: {} };
+        if (goal.includes("kb_retract_relationship"))
+          return { success: true, bindings: {} };
+        return { success: false, bindings: {} };
+      },
+      { fs: nodeFilesystem },
+    );
+
+    await expect(
+      executeDelete(
+        {
+          relationships: [
+            { type: "verified_by", from: "REQ-POST", to: "TEST-POST" },
+          ],
+        },
+        context,
+      ),
+    ).rejects.toMatchObject({
+      code: "SOURCE_MUTATION_POST_COMMIT_FAILED",
+      retryable: false,
+    });
+    expect(
+      await readFile(
+        path.join(root, ".kb", "recovery", "pending-sources"),
+        "utf8",
+      ),
+    ).toBe("not-a-directory");
+  });
+
+  test("reports a relationship lock release failure as non-retryable after commit", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-rel-lock-release-"));
+    workspaces.push(root);
+    await mkdir(path.join(root, ".kb"), { recursive: true });
+    const ownerPath = path.join(
+      root,
+      ".kb",
+      "recovery",
+      "source-authoring.lock",
+      "owner.json",
+    );
+    let removedOwner = false;
+    const resultContext = contextFor(
+      root,
+      (goal) => {
+        if (goal.includes("findall(['REQ-LOCK'")) {
+          return {
+            success: true,
+            bindings: {
+              Results: `[['REQ-LOCK',req,[id='REQ-LOCK',source='test://req']]]`,
+            },
+          };
+        }
+        if (goal.includes("kb_relationship(verified_by"))
+          return { success: true, bindings: {} };
+        if (goal.includes("kb_retract_relationship"))
+          return { success: true, bindings: {} };
+        return { success: false, bindings: {} };
+      },
+      { fs: nodeFilesystem },
+    );
+    if (resultContext.prolog === undefined) throw new Error("missing Prolog");
+    resultContext.prolog.save = async () => {
+      if (!removedOwner) {
+        removedOwner = true;
+        await rm(ownerPath, { force: true });
+      }
+      return { success: true, bindings: {} };
+    };
+
+    let thrown: unknown;
+    try {
+      await executeDelete(
+        {
+          relationships: [
+            { type: "verified_by", from: "REQ-LOCK", to: "TEST-LOCK" },
+          ],
+        },
+        resultContext,
+      );
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBeInstanceOf(OperationError);
+    expect(thrown).toMatchObject({
+      code: "SOURCE_MUTATION_LOCK_RELEASE_FAILED",
+      retryable: false,
+    });
+  });
+
+  test("preserves committed classification when pending receipt publication fails", async () => {
+    const root = await mkdtemp(
+      path.join(tmpdir(), "kibi-rel-pending-receipt-"),
+    );
+    workspaces.push(root);
+    const relative = ".kb/requirements/REQ-PENDING.md";
+    await mkdir(path.join(root, ".kb", "requirements"), { recursive: true });
+    await mkdir(path.join(root, ".kb", "recovery"), { recursive: true });
+    await writeFile(
+      path.join(root, relative),
+      "---\nid: REQ-PENDING\ntype: req\nrelationships:\n  - type: verified_by\n    target: TEST-PENDING\n---\nbody\n",
+    );
+    await writeFile(
+      path.join(root, ".kb", "recovery", "pending-sources"),
+      "not-a-directory",
+    );
+    const ownerPath = path.join(
+      root,
+      ".kb",
+      "recovery",
+      "source-authoring.lock",
+      "owner.json",
+    );
+    let removedOwner = false;
+    const context = contextFor(
+      root,
+      (goal) => {
+        if (goal.includes("findall(['REQ-PENDING'")) {
+          return {
+            success: true,
+            bindings: {
+              Results: `[['REQ-PENDING',req,[id='REQ-PENDING',source="${relative}"]]]`,
+            },
+          };
+        }
+        if (goal.includes("kb_relationship(verified_by"))
+          return { success: true, bindings: {} };
+        if (goal.includes("kb_retract_relationship"))
+          return { success: true, bindings: {} };
+        return { success: false, bindings: {} };
+      },
+      { fs: nodeFilesystem },
+    );
+    if (context.prolog === undefined) throw new Error("missing Prolog");
+    context.prolog.save = async () => {
+      if (!removedOwner) {
+        removedOwner = true;
+        await rm(ownerPath, { force: true });
+      }
+      return { success: true, bindings: {} };
+    };
+
+    let thrown: unknown;
+    try {
+      await executeDelete(
+        {
+          relationships: [
+            {
+              type: "verified_by",
+              from: "REQ-PENDING",
+              to: "TEST-PENDING",
+            },
+          ],
+        },
+        context,
+      );
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBeInstanceOf(OperationError);
+    expect(thrown).toMatchObject({
+      code: "SOURCE_MUTATION_LOCK_RELEASE_FAILED",
+      retryable: false,
+    });
+    expect(
+      await readFile(
+        path.join(root, ".kb", "recovery", "pending-sources"),
+        "utf8",
+      ),
+    ).toBe("not-a-directory");
   });
 });
