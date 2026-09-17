@@ -51,6 +51,11 @@ import { refreshSymbolCoordinatesForManifest } from "./symbol-refresh.js";
 import type { RelationshipInput, UpsertInput, UpsertPayload } from "./types.js";
 import { validateUpsertInput } from "./validation.js";
 import { scenarioCoverageWarnings } from "./warnings.js";
+import {
+  type WorkspaceMutationLockHandle,
+  acquireWorkspaceMutationLock,
+  releaseWorkspaceMutationLock,
+} from "./workspace-mutation-lock.js";
 
 function requireProlog(context: OperationContext) {
   if (context.prolog === undefined) {
@@ -275,6 +280,7 @@ export async function executeUpsert(
   let changeKind: "created" | "updated" | null = null;
   let semanticAdvisor: SemanticAdvisorReceipt | undefined;
   let compilerLock: SymbolCompilerLockHandle | undefined;
+  let sourceMutationLock: WorkspaceMutationLockHandle | undefined;
   let operationFailure: { readonly error: unknown } | undefined;
   const relationshipShardBefore = new Map<string, string | null>();
   const relationshipShardAfterHash = new Map<string, string | null>();
@@ -282,7 +288,16 @@ export async function executeUpsert(
     input.type === "symbol" &&
     context.fs !== undefined &&
     context.sourceFirst !== false;
+  const holdsSourceMutationLock =
+    context.fs !== undefined &&
+    context.sourceFirst !== false &&
+    context.sourceMutationLockHeld !== true;
   try {
+    if (holdsSourceMutationLock) {
+      sourceMutationLock = await acquireWorkspaceMutationLock(
+        context.workspaceRoot,
+      );
+    }
     if (holdsSymbolCompilerLock) {
       // Symbol source publication, coordinate refresh, canonical
       // re-extraction, and the RDF commit form one read-modify-write cycle.
@@ -385,6 +400,21 @@ export async function executeUpsert(
     // the compiled transaction so a failed commit can restore exact bytes and
     // a successful commit never leaves a compiled-only relationship behind.
     if (context.fs !== undefined && validated.relationships.length > 0) {
+      // Register the rollback before appending so a failure on any shard (for
+      // example the second write of a multi-shard batch) unwinds the shards
+      // that were already appended.
+      saga.add({
+        name: "relationship-shards",
+        rollback: () => {
+          for (const [shardPath, before] of relationshipShardBefore) {
+            restoreRelationshipShard(
+              shardPath,
+              before,
+              relationshipShardAfterHash.get(shardPath) ?? null,
+            );
+          }
+        },
+      });
       for (const relationship of validated.relationships) {
         const type =
           typeof relationship.type === "string" ? relationship.type : "";
@@ -413,18 +443,6 @@ export async function executeUpsert(
         });
         relationshipShardAfterHash.set(shardPath, fileHash(shardPath));
       }
-      saga.add({
-        name: "relationship-shards",
-        rollback: () => {
-          for (const [shardPath, before] of relationshipShardBefore) {
-            restoreRelationshipShard(
-              shardPath,
-              before,
-              relationshipShardAfterHash.get(shardPath) ?? null,
-            );
-          }
-        },
-      });
     }
 
     // Coordinates are generated compiler state owned by
@@ -680,6 +698,14 @@ export async function executeUpsert(
     operationFailure = { error: failure };
     throw failure;
   } finally {
-    releaseSymbolCompilerLock(compilerLock, operationFailure);
+    try {
+      releaseSymbolCompilerLock(compilerLock, operationFailure, saga.committed);
+    } finally {
+      releaseWorkspaceMutationLock(
+        sourceMutationLock,
+        operationFailure,
+        saga.committed,
+      );
+    }
   }
 }

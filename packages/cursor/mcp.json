@@ -2,7 +2,10 @@
   "mcpServers": {
     "kibi": {
       "command": "node",
-      "args": ["bin/launch-kibi-mcp.mjs", "${workspaceFolder}"]
+      "args": [
+        "${CURSOR_PLUGIN_ROOT}/bin/launch-kibi-mcp.mjs",
+        "${workspaceFolder}"
+      ]
     }
   }
 }

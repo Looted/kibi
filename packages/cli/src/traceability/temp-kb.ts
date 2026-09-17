@@ -48,7 +48,8 @@ export function resetModuleState(): void {
 // Factory function for creating PrologProcess instances.
 // Default uses the imported PrologProcess. Tests can override via _setPrologFactory
 // to bypass mock.module() pollution from other test files.
-let _createProlog = (opts: { timeout: number }) => new PrologProcess(opts);
+let _createProlog = (opts: { timeout: number; oneShot: false }) =>
+  new PrologProcess(opts);
 
 /**
  * Override the PrologProcess factory — used by tests to inject the real constructor
@@ -56,7 +57,7 @@ let _createProlog = (opts: { timeout: number }) => new PrologProcess(opts);
  */
 export function _setPrologFactory(
   // implements REQ-014
-  factory: (opts: { timeout: number }) => PrologProcess,
+  factory: (opts: { timeout: number; oneShot: false }) => PrologProcess,
 ): void {
   _createProlog = factory;
 }
@@ -393,7 +394,7 @@ export async function createTempKb(baseKbPath: string): Promise<TempKbContext> {
 
   await writeFile(overlayPath, "", "utf8");
 
-  const prolog = _createProlog({ timeout: 120000 });
+  const prolog = _createProlog({ timeout: 120000, oneShot: false });
   await prolog.start();
   prologByTempDir.set(tempDir, prolog);
 

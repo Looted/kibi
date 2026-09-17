@@ -78,6 +78,9 @@ jobs:
           bun install --frozen-lockfile
           cd .opencode && bun install --frozen-lockfile
 
+      - name: Check Codex hook bundle drift
+        run: bun run --filter kibi-codex check:hook-bundle
+
       - name: Typecheck matrix
         run: bun run typecheck
       - name: Verify generated schema parity

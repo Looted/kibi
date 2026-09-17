@@ -6,7 +6,10 @@
     "useIgnoreFile": true
   },
   "files": {
-    "ignore": ["packages/cli/src/schemas/entity.schema.json"]
+    "ignore": [
+      "packages/cli/src/schemas/entity.schema.json",
+      "packages/codex/bin/hook-runner.mjs"
+    ]
   },
   "formatter": {
     "indentStyle": "space",

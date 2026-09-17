@@ -2554,6 +2554,17 @@ symbols:
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
+  - id: SYM-assertBootstrapRecoveryDependencies
+    title: assertBootstrapRecoveryDependencies
+    sourceFile: packages/cli/src/operations/planning/apply-plan.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-KIBI-BOOTSTRAP-PLAN
+      - type: covered_by
+        target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
   - id: SYM-assertCanonicalSourceComplete
     title: assertCanonicalSourceComplete
     sourceFile: scripts/sync-agent-skills.ts
@@ -2618,6 +2629,17 @@ symbols:
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
+  - id: SYM-assertSourceWriteStaysInWorkspace
+    title: assertSourceWriteStaysInWorkspace
+    sourceFile: packages/cli/src/operations/planning/apply-plan.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
   - id: SYM-assessStagedSymbolsManifest
     title: assessStagedSymbolsManifest
     sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
@@ -7352,6 +7374,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
@@ -7386,6 +7410,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-001
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
@@ -8470,6 +8496,26 @@ symbols:
         target: REQ-001
       - type: covered_by
         target: TEST-008
+  - id: SYM-InputError-exitCode
+    title: InputError.exitCode
+    sourceFile: packages/cli/src/cli-errors.ts
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-InputError-retryable
+    title: InputError.retryable
+    sourceFile: packages/cli/src/cli-errors.ts
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
   - id: SYM-inferSymbolRole
     title: inferSymbolRole
     sourceFile: packages/cli/src/public/symbol-granularity.ts
@@ -12075,6 +12121,16 @@ symbols:
         target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-operation-interface-parity
+  - id: SYM-OperationError-exitCode
+    title: OperationError.exitCode
+    sourceFile: packages/cli/src/cli-errors.ts
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
   - id: SYM-PackageInfo
     title: PackageInfo
     sourceFile: scripts/release-state.ts
@@ -12234,6 +12290,8 @@ symbols:
     sourceFile: packages/cli/src/operations/mutation/delete.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
@@ -13474,6 +13532,17 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-002
+  - id: SYM-ReceiptCodeScopeEntry
+    title: ReceiptCodeScopeEntry
+    sourceFile: packages/cli/src/extractors/manifest.ts
+    symbol_role: type-shape
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+      - type: covered_by
+        target: TEST-kibi-verification-receipts-v2
   - id: SYM-refreshCoordinatesForSymbolId
     title: refreshCoordinatesForSymbolId
     status: active
@@ -13780,6 +13849,17 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
+  - id: SYM-resolveBoundSymbolScope
+    title: resolveBoundSymbolScope
+    sourceFile: packages/cli/src/extractors/manifest.ts
+    symbol_role: behavioral
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
+      - type: covered_by
+        target: TEST-kibi-verification-receipts-v2
   - id: SYM-resolveKbPlPath
     title: resolveKbPlPath
     sourceFile: packages/cli/src/prolog.ts
@@ -22598,6 +22678,16 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-002
+  - id: SYM-skipNonIntegerFactNumber
+    title: skipNonIntegerFactNumber
+    sourceFile: packages/cli/src/traceability/temp-kb.ts
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
   - id: SYM-suggest-predicates-core-handler
     title: handleKbSuggestPredicates
     status: active
@@ -23713,6 +23803,72 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
+  - id: SYM-WorkspaceMutationLockError
+    title: WorkspaceMutationLockError
+    sourceFile: packages/cli/src/operations/mutation/workspace-mutation-lock.ts
+    symbol_role: behavioral
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
+  - id: SYM-WorkspaceMutationLockError-name
+    title: WorkspaceMutationLockError.name
+    sourceFile: packages/cli/src/operations/mutation/workspace-mutation-lock.ts
+    symbol_role: type-shape
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
+  - id: SYM-WorkspaceMutationLockFileSystem
+    title: WorkspaceMutationLockFileSystem
+    sourceFile: packages/cli/src/operations/mutation/workspace-mutation-lock.ts
+    symbol_role: type-shape
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
+  - id: SYM-WorkspaceMutationLockHandle
+    title: WorkspaceMutationLockHandle
+    sourceFile: packages/cli/src/operations/mutation/workspace-mutation-lock.ts
+    symbol_role: type-shape
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
+  - id: SYM-WorkspaceMutationLockOptions
+    title: WorkspaceMutationLockOptions
+    sourceFile: packages/cli/src/operations/mutation/workspace-mutation-lock.ts
+    symbol_role: type-shape
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
+  - id: SYM-classifySourceMutationFailure
+    title: classifySourceMutationFailure
+    sourceFile: packages/cli/src/operations/mutation/workspace-mutation-lock.ts
+    symbol_role: behavioral
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
   - id: SYM-WorkflowDependencies
     title: WorkflowDependencies
     sourceFile: scripts/skillopt-eval/cli-workflow.ts
@@ -26860,6 +27016,8 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
@@ -32390,9 +32548,33 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
+      - type: covered_by
         target: TEST-generated-coordinate-repair
       - type: implements
         target: REQ-generated-coordinate-persistence
+  - id: SYM-acquireWorkspaceMutationLock
+    title: acquireWorkspaceMutationLock
+    sourceFile: packages/cli/src/operations/mutation/workspace-mutation-lock.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
+  - id: SYM-withWorkspaceMutationLock
+    title: withWorkspaceMutationLock
+    sourceFile: packages/cli/src/operations/mutation/workspace-mutation-lock.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
   - id: SYM-withSymbolCompilerLock
     title: withSymbolCompilerLock
     sourceFile: packages/cli/src/operations/mutation/symbol-compiler-lock.ts
@@ -32548,6 +32730,17 @@ symbols:
         target: TEST-generated-coordinate-repair
       - type: implements
         target: REQ-generated-coordinate-persistence
+  - id: SYM-releaseWorkspaceMutationLock
+    title: releaseWorkspaceMutationLock
+    sourceFile: packages/cli/src/operations/mutation/workspace-mutation-lock.ts
+    symbol_role: behavioral
+    status: active
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
   - id: SYM-SymbolCompilerLockOptions
     title: SymbolCompilerLockOptions
     sourceFile: packages/cli/src/operations/mutation/symbol-compiler-lock.ts
@@ -32766,6 +32959,8 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
       - type: covered_by
         target: TEST-generated-coordinate-repair
       - type: implements
@@ -35766,6 +35961,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-source-relationship-parity-unit
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
       - type: implements
         target: REQ-011
       - type: implements

@@ -626,6 +626,49 @@ describe("upsert helpers and executeUpsert guards", () => {
     );
   });
 
+  test("executeUpsert rolls back published source when the pending receipt fails", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "kibi-upsert-receipt-"));
+    workspaces.push(root);
+    mkdirSync(path.join(root, ".kb", "recovery"), { recursive: true });
+    // A file where the pending-source receipt directory belongs makes the
+    // advisory receipt publication fail after the new source bytes were
+    // published; a new-file write always publishes that receipt.
+    writeFileSync(
+      path.join(root, ".kb", "recovery", "pending-sources"),
+      "not-a-directory",
+    );
+    await expect(
+      executeUpsert(
+        {
+          type: "req",
+          id: "REQ-RECEIPT",
+          properties: { title: "Receipt", status: "open" },
+          document: { path: "docs/REQ-RECEIPT.md", body: "receipt body\n" },
+        },
+        contextFor(
+          root,
+          async (goal) => {
+            if (goal.startsWith("kb_commit_upsert(")) {
+              return { success: true, bindings: { ChangeKind: "created" } };
+            }
+            return { success: true, bindings: { Results: "[]" } };
+          },
+          { fs: nodeFilesystem },
+        ),
+      ),
+    ).rejects.toThrow();
+
+    // The helper unlinked the created file before the failure surfaced, so
+    // the failed call never leaves a half-registered source write behind.
+    expect(existsSync(path.join(root, "docs", "REQ-RECEIPT.md"))).toBe(false);
+    expect(existsSync(path.join(root, "docs"))).toBe(true);
+    expect(
+      readdirSync(path.join(root, "docs")).filter((name) =>
+        name.includes(".kibi-source-"),
+      ),
+    ).toEqual([]);
+  });
+
   test("executeUpsert writes existing markdown sources and skips contradiction checks", async () => {
     const root = await mkdtemp(path.join(tmpdir(), "kibi-upsert-md-"));
     workspaces.push(root);

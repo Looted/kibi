@@ -1,8 +1,10 @@
 import { spawn, spawnSync } from "node:child_process";
 import {
+  cpSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readFileSync,
   rmSync,
   symlinkSync,
   writeFileSync,
@@ -23,6 +25,29 @@ const launcherPath = path.resolve(
   "../bin/launch-kibi-mcp.mjs",
 );
 const fixtureRoots: string[] = [];
+
+type CursorMcpServer = {
+  command?: string;
+  args?: string[];
+};
+
+function readCursorMcpServer(): CursorMcpServer {
+  const manifest = JSON.parse(
+    readFileSync(path.resolve(import.meta.dir, "../mcp.json"), "utf8"),
+  ) as { mcpServers?: Record<string, CursorMcpServer> };
+  const server = manifest.mcpServers?.kibi;
+  if (!server) throw new Error("Cursor MCP manifest does not define kibi");
+  return server;
+}
+
+function expandCursorHostPlaceholders(
+  value: string,
+  replacements: { pluginRoot: string; workspaceFolder: string },
+): string {
+  return value
+    .replaceAll("${CURSOR_PLUGIN_ROOT}", replacements.pluginRoot)
+    .replaceAll("${workspaceFolder}", replacements.workspaceFolder);
+}
 
 function createFixture(options: { consumerName?: string } = {}) {
   const root = mkdtempSync(path.join(os.tmpdir(), "kibi-cursor-launcher-"));
@@ -129,6 +154,54 @@ describe("Cursor consumer workspace MCP launcher", () => {
       cleanEnv({ KIBI_WORKSPACE: fixture.pluginRoot }),
     );
 
+    expect(result.status).toBe(0);
+    expect(JSON.parse(result.stdout)).toEqual({
+      label: "consumer",
+      cwd: fixture.consumerRoot,
+      workspace: fixture.consumerRoot,
+    });
+  });
+
+  test("launches the source-installed manifest from an unrelated host cwd and HOME", () => {
+    const fixture = createFixture();
+    const hostCwd = path.join(fixture.root, "unrelated host cwd");
+    const hostHome = path.join(fixture.root, "unrelated host HOME");
+    mkdirSync(hostCwd, { recursive: true });
+    mkdirSync(hostHome, { recursive: true });
+    mkdirSync(path.join(fixture.pluginRoot, "bin"), { recursive: true });
+    cpSync(
+      launcherPath,
+      path.join(fixture.pluginRoot, "bin", path.basename(launcherPath)),
+    );
+
+    const server = readCursorMcpServer();
+    const args = (server.args ?? []).map((value) =>
+      expandCursorHostPlaceholders(value, {
+        pluginRoot: fixture.pluginRoot,
+        workspaceFolder: fixture.consumerRoot,
+      }),
+    );
+    const env = cleanEnv({ HOME: hostHome, USERPROFILE: undefined });
+    const runManifest = (manifestArgs: string[]) =>
+      spawnSync(server.command ?? "node", manifestArgs, {
+        cwd: hostCwd,
+        env,
+        encoding: "utf8",
+      });
+
+    const legacyArgs = (server.args ?? []).map((value, index) =>
+      expandCursorHostPlaceholders(
+        index === 0 ? value.replace("${CURSOR_PLUGIN_ROOT}/", "") : value,
+        {
+          pluginRoot: fixture.pluginRoot,
+          workspaceFolder: fixture.consumerRoot,
+        },
+      ),
+    );
+    const legacyResult = runManifest(legacyArgs);
+    expect(legacyResult.status).not.toBe(0);
+
+    const result = runManifest(args);
     expect(result.status).toBe(0);
     expect(JSON.parse(result.stdout)).toEqual({
       label: "consumer",

@@ -2,6 +2,7 @@
 export class InputError extends Error {
   // implements REQ-kibi-operation-interface-parity
   readonly exitCode = 2;
+  readonly retryable = false;
 
   constructor(
     readonly code: string,
@@ -20,6 +21,7 @@ export class OperationError extends Error {
   constructor(
     readonly code: string,
     readonly detail: string,
+    readonly retryable = true,
   ) {
     super(detail);
     this.name = "OperationError";

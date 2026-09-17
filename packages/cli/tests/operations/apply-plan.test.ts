@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
@@ -383,6 +383,53 @@ describe("kb_apply_plan", () => {
       "bootstrap-upsert-0001",
       "bootstrap-upsert-0002",
     ]);
+  });
+
+  test("applies an approved bootstrap plan while the recovery lock is held", async () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), "kibi-bootstrap-lock-"));
+    try {
+      const plan = bootstrapPlan([
+        {
+          id: "bootstrap-upsert-lock",
+          kind: "upsert",
+          dependsOn: [],
+          payload: {
+            type: "adr",
+            id: "ADR-lock",
+            properties: { title: "Lock", status: "accepted" },
+            relationships: [],
+          },
+        },
+      ]);
+      let lockObserved = false;
+      const result = await executeApplyPlan(
+        { plan, approvedPlanHash: plan.planHash },
+        filesystemContext(root, "a".repeat(64), undefined, {
+          query: async (goal): Promise<PrologQueryResult> => {
+            if (goal.includes("findall("))
+              return { success: true, bindings: { Results: "[]" } };
+            if (goal.includes("kb_commit_upsert")) {
+              lockObserved = existsSync(
+                path.join(root, ".kb", "recovery", "source-authoring.lock"),
+              );
+              return { success: true, bindings: { ChangeKind: "created" } };
+            }
+            return { success: false, bindings: {} };
+          },
+          queryStatusJson: async () => ({ success: true, bindings: {} }),
+          nextSolution: async () => null,
+          save: async () => ({ success: true, bindings: {} }),
+        }),
+      );
+
+      expect(result.structuredContent.outcome).toBe("applied");
+      expect(lockObserved).toBe(true);
+      expect(
+        existsSync(path.join(root, ".kb", "recovery", "source-authoring.lock")),
+      ).toBe(false);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 
   test("returns repair state after a partial failure and resumes only remaining actions", async () => {
