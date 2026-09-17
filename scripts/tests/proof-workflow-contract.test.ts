@@ -170,9 +170,15 @@ describe("strict proof workflow contract", () => {
     expect(runner).toBeGreaterThanOrEqual(0);
     expect(baselineCheck).toBeGreaterThan(runner);
     expect(report).toBeGreaterThan(baselineCheck);
-    expect(proofWorkflow).toContain(
-      "--rules no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness",
+    const integrityRules =
+      "no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness,symbol-traceability";
+    const baselineChecker = readFileSync(
+      join(ROOT, "scripts", "check-proof-baseline.mjs"),
+      "utf8",
     );
+    expect(proofWorkflow).toContain(`--rules ${integrityRules}`);
+    expect(baselineChecker).toContain('"symbol-traceability"');
+    expect(proofWorkflow).not.toContain("proof-contract-symbols");
     expect(ciWorkflow).not.toContain("Generate Kibi requirement health report");
   });
 

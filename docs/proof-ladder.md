@@ -148,8 +148,9 @@ maps to `proofStatus: unresolved`, not `proven`.
 - `kibi proof explain REQ-*` / `kibi proof explain SYM-*` — project the same
   Proof, labeling `required_proofs`, `executable_for`, and `covered_by`
   separately.
-- `kibi proof impact` — compare current proof state to committed
-  `proof/baseline.json` (not Git HEAD unless that file is what changed).
+- `kibi proof impact` — compare current proof state to `HEAD:proof/baseline.json`
+  (diagnostic; exits 0 after a successful report). The ratchet remains
+  `scripts/check-proof-baseline.mjs`.
 - `kibi proof prune --keep 1` — drop superseded receipts (re-proving the same
   snapshot appends duplicates).
 - `kibi proof migrate-legacy` — remove legacy `verification_receipts` blocks

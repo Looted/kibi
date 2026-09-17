@@ -84,6 +84,94 @@ describe("proof explain projection", () => {
     ).toThrow(/not both/);
   });
 
+  test("structural unit candidate is rendered as qualifying, not test_scope_is_unit", () => {
+    const view = projectRequirementExplain({
+      id: "REQ-shape",
+      proofVersion: "kibi.requirement-proof.v3",
+      proofStatus: "missing",
+      proofGaps: ["missing_production_symbol_coverage"],
+      proofStages: {
+        scenarios: { scenarios: [] },
+        scenarioTests: { tests: [] },
+        productionSymbols: {
+          symbols: ["SYM-behavior"],
+          structuralSymbols: ["SYM-Shape"],
+          uncoveredSymbols: ["SYM-behavior"],
+          explanations: [
+            {
+              symbolId: "SYM-Shape",
+              classification: "type-shape",
+              status: "covered",
+              reason: "structural_unit_contract",
+              coverageCandidates: [
+                {
+                  testId: "TEST-Shape-Unit",
+                  relationship: "covered_by",
+                  qualifies: true,
+                  reason: "structural_unit_contract",
+                  secondaryReasons: [],
+                  scope: "unit",
+                },
+                {
+                  testId: "TEST-unrelated",
+                  relationship: "covered_by",
+                  qualifies: false,
+                  reason: "test_not_in_requirement_scenario_chain",
+                  secondaryReasons: ["test_scope_is_unit"],
+                  scope: "unit",
+                },
+              ],
+            },
+            {
+              symbolId: "SYM-behavior",
+              classification: "behavioral",
+              status: "uncovered",
+              reason: "no_qualifying_e2e_coverage",
+              coverageCandidates: [
+                {
+                  testId: "TEST-Shape-Unit",
+                  relationship: "covered_by",
+                  qualifies: false,
+                  reason: "test_scope_is_unit",
+                  secondaryReasons: [],
+                  scope: "unit",
+                },
+              ],
+            },
+          ],
+        },
+      },
+    });
+    expect(view.structuralSymbols[0]).toEqual(
+      expect.objectContaining({
+        symbolId: "SYM-Shape",
+        status: "covered",
+        reason: "structural_unit_contract",
+      }),
+    );
+    expect(view.structuralSymbols[0]?.coverageCandidates[0]).toEqual(
+      expect.objectContaining({
+        testId: "TEST-Shape-Unit",
+        qualifies: true,
+        reason: "structural_unit_contract",
+      }),
+    );
+    const text = renderProofExplain(view);
+    expect(text).toContain(
+      "SYM-Shape [type-shape] covered structural_unit_contract",
+    );
+    expect(text).toContain(
+      "TEST-Shape-Unit qualifies=true reason=structural_unit_contract",
+    );
+    const structuralSection = text.split("Structural symbols")[1] ?? "";
+    expect(structuralSection).toContain(
+      "TEST-Shape-Unit qualifies=true reason=structural_unit_contract",
+    );
+    expect(structuralSection).not.toMatch(
+      /TEST-Shape-Unit qualifies=false reason=test_scope_is_unit/,
+    );
+  });
+
   test("JSON view keeps required_proofs, executable_for, and covered_by distinct", () => {
     const view = projectRequirementExplain(requirementProof);
     expect(view.proofVersion).toBe("kibi.requirement-proof.v3");
@@ -108,7 +196,9 @@ describe("proof explain projection", () => {
     expect(requiredIndex).toBeGreaterThanOrEqual(0);
     expect(executableIndex).toBeGreaterThan(requiredIndex);
     expect(coveredIndex).toBeGreaterThan(executableIndex);
-    expect(text).not.toMatch(/REQ-example -> SCEN-example -> TEST-example -> SYM-prod/);
+    expect(text).not.toMatch(
+      /REQ-example -> SCEN-example -> TEST-example -> SYM-prod/,
+    );
   });
 
   test("symbol view projects implementing requirement proofs", () => {

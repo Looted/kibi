@@ -25,6 +25,7 @@ const INTEGRITY_RULES = [
   "rule-safety",
   "rule-verifiability",
   "semantic-completeness",
+  "symbol-traceability",
 ];
 
 const baseline = JSON.parse(
@@ -63,13 +64,8 @@ const coverage = unwrapPayload(
 );
 const status = unwrapPayload(spawnJson(["status", "--format", "json"]).json);
 const check = unwrapPayload(
-  spawnJson([
-    "check",
-    "--format",
-    "json",
-    "--rules",
-    INTEGRITY_RULES.join(","),
-  ]).json,
+  spawnJson(["check", "--format", "json", "--rules", INTEGRITY_RULES.join(",")])
+    .json,
 );
 const summary = coverage.summary;
 const currentRequirements = summary.total - summary.proofNotApplicable;
