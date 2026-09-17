@@ -175,6 +175,34 @@ agents; bootstrap consumes this instead of reinventing detection.
 kibi proof inspect --json
 ```
 
+### `kibi proof explain`
+
+Projects one requirement (`REQ-*`) or symbol (`SYM-*`) from the same
+`kibi.requirement-proof.v3` Proof that coverage uses. Human output labels
+`required_proofs`, `executable_for`, and `covered_by` as separate blocks so
+agents cannot treat them as one chain. `--json` emits the structured
+projection (primary plus optional secondary `covered_by` reasons). This
+command does not re-evaluate qualification.
+
+```bash
+kibi proof explain REQ-EXAMPLE
+kibi proof explain SYM-EXAMPLE
+kibi proof explain --requirement REQ-EXAMPLE --json
+kibi proof explain --symbol SYM-EXAMPLE --json
+```
+
+### `kibi proof impact`
+
+Compares the current Proof projection to the committed
+`proof/baseline.json` ratchet snapshot. This is not a Git branch or worktree
+diff. Human output names that committed file as the comparison target and
+prints requirement-level fingerprint diffs plus live coverage explanations.
+
+```bash
+kibi proof impact
+kibi proof impact --json
+```
+
 See [proving requirements](proving-requirements.md) for the full workflow:
 proof contracts, integration configuration, the artifact reference, adapter
 authoring, and troubleshooting. Playwright is an optional first-party
@@ -441,7 +469,7 @@ Validates knowledge base integrity and runs inference rules.
 - Checks requirement coverage (must-priority rules)
 - Detects dangling references (entities that reference non-existent IDs)
 - Detects cycles in dependency graphs
-- Supports strict advisory modeling checks (`strict-fact-shape`, `strict-req-fact-pairing`, `predicate-verifiability`) that run by default as non-blocking `qualityDiagnostics`, and default-off migration diagnostics (`strict-readiness`, `semantic-completeness`) that run only when explicitly selected with `--rules`. Canonical rules always populate blocking `violations[]`. `--rules` is an invocation-time diagnostic filter only; leftover `.kb/config.json` cannot disable canonical checks.
+- Supports strict advisory modeling checks (`strict-fact-shape`, `strict-req-fact-pairing`, `predicate-verifiability`, `proof-contract-symbols`) that run by default as non-blocking `qualityDiagnostics`, and default-off migration diagnostics (`strict-readiness`, `semantic-completeness`) that run only when explicitly selected with `--rules`. Canonical rules always populate blocking `violations[]`. `--rules` is an invocation-time diagnostic filter only; leftover `.kb/config.json` cannot disable canonical checks. `proof-contract-symbols` reports unresolved `required_proofs.symbol_id` values, type-shape required proofs, and `proof_bindings.source_file` disagreement with the named symbol `sourceFile`. Kibi does not infer TEST names from filenames.
 - With `--staged`, inventories every index path before analysis. TypeScript and JavaScript keep their blocking symbol checks; Kibi metadata is validated through its typed lanes; every other readable UTF-8 text file receives advisory file-level ownership and impact-evidence checks.
 - Staged deletions and renames retain committed content and ownership for removal review. Binary blobs, unsupported encodings, symlinks, and submodules are reported with explicit skipped reasons and remain non-blocking.
 - Reports blocking `violations[]` with actionable suggestions and additive `qualityDiagnostics[]` audit signals for modeling quality, coverage depth, broad requirements, duplicate coordinates, symbol fanout, and strict-fact review

@@ -77,10 +77,10 @@ requirement_proof(ReqId, ReqProps, Context, Proof) :-
     logic_grounding_stage(ReqId, ReqProps, Inventory, Context, LogicStage),
     contradiction_stage(ReqId, LogicStage.status, Context, ContradictionStage),
     scenario_stage(ReqId, ScenarioStage, ScenarioIds),
-    scenario_test_stage(ScenarioIds, ScenarioTestStage, _ScenarioTests),
+    scenario_test_stage(ScenarioIds, ScenarioTestStage, ScenarioTests),
     passing_e2e_stage(ScenarioTestStage, Context, PassingE2eStage, PassingE2eTests),
     executable_symbol_stage(PassingE2eTests, ExecutableStage, ExecutableSymbols),
-    production_symbol_stage(ReqId, PassingE2eTests, ProductionStage, ProductionSymbols),
+    production_symbol_stage(ReqId, PassingE2eTests, ScenarioTests, PassingE2eStage.receiptEvidence, Context, ProductionStage, ProductionSymbols),
     source_coordinate_stage(ReqProps, ExecutableSymbols, ProductionSymbols, CoordinateStage),
     Stages = _{
         semanticInventory: SemanticStage,
@@ -103,7 +103,8 @@ requirement_proof(ReqId, ReqProps, Context, Proof) :-
         proofGaps: Gaps,
         proofAdvisories: Advisories,
         proofRepairs: Repairs,
-        proofStages: Stages
+        proofStages: Stages,
+        testResolutions: ScenarioTestStage.resolutions
     }.
 
 exempt_requirement_proof(Reason, Proof) :-
@@ -532,6 +533,7 @@ scenario_test_stage(ScenarioIds, Stage, ScenarioTests) :-
     ;   Status = passed
     ),
     maplist(entity_source_ref, ScenarioTests, Sources),
+    maplist(test_resolution_record, ScenarioTests, Resolutions),
     Stage = _{
         status: Status,
         scenarios: ScenarioIds,
@@ -539,7 +541,8 @@ scenario_test_stage(ScenarioIds, Stage, ScenarioTests) :-
         scenarioTestTargets: ScenarioTestTargets,
         invalidScenarioTestTargets: InvalidScenarioTestTargets,
         sources: Sources,
-        obligations: Obligations
+        obligations: Obligations,
+        resolutions: Resolutions
     }.
 
 scenario_test_obligation(ScenarioId, Obligation) :-
@@ -1069,6 +1072,14 @@ test_missing_executable_symbol(TestId) :-
     \+ (kb_relationship(executable_for, SymbolId, TestId), kb_entity(SymbolId, symbol, _)).
 
 production_symbol_stage(ReqId, PassingE2eTests, Stage, ProductionSymbols) :-
+    findall(TestId,
+        (kb_relationship(specified_by, ReqId, ScenarioId),
+         scenario_test(ScenarioId, TestId)),
+        ScenarioTests0),
+    sort(ScenarioTests0, ScenarioTests),
+    production_symbol_stage(ReqId, PassingE2eTests, ScenarioTests, [], _{}, Stage, ProductionSymbols).
+
+production_symbol_stage(ReqId, PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, Stage, ProductionSymbols) :-
     findall(SymbolId,
         (kb_relationship(implements, SymbolId, ReqId),
          kb_entity(SymbolId, symbol, _),
@@ -1080,12 +1091,16 @@ production_symbol_stage(ReqId, PassingE2eTests, Stage, ProductionSymbols) :-
     include(symbol_not_covered_by_tests(PassingE2eTests), ProductionSymbols, UncoveredSymbols),
     production_stage_status(ProductionSymbols, StructuralSymbols, PassingE2eTests, UncoveredSymbols, Status, StatusReason),
     maplist(symbol_coordinate_ref, ProductionSymbols, Coordinates),
+    production_coverage_explanations(
+        ReqId, ProductionSymbols, StructuralSymbols, UncoveredSymbols,
+        PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, Explanations),
     StageBase = _{
         status: Status,
         symbols: ProductionSymbols,
         structuralSymbols: StructuralSymbols,
         uncoveredSymbols: UncoveredSymbols,
-        coordinates: Coordinates
+        coordinates: Coordinates,
+        explanations: Explanations
     },
     (   Status == passed
     ->  Stage = StageBase
@@ -1126,6 +1141,258 @@ production_stage_status(ProductionSymbols, StructuralSymbols, PassingE2eTests, U
 
 symbol_not_covered_by_tests(Tests, SymbolId) :-
     \+ (member(TestId, Tests), kb_relationship(covered_by, SymbolId, TestId)).
+
+production_coverage_explanations(ReqId, ProductionSymbols, StructuralSymbols, UncoveredSymbols,
+        PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, Explanations) :-
+    maplist(production_symbol_explanation(ReqId, UncoveredSymbols, PassingE2eTests, ScenarioTests, ReceiptEvidence, Context),
+            ProductionSymbols, ProductionExplanations),
+    maplist(structural_symbol_explanation(ReqId, ScenarioTests, ReceiptEvidence, Context),
+            StructuralSymbols, StructuralExplanations),
+    append(ProductionExplanations, StructuralExplanations, Explanations).
+
+structural_symbol_explanation(ReqId, ScenarioTests, ReceiptEvidence, Context, SymbolId, Explanation) :-
+    symbol_classification(SymbolId, Classification),
+    symbol_coverage_candidates([], ScenarioTests, ReceiptEvidence, Context, SymbolId, Candidates),
+    explanation_reason_text(structural_unit_contract, ReasonText),
+    Explanation = _{
+        symbolId: SymbolId,
+        requirementId: ReqId,
+        classification: Classification,
+        status: covered,
+        reason: structural_unit_contract,
+        reasonText: ReasonText,
+        coverageCandidates: Candidates
+    }.
+
+production_symbol_explanation(ReqId, UncoveredSymbols, PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, SymbolId, Explanation) :-
+    symbol_classification(SymbolId, Classification),
+    symbol_coverage_candidates(PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, SymbolId, Candidates),
+    production_symbol_rollup(UncoveredSymbols, PassingE2eTests, SymbolId, Candidates, Status, Reason),
+    explanation_reason_text(Reason, ReasonText),
+    Explanation = _{
+        symbolId: SymbolId,
+        requirementId: ReqId,
+        classification: Classification,
+        status: Status,
+        reason: Reason,
+        reasonText: ReasonText,
+        coverageCandidates: Candidates
+    }.
+
+production_symbol_rollup(_Uncovered, [], _SymbolId, _Candidates, uncovered, stage_blocked_no_passing_e2e) :-
+    !.
+production_symbol_rollup(UncoveredSymbols, _Passing, SymbolId, Candidates, uncovered, Reason) :-
+    memberchk(SymbolId, UncoveredSymbols),
+    !,
+    (Candidates == [] -> Reason = covered_by_missing ; Reason = no_qualifying_e2e_coverage).
+production_symbol_rollup(_Uncovered, _Passing, _SymbolId, _Candidates, covered, covered).
+
+symbol_classification(SymbolId, Classification) :-
+    kb_entity(SymbolId, symbol, Props),
+    memberchk(symbol_role=RawRole, Props),
+    normalize_atom(RawRole, Role),
+    Role \= '',
+    !,
+    Classification = Role.
+symbol_classification(_SymbolId, unknown).
+
+symbol_coverage_candidates(PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, SymbolId, Candidates) :-
+    findall(TestId, kb_relationship(covered_by, SymbolId, TestId), TestIds0),
+    sort(TestIds0, TestIds),
+    maplist(coverage_candidate_dict(PassingE2eTests, ScenarioTests, ReceiptEvidence, Context), TestIds, Candidates).
+
+coverage_candidate_dict(PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, TestId, Candidate) :-
+    coverage_candidate_qualification(PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, TestId, Qualifies, Primary, Secondaries),
+    explanation_reason_text(Primary, ReasonText),
+    cheap_candidate_scope(TestId, Scope),
+    reused_receipt_state(ReceiptEvidence, TestId, ReceiptState),
+    CandidateBase = _{
+        testId: TestId,
+        relationship: covered_by,
+        qualifies: Qualifies,
+        reason: Primary,
+        reasonText: ReasonText,
+        secondaryReasons: Secondaries,
+        scope: Scope
+    },
+    (   ReceiptState == none
+    ->  Candidate = CandidateBase
+    ;   put_dict(receiptState, CandidateBase, ReceiptState, Candidate)
+    ).
+
+coverage_candidate_qualification(PassingE2eTests, _ScenarioTests, _ReceiptEvidence, _Context, TestId, true, covered, []) :-
+    memberchk(TestId, PassingE2eTests),
+    !.
+coverage_candidate_qualification(_Passing, _Scenario, _Evidence, _Context, TestId, false, missing_test_entity, []) :-
+    \+ kb_entity(TestId, test, _),
+    !.
+coverage_candidate_qualification(_Passing, ScenarioTests, ReceiptEvidence, Context, TestId, false, Primary, Secondaries) :-
+    cheap_scope_reject_reason(TestId, ScopeReason),
+    (   \+ memberchk(TestId, ScenarioTests)
+    ->  Primary = test_not_in_requirement_scenario_chain,
+        maybe_singleton(ScopeReason, ScopeSecondaries),
+        reused_receipt_reject_reasons(ReceiptEvidence, TestId, ReceiptSecondaries),
+        append(ScopeSecondaries, ReceiptSecondaries, Secondaries)
+    ;   ScopeReason \= none
+    ->  Primary = ScopeReason,
+        reused_receipt_reject_reasons(ReceiptEvidence, TestId, Secondaries)
+    ;   receipt_reject_for_in_chain(ReceiptEvidence, Context, TestId, Primary, Secondaries)
+    ).
+
+cheap_candidate_scope(TestId, Scope) :-
+    kb_entity(TestId, test, Props),
+    !,
+    test_scope(Props, Scope).
+cheap_candidate_scope(_TestId, unknown).
+
+cheap_scope_reject_reason(TestId, Reason) :-
+    cheap_candidate_scope(TestId, Scope),
+    scope_reject_reason(Scope, Reason).
+
+scope_reject_reason(unit, test_scope_is_unit) :- !.
+scope_reject_reason(end_to_end, none) :- !.
+scope_reject_reason(_Scope, test_scope_is_non_e2e).
+
+maybe_singleton(none, []) :- !.
+maybe_singleton(Reason, [Reason]).
+
+reused_receipt_state(Evidence, TestId, State) :-
+    member(Item, Evidence),
+    Item.testId == TestId,
+    !,
+    State = Item.state.
+reused_receipt_state(_Evidence, _TestId, none).
+
+reused_receipt_item(Evidence, TestId, Item) :-
+    member(Item, Evidence),
+    Item.testId == TestId,
+    !.
+
+reused_receipt_reject_reasons(Evidence, TestId, Reasons) :-
+    reused_receipt_item(Evidence, TestId, Item),
+    !,
+    receipt_item_reject_reason(Item, Reason),
+    maybe_singleton(Reason, Reasons).
+reused_receipt_reject_reasons(_Evidence, _TestId, []).
+
+receipt_reject_for_in_chain(Evidence, _Context, TestId, Primary, []) :-
+    reused_receipt_item(Evidence, TestId, Item),
+    !,
+    receipt_item_reject_reason(Item, Reason),
+    (Reason == none -> Primary = no_qualifying_e2e_coverage ; Primary = Reason).
+receipt_reject_for_in_chain(_Evidence, Context, TestId, Primary, []) :-
+    is_dict(Context),
+    Context \= _{},
+    test_receipt_evidence(TestId, Context, EvidenceState),
+    !,
+    receipt_state_reject_reason(EvidenceState, Reason),
+    (Reason == none -> Primary = no_qualifying_e2e_coverage ; Primary = Reason).
+receipt_reject_for_in_chain(_Evidence, _Context, _TestId, no_qualifying_e2e_coverage, []).
+
+receipt_item_reject_reason(Item, stale_proof_receipt) :-
+    Item.state == stale,
+    get_dict(codeSnapshot, Item, _),
+    !.
+receipt_item_reject_reason(Item, receipt_snapshot_mismatch) :-
+    Item.state == stale,
+    !.
+receipt_item_reject_reason(Item, Reason) :-
+    receipt_state_reject_reason(Item.state, Reason).
+
+receipt_state_reject_reason(missing, missing_proof_receipt) :- !.
+receipt_state_reject_reason(snapshot_unavailable, proof_snapshot_unavailable) :- !.
+receipt_state_reject_reason(contract_mismatch, receipt_contract_mismatch) :- !.
+receipt_state_reject_reason(invalid, invalid_proof_receipt) :- !.
+receipt_state_reject_reason(failed, failed_proof_receipt) :- !.
+receipt_state_reject_reason(not_end_to_end, none) :- !.
+receipt_state_reject_reason(stale, receipt_snapshot_mismatch) :- !.
+receipt_state_reject_reason(passed, none) :- !.
+receipt_state_reject_reason(none, none) :- !.
+receipt_state_reject_reason(_, none).
+
+explanation_reason_text(Reason, Text) :-
+    explanation_reason_text_def(Reason, Text),
+    !.
+explanation_reason_text(Reason, Reason) :-
+    atom(Reason).
+
+explanation_reason_text_def(covered, "Qualifying covered_by to a passing scenario-backed E2E test").
+explanation_reason_text_def(covered_by_missing, "No covered_by relationship to any test").
+explanation_reason_text_def(no_qualifying_e2e_coverage, "covered_by relationships exist but none qualify as passing scenario-backed E2E coverage").
+explanation_reason_text_def(structural_unit_contract, "type-shape symbol is satisfied by a unit structural contract").
+explanation_reason_text_def(executable_test, "Symbol is executable test code linked with executable_for").
+explanation_reason_text_def(stage_blocked_no_passing_e2e, "Production coverage cannot be evaluated because no passing E2E evidence is available for the current snapshot").
+explanation_reason_text_def(missing_test_entity, "covered_by target is not a test entity").
+explanation_reason_text_def(test_not_in_requirement_scenario_chain, "Test is not in this requirement's scenario chain").
+explanation_reason_text_def(test_scope_is_unit, "Test verification_scope is unit, which cannot cover behavioral production symbols").
+explanation_reason_text_def(test_scope_is_non_e2e, "Test verification_scope is not end_to_end").
+explanation_reason_text_def(proof_snapshot_unavailable, "Workspace snapshot is unavailable so receipt currency cannot be proven").
+explanation_reason_text_def(missing_proof_receipt, "Scenario-backed E2E test has no kibi.proof-receipt.v1").
+explanation_reason_text_def(receipt_snapshot_mismatch, "Receipts exist but none match the current snapshot or binding").
+explanation_reason_text_def(stale_proof_receipt, "Current-snapshot receipt is older than the allowed proof age").
+explanation_reason_text_def(receipt_contract_mismatch, "Receipt does not match the current proof contract hash or fingerprint").
+explanation_reason_text_def(invalid_proof_receipt, "Receipt evidence is malformed or otherwise uncheckable").
+explanation_reason_text_def(failed_proof_receipt, "Latest current receipt outcome is not passed").
+
+test_resolution_record(TestId, _{
+    testId: TestId,
+    requiredProofs: RequiredProofs,
+    executableFor: ExecutableFor
+}) :-
+    test_required_proof_refs(TestId, RequiredProofs),
+    test_executable_for_refs(TestId, ExecutableFor).
+
+test_required_proof_refs(TestId, Refs) :-
+    kb_entity(TestId, test, Props),
+    memberchk(proof_contract=RawContract, Props),
+    proof_contract_dict(RawContract, Contract),
+    contract_required_symbol_ids(Contract, SymbolIds),
+    !,
+    maplist(symbol_resolution_ref, SymbolIds, Refs).
+test_required_proof_refs(_TestId, []).
+
+contract_required_symbol_ids(Contract, SymbolIds) :-
+    (   get_dict(required_proofs, Contract, Raw)
+    ;   get_dict('required_proofs', Contract, Raw)
+    ),
+    !,
+    inventory_entries(Raw, Entries),
+    findall(SymbolId,
+        (member(Entry, Entries), required_proof_entry_symbol(Entry, SymbolId)),
+        SymbolIds0),
+    sort(SymbolIds0, SymbolIds).
+contract_required_symbol_ids(_, []).
+
+required_proof_entry_symbol(Entry, SymbolId) :-
+    (   inventory_entry_field(Entry, symbol_id, Raw)
+    ;   inventory_entry_field(Entry, symbolId, Raw)
+    ),
+    normalize_atom(Raw, SymbolId),
+    SymbolId \= ''.
+
+test_executable_for_refs(TestId, Refs) :-
+    findall(SymbolId,
+        (kb_relationship(executable_for, SymbolId, TestId), kb_entity(SymbolId, symbol, _)),
+        SymbolIds0),
+    sort(SymbolIds0, SymbolIds),
+    maplist(symbol_resolution_ref, SymbolIds, Refs).
+
+symbol_resolution_ref(SymbolId, Ref) :-
+    kb_entity(SymbolId, symbol, _),
+    !,
+    symbol_coordinate_ref(SymbolId, Coord),
+    symbol_classification(SymbolId, Role),
+    put_dict(_{role: Role, exists: true}, Coord, Ref).
+symbol_resolution_ref(SymbolId, _{
+    id: SymbolId,
+    sourceFile: '',
+    sourceLine: 0,
+    sourceColumn: 0,
+    sourceEndLine: 0,
+    sourceEndColumn: 0,
+    role: unresolved,
+    exists: false
+}).
 
 source_coordinate_stage(ReqProps, ExecutableSymbols, ProductionSymbols, Stage) :-
     append(ExecutableSymbols, ProductionSymbols, Symbols0),

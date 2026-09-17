@@ -200,10 +200,14 @@ describe("strict proof workflow contract", () => {
   });
 
   test("ratchet baseline records the stricter per-scenario proof gaps", () => {
+    expect(baseline.version).toBe("kibi.proof-baseline.v2");
     expect(baseline.mode).toBe("ratchet");
     expect(baseline.currentRequirements).toBe(104);
     expect(baseline.proofProven).toBe(66);
     expect(baseline.currentUnproven).toBe(38);
+    expect(baseline.proofProven + baseline.currentUnproven).toBe(
+      baseline.currentRequirements,
+    );
     expect(baseline.trackedGaps).toEqual({
       missing_passing_e2e: 21,
       missing_production_symbol_coverage: 26,
@@ -211,5 +215,8 @@ describe("strict proof workflow contract", () => {
       unresolved_semantic_proposition: 2,
       missing_production_symbol: 2,
     });
+    expect(Object.keys(baseline.requirements ?? {}).length).toBe(
+      baseline.currentRequirements,
+    );
   });
 });

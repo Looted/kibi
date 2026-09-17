@@ -139,4 +139,11 @@ export const GENERATED_RULES = [
     enforcementClass: "migration",
     category: "integrity",
   },
+  {
+    name: "proof-contract-symbols",
+    description:
+      "Detect unresolved required_proofs.symbol_id values, type-shape required proofs, and proof_bindings.source_file disagreement with the named symbol sourceFile",
+    enforcementClass: "advisory",
+    category: "integrity",
+  },
 ] as const;

@@ -171,6 +171,15 @@
       "implementation": "prolog",
       "prologPredicate": "check_semantic_completeness",
       "prologPredicateArity": 1
+    },
+    {
+      "name": "proof-contract-symbols",
+      "description": "Detect unresolved required_proofs.symbol_id values, type-shape required proofs, and proof_bindings.source_file disagreement with the named symbol sourceFile",
+      "enforcementClass": "advisory",
+      "category": "integrity",
+      "implementation": "prolog",
+      "prologPredicate": "check_proof_contract_symbols",
+      "prologPredicateArity": 1
     }
   ]
 }

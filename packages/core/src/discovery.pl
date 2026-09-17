@@ -8,6 +8,9 @@
     coverage_report_json/11,
     coverage_report_json/12,
     coverage_evidence_json/5,
+    requirement_proof_json/5,
+    requirement_proof_json/7,
+    symbol_proof_json/7,
     graph_expand_json/8
 ]).
 
@@ -39,6 +42,58 @@ coverage_report_json(By, Tags, IncludePassing, IncludeTransitive, Limit, Offset,
 
 coverage_report_json(By, Tags, IncludePassing, IncludeTransitive, Limit, Offset, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
     coverage_report_json(By, Tags, IncludePassing, strict_snapshot, _{}, IncludeTransitive, Limit, Offset, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString).
+
+requirement_proof_json(ReqId, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
+    requirement_proof_json(ReqId, strict_snapshot, _{}, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString).
+
+requirement_proof_json(ReqId, BindingMode, TestBindings, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
+    requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, BindingMode, TestBindings, Context),
+    kb_entity(ReqId, req, Props),
+    requirement_proof(ReqId, Props, Context, Proof),
+    put_dict(id, Proof, ReqId, ProofWithId),
+    dict_json_string(ProofWithId, JsonString).
+
+symbol_proof_json(SymbolId, BindingMode, TestBindings, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
+    requirement_proof_context(VerificationSnapshot, CheckedAt, MaxAgeSeconds, BindingMode, TestBindings, Context),
+    kb_entity(SymbolId, symbol, _),
+    findall(ReqId,
+        (kb_relationship(implements, SymbolId, ReqId), kb_entity(ReqId, req, _)),
+        ReqIds0),
+    sort(ReqIds0, ReqIds),
+    maplist(requirement_proof_with_id(Context), ReqIds, Proofs),
+    symbol_explain_role(SymbolId, Role),
+    (kb:executable_test_symbol(SymbolId) -> ExecutableTest = true ; ExecutableTest = false),
+    findall(TestId, kb_relationship(executable_for, SymbolId, TestId), ExecutableFor0),
+    sort(ExecutableFor0, ExecutableFor),
+    findall(TestId, kb_relationship(covered_by, SymbolId, TestId), CoveredBy0),
+    sort(CoveredBy0, CoveredBy),
+    Response = _{
+        id: SymbolId,
+        symbolId: SymbolId,
+        role: Role,
+        executableTest: ExecutableTest,
+        implementingRequirements: ReqIds,
+        executableFor: ExecutableFor,
+        coveredBy: CoveredBy,
+        proofs: Proofs
+    },
+    dict_json_string(Response, JsonString).
+
+requirement_proof_with_id(Context, ReqId, ProofWithId) :-
+    kb_entity(ReqId, req, Props),
+    requirement_proof(ReqId, Props, Context, Proof),
+    put_dict(id, Proof, ReqId, ProofWithId).
+
+symbol_explain_role(SymbolId, executable_test) :-
+    kb:executable_test_symbol(SymbolId),
+    !.
+symbol_explain_role(SymbolId, Role) :-
+    kb_entity(SymbolId, symbol, Props),
+    memberchk(symbol_role=RawRole, Props),
+    kb:normalize_term_atom(RawRole, Role),
+    Role \= '',
+    !.
+symbol_explain_role(_SymbolId, unknown).
 
 % Slim per-requirement proof evidence for quality diagnostics (W1 push-down).
 % Projects only the fields the quality diagnostics consume - proof status,

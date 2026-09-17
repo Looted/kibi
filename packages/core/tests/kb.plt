@@ -2166,6 +2166,177 @@ test(symbol_coverage_does_not_count_executable_test_symbols_as_production_covera
     assertion(Report.summary.notApplicable == 1),
     assertion(Report.summary.fullyCovered == 0).
 
+test(production_coverage_explanations_report_missing_unit_unrelated_and_qualifying_paths, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    proof_receipt_json('TEST-EXPLAIN-E2E', Snapshot, passed, '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', ReceiptJson),
+    assert_fixture_entity(req, 'REQ-EXPLAIN', "Explain coverage", active, [priority=must]),
+    assert_fixture_entity(scenario, 'SCEN-EXPLAIN', "Explain scenario", active, []),
+    assert_fixture_entity(test, 'TEST-EXPLAIN-E2E', "Explain E2E", passing, [
+        verification_scope=end_to_end,
+        proof_receipts=ReceiptJson
+    ]),
+    assert_fixture_entity(test, 'TEST-EXPLAIN-UNIT', "Explain unit", active, [verification_scope=unit]),
+    assert_fixture_entity(test, 'TEST-EXPLAIN-FOREIGN-E2E', "Foreign E2E", passing, [verification_scope=end_to_end]),
+    assert_fixture_entity(symbol, 'SYM-EXPLAIN-NONE', "none", active, [symbol_role=behavioral, sourceFile="src/none.ts"]),
+    assert_fixture_entity(symbol, 'SYM-EXPLAIN-UNIT', "unit only", active, [symbol_role=behavioral, sourceFile="src/unit.ts"]),
+    assert_fixture_entity(symbol, 'SYM-EXPLAIN-FOREIGN', "foreign e2e", active, [symbol_role=behavioral, sourceFile="src/foreign.ts"]),
+    assert_fixture_entity(symbol, 'SYM-EXPLAIN-OK', "qualifying", active, [symbol_role=behavioral, sourceFile="src/ok.ts"]),
+    kb_assert_relationship(specified_by, 'REQ-EXPLAIN', 'SCEN-EXPLAIN', []),
+    kb_assert_relationship(verified_by, 'SCEN-EXPLAIN', 'TEST-EXPLAIN-E2E', []),
+    kb_assert_relationship(verified_by, 'SCEN-EXPLAIN', 'TEST-EXPLAIN-UNIT', []),
+    kb_assert_relationship(implements, 'SYM-EXPLAIN-NONE', 'REQ-EXPLAIN', []),
+    kb_assert_relationship(implements, 'SYM-EXPLAIN-UNIT', 'REQ-EXPLAIN', []),
+    kb_assert_relationship(implements, 'SYM-EXPLAIN-FOREIGN', 'REQ-EXPLAIN', []),
+    kb_assert_relationship(implements, 'SYM-EXPLAIN-OK', 'REQ-EXPLAIN', []),
+    kb_assert_relationship(covered_by, 'SYM-EXPLAIN-UNIT', 'TEST-EXPLAIN-UNIT', []),
+    kb_assert_relationship(covered_by, 'SYM-EXPLAIN-FOREIGN', 'TEST-EXPLAIN-FOREIGN-E2E', []),
+    kb_assert_relationship(covered_by, 'SYM-EXPLAIN-OK', 'TEST-EXPLAIN-E2E', []),
+    coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-EXPLAIN', Row),
+    assertion(Row.proofVersion == 'kibi.requirement-proof.v3'),
+    assertion(memberchk('SYM-EXPLAIN-NONE', Row.proofStages.productionSymbols.uncoveredSymbols)),
+    assertion(memberchk('SYM-EXPLAIN-UNIT', Row.proofStages.productionSymbols.uncoveredSymbols)),
+    assertion(memberchk('SYM-EXPLAIN-FOREIGN', Row.proofStages.productionSymbols.uncoveredSymbols)),
+    assertion(\+ memberchk('SYM-EXPLAIN-OK', Row.proofStages.productionSymbols.uncoveredSymbols)),
+    production_explanation(Row, 'SYM-EXPLAIN-NONE', NoneExpl),
+    assertion(NoneExpl.reason == covered_by_missing),
+    assertion(NoneExpl.coverageCandidates == []),
+    production_explanation(Row, 'SYM-EXPLAIN-UNIT', UnitExpl),
+    assertion(UnitExpl.reason == no_qualifying_e2e_coverage),
+    candidate_for(UnitExpl, 'TEST-EXPLAIN-UNIT', UnitCand),
+    assertion(UnitCand.qualifies == false),
+    assertion(UnitCand.reason == test_scope_is_unit),
+    production_explanation(Row, 'SYM-EXPLAIN-FOREIGN', ForeignExpl),
+    assertion(ForeignExpl.reason == no_qualifying_e2e_coverage),
+    candidate_for(ForeignExpl, 'TEST-EXPLAIN-FOREIGN-E2E', ForeignCand),
+    assertion(ForeignCand.reason == test_not_in_requirement_scenario_chain),
+    assertion(\+ get_dict(receiptState, ForeignCand, _)),
+    production_explanation(Row, 'SYM-EXPLAIN-OK', OkExpl),
+    assertion(OkExpl.reason == covered),
+    assertion(OkExpl.status == covered),
+    candidate_for(OkExpl, 'TEST-EXPLAIN-E2E', OkCand),
+    assertion(OkCand.qualifies == true),
+    assertion(OkCand.reason == covered).
+
+test(production_coverage_out_of_chain_unit_keeps_scope_secondary_without_receipt_walk, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-EXPLAIN-OOC', "Out of chain", active, [priority=must]),
+    assert_fixture_entity(scenario, 'SCEN-EXPLAIN-OOC', "In-chain scenario", active, []),
+    assert_fixture_entity(test, 'TEST-EXPLAIN-OOC-E2E', "In-chain E2E", passing, [verification_scope=end_to_end]),
+    assert_fixture_entity(test, 'TEST-EXPLAIN-OOC-UNIT', "Out-of-chain unit", active, [verification_scope=unit]),
+    assert_fixture_entity(symbol, 'SYM-EXPLAIN-OOC', "ooc behavioral", active, [symbol_role=behavioral, sourceFile="src/ooc.ts"]),
+    kb_assert_relationship(specified_by, 'REQ-EXPLAIN-OOC', 'SCEN-EXPLAIN-OOC', []),
+    kb_assert_relationship(verified_by, 'SCEN-EXPLAIN-OOC', 'TEST-EXPLAIN-OOC-E2E', []),
+    kb_assert_relationship(implements, 'SYM-EXPLAIN-OOC', 'REQ-EXPLAIN-OOC', []),
+    kb_assert_relationship(covered_by, 'SYM-EXPLAIN-OOC', 'TEST-EXPLAIN-OOC-UNIT', []),
+    coverage_report_json(req, [], true, true, 100, 0, unknown, '2026-08-10T12:05:00Z', 604800, JsonString),
+    json_string_dict(JsonString, Report),
+    coverage_row(Report.rows, 'REQ-EXPLAIN-OOC', Row),
+    production_explanation(Row, 'SYM-EXPLAIN-OOC', Expl),
+    assertion(Expl.reason == stage_blocked_no_passing_e2e),
+    candidate_for(Expl, 'TEST-EXPLAIN-OOC-UNIT', Cand),
+    assertion(Cand.reason == test_not_in_requirement_scenario_chain),
+    assertion(Cand.secondaryReasons == [test_scope_is_unit]),
+    assertion(\+ get_dict(receiptState, Cand, _)).
+
+test(production_coverage_receipt_reasons_cover_missing_stale_mismatch_and_contract, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    OtherSnapshot = 'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
+    assert_fixture_entity(req, 'REQ-EXPLAIN-RECEIPT', "Receipt reasons", active, [priority=must]),
+    assert_fixture_entity(scenario, 'SCEN-EXPLAIN-RECEIPT', "Receipt scenario", active, []),
+    assert_fixture_entity(test, 'TEST-EXPLAIN-RECEIPT', "Receipt E2E", passing, [verification_scope=end_to_end]),
+    assert_fixture_entity(symbol, 'SYM-EXPLAIN-RECEIPT', "receipt behavioral", active, [symbol_role=behavioral, sourceFile="src/receipt.ts"]),
+    kb_assert_relationship(specified_by, 'REQ-EXPLAIN-RECEIPT', 'SCEN-EXPLAIN-RECEIPT', []),
+    kb_assert_relationship(verified_by, 'SCEN-EXPLAIN-RECEIPT', 'TEST-EXPLAIN-RECEIPT', []),
+    kb_assert_relationship(implements, 'SYM-EXPLAIN-RECEIPT', 'REQ-EXPLAIN-RECEIPT', []),
+    kb_assert_relationship(covered_by, 'SYM-EXPLAIN-RECEIPT', 'TEST-EXPLAIN-RECEIPT', []),
+    coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, MissingJson),
+    json_string_dict(MissingJson, MissingReport),
+    coverage_row(MissingReport.rows, 'REQ-EXPLAIN-RECEIPT', MissingRow),
+    production_explanation(MissingRow, 'SYM-EXPLAIN-RECEIPT', MissingExpl),
+    candidate_for(MissingExpl, 'TEST-EXPLAIN-RECEIPT', MissingCand),
+    assertion(MissingCand.reason == missing_proof_receipt),
+
+    proof_receipt_json('TEST-EXPLAIN-RECEIPT', OtherSnapshot, passed, '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', StaleJson),
+    assert_fixture_entity(test, 'TEST-EXPLAIN-RECEIPT', "Receipt E2E", passing, [verification_scope=end_to_end, proof_receipts=StaleJson]),
+    coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, MismatchJson),
+    json_string_dict(MismatchJson, MismatchReport),
+    coverage_row(MismatchReport.rows, 'REQ-EXPLAIN-RECEIPT', MismatchRow),
+    production_explanation(MismatchRow, 'SYM-EXPLAIN-RECEIPT', MismatchExpl),
+    candidate_for(MismatchExpl, 'TEST-EXPLAIN-RECEIPT', MismatchCand),
+    assertion(MismatchCand.reason == receipt_snapshot_mismatch),
+
+    proof_receipt_json('TEST-EXPLAIN-RECEIPT', Snapshot, passed, '2026-08-01T11:55:00Z', '2026-08-01T12:00:00Z', AgeJson),
+    assert_fixture_entity(test, 'TEST-EXPLAIN-RECEIPT', "Receipt E2E", passing, [verification_scope=end_to_end, proof_receipts=AgeJson]),
+    coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 60, AgeReportJson),
+    json_string_dict(AgeReportJson, AgeReport),
+    coverage_row(AgeReport.rows, 'REQ-EXPLAIN-RECEIPT', AgeRow),
+    production_explanation(AgeRow, 'SYM-EXPLAIN-RECEIPT', AgeExpl),
+    candidate_for(AgeExpl, 'TEST-EXPLAIN-RECEIPT', AgeCand),
+    assertion(AgeCand.reason == stale_proof_receipt),
+
+    Contract = _{
+        version: 'kibi.proof-contract.v1',
+        integration: 'self-proof',
+        required_proofs: [_{symbol_id: 'SYM-EXPLAIN-RECEIPT', target: default}],
+        success_policy: all_required_first_attempt
+    },
+    atom_json_dict(ContractJsonAtom, Contract, []),
+    atom_string(ContractJsonAtom, ContractJson),
+    proof_receipt_json('TEST-EXPLAIN-RECEIPT', Snapshot, passed, '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', DriftJson),
+    assert_fixture_entity(test, 'TEST-EXPLAIN-RECEIPT', "Receipt E2E", passing, [
+        verification_scope=end_to_end,
+        proof_contract=ContractJson,
+        proof_receipts=DriftJson
+    ]),
+    coverage_report_json(req, [], true, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, DriftReportJson),
+    json_string_dict(DriftReportJson, DriftReport),
+    coverage_row(DriftReport.rows, 'REQ-EXPLAIN-RECEIPT', DriftRow),
+    production_explanation(DriftRow, 'SYM-EXPLAIN-RECEIPT', DriftExpl),
+    candidate_for(DriftExpl, 'TEST-EXPLAIN-RECEIPT', DriftCand),
+    assertion(DriftCand.reason == receipt_contract_mismatch).
+
+test(production_coverage_type_shape_unit_contract_is_not_available_to_behavioral_symbols, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-EXPLAIN-SHAPE', "Shape vs behavioral", active, []),
+    assert_fixture_entity(test, 'TEST-EXPLAIN-SHAPE-E2E', "Shape E2E", passing, [verification_scope=end_to_end]),
+    assert_fixture_entity(test, 'TEST-EXPLAIN-SHAPE-UNIT', "Shape unit", passing, [verification_scope=unit]),
+    assert_fixture_entity(symbol, 'SYM-EXPLAIN-SHAPE', "Shape", active, [symbol_role='type-shape', sourceFile="src/shape.ts"]),
+    assert_fixture_entity(symbol, 'SYM-EXPLAIN-BEHAVIOR', "Behavior", active, [symbol_role=behavioral, sourceFile="src/behavior.ts"]),
+    kb_assert_relationship(implements, 'SYM-EXPLAIN-SHAPE', 'REQ-EXPLAIN-SHAPE', []),
+    kb_assert_relationship(implements, 'SYM-EXPLAIN-BEHAVIOR', 'REQ-EXPLAIN-SHAPE', []),
+    kb_assert_relationship(covered_by, 'SYM-EXPLAIN-SHAPE', 'TEST-EXPLAIN-SHAPE-UNIT', []),
+    kb_assert_relationship(covered_by, 'SYM-EXPLAIN-BEHAVIOR', 'TEST-EXPLAIN-SHAPE-UNIT', []),
+    requirement_proof:production_symbol_stage('REQ-EXPLAIN-SHAPE', ['TEST-EXPLAIN-SHAPE-E2E'], Stage, Symbols),
+    assertion(Stage.structuralSymbols == ['SYM-EXPLAIN-SHAPE']),
+    assertion(memberchk('SYM-EXPLAIN-BEHAVIOR', Symbols)),
+    assertion(memberchk('SYM-EXPLAIN-BEHAVIOR', Stage.uncoveredSymbols)),
+    production_explanation(Stage, 'SYM-EXPLAIN-SHAPE', ShapeExpl),
+    assertion(ShapeExpl.reason == structural_unit_contract),
+    production_explanation(Stage, 'SYM-EXPLAIN-BEHAVIOR', BehaviorExpl),
+    assertion(BehaviorExpl.reason \= structural_unit_contract),
+    assertion(memberchk(BehaviorExpl.reason, [no_qualifying_e2e_coverage, covered_by_missing])).
+
+test(executable_for_symbols_remain_excluded_from_production_coverage, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-EXPLAIN-EXEC', "Executable exclusion", active, []),
+    assert_fixture_entity(test, 'TEST-EXPLAIN-EXEC', "Exec E2E", passing, [verification_scope=end_to_end]),
+    assert_fixture_entity(symbol, 'SYM-EXPLAIN-EXEC', "exec symbol", active, [sourceFile="tests/exec.test.ts"]),
+    kb_assert_relationship(implements, 'SYM-EXPLAIN-EXEC', 'REQ-EXPLAIN-EXEC', []),
+    assert_raw_relationship(executable_for, 'SYM-EXPLAIN-EXEC', 'TEST-EXPLAIN-EXEC'),
+    requirement_proof:production_symbol_stage('REQ-EXPLAIN-EXEC', ['TEST-EXPLAIN-EXEC'], Stage, Symbols),
+    assertion(Symbols == []),
+    assertion(Stage.uncoveredSymbols == []).
+
+test(requirement_proof_json_preserves_v3_and_explanations, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-EXPLAIN-JSON', "JSON serializer", active, [priority=must]),
+    assert_fixture_entity(symbol, 'SYM-EXPLAIN-JSON', "json symbol", active, [symbol_role=behavioral, sourceFile="src/json.ts"]),
+    kb_assert_relationship(implements, 'SYM-EXPLAIN-JSON', 'REQ-EXPLAIN-JSON', []),
+    discovery:requirement_proof_json('REQ-EXPLAIN-JSON', unknown, '2026-08-10T12:05:00Z', 604800, JsonString),
+    json_string_dict(JsonString, Proof),
+    assertion(Proof.proofVersion == 'kibi.requirement-proof.v3'),
+    assertion(memberchk('SYM-EXPLAIN-JSON', Proof.proofStages.productionSymbols.uncoveredSymbols)),
+    production_explanation(Proof, 'SYM-EXPLAIN-JSON', Expl),
+    assertion(Expl.reason == stage_blocked_no_passing_e2e).
+
 % implements REQ-generated-coordinate-persistence
 
 test(missing_single_coordinate_blocks_proof_until_all_four_persist, [setup(setup_kb), cleanup(cleanup_kb)]) :-
@@ -3435,6 +3606,72 @@ test(violation_text_and_id_fallback_convert_compounds_to_strings) :-
     assertion(Text == "foo(bar)"),
     assertion(IdText == "foo(bar)").
 
+test(symbol_traceability_reports_mixed_role_leftovers, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-MIXED-ROLE', "Mixed role req", active, []),
+    assert_fixture_entity(test, 'TEST-MIXED-ROLE', "Mixed role test", active, []),
+    assert_fixture_entity(symbol, 'SYM-MIXED-ROLE', "Mixed role symbol", active, []),
+    kb_assert_relationship(implements, 'SYM-MIXED-ROLE', 'REQ-MIXED-ROLE', []),
+    assert_raw_relationship(executable_for, 'SYM-MIXED-ROLE', 'TEST-MIXED-ROLE'),
+    check_symbol_traceability(false, Violations),
+    member(violation('symbol-traceability', 'SYM-MIXED-ROLE', Description, _, _), Violations),
+    sub_string(Description, _, _, _, "mixes executable_for").
+
+test(proof_contract_symbols_reports_unresolved_type_shape_and_source_mismatch, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    ContractUnresolved = _{
+        version: 'kibi.proof-contract.v1',
+        integration: 'self-proof',
+        required_proofs: [_{symbol_id: 'SYM-MISSING-PROOF', target: default}],
+        success_policy: all_required_first_attempt
+    },
+    atom_json_dict(UnresolvedAtom, ContractUnresolved, []),
+    atom_string(UnresolvedAtom, UnresolvedJson),
+    assert_fixture_entity(test, 'TEST-CONTRACT-UNRESOLVED', "Unresolved proofs", active, [
+        verification_scope=end_to_end,
+        proof_contract=UnresolvedJson
+    ]),
+    ContractShape = _{
+        version: 'kibi.proof-contract.v1',
+        integration: 'self-proof',
+        required_proofs: [_{symbol_id: 'SYM-CONTRACT-SHAPE', target: default}],
+        success_policy: all_required_first_attempt
+    },
+    atom_json_dict(ShapeAtom, ContractShape, []),
+    atom_string(ShapeAtom, ShapeJson),
+    assert_fixture_entity(symbol, 'SYM-CONTRACT-SHAPE', "Shape proof", active, [
+        symbol_role='type-shape',
+        sourceFile="src/shape.ts"
+    ]),
+    assert_fixture_entity(test, 'TEST-CONTRACT-SHAPE', "Shape proofs", active, [
+        verification_scope=end_to_end,
+        proof_contract=ShapeJson
+    ]),
+    ContractBind = _{
+        version: 'kibi.proof-contract.v1',
+        integration: 'self-proof',
+        required_proofs: [_{symbol_id: 'SYM-CONTRACT-BIND', target: default}],
+        success_policy: all_required_first_attempt
+    },
+    Bindings = [_{symbol_id: 'SYM-CONTRACT-BIND', target: default, source_file: "tests/wrong.spec.ts"}],
+    atom_json_dict(BindContractAtom, ContractBind, []),
+    atom_string(BindContractAtom, BindContractJson),
+    atom_json_dict(BindAtom, Bindings, []),
+    atom_string(BindAtom, BindJson),
+    assert_fixture_entity(symbol, 'SYM-CONTRACT-BIND', "Bound proof", active, [
+        sourceFile="tests/right.spec.ts"
+    ]),
+    assert_fixture_entity(test, 'TEST-CONTRACT-BIND', "Bound proofs", active, [
+        verification_scope=end_to_end,
+        proof_contract=BindContractJson,
+        proof_bindings=BindJson
+    ]),
+    check_proof_contract_symbols(Violations),
+    member(violation('proof-contract-symbols', 'TEST-CONTRACT-UNRESOLVED', UnresolvedDesc, _, _), Violations),
+    sub_string(UnresolvedDesc, _, _, _, "unresolved"),
+    member(violation('proof-contract-symbols', 'TEST-CONTRACT-SHAPE', ShapeDesc, _, _), Violations),
+    sub_string(ShapeDesc, _, _, _, "type-shape"),
+    member(violation('proof-contract-symbols', 'TEST-CONTRACT-BIND', BindDesc, _, _), Violations),
+    sub_string(BindDesc, _, _, _, "source_file").
+
 :- end_tests(checks_coverage_gaps).
 
 :- begin_tests(kb_wrapper_coverage_gaps).
@@ -4078,6 +4315,18 @@ json_string_dict(JsonString, Dict) :-
 coverage_row(Rows, Id, Row) :-
     member(Row, Rows),
     Row.id == Id.
+
+production_explanation(RowOrStage, SymbolId, Explanation) :-
+    (   get_dict(proofStages, RowOrStage, Stages)
+    ->  Stage = Stages.productionSymbols
+    ;   Stage = RowOrStage
+    ),
+    member(Explanation, Stage.explanations),
+    Explanation.symbolId == SymbolId.
+
+candidate_for(Explanation, TestId, Candidate) :-
+    member(Candidate, Explanation.coverageCandidates),
+    Candidate.testId == TestId.
 
 seed_coverage_depth_fixture :-
     assert_fixture_entity(req, 'REQ-DIRECT-E2E', "Direct E2E", active, [priority=must]),

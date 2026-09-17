@@ -200,7 +200,7 @@ export function currentProofBindingMode(): "per_contract" | "strict_snapshot" {
     : "per_contract";
 }
 
-async function perContractTestBindings(
+export async function perContractTestBindings(
   context: OperationContext,
 ): Promise<string | null> {
   if (currentProofBindingMode() !== "per_contract") return null;

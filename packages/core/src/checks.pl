@@ -10,6 +10,7 @@
     check_must_priority_coverage/1, % Returns list of must-priority violations
     check_symbol_coverage/1,        % Returns list of uncovered symbols
     check_symbol_traceability/2,    % Returns list of symbols lacking requirement traceability (ReqAdr option)
+    check_proof_contract_symbols/1, % Returns unresolved or unexpected required_proofs symbol issues
     check_no_dangling_refs/1,       % Returns list of dangling ref violations
     check_no_cycles/1,              % Returns list of cycle violations
     check_required_fields/1,        % Returns list of missing required field violations
@@ -70,6 +71,7 @@ check_all(ViolationsDict) :-
     check_rule_verifiability(RuleVerifiability),
     check_semantic_completeness(SemanticCompleteness),
     check_req_status_vocabulary(ReqStatusVocabulary),
+    check_proof_contract_symbols(ProofContractSymbols),
     ViolationsDict = _{
         must_priority_coverage: MustPriority,
         symbol_coverage: SymbolCoverage,
@@ -87,7 +89,8 @@ check_all(ViolationsDict) :-
         rule_safety: RuleSafety,
         rule_verifiability: RuleVerifiability,
         semantic_completeness: SemanticCompleteness,
-        req_status_vocabulary: ReqStatusVocabulary
+        req_status_vocabulary: ReqStatusVocabulary,
+        proof_contract_symbols: ProofContractSymbols
     }.
 
 %% check_must_priority_coverage(-Violations)
@@ -148,6 +151,17 @@ check_symbol_traceability(RequireAdr, Violations) :-
     ),
     sort(Violations0, Violations).
 
+symbol_traceability_violation(_RequireAdr, violation(
+    'symbol-traceability',
+    SymbolId,
+    "Symbol mixes executable_for test identity with production implements or covered_by.",
+    "Split the symbol: keep executable_for on the test-code symbol and use a separate production symbol for implements/covered_by.",
+    Source
+)) :-
+    kb_entity(SymbolId, symbol, _),
+    mixed_role_symbol(SymbolId),
+    violation_source(SymbolId, symbol, Source).
+
 symbol_traceability_violation(RequireAdr, violation(
     'symbol-traceability',
     SymbolId,
@@ -185,6 +199,118 @@ symbol_traceability_violation(RequireAdr, violation(
     ;   fail  % No violation
     ),
     violation_source(SymbolId, symbol, Source).
+
+%% check_proof_contract_symbols(-Violations)
+% Advisory integrity for proof_contract.required_proofs and optional
+% proof_bindings.source_file. Kibi does not infer TEST names from filenames.
+check_proof_contract_symbols(Violations) :-
+    findall(Violation, proof_contract_symbol_violation(Violation), Violations0),
+    sort(Violations0, Violations).
+
+proof_contract_symbol_violation(violation(
+    'proof-contract-symbols',
+    TestId,
+    Description,
+    Suggestion,
+    Source
+)) :-
+    kb_entity(TestId, test, Props),
+    memberchk(proof_contract=RawContract, Props),
+    parse_json_object(RawContract, Contract),
+    required_proof_symbol_id(Contract, SymbolId),
+    \+ kb_entity(SymbolId, symbol, _),
+    format(string(Description), "proof_contract.required_proofs names unresolved symbol ~w", [SymbolId]),
+    Suggestion = "Point required_proofs.symbol_id at an existing symbol entity; Kibi does not infer TEST names from source filenames.",
+    violation_source(TestId, test, Source).
+
+proof_contract_symbol_violation(violation(
+    'proof-contract-symbols',
+    TestId,
+    Description,
+    Suggestion,
+    Source
+)) :-
+    kb_entity(TestId, test, Props),
+    memberchk(proof_contract=RawContract, Props),
+    parse_json_object(RawContract, Contract),
+    required_proof_symbol_id(Contract, SymbolId),
+    kb_entity(SymbolId, symbol, SymbolProps),
+    memberchk(symbol_role=RawRole, SymbolProps),
+    normalize_term_atom(RawRole, 'type-shape'),
+    format(string(Description), "proof_contract.required_proofs names type-shape symbol ~w; required proofs must not target structural contracts", [SymbolId]),
+    Suggestion = "Required proofs identify executable proof symbols. Use a production or executable-test symbol, not a type-shape contract.",
+    violation_source(TestId, test, Source).
+
+proof_contract_symbol_violation(violation(
+    'proof-contract-symbols',
+    TestId,
+    Description,
+    Suggestion,
+    Source
+)) :-
+    kb_entity(TestId, test, Props),
+    memberchk(proof_bindings=RawBindings, Props),
+    parse_json_list(RawBindings, Bindings),
+    member(Binding, Bindings),
+    is_dict(Binding),
+    (get_dict(source_file, Binding, RawBindingSource) ; get_dict(sourceFile, Binding, RawBindingSource)),
+    normalize_term_atom(RawBindingSource, BindingSource),
+    BindingSource \= '',
+    (get_dict(symbol_id, Binding, RawSymbolId) ; get_dict(symbolId, Binding, RawSymbolId)),
+    normalize_term_atom(RawSymbolId, SymbolId),
+    SymbolId \= '',
+    kb_entity(SymbolId, symbol, SymbolProps),
+    (   memberchk(sourceFile=RawSymbolSource, SymbolProps)
+    ->  normalize_term_atom(RawSymbolSource, SymbolSource)
+    ;   SymbolSource = ''
+    ),
+    SymbolSource \= BindingSource,
+    format(string(Description), "proof_bindings.source_file for ~w is ~w but the symbol sourceFile is ~w", [SymbolId, BindingSource, SymbolSource]),
+    Suggestion = "Align proof_bindings.source_file with the symbol's sourceFile, or omit source_file. Kibi does not infer TEST names from filenames.",
+    violation_source(TestId, test, Source).
+
+required_proof_symbol_id(Contract, SymbolId) :-
+    (   get_dict(required_proofs, Contract, Raw)
+    ;   get_dict('required_proofs', Contract, Raw)
+    ),
+    parse_json_list(Raw, Entries),
+    member(Entry, Entries),
+    (   is_dict(Entry),
+        (get_dict(symbol_id, Entry, RawId) ; get_dict(symbolId, Entry, RawId))
+    ;   is_list(Entry),
+        memberchk(symbol_id=RawId, Entry)
+    ),
+    normalize_term_atom(RawId, SymbolId),
+    SymbolId \= ''.
+
+parse_json_object(^^(Value, _), Dict) :-
+    !,
+    parse_json_object(Value, Dict).
+parse_json_object(literal(type(_, Value)), Dict) :-
+    !,
+    parse_json_object(Value, Dict).
+parse_json_object(literal(Value), Dict) :-
+    !,
+    parse_json_object(Value, Dict).
+parse_json_object(Dict, Dict) :-
+    is_dict(Dict),
+    !.
+parse_json_object(Raw, Dict) :-
+    (atom(Raw) ; string(Raw)),
+    catch(atom_json_dict(Raw, Dict, [value_string_as(string)]), _, fail),
+    is_dict(Dict).
+
+parse_json_list(Raw, Entries) :-
+    is_list(Raw),
+    !,
+    Entries = Raw.
+parse_json_list(^^(Value, _), Entries) :-
+    !,
+    parse_json_list(Value, Entries).
+parse_json_list(Raw, Entries) :-
+    (atom(Raw) ; string(Raw)),
+    catch(atom_json_dict(Raw, Entries, [value_string_as(string)]), _, fail),
+    is_list(Entries).
 
 %% check_no_dangling_refs(-Violations)
 % Finds all relationships referencing non-existent entities.
@@ -1478,7 +1604,8 @@ check_selected_dispatch(Rules, _{
     rule_safety: RuleSafety,
     rule_verifiability: RuleVerifiability,
     semantic_completeness: SemanticCompleteness,
-    req_status_vocabulary: ReqStatusVocabulary
+    req_status_vocabulary: ReqStatusVocabulary,
+    proof_contract_symbols: ProofContractSymbols
 }) :-
     selected_rule(Rules, 'must-priority-coverage', check_must_priority_coverage, MustPriority),
     selected_rule(Rules, 'symbol-coverage', check_symbol_coverage, SymbolCoverage),
@@ -1496,7 +1623,8 @@ check_selected_dispatch(Rules, _{
     selected_rule(Rules, 'rule-safety', check_rule_safety, RuleSafety),
     selected_rule(Rules, 'rule-verifiability', check_rule_verifiability, RuleVerifiability),
     selected_rule(Rules, 'semantic-completeness', check_semantic_completeness, SemanticCompleteness),
-    selected_rule(Rules, 'req-status-vocabulary', check_req_status_vocabulary, ReqStatusVocabulary).
+    selected_rule(Rules, 'req-status-vocabulary', check_req_status_vocabulary, ReqStatusVocabulary),
+    selected_rule(Rules, 'proof-contract-symbols', check_proof_contract_symbols, ProofContractSymbols).
 
 selected_rule(Rules, Name, Goal, Violations) :-
     (   memberchk(Name, Rules)
@@ -1552,6 +1680,7 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
     check_rule_verifiability(RuleVerifiability),
     check_semantic_completeness(SemanticCompleteness),
     check_req_status_vocabulary(ReqStatusVocabulary),
+    check_proof_contract_symbols(ProofContractSymbols),
     ViolationsDict = _{
         must_priority_coverage: MustPriority,
         symbol_coverage: SymbolCoverage,
@@ -1569,7 +1698,8 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
         rule_safety: RuleSafety,
         rule_verifiability: RuleVerifiability,
         semantic_completeness: SemanticCompleteness,
-        req_status_vocabulary: ReqStatusVocabulary
+        req_status_vocabulary: ReqStatusVocabulary,
+        proof_contract_symbols: ProofContractSymbols
     }.
 
 %% violations_dict_to_json(+ViolationsDict, -JsonDict)

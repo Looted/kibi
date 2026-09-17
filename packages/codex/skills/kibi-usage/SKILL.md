@@ -2,7 +2,7 @@
 id: kibi-usage
 name: Kibi Usage
 description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware operations safely across MCP or the trusted local CLI, including partial completion repair.
-version: 2.1.2
+version: 2.1.3
 kibiCompatibility: ">=1.0.0"
 tags:
   - kibi
@@ -133,6 +133,9 @@ safe normative claims; use `observation` or `meta` for bug/workaround notes and
 tests, symbol ownership, and fresh proof-bearing receipts before claiming proof.
 For an existing product KB that needs semantic backfill, read
 `resources/kb-improvement.md`, and `resources/proof.md` for the proof workflow.
+When a proof ratchet fails, follow Debugging proof regressions in
+`resources/proof.md`: use `kibi proof explain` and compare current proof state
+to committed `proof/baseline.json` with `kibi proof impact`.
 
 ## Predicate Ontology Decision Tree
 

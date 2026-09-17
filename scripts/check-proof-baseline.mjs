@@ -3,6 +3,12 @@
 import { spawnSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import {
+  diffFingerprints,
+  fingerprintRequirements,
+  parseSpawnJson,
+  renderRequirementDiffs,
+} from "./lib/proof-baseline-diff.mjs";
 
 const INTEGRITY_RULES = [
   "no-dangling-refs",
@@ -26,34 +32,45 @@ const baseline = JSON.parse(
 );
 const kibi = process.env.KIBI_CLI ?? "kibi";
 
-function jsonCommand(argv) {
+function spawnJson(argv) {
   const result = spawnSync(kibi, argv, {
     cwd: process.cwd(),
     env: process.env,
     encoding: "utf8",
     maxBuffer: 64 * 1024 * 1024,
   });
-  if (result.error) throw result.error;
-  if (result.status !== 0) throw new Error(result.stderr || result.stdout);
-  return JSON.parse(result.stdout);
+  return { argv, result, json: parseSpawnJson(result) };
 }
 
-const coverage = jsonCommand([
-  "coverage",
-  "--format",
-  "json",
-  "--include-passing",
-  "--limit",
-  "100000",
-]);
-const status = jsonCommand(["status", "--format", "json"]);
-const check = jsonCommand([
-  "check",
-  "--format",
-  "json",
-  "--rules",
-  INTEGRITY_RULES.join(","),
-]);
+function unwrapPayload(json) {
+  if (json && typeof json === "object") {
+    if (json.summary && Array.isArray(json.rows)) return json;
+    if (json.structuredContent) return unwrapPayload(json.structuredContent);
+    if (json.data) return unwrapPayload(json.data);
+  }
+  return json;
+}
+
+const coverage = unwrapPayload(
+  spawnJson([
+    "coverage",
+    "--format",
+    "json",
+    "--include-passing",
+    "--limit",
+    "100000",
+  ]).json,
+);
+const status = unwrapPayload(spawnJson(["status", "--format", "json"]).json);
+const check = unwrapPayload(
+  spawnJson([
+    "check",
+    "--format",
+    "json",
+    "--rules",
+    INTEGRITY_RULES.join(","),
+  ]).json,
+);
 const summary = coverage.summary;
 const currentRequirements = summary.total - summary.proofNotApplicable;
 const currentUnproven = summary.proofMissing + summary.proofUnresolved;
@@ -68,6 +85,11 @@ const gapCounts = Object.fromEntries(
 );
 const violations =
   check.structuredContent?.violations ?? check.violations ?? [];
+const currentFingerprints = fingerprintRequirements(coverage.rows ?? []);
+const fingerprintChanges = diffFingerprints(
+  baseline.requirements,
+  currentFingerprints,
+);
 const failures = [];
 if (currentRequirements !== baseline.currentRequirements) {
   failures.push(
@@ -132,6 +154,14 @@ const report = {
     proofSnapshotDirty: status.proofSnapshotDirty,
   },
   failures,
+  fingerprintChanges: fingerprintChanges.length,
 };
 process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
-if (failures.length > 0) process.exitCode = 1;
+if (failures.length > 0) {
+  const diffText = renderRequirementDiffs(
+    fingerprintChanges,
+    coverage.rows ?? [],
+  );
+  if (diffText) process.stdout.write(diffText);
+  process.exitCode = 1;
+}

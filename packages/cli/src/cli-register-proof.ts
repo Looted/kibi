@@ -85,6 +85,47 @@ export function registerProofCommand(program: Command): void {
       }),
     );
   proof
+    .command("explain")
+    .description(
+      "Project one requirement or symbol proof, labeling required_proofs, executable_for, and covered_by separately",
+    )
+    .argument("[id]", "Requirement (REQ-*) or symbol (SYM-*) ID")
+    .option("--requirement <id>", "Explain a requirement ID")
+    .option("--symbol <id>", "Explain a symbol ID")
+    .option("--json", "Emit structured JSON", false)
+    .action(
+      withExitCode(
+        async (
+          id: string | undefined,
+          options: { requirement?: string; symbol?: string; json?: boolean },
+        ) => {
+          return await (
+            await import("./commands/proof-explain.js")
+          ).proofExplainCommand({
+            ...(id === undefined ? {} : { id }),
+            ...(options.requirement === undefined
+              ? {}
+              : { requirement: options.requirement }),
+            ...(options.symbol === undefined ? {} : { symbol: options.symbol }),
+            json: options.json === true,
+          });
+        },
+      ),
+    );
+  proof
+    .command("impact")
+    .description(
+      "Compare current proof state to the committed proof/baseline.json ratchet snapshot",
+    )
+    .option("--json", "Emit structured JSON", false)
+    .action(
+      withExitCode(async (options: { json?: boolean }) => {
+        return await (
+          await import("./commands/proof-impact.js")
+        ).proofImpactCommand({ json: options.json === true });
+      }),
+    );
+  proof
     .command("prune")
     .description(
       "Shrink each test's proof_receipts history to its newest entries (re-proving the same snapshot appends duplicates; prune removes the superseded ones)",

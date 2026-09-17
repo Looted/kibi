@@ -1,5 +1,5 @@
 {
-  "version": "kibi.proof-baseline.v1",
+  "version": "kibi.proof-baseline.v2",
   "mode": "ratchet",
   "currentRequirements": 104,
   "proofProven": 66,
@@ -10,5 +10,1066 @@
     "missing_proof_receipt": 12,
     "unresolved_semantic_proposition": 2,
     "missing_production_symbol": 2
+  },
+  "requirements": {
+    "REQ-002": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_passing_e2e",
+        "missing_production_symbol_coverage"
+      ],
+      "uncoveredSymbols": [
+        "SYM-Awaitable",
+        "SYM-DEFAULT-TOOLS-RUNTIME",
+        "SYM-DIAGNOSTIC_MODE_ENABLED",
+        "SYM-DIAGNOSTIC_TELEMETRY_SCHEMA",
+        "SYM-DOC-RESOURCES",
+        "SYM-DefaultRuntimeProlog",
+        "SYM-DeleteArgs",
+        "SYM-DeleteResult",
+        "SYM-DiagnosticErrorFields",
+        "SYM-DiagnosticToolCall",
+        "SYM-DocResource",
+        "SYM-ExtractedRequirementClaim",
+        "SYM-ModelRequirementArgs",
+        "SYM-ModelRequirementResult",
+        "SYM-PROMPTS",
+        "SYM-SkillsListArgs",
+        "SYM-SkillsListResult",
+        "SYM-SkillsLoadArgs",
+        "SYM-SkillsLoadResult",
+        "SYM-SkillsReadArgs",
+        "SYM-SkillsReadResult",
+        "SYM-SuggestPredicatesArgs",
+        "SYM-SymbolsRefreshArgs",
+        "SYM-SymbolsRefreshResult",
+        "SYM-TOOLS",
+        "SYM-ToolCallPayload",
+        "SYM-ToolConfig",
+        "SYM-ToolHandler",
+        "SYM-ToolHandlerArgs",
+        "SYM-ToolsRuntime",
+        "SYM-UpsertArgs",
+        "SYM-UpsertResult",
+        "SYM-addTool",
+        "SYM-appendDiagnosticErrorUsage",
+        "SYM-appendDiagnosticSuccessUsage",
+        "SYM-appendUsageLogLine",
+        "SYM-buildDiagnosticToolCall",
+        "SYM-classifyDiagnosticError",
+        "SYM-deriveDiagnosticFields",
+        "SYM-deriveDiagnosticHints",
+        "SYM-deriveDiagnosticRetryKey",
+        "SYM-estimateNormativeSignalConfidence",
+        "SYM-extractRequirementClaim",
+        "SYM-extractToolCallPayload",
+        "SYM-getWorkspaceMigrationWarning",
+        "SYM-handleKbDelete",
+        "SYM-handleKbModelRequirement",
+        "SYM-handleKbSkillsList",
+        "SYM-handleKbSkillsLoad",
+        "SYM-handleKbSkillsRead",
+        "SYM-handleKbSymbolsRefresh",
+        "SYM-handleKbUpsert",
+        "SYM-handleSparql",
+        "SYM-initializeDiagnosticMode",
+        "SYM-jsonSchemaToZod",
+        "SYM-kibi-icons",
+        "SYM-kibi-mcp-bin-entrypoint",
+        "SYM-mcp-connectTransport",
+        "SYM-mcp-handle-sparql",
+        "SYM-modeling-requirement-heuristics-buildFallbackClaim",
+        "SYM-modeling-requirement-utils-clampConfidence",
+        "SYM-modeling-requirement-utils-cleanPredicate",
+        "SYM-modeling-requirement-utils-cleanSubject",
+        "SYM-modeling-requirement-utils-normalizeClaimValue",
+        "SYM-modeling-requirement-utils-normalizeOptionalString",
+        "SYM-modeling-requirement-utils-normalizeSourceFiles",
+        "SYM-modeling-requirement-utils-stripListPrefix",
+        "SYM-modeling-requirement-utils-trimSentenceTail",
+        "SYM-redactDiagnosticArgs",
+        "SYM-refreshCoordinatesForSymbolId",
+        "SYM-registerAllTools",
+        "SYM-registerConfiguredTools",
+        "SYM-requirement-extract-heuristic-claim",
+        "SYM-requirement-normalize-text",
+        "SYM-resetSessionModulePromise",
+        "SYM-resolveManifestPath",
+        "SYM-setToolsServerDepsForTests",
+        "SYM-setupDocsAndPrompts",
+        "SYM-strictWriteSetToApplyPlan",
+        "SYM-test",
+        "SYM-withDiagnosticTelemetrySchema",
+        "SYM-writeSetPrimaryEntityId",
+        "SYM-x-attachedContextWithProlog"
+      ]
+    },
+    "REQ-004": {
+      "proofStatus": "unresolved",
+      "gaps": [
+        "missing_proof_receipt"
+      ],
+      "uncoveredSymbols": []
+    },
+    "REQ-005": {
+      "proofStatus": "unresolved",
+      "gaps": [
+        "missing_proof_receipt"
+      ],
+      "uncoveredSymbols": []
+    },
+    "REQ-011": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_passing_e2e",
+        "missing_production_symbol_coverage",
+        "missing_proof_receipt"
+      ],
+      "uncoveredSymbols": [
+        "SYM-quality-inventory-879ebaca00d1",
+        "SYM-quality-inventory-8cc996295a6e"
+      ]
+    },
+    "REQ-013": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-014": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_production_symbol_coverage"
+      ],
+      "uncoveredSymbols": [
+        "SYM-quality-coverage-branch-summary",
+        "SYM-quality-inventory-13d78ccca022",
+        "SYM-quality-inventory-19897951a119",
+        "SYM-quality-inventory-57b01c22b501",
+        "SYM-quality-inventory-7def0c262321",
+        "SYM-quality-inventory-b010f743daad",
+        "SYM-quality-merge-lcov-diagnostics"
+      ]
+    },
+    "REQ-015": {
+      "proofStatus": "unresolved",
+      "gaps": [
+        "missing_proof_receipt"
+      ],
+      "uncoveredSymbols": []
+    },
+    "REQ-016": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-019": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_production_symbol",
+        "missing_proof_receipt",
+        "unresolved_semantic_proposition"
+      ],
+      "uncoveredSymbols": []
+    },
+    "REQ-020": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-AUTO-941B0CE68BAF3331": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-KIBI-BOOTSTRAP-PLAN": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-agent-guided-migration-orchestration": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-agent-kibi-interface-selection": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-audit-quality-diagnostics-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-branch-store-recovery-v3": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-cli-canonical-runtime": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-cli-check": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_production_symbol_coverage"
+      ],
+      "uncoveredSymbols": [
+        "SYM-quality-inventory-078eccf02d7a",
+        "SYM-quality-inventory-0a51c3fca351",
+        "SYM-quality-inventory-0d95a3be9ce1",
+        "SYM-quality-inventory-0dc924bdfedd",
+        "SYM-quality-inventory-171f2ce53251",
+        "SYM-quality-inventory-191df9948720",
+        "SYM-quality-inventory-19e4335e4a46",
+        "SYM-quality-inventory-63efea15346c",
+        "SYM-quality-inventory-8201a4e33563",
+        "SYM-quality-inventory-d98db976efac",
+        "SYM-quality-inventory-db28319fe3b6",
+        "SYM-quality-inventory-dd324a5a7d94",
+        "SYM-quality-inventory-e70a67dadfef"
+      ]
+    },
+    "REQ-cli-doctor": {
+      "proofStatus": "unresolved",
+      "gaps": [
+        "missing_proof_receipt"
+      ],
+      "uncoveredSymbols": []
+    },
+    "REQ-cli-doctor-packed-provenance": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-cli-gc": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-cli-init-canonical": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_passing_e2e"
+      ],
+      "uncoveredSymbols": []
+    },
+    "REQ-cli-query": {
+      "proofStatus": "unresolved",
+      "gaps": [
+        "missing_proof_receipt"
+      ],
+      "uncoveredSymbols": []
+    },
+    "REQ-cli-schema-migration": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-cli-staged-impact-enforcement": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-cli-status-pre-first-sync": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-cli-usage-metrics-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-codex-consumer-local-mcp-registration-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-codex-kibi-plugin-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-core-audit-logging": {
+      "proofStatus": "unresolved",
+      "gaps": [
+        "missing_proof_receipt"
+      ],
+      "uncoveredSymbols": []
+    },
+    "REQ-core-extractors": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_production_symbol_coverage",
+        "missing_proof_receipt"
+      ],
+      "uncoveredSymbols": [
+        "SYM-cli-ExtractionOutput",
+        "SYM-markdown-ExtractedRelationship",
+        "SYM-markdown-ExtractionResult"
+      ]
+    },
+    "REQ-core-journaled-engine-persistence": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-core-prolog-process-management": {
+      "proofStatus": "unresolved",
+      "gaps": [
+        "missing_proof_receipt"
+      ],
+      "uncoveredSymbols": []
+    },
+    "REQ-core-validation-rules": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_production_symbol_coverage",
+        "missing_proof_receipt"
+      ],
+      "uncoveredSymbols": [
+        "SYM-cli-rule-registry-ChecksConfig",
+        "SYM-cli-rule-registry-RuleDefinition",
+        "SYM-cli-rule-registry-SymbolTraceabilityOptions",
+        "SYM-cli-rule-registry-Violation"
+      ]
+    },
+    "REQ-cursor-agent-plugin-standard-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-cursor-consumer-local-mcp-launcher-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-cursor-kibi-plugin-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-cursor-stop-job-vs-plan": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-cursor-worktree-kibi-continuity": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-generated-coordinate-persistence": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-git-hook-sync-v2": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-branded-health-report": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-change-to-proof-evaluation": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_passing_e2e",
+        "missing_production_symbol_coverage"
+      ],
+      "uncoveredSymbols": [
+        "SYM-kibi-script-change-to-proof-eval-ts-compileevaluation",
+        "SYM-kibi-script-change-to-proof-eval-ts-compileevaluator",
+        "SYM-kibi-script-change-to-proof-eval-ts-compilegoldcase",
+        "SYM-kibi-script-change-to-proof-eval-ts-evaluatecompile",
+        "SYM-kibi-script-change-to-proof-eval-ts-evaluatesearch",
+        "SYM-kibi-script-change-to-proof-eval-ts-readjsonl",
+        "SYM-kibi-script-change-to-proof-eval-ts-searchcandidate",
+        "SYM-kibi-script-change-to-proof-eval-ts-searchevaluation",
+        "SYM-kibi-script-change-to-proof-eval-ts-searchevaluator",
+        "SYM-kibi-script-change-to-proof-eval-ts-searchgoldcase",
+        "SYM-quality-eval-ChangeToProofEvaluation",
+        "SYM-quality-eval-SearchSourceMatch",
+        "SYM-quality-eval-assertLiveHeldOutEvaluation",
+        "SYM-quality-eval-evaluateGoldCorpus",
+        "SYM-quality-eval-liveCompileEvaluator",
+        "SYM-quality-eval-liveSearchEvaluator",
+        "SYM-quality-eval-main",
+        "SYM-quality-eval-runLiveHeldOutEvaluation"
+      ]
+    },
+    "REQ-kibi-change-to-proof-plan-compiler": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_passing_e2e",
+        "missing_production_symbol_coverage"
+      ],
+      "uncoveredSymbols": [
+        "SYM-assertSourceWriteStaysInWorkspace",
+        "SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanargs",
+        "SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanresult",
+        "SYM-kibi-cli-src-operations-planning-apply-plan-ts-executeapplyplan",
+        "SYM-kibi-cli-src-operations-planning-apply-plan-ts-plan-apply-result-version",
+        "SYM-kibi-cli-src-operations-planning-compile-intent-ts-compile-plan-version",
+        "SYM-kibi-cli-src-operations-planning-compile-intent-ts-compileintentargs",
+        "SYM-kibi-cli-src-operations-planning-compile-intent-ts-compileplanhash",
+        "SYM-kibi-cli-src-operations-planning-compile-intent-ts-compileplanv1",
+        "SYM-kibi-cli-src-operations-planning-compile-intent-ts-contradictionwitness",
+        "SYM-kibi-cli-src-operations-planning-compile-intent-ts-executecompileintent",
+        "SYM-kibi-cli-src-operations-planning-compile-intent-ts-planstep",
+        "SYM-kibi-cli-src-operations-planning-compile-intent-ts-proposaldecision",
+        "SYM-kibi-cli-src-operations-planning-compile-intent-ts-scenariodraft",
+        "SYM-kibi-cli-src-operations-planning-compile-intent-ts-testdraft",
+        "SYM-kibi-cli-src-operations-planning-compile-intent-ts-traceabilityproposal",
+        "SYM-kibi-cli-src-public-operations-specs-planning-ts-applyplanspec",
+        "SYM-kibi-cli-src-public-operations-specs-planning-ts-compileintentspec"
+      ]
+    },
+    "REQ-kibi-conservative-requirement-proof": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_passing_e2e",
+        "missing_production_symbol_coverage"
+      ],
+      "uncoveredSymbols": [
+        "SYM-cli-discovery-renderCoverageTable",
+        "SYM-cli-mutation-serialization-buildPropertyList",
+        "SYM-cli-persistEntities",
+        "SYM-core-discovery-coverageSummary",
+        "SYM-core-discovery-requirementCoverageRow",
+        "SYM-core-discovery-symbolCoverageRow",
+        "SYM-core-entity-property-schema",
+        "SYM-core-kb-literal-to-value",
+        "SYM-core-kb-value-to-literal",
+        "SYM-core-proof-issues",
+        "SYM-core-requirement-proof",
+        "SYM-core-requirement-proof-context",
+        "SYM-core-validation-check-kind",
+        "SYM-operation-coverage-spec",
+        "SYM-operation-executeCoverage",
+        "SYM-projectStagedEntities",
+        "SYM-reqcompiler-coverage-command",
+        "SYM-syncCommand"
+      ]
+    },
+    "REQ-kibi-consumer-local-plugin-launcher-ontology-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-dependency-ordered-repair-plan": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-distribution-parity-matrix": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-fresh-verification-receipts": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_passing_e2e"
+      ],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-github-report-integration": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-html-health-report": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-intent-aware-source-discovery": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-legacy-migration-preview": {
+      "proofStatus": "unresolved",
+      "gaps": [
+        "missing_production_symbol_coverage",
+        "missing_proof_receipt"
+      ],
+      "uncoveredSymbols": [
+        "SYM-legacy-migration-plan-build",
+        "SYM-legacy-migration-plan-build-from-context",
+        "SYM-legacy-migration-plan-version",
+        "SYM-mcp-handle-repair-plan-coverage",
+        "SYM-operation-executeCoverage"
+      ]
+    },
+    "REQ-kibi-logical-requirement-coverage": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-ontology-convergence-witnesses": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-operation-interface-parity": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_production_symbol_coverage"
+      ],
+      "uncoveredSymbols": [
+        "SYM-auto-09D119AE523D",
+        "SYM-auto-1861120B3765",
+        "SYM-auto-210A3DA3A95D",
+        "SYM-auto-3317F858EB14",
+        "SYM-auto-6024925825AA",
+        "SYM-auto-92638075C834",
+        "SYM-auto-947A5C4D4E76",
+        "SYM-auto-B2B1769454DE",
+        "SYM-auto-BDE75AA4DB60",
+        "SYM-auto-F3AA3B988CC5",
+        "SYM-auto-FB0CE9A7383B",
+        "SYM-cli-symbol-granularity-validate",
+        "SYM-quality-inventory-7d20be0182d6",
+        "SYM-quality-inventory-c15938c764d8",
+        "SYM-quality-inventory-e7803f58a33c"
+      ]
+    },
+    "REQ-kibi-predicate-suggestion-relevance-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-proof-aware-quality-diagnostics": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-proposition-complete-ingestion": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-source-relationship-parity": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_production_symbol_coverage"
+      ],
+      "uncoveredSymbols": [
+        "SYM-quality-inventory-879ebaca00d1",
+        "SYM-quality-inventory-8cc996295a6e"
+      ]
+    },
+    "REQ-kibi-telemetry-acceptance-gate": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-telemetry-remediation-evidence": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-verification-evidence-contract": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_production_symbol_coverage"
+      ],
+      "uncoveredSymbols": [
+        "SYM-quality-inventory-a0effbd2aec9",
+        "SYM-quality-inventory-d5886bc36c56",
+        "SYM-quality-junit-ambiguousNativeBindings",
+        "SYM-quality-maintenance-executeMigrateLegacyReceipts",
+        "SYM-quality-maintenance-executePruneReceipts",
+        "SYM-quality-maintenance-proofMigrateLegacyCommand",
+        "SYM-quality-maintenance-proofPruneCommand",
+        "SYM-quality-producer-loadProofSteps",
+        "SYM-quality-producer-main",
+        "SYM-quality-producer-runProofProducer",
+        "SYM-quality-producer-runProofProducerIfEntrypoint",
+        "SYM-quality-producer-runProofStep",
+        "SYM-quality-producer-selectExactProofSteps",
+        "SYM-quality-producer-terminateStepProcess",
+        "SYM-quality-producer-validateProofSteps",
+        "SYM-quality-producer-validateRequestedTestIds"
+      ]
+    },
+    "REQ-mcp-cli-help": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-mcp-kb-freshness": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_passing_e2e"
+      ],
+      "uncoveredSymbols": []
+    },
+    "REQ-mcp-relationship-preflight": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-mcp-search-discovery": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-mcp-semantic-advisor-preflight": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-mcp-skills-resource-discoverability": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-mcp-suggest-predicates": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-mcp-tag-filtering-server-side": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-mcp-tool-check": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-mcp-tool-query": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-mcp-tool-upsert": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-opencode-background-sync": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-opencode-bootstrap-nudge": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-opencode-comment-routing": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-opencode-file-context-guidance-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-opencode-guidance-caching": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_passing_e2e",
+        "missing_production_symbol_coverage"
+      ],
+      "uncoveredSymbols": [
+        "SYM-GuidanceCache"
+      ]
+    },
+    "REQ-opencode-guidance-injection": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-opencode-kibi-plugin-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-opencode-posture-detection": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_passing_e2e",
+        "missing_production_symbol_coverage"
+      ],
+      "uncoveredSymbols": [
+        "SYM-detectPosture"
+      ]
+    },
+    "REQ-opencode-risk-classification": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_passing_e2e",
+        "missing_production_symbol_coverage"
+      ],
+      "uncoveredSymbols": [
+        "SYM-classifyRisk"
+      ]
+    },
+    "REQ-opencode-smart-enforcement-v1": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_passing_e2e",
+        "missing_production_symbol_coverage"
+      ],
+      "uncoveredSymbols": [
+        "SYM-kibiOpencodePlugin"
+      ]
+    },
+    "REQ-opencode-sync-feedback": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-prolog-library-adoption": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_passing_e2e",
+        "missing_production_symbol_coverage"
+      ],
+      "uncoveredSymbols": [
+        "SYM-core-derived-chr",
+        "SYM-core-sparql-client",
+        "SYM-handleSparql",
+        "SYM-mcp-handle-sparql"
+      ]
+    },
+    "REQ-remove-briefs-v1": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_passing_e2e",
+        "missing_production_symbol",
+        "unresolved_semantic_proposition"
+      ],
+      "uncoveredSymbols": []
+    },
+    "REQ-reusable-skill-subsystem": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-root-suite-batch-diagnostics": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_passing_e2e",
+        "missing_production_symbol_coverage"
+      ],
+      "uncoveredSymbols": [
+        "SYM-COVERAGE_SHARDS",
+        "SYM-test-root-batch-timeout-minutes",
+        "SYM-test-root-getBatchFailureMessage",
+        "SYM-test-root-runBatch"
+      ]
+    },
+    "REQ-runtime-packed-engine-daemon": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-skillopt-cursor-compat": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-skillopt-external-adoption-verdict": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_passing_e2e",
+        "missing_production_symbol_coverage"
+      ],
+      "uncoveredSymbols": [
+        "SYM-ArtifactPath",
+        "SYM-ArtifactPath-appendText",
+        "SYM-ArtifactPath-close",
+        "SYM-ArtifactPath-create",
+        "SYM-ArtifactPath-readText",
+        "SYM-ArtifactPath-remove",
+        "SYM-ArtifactPath-writeText",
+        "SYM-ArtifactPathError",
+        "SYM-ArtifactRootMetadata",
+        "SYM-ArtifactRootRequiredError",
+        "SYM-BoundPhysicalCell",
+        "SYM-FixtureAuthorizationClaim",
+        "SYM-FixtureAuthorizationClaimSchema",
+        "SYM-FixtureClaimError",
+        "SYM-FixtureClaimError-name",
+        "SYM-GateMatrix",
+        "SYM-HeldOutEligibilityReceipt",
+        "SYM-HeldOutEvidenceBinding",
+        "SYM-HeldOutEvidenceError",
+        "SYM-HeldOutEvidenceError-name",
+        "SYM-HeldOutExecutionLeaseError",
+        "SYM-HeldOutExecutionLeaseError-name",
+        "SYM-HeldOutGateOutcomes",
+        "SYM-HeldOutPhysicalCell",
+        "SYM-HeldOutReceiptStore",
+        "SYM-HeldOutReceiptStore-withLease",
+        "SYM-HeldOutReceiptStoreError",
+        "SYM-HeldOutReceiptStoreError-name",
+        "SYM-HeldOutTerminalReceipt",
+        "SYM-HeldOutTerminalReceiptSchema",
+        "SYM-MatrixVariant",
+        "SYM-PredicateMatrixCell",
+        "SYM-PredicateReplicate",
+        "SYM-PredicateVariant",
+        "SYM-PrepareArtifactPathOptions",
+        "SYM-PreparedCandidateBodies",
+        "SYM-PreparedRoot",
+        "SYM-PreparedRootError",
+        "SYM-PreparedRootError-name",
+        "SYM-PreparedRootSchema",
+        "SYM-ReservedPredicateMatrix",
+        "SYM-SourceTreeHash",
+        "SYM-SourceTreeHashError",
+        "SYM-SourceTreeHashError-name",
+        "SYM-StoredHeldOutTerminalReceipt",
+        "SYM-TaskFixtureResolutionError",
+        "SYM-TaskFixtureResolutionError-name",
+        "SYM-VerificationHarnessCliOptions",
+        "SYM-VerificationHarnessError",
+        "SYM-VerificationHarnessError-name",
+        "SYM-VerificationHarnessOptions",
+        "SYM-VerificationHarnessOptionsError",
+        "SYM-VerificationHarnessOptionsError-name",
+        "SYM-assertFixtureAuthorizationClaim",
+        "SYM-assertPreparedRoot",
+        "SYM-assertSuccess",
+        "SYM-buildFixtureAuthorizationClaim",
+        "SYM-bundleGate",
+        "SYM-createAtomically",
+        "SYM-episodeHashes",
+        "SYM-evidenceHashes",
+        "SYM-frozenHashes",
+        "SYM-hasTraversal",
+        "SYM-hashFixtureClaimRoot",
+        "SYM-isErrno",
+        "SYM-parseHeldOutReservation",
+        "SYM-parseHeldOutTerminalReceipt",
+        "SYM-predicateGate",
+        "SYM-predicateReplicateFor",
+        "SYM-predicateRoots",
+        "SYM-prepareArtifact",
+        "SYM-publicSkillDescriptors",
+        "SYM-readNoFollow",
+        "SYM-receiptBindsCell",
+        "SYM-removeAt",
+        "SYM-sha256Text",
+        "SYM-skillGate",
+        "SYM-skillopt-adopt-skill-opt-candidate",
+        "SYM-skillopt-assert-terminal-receipt-binding",
+        "SYM-skillopt-bind-physical-cells",
+        "SYM-skillopt-bridge-cli-execution-run",
+        "SYM-skillopt-bridge-cli-options-error-code",
+        "SYM-skillopt-bridge-cli-options-failure",
+        "SYM-skillopt-bridge-cli-options-parse",
+        "SYM-skillopt-build-held-out-reservation",
+        "SYM-skillopt-complete-held-out-evaluation",
+        "SYM-skillopt-default-evaluate-development",
+        "SYM-skillopt-default-evaluate-held-out",
+        "SYM-skillopt-default-train",
+        "SYM-skillopt-evaluate-held-out-gate-outcomes",
+        "SYM-skillopt-hash-authorized-source-tree",
+        "SYM-skillopt-held-out-evaluate-matrix",
+        "SYM-skillopt-held-out-evaluation-from-receipt",
+        "SYM-skillopt-held-out-receipt-store-load-terminal",
+        "SYM-skillopt-held-out-receipt-store-persist-terminal",
+        "SYM-skillopt-held-out-receipt-store-reserve",
+        "SYM-skillopt-one-shot-variant",
+        "SYM-skillopt-parse-verification-harness-cli",
+        "SYM-skillopt-python-bridge-request",
+        "SYM-skillopt-python-env-adapter",
+        "SYM-skillopt-python-main-module",
+        "SYM-skillopt-python-public-task-claim",
+        "SYM-skillopt-real-optimization-run",
+        "SYM-skillopt-resolve-task-fixture",
+        "SYM-skillopt-review-held-out-matrix",
+        "SYM-skillopt-run-verification-harness",
+        "SYM-skillopt-source-tree-hash-main",
+        "SYM-skillopt-verify-harness-main",
+        "SYM-surface",
+        "SYM-sync-agent-skills-locked",
+        "SYM-sync-agent-skills-unlocked",
+        "SYM-taskScopedPublicSkillDescriptors",
+        "SYM-validateArtifactRootMetadata",
+        "SYM-withHeldOutExecutionLease",
+        "SYM-writeAtomicTextFile"
+      ]
+    },
+    "REQ-skillopt-logical-evidence-fidelity": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-skillopt-paid-launch-accounting": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_passing_e2e",
+        "missing_production_symbol_coverage"
+      ],
+      "uncoveredSymbols": [
+        "SYM-quality-inventory-1e34ff86ea75",
+        "SYM-skillopt-build-paid-launch-receipt-evidence",
+        "SYM-skillopt-build-todo5-evidence-document",
+        "SYM-skillopt-derive-measured-report-metrics",
+        "SYM-skillopt-external-trust-client-main",
+        "SYM-skillopt-fake-provider-capability",
+        "SYM-skillopt-fake-provider-capability-schema",
+        "SYM-skillopt-fake-provider-configuration",
+        "SYM-skillopt-fake-provider-configuration-schema",
+        "SYM-skillopt-fake-provider-debit-receipt",
+        "SYM-skillopt-fake-provider-execute-with-crash",
+        "SYM-skillopt-fake-provider-forward",
+        "SYM-skillopt-fake-provider-hash-schema",
+        "SYM-skillopt-fake-provider-outcome",
+        "SYM-skillopt-fake-provider-outcome-schema",
+        "SYM-skillopt-fake-provider-reconcile",
+        "SYM-skillopt-fake-provider-recover",
+        "SYM-skillopt-fake-provider-request",
+        "SYM-skillopt-fake-provider-request-schema",
+        "SYM-skillopt-fake-provider-reservation",
+        "SYM-skillopt-fake-provider-reserve",
+        "SYM-skillopt-fake-provider-zero-budget-parent",
+        "SYM-skillopt-measured-report-metrics-type",
+        "SYM-skillopt-model-schema",
+        "SYM-skillopt-parse-debit-subentry-receipt",
+        "SYM-skillopt-parse-final-debit-receipt",
+        "SYM-skillopt-parse-final-verdict-receipt",
+        "SYM-skillopt-parse-generated-artifact-receipt",
+        "SYM-skillopt-parse-launcher-session",
+        "SYM-skillopt-parse-root-authorization",
+        "SYM-skillopt-parse-supervisor-parent",
+        "SYM-skillopt-reconciled-development-receipt-type",
+        "SYM-skillopt-reconciled-paid-receipt-type",
+        "SYM-skillopt-require-external-trust-plane"
+      ]
+    },
+    "REQ-skillopt-predicate-first-requirements": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-symbol-behavioral-anchors": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-test-journaled-engine-harness": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_production_symbol_coverage"
+      ],
+      "uncoveredSymbols": [
+        "SYM-quality-packed-summary"
+      ]
+    },
+    "REQ-vscode-kb-to-source": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_passing_e2e",
+        "missing_production_symbol_coverage"
+      ],
+      "uncoveredSymbols": [
+        "SYM-canonical-KibiTreeDataProvider-getNavigationTargetForEntity"
+      ]
+    },
+    "REQ-vscode-sidebar-kb-tree": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_passing_e2e",
+        "missing_production_symbol_coverage"
+      ],
+      "uncoveredSymbols": [
+        "SYM-canonical-KibiTreeDataProvider-getChildren"
+      ]
+    },
+    "REQ-vscode-source-to-kb": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_passing_e2e",
+        "missing_production_symbol_coverage"
+      ],
+      "uncoveredSymbols": [
+        "SYM-KB_RELATIONSHIP_TYPES",
+        "SYM-parseRdfRelationships",
+        "SYM-resolveSymbolsManifestPath-2",
+        "SYM-resolveSymbolsManifestPaths-2",
+        "SYM-vscode-code-action-provider-action-kind",
+        "SYM-vscode-code-action-provider-provide-code-actions",
+        "SYM-vscode-code-action-provider-watch-manifest",
+        "SYM-vscode-code-lens-provider-on-did-change-code-lenses",
+        "SYM-vscode-code-lens-provider-provide-code-lenses",
+        "SYM-vscode-code-lens-provider-refresh",
+        "SYM-vscode-code-lens-provider-resolve-code-lens",
+        "SYM-vscode-code-lens-provider-watch-sources"
+      ]
+    },
+    "REQ-vscode-traceability": {
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_passing_e2e",
+        "missing_production_symbol_coverage"
+      ],
+      "uncoveredSymbols": [
+        "SYM-KIBI-CONTAINER-ID",
+        "SYM-KIBI-FOCUS-KB-COMMAND",
+        "SYM-KIBI-REFRESH-TREE-COMMAND",
+        "SYM-KIBI-VIEW-ID",
+        "SYM-KibiCodeActionProvider",
+        "SYM-KibiCodeLensProvider",
+        "SYM-KibiTreeDataProvider",
+        "SYM-KibiTreeItem",
+        "SYM-SymbolEntry",
+        "SYM-SymbolIndex",
+        "SYM-TraceabilityRegistrationResult",
+        "SYM-activate",
+        "SYM-browseLinkedEntities",
+        "SYM-buildIndex",
+        "SYM-canonical-KibiTreeDataProvider-getChildren",
+        "SYM-canonical-KibiTreeDataProvider-getEntityById",
+        "SYM-canonical-KibiTreeDataProvider-getEntityCount",
+        "SYM-canonical-KibiTreeDataProvider-getFallbackSymbolEntity",
+        "SYM-canonical-KibiTreeDataProvider-getLocalPathForEntity",
+        "SYM-canonical-KibiTreeDataProvider-getNavigationTargetForEntity",
+        "SYM-canonical-KibiTreeDataProvider-getTreeItem",
+        "SYM-canonical-KibiTreeDataProvider-onDidChangeTreeData",
+        "SYM-canonical-KibiTreeDataProvider-refresh",
+        "SYM-deactivate",
+        "SYM-getWorkspaceFolderUri",
+        "SYM-openFileAtLine",
+        "SYM-queryRelationshipsViaCli",
+        "SYM-registerTraceability",
+        "SYM-resetWorkspaceFeaturesForTests",
+        "SYM-resetWorkspaceFsDepsForTests",
+        "SYM-resolveWorkspaceRoot",
+        "SYM-setWorkspaceFsDepsForTests"
+      ]
+    },
+    "REQ-zcode-advisory-enforcement-boundary-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-zcode-kibi-plugin-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-zcode-manual-mcp-configuration-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    }
   }
 }
