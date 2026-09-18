@@ -414,8 +414,7 @@ export async function runUnitCoverage(
 
   try {
     const shardFiles: string[] = [];
-    const shardArtifacts: Array<Readonly<{ label: string; path: string }>> =
-      [];
+    const shardArtifacts: Array<Readonly<{ label: string; path: string }>> = [];
     const failedShards: string[] = [];
     for (const shard of COVERAGE_SHARDS) {
       const shardCoverageDir = join(
@@ -443,7 +442,8 @@ export async function runUnitCoverage(
       console.info(
         `Finished unit coverage shard ${shard.label} (exit ${exitCode}).`,
       );
-      if (exitCode !== 0) failedShards.push(`${shard.label} (exit ${exitCode})`);
+      if (exitCode !== 0)
+        failedShards.push(`${shard.label} (exit ${exitCode})`);
 
       // Allow Bun's post-process coverage writer to publish its fallback
       // report before selecting the source for this shard.
