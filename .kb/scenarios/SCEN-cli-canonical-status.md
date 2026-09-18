@@ -6,6 +6,7 @@ type: scenario
 links:
   - type: verified_by
     target: TEST-e2e-status-freshness
+  - type: verified_by
     target: TEST-cli-sync-discovery-readme-ignore
 ---
 GIVEN a synced workspace whose requirements live under `.kb/requirements/`

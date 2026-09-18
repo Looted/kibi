@@ -209,3 +209,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cbccc1d26dac
+  - type: executable_for
+    from: SYM-zcode-test-FIXTURE_ENTRY_SCRIPT
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-09-18T22:25:57.692Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e823836d82f

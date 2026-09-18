@@ -26404,7 +26404,7 @@ coordinates:
     sourceFile: packages/zcode/tests/hook-runner.test.ts
     sourceLine: 1
   SYM-zcode-case-optional-package-contract:
-    identityHash: 2aa79269ee2f896e8fb2ef40d416328b0ea8f68309def761d7b294bb3db7d87a
+    identityHash: 59c194058ce55016f62c4bb25f935dcdfe2199f2a565ad7aef7bdfadba2dcacc
     sourceHash: 19a9708bb9efdbb2bc24e30dab672aad43b09b6e5ff924fc57c6298d0340a8da
     sourceColumn: 0
     sourceEndColumn: 0
@@ -26860,7 +26860,7 @@ coordinates:
     sourceFile: packages/zcode/tests/launcher-fixture.ts
     sourceLine: 79
   SYM-zcode-test-FIXTURE_ENTRY_SCRIPT:
-    identityHash: 5a97f5117cc50dd32801ef903a2ac713b59a005929ab8ca2440b830d90b838fa
+    identityHash: 3bf8dc577fe2504247c449650236f5e3ab0fca3289b3ac5d9d2249221ac45b3c
     sourceHash: 965b88cf566037588934ad1104681a609b8562d80cf26554dae13646840c363f
     sourceColumn: 13
     sourceEndColumn: 1
@@ -26868,7 +26868,7 @@ coordinates:
     sourceFile: packages/zcode/tests/launcher-fixture.ts
     sourceLine: 12
   SYM-zcode-test-FIXTURE_SERVER_NAME:
-    identityHash: faa4a9d9c734ef60417bb3b7f5fd778827c3b56df2d633a62a8df306737bd12c
+    identityHash: 9461e35f533149b466f34f5055c3198c6d9ead72d9c9df87488ef28ac4d78487
     sourceHash: 965b88cf566037588934ad1104681a609b8562d80cf26554dae13646840c363f
     sourceColumn: 13
     sourceEndColumn: 53

@@ -14,6 +14,7 @@ links:
     target: TEST-mcp-kb-freshness-coverage
   - type: verified_by
     target: TEST-e2e-mcp-freshness-external-replace
+  - type: verified_by
     target: TEST-mcp-kb-freshness
 ---
 
