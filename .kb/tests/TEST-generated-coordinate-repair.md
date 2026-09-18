@@ -1073,6 +1073,39 @@ proof_receipts:
       - symbol_id: SYM-e2e-test-generated-coordinate-repair
         target: default
         reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +98 more'
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-e733c7d2c29c3c24c7193d17
+    test_id: TEST-generated-coordinate-repair
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 39173f6fec98d8bef12deb1e15c088481cd27a0a27f5b8338a332e5e7417dbf7
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-18T20:41:12.486Z'
+    finished_at: '2026-09-18T21:21:14.134Z'
+    artifact_digest: 7449bffcd1f42651590f037f344e148e15f13c3305be565a861d03cb0488eb26
+    contract_hash: abd02f8d5742c4080d1251cd0065576fa7c5e4fe98a8083465dc491cf22eccc2
+    binding_hash: 4968ab22070e1bd98d1bedb1f16e8e2d8aaf69080cfb45316781cbdf8c270929
+    fingerprint: a9aa7489e5a5bd3b6d157848393c3d60eec3d80584f0d585ea7b8050d0b73c6e
+    fingerprint_components:
+      contract: abd02f8d5742c4080d1251cd0065576fa7c5e4fe98a8083465dc491cf22eccc2
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-generated-coordinate-repair
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 # Generated coordinate persistence and repair E2E
 

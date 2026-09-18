@@ -1153,6 +1153,39 @@ proof_receipts:
       - symbol_id: SYM-e2e-test-agent-kibi-interface-selection
         target: default
         reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +98 more'
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-5d93ee57b220e8c5b744927a
+    test_id: TEST-agent-kibi-interface-selection
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 39173f6fec98d8bef12deb1e15c088481cd27a0a27f5b8338a332e5e7417dbf7
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-18T20:41:12.486Z'
+    finished_at: '2026-09-18T21:21:14.134Z'
+    artifact_digest: 7449bffcd1f42651590f037f344e148e15f13c3305be565a861d03cb0488eb26
+    contract_hash: 681a9eb47ecf14fac4d635d33e4467a6977aba74d54f412c8b972832715503e1
+    binding_hash: bd56bec20ad0b813cb9071aef97388d2a54f4595cabd58ce37ecafe0b991b781
+    fingerprint: 816c3ffe046dbf2f4fc6fcff2172a8f1c89b184ae848a7852fceaacd82be8a17
+    fingerprint_components:
+      contract: 681a9eb47ecf14fac4d635d33e4467a6977aba74d54f412c8b972832715503e1
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-agent-kibi-interface-selection
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 ## Test Coverage
 

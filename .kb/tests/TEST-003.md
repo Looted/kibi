@@ -1149,6 +1149,39 @@ proof_receipts:
       - symbol_id: SYM-e2e-test-003
         target: default
         reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed), SYM-test-packed-post-merge-sync (failed) +98 more'
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-d53ac765fbe8d1626352b694
+    test_id: TEST-003
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 39173f6fec98d8bef12deb1e15c088481cd27a0a27f5b8338a332e5e7417dbf7
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-18T20:41:12.486Z'
+    finished_at: '2026-09-18T21:21:14.134Z'
+    artifact_digest: 7449bffcd1f42651590f037f344e148e15f13c3305be565a861d03cb0488eb26
+    contract_hash: f4581eebbd0430c12763dec0633e63bc4b0eb15beca1266ba672076bb38241c1
+    binding_hash: 66b15522024339bd48658769b64d178083d1be7bb00855d314ae8048ddd8f814
+    fingerprint: c4dfd4d80ab03dad0dfeed22f1ea303264b83d88dbfac29bea6ea24da467b8f1
+    fingerprint_components:
+      contract: f4581eebbd0430c12763dec0633e63bc4b0eb15beca1266ba672076bb38241c1
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-003
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 Asserts that:
 - `kibi query req` returns only `req` type entities

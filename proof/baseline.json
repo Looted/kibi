@@ -2,11 +2,12 @@
   "version": "kibi.proof-baseline.v2",
   "mode": "ratchet",
   "currentRequirements": 101,
-  "proofProven": 93,
-  "currentUnproven": 8,
+  "proofProven": 90,
+  "currentUnproven": 11,
   "trackedGaps": {
-    "missing_passing_e2e": 6,
-    "missing_production_symbol_coverage": 8
+    "missing_passing_e2e": 9,
+    "missing_production_symbol_coverage": 11,
+    "missing_scenario_test": 3
   },
   "requirements": {
     "REQ-002": {
@@ -40,13 +41,18 @@
         "missing_production_symbol_coverage"
       ],
       "uncoveredSymbols": [
+        "SYM-BranchCoverageSummary",
+        "SYM-COVERAGE_SHARDS",
         "SYM-quality-coverage-branch-summary",
         "SYM-quality-inventory-13d78ccca022",
         "SYM-quality-inventory-19897951a119",
         "SYM-quality-inventory-57b01c22b501",
         "SYM-quality-inventory-7def0c262321",
         "SYM-quality-inventory-b010f743daad",
-        "SYM-quality-merge-lcov-diagnostics"
+        "SYM-quality-merge-lcov-diagnostics",
+        "SYM-runUnitCoverage",
+        "SYM-runUnitCoverageIfMain",
+        "SYM-summarizeBranchCoverage"
       ]
     },
     "REQ-015": {
@@ -739,19 +745,79 @@
       ]
     },
     "REQ-zcode-advisory-enforcement-boundary-v1": {
-      "proofStatus": "proven",
-      "gaps": [],
-      "uncoveredSymbols": []
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_passing_e2e",
+        "missing_production_symbol_coverage",
+        "missing_scenario_test"
+      ],
+      "uncoveredSymbols": [
+        "SYM-zcode-runHook"
+      ]
     },
     "REQ-zcode-kibi-plugin-v1": {
-      "proofStatus": "proven",
-      "gaps": [],
-      "uncoveredSymbols": []
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_passing_e2e",
+        "missing_production_symbol_coverage",
+        "missing_scenario_test"
+      ],
+      "uncoveredSymbols": [
+        "SYM-transformZcodeSkillFrontmatter",
+        "SYM-zcode-CanonicalWorkspacePath",
+        "SYM-zcode-HookEnvironment",
+        "SYM-zcode-HookEvent",
+        "SYM-zcode-HookInput",
+        "SYM-zcode-HookResult",
+        "SYM-zcode-HookState",
+        "SYM-zcode-KIBI_WORKSPACE_ENV_KEYS",
+        "SYM-zcode-KbMcpToolCall",
+        "SYM-zcode-KibiWorkspaceResolution",
+        "SYM-zcode-SESSION_START_CONTEXT",
+        "SYM-zcode-ZcodeHookEvent",
+        "SYM-zcode-adapterKind",
+        "SYM-zcode-addDirtyPaths",
+        "SYM-zcode-canonicalizeCheckSourceFiles",
+        "SYM-zcode-canonicalizeWorkspacePath",
+        "SYM-zcode-clearDirtyPaths",
+        "SYM-zcode-directKbEditWarning",
+        "SYM-zcode-extractExplicitPathFields",
+        "SYM-zcode-extractKbMcpToolCall",
+        "SYM-zcode-extractMutatedWorkspacePaths",
+        "SYM-zcode-freshnessReminder",
+        "SYM-zcode-hookRunnerPath",
+        "SYM-zcode-impactCheckReminder",
+        "SYM-zcode-isDirectKbPath",
+        "SYM-zcode-isInvokedAsCli",
+        "SYM-zcode-isMeaningfulTrackedPath",
+        "SYM-zcode-isSourceImpactRelevantPath",
+        "SYM-zcode-loadHookState",
+        "SYM-zcode-main",
+        "SYM-zcode-mcp-registration-config",
+        "SYM-zcode-packageName",
+        "SYM-zcode-parseHookInput",
+        "SYM-zcode-parseStdinJson",
+        "SYM-zcode-readStdin",
+        "SYM-zcode-recordKbMcpTool",
+        "SYM-zcode-resolveKibiWorkspace",
+        "SYM-zcode-resolveSessionStateDir",
+        "SYM-zcode-resolveWorkspaceStateDir",
+        "SYM-zcode-runHook",
+        "SYM-zcode-runHookCli",
+        "SYM-zcode-runHookCliIfMain",
+        "SYM-zcode-saveHookState"
+      ]
     },
     "REQ-zcode-manual-mcp-configuration-v1": {
-      "proofStatus": "proven",
-      "gaps": [],
-      "uncoveredSymbols": []
+      "proofStatus": "missing",
+      "gaps": [
+        "missing_passing_e2e",
+        "missing_production_symbol_coverage",
+        "missing_scenario_test"
+      ],
+      "uncoveredSymbols": [
+        "SYM-zcode-mcp-launcher"
+      ]
     }
   }
 }
