@@ -60,6 +60,10 @@ const config = {
     // Watchdog for a whole `bun test` child; the scoped suites take ~20s
     // sequentially, and engine-spawning tests legally take seconds each.
     timeout: 120000,
+    // Bun opens its inspector socket asynchronously; under a loaded machine
+    // the 5s default can elapse before the child answers, which Stryker
+    // reports as a failed initial run. Give cold starts room to breathe.
+    inspectorTimeout: 30000,
   },
   // The sandbox copier cannot copy the tracked plugins/ symlinks (EISDIR)
   // and recreates directories with default modes (.kibi must stay 0700 for
