@@ -1526,6 +1526,57 @@ proof_receipts:
         attempts:
           status: unavailable
   - version: kibi.proof-receipt.v1
+    receipt_id: PR-32142cc973106cfd7fcf0d60
+    test_id: TEST-test-journaled-engine-harness
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 82583d2845302db2951548815aeeb65ec8245210e1b3f35f9871222b58ba20bb
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-17T19:55:25.617Z'
+    finished_at: '2026-09-17T20:35:57.777Z'
+    artifact_digest: 4ba7b11bc867e8ae48adccd54eaa298232996cee139ad0caf04b3fc19341fa55
+    contract_hash: 2e3fa96eb6075ef2c7427ffe3fdd61e1fb812f4dc9f3ee2785c55c3f81048b69
+    binding_hash: 4c10cead57b75340a934e732446e328ed8014549b4c881bd53f5572262015e3b
+    fingerprint: 4572356cb6d7e263d703c940d3ea9f36e412de666dab1f2a38bdb433eeab683a
+    fingerprint_components:
+      contract: 2e3fa96eb6075ef2c7427ffe3fdd61e1fb812f4dc9f3ee2785c55c3f81048b69
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-test-owned-engine-runner
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-packed-e2e-runner
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-proof-runner
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-shared-npm-cache-resolution
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
     receipt_id: PR-234c76bb2eea96bd8a309b64
     test_id: TEST-test-journaled-engine-harness
     scope: end_to_end
@@ -1661,20 +1712,20 @@ proof_receipts:
         attempts:
           status: unavailable
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-32142cc973106cfd7fcf0d60
+    receipt_id: PR-5b792912ee36de6992492309
     test_id: TEST-test-journaled-engine-harness
     scope: end_to_end
-    outcome: passed
-    code_snapshot: 82583d2845302db2951548815aeeb65ec8245210e1b3f35f9871222b58ba20bb
+    outcome: failed
+    code_snapshot: 7b99d1487500adc31317021d966877ae85c5f1b35c445e4e2eba81f5817b6ff2
     environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
-    started_at: '2026-09-17T19:55:25.617Z'
-    finished_at: '2026-09-17T20:35:57.777Z'
-    artifact_digest: 4ba7b11bc867e8ae48adccd54eaa298232996cee139ad0caf04b3fc19341fa55
-    contract_hash: 2e3fa96eb6075ef2c7427ffe3fdd61e1fb812f4dc9f3ee2785c55c3f81048b69
-    binding_hash: 4c10cead57b75340a934e732446e328ed8014549b4c881bd53f5572262015e3b
-    fingerprint: 4572356cb6d7e263d703c940d3ea9f36e412de666dab1f2a38bdb433eeab683a
+    started_at: '2026-09-18T20:02:42.969Z'
+    finished_at: '2026-09-18T20:31:25.898Z'
+    artifact_digest: 850d5f8d5f9dd89931eb204bce21ebb0cb3bc1f225cb57b4689c908a940d782c
+    contract_hash: a46bd884888ed8949797118c73a6610974e0bc0df4c2d3dc96d9ab8482fa3955
+    binding_hash: f281f01ee5147dca2955d36473ccd8f29c342ad6b9d5221f11d167804a7835bd
+    fingerprint: 7837b7ec554b629ea625bd57c38ffd5b172e06c6274ef23903ae46df864462a6
     fingerprint_components:
-      contract: 2e3fa96eb6075ef2c7427ffe3fdd61e1fb812f4dc9f3ee2785c55c3f81048b69
+      contract: a46bd884888ed8949797118c73a6610974e0bc0df4c2d3dc96d9ab8482fa3955
       integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
       command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
       bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
@@ -1685,32 +1736,36 @@ proof_receipts:
     command_argv:
       - node
       - scripts/run-proof-producer.mjs
-    run_outcome: passed
+    run_outcome: failed
     proof_results:
       - symbol_id: SYM-test-owned-engine-runner
         target: default
-        outcome: passed
+        outcome: failed
         binding: aggregate_run
         attempts:
           status: unavailable
       - symbol_id: SYM-packed-e2e-runner
         target: default
-        outcome: passed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-      - symbol_id: SYM-proof-runner
-        target: default
-        outcome: passed
+        outcome: failed
         binding: aggregate_run
         attempts:
           status: unavailable
       - symbol_id: SYM-shared-npm-cache-resolution
         target: default
-        outcome: passed
+        outcome: failed
         binding: aggregate_run
         attempts:
           status: unavailable
+    gaps:
+      - symbol_id: SYM-test-owned-engine-runner
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +98 more'
+      - symbol_id: SYM-packed-e2e-runner
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +98 more'
+      - symbol_id: SYM-shared-npm-cache-resolution
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +98 more'
 ---
 ---
 id: TEST-test-journaled-engine-harness

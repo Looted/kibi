@@ -884,6 +884,39 @@ proof_receipts:
         attempts:
           status: unavailable
   - version: kibi.proof-receipt.v1
+    receipt_id: PR-3d938ded81ea5384bca9c34c
+    test_id: TEST-mcp-search-discovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 82583d2845302db2951548815aeeb65ec8245210e1b3f35f9871222b58ba20bb
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-17T19:55:25.617Z'
+    finished_at: '2026-09-17T20:35:57.777Z'
+    artifact_digest: 4ba7b11bc867e8ae48adccd54eaa298232996cee139ad0caf04b3fc19341fa55
+    contract_hash: 391cd7081a4fcef186e7291b57af4133f1644024b5b7464bbdc96d4d98fd4064
+    binding_hash: 48442f6a219375da8043dbd54416d874a70591897b09ac44bd1ecda1d40defc0
+    fingerprint: 0d85742abe29ea00b6259b253c4651e0e13d97399e641c4027618e5b0a2e17a5
+    fingerprint_components:
+      contract: 391cd7081a4fcef186e7291b57af4133f1644024b5b7464bbdc96d4d98fd4064
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-mcp-search-discovery
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
     receipt_id: PR-aee2f1a1638d00ebaf223451
     test_id: TEST-mcp-search-discovery
     scope: end_to_end
@@ -983,17 +1016,17 @@ proof_receipts:
         attempts:
           status: unavailable
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-3d938ded81ea5384bca9c34c
+    receipt_id: PR-c562b91d331d6ff503c29854
     test_id: TEST-mcp-search-discovery
     scope: end_to_end
-    outcome: passed
-    code_snapshot: 82583d2845302db2951548815aeeb65ec8245210e1b3f35f9871222b58ba20bb
+    outcome: failed
+    code_snapshot: 7b99d1487500adc31317021d966877ae85c5f1b35c445e4e2eba81f5817b6ff2
     environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
-    started_at: '2026-09-17T19:55:25.617Z'
-    finished_at: '2026-09-17T20:35:57.777Z'
-    artifact_digest: 4ba7b11bc867e8ae48adccd54eaa298232996cee139ad0caf04b3fc19341fa55
+    started_at: '2026-09-18T20:02:42.969Z'
+    finished_at: '2026-09-18T20:31:25.898Z'
+    artifact_digest: 850d5f8d5f9dd89931eb204bce21ebb0cb3bc1f225cb57b4689c908a940d782c
     contract_hash: 391cd7081a4fcef186e7291b57af4133f1644024b5b7464bbdc96d4d98fd4064
-    binding_hash: 48442f6a219375da8043dbd54416d874a70591897b09ac44bd1ecda1d40defc0
+    binding_hash: fc86fb2a9871e6bc00580a4bd4659414d8544829b9b5a6b2ea5e390b5bc9e085
     fingerprint: 0d85742abe29ea00b6259b253c4651e0e13d97399e641c4027618e5b0a2e17a5
     fingerprint_components:
       contract: 391cd7081a4fcef186e7291b57af4133f1644024b5b7464bbdc96d4d98fd4064
@@ -1007,16 +1040,19 @@ proof_receipts:
     command_argv:
       - node
       - scripts/run-proof-producer.mjs
-    run_outcome: passed
+    run_outcome: failed
     proof_results:
       - symbol_id: SYM-e2e-test-mcp-search-discovery
         target: default
-        outcome: passed
+        outcome: failed
         binding: aggregate_run
         attempts:
           status: unavailable
+    gaps:
+      - symbol_id: SYM-e2e-test-mcp-search-discovery
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +98 more'
 ---
-
 Verification covers:
 
 - MCP handler tests for search, status, gaps, coverage, graph, diagnostics, and actionable `kb_check` text

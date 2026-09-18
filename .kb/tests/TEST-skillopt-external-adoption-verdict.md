@@ -886,6 +886,39 @@ proof_receipts:
         attempts:
           status: unavailable
   - version: kibi.proof-receipt.v1
+    receipt_id: PR-d53eada538a4b31e17fd59af
+    test_id: TEST-skillopt-external-adoption-verdict
+    scope: integration
+    outcome: passed
+    code_snapshot: 82583d2845302db2951548815aeeb65ec8245210e1b3f35f9871222b58ba20bb
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-17T19:55:25.617Z'
+    finished_at: '2026-09-17T20:35:57.777Z'
+    artifact_digest: 4ba7b11bc867e8ae48adccd54eaa298232996cee139ad0caf04b3fc19341fa55
+    contract_hash: 045b2eae677eca3a28946fd99e1d4d0b99be19990af0b521bbc5f77dc334d93e
+    binding_hash: 28f0ab1552747b03e810a1deb15962c99e9b1fcae9d852b6ebcf7641abe1bbb4
+    fingerprint: 41580ab3960834bc6cc6ea6af29abd2e734c1473434db3aecabe2fce26340ad7
+    fingerprint_components:
+      contract: 045b2eae677eca3a28946fd99e1d4d0b99be19990af0b521bbc5f77dc334d93e
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-skillopt-external-adoption-verdict
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
     receipt_id: PR-e34a10c6c3d2be1696d22230
     test_id: TEST-skillopt-external-adoption-verdict
     scope: integration
@@ -985,17 +1018,17 @@ proof_receipts:
         attempts:
           status: unavailable
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-d53eada538a4b31e17fd59af
+    receipt_id: PR-a32e2cd4866ed0b0e2369b14
     test_id: TEST-skillopt-external-adoption-verdict
     scope: integration
-    outcome: passed
-    code_snapshot: 82583d2845302db2951548815aeeb65ec8245210e1b3f35f9871222b58ba20bb
+    outcome: failed
+    code_snapshot: 7b99d1487500adc31317021d966877ae85c5f1b35c445e4e2eba81f5817b6ff2
     environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
-    started_at: '2026-09-17T19:55:25.617Z'
-    finished_at: '2026-09-17T20:35:57.777Z'
-    artifact_digest: 4ba7b11bc867e8ae48adccd54eaa298232996cee139ad0caf04b3fc19341fa55
+    started_at: '2026-09-18T20:02:42.969Z'
+    finished_at: '2026-09-18T20:31:25.898Z'
+    artifact_digest: 850d5f8d5f9dd89931eb204bce21ebb0cb3bc1f225cb57b4689c908a940d782c
     contract_hash: 045b2eae677eca3a28946fd99e1d4d0b99be19990af0b521bbc5f77dc334d93e
-    binding_hash: 28f0ab1552747b03e810a1deb15962c99e9b1fcae9d852b6ebcf7641abe1bbb4
+    binding_hash: fd1b8b90f514b9e0a74f4095bbd2bad35c992ad33e97978abae16defa3b1faa1
     fingerprint: 41580ab3960834bc6cc6ea6af29abd2e734c1473434db3aecabe2fce26340ad7
     fingerprint_components:
       contract: 045b2eae677eca3a28946fd99e1d4d0b99be19990af0b521bbc5f77dc334d93e
@@ -1009,16 +1042,19 @@ proof_receipts:
     command_argv:
       - node
       - scripts/run-proof-producer.mjs
-    run_outcome: passed
+    run_outcome: failed
     proof_results:
       - symbol_id: SYM-e2e-test-skillopt-external-adoption-verdict
         target: default
-        outcome: passed
+        outcome: failed
         binding: aggregate_run
         attempts:
           status: unavailable
+    gaps:
+      - symbol_id: SYM-e2e-test-skillopt-external-adoption-verdict
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +98 more'
 ---
-
 The contract suite verifies that local or fake SkillOpt evidence remains review-only and cannot mutate canonical or mirror state. Production adoption stays blocked until an independently verified external verdict binds the source root, candidate hash, immutable root authorization, supervisor parent, invocation and matrix identity, and terminal evidence.
 
 The bridge and workflow tests also verify rejection of incomplete staged-runtime configuration, forwarding of absolute Codex/bwrap flags, fail-fast scheduling after infrastructure failures, continued evaluation of behavioral failures, and structured exit-1 no-go output without an eligibility review for incomplete matrices.

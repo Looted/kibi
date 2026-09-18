@@ -886,6 +886,39 @@ proof_receipts:
         attempts:
           status: unavailable
   - version: kibi.proof-receipt.v1
+    receipt_id: PR-2c2a3df4ea9f78164938d6fc
+    test_id: TEST-kibi-logical-requirement-coverage
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 82583d2845302db2951548815aeeb65ec8245210e1b3f35f9871222b58ba20bb
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-17T19:55:25.617Z'
+    finished_at: '2026-09-17T20:35:57.777Z'
+    artifact_digest: 4ba7b11bc867e8ae48adccd54eaa298232996cee139ad0caf04b3fc19341fa55
+    contract_hash: 169368fa251f7e0e38eda65faf205649c6758c3d20a4439939edb6474f848759
+    binding_hash: 9929d11672b120a69b56293bb7088661763afcdbdd742d71713fa57ce75ca3f2
+    fingerprint: 39433cadb755c70041e3e080507df0a234fe35369581e29b1f82603195b3ca81
+    fingerprint_components:
+      contract: 169368fa251f7e0e38eda65faf205649c6758c3d20a4439939edb6474f848759
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-kibi-logical-requirement-coverage
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
     receipt_id: PR-35c07c27d5fa9cd7d44f5b4c
     test_id: TEST-kibi-logical-requirement-coverage
     scope: end_to_end
@@ -985,17 +1018,17 @@ proof_receipts:
         attempts:
           status: unavailable
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-2c2a3df4ea9f78164938d6fc
+    receipt_id: PR-867ed6222decc58d909f9255
     test_id: TEST-kibi-logical-requirement-coverage
     scope: end_to_end
-    outcome: passed
-    code_snapshot: 82583d2845302db2951548815aeeb65ec8245210e1b3f35f9871222b58ba20bb
+    outcome: failed
+    code_snapshot: 7b99d1487500adc31317021d966877ae85c5f1b35c445e4e2eba81f5817b6ff2
     environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
-    started_at: '2026-09-17T19:55:25.617Z'
-    finished_at: '2026-09-17T20:35:57.777Z'
-    artifact_digest: 4ba7b11bc867e8ae48adccd54eaa298232996cee139ad0caf04b3fc19341fa55
+    started_at: '2026-09-18T20:02:42.969Z'
+    finished_at: '2026-09-18T20:31:25.898Z'
+    artifact_digest: 850d5f8d5f9dd89931eb204bce21ebb0cb3bc1f225cb57b4689c908a940d782c
     contract_hash: 169368fa251f7e0e38eda65faf205649c6758c3d20a4439939edb6474f848759
-    binding_hash: 9929d11672b120a69b56293bb7088661763afcdbdd742d71713fa57ce75ca3f2
+    binding_hash: bf40404360f266794bdd503ac8aa8ed32668f7aced87470d55fa2589a551a1b7
     fingerprint: 39433cadb755c70041e3e080507df0a234fe35369581e29b1f82603195b3ca81
     fingerprint_components:
       contract: 169368fa251f7e0e38eda65faf205649c6758c3d20a4439939edb6474f848759
@@ -1009,16 +1042,19 @@ proof_receipts:
     command_argv:
       - node
       - scripts/run-proof-producer.mjs
-    run_outcome: passed
+    run_outcome: failed
     proof_results:
       - symbol_id: SYM-e2e-test-kibi-logical-requirement-coverage
         target: default
-        outcome: passed
+        outcome: failed
         binding: aggregate_run
         attempts:
           status: unavailable
+    gaps:
+      - symbol_id: SYM-e2e-test-kibi-logical-requirement-coverage
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +98 more'
 ---
-
 Verifies stable clause keys including trailing-punctuation normalization, compound semantic-advisor receipts, merged modeling manifests, paired and hash-consistent claim provenance, bijective manifest-to-ground-fact coverage, duplicate-term rejection, lossless repeated-relationship decoding, default rule activation, title-independent logical-debt diagnostics, exact predicate polarity contradictions, MCP contradiction rejection, MCP schema preservation of claim patterns, uniqueness, and conditional provenance, staged-overlay preservation of manifests, predicate fields, and verification metadata, final-state evidence normalization, and Skillopt logical-coverage scoring.
 
 Executable coverage spans `packages/core/tests/kb.plt`, `packages/cli/tests/traceability/temp-kb.test.ts`, `packages/mcp/tests/semantic-advisor/analyze-prose.test.ts`, `packages/mcp/tests/server/tools.test.ts`, `packages/mcp/tests/tools/model-requirement.test.ts`, `packages/mcp/tests/tools/suggest-predicates.test.ts`, `packages/mcp/tests/tools/upsert-contradictions.test.ts`, the packed MCP parity tests, and the Skillopt evaluator tests.

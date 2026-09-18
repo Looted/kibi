@@ -79,6 +79,43 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-2f249d4d33e5f3d5c73b4991
+    test_id: TEST-kibi-change-to-proof-evaluation-live
+    scope: end_to_end
+    outcome: failed
+    code_snapshot: 7b99d1487500adc31317021d966877ae85c5f1b35c445e4e2eba81f5817b6ff2
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-18T20:02:42.969Z'
+    finished_at: '2026-09-18T20:31:25.898Z'
+    artifact_digest: 850d5f8d5f9dd89931eb204bce21ebb0cb3bc1f225cb57b4689c908a940d782c
+    contract_hash: 2a9bfe59b870b62ebf6d959c8c73966b5cfa2301e93494b0a36f736272247960
+    binding_hash: bbda25742820f26a5c1b1a7a3b90c0b8f260a3227a1d69963fe051e67472f4f0
+    fingerprint: 259d022c2078d8e7a28ff3fa4ad146bf1c25a256b1282d985b76fd15aecb220b
+    fingerprint_components:
+      contract: 2a9bfe59b870b62ebf6d959c8c73966b5cfa2301e93494b0a36f736272247960
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: failed
+    proof_results:
+      - symbol_id: SYM-e2e-test-change-to-proof-eval-live
+        target: default
+        outcome: failed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+    gaps:
+      - symbol_id: SYM-e2e-test-change-to-proof-eval-live
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +98 more'
 ---
 
 Runs the change-to-proof evaluator entry point live against the public held-out gold corpus and asserts the deterministic metric contract.

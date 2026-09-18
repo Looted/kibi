@@ -919,6 +919,39 @@ proof_receipts:
         attempts:
           status: unavailable
   - version: kibi.proof-receipt.v1
+    receipt_id: PR-e07e26dc1fb3285cf4030099
+    test_id: TEST-cursor-kibi-plugin-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 82583d2845302db2951548815aeeb65ec8245210e1b3f35f9871222b58ba20bb
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-17T19:55:25.617Z'
+    finished_at: '2026-09-17T20:35:57.777Z'
+    artifact_digest: 4ba7b11bc867e8ae48adccd54eaa298232996cee139ad0caf04b3fc19341fa55
+    contract_hash: c179dda4770841e83866552ddcd6f75d3192ebc8a970b1c71a6346feb794a759
+    binding_hash: 3dcd299dbead083b41942ea2ae7b6f2c3e6381fdf4cc392d4e7fceffc0648358
+    fingerprint: f33c89d0790a58c84dae06ba8c448ce4baf441865974c1c35c6a3467bf603b9c
+    fingerprint_components:
+      contract: c179dda4770841e83866552ddcd6f75d3192ebc8a970b1c71a6346feb794a759
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-cursor-kibi-plugin-v1
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
     receipt_id: PR-c1238fdcf60ba8d0375ab2a0
     test_id: TEST-cursor-kibi-plugin-v1
     scope: end_to_end
@@ -1018,17 +1051,17 @@ proof_receipts:
         attempts:
           status: unavailable
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-e07e26dc1fb3285cf4030099
+    receipt_id: PR-55d66cc22719b5305ff21ca4
     test_id: TEST-cursor-kibi-plugin-v1
     scope: end_to_end
-    outcome: passed
-    code_snapshot: 82583d2845302db2951548815aeeb65ec8245210e1b3f35f9871222b58ba20bb
+    outcome: failed
+    code_snapshot: 7b99d1487500adc31317021d966877ae85c5f1b35c445e4e2eba81f5817b6ff2
     environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
-    started_at: '2026-09-17T19:55:25.617Z'
-    finished_at: '2026-09-17T20:35:57.777Z'
-    artifact_digest: 4ba7b11bc867e8ae48adccd54eaa298232996cee139ad0caf04b3fc19341fa55
+    started_at: '2026-09-18T20:02:42.969Z'
+    finished_at: '2026-09-18T20:31:25.898Z'
+    artifact_digest: 850d5f8d5f9dd89931eb204bce21ebb0cb3bc1f225cb57b4689c908a940d782c
     contract_hash: c179dda4770841e83866552ddcd6f75d3192ebc8a970b1c71a6346feb794a759
-    binding_hash: 3dcd299dbead083b41942ea2ae7b6f2c3e6381fdf4cc392d4e7fceffc0648358
+    binding_hash: e588086da8d44b5173743597ee34d967c25c774bafa752123be03d88b6a37ec6
     fingerprint: f33c89d0790a58c84dae06ba8c448ce4baf441865974c1c35c6a3467bf603b9c
     fingerprint_components:
       contract: c179dda4770841e83866552ddcd6f75d3192ebc8a970b1c71a6346feb794a759
@@ -1042,16 +1075,19 @@ proof_receipts:
     command_argv:
       - node
       - scripts/run-proof-producer.mjs
-    run_outcome: passed
+    run_outcome: failed
     proof_results:
       - symbol_id: SYM-e2e-test-cursor-kibi-plugin-v1
         target: default
-        outcome: passed
+        outcome: failed
         binding: aggregate_run
         attempts:
           status: unavailable
+    gaps:
+      - symbol_id: SYM-e2e-test-cursor-kibi-plugin-v1
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +98 more'
 ---
-
 Verification for `kibi-cursor` documentation and plugin onboarding guidance includes:
 
 - Ensure `packages/cursor/.cursor-plugin/plugin.json` exports plugin manifest paths and MCP config for the project-local `kibi-mcp` server.

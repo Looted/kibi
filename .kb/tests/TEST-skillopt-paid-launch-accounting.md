@@ -1,6 +1,7 @@
 ---
 id: TEST-skillopt-paid-launch-accounting
-title: Paid-launch gateway and receipt contracts reject attribution and trust-boundary violations
+title: Paid-launch gateway and receipt contracts reject attribution and
+  trust-boundary violations
 type: test
 status: passing
 created_at: 2026-07-26T00:00:00.000Z
@@ -886,6 +887,39 @@ proof_receipts:
         attempts:
           status: unavailable
   - version: kibi.proof-receipt.v1
+    receipt_id: PR-207a022be65c8db1e066a0a9
+    test_id: TEST-skillopt-paid-launch-accounting
+    scope: integration
+    outcome: passed
+    code_snapshot: 82583d2845302db2951548815aeeb65ec8245210e1b3f35f9871222b58ba20bb
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-17T19:55:25.617Z'
+    finished_at: '2026-09-17T20:35:57.777Z'
+    artifact_digest: 4ba7b11bc867e8ae48adccd54eaa298232996cee139ad0caf04b3fc19341fa55
+    contract_hash: 810b6374f2a76c2c74f29906eda2835317f5fc9ef271cd84697bf77daa23d2ab
+    binding_hash: b5d21896f03773ccbd74688181d4477356d4e8f285d407a590b836ea731b4d73
+    fingerprint: a8a972ce00cf9a0129592f57ab1583ed4b1799c04064b7899ac15f6ec9f19826
+    fingerprint_components:
+      contract: 810b6374f2a76c2c74f29906eda2835317f5fc9ef271cd84697bf77daa23d2ab
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-skillopt-paid-launch-accounting
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
     receipt_id: PR-c1bfb7a74378fa79035f94d0
     test_id: TEST-skillopt-paid-launch-accounting
     scope: integration
@@ -985,17 +1019,17 @@ proof_receipts:
         attempts:
           status: unavailable
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-207a022be65c8db1e066a0a9
+    receipt_id: PR-25df128b6963d6f7d8d617da
     test_id: TEST-skillopt-paid-launch-accounting
     scope: integration
-    outcome: passed
-    code_snapshot: 82583d2845302db2951548815aeeb65ec8245210e1b3f35f9871222b58ba20bb
+    outcome: failed
+    code_snapshot: 7b99d1487500adc31317021d966877ae85c5f1b35c445e4e2eba81f5817b6ff2
     environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
-    started_at: '2026-09-17T19:55:25.617Z'
-    finished_at: '2026-09-17T20:35:57.777Z'
-    artifact_digest: 4ba7b11bc867e8ae48adccd54eaa298232996cee139ad0caf04b3fc19341fa55
+    started_at: '2026-09-18T20:02:42.969Z'
+    finished_at: '2026-09-18T20:31:25.898Z'
+    artifact_digest: 850d5f8d5f9dd89931eb204bce21ebb0cb3bc1f225cb57b4689c908a940d782c
     contract_hash: 810b6374f2a76c2c74f29906eda2835317f5fc9ef271cd84697bf77daa23d2ab
-    binding_hash: b5d21896f03773ccbd74688181d4477356d4e8f285d407a590b836ea731b4d73
+    binding_hash: a166bbe16659bc5fcab7e949ef9faa5ec9ef07ae42095bf45c01a02defc02dba
     fingerprint: a8a972ce00cf9a0129592f57ab1583ed4b1799c04064b7899ac15f6ec9f19826
     fingerprint_components:
       contract: 810b6374f2a76c2c74f29906eda2835317f5fc9ef271cd84697bf77daa23d2ab
@@ -1009,16 +1043,19 @@ proof_receipts:
     command_argv:
       - node
       - scripts/run-proof-producer.mjs
-    run_outcome: passed
+    run_outcome: failed
     proof_results:
       - symbol_id: SYM-e2e-test-skillopt-paid-launch-accounting
         target: default
-        outcome: passed
+        outcome: failed
         binding: aggregate_run
         attempts:
           status: unavailable
+    gaps:
+      - symbol_id: SYM-e2e-test-skillopt-paid-launch-accounting
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +98 more'
 ---
-
 The model-gateway suites verify exact request-ID attribution under equal request hashes, byte-identical same-request retries, one-use capability replay rejection, approved-pricing binding, pinned CA/TLS/SNI/IP/egress policy, and request, invoice, and authorization ceilings.
 
 The paid-launch receipt suite parses strict debit-subentry, final debit/reconciliation, and final-verdict fixture artifacts, verifies their complete launch bindings and deterministic fixture signatures, and rejects unknown fields, rebound requests, and tampered signatures. The evidence-generator suite proves that serialized evidence is derived from those parser outputs without dropping reconciliation or verdict launch bindings. The authorization-broker suite verifies immutable trust roles and proves that absent external services exit nonzero before process, provider, or ledger activity.

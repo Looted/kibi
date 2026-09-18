@@ -885,6 +885,39 @@ proof_receipts:
         attempts:
           status: unavailable
   - version: kibi.proof-receipt.v1
+    receipt_id: PR-03a2ddee852668cf543837dd
+    test_id: TEST-vscode-traceability
+    scope: integration
+    outcome: passed
+    code_snapshot: 82583d2845302db2951548815aeeb65ec8245210e1b3f35f9871222b58ba20bb
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-17T19:55:25.617Z'
+    finished_at: '2026-09-17T20:35:57.777Z'
+    artifact_digest: 4ba7b11bc867e8ae48adccd54eaa298232996cee139ad0caf04b3fc19341fa55
+    contract_hash: b1d83165d14d898d14e0486fbdc47fe172e606a918b27ee4ae7fa9c54dcd7256
+    binding_hash: 5d8495408b792c3fb4b52b66b5d9b71f2fd90ce066b3295756605928e705d947
+    fingerprint: 3dfb4b6ff00256eb7de7738d63fef3f62a97e653c7bc6c39aac89dde44b68361
+    fingerprint_components:
+      contract: b1d83165d14d898d14e0486fbdc47fe172e606a918b27ee4ae7fa9c54dcd7256
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-vscode-traceability
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
     receipt_id: PR-3930e17d2e681aac0df448cb
     test_id: TEST-vscode-traceability
     scope: integration
@@ -984,17 +1017,17 @@ proof_receipts:
         attempts:
           status: unavailable
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-03a2ddee852668cf543837dd
+    receipt_id: PR-b11f38a6683fa19ba923903e
     test_id: TEST-vscode-traceability
     scope: integration
-    outcome: passed
-    code_snapshot: 82583d2845302db2951548815aeeb65ec8245210e1b3f35f9871222b58ba20bb
+    outcome: failed
+    code_snapshot: 7b99d1487500adc31317021d966877ae85c5f1b35c445e4e2eba81f5817b6ff2
     environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
-    started_at: '2026-09-17T19:55:25.617Z'
-    finished_at: '2026-09-17T20:35:57.777Z'
-    artifact_digest: 4ba7b11bc867e8ae48adccd54eaa298232996cee139ad0caf04b3fc19341fa55
+    started_at: '2026-09-18T20:02:42.969Z'
+    finished_at: '2026-09-18T20:31:25.898Z'
+    artifact_digest: 850d5f8d5f9dd89931eb204bce21ebb0cb3bc1f225cb57b4689c908a940d782c
     contract_hash: b1d83165d14d898d14e0486fbdc47fe172e606a918b27ee4ae7fa9c54dcd7256
-    binding_hash: 5d8495408b792c3fb4b52b66b5d9b71f2fd90ce066b3295756605928e705d947
+    binding_hash: 27ebb64e3bdf7bf554ab12d0b1ae088830e91c2a8913dcdcedccf8550b674eec
     fingerprint: 3dfb4b6ff00256eb7de7738d63fef3f62a97e653c7bc6c39aac89dde44b68361
     fingerprint_components:
       contract: b1d83165d14d898d14e0486fbdc47fe172e606a918b27ee4ae7fa9c54dcd7256
@@ -1008,16 +1041,19 @@ proof_receipts:
     command_argv:
       - node
       - scripts/run-proof-producer.mjs
-    run_outcome: passed
+    run_outcome: failed
     proof_results:
       - symbol_id: SYM-e2e-test-vscode-traceability
         target: default
-        outcome: passed
+        outcome: failed
         binding: aggregate_run
         attempts:
           status: unavailable
+    gaps:
+      - symbol_id: SYM-e2e-test-vscode-traceability
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +98 more'
 ---
-
 6 unit tests in `packages/vscode/tests/traceability.test.ts`:
 - `isLocalPath` correctly identifies file paths vs HTTP URLs
 - `resolveLocalPath` resolves `file://` URIs to absolute paths

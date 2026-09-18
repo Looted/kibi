@@ -916,6 +916,39 @@ proof_receipts:
         attempts:
           status: unavailable
   - version: kibi.proof-receipt.v1
+    receipt_id: PR-ff648ee7561c1acddfb5087c
+    test_id: TEST-cli-symbol-behavioral-anchors
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 82583d2845302db2951548815aeeb65ec8245210e1b3f35f9871222b58ba20bb
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-17T19:55:25.617Z'
+    finished_at: '2026-09-17T20:35:57.777Z'
+    artifact_digest: 4ba7b11bc867e8ae48adccd54eaa298232996cee139ad0caf04b3fc19341fa55
+    contract_hash: a2fc25914c6d79afbfa88dfde772b1a78835b9d2685320319a1df69974984a1d
+    binding_hash: fdbce554e82984837ea958538644f503e573043fd578278b7389b4670aaa354e
+    fingerprint: ec91f649101797464653cc8f2341a75f0bb0fcd259afbc69262f051508425456
+    fingerprint_components:
+      contract: a2fc25914c6d79afbfa88dfde772b1a78835b9d2685320319a1df69974984a1d
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-cli-symbol-behavioral-anchors
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
     receipt_id: PR-5d36ee3e44abd2f7ed7f4ea5
     test_id: TEST-cli-symbol-behavioral-anchors
     scope: end_to_end
@@ -1015,17 +1048,17 @@ proof_receipts:
         attempts:
           status: unavailable
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-ff648ee7561c1acddfb5087c
+    receipt_id: PR-6f625881cd6ba74e6a7c6ea3
     test_id: TEST-cli-symbol-behavioral-anchors
     scope: end_to_end
-    outcome: passed
-    code_snapshot: 82583d2845302db2951548815aeeb65ec8245210e1b3f35f9871222b58ba20bb
+    outcome: failed
+    code_snapshot: 7b99d1487500adc31317021d966877ae85c5f1b35c445e4e2eba81f5817b6ff2
     environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
-    started_at: '2026-09-17T19:55:25.617Z'
-    finished_at: '2026-09-17T20:35:57.777Z'
-    artifact_digest: 4ba7b11bc867e8ae48adccd54eaa298232996cee139ad0caf04b3fc19341fa55
+    started_at: '2026-09-18T20:02:42.969Z'
+    finished_at: '2026-09-18T20:31:25.898Z'
+    artifact_digest: 850d5f8d5f9dd89931eb204bce21ebb0cb3bc1f225cb57b4689c908a940d782c
     contract_hash: a2fc25914c6d79afbfa88dfde772b1a78835b9d2685320319a1df69974984a1d
-    binding_hash: fdbce554e82984837ea958538644f503e573043fd578278b7389b4670aaa354e
+    binding_hash: ba5f66b67f2fb03dde9f4fda29afd037abd9d7c6f95734cd866d2258dbf86f42
     fingerprint: ec91f649101797464653cc8f2341a75f0bb0fcd259afbc69262f051508425456
     fingerprint_components:
       contract: a2fc25914c6d79afbfa88dfde772b1a78835b9d2685320319a1df69974984a1d
@@ -1039,14 +1072,17 @@ proof_receipts:
     command_argv:
       - node
       - scripts/run-proof-producer.mjs
-    run_outcome: passed
+    run_outcome: failed
     proof_results:
       - symbol_id: SYM-e2e-test-cli-symbol-behavioral-anchors
         target: default
-        outcome: passed
+        outcome: failed
         binding: aggregate_run
         attempts:
           status: unavailable
+    gaps:
+      - symbol_id: SYM-e2e-test-cli-symbol-behavioral-anchors
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +98 more'
 ---
-
 Verifies that staged symbol granularity diagnostics reject coarse links only when narrower behavioral symbols are available and ignore interface/type-only symbols as blockers.

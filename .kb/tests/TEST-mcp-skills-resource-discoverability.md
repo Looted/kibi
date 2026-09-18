@@ -879,6 +879,39 @@ proof_receipts:
         attempts:
           status: unavailable
   - version: kibi.proof-receipt.v1
+    receipt_id: PR-5554fe51c2808ce393f2ada0
+    test_id: TEST-mcp-skills-resource-discoverability
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 82583d2845302db2951548815aeeb65ec8245210e1b3f35f9871222b58ba20bb
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-17T19:55:25.617Z'
+    finished_at: '2026-09-17T20:35:57.777Z'
+    artifact_digest: 4ba7b11bc867e8ae48adccd54eaa298232996cee139ad0caf04b3fc19341fa55
+    contract_hash: d1ef4e61d69a268fc8ac1724062fa7db51be5f116629333801a26a9ae5232781
+    binding_hash: 3c5a64c3cfa16b9ffffc4862f7bb2728dcca9e9ed46fb9d4d0d10e82f49d887a
+    fingerprint: cfb0aa44a71df80cfee69b149fa7661271f57c002526afe340f58a6b00fcc3da
+    fingerprint_components:
+      contract: d1ef4e61d69a268fc8ac1724062fa7db51be5f116629333801a26a9ae5232781
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-mcp-skills-resource-discoverability
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
     receipt_id: PR-cb6fd210ba97a6247db7c3ae
     test_id: TEST-mcp-skills-resource-discoverability
     scope: end_to_end
@@ -978,17 +1011,17 @@ proof_receipts:
         attempts:
           status: unavailable
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-5554fe51c2808ce393f2ada0
+    receipt_id: PR-41bf22956b7235e750cf875d
     test_id: TEST-mcp-skills-resource-discoverability
     scope: end_to_end
-    outcome: passed
-    code_snapshot: 82583d2845302db2951548815aeeb65ec8245210e1b3f35f9871222b58ba20bb
+    outcome: failed
+    code_snapshot: 7b99d1487500adc31317021d966877ae85c5f1b35c445e4e2eba81f5817b6ff2
     environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
-    started_at: '2026-09-17T19:55:25.617Z'
-    finished_at: '2026-09-17T20:35:57.777Z'
-    artifact_digest: 4ba7b11bc867e8ae48adccd54eaa298232996cee139ad0caf04b3fc19341fa55
+    started_at: '2026-09-18T20:02:42.969Z'
+    finished_at: '2026-09-18T20:31:25.898Z'
+    artifact_digest: 850d5f8d5f9dd89931eb204bce21ebb0cb3bc1f225cb57b4689c908a940d782c
     contract_hash: d1ef4e61d69a268fc8ac1724062fa7db51be5f116629333801a26a9ae5232781
-    binding_hash: 3c5a64c3cfa16b9ffffc4862f7bb2728dcca9e9ed46fb9d4d0d10e82f49d887a
+    binding_hash: 50b2af1a897cd4fc7f3730d50f5e7ca74a582d39fdcf251c3cb401526a177525
     fingerprint: cfb0aa44a71df80cfee69b149fa7661271f57c002526afe340f58a6b00fcc3da
     fingerprint_components:
       contract: d1ef4e61d69a268fc8ac1724062fa7db51be5f116629333801a26a9ae5232781
@@ -1002,14 +1035,17 @@ proof_receipts:
     command_argv:
       - node
       - scripts/run-proof-producer.mjs
-    run_outcome: passed
+    run_outcome: failed
     proof_results:
       - symbol_id: SYM-e2e-test-mcp-skills-resource-discoverability
         target: default
-        outcome: passed
+        outcome: failed
         binding: aggregate_run
         attempts:
           status: unavailable
+    gaps:
+      - symbol_id: SYM-e2e-test-mcp-skills-resource-discoverability
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +98 more'
 ---
-
 List bundled skills, load a declared resource, and attempt an undeclared path while asserting deterministic success and rejection behavior. Executable coverage spans `packages/mcp/tests/tools/skills.test.ts`.
