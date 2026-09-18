@@ -258,3 +258,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-932b35fc97bf
+  - type: covered_by
+    from: SYM-quality-inventory-171f2ce53251
+    to: TEST-004
+    created_at: 2026-09-18T07:13:53.177Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2cd52e247349

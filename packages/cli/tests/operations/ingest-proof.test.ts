@@ -130,7 +130,9 @@ function nativeArtifact(
   });
 }
 
-function proofBindingsField(bindings: readonly Record<string, unknown>[]): string {
+function proofBindingsField(
+  bindings: readonly Record<string, unknown>[],
+): string {
   return `,proof_bindings=${JSON.stringify(JSON.stringify(bindings))}`;
 }
 
@@ -313,7 +315,9 @@ describe("kb_ingest_proof", () => {
           },
           context(
             dir,
-            entityQuery(`,proof_contract=${JSON.stringify(JSON.stringify(contract))}`),
+            entityQuery(
+              `,proof_contract=${JSON.stringify(JSON.stringify(contract))}`,
+            ),
           ),
         ),
       ).rejects.toThrow(/no matching proof_binding/);
@@ -398,7 +402,9 @@ describe("kb_ingest_proof", () => {
         },
       ];
       const artifact = nativeArtifact();
-      const firstResult = (artifact.proof_results as Record<string, unknown>[])[0];
+      const firstResult = (
+        artifact.proof_results as Record<string, unknown>[]
+      )[0];
       if (firstResult === undefined) throw new Error("expected native result");
       const duplicateArtifact = {
         ...artifact,
@@ -690,13 +696,15 @@ describe("kb_ingest_proof", () => {
                 success: true,
                 bindings: {
                   Results: `[[TEST-001,test,[${testProps(
-                    `,proof_contract=${JSON.stringify(JSON.stringify(contract))},proof_bindings=${JSON.stringify(JSON.stringify([
-                      {
-                        symbol_id: "SYM-CASE-1",
-                        target: "default",
-                        native_id: "tests/flow.spec.ts::case-1",
-                      },
-                    ]))}`,
+                    `,proof_contract=${JSON.stringify(JSON.stringify(contract))},proof_bindings=${JSON.stringify(
+                      JSON.stringify([
+                        {
+                          symbol_id: "SYM-CASE-1",
+                          target: "default",
+                          native_id: "tests/flow.spec.ts::case-1",
+                        },
+                      ]),
+                    )}`,
                   )}]]]`,
                 },
               };
@@ -796,13 +804,15 @@ describe("kb_ingest_proof", () => {
                 success: true,
                 bindings: {
                   Results: `[[TEST-001,test,[${testProps(
-                    `,proof_contract=${JSON.stringify(JSON.stringify(contract))},proof_bindings=${JSON.stringify(JSON.stringify([
-                      {
-                        symbol_id: "SYM-CASE-1",
-                        target: "default",
-                        native_id: "tests/flow.spec.ts::case-1",
-                      },
-                    ]))}`,
+                    `,proof_contract=${JSON.stringify(JSON.stringify(contract))},proof_bindings=${JSON.stringify(
+                      JSON.stringify([
+                        {
+                          symbol_id: "SYM-CASE-1",
+                          target: "default",
+                          native_id: "tests/flow.spec.ts::case-1",
+                        },
+                      ]),
+                    )}`,
                   )}]]]`,
                 },
               };

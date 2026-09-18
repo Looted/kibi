@@ -12,7 +12,10 @@ describe("proof baseline fingerprints", () => {
       {
         id: "REQ-B",
         proofStatus: "missing",
-        proofGaps: ["missing_passing_e2e", "missing_production_symbol_coverage"],
+        proofGaps: [
+          "missing_passing_e2e",
+          "missing_production_symbol_coverage",
+        ],
         proofStages: {
           productionSymbols: { uncoveredSymbols: ["SYM-b", "SYM-a"] },
         },

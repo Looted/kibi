@@ -14,6 +14,7 @@ links:
     target: TEST-mcp-kb-freshness-coverage
   - type: verified_by
     target: TEST-e2e-mcp-freshness-external-replace
+    target: TEST-mcp-kb-freshness
 ---
 
 Given an attached branch KB is replaced by an external sync, when the MCP server receives the next query or mutation, then it detects the changed stamp and refreshes the attachment before serving the operation.

@@ -174,3 +174,8 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fadcc76cf7ab
+    to: TEST-rule-registry-single-source
+    created_at: 2026-09-18T07:26:06.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1dbc17e51b99

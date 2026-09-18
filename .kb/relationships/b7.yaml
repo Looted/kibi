@@ -139,3 +139,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fb685f77b7fc
+  - type: covered_by
+    from: SYM-isWithinRootRuntime
+    to: TEST-mcp-skills-resource-discoverability
+    created_at: 2026-09-17T21:07:54.158Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b661b6e96ebc

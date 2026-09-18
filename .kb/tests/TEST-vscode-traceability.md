@@ -983,6 +983,39 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-03a2ddee852668cf543837dd
+    test_id: TEST-vscode-traceability
+    scope: integration
+    outcome: passed
+    code_snapshot: 82583d2845302db2951548815aeeb65ec8245210e1b3f35f9871222b58ba20bb
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-17T19:55:25.617Z'
+    finished_at: '2026-09-17T20:35:57.777Z'
+    artifact_digest: 4ba7b11bc867e8ae48adccd54eaa298232996cee139ad0caf04b3fc19341fa55
+    contract_hash: b1d83165d14d898d14e0486fbdc47fe172e606a918b27ee4ae7fa9c54dcd7256
+    binding_hash: 5d8495408b792c3fb4b52b66b5d9b71f2fd90ce066b3295756605928e705d947
+    fingerprint: 3dfb4b6ff00256eb7de7738d63fef3f62a97e653c7bc6c39aac89dde44b68361
+    fingerprint_components:
+      contract: b1d83165d14d898d14e0486fbdc47fe172e606a918b27ee4ae7fa9c54dcd7256
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-vscode-traceability
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 
 6 unit tests in `packages/vscode/tests/traceability.test.ts`:

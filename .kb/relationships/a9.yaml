@@ -171,6 +171,7 @@ relationships:
     from: SYM-quality-inventory-0d95a3be9ce1
     to: TEST-004
     created_at: 2026-09-18T07:33:28.891Z
+    created_at: 2026-09-18T07:13:04.734Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2cf8dec07a2c

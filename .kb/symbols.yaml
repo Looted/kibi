@@ -4875,6 +4875,7 @@ symbols:
     sourceFile: packages/cli/src/utils/rule-registry.ts
     symbol_role: type-shape
     status: active
+    granularity_reason: config-artifact
     relationships:
       - type: covered_by
         target: TEST-004
@@ -4939,6 +4940,7 @@ symbols:
     sourceFile: packages/cli/src/utils/rule-registry.ts
     symbol_role: type-shape
     status: active
+    granularity_reason: config-artifact
     relationships:
       - type: covered_by
         target: TEST-004
@@ -32863,6 +32865,292 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-generated-coordinate-repair
+  - id: SYM-validateBundleContents
+    title: validateBundleContents
+    status: active
+    sourceFile: packages/runtime/src/skill-system/validation.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-validateManifestData
+    title: validateManifestData
+    status: active
+    sourceFile: packages/runtime/src/skill-system/validation.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-coerceManifest
+    title: coerceManifest
+    status: active
+    sourceFile: packages/runtime/src/skill-system/validation.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-isStringArray
+    title: isStringArray
+    status: active
+    sourceFile: packages/runtime/src/skill-system/validation.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-assertNonEmptyString
+    title: assertNonEmptyString
+    status: active
+    sourceFile: packages/runtime/src/skill-operations.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-executeSkillsList
+    title: executeSkillsList
+    status: active
+    sourceFile: packages/runtime/src/skill-operations.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-executeSkillsLoad
+    title: executeSkillsLoad
+    status: active
+    sourceFile: packages/runtime/src/skill-operations.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-executeSkillsRead
+    title: executeSkillsRead
+    status: active
+    sourceFile: packages/runtime/src/skill-operations.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-defaultBundledSkillsDir
+    title: defaultBundledSkillsDir
+    status: active
+    sourceFile: packages/runtime/src/skill-system/loader.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-currentBundledSkillsDir
+    title: currentBundledSkillsDir
+    status: active
+    sourceFile: packages/runtime/src/skill-system/loader.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-listFrom
+    title: listFrom
+    status: active
+    sourceFile: packages/runtime/src/skill-system/loader.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-findRoot
+    title: findRoot
+    status: active
+    sourceFile: packages/runtime/src/skill-system/loader.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-listRoots
+    title: listRoots
+    status: active
+    sourceFile: packages/runtime/src/skill-system/loader.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-readBundle
+    title: readBundle
+    status: active
+    sourceFile: packages/runtime/src/skill-system/loader.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-isPathOutOfBoundsRuntime
+    title: isPathOutOfBounds
+    status: active
+    sourceFile: packages/runtime/src/skill-system/paths.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-skills-resource-discoverability
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-isWithinRootRuntime
+    title: isWithinRoot
+    status: active
+    sourceFile: packages/runtime/src/skill-system/paths.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-skills-resource-discoverability
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-normalizeResourcePathRuntime
+    title: normalizeResourcePath
+    status: active
+    sourceFile: packages/runtime/src/skill-system/paths.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-skills-resource-discoverability
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-resolveSkillFilePathRuntime
+    title: resolveSkillFilePath
+    status: active
+    sourceFile: packages/runtime/src/skill-system/paths.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-skills-resource-discoverability
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-SKILL_FILE_NAMERuntime
+    title: SKILL_FILE_NAME
+    status: active
+    sourceFile: packages/runtime/src/skill-system/paths.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+  - id: SYM-ReceiptCodeScopeEntry
+    title: ReceiptCodeScopeEntry
+    status: active
+    sourceFile: packages/cli/src/extractors/manifest.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+  - id: SYM-symbol-classification
+    title: symbol_classification
+    status: active
+    symbol_role: type-shape
+    sourceFile: packages/core/src/symbol_classification.pl
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+  - id: SYM-BranchCoverageSummary
+    title: BranchCoverageSummary
+    status: active
+    sourceFile: scripts/run-unit-coverage.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-014
+  - id: SYM-COVERAGE_SHARDS
+    title: COVERAGE_SHARDS
+    status: active
+    sourceFile: scripts/run-unit-coverage.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-014
+  - id: SYM-runUnitCoverage
+    title: runUnitCoverage
+    status: active
+    sourceFile: scripts/run-unit-coverage.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-014
+  - id: SYM-runUnitCoverageIfMain
+    title: runUnitCoverageIfMain
+    status: active
+    sourceFile: scripts/run-unit-coverage.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-014
+  - id: SYM-summarizeBranchCoverage
+    title: summarizeBranchCoverage
+    status: active
+    sourceFile: scripts/run-unit-coverage.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: implements
+        target: REQ-014
+  - id: SYM-currentProofBindingMode
+    title: currentProofBindingMode
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+  - id: SYM-resolveBoundSymbolScope
+    title: resolveBoundSymbolScope
+    sourceFile: packages/cli/src/extractors/manifest.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
       - type: implements
         target: REQ-generated-coordinate-persistence
   - id: SYM-coordinateIdentityKey
@@ -34872,6 +35160,15 @@ symbols:
         target: TEST-008
       - type: executable_for
         target: TEST-012
+  - id: SYM-e2e-test-008
+    title: init-sync-check.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/init-sync-check.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-008
   - id: SYM-e2e-test-014
     title: release-package-contract.test
     status: active
@@ -36044,6 +36341,7 @@ symbols:
     status: active
     sourceFile: scripts/run-packed-e2e.mjs
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: covered_by
         target: TEST-proof-runner-integrity
@@ -36223,6 +36521,7 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: covered_by
         target: TEST-004
@@ -36235,6 +36534,7 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: covered_by
         target: TEST-004
@@ -36247,6 +36547,7 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: covered_by
         target: TEST-004
@@ -36259,6 +36560,7 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: covered_by
         target: TEST-004
@@ -36271,6 +36573,7 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: covered_by
         target: TEST-004
@@ -36283,6 +36586,7 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: covered_by
         target: TEST-004
@@ -36295,6 +36599,7 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: covered_by
         target: TEST-004
@@ -36307,6 +36612,7 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: covered_by
         target: TEST-004
@@ -36319,6 +36625,7 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: covered_by
         target: TEST-004
@@ -36331,6 +36638,7 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: covered_by
         target: TEST-004
@@ -36343,6 +36651,7 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: covered_by
         target: TEST-004
@@ -36355,6 +36664,7 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: covered_by
         target: TEST-004
@@ -36367,6 +36677,7 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: covered_by
         target: TEST-004
@@ -37140,6 +37451,38 @@ symbols:
         target: TEST-core-journaled-engine-persistence
       - type: implements
         target: REQ-core-journaled-engine-persistence
+  - id: SYM-sweepRuntimeSockets
+    title: sweepRuntimeSockets
+    status: active
+    sourceFile: packages/cli/src/prolog/janitor.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-engineJanitorCommand
+    title: engineJanitorCommand
+    status: active
+    sourceFile: packages/cli/src/commands/engine.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-persistence
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-executeIngestProof
+    title: executeIngestProof
+    status: active
+    sourceFile: packages/cli/src/operations/proof/ingest-proof.ts
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
   - id: SYM-sweep-runtime-sockets
     title: sweepRuntimeSockets
     status: active

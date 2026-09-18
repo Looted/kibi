@@ -111,3 +111,7 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9be3d68d7cca
+    created_at: 2026-09-18T07:17:50.530Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d8c7dc7f656

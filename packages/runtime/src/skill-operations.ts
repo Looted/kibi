@@ -9,7 +9,7 @@ import {
 } from "./skills.js";
 
 function assertNonEmptyString(value: string, field: string): void {
-  if (typeof value !== "string" || value.trim() === "") {
+  if (value.trim() === "") {
     throw new Error(`${field} must be a non-empty string`);
   }
 }

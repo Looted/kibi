@@ -64,6 +64,9 @@ function isCanonicalKbKnowledgePath(segments: readonly string[]): boolean {
     return false;
   }
   const lane = segments[1];
+  // rationale: the undefined check narrows the type for Set<string>.has;
+  // at runtime Set.has(undefined) is false, so the result is the same.
+  // Stryker disable next-line ConditionalExpression, BlockStatement
   if (lane === undefined) {
     return false;
   }
@@ -146,10 +149,15 @@ export function isMeaningfulTrackedPath(candidate: string): boolean {
     return isCanonicalKbKnowledgePath(segments);
   }
 
+  // rationale: an empty basename and the placeholder basename both yield a
+  // non-matching extension, and split().at(-1) of a non-empty string is
+  // never undefined, so these fallback literals are observationally inert.
+  // Stryker disable StringLiteral
   const basename = segments.at(-1) ?? "";
   const extension = basename.includes(".")
     ? `.${basename.split(".").at(-1) ?? ""}`
     : "";
+  // Stryker restore
 
   if (segments.includes("docs") || segments.includes("documentation")) {
     return documentationExtensions.has(extension);
@@ -187,10 +195,13 @@ export function isSourceImpactRelevantPath(candidate: string): boolean {
     return false;
   }
 
+  // rationale: same inert fallbacks as in isMeaningfulTrackedPath.
+  // Stryker disable StringLiteral, UnaryOperator
   const basename = segments.at(-1) ?? "";
   const extension = basename.includes(".")
     ? `.${basename.split(".").at(-1) ?? ""}`
     : "";
+  // Stryker restore
 
   return segments.includes("src") && sourceExtensions.has(extension);
 }

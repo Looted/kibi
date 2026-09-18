@@ -1077,5 +1077,38 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-b7d771bac535a2fec8de02b3
+    test_id: TEST-010
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 82583d2845302db2951548815aeeb65ec8245210e1b3f35f9871222b58ba20bb
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-17T19:55:25.617Z'
+    finished_at: '2026-09-17T20:35:57.777Z'
+    artifact_digest: 4ba7b11bc867e8ae48adccd54eaa298232996cee139ad0caf04b3fc19341fa55
+    contract_hash: 1a2dc8b6dab37b05ad993c3fa0c2903586836dcfd00ee4ed2637b08d16eb3b22
+    binding_hash: ba77f53bd5ecd8b6652aed5307c90d67be6e078735245c327d3dad9652cd4144
+    fingerprint: 9786dd814461dde07ca99afa0b32bc2ace6f13b2ab85ec319bfd966d549f646a
+    fingerprint_components:
+      contract: 1a2dc8b6dab37b05ad993c3fa0c2903586836dcfd00ee4ed2637b08d16eb3b22
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-010
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 Verify that the public MCP catalog advertises the approved read, validation, mutation, bootstrap-planning, and briefing operations, while internal inference helpers remain unadvertised. Bootstrap uses kb_plan_bootstrap and kb_apply_plan with exact plan approval.

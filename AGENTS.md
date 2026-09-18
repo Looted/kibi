@@ -192,3 +192,4 @@ Before staging, committing, or handing off:
 - `docs/generic-agent-onboarding.md`
 - `docs/cli-reference.md`
 - `docs/ui-requirements.md`
+- `docs/mutation-testing.md`

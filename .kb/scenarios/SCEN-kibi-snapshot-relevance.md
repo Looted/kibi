@@ -11,5 +11,6 @@ type: scenario
 links:
   - type: verified_by
     target: TEST-e2e-snapshot-relevance
+    target: TEST-kibi-fresh-verification-receipts
 ---
 Given a clean tracked workspace, when only a snapshot-excluded operational artifact changes, then verification snapshot dirtiness remains false while the complete Git change record and count remain available. When a snapshot-relevant source file also changes, verification snapshot dirtiness becomes true. When only verification-receipt frontmatter of a tracked proof document changes, verification snapshot dirtiness remains false and the snapshot hash is unchanged, while any change to the same document outside receipt frontmatter dirties the snapshot.

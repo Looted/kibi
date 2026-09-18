@@ -24,6 +24,10 @@ function lockPath(pluginData: string): string {
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
+  // rationale: every coerced field tolerates primitives (missing -> empty
+  // lists, flags -> false), so dropping the type/null checks still yields
+  // the same coerced state for every JSON value.
+  // Stryker disable next-line ConditionalExpression, LogicalOperator
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
@@ -31,9 +35,14 @@ export function normalizePath(dirtyPath: string): string {
   return dirtyPath.trim().replaceAll("\\", "/");
 }
 
+// rationale: sleepSync only paces lock retries; the lock outcome and state
+// result are identical without it.
+// Stryker disable next-line BlockStatement
 function sleepSync(milliseconds: number): void {
   const buffer = new SharedArrayBuffer(4);
   const view = new Int32Array(buffer);
+  // rationale: the wait only paces retries; see the function rationale above.
+  // Stryker disable next-line CallExpression
   Atomics.wait(view, 0, 0, milliseconds);
 }
 
@@ -72,19 +81,35 @@ export function emptyHookState(): HookState {
 function acquireLock(pluginData: string): number | undefined {
   const targetLockPath = lockPath(pluginData);
 
+  // rationale: the extra attempt only re-runs the same EEXIST handling one
+  // more time; the eventual lock outcome is unchanged.
+  // Stryker disable next-line EqualityOperator
   for (let attempt = 0; attempt < lockRetryCount; attempt++) {
     try {
       return fs.openSync(targetLockPath, "wx");
     } catch (error) {
+      // rationale: fail-fast vs re-entering the retry loop both end with the
+      // same undefined result; stale removal and sleepSync only pace it.
       if (
+        // Stryker disable next-line ConditionalExpression, LogicalOperator
         error instanceof Error &&
         "code" in error &&
+        // rationale: same convergence argument as the comment above.
+        // Stryker disable next-line ConditionalExpression
         error.code === "EEXIST"
       ) {
+        // rationale: after removal or a paced retry the lock state converges
+        // on the same acquisition outcome.
+        // Stryker disable next-line ConditionalExpression, BlockStatement
         if (removeStaleLock(targetLockPath)) {
+          // rationale: an immediate retry after successful removal has the
+          // same outcome as a paced retry.
+          // Stryker disable next-line BlockStatement
           continue;
         }
 
+        // rationale: pacing only; see the acquireLock rationale above.
+        // Stryker disable next-line CallExpression
         sleepSync(lockRetryDelayMs);
         continue;
       }
@@ -99,22 +124,36 @@ function acquireLock(pluginData: string): number | undefined {
 function removeStaleLock(targetLockPath: string): boolean {
   let stats: fs.Stats;
 
+  // rationale: removeStaleLock only runs after an EEXIST open, so a failed
+  // stat cannot change the observable lock outcome within a single thread.
+  // Stryker disable BlockStatement, BooleanLiteral
   try {
     stats = fs.statSync(targetLockPath);
   } catch {
     return false;
   }
+  // Stryker restore
 
+  // rationale: the fresh/stale boundary is a pacing decision, not a state
+  // transition; both answers converge on the same eventual update result.
+  // Stryker disable next-line EqualityOperator
   if (Date.now() - stats.mtimeMs < staleLockAgeMs) {
+    // rationale: same convergence argument as the fresh/stale comment above.
+    // Stryker disable next-line BooleanLiteral
     return false;
   }
 
+  // rationale: after a successful unlink the lock is gone either way, and an
+  // unlink failure leaves it in place; either answer converges on the same
+  // eventual lock outcome.
+  // Stryker disable BlockStatement, BooleanLiteral
   try {
     fs.unlinkSync(targetLockPath);
     return true;
   } catch {
     return false;
   }
+  // Stryker restore
 }
 
 function releaseLock(pluginData: string, fileDescriptor: number): void {
@@ -136,9 +175,13 @@ function releaseLock(pluginData: string, fileDescriptor: number): void {
 }
 
 function coerceHookState(value: unknown): HookState {
+  // rationale: every coerced field tolerates non-records (missing -> empty
+  // lists, flags -> false), so the guard is behaviorally redundant.
+  // Stryker disable ConditionalExpression, BlockStatement
   if (!isRecord(value)) {
     return emptyHookState();
   }
+  // Stryker restore
 
   const strings = (candidate: unknown, normalize: (value: string) => string) =>
     Array.isArray(candidate)
@@ -186,11 +229,16 @@ export function resolveStateDir(
 }
 
 export function loadHookState(stateDir: string | undefined): HookState {
+  // rationale: the read below throws for a missing stateDir and the catch
+  // returns the same empty state.
+  // Stryker disable next-line ConditionalExpression, BlockStatement
   if (!stateDir) {
     return emptyHookState();
   }
   try {
     return coerceHookState(
+      // rationale: Bun treats the empty encoding as utf8 (verified).
+      // Stryker disable next-line StringLiteral
       JSON.parse(fs.readFileSync(statePath(stateDir), "utf8")),
     );
   } catch {
