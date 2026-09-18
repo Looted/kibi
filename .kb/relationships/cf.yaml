@@ -3,28 +3,28 @@ relationships:
     type: relates_to
     from: ADR-012
     to: ADR-008
-    created_at: "2026-03-16T12:57:51.090Z"
+    created_at: 2026-03-16T12:57:51.090Z
     created_by: migration/adr-017
     source: documentation/adr/ADR-012.md
   - id: rel-e1b1663c954f
     type: relates_to
     from: ADR-012
     to: ADR-009
-    created_at: "2026-03-16T12:57:51.090Z"
+    created_at: 2026-03-16T12:57:51.090Z
     created_by: migration/adr-017
     source: documentation/adr/ADR-012.md
   - id: rel-28578558041b
     type: relates_to
     from: ADR-012
     to: ADR-011
-    created_at: "2026-03-16T12:57:51.090Z"
+    created_at: 2026-03-16T12:57:51.090Z
     created_by: migration/adr-017
     source: documentation/adr/ADR-012.md
   - id: rel-7ee8dbb3ae66
     type: executable_for
     from: SYM-test-packed-fresh-verification-receipts
     to: TEST-kibi-fresh-verification-receipts
-    created_at: "2026-08-15T12:41:40.308Z"
+    created_at: 2026-08-15T12:41:40.308Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
   - type: implements
@@ -157,24 +157,6 @@ relationships:
     from: SYM-quality-inventory-dd324a5a7d94
     to: TEST-004
     created_at: 2026-09-18T07:39:36.100Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-29a870d492cf
-  - type: implements
-    from: SYM-kibi-icons
-    to: REQ-002
-    created_at: 2026-09-18T15:15:36.735Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-9f198f11d07d
-  - type: covered_by
-    from: SYM-kibi-icons
-    to: TEST-agent-kibi-interface-selection
-    created_at: 2026-09-18T15:15:36.742Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-10ceed8a9054
-    created_at: 2026-09-18T07:16:53.386Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-29a870d492cf
