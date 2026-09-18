@@ -3,6 +3,9 @@ title: Status freshness tracks canonical .kb knowledge lanes
 status: active
 id: SCEN-cli-canonical-status
 type: scenario
+links:
+  - type: verified_by
+    target: TEST-cli-sync-discovery-readme-ignore
 ---
 GIVEN a synced workspace whose requirements live under `.kb/requirements/`
 WHEN an agent edits, adds, or deletes a canonical knowledge-lane markdown file without running sync

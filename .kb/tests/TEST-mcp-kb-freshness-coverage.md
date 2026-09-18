@@ -10,6 +10,7 @@ links:
     target: REQ-mcp-kb-freshness
   - type: validates
     target: SCEN-mcp-kb-freshness-coverage
+verification_scope: unit
 ---
 
 Replace the attached branch snapshot during a live MCP session and assert deterministic refresh, one retry for a changing stamp, and fail-closed behavior when reconciliation fails.

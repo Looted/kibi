@@ -4717,6 +4717,8 @@ symbols:
         target: TEST-004
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-rule-registry-single-source
       - type: implements
         target: REQ-core-validation-rules
   - id: SYM-cli-rule-registry-DEFAULT_CHECKS_CONFIG
@@ -4769,11 +4771,14 @@ symbols:
     sourceFile: packages/cli/src/utils/rule-registry.ts
     symbol_role: type-shape
     status: active
+    granularity_reason: config-artifact
     relationships:
       - type: covered_by
         target: TEST-004
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-rule-registry-single-source
       - type: implements
         target: REQ-core-validation-rules
   - id: SYM-cli-rule-registry-RULES
@@ -4807,6 +4812,8 @@ symbols:
         target: TEST-004
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-rule-registry-single-source
       - type: implements
         target: REQ-core-validation-rules
   - id: SYM-cli-rule-registry-validateRuleName
@@ -4829,11 +4836,14 @@ symbols:
     sourceFile: packages/cli/src/utils/rule-registry.ts
     symbol_role: type-shape
     status: active
+    granularity_reason: config-artifact
     relationships:
       - type: covered_by
         target: TEST-004
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-rule-registry-single-source
       - type: implements
         target: REQ-core-validation-rules
   - id: SYM-cli-run-aggregated-checks
@@ -4905,7 +4915,8 @@ symbols:
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable resource examples
+    title: predicate guidance loads a canonical decision tree with immutable
+      resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -34765,6 +34776,15 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-012
+  - id: SYM-e2e-test-008
+    title: init-sync-check.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/init-sync-check.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-008
   - id: SYM-e2e-test-014
     title: release-package-contract.test
     status: active
@@ -35919,9 +35939,12 @@ symbols:
     status: active
     sourceFile: scripts/run-packed-e2e.mjs
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
       - type: covered_by
         target: TEST-proof-runner-integrity
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-quality-compile-packed
@@ -36080,7 +36103,10 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-004
       - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
@@ -36090,7 +36116,10 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-004
       - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
@@ -36100,7 +36129,10 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-004
       - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
@@ -36110,7 +36142,10 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-004
       - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
@@ -36120,7 +36155,10 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-004
       - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
@@ -36130,7 +36168,10 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-004
       - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
@@ -36140,7 +36181,10 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-004
       - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
@@ -36150,7 +36194,10 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-004
       - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
@@ -36160,7 +36207,10 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-004
       - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
@@ -36170,7 +36220,10 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-004
       - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
@@ -36180,7 +36233,10 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-004
       - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
@@ -36190,7 +36246,10 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-004
       - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
@@ -36200,7 +36259,10 @@ symbols:
     sourceFile: packages/cli/src/commands/check.ts
     status: active
     symbol_role: behavioral
+    granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-004
       - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
