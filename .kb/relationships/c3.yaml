@@ -195,3 +195,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4b73c32e6991
+  - type: covered_by
+    from: SYM-handleKbSymbolsRefresh
+    to: TEST-agent-kibi-interface-selection
+    created_at: 2026-09-18T15:13:28.384Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a72863b8f588

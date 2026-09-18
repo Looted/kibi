@@ -104,3 +104,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5d8c7dc7f656
+  - type: covered_by
+    from: SYM-classifyDiagnosticError
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-09-18T15:07:51.703Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9be3d68d7cca

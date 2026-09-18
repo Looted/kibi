@@ -195,3 +195,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d92313d9cc73
+  - type: covered_by
+    from: SYM-redactDiagnosticArgs
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-09-18T15:22:22.787Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc8fb3fc63c1

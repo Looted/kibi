@@ -265,3 +265,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a0f815c1c76c
+  - type: covered_by
+    from: SYM-ExtractedRequirementClaim
+    to: TEST-005
+    created_at: 2026-09-18T14:54:37.342Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d20f9cfa6c57
+  - type: covered_by
+    from: SYM-ExtractedRequirementClaim
+    to: TEST-e2e-mcp-model-requirement
+    created_at: 2026-09-18T14:54:37.358Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e28465151287

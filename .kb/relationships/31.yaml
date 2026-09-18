@@ -164,3 +164,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6360387dedfd
+  - type: covered_by
+    from: SYM-DEFAULT-TOOLS-RUNTIME
+    to: TEST-agent-kibi-interface-selection
+    created_at: 2026-09-18T14:49:42.522Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0dc68f371109

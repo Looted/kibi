@@ -104,3 +104,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-727b389f7bc3
+  - type: covered_by
+    from: SYM-handleKbDelete
+    to: TEST-mcp-upsert-coverage
+    created_at: 2026-09-18T15:11:47.616Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98d7671a487a

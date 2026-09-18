@@ -290,3 +290,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2c2d09d032f2
+  - type: covered_by
+    from: SYM-buildDiagnosticToolCall
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-09-18T15:07:22.425Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f076f09b478f

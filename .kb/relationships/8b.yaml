@@ -223,3 +223,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f240351c0f88
+  - type: covered_by
+    from: SYM-UpsertResult
+    to: TEST-mcp-upsert-coverage
+    created_at: 2026-09-18T15:04:22.922Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1781640cbdf6
+  - type: covered_by
+    from: SYM-appendUsageLogLine
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-09-18T15:06:49.624Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cfc9eceb4db2

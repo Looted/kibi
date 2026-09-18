@@ -188,3 +188,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1fb79b76d76c
+  - type: covered_by
+    from: SYM-refreshCoordinatesForSymbolId
+    to: TEST-agent-kibi-interface-selection
+    created_at: 2026-09-18T15:22:51.408Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3bc7b1ae7b8

@@ -251,3 +251,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2cd52e247349
+  - type: covered_by
+    from: SYM-modeling-requirement-utils-normalizeOptionalString
+    to: TEST-e2e-mcp-model-requirement
+    created_at: 2026-09-18T15:20:05.429Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-932b35fc97bf

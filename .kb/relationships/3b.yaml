@@ -265,3 +265,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e1b8b9893c86
+  - type: covered_by
+    from: SYM-SkillsLoadResult
+    to: TEST-mcp-skills-resource-discoverability
+    created_at: 2026-09-18T14:57:58.245Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4c3a593c9e1

@@ -171,3 +171,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bd189f049edc
+  - type: covered_by
+    from: SYM-ToolCallPayload
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-09-18T15:01:32.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dbbf2d1a4ce4

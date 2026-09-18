@@ -202,3 +202,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a93eb119c295
+  - type: covered_by
+    from: SYM-deriveDiagnosticRetryKey
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-09-18T15:09:00.954Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d0f6256d133

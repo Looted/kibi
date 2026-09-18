@@ -111,3 +111,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3cf421f1cb01
+  - type: covered_by
+    from: SYM-handleKbSkillsList
+    to: TEST-mcp-skills-resource-discoverability
+    created_at: 2026-09-18T15:12:52.626Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ba5d3c12af7

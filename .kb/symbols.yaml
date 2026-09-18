@@ -2236,9 +2236,12 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/server/tools.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
@@ -2486,11 +2489,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/server/diagnostic-usage.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
       - type: implements
         target: REQ-002
   - id: SYM-appendDiagnosticSuccessUsage
@@ -2498,11 +2504,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/server/diagnostic-usage.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
       - type: implements
         target: REQ-002
   - id: SYM-appendUsageLogLine
@@ -2510,11 +2519,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/diagnostics.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
       - type: implements
         target: REQ-002
   - id: SYM-ArtifactPath
@@ -2859,9 +2871,12 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/server/tool-types.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -2921,11 +2936,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
       - type: implements
         target: REQ-002
   - id: SYM-buildDirtyRelevantFingerprint
@@ -3121,6 +3139,8 @@ symbols:
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
       - type: implements
         target: REQ-002
   - id: SYM-classifyKibiImpactEvidence
@@ -6738,9 +6758,12 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/server/tools-runtime.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -6759,9 +6782,12 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/server/tool-types.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -6780,11 +6806,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/tools/delete.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
       - type: implements
         target: REQ-002
   - id: SYM-DeleteResult
@@ -6792,11 +6821,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/tools/delete.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
       - type: implements
         target: REQ-002
   - id: SYM-deriveDiagnosticFields
@@ -6833,6 +6865,8 @@ symbols:
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
       - type: implements
         target: REQ-002
   - id: SYM-deriveDiagnosticRetryKey
@@ -6840,11 +6874,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
       - type: implements
         target: REQ-002
   - id: SYM-deriveFileOperationReminder
@@ -6979,11 +7016,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/diagnostics.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
       - type: implements
         target: REQ-002
   - id: SYM-DIAGNOSTIC_TELEMETRY_SCHEMA
@@ -6991,11 +7031,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/diagnostics.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
       - type: implements
         target: REQ-002
   - id: SYM-DiagnosticErrorFields
@@ -7003,11 +7046,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/diagnostics.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
       - type: implements
         target: REQ-002
   - id: SYM-DiagnosticToolCall
@@ -7015,11 +7061,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/diagnostics.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
       - type: implements
         target: REQ-002
   - id: SYM-diffMirror
@@ -7212,9 +7261,12 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/server/docs.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -7394,9 +7446,12 @@ symbols:
     status: active
     sourceFile: packages/cli/src/operations/modeling/requirement-modeler.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-e2e-mcp-model-requirement
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -7627,6 +7682,8 @@ symbols:
       - type: covered_by
         target: TEST-005
       - type: covered_by
+        target: TEST-e2e-mcp-model-requirement
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-002
@@ -7708,9 +7765,12 @@ symbols:
     status: active
     sourceFile: packages/cli/src/operations/modeling/requirement-modeler.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-e2e-mcp-model-requirement
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -7737,11 +7797,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
       - type: implements
         target: REQ-002
   - id: SYM-FailureClassification
@@ -8169,9 +8232,12 @@ symbols:
     status: active
     sourceFile: packages/cli/src/operations/modeling/model-requirement.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-e2e-mcp-model-requirement
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -8216,11 +8282,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/tools/delete.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
       - type: implements
         target: REQ-002
   - id: SYM-handleKbModelRequirement
@@ -8228,9 +8297,12 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/tools/model-requirement.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-e2e-mcp-model-requirement
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -8251,11 +8323,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/tools/skills.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-mcp-skills-resource-discoverability
       - type: implements
         target: REQ-002
   - id: SYM-handleKbSkillsLoad
@@ -8310,9 +8385,12 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/tools/symbols.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -8331,6 +8409,8 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-mcp-relationship-preflight
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
       - type: implements
         target: REQ-002
       - type: implements
@@ -8363,6 +8443,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-e2e-prolog-library-adoption
       - type: covered_by
@@ -8667,11 +8749,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/diagnostics.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
       - type: implements
         target: REQ-002
   - id: SYM-injectPrompt
@@ -8940,9 +9025,12 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/server/json-schema-to-zod.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
@@ -9133,9 +9221,12 @@ symbols:
     status: active
     sourceFile: packages/mcp/bin/kibi-mcp
     granularity_reason: module-level-behavior
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
@@ -10127,6 +10218,8 @@ symbols:
       - type: covered_by
         target: TEST-005
       - type: covered_by
+        target: TEST-agent-kibi-interface-selection
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-mcp-kb-freshness
@@ -10254,6 +10347,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-e2e-prolog-library-adoption
       - type: covered_by
@@ -11484,6 +11579,8 @@ symbols:
       - type: covered_by
         target: TEST-005
       - type: covered_by
+        target: TEST-e2e-mcp-model-requirement
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-002
@@ -11496,6 +11593,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-e2e-mcp-model-requirement
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -11510,6 +11609,8 @@ symbols:
       - type: covered_by
         target: TEST-005
       - type: covered_by
+        target: TEST-e2e-mcp-model-requirement
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-002
@@ -11522,6 +11623,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-e2e-mcp-model-requirement
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -11536,6 +11639,8 @@ symbols:
       - type: covered_by
         target: TEST-005
       - type: covered_by
+        target: TEST-e2e-mcp-model-requirement
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-002
@@ -11548,6 +11653,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-e2e-mcp-model-requirement
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -11562,6 +11669,8 @@ symbols:
       - type: covered_by
         target: TEST-005
       - type: covered_by
+        target: TEST-e2e-mcp-model-requirement
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-002
@@ -11574,6 +11683,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-e2e-mcp-model-requirement
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -11588,6 +11699,8 @@ symbols:
       - type: covered_by
         target: TEST-005
       - type: covered_by
+        target: TEST-e2e-mcp-model-requirement
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-002
@@ -11599,6 +11712,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-e2e-mcp-model-requirement
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -11627,6 +11742,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-e2e-mcp-model-requirement
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -13647,11 +13764,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
       - type: implements
         target: REQ-002
   - id: SYM-ReceiptCodeScopeEntry
@@ -13670,9 +13790,12 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/tools/symbols.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -13701,6 +13824,8 @@ symbols:
       - type: covered_by
         target: TEST-005
       - type: covered_by
+        target: TEST-agent-kibi-interface-selection
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-002
@@ -13709,9 +13834,12 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/server/tool-registration.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
@@ -13854,6 +13982,8 @@ symbols:
       - type: covered_by
         target: TEST-005
       - type: covered_by
+        target: TEST-e2e-mcp-model-requirement
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-002
@@ -13866,6 +13996,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-e2e-mcp-model-requirement
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -13928,9 +14060,12 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/server/tools-runtime.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -14001,9 +14136,12 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/tools/symbols.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -15033,9 +15171,12 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/server/tools-runtime.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -15045,9 +15186,12 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/server/docs.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
@@ -15067,6 +15211,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -22380,11 +22526,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/tools/skills.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-mcp-skills-resource-discoverability
       - type: implements
         target: REQ-002
   - id: SYM-skillsListCommand
@@ -22402,11 +22551,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/tools/skills.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-mcp-skills-resource-discoverability
       - type: implements
         target: REQ-002
   - id: SYM-SkillsLoadArgs
@@ -22414,11 +22566,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/tools/skills.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-mcp-skills-resource-discoverability
       - type: implements
         target: REQ-002
   - id: SYM-skillsLoadCommand
@@ -22436,11 +22591,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/tools/skills.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-mcp-skills-resource-discoverability
       - type: implements
         target: REQ-002
   - id: SYM-SkillsReadArgs
@@ -22448,11 +22606,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/tools/skills.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-mcp-skills-resource-discoverability
       - type: implements
         target: REQ-002
   - id: SYM-skillsReadCommand
@@ -22470,11 +22631,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/tools/skills.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-mcp-skills-resource-discoverability
       - type: implements
         target: REQ-002
   - id: SYM-skillsValidateCommand
@@ -22793,9 +22957,12 @@ symbols:
     status: active
     sourceFile: packages/cli/src/operations/modeling/requirement-applyplan.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-e2e-mcp-model-requirement
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -22846,6 +23013,8 @@ symbols:
       - REQ-mcp-suggest-predicates
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-e2e-mcp-model-requirement
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
@@ -23021,9 +23190,12 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/tools/symbols.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -23033,9 +23205,12 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/tools/symbols.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -23394,11 +23569,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/tools/upsert.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
       - type: implements
         target: REQ-002
   - id: SYM-test-predicate-first-graph
@@ -23516,11 +23694,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/diagnostics.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-telemetry-acceptance-gate
       - type: implements
         target: REQ-002
   - id: SYM-ToolConfig
@@ -23528,9 +23709,12 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/server/tool-types.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -23540,9 +23724,12 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/server/tool-types.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -23552,9 +23739,12 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/server/tool-types.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -23564,11 +23754,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/tools-config.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-010
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
@@ -23657,11 +23850,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/tools/upsert.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
       - type: implements
         target: REQ-002
   - id: SYM-UpsertResult
@@ -23669,11 +23865,14 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/tools/upsert.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
       - type: implements
         target: REQ-002
   - id: SYM-usage-metrics-command
@@ -23897,9 +24096,12 @@ symbols:
     status: active
     sourceFile: packages/mcp/src/tools-config.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -24042,9 +24244,12 @@ symbols:
     status: active
     sourceFile: packages/cli/src/operations/modeling/requirement-applyplan.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-e2e-mcp-model-requirement
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements

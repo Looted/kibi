@@ -118,3 +118,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ccbcfed65135
+  - type: covered_by
+    from: SYM-SkillsListResult
+    to: TEST-mcp-skills-resource-discoverability
+    created_at: 2026-09-18T14:56:48.961Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3aa2390c0eeb
+  - type: covered_by
+    from: SYM-requirement-normalize-text
+    to: TEST-e2e-mcp-model-requirement
+    created_at: 2026-09-18T15:24:55.096Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d7f12c35f9f
