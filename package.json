@@ -7,12 +7,11 @@
   "private": false,
   "license": "AGPL-3.0-or-later",
   "author": "Piotr Franczyk",
-  "workspaces": [
-    "packages/*"
-  ],
+  "workspaces": ["packages/*"],
   "scripts": {
     "test": "bun run test:unit && bun run test:e2e:local",
     "test:unit": "bun ./test/root.test.ts",
+    "test:mutation": "stryker run",
     "test:coverage:unit": "bun run scripts/run-unit-coverage.ts",
     "proof:run": "bun packages/cli/bin/kibi prove --all",
     "proof:baseline": "node scripts/check-proof-baseline.mjs",
@@ -86,6 +85,8 @@
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",
     "@changesets/cli": "^2.27.12",
+    "@hughescr/stryker-bun-runner": "^1.4.0",
+    "@stryker-mutator/core": "^10.0.0",
     "@types/node": "^25.2.3",
     "ajv": "^8.17.1",
     "ajv-formats": "2.1.1",

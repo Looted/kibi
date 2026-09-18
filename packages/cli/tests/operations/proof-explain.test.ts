@@ -108,7 +108,9 @@ describe("proof explain projection", () => {
     expect(requiredIndex).toBeGreaterThanOrEqual(0);
     expect(executableIndex).toBeGreaterThan(requiredIndex);
     expect(coveredIndex).toBeGreaterThan(executableIndex);
-    expect(text).not.toMatch(/REQ-example -> SCEN-example -> TEST-example -> SYM-prod/);
+    expect(text).not.toMatch(
+      /REQ-example -> SCEN-example -> TEST-example -> SYM-prod/,
+    );
   });
 
   test("symbol view projects implementing requirement proofs", () => {

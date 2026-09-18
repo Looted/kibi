@@ -19,7 +19,13 @@ export type HookInput = {
   status?: HookStopStatus;
 };
 
+// rationale: parseHookInput degrades every non-record to { event: "" };
+// dropping the typeof check still yields the same parse for all inputs.
+// Stryker disable next-line ConditionalExpression
 function isRecord(value: unknown): value is Record<string, unknown> {
+  // rationale: parseHookInput degrades every non-record to { event: "" };
+  // dropping the typeof check still yields the same parse for all inputs.
+  // Stryker disable next-line ConditionalExpression
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
@@ -60,10 +66,6 @@ function readStringArray(
 
 function normalizeEventName(event: string): string {
   const trimmed = event.trim();
-  if (trimmed.length === 0) {
-    return "";
-  }
-
   return trimmed.charAt(0).toLowerCase() + trimmed.slice(1);
 }
 
@@ -145,7 +147,7 @@ export async function readStdin(): Promise<string> {
   const chunks: Buffer[] = [];
 
   for await (const chunk of process.stdin) {
-    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+    chunks.push(Buffer.from(chunk));
   }
 
   return Buffer.concat(chunks).toString("utf8");

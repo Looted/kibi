@@ -131,7 +131,10 @@ describe("runUnitCoverage mocked shards", () => {
       ).toContain("SF:packages/demo/src/main.ts");
       expect(
         readFileSync(
-          path.join(nestedCoverage.coverageDir, "lcov.skillopt.fixture-kb.info"),
+          path.join(
+            nestedCoverage.coverageDir,
+            "lcov.skillopt.fixture-kb.info",
+          ),
           "utf8",
         ),
       ).toContain("SF:packages/demo/src/main.ts");

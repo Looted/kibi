@@ -76,3 +76,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d6d54632076e
+  - type: covered_by
+    from: SYM-normalizeResourcePathRuntime
+    to: TEST-mcp-skills-resource-discoverability
+    created_at: 2026-09-17T21:09:04.352Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-da059022bfab
