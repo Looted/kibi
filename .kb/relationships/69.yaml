@@ -132,3 +132,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-de80596e8b3a
+  - type: covered_by
+    from: SYM-cli-rule-registry-Violation
+    to: TEST-rule-registry-single-source
+    created_at: 2026-09-18T07:26:06.951Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1dbc17e51b99

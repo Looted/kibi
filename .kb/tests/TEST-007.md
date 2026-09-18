@@ -14,6 +14,7 @@ links:
     target: REQ-core-persistence
   - type: validates
     target: SCEN-001
+verification_scope: unit
 ---
 
 Calls `kb_attach/1` on a temp RDF store, then `kb_assert_entity/2` with a valid

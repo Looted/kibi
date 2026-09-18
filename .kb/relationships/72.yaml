@@ -237,3 +237,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-01b6d067fddc
+  - type: covered_by
+    from: SYM-cli-rule-registry-SymbolTraceabilityOptions
+    to: TEST-rule-registry-single-source
+    created_at: 2026-09-18T07:25:43.737Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f44b7c18ec3c
