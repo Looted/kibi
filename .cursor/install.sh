@@ -80,6 +80,20 @@ if [ -f .opencode/package.json ] || [ -f .opencode/bun.lock ] || [ -f .opencode/
   (cd .opencode && bun install --frozen-lockfile)
 fi
 
+# 5. Build the workspace packages. Kibi dogfoods itself in this repo, and the
+#    dogfooding surfaces all load compiled output from the git-ignored dist/
+#    directories, so a fresh checkout is non-functional until they are built:
+#      * Cursor agent hooks run `node packages/cursor/dist/hook-runner.js` on
+#        session start and every tool call (see .cursor/hooks.json); they have
+#        no build fallback and hard-fail when dist/ is absent.
+#      * The Kibi MCP server resolver requires packages/mcp/dist
+#        (see .cursor/mcp.json -> packages/cursor/scripts/worktree-resolver.sh).
+#      * The `kibi` CLI bin loads packages/cli/dist/cli.js, which also backs the
+#        pre-commit `kibi check --staged` traceability gate.
+#    `bun run build` is idempotent and re-runnable, matching CONTRIBUTING.md.
+echo "==> bun run build (workspace packages for kibi dogfooding)"
+bun run build
+
 echo "==> toolchain versions"
 swipl --version
 bwrap --version
