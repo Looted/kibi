@@ -216,3 +216,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b9446f4c1b14
+  - type: executable_for
+    from: SYM-e2e-test-cli-canonical-status-freshness
+    to: TEST-e2e-status-freshness
+    created_at: 2026-09-18T06:20:55.165Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e01a80c10699

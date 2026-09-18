@@ -12,7 +12,7 @@ export type {
 } from "../../../operations/proof/ingest-proof.js";
 export { executeIngestProof } from "../../../operations/proof/ingest-proof.js";
 
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export const ingestProofSpec = {
   name: "kb_ingest_proof",
   cliName: "ingest-proof",

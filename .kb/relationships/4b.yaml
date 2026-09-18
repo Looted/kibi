@@ -230,3 +230,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-73fb083e03e5
+  - type: covered_by
+    from: SYM-syncCommand
+    to: TEST-007
+    created_at: 2026-09-18T07:45:04.001Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2f268f590c5e
+  - type: implements
+    from: SYM-syncCommand
+    to: REQ-branch-store-recovery-v2
+    created_at: 2026-09-18T07:45:04.020Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c53444cff275
+  - type: implements
+    from: SYM-syncCommand
+    to: REQ-core-extractors
+    created_at: 2026-09-18T07:45:04.028Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5417cde36c1b
+  - type: implements
+    from: SYM-syncCommand
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-18T07:45:04.036Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d9e08abcb7e1
+  - type: implements
+    from: SYM-syncCommand
+    to: REQ-kibi-conservative-requirement-proof
+    created_at: 2026-09-18T07:45:04.041Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-01f4375318ca
+  - type: implements
+    from: SYM-syncCommand
+    to: REQ-kibi-proposition-complete-ingestion
+    created_at: 2026-09-18T07:45:04.047Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6a5bea6f4de7
+  - type: covered_by
+    from: SYM-syncCommand
+    to: TEST-e2e-coverage-proof-status
+    created_at: 2026-09-18T07:45:04.053Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8c6b9353ac8

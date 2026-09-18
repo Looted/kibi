@@ -2,8 +2,8 @@
 id: SCEN-prolog-library-adoption
 title: Prolog library adoption preserves local KB behavior while exposing bounded remote SPARQL
 status: active
-created_at: 2026-06-02T00:00:00Z
-updated_at: 2026-06-02T00:00:00Z
+created_at: 2026-06-02T00:00:00.000Z
+updated_at: 2026-06-02T00:00:00.000Z
 source: docs/mcp-reference.md
 tags:
   - prolog
@@ -15,6 +15,9 @@ links:
     target: TEST-prolog-library-adoption-core
   - type: verified_by
     target: TEST-prolog-library-adoption-mcp
+  - type: verified_by
+    target: TEST-e2e-prolog-library-adoption
+type: scenario
 ---
 
 Given a branch-local Kibi knowledge base backed by Prolog

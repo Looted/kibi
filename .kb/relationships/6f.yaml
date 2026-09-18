@@ -132,3 +132,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0256ccf6aeca
+  - type: covered_by
+    from: SYM-core-entity-property-schema
+    to: TEST-kibi-entity-relationship-schema-roundtrip
+    created_at: 2026-09-18T07:09:15.918Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec41d5b469c1
+  - type: covered_by
+    from: SYM-core-entity-property-schema
+    to: TEST-kibi-legacy-migration-preview-v2
+    created_at: 2026-09-18T07:09:15.924Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb669314849d
+  - type: implements
+    from: SYM-core-entity-property-schema
+    to: REQ-004
+    created_at: 2026-09-18T07:09:15.929Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-33af0eccbd53
+  - type: implements
+    from: SYM-core-entity-property-schema
+    to: REQ-kibi-conservative-requirement-proof
+    created_at: 2026-09-18T07:09:15.933Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d90dad9c4853
+  - type: implements
+    from: SYM-core-entity-property-schema
+    to: REQ-kibi-legacy-migration-preview-v2
+    created_at: 2026-09-18T07:09:15.937Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbfdd9e30da2
+  - type: implements
+    from: SYM-core-entity-property-schema
+    to: REQ-kibi-proposition-complete-ingestion
+    created_at: 2026-09-18T07:09:15.941Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb252217e8fe
+  - type: covered_by
+    from: SYM-core-entity-property-schema
+    to: TEST-e2e-coverage-proof-status
+    created_at: 2026-09-18T07:09:15.944Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16793759dbcc
+  - type: implements
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-planstep
+    to: REQ-kibi-change-to-proof-plan-compiler
+    created_at: 2026-09-18T07:17:32.699Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09f2f1408c50
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-planstep
+    to: TEST-e2e-plan-compiler-hash
+    created_at: 2026-09-18T07:17:32.711Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f79a532c054b
+  - type: executable_for
+    from: SYM-e2e-test-root-batch-diagnostics
+    to: TEST-e2e-root-batch-diagnostics
+    created_at: 2026-09-18T12:49:24.969Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-637e091d0898

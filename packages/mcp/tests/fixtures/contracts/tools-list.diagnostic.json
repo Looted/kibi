@@ -4114,66 +4114,103 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "additionalProperties": false,
-            "properties": {
-              "count": {
-                "type": "integer"
-              },
-              "diagnostics": {
-                "items": {
-                  "additionalProperties": true,
-                  "type": "object"
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "count": {
+                    "type": "integer"
+                  },
+                  "diagnostics": {
+                    "items": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "extractedSymbols": {
+                    "items": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "impactDiagnostics": {
+                    "items": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "linkedEntities": {
+                    "items": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "migrationPlan": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "nextActions": {
+                    "items": {},
+                    "type": "array"
+                  },
+                  "qualityDiagnostics": {
+                    "items": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "sourceFiles": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "violations": {
+                    "items": {},
+                    "type": "array"
+                  }
                 },
-                "type": "array"
-              },
-              "extractedSymbols": {
-                "items": {
-                  "additionalProperties": true,
-                  "type": "object"
-                },
-                "type": "array"
-              },
-              "impactDiagnostics": {
-                "items": {
-                  "additionalProperties": true,
-                  "type": "object"
-                },
-                "type": "array"
-              },
-              "linkedEntities": {
-                "items": {
-                  "additionalProperties": true,
-                  "type": "object"
-                },
-                "type": "array"
-              },
-              "migrationPlan": {
-                "additionalProperties": true,
                 "type": "object"
               },
-              "nextActions": {
-                "items": {},
-                "type": "array"
-              },
-              "qualityDiagnostics": {
-                "items": {
-                  "additionalProperties": true,
-                  "type": "object"
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "jobId": {
+                    "type": "string"
+                  },
+                  "jobVersion": {
+                    "const": "kibi.job.v1"
+                  },
+                  "kibiProtocol": {
+                    "const": 1
+                  },
+                  "pollWith": {
+                    "const": "kb_job_status"
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "tool": {
+                    "type": "string"
+                  }
                 },
-                "type": "array"
-              },
-              "sourceFiles": {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              "violations": {
-                "items": {},
-                "type": "array"
+                "required": [
+                  "kibiProtocol",
+                  "jobVersion",
+                  "jobId",
+                  "tool",
+                  "status",
+                  "pollWith"
+                ],
+                "type": "object"
               }
-            },
-            "type": "object"
+            ],
+            "description": "Synchronous check payload, or a kibi.job.v1 receipt when async:true detached the check into a background job (poll kb_job_status with the jobId)."
           },
           "diagnostics": {
             "items": {

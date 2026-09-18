@@ -3,12 +3,17 @@ id: SCEN-root-suite-batch-diagnostics
 title: Curated unit suite surfaces actionable batch failure diagnostics
 type: scenario
 status: active
-created_at: 2026-07-27T10:00:00Z
-updated_at: 2026-07-27T10:00:00Z
-tags: [testing, diagnostics, root-suite]
+created_at: 2026-07-27T10:00:00.000Z
+updated_at: 2026-07-27T10:00:00.000Z
+tags:
+  - testing
+  - diagnostics
+  - root-suite
 links:
   - type: verified_by
     target: TEST-root-suite-batch-diagnostics
+  - type: verified_by
+    target: TEST-e2e-root-batch-diagnostics
 ---
 
 **Given** the curated unit suite is configured with per-batch timeouts

@@ -167,3 +167,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b7e79b00be19
+  - type: implements
+    from: SYM-core-sparql-client
+    to: REQ-prolog-library-adoption
+    created_at: 2026-09-18T07:11:38.957Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-403e513f46e5
+  - type: covered_by
+    from: SYM-core-sparql-client
+    to: TEST-e2e-prolog-library-adoption
+    created_at: 2026-09-18T07:11:38.964Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6f80a644e4d2

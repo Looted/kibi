@@ -255,3 +255,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a420347c6fd2
+  - type: covered_by
+    from: SYM-COVERAGE_SHARDS
+    to: TEST-scripts-unit-coverage-runner
+    created_at: 2026-09-18T08:11:59.327Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f4a996ad83d9
+  - type: implements
+    from: SYM-COVERAGE_SHARDS
+    to: REQ-root-suite-batch-diagnostics
+    created_at: 2026-09-18T08:11:59.341Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f20cfafd845a
+  - type: covered_by
+    from: SYM-COVERAGE_SHARDS
+    to: TEST-e2e-root-batch-diagnostics
+    created_at: 2026-09-18T08:11:59.351Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d51e52a87ca

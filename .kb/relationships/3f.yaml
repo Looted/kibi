@@ -230,3 +230,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-82035f5d8c2c
+  - type: implements
+    from: SYM-kibi-script-change-to-proof-eval-ts-compileevaluation
+    to: REQ-kibi-change-to-proof-evaluation
+    created_at: 2026-09-18T07:20:27.738Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30fa129f646f
+  - type: covered_by
+    from: SYM-kibi-script-change-to-proof-eval-ts-compileevaluation
+    to: TEST-kibi-change-to-proof-evaluation-live
+    created_at: 2026-09-18T07:20:27.752Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-666da953d906
+  - type: covered_by
+    from: SYM-quality-inventory-171f2ce53251
+    to: TEST-004
+    created_at: 2026-09-18T07:34:18.149Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2cd52e247349

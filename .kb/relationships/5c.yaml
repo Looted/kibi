@@ -195,3 +195,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c73248875a69
+  - type: implements
+    from: SYM-legacy-migration-plan-build-from-context
+    to: REQ-kibi-legacy-migration-preview
+    created_at: 2026-09-18T07:25:01.901Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7c196decc30
+  - type: implements
+    from: SYM-legacy-migration-plan-build-from-context
+    to: REQ-kibi-legacy-migration-preview-v2
+    created_at: 2026-09-18T07:25:01.913Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57897836fa3d
+  - type: covered_by
+    from: SYM-legacy-migration-plan-build-from-context
+    to: TEST-kibi-legacy-migration-preview
+    created_at: 2026-09-18T07:25:01.921Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3b3f0f95c4f
+  - type: covered_by
+    from: SYM-legacy-migration-plan-build-from-context
+    to: TEST-kibi-legacy-migration-preview-v2
+    created_at: 2026-09-18T07:25:01.928Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee28df23e38d

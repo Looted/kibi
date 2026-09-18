@@ -195,3 +195,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-097170146dd5
+  - type: covered_by
+    from: SYM-auto-1861120B3765
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-09-18T06:53:54.099Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce2733f7435c
+  - type: covered_by
+    from: SYM-auto-1861120B3765
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-18T06:53:54.117Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3e85a9031a4

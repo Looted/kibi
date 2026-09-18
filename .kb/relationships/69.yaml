@@ -132,3 +132,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-de80596e8b3a
+  - type: covered_by
+    from: SYM-cli-rule-registry-Violation
+    to: TEST-004
+    created_at: 2026-09-18T07:06:25.854Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d9a3c224440
+  - type: implements
+    from: SYM-cli-rule-registry-Violation
+    to: REQ-core-validation-rules
+    created_at: 2026-09-18T07:06:25.877Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56c78490d6a1
+  - type: covered_by
+    from: SYM-cli-rule-registry-Violation
+    to: TEST-rule-registry-single-source
+    created_at: 2026-09-18T07:06:25.888Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1dbc17e51b99
+  - type: implements
+    from: SYM-core-requirement-proof
+    to: REQ-kibi-conservative-requirement-proof
+    created_at: 2026-09-18T07:11:14.769Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66cda45697d9
+  - type: covered_by
+    from: SYM-core-requirement-proof
+    to: TEST-e2e-coverage-proof-status
+    created_at: 2026-09-18T07:11:14.776Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d6129b4e67f3

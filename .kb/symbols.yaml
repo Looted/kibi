@@ -833,6 +833,8 @@ symbols:
       - type: covered_by
         target: TEST-cli-canonical-runtime
       - type: covered_by
+        target: TEST-e2e-plan-compiler-hash
+      - type: covered_by
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
@@ -851,6 +853,8 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-e2e-plan-compiler-hash
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-kibi-change-to-proof-plan-compiler
@@ -860,6 +864,8 @@ symbols:
     symbol_role: type-shape
     status: active
     relationships:
+      - type: covered_by
+        target: TEST-e2e-plan-compiler-hash
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -872,6 +878,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-plan-compiler-hash
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-kibi-change-to-proof-plan-compiler
@@ -882,6 +890,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-plan-compiler-hash
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -894,6 +904,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-plan-compiler-hash
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-kibi-change-to-proof-plan-compiler
@@ -901,74 +913,98 @@ symbols:
     title: CompileIntentArgs
     sourceFile: packages/cli/src/operations/planning/compile-intent.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-e2e-plan-compiler-hash
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
   - id: SYM-kibi-cli-src-operations-planning-compile-intent-ts-scenariodraft
     title: ScenarioDraft
     sourceFile: packages/cli/src/operations/planning/compile-intent.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-e2e-plan-compiler-hash
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
   - id: SYM-kibi-cli-src-operations-planning-compile-intent-ts-testdraft
     title: TestDraft
     sourceFile: packages/cli/src/operations/planning/compile-intent.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-e2e-plan-compiler-hash
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
   - id: SYM-kibi-cli-src-operations-planning-compile-intent-ts-proposaldecision
     title: ProposalDecision
     sourceFile: packages/cli/src/operations/planning/compile-intent.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-e2e-plan-compiler-hash
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
   - id: SYM-kibi-cli-src-operations-planning-compile-intent-ts-contradictionwitness
     title: ContradictionWitness
     sourceFile: packages/cli/src/operations/planning/compile-intent.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-e2e-plan-compiler-hash
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
   - id: SYM-kibi-cli-src-operations-planning-compile-intent-ts-traceabilityproposal
     title: TraceabilityProposal
     sourceFile: packages/cli/src/operations/planning/compile-intent.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-e2e-plan-compiler-hash
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
   - id: SYM-kibi-cli-src-operations-planning-compile-intent-ts-planstep
     title: PlanStep
     sourceFile: packages/cli/src/operations/planning/compile-intent.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-e2e-plan-compiler-hash
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
   - id: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compileplanv1
     title: CompilePlanV1
     sourceFile: packages/cli/src/operations/planning/compile-intent.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-e2e-plan-compiler-hash
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
   - id: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compile-plan-version
     title: COMPILE_PLAN_VERSION
     sourceFile: packages/cli/src/operations/planning/compile-intent.ts
@@ -976,6 +1012,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-plan-compiler-hash
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -988,6 +1026,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-plan-compiler-hash
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-kibi-change-to-proof-plan-compiler
@@ -998,6 +1038,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-plan-compiler-hash
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -1011,6 +1053,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation-live
       - type: implements
         target: REQ-kibi-change-to-proof-evaluation
   - id: SYM-kibi-script-change-to-proof-eval-ts-evaluatesearch
@@ -1022,6 +1066,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation-live
       - type: implements
         target: REQ-kibi-change-to-proof-evaluation
   - id: SYM-kibi-script-change-to-proof-eval-ts-evaluatecompile
@@ -1033,71 +1079,94 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation-live
       - type: implements
         target: REQ-kibi-change-to-proof-evaluation
   - id: SYM-kibi-script-change-to-proof-eval-ts-searchgoldcase
     title: SearchGoldCase
     sourceFile: scripts/change-to-proof-eval.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-change-to-proof-evaluation
       - type: covered_by
         target: TEST-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation-live
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
   - id: SYM-kibi-script-change-to-proof-eval-ts-searchevaluation
     title: SearchEvaluation
     sourceFile: scripts/change-to-proof-eval.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-change-to-proof-evaluation
       - type: covered_by
         target: TEST-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation-live
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
   - id: SYM-kibi-script-change-to-proof-eval-ts-compilegoldcase
     title: CompileGoldCase
     sourceFile: scripts/change-to-proof-eval.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-change-to-proof-evaluation
       - type: covered_by
         target: TEST-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation-live
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
   - id: SYM-kibi-script-change-to-proof-eval-ts-compileevaluation
     title: CompileEvaluation
     sourceFile: scripts/change-to-proof-eval.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-change-to-proof-evaluation
       - type: covered_by
         target: TEST-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation-live
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
   - id: SYM-kibi-script-change-to-proof-eval-ts-searchcandidate
     title: SearchCandidate
     sourceFile: scripts/change-to-proof-eval.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-change-to-proof-evaluation
       - type: covered_by
         target: TEST-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation-live
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
   - id: SYM-kibi-script-change-to-proof-eval-ts-searchevaluator
     title: SearchEvaluator
     sourceFile: scripts/change-to-proof-eval.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-change-to-proof-evaluation
       - type: covered_by
         target: TEST-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation-live
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
   - id: SYM-kibi-script-change-to-proof-eval-ts-compileevaluator
     title: CompileEvaluator
     sourceFile: scripts/change-to-proof-eval.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-change-to-proof-evaluation
       - type: covered_by
         target: TEST-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation-live
+      - type: implements
+        target: REQ-kibi-change-to-proof-evaluation
   - id: SYM-cli-discovery-deps
     title: DiscoveryDeps
     status: active
@@ -2353,6 +2422,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-coverage-proof-status
+      - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
       - type: implements
         target: REQ-kibi-conservative-requirement-proof
@@ -2363,6 +2434,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-proof-status
       - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
       - type: implements
@@ -2636,10 +2709,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
-      - type: implements
-        target: REQ-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-e2e-plan-compiler-hash
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-kibi-change-to-proof-plan-compiler
   - id: SYM-assessStagedSymbolsManifest
     title: assessStagedSymbolsManifest
     sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
@@ -3094,7 +3169,10 @@ symbols:
       - REQ-opencode-risk-classification
     status: active
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-e2e-opencode-enforcement-surface
       - type: covered_by
         target: TEST-opencode-smart-enforcement
       - type: implements
@@ -3275,6 +3353,8 @@ symbols:
       - type: covered_by
         target: TEST-coverage-depth-labels
       - type: covered_by
+        target: TEST-e2e-coverage-proof-status
+      - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
       - type: covered_by
         target: TEST-kibi-dependency-ordered-repair-plan
@@ -3321,6 +3401,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-coordinate-repair-capability
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -3904,6 +3986,8 @@ symbols:
         target: TEST-audit-quality-diagnostics-v1
       - type: covered_by
         target: TEST-coverage-depth-labels
+      - type: covered_by
+        target: TEST-e2e-coverage-proof-status
       - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
       - type: covered_by
@@ -4717,6 +4801,8 @@ symbols:
         target: TEST-004
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-rule-registry-single-source
       - type: implements
         target: REQ-core-validation-rules
   - id: SYM-cli-rule-registry-DEFAULT_CHECKS_CONFIG
@@ -4774,6 +4860,8 @@ symbols:
         target: TEST-004
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-rule-registry-single-source
       - type: implements
         target: REQ-core-validation-rules
   - id: SYM-cli-rule-registry-RULES
@@ -4807,6 +4895,8 @@ symbols:
         target: TEST-004
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-rule-registry-single-source
       - type: implements
         target: REQ-core-validation-rules
   - id: SYM-cli-rule-registry-validateRuleName
@@ -4834,6 +4924,8 @@ symbols:
         target: TEST-004
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-rule-registry-single-source
       - type: implements
         target: REQ-core-validation-rules
   - id: SYM-cli-run-aggregated-checks
@@ -4905,7 +4997,8 @@ symbols:
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable resource examples
+    title: predicate guidance loads a canonical decision tree with immutable
+      resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -5566,7 +5659,10 @@ symbols:
     links:
       - REQ-prolog-library-adoption
     status: active
+    symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-e2e-prolog-library-adoption
       - type: covered_by
         target: TEST-prolog-library-adoption-core
       - type: implements
@@ -5605,7 +5701,10 @@ symbols:
     links:
       - REQ-prolog-library-adoption
     status: active
+    symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-e2e-prolog-library-adoption
       - type: covered_by
         target: TEST-prolog-library-adoption-core
       - type: implements
@@ -6796,7 +6895,10 @@ symbols:
       - REQ-opencode-posture-detection
     status: active
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-e2e-opencode-enforcement-surface
       - type: covered_by
         target: TEST-opencode-smart-enforcement
       - type: implements
@@ -8101,7 +8203,10 @@ symbols:
     links:
       - REQ-opencode-guidance-caching
     status: active
+    symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-e2e-opencode-enforcement-surface
       - type: covered_by
         target: TEST-opencode-smart-enforcement
       - type: implements
@@ -8254,9 +8359,12 @@ symbols:
     owner: mcp-team
     sourceFile: packages/mcp/src/tools/sparql.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-e2e-prolog-library-adoption
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
@@ -9419,6 +9527,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-e2e-opencode-enforcement-surface
+      - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
       - type: covered_by
         target: TEST-opencode-python-comment-routing
@@ -9725,6 +9835,8 @@ symbols:
       - type: covered_by
         target: TEST-007
       - type: covered_by
+        target: TEST-coordinate-repair-capability
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-core-extractors
@@ -9782,6 +9894,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-coordinate-repair-capability
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
@@ -10136,9 +10250,12 @@ symbols:
     owner: mcp-team
     sourceFile: packages/mcp/src/tools/sparql.ts
     granularity_reason: extractor-miss
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-e2e-prolog-library-adoption
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
@@ -11787,6 +11904,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-coverage-proof-status
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
@@ -13203,9 +13322,12 @@ symbols:
     sourceFile: packages/cli/src/traceability/temp-kb.ts
     status: active
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-e2e-coverage-proof-status
       - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
       - type: covered_by
@@ -22956,6 +23078,8 @@ symbols:
       - type: covered_by
         target: TEST-core-journaled-engine-delta-sync
       - type: covered_by
+        target: TEST-e2e-coverage-proof-status
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
@@ -23289,34 +23413,44 @@ symbols:
     title: BATCH_TIMEOUT_MINUTES
     sourceFile: test/root.test.ts
     symbol_role: structural
+    status: active
+    granularity_reason: config-artifact
     relationships:
-      - type: implements
-        target: REQ-root-suite-batch-diagnostics
+      - type: covered_by
+        target: TEST-e2e-root-batch-diagnostics
       - type: covered_by
         target: TEST-root-suite-batch-diagnostics
+      - type: implements
+        target: REQ-root-suite-batch-diagnostics
   - id: SYM-test-root-getBatchFailureMessage
     title: getBatchFailureMessage
     sourceFile: test/root.test.ts
     symbol_role: behavioral
+    status: active
     relationships:
-      - type: implements
-        target: REQ-root-suite-batch-diagnostics
+      - type: covered_by
+        target: TEST-e2e-root-batch-diagnostics
       - type: covered_by
         target: TEST-root-suite-batch-diagnostics
+      - type: implements
+        target: REQ-root-suite-batch-diagnostics
   - id: SYM-test-root-runBatch
     title: runBatch
     sourceFile: test/root.test.ts
     granularity_reason: extractor-miss
     symbol_role: behavioral
+    status: active
     relationships:
-      - type: implements
-        target: REQ-root-suite-batch-diagnostics
+      - type: covered_by
+        target: TEST-e2e-root-batch-diagnostics
       - type: covered_by
         target: TEST-root-suite-batch-diagnostics
-      - type: implements
-        target: REQ-test-journaled-engine-harness
       - type: covered_by
         target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-root-suite-batch-diagnostics
+      - type: implements
+        target: REQ-test-journaled-engine-harness
   - id: SYM-test-root-summary-timeout-diagnostic
     title: getBatchFailureMessage timeout regression
     sourceFile: test/root-summary.test.ts
@@ -25013,6 +25147,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-coverage-proof-status
+      - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
       - type: covered_by
         target: TEST-kibi-logical-requirement-coverage
@@ -25097,6 +25233,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-coverage-proof-status
+      - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
       - type: implements
         target: REQ-kibi-conservative-requirement-proof
@@ -25107,6 +25245,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-proof-status
       - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
       - type: implements
@@ -25119,6 +25259,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-coverage-proof-status
+      - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
       - type: implements
         target: REQ-kibi-conservative-requirement-proof
@@ -25130,6 +25272,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-coverage-proof-status
+      - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
       - type: implements
         target: REQ-kibi-conservative-requirement-proof
@@ -25140,6 +25284,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-proof-status
       - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
       - type: implements
@@ -25166,6 +25312,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-001
+      - type: covered_by
+        target: TEST-e2e-coverage-proof-status
       - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
       - type: covered_by
@@ -25205,6 +25353,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-coverage-proof-status
+      - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
       - type: implements
         target: REQ-kibi-conservative-requirement-proof
@@ -25215,6 +25365,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-proof-status
       - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
       - type: covered_by
@@ -25533,37 +25685,40 @@ symbols:
     title: buildLegacyMigrationPlan
     sourceFile: packages/cli/src/public/operations/legacy-migration-plan.ts
     symbol_role: behavioral
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-legacy-migration-preview
-      - type: implements
-        target: REQ-kibi-legacy-migration-preview-v2
       - type: covered_by
         target: TEST-kibi-legacy-migration-preview
       - type: covered_by
         target: TEST-kibi-legacy-migration-preview-v2
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
   - id: SYM-legacy-migration-plan-build-from-context
     title: buildLegacyMigrationPlanFromContext
     sourceFile: packages/cli/src/public/operations/legacy-migration-plan.ts
     symbol_role: behavioral
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-legacy-migration-preview
-      - type: implements
-        target: REQ-kibi-legacy-migration-preview-v2
       - type: covered_by
         target: TEST-kibi-legacy-migration-preview
       - type: covered_by
         target: TEST-kibi-legacy-migration-preview-v2
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview-v2
   - id: SYM-legacy-migration-plan-version
     title: LEGACY_MIGRATION_PLAN_VERSION
     sourceFile: packages/cli/src/public/operations/legacy-migration-plan.ts
     symbol_role: config
+    status: active
     relationships:
-      - type: implements
-        target: REQ-kibi-legacy-migration-preview
       - type: covered_by
         target: TEST-kibi-legacy-migration-preview
+      - type: implements
+        target: REQ-kibi-legacy-migration-preview
   - id: SYM-mcp-handle-repair-plan-coverage
     title: handleKbCoverage
     sourceFile: packages/mcp/src/tools/coverage.ts
@@ -26346,6 +26501,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-coverage-proof-status
+      - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
       - type: implements
         target: REQ-kibi-conservative-requirement-proof
@@ -26815,6 +26972,8 @@ symbols:
         target: TEST-cli-branch-store-recovery
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-branch-store-recovery-v2
       - type: implements
@@ -27490,6 +27649,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: covered_by
         target: TEST-mcp-relationship-preflight
       - type: implements
         target: REQ-kibi-operation-interface-parity
@@ -27504,6 +27665,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: covered_by
         target: TEST-mcp-relationship-preflight
       - type: implements
         target: REQ-kibi-operation-interface-parity
@@ -27517,6 +27680,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-mcp-relationship-preflight
       - type: implements
@@ -27708,6 +27873,8 @@ symbols:
         target: TEST-cli-branch-store-recovery
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-branch-store-recovery-v2
       - type: implements
@@ -27722,6 +27889,8 @@ symbols:
         target: TEST-cli-branch-store-recovery
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-branch-store-recovery-v2
       - type: implements
@@ -27736,6 +27905,8 @@ symbols:
         target: TEST-cli-branch-store-recovery
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-branch-store-recovery-v2
       - type: implements
@@ -27750,6 +27921,8 @@ symbols:
         target: TEST-cli-branch-store-recovery
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-branch-store-recovery-v2
       - type: implements
@@ -27764,6 +27937,8 @@ symbols:
         target: TEST-cli-branch-store-recovery
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-branch-store-recovery-v2
       - type: implements
@@ -27778,6 +27953,8 @@ symbols:
         target: TEST-cli-branch-store-recovery
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-branch-store-recovery-v2
       - type: implements
@@ -27962,6 +28139,8 @@ symbols:
         target: TEST-cli-branch-store-recovery
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-branch-store-recovery-v2
       - type: implements
@@ -28524,6 +28703,8 @@ symbols:
         target: TEST-cli-symbol-behavioral-anchors
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-mcp-upsert-coverage
       - type: covered_by
@@ -29712,6 +29893,8 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-proof-status
       - type: covered_by
         target: TEST-kibi-conservative-requirement-proof
       - type: implements
@@ -32375,7 +32558,10 @@ symbols:
     status: active
     sourceFile: scripts/run-unit-coverage.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-e2e-root-batch-diagnostics
       - type: covered_by
         target: TEST-root-suite-batch-diagnostics
       - type: covered_by
@@ -34478,6 +34664,8 @@ symbols:
     granularity_reason: test-suite
     relationships:
       - type: executable_for
+        target: TEST-008
+      - type: executable_for
         target: TEST-012
   - id: SYM-e2e-test-014
     title: release-package-contract.test
@@ -35535,6 +35723,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: covered_by
         target: TEST-proof-runner-integrity
       - type: implements
         target: REQ-kibi-verification-evidence-contract
@@ -35544,6 +35734,8 @@ symbols:
     sourceFile: scripts/run-proof-producer.mjs
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-proof-runner-integrity
       - type: implements
@@ -35555,6 +35747,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: covered_by
         target: TEST-proof-runner-integrity
       - type: implements
         target: REQ-kibi-verification-evidence-contract
@@ -35564,6 +35758,8 @@ symbols:
     sourceFile: scripts/run-proof-producer.mjs
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-proof-runner-integrity
       - type: implements
@@ -35575,6 +35771,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: covered_by
         target: TEST-proof-runner-integrity
       - type: implements
         target: REQ-kibi-verification-evidence-contract
@@ -35584,6 +35782,8 @@ symbols:
     sourceFile: scripts/run-proof-producer.mjs
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-proof-runner-integrity
       - type: implements
@@ -35595,6 +35795,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: covered_by
         target: TEST-proof-runner-integrity
       - type: implements
         target: REQ-kibi-verification-evidence-contract
@@ -35605,6 +35807,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: covered_by
         target: TEST-proof-runner-integrity
       - type: implements
         target: REQ-kibi-verification-evidence-contract
@@ -35614,6 +35818,8 @@ symbols:
     sourceFile: scripts/run-proof-producer.mjs
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
       - type: covered_by
         target: TEST-proof-runner-integrity
       - type: implements
@@ -35636,6 +35842,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-proof-runner-integrity
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-quality-compile-packed
@@ -35707,6 +35915,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation-live
       - type: implements
         target: REQ-kibi-change-to-proof-evaluation
   - id: SYM-quality-eval-ChangeToProofEvaluation
@@ -35717,6 +35927,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation-live
       - type: implements
         target: REQ-kibi-change-to-proof-evaluation
   - id: SYM-quality-eval-liveSearchEvaluator
@@ -35727,6 +35939,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation-live
       - type: implements
         target: REQ-kibi-change-to-proof-evaluation
   - id: SYM-quality-eval-liveCompileEvaluator
@@ -35737,6 +35951,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation-live
       - type: implements
         target: REQ-kibi-change-to-proof-evaluation
   - id: SYM-quality-eval-runLiveHeldOutEvaluation
@@ -35747,6 +35963,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation-live
       - type: implements
         target: REQ-kibi-change-to-proof-evaluation
   - id: SYM-quality-eval-assertLiveHeldOutEvaluation
@@ -35757,6 +35975,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation-live
       - type: implements
         target: REQ-kibi-change-to-proof-evaluation
   - id: SYM-quality-eval-evaluateGoldCorpus
@@ -35767,6 +35987,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation-live
       - type: implements
         target: REQ-kibi-change-to-proof-evaluation
   - id: SYM-quality-eval-main
@@ -35777,6 +35999,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-change-to-proof-evaluation
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-evaluation-live
       - type: implements
         target: REQ-kibi-change-to-proof-evaluation
   - id: SYM-quality-coverage-branch-summary
@@ -35796,6 +36020,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-004
+      - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
         target: REQ-cli-check
@@ -35805,6 +36031,8 @@ symbols:
     status: active
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-004
       - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
@@ -35816,6 +36044,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-004
+      - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
         target: REQ-cli-check
@@ -35825,6 +36055,8 @@ symbols:
     status: active
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-004
       - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
@@ -35836,6 +36068,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-004
+      - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
         target: REQ-cli-check
@@ -35845,6 +36079,8 @@ symbols:
     status: active
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-004
       - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
@@ -35856,6 +36092,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-004
+      - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
         target: REQ-cli-check
@@ -35865,6 +36103,8 @@ symbols:
     status: active
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-004
       - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
@@ -35876,6 +36116,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-004
+      - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
         target: REQ-cli-check
@@ -35885,6 +36127,8 @@ symbols:
     status: active
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-004
       - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
@@ -35896,6 +36140,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-004
+      - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
         target: REQ-cli-check
@@ -35906,6 +36152,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-004
+      - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
         target: REQ-cli-check
@@ -35915,6 +36163,8 @@ symbols:
     status: active
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-004
       - type: covered_by
         target: TEST-cli-check-integrity
       - type: implements
@@ -35949,6 +36199,10 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-source-relationship-parity-unit
+      - type: covered_by
+        target: TEST-kibi-source-relationship-parity
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
       - type: implements
         target: REQ-011
       - type: implements
@@ -35963,6 +36217,10 @@ symbols:
         target: TEST-cli-source-relationship-parity-unit
       - type: covered_by
         target: TEST-core-atomic-upsert-persistence
+      - type: covered_by
+        target: TEST-kibi-source-relationship-parity
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
       - type: implements
         target: REQ-011
       - type: implements
@@ -36084,6 +36342,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: covered_by
         target: TEST-mcp-schema-adapter
       - type: implements
         target: REQ-kibi-operation-interface-parity
@@ -36094,6 +36354,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: covered_by
         target: TEST-mcp-schema-adapter
       - type: implements
         target: REQ-kibi-operation-interface-parity
@@ -36103,6 +36365,8 @@ symbols:
     status: active
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-mcp-schema-adapter
       - type: implements
@@ -37188,3 +37452,138 @@ symbols:
         target: TEST-zcode-kibi-plugin-v1
       - type: implements
         target: REQ-kibi-verification-receipts-v2
+  - id: SYM-e2e-test-briefs-retired
+    title: briefs-retired.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/briefs-retired.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-briefs-retired
+  - id: SYM-e2e-test-cli-canonical-status-freshness
+    title: cli-canonical-status-freshness.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/cli-canonical-status-freshness.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-status-freshness
+  - id: SYM-e2e-test-cli-plan-compiler-hash
+    title: cli-plan-compiler-hash.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/cli-plan-compiler-hash.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-plan-compiler-hash
+  - id: SYM-e2e-test-cli-schema-version-surface
+    title: cli-schema-version-surface.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/cli-schema-version-surface.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-schema-version-surface
+  - id: SYM-e2e-test-cli-strict-modeling-surface
+    title: cli-strict-modeling-surface.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/cli-strict-modeling-surface.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-strict-modeling-surface
+  - id: SYM-e2e-test-coverage-proof-status
+    title: coverage-proof-status.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/coverage-proof-status.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-coverage-proof-status
+  - id: SYM-e2e-test-mcp-freshness-external-replace
+    title: mcp-freshness-external-replace.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/mcp-freshness-external-replace.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-mcp-freshness-external-replace
+  - id: SYM-e2e-test-mcp-model-requirement
+    title: mcp-model-requirement.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/mcp-model-requirement.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-mcp-model-requirement
+  - id: SYM-e2e-test-opencode-enforcement-surface
+    title: opencode-enforcement-surface.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/opencode-enforcement-surface.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-opencode-enforcement-surface
+  - id: SYM-e2e-test-prolog-library-adoption
+    title: prolog-library-adoption.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/prolog-library-adoption.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-prolog-library-adoption
+  - id: SYM-e2e-test-snapshot-relevance
+    title: snapshot-relevance.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/snapshot-relevance.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-snapshot-relevance
+  - id: SYM-e2e-test-cli-check-gate-enforcement
+    title: cli-check-gate-enforcement.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/cli-check-gate-enforcement.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-check-gate-enforcement
+  - id: SYM-e2e-test-change-to-proof-eval-live
+    title: change_to_proof_eval_live
+    status: active
+    sourceFile: scripts/change-to-proof-eval.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-change-to-proof-evaluation-live
+  - id: SYM-e2e-test-legacy-migration-plan
+    title: legacy_migration_plan
+    status: active
+    sourceFile: packages/cli/tests/operations/legacy-migration-plan.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-legacy-migration-preview
+  - id: SYM-e2e-test-root-batch-diagnostics
+    title: root_batch_diagnostics
+    status: active
+    sourceFile: test/root.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-root-batch-diagnostics

@@ -83,3 +83,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-74bd3a385ac0
+  - type: executable_for
+    from: SYM-e2e-test-change-to-proof-eval-live
+    to: TEST-kibi-change-to-proof-evaluation-live
+    created_at: 2026-09-18T12:48:35.938Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-15bfe9ce9db8

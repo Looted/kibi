@@ -223,3 +223,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f6c2ecd18d62
+  - type: covered_by
+    from: SYM-quality-producer-validateRequestedTestIds
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-18T07:44:15.374Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4059d0867a5

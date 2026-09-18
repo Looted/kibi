@@ -558,7 +558,7 @@ export interface ReceiptCodeScopeEntry {
  * editing the production code behind a test stales only that test's receipts
  * (per-contract binding mode).
  */
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 // Receipt-binding scope reads run once per proof-bearing test; a campaign
 // touches dozens-to-hundreds of tests, so the parsed overlay is memoized per
 // manifest state (path + mtime + size) and invalidated when the file changes.

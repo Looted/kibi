@@ -237,3 +237,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ed2042794a46
+  - type: implements
+    from: SYM-legacy-migration-plan-version
+    to: REQ-kibi-legacy-migration-preview
+    created_at: 2026-09-18T07:25:52.682Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e6ed95175adf
+  - type: covered_by
+    from: SYM-legacy-migration-plan-version
+    to: TEST-kibi-legacy-migration-preview
+    created_at: 2026-09-18T07:25:52.700Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-edcbd9aee31c
+  - type: covered_by
+    from: SYM-quality-inventory-e7803f58a33c
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-18T07:40:27.796Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-15f5f8a95738

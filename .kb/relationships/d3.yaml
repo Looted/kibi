@@ -111,3 +111,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0a8047473ff7
+  - type: covered_by
+    from: SYM-mcp-handle-repair-plan-coverage
+    to: TEST-kibi-legacy-migration-preview
+    created_at: 2026-09-18T07:27:08.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07521f0dfcbf
+  - type: covered_by
+    from: SYM-mcp-handle-repair-plan-coverage
+    to: TEST-kibi-legacy-migration-preview-v2
+    created_at: 2026-09-18T07:27:08.830Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-badc6f6f2f03
+  - type: implements
+    from: SYM-mcp-handle-repair-plan-coverage
+    to: REQ-kibi-dependency-ordered-repair-plan
+    created_at: 2026-09-18T07:27:08.835Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0fe18861ff8f
+  - type: implements
+    from: SYM-mcp-handle-repair-plan-coverage
+    to: REQ-kibi-legacy-migration-preview
+    created_at: 2026-09-18T07:27:08.838Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b04d1e341e9
+  - type: implements
+    from: SYM-mcp-handle-repair-plan-coverage
+    to: REQ-kibi-legacy-migration-preview-v2
+    created_at: 2026-09-18T07:27:08.843Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d0c33cf0808b

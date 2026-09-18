@@ -258,3 +258,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d9d388ffd825
+  - type: implements
+    from: SYM-core-derived-chr
+    to: REQ-prolog-library-adoption
+    created_at: 2026-09-18T07:07:39.982Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-657e55acfb39
+  - type: covered_by
+    from: SYM-core-derived-chr
+    to: TEST-e2e-prolog-library-adoption
+    created_at: 2026-09-18T07:07:39.992Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6525da1efd73

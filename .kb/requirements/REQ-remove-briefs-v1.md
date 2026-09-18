@@ -64,3 +64,6 @@ Kibi must remove the active briefing product surface across MCP, OpenCode, VS Co
 2. The OpenCode integration must no longer generate, consume, render, route, or prompt for Kibi briefing artifacts.
 3. The VS Code extension must no longer watch, parse, render, command-open, or notify on Kibi briefing artifacts.
 4. Shared config, docs, and tests must treat prior briefing requirements, scenarios, and verification plans as removed/superseded rather than active product behavior.
+
+
+Retained for provenance.

@@ -1,10 +1,10 @@
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export const PROOF_RUN_VERSION = "kibi.proof-run.v1" as const;
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export const PROOF_CONTRACT_VERSION = "kibi.proof-contract.v1" as const;
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export const PROOF_RECEIPT_VERSION = "kibi.proof-receipt.v1" as const;
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export const PROOF_INTEGRATION_VERSION = "kibi.proof-integration.v1" as const;
 
 export const PROOF_RUN_OUTCOMES = [

@@ -1,7 +1,7 @@
 ---
 id: SCEN-remove-briefs-v1
 title: Briefing surfaces are retired across MCP, OpenCode, and VS Code
-status: closed
+status: active
 created_at: 2026-05-28T00:00:00.000Z
 updated_at: 2026-05-28T00:00:00.000Z
 source: documentation/scenarios/SCEN-remove-briefs-v1.md
@@ -14,6 +14,8 @@ tags:
 links:
   - type: relates_to
     target: REQ-remove-briefs-v1
+  - type: verified_by
+    target: TEST-e2e-briefs-retired
 type: scenario
 ---
 

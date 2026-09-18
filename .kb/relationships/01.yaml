@@ -139,3 +139,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2afde2518b00
+  - type: implements
+    from: SYM-core-kb-value-to-literal
+    to: REQ-kibi-conservative-requirement-proof
+    created_at: 2026-09-18T07:10:04.371Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8cad7799d969
+  - type: covered_by
+    from: SYM-core-kb-value-to-literal
+    to: TEST-e2e-coverage-proof-status
+    created_at: 2026-09-18T07:10:04.378Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e2df0d9c41e
+  - type: covered_by
+    from: SYM-quality-inventory-8201a4e33563
+    to: TEST-004
+    created_at: 2026-09-18T07:36:24.872Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fea4a769b621

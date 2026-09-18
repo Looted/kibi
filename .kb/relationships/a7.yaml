@@ -192,3 +192,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e22ef6e1bd74
+  - type: implements
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-testdraft
+    to: REQ-kibi-change-to-proof-plan-compiler
+    created_at: 2026-09-18T07:18:48.391Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-365bc81e8566
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-testdraft
+    to: TEST-e2e-plan-compiler-hash
+    created_at: 2026-09-18T07:18:48.403Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-329995176848

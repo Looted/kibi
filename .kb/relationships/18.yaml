@@ -195,3 +195,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dd00d0dc9a2f
+  - type: covered_by
+    from: SYM-cli-discovery-renderCoverageTable
+    to: TEST-coverage-depth-labels
+    created_at: 2026-09-18T07:01:48.846Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-03000cc4f808
+  - type: implements
+    from: SYM-cli-discovery-renderCoverageTable
+    to: REQ-audit-quality-diagnostics-v1
+    created_at: 2026-09-18T07:01:48.889Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f540c873fb20
+  - type: implements
+    from: SYM-cli-discovery-renderCoverageTable
+    to: REQ-kibi-conservative-requirement-proof
+    created_at: 2026-09-18T07:01:48.899Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-988e4fbe1853
+  - type: implements
+    from: SYM-cli-discovery-renderCoverageTable
+    to: REQ-kibi-dependency-ordered-repair-plan
+    created_at: 2026-09-18T07:01:48.910Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1d552e0d3882
+  - type: covered_by
+    from: SYM-cli-discovery-renderCoverageTable
+    to: TEST-e2e-coverage-proof-status
+    created_at: 2026-09-18T07:01:48.917Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be6498310b01

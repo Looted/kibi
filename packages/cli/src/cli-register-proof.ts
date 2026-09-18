@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 import { withExitCode } from "./cli-command.js";
 
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export function registerProofCommand(program: Command): void {
   program
     .command("prove")

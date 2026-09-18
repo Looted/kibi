@@ -143,3 +143,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0921f22e5a83
+  - type: implements
+    from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanresult
+    to: REQ-kibi-change-to-proof-plan-compiler
+    created_at: 2026-09-18T07:13:38.303Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8786e6c00b0f
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanresult
+    to: TEST-e2e-plan-compiler-hash
+    created_at: 2026-09-18T07:13:38.310Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55ac813c6ffd
+  - type: implements
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compileplanhash
+    to: REQ-kibi-change-to-proof-plan-compiler
+    created_at: 2026-09-18T07:15:43.311Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-847478bdc7f2
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compileplanhash
+    to: TEST-e2e-plan-compiler-hash
+    created_at: 2026-09-18T07:15:43.323Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd189f049edc

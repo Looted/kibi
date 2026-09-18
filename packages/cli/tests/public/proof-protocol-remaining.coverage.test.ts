@@ -1,4 +1,4 @@
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   ATTEMPTS_STATUS,
