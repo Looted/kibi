@@ -11,10 +11,10 @@ import {
   playwrightCaseId,
 } from "./playwright-case-id.js";
 
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export { PROOF_RUN_VERSION };
 
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export type KibiPlaywrightProducerOptions = Readonly<{
   outputPath?: string;
   codeSnapshot?: string;
@@ -78,12 +78,12 @@ export class KibiPlaywrightProducer {
     this.startedAt = (options.now ?? (() => new Date()))().toISOString();
   }
 
-  // implements REQ-kibi-proof-evidence-protocol
+  // implements REQ-kibi-verification-evidence-contract
   onBegin(): void {
     this.startedAt = (this.options.now ?? (() => new Date()))().toISOString();
   }
 
-  // implements REQ-kibi-proof-evidence-protocol
+  // implements REQ-kibi-verification-evidence-contract
   onTestEnd(test: unknown, result: unknown): void {
     const resultValue = result as {
       status?: string;
@@ -135,7 +135,7 @@ export class KibiPlaywrightProducer {
     });
   }
 
-  // implements REQ-kibi-proof-evidence-protocol
+  // implements REQ-kibi-verification-evidence-contract
   async onEnd(result?: unknown): Promise<void> {
     const now = this.options.now ?? (() => new Date());
     const status = (result as { status?: string } | undefined)?.status;

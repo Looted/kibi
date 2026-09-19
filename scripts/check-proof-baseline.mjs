@@ -25,6 +25,7 @@ const INTEGRITY_RULES = [
   "rule-safety",
   "rule-verifiability",
   "semantic-completeness",
+  "symbol-traceability",
 ];
 
 const baseline = JSON.parse(

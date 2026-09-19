@@ -97,3 +97,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8491e7b1604b
+  - type: covered_by
+    from: SYM-strictWriteSetToApplyPlan
+    to: TEST-e2e-mcp-model-requirement
+    created_at: 2026-09-18T15:27:32.819Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4121b2c74931

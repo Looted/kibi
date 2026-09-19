@@ -62,3 +62,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-98002e0c312d
+  - type: implements
+    from: SYM-test-root-getBatchFailureMessage
+    to: REQ-root-suite-batch-diagnostics
+    created_at: 2026-09-18T08:12:52.274Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-188d65e369ae
+  - type: covered_by
+    from: SYM-test-root-getBatchFailureMessage
+    to: TEST-root-suite-batch-diagnostics
+    created_at: 2026-09-18T08:12:52.282Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-06acbee97617
+  - type: covered_by
+    from: SYM-test-root-getBatchFailureMessage
+    to: TEST-e2e-root-batch-diagnostics
+    created_at: 2026-09-18T08:12:52.287Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2cfaa67f3eb
+  - type: covered_by
+    from: SYM-appendDiagnosticErrorUsage
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-09-18T15:05:43.488Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18c032f0ab45

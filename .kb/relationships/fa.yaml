@@ -76,3 +76,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-29461a687f2a
+  - type: verified_by
+    from: SCEN-kibi-conservative-requirement-proof
+    to: TEST-e2e-coverage-proof-status
+    created_at: 2026-09-18T10:56:02.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-867fb5728fad

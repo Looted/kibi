@@ -3,8 +3,8 @@ id: SCEN-mcp-kb-freshness-coverage
 title: MCP refreshes an externally replaced branch KB snapshot
 type: scenario
 status: active
-created_at: 2026-07-21T00:00:00Z
-updated_at: 2026-07-21T00:00:00Z
+created_at: 2026-07-21T00:00:00.000Z
+updated_at: 2026-07-21T00:00:00.000Z
 source: documentation/scenarios/SCEN-mcp-kb-freshness-coverage.md
 priority: must
 links:
@@ -12,6 +12,8 @@ links:
     target: REQ-mcp-kb-freshness
   - type: verified_by
     target: TEST-mcp-kb-freshness-coverage
+  - type: verified_by
+    target: TEST-e2e-mcp-freshness-external-replace
   - type: verified_by
     target: TEST-mcp-kb-freshness
 ---

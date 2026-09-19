@@ -193,10 +193,12 @@ kibi proof explain --symbol SYM-EXAMPLE --json
 
 ### `kibi proof impact`
 
-Compares the current Proof projection to the committed
-`proof/baseline.json` ratchet snapshot. This is not a Git branch or worktree
-diff. Human output names that committed file as the comparison target and
-prints requirement-level fingerprint diffs plus live coverage explanations.
+Compares the current Proof projection to `HEAD:proof/baseline.json`, the
+committed ratchet snapshot — not the working-tree copy. This is a diagnostic
+command: it reports fingerprint differences and exits 0 when evaluation
+succeeds. The strict ratchet remains `scripts/check-proof-baseline.mjs`.
+Human output names the committed file as the comparison target and prints
+requirement-level fingerprint diffs plus live coverage explanations.
 
 ```bash
 kibi proof impact

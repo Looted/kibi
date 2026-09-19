@@ -76,3 +76,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-693065d1cb39
+  - type: covered_by
+    from: SYM-quality-eval-main
+    to: TEST-kibi-change-to-proof-evaluation-live
+    created_at: 2026-09-18T07:31:39.070Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b85c7bc0a27e

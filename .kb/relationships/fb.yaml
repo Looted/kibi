@@ -188,3 +188,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-657c035b1654
+  - type: verified_by
+    from: SCEN-cli-strict-modeling-v1
+    to: TEST-e2e-strict-modeling-surface
+    created_at: 2026-09-18T10:54:52.759Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2dc074ad77b3
+  - type: executable_for
+    from: SYM-zcode-test-hermeticEnv
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-09-18T22:23:10.313Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46408cae60c2

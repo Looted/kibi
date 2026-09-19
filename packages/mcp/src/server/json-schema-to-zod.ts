@@ -125,6 +125,23 @@ export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
       ? [obj.type]
       : [];
 
+  // JSON Schema anyOf unions become real Zod unions so MCP output
+  // validation enforces the declared alternatives instead of silently
+  // degrading to z.any() — e.g. kb_check's synchronous payload versus its
+  // kibi.job.v1 async receipt. oneOf is intentionally left degrading: its
+  // required-guard branches carry no properties and would loosen input
+  // validation instead of tightening it.
+  const anyOfVariants = Array.isArray(obj.anyOf) ? obj.anyOf : [];
+  if (anyOfVariants.length > 0) {
+    const variants = anyOfVariants.map((variant) =>
+      jsonSchemaToZod(variant),
+    ) as [z.ZodTypeAny, z.ZodTypeAny, ...z.ZodTypeAny[]];
+    const union = z.union(variants);
+    return typeof obj.description === "string"
+      ? union.describe(obj.description)
+      : union;
+  }
+
   // JSON Schema nullable fields are represented as a type union in the
   // catalog. Build a real Zod union so MCP publishes and validates the same
   // nullability instead of silently degrading the field to z.any().

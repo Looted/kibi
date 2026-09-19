@@ -1146,13 +1146,13 @@ production_coverage_explanations(ReqId, ProductionSymbols, StructuralSymbols, Un
         PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, Explanations) :-
     maplist(production_symbol_explanation(ReqId, UncoveredSymbols, PassingE2eTests, ScenarioTests, ReceiptEvidence, Context),
             ProductionSymbols, ProductionExplanations),
-    maplist(structural_symbol_explanation(ReqId, ScenarioTests, ReceiptEvidence, Context),
+    maplist(structural_symbol_explanation(ReqId, PassingE2eTests, ScenarioTests, ReceiptEvidence, Context),
             StructuralSymbols, StructuralExplanations),
     append(ProductionExplanations, StructuralExplanations, Explanations).
 
-structural_symbol_explanation(ReqId, ScenarioTests, ReceiptEvidence, Context, SymbolId, Explanation) :-
+structural_symbol_explanation(ReqId, PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, SymbolId, Explanation) :-
     symbol_classification(SymbolId, Classification),
-    symbol_coverage_candidates([], ScenarioTests, ReceiptEvidence, Context, SymbolId, Candidates),
+    symbol_coverage_candidates(structural, PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, SymbolId, Candidates),
     explanation_reason_text(structural_unit_contract, ReasonText),
     Explanation = _{
         symbolId: SymbolId,
@@ -1166,7 +1166,7 @@ structural_symbol_explanation(ReqId, ScenarioTests, ReceiptEvidence, Context, Sy
 
 production_symbol_explanation(ReqId, UncoveredSymbols, PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, SymbolId, Explanation) :-
     symbol_classification(SymbolId, Classification),
-    symbol_coverage_candidates(PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, SymbolId, Candidates),
+    symbol_coverage_candidates(behavioral, PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, SymbolId, Candidates),
     production_symbol_rollup(UncoveredSymbols, PassingE2eTests, SymbolId, Candidates, Status, Reason),
     explanation_reason_text(Reason, ReasonText),
     Explanation = _{
@@ -1196,13 +1196,13 @@ symbol_classification(SymbolId, Classification) :-
     Classification = Role.
 symbol_classification(_SymbolId, unknown).
 
-symbol_coverage_candidates(PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, SymbolId, Candidates) :-
+symbol_coverage_candidates(Mode, PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, SymbolId, Candidates) :-
     findall(TestId, kb_relationship(covered_by, SymbolId, TestId), TestIds0),
     sort(TestIds0, TestIds),
-    maplist(coverage_candidate_dict(PassingE2eTests, ScenarioTests, ReceiptEvidence, Context), TestIds, Candidates).
+    maplist(coverage_candidate_dict(Mode, PassingE2eTests, ScenarioTests, ReceiptEvidence, Context), TestIds, Candidates).
 
-coverage_candidate_dict(PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, TestId, Candidate) :-
-    coverage_candidate_qualification(PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, TestId, Qualifies, Primary, Secondaries),
+coverage_candidate_dict(Mode, PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, TestId, Candidate) :-
+    coverage_candidate_qualification(Mode, PassingE2eTests, ScenarioTests, ReceiptEvidence, Context, TestId, Qualifies, Primary, Secondaries),
     explanation_reason_text(Primary, ReasonText),
     cheap_candidate_scope(TestId, Scope),
     reused_receipt_state(ReceiptEvidence, TestId, ReceiptState),
@@ -1220,13 +1220,19 @@ coverage_candidate_dict(PassingE2eTests, ScenarioTests, ReceiptEvidence, Context
     ;   put_dict(receiptState, CandidateBase, ReceiptState, Candidate)
     ).
 
-coverage_candidate_qualification(PassingE2eTests, _ScenarioTests, _ReceiptEvidence, _Context, TestId, true, covered, []) :-
+% Shared candidate evaluator. Mode selects the coverage contract:
+%   behavioral  — production symbols require passing scenario-backed E2E
+%   structural  — type-shape symbols may also qualify via a unit contract
+coverage_candidate_qualification(_Mode, PassingE2eTests, _ScenarioTests, _ReceiptEvidence, _Context, TestId, true, covered, []) :-
     memberchk(TestId, PassingE2eTests),
     !.
-coverage_candidate_qualification(_Passing, _Scenario, _Evidence, _Context, TestId, false, missing_test_entity, []) :-
+coverage_candidate_qualification(_Mode, _Passing, _Scenario, _Evidence, _Context, TestId, false, missing_test_entity, []) :-
     \+ kb_entity(TestId, test, _),
     !.
-coverage_candidate_qualification(_Passing, ScenarioTests, ReceiptEvidence, Context, TestId, false, Primary, Secondaries) :-
+coverage_candidate_qualification(structural, _Passing, _Scenario, _Evidence, _Context, TestId, true, structural_unit_contract, []) :-
+    structural_unit_contract_test(TestId),
+    !.
+coverage_candidate_qualification(_Mode, _Passing, ScenarioTests, ReceiptEvidence, Context, TestId, false, Primary, Secondaries) :-
     cheap_scope_reject_reason(TestId, ScopeReason),
     (   \+ memberchk(TestId, ScenarioTests)
     ->  Primary = test_not_in_requirement_scenario_chain,
@@ -1238,6 +1244,13 @@ coverage_candidate_qualification(_Passing, ScenarioTests, ReceiptEvidence, Conte
         reused_receipt_reject_reasons(ReceiptEvidence, TestId, Secondaries)
     ;   receipt_reject_for_in_chain(ReceiptEvidence, Context, TestId, Primary, Secondaries)
     ).
+
+structural_unit_contract_test(TestId) :-
+    kb_entity(TestId, test, TestProps),
+    test_scope(TestProps, unit),
+    memberchk(status=RawStatus, TestProps),
+    normalize_atom(RawStatus, Status),
+    memberchk(Status, [active, passing]).
 
 cheap_candidate_scope(TestId, Scope) :-
     kb_entity(TestId, test, Props),
@@ -1283,9 +1296,9 @@ receipt_reject_for_in_chain(Evidence, _Context, TestId, Primary, []) :-
 receipt_reject_for_in_chain(_Evidence, Context, TestId, Primary, []) :-
     is_dict(Context),
     Context \= _{},
-    test_receipt_evidence(TestId, Context, EvidenceState),
+    test_receipt_evidence(Context, TestId, Evidence),
     !,
-    receipt_state_reject_reason(EvidenceState, Reason),
+    receipt_item_reject_reason(Evidence, Reason),
     (Reason == none -> Primary = no_qualifying_e2e_coverage ; Primary = Reason).
 receipt_reject_for_in_chain(_Evidence, _Context, _TestId, no_qualifying_e2e_coverage, []).
 

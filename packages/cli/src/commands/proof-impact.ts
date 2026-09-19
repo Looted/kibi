@@ -8,7 +8,10 @@
  (at your option) any later version.
  */
 
-import { executeProofImpact } from "../operations/proof/impact.js";
+import {
+  executeProofImpact,
+  proofImpactExitCode,
+} from "../operations/proof/impact.js";
 import { createCliRuntime } from "../runtime/cli-runtime.js";
 
 // implements REQ-kibi-verification-evidence-contract
@@ -40,7 +43,7 @@ export async function proofImpactCommand(
     }
     completed = true;
     await runtime.afterSuccess({ name: "kibi_proof_impact" } as never, context);
-    return { exitCode: result.changes.length > 0 ? 1 : 0 };
+    return { exitCode: proofImpactExitCode(result) };
   } finally {
     await runtime.close(
       context,

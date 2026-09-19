@@ -181,3 +181,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-619ae3997bf2
+  - type: implements
+    from: SYM-kibi-script-change-to-proof-eval-ts-searchgoldcase
+    to: REQ-kibi-change-to-proof-evaluation
+    created_at: 2026-09-18T07:24:12.254Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-611454704d3e
+  - type: covered_by
+    from: SYM-kibi-script-change-to-proof-eval-ts-searchgoldcase
+    to: TEST-kibi-change-to-proof-evaluation-live
+    created_at: 2026-09-18T07:24:12.267Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-561307813595

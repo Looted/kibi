@@ -216,3 +216,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2e1be2ea964b
+  - type: implements
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-traceabilityproposal
+    to: REQ-kibi-change-to-proof-plan-compiler
+    created_at: 2026-09-18T07:19:13.438Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-22e7b6431932
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-traceabilityproposal
+    to: TEST-e2e-plan-compiler-hash
+    created_at: 2026-09-18T07:19:13.454Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2db414b4ad6a

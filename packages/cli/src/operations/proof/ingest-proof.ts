@@ -42,7 +42,7 @@ import {
   removeFrontmatterBlock,
 } from "./receipt-document.js";
 
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export type IngestProofArgs = Readonly<{
   snapshot: string;
   artifact: Readonly<Record<string, unknown>>;
@@ -59,7 +59,7 @@ export type IngestProofTestResult = Readonly<{
   gaps: readonly ProofGap[];
 }>;
 
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export type IngestProofResult = Readonly<{
   artifactDigest: string;
   environmentHash: string;
@@ -231,7 +231,7 @@ function existingReceipts(
     : [];
 }
 
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export async function executeIngestProof(
   args: IngestProofArgs,
   context: OperationContext,

@@ -120,9 +120,11 @@ When a proof ratchet fails, diagnose first. Do not treat
    kibi proof impact
    ```
 
-   `kibi proof impact` compares the current Proof projection to the committed
-   `proof/baseline.json` ratchet snapshot. It is not a Git branch or worktree
-   diff.
+   `kibi proof impact` compares the current Proof projection to
+   `HEAD:proof/baseline.json` (the committed ratchet snapshot, not the
+   working-tree file). It is diagnostic: fingerprint differences are reported
+   and the command exits 0 on successful evaluation. The strict ratchet remains
+   `scripts/check-proof-baseline.mjs`.
 4. For `missing_production_symbol_coverage`, inspect symbol role, owning
    requirement, `covered_by`, candidate test scope, the requirement scenario
    chain, and the current proof receipt. `kibi proof explain` prints those as

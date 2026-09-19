@@ -142,7 +142,7 @@ describe("proof impact command wrapper", () => {
     expect(closes).toEqual([{ status: "success" }]);
   });
 
-  test("exits 1 when the impact comparison reports changes", async () => {
+  test("exits 0 even when the impact comparison reports changes (diagnostic-only)", async () => {
     const closes: CloseCall[] = [];
     fakeRuntime(closes);
     const operation = spyOn(impact, "executeProofImpact").mockResolvedValue({
@@ -157,7 +157,10 @@ describe("proof impact command wrapper", () => {
     const output: string[] = [];
     captureStdout(output);
 
-    await expect(proofImpactCommand({})).resolves.toEqual({ exitCode: 1 });
+    // `proof impact` is diagnostic: successful evaluation always exits 0.
+    // Regression enforcement lives in the baseline ratchet
+    // (scripts/check-proof-baseline.mjs), not in the report command.
+    await expect(proofImpactCommand({})).resolves.toEqual({ exitCode: 0 });
     expect(output.join("")).toContain("impact-text-with-changes");
     expect(closes).toEqual([{ status: "success" }]);
   });

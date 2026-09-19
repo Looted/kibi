@@ -170,9 +170,15 @@ describe("strict proof workflow contract", () => {
     expect(runner).toBeGreaterThanOrEqual(0);
     expect(baselineCheck).toBeGreaterThan(runner);
     expect(report).toBeGreaterThan(baselineCheck);
-    expect(proofWorkflow).toContain(
-      "--rules no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness",
+    const integrityRules =
+      "no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness,symbol-traceability";
+    const baselineChecker = readFileSync(
+      join(ROOT, "scripts", "check-proof-baseline.mjs"),
+      "utf8",
     );
+    expect(proofWorkflow).toContain(`--rules ${integrityRules}`);
+    expect(baselineChecker).toContain('"symbol-traceability"');
+    expect(proofWorkflow).not.toContain("proof-contract-symbols");
     expect(ciWorkflow).not.toContain("Generate Kibi requirement health report");
   });
 
@@ -202,19 +208,34 @@ describe("strict proof workflow contract", () => {
   test("ratchet baseline records the stricter per-scenario proof gaps", () => {
     expect(baseline.version).toBe("kibi.proof-baseline.v2");
     expect(baseline.mode).toBe("ratchet");
-    expect(baseline.currentRequirements).toBe(104);
-    expect(baseline.proofProven).toBe(66);
-    expect(baseline.currentUnproven).toBe(38);
     expect(baseline.proofProven + baseline.currentUnproven).toBe(
       baseline.currentRequirements,
     );
-    expect(baseline.trackedGaps).toEqual({
-      missing_passing_e2e: 21,
-      missing_production_symbol_coverage: 26,
-      missing_proof_receipt: 12,
-      unresolved_semantic_proposition: 2,
-      missing_production_symbol: 2,
-    });
+    // Ratchet floor: the proven count may only move up. Bump this floor in
+    // the same commit that deliberately raises the baseline.
+    expect(baseline.currentRequirements).toBe(101);
+    expect(baseline.proofProven).toBeGreaterThanOrEqual(93);
+    expect(baseline.currentUnproven).toBeLessThanOrEqual(8);
+    const knownGapVocabulary = new Set([
+      "missing_passing_e2e",
+      "missing_production_symbol_coverage",
+      "missing_proof_receipt",
+      "missing_executable_test_symbol",
+      "missing_scenario_test",
+      "missing_semantic_inventory",
+      "missing_logic_claims",
+      "missing_production_symbol",
+      "stale_proof_receipt",
+      "failed_proof_receipt",
+      "unresolved_semantic_proposition",
+      "logic_manifest_mismatch",
+      "contradiction_check_incomplete",
+      "missing_symbol_coordinates",
+    ]);
+    for (const [gap, count] of Object.entries(baseline.trackedGaps ?? {})) {
+      expect(knownGapVocabulary.has(gap)).toBe(true);
+      expect(count).toBeGreaterThan(0);
+    }
     expect(Object.keys(baseline.requirements ?? {}).length).toBe(
       baseline.currentRequirements,
     );

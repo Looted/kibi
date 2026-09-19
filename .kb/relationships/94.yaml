@@ -146,3 +146,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4f0a66be095a
+  - type: executable_for
+    from: SYM-e2e-test-briefs-retired
+    to: TEST-e2e-briefs-retired
+    created_at: 2026-09-18T06:20:16.950Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4251d388053f

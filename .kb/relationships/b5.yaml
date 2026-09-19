@@ -314,3 +314,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d0cb19ca43cb
+  - type: covered_by
+    from: SYM-ModelRequirementArgs
+    to: TEST-005
+    created_at: 2026-09-18T14:55:06.222Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c5da8f46afa
+  - type: covered_by
+    from: SYM-ModelRequirementArgs
+    to: TEST-e2e-mcp-model-requirement
+    created_at: 2026-09-18T14:55:06.244Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7b7d54c1207d
+  - type: covered_by
+    from: SYM-jsonSchemaToZod
+    to: TEST-agent-kibi-interface-selection
+    created_at: 2026-09-18T15:15:07.288Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93c55a7523ea

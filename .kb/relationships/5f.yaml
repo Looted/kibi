@@ -90,3 +90,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fd39b917c265
+  - type: covered_by
+    from: SYM-Awaitable
+    to: TEST-agent-kibi-interface-selection
+    created_at: 2026-09-18T14:49:08.777Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea8a6992457c

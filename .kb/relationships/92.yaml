@@ -115,3 +115,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-466202716678
+  - type: executable_for
+    from: SYM-e2e-test-012
+    to: TEST-008
+    created_at: 2026-09-18T12:45:16.159Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9736c5cf18e

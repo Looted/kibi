@@ -2296,6 +2296,48 @@ test(production_coverage_receipt_reasons_cover_missing_stale_mismatch_and_contra
     candidate_for(DriftExpl, 'TEST-EXPLAIN-RECEIPT', DriftCand),
     assertion(DriftCand.reason == receipt_contract_mismatch).
 
+test(receipt_reject_fallback_uses_context_then_test_and_evidence_dict, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    OtherSnapshot = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+    requirement_proof:requirement_proof_context(Snapshot, '2026-08-10T12:05:00Z', 604800, Context),
+    assert_fixture_entity(test, 'TEST-FALLBACK-MISSING', "Fallback missing", passing, [verification_scope=end_to_end]),
+    requirement_proof:receipt_reject_for_in_chain([], Context, 'TEST-FALLBACK-MISSING', MissingPrimary, _),
+    assertion(MissingPrimary == missing_proof_receipt),
+
+    proof_receipt_json('TEST-FALLBACK-MISMATCH', OtherSnapshot, passed, '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', MismatchJson),
+    assert_fixture_entity(test, 'TEST-FALLBACK-MISMATCH', "Fallback mismatch", passing, [
+        verification_scope=end_to_end,
+        proof_receipts=MismatchJson
+    ]),
+    requirement_proof:receipt_reject_for_in_chain([], Context, 'TEST-FALLBACK-MISMATCH', MismatchPrimary, _),
+    assertion(MismatchPrimary == receipt_snapshot_mismatch),
+
+    requirement_proof:requirement_proof_context(Snapshot, '2026-08-10T12:05:00Z', 60, AgeContext),
+    proof_receipt_json('TEST-FALLBACK-AGE', Snapshot, passed, '2026-08-01T11:55:00Z', '2026-08-01T12:00:00Z', AgeJson),
+    assert_fixture_entity(test, 'TEST-FALLBACK-AGE', "Fallback age", passing, [
+        verification_scope=end_to_end,
+        proof_receipts=AgeJson
+    ]),
+    requirement_proof:receipt_reject_for_in_chain([], AgeContext, 'TEST-FALLBACK-AGE', AgePrimary, _),
+    assertion(AgePrimary == stale_proof_receipt),
+
+    Contract = _{
+        version: 'kibi.proof-contract.v1',
+        integration: 'self-proof',
+        required_proofs: [_{symbol_id: 'SYM-FALLBACK-RECEIPT', target: default}],
+        success_policy: all_required_first_attempt
+    },
+    atom_json_dict(ContractJsonAtom, Contract, []),
+    atom_string(ContractJsonAtom, ContractJson),
+    proof_receipt_json('TEST-FALLBACK-CONTRACT', Snapshot, passed, '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', DriftJson),
+    assert_fixture_entity(test, 'TEST-FALLBACK-CONTRACT', "Fallback contract", passing, [
+        verification_scope=end_to_end,
+        proof_contract=ContractJson,
+        proof_receipts=DriftJson
+    ]),
+    requirement_proof:receipt_reject_for_in_chain([], Context, 'TEST-FALLBACK-CONTRACT', ContractPrimary, _),
+    assertion(ContractPrimary == receipt_contract_mismatch).
+
 test(production_coverage_type_shape_unit_contract_is_not_available_to_behavioral_symbols, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-EXPLAIN-SHAPE', "Shape vs behavioral", active, []),
     assert_fixture_entity(test, 'TEST-EXPLAIN-SHAPE-E2E', "Shape E2E", passing, [verification_scope=end_to_end]),
@@ -2311,10 +2353,17 @@ test(production_coverage_type_shape_unit_contract_is_not_available_to_behavioral
     assertion(memberchk('SYM-EXPLAIN-BEHAVIOR', Symbols)),
     assertion(memberchk('SYM-EXPLAIN-BEHAVIOR', Stage.uncoveredSymbols)),
     production_explanation(Stage, 'SYM-EXPLAIN-SHAPE', ShapeExpl),
+    assertion(ShapeExpl.status == covered),
     assertion(ShapeExpl.reason == structural_unit_contract),
+    candidate_for(ShapeExpl, 'TEST-EXPLAIN-SHAPE-UNIT', ShapeCand),
+    assertion(ShapeCand.qualifies == true),
+    assertion(ShapeCand.reason == structural_unit_contract),
     production_explanation(Stage, 'SYM-EXPLAIN-BEHAVIOR', BehaviorExpl),
+    assertion(BehaviorExpl.status == uncovered),
     assertion(BehaviorExpl.reason \= structural_unit_contract),
-    assertion(memberchk(BehaviorExpl.reason, [no_qualifying_e2e_coverage, covered_by_missing])).
+    assertion(memberchk(BehaviorExpl.reason, [no_qualifying_e2e_coverage, covered_by_missing])),
+    candidate_for(BehaviorExpl, 'TEST-EXPLAIN-SHAPE-UNIT', BehaviorCand),
+    assertion(BehaviorCand.qualifies == false).
 
 test(executable_for_symbols_remain_excluded_from_production_coverage, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-EXPLAIN-EXEC', "Executable exclusion", active, []),

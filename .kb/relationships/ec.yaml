@@ -48,3 +48,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c7c32649e11b
+  - type: covered_by
+    from: SYM-deriveDiagnosticHints
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-09-18T15:08:21.760Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-605444c6fd91

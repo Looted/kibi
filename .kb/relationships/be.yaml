@@ -139,3 +139,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4572611f8072
+  - type: covered_by
+    from: SYM-operation-executeCoverage
+    to: TEST-kibi-legacy-migration-preview
+    created_at: 2026-09-18T07:28:22.938Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-30cd10d8950f
+  - type: covered_by
+    from: SYM-operation-executeCoverage
+    to: TEST-kibi-legacy-migration-preview-v2
+    created_at: 2026-09-18T07:28:22.945Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9201b98fb8e8
+  - type: implements
+    from: SYM-operation-executeCoverage
+    to: REQ-kibi-conservative-requirement-proof
+    created_at: 2026-09-18T07:28:22.950Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e569853ca0c5
+  - type: implements
+    from: SYM-operation-executeCoverage
+    to: REQ-kibi-dependency-ordered-repair-plan
+    created_at: 2026-09-18T07:28:22.954Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-acb2019a5ceb
+  - type: implements
+    from: SYM-operation-executeCoverage
+    to: REQ-kibi-legacy-migration-preview
+    created_at: 2026-09-18T07:28:22.959Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec06b8c29460
+  - type: implements
+    from: SYM-operation-executeCoverage
+    to: REQ-kibi-legacy-migration-preview-v2
+    created_at: 2026-09-18T07:28:22.963Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-568a40a2f248
+  - type: covered_by
+    from: SYM-operation-executeCoverage
+    to: TEST-e2e-coverage-proof-status
+    created_at: 2026-09-18T07:28:22.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1fb79b76d76c
+  - type: covered_by
+    from: SYM-refreshCoordinatesForSymbolId
+    to: TEST-agent-kibi-interface-selection
+    created_at: 2026-09-18T15:22:51.408Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3bc7b1ae7b8

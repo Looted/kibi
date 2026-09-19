@@ -174,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c1f57053ffed
+  - type: covered_by
+    from: SYM-quality-producer-runProofProducer
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-18T07:41:47.561Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e7cb37aaede
+  - type: covered_by
+    from: SYM-writeSetPrimaryEntityId
+    to: TEST-e2e-mcp-model-requirement
+    created_at: 2026-09-18T15:29:05.060Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a34ebf7e002

@@ -62,3 +62,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-09c0d637204f
+  - type: implements
+    from: SYM-kibi-cli-src-public-operations-specs-planning-ts-applyplanspec
+    to: REQ-kibi-change-to-proof-plan-compiler
+    created_at: 2026-09-18T07:19:40.591Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7cb35c7c19ce
+  - type: covered_by
+    from: SYM-kibi-cli-src-public-operations-specs-planning-ts-applyplanspec
+    to: TEST-e2e-plan-compiler-hash
+    created_at: 2026-09-18T07:19:40.595Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5f449517e85
+  - type: verified_by
+    from: SCEN-cli-config-schema-v1
+    to: TEST-e2e-schema-version-surface
+    created_at: 2026-09-18T10:54:29.457Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3423f1065a63

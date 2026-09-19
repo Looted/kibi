@@ -104,3 +104,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-05b0ee94b991
+  - type: covered_by
+    from: SYM-quality-producer-validateProofSteps
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-18T07:43:51.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2412741a1fc7

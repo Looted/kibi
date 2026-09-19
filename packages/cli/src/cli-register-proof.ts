@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 import { withExitCode } from "./cli-command.js";
 
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export function registerProofCommand(program: Command): void {
   program
     .command("prove")
@@ -114,9 +114,7 @@ export function registerProofCommand(program: Command): void {
     );
   proof
     .command("impact")
-    .description(
-      "Compare current proof state to the committed proof/baseline.json ratchet snapshot",
-    )
+    .description("Compare current proof state to HEAD:proof/baseline.json")
     .option("--json", "Emit structured JSON", false)
     .action(
       withExitCode(async (options: { json?: boolean }) => {

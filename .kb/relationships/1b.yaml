@@ -111,3 +111,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b2eb75099676
+  - type: covered_by
+    from: SYM-quality-producer-loadProofSteps
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-18T07:40:52.343Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ae1edffb13b

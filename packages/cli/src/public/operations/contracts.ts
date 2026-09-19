@@ -33,6 +33,25 @@ function objectData(
   };
 }
 
+/**
+ * kibi.job.v1 receipt returned by async-mode operations (kb_check with
+ * `async: true`) instead of the synchronous payload. Agents poll
+ * kb_job_status with the jobId. Declared as a union member of the operation
+ * data contract so hosts validating tool output against the declared schema
+ * accept the receipt without weakening the synchronous payload contract.
+ */
+const jobReceiptData: OperationJsonSchema = objectData(
+  {
+    kibiProtocol: { const: 1 },
+    jobVersion: { const: "kibi.job.v1" },
+    jobId: { type: "string" },
+    tool: { type: "string" },
+    status: { type: "string" },
+    pollWith: { const: "kb_job_status" },
+  },
+  ["kibiProtocol", "jobVersion", "jobId", "tool", "status", "pollWith"],
+);
+
 const stringValue: OperationJsonSchema = { type: "string" };
 const integerValue: OperationJsonSchema = { type: "integer" };
 const numberValue: OperationJsonSchema = { type: "number" };
@@ -240,18 +259,25 @@ export const OPERATION_DATA_SCHEMAS: Readonly<
     effectFailures: recordArray,
     nextActions: recordArray,
   }),
-  kb_check: objectData({
-    violations: valueArray,
-    count: integerValue,
-    diagnostics: recordArray,
-    qualityDiagnostics: recordArray,
-    impactDiagnostics: recordArray,
-    sourceFiles: stringArray,
-    extractedSymbols: recordArray,
-    linkedEntities: recordArray,
-    nextActions: valueArray,
-    migrationPlan: recordValue,
-  }),
+  kb_check: {
+    description:
+      "Synchronous check payload, or a kibi.job.v1 receipt when async:true detached the check into a background job (poll kb_job_status with the jobId).",
+    anyOf: [
+      objectData({
+        violations: valueArray,
+        count: integerValue,
+        diagnostics: recordArray,
+        qualityDiagnostics: recordArray,
+        impactDiagnostics: recordArray,
+        sourceFiles: stringArray,
+        extractedSymbols: recordArray,
+        linkedEntities: recordArray,
+        nextActions: valueArray,
+        migrationPlan: recordValue,
+      }),
+      jobReceiptData,
+    ],
+  },
   kb_compile_intent: objectData({
     version: stringValue,
     planHash: stringValue,

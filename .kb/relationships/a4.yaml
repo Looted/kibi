@@ -181,3 +181,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2e4e140acfe2
+  - type: implements
+    from: SYM-kibi-script-change-to-proof-eval-ts-searchcandidate
+    to: REQ-kibi-change-to-proof-evaluation
+    created_at: 2026-09-18T07:22:58.644Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-139ca054112e
+  - type: covered_by
+    from: SYM-kibi-script-change-to-proof-eval-ts-searchcandidate
+    to: TEST-kibi-change-to-proof-evaluation-live
+    created_at: 2026-09-18T07:22:58.657Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ad96cc9cdbf
+  - type: implements
+    from: SYM-test-root-batch-timeout-minutes
+    to: REQ-root-suite-batch-diagnostics
+    created_at: 2026-09-18T08:15:51.910Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-38d0c157e4a8
+  - type: covered_by
+    from: SYM-test-root-batch-timeout-minutes
+    to: TEST-root-suite-batch-diagnostics
+    created_at: 2026-09-18T08:15:51.930Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2fbe544d92e8
+  - type: covered_by
+    from: SYM-test-root-batch-timeout-minutes
+    to: TEST-e2e-root-batch-diagnostics
+    created_at: 2026-09-18T08:15:51.941Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f15f58438bb5
+  - type: covered_by
+    from: SYM-SkillsReadArgs
+    to: TEST-mcp-skills-resource-discoverability
+    created_at: 2026-09-18T14:58:31.859Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3923368701a

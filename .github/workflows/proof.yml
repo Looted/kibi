@@ -77,7 +77,7 @@ jobs:
         id: integrity
         run: |
           bun packages/cli/bin/kibi sync --refresh-symbol-coordinates
-          bun packages/cli/bin/kibi check --format json --rules no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness
+          bun packages/cli/bin/kibi check --format json --rules no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness,symbol-traceability
 
       - name: Prove every contracted test through Kibi
         run: bun packages/cli/bin/kibi prove --all

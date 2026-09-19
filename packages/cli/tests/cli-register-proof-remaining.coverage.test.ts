@@ -1,4 +1,4 @@
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { Command } from "commander";
 import { registerProofCommand } from "../src/cli-register-proof.js";

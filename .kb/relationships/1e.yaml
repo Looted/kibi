@@ -86,7 +86,7 @@ relationships:
   - type: covered_by
     from: SYM-quality-inventory-0dc924bdfedd
     to: TEST-004
-    created_at: 2026-09-18T07:13:29.530Z
+    created_at: 2026-09-18T07:33:53.524Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d63d0207379c
