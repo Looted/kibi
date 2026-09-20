@@ -38651,6 +38651,9 @@ symbols:
     status: active
     symbol_role: behavioral
     granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
   - id: SYM-cap-plugin-capabilityregistry-getbuiltinplugin-eac3b9f7
     title: CapabilityRegistry.getBuiltinPlugin
     sourceFile: packages/cli/src/plugins/registry.ts
@@ -38721,6 +38724,9 @@ symbols:
     status: active
     symbol_role: behavioral
     granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
   - id: SYM-cap-plugin-capabilityregistrycache-get-27109bcb
     title: CapabilityRegistryCache.get
     sourceFile: packages/cli/src/plugins/registry.ts
@@ -38855,6 +38861,9 @@ symbols:
     status: active
     symbol_role: behavioral
     granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
   - id: SYM-cap-plugin-pluginresolutionerror-code-17bded4e
     title: PluginResolutionError.code
     sourceFile: packages/cli/src/plugins/resolve-package.ts
@@ -38901,6 +38910,9 @@ symbols:
     status: active
     symbol_role: behavioral
     granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
   - id: SYM-cap-plugin-sourceanalysisservice-analyzetext-7b1783aa
     title: SourceAnalysisService.analyzeText
     sourceFile: packages/cli/src/plugins/source-analysis-service.ts
@@ -38955,6 +38967,9 @@ symbols:
     status: active
     symbol_role: behavioral
     granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
   - id: SYM-cap-plugin-builtinontologypack-schemas-a1165985
     title: BuiltinOntologyPack.schemas
     sourceFile: packages/plugin-builtin/src/ontology/builtin-ontology-pack.ts
@@ -39145,6 +39160,9 @@ symbols:
     status: active
     symbol_role: behavioral
     granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
   - id: SYM-cap-plugin-builtinsemanticclassifier-classify-b85c9df6
     title: BuiltinSemanticClassifier.classify
     sourceFile: packages/plugin-builtin/src/semantic/builtin-classifier.ts
@@ -39287,6 +39305,9 @@ symbols:
     status: active
     symbol_role: behavioral
     granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
   - id: SYM-cap-plugin-jevprovidererror-code-4b330f05
     title: JevProviderError.code
     sourceFile: packages/plugin-jev/src/jev-client.ts
@@ -39781,6 +39802,9 @@ symbols:
     status: active
     symbol_role: behavioral
     granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
   - id: SYM-cap-plugin-pluginvalidationerror-code-0a3bc917
     title: PluginValidationError.code
     sourceFile: packages/plugin-sdk/src/validate.ts
