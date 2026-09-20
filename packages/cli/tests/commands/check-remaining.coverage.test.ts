@@ -267,10 +267,11 @@ describe("checkCommand remaining runtime branches", () => {
     const overlayDir = path.join(cwd, "overlay");
     mkdirSync(overlayDir, { recursive: true });
     const overlayPath = path.join(overlayDir, "changed_symbols.pl");
+    mkdirSync(path.join(overlayDir, "kb"), { recursive: true });
     writeFileSync(overlayPath, "");
     const create = spyOn(tempKb, "createTempKb").mockResolvedValue({
       tempDir: overlayDir,
-      kbPath: overlayDir,
+      kbPath: path.join(overlayDir, "kb"),
       overlayPath,
       prolog: { query: async () => ({ success: true, bindings: {} }) } as never,
     });
@@ -453,10 +454,11 @@ describe("checkCommand remaining runtime branches", () => {
     const overlayDir = path.join(cwd, "overlay");
     mkdirSync(overlayDir, { recursive: true });
     const overlayPath = path.join(overlayDir, "changed_symbols.pl");
+    mkdirSync(path.join(overlayDir, "kb"), { recursive: true });
     writeFileSync(overlayPath, "");
     const create = spyOn(tempKb, "createTempKb").mockResolvedValue({
       tempDir: overlayDir,
-      kbPath: overlayDir,
+      kbPath: path.join(overlayDir, "kb"),
       overlayPath,
       prolog: { query: async () => ({ success: true, bindings: {} }) } as never,
     });
@@ -619,10 +621,11 @@ describe("checkCommand remaining runtime branches", () => {
     const overlayDir = path.join(cwd, "overlay");
     mkdirSync(overlayDir, { recursive: true });
     const overlayPath = path.join(overlayDir, "changed_symbols.pl");
+    mkdirSync(path.join(overlayDir, "kb"), { recursive: true });
     writeFileSync(overlayPath, "");
     const create = spyOn(tempKb, "createTempKb").mockResolvedValue({
       tempDir: overlayDir,
-      kbPath: overlayDir,
+      kbPath: path.join(overlayDir, "kb"),
       overlayPath,
       prolog: { query: async () => ({ success: true, bindings: {} }) } as never,
     });
@@ -706,10 +709,11 @@ describe("checkCommand remaining runtime branches", () => {
     const overlayDir = path.join(cwd, "overlay");
     mkdirSync(overlayDir, { recursive: true });
     const overlayPath = path.join(overlayDir, "changed_symbols.pl");
+    mkdirSync(path.join(overlayDir, "kb"), { recursive: true });
     writeFileSync(overlayPath, "");
     const create = spyOn(tempKb, "createTempKb").mockResolvedValue({
       tempDir: overlayDir,
-      kbPath: overlayDir,
+      kbPath: path.join(overlayDir, "kb"),
       overlayPath,
       prolog: { query: async () => ({ success: true, bindings: {} }) } as never,
     });
@@ -928,10 +932,11 @@ Must stay independently testable.
     const overlayDir = path.join(cwd, "overlay");
     mkdirSync(overlayDir, { recursive: true });
     const overlayPath = path.join(overlayDir, "changed_symbols.pl");
+    mkdirSync(path.join(overlayDir, "kb"), { recursive: true });
     writeFileSync(overlayPath, "");
     const create = spyOn(tempKb, "createTempKb").mockResolvedValue({
       tempDir: overlayDir,
-      kbPath: overlayDir,
+      kbPath: path.join(overlayDir, "kb"),
       overlayPath,
       prolog: { query: async () => ({ success: true, bindings: {} }) } as never,
     });

@@ -27,7 +27,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.3.10'
+          bun-version: '1.4.2'
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Determine release action
@@ -60,7 +60,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.3.10'
+          bun-version: '1.4.2'
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
@@ -109,6 +109,9 @@ jobs:
       - name: Pack packages
         run: |
           cd packages/core && npm pack
+          cd ../plugin-sdk && npm pack
+          cd ../plugin-builtin && npm pack
+          cd ../plugin-jev && npm pack
           cd ../runtime && npm pack
           cd ../cli && npm pack
           cd ../mcp && npm pack
@@ -121,6 +124,9 @@ jobs:
           name: package-tarballs
           path: |
             packages/core/*.tgz
+            packages/plugin-sdk/*.tgz
+            packages/plugin-builtin/*.tgz
+            packages/plugin-jev/*.tgz
             packages/runtime/*.tgz
             packages/cli/*.tgz
             packages/mcp/*.tgz
@@ -158,7 +164,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.3.10'
+          bun-version: '1.4.2'
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
@@ -199,11 +205,16 @@ jobs:
           cd /tmp/kibi-smoke-test
           npm init -y
           npm install ${{ github.workspace }}/packages/core/kibi-core-*.tgz
+          npm install ${{ github.workspace }}/packages/plugin-sdk/kibi-plugin-sdk-*.tgz
+          npm install ${{ github.workspace }}/packages/plugin-builtin/kibi-plugin-builtin-*.tgz
           npm install ${{ github.workspace }}/packages/runtime/kibi-runtime-*.tgz
           npm install ${{ github.workspace }}/packages/cli/kibi-cli-*.tgz
           npm install ${{ github.workspace }}/packages/mcp/kibi-mcp-*.tgz
           npm install ${{ github.workspace }}/packages/opencode/kibi-opencode-*.tgz
           npm install ${{ github.workspace }}/packages/codex/kibi-codex-*.tgz
+          # Assert optional Jev/TypeSafe stay out of the default tree.
+          test ! -d ./node_modules/kibi-plugin-jev
+          test ! -d ./node_modules/@typesafe-ai
           # /tmp/kibi-smoke-test is intentionally not a git repository;
           # standalone workspaces must declare their branch identity.
           export KIBI_BRANCH=smoke
@@ -230,7 +241,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.3.10'
+          bun-version: '1.4.2'
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
@@ -274,7 +285,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.3.10'
+          bun-version: '1.4.2'
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Download VS Code extension VSIX
