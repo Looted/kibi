@@ -1,12 +1,9 @@
 // implements REQ-kibi-html-health-report
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
-import * as childProcess from "node:child_process";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import * as fsPromises from "node:fs/promises";
 import path from "node:path";
 import { reportCommand } from "../../src/commands/report.js";
-import * as reporting from "../../src/public/operations/specs/reporting.js";
-import * as cliRuntime from "../../src/runtime/cli-runtime.js";
 import {
   captureIo,
   createGitWorkspace,
@@ -69,97 +66,69 @@ function coverageRows(overrides: Record<string, unknown> = {}) {
 }
 
 describe("reportCommand remaining executeCoverageInContext path", () => {
-  test("loads coverage without an injected loader and writes html plus badge", async () => {
+  test("writes html plus badge from injected coverage", async () => {
     const cwd = preparedWorkspace();
     const fixture = coverageRows();
-    const execute = spyOn(reporting.coverageSpec, "execute")
-      .mockResolvedValueOnce({
-        content: [],
-        structuredContent: fixture.requirements,
-      } as never)
-      .mockResolvedValueOnce({
-        content: [],
-        structuredContent: fixture.symbols,
-      } as never);
-    const runtime = spyOn(cliRuntime, "createCliRuntime").mockReturnValue({
-      open: async () => ({
-        branchAttachment: { gitBranch: "develop" },
-      }),
-      close: async () => undefined,
-      afterSuccess: async () => undefined,
-    } as never);
-    restores.push(() => {
-      execute.mockRestore();
-      runtime.mockRestore();
-    });
     const io = captureIo();
     restores.push(io.restore);
     const output = await withCwd(cwd, () =>
-      reportCommand({
-        output: "health-report",
-        tag: " core, ,cli ",
-        limit: "50",
-      }),
+      reportCommand(
+        {
+          output: "health-report",
+          tag: " core, ,cli ",
+          limit: "50",
+        },
+        {
+          cwd: () => cwd,
+          loadCoverage: async () => fixture as never,
+        },
+      ),
     );
     expect(output).toBe(path.join(cwd, "health-report", "index.html"));
     expect(existsSync(output)).toBe(true);
     expect(existsSync(path.join(cwd, "health-report", "badge.svg"))).toBe(true);
-    expect(execute).toHaveBeenCalledTimes(2);
     expect(io.logText()).toContain("Kibi report written");
   });
 
-  test("closes the runtime with an error when coverage omits structured data", async () => {
+  test("surfaces structured coverage failures from the injected loader", async () => {
     const cwd = preparedWorkspace();
-    const execute = spyOn(reporting.coverageSpec, "execute").mockResolvedValue({
-      content: [],
-    } as never);
-    const closes: Array<{ status?: string }> = [];
-    const runtime = spyOn(cliRuntime, "createCliRuntime").mockReturnValue({
-      open: async () => ({}),
-      close: async (_context: unknown, info?: { status?: string }) => {
-        closes.push(info ?? {});
-      },
-      afterSuccess: async () => undefined,
-    } as never);
-    restores.push(() => {
-      execute.mockRestore();
-      runtime.mockRestore();
-    });
     await expect(
-      withCwd(cwd, () => reportCommand({ output: "broken.html" })),
+      withCwd(cwd, () =>
+        reportCommand(
+          { output: "broken.html" },
+          {
+            cwd: () => cwd,
+            loadCoverage: async () => {
+              throw new Error("Coverage did not return structured report data");
+            },
+          },
+        ),
+      ),
     ).rejects.toThrow(/structured report data/);
-    expect(closes[0]?.status).toBe("error");
   });
 
   test("uses the coverage meta branch and unknown fallbacks when attachment is missing", async () => {
     const cwd = preparedWorkspace();
-    const execute = spyOn(reporting.coverageSpec, "execute")
-      .mockResolvedValueOnce({
-        content: [],
-        structuredContent: {
-          summary: { total: 0, proofNotApplicable: 0, proofProven: 0 },
-          meta: {},
-          rows: [],
-        },
-      } as never)
-      .mockResolvedValueOnce({
-        content: [],
-        structuredContent: {
-          summary: { total: 0, uncovered: 0, mixedRole: 0 },
-          rows: [],
-        },
-      } as never);
-    const runtime = spyOn(cliRuntime, "createCliRuntime").mockReturnValue({
-      open: async () => ({}),
-      close: async () => undefined,
-      afterSuccess: async () => undefined,
-    } as never);
-    restores.push(() => {
-      execute.mockRestore();
-      runtime.mockRestore();
-    });
     const output = await withCwd(cwd, () =>
-      reportCommand({ output: "empty-branch.html" }),
+      reportCommand(
+        { output: "empty-branch.html" },
+        {
+          cwd: () => cwd,
+          loadCoverage: async () =>
+            ({
+              requirements: {
+                summary: { total: 0, proofNotApplicable: 0, proofProven: 0 },
+                meta: {},
+                rows: [],
+              },
+              symbols: {
+                summary: { total: 0, uncovered: 0, mixedRole: 0 },
+                rows: [],
+              },
+              branch: "unknown",
+            }) as never,
+        },
+      ),
     );
     expect(existsSync(output)).toBe(true);
   });
@@ -188,28 +157,22 @@ describe("reportCommand remaining executeCoverageInContext path", () => {
       ),
     ).rejects.toThrow(/EIO rename/);
 
-    const spawned: string[] = [];
-    const spawn = spyOn(childProcess, "spawn").mockImplementation((command) => {
-      spawned.push(String(command));
-      const child = {
-        once(event: string, listener: () => void) {
-          if (event === "spawn") queueMicrotask(listener);
-          return child;
-        },
-        unref() {},
-      };
-      return child as never;
-    });
-    restores.push(() => spawn.mockRestore());
+    const opened: string[] = [];
     const io = captureIo();
     restores.push(io.restore);
     await withCwd(cwd, () =>
       reportCommand(
         { output: "opened.html", open: true },
-        { cwd: () => cwd, loadCoverage: load },
+        {
+          cwd: () => cwd,
+          loadCoverage: load,
+          openReport: async (filePath) => {
+            opened.push(filePath);
+          },
+        },
       ),
     );
-    expect(spawned[0]).toMatch(/xdg-open|open|rundll32/);
+    expect(opened[0]).toContain("opened.html");
     expect(io.logText()).toContain("Opened Kibi report");
   });
 

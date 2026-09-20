@@ -747,7 +747,9 @@ export async function executeCompileIntent(
         },
       },
       ...(args.clauses ? { clauses: args.clauses } : {}),
-      ...(args.interpretations ? { interpretations: args.interpretations } : {}),
+      ...(args.interpretations
+        ? { interpretations: args.interpretations }
+        : {}),
     },
     {
       operationName: "kb_compile_intent",
@@ -763,6 +765,18 @@ export async function executeCompileIntent(
       `Capability plugins consulted: ${orchestrated.stamps
         .map((stamp) => `${stamp.pluginId}/${stamp.capability}`)
         .join(", ")}.`,
+    );
+  }
+  const semanticShadowCount =
+    orchestrated.classification?.shadowComparisons.length ?? 0;
+  if (semanticShadowCount > 0) {
+    diagnostics.push(
+      `Semantic classifier shadow comparisons observed (${semanticShadowCount}); canonical compile plan unchanged.`,
+    );
+  }
+  if (orchestrated.ontologyShadowMatches.length > 0) {
+    diagnostics.push(
+      `Ontology pack shadow matches observed (${orchestrated.ontologyShadowMatches.length}); canonical compile plan unchanged.`,
     );
   }
   const suggestionByClaim = new Map(

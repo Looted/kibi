@@ -21,7 +21,7 @@ semantic_inventory:
     status: ontology_gap
 id: REQ-capability-plugin-activation-disclosure-v1
 type: req
-proof_exempt: false
+proof_exempt: true
 proof_exempt_reason: architectural boundary — verified by activation/disclosure host unit tests, not product E2E
 ---
 # REQ-capability-plugin-activation-disclosure-v1

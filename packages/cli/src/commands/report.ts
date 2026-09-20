@@ -181,8 +181,20 @@ export async function openReport(filePath: string): Promise<void> {
       detached: true,
       stdio: "ignore",
     });
-    child.once("error", reject);
+    const timer = setTimeout(() => {
+      try {
+        child.unref();
+      } catch {
+        // Best-effort unref if the child never spawned.
+      }
+      reject(new Error(`Timed out opening report via ${command}`));
+    }, 5_000);
+    child.once("error", (error) => {
+      clearTimeout(timer);
+      reject(error);
+    });
     child.once("spawn", () => {
+      clearTimeout(timer);
       child.unref();
       resolve();
     });
