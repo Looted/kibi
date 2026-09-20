@@ -17,27 +17,30 @@
 */
 
 import { describe, expect, test } from "bun:test";
-import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import {
   KIBI_PLUGIN_API_VERSION,
-  SEMANTIC_CLASSIFIER_CAPABILITY_ID,
-  ONTOLOGY_PACK_CAPABILITY_ID,
-  SYMBOL_EXTRACTOR_CAPABILITY_ID,
-  defineKibiPlugin,
   type KibiPluginV1,
-  type ProjectKibiConfig,
-  type SemanticClassifierV1,
+  ONTOLOGY_PACK_CAPABILITY_ID,
   type OntologyPackV1,
+  type ProjectKibiConfig,
+  SEMANTIC_CLASSIFIER_CAPABILITY_ID,
+  SYMBOL_EXTRACTOR_CAPABILITY_ID,
+  type SemanticClassifierV1,
   type SymbolExtractorV1,
+  defineKibiPlugin,
 } from "kibi-plugin-sdk";
 
 import {
   CapabilityRegistry,
   CapabilityRegistryCache,
+  PluginResolutionError,
+  SourceAnalysisService,
   allowsExternalSemanticClassifier,
+  analyzeWithResolution,
   assertBarePackageName,
   composeOntologyCatalog,
   composeOntologyMatches,
@@ -49,9 +52,6 @@ import {
   loadPluginPackage,
   readProjectKibiConfig,
   resolveProjectLocalPackage,
-  PluginResolutionError,
-  SourceAnalysisService,
-  analyzeWithResolution,
 } from "../../src/plugins/index.js";
 import type { LoadedPlugin } from "../../src/plugins/load-plugin.js";
 import type { CapabilityModeResolution } from "../../src/plugins/registry.js";
@@ -80,9 +80,7 @@ function makePlugin(
       semanticClassifier: overrides.classifier ?? {
         id: `${id}.classifier`,
         classify: () => ({
-          decisions: [
-            { claimKey: "c1", lane: "predicate", confidence: 0.9 },
-          ],
+          decisions: [{ claimKey: "c1", lane: "predicate", confidence: 0.9 }],
         }),
       },
       ontologyPack: overrides.ontology ?? {
@@ -133,10 +131,7 @@ function makePlugin(
   });
 }
 
-function loaded(
-  packageName: string,
-  plugin: KibiPluginV1,
-): LoadedPlugin {
+function loaded(packageName: string, plugin: KibiPluginV1): LoadedPlugin {
   return {
     packageName,
     plugin,
@@ -304,8 +299,13 @@ describe("capability plugin host", () => {
       workspaceRoot: "/tmp/modes",
       projectConfig: config,
       builtinFactory: () => createStubBuiltinPlugin(),
-      loadPlugin: async (_root, packageName) =>
-        loaded(packageName, byPackage[packageName]!),
+      loadPlugin: async (_root, packageName) => {
+        const plugin = byPackage[packageName];
+        if (!plugin) {
+          throw new Error(`unexpected package ${packageName}`);
+        }
+        return loaded(packageName, plugin);
+      },
     });
 
     const resolution = await registry.resolveSemanticClassifiers();
@@ -314,10 +314,9 @@ describe("capability plugin host", () => {
       "pkg-augment",
     ]);
     expect(resolution.shadow.map((e) => e.packageName)).toEqual(["pkg-shadow"]);
-    expect(registry.canonicalProviders(resolution).map((e) => e.packageName)).toEqual([
-      "pkg-replace",
-      "pkg-augment",
-    ]);
+    expect(
+      registry.canonicalProviders(resolution).map((e) => e.packageName),
+    ).toEqual(["pkg-replace", "pkg-augment"]);
   });
 
   // executable_for TEST-capability-plugin-host-resolution-v1
@@ -447,7 +446,9 @@ describe("capability plugin host", () => {
   // executable_for TEST-capability-plugin-host-resolution-v1
   test("external semantic classifier allowlist", () => {
     expect(allowsExternalSemanticClassifier("kb_semantic_advisor")).toBe(true);
-    expect(allowsExternalSemanticClassifier("kb_model_requirement")).toBe(false);
+    expect(allowsExternalSemanticClassifier("kb_model_requirement")).toBe(
+      false,
+    );
     expect(allowsExternalSemanticClassifier("kb_compile_intent")).toBe(true);
     expect(allowsExternalSemanticClassifier("kb_check")).toBe(false);
     expect(allowsExternalSemanticClassifier("kb_upsert")).toBe(false);
@@ -541,15 +542,23 @@ describe("capability plugin host", () => {
       ],
     };
 
-    const blocked = await composeSemanticClassification(resolution, {
-      propositions: [{ claimKey: "c1", statement: "maybe" }],
-    }, { operationName: "kb_check" });
+    const blocked = await composeSemanticClassification(
+      resolution,
+      {
+        propositions: [{ claimKey: "c1", statement: "maybe" }],
+      },
+      { operationName: "kb_check" },
+    );
     expect(blocked.decisions[0]?.lane).toBe("none");
     expect(blocked.shadowComparisons).toEqual([]);
 
-    const allowed = await composeSemanticClassification(resolution, {
-      propositions: [{ claimKey: "c1", statement: "maybe" }],
-    }, { operationName: "kb_semantic_advisor" });
+    const allowed = await composeSemanticClassification(
+      resolution,
+      {
+        propositions: [{ claimKey: "c1", statement: "maybe" }],
+      },
+      { operationName: "kb_semantic_advisor" },
+    );
     expect(allowed.decisions[0]?.lane).toBe("observation_review");
     expect(allowed.shadowComparisons).toHaveLength(1);
     expect(allowed.shadowComparisons[0]?.decisions[0]?.lane).toBe("rule");
@@ -590,7 +599,13 @@ describe("capability plugin host", () => {
           permissions: { network: false, metered: false, secrets: [] },
           external: false,
           capability: builtin,
-          stamp: { ...stamp, mode: "augment", external: false, network: false, metered: false },
+          stamp: {
+            ...stamp,
+            mode: "augment",
+            external: false,
+            network: false,
+            metered: false,
+          },
         },
         replace: {
           pluginId: "replace",
@@ -605,7 +620,11 @@ describe("capability plugin host", () => {
         augment: [],
         shadow: [],
       },
-      { propositions: [{ claimKey: "c1", statement: "The system must validate tokens" }] },
+      {
+        propositions: [
+          { claimKey: "c1", statement: "The system must validate tokens" },
+        ],
+      },
       { operationName: "kb_semantic_advisor" },
     );
     expect(result.fallbackUsed).toBe(false);
@@ -1001,7 +1020,9 @@ describe("capability plugin host", () => {
       },
     });
     expect(
-      sync.receipt.suggestions.some((suggestion) => suggestion.kind === "predicate"),
+      sync.receipt.suggestions.some(
+        (suggestion) => suggestion.kind === "predicate",
+      ),
     ).toBe(true);
 
     const replacePack: OntologyPackV1 = {

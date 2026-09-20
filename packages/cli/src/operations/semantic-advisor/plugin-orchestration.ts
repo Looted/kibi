@@ -25,14 +25,14 @@ import type {
 } from "kibi-plugin-sdk";
 
 import {
-  composeOntologyCatalog,
-  composeOntologyMatches,
   type ComposedOntologyCatalog,
   type StampedOntologyCandidate,
+  composeOntologyCatalog,
+  composeOntologyMatches,
 } from "../../plugins/compose-ontology-packs.js";
 import {
-  composeSemanticClassification,
   type ComposedSemanticClassifierResult,
+  composeSemanticClassification,
 } from "../../plugins/compose-semantic-classifier.js";
 import { allowsExternalSemanticClassifier } from "../../plugins/external-allowlist.js";
 import type { CapabilityRegistry } from "../../plugins/registry.js";
@@ -285,10 +285,7 @@ export function applyClassificationRouting(
     const decision = byClaim.get(proposition.claim_key);
     if (!decision) return proposition;
     // `none` cannot erase an assertive unresolved obligation.
-    if (
-      decision.lane === "none" &&
-      isAssertiveUnresolved(proposition)
-    ) {
+    if (decision.lane === "none" && isAssertiveUnresolved(proposition)) {
       return proposition;
     }
     if (decision.lane === "none") return proposition;
@@ -333,7 +330,8 @@ export function applyClassificationRouting(
         existing.suggested_next_tool !== nextTool &&
         (existing.kind === "ambiguity_observation" ||
           existing.kind === "ontology_gap" ||
-          (decision.lane === "predicate" && existing.kind !== "strict_property"))
+          (decision.lane === "predicate" &&
+            existing.kind !== "strict_property"))
       ) {
         const updated = {
           ...existing,
@@ -501,13 +499,12 @@ export async function analyzeSemanticAdvisorInputWithPlugins(
   const packResolution = await registry.resolveOntologyPacks();
   ontologyCatalog = composeOntologyCatalog(packResolution);
   stamps.push(...ontologyCatalog.stamps);
-  const contexts: OntologyMatchContext[] = nextAnalysis.receipt.propositions.map(
-    (proposition) => ({
+  const contexts: OntologyMatchContext[] =
+    nextAnalysis.receipt.propositions.map((proposition) => ({
       claimKey: proposition.claim_key,
       statement: proposition.claim_text,
       role: proposition.role,
-    }),
-  );
+    }));
   const seen = new Set<string>();
   const collected: StampedOntologyCandidate[] = [];
   const shadowCollected: StampedOntologyCandidate[] = [];
@@ -553,9 +550,13 @@ export async function analyzeSemanticAdvisorInputWithPlugins(
       { replaced },
     );
   } else {
-    nextAnalysis = applyOntologyMatchSuggestions(nextAnalysis, ontologyMatches, {
-      replaced,
-    });
+    nextAnalysis = applyOntologyMatchSuggestions(
+      nextAnalysis,
+      ontologyMatches,
+      {
+        replaced,
+      },
+    );
   }
 
   return {
