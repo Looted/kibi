@@ -535,13 +535,11 @@ Body.
       checkCommand({ staged: true, kbPath: path.join(cwd, "kb-store") }),
     );
 
-    expect(result.exitCode).toBe(0);
-    const mode = collect.mock.calls[0]?.[0]?.mode;
-    expect(mode?.kind).toBe("missing");
-    const projected = project.mock.calls[0]?.[1] as ExtractionResult[];
-    expect(projected?.[0]?.entity.id).toBe("NOTE-1");
-    expect(projected?.[0]?.entity.type).toBe("epic");
-    expect(io.logText()).toContain("No violations found in staged symbols");
+    // Unknown-type entity markdown is not KB impact evidence, so the staged
+    // production source fails the ownership gate.
+    expect(result.exitCode).toBe(1);
+    expect(io.logText()).toContain("src/greet.ts");
+    expect(io.logText()).not.toContain("No violations found");
   });
 
   test("keeps the newest definition when a staged manifest repeats a symbol id", async () => {
@@ -823,7 +821,7 @@ describe("check Prolog rule helpers with crafted query results", () => {
         { includes: "findall(Id", bindings: { Ids: "[REQ-1]" } },
         {
           includes: "kb_relationship(relates_to",
-          bindings: { Rels: "['REQ-1','GONE-2']" },
+          bindings: { Rels: "[['REQ-1','GONE-2']]" },
         },
         {
           includes: "kb_relationship(verified_by",
