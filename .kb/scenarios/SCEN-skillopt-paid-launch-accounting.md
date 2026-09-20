@@ -1,13 +1,17 @@
 ---
 id: SCEN-skillopt-paid-launch-accounting
-title: Paid launches remain bound to exact requests and reconciled receipts
+title: Paid-launch gateway and receipt contracts reject attribution and trust-boundary violations
 type: scenario
 status: active
-created_at: 2026-07-26T00:00:00Z
-updated_at: 2026-07-26T00:00:00Z
+created_at: 2026-07-26T00:00:00.000Z
+updated_at: 2026-07-26T00:00:00.000Z
 source: documentation/requirements/REQ-skillopt-paid-launch-accounting.md
 priority: must
-tags: [skillopt, paid-launch, security, accounting]
+tags:
+  - skillopt
+  - paid-launch
+  - security
+  - accounting
 links:
   - type: verified_by
     target: TEST-skillopt-paid-launch-accounting

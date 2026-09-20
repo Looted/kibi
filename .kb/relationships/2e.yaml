@@ -140,3 +140,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d089d963a62a
+  - type: implements
+    from: SYM-TaskFixtureResolutionError
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:37:01.975Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3ed30ee0fde9

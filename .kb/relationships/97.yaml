@@ -230,3 +230,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2db414b4ad6a
+  - type: covered_by
+    from: SYM-canonical-KibiTreeDataProvider-onDidChangeTreeData
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T19:31:58.232Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28ec34ddaa94

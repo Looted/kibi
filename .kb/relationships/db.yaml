@@ -216,3 +216,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6c12421c17f5
+  - type: verified_by
+    from: REQ-014
+    to: TEST-e2e-coverage-pipeline
+    created_at: 2026-09-19T17:47:34.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a6a196e7735c
+  - type: covered_by
+    from: SYM-vscode-code-lens-provider-on-did-change-code-lenses
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T19:29:04.422Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a150ff81a82

@@ -111,3 +111,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2412741a1fc7
+  - type: implements
+    from: SYM-skillopt-held-out-evaluation-from-receipt
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:39:38.139Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4a7f96e7eb37

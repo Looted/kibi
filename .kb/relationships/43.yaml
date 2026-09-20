@@ -125,3 +125,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bb72339b983b
+  - type: covered_by
+    from: SYM-KibiCodeActionProvider
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T19:30:05.134Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-467c695c39ab
+  - type: covered_by
+    from: SYM-activate
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T19:31:01.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc58620e837f

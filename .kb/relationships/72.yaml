@@ -286,3 +286,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b197af8989db
+  - type: implements
+    from: SYM-skillopt-assert-terminal-receipt-binding
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:38:35.666Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1b944704ffa

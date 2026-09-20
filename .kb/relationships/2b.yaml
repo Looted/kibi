@@ -265,3 +265,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d141e5e8c092
+  - type: covered_by
+    from: SYM-TraceabilityRegistrationResult
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T19:30:53.882Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab0c92b62590

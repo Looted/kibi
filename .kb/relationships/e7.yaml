@@ -111,3 +111,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-71f9f946499c
+  - type: implements
+    from: SYM-readNoFollow
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:38:12.933Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bdc17feabbfb

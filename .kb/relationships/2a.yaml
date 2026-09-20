@@ -111,3 +111,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c912b2927e0d
+  - type: covered_by
+    from: SYM-KibiTreeItem
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T19:30:29.639Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d32cc3d2b2da

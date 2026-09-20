@@ -188,3 +188,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ce5813f4f7ed
+  - type: covered_by
+    from: SYM-skillopt-parse-verification-harness-cli
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-09-19T19:26:05.625Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02d29b9cecc3

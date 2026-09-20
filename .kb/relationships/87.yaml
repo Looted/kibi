@@ -279,3 +279,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e28465151287
+  - type: covered_by
+    from: SYM-quality-junit-ambiguousNativeBindings
+    to: TEST-e2e-proof-maintenance-ops
+    created_at: 2026-09-19T19:21:22.008Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5774fc522776

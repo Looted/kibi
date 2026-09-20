@@ -146,3 +146,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d0c33cf0808b
+  - type: covered_by
+    from: SYM-summarizeBranchCoverage
+    to: TEST-e2e-coverage-pipeline
+    created_at: 2026-09-19T19:14:26.779Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-573f1db6e610

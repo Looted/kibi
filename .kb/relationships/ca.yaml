@@ -90,3 +90,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-18c032f0ab45
+  - type: covered_by
+    from: SYM-SourceTreeHash
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-09-19T19:24:02.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c3c63ce92df
+  - type: implements
+    from: SYM-buildFixtureAuthorizationClaim
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:37:13.641Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4877b647e846
+  - type: implements
+    from: SYM-skillopt-model-schema
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:41:57.054Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b32a34989d3c

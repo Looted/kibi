@@ -167,3 +167,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0fa871d47f6f
+  - type: covered_by
+    from: SYM-skillopt-parse-generated-artifact-receipt
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-09-19T19:27:23.235Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0ec58511c0d3

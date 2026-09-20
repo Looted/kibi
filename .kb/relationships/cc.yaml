@@ -132,3 +132,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-85702bb8b8a9
+  - type: covered_by
+    from: SYM-skillopt-parse-launcher-session
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-09-19T19:27:31.324Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7046e54f19fd
+  - type: covered_by
+    from: SYM-skillopt-parse-root-authorization
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-09-19T19:27:39.445Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-53af16e01f06

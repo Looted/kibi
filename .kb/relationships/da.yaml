@@ -178,3 +178,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dbbf2d1a4ce4
+  - type: covered_by
+    from: SYM-quality-maintenance-proofPruneCommand
+    to: TEST-e2e-proof-maintenance-ops
+    created_at: 2026-09-19T19:21:51.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0973fde2e91
+  - type: covered_by
+    from: SYM-PreparedRoot
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-09-19T19:23:29.658Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d44823e0e40

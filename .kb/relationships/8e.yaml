@@ -223,3 +223,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e57077d60afa
+  - type: covered_by
+    from: SYM-VerificationHarnessOptionsError
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-09-19T19:24:58.358Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3a7e21609b5
+  - type: implements
+    from: SYM-skillopt-held-out-evaluate-matrix
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:39:34.583Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab1e37fd2933

@@ -202,3 +202,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-31ff56ddbec6
+  - type: implements
+    from: SYM-assertFixtureAuthorizationClaim
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:37:09.475Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbd2f28fbf09

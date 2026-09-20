@@ -513,6 +513,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: implements
         target: REQ-vscode-source-to-kb
@@ -523,6 +525,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: implements
@@ -535,6 +539,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: implements
         target: REQ-vscode-source-to-kb
@@ -545,6 +551,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: implements
@@ -557,6 +565,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: implements
         target: REQ-vscode-source-to-kb
@@ -567,6 +577,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: implements
@@ -579,6 +591,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: implements
         target: REQ-vscode-source-to-kb
@@ -589,6 +603,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: implements
@@ -2226,6 +2242,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -2537,6 +2555,8 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -2547,6 +2567,8 @@ symbols:
     status: active
     granularity_reason: extractor-miss
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -2559,6 +2581,8 @@ symbols:
     granularity_reason: extractor-miss
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -2569,6 +2593,8 @@ symbols:
     status: active
     granularity_reason: extractor-miss
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -2581,6 +2607,8 @@ symbols:
     granularity_reason: extractor-miss
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -2591,6 +2619,8 @@ symbols:
     status: active
     granularity_reason: extractor-miss
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -2603,6 +2633,8 @@ symbols:
     granularity_reason: extractor-miss
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -2613,6 +2645,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -2625,6 +2659,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -2635,6 +2671,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -2680,7 +2718,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-assertMaxBytes
     title: assertMaxBytes
     sourceFile: packages/cli/src/public/skill-system/validation.ts
@@ -2700,6 +2738,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -2710,6 +2750,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -2918,13 +2960,15 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-browseLinkedEntities
     title: browseLinkedEntities
     sourceFile: packages/vscode/src/codeActionProvider.ts
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -2980,13 +3024,15 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-buildIndex
     title: buildIndex
     sourceFile: packages/vscode/src/symbolIndex.ts
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -3058,7 +3104,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-canonicalSkillsDir
     title: canonicalSkillsDir
     sourceFile: scripts/sync-agent-skills.ts
@@ -5741,7 +5787,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-createAutoUpdateRunner
     title: createAutoUpdateRunner
     status: active
@@ -6706,6 +6752,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -7418,7 +7466,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-error
     title: error
     status: active
@@ -7499,7 +7547,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-execute-model-requirement
     title: executeModelRequirement
     status: active
@@ -7867,7 +7915,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-FixtureAuthorizationClaimSchema
     title: FixtureAuthorizationClaimSchema
     sourceFile: scripts/skillopt-eval/fixtures/fixture-claim.ts
@@ -7878,7 +7926,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-FixtureClaimError
     title: FixtureClaimError
     sourceFile: scripts/skillopt-eval/fixtures/fixture-claim.ts
@@ -7889,7 +7937,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-FixtureClaimError-name
     title: FixtureClaimError.name
     sourceFile: scripts/skillopt-eval/fixtures/fixture-claim.ts
@@ -7900,7 +7948,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-formatUpsertError
     title: formatUpsertError
     status: active
@@ -8011,7 +8059,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-GateMatrix
     title: GateMatrix
     sourceFile: scripts/skillopt-eval/held-out-cell-binding.ts
@@ -8022,7 +8070,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-getBehavioralSymbolNames
     title: getBehavioralSymbolNames
     sourceFile: packages/cli/src/public/symbol-granularity.ts
@@ -8223,6 +8271,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -8483,7 +8533,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-hasOverrideRationale
     title: hasOverrideRationale
     sourceFile: packages/cli/src/traceability/evidence-model.ts
@@ -8501,6 +8551,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -8524,7 +8576,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutEvidenceBinding
     title: HeldOutEvidenceBinding
     sourceFile: scripts/skillopt-eval/held-out-evidence.ts
@@ -8535,7 +8587,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutEvidenceError
     title: HeldOutEvidenceError
     sourceFile: scripts/skillopt-eval/held-out-evidence.ts
@@ -8546,7 +8598,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutEvidenceError-name
     title: HeldOutEvidenceError.name
     sourceFile: scripts/skillopt-eval/held-out-evidence.ts
@@ -8557,7 +8609,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutExecutionLeaseError
     title: HeldOutExecutionLeaseError
     sourceFile: scripts/skillopt-eval/held-out-execution-lease.ts
@@ -8568,7 +8620,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutExecutionLeaseError-name
     title: HeldOutExecutionLeaseError.name
     sourceFile: scripts/skillopt-eval/held-out-execution-lease.ts
@@ -8579,7 +8631,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutGateOutcomes
     title: HeldOutGateOutcomes
     sourceFile: scripts/skillopt-eval/held-out-eligibility.ts
@@ -8590,7 +8642,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutPhysicalCell
     title: HeldOutPhysicalCell
     sourceFile: scripts/skillopt-eval/held-out-eligibility.ts
@@ -8601,7 +8653,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutReceiptStore
     title: HeldOutReceiptStore
     sourceFile: scripts/skillopt-eval/held-out-receipt-store.ts
@@ -8612,7 +8664,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutReceiptStore-withLease
     title: HeldOutReceiptStore.withLease
     sourceFile: scripts/skillopt-eval/held-out-receipt-store.ts
@@ -8623,7 +8675,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutReceiptStoreError
     title: HeldOutReceiptStoreError
     sourceFile: scripts/skillopt-eval/held-out-receipt-store.ts
@@ -8634,7 +8686,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutReceiptStoreError-name
     title: HeldOutReceiptStoreError.name
     sourceFile: scripts/skillopt-eval/held-out-receipt-store.ts
@@ -8645,7 +8697,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutTerminalReceipt
     title: HeldOutTerminalReceipt
     sourceFile: scripts/skillopt-eval/held-out-evidence.ts
@@ -8656,7 +8708,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutTerminalReceiptSchema
     title: HeldOutTerminalReceiptSchema
     sourceFile: scripts/skillopt-eval/held-out-evidence.ts
@@ -8667,7 +8719,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-Hooks
     title: Hooks
     status: active
@@ -8937,7 +8989,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-isOperationalArtifactPath
     title: isOperationalArtifactPath
     sourceFile: packages/cli/src/public/operational-artifacts.ts
@@ -9053,6 +9105,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: implements
@@ -9171,6 +9225,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -9192,6 +9248,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -9253,6 +9311,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -9328,6 +9388,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -9413,6 +9475,8 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -9424,6 +9488,8 @@ symbols:
     granularity_reason: legacy-link
     status: active
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -9656,6 +9722,8 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -9667,6 +9735,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -10108,7 +10178,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-mcp-analyzeKbCheckImpact
     title: analyzeKbCheckImpact
     sourceFile: packages/mcp/src/tools/check-impact.ts
@@ -11909,6 +11979,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -12746,7 +12818,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-parseHeldOutTerminalReceipt
     title: parseHeldOutTerminalReceipt
     sourceFile: scripts/skillopt-eval/held-out-evidence.ts
@@ -12757,7 +12829,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-parseKibiImpactOverride
     title: parseKibiImpactOverride
     sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
@@ -12776,6 +12848,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: implements
@@ -13185,7 +13259,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-predicateGate
     title: predicateGate
     sourceFile: scripts/skillopt-eval/held-out-cell-binding.ts
@@ -13196,7 +13270,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-PredicateMatrixCell
     title: PredicateMatrixCell
     sourceFile: scripts/skillopt-eval/held-out-evidence.ts
@@ -13207,7 +13281,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-PredicatePolarity
     title: PredicatePolarity
     sourceFile: packages/cli/src/operations/modeling/predicate-types.ts
@@ -13227,7 +13301,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-predicateReplicateFor
     title: predicateReplicateFor
     sourceFile: scripts/skillopt-eval/held-out-cell-binding.ts
@@ -13238,7 +13312,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-predicateRoots
     title: predicateRoots
     sourceFile: scripts/skillopt-eval/real-workflow-setup.ts
@@ -13249,7 +13323,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-PredicateSchemaCandidate
     title: PredicateSchemaCandidate
     sourceFile: packages/cli/src/operations/modeling/predicate-types.ts
@@ -13287,7 +13361,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-PreflightReasonSchema
     title: PreflightReasonSchema
     sourceFile: scripts/skillopt-eval/preflight-contracts.ts
@@ -13314,6 +13388,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -13335,6 +13411,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -13345,6 +13423,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -13357,6 +13437,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -13367,6 +13449,8 @@ symbols:
     granularity_reason: module-level-behavior
     status: active
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -13379,6 +13463,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -13389,6 +13475,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -13591,6 +13679,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -13680,7 +13770,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-readNoFollowBytes
     title: readNoFollowBytes
     sourceFile: scripts/skillopt-eval/preflight-io.ts
@@ -13736,7 +13826,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-reconcileAuditEntries
     title: reconcileAuditEntries
     status: active
@@ -13871,6 +13961,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -13953,6 +14045,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -14014,7 +14108,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-resetBundledSkillsDir
     title: resetBundledSkillsDir
     sourceFile: packages/cli/src/public/skill-system/loader.ts
@@ -14079,6 +14173,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -14090,6 +14186,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -14184,6 +14282,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: implements
         target: REQ-vscode-source-to-kb
@@ -14201,6 +14301,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: implements
@@ -14244,6 +14346,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -15226,6 +15330,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -15241,7 +15347,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-SKILL_FILE_NAME
     title: SKILL_FILE_NAME
     sourceFile: packages/cli/src/public/skill-system/paths.ts
@@ -15274,7 +15380,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-SkillManifest
     title: SkillManifest
     sourceFile: packages/cli/src/public/skill-system/types.ts
@@ -15337,7 +15443,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-adoption-dependencies
     title: AdoptionDependencies
     sourceFile: scripts/skillopt-eval/adoption-types.ts
@@ -15778,7 +15884,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-authorization-broker-tests
     title: trusted broker authorization contracts
     sourceFile: scripts/skillopt-eval/tests/authorization-broker.test.ts
@@ -15806,7 +15912,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-bridge-cli-execution-run
     title: runBridge
     sourceFile: scripts/skillopt-eval/runtime/bridge-cli-execution.ts
@@ -15822,7 +15928,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-bridge-cli-main
     title: bridgeMain
     sourceFile: scripts/skillopt-eval/bridge-cli.ts
@@ -15849,7 +15955,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-bridge-cli-options-failure
     title: bridgeFailure
     sourceFile: scripts/skillopt-eval/runtime/bridge-cli-options.ts
@@ -15865,7 +15971,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-bridge-cli-options-parse
     title: parseBridgeOptions
     sourceFile: scripts/skillopt-eval/runtime/bridge-cli-options.ts
@@ -15881,7 +15987,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-bridge-cli-tests
     title: bridge CLI tests
     sourceFile: scripts/skillopt-eval/tests/bridge-cli.test.ts
@@ -16062,7 +16168,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-build-offline-review-artifacts
     title: buildOfflineReviewArtifacts
     sourceFile: scripts/skillopt-eval/offline-artifacts.ts
@@ -16084,7 +16190,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-build-proposal
     title: buildProposal
     sourceFile: scripts/skillopt-eval/proposal.ts
@@ -16149,7 +16255,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-caller-score-injection-error
     title: CallerScoreInjectionError
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
@@ -16620,7 +16726,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-completed-codex-cell-type
     title: CompletedCodexCell
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
@@ -17294,7 +17400,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-default-evaluate-held-out
     title: defaultEvaluateHeldOut
     sourceFile: scripts/skillopt-eval/held-out-evaluation.ts
@@ -17310,7 +17416,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-default-run-mirror-sync
     title: defaultRunMirrorSync
     sourceFile: scripts/skillopt-eval/adoption-approved.ts
@@ -17335,7 +17441,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-trainer-process-infrastructure-error
     title: trainerProcessInfrastructureError
     sourceFile: scripts/skillopt-eval/training-setup.ts
@@ -17463,7 +17569,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-deterministic-variant-label
     title: deterministicVariantLabel
     sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
@@ -17566,7 +17672,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-evaluate-predicate-case
     title: evaluatePredicateCase
     status: active
@@ -17850,6 +17956,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
         target: REQ-skillopt-paid-launch-accounting
@@ -17872,7 +17980,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-forward
     title: FakeProviderSupervisor.forward
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
@@ -17884,7 +17992,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-reconcile
     title: FakeProviderSupervisor.reconcile
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
@@ -17896,7 +18004,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-recover
     title: FakeProviderSupervisor.recover
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
@@ -17908,7 +18016,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-reserve
     title: FakeProviderSupervisor.reserve
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
@@ -17920,7 +18028,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-zero-budget-parent
     title: FakeProviderSupervisor.zeroBudgetVerificationParent
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
@@ -17932,7 +18040,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-file-bridge
     title: FileBridge
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
@@ -18475,6 +18583,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
@@ -18500,7 +18610,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-held-out-evaluation-from-receipt
     title: heldOutEvaluationFromReceipt
     sourceFile: scripts/skillopt-eval/held-out-review.ts
@@ -18511,7 +18621,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-held-out-predicate-gate
     title: evaluateHeldOutPredicateGate
     sourceFile: scripts/skillopt-eval/scoring/held-out-predicate.ts
@@ -18560,7 +18670,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-held-out-receipt-store-persist-terminal
     title: HeldOutReceiptStore.persistTerminal
     sourceFile: scripts/skillopt-eval/held-out-receipt-store.ts
@@ -18571,7 +18681,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-held-out-receipt-store-reserve
     title: HeldOutReceiptStore.reserve
     sourceFile: scripts/skillopt-eval/held-out-receipt-store.ts
@@ -18582,7 +18692,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-held-out-test-helpers
     title: held-out evaluation test helpers
     sourceFile: scripts/skillopt-eval/tests/held-out-evaluation-test-helpers.ts
@@ -18815,11 +18925,12 @@ symbols:
     title: MeasuredReportMetrics
     sourceFile: scripts/skillopt-eval/report.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-model-gateway-security-tests
     title: trusted broker model gateway security
     sourceFile: scripts/skillopt-eval/tests/model-gateway-security.test.ts
@@ -18919,7 +19030,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-operator-base-resolution-options
     title: OperatorBaseResolutionOptions
     sourceFile: scripts/skillopt-eval/operator.ts
@@ -19155,7 +19266,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-parse-final-debit-receipt
     title: parseFinalDebitReceipt
     sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
@@ -19166,7 +19277,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-parse-final-verdict-receipt
     title: parseFinalVerdictReceipt
     sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
@@ -19177,13 +19288,15 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-parse-generated-artifact-receipt
     title: parseGeneratedArtifactReceipt
     sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
@@ -19194,6 +19307,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
@@ -19213,6 +19328,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
@@ -19234,6 +19351,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
         target: REQ-skillopt-paid-launch-accounting
@@ -19244,6 +19363,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -20302,15 +20423,16 @@ symbols:
     sourceFile: tools/skillopt/kibi_skillopt/models.py
     symbol_role: type-shape
     text_ref: tools/skillopt/kibi_skillopt/models.py#BridgeRequest
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-external-adoption-verdict
       - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-python-bridge-runner
     title: run_bridge
     sourceFile: tools/skillopt/kibi_skillopt/bridge_runner.py
@@ -20356,7 +20478,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-python-canonical-json
     title: canonical_json
     sourceFile: tools/skillopt/kibi_skillopt/common.py
@@ -20448,7 +20570,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-python-parse-timestamp
     title: parse_timestamp
     sourceFile: tools/skillopt/kibi_skillopt/common.py
@@ -20472,11 +20594,12 @@ symbols:
     sourceFile: tools/skillopt/kibi_skillopt/models.py
     symbol_role: type-shape
     text_ref: tools/skillopt/kibi_skillopt/models.py#PublicTaskClaim
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-external-adoption-verdict
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-python-report-v1
     title: ReportV1
     sourceFile: tools/skillopt/kibi_skillopt/workflow.py
@@ -20624,7 +20747,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-load-seed-candidate
     title: loadSeedCandidate
     sourceFile: scripts/skillopt-eval/real-workflow.ts
@@ -20770,20 +20893,22 @@ symbols:
     title: ReconciledDevelopmentReceipt
     sourceFile: scripts/skillopt-eval/report.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-reconciled-paid-receipt-type
     title: ReconciledPaidReceipt
     sourceFile: scripts/skillopt-eval/report.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-recover-adoption-wals
     title: recoverAdoptionWals
     sourceFile: scripts/skillopt-eval/adoption-transaction.ts
@@ -20853,6 +20978,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
         target: REQ-skillopt-paid-launch-accounting
@@ -20901,7 +21028,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-review-held-out-matrix
     title: reviewHeldOutMatrix
     sourceFile: scripts/skillopt-eval/held-out-review.ts
@@ -20912,7 +21039,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-episode-output-schema
     title: EPISODE_OUTPUT_SCHEMA
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
@@ -21046,6 +21173,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: covered_by
@@ -22140,6 +22269,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
@@ -22338,6 +22469,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: covered_by
@@ -22782,6 +22915,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
@@ -22797,6 +22932,8 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
@@ -22811,6 +22948,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: covered_by
@@ -22925,7 +23064,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-StrictModelInput
     title: StrictModelInput
     status: active
@@ -23050,7 +23189,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-SYMBOL_ROLES
     title: SYMBOL_ROLES
     sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
@@ -23113,6 +23252,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -23135,6 +23276,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -23225,6 +23368,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -23235,6 +23380,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -23512,7 +23659,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-TaskFixtureResolutionError-name
     title: TaskFixtureResolutionError.name
     sourceFile: scripts/skillopt-eval/runtime/task-fixture.ts
@@ -23527,7 +23674,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-taskScopedPublicSkillDescriptors
     title: taskScopedPublicSkillDescriptors
     sourceFile: scripts/skillopt-eval/real-workflow-setup.ts
@@ -23542,7 +23689,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-TempKbContext
     title: TempKbContext
     sourceFile: packages/cli/src/traceability/temp-kb.ts
@@ -23814,6 +23961,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -23913,6 +24062,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -24011,6 +24162,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -24021,6 +24174,8 @@ symbols:
     granularity_reason: legacy-link
     status: active
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: covered_by
@@ -24037,6 +24192,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
@@ -24051,6 +24208,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: covered_by
@@ -24067,6 +24226,8 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -24077,6 +24238,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -24128,7 +24291,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-WorkContext
     title: WorkContext
     status: active
@@ -24224,6 +24387,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -24260,20 +24425,22 @@ symbols:
     title: stageCodexRuntime
     sourceFile: scripts/skillopt-eval/runtime/codex-runtime.ts
     symbol_role: behavioral
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-create-codex-runtime-lease
     title: createCodexRuntimeLease
     sourceFile: scripts/skillopt-eval/runtime/codex-runtime.ts
     symbol_role: behavioral
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-evaluation-infrastructure-error
     title: EvaluationInfrastructureError
     sourceFile: scripts/skillopt-eval/evaluation-infrastructure.ts
@@ -24389,31 +24556,34 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/codex-runtime.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/codex-runtime.ts#StagedCodexRuntime
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-codex-runtime-lease
     title: CodexRuntimeLease
     sourceFile: scripts/skillopt-eval/runtime/codex-runtime.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/codex-runtime.ts#CodexRuntimeLease
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-codex-runtime-staging-dependencies
     title: CodexRuntimeStagingDependencies
     sourceFile: scripts/skillopt-eval/runtime/codex-runtime.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/codex-runtime.ts#CodexRuntimeStagingDependencies
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bridge-codex-executable-env
     title: BRIDGE_CODEX_EXECUTABLE_ENV
     sourceFile: scripts/skillopt-eval/training-setup.ts
@@ -24441,111 +24611,122 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#HashSchema
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-configuration-schema
     title: ConfigurationSchema
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#ConfigurationSchema
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-request-schema
     title: RequestSchema
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#RequestSchema
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-capability-schema
     title: CapabilitySchema
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#CapabilitySchema
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-outcome-schema
     title: OutcomeSchema
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#OutcomeSchema
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-configuration
     title: Configuration
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#Configuration
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-request
     title: Request
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#Request
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-outcome
     title: Outcome
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#Outcome
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-capability
     title: Capability
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#Capability
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-debit-receipt
     title: DebitReceipt
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#DebitReceipt
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-reservation
     title: Reservation
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#Reservation
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-model-schema
     title: ModelSchema
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
@@ -24561,7 +24742,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-supervisor-parent-fixture
     title: supervisorParentFixture
     sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
@@ -29882,6 +30063,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -29897,6 +30080,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -29909,6 +30094,8 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -29923,6 +30110,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -29936,6 +30125,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -29948,6 +30139,8 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -29964,6 +30157,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -29977,6 +30172,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -29989,6 +30186,8 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -32770,6 +32969,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-e2e-coverage-pipeline
+      - type: covered_by
         target: TEST-e2e-root-batch-diagnostics
       - type: covered_by
         target: TEST-root-suite-batch-diagnostics
@@ -33096,6 +33297,8 @@ symbols:
     sourceFile: scripts/run-unit-coverage.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-pipeline
       - type: implements
         target: REQ-014
   - id: SYM-COVERAGE_SHARDS
@@ -33112,6 +33315,8 @@ symbols:
     sourceFile: scripts/run-unit-coverage.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-pipeline
       - type: implements
         target: REQ-014
   - id: SYM-runUnitCoverageIfMain
@@ -33120,6 +33325,8 @@ symbols:
     sourceFile: scripts/run-unit-coverage.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-pipeline
       - type: implements
         target: REQ-014
   - id: SYM-summarizeBranchCoverage
@@ -33128,6 +33335,8 @@ symbols:
     sourceFile: scripts/run-unit-coverage.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-pipeline
       - type: implements
         target: REQ-014
   - id: SYM-currentProofBindingMode
@@ -36335,6 +36544,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-e2e-proof-maintenance-ops
+      - type: covered_by
         target: TEST-native-report-integrity
       - type: implements
         target: REQ-kibi-verification-evidence-contract
@@ -36369,6 +36580,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-e2e-coverage-pipeline
+      - type: covered_by
         target: TEST-scripts-unit-coverage-runner
       - type: implements
         target: REQ-014
@@ -36378,6 +36591,8 @@ symbols:
     sourceFile: packages/cli/src/operations/proof/migrate-legacy-receipts.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-e2e-proof-maintenance-ops
       - type: covered_by
         target: TEST-proof-maintenance-roundtrip
       - type: implements
@@ -36389,6 +36604,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-e2e-proof-maintenance-ops
+      - type: covered_by
         target: TEST-proof-maintenance-roundtrip
       - type: implements
         target: REQ-kibi-verification-evidence-contract
@@ -36399,6 +36616,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-e2e-proof-maintenance-ops
+      - type: covered_by
         target: TEST-proof-maintenance-roundtrip
       - type: implements
         target: REQ-kibi-verification-evidence-contract
@@ -36408,6 +36627,8 @@ symbols:
     sourceFile: packages/cli/src/commands/proof-prune.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-e2e-proof-maintenance-ops
       - type: covered_by
         target: TEST-proof-maintenance-roundtrip
       - type: implements
@@ -36514,6 +36735,8 @@ symbols:
     sourceFile: scripts/run-unit-coverage.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-pipeline
       - type: covered_by
         target: TEST-scripts-unit-coverage-runner
       - type: implements
@@ -36750,6 +36973,8 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-e2e-proof-maintenance-ops
+      - type: covered_by
         target: TEST-proof-maintenance-roundtrip
       - type: implements
         target: REQ-kibi-verification-evidence-contract
@@ -36759,6 +36984,8 @@ symbols:
     status: active
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-e2e-proof-maintenance-ops
       - type: covered_by
         target: TEST-proof-maintenance-roundtrip
       - type: implements
@@ -36896,6 +37123,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-e2e-coverage-pipeline
+      - type: covered_by
         target: TEST-scripts-unit-coverage-runner
       - type: implements
         target: REQ-014
@@ -36905,6 +37134,8 @@ symbols:
     status: active
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-pipeline
       - type: covered_by
         target: TEST-scripts-unit-coverage-runner
       - type: implements
@@ -36916,6 +37147,8 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-e2e-coverage-pipeline
+      - type: covered_by
         target: TEST-scripts-finalize-lcov
       - type: implements
         target: REQ-014
@@ -36926,6 +37159,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-e2e-coverage-pipeline
+      - type: covered_by
         target: TEST-scripts-unit-coverage-runner
       - type: implements
         target: REQ-014
@@ -36935,6 +37170,8 @@ symbols:
     status: active
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-pipeline
       - type: covered_by
         target: TEST-scripts-unit-coverage-runner
       - type: implements
@@ -36958,7 +37195,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-quality-inventory-522c5b9aeb69
     title: throwIfBundleFailed
     sourceFile: scripts/skillopt-eval/runtime/staged-mcp.ts
@@ -37824,8 +38061,8 @@ symbols:
       - type: executable_for
         target: TEST-zcode-kibi-plugin-v1
   - id: SYM-zcode-case-optional-package-contract
-    title: "'Optional package contract: no install lifecycle or core runtime
-      mutation'"
+    title: '''Optional package contract: no install lifecycle or core runtime
+      mutation'''
     status: active
     sourceFile: packages/zcode/tests/package-contract.test.ts
     symbol_role: behavioral
@@ -38138,3 +38375,59 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-e2e-root-batch-diagnostics
+  - id: SYM-e2e-coverage-pipeline
+    title: coverage-pipeline.e2e
+    status: active
+    sourceFile: documentation/tests/e2e/coverage-pipeline.e2e.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-coverage-pipeline
+  - id: SYM-e2e-proof-maintenance-ops
+    title: proof-maintenance-ops.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/proof-maintenance-ops.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-proof-maintenance-ops
+  - id: SYM-e2e-skillopt-trust-boundaries
+    title: skillopt-trust-boundaries.e2e
+    status: active
+    sourceFile: documentation/tests/e2e/skillopt-trust-boundaries.e2e.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-skillopt-trust-boundaries
+  - id: SYM-e2e-vscode-extension-lifecycle
+    title: vscode-extension-lifecycle.e2e
+    status: active
+    sourceFile: documentation/tests/e2e/vscode-extension-lifecycle.e2e.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-vscode-extension-lifecycle
+  - id: SYM-run-unit-coverage-selectedShards
+    title: selectedShards
+    status: active
+    sourceFile: scripts/run-unit-coverage.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-pipeline
+      - type: implements
+        target: REQ-014
+  - id: SYM-skillopt-false-if-enoent
+    title: falseIfEnoent
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/codex-runtime.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization

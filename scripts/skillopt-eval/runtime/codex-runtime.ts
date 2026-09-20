@@ -51,9 +51,17 @@ export async function stageCodexRuntime(
   const resolvedRuntimeRoot = resolve(runtimeRoot);
   await mkdir(resolvedRuntimeRoot, { recursive: true, mode: 0o700 });
   await chmod(resolvedRuntimeRoot, 0o700);
-  const installedCodex = await realpath(
-    dependencies.codexExecutable ?? Bun.which("codex") ?? "codex",
-  );
+  const requestedCodex =
+    dependencies.codexExecutable ?? Bun.which("codex") ?? "codex";
+  let installedCodex: string;
+  try {
+    installedCodex = await realpath(requestedCodex);
+  } catch (error) {
+    if (!falseIfEnoent(error)) throw error;
+    // A missing or partial executable path must surface as a structured
+    // no-go reason, never as a raw ENOENT crash out of the bridge.
+    throw new RuntimePrerequisiteError("missing_codex_executable");
+  }
   const installedCodeModeHost = resolve(
     dirname(installedCodex),
     "codex-code-mode-host",

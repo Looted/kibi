@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { COVERAGE_SHARDS } from "../run-unit-coverage";
+import { COVERAGE_SHARDS, selectedShards } from "../run-unit-coverage";
 
 const runnerSource = readFileSync(
   join(import.meta.dir, "..", "run-unit-coverage.ts"),
@@ -88,5 +88,23 @@ describe("unit coverage runner contract", () => {
       "./packages/vscode/tests/coverage-completion.test.ts",
       "./packages/vscode/tests/workspace-resolve.coverage.test.ts",
     ]);
+  });
+
+  test("selectedShards returns every shard when no labels are requested", () => {
+    expect(selectedShards(undefined)).toBe(COVERAGE_SHARDS);
+  });
+
+  test("selectedShards restricts runs to the requested labels in shard order", () => {
+    const selected = selectedShards(["runtime", "cursor"]);
+    expect(selected.map((shard) => shard.label)).toEqual(["cursor", "runtime"]);
+  });
+
+  test("selectedShards rejects unknown labels before any shard can run", () => {
+    expect(() => selectedShards(["runtime", "does-not-exist"])).toThrow(
+      "Unknown unit coverage shard label(s): does-not-exist",
+    );
+    expect(() => selectedShards([])).toThrow(
+      "Unknown unit coverage shard label(s):",
+    );
   });
 });

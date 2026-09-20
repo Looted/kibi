@@ -248,3 +248,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bbb8dada9d1d
+  - type: covered_by
+    from: SYM-ArtifactPath-create
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-09-19T19:22:20.165Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90c2f56c939c

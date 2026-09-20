@@ -197,5 +197,23 @@ relationships:
         created_by: kibi/upsert,
         source: mcp://kibi/upsert,
         id: rel-3a927ecd196f
+      },
+    {
+        type: covered_by,
+        from: SYM-resolveSymbolsManifestPath-2,
+        to: TEST-e2e-vscode-extension-lifecycle,
+        created_at: 2026-09-19T19:28:29.076Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-29cfec2cfaf4
+      },
+    {
+        type: implements,
+        from: SYM-HeldOutGateOutcomes,
+        to: REQ-skillopt-paid-matrix-infrastructure,
+        created_at: 2026-09-19T19:36:01.989Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-aa08cdd67f53
       }
   ]

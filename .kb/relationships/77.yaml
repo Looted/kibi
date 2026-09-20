@@ -230,3 +230,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2c47622b8df9
+  - type: implements
+    from: SYM-skillopt-fake-provider-reconcile
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:41:27.780Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54634f27c4d2

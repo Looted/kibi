@@ -125,3 +125,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-93b90e154328
+  - type: covered_by
+    from: SYM-prepareArtifact
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-09-19T19:25:39.341Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98bc10a4ef1f
+  - type: implements
+    from: SYM-parseHeldOutTerminalReceipt
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:37:52.603Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0772e79b0e35

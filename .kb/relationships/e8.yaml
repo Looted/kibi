@@ -223,3 +223,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-69c24c29220a
+  - type: implements
+    from: SYM-skillopt-reconciled-development-receipt-type
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:42:14.480Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-405e684e6569

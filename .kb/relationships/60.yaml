@@ -34,3 +34,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bf0ee4247b74
+  - type: implements
+    from: SYM-run-unit-coverage-selectedShards
+    to: REQ-014
+    created_at: 2026-09-19T23:24:32.712Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-477880d37c29
+  - type: covered_by
+    from: SYM-run-unit-coverage-selectedShards
+    to: TEST-e2e-coverage-pipeline
+    created_at: 2026-09-20T06:00:20.474Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9f0778c53ad

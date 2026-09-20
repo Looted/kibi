@@ -171,3 +171,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e7b90658a2e8
+  - type: verified_by
+    from: SCEN-vscode-sidebar-kb-tree
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T17:53:28.275Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aa8bb71a5cdb
+  - type: implements
+    from: SYM-predicateReplicateFor
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:38:01.456Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c38bcb49083

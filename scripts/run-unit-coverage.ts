@@ -306,7 +306,34 @@ type UnitCoverageOptions = Readonly<{
   readonly coverageDir?: string;
   /** Override the intermediate shard directory for an embedding test harness. */
   readonly shardDir?: string;
+  /**
+   * Restrict the run to shards carrying these labels. Embedding harnesses
+   * (for example the end-to-end pipeline exerciser) use this to drive the real
+   * orchestration over a bounded shard subset; an omitted list runs every
+   * shard exactly as CI does.
+   */
+  readonly shardLabels?: readonly string[];
 }>;
+
+export function selectedShards(labels: readonly string[] | undefined) {
+  if (labels === undefined) return COVERAGE_SHARDS;
+  const wanted = new Set(labels);
+  if (wanted.size === 0) {
+    throw new Error(
+      "Unknown unit coverage shard label(s): an empty shard selection would run nothing",
+    );
+  }
+  const selected = COVERAGE_SHARDS.filter((shard) => wanted.has(shard.label));
+  const missing = [...wanted].filter(
+    (label) => !selected.some((shard) => shard.label === label),
+  );
+  if (missing.length > 0) {
+    throw new Error(
+      `Unknown unit coverage shard label(s): ${missing.join(", ")}`,
+    );
+  }
+  return selected;
+}
 
 async function runBunTest(
   label: string,
@@ -404,6 +431,9 @@ export async function runUnitCoverage(
 ): Promise<void> {
   const coverageDir = options.coverageDir ?? COVERAGE_DIR;
   const shardDir = options.shardDir ?? SHARD_DIR;
+  // Validate the shard selection before touching any directory so a rejected
+  // run leaves the workspace exactly as it was.
+  const shards = selectedShards(options.shardLabels);
   const coverageLcovPath = join(coverageDir, "lcov.info");
   rmSync(coverageDir, { recursive: true, force: true });
   mkdirSync(coverageDir, { recursive: true });
@@ -416,7 +446,7 @@ export async function runUnitCoverage(
     const shardFiles: string[] = [];
     const shardArtifacts: Array<Readonly<{ label: string; path: string }>> = [];
     const failedShards: string[] = [];
-    for (const shard of COVERAGE_SHARDS) {
+    for (const shard of shards) {
       const shardCoverageDir = join(
         runShardDir,
         shard.label.replace(/[^a-zA-Z0-9._-]/g, "_"),

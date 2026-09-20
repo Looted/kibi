@@ -160,3 +160,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fea4a769b621
+  - type: implements
+    from: SYM-HeldOutPhysicalCell
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:36:06.400Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c04ceaa5e8fe
+  - type: implements
+    from: SYM-predicateRoots
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:38:05.853Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51164613983e

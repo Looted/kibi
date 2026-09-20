@@ -118,3 +118,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4ba5d3c12af7
+  - type: implements
+    from: SYM-withHeldOutExecutionLease
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:40:31.488Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3f99c2af47d

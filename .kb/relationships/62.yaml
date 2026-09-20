@@ -111,3 +111,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c5e862639933
+  - type: verified_by
+    from: SCEN-vscode-kb-to-source
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T17:52:37.716Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6bba666c7ebc
+  - type: implements
+    from: SYM-skillopt-complete-held-out-evaluation
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:39:10.860Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d58e5f9e7368
+  - type: implements
+    from: SYM-taskScopedPublicSkillDescriptors
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:40:27.852Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f20cba6a5e69

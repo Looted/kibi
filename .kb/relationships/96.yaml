@@ -202,3 +202,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-80de359a9fa4
+  - type: covered_by
+    from: SYM-skillopt-hash-authorized-source-tree
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-09-19T19:25:57.243Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6198738dd5a0
+  - type: implements
+    from: SYM-skillopt-build-todo5-evidence-document
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:40:43.836Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90214b549afd

@@ -1,9 +1,9 @@
 ---
 id: SCEN-vscode-sidebar-kb-tree
-title: VS Code Sidebar KB Tree Exploration
+title: 'VS Code: Structural TreeView implementation'
 type: scenario
 status: active
-created_at: 2026-05-13T00:00:00Z
+created_at: 2026-05-13T00:00:00.000Z
 source: documentation/scenarios/SCEN-vscode-sidebar-kb-tree.md
 priority: must
 tags:

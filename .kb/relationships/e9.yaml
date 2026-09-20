@@ -125,3 +125,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0a2e2ace2f1a
+  - type: covered_by
+    from: SYM-KIBI-REFRESH-TREE-COMMAND
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T19:29:51.735Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e4c8fe7c966

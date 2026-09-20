@@ -195,3 +195,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-561307813595
+  - type: covered_by
+    from: SYM-quality-maintenance-proofMigrateLegacyCommand
+    to: TEST-e2e-proof-maintenance-ops
+    created_at: 2026-09-19T19:21:44.767Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb403e7352ee
+  - type: covered_by
+    from: SYM-canonical-KibiTreeDataProvider-getTreeItem
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T19:31:51.522Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e1252eaed9d

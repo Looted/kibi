@@ -244,3 +244,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-116fb3d0608b
+  - type: covered_by
+    from: SYM-vscode-code-action-provider-action-kind
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T19:28:44.652Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-544e0c474891

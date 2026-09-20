@@ -202,3 +202,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-46408cae60c2
+  - type: implements
+    from: SYM-HeldOutTerminalReceipt
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:36:26.534Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-701be2959660

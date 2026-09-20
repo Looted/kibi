@@ -230,3 +230,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eb06ff28ade4
+  - type: covered_by
+    from: SYM-buildIndex
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T19:31:16.672Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3fbf22392ea7

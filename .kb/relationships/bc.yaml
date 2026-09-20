@@ -34,3 +34,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f5db73356e94
+  - type: implements
+    from: SYM-ReservedPredicateMatrix
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:36:52.941Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d966aea233c9

@@ -251,3 +251,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2cd52e247349
+  - type: verified_by
+    from: SCEN-vscode-traceability-coverage
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T17:55:28.729Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-af9a3839239a

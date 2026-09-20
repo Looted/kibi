@@ -1173,5 +1173,45 @@
         "documentation/tests/e2e/root-batch-diagnostics.e2e.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-e2e-coverage-pipeline",
+    "steps": [
+      [
+        "bun",
+        "run",
+        "documentation/tests/e2e/coverage-pipeline.e2e.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-e2e-proof-maintenance-ops",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/proof-maintenance-ops.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-e2e-skillopt-trust-boundaries",
+    "steps": [
+      [
+        "bun",
+        "run",
+        "documentation/tests/e2e/skillopt-trust-boundaries.e2e.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-e2e-vscode-extension-lifecycle",
+    "steps": [
+      [
+        "bun",
+        "run",
+        "documentation/tests/e2e/vscode-extension-lifecycle.e2e.ts"
+      ]
+    ]
   }
 ]

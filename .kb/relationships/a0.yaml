@@ -111,3 +111,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8f364cb50d27
+  - type: covered_by
+    from: SYM-quality-inventory-13d78ccca022
+    to: TEST-e2e-coverage-pipeline
+    created_at: 2026-09-19T18:14:21.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f13b936e6f43
+  - type: covered_by
+    from: SYM-quality-maintenance-executePruneReceipts
+    to: TEST-e2e-proof-maintenance-ops
+    created_at: 2026-09-19T19:21:37.226Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce59ede49714
+  - type: implements
+    from: SYM-HeldOutReceiptStore-withLease
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:36:15.276Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9ce1de16ff7
