@@ -1534,8 +1534,11 @@ export async function runEngineDaemon(options: {
     let live = false;
     try {
       const existing = await connectSocket(options.socketPath, 100);
-      existing.destroy();
+      // Mark live before destroy. Bun 1.4+ can emit a late EPIPE on destroy of
+      // a connected unix socket; that must not replace the live-listener error.
       live = true;
+      existing.on("error", () => undefined);
+      existing.destroy();
     } catch {
       // A refused connection means this is a stale filesystem socket.
     }

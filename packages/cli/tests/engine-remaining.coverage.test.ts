@@ -184,10 +184,10 @@ function mockPrologForDaemon(
 async function listenSocket(socketPath: string): Promise<net.Server> {
   mkdirSync(path.dirname(socketPath), { recursive: true, mode: 0o700 });
   const server = net.createServer((socket) => {
-    // Ignore peer writes after we reject a colliding daemon bind; otherwise an
-    // unhandled EPIPE from the closed socket fails the coverage shard.
+    // Keep the peer connected so the colliding daemon bind probe still sees a
+    // live listener, but ignore late write errors that would otherwise surface
+    // as unhandled EPIPE and fail the coverage shard.
     socket.on("error", () => undefined);
-    socket.destroy();
   });
   server.on("error", () => undefined);
   await new Promise<void>((resolve, reject) => {

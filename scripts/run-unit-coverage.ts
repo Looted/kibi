@@ -44,6 +44,8 @@ const DEFAULT_SHARD_TIMEOUT_MS = 15_000;
 // cli.commands shard takes several minutes locally. The process bound only
 // protects against a true runner leak while leaving that shard headroom.
 const SHARD_PROCESS_TIMEOUT_MS = 15 * 60 * 1000;
+/** cli.commands is a large serial CLI suite; CI needs more than the default process bound. */
+const CLI_COMMANDS_PROCESS_TIMEOUT_MS = 25 * 60 * 1000;
 /** Journaled engine and packed SkillOpt tests start Prolog/daemons; 15s isolate kills them. */
 const CLI_ENGINE_SHARD_TIMEOUT_MS = 120_000;
 const COVERAGE_ARGS = [
@@ -86,6 +88,8 @@ export const COVERAGE_SHARDS: readonly {
   readonly label: string;
   readonly paths: readonly string[];
   readonly timeoutMs?: number;
+  /** Override the Bun process wall-clock bound for oversized serial shards. */
+  readonly processTimeoutMs?: number;
   /** Build generated package assets before tests that execute the built tree. */
   readonly setup?: readonly string[];
   /** Query-string `?case=` imports poison Bun's line map; still run the tests. */
@@ -95,6 +99,7 @@ export const COVERAGE_SHARDS: readonly {
     label: "cli.commands",
     paths: ["./packages/cli/tests/commands"],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+    processTimeoutMs: CLI_COMMANDS_PROCESS_TIMEOUT_MS,
   },
   {
     label: "cli.operations",
@@ -351,6 +356,7 @@ async function runBunTest(
   coverageDir: string,
   timeoutMs = DEFAULT_SHARD_TIMEOUT_MS,
   setup?: readonly string[],
+  processTimeoutMs = SHARD_PROCESS_TIMEOUT_MS,
 ): Promise<number> {
   const args: string[] = [...COVERAGE_ARGS];
   const coverageDirIndex = args.indexOf("--coverage-dir");
@@ -365,12 +371,12 @@ async function runBunTest(
       const setupResult = childProcess.spawnSync("bun", [...setup], {
         stdio: "inherit",
         env: isolatedUnitBatchEnv(runtimeDirectory),
-        timeout: SHARD_PROCESS_TIMEOUT_MS,
+        timeout: processTimeoutMs,
         killSignal: "SIGTERM",
       });
       if (spawnErrorCode(setupResult.error) === "ETIMEDOUT") {
         console.error(
-          `Unit coverage shard ${label} setup timed out after ${SHARD_PROCESS_TIMEOUT_MS}ms; continuing with the remaining shards.`,
+          `Unit coverage shard ${label} setup timed out after ${processTimeoutMs}ms; continuing with the remaining shards.`,
         );
         return 1;
       }
@@ -382,12 +388,12 @@ async function runBunTest(
       // Bun's per-test timeout cannot interrupt a synchronous child-process
       // leak in a test. Bound the Bun process itself so this shard cannot
       // wedge the serial runner indefinitely.
-      timeout: SHARD_PROCESS_TIMEOUT_MS,
+      timeout: processTimeoutMs,
       killSignal: "SIGTERM",
     });
     if (spawnErrorCode(result.error) === "ETIMEDOUT") {
       console.error(
-        `Unit coverage shard ${label} timed out after ${SHARD_PROCESS_TIMEOUT_MS}ms while waiting for the Bun test process; continuing with the remaining shards.`,
+        `Unit coverage shard ${label} timed out after ${processTimeoutMs}ms while waiting for the Bun test process; continuing with the remaining shards.`,
       );
       return 1;
     }
@@ -478,6 +484,7 @@ export async function runUnitCoverage(
         shardCoverageDir,
         shard.timeoutMs ?? DEFAULT_SHARD_TIMEOUT_MS,
         shard.setup,
+        shard.processTimeoutMs ?? SHARD_PROCESS_TIMEOUT_MS,
       );
       console.info(
         `Finished unit coverage shard ${shard.label} (exit ${exitCode}).`,
