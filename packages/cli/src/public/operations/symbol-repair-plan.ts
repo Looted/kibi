@@ -4,6 +4,7 @@ import { coarseCoordinateSpan } from "../../extractors/symbol-coordinates.js";
 import {
   type ManifestSymbolEntry,
   analyzeSourceText,
+  analyzeSourceTextWithRegistry,
   enrichSymbolCoordinates,
 } from "../../extractors/symbols-coordinator.js";
 import { isCoarseGranularityReason } from "../symbol-granularity.js";
@@ -240,10 +241,14 @@ export async function buildSymbolRepairPlan(
       : path.resolve(context.workspaceRoot, source);
     if (!existsSync(absolute)) continue;
     try {
-      const analysis = analyzeSourceText(
-        absolute,
-        readFileSync(absolute, "utf8"),
-      );
+      const content = readFileSync(absolute, "utf8");
+      const analysis = context.ensurePlugins
+        ? await analyzeSourceTextWithRegistry(
+            absolute,
+            content,
+            await context.ensurePlugins(),
+          )
+        : analyzeSourceText(absolute, content);
       if (analysis.providerId === null) continue;
       extractedByPath.set(
         source,

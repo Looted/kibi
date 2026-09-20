@@ -14,15 +14,10 @@ import { fileURLToPath } from "node:url";
 const fixtureChild = process.env.KIBI_CACHE_RESOLUTION_FIXTURE === "1";
 
 if (fixtureChild) {
-  const packageNames = [
-    "core",
-    "cli",
-    "runtime",
-    "mcp",
-    "opencode",
-    "codex",
-    "cursor",
-  ] as const;
+  // Import the side-effect-free package list first, write a complete fake
+  // tarball set, then import helpers (which bootstraps pack resolution).
+  const { packagesForPack } = await import("./packed-packages.js");
+  const packageNames = packagesForPack;
   const tempRoot = mkdtempSync(join(tmpdir(), "kibi-cache-resolution-test-"));
   const fakePrefix = join(tempRoot, "prefix");
   const fakeTarballs = join(tempRoot, "tarballs");

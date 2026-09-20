@@ -16,7 +16,7 @@ import type {
   WorkspaceSnapshot,
 } from "../../public/operations/runtime-types.js";
 import { configuredSourceTarget } from "../mutation/source-authoring.js";
-import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
+import { analyzeSemanticAdvisorInputWithPlugins } from "../semantic-advisor/plugin-orchestration.js";
 import { canonicalize } from "../semantic-advisor/shared.js";
 import type {
   SemanticAdvisorReceipt,
@@ -731,24 +731,40 @@ export async function executeCompileIntent(
     text(args.sourceLocations?.[0]?.path) ||
     text(existingEntity.source) ||
     "mcp://kibi/compile-intent";
-  const advisor = analyzeSemanticAdvisorInput({
-    payload: {
-      type: "req",
-      id: requirementId,
-      properties: {
-        title,
-        status: text(existingEntity.status) || "open",
-        source,
-        semantic_text: intent,
-        ...(Array.isArray(existingEntity.logic_claims)
-          ? { logic_claims: existingEntity.logic_claims }
-          : {}),
+  const orchestrated = await analyzeSemanticAdvisorInputWithPlugins(
+    {
+      payload: {
+        type: "req",
+        id: requirementId,
+        properties: {
+          title,
+          status: text(existingEntity.status) || "open",
+          source,
+          semantic_text: intent,
+          ...(Array.isArray(existingEntity.logic_claims)
+            ? { logic_claims: existingEntity.logic_claims }
+            : {}),
+        },
       },
+      ...(args.clauses ? { clauses: args.clauses } : {}),
+      ...(args.interpretations ? { interpretations: args.interpretations } : {}),
     },
-    ...(args.clauses ? { clauses: args.clauses } : {}),
-    ...(args.interpretations ? { interpretations: args.interpretations } : {}),
-  });
+    {
+      operationName: "kb_compile_intent",
+      ...(context.ensurePlugins
+        ? { ensurePlugins: context.ensurePlugins }
+        : {}),
+    },
+  );
+  const advisor = orchestrated.analysis;
   diagnostics.push(...advisor.warnings);
+  if (orchestrated.stamps.length > 0) {
+    diagnostics.push(
+      `Capability plugins consulted: ${orchestrated.stamps
+        .map((stamp) => `${stamp.pluginId}/${stamp.capability}`)
+        .join(", ")}.`,
+    );
+  }
   const suggestionByClaim = new Map(
     advisor.receipt.suggestions.map((suggestion) => [
       suggestion.claim_key,

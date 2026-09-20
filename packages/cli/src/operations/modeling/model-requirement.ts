@@ -5,6 +5,7 @@ import {
   normalizeSemanticClause,
   semanticClaimKey,
 } from "../semantic-advisor/clauses.js";
+import { composeSemanticClassificationForOperation } from "../semantic-advisor/plugin-orchestration.js";
 import { semanticSourceHash } from "../semantic-advisor/shared.js";
 import { buildLogicApplyPlan } from "./logic-modeling.js";
 import {
@@ -236,5 +237,56 @@ export async function executeModelRequirement(
   args: ModelRequirementArgs,
   context: OperationContext,
 ): Promise<ModelRequirementResult> {
-  return handleKbModelRequirement(context.prolog, args, context.workspaceRoot);
+  const result = await handleKbModelRequirement(
+    context.prolog,
+    args,
+    context.workspaceRoot,
+  );
+  const claimKey =
+    typeof result.structuredContent.claimKey === "string"
+      ? result.structuredContent.claimKey
+      : semanticClaimKey(args.text);
+  const classification = await composeSemanticClassificationForOperation(
+    context,
+    "kb_model_requirement",
+    {
+      propositions: [
+        {
+          claimKey,
+          statement: args.text,
+        },
+      ],
+    },
+  );
+  if (!classification || classification.stamps.length === 0) return result;
+  const pluginWarnings: Array<{
+    kind: string;
+    message: string;
+    nextAction: string;
+  }> = [
+    {
+      kind: "capability_plugin_stamp",
+      message: `Capability plugins consulted: ${classification.stamps
+        .map((stamp) => `${stamp.pluginId}/${stamp.capability}`)
+        .join(", ")}.`,
+      nextAction:
+        "Review plugin stamps when comparing advisor output across hosts; sync/check/upsert paths remain builtin-only.",
+    },
+  ];
+  if (classification.fallbackUsed) {
+    pluginWarnings.push({
+      kind: "semantic_classifier_fallback",
+      message:
+        "Semantic classifier fell back to the builtin provider after an external classifier failure.",
+      nextAction:
+        "Inspect the external classifier configuration and retry kb_model_requirement after correcting credentials or provider errors.",
+    });
+  }
+  return {
+    ...result,
+    structuredContent: {
+      ...result.structuredContent,
+      warnings: [...result.structuredContent.warnings, ...pluginWarnings],
+    },
+  };
 }

@@ -5065,8 +5065,7 @@ symbols:
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable
-      resource examples
+    title: predicate guidance loads a canonical decision tree with immutable resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -38061,8 +38060,7 @@ symbols:
       - type: executable_for
         target: TEST-zcode-kibi-plugin-v1
   - id: SYM-zcode-case-optional-package-contract
-    title: '''Optional package contract: no install lifecycle or core runtime
-      mutation'''
+    title: '''Optional package contract: no install lifecycle or core runtime mutation'''
     status: active
     sourceFile: packages/zcode/tests/package-contract.test.ts
     symbol_role: behavioral
@@ -38431,3 +38429,1363 @@ symbols:
         target: TEST-skillopt-codex-optimization
       - type: implements
         target: REQ-skillopt-codex-optimization
+  - id: SYM-cap-plugin-analyzesourcetextwithregistry-d1ded392
+    title: analyzeSourceTextWithRegistry
+    sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-onlycandidate-6b1c583b
+    title: onlyCandidate
+    sourceFile: packages/cli/src/extractors/symbols-ts.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-compareeligiblebyapplicabilitythenname-ddb324b4
+    title: compareEligibleByApplicabilityThenName
+    sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-compareeligiblebyapplicabilityscorethenname-23b39448
+    title: compareEligibleByApplicabilityScoreThenName
+    sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-analyzesemanticadvisorinputwithplugins-a97f0adf
+    title: analyzeSemanticAdvisorInputWithPlugins
+    sourceFile: packages/cli/src/operations/semantic-advisor/plugin-orchestration.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-composesemanticclassificationforoperation-f3a02379
+    title: composeSemanticClassificationForOperation
+    sourceFile: packages/cli/src/operations/semantic-advisor/plugin-orchestration.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-composeontologycatalogforoperation-905f7a11
+    title: composeOntologyCatalogForOperation
+    sourceFile: packages/cli/src/operations/semantic-advisor/plugin-orchestration.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-semanticpluginorchestrationresult-0b07ce70
+    title: SemanticPluginOrchestrationResult
+    sourceFile: packages/cli/src/operations/semantic-advisor/plugin-orchestration.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-composeontologycatalog-ebc62146
+    title: composeOntologyCatalog
+    sourceFile: packages/cli/src/plugins/compose-ontology-packs.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-composeontologymatches-67448599
+    title: composeOntologyMatches
+    sourceFile: packages/cli/src/plugins/compose-ontology-packs.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-stampedontologycandidate-20abb09e
+    title: StampedOntologyCandidate
+    sourceFile: packages/cli/src/plugins/compose-ontology-packs.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-composedontologycatalog-20b9a119
+    title: ComposedOntologyCatalog
+    sourceFile: packages/cli/src/plugins/compose-ontology-packs.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-composesemanticclassification-8220663e
+    title: composeSemanticClassification
+    sourceFile: packages/cli/src/plugins/compose-semantic-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-composedsemanticclassifierresult-45a3153d
+    title: ComposedSemanticClassifierResult
+    sourceFile: packages/cli/src/plugins/compose-semantic-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-allowsexternalsemanticclassifier-0e50b53b
+    title: allowsExternalSemanticClassifier
+    sourceFile: packages/cli/src/plugins/external-allowlist.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-externalsemanticclassifieroperation-db7b29fe
+    title: ExternalSemanticClassifierOperation
+    sourceFile: packages/cli/src/plugins/external-allowlist.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-external-semantic-classifier-operations-2fb73e29
+    title: EXTERNAL_SEMANTIC_CLASSIFIER_OPERATIONS
+    sourceFile: packages/cli/src/plugins/external-allowlist.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-loadpluginpackage-007aa5b1
+    title: loadPluginPackage
+    sourceFile: packages/cli/src/plugins/load-plugin.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-loadedplugin-77e73414
+    title: LoadedPlugin
+    sourceFile: packages/cli/src/plugins/load-plugin.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-loadpluginoptions-0a355702
+    title: LoadPluginOptions
+    sourceFile: packages/cli/src/plugins/load-plugin.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-readprojectpackagejson-2990e4ce
+    title: readProjectPackageJson
+    sourceFile: packages/cli/src/plugins/project-config.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-readprojectkibiconfig-a3a4195c
+    title: readProjectKibiConfig
+    sourceFile: packages/cli/src/plugins/project-config.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-projectpackagemanifest-d2e8adeb
+    title: ProjectPackageManifest
+    sourceFile: packages/cli/src/plugins/project-config.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-createstubbuiltinplugin-ccd291f8
+    title: createStubBuiltinPlugin
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-createcapabilityregistry-24d244b0
+    title: createCapabilityRegistry
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-createcapabilityregistrycache-faee68b0
+    title: createCapabilityRegistryCache
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-ensurecapabilityregistry-1a01cf08
+    title: ensureCapabilityRegistry
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilityregistry-a7d51e5f
+    title: CapabilityRegistry
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+  - id: SYM-cap-plugin-capabilityregistry-getbuiltinplugin-eac3b9f7
+    title: CapabilityRegistry.getBuiltinPlugin
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilityregistry-getprojectconfig-bd36cda5
+    title: CapabilityRegistry.getProjectConfig
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilityregistry-resolvesemanticclassifiers-037fdb3f
+    title: CapabilityRegistry.resolveSemanticClassifiers
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilityregistry-resolveontologypacks-db050406
+    title: CapabilityRegistry.resolveOntologyPacks
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilityregistry-resolvesymbolextractors-5e5d4fd7
+    title: CapabilityRegistry.resolveSymbolExtractors
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilityregistry-resolvecapability-18952e36
+    title: CapabilityRegistry.resolveCapability
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilityregistry-canonicalproviders-91e92bfe
+    title: CapabilityRegistry.canonicalProviders
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilityregistry-workspaceroot-8395b51e
+    title: CapabilityRegistry.workspaceRoot
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilityregistrycache-b2070019
+    title: CapabilityRegistryCache
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+  - id: SYM-cap-plugin-capabilityregistrycache-get-27109bcb
+    title: CapabilityRegistryCache.get
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilityregistrycache-getorcreate-9e4d3c06
+    title: CapabilityRegistryCache.getOrCreate
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilityregistrycache-set-024b556e
+    title: CapabilityRegistryCache.set
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilityregistrycache-clear-b9641d16
+    title: CapabilityRegistryCache.clear
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-builtinpluginfactory-ce87dc46
+    title: BuiltinPluginFactory
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilityproviderbinding-cb2f3476
+    title: CapabilityProviderBinding
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilitymoderesolution-812529b3
+    title: CapabilityModeResolution
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilityregistryoptions-b7aec1ea
+    title: CapabilityRegistryOptions
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-ensurecapabilityregistryoptions-650f6e07
+    title: EnsureCapabilityRegistryOptions
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-isbarepackagename-4d0b74df
+    title: isBarePackageName
+    sourceFile: packages/cli/src/plugins/resolve-package.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-assertbarepackagename-4a211175
+    title: assertBarePackageName
+    sourceFile: packages/cli/src/plugins/resolve-package.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-hasdeclaredprojectdependency-2d6978f8
+    title: hasDeclaredProjectDependency
+    sourceFile: packages/cli/src/plugins/resolve-package.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-hasconsumernodemoduleslink-dbcab9ae
+    title: hasConsumerNodeModulesLink
+    sourceFile: packages/cli/src/plugins/resolve-package.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-isprojectscopedpackage-c0eba0f8
+    title: isProjectScopedPackage
+    sourceFile: packages/cli/src/plugins/resolve-package.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-packagejsonforresolvedfile-d1622c4c
+    title: packageJsonForResolvedFile
+    sourceFile: packages/cli/src/plugins/resolve-package.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-resolveprojectlocalpackage-03c57c42
+    title: resolveProjectLocalPackage
+    sourceFile: packages/cli/src/plugins/resolve-package.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-pluginresolutionerror-f76744aa
+    title: PluginResolutionError
+    sourceFile: packages/cli/src/plugins/resolve-package.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+  - id: SYM-cap-plugin-pluginresolutionerror-code-17bded4e
+    title: PluginResolutionError.code
+    sourceFile: packages/cli/src/plugins/resolve-package.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-resolvedprojectpackage-5ff747a1
+    title: ResolvedProjectPackage
+    sourceFile: packages/cli/src/plugins/resolve-package.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-createconservativefallbackanalysis-e17e07ac
+    title: createConservativeFallbackAnalysis
+    sourceFile: packages/cli/src/plugins/source-analysis-service.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-analyzewithresolution-658eaabe
+    title: analyzeWithResolution
+    sourceFile: packages/cli/src/plugins/source-analysis-service.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-createsourceanalysisservice-9e91da5d
+    title: createSourceAnalysisService
+    sourceFile: packages/cli/src/plugins/source-analysis-service.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-sourceanalysisservice-7d953fd1
+    title: SourceAnalysisService
+    sourceFile: packages/cli/src/plugins/source-analysis-service.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+  - id: SYM-cap-plugin-sourceanalysisservice-analyzetext-7b1783aa
+    title: SourceAnalysisService.analyzeText
+    sourceFile: packages/cli/src/plugins/source-analysis-service.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-hostsourceanalysisresult-958aab8c
+    title: HostSourceAnalysisResult
+    sourceFile: packages/cli/src/plugins/source-analysis-service.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-sourceanalysisserviceoptions-e6e416cc
+    title: SourceAnalysisServiceOptions
+    sourceFile: packages/cli/src/plugins/source-analysis-service.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-operationplugins-e4138c00
+    title: OperationPlugins
+    sourceFile: packages/cli/src/public/operations/runtime-types.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-kibiplugin-cd533318
+    title: kibiPlugin
+    sourceFile: packages/plugin-builtin/src/index.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-createbuiltinontologypack-a6bb7233
+    title: createBuiltinOntologyPack
+    sourceFile: packages/plugin-builtin/src/ontology/builtin-ontology-pack.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-builtinontologypack-6de040d0
+    title: BuiltinOntologyPack
+    sourceFile: packages/plugin-builtin/src/ontology/builtin-ontology-pack.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+  - id: SYM-cap-plugin-builtinontologypack-schemas-a1165985
+    title: BuiltinOntologyPack.schemas
+    sourceFile: packages/plugin-builtin/src/ontology/builtin-ontology-pack.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-builtinontologypack-match-b2da9f96
+    title: BuiltinOntologyPack.match
+    sourceFile: packages/plugin-builtin/src/ontology/builtin-ontology-pack.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-builtinontologypack-id-b1f2923e
+    title: BuiltinOntologyPack.id
+    sourceFile: packages/plugin-builtin/src/ontology/builtin-ontology-pack.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-builtin-predicate-rule-sets-0eb8653e
+    title: BUILTIN_PREDICATE_RULE_SETS
+    sourceFile: packages/plugin-builtin/src/ontology/builtin-ontology-pack.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-normalizekey-a7d2e151
+    title: normalizeKey
+    sourceFile: packages/plugin-builtin/src/ontology/normalize.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-normalizepredicatetoken-1a36e10c
+    title: normalizePredicateToken
+    sourceFile: packages/plugin-builtin/src/ontology/normalize.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-singularize-09c7edbe
+    title: singularize
+    sourceFile: packages/plugin-builtin/src/ontology/normalize.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-normalizesubjectkey-3302ec47
+    title: normalizeSubjectKey
+    sourceFile: packages/plugin-builtin/src/ontology/normalize.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-commalist-09b1179e
+    title: commaList
+    sourceFile: packages/plugin-builtin/src/ontology/normalize.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-schemaidfor-b12987e6
+    title: schemaIdFor
+    sourceFile: packages/plugin-builtin/src/ontology/predicate-rule.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-detectpredicaterules-225f467f
+    title: detectPredicateRules
+    sourceFile: packages/plugin-builtin/src/ontology/predicate-rule.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-predicaterule-4bd14e84
+    title: PredicateRule
+    sourceFile: packages/plugin-builtin/src/ontology/predicate-rule.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-matchgroups-f8bcd46e
+    title: MatchGroups
+    sourceFile: packages/plugin-builtin/src/ontology/predicate-rule.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-builtin-predicate-confidence-685e50a6
+    title: BUILTIN_PREDICATE_CONFIDENCE
+    sourceFile: packages/plugin-builtin/src/ontology/predicate-rule.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-core-predicate-rules-f2358fc4
+    title: CORE_PREDICATE_RULES
+    sourceFile: packages/plugin-builtin/src/ontology/predicate-rules-core.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-exactlauncherpredicateargs-04084d31
+    title: exactLauncherPredicateArgs
+    sourceFile: packages/plugin-builtin/src/ontology/predicate-rules-launcher.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-launcher-predicate-rules-d2597a06
+    title: LAUNCHER_PREDICATE_RULES
+    sourceFile: packages/plugin-builtin/src/ontology/predicate-rules-launcher.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-policy-predicate-rules-67c10eed
+    title: POLICY_PREDICATE_RULES
+    sourceFile: packages/plugin-builtin/src/ontology/predicate-rules-policy.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-product-tail-predicate-rules-7612417b
+    title: PRODUCT_TAIL_PREDICATE_RULES
+    sourceFile: packages/plugin-builtin/src/ontology/predicate-rules-product-tail.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-product-predicate-rules-ce4a04a9
+    title: PRODUCT_PREDICATE_RULES
+    sourceFile: packages/plugin-builtin/src/ontology/predicate-rules-product.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-detectsignals-644b5a33
+    title: detectSignals
+    sourceFile: packages/plugin-builtin/src/semantic/builtin-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-chooselane-9f87a891
+    title: chooseLane
+    sourceFile: packages/plugin-builtin/src/semantic/builtin-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-createbuiltinsemanticclassifier-31116572
+    title: createBuiltinSemanticClassifier
+    sourceFile: packages/plugin-builtin/src/semantic/builtin-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-builtinsemanticclassifier-be7eb013
+    title: BuiltinSemanticClassifier
+    sourceFile: packages/plugin-builtin/src/semantic/builtin-classifier.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+  - id: SYM-cap-plugin-builtinsemanticclassifier-classify-b85c9df6
+    title: BuiltinSemanticClassifier.classify
+    sourceFile: packages/plugin-builtin/src/semantic/builtin-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-builtinsemanticclassifier-id-db1373f1
+    title: BuiltinSemanticClassifier.id
+    sourceFile: packages/plugin-builtin/src/semantic/builtin-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-enrichsymbolcoordinateswithtsmorph-c8d71d59
+    title: enrichSymbolCoordinatesWithTsMorph
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-enrichment.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-symbolcoordinates-7686ab9b
+    title: SymbolCoordinates
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-enrichment.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-manifestsymbolentry-884c336b
+    title: ManifestSymbolEntry
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-enrichment.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-createbuiltintsmorphsymbolextractor-944db424
+    title: createBuiltinTsMorphSymbolExtractor
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-extractor.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-createbuiltintsmorphsourceanalysisprovider-f315a9b7
+    title: createBuiltinTsMorphSourceAnalysisProvider
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-extractor.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-collectgranularitycandidates-95f8e20e
+    title: collectGranularityCandidates
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-granularity.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-granularitysymbolcandidate-9bf170cf
+    title: GranularitySymbolCandidate
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-granularity.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-choosescriptkind-eb8b02e2
+    title: chooseScriptKind
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-shared.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-formatmethodsymbolname-45e1d25a
+    title: formatMethodSymbolName
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-shared.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-isprivateclassmember-0e2609b7
+    title: isPrivateClassMember
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-shared.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-onlycandidate-e892cad2
+    title: onlyCandidate
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-shared.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-supported-source-extensions-7688bba6
+    title: SUPPORTED_SOURCE_EXTENSIONS
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-shared.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-createjevplugin-a2c5a4bf
+    title: createJevPlugin
+    sourceFile: packages/plugin-jev/src/index.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-kibiplugin-1d58a6dc
+    title: kibiPlugin
+    sourceFile: packages/plugin-jev/src/index.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-mapjeverror-5602f2ab
+    title: mapJevError
+    sourceFile: packages/plugin-jev/src/jev-client.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-jevprovidererror-fcf1b6bf
+    title: JevProviderError
+    sourceFile: packages/plugin-jev/src/jev-client.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+  - id: SYM-cap-plugin-jevprovidererror-code-4b330f05
+    title: JevProviderError.code
+    sourceFile: packages/plugin-jev/src/jev-client.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-jevclient-9ad53cbc
+    title: JevClient
+    sourceFile: packages/plugin-jev/src/jev-client.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-jevlane-f699c725
+    title: JevLane
+    sourceFile: packages/plugin-jev/src/jev-client.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-jevchoiceanswer-f3f17b79
+    title: JevChoiceAnswer
+    sourceFile: packages/plugin-jev/src/jev-client.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-jevnoulanswer-422f8e2c
+    title: JevNoulAnswer
+    sourceFile: packages/plugin-jev/src/jev-client.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-jevsystemoneresult-05aff1dc
+    title: JevSystemOneResult
+    sourceFile: packages/plugin-jev/src/jev-client.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-jevsystemonerequest-0dceb449
+    title: JevSystemOneRequest
+    sourceFile: packages/plugin-jev/src/jev-client.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-jevclientfactory-d5d8b117
+    title: JevClientFactory
+    sourceFile: packages/plugin-jev/src/jev-client.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-createjevsemanticclassifier-cfdd9a4c
+    title: createJevSemanticClassifier
+    sourceFile: packages/plugin-jev/src/semantic-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-jevsemanticclassifieroptions-339de30f
+    title: JevSemanticClassifierOptions
+    sourceFile: packages/plugin-jev/src/semantic-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-createtypesafejevclient-d0f97996
+    title: createTypeSafeJevClient
+    sourceFile: packages/plugin-jev/src/typesafe-client.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-predicateschemadefinition-2bf0cc70
+    title: PredicateSchemaDefinition
+    sourceFile: packages/plugin-sdk/src/capabilities/ontology-pack.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-ontologymatchcontext-d744ea2f
+    title: OntologyMatchContext
+    sourceFile: packages/plugin-sdk/src/capabilities/ontology-pack.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-ontologymatchcandidate-87a12d21
+    title: OntologyMatchCandidate
+    sourceFile: packages/plugin-sdk/src/capabilities/ontology-pack.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-ontologypackv1-0788d109
+    title: OntologyPackV1
+    sourceFile: packages/plugin-sdk/src/capabilities/ontology-pack.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-ontologypolarity-5e6342b1
+    title: OntologyPolarity
+    sourceFile: packages/plugin-sdk/src/capabilities/ontology-pack.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-ontology-polarities-1200e8a1
+    title: ONTOLOGY_POLARITIES
+    sourceFile: packages/plugin-sdk/src/capabilities/ontology-pack.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-semanticclassifierproposition-00b0b710
+    title: SemanticClassifierProposition
+    sourceFile: packages/plugin-sdk/src/capabilities/semantic-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-semanticclassifierinput-80241415
+    title: SemanticClassifierInput
+    sourceFile: packages/plugin-sdk/src/capabilities/semantic-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-semanticclassificationdecision-2a43bb19
+    title: SemanticClassificationDecision
+    sourceFile: packages/plugin-sdk/src/capabilities/semantic-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-semanticclassifierresult-45488800
+    title: SemanticClassifierResult
+    sourceFile: packages/plugin-sdk/src/capabilities/semantic-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-semanticclassifierv1-2216229f
+    title: SemanticClassifierV1
+    sourceFile: packages/plugin-sdk/src/capabilities/semantic-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-semanticlane-6d81faa5
+    title: SemanticLane
+    sourceFile: packages/plugin-sdk/src/capabilities/semantic-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-semanticsignalkind-9fd0a6be
+    title: SemanticSignalKind
+    sourceFile: packages/plugin-sdk/src/capabilities/semantic-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-semantic-lanes-163e7bc6
+    title: SEMANTIC_LANES
+    sourceFile: packages/plugin-sdk/src/capabilities/semantic-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-semantic-signal-kinds-eb004334
+    title: SEMANTIC_SIGNAL_KINDS
+    sourceFile: packages/plugin-sdk/src/capabilities/semantic-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-tosourceanalysisprovider-624e8fb1
+    title: toSourceAnalysisProvider
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-sourcesymbolanalysis-e01e97dc
+    title: SourceSymbolAnalysis
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-sourcemoduleanalysis-6acb3237
+    title: SourceModuleAnalysis
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-sourceanalysisresult-bd53cc5b
+    title: SourceAnalysisResult
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-symbolextractorsupportsinput-8d674ec8
+    title: SymbolExtractorSupportsInput
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-symbolextractoranalyzeinput-66f70997
+    title: SymbolExtractorAnalyzeInput
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-symbolextractorv1-870b7d37
+    title: SymbolExtractorV1
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-sourceanalysisprovider-977ee540
+    title: SourceAnalysisProvider
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-sourceanalysismode-0a9c1ff9
+    title: SourceAnalysisMode
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-sourcesymbolkind-f8667bb1
+    title: SourceSymbolKind
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-definekibiplugin-b63fe229
+    title: defineKibiPlugin
+    sourceFile: packages/plugin-sdk/src/define-plugin.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-pluginpermissions-a636fdb4
+    title: PluginPermissions
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-pluginproviderstamp-37d86057
+    title: PluginProviderStamp
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-kibiplugincapabilities-e695d15b
+    title: KibiPluginCapabilities
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-kibipluginv1-23855ffb
+    title: KibiPluginV1
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-kibipluginapiversion-e2051f3a
+    title: KibiPluginApiVersion
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-capabilityid-a3817409
+    title: CapabilityId
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-pluginmode-87d5bb1c
+    title: PluginMode
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-projectplugincapabilityconfig-2c82c99a
+    title: ProjectPluginCapabilityConfig
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-projectpluginentry-5d305c06
+    title: ProjectPluginEntry
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-projectkibiconfig-24a81eca
+    title: ProjectKibiConfig
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-kibi-plugin-api-version-f5d09d81
+    title: KIBI_PLUGIN_API_VERSION
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-semantic-classifier-capability-id-c85ff905
+    title: SEMANTIC_CLASSIFIER_CAPABILITY_ID
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-ontology-pack-capability-id-d76dee06
+    title: ONTOLOGY_PACK_CAPABILITY_ID
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-symbol-extractor-capability-id-8f5f547b
+    title: SYMBOL_EXTRACTOR_CAPABILITY_ID
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-plugin-modes-52a9d01a
+    title: PLUGIN_MODES
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-iscapabilityid-2e16a4ad
+    title: isCapabilityId
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-ispluginmode-4ce39fb0
+    title: isPluginMode
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-validatepermissions-aa84267e
+    title: validatePermissions
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-validatekibiplugin-ca84fa32
+    title: validateKibiPlugin
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-validateprojectkibiconfig-92b7cbbf
+    title: validateProjectKibiConfig
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-validatesemanticclassifierresult-5a2483d5
+    title: validateSemanticClassifierResult
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-validatepredicateschema-23fddd5a
+    title: validatePredicateSchema
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-validateontologymatchcandidate-d19f51a4
+    title: validateOntologyMatchCandidate
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-validatesourceanalysisresult-7f251be2
+    title: validateSourceAnalysisResult
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-pluginvalidationerror-edc38c60
+    title: PluginValidationError
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+  - id: SYM-cap-plugin-pluginvalidationerror-code-0a3bc917
+    title: PluginValidationError.code
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1

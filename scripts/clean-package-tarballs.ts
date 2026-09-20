@@ -36,6 +36,9 @@ const PACKAGE_DIRS = [
   "packages/opencode",
   "packages/codex",
   "packages/cursor",
+  "packages/plugin-sdk",
+  "packages/plugin-builtin",
+  "packages/plugin-jev",
 ];
 
 /** Globally ignored paths (repo-relative prefixes). */

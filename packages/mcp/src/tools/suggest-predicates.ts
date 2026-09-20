@@ -12,14 +12,16 @@ export type { SuggestPredicatesArgs, SuggestPredicatesResult };
 export async function handleKbSuggestPredicates(
   prolog: PrologProcess | null,
   args: SuggestPredicatesArgs,
+  context?: OperationContext,
 ): Promise<SuggestPredicatesResult> {
-  const context: OperationContext =
-    prolog === null
+  const resolved: OperationContext =
+    context ??
+    (prolog === null
       ? {
           workspaceRoot: resolveWorkspaceRoot(),
           signal: new AbortController().signal,
           clock: () => new Date(),
         }
-      : createDiscoveryContext(prolog);
-  return suggestPredicatesSpec.execute(args, context);
+      : createDiscoveryContext(prolog));
+  return suggestPredicatesSpec.execute(args, resolved);
 }

@@ -25,11 +25,12 @@ export {
 export async function handleKbModelRequirement(
   _prolog: PrologProcess,
   args: ModelRequirementArgs,
+  context?: OperationContext,
 ): Promise<ModelRequirementResult> {
-  const context: OperationContext = {
+  const resolved: OperationContext = context ?? {
     workspaceRoot: resolveWorkspaceRoot(),
     signal: new AbortController().signal,
     clock: () => new Date(),
   };
-  return modelRequirementSpec.execute(args, context);
+  return modelRequirementSpec.execute(args, resolved);
 }

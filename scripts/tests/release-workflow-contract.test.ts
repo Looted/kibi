@@ -89,6 +89,9 @@ describe("publish.yml CI workflow contract", () => {
     ].map(([, directory]) => directory);
     expect(packOrder).toEqual([
       "core",
+      "plugin-sdk",
+      "plugin-builtin",
+      "plugin-jev",
       "runtime",
       "cli",
       "mcp",

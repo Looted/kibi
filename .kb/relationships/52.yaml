@@ -230,3 +230,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-caaa82103779
+  - type: verified_by
+    from: SCEN-capability-plugin-jev-inactive-v1
+    to: TEST-capability-plugin-jev-mocked-v1
+    created_at: 2026-09-20T08:21:14.321Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0294033f333c

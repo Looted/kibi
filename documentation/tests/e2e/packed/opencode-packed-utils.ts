@@ -36,10 +36,19 @@ export interface IsolatedInstall {
   installDir: string;
 }
 
-type KibiPackage = "core" | "cli" | "runtime" | "mcp" | "opencode";
+type KibiPackage =
+  | "core"
+  | "cli"
+  | "runtime"
+  | "mcp"
+  | "opencode"
+  | "plugin-sdk"
+  | "plugin-builtin";
 
 const REQUIRED_DEP_PACKAGES: ReadonlyArray<KibiPackage> = [
   "core",
+  "plugin-sdk",
+  "plugin-builtin",
   "cli",
   "runtime",
 ];
@@ -263,7 +272,13 @@ export function installOpencodeTarball(
   const installArgs = ["install", "--no-audit"];
   const tarballEnv = process.env.KIBI_TEST_TARBALLS;
 
-  for (const dep of ["core", "cli", "runtime"] as const) {
+  for (const dep of [
+    "core",
+    "plugin-sdk",
+    "plugin-builtin",
+    "cli",
+    "runtime",
+  ] as const) {
     if (tarballEnv) {
       const depTarball = findTarballFromEnv(tarballEnv, dep);
       if (depTarball) {

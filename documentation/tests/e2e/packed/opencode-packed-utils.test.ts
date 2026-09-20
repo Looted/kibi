@@ -86,6 +86,9 @@ describe("opencode packed utility helpers", () => {
       opencode: "/tmp/kibi/opencode.tgz",
       codex: "/tmp/kibi/codex.tgz",
       cursor: "C:\\kibi\\cursor.tgz",
+      "plugin-sdk": "/tmp/kibi/plugin-sdk.tgz",
+      "plugin-builtin": "/tmp/kibi/plugin-builtin.tgz",
+      "plugin-jev": "/tmp/kibi/plugin-jev.tgz",
     };
     const packageFiles = {
       "kibi-core": `file:${tarballs.core}`,
@@ -95,6 +98,8 @@ describe("opencode packed utility helpers", () => {
       "kibi-opencode": `file:${tarballs.opencode}`,
       "kibi-codex": `file:${tarballs.codex}`,
       "kibi-cursor": `file:${tarballs.cursor}`,
+      "kibi-plugin-sdk": `file:${tarballs["plugin-sdk"]}`,
+      "kibi-plugin-builtin": `file:${tarballs["plugin-builtin"]}`,
     };
 
     try {

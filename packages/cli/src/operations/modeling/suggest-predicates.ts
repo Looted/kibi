@@ -4,6 +4,7 @@ import type {
 } from "../../public/operations/runtime-types.js";
 import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
 import { semanticClaimKey } from "../semantic-advisor/clauses.js";
+import { composeOntologyCatalogForOperation } from "../semantic-advisor/plugin-orchestration.js";
 import {
   STRONG_APPLICABILITY_SCORE,
   WEAK_CANDIDATE_MARGIN,
@@ -135,6 +136,31 @@ function uniqueSchemas(
   });
 }
 
+function ontologyPackSchemasToCandidates(
+  schemas: readonly {
+    readonly schemaId: string;
+    readonly predicateName: string;
+    readonly argumentNames: readonly string[];
+    readonly argumentTypes: readonly string[];
+    readonly title?: string;
+    readonly description?: string;
+    readonly aliases?: readonly string[];
+  }[],
+): PredicateSchemaCandidate[] {
+  return schemas.map((schema) => ({
+    id: schema.schemaId,
+    predicate_name: schema.predicateName,
+    title: schema.title ?? schema.predicateName,
+    description: schema.description ?? schema.predicateName,
+    argument_names: [...schema.argumentNames],
+    argument_types: [...schema.argumentTypes],
+    keywords: [schema.predicateName, ...(schema.aliases ?? [])],
+    ...(schema.aliases ? { aliases: [...schema.aliases] } : {}),
+    examples: [],
+    tags: ["ontology-pack"],
+  }));
+}
+
 export function compareEligibleByApplicabilityThenName(
   left: Pick<PredicateSuggestion, "applicability_score" | "predicate_name">,
   right: Pick<PredicateSuggestion, "applicability_score" | "predicate_name">,
@@ -198,6 +224,7 @@ function withMarginRejection(
 export async function handleKbSuggestPredicates(
   prolog: PrologPort | null,
   args: SuggestPredicatesArgs,
+  context?: OperationContext,
 ): Promise<SuggestPredicatesResult> {
   const text = normalizeText(args.text);
   const subject = inferSubject(text, args.subjectHint);
@@ -229,9 +256,14 @@ export async function handleKbSuggestPredicates(
     args.includeExistingSchemas ?? true,
     warnings,
   );
+  const composedCatalog = await composeOntologyCatalogForOperation(context);
+  const packSchemas = composedCatalog
+    ? ontologyPackSchemasToCandidates(composedCatalog.schemas)
+    : [];
   const schemas = uniqueSchemas([
     ...existingSchemas,
     ...BUILT_IN_PREDICATE_SCHEMAS,
+    ...packSchemas,
   ]);
   const selectedSchemas = args.schemaId
     ? schemas.filter((schema) => schema.id === args.schemaId)
@@ -380,5 +412,5 @@ export async function executeSuggestPredicates(
   args: SuggestPredicatesArgs,
   context: OperationContext,
 ): Promise<SuggestPredicatesResult> {
-  return handleKbSuggestPredicates(context.prolog ?? null, args);
+  return handleKbSuggestPredicates(context.prolog ?? null, args, context);
 }

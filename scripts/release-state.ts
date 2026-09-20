@@ -67,6 +67,9 @@ export interface ReleaseContext {
 /** Canonical publishable package directories */
 export const PUBLISHABLE_DIRS = [
   "core",
+  "plugin-sdk",
+  "plugin-builtin",
+  "plugin-jev",
   "runtime",
   "cli",
   "mcp",

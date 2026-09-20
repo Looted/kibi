@@ -1,3 +1,4 @@
+import { createBuiltinOntologyPack } from "kibi-plugin-builtin";
 import {
   logicSemanticKey,
   renderLogicProlog,
@@ -12,17 +13,12 @@ import {
   semanticClaimKey,
 } from "./clauses.js";
 import { observationPlan } from "./observation-plan.js";
-import { detectPredicateRules } from "./predicate-rule.js";
-import { CORE_PREDICATE_RULES } from "./predicate-rules-core.js";
-import { LAUNCHER_PREDICATE_RULES } from "./predicate-rules-launcher.js";
-import { POLICY_PREDICATE_RULES } from "./predicate-rules-policy.js";
-import { PRODUCT_TAIL_PREDICATE_RULES } from "./predicate-rules-product-tail.js";
-import { PRODUCT_PREDICATE_RULES } from "./predicate-rules-product.js";
 import {
   type Payload,
   type SemanticSourceField,
   isRecord,
   payloadHash,
+  predicateSuggestion as buildPredicateSuggestion,
   propertiesOf,
   relationship,
   semanticClausesOf,
@@ -256,12 +252,20 @@ function predicateSuggestion(
   payload: Payload,
   statement: string,
 ): SemanticModelingSuggestion | null {
-  return (
-    detectPredicateRules(payload, statement, LAUNCHER_PREDICATE_RULES) ??
-    detectPredicateRules(payload, statement, CORE_PREDICATE_RULES) ??
-    detectPredicateRules(payload, statement, POLICY_PREDICATE_RULES) ??
-    detectPredicateRules(payload, statement, PRODUCT_PREDICATE_RULES) ??
-    detectPredicateRules(payload, statement, PRODUCT_TAIL_PREDICATE_RULES)
+  // Deterministic builtin pack — never loads external plugins on sync paths.
+  const matches = createBuiltinOntologyPack().match({
+    claimKey: "",
+    statement,
+  });
+  const hit = matches[0];
+  if (!hit) return null;
+  return buildPredicateSuggestion(
+    payload,
+    hit.evidence,
+    hit.predicateName,
+    hit.arguments,
+    hit.rationale ?? "",
+    hit.polarity,
   );
 }
 

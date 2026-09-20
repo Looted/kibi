@@ -165,8 +165,11 @@ export function registerConfiguredTools<TProlog>(
   });
   register({
     name: "kb_semantic_advisor",
-    execute: async (_context, args) =>
-      runtime.handleKbSemanticAdvisor(args as unknown as SemanticAdvisorArgs),
+    execute: async (context, args) =>
+      runtime.handleKbSemanticAdvisor(
+        args as unknown as SemanticAdvisorArgs,
+        context,
+      ),
   });
   register({
     name: "kb_upsert",
@@ -216,6 +219,7 @@ export function registerConfiguredTools<TProlog>(
       runtime.handleKbModelRequirement(
         prologFor(context),
         args as unknown as ModelRequirementArgs,
+        withSessionProlog(context),
       ),
   });
   register({
@@ -224,6 +228,7 @@ export function registerConfiguredTools<TProlog>(
       runtime.handleKbSuggestPredicates(
         prologFor(context),
         args as unknown as SuggestPredicatesArgs,
+        withSessionProlog(context),
       ),
   });
   register({

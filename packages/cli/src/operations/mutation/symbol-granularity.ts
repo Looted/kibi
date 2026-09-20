@@ -1,5 +1,5 @@
 import path from "node:path";
-import { Project, ScriptKind, SyntaxKind } from "ts-morph";
+import { collectGranularityCandidates } from "kibi-plugin-builtin";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import {
   ALLOWED_GRANULARITY_REASONS_PROSE,
@@ -13,14 +13,6 @@ import {
 } from "../../public/symbol-granularity.js";
 import type { RelationshipInput } from "./types.js";
 
-function scriptKind(filePath: string): ScriptKind {
-  const extension = path.extname(filePath).toLowerCase();
-  if (extension === ".tsx") return ScriptKind.TSX;
-  if ([".ts", ".mts", ".cts"].includes(extension)) return ScriptKind.TS;
-  if (extension === ".jsx") return ScriptKind.JSX;
-  return ScriptKind.JS;
-}
-
 function candidate(name: string, kind: SymbolKind): GranularSymbolCandidate {
   return { name, kind, role: inferSymbolRole(kind) };
 }
@@ -29,73 +21,8 @@ function candidates(
   filePath: string,
   content: string,
 ): GranularSymbolCandidate[] {
-  const source = new Project({
-    skipAddingFilesFromTsConfig: true,
-  }).createSourceFile(`${filePath}::granularity`, content, {
-    overwrite: true,
-    scriptKind: scriptKind(filePath),
-  });
-  const found: GranularSymbolCandidate[] = [];
-  const methodCounts = new Map<string, number>();
-  const bareMethods = new Map<string, GranularSymbolCandidate>();
-  for (const fn of source.getFunctions()) {
-    const name = fn.getName();
-    if (fn.isExported() && name) found.push(candidate(name, "function"));
-  }
-  for (const cls of source.getClasses()) {
-    if (!cls.isExported()) continue;
-    const className = cls.getName();
-    if (className) found.push(candidate(className, "class"));
-    for (const method of cls.getMethods()) {
-      if (isPrivateClassMember(method)) continue;
-      const name = method.getName();
-      if (className) found.push(candidate(`${className}.${name}`, "method"));
-      bareMethods.set(name, candidate(name, "method"));
-      methodCounts.set(name, (methodCounts.get(name) ?? 0) + 1);
-    }
-    for (const property of cls.getProperties()) {
-      if (isPrivateClassMember(property)) continue;
-      const name = property.getName();
-      if (className) found.push(candidate(`${className}.${name}`, "property"));
-    }
-    for (const accessor of [
-      ...cls.getGetAccessors(),
-      ...cls.getSetAccessors(),
-    ]) {
-      if (isPrivateClassMember(accessor)) continue;
-      const name = accessor.getName();
-      if (className) found.push(candidate(`${className}.${name}`, "accessor"));
-    }
-  }
-  for (const [name, count] of methodCounts) {
-    const method = bareMethods.get(name);
-    if (count === 1 && method) found.push(method);
-  }
-  for (const item of source.getInterfaces()) {
-    if (item.isExported()) found.push(candidate(item.getName(), "interface"));
-  }
-  for (const item of source.getTypeAliases()) {
-    if (item.isExported()) found.push(candidate(item.getName(), "type"));
-  }
-  for (const item of source.getEnums()) {
-    if (item.isExported()) found.push(candidate(item.getName(), "enum"));
-  }
-  for (const statement of source.getVariableStatements()) {
-    if (!statement.isExported()) continue;
-    for (const declaration of statement.getDeclarations()) {
-      found.push(candidate(declaration.getName(), "variable"));
-    }
-  }
-  return found.sort((left, right) => left.name.localeCompare(right.name));
-}
-
-function isPrivateClassMember(member: {
-  hasModifier(kind: SyntaxKind): boolean;
-  getName(): string;
-}): boolean {
-  return (
-    member.hasModifier(SyntaxKind.PrivateKeyword) ||
-    member.getName().startsWith("#")
+  return collectGranularityCandidates(filePath, content).map((item) =>
+    candidate(item.name, item.kind as SymbolKind),
   );
 }
 

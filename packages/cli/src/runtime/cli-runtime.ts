@@ -4,6 +4,11 @@ import { retryAttachAfterBreakingStaleLock } from "../prolog/store-lock.js";
 
 import { EngineClient } from "../engine.js";
 import {
+  type CapabilityRegistry,
+  CapabilityRegistryCache,
+  ensureCapabilityRegistry,
+} from "../plugins/registry.js";
+import {
   nodeFilesystem,
   nodeGit,
   nodeNetwork,
@@ -12,6 +17,7 @@ import type {
   EngineCommandV1,
   EnginePort,
   OperationContext,
+  OperationPlugins,
   OperationRuntime,
   PrologPort,
   RuntimeOptions,
@@ -103,11 +109,21 @@ function enginePort(
   };
 }
 
+function resolvePluginsOption(
+  plugins: OperationPlugins | undefined,
+): (() => Promise<CapabilityRegistry>) | undefined {
+  if (plugins === undefined) return undefined;
+  if (typeof plugins === "function") return plugins;
+  return async () => plugins;
+}
+
 // implements REQ-kibi-operation-interface-parity
 export function createCliRuntime(
   options: RuntimeOptions = {},
 ): OperationRuntime {
   const ownedPrologs = new WeakMap<OperationContext, ManagedPrologPort>();
+  // Per-runtime cache — not a process-global singleton.
+  const pluginCache = new CapabilityRegistryCache();
 
   return {
     open: async (spec, invocationOptions = {}) => {
@@ -119,6 +135,11 @@ export function createCliRuntime(
       const signal = merged.signal ?? new AbortController().signal;
       const clock = merged.clock ?? (() => new Date());
       const git = merged.git ?? nodeGit;
+      const injectedPlugins = resolvePluginsOption(merged.plugins);
+      const ensurePlugins = async (): Promise<CapabilityRegistry> => {
+        if (injectedPlugins) return injectedPlugins();
+        return ensureCapabilityRegistry(root, { cache: pluginCache });
+      };
       const contextBase = {
         workspaceRoot: root,
         signal,
@@ -126,8 +147,9 @@ export function createCliRuntime(
         fs: merged.fs ?? nodeFilesystem,
         git,
         net: merged.net ?? nodeNetwork,
+        ensurePlugins,
+        ...(merged.plugins !== undefined ? { plugins: merged.plugins } : {}),
       } satisfies Omit<OperationContext, "prolog">;
-
       if (!spec.requiresProlog) {
         // Read-only operations such as status may choose to use an explicitly
         // supplied test or host Prolog port, but must not force engine startup.
