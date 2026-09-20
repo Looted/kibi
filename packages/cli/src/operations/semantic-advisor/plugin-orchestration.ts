@@ -107,6 +107,143 @@ function toolForLane(lane: SemanticAdvisorLane): string {
 }
 
 /**
+ * Drop sync-path builtin ontology `predicate` suggestions.
+ *
+ * `analyzeSemanticAdvisorInput` always consults the builtin pack for
+ * maintenance-safe deterministic matching. When a replace ontology pack is
+ * active, those suggestions must not survive into the public receipt —
+ * including when the replace pack abstains with a valid empty match set.
+ */
+// implements REQ-capability-plugin-activation-disclosure-v1
+export function stripSyncBuiltinOntologySuggestions(
+  analysis: SemanticAdvisorAnalysisResult,
+): SemanticAdvisorAnalysisResult {
+  const suggestions = analysis.receipt.suggestions.filter(
+    (suggestion) => suggestion.kind !== "predicate",
+  );
+  if (suggestions.length === analysis.receipt.suggestions.length) {
+    return analysis;
+  }
+  return {
+    ...analysis,
+    receipt: {
+      ...analysis.receipt,
+      suggestions,
+    },
+    warnings: [
+      ...analysis.warnings,
+      "Builtin ontology predicate suggestions cleared for replace-mode ontology pack.",
+    ],
+  };
+}
+
+/**
+ * Host-construct advisory modeling suggestions from validated ontology matches.
+ *
+ * When `replaced` is true, matches replace any remaining claim-keyed
+ * suggestion for the matched claim (after sync builtin predicates were
+ * stripped). When false (augment/builtin), matches only fill claims that
+ * lack a suggestion.
+ */
+// implements REQ-capability-plugin-activation-disclosure-v1
+export function applyOntologyMatchSuggestions(
+  analysis: SemanticAdvisorAnalysisResult,
+  ontologyMatches: readonly StampedOntologyCandidate[],
+  options: Readonly<{ replaced: boolean }> = { replaced: false },
+): SemanticAdvisorAnalysisResult {
+  if (analysis.receipt.logic_readiness === "modeled") {
+    return analysis;
+  }
+  if (ontologyMatches.length === 0 && !options.replaced) {
+    return analysis;
+  }
+
+  const propositions = analysis.receipt.propositions;
+  const suggestions: SemanticModelingSuggestion[] = [
+    ...analysis.receipt.suggestions,
+  ];
+  const suggestionByClaim = new Map(
+    suggestions.map((suggestion) => [suggestion.claim_key, suggestion]),
+  );
+
+  for (const match of ontologyMatches) {
+    const claimKey =
+      propositions.find((proposition) =>
+        proposition.claim_text.includes(match.evidence),
+      )?.claim_key ??
+      propositions.find((proposition) =>
+        match.evidence.length > 0
+          ? proposition.claim_text.includes(match.evidence)
+          : false,
+      )?.claim_key ??
+      propositions[0]?.claim_key;
+    if (!claimKey) continue;
+    const proposition = propositions.find(
+      (entry) => entry.claim_key === claimKey,
+    );
+    if (!proposition) continue;
+    const existing = suggestionByClaim.get(claimKey);
+    if (existing && !options.replaced) continue;
+    if (
+      existing &&
+      options.replaced &&
+      existing.kind !== "predicate" &&
+      existing.kind !== "ontology_gap"
+    ) {
+      // Preserve strict/rule/ambiguity host suggestions under replace.
+      continue;
+    }
+
+    const advisory: SemanticModelingSuggestion = {
+      kind: "ontology_gap",
+      claim_key: claimKey,
+      claim_text: proposition.claim_text,
+      confidence: match.confidence,
+      evidence: match.evidence,
+      rationale:
+        match.rationale ??
+        `Ontology pack '${match.packId}' matched ${match.predicateName}; review via kb_suggest_predicates before mutation.`,
+      suggested_next_tool: "kb_suggest_predicates",
+      recommendedPredicateSchema: {
+        predicate_name: match.predicateName,
+        argument_names: match.arguments.map((_, index) => `arg${index}`),
+        argument_types: match.arguments.map(() => "string"),
+      },
+      applyPlan: [],
+    };
+
+    if (existing) {
+      const index = suggestions.findIndex(
+        (entry) =>
+          entry.claim_key === existing.claim_key &&
+          entry.kind === existing.kind,
+      );
+      if (index >= 0) suggestions[index] = advisory;
+      else suggestions.push(advisory);
+    } else {
+      suggestions.push(advisory);
+    }
+    suggestionByClaim.set(claimKey, advisory);
+  }
+
+  const tools = [
+    ...new Set([
+      ...analysis.receipt.suggested_next_tools,
+      ...suggestions.map((suggestion) => suggestion.suggested_next_tool),
+    ]),
+  ];
+
+  return {
+    ...analysis,
+    receipt: {
+      ...analysis.receipt,
+      suggestions,
+      suggested_next_tools: tools,
+    },
+  };
+}
+
+/**
  * Apply host-validated classifier decisions as a bounded routing seam.
  *
  * Plugins may influence per-proposition routing, candidate lane, suggested
@@ -118,7 +255,8 @@ function toolForLane(lane: SemanticAdvisorLane): string {
 export function applyClassificationRouting(
   analysis: SemanticAdvisorAnalysisResult,
   classification: ComposedSemanticClassifierResult,
-  ontologyMatches: readonly StampedOntologyCandidate[],
+  ontologyMatches: readonly StampedOntologyCandidate[] = [],
+  options: Readonly<{ replaced?: boolean }> = {},
 ): SemanticAdvisorAnalysisResult {
   const receipt = analysis.receipt;
   if (receipt.logic_readiness === "modeled") {
@@ -250,39 +388,6 @@ export function applyClassificationRouting(
     }
   }
 
-  // Host constructs advisory suggestions from validated ontology match candidates.
-  for (const match of ontologyMatches) {
-    const claimKey =
-      propositions.find((proposition) =>
-        proposition.claim_text.includes(match.evidence),
-      )?.claim_key ?? propositions[0]?.claim_key;
-    if (!claimKey) continue;
-    if (suggestionByClaim.has(claimKey)) continue;
-    const proposition = propositions.find(
-      (entry) => entry.claim_key === claimKey,
-    );
-    if (!proposition) continue;
-    const advisory: SemanticModelingSuggestion = {
-      kind: "ontology_gap",
-      claim_key: claimKey,
-      claim_text: proposition.claim_text,
-      confidence: match.confidence,
-      evidence: match.evidence,
-      rationale:
-        match.rationale ??
-        `Ontology pack '${match.packId}' matched ${match.predicateName}; review via kb_suggest_predicates before mutation.`,
-      suggested_next_tool: "kb_suggest_predicates",
-      recommendedPredicateSchema: {
-        predicate_name: match.predicateName,
-        argument_names: match.arguments.map((_, index) => `arg${index}`),
-        argument_types: match.arguments.map(() => "string"),
-      },
-      applyPlan: [],
-    };
-    suggestions.push(advisory);
-    suggestionByClaim.set(claimKey, advisory);
-  }
-
   let candidateLane = receipt.candidate_lane;
   for (const decision of classification.decisions) {
     if (laneRank(decision.lane) > laneRank(candidateLane)) {
@@ -322,7 +427,12 @@ export function applyClassificationRouting(
     );
   }
 
-  return { receipt: nextReceipt, warnings };
+  // Ontology matches apply after classifier routing so replace can override.
+  return applyOntologyMatchSuggestions(
+    { receipt: nextReceipt, warnings },
+    ontologyMatches,
+    { replaced: options.replaced === true },
+  );
 }
 
 /**
@@ -428,12 +538,24 @@ export async function analyzeSemanticAdvisorInputWithPlugins(
   ontologyMatches = collected;
   ontologyShadowMatches = shadowCollected;
 
+  const replaced = ontologyCatalog?.replaced === true;
+  // Replace mode must clear sync-path builtin predicate suggestions even when
+  // the replace pack abstains with a valid empty match set.
+  if (replaced) {
+    nextAnalysis = stripSyncBuiltinOntologySuggestions(nextAnalysis);
+  }
+
   if (classification) {
     nextAnalysis = applyClassificationRouting(
-      analysis,
+      nextAnalysis,
       classification,
       ontologyMatches,
+      { replaced },
     );
+  } else {
+    nextAnalysis = applyOntologyMatchSuggestions(nextAnalysis, ontologyMatches, {
+      replaced,
+    });
   }
 
   return {

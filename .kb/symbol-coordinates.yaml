@@ -2477,12 +2477,12 @@ coordinates:
     sourceLine: 19
   SYM-cap-plugin-analyzesemanticadvisorinputwithplugins-a97f0adf:
     identityHash: 608e0f9e00bcaa6ffbcef03af5c3aa324e91c9c5eeec7e1102cc6d2a492fd70c
-    sourceHash: 8d44dff9395dc6d2a43c07eac4f91047a7628f2d40b2d2d6f1d322c7836aebec
+    sourceHash: 61cb9d2b0c0cdf51888c1d3baf3b366fcf5b5d7079c1a0cae3e68d48a39ca2af
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 447
+    sourceEndLine: 569
     sourceFile: packages/cli/src/operations/semantic-advisor/plugin-orchestration.ts
-    sourceLine: 333
+    sourceLine: 443
   SYM-cap-plugin-analyzesourcetextwithregistry-d1ded392:
     identityHash: c3a2f32bff29018ff6cd809635e9b0a42dd35203675d55285300ff0e50fb0ef7
     sourceHash: 2a6f5263465dd5b4cf576df3f506b596dba0701b53dd35f039689cf79cdb3d1b
@@ -2805,12 +2805,12 @@ coordinates:
     sourceLine: 87
   SYM-cap-plugin-composeontologycatalogforoperation-905f7a11:
     identityHash: fa105267d322a3b8841bc8ddfd1e99d1460292f9598c4bbea2e2e2f33a944ce0
-    sourceHash: 8d44dff9395dc6d2a43c07eac4f91047a7628f2d40b2d2d6f1d322c7836aebec
+    sourceHash: 61cb9d2b0c0cdf51888c1d3baf3b366fcf5b5d7079c1a0cae3e68d48a39ca2af
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 476
+    sourceEndLine: 598
     sourceFile: packages/cli/src/operations/semantic-advisor/plugin-orchestration.ts
-    sourceLine: 468
+    sourceLine: 590
   SYM-cap-plugin-composeontologymatches-67448599:
     identityHash: 59cc492e228ef937fa191a35e502f2e0d46cf86b68dd7ebf07e93af2f012c26d
     sourceHash: e24191de73f3e37a5f8f98a2b4fec69b685eb1003bf407099ff1efb809ac0a14
@@ -2829,12 +2829,12 @@ coordinates:
     sourceLine: 111
   SYM-cap-plugin-composesemanticclassificationforoperation-f3a02379:
     identityHash: 0083d8a4431414433426e017646b6df53e5ed5ed8f4cc37dcfff46e7db762fb2
-    sourceHash: 8d44dff9395dc6d2a43c07eac4f91047a7628f2d40b2d2d6f1d322c7836aebec
+    sourceHash: 61cb9d2b0c0cdf51888c1d3baf3b366fcf5b5d7079c1a0cae3e68d48a39ca2af
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 465
+    sourceEndLine: 587
     sourceFile: packages/cli/src/operations/semantic-advisor/plugin-orchestration.ts
-    sourceLine: 454
+    sourceLine: 576
   SYM-cap-plugin-core-predicate-rules-f2358fc4:
     identityHash: b24bb9e5d585068a95ed4afdbd694ce4eae9165e1389ecde61590f9bed000513
     sourceHash: 74522a2a31e63d0e2cf4ad5b2a6c1b521f7192c1c8b53f52f170d50f94dc9131
@@ -3629,7 +3629,7 @@ coordinates:
     sourceLine: 15
   SYM-cap-plugin-semanticpluginorchestrationresult-0b07ce70:
     identityHash: c4b2d40bbe9d720589a0358e6342cb88534f54480ca9d94d11d6a81a9e40d94c
-    sourceHash: 8d44dff9395dc6d2a43c07eac4f91047a7628f2d40b2d2d6f1d322c7836aebec
+    sourceHash: 61cb9d2b0c0cdf51888c1d3baf3b366fcf5b5d7079c1a0cae3e68d48a39ca2af
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 58
@@ -4069,12 +4069,20 @@ coordinates:
     sourceLine: 12
   SYM-cli-apply-classification-routing:
     identityHash: c8c613d17c6cc70048bbc3c320b2b4457ca6b96f9784c6fb69f8f0864a06967c
-    sourceHash: 8d44dff9395dc6d2a43c07eac4f91047a7628f2d40b2d2d6f1d322c7836aebec
+    sourceHash: 61cb9d2b0c0cdf51888c1d3baf3b366fcf5b5d7079c1a0cae3e68d48a39ca2af
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 326
+    sourceEndLine: 436
     sourceFile: packages/cli/src/operations/semantic-advisor/plugin-orchestration.ts
-    sourceLine: 118
+    sourceLine: 255
+  SYM-cli-apply-ontology-match-suggestions:
+    identityHash: 42be7e0c7081fd21c932a9d7eecc9f7d401338c46a768ffc6da940e3423c3343
+    sourceHash: 61cb9d2b0c0cdf51888c1d3baf3b366fcf5b5d7079c1a0cae3e68d48a39ca2af
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 244
+    sourceFile: packages/cli/src/operations/semantic-advisor/plugin-orchestration.ts
+    sourceLine: 149
   SYM-cli-BaseEntity:
     identityHash: 0fcd56b43200c77bce176ca2b04c13198cb44a1266eec78264287766d2f191bc
     sourceHash: b076d1efd06582a57927e8a71baf6f222da5918414ec1fd29e86a2a942d5a35f
@@ -6827,6 +6835,14 @@ coordinates:
     sourceEndLine: 80
     sourceFile: packages/cli/src/commands/engine.ts
     sourceLine: 78
+  SYM-cli-strip-sync-builtin-ontology-suggestions:
+    identityHash: 62782519fa981c66c093aa197719ca4974f8a65631f7d21fe1ce3a5de01bf7c2
+    sourceHash: 61cb9d2b0c0cdf51888c1d3baf3b366fcf5b5d7079c1a0cae3e68d48a39ca2af
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 138
+    sourceFile: packages/cli/src/operations/semantic-advisor/plugin-orchestration.ts
+    sourceLine: 118
   SYM-cli-Symbol:
     identityHash: 0f6e4f62cedf339ee080bc736b4fac5ba8a252a63665c698eecfb3d46066fdf8
     sourceHash: b076d1efd06582a57927e8a71baf6f222da5918414ec1fd29e86a2a942d5a35f
@@ -26717,10 +26733,10 @@ coordinates:
     sourceLine: 25
   SYM-test-capability-plugin-host-resolution-v1:
     identityHash: 771cf6e0e25686f15933dc40ce82cc3eef3259237e20d2750688684bb85bc181
-    sourceHash: 9e961d9bc9b8afcd77ba7a222d188e4b5f894e213f4ed93304b46b3a1a9c8d82
+    sourceHash: 8230d8eb91736fc5e84ddc0aebad6120336ec88bbc3d96460c1650f0de0ea53b
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 982
+    sourceEndLine: 1173
     sourceFile: packages/cli/tests/plugins/capability-plugin-host.test.ts
     sourceLine: 1
   SYM-test-capability-plugin-jev-mocked-v1:

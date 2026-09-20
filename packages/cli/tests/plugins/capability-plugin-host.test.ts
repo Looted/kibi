@@ -978,4 +978,195 @@ describe("capability plugin host", () => {
     expect(result.fallbackUsed).toBe(true);
     expect(result.module.analysisMode).toBe("fallback");
   });
+
+  // executable_for TEST-capability-plugin-host-resolution-v1
+  test("replace ontology abstention clears sync builtin predicate suggestions end-to-end", async () => {
+    const { analyzeSemanticAdvisorInputWithPlugins } = await import(
+      "../../src/operations/semantic-advisor/plugin-orchestration.js"
+    );
+    const { analyzeSemanticAdvisorInput } = await import(
+      "../../src/operations/semantic-advisor/analyze-prose.js"
+    );
+
+    const sync = analyzeSemanticAdvisorInput({
+      payload: {
+        type: "req",
+        id: "REQ-REPLACE-ONT",
+        properties: {
+          title: "Checkout authorization",
+          text_ref:
+            "Checkout requires payment authorization before submission.",
+        },
+        relationships: [],
+      },
+    });
+    expect(
+      sync.receipt.suggestions.some((suggestion) => suggestion.kind === "predicate"),
+    ).toBe(true);
+
+    const replacePack: OntologyPackV1 = {
+      id: "replace-ont-e2e",
+      schemas: () => [
+        {
+          schemaId: "replace.schema",
+          predicateName: "holds",
+          argumentNames: ["subject"],
+          argumentTypes: ["entity"],
+        },
+      ],
+      match: () => [],
+    };
+    const registry = createCapabilityRegistry({
+      workspaceRoot: "/tmp/replace-ont-e2e",
+      projectConfig: {
+        plugins: [
+          {
+            package: "replace-ont",
+            capabilities: {
+              [ONTOLOGY_PACK_CAPABILITY_ID]: { mode: "replace" },
+            },
+          },
+        ],
+      },
+      builtinFactory: () => createStubBuiltinPlugin(),
+      loadPlugin: async () => ({
+        packageName: "replace-ont",
+        resolved: {
+          packageName: "replace-ont",
+          packageRoot: "/tmp/replace-ont",
+          packageJsonPath: "/tmp/replace-ont/package.json",
+          entryPath: "/tmp/replace-ont/index.js",
+          entryUrl: "file:///tmp/replace-ont/index.js",
+          packageJson: { name: "replace-ont", version: "1.0.0" },
+        },
+        plugin: makePlugin("replace-ont", { ontology: replacePack }),
+      }),
+    });
+
+    const orchestrated = await analyzeSemanticAdvisorInputWithPlugins(
+      {
+        payload: {
+          type: "req",
+          id: "REQ-REPLACE-ONT",
+          properties: {
+            title: "Checkout authorization",
+            text_ref:
+              "Checkout requires payment authorization before submission.",
+          },
+          relationships: [],
+        },
+      },
+      {
+        ensurePlugins: async () => registry,
+        operationName: "kb_semantic_advisor",
+      },
+    );
+
+    expect(orchestrated.ontologyCatalog?.replaced).toBe(true);
+    expect(orchestrated.ontologyMatches).toEqual([]);
+    expect(
+      orchestrated.analysis.receipt.suggestions.some(
+        (suggestion) => suggestion.kind === "predicate",
+      ),
+    ).toBe(false);
+    expect(
+      orchestrated.analysis.warnings.some((warning) =>
+        /Builtin ontology predicate suggestions cleared/.test(warning),
+      ),
+    ).toBe(true);
+  });
+
+  // executable_for TEST-capability-plugin-host-resolution-v1
+  test("replace ontology match replaces sync builtin predicate suggestion", async () => {
+    const { analyzeSemanticAdvisorInputWithPlugins } = await import(
+      "../../src/operations/semantic-advisor/plugin-orchestration.js"
+    );
+
+    const replacePack: OntologyPackV1 = {
+      id: "replace-ont-hit",
+      schemas: () => [
+        {
+          schemaId: "replace.requires",
+          predicateName: "requires_before",
+          argumentNames: ["subject", "prerequisite", "dependent"],
+          argumentTypes: ["entity", "entity", "entity"],
+        },
+      ],
+      match: ({ statement }) => [
+        {
+          schemaId: "replace.requires",
+          predicateName: "requires_before",
+          arguments: ["checkout", "auth", "submit"],
+          polarity: "assert",
+          confidence: 0.91,
+          evidence: statement.slice(0, 24),
+          rationale: "replace pack hit",
+        },
+      ],
+    };
+    const registry = createCapabilityRegistry({
+      workspaceRoot: "/tmp/replace-ont-hit",
+      projectConfig: {
+        plugins: [
+          {
+            package: "replace-ont-hit",
+            capabilities: {
+              [ONTOLOGY_PACK_CAPABILITY_ID]: { mode: "replace" },
+            },
+          },
+        ],
+      },
+      builtinFactory: () => createStubBuiltinPlugin(),
+      loadPlugin: async () => ({
+        packageName: "replace-ont-hit",
+        resolved: {
+          packageName: "replace-ont-hit",
+          packageRoot: "/tmp/replace-ont-hit",
+          packageJsonPath: "/tmp/replace-ont-hit/package.json",
+          entryPath: "/tmp/replace-ont-hit/index.js",
+          entryUrl: "file:///tmp/replace-ont-hit/index.js",
+          packageJson: { name: "replace-ont-hit", version: "1.0.0" },
+        },
+        plugin: makePlugin("replace-ont-hit", { ontology: replacePack }),
+      }),
+    });
+
+    const orchestrated = await analyzeSemanticAdvisorInputWithPlugins(
+      {
+        payload: {
+          type: "req",
+          id: "REQ-REPLACE-HIT",
+          properties: {
+            title: "Checkout authorization",
+            text_ref:
+              "Checkout requires payment authorization before submission.",
+          },
+          relationships: [],
+        },
+      },
+      {
+        ensurePlugins: async () => registry,
+        operationName: "kb_semantic_advisor",
+      },
+    );
+
+    expect(orchestrated.ontologyCatalog?.replaced).toBe(true);
+    expect(orchestrated.ontologyMatches).toHaveLength(1);
+    expect(
+      orchestrated.analysis.receipt.suggestions.some(
+        (suggestion) => suggestion.kind === "predicate",
+      ),
+    ).toBe(false);
+    const gap = orchestrated.analysis.receipt.suggestions.find(
+      (suggestion) => suggestion.kind === "ontology_gap",
+    );
+    expect(gap?.kind === "ontology_gap" ? gap.rationale : null).toMatch(
+      /replace pack hit|replace-ont-hit/,
+    );
+    expect(
+      gap?.kind === "ontology_gap"
+        ? gap.recommendedPredicateSchema?.predicate_name
+        : null,
+    ).toBe("requires_before");
+  });
 });

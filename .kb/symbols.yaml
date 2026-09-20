@@ -39911,3 +39911,27 @@ symbols:
     relationships:
       - type: implements
         target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cli-strip-sync-builtin-ontology-suggestions
+    title: stripSyncBuiltinOntologySuggestions
+    status: active
+    tags:
+      - plugins
+      - ontology
+      - replace
+    sourceFile: packages/cli/src/operations/semantic-advisor/plugin-orchestration.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cli-apply-ontology-match-suggestions
+    title: applyOntologyMatchSuggestions
+    status: active
+    tags:
+      - plugins
+      - ontology
+      - replace
+    sourceFile: packages/cli/src/operations/semantic-advisor/plugin-orchestration.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
