@@ -16,6 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { createRequire } from "node:module";
 import {
   KIBI_PLUGIN_API_VERSION,
   defineKibiPlugin,
@@ -23,6 +24,10 @@ import {
 import { createBuiltinOntologyPack } from "./ontology/builtin-ontology-pack.js";
 import { createBuiltinSemanticClassifier } from "./semantic/builtin-classifier.js";
 import { createBuiltinTsMorphSymbolExtractor } from "./symbols/ts-morph-extractor.js";
+
+const packageJson = createRequire(import.meta.url)("../package.json") as {
+  version: string;
+};
 
 // implements REQ-capability-plugin-builtin-parity-v1
 export { createBuiltinOntologyPack } from "./ontology/builtin-ontology-pack.js";
@@ -81,7 +86,7 @@ export {
 export const kibiPlugin = defineKibiPlugin({
   apiVersion: KIBI_PLUGIN_API_VERSION,
   id: "kibi-plugin-builtin",
-  version: "0.1.0",
+  version: packageJson.version,
   permissions: {
     network: false,
     metered: false,

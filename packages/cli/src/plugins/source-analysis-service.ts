@@ -21,7 +21,7 @@ import {
   type PluginProviderStamp,
   type SourceAnalysisResult,
   type SymbolExtractorV1,
-  validateSourceAnalysisResult,
+  validateSourceAnalysisResultForPath,
   toSourceAnalysisProvider,
 } from "kibi-plugin-sdk";
 
@@ -56,12 +56,24 @@ const SOURCE_LANGUAGE_EXTENSIONS: Record<string, string> = {
 };
 
 // implements REQ-capability-plugin-activation-disclosure-v1
+export type HostSourceAnalysisShadowComparison = Readonly<{
+  pluginId: string;
+  stamp: PluginProviderStamp;
+  symbolCount: number;
+  language: string;
+  ok: boolean;
+  error?: string;
+}>;
+
+// implements REQ-capability-plugin-activation-disclosure-v1
 export type HostSourceAnalysisResult = SourceAnalysisResult &
   Readonly<{
     providerId: string | null;
     stamp: PluginProviderStamp | null;
     fallbackUsed: boolean;
     diagnostics: readonly string[];
+    /** Shadow extractor comparisons; never affect canonical symbols. */
+    shadowComparisons: readonly HostSourceAnalysisShadowComparison[];
   }>;
 
 // implements REQ-capability-plugin-activation-disclosure-v1
@@ -99,6 +111,7 @@ export function createConservativeFallbackAnalysis(
     stamp: null,
     fallbackUsed: true,
     diagnostics: [`conservative fallback: ${fallbackReason}`],
+    shadowComparisons: [],
     module: {
       title: inferModuleTitle(filePath),
       language,
@@ -136,7 +149,7 @@ function dedupeSymbols(
  * - replace: first choice for claimed files; builtin fallback on failure
  * - augment: builtin first for supported files; additional extractors for
  *   unsupported files in activation order
- * - shadow: never canonical
+ * - shadow: always run when configured/applicable; never canonical
  */
 // implements REQ-capability-plugin-activation-disclosure-v1
 export class SourceAnalysisService {
@@ -167,7 +180,7 @@ export class SourceAnalysisService {
       if (!provider.supportsFile(filePath)) return null;
       try {
         const raw = provider.analyzeText(filePath, content);
-        const validated = validateSourceAnalysisResult(raw);
+        const validated = validateSourceAnalysisResultForPath(raw, filePath);
         return {
           ...validated,
           symbols: dedupeSymbols(validated.symbols),
@@ -175,67 +188,114 @@ export class SourceAnalysisService {
           stamp,
           fallbackUsed: false,
           diagnostics,
+          shadowComparisons: [],
         };
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        diagnostics.push(
-          `extractor '${extractor.id}' failed: ${message}`,
-        );
+        diagnostics.push(`extractor '${extractor.id}' failed: ${message}`);
         return null;
       }
     };
+
+    const runShadow = (
+      canonical: HostSourceAnalysisResult,
+    ): HostSourceAnalysisResult => {
+      if (resolution.shadow.length === 0) {
+        return { ...canonical, diagnostics: [...diagnostics] };
+      }
+      const shadowComparisons: HostSourceAnalysisShadowComparison[] = [];
+      for (const entry of resolution.shadow) {
+        const provider = toSourceAnalysisProvider(entry.capability);
+        if (!provider.supportsFile(filePath)) continue;
+        try {
+          const validated = validateSourceAnalysisResultForPath(
+            provider.analyzeText(filePath, content),
+            filePath,
+          );
+          shadowComparisons.push({
+            pluginId: entry.pluginId,
+            stamp: entry.stamp,
+            symbolCount: validated.symbols.length,
+            language: validated.language,
+            ok: true,
+          });
+          diagnostics.push(
+            `shadow extractor '${entry.pluginId}' produced ${validated.symbols.length} non-canonical symbol(s)`,
+          );
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : String(error);
+          shadowComparisons.push({
+            pluginId: entry.pluginId,
+            stamp: entry.stamp,
+            symbolCount: 0,
+            language: detectSourceLanguage(filePath),
+            ok: false,
+            error: message,
+          });
+          diagnostics.push(
+            `shadow extractor '${entry.pluginId}' failed: ${message}`,
+          );
+        }
+      }
+      return {
+        ...canonical,
+        diagnostics: [...diagnostics],
+        shadowComparisons,
+      };
+    };
+
+    let canonical: HostSourceAnalysisResult | null = null;
 
     if (resolution.replace) {
       const replaced = tryAnalyze(
         resolution.replace.capability,
         resolution.replace.stamp,
       );
-      if (replaced) return replaced;
-      diagnostics.push(
-        `replace extractor '${resolution.replace.pluginId}' did not claim or failed; trying builtin`,
-      );
+      if (replaced) {
+        canonical = replaced;
+      } else {
+        diagnostics.push(
+          `replace extractor '${resolution.replace.pluginId}' did not claim or failed; trying builtin`,
+        );
+        const builtin = tryAnalyze(resolution.builtin.capability, {
+          ...resolution.builtin.stamp,
+          fallbackUsed: true,
+        });
+        if (builtin) {
+          canonical = { ...builtin, fallbackUsed: true };
+        } else {
+          canonical = createConservativeFallbackAnalysis(
+            filePath,
+            "provider_error",
+          );
+        }
+      }
+    } else {
       const builtin = tryAnalyze(
         resolution.builtin.capability,
-        { ...resolution.builtin.stamp, fallbackUsed: true },
+        resolution.builtin.stamp,
       );
       if (builtin) {
-        return { ...builtin, fallbackUsed: true, diagnostics };
-      }
-      return createConservativeFallbackAnalysis(filePath, "provider_error");
-    }
-
-    const builtin = tryAnalyze(
-      resolution.builtin.capability,
-      resolution.builtin.stamp,
-    );
-    if (builtin) return builtin;
-
-    for (const entry of resolution.augment) {
-      const analyzed = tryAnalyze(entry.capability, entry.stamp);
-      if (analyzed) return analyzed;
-    }
-
-    // Shadow never affects canonical symbols; run only for diagnostics.
-    for (const entry of resolution.shadow) {
-      const provider = toSourceAnalysisProvider(entry.capability);
-      if (!provider.supportsFile(filePath)) continue;
-      try {
-        validateSourceAnalysisResult(provider.analyzeText(filePath, content));
-        diagnostics.push(
-          `shadow extractor '${entry.pluginId}' produced a comparison result (non-canonical)`,
-        );
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        diagnostics.push(
-          `shadow extractor '${entry.pluginId}' failed: ${message}`,
-        );
+        canonical = builtin;
+      } else {
+        for (const entry of resolution.augment) {
+          const analyzed = tryAnalyze(entry.capability, entry.stamp);
+          if (analyzed) {
+            canonical = analyzed;
+            break;
+          }
+        }
+        if (!canonical) {
+          canonical = createConservativeFallbackAnalysis(
+            filePath,
+            diagnostics.length > 0 ? "provider_error" : "unsupported_language",
+          );
+        }
       }
     }
 
-    return createConservativeFallbackAnalysis(
-      filePath,
-      diagnostics.length > 0 ? "provider_error" : "unsupported_language",
-    );
+    return runShadow(canonical);
   }
 }
 

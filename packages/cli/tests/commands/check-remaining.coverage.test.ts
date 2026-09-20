@@ -313,8 +313,8 @@ describe("checkCommand remaining runtime branches", () => {
     const extract = await import("../../src/traceability/symbol-extract.js");
     const extractSpy = spyOn(
       extract,
-      "extractSymbolsFromStagedFile",
-    ).mockReturnValue([]);
+      "extractSymbolsFromStagedFileAsync",
+    ).mockResolvedValue([]);
     restores.push(() => extractSpy.mockRestore());
     const granularity = spyOn(
       impact,
@@ -375,8 +375,8 @@ describe("checkCommand remaining runtime branches", () => {
     const extract = await import("../../src/traceability/symbol-extract.js");
     const extractSpy = spyOn(
       extract,
-      "extractSymbolsFromStagedFile",
-    ).mockReturnValue([]);
+      "extractSymbolsFromStagedFileAsync",
+    ).mockResolvedValue([]);
     restores.push(() => extractSpy.mockRestore());
     const granularity = spyOn(
       impact,
@@ -429,8 +429,8 @@ describe("checkCommand remaining runtime branches", () => {
     const extract = await import("../../src/traceability/symbol-extract.js");
     const extractSpy = spyOn(
       extract,
-      "extractSymbolsFromStagedFile",
-    ).mockImplementation(() => {
+      "extractSymbolsFromStagedFileAsync",
+    ).mockImplementation(async () => {
       throw "parse exploded";
     });
     restores.push(() => extractSpy.mockRestore());
@@ -762,8 +762,8 @@ describe("checkCommand remaining runtime branches", () => {
     const extract = await import("../../src/traceability/symbol-extract.js");
     const extractSpy = spyOn(
       extract,
-      "extractSymbolsFromStagedFile",
-    ).mockReturnValue([]);
+      "extractSymbolsFromStagedFileAsync",
+    ).mockResolvedValue([]);
     restores.push(() => extractSpy.mockRestore());
     const io = captureIo();
     restores.push(io.restore);

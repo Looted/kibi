@@ -10,6 +10,7 @@ export const POLICY_PREDICATE_RULES = [
     pattern:
       /^(?<subject>.+?)\s+(?:must|shall|should)\s+be\s+(?:stored|processed|kept)\s+in\s+(?:the\s+)?(?<region>.+?\b(?:region|jurisdiction|country|zone|area))\.?$/i,
     name: "data_residency_rule",
+    arity: 2,
     args: (g) => [normalizeKey(g.subject ?? ""), normalizeKey(g.region ?? "")],
     rationale:
       "Data residency prose defines regional storage or processing constraints and should be queryable as a predicate.",
@@ -18,6 +19,7 @@ export const POLICY_PREDICATE_RULES = [
     pattern:
       /^(?<subject>.+?)\s+(?:must|shall|should)\s+be\s+(?:recorded|logged|audited)\s+in\s+(?:the\s+)?(?<log>audit\s+(?:log|trail))\.?$/i,
     name: "audit_event_rule",
+    arity: 2,
     args: (g) => [normalizeKey(g.subject ?? ""), normalizeKey(g.log ?? "")],
     rationale:
       "Audit logging prose defines durable audit evidence and should be queryable as a predicate.",
@@ -26,6 +28,7 @@ export const POLICY_PREDICATE_RULES = [
     pattern:
       /^(?<subject>.+?)\s+(?:must|shall|should)\s+require\s+(?<consent>.+?consent)\s+before\s+(?<purpose>.+?)\.?$/i,
     name: "consent_rule",
+    arity: 3,
     args: (g) => [
       normalizeKey(g.subject ?? ""),
       normalizeKey(g.consent ?? ""),
@@ -38,6 +41,7 @@ export const POLICY_PREDICATE_RULES = [
     pattern:
       /^(?<subject>.+?)\s+(?:must|shall|should)\s+be\s+(?<action>archived|deleted|expired)\s+after\s+(?<duration>\d+)\s+(?<unit>[a-z]+)\.?$/i,
     name: "lifecycle_rule",
+    arity: 4,
     args: (g) => [
       normalizeKey(g.subject ?? ""),
       normalizeKey(g.action ?? ""),
@@ -51,6 +55,7 @@ export const POLICY_PREDICATE_RULES = [
     pattern:
       /^when\s+(?<subject>.+?)\s+conflicts?,\s+(?:the\s+)?(?<strategy>.+?)\.?$/i,
     name: "conflict_resolution_rule",
+    arity: 2,
     args: (g) => [
       normalizeKey(g.subject ?? ""),
       normalizePredicateToken(g.strategy ?? ""),
@@ -62,6 +67,7 @@ export const POLICY_PREDICATE_RULES = [
     pattern:
       /^if\s+(?<condition>.+?),\s+(?<subject>.+?)\s+(?:must|shall|should)\s+fall\s+back\s+to\s+(?<target>.+?)\.?$/i,
     name: "fallback_rule",
+    arity: 3,
     args: (g) => [
       normalizePredicateToken(g.condition ?? ""),
       normalizeKey(g.subject ?? ""),
@@ -74,6 +80,7 @@ export const POLICY_PREDICATE_RULES = [
     pattern:
       /^(?<subject>.+?)\s+(?:must|shall|should)\s+process\s+(?<resource>.+?)\s+in\s+batches\s+of\s+(?<size>\d+)\.?$/i,
     name: "batch_operation_rule",
+    arity: 3,
     args: (g) => [
       normalizeKey(g.subject ?? ""),
       normalizeKey(g.resource ?? ""),
@@ -86,6 +93,7 @@ export const POLICY_PREDICATE_RULES = [
     pattern:
       /^(?<subject>.+?)\s+(?:must|shall|should)\s+reference\s+(?<target>an?\s+existing\s+.+?)\.?$/i,
     name: "consistency_rule",
+    arity: 2,
     args: (g) => [
       normalizeKey(g.subject ?? ""),
       normalizePredicateToken(g.target ?? ""),
@@ -97,6 +105,7 @@ export const POLICY_PREDICATE_RULES = [
     pattern:
       /^(?<subject>.+?)\s+(?:must|shall|should)\s+be\s+(?<property>deterministic)\s+at\s+(?<scope>build\s+time)\.?$/i,
     name: "build_constraint",
+    arity: 3,
     args: (g) => [
       normalizeKey(g.subject ?? ""),
       normalizePredicateToken(g.property ?? "property"),
@@ -109,6 +118,7 @@ export const POLICY_PREDICATE_RULES = [
     pattern:
       /^(?<action>.+?)\s+(?:must|shall|should)\s+be\s+(?<decision>forbidden|read-only|allowed)\s+in\s+(?<environment>production|staging|development)\.?$/i,
     name: "environment_safety_rule",
+    arity: 3,
     args: (g) => [
       normalizeKey(g.action ?? ""),
       normalizePredicateToken(g.decision ?? "decision"),
@@ -121,6 +131,7 @@ export const POLICY_PREDICATE_RULES = [
     pattern:
       /^(?<field>.+?)\s+(?:must|shall|should)\s+be\s+(?<kind>immutable)\s+after\s+(?<scope>.+?)\.?$/i,
     name: "schema_invariant_rule",
+    arity: 3,
     args: (g) => [
       normalizeKey(g.field ?? ""),
       normalizePredicateToken(g.kind ?? "invariant"),
@@ -133,6 +144,7 @@ export const POLICY_PREDICATE_RULES = [
     pattern:
       /^(?<subject>.+?)\s+(?:must|shall|should)\s+(?<action>use|avoid)\s+(?<target>.+?)\.?$/i,
     name: "coding_standard_rule",
+    arity: 3,
     args: (g) => [
       normalizeKey(g.subject ?? ""),
       normalizePredicateToken(g.action ?? "action"),
@@ -149,6 +161,7 @@ export const POLICY_PREDICATE_RULES = [
     pattern:
       /^(?<subject>.+?)\s+may\s+only\s+be\s+(?<action>read)\s+as\s+(?<scope>migration\s+input)(?:\s+by\s+.+?)?\.?$/i,
     name: "migration_boundary_rule",
+    arity: 3,
     args: (g) => [
       normalizeKey(g.subject ?? ""),
       normalizePredicateToken(g.action ?? "action"),
@@ -161,6 +174,7 @@ export const POLICY_PREDICATE_RULES = [
     pattern:
       /^(?<subject>.+?)\s+(?:must|shall|should)\s+be\s+(?<state>absent|removed)\.?$/i,
     name: "absence_requirement",
+    arity: 2,
     args: (g) => [
       normalizePredicateToken(g.subject ?? ""),
       normalizePredicateToken(g.state ?? ""),
@@ -171,6 +185,7 @@ export const POLICY_PREDICATE_RULES = [
   {
     pattern: /^no\s+(?<subject>.+?)\.?$/i,
     name: "absence_requirement",
+    arity: 2,
     args: (g) => [normalizePredicateToken(g.subject ?? ""), "absent"],
     rationale:
       "Declarative no-X prose defines a negative existence requirement and should be queryable as a predicate.",
@@ -179,6 +194,7 @@ export const POLICY_PREDICATE_RULES = [
     pattern:
       /^(?<subject>.+?)\s+(?:must|shall|should)\s+be\s+(?<behavior>non-blocking|resilient)\s+during\s+(?<condition>offline\s+conditions)\.?$/i,
     name: "offline_behavior_rule",
+    arity: 3,
     args: (g) => [
       normalizeKey(g.subject ?? ""),
       normalizePredicateToken(g.behavior ?? "behavior"),

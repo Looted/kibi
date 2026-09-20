@@ -1,6 +1,11 @@
+import { createRequire } from "node:module";
 import { KIBI_PLUGIN_API_VERSION, defineKibiPlugin } from "kibi-plugin-sdk";
 import { createJevSemanticClassifier } from "./semantic-classifier.js";
 import type { JevSemanticClassifierOptions } from "./semantic-classifier.js";
+
+const packageJson = createRequire(import.meta.url)("../package.json") as {
+  version: string;
+};
 
 // implements REQ-capability-plugin-jev-fallback-v1
 export {
@@ -27,7 +32,7 @@ export {
 export const kibiPlugin = defineKibiPlugin({
   apiVersion: KIBI_PLUGIN_API_VERSION,
   id: "kibi-plugin-jev",
-  version: "0.1.0",
+  version: packageJson.version,
   permissions: {
     network: true,
     metered: true,

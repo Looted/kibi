@@ -100,4 +100,27 @@ describe("kibi-plugin-sdk", () => {
     });
     expect(result.decisions[0]?.lane).toBe("predicate");
   });
+
+  // executable_for TEST-capability-plugin-protocol-v1
+  test("rejects foreign and duplicate semantic claimKeys", () => {
+    expect(() =>
+      validateSemanticClassifierResult(
+        {
+          decisions: [
+            { claimKey: "foreign", lane: "none", confidence: 0 },
+          ],
+        },
+        { expectedClaimKeys: ["local"] },
+      ),
+    ).toThrow(/foreign claimKey/);
+
+    expect(() =>
+      validateSemanticClassifierResult({
+        decisions: [
+          { claimKey: "ck", lane: "none", confidence: 0 },
+          { claimKey: "ck", lane: "predicate", confidence: 0.5 },
+        ],
+      }),
+    ).toThrow(/duplicate decision/);
+  });
 });

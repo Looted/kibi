@@ -19,7 +19,9 @@
 import type {
   OntologyMatchContext,
   PluginProviderStamp,
+  SemanticClassificationDecision,
   SemanticClassifierInput,
+  SemanticLane,
 } from "kibi-plugin-sdk";
 
 import {
@@ -40,6 +42,9 @@ import type {
   SemanticAdvisorAnalysisResult,
   SemanticAdvisorInput,
   SemanticAdvisorLane,
+  SemanticAdvisorReceipt,
+  SemanticModelingSuggestion,
+  SemanticProposition,
 } from "./types.js";
 
 // implements REQ-capability-plugin-activation-disclosure-v1
@@ -48,6 +53,7 @@ export type SemanticPluginOrchestrationResult = Readonly<{
   classification: ComposedSemanticClassifierResult | null;
   ontologyCatalog: ComposedOntologyCatalog | null;
   ontologyMatches: readonly StampedOntologyCandidate[];
+  ontologyShadowMatches: readonly StampedOntologyCandidate[];
   stamps: readonly PluginProviderStamp[];
 }>;
 
@@ -55,6 +61,268 @@ function hasConfiguredPlugins(registry: CapabilityRegistry): Promise<boolean> {
   return registry.getProjectConfig().then((config) => {
     return (config.plugins?.length ?? 0) > 0;
   });
+}
+
+const ASSERTIVE_ROLES = new Set([
+  "normative",
+  "definition",
+  "condition",
+  "exception",
+]);
+
+function isAssertiveUnresolved(proposition: SemanticProposition): boolean {
+  return (
+    ASSERTIVE_ROLES.has(proposition.role) &&
+    ["missing", "ambiguous", "ontology_gap"].includes(proposition.status)
+  );
+}
+
+function laneRank(lane: SemanticLane | SemanticAdvisorLane): number {
+  switch (lane) {
+    case "strict_property":
+      return 4;
+    case "predicate":
+      return 3;
+    case "rule":
+      return 2;
+    case "observation_review":
+      return 1;
+    default:
+      return 0;
+  }
+}
+
+function toolForLane(lane: SemanticAdvisorLane): string {
+  switch (lane) {
+    case "strict_property":
+      return "kb_model_requirement";
+    case "predicate":
+    case "rule":
+      return "kb_suggest_predicates";
+    case "observation_review":
+      return "kb_model_requirement";
+    default:
+      return "kb_model_requirement";
+  }
+}
+
+/**
+ * Apply host-validated classifier decisions as a bounded routing seam.
+ *
+ * Plugins may influence per-proposition routing, candidate lane, suggested
+ * next tools, and advisory ambiguity metadata. They must not delete
+ * propositions, erase assertive unresolved obligations, downgrade modeled
+ * completeness, manufacture typed grounding, or invent mutation/proof.
+ */
+// implements REQ-capability-plugin-activation-disclosure-v1
+export function applyClassificationRouting(
+  analysis: SemanticAdvisorAnalysisResult,
+  classification: ComposedSemanticClassifierResult,
+  ontologyMatches: readonly StampedOntologyCandidate[],
+): SemanticAdvisorAnalysisResult {
+  const receipt = analysis.receipt;
+  if (receipt.logic_readiness === "modeled") {
+    // Never downgrade semantic completeness via plugin classification.
+    return {
+      receipt: {
+        ...receipt,
+        // Still expose advisory plugin metadata without changing completeness.
+      },
+      warnings: [
+        ...analysis.warnings,
+        ...(classification.fallbackUsed
+          ? [
+              "Semantic classifier fell back to the builtin provider after an external classifier failure.",
+            ]
+          : []),
+      ],
+    };
+  }
+
+  const byClaim = new Map(
+    classification.decisions.map((decision) => [decision.claimKey, decision]),
+  );
+
+  const propositions = receipt.propositions.map((proposition) => {
+    const decision = byClaim.get(proposition.claim_key);
+    if (!decision) return proposition;
+    // `none` cannot erase an assertive unresolved obligation.
+    if (
+      decision.lane === "none" &&
+      isAssertiveUnresolved(proposition)
+    ) {
+      return proposition;
+    }
+    if (decision.lane === "none") return proposition;
+
+    let status = proposition.status;
+    if (decision.ambiguity?.ambiguous === true && status === "missing") {
+      status = "ambiguous";
+    } else if (decision.lane === "predicate" && status === "missing") {
+      // Route toward predicate modeling without claiming the claim is grounded.
+      status = "missing";
+    }
+    return {
+      ...proposition,
+      status,
+      ...(decision.ambiguity?.ambiguous === true
+        ? {
+            reason:
+              proposition.reason ??
+              "Classifier marked this claim as ambiguous; review before grounding.",
+          }
+        : {}),
+    };
+  });
+
+  const suggestionByClaim = new Map(
+    receipt.suggestions.map((suggestion) => [suggestion.claim_key, suggestion]),
+  );
+  const suggestions: SemanticModelingSuggestion[] = [...receipt.suggestions];
+
+  for (const decision of classification.decisions) {
+    if (decision.lane === "none") continue;
+    const proposition = propositions.find(
+      (entry) => entry.claim_key === decision.claimKey,
+    );
+    if (!proposition) continue;
+    const existing = suggestionByClaim.get(decision.claimKey);
+    const nextTool = toolForLane(decision.lane);
+    if (existing) {
+      // Re-route suggested tool when classifier lifts the lane; never remove.
+      if (
+        laneRank(decision.lane) > 0 &&
+        existing.suggested_next_tool !== nextTool &&
+        (existing.kind === "ambiguity_observation" ||
+          existing.kind === "ontology_gap" ||
+          (decision.lane === "predicate" && existing.kind !== "strict_property"))
+      ) {
+        const updated = {
+          ...existing,
+          suggested_next_tool: nextTool,
+          rationale: `${existing.rationale} Classifier lane '${decision.lane}' recommends ${nextTool}.`,
+        } as SemanticModelingSuggestion;
+        const index = suggestions.findIndex(
+          (entry) =>
+            entry.claim_key === existing.claim_key &&
+            entry.kind === existing.kind,
+        );
+        if (index >= 0) suggestions[index] = updated;
+        suggestionByClaim.set(decision.claimKey, updated);
+      }
+      continue;
+    }
+
+    // Host-authored advisory suggestion from classifier routing only.
+    if (decision.lane === "predicate" || decision.lane === "rule") {
+      const advisory: SemanticModelingSuggestion = {
+        kind: "ontology_gap",
+        claim_key: decision.claimKey,
+        claim_text: proposition.claim_text,
+        confidence: decision.confidence,
+        evidence: decision.signals?.join(", ") || decision.lane,
+        rationale:
+          "Classifier recommends predicate/ontology modeling; the claim remains unresolved until grounded via kb_suggest_predicates.",
+        suggested_next_tool: "kb_suggest_predicates",
+        recommendedPredicateSchema: null,
+        applyPlan: [],
+      };
+      suggestions.push(advisory);
+      suggestionByClaim.set(decision.claimKey, advisory);
+    } else if (
+      decision.lane === "observation_review" ||
+      decision.ambiguity?.ambiguous === true
+    ) {
+      const advisory: SemanticModelingSuggestion = {
+        kind: "ambiguity_observation",
+        claim_key: decision.claimKey,
+        claim_text: proposition.claim_text,
+        confidence: decision.confidence,
+        evidence: decision.signals?.join(", ") || decision.lane,
+        rationale:
+          "Classifier flagged this claim for review before assertive modeling.",
+        ambiguity: ["needs_review"],
+        suggested_next_tool: "kb_model_requirement",
+        applyPlan: [],
+      };
+      suggestions.push(advisory);
+      suggestionByClaim.set(decision.claimKey, advisory);
+    }
+  }
+
+  // Host constructs advisory suggestions from validated ontology match candidates.
+  for (const match of ontologyMatches) {
+    const claimKey =
+      propositions.find((proposition) =>
+        proposition.claim_text.includes(match.evidence),
+      )?.claim_key ?? propositions[0]?.claim_key;
+    if (!claimKey) continue;
+    if (suggestionByClaim.has(claimKey)) continue;
+    const proposition = propositions.find(
+      (entry) => entry.claim_key === claimKey,
+    );
+    if (!proposition) continue;
+    const advisory: SemanticModelingSuggestion = {
+      kind: "ontology_gap",
+      claim_key: claimKey,
+      claim_text: proposition.claim_text,
+      confidence: match.confidence,
+      evidence: match.evidence,
+      rationale:
+        match.rationale ??
+        `Ontology pack '${match.packId}' matched ${match.predicateName}; review via kb_suggest_predicates before mutation.`,
+      suggested_next_tool: "kb_suggest_predicates",
+      recommendedPredicateSchema: {
+        predicate_name: match.predicateName,
+        argument_names: match.arguments.map((_, index) => `arg${index}`),
+        argument_types: match.arguments.map(() => "string"),
+      },
+      applyPlan: [],
+    };
+    suggestions.push(advisory);
+    suggestionByClaim.set(claimKey, advisory);
+  }
+
+  let candidateLane = receipt.candidate_lane;
+  for (const decision of classification.decisions) {
+    if (laneRank(decision.lane) > laneRank(candidateLane)) {
+      candidateLane = decision.lane;
+    }
+  }
+
+  const tools = [
+    ...new Set([
+      ...receipt.suggested_next_tools,
+      ...suggestions.map((suggestion) => suggestion.suggested_next_tool),
+      ...(candidateLane !== "none" ? [toolForLane(candidateLane)] : []),
+    ]),
+  ];
+
+  const nextReceipt: SemanticAdvisorReceipt = {
+    ...receipt,
+    candidate_lane: candidateLane,
+    propositions,
+    suggestions,
+    suggested_next_tools: tools,
+    summary:
+      candidateLane === "none"
+        ? receipt.summary
+        : `${receipt.summary} Classifier routing: ${candidateLane} → ${toolForLane(candidateLane)}.`,
+  };
+
+  const warnings = [...analysis.warnings];
+  if (classification.fallbackUsed) {
+    warnings.push(
+      "Semantic classifier fell back to the builtin provider after an external classifier failure.",
+    );
+  }
+  if (candidateLane === "predicate" || candidateLane === "rule") {
+    warnings.push(
+      "Classifier recommends predicate/ontology review; unresolved claims remain unresolved until grounded.",
+    );
+  }
+
+  return { receipt: nextReceipt, warnings };
 }
 
 /**
@@ -76,6 +344,7 @@ export async function analyzeSemanticAdvisorInputWithPlugins(
       classification: null,
       ontologyCatalog: null,
       ontologyMatches: [],
+      ontologyShadowMatches: [],
       stamps: [],
     };
   }
@@ -88,6 +357,7 @@ export async function analyzeSemanticAdvisorInputWithPlugins(
       classification: null,
       ontologyCatalog: null,
       ontologyMatches: [],
+      ontologyShadowMatches: [],
       stamps: [],
     };
   }
@@ -96,9 +366,13 @@ export async function analyzeSemanticAdvisorInputWithPlugins(
   let classification: ComposedSemanticClassifierResult | null = null;
   let ontologyCatalog: ComposedOntologyCatalog | null = null;
   let ontologyMatches: readonly StampedOntologyCandidate[] = [];
+  let ontologyShadowMatches: readonly StampedOntologyCandidate[] = [];
   let nextAnalysis = analysis;
 
-  if (allowsExternalSemanticClassifier(options.operationName)) {
+  if (
+    allowsExternalSemanticClassifier(options.operationName) &&
+    analysis.receipt.logic_readiness !== "modeled"
+  ) {
     const propositions: SemanticClassifierInput["propositions"] =
       analysis.receipt.propositions.map((proposition) => ({
         claimKey: proposition.claim_key,
@@ -112,25 +386,6 @@ export async function analyzeSemanticAdvisorInputWithPlugins(
       { operationName: options.operationName },
     );
     stamps.push(...classification.stamps);
-
-    const nextLane = laneFromClassification(
-      analysis.receipt.candidate_lane,
-      classification,
-    );
-    const extraWarnings = classification.fallbackUsed
-      ? [
-          "Semantic classifier fell back to the builtin provider after an external classifier failure.",
-        ]
-      : [];
-    if (nextLane !== analysis.receipt.candidate_lane || extraWarnings.length > 0) {
-      nextAnalysis = {
-        receipt: {
-          ...analysis.receipt,
-          candidate_lane: nextLane,
-        },
-        warnings: [...analysis.warnings, ...extraWarnings],
-      };
-    }
   }
 
   const packResolution = await registry.resolveOntologyPacks();
@@ -145,6 +400,8 @@ export async function analyzeSemanticAdvisorInputWithPlugins(
   );
   const seen = new Set<string>();
   const collected: StampedOntologyCandidate[] = [];
+  const shadowCollected: StampedOntologyCandidate[] = [];
+  const shadowSeen = new Set<string>();
   for (const matchContext of contexts) {
     const matched = composeOntologyMatches(packResolution, matchContext);
     for (const candidate of matched.canonical) {
@@ -157,34 +414,41 @@ export async function analyzeSemanticAdvisorInputWithPlugins(
       seen.add(key);
       collected.push(candidate);
     }
+    for (const candidate of matched.shadow) {
+      const key = [
+        candidate.schemaId,
+        candidate.polarity,
+        ...candidate.arguments,
+      ].join("\0");
+      if (shadowSeen.has(key)) continue;
+      shadowSeen.add(key);
+      shadowCollected.push(candidate);
+    }
   }
   ontologyMatches = collected;
+  ontologyShadowMatches = shadowCollected;
+
+  if (classification) {
+    nextAnalysis = applyClassificationRouting(
+      analysis,
+      classification,
+      ontologyMatches,
+    );
+  }
 
   return {
     analysis: nextAnalysis,
     classification,
     ontologyCatalog,
     ontologyMatches,
+    ontologyShadowMatches,
     stamps,
   };
 }
 
-function laneFromClassification(
-  current: SemanticAdvisorLane,
-  classification: ComposedSemanticClassifierResult,
-): SemanticAdvisorLane {
-  // Suggestion-derived lanes stay authoritative; only lift unresolved none.
-  if (current !== "none") return current;
-  const decision = classification.decisions.find(
-    (entry) => entry.lane !== "none",
-  );
-  if (!decision) return current;
-  return decision.lane;
-}
-
 /**
  * Run allowlisted semantic classifier composition without re-running advisor
- * analysis (used by kb_model_requirement).
+ * analysis.
  */
 // implements REQ-capability-plugin-activation-disclosure-v1
 export async function composeSemanticClassificationForOperation(
@@ -200,10 +464,6 @@ export async function composeSemanticClassificationForOperation(
   return composeSemanticClassification(resolution, input, { operationName });
 }
 
-/**
- * Resolve composed ontology schemas when external packs are configured.
- * Sync maintenance paths should call createBuiltinOntologyPack() directly.
- */
 // implements REQ-capability-plugin-activation-disclosure-v1
 export async function composeOntologyCatalogForOperation(
   context: OperationContext | undefined,
@@ -214,3 +474,5 @@ export async function composeOntologyCatalogForOperation(
   const resolution = await registry.resolveOntologyPacks();
   return composeOntologyCatalog(resolution);
 }
+
+export type { SemanticClassificationDecision };

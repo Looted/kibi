@@ -64,6 +64,45 @@ export async function executeSemanticAdvisor(
             .join(", ")}.`,
         ]
       : [];
+  const capabilityPlugins =
+    orchestrated.stamps.length > 0 ||
+    (orchestrated.classification?.shadowComparisons.length ?? 0) > 0 ||
+    orchestrated.ontologyShadowMatches.length > 0
+      ? {
+          stamps: orchestrated.stamps,
+          classification: orchestrated.classification
+            ? {
+                fallbackUsed: orchestrated.classification.fallbackUsed,
+                decisions: orchestrated.classification.decisions,
+                shadowComparisons:
+                  orchestrated.classification.shadowComparisons.map(
+                    (comparison) => ({
+                      pluginId: comparison.stamp.pluginId,
+                      mode: comparison.stamp.mode,
+                      decisions: comparison.decisions.map((decision) => ({
+                        claimKey: decision.claimKey,
+                        lane: decision.lane,
+                        confidence: decision.confidence,
+                      })),
+                    }),
+                  ),
+              }
+            : null,
+          ontology: {
+            replaced: orchestrated.ontologyCatalog?.replaced ?? false,
+            matchCount: orchestrated.ontologyMatches.length,
+            shadowMatchCount: orchestrated.ontologyShadowMatches.length,
+            shadowMatches: orchestrated.ontologyShadowMatches.map(
+              (candidate) => ({
+                packId: candidate.packId,
+                schemaId: candidate.schemaId,
+                predicateName: candidate.predicateName,
+                confidence: candidate.confidence,
+              }),
+            ),
+          },
+        }
+      : undefined;
   return {
     content: [
       {
@@ -74,6 +113,7 @@ export async function executeSemanticAdvisor(
     structuredContent: {
       receipt: result.receipt,
       warnings: [...result.warnings, ...pluginWarnings],
+      ...(capabilityPlugins ? { capabilityPlugins } : {}),
     },
   };
 }

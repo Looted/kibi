@@ -18,6 +18,7 @@
 import {
   createBuiltinTsMorphSourceAnalysisProvider,
   enrichSymbolCoordinatesWithTsMorph as enrichBuiltinSymbolCoordinates,
+  isPrivateClassMember as isBuiltinPrivateClassMember,
   onlyCandidate as onlyBuiltinCandidate,
   type ManifestSymbolEntry as BuiltinManifestSymbolEntry,
   type SymbolCoordinates as BuiltinSymbolCoordinates,
@@ -31,6 +32,9 @@ import type {
 export type SymbolCoordinates = BuiltinSymbolCoordinates;
 // implements REQ-capability-plugin-builtin-parity-v1
 export type ManifestSymbolEntry = BuiltinManifestSymbolEntry;
+
+// implements REQ-capability-plugin-builtin-parity-v1
+export const isPrivateClassMember = isBuiltinPrivateClassMember;
 
 /**
  * Thin host adapter over kibi-plugin-builtin's ts-morph extractor.

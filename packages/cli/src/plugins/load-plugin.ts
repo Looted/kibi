@@ -83,5 +83,26 @@ export async function loadPluginPackage(
   }
 
   const plugin = validateKibiPlugin(moduleExports.kibiPlugin);
-  return { packageName, resolved, plugin };
+  const packageVersion =
+    typeof resolved.packageJson.version === "string"
+      ? resolved.packageJson.version.trim()
+      : "";
+  if (!packageVersion) {
+    throw new PluginValidationError(
+      "MISSING_PACKAGE_VERSION",
+      `Package '${packageName}' package.json must declare a version for provider provenance`,
+    );
+  }
+  if (plugin.version !== packageVersion) {
+    throw new PluginValidationError(
+      "PLUGIN_VERSION_MISMATCH",
+      `Plugin '${plugin.id}' export version '${plugin.version}' does not match resolved package.json version '${packageVersion}'`,
+    );
+  }
+  // Host provenance always uses the resolved package manifest version.
+  const stamped: KibiPluginV1 = {
+    ...plugin,
+    version: packageVersion,
+  };
+  return { packageName, resolved, plugin: stamped };
 }

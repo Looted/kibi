@@ -21,7 +21,7 @@ semantic_inventory:
     status: missing
 id: REQ-capability-plugin-three-capabilities-v1
 type: req
-proof_exempt: true
+proof_exempt: false
 proof_exempt_reason: architectural boundary — verified by plugin SDK/host mode-resolution unit tests, not product E2E
 ---
 # REQ-capability-plugin-three-capabilities-v1

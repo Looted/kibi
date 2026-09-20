@@ -27,8 +27,22 @@ import {
 } from "./capabilities/semantic-classifier.js";
 import type {
   SourceAnalysisResult,
+  SourceSymbolKind,
   SymbolExtractorV1,
 } from "./capabilities/symbol-extractor.js";
+
+const SOURCE_SYMBOL_KINDS = [
+  "function",
+  "class",
+  "method",
+  "property",
+  "accessor",
+  "interface",
+  "type",
+  "enum",
+  "variable",
+  "unknown",
+] as const satisfies readonly SourceSymbolKind[];
 
 // implements REQ-capability-plugin-protocol-v1
 export class PluginValidationError extends Error {
@@ -308,6 +322,7 @@ export function validateProjectKibiConfig(value: unknown): ProjectKibiConfig {
 // implements REQ-capability-plugin-protocol-v1
 export function validateSemanticClassifierResult(
   value: unknown,
+  options?: Readonly<{ expectedClaimKeys?: readonly string[] }>,
 ): SemanticClassifierResult {
   if (!isRecord(value) || !Array.isArray(value.decisions)) {
     throw new PluginValidationError(
@@ -315,6 +330,7 @@ export function validateSemanticClassifierResult(
       "semantic classifier result must include decisions[]",
     );
   }
+  const seenClaimKeys = new Set<string>();
   const decisions: SemanticClassificationDecision[] = value.decisions.map(
     (decision, index) => {
       if (!isRecord(decision)) {
@@ -344,28 +360,60 @@ export function validateSemanticClassifierResult(
           `decisions[${index}].confidence must be between 0 and 1`,
         );
       }
-      return {
-        claimKey: requireString(
-          decision.claimKey,
-          `decisions[${index}].claimKey`,
+      const claimKey = requireString(
+        decision.claimKey,
+        `decisions[${index}].claimKey`,
+        "INVALID_CAPABILITY_RESULT",
+      );
+      if (seenClaimKeys.has(claimKey)) {
+        throw new PluginValidationError(
           "INVALID_CAPABILITY_RESULT",
-        ),
+          `duplicate decision for claimKey '${claimKey}'`,
+        );
+      }
+      seenClaimKeys.add(claimKey);
+      if (
+        options?.expectedClaimKeys &&
+        !options.expectedClaimKeys.includes(claimKey)
+      ) {
+        throw new PluginValidationError(
+          "INVALID_CAPABILITY_RESULT",
+          `foreign claimKey '${claimKey}' is not in the supplied classifier input`,
+        );
+      }
+      let ambiguity:
+        | SemanticClassificationDecision["ambiguity"]
+        | undefined;
+      if (decision.ambiguity !== undefined) {
+        if (!isRecord(decision.ambiguity)) {
+          throw new PluginValidationError(
+            "INVALID_CAPABILITY_RESULT",
+            `decisions[${index}].ambiguity must be an object`,
+          );
+        }
+        const ambiguityConfidence = requireFiniteNumber(
+          decision.ambiguity.confidence,
+          `decisions[${index}].ambiguity.confidence`,
+        );
+        if (ambiguityConfidence < 0 || ambiguityConfidence > 1) {
+          throw new PluginValidationError(
+            "INVALID_CAPABILITY_RESULT",
+            `decisions[${index}].ambiguity.confidence must be between 0 and 1`,
+          );
+        }
+        ambiguity = {
+          ambiguous: requireBoolean(
+            decision.ambiguity.ambiguous,
+            `decisions[${index}].ambiguity.ambiguous`,
+          ),
+          confidence: ambiguityConfidence,
+        };
+      }
+      return {
+        claimKey,
         lane: lane as SemanticClassificationDecision["lane"],
         confidence,
-        ...(decision.ambiguity !== undefined && isRecord(decision.ambiguity)
-          ? {
-              ambiguity: {
-                ambiguous: requireBoolean(
-                  decision.ambiguity.ambiguous,
-                  `decisions[${index}].ambiguity.ambiguous`,
-                ),
-                confidence: requireFiniteNumber(
-                  decision.ambiguity.confidence,
-                  `decisions[${index}].ambiguity.confidence`,
-                ),
-              },
-            }
-          : {}),
+        ...(ambiguity ? { ambiguity } : {}),
         ...(Array.isArray(decision.signals)
           ? {
               signals: decision.signals.map((signal, signalIndex) => {
@@ -597,37 +645,103 @@ export function validateSourceAnalysisResult(
           `symbols[${index}] must be an object`,
         );
       }
+      const kind = requireString(
+        symbol.kind,
+        `symbols[${index}].kind`,
+        "INVALID_CAPABILITY_RESULT",
+      );
+      if (!(SOURCE_SYMBOL_KINDS as readonly string[]).includes(kind)) {
+        throw new PluginValidationError(
+          "INVALID_CAPABILITY_RESULT",
+          `symbols[${index}].kind '${kind}' is not a supported SourceSymbolKind`,
+        );
+      }
+      const startLine = requireFiniteNumber(
+        symbol.startLine,
+        `symbols[${index}].startLine`,
+      );
+      const startColumn = requireFiniteNumber(
+        symbol.startColumn,
+        `symbols[${index}].startColumn`,
+      );
+      const endLine = requireFiniteNumber(
+        symbol.endLine,
+        `symbols[${index}].endLine`,
+      );
+      const endColumn = requireFiniteNumber(
+        symbol.endColumn,
+        `symbols[${index}].endColumn`,
+      );
+      if (!Number.isInteger(startLine) || startLine < 1) {
+        throw new PluginValidationError(
+          "INVALID_CAPABILITY_RESULT",
+          `symbols[${index}].startLine must be an integer >= 1`,
+        );
+      }
+      if (!Number.isInteger(endLine) || endLine < 1) {
+        throw new PluginValidationError(
+          "INVALID_CAPABILITY_RESULT",
+          `symbols[${index}].endLine must be an integer >= 1`,
+        );
+      }
+      if (!Number.isInteger(startColumn) || startColumn < 0) {
+        throw new PluginValidationError(
+          "INVALID_CAPABILITY_RESULT",
+          `symbols[${index}].startColumn must be an integer >= 0`,
+        );
+      }
+      if (!Number.isInteger(endColumn) || endColumn < 0) {
+        throw new PluginValidationError(
+          "INVALID_CAPABILITY_RESULT",
+          `symbols[${index}].endColumn must be an integer >= 0`,
+        );
+      }
+      if (
+        endLine < startLine ||
+        (endLine === startLine && endColumn < startColumn)
+      ) {
+        throw new PluginValidationError(
+          "INVALID_CAPABILITY_RESULT",
+          `symbols[${index}] end position must not precede start position`,
+        );
+      }
       return {
         name: requireString(
           symbol.name,
           `symbols[${index}].name`,
           "INVALID_CAPABILITY_RESULT",
         ),
-        kind: requireString(
-          symbol.kind,
-          `symbols[${index}].kind`,
-          "INVALID_CAPABILITY_RESULT",
-        ) as SourceAnalysisResult["symbols"][number]["kind"],
-        startLine: requireFiniteNumber(
-          symbol.startLine,
-          `symbols[${index}].startLine`,
-        ),
-        startColumn: requireFiniteNumber(
-          symbol.startColumn,
-          `symbols[${index}].startColumn`,
-        ),
-        endLine: requireFiniteNumber(
-          symbol.endLine,
-          `symbols[${index}].endLine`,
-        ),
-        endColumn: requireFiniteNumber(
-          symbol.endColumn,
-          `symbols[${index}].endColumn`,
-        ),
+        kind: kind as SourceSymbolKind,
+        startLine,
+        startColumn,
+        endLine,
+        endColumn,
         ...(typeof symbol.directiveText === "string"
           ? { directiveText: symbol.directiveText }
           : {}),
       };
     }),
   };
+}
+
+/** Ensure analysis sourceFile matches the requested path when provided. */
+// implements REQ-capability-plugin-protocol-v1
+export function validateSourceAnalysisResultForPath(
+  value: unknown,
+  requestedPath: string,
+): SourceAnalysisResult {
+  const result = validateSourceAnalysisResult(value);
+  if (result.sourceFile !== requestedPath) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      `result sourceFile '${result.sourceFile}' does not match requested path '${requestedPath}'`,
+    );
+  }
+  if (result.module.language !== result.language) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      "module.language must match result.language",
+    );
+  }
+  return result;
 }

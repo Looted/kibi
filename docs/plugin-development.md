@@ -20,8 +20,9 @@ registered. It is **not** listed in `package.json` `kibi.plugins`. With no
 
 ## Named export
 
-Activated packages must export a single named `kibiPlugin` (or `default`) that
+Activated packages must export a single named `kibiPlugin` binding that
 passes `validateKibiPlugin` / `defineKibiPlugin` from `kibi-plugin-sdk`.
+A `default` export alone is not accepted by the host loader.
 
 ```ts
 import { KIBI_PLUGIN_API_VERSION, defineKibiPlugin } from "kibi-plugin-sdk";
@@ -84,8 +85,8 @@ comparison metadata only.
 
 | Capability | Builtin position | Notes |
 | --- | --- | --- |
-| Semantic classifier | First for `augment`; fallback for `replace` failure | External classifiers run only from `kb_semantic_advisor`, `kb_model_requirement`, and `kb_compile_intent` |
-| Ontology pack | Catalog starts with builtin for `augment` | Allowed wherever Kibi already matches ontology |
+| Semantic classifier | First for `augment`; fallback for `replace` failure | External classifiers run only from `kb_semantic_advisor` and `kb_compile_intent`. Valid empty `decisions[]` under `replace` is abstention (conservative `none`), not builtin fill. |
+| Ontology pack | Catalog starts with builtin for `augment` | `replace` excludes the builtin provider catalog. Valid empty `match()` is abstention (no builtin consult). Allowed wherever Kibi already matches ontology |
 | Symbol extractor | Builtin first for supported files under `augment` | `replace` gets first claim with builtin fallback |
 
 Sync maintenance paths (`sync`, `check`, `kb_upsert`, `status`, proof, and

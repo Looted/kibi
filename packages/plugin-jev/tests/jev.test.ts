@@ -109,6 +109,15 @@ describe("kibi-plugin-jev", () => {
   });
 
   // executable_for TEST-capability-plugin-jev-fallback-v1
+  test("maps HTTP 401 invalid credentials as auth, not missing_api_key", async () => {
+    const { mapJevError } = await import("../src/jev-client.js");
+    const mapped = mapJevError(
+      Object.assign(new Error("Unauthorized"), { status: 401 }),
+    );
+    expect(mapped.code).toBe("auth");
+  });
+
+  // executable_for TEST-capability-plugin-jev-fallback-v1
   test("maps timeout and quota errors from the client", async () => {
     const timeoutClassifier = createJevSemanticClassifier({
       clientFactory: () =>

@@ -11,6 +11,7 @@ export const PRODUCT_PREDICATE_RULES = [
     pattern:
       /^(?<subject>.+?)\s+(?:must|shall|should)\s+pass\s+(?<gate>.+?)\s+before\s+(?<target>.+?)\.?$/i,
     name: "release_gate_rule",
+    arity: 3,
     args: (g) => [
       normalizeKey(g.subject ?? ""),
       normalizePredicateToken(g.gate ?? "gate"),
@@ -27,6 +28,7 @@ export const PRODUCT_PREDICATE_RULES = [
     pattern:
       /^(?<subject>.+?)\s+(?:must|shall|should)\s+synchronize\s+across\s+(?<platforms>.+?)\.?$/i,
     name: "platform_consistency_rule",
+    arity: 2,
     args: (g) => [normalizeKey(g.subject ?? ""), commaList(g.platforms ?? "")],
     rationale:
       "Platform consistency prose defines synchronization across platforms and should be queryable as a predicate.",
@@ -35,6 +37,7 @@ export const PRODUCT_PREDICATE_RULES = [
     pattern:
       /^(?<subject>.+?)\s+(?:must|shall|should)\s+preserve\s+(?<preserved>.+?)\s+when\s+(?:the\s+)?(?<condition>.+?)\.?$/i,
     name: "preservation_rule",
+    arity: 3,
     args: (g) => [
       normalizeKey(g.subject ?? ""),
       normalizeKey(g.preserved ?? "preserved"),
@@ -47,6 +50,7 @@ export const PRODUCT_PREDICATE_RULES = [
     pattern:
       /^(?<subject>.+?)\s+(?:must|shall|should)\s+be\s+persisted\s+as\s+(?<contract>.+?)\.?$/i,
     name: "abstraction_boundary_rule",
+    arity: 3,
     args: (g) => [
       normalizeKey(g.subject ?? ""),
       "persisted_as",
@@ -61,6 +65,7 @@ export const PRODUCT_PREDICATE_RULES = [
     pattern:
       /^(?<subject>.+?)\s+(?:must|shall|should)\s+have\s+explicit\s+(?<setting>[A-Za-z0-9_.-]+)\s+(?<value>[A-Za-z0-9_.-]+)\.?$/i,
     name: "security_configuration_rule",
+    arity: 3,
     args: (g) => [
       normalizeKey(g.subject ?? ""),
       normalizeKey(g.setting ?? ""),
@@ -77,6 +82,7 @@ export const PRODUCT_PREDICATE_RULES = [
     pattern:
       /^(?<subject>.+?)\s+(?:must|shall|should)\s+use\s+(?<kind>.+?)\s+in\s+priority\s+order\s+(?<values>.+?)\.?$/i,
     name: "ordered_strategy_rule",
+    arity: 3,
     args: (g) => [
       normalizeKey(g.subject ?? ""),
       normalizeKey(g.kind ?? "strategy"),
@@ -93,6 +99,7 @@ export const PRODUCT_PREDICATE_RULES = [
     pattern:
       /^(?<subject>.+?)\s+(?:must|shall|should)\s+automatically\s+refresh\s+(?<target>.+?)\s+without\s+requiring\s+manual\s+page\s+reload\.?$/i,
     name: "refresh_policy_rule",
+    arity: 3,
     args: (g) => [
       normalizeKey(g.subject ?? ""),
       normalizeKey(g.target ?? ""),
@@ -105,6 +112,7 @@ export const PRODUCT_PREDICATE_RULES = [
     pattern:
       /^(?<actor>.+?)\s+(?:must|shall|should)\s+be\s+denied\s+(?<action>.+?)\.?$/i,
     name: "scoped_authorization_rule",
+    arity: 3,
     args: (g) => [
       normalizeKey(g.actor ?? ""),
       normalizeKey(g.action ?? ""),
@@ -119,6 +127,7 @@ export const PRODUCT_PREDICATE_RULES = [
     pattern:
       /^(?<subject>.+?)\s+(?:must|shall|should)\s+be\s+documented\s+in\s+(?<artifact>.+?)\.?$/i,
     name: "documentation_standard_rule",
+    arity: 3,
     args: (g) => [
       normalizeKey(g.subject ?? ""),
       "documented_in",
@@ -131,6 +140,7 @@ export const PRODUCT_PREDICATE_RULES = [
     pattern:
       /^(?:the\s+)?(?<subject>.+?)\s+(?:must|shall|should)\s+warm\s+up\s+on\s+(?<trigger>.+?)\.?$/i,
     name: "warmup_policy_rule",
+    arity: 2,
     args: (g) => [normalizeKey(g.subject ?? ""), normalizeKey(g.trigger ?? "")],
     rationale:
       "Warmup-policy prose defines a required warmup trigger and should be queryable as a predicate.",
@@ -139,6 +149,7 @@ export const PRODUCT_PREDICATE_RULES = [
     pattern:
       /^(?<subject>.+?)\s+(?:must|shall|should)\s+remain\s+visually\s+aligned\s+with\s+(?<target>.+?)\.?$/i,
     name: "visual_layout_rule",
+    arity: 3,
     args: (g) => [
       normalizeKey(g.subject ?? ""),
       "aligned_with",
@@ -151,6 +162,7 @@ export const PRODUCT_PREDICATE_RULES = [
     pattern:
       /^(?<subject>.+?)\s+(?:must|shall|should)\s+be\s+enforced\s+at\s+(?<location>.+?)\.?$/i,
     name: "enforcement_location_rule",
+    arity: 2,
     args: (g) => [
       normalizeKey(g.subject ?? ""),
       normalizeKey(g.location ?? ""),
@@ -162,6 +174,7 @@ export const PRODUCT_PREDICATE_RULES = [
     pattern:
       /^on\s+(?<trigger>.+?),\s*(?<subject>.+?)\s+(?:must|shall|should)\s+reconcile\s+(?<target>.+?)\s+and\s+(?<action>clear\s+stale\s+.+?)\.?$/i,
     name: "reconciliation_rule",
+    arity: 4,
     args: (g) => [
       normalizeKey(g.subject ?? ""),
       normalizeKey(g.trigger ?? "trigger"),

@@ -46,15 +46,20 @@ function deriveSchemas(
   const byId = new Map<string, PredicateSchemaDefinition>();
   for (const rules of ruleSets) {
     for (const rule of rules) {
-      // Probe arity with empty groups; args() always returns a fixed-length tuple.
-      const arity = rule.args({}).length;
-      const schemaId = schemaIdFor(rule.name, arity);
+      const schemaId =
+        rule.catalogSchemaId ?? schemaIdFor(rule.name, rule.arity);
       if (byId.has(schemaId)) continue;
+      const argumentNames =
+        rule.argumentNames ??
+        Array.from({ length: rule.arity }, (_, i) => `arg${i}`);
+      const argumentTypes =
+        rule.argumentTypes ??
+        Array.from({ length: rule.arity }, () => "string");
       byId.set(schemaId, {
         schemaId,
         predicateName: rule.name,
-        argumentNames: Array.from({ length: arity }, (_, i) => `arg${i}`),
-        argumentTypes: Array.from({ length: arity }, () => "string"),
+        argumentNames,
+        argumentTypes,
         title: rule.name,
         description: rule.rationale,
       });

@@ -260,9 +260,16 @@ export async function handleKbSuggestPredicates(
   const packSchemas = composedCatalog
     ? ontologyPackSchemasToCandidates(composedCatalog.schemas)
     : [];
+  // When ontology resolution is in replace mode and the replace pack
+  // successfully supplied its catalog, do not silently re-append the builtin
+  // *provider* catalog. Persisted/project KB schemas remain available.
+  const includeBuiltinProviderCatalog = !(composedCatalog?.replaced === true);
+  if (composedCatalog?.diagnostics?.length) {
+    warnings.push(...composedCatalog.diagnostics);
+  }
   const schemas = uniqueSchemas([
     ...existingSchemas,
-    ...BUILT_IN_PREDICATE_SCHEMAS,
+    ...(includeBuiltinProviderCatalog ? BUILT_IN_PREDICATE_SCHEMAS : []),
     ...packSchemas,
   ]);
   const selectedSchemas = args.schemaId

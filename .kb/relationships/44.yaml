@@ -125,3 +125,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d3f99c2af47d
+  - type: executable_for
+    from: SYM-test-capability-plugin-jev-mocked-v1
+    to: TEST-capability-plugin-jev-mocked-v1
+    created_at: 2026-09-20T18:53:22.716Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a394cc18376b
+  - type: implements
+    from: SYM-cli-apply-classification-routing
+    to: REQ-capability-plugin-activation-disclosure-v1
+    created_at: 2026-09-20T19:51:21.283Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6b86491b7dee

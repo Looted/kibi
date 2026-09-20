@@ -42,6 +42,12 @@ export interface PredicateRule {
   readonly name: string;
   readonly args: (groups: MatchGroups) => readonly string[];
   readonly rationale: string;
+  /** Declared argument count; must match args() length. Do not probe via args({}). */
+  readonly arity: number;
+  readonly argumentNames?: readonly string[];
+  readonly argumentTypes?: readonly string[];
+  /** Optional rich catalog schema id (e.g. FACT-SCHEMA-GUARD). */
+  readonly catalogSchemaId?: string;
   readonly polarity?: "assert" | "deny";
   readonly accepts?: (statement: string) => boolean;
 }
@@ -68,9 +74,14 @@ export function detectPredicateRules(
     const match = statement.match(rule.pattern);
     if (!match?.groups) continue;
     const args = rule.args(match.groups);
+    if (args.length !== rule.arity) {
+      throw new Error(
+        `Predicate rule '${rule.name}' arity mismatch: declared ${rule.arity}, args() returned ${args.length}`,
+      );
+    }
     return [
       {
-        schemaId: schemaIdFor(rule.name, args.length),
+        schemaId: rule.catalogSchemaId ?? schemaIdFor(rule.name, rule.arity),
         predicateName: rule.name,
         arguments: args,
         polarity: rule.polarity ?? "assert",

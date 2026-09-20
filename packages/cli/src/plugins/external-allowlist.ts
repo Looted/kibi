@@ -6,7 +6,6 @@
 // implements REQ-capability-plugin-activation-disclosure-v1
 export const EXTERNAL_SEMANTIC_CLASSIFIER_OPERATIONS = [
   "kb_semantic_advisor",
-  "kb_model_requirement",
   "kb_compile_intent",
 ] as const;
 

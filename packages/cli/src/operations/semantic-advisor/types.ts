@@ -272,5 +272,6 @@ export interface SemanticAdvisorOperationResult {
   readonly structuredContent: {
     readonly receipt: SemanticAdvisorReceipt;
     readonly warnings: readonly string[];
+    readonly capabilityPlugins?: Readonly<Record<string, unknown>>;
   };
 }

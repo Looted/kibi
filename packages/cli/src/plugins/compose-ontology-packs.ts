@@ -45,6 +45,13 @@ export type ComposedOntologyCatalog = Readonly<{
   stamps: readonly PluginProviderStamp[];
   /** Pack id → schema ids owned by that pack. */
   ownership: ReadonlyMap<string, ReadonlySet<string>>;
+  /**
+   * True when a replace pack successfully supplied the canonical catalog.
+   * False when builtin was used because replace was absent or failed.
+   */
+  replaced: boolean;
+  /** Host diagnostics (abstention vs failure, shadow notes). */
+  diagnostics: readonly string[];
 }>;
 
 function candidateKey(candidate: OntologyMatchCandidate): string {
@@ -53,10 +60,28 @@ function candidateKey(candidate: OntologyMatchCandidate): string {
   );
 }
 
+function packOwnedSchemas(
+  binding: CapabilityProviderBinding<OntologyPackV1>,
+): {
+  schemas: PredicateSchemaDefinition[];
+  owned: Set<string>;
+} {
+  const schemas = binding.capability
+    .schemas()
+    .map((schema) => validatePredicateSchema(schema));
+  const owned = new Set(schemas.map((schema) => schema.schemaId));
+  return { schemas, owned };
+}
+
 /**
  * Collect active ontology schemas with replace / augment / shadow semantics.
  * Schema id collisions across packs are rejected. Shadow packs do not alter
  * the canonical catalog.
+ *
+ * Replace semantics:
+ * - A successful replace pack *replaces* the builtin provider catalog.
+ * - Provider exception / invalid catalog construction falls back to builtin.
+ * - Shadow packs are never merged into the canonical catalog.
  */
 // implements REQ-capability-plugin-activation-disclosure-v1
 export function composeOntologyCatalog(
@@ -65,12 +90,13 @@ export function composeOntologyCatalog(
   const stamps: PluginProviderStamp[] = [];
   const ownership = new Map<string, Set<string>>();
   const schemasById = new Map<string, PredicateSchemaDefinition>();
+  const diagnostics: string[] = [];
+  let replaced = false;
 
-  const addPack = (binding: CapabilityProviderBinding<OntologyPackV1>): void => {
-    const schemas = binding.capability
-      .schemas()
-      .map((schema) => validatePredicateSchema(schema));
-    const owned = new Set<string>();
+  const addPack = (
+    binding: CapabilityProviderBinding<OntologyPackV1>,
+  ): void => {
+    const { schemas, owned } = packOwnedSchemas(binding);
     for (const schema of schemas) {
       const existing = schemasById.get(schema.schemaId);
       if (existing && existing.predicateName !== schema.predicateName) {
@@ -91,7 +117,12 @@ export function composeOntologyCatalog(
   if (resolution.replace) {
     try {
       addPack(resolution.replace);
-    } catch {
+      replaced = true;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      diagnostics.push(
+        `replace ontology pack '${resolution.replace.pluginId}' failed catalog construction (${message}); falling back to builtin`,
+      );
       addPack(resolution.builtin);
     }
   } else {
@@ -109,12 +140,105 @@ export function composeOntologyCatalog(
     schemas: [...schemasById.values()],
     stamps,
     ownership,
+    replaced,
+    diagnostics,
   };
 }
 
+function runPackMatches(
+  binding: CapabilityProviderBinding<OntologyPackV1>,
+  context: OntologyMatchContext,
+  ownedSchemaIds: ReadonlySet<string>,
+  packSchemas: readonly PredicateSchemaDefinition[],
+  target: StampedOntologyCandidate[],
+  seen: Set<string>,
+  diagnostics: string[],
+): "ok" | "abstained" | "failed" {
+  let raw: readonly OntologyMatchCandidate[];
+  try {
+    raw = binding.capability.match(context);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    diagnostics.push(
+      `ontology pack '${binding.capability.id}' match() threw: ${message}`,
+    );
+    return "failed";
+  }
+
+  if (!Array.isArray(raw)) {
+    diagnostics.push(
+      `ontology pack '${binding.capability.id}' match() returned a non-array; treating as provider failure`,
+    );
+    return "failed";
+  }
+
+  let accepted = 0;
+  for (const entry of raw) {
+    try {
+      if (
+        entry &&
+        typeof entry === "object" &&
+        "schemaId" in entry &&
+        typeof (entry as { schemaId: unknown }).schemaId === "string" &&
+        !ownedSchemaIds.has((entry as { schemaId: string }).schemaId)
+      ) {
+        diagnostics.push(
+          `ontology pack '${binding.capability.id}' returned schema '${(entry as { schemaId: string }).schemaId}' it does not own; rejected`,
+        );
+        continue;
+      }
+      const candidate = validateOntologyMatchCandidate(entry, packSchemas);
+      if (!ownedSchemaIds.has(candidate.schemaId)) {
+        diagnostics.push(
+          `ontology pack '${binding.capability.id}' returned schema '${candidate.schemaId}' it does not own; rejected`,
+        );
+        continue;
+      }
+      const key = candidateKey(candidate);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      target.push({
+        ...candidate,
+        packId: binding.capability.id,
+        stamp: binding.stamp,
+      });
+      accepted += 1;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      diagnostics.push(
+        `ontology pack '${binding.capability.id}' produced an invalid candidate: ${message}`,
+      );
+    }
+  }
+
+  if (raw.length === 0) {
+    diagnostics.push(
+      `ontology pack '${binding.capability.id}' abstained (valid empty match)`,
+    );
+    return "abstained";
+  }
+
+  if (accepted === 0 && raw.length > 0) {
+    // Every candidate was invalid → treat as provider failure for replace fallback.
+    diagnostics.push(
+      `ontology pack '${binding.capability.id}' returned only invalid candidates`,
+    );
+    return "failed";
+  }
+
+  return "ok";
+}
+
 /**
- * Match ontology candidates across the active catalog. Shadow packs contribute
- * comparison-only candidates that callers may surface without mutation.
+ * Match ontology candidates across the active catalog.
+ *
+ * Replace abstention (`[]`) is *not* failure: it means the replacement pack
+ * found no match and builtin must not run. Builtin fallback happens only on
+ * provider exception / malformed output / invalid catalog construction.
+ *
+ * Shadow packs validate against their own schemas and use a separate dedupe
+ * set so a canonical candidate never suppresses the corresponding shadow
+ * comparison.
  */
 // implements REQ-capability-plugin-activation-disclosure-v1
 export function composeOntologyMatches(
@@ -124,57 +248,100 @@ export function composeOntologyMatches(
   canonical: readonly StampedOntologyCandidate[];
   shadow: readonly StampedOntologyCandidate[];
   stamps: readonly PluginProviderStamp[];
+  replaced: boolean;
+  diagnostics: readonly string[];
 }> {
   const catalog = composeOntologyCatalog(resolution);
-  const seen = new Set<string>();
+  const diagnostics = [...catalog.diagnostics];
   const canonical: StampedOntologyCandidate[] = [];
   const shadow: StampedOntologyCandidate[] = [];
+  const canonicalSeen = new Set<string>();
+  const shadowSeen = new Set<string>();
 
-  const runPack = (
+  const ownedFor = (
     binding: CapabilityProviderBinding<OntologyPackV1>,
-    target: StampedOntologyCandidate[],
-  ): void => {
-    let raw: readonly OntologyMatchCandidate[];
-    try {
-      raw = binding.capability.match(context);
-    } catch {
-      return;
+  ): {
+    owned: ReadonlySet<string>;
+    schemas: readonly PredicateSchemaDefinition[];
+  } => {
+    const fromCatalog = catalog.ownership.get(binding.capability.id);
+    if (fromCatalog) {
+      const schemas = binding.capability
+        .schemas()
+        .map((schema) => validatePredicateSchema(schema));
+      return { owned: fromCatalog, schemas };
     }
-    for (const entry of raw) {
-      try {
-        const candidate = validateOntologyMatchCandidate(
-          entry,
-          catalog.schemas,
-        );
-        const key = candidateKey(candidate);
-        if (seen.has(key)) continue;
-        seen.add(key);
-        target.push({
-          ...candidate,
-          packId: binding.capability.id,
-          stamp: binding.stamp,
-        });
-      } catch {
-        // Host rejects malformed candidates; continue with the rest.
-      }
-    }
+    // Shadow (or failed replace) packs are not in the canonical catalog.
+    const { schemas, owned } = packOwnedSchemas(binding);
+    return { owned, schemas };
   };
 
   if (resolution.replace) {
-    const before = canonical.length;
-    runPack(resolution.replace, canonical);
-    if (canonical.length === before) {
-      runPack(resolution.builtin, canonical);
+    const { owned, schemas } = ownedFor(resolution.replace);
+    const outcome = runPackMatches(
+      resolution.replace,
+      context,
+      owned,
+      schemas,
+      canonical,
+      canonicalSeen,
+      diagnostics,
+    );
+    if (outcome === "failed") {
+      diagnostics.push(
+        `replace ontology pack '${resolution.replace.pluginId}' match failed; falling back to builtin`,
+      );
+      const builtin = ownedFor(resolution.builtin);
+      runPackMatches(
+        resolution.builtin,
+        context,
+        builtin.owned,
+        builtin.schemas,
+        canonical,
+        canonicalSeen,
+        diagnostics,
+      );
+    } else if (outcome === "abstained") {
+      diagnostics.push(
+        `replace ontology pack '${resolution.replace.pluginId}' abstained; builtin match not consulted`,
+      );
     }
   } else {
-    runPack(resolution.builtin, canonical);
+    const builtin = ownedFor(resolution.builtin);
+    runPackMatches(
+      resolution.builtin,
+      context,
+      builtin.owned,
+      builtin.schemas,
+      canonical,
+      canonicalSeen,
+      diagnostics,
+    );
     for (const augment of resolution.augment) {
-      runPack(augment, canonical);
+      const pack = ownedFor(augment);
+      runPackMatches(
+        augment,
+        context,
+        pack.owned,
+        pack.schemas,
+        canonical,
+        canonicalSeen,
+        diagnostics,
+      );
     }
   }
 
   for (const shadowBinding of resolution.shadow) {
-    runPack(shadowBinding, shadow);
+    const pack = ownedFor(shadowBinding);
+    runPackMatches(
+      shadowBinding,
+      context,
+      pack.owned,
+      pack.schemas,
+      shadow,
+      shadowSeen,
+      diagnostics,
+    );
   }
 
   canonical.sort((a, b) => {
@@ -191,5 +358,7 @@ export function composeOntologyMatches(
     canonical,
     shadow,
     stamps: catalog.stamps,
+    replaced: catalog.replaced,
+    diagnostics,
   };
 }

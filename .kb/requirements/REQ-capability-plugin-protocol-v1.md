@@ -22,7 +22,7 @@ semantic_inventory:
     status: ontology_gap
 id: REQ-capability-plugin-protocol-v1
 type: req
-proof_exempt: true
+proof_exempt: false
 proof_exempt_reason: architectural boundary — verified by capability-plugin host unit tests and package distribution checks, not product E2E
 ---
 # REQ-capability-plugin-protocol-v1

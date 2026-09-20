@@ -135,7 +135,7 @@ export async function executeCheck(
     // version. `args.rules` is an invocation-time diagnostic selector only.
     const rulesAllowlist = resolveCheckRules(args);
     const hasExplicitRules = args.rules !== undefined;
-    const impactResult = analyzeKbCheckImpact(workspaceRoot, args);
+    const impactResult = await analyzeKbCheckImpact(workspaceRoot, args);
     const impactQualityDiagnostics = qualityDiagnosticsFromImpact(impactResult);
     const maxDiagnosticsOption =
       args.maxDiagnostics !== undefined

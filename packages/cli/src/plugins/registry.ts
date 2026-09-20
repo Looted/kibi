@@ -148,11 +148,33 @@ async function defaultBuiltinFactory(): Promise<KibiPluginV1> {
     kibiPlugin?: KibiPluginV1;
     default?: KibiPluginV1;
   };
-  const plugin = mod.kibiPlugin ?? mod.default;
+  const plugin = mod.kibiPlugin;
   if (!plugin) {
     throw new Error("kibi-plugin-builtin did not export kibiPlugin");
   }
-  return validateKibiPlugin(plugin);
+  const validated = validateKibiPlugin(plugin);
+  let packageVersion = validated.version;
+  try {
+    const { createRequire } = await import("node:module");
+    const require = createRequire(import.meta.url);
+    const builtinPackageJson = require("kibi-plugin-builtin/package.json") as {
+      version?: string;
+    };
+    if (
+      typeof builtinPackageJson.version === "string" &&
+      builtinPackageJson.version.trim()
+    ) {
+      packageVersion = builtinPackageJson.version.trim();
+    }
+  } catch {
+    // Fall back to the export version when package.json is not resolvable.
+  }
+  if (validated.version !== packageVersion) {
+    throw new Error(
+      `kibi-plugin-builtin export version '${validated.version}' does not match package.json version '${packageVersion}'`,
+    );
+  }
+  return { ...validated, version: packageVersion };
 }
 
 function stampFor(

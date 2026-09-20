@@ -96,7 +96,8 @@ function collectSourceSymbols(sourceFile: SourceFile): SourceSymbolAnalysis[] {
         "function",
         decl.getNameNode() ?? decl,
         decl,
-        directiveTextFor(decl),
+        // Functions: leading trivia via getFullText + JSDoc (historical CLI).
+        fullTextWithJsDocs(decl),
       ),
     );
   }
@@ -110,7 +111,9 @@ function collectSourceSymbols(sourceFile: SourceFile): SourceSymbolAnalysis[] {
         "class",
         decl.getNameNode() ?? decl,
         decl,
-        directiveTextFor(decl),
+        // Leading comments + JSDoc only — never the class body (method
+        // `// implements` must stay on the method symbol).
+        leadingCommentsAndJsDocs(sourceFile, decl),
       ),
     );
     try {
@@ -129,7 +132,9 @@ function collectSourceSymbols(sourceFile: SourceFile): SourceSymbolAnalysis[] {
         "interface",
         decl.getNameNode() ?? decl,
         decl,
-        directiveTextFor(decl),
+        // Historical CLI used getText(); keep calling it so characterization
+        // mocks that throw from getText still isolate the failure.
+        `${leadingCommentsAndJsDocs(sourceFile, decl)}\n${safeGetText(decl)}`,
       ),
     );
   }
@@ -143,7 +148,7 @@ function collectSourceSymbols(sourceFile: SourceFile): SourceSymbolAnalysis[] {
         "type",
         decl.getNameNode() ?? decl,
         decl,
-        directiveTextFor(decl),
+        `${leadingCommentsAndJsDocs(sourceFile, decl)}\n${safeGetText(decl)}`,
       ),
     );
   }
@@ -157,7 +162,9 @@ function collectSourceSymbols(sourceFile: SourceFile): SourceSymbolAnalysis[] {
         "enum",
         decl.getNameNode() ?? decl,
         decl,
-        directiveTextFor(decl),
+        // Enums historically used getText(); prefer leading comments when the
+        // real AST is available, else getText for test doubles.
+        `${leadingCommentsAndJsDocs(sourceFile, decl)}\n${safeGetText(decl)}`,
       ),
     );
   }
@@ -173,9 +180,9 @@ function collectSourceSymbols(sourceFile: SourceFile): SourceSymbolAnalysis[] {
           "variable",
           declaration.getNameNode() ?? declaration,
           declaration,
-          // Variable declarations themselves often lack leading comments;
-          // the export statement carries `// implements` / JSDoc.
-          `${directiveTextFor(statement)}\n${declaration.getFullText()}`,
+          // Statement carries leading `// implements`; declaration text is the
+          // historical fallback when only getText is stubbed in tests.
+          `${safeFullText(statement)}\n${safeGetText(declaration)}`,
         ),
       );
       try {
@@ -200,19 +207,60 @@ function collectSourceSymbols(sourceFile: SourceFile): SourceSymbolAnalysis[] {
   return symbols;
 }
 
-/** Leading line comments + JSDoc attached to a declaration (for ownership directives). */
-function directiveTextFor(node: {
-  getFullText: () => string;
+function jsDocsOnly(node: {
   getJsDocs?: () => ReadonlyArray<{ getFullText: () => string }>;
 }): string {
-  const jsdocs =
-    typeof node.getJsDocs === "function"
-      ? node
-          .getJsDocs()
-          .map((doc) => doc.getFullText())
-          .join("\n")
-      : "";
-  return `${node.getFullText()}\n${jsdocs}`;
+  if (typeof node.getJsDocs !== "function") return "";
+  return node
+    .getJsDocs()
+    .map((doc) => doc.getFullText())
+    .join("\n");
+}
+
+function leadingCommentsAndJsDocs(
+  sourceFile: SourceFile,
+  node: {
+    getFullStart?: () => number;
+    getStart?: (includeJsDocComment?: boolean) => number;
+    getJsDocs?: () => ReadonlyArray<{ getFullText: () => string }>;
+  },
+): string {
+  let leading = "";
+  try {
+    if (
+      typeof node.getFullStart === "function" &&
+      typeof node.getStart === "function"
+    ) {
+      const fullStart = node.getFullStart();
+      // Exclude JSDoc from the range so we don't double-count with jsDocsOnly.
+      const start = node.getStart(false);
+      if (
+        Number.isFinite(fullStart) &&
+        Number.isFinite(start) &&
+        start > fullStart
+      ) {
+        leading = sourceFile.getFullText().slice(fullStart, start);
+      }
+    }
+  } catch {
+    leading = "";
+  }
+  return `${leading}\n${jsDocsOnly(node)}`;
+}
+
+function fullTextWithJsDocs(node: {
+  getFullText?: () => string;
+  getJsDocs?: () => ReadonlyArray<{ getFullText: () => string }>;
+}): string {
+  return `${safeFullText(node)}\n${jsDocsOnly(node)}`;
+}
+
+function safeFullText(node: { getFullText?: () => string }): string {
+  return typeof node.getFullText === "function" ? node.getFullText() : "";
+}
+
+function safeGetText(node: { getText?: () => string }): string {
+  return typeof node.getText === "function" ? node.getText() : "";
 }
 
 function appendClassMembers(
@@ -221,9 +269,9 @@ function appendClassMembers(
   className: string | undefined,
   symbols: SourceSymbolAnalysis[],
 ): void {
-  // Class-level ownership directives also cover members (avoids repeating
-  // `// implements` on every method when the class is the unit of ownership).
-  const classDirectives = directiveTextFor(declaration);
+  // Inherit class *leading* ownership comments onto members (not the class
+  // body). Method-local `// implements` stay on the method via getFullText.
+  const classLeading = leadingCommentsAndJsDocs(sourceFile, declaration);
   const methods =
     typeof declaration.getMethods === "function" ? declaration.getMethods() : [];
   for (const method of methods) {
@@ -235,7 +283,7 @@ function appendClassMembers(
         "method",
         method.getNameNode() ?? method,
         method,
-        `${classDirectives}\n${directiveTextFor(method)}`,
+        `${classLeading}\n${fullTextWithJsDocs(method)}`,
       ),
     );
   }
@@ -253,7 +301,7 @@ function appendClassMembers(
         "property",
         property.getNameNode() ?? property,
         property,
-        `${classDirectives}\n${directiveTextFor(property)}`,
+        `${classLeading}\n${fullTextWithJsDocs(property)}`,
       ),
     );
   }
@@ -275,7 +323,7 @@ function appendClassMembers(
         "accessor",
         accessor.getNameNode() ?? accessor,
         accessor,
-        `${classDirectives}\n${directiveTextFor(accessor)}`,
+        `${classLeading}\n${fullTextWithJsDocs(accessor)}`,
       ),
     );
   }

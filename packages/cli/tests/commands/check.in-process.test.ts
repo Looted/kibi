@@ -802,8 +802,8 @@ Login works.
     const extract = await import("../../src/traceability/symbol-extract.js");
     const extractSpy = spyOn(
       extract,
-      "extractSymbolsFromStagedFile",
-    ).mockImplementation(() => {
+      "extractSymbolsFromStagedFileAsync",
+    ).mockImplementation(async () => {
       throw new Error("parse exploded");
     });
     const cleanup = spyOn(tempKb, "cleanupTempKb").mockRejectedValue(

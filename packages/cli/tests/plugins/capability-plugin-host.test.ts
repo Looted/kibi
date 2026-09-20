@@ -40,6 +40,7 @@ import {
   allowsExternalSemanticClassifier,
   assertBarePackageName,
   composeOntologyCatalog,
+  composeOntologyMatches,
   composeSemanticClassification,
   createCapabilityRegistry,
   createStubBuiltinPlugin,
@@ -446,7 +447,7 @@ describe("capability plugin host", () => {
   // executable_for TEST-capability-plugin-host-resolution-v1
   test("external semantic classifier allowlist", () => {
     expect(allowsExternalSemanticClassifier("kb_semantic_advisor")).toBe(true);
-    expect(allowsExternalSemanticClassifier("kb_model_requirement")).toBe(true);
+    expect(allowsExternalSemanticClassifier("kb_model_requirement")).toBe(false);
     expect(allowsExternalSemanticClassifier("kb_compile_intent")).toBe(true);
     expect(allowsExternalSemanticClassifier("kb_check")).toBe(false);
     expect(allowsExternalSemanticClassifier("kb_upsert")).toBe(false);
@@ -555,6 +556,66 @@ describe("capability plugin host", () => {
   });
 
   // executable_for TEST-capability-plugin-host-resolution-v1
+  test("replace semantic abstention does not fill from builtin classifier", async () => {
+    const builtin: SemanticClassifierV1 = {
+      id: "builtin-sem",
+      classify: async (input) => ({
+        decisions: input.propositions.map((proposition) => ({
+          claimKey: proposition.claimKey,
+          lane: "rule" as const,
+          confidence: 0.99,
+        })),
+      }),
+    };
+    const replace: SemanticClassifierV1 = {
+      id: "replace-sem",
+      classify: async () => ({ decisions: [] }),
+    };
+    const stamp = {
+      pluginId: "replace",
+      pluginVersion: "1",
+      capability: SEMANTIC_CLASSIFIER_CAPABILITY_ID,
+      mode: "replace" as const,
+      external: true,
+      network: true,
+      metered: true,
+    };
+    const result = await composeSemanticClassification(
+      {
+        builtin: {
+          pluginId: "builtin",
+          pluginVersion: "1",
+          packageName: null,
+          mode: "builtin",
+          permissions: { network: false, metered: false, secrets: [] },
+          external: false,
+          capability: builtin,
+          stamp: { ...stamp, mode: "augment", external: false, network: false, metered: false },
+        },
+        replace: {
+          pluginId: "replace",
+          pluginVersion: "1",
+          packageName: "replace-pkg",
+          mode: "replace",
+          permissions: { network: true, metered: true, secrets: [] },
+          external: true,
+          capability: replace,
+          stamp,
+        },
+        augment: [],
+        shadow: [],
+      },
+      { propositions: [{ claimKey: "c1", statement: "The system must validate tokens" }] },
+      { operationName: "kb_semantic_advisor" },
+    );
+    expect(result.fallbackUsed).toBe(false);
+    expect(result.decisions).toEqual([
+      { claimKey: "c1", lane: "none", confidence: 0 },
+    ]);
+    expect(result.stamps[0]?.pluginId).toBe("replace");
+  });
+
+  // executable_for TEST-capability-plugin-host-resolution-v1
   test("ontology composition rejects schema collisions and ignores shadow canonically", () => {
     const builtinPack: OntologyPackV1 = {
       id: "builtin-ont",
@@ -622,7 +683,129 @@ describe("capability plugin host", () => {
   });
 
   // executable_for TEST-capability-plugin-host-resolution-v1
-  test("source analysis service uses conservative fallback and ignores shadow", async () => {
+  test("replace ontology abstention does not fall back to builtin match", () => {
+    const builtinPack: OntologyPackV1 = {
+      id: "builtin-ont",
+      schemas: () => [
+        {
+          schemaId: "builtin.schema",
+          predicateName: "holds",
+          argumentNames: ["subject"],
+          argumentTypes: ["entity"],
+        },
+      ],
+      match: () => [
+        {
+          schemaId: "builtin.schema",
+          predicateName: "holds",
+          arguments: ["x"],
+          polarity: "assert",
+          confidence: 0.9,
+          evidence: "builtin hit",
+        },
+      ],
+    };
+    const replacePack: OntologyPackV1 = {
+      id: "replace-ont",
+      schemas: () => [
+        {
+          schemaId: "replace.schema",
+          predicateName: "holds",
+          argumentNames: ["subject"],
+          argumentTypes: ["entity"],
+        },
+      ],
+      match: () => [],
+    };
+    const stamp = {
+      pluginId: "x",
+      pluginVersion: "1",
+      capability: ONTOLOGY_PACK_CAPABILITY_ID,
+      mode: "replace" as const,
+      external: true,
+      network: false,
+      metered: false,
+    };
+    const matched = composeOntologyMatches(
+      {
+        builtin: {
+          pluginId: "builtin",
+          pluginVersion: "1",
+          packageName: null,
+          mode: "builtin",
+          permissions: { network: false, metered: false, secrets: [] },
+          external: false,
+          capability: builtinPack,
+          stamp: { ...stamp, mode: "augment", external: false },
+        },
+        replace: {
+          pluginId: "replace",
+          pluginVersion: "1",
+          packageName: "r",
+          mode: "replace",
+          permissions: { network: false, metered: false, secrets: [] },
+          external: true,
+          capability: replacePack,
+          stamp,
+        },
+        augment: [],
+        shadow: [],
+      },
+      { claimKey: "c1", statement: "anything" },
+    );
+    expect(matched.canonical).toEqual([]);
+    expect(matched.diagnostics.some((d) => /abstained/.test(d))).toBe(true);
+  });
+
+  // executable_for TEST-capability-plugin-host-resolution-v1
+  test("rejects plugin export version that mismatches package.json", async () => {
+    const root = mkdtempSync(join(tmpdir(), "kibi-plugin-ver-"));
+    const pluginRoot = join(root, "node_modules", "ver-plugin");
+    try {
+      mkdirSync(pluginRoot, { recursive: true });
+      writeFileSync(
+        join(root, "package.json"),
+        JSON.stringify({
+          name: "consumer",
+          dependencies: { "ver-plugin": "1.0.0" },
+        }),
+      );
+      writeFileSync(
+        join(pluginRoot, "package.json"),
+        JSON.stringify({
+          name: "ver-plugin",
+          version: "9.9.9",
+          type: "module",
+          main: "./index.js",
+        }),
+      );
+      writeFileSync(
+        join(pluginRoot, "index.js"),
+        [
+          "export const kibiPlugin = {",
+          '  apiVersion: "kibi.plugin.v1",',
+          '  id: "ver-plugin",',
+          '  version: "1.0.0",',
+          "  permissions: { network: false, metered: false, secrets: [] },",
+          "  capabilities: {",
+          "    semanticClassifier: {",
+          '      id: "ver-plugin.classifier",',
+          "      classify: () => ({ decisions: [] }),",
+          "    },",
+          "  },",
+          "};",
+        ].join("\n"),
+      );
+      await expect(loadPluginPackage(root, "ver-plugin")).rejects.toThrow(
+        /does not match resolved package.json version/,
+      );
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  // executable_for TEST-capability-plugin-host-resolution-v1
+  test("source analysis service uses conservative fallback and still runs shadow", async () => {
     const resolution: CapabilityModeResolution<SymbolExtractorV1> = {
       builtin: {
         pluginId: "builtin",
@@ -702,6 +885,14 @@ describe("capability plugin host", () => {
     expect(result.fallbackUsed).toBe(true);
     expect(result.symbols).toEqual([]);
     expect(result.providerId).toBeNull();
+    expect(result.shadowComparisons).toHaveLength(1);
+    expect(result.shadowComparisons[0]).toMatchObject({
+      pluginId: "shadow-sym",
+      symbolCount: 1,
+      ok: true,
+    });
+    // Shadow must never become canonical.
+    expect(result.symbols.some((s) => s.name === "shadowOnly")).toBe(false);
   });
 
   // executable_for TEST-capability-plugin-host-resolution-v1
@@ -731,6 +922,7 @@ describe("capability plugin host", () => {
         join(pluginRoot, "package.json"),
         JSON.stringify({
           name: "demo-plugin",
+          version: "1.0.0",
           type: "module",
           main: "./index.js",
         }),

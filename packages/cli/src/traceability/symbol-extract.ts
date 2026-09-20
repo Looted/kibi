@@ -1,16 +1,20 @@
 import { createHash } from "node:crypto";
-import {
-  createBuiltinTsMorphSymbolExtractor,
-  isPrivateClassMember,
-} from "kibi-plugin-builtin";
-import type { SourceAnalysisResult } from "kibi-plugin-sdk";
+import type { SourceAnalysisResult as SdkSourceAnalysisResult } from "kibi-plugin-sdk";
 import { readManifestWithCoordinateOverlay } from "../extractors/manifest.js";
+import {
+  createTsMorphSourceAnalysisProvider,
+  isPrivateClassMember,
+} from "../extractors/symbols-ts.js";
 import {
   type SymbolKind,
   type SymbolRole,
   inferSymbolRole,
 } from "../public/symbol-granularity.js";
 import type { HunkRange, StagedFile } from "./git-staged.js";
+
+type SourceAnalysisResult = SdkSourceAnalysisResult & {
+  providerId?: string | null;
+};
 
 type TraceabilityRelationship = { type: string; to: string };
 const TRACEABILITY_RELATIONSHIP_TYPES = new Set([
@@ -222,8 +226,6 @@ const analysisCache = new Map<
 
 const CACHE_TTL_MS = 30 * 1000;
 
-const extractor = createBuiltinTsMorphSymbolExtractor();
-
 function computeContentSha(content: string): string {
   const h = createHash("sha256");
   h.update(content);
@@ -265,40 +267,129 @@ function rangesIntersect(
   return aStart <= bEnd && bStart <= aEnd;
 }
 
+// implements REQ-capability-plugin-activation-disclosure-v1
+export type ExtractSymbolsOptions = Readonly<{
+  /**
+   * Host-owned analysis. Prefer SourceAnalysisService / capability registry.
+   * When omitted, falls back to the builtin ts-morph provider for parity.
+   */
+  analyzeText?: (
+    filePath: string,
+    content: string,
+  ) => SourceAnalysisResult | null | Promise<SourceAnalysisResult | null>;
+}>;
+
+function analyzeWithBuiltinFallback(
+  filePath: string,
+  content: string,
+): SourceAnalysisResult | null {
+  const provider = createTsMorphSourceAnalysisProvider();
+  if (!provider.supportsFile(filePath)) return null;
+  return provider.analyzeText(filePath, content);
+}
+
 export function extractSymbolsFromStagedFile(
   // implements REQ-008
   stagedFile: StagedFile,
   manifestLookup?: ManifestLookup,
+  options?: ExtractSymbolsOptions,
 ): ExtractedSymbol[] {
   const content = stagedFile.content ?? "";
-  const sha = computeContentSha(`${content}|${stagedFile.path}`);
+  const sha = computeContentSha(
+    `${content}|${stagedFile.path}|${options?.analyzeText ? "custom" : "builtin"}`,
+  );
 
   // TTL cache lookup
   const now = Date.now();
   let cached = analysisCache.get(sha);
   if (!cached || now - cached.ts > CACHE_TTL_MS) {
     try {
-      if (!extractor.supports({ path: stagedFile.path })) {
-        cached = { result: null, ts: now };
-      } else {
-        cached = {
-          result: extractor.analyze({
-            // Preserve the real path so script-kind / language inference stay correct.
-            path: stagedFile.path,
-            content,
-          }),
-          ts: now,
-        };
+      const analyze = options?.analyzeText ?? analyzeWithBuiltinFallback;
+      const raw = analyze(stagedFile.path, content);
+      if (raw instanceof Promise) {
+        throw new Error(
+          "extractSymbolsFromStagedFile received async analyzeText; use extractSymbolsFromStagedFileAsync",
+        );
       }
+      cached = { result: raw, ts: now };
       analysisCache.set(sha, cached);
-    } catch {
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message.includes("extractSymbolsFromStagedFileAsync")
+      ) {
+        throw error;
+      }
       // on parse error, cache null to avoid retry storms briefly
       cached = { result: null, ts: now };
       analysisCache.set(sha, cached);
     }
   }
 
-  const analysis = cached.result;
+  return symbolsFromAnalysis(stagedFile, cached.result, manifestLookup);
+}
+
+/**
+ * Capability-aware staged symbol extraction. Prefer this from async CLI
+ * surfaces (check, impact) so replace/augment/shadow extractors participate.
+ */
+// implements REQ-capability-plugin-activation-disclosure-v1
+export async function extractSymbolsFromStagedFileAsync(
+  stagedFile: StagedFile,
+  manifestLookup: ManifestLookup | undefined,
+  options: ExtractSymbolsOptions &
+    Readonly<{
+      registry?: import("../plugins/registry.js").CapabilityRegistry;
+      workspaceRoot?: string;
+    }>,
+): Promise<ExtractedSymbol[]> {
+  const content = stagedFile.content ?? "";
+  const sha = computeContentSha(
+    `${content}|${stagedFile.path}|async|${options.registry ? "registry" : "custom"}`,
+  );
+  const now = Date.now();
+  let cached = analysisCache.get(sha);
+  if (!cached || now - cached.ts > CACHE_TTL_MS) {
+    try {
+      let analysis: SourceAnalysisResult | null = null;
+      if (options.analyzeText) {
+        analysis = await options.analyzeText(stagedFile.path, content);
+      } else if (options.registry) {
+        const { createSourceAnalysisService } = await import(
+          "../plugins/source-analysis-service.js"
+        );
+        analysis = await createSourceAnalysisService({
+          registry: options.registry,
+        }).analyzeText(stagedFile.path, content);
+      } else if (options.workspaceRoot) {
+        const { ensureCapabilityRegistry } = await import(
+          "../plugins/registry.js"
+        );
+        const { createSourceAnalysisService } = await import(
+          "../plugins/source-analysis-service.js"
+        );
+        const registry = ensureCapabilityRegistry(options.workspaceRoot);
+        analysis = await createSourceAnalysisService({
+          registry,
+        }).analyzeText(stagedFile.path, content);
+      } else {
+        analysis = analyzeWithBuiltinFallback(stagedFile.path, content);
+      }
+      cached = { result: analysis, ts: now };
+      analysisCache.set(sha, cached);
+    } catch {
+      cached = { result: null, ts: now };
+      analysisCache.set(sha, cached);
+    }
+  }
+  return symbolsFromAnalysis(stagedFile, cached.result, manifestLookup);
+}
+
+function symbolsFromAnalysis(
+  stagedFile: StagedFile,
+  analysis: SourceAnalysisResult | null,
+  manifestLookup?: ManifestLookup,
+): ExtractedSymbol[] {
   if (!analysis) return [];
 
   const results: ExtractedSymbol[] = [];

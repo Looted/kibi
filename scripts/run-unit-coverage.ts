@@ -121,6 +121,16 @@ export const COVERAGE_SHARDS: readonly {
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
   },
   {
+    label: "capability-plugins",
+    paths: [
+      "./packages/plugin-sdk",
+      "./packages/plugin-builtin",
+      "./packages/plugin-jev",
+      "./packages/cli/tests/plugins",
+    ],
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+  },
+  {
     label: "cli.engine-remaining",
     paths: ["./packages/cli/tests/engine-remaining.coverage.test.ts"],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,

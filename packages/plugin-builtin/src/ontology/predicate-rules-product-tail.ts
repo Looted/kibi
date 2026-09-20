@@ -12,6 +12,7 @@ export const PRODUCT_TAIL_PREDICATE_RULES = [
     pattern:
       /^(?<subject>.+?)\s+(?:must|shall|should)\s+be\s+throttled\s+for\s+(?<condition>.+?)\.?$/i,
     name: "throttle_policy_rule",
+    arity: 2,
     args: (g) => [
       normalizeKey(g.subject ?? ""),
       normalizePredicateToken(g.condition ?? ""),
@@ -23,6 +24,7 @@ export const PRODUCT_TAIL_PREDICATE_RULES = [
     pattern:
       /^(?:the\s+)?(?<subject>.+?)\s+initializes\s+after\s+(?:the\s+)?(?<ready>.+?)\s+is\s+ready\.?$/i,
     name: "temporal_order",
+    arity: 3,
     args: (g) => [
       normalizeKey(g.subject ?? ""),
       `${normalizeKey(g.ready ?? "")}_ready`,
@@ -35,6 +37,7 @@ export const PRODUCT_TAIL_PREDICATE_RULES = [
     pattern:
       /^when\s+(?<trigger>.+?),\s*(?:the\s+)?(?<subject>[a-z][a-z\s_-]*?)\s+transitions?\s+from\s+(?<from>[a-z][a-z0-9_-]*)\s+to\s+(?<to>[a-z][a-z0-9_-]*)\.?$/i,
     name: "state_transition",
+    arity: 4,
     args: (g) => [
       normalizeSubjectKey(g.subject ?? ""),
       normalizePredicateToken(g.from ?? ""),
@@ -48,6 +51,7 @@ export const PRODUCT_TAIL_PREDICATE_RULES = [
     pattern:
       /^(?<actor>[a-z][a-z\s_-]*?)\s+(?:must\s+not|cannot|can't|is\s+forbidden\s+to)\s+(?<action>[a-z][a-z_-]*)\s+(?<resource>.+?)\.?$/i,
     name: "permission_rule",
+    arity: 4,
     args: (g) => [
       singularize(normalizeKey(g.actor ?? "")),
       normalizePredicateToken(g.action ?? ""),
@@ -62,6 +66,7 @@ export const PRODUCT_TAIL_PREDICATE_RULES = [
     pattern:
       /^(?:there\s+)?(?:must|shall|should)\s+be\s+at\s+most\s+one\s+(?<subject>[a-z][a-z\s_-]*?)\s+per\s+(?<scope>.+?)\.?$/i,
     name: "uniqueness_constraint",
+    arity: 2,
     args: (g) => [
       normalizeKey(g.subject ?? ""),
       (g.scope ?? "")
@@ -76,6 +81,7 @@ export const PRODUCT_TAIL_PREDICATE_RULES = [
     pattern:
       /^(?:the\s+)?(?<subject>[a-z][a-z\s_-]*?)\s+defaults?\s+to\s+(?<value>[a-z][a-z0-9\s_-]*?)(?:\s+(?<property>mode|state|status))?\.?$/i,
     name: "default_value",
+    arity: 3,
     args: (g) => [
       normalizeSubjectKey(g.subject ?? ""),
       normalizeKey(g.property ?? "value"),
@@ -88,6 +94,7 @@ export const PRODUCT_TAIL_PREDICATE_RULES = [
     pattern:
       /^(?<subject>.+?)\s+(?:terminal\s+)?states\s+are\s+(?<states>.+?)\.?$/i,
     name: "state_membership",
+    arity: 2,
     args: (g) => [
       normalizeSubjectKey(g.subject ?? ""),
       (g.states ?? "")
@@ -103,6 +110,7 @@ export const PRODUCT_TAIL_PREDICATE_RULES = [
     pattern:
       /^(?<subject>.+?)\s+(?:must|shall|should)\s+be\s+rate\s+limited\s+to\s+(?<count>\d+)\s+(?<action>[a-z][a-z\s_-]*?)\s+per\s+(?<window>[a-z]+)\.?$/i,
     name: "rate_limit",
+    arity: 4,
     args: (g) => [
       `${normalizeKey(g.subject ?? "").replace(/_requests?$/, "")}.request`,
       normalizePredicateToken(g.action ?? ""),
@@ -116,6 +124,7 @@ export const PRODUCT_TAIL_PREDICATE_RULES = [
     pattern:
       /^only\s+(?<actor>[a-z][a-z\s_-]*?)\s+can\s+(?<action>[a-z][a-z_-]*)\s+(?<resource>.+?)(?:\s+when\s+.+)?\.?$/i,
     name: "permission_rule",
+    arity: 4,
     args: (g) => [
       singularize(normalizeKey(g.actor ?? "")),
       normalizeKey(g.action ?? ""),

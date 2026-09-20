@@ -76,7 +76,7 @@ import {
 import {
   type ManifestLookup,
   createManifestLookupSentinelKey,
-  extractSymbolsFromStagedFile,
+  extractSymbolsFromStagedFileAsync,
 } from "../traceability/symbol-extract.js";
 import {
   cleanupTempKb,
@@ -471,7 +471,10 @@ function buildStagedKibiImpactEvidence(options: {
   sourceFiles: StagedFile[];
   markdownFiles: StagedFile[];
   markdownResultsByPath: ReadonlyMap<string, ExtractionResult>;
-  symbolsByFile: Map<string, ReturnType<typeof extractSymbolsFromStagedFile>>;
+  symbolsByFile: Map<
+    string,
+    Awaited<ReturnType<typeof extractSymbolsFromStagedFileAsync>>
+  >;
   symbolsManifestPath: string;
 }): KibiImpactEvidence {
   const {
@@ -701,18 +704,25 @@ export async function checkCommand(
           }
           return { exitCode: 1 };
         }
-        const allSymbols: ReturnType<typeof extractSymbolsFromStagedFile> = [];
+        const allSymbols: Awaited<
+          ReturnType<typeof extractSymbolsFromStagedFileAsync>
+        > = [];
         const symbolsByFile = new Map<
           string,
-          ReturnType<typeof extractSymbolsFromStagedFile>
+          Awaited<ReturnType<typeof extractSymbolsFromStagedFileAsync>>
         >();
         const sourceContentByFile = new Map<string, string>();
+        const workspaceRoot = process.cwd();
         for (const f of sourceFiles) {
           try {
             if (f.content !== undefined) {
               sourceContentByFile.set(f.path, f.content);
             }
-            const symbols = extractSymbolsFromStagedFile(f, manifestLookup);
+            const symbols = await extractSymbolsFromStagedFileAsync(
+              f,
+              manifestLookup,
+              { workspaceRoot },
+            );
             symbolsByFile.set(f.path, symbols);
             if (symbols?.length) {
               allSymbols.push(...symbols);

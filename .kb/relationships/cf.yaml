@@ -167,3 +167,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fe99c35f99c1
+  - type: executable_for
+    from: SYM-test-capability-plugin-host-resolution-v1
+    to: TEST-capability-plugin-host-resolution-v1
+    created_at: 2026-09-20T18:53:13.646Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4dc7d16977f2

@@ -15,6 +15,7 @@ export const LAUNCHER_PREDICATE_RULES = [
     pattern:
       /^(?<subject>.+?)\s+must\s+resolve\s+and\s+execute\s+the\s+(?<dependency>.+?)\s+without\s+downloading\s+packages\s+or\s+using\s+a\s+global\s+or\s+plugin-local\s+runtime\.?$/i,
     name: "dependency_resolution_policy",
+    arity: 4,
     args: (groups) => [
       normalizeKey(groups.subject ?? ""),
       normalizePredicateToken(groups.dependency ?? "dependency"),
@@ -28,6 +29,7 @@ export const LAUNCHER_PREDICATE_RULES = [
     pattern:
       /^it\s+must\s+resolve\s+the\s+consumer\s+workspace\s+in\s+deterministic\s+order:\s*(?<sources>.+?)\s+then\s+cwd\s+only\s+when\s+(?<condition>.+?)\.?$/i,
     name: "ordered_resolution_strategy",
+    arity: 3,
     args: (groups) => [
       "launcher",
       normalizePredicateToken(groups.sources ?? "ordered_sources"),
@@ -39,6 +41,7 @@ export const LAUNCHER_PREDICATE_RULES = [
   {
     pattern: /^(?<condition>unresolved\s+placeholders?)\s+are\s+invalid\.?$/i,
     name: "resolution_failure_policy",
+    arity: 3,
     args: (groups) => [
       "launcher",
       normalizePredicateToken(groups.condition ?? "invalid_placeholder"),
@@ -51,6 +54,7 @@ export const LAUNCHER_PREDICATE_RULES = [
     pattern:
       /^(?<condition>ambiguous\s+(?:multiple\s+)?usable\s+roots?)\s+fail\s+clearly\.?$/i,
     name: "resolution_failure_policy",
+    arity: 3,
     args: (groups) => [
       "launcher",
       normalizePredicateToken(groups.condition ?? "ambiguous_root"),
@@ -63,6 +67,7 @@ export const LAUNCHER_PREDICATE_RULES = [
     pattern:
       /^(?<subject>the\s+launcher)\s+must\s+resolve\s+kibi-mcp\s+through\s+consumer-scoped\s+node\s+package\s+semantics\s+including\s+exports-restricted\s+and\s+pnpm-style\s+layouts,\s+and\s+reject\s+packages\s+outside\s+consumer\s+scope\s+unless\s+active\s+package-manager\s+semantics\s+authorize\s+it\.?$/i,
     name: "exception_rule",
+    arity: 3,
     args: () => [
       "launcher",
       "consumer_scoped_node_package_semantics",
@@ -75,6 +80,7 @@ export const LAUNCHER_PREDICATE_RULES = [
     pattern:
       /^(?<subject>it)\s+must\s+spawn\s+the\s+declared\s+kibi-mcp\s+bin\s+with\s+cwd\s+and\s+kibi_workspace\s+set\s+to\s+the\s+consumer\s+workspace,\s+preserve\s+stdio,\s+and\s+propagate\s+child\s+exit\s+codes\s+and\s+termination\s+signals\.?$/i,
     name: "process_delegation_contract",
+    arity: 6,
     args: () => [
       "launcher",
       "resolved_executable",
@@ -90,6 +96,7 @@ export const LAUNCHER_PREDICATE_RULES = [
     pattern:
       /^(?<subject>missing)\s+project-local\s+kibi-mcp\s+must\s+produce\s+a\s+concise\s+actionable\s+error\.?$/i,
     name: "failure_behavior",
+    arity: 3,
     args: () => ["launcher", "missing_dependency", "actionable_error"],
     rationale:
       "A missing project-local dependency with an actionable error is a reusable launcher failure behavior.",

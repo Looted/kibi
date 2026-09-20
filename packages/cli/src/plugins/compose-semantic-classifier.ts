@@ -64,17 +64,48 @@ async function runClassifier(
 ): Promise<SemanticClassifierResult | null> {
   try {
     const raw = await binding.capability.classify(input);
-    return validateSemanticClassifierResult(raw);
+    return validateSemanticClassifierResult(raw, {
+      expectedClaimKeys: input.propositions.map(
+        (proposition) => proposition.claimKey,
+      ),
+    });
   } catch {
     return null;
   }
+}
+
+function fillMissingDecisions(
+  input: SemanticClassifierInput,
+  decisions: readonly SemanticClassificationDecision[],
+  builtin: SemanticClassifierResult | null,
+): SemanticClassificationDecision[] {
+  const byKey = new Map(
+    decisions.map((decision) => [decision.claimKey, decision]),
+  );
+  const builtinByKey = new Map(
+    (builtin?.decisions ?? []).map((decision) => [
+      decision.claimKey,
+      decision,
+    ]),
+  );
+  return input.propositions.map((proposition) => {
+    const existing = byKey.get(proposition.claimKey);
+    if (existing) return existing;
+    const fallback = builtinByKey.get(proposition.claimKey);
+    if (fallback) return fallback;
+    return {
+      claimKey: proposition.claimKey,
+      lane: "none" as const,
+      confidence: 0,
+    };
+  });
 }
 
 /**
  * Compose semantic classifiers according to replace / augment / shadow modes.
  *
  * External providers are skipped unless `operationName` is on the allowlist
- * (`kb_semantic_advisor`, `kb_model_requirement`, `kb_compile_intent`).
+ * (`kb_semantic_advisor`, `kb_compile_intent`).
  */
 // implements REQ-capability-plugin-activation-disclosure-v1
 export async function composeSemanticClassification(
@@ -94,7 +125,9 @@ export async function composeSemanticClassification(
   if (allowExternal && resolution.replace) {
     const replaced = await runClassifier(resolution.replace, input);
     if (replaced) {
-      decisions = [...replaced.decisions];
+      // Replace success: missing decisions get conservative `none`, not builtin
+      // fill. Valid empty decisions[] is abstention (same as ontology replace).
+      decisions = fillMissingDecisions(input, replaced.decisions, null);
       stamps.push(resolution.replace.stamp);
     } else {
       const builtinResult = await runClassifier(resolution.builtin, input);
@@ -137,10 +170,16 @@ export async function composeSemanticClassification(
           if (decision.lane === "none") continue;
           byKey.set(decision.claimKey, decision);
         }
-        decisions = [...byKey.values()];
+        decisions = fillMissingDecisions(
+          input,
+          [...byKey.values()],
+          builtinResult,
+        );
       }
     }
   }
+
+  decisions = fillMissingDecisions(input, decisions, null);
 
   if (allowExternal) {
     for (const shadow of resolution.shadow) {

@@ -405,8 +405,8 @@ Body.
     restores.push(() => analyze.mockRestore());
     const extract = spyOn(
       symbolExtract,
-      "extractSymbolsFromStagedFile",
-    ).mockImplementation(() => {
+      "extractSymbolsFromStagedFileAsync",
+    ).mockImplementation(async () => {
       throw new Error("parse exploded");
     });
     const collect = spyOn(

@@ -30,10 +30,10 @@ export function hasImpactOptions(args: CheckArgs): boolean {
   );
 }
 
-export function analyzeKbCheckImpact(
+export async function analyzeKbCheckImpact(
   workspaceRoot: string,
   args: CheckArgs,
-): ChangedFileImpactResult | undefined {
+): Promise<ChangedFileImpactResult | undefined> {
   if (!hasImpactOptions(args)) {
     return undefined;
   }

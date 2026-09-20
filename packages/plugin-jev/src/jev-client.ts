@@ -79,8 +79,22 @@ export function mapJevError(error: unknown): JevProviderError {
       ? (error as { status: number }).status
       : undefined;
 
-  if (/api key|TYPESAFE_API_KEY|authentication/i.test(message) || status === 401) {
+  // Missing key is only when the message clearly indicates absence — not an
+  // HTTP 401 from a present but invalid credential.
+  if (
+    /TYPESAFE_API_KEY.*(missing|not set|required|undefined)|missing.*api key|api key is (missing|required)/i.test(
+      message,
+    )
+  ) {
     return new JevProviderError("missing_api_key", message, { cause: error });
+  }
+  if (
+    status === 401 ||
+    /unauthorized|invalid (api )?key|authentication failed|invalid credentials/i.test(
+      message,
+    )
+  ) {
+    return new JevProviderError("auth", message, { cause: error });
   }
   if (/timeout/i.test(message) || name.includes("Timeout")) {
     return new JevProviderError("timeout", message, { cause: error });
