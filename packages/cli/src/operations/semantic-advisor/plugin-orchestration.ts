@@ -283,6 +283,10 @@ export function applyClassificationRouting(
               "Semantic classifier fell back to the builtin provider after an external classifier failure.",
             ]
           : []),
+        ...classification.diagnostics.map((diagnostic) => {
+          const model = diagnostic.model ? ` model=${diagnostic.model}` : "";
+          return `Semantic classifier '${diagnostic.pluginId}' failed (${diagnostic.code}${model}): ${diagnostic.message}`;
+        }),
       ],
     };
   }
@@ -434,6 +438,12 @@ export function applyClassificationRouting(
       "Semantic classifier fell back to the builtin provider after an external classifier failure.",
     );
   }
+  for (const diagnostic of classification.diagnostics) {
+    const model = diagnostic.model ? ` model=${diagnostic.model}` : "";
+    warnings.push(
+      `Semantic classifier '${diagnostic.pluginId}' failed (${diagnostic.code}${model}): ${diagnostic.message}`,
+    );
+  }
   if (
     classifierReplaced &&
     classification.decisions.every((decision) => decision.lane === "none")
@@ -469,7 +479,10 @@ export async function analyzeSemanticAdvisorInputWithPlugins(
   }>,
 ): Promise<SemanticPluginOrchestrationResult> {
   const analysis = analyzeSemanticAdvisorInput(input);
-  if (!options.ensurePlugins) {
+  if (
+    !options.ensurePlugins ||
+    !allowsExternalSemanticClassifier(options.operationName)
+  ) {
     return {
       analysis,
       classification: null,
@@ -500,10 +513,7 @@ export async function analyzeSemanticAdvisorInputWithPlugins(
   let ontologyShadowMatches: readonly StampedOntologyCandidate[] = [];
   let nextAnalysis = analysis;
 
-  if (
-    allowsExternalSemanticClassifier(options.operationName) &&
-    analysis.receipt.logic_readiness !== "modeled"
-  ) {
+  if (analysis.receipt.logic_readiness !== "modeled") {
     const propositions: SemanticClassifierInput["propositions"] =
       analysis.receipt.propositions.map((proposition) => ({
         claimKey: proposition.claim_key,
@@ -616,8 +626,10 @@ export async function composeSemanticClassificationForOperation(
 // implements REQ-capability-plugin-activation-disclosure-v1
 export async function composeOntologyCatalogForOperation(
   context: OperationContext | undefined,
+  operationName: string,
 ): Promise<ComposedOntologyCatalog | null> {
   if (!context?.ensurePlugins) return null;
+  if (!allowsExternalSemanticClassifier(operationName)) return null;
   const registry = await context.ensurePlugins();
   if (!(await hasConfiguredPlugins(registry))) return null;
   const resolution = await registry.resolveOntologyPacks();

@@ -23,8 +23,8 @@ import { pathToFileURL } from "node:url";
 import { PluginValidationError } from "kibi-plugin-sdk";
 
 import {
-  readProjectPackageJson,
   type ProjectPackageManifest,
+  readProjectPackageJson,
 } from "./project-config.js";
 
 // implements REQ-capability-plugin-activation-disclosure-v1
@@ -130,7 +130,11 @@ export function hasConsumerNodeModulesLink(
   packageRoot: string,
 ): boolean {
   try {
-    const linkPath = join(workspaceRoot, "node_modules", ...packageName.split("/"));
+    const linkPath = join(
+      workspaceRoot,
+      "node_modules",
+      ...packageName.split("/"),
+    );
     const linkedRoot = fs.realpathSync(linkPath);
     return (
       isWithinRoot(linkedRoot, packageRoot) ||
@@ -180,8 +184,9 @@ export function packageJsonForResolvedFile(
     const packageJsonPath = join(cursor, "package.json");
     if (fs.existsSync(packageJsonPath)) {
       try {
-        const packageJson = readJson(packageJsonPath) as ProjectPackageManifest &
-          Record<string, unknown>;
+        const packageJson = readJson(
+          packageJsonPath,
+        ) as ProjectPackageManifest & Record<string, unknown>;
         if (packageJson.name === expectedPackageName) {
           return { packageJsonPath, packageRoot: cursor, packageJson };
         }
@@ -194,52 +199,106 @@ export function packageJsonForResolvedFile(
   return null;
 }
 
-function resolvePackageEntry(
+/**
+ * Confine a resolved entry to the realpath'd package root. Rejects
+ * `exports`/`main` traversal and symlink escapes.
+ */
+// implements REQ-capability-plugin-activation-disclosure-v1
+export function assertResolvedEntryInsidePackageRoot(
   packageRoot: string,
-  packageJson: ProjectPackageManifest & Readonly<Record<string, unknown>>,
-  packageName: string,
-  consumerRequire: NodeJS.Require,
-): { entryPath: string; entryUrl: string } {
-  const exportsField = packageJson.exports;
-  if (typeof exportsField === "string") {
-    const entryPath = resolve(packageRoot, exportsField);
-    return { entryPath, entryUrl: pathToFileURL(entryPath).href };
+  entryPath: string,
+): string {
+  let realRoot: string;
+  try {
+    realRoot = fs.realpathSync(packageRoot);
+  } catch {
+    throw new PluginResolutionError(
+      "PACKAGE_NOT_FOUND",
+      `Plugin package root '${packageRoot}' is not readable`,
+    );
   }
+
+  let realEntry: string;
+  try {
+    const stats = fs.statSync(entryPath);
+    if (!stats.isFile()) {
+      throw new PluginResolutionError(
+        "PACKAGE_ENTRY_NOT_FILE",
+        `Plugin package entry '${entryPath}' is not a regular file`,
+      );
+    }
+    realEntry = fs.realpathSync(entryPath);
+  } catch (error) {
+    if (error instanceof PluginResolutionError) throw error;
+    throw new PluginResolutionError(
+      "PACKAGE_ENTRY_NOT_FOUND",
+      `Plugin package entry '${entryPath}' does not exist`,
+    );
+  }
+
+  if (!isWithinRoot(realRoot, realEntry)) {
+    throw new PluginResolutionError(
+      "PACKAGE_ENTRY_OUTSIDE_ROOT",
+      `Resolved plugin entry '${realEntry}' is outside package root '${realRoot}'`,
+    );
+  }
+  return realEntry;
+}
+
+function candidateFromManifest(
+  packageJson: ProjectPackageManifest & Readonly<Record<string, unknown>>,
+): string | undefined {
+  const exportsField = packageJson.exports;
+  if (typeof exportsField === "string") return exportsField;
   if (
     exportsField &&
     typeof exportsField === "object" &&
     !Array.isArray(exportsField)
   ) {
     const rootExport = (exportsField as Record<string, unknown>)["."];
-    if (typeof rootExport === "string") {
-      const entryPath = resolve(packageRoot, rootExport);
-      return { entryPath, entryUrl: pathToFileURL(entryPath).href };
-    }
-    if (rootExport && typeof rootExport === "object" && !Array.isArray(rootExport)) {
+    if (typeof rootExport === "string") return rootExport;
+    if (
+      rootExport &&
+      typeof rootExport === "object" &&
+      !Array.isArray(rootExport)
+    ) {
       const conditional = rootExport as Record<string, unknown>;
-      const candidate =
-        (typeof conditional.import === "string" && conditional.import) ||
-        (typeof conditional.default === "string" && conditional.default) ||
-        (typeof conditional.require === "string" && conditional.require);
-      if (candidate) {
-        const entryPath = resolve(packageRoot, candidate);
-        return { entryPath, entryUrl: pathToFileURL(entryPath).href };
-      }
+      if (typeof conditional.import === "string") return conditional.import;
+      if (typeof conditional.default === "string") return conditional.default;
+      if (typeof conditional.require === "string") return conditional.require;
     }
   }
+  if (typeof packageJson.module === "string") return packageJson.module;
+  if (typeof packageJson.main === "string") return packageJson.main;
+  return undefined;
+}
 
-  if (typeof packageJson.module === "string") {
-    const entryPath = resolve(packageRoot, packageJson.module);
-    return { entryPath, entryUrl: pathToFileURL(entryPath).href };
+function resolvePackageEntryWithNode(
+  packageRoot: string,
+  packageJson: ProjectPackageManifest & Readonly<Record<string, unknown>>,
+  packageName: string,
+  consumerRequire: NodeJS.Require,
+): { entryPath: string; entryUrl: string } {
+  let resolved: string | undefined;
+  try {
+    resolved = consumerRequire.resolve(packageName);
+  } catch {
+    resolved = undefined;
   }
-  if (typeof packageJson.main === "string") {
-    const entryPath = resolve(packageRoot, packageJson.main);
-    return { entryPath, entryUrl: pathToFileURL(entryPath).href };
+  if (resolved === undefined) {
+    const candidate = candidateFromManifest(packageJson);
+    if (candidate) {
+      resolved = resolve(packageRoot, candidate);
+    }
   }
-
-  // Fall back to Node's resolver for the package root export.
-  const resolved = consumerRequire.resolve(packageName);
-  return { entryPath: resolved, entryUrl: pathToFileURL(resolved).href };
+  if (resolved === undefined) {
+    throw new PluginResolutionError(
+      "PACKAGE_ENTRY_NOT_FOUND",
+      `Node could not resolve the root export of '${packageName}' from ${packageRoot}`,
+    );
+  }
+  const entryPath = assertResolvedEntryInsidePackageRoot(packageRoot, resolved);
+  return { entryPath, entryUrl: pathToFileURL(entryPath).href };
 }
 
 /**
@@ -263,13 +322,11 @@ export function resolveProjectLocalPackage(
   }
 
   const consumerRequire = createRequire(join(root, "package.json"));
-  let packageInfo:
-    | {
-        packageJsonPath: string;
-        packageRoot: string;
-        packageJson: ProjectPackageManifest & Readonly<Record<string, unknown>>;
-      }
-    | null = null;
+  let packageInfo: {
+    packageJsonPath: string;
+    packageRoot: string;
+    packageJson: ProjectPackageManifest & Readonly<Record<string, unknown>>;
+  } | null = null;
 
   try {
     packageInfo = packageJsonForResolvedFile(
@@ -301,7 +358,7 @@ export function resolveProjectLocalPackage(
     );
   }
 
-  const { entryPath, entryUrl } = resolvePackageEntry(
+  const { entryPath, entryUrl } = resolvePackageEntryWithNode(
     packageInfo.packageRoot,
     packageInfo.packageJson,
     packageName,

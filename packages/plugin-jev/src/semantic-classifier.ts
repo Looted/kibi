@@ -6,15 +6,15 @@ import {
   type SemanticClassifierV1,
   type SemanticLane,
 } from "kibi-plugin-sdk";
-import { choice, noul } from "./typesafe-client.js";
 import {
+  type JevChoiceAnswer,
   type JevClient,
   type JevClientFactory,
-  type JevChoiceAnswer,
   type JevNoulAnswer,
   JevProviderError,
   mapJevError,
 } from "./jev-client.js";
+import { choice, noul } from "./typesafe-client.js";
 import { createTypeSafeJevClient } from "./typesafe-client.js";
 
 const LANE_CRITERIA = {
@@ -29,10 +29,18 @@ const LANE_CRITERIA = {
 } as const satisfies Record<SemanticLane, string>;
 
 // implements REQ-capability-plugin-jev-fallback-v1
+export const JEV_DEFAULT_MODEL = "jev-latest" as const;
+
+// implements REQ-capability-plugin-jev-fallback-v1
 export type JevSemanticClassifierOptions = Readonly<{
   clientFactory?: JevClientFactory;
   apiKey?: string;
   timeoutMs?: number;
+  /**
+   * TypeSafe/Jev model id. Defaults to `jev-latest`, which is provider-version
+   * dependent; include the configured value in diagnostics/receipts.
+   */
+  model?: string;
 }>;
 
 function isLane(value: string): value is SemanticLane {
@@ -89,6 +97,7 @@ export function createJevSemanticClassifier(
 ): SemanticClassifierV1 {
   let client: JevClient | undefined;
   const factory = options.clientFactory ?? createTypeSafeJevClient;
+  const model = options.model ?? JEV_DEFAULT_MODEL;
 
   const ensureClient = (): JevClient => {
     client ??= factory({
@@ -113,7 +122,7 @@ export function createJevSemanticClassifier(
         const questions: Record<string, unknown> = {};
         for (const proposition of input.propositions) {
           questions[`lane:${proposition.claimKey}`] = choice(
-            `Select the Kibi modeling lane for this proposition.`,
+            "Select the Kibi modeling lane for this proposition.",
             LANE_CRITERIA,
           );
           questions[`ambiguous:${proposition.claimKey}`] = noul(
@@ -122,7 +131,7 @@ export function createJevSemanticClassifier(
         }
 
         const response = await ensureClient().systemOne({
-          model: "jev-latest",
+          model,
           state: {
             propositions: input.propositions.map((proposition) => ({
               claimKey: proposition.claimKey,
@@ -169,7 +178,11 @@ export function createJevSemanticClassifier(
 
         return { decisions };
       } catch (error) {
-        throw mapJevError(error);
+        const mapped = mapJevError(error);
+        throw new JevProviderError(mapped.code, mapped.message, {
+          cause: mapped,
+          model,
+        });
       }
     },
   };

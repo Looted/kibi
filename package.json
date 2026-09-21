@@ -22,7 +22,7 @@
     "test:docker": "./scripts/docker/test.sh",
     "docker:build": "docker compose -f docker/compose.test.yml build",
     "docker:clean": "docker compose -f docker/compose.test.yml down -v --remove-orphans",
-    "pack:all": "npm pack --workspace packages/core && npm pack --workspace packages/plugin-sdk && npm pack --workspace packages/plugin-builtin && npm pack --workspace packages/plugin-jev && npm pack --workspace packages/cli && npm pack --workspace packages/runtime && npm pack --workspace packages/mcp && npm pack --workspace packages/opencode && npm pack --workspace packages/codex && npm pack --workspace packages/cursor && npm pack --workspace packages/zcode",
+    "pack:all": "bun run scripts/pack-packages.ts --slice pack-all",
     "schema:generate": "bun run --filter ./packages/cli schema:generate",
     "schema:check": "bun run --filter ./packages/cli schema:check",
     "rules:generate": "node scripts/generate-rule-registry.mjs",

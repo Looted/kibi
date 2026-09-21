@@ -195,3 +195,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b982a0c323c9
+  - type: implements
+    from: SYM-package-catalog-lookup-entry
+    to: REQ-020
+    created_at: 2026-09-21T15:29:23.851Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7c6ae662a973

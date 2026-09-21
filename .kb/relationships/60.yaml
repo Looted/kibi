@@ -48,3 +48,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c9f0778c53ad
+  - type: implements
+    from: SYM-package-catalog-tarball-clean-dirs
+    to: REQ-020
+    created_at: 2026-09-21T15:28:54.699Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6608e75b2d28

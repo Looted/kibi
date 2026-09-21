@@ -11,6 +11,7 @@ import {
 import os from "node:os";
 import path from "node:path";
 import {
+  UnitCoverageFailure,
   runUnitCoverage,
   runUnitCoverageIfMain,
   summarizeBranchCoverage,
@@ -19,6 +20,7 @@ import {
 const roots: string[] = [];
 
 afterEach(() => {
+  process.exitCode = 0;
   while (roots.length > 0) {
     const root = roots.pop();
     if (root) rmSync(root, { recursive: true, force: true });
@@ -55,7 +57,6 @@ describe("runUnitCoverage mocked shards", () => {
     mkdirSync(path.join(root, "packages", "demo", "src"), { recursive: true });
     writeFileSync(path.join(root, "packages", "demo", "src", "main.ts"), "x\n");
     const previousCwd = process.cwd();
-    const previousExit = process.exitCode;
     const nestedCoverage = {
       ...isolatedCoverageOptions(root),
       // Deliberately share the outer base to exercise nested cleanup order.
@@ -114,7 +115,9 @@ describe("runUnitCoverage mocked shards", () => {
     }) as typeof childProcess.spawnSync);
     process.chdir(root);
     try {
-      await runUnitCoverage(nestedCoverage);
+      await expect(runUnitCoverage(nestedCoverage)).rejects.toBeInstanceOf(
+        UnitCoverageFailure,
+      );
       const merged = readFileSync(
         path.join(nestedCoverage.coverageDir, "lcov.info"),
         "utf8",
@@ -146,7 +149,7 @@ describe("runUnitCoverage mocked shards", () => {
         "utf8",
       );
       expect(failed).toContain("skillopt");
-      expect(failed).toContain("runtime (exit 1)");
+      expect(failed).toContain("runtime (exit 1,");
       expect(failed).toContain("coverage artifact missing");
       expect(errors.join("\n")).toContain(
         "Unit coverage shard runtime timed out after 900000ms",
@@ -158,10 +161,8 @@ describe("runUnitCoverage mocked shards", () => {
         ),
       ).toContain("branch coverage: unavailable");
       expect(spawnTimeouts).toContain(900_000);
-      expect(process.exitCode).toBe(1);
     } finally {
       process.chdir(previousCwd);
-      process.exitCode = previousExit ?? 0;
       spawnSpy.mockRestore();
       errorSpy.mockRestore();
     }
@@ -177,7 +178,6 @@ describe("runUnitCoverage mocked shards", () => {
       "y\n",
     );
     const previousCwd = process.cwd();
-    const previousExit = process.exitCode;
     const errors: string[] = [];
     const warnings: string[] = [];
     const errorSpy = spyOn(console, "error").mockImplementation((message) => {
@@ -209,7 +209,7 @@ describe("runUnitCoverage mocked shards", () => {
       expect(process.exitCode).toBe(1);
     } finally {
       process.chdir(previousCwd);
-      process.exitCode = previousExit ?? 0;
+      process.exitCode = 0;
       spawnSpy.mockRestore();
       errorSpy.mockRestore();
       warnSpy.mockRestore();
@@ -228,7 +228,6 @@ describe("runUnitCoverage mocked shards", () => {
       "y\n",
     );
     const previousCwd = process.cwd();
-    const previousExit = process.exitCode;
     const errors: string[] = [];
     const errorSpy = spyOn(console, "error").mockImplementation((message) => {
       errors.push(String(message));
@@ -248,13 +247,13 @@ describe("runUnitCoverage mocked shards", () => {
     }) as typeof childProcess.spawnSync);
     process.chdir(root);
     try {
-      await runUnitCoverage(isolatedCoverageOptions(root));
+      await expect(
+        runUnitCoverage(isolatedCoverageOptions(root)),
+      ).rejects.toBeInstanceOf(UnitCoverageFailure);
       expect(errors.join("\n")).toContain("Coverage manifest audit failed");
       expect(errors.join("\n")).not.toContain("below the 50% floor");
-      expect(process.exitCode).toBe(1);
     } finally {
       process.chdir(previousCwd);
-      process.exitCode = previousExit ?? 0;
       spawnSpy.mockRestore();
       errorSpy.mockRestore();
     }

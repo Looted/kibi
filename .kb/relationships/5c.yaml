@@ -230,3 +230,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-04d2fda6f7dd
+  - type: implements
+    from: SYM-PUBLISHABLE-DIRS
+    to: REQ-020
+    created_at: 2026-09-21T15:32:26.336Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05c67ab5ed42

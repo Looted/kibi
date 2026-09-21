@@ -17,7 +17,15 @@
 */
 
 import { describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -42,6 +50,7 @@ import {
   allowsExternalSemanticClassifier,
   analyzeWithResolution,
   assertBarePackageName,
+  assertResolvedEntryInsidePackageRoot,
   composeOntologyCatalog,
   composeOntologyMatches,
   composeSemanticClassification,
@@ -838,9 +847,7 @@ describe("capability plugin host", () => {
     expect(matched.canonical).toEqual([]);
     expect(matched.shadow).toEqual([]);
     expect(
-      matched.diagnostics.some((d) =>
-        /shadow-ont.*schemas\(\) failed/.test(d),
-      ),
+      matched.diagnostics.some((d) => /shadow-ont.*schemas\(\) failed/.test(d)),
     ).toBe(true);
   });
 
@@ -1127,6 +1134,230 @@ describe("capability plugin host", () => {
     }
   });
 
+  test("resolves ESM import exports and rejects NODE_PATH packages", async () => {
+    const root = mkdtempSync(join(tmpdir(), "kibi-plugin-esm-"));
+    const pluginRoot = join(root, "node_modules", "esm-plugin");
+    try {
+      mkdirSync(pluginRoot, { recursive: true });
+      writeFileSync(
+        join(root, "package.json"),
+        JSON.stringify({
+          name: "consumer",
+          dependencies: { "esm-plugin": "1.0.0" },
+        }),
+      );
+      writeFileSync(
+        join(pluginRoot, "package.json"),
+        JSON.stringify({
+          name: "esm-plugin",
+          version: "1.0.0",
+          type: "module",
+          exports: {
+            ".": { import: "./dist/index.js", default: "./dist/index.js" },
+          },
+        }),
+      );
+      mkdirSync(join(pluginRoot, "dist"), { recursive: true });
+      writeFileSync(
+        join(pluginRoot, "dist/index.js"),
+        "export const kibiPlugin = {}\n",
+      );
+      const resolved = resolveProjectLocalPackage(root, "esm-plugin");
+      expect(resolved.entryPath).toContain(
+        `${join("esm-plugin", "dist", "index.js")}`,
+      );
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test("maintenance extract does not import a configured third-party plugin module", async () => {
+    const { extractSymbolsFromStagedFileAsync } = await import(
+      "../../src/traceability/symbol-extract.js"
+    );
+    const root = mkdtempSync(join(tmpdir(), "kibi-plugin-side-effect-"));
+    const pluginRoot = join(root, "node_modules", "side-effect-plugin");
+    const logPath = join(root, "import.log");
+    try {
+      mkdirSync(pluginRoot, { recursive: true });
+      writeFileSync(
+        join(root, "package.json"),
+        JSON.stringify({
+          name: "consumer",
+          dependencies: { "side-effect-plugin": "1.0.0" },
+          kibi: {
+            plugins: [
+              {
+                package: "side-effect-plugin",
+                capabilities: {
+                  [SYMBOL_EXTRACTOR_CAPABILITY_ID]: { mode: "replace" },
+                },
+              },
+            ],
+          },
+        }),
+      );
+      writeFileSync(
+        join(pluginRoot, "package.json"),
+        JSON.stringify({
+          name: "side-effect-plugin",
+          version: "1.0.0",
+          type: "module",
+          main: "./index.js",
+        }),
+      );
+      writeFileSync(
+        join(pluginRoot, "index.js"),
+        [
+          'import { appendFileSync } from "node:fs";',
+          `appendFileSync(${JSON.stringify(logPath)}, "imported\\n");`,
+          "export const kibiPlugin = {",
+          '  apiVersion: "kibi.plugin.v1",',
+          '  id: "side-effect-plugin",',
+          '  version: "1.0.0",',
+          "  permissions: { network: false, metered: false, secrets: [] },",
+          "  capabilities: {",
+          "    symbolExtractor: {",
+          '      id: "side-effect-plugin.symbols",',
+          "      supports: () => true,",
+          "      analyze: ({ path }) => ({",
+          "        sourceFile: path,",
+          '        language: "typescript",',
+          '        module: { title: "side", language: "typescript", analysisMode: "parser" },',
+          "        symbols: [],",
+          "      }),",
+          "    },",
+          "  },",
+          "};",
+          "",
+        ].join("\n"),
+      );
+
+      const staged = {
+        path: "src/hello.ts",
+        status: "M" as const,
+        hunkRanges: [{ start: 1, end: 3 }],
+        content: "export function helloWorld() {\n  return 1;\n}\n",
+      };
+      const maintenance = await extractSymbolsFromStagedFileAsync(
+        staged,
+        undefined,
+        {},
+      );
+      expect(maintenance.some((symbol) => symbol.name === "helloWorld")).toBe(
+        true,
+      );
+      expect(existsSync(logPath)).toBe(false);
+
+      const registry = new CapabilityRegistry({
+        workspaceRoot: root,
+        builtinFactory: () => createStubBuiltinPlugin(),
+      });
+      await registry.resolveSymbolExtractors();
+      expect(readFileSync(logPath, "utf8")).toContain("imported");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test("suggest-predicates and coverage do not import configured third-party plugins", async () => {
+    const { composeOntologyCatalogForOperation } = await import(
+      "../../src/operations/semantic-advisor/plugin-orchestration.js"
+    );
+    const { buildSymbolRepairPlan } = await import(
+      "../../src/public/operations/symbol-repair-plan.js"
+    );
+    const root = mkdtempSync(join(tmpdir(), "kibi-plugin-maint-import-"));
+    const pluginRoot = join(root, "node_modules", "side-effect-plugin");
+    const logPath = join(root, "import.log");
+    try {
+      mkdirSync(pluginRoot, { recursive: true });
+      writeFileSync(
+        join(root, "package.json"),
+        JSON.stringify({
+          name: "consumer",
+          dependencies: { "side-effect-plugin": "1.0.0" },
+          kibi: {
+            plugins: [
+              {
+                package: "side-effect-plugin",
+                capabilities: {
+                  [ONTOLOGY_PACK_CAPABILITY_ID]: { mode: "replace" },
+                  [SYMBOL_EXTRACTOR_CAPABILITY_ID]: { mode: "replace" },
+                },
+              },
+            ],
+          },
+        }),
+      );
+      writeFileSync(
+        join(pluginRoot, "package.json"),
+        JSON.stringify({
+          name: "side-effect-plugin",
+          version: "1.0.0",
+          type: "module",
+          main: "./index.js",
+        }),
+      );
+      writeFileSync(
+        join(pluginRoot, "index.js"),
+        [
+          'import { appendFileSync } from "node:fs";',
+          `appendFileSync(${JSON.stringify(logPath)}, "imported\\n");`,
+          "export const kibiPlugin = {",
+          '  apiVersion: "kibi.plugin.v1",',
+          '  id: "side-effect-plugin",',
+          '  version: "1.0.0",',
+          "  permissions: { network: false, metered: false, secrets: [] },",
+          "  capabilities: {",
+          "    ontologyPack: { id: 'side-effect-plugin.ontology', schemas: () => [], match: () => [] },",
+          "    symbolExtractor: {",
+          '      id: "side-effect-plugin.symbols",',
+          "      supports: () => true,",
+          "      analyze: ({ path }) => ({",
+          "        sourceFile: path,",
+          '        language: "typescript",',
+          '        module: { title: "side", language: "typescript", analysisMode: "parser" },',
+          "        symbols: [],",
+          "      }),",
+          "    },",
+          "  },",
+          "};",
+          "",
+        ].join("\n"),
+      );
+
+      const registry = new CapabilityRegistry({
+        workspaceRoot: root,
+        builtinFactory: () => createStubBuiltinPlugin(),
+      });
+      const ensurePlugins = async () => registry;
+      expect(
+        await composeOntologyCatalogForOperation(
+          { workspaceRoot: root, ensurePlugins } as never,
+          "kb_suggest_predicates",
+        ),
+      ).toBeNull();
+      expect(existsSync(logPath)).toBe(false);
+
+      await buildSymbolRepairPlan([], {
+        workspaceRoot: root,
+        ensurePlugins,
+      } as never);
+      expect(existsSync(logPath)).toBe(false);
+
+      expect(
+        await composeOntologyCatalogForOperation(
+          { workspaceRoot: root, ensurePlugins } as never,
+          "kb_semantic_advisor",
+        ),
+      ).not.toBeNull();
+      expect(readFileSync(logPath, "utf8")).toContain("imported");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   // executable_for TEST-capability-plugin-host-resolution-v1
   test("SourceAnalysisService constructs from registry", async () => {
     const registry = createCapabilityRegistry({
@@ -1327,8 +1558,7 @@ describe("capability plugin host", () => {
       "../../src/operations/semantic-advisor/analyze-prose.js"
     );
 
-    const prose =
-      "Checkout requires payment authorization before submission.";
+    const prose = "Checkout requires payment authorization before submission.";
     const sync = analyzeSemanticAdvisorInput({
       payload: {
         type: "req",
@@ -1500,5 +1730,176 @@ describe("capability plugin host", () => {
         ? gap.recommendedPredicateSchema?.predicate_name
         : null,
     ).toBe("requires_before");
+  });
+
+  test("rejected package load does not poison later retries on the same registry", async () => {
+    let attempts = 0;
+    const registry = createCapabilityRegistry({
+      workspaceRoot: "/tmp/retry-load",
+      projectConfig: {
+        plugins: [
+          {
+            package: "flaky-plugin",
+            capabilities: {
+              [SEMANTIC_CLASSIFIER_CAPABILITY_ID]: { mode: "augment" },
+            },
+          },
+        ],
+      },
+      builtinFactory: () => createStubBuiltinPlugin(),
+      loadPlugin: async () => {
+        attempts += 1;
+        if (attempts === 1) {
+          throw new Error("transient import failure");
+        }
+        return loaded("flaky-plugin", makePlugin("flaky-plugin"));
+      },
+    });
+
+    await expect(registry.resolveSemanticClassifiers()).rejects.toThrow(
+      /transient import failure/,
+    );
+    const resolution = await registry.resolveSemanticClassifiers();
+    expect(attempts).toBe(2);
+    expect(resolution.augment).toHaveLength(1);
+    expect(resolution.augment[0]?.packageName).toBe("flaky-plugin");
+  });
+
+  test("replace classifier failure falls back with visible diagnostics", async () => {
+    const builtin: SemanticClassifierV1 = {
+      id: "builtin-sem-ok",
+      classify: async (input) => ({
+        decisions: input.propositions.map((proposition) => ({
+          claimKey: proposition.claimKey,
+          lane: "predicate" as const,
+          confidence: 0.4,
+        })),
+      }),
+    };
+    const replace: SemanticClassifierV1 = {
+      id: "replace-sem-throw",
+      classify: async () => {
+        throw Object.assign(new Error("quota exceeded"), {
+          code: "quota",
+          model: "jev-latest",
+        });
+      },
+    };
+    const stamp = {
+      pluginId: "replace-fail",
+      pluginVersion: "1",
+      capability: SEMANTIC_CLASSIFIER_CAPABILITY_ID,
+      mode: "replace" as const,
+      external: true,
+      network: true,
+      metered: true,
+    };
+    const result = await composeSemanticClassification(
+      {
+        builtin: {
+          pluginId: "builtin",
+          pluginVersion: "1",
+          packageName: null,
+          mode: "builtin",
+          permissions: { network: false, metered: false, secrets: [] },
+          external: false,
+          capability: builtin,
+          stamp: {
+            ...stamp,
+            pluginId: "builtin",
+            mode: "augment",
+            external: false,
+            network: false,
+            metered: false,
+          },
+        },
+        replace: {
+          pluginId: "replace-fail",
+          pluginVersion: "1",
+          packageName: "replace-pkg",
+          mode: "replace",
+          permissions: { network: true, metered: true, secrets: ["KEY"] },
+          external: true,
+          capability: replace,
+          stamp,
+        },
+        augment: [],
+        shadow: [],
+      },
+      { propositions: [{ claimKey: "c1", statement: "Users own workspaces" }] },
+      { operationName: "kb_semantic_advisor" },
+    );
+    expect(result.fallbackUsed).toBe(true);
+    expect(result.decisions[0]?.lane).toBe("predicate");
+    expect(
+      result.stamps.some((entry) => entry.pluginId === "replace-fail"),
+    ).toBe(false);
+    expect(result.stamps.some((entry) => entry.fallbackUsed === true)).toBe(
+      true,
+    );
+    expect(result.diagnostics).toEqual([
+      expect.objectContaining({
+        pluginId: "replace-fail",
+        code: "quota",
+        model: "jev-latest",
+      }),
+    ]);
+  });
+
+  test("rejects resolved entries that escape the package root", () => {
+    const root = mkdtempSync(join(tmpdir(), "kibi-plugin-escape-"));
+    try {
+      const packageRoot = join(root, "plugin");
+      mkdirSync(packageRoot, { recursive: true });
+      const outside = join(root, "outside.js");
+      writeFileSync(outside, "export default 1\n");
+      writeFileSync(join(packageRoot, "index.js"), "export default 1\n");
+      expect(() =>
+        assertResolvedEntryInsidePackageRoot(packageRoot, outside),
+      ).toThrow(/outside package root/);
+
+      const link = join(packageRoot, "escape.js");
+      symlinkSync(outside, link);
+      expect(() =>
+        assertResolvedEntryInsidePackageRoot(packageRoot, link),
+      ).toThrow(/outside package root/);
+
+      expect(
+        assertResolvedEntryInsidePackageRoot(
+          packageRoot,
+          join(packageRoot, "index.js"),
+        ),
+      ).toContain(packageRoot);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test("duplicate plugin ids from two packages are rejected", async () => {
+    const shared = makePlugin("shared-id");
+    const registry = createCapabilityRegistry({
+      workspaceRoot: "/tmp/dup-id",
+      projectConfig: {
+        plugins: [
+          {
+            package: "pkg-a",
+            capabilities: {
+              [SEMANTIC_CLASSIFIER_CAPABILITY_ID]: { mode: "augment" },
+            },
+          },
+          {
+            package: "pkg-b",
+            capabilities: {
+              [SEMANTIC_CLASSIFIER_CAPABILITY_ID]: { mode: "shadow" },
+            },
+          },
+        ],
+      },
+      builtinFactory: () => createStubBuiltinPlugin(),
+      loadPlugin: async (_root, packageName) => loaded(packageName, shared),
+    });
+    await expect(registry.resolveSemanticClassifiers()).rejects.toMatchObject({
+      code: "DUPLICATE_PLUGIN_ID",
+    });
   });
 });

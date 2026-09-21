@@ -1,7 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { COVERAGE_SHARDS, selectedShards, shardLabelsFromArgv } from "../run-unit-coverage";
+import {
+  COVERAGE_SHARDS,
+  formatCoverageFailure,
+  selectedShards,
+  shardLabelsFromArgv,
+} from "../run-unit-coverage";
 
 const runnerSource = readFileSync(
   join(import.meta.dir, "..", "run-unit-coverage.ts"),
@@ -77,8 +82,18 @@ describe("unit coverage runner contract", () => {
     ]);
     expect(
       COVERAGE_SHARDS.find((shard) => shard.label === "cli.commands")
-        ?.timeoutMs,
-    ).toBe(120_000);
+        ?.isolation,
+    ).toBe("process-per-file");
+    expect(
+      COVERAGE_SHARDS.find((shard) => shard.label === "cli.check-command")
+        ?.isolation,
+    ).toBe("process-per-file");
+    expect(
+      COVERAGE_SHARDS.find((shard) => shard.label === "cli.doctor")?.isolation,
+    ).toBe("process-per-file");
+    expect(runnerSource).not.toContain("CLI_COMMANDS_PROCESS_TIMEOUT_MS");
+    expect(runnerSource).toContain("FILE_PROCESS_TIMEOUT_MS");
+    expect(runnerSource).toContain('isolation?: "batch" | "process-per-file"');
     expect(
       COVERAGE_SHARDS.find((shard) => shard.label === "cli.sync-command")
         ?.paths,
@@ -156,9 +171,9 @@ describe("unit coverage runner contract", () => {
   });
 
   test("shardLabelsFromArgv reads --shards, equals form, then env", () => {
-    expect(shardLabelsFromArgv(["--shards", "cli.check-command,cli.doctor"])).toEqual(
-      ["cli.check-command", "cli.doctor"],
-    );
+    expect(
+      shardLabelsFromArgv(["--shards", "cli.check-command,cli.doctor"]),
+    ).toEqual(["cli.check-command", "cli.doctor"]);
     expect(shardLabelsFromArgv(["--shards=cli.commands"])).toEqual([
       "cli.commands",
     ]);
@@ -166,5 +181,41 @@ describe("unit coverage runner contract", () => {
       shardLabelsFromArgv([], { KIBI_COVERAGE_SHARDS: " cli.sync-command " }),
     ).toEqual(["cli.sync-command"]);
     expect(shardLabelsFromArgv([])).toBeUndefined();
+  });
+
+  test("formatCoverageFailure names the exact file, timeout, and last output", () => {
+    expect(
+      formatCoverageFailure({
+        label: "cli.commands",
+        file: "./packages/cli/tests/commands/sync.test.ts",
+        exitCode: 1,
+        durationMs: 301_000,
+        timeoutMs: 300_000,
+        timedOut: true,
+        lastOutput: "spawnSync /bin/sh ETIMEDOUT",
+      }),
+    ).toBe(
+      'cli.commands file=./packages/cli/tests/commands/sync.test.ts (exit 1, 301000ms, timeout=300000ms timedOut lastOutput="spawnSync /bin/sh ETIMEDOUT")',
+    );
+  });
+
+  test("process-per-file isolation is the default for process-heavy CLI shards", () => {
+    for (const label of [
+      "cli.commands",
+      "cli.check-command",
+      "cli.sync-command",
+      "cli.sync-coverage",
+      "cli.doctor",
+      "cli.engine-live-socket",
+      "cli.report-remaining",
+      "cli.sync-tracked-relationships",
+    ]) {
+      expect(
+        COVERAGE_SHARDS.find((shard) => shard.label === label)?.isolation,
+      ).toBe("process-per-file");
+    }
+    expect(runnerSource).not.toContain("25 * 60 * 1000");
+    expect(runnerSource).toContain("allowEmpty: result.exitCode === 0");
+    expect(runnerSource).toContain("recording an empty coverage artifact");
   });
 });

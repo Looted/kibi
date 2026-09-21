@@ -27,6 +27,7 @@ export {
   PluginResolutionError,
   PluginValidationError,
   assertBarePackageName,
+  assertResolvedEntryInsidePackageRoot,
   hasConsumerNodeModulesLink,
   hasDeclaredProjectDependency,
   isBarePackageName,
@@ -59,6 +60,7 @@ export {
 export {
   composeSemanticClassification,
   type ComposedSemanticClassifierResult,
+  type SemanticClassifierDiagnostic,
 } from "./compose-semantic-classifier.js";
 // implements REQ-capability-plugin-activation-disclosure-v1
 export {

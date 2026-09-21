@@ -58,12 +58,18 @@ export class JevProviderError extends Error {
   constructor(
     code: JevProviderError["code"],
     message: string,
-    options?: { readonly cause?: unknown },
+    options?: { readonly cause?: unknown; readonly model?: string },
   ) {
     super(message, options);
     this.name = "JevProviderError";
     this.code = code;
+    if (options?.model !== undefined) {
+      this.model = options.model;
+    }
   }
+
+  // implements REQ-capability-plugin-jev-fallback-v1
+  readonly model?: string;
 }
 
 // implements REQ-capability-plugin-jev-fallback-v1

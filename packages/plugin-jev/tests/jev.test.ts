@@ -1,17 +1,19 @@
-import { describe, expect, test, mock } from "bun:test";
+import { describe, expect, mock, test } from "bun:test";
 import {
   validateKibiPlugin,
   validateSemanticClassifierResult,
 } from "kibi-plugin-sdk";
 import {
+  JevProviderError,
   createJevPlugin,
   createJevSemanticClassifier,
-  JevProviderError,
   kibiPlugin,
 } from "../src/index.js";
 import type { JevClient, JevSystemOneResult } from "../src/jev-client.js";
 
-function mockClient(result: JevSystemOneResult | (() => Promise<JevSystemOneResult>)): JevClient {
+function mockClient(
+  result: JevSystemOneResult | (() => Promise<JevSystemOneResult>),
+): JevClient {
   return {
     systemOne: mock(async () =>
       typeof result === "function" ? result() : result,
@@ -88,6 +90,9 @@ describe("kibi-plugin-jev", () => {
       },
     ]);
     expect(client.systemOne).toHaveBeenCalledTimes(1);
+    expect(client.systemOne).toHaveBeenCalledWith(
+      expect.objectContaining({ model: "jev-latest" }),
+    );
   });
 
   // executable_for TEST-capability-plugin-jev-fallback-v1
@@ -175,7 +180,9 @@ describe("kibi-plugin-jev", () => {
         }),
     });
 
-    const result = await plugin.capabilities.semanticClassifier!.classify({
+    const classifier = plugin.capabilities.semanticClassifier;
+    expect(classifier).toBeDefined();
+    const result = await classifier.classify({
       propositions: [{ claimKey: "c1", statement: "informational note" }],
     });
     expect(result.decisions[0]?.lane).toBe("none");

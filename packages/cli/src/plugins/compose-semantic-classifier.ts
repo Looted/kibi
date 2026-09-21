@@ -17,7 +17,9 @@
 */
 
 import {
+  type PluginMode,
   type PluginProviderStamp,
+  PluginValidationError,
   type SemanticClassificationDecision,
   type SemanticClassifierInput,
   type SemanticClassifierResult,
@@ -32,6 +34,16 @@ import type {
 } from "./registry.js";
 
 // implements REQ-capability-plugin-activation-disclosure-v1
+export type SemanticClassifierDiagnostic = Readonly<{
+  pluginId: string;
+  packageName: string | null;
+  mode: PluginMode | "builtin";
+  code: string;
+  message: string;
+  model?: string;
+}>;
+
+// implements REQ-capability-plugin-activation-disclosure-v1
 export type ComposedSemanticClassifierResult = Readonly<{
   decisions: readonly SemanticClassificationDecision[];
   stamps: readonly PluginProviderStamp[];
@@ -40,7 +52,12 @@ export type ComposedSemanticClassifierResult = Readonly<{
     readonly decisions: readonly SemanticClassificationDecision[];
   }[];
   fallbackUsed: boolean;
+  diagnostics: readonly SemanticClassifierDiagnostic[];
 }>;
+
+type ClassifierAttempt =
+  | { readonly ok: true; readonly result: SemanticClassifierResult }
+  | { readonly ok: false; readonly diagnostic: SemanticClassifierDiagnostic };
 
 function withFallback(
   stamp: PluginProviderStamp,
@@ -58,19 +75,66 @@ function isUnresolved(
   return false;
 }
 
+function redactClassifierMessage(message: string): string {
+  return message
+    .replace(/sk-[A-Za-z0-9_-]+/g, "[redacted]")
+    .replace(/(api[_-]?key\s*[:=]\s*)\S+/gi, "$1[redacted]")
+    .slice(0, 300);
+}
+
+function diagnosticFromError(
+  binding: CapabilityProviderBinding<SemanticClassifierV1>,
+  error: unknown,
+): SemanticClassifierDiagnostic {
+  const message = redactClassifierMessage(
+    error instanceof Error ? error.message : String(error),
+  );
+  let code = "unknown";
+  let model: string | undefined;
+  if (error instanceof PluginValidationError) {
+    code = error.code;
+  } else if (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    typeof (error as { code?: unknown }).code === "string"
+  ) {
+    code = (error as { code: string }).code;
+  }
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "model" in error &&
+    typeof (error as { model?: unknown }).model === "string"
+  ) {
+    model = (error as { model: string }).model;
+  }
+  return {
+    pluginId: binding.pluginId,
+    packageName: binding.packageName,
+    mode: binding.mode,
+    code,
+    message,
+    ...(model !== undefined ? { model } : {}),
+  };
+}
+
 async function runClassifier(
   binding: CapabilityProviderBinding<SemanticClassifierV1>,
   input: SemanticClassifierInput,
-): Promise<SemanticClassifierResult | null> {
+): Promise<ClassifierAttempt> {
   try {
     const raw = await binding.capability.classify(input);
-    return validateSemanticClassifierResult(raw, {
-      expectedClaimKeys: input.propositions.map(
-        (proposition) => proposition.claimKey,
-      ),
-    });
-  } catch {
-    return null;
+    return {
+      ok: true,
+      result: validateSemanticClassifierResult(raw, {
+        expectedClaimKeys: input.propositions.map(
+          (proposition) => proposition.claimKey,
+        ),
+      }),
+    };
+  } catch (error) {
+    return { ok: false, diagnostic: diagnosticFromError(binding, error) };
   }
 }
 
@@ -83,10 +147,7 @@ function fillMissingDecisions(
     decisions.map((decision) => [decision.claimKey, decision]),
   );
   const builtinByKey = new Map(
-    (builtin?.decisions ?? []).map((decision) => [
-      decision.claimKey,
-      decision,
-    ]),
+    (builtin?.decisions ?? []).map((decision) => [decision.claimKey, decision]),
   );
   return input.propositions.map((proposition) => {
     const existing = byKey.get(proposition.claimKey);
@@ -115,6 +176,7 @@ export async function composeSemanticClassification(
 ): Promise<ComposedSemanticClassifierResult> {
   const allowExternal = allowsExternalSemanticClassifier(options.operationName);
   const stamps: PluginProviderStamp[] = [];
+  const diagnostics: SemanticClassifierDiagnostic[] = [];
   const shadowComparisons: Array<{
     readonly stamp: PluginProviderStamp;
     readonly decisions: readonly SemanticClassificationDecision[];
@@ -124,21 +186,32 @@ export async function composeSemanticClassification(
 
   if (allowExternal && resolution.replace) {
     const replaced = await runClassifier(resolution.replace, input);
-    if (replaced) {
+    if (replaced.ok) {
       // Replace success: missing decisions get conservative `none`, not builtin
       // fill. Valid empty decisions[] is abstention (same as ontology replace).
-      decisions = fillMissingDecisions(input, replaced.decisions, null);
+      decisions = fillMissingDecisions(input, replaced.result.decisions, null);
       stamps.push(resolution.replace.stamp);
     } else {
+      diagnostics.push(replaced.diagnostic);
       const builtinResult = await runClassifier(resolution.builtin, input);
-      decisions = builtinResult ? [...builtinResult.decisions] : [];
+      if (builtinResult.ok) {
+        decisions = [...builtinResult.result.decisions];
+        stamps.push(withFallback(resolution.builtin.stamp, true));
+      } else {
+        diagnostics.push(builtinResult.diagnostic);
+        decisions = [];
+      }
       fallbackUsed = true;
-      stamps.push(withFallback(resolution.builtin.stamp, true));
     }
   } else {
     const builtinResult = await runClassifier(resolution.builtin, input);
-    decisions = builtinResult ? [...builtinResult.decisions] : [];
-    stamps.push(resolution.builtin.stamp);
+    if (builtinResult.ok) {
+      decisions = [...builtinResult.result.decisions];
+      stamps.push(resolution.builtin.stamp);
+    } else {
+      diagnostics.push(builtinResult.diagnostic);
+      decisions = [];
+    }
 
     if (allowExternal) {
       for (const augment of resolution.augment) {
@@ -160,12 +233,15 @@ export async function composeSemanticClassification(
           ),
         };
         const augmentResult = await runClassifier(augment, subset);
-        if (!augmentResult) continue;
+        if (!augmentResult.ok) {
+          diagnostics.push(augmentResult.diagnostic);
+          continue;
+        }
         stamps.push(augment.stamp);
         const byKey = new Map(
           decisions.map((decision) => [decision.claimKey, decision]),
         );
-        for (const decision of augmentResult.decisions) {
+        for (const decision of augmentResult.result.decisions) {
           if (!unresolvedKeys.has(decision.claimKey)) continue;
           if (decision.lane === "none") continue;
           byKey.set(decision.claimKey, decision);
@@ -173,7 +249,7 @@ export async function composeSemanticClassification(
         decisions = fillMissingDecisions(
           input,
           [...byKey.values()],
-          builtinResult,
+          builtinResult.ok ? builtinResult.result : null,
         );
       }
     }
@@ -184,11 +260,14 @@ export async function composeSemanticClassification(
   if (allowExternal) {
     for (const shadow of resolution.shadow) {
       const shadowResult = await runClassifier(shadow, input);
-      if (!shadowResult) continue;
+      if (!shadowResult.ok) {
+        diagnostics.push(shadowResult.diagnostic);
+        continue;
+      }
       stamps.push(shadow.stamp);
       shadowComparisons.push({
         stamp: shadow.stamp,
-        decisions: shadowResult.decisions,
+        decisions: shadowResult.result.decisions,
       });
     }
   }
@@ -198,5 +277,6 @@ export async function composeSemanticClassification(
     stamps,
     shadowComparisons,
     fallbackUsed,
+    diagnostics,
   };
 }

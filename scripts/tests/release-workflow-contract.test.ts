@@ -65,7 +65,7 @@ describe("publish.yml CI workflow contract", () => {
     expect(block).toContain("ref: refs/heads/master");
     expect(block).not.toContain("fetch-depth: 0");
     expect(block).toContain("bun run build:runtime");
-    expect(block).toContain("cd ../runtime && npm pack");
+    expect(block).toContain("scripts/pack-packages.ts --slice publishable");
     expect(block).toContain("packages/runtime/*.tgz");
   });
 
@@ -84,10 +84,11 @@ describe("publish.yml CI workflow contract", () => {
 
   test("keeps package packing and smoke-install order canonical", () => {
     const block = extractJobBlock(workflowContent, "build-and-check");
-    const packOrder = [
-      ...block.matchAll(/cd (?:packages\/|\.\.\/)([^ ]+) && npm pack/g),
+    expect(block).toContain("scripts/pack-packages.ts --slice publishable");
+    const artifactOrder = [
+      ...block.matchAll(/packages\/([^/]+)\/\*\.tgz/g),
     ].map(([, directory]) => directory);
-    expect(packOrder).toEqual([
+    expect(artifactOrder).toEqual([
       "core",
       "plugin-sdk",
       "plugin-builtin",
@@ -99,10 +100,6 @@ describe("publish.yml CI workflow contract", () => {
       "codex",
       "cursor",
     ]);
-    const artifactOrder = [
-      ...block.matchAll(/packages\/([^/]+)\/\*\.tgz/g),
-    ].map(([, directory]) => directory);
-    expect(artifactOrder).toEqual(packOrder);
 
     const smokeBlock = extractJobBlock(workflowContent, "release-gate");
     const installOrder = ["core", "runtime", "cli", "mcp", "opencode", "codex"];
@@ -114,23 +111,12 @@ describe("publish.yml CI workflow contract", () => {
   });
 
   test("keeps publish-selective auto-detection in canonical package order", () => {
-    const autoBlock = selectivePublishContent.slice(
-      selectivePublishContent.indexOf("  # Auto-detect: check all packages"),
+    expect(selectivePublishContent).toContain(
+      "bun scripts/package-catalog.ts --print-publishable-tsv",
     );
-    const calls = [
-      "kibi-core",
-      "kibi-runtime",
-      "kibi-cli",
-      "kibi-mcp",
-      "kibi-opencode",
-      "kibi-codex",
-      "kibi-cursor",
-    ];
-    const indexes = calls.map((name) =>
-      autoBlock.indexOf(`check_and_publish \"${name}\"`),
+    expect(selectivePublishContent).toContain(
+      "bun scripts/package-catalog.ts --lookup",
     );
-    expect(indexes.every((index) => index >= 0)).toBe(true);
-    expect(indexes).toEqual([...indexes].sort((a, b) => a - b));
   });
 
   // ── release-gate ────────────────────────────────────────────────────

@@ -25,21 +25,12 @@
 import { existsSync, readdirSync, unlinkSync } from "node:fs";
 import { join, relative } from "node:path";
 
+import { TARBALL_CLEAN_DIRS } from "./package-catalog";
+
 const REPO_ROOT = new URL("..", import.meta.url).pathname;
 
 /** Directories to scan for stale tarballs (repo-relative). */
-const PACKAGE_DIRS = [
-  "packages/core",
-  "packages/cli",
-  "packages/runtime",
-  "packages/mcp",
-  "packages/opencode",
-  "packages/codex",
-  "packages/cursor",
-  "packages/plugin-sdk",
-  "packages/plugin-builtin",
-  "packages/plugin-jev",
-];
+const PACKAGE_DIRS = TARBALL_CLEAN_DIRS.map((dir) => `packages/${dir}`);
 
 /** Globally ignored paths (repo-relative prefixes). */
 const IGNORED_PREFIXES = ["documentation/tests/e2e/packed/fixtures"];

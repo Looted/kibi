@@ -33,3 +33,9 @@ Activation is explicit in the project `package.json`:
 Installing the package without activation makes **zero** TypeSafe calls.
 Kibi does not depend on Jev. When active, proposition text is sent to TypeSafe.
 On provider failure Kibi falls back to the builtin classifier with an advisory warning.
+
+The classifier calls TypeSafe with model `jev-latest` by default. That id is
+provider-version dependent: the same Kibi/plugin version can observe different
+model semantics over time. Pass a different model through
+`JevSemanticClassifierOptions.model` when TypeSafe exposes a pinned id. Host
+diagnostics include the configured model string.

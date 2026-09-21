@@ -157,6 +157,10 @@ describe("strict proof workflow contract", () => {
     expect(proofWorkflow).not.toContain("run-proof-contract.mjs");
     expect(proofWorkflow).not.toContain("kibi verify");
     expect(proofWorkflow).toContain("kibi prove --all");
+    expect(proofWorkflow).toContain("scripts/ci-apt-bootstrap.sh bubblewrap");
+    expect(proofWorkflow).not.toContain(
+      "scripts/ci-install-swi-prolog.sh bubblewrap",
+    );
   });
 
   test("proof runs before baseline enforcement and report generation", () => {

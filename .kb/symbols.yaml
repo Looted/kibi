@@ -13661,11 +13661,12 @@ symbols:
         target: TEST-skillopt-codex-optimization
   - id: SYM-PUBLISHABLE-DIRS
     title: PUBLISHABLE_DIRS
-    sourceFile: scripts/release-state.ts
+    sourceFile: scripts/package-catalog.ts
     links:
       - REQ-020
     status: active
     granularity_reason: legacy-link
+    symbol_role: config
     relationships:
       - type: covered_by
         target: TEST-014
@@ -39945,3 +39946,185 @@ symbols:
         target: TEST-scripts-unit-coverage-runner
       - type: implements
         target: REQ-014
+  - id: SYM-cap-plugin-assert-resolved-entry
+    title: assertResolvedEntryInsidePackageRoot
+    status: active
+    sourceFile: packages/cli/src/plugins/resolve-package.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-semantic-classifier-diagnostic
+    title: SemanticClassifierDiagnostic
+    status: active
+    sourceFile: packages/cli/src/plugins/compose-semantic-classifier.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-jev-default-model
+    title: JEV_DEFAULT_MODEL
+    status: active
+    sourceFile: packages/plugin-jev/src/semantic-classifier.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-jev-provider-error-model
+    title: JevProviderError.model
+    status: active
+    sourceFile: packages/plugin-jev/src/jev-client.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-run-unit-coverage-failure
+    title: UnitCoverageFailure
+    status: active
+    sourceFile: scripts/run-unit-coverage.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-scripts-unit-coverage-runner
+      - type: implements
+        target: REQ-014
+  - id: SYM-run-unit-coverage-format-failure
+    title: formatCoverageFailure
+    status: active
+    sourceFile: scripts/run-unit-coverage.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-scripts-unit-coverage-runner
+      - type: implements
+        target: REQ-014
+  - id: SYM-pack-packages-pack-catalog
+    title: packCatalogPackages
+    status: active
+    sourceFile: scripts/pack-packages.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-020
+  - id: SYM-pack-packages-if-main
+    title: runPackPackagesIfMain
+    status: active
+    sourceFile: scripts/pack-packages.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog-slice
+    title: PackageCatalogSlice
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog-entry
+    title: PackageCatalogEntry
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog
+    title: PACKAGE_CATALOG
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog-dir
+    title: CatalogPackageDir
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog-publishable-dirs
+    title: PUBLISHABLE_DIRS
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog-ci-pack-dirs
+    title: CI_PACK_DIRS
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog-pack-all-dirs
+    title: PACK_ALL_DIRS
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog-packed-e2e-dirs
+    title: PACKED_E2E_DIRS
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog-default-install-dirs
+    title: DEFAULT_INSTALL_DIRS
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-020
+      - type: implements
+        target: REQ-kibi-distribution-parity-matrix
+  - id: SYM-package-catalog-tarball-clean-dirs
+    title: TARBALL_CLEAN_DIRS
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog-entries-for-slice
+    title: catalogEntriesForSlice
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog-dirs-for-slice
+    title: dirsForSlice
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog-lookup-entry
+    title: lookupCatalogEntry
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog-cli-if-main
+    title: runPackageCatalogCliIfMain
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-020

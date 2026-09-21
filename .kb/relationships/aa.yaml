@@ -178,3 +178,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-73a53838abb9
+  - type: implements
+    from: SYM-package-catalog-slice
+    to: REQ-020
+    created_at: 2026-09-21T15:27:30.447Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e1add35f545

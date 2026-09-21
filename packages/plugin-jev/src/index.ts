@@ -10,12 +10,11 @@ const packageJson = createRequire(import.meta.url)("../package.json") as {
 // implements REQ-capability-plugin-jev-fallback-v1
 export {
   createJevSemanticClassifier,
+  JEV_DEFAULT_MODEL,
   type JevSemanticClassifierOptions,
 } from "./semantic-classifier.js";
 // implements REQ-capability-plugin-jev-fallback-v1
-export {
-  createTypeSafeJevClient,
-} from "./typesafe-client.js";
+export { createTypeSafeJevClient } from "./typesafe-client.js";
 // implements REQ-capability-plugin-jev-fallback-v1
 export {
   JevProviderError,

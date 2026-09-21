@@ -24,17 +24,14 @@ on:
         required: false
 
 jobs:
-  build-and-test:
+  ci-typecheck-build:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
-
-      - name: Install SWI-Prolog
-        run: bash scripts/ci-install-swi-prolog.sh
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -82,12 +79,63 @@ jobs:
       - name: Build Cursor plugin package
         run: bun run build:cursor
 
+  ci-unit-coverage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    if: ${{ !inputs.skip_tests }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Cache SWI-Prolog source prefix
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/kibi-swipl-prefix
+          key: swipl-src-10.0.2-${{ runner.os }}-e42cc098f7b8
+
+      - name: Install SWI-Prolog
+        env:
+          KIBI_SWIPL_CACHE_DIR: ${{ runner.temp }}/kibi-swipl-prefix
+        run: bash scripts/ci-install-swi-prolog.sh
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.2'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+
+      - name: Setup SkillOpt Python environment
+        env:
+          UV_VERSION: "0.9.26"
+        run: |
+          curl --fail --silent --show-error --location \
+            "https://astral.sh/uv/${UV_VERSION}/install.sh" | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/uv" sync --project tools/skillopt --frozen
+
+      - name: Install JS deps
+        run: |
+          bun install --frozen-lockfile
+          cd .opencode && bun install --frozen-lockfile
+
+      - name: Build packages needed by unit coverage
+        run: |
+          bun run build:cli
+          bun run build:mcp
+          bun run build:codex
+          bun run build:cursor
+
       - name: Run unit tests with coverage
-        if: ${{ !inputs.skip_tests }}
         run: bun run test:coverage:unit
 
       - name: Upload unit coverage artifact
-        if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests && github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+        if: ${{ github.actor != 'nektos/act' && github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
         uses: actions/upload-artifact@v5
         with:
           name: unit-coverage
@@ -101,7 +149,7 @@ jobs:
           retention-days: 7
 
       - name: Upload unit coverage to Codecov
-        if: ${{ !inputs.skip_tests && (github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/develop')) }}
+        if: ${{ github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
         uses: codecov/codecov-action@v5
         with:
           files: ./coverage/unit/lcov.info
@@ -111,22 +159,85 @@ jobs:
           fail_ci_if_error: true
           verbose: true
 
+  ci-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    if: ${{ !inputs.skip_tests }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Cache SWI-Prolog source prefix
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/kibi-swipl-prefix
+          key: swipl-src-10.0.2-${{ runner.os }}-e42cc098f7b8
+
+      - name: Install SWI-Prolog
+        env:
+          KIBI_SWIPL_CACHE_DIR: ${{ runner.temp }}/kibi-swipl-prefix
+        run: bash scripts/ci-install-swi-prolog.sh
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.2'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+
+      - name: Install JS deps
+        run: bun install --frozen-lockfile
+
+      - name: Build CLI package
+        run: bun run build:cli
+
       - name: Run integration tests
-        if: ${{ !inputs.skip_tests }}
         run: bash ./scripts/run-integration-tests.sh
+
+  ci-package-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.2'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+
+      - name: Install JS deps
+        run: bun install --frozen-lockfile
+
+      - name: Build packages required for packing
+        run: |
+          bun run build:plugin-sdk
+          bun run build:plugin-builtin
+          bun run build:plugin-jev
+          bun run build:cli
+          bun run build:runtime
+          bun run build:mcp
+          bun run build:opencode
+          bun run build:codex
+          bun run build:cursor
 
       - name: Clean stale tarballs
         run: bun run clean:tarballs
 
       - name: Pack tarballs
-        run: |
-          cd packages/core && npm pack
-          cd ../cli && npm pack
-          cd ../runtime && npm pack
-          cd ../mcp && npm pack
-          cd ../opencode && npm pack
-          cd ../codex && npm pack
-          cd ../cursor && npm pack
+        run: bun run scripts/pack-packages.ts --slice ci-pack
 
       - name: Upload tarball artifacts
         if: ${{ github.actor != 'nektos/act' }}
@@ -150,16 +261,60 @@ jobs:
           path: ${{ runner.temp }}/kibi-e2e-packed-compiled
           retention-days: 1
 
+      - name: Verify publish metadata for npm provenance
+        run: bun run scripts/verify-publish-metadata.ts
+
+      - name: Rehearse release decision with mock registry
+        run: |
+          PUBLISHED_TOKENS=$(bun scripts/package-catalog.ts --print-publishable-tsv | while IFS=$'\t' read -r dir name; do
+            node -e "const fs=require('node:fs'); const j=JSON.parse(fs.readFileSync('packages/' + process.argv[1] + '/package.json','utf8')); process.stdout.write(j.name + '@' + j.version + ',');" "$dir"
+          done | sed 's/,$//')
+          GITHUB_REF_NAME=master KIBI_RELEASE_MOCK_NPM="$PUBLISHED_TOKENS" \
+            bun run scripts/run-release-state.ts > /tmp/release-state-all-published.json
+          GITHUB_REF_NAME=master KIBI_RELEASE_MOCK_NPM="" \
+            bun run scripts/run-release-state.ts > /tmp/release-state-none-published.json
+          bun -e "
+            import { readFileSync } from 'node:fs';
+            import { PUBLISHABLE_DIRS } from './scripts/package-catalog.ts';
+            const allowed = new Set(['NOOP', 'PREPARE_RELEASE', 'PUBLISH_ONLY_RERUN', 'ALREADY_PUBLISHED_NOOP']);
+            const canonical = new Set(PUBLISHABLE_DIRS);
+            for (const [name, path] of [
+              ['all-published', '/tmp/release-state-all-published.json'],
+              ['none-published', '/tmp/release-state-none-published.json'],
+            ]) {
+              const d = JSON.parse(readFileSync(path, 'utf8'));
+              if (!allowed.has(d.action)) {
+                throw new Error(name + ': unexpected release action ' + d.action);
+              }
+              for (const entry of d.toPublish || []) {
+                if (!canonical.has(entry.split('=')[0])) {
+                  throw new Error(name + ': non-canonical toPublish entry ' + entry);
+                }
+              }
+              console.log(name + ': action=' + d.action + ' toPublish=' + (d.toPublish || []).length);
+            }
+          "
+
+      - name: Verify tarballs exist and are non-empty
+        run: ls -lh packages/*/*.tgz
+
   packed-e2e-cli-regression:
     runs-on: ubuntu-latest
-    needs: [build-and-test, prolog-unit-coverage]
+    needs: [ci-package-contract, prolog-unit-coverage]
     if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
+      - name: Cache SWI-Prolog source prefix
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/kibi-swipl-prefix
+          key: swipl-src-10.0.2-${{ runner.os }}-e42cc098f7b8
       - name: Install SWI-Prolog
+        env:
+          KIBI_SWIPL_CACHE_DIR: ${{ runner.temp }}/kibi-swipl-prefix
         run: bash scripts/ci-install-swi-prolog.sh
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -192,15 +347,21 @@ jobs:
 
   packed-e2e-mcp-regression:
     runs-on: ubuntu-latest
-    needs: [build-and-test, prolog-unit-coverage]
+    needs: [ci-package-contract, prolog-unit-coverage]
     if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
-
+      - name: Cache SWI-Prolog source prefix
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/kibi-swipl-prefix
+          key: swipl-src-10.0.2-${{ runner.os }}-e42cc098f7b8
       - name: Install SWI-Prolog
+        env:
+          KIBI_SWIPL_CACHE_DIR: ${{ runner.temp }}/kibi-swipl-prefix
         run: bash scripts/ci-install-swi-prolog.sh
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -237,14 +398,13 @@ jobs:
 
   packed-e2e-tarball-verify:
     runs-on: ubuntu-latest
-    needs: [build-and-test, prolog-unit-coverage]
+    needs: [ci-package-contract, prolog-unit-coverage]
     if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
-
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -278,14 +438,21 @@ jobs:
 
   packed-e2e-branch-workflow:
     runs-on: ubuntu-latest
-    needs: [build-and-test, prolog-unit-coverage]
+    needs: [ci-package-contract, prolog-unit-coverage]
     if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
+      - name: Cache SWI-Prolog source prefix
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/kibi-swipl-prefix
+          key: swipl-src-10.0.2-${{ runner.os }}-e42cc098f7b8
       - name: Install SWI-Prolog
+        env:
+          KIBI_SWIPL_CACHE_DIR: ${{ runner.temp }}/kibi-swipl-prefix
         run: bash scripts/ci-install-swi-prolog.sh
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -313,88 +480,6 @@ jobs:
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
         timeout-minutes: 15
 
-  publish-dry-run:
-    runs-on: ubuntu-latest
-    needs: [build-and-test, prolog-unit-coverage]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 1
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: '1.4.2'
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: '24'
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Build CLI
-        run: bun run build:cli
-
-      - name: Build runtime
-        run: bun run build:runtime
-
-      - name: Build MCP
-        run: bun run build:mcp
-
-      - name: Pack all packages
-        run: |
-          cd packages/core && npm pack
-          cd ../cli && npm pack
-          cd ../runtime && npm pack
-          cd ../mcp && npm pack
-          cd ../opencode && npm pack
-          cd ../codex && npm pack
-          cd ../cursor && npm pack
-
-      - name: Verify publish metadata for npm provenance
-        run: bun run scripts/verify-publish-metadata.ts
-
-      - name: Rehearse release decision with mock registry
-        run: |
-          PUBLISHED_TOKENS=$(node -e "
-            const fs = require('node:fs');
-            const dirs = ['core', 'runtime', 'cli', 'mcp', 'opencode', 'codex', 'cursor'];
-            console.log(dirs.map((d) => {
-              const j = JSON.parse(fs.readFileSync('packages/' + d + '/package.json', 'utf8'));
-              return j.name + '@' + j.version;
-            }).join(','));
-          ")
-          GITHUB_REF_NAME=master KIBI_RELEASE_MOCK_NPM="$PUBLISHED_TOKENS" \
-            bun run scripts/run-release-state.ts > /tmp/release-state-all-published.json
-          GITHUB_REF_NAME=master KIBI_RELEASE_MOCK_NPM="" \
-            bun run scripts/run-release-state.ts > /tmp/release-state-none-published.json
-          node -e "
-            const fs = require('node:fs');
-            const allowed = new Set(['NOOP', 'PREPARE_RELEASE', 'PUBLISH_ONLY_RERUN', 'ALREADY_PUBLISHED_NOOP']);
-            const canonical = new Set(['core', 'runtime', 'cli', 'mcp', 'opencode', 'codex', 'cursor']);
-            for (const [name, path] of [
-              ['all-published', '/tmp/release-state-all-published.json'],
-              ['none-published', '/tmp/release-state-none-published.json'],
-            ]) {
-              const d = JSON.parse(fs.readFileSync(path, 'utf8'));
-              if (!allowed.has(d.action)) {
-                throw new Error(name + ': unexpected release action ' + d.action);
-              }
-              for (const entry of d.toPublish || []) {
-                if (!canonical.has(entry.split('=')[0])) {
-                  throw new Error(name + ': non-canonical toPublish entry ' + entry);
-                }
-              }
-              console.log(name + ': action=' + d.action + ' toPublish=' + (d.toPublish || []).length);
-            }
-          "
-
-      - name: Verify tarballs exist and are non-empty
-        run: ls -lh packages/*/*.tgz
-
   prolog-unit-coverage:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -405,7 +490,15 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Cache SWI-Prolog source prefix
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/kibi-swipl-prefix
+          key: swipl-src-10.0.2-${{ runner.os }}-e42cc098f7b8
+
       - name: Install SWI-Prolog
+        env:
+          KIBI_SWIPL_CACHE_DIR: ${{ runner.temp }}/kibi-swipl-prefix
         run: bash scripts/ci-install-swi-prolog.sh
 
       - name: Setup Bun

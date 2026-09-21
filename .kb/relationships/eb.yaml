@@ -62,3 +62,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d08319c41f34
+  - type: implements
+    from: SYM-package-catalog-pack-all-dirs
+    to: REQ-020
+    created_at: 2026-09-21T15:28:11.998Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-189bc804aa45

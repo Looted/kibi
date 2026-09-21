@@ -17,32 +17,30 @@
 */
 
 import {
-  KIBI_PLUGIN_API_VERSION,
-  ONTOLOGY_PACK_CAPABILITY_ID,
-  SEMANTIC_CLASSIFIER_CAPABILITY_ID,
-  SYMBOL_EXTRACTOR_CAPABILITY_ID,
-  defineKibiPlugin,
   type CapabilityId,
+  KIBI_PLUGIN_API_VERSION,
   type KibiPluginV1,
+  ONTOLOGY_PACK_CAPABILITY_ID,
   type OntologyPackV1,
   type PluginMode,
   type PluginPermissions,
   type PluginProviderStamp,
   type ProjectKibiConfig,
   type ProjectPluginEntry,
+  SEMANTIC_CLASSIFIER_CAPABILITY_ID,
+  SYMBOL_EXTRACTOR_CAPABILITY_ID,
   type SemanticClassifierV1,
   type SymbolExtractorV1,
+  defineKibiPlugin,
   validateKibiPlugin,
 } from "kibi-plugin-sdk";
 
-import { loadPluginPackage, type LoadPluginOptions } from "./load-plugin.js";
+import { type LoadPluginOptions, loadPluginPackage } from "./load-plugin.js";
 import { readProjectKibiConfig } from "./project-config.js";
 import { PluginResolutionError } from "./resolve-package.js";
 
 // implements REQ-capability-plugin-activation-disclosure-v1
-export type BuiltinPluginFactory = () =>
-  | KibiPluginV1
-  | Promise<KibiPluginV1>;
+export type BuiltinPluginFactory = () => KibiPluginV1 | Promise<KibiPluginV1>;
 
 // implements REQ-capability-plugin-activation-disclosure-v1
 export type CapabilityProviderBinding<T> = Readonly<{
@@ -85,10 +83,7 @@ export type CapabilityRegistryOptions = Readonly<{
   loadPluginOptions?: LoadPluginOptions;
 }>;
 
-type CapabilitySlot =
-  | "semanticClassifier"
-  | "ontologyPack"
-  | "symbolExtractor";
+type CapabilitySlot = "semanticClassifier" | "ontologyPack" | "symbolExtractor";
 
 const CAPABILITY_SLOT: Record<CapabilityId, CapabilitySlot> = {
   [SEMANTIC_CLASSIFIER_CAPABILITY_ID]: "semanticClassifier",
@@ -232,7 +227,9 @@ export class CapabilityRegistry {
   readonly workspaceRoot: string;
   private readonly builtinFactory: BuiltinPluginFactory;
   private readonly readConfig: (workspaceRoot: string) => ProjectKibiConfig;
-  private readonly loadPlugin: NonNullable<CapabilityRegistryOptions["loadPlugin"]>;
+  private readonly loadPlugin: NonNullable<
+    CapabilityRegistryOptions["loadPlugin"]
+  >;
   private readonly loadPluginOptions: LoadPluginOptions | undefined;
   private readonly injectedConfig: ProjectKibiConfig | undefined;
 
@@ -274,25 +271,25 @@ export class CapabilityRegistry {
   async resolveSemanticClassifiers(): Promise<
     CapabilityModeResolution<SemanticClassifierV1>
   > {
-    return this.resolveCapability(
-      SEMANTIC_CLASSIFIER_CAPABILITY_ID,
-    ) as Promise<CapabilityModeResolution<SemanticClassifierV1>>;
+    return this.resolveCapability(SEMANTIC_CLASSIFIER_CAPABILITY_ID) as Promise<
+      CapabilityModeResolution<SemanticClassifierV1>
+    >;
   }
 
   async resolveOntologyPacks(): Promise<
     CapabilityModeResolution<OntologyPackV1>
   > {
-    return this.resolveCapability(
-      ONTOLOGY_PACK_CAPABILITY_ID,
-    ) as Promise<CapabilityModeResolution<OntologyPackV1>>;
+    return this.resolveCapability(ONTOLOGY_PACK_CAPABILITY_ID) as Promise<
+      CapabilityModeResolution<OntologyPackV1>
+    >;
   }
 
   async resolveSymbolExtractors(): Promise<
     CapabilityModeResolution<SymbolExtractorV1>
   > {
-    return this.resolveCapability(
-      SYMBOL_EXTRACTOR_CAPABILITY_ID,
-    ) as Promise<CapabilityModeResolution<SymbolExtractorV1>>;
+    return this.resolveCapability(SYMBOL_EXTRACTOR_CAPABILITY_ID) as Promise<
+      CapabilityModeResolution<SymbolExtractorV1>
+    >;
   }
 
   async resolveCapability(
@@ -353,17 +350,40 @@ export class CapabilityRegistry {
     let replace: CapabilityProviderBinding<unknown> | null = null;
     const augment: CapabilityProviderBinding<unknown>[] = [];
     const shadow: CapabilityProviderBinding<unknown>[] = [];
+    const pluginIds = new Map<string, string>([
+      [builtinPlugin.id, "kibi-plugin-builtin"],
+    ]);
+    const providerIds = new Set<string>([
+      capabilityFromPlugin(builtinPlugin, capabilityId)?.id ?? builtinPlugin.id,
+    ]);
 
     for (const entry of relevant) {
       const modeConfig = entry.capabilities[capabilityId];
       if (!modeConfig) continue;
       const loaded = await this.ensurePackageLoaded(entry);
+      const owner = pluginIds.get(loaded.plugin.id);
+      if (owner !== undefined && owner !== entry.package) {
+        throw new PluginResolutionError(
+          "DUPLICATE_PLUGIN_ID",
+          `Plugin id '${loaded.plugin.id}' is claimed by both '${owner}' and '${entry.package}'`,
+        );
+      }
+      pluginIds.set(loaded.plugin.id, entry.package);
       const capability = capabilityFromPlugin(loaded.plugin, capabilityId);
       if (!capability) {
         throw new PluginResolutionError(
           "PLUGIN_MISSING_CAPABILITY",
           `Plugin package '${entry.package}' is activated for ${capabilityId} but does not export that capability`,
         );
+      }
+      if ("id" in capability && typeof capability.id === "string") {
+        if (providerIds.has(capability.id)) {
+          throw new PluginResolutionError(
+            "DUPLICATE_PROVIDER_ID",
+            `Provider id '${capability.id}' for ${capabilityId} is not unique`,
+          );
+        }
+        providerIds.add(capability.id);
       }
       const binding = bindingFor(
         loaded.plugin,
@@ -390,7 +410,7 @@ export class CapabilityRegistry {
     return { builtin, replace, augment, shadow };
   }
 
-  private ensurePackageLoaded(
+  private async ensurePackageLoaded(
     entry: ProjectPluginEntry,
   ): Promise<Awaited<ReturnType<typeof loadPluginPackage>>> {
     const existing = this.loadedPackages.get(entry.package);
@@ -403,7 +423,14 @@ export class CapabilityRegistry {
       loadOptions,
     );
     this.loadedPackages.set(entry.package, promise);
-    return promise;
+    try {
+      return await promise;
+    } catch (error) {
+      if (this.loadedPackages.get(entry.package) === promise) {
+        this.loadedPackages.delete(entry.package);
+      }
+      throw error;
+    }
   }
 }
 

@@ -1,7 +1,8 @@
 /**
- * External semantic classifiers may run only from these operation boundaries.
- * sync / check / validate-upsert / upsert / migration / status / proof must
- * never invoke an external semantic classifier.
+ * External capability plugins may be imported only from these operation
+ * boundaries. sync / check / validate-upsert / upsert / migration / status /
+ * proof / doctor / coverage / suggest-predicates must never import a
+ * third-party plugin module — allowlisting the classifier call is not enough.
  */
 // implements REQ-capability-plugin-activation-disclosure-v1
 export const EXTERNAL_SEMANTIC_CLASSIFIER_OPERATIONS = [

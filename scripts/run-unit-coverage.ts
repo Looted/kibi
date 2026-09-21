@@ -18,10 +18,11 @@ import {
   readFileSync,
   readdirSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { isolatedUnitBatchEnv, stopTestEngines } from "../test/root.test.js";
 import { writeCoverageManifestAudit } from "./coverage-manifest";
 import { finalizeLcov } from "./finalize-lcov";
@@ -44,8 +45,8 @@ const DEFAULT_SHARD_TIMEOUT_MS = 15_000;
 // cli.commands shard takes several minutes locally. The process bound only
 // protects against a true runner leak while leaving that shard headroom.
 const SHARD_PROCESS_TIMEOUT_MS = 15 * 60 * 1000;
-/** cli.commands is a large serial CLI suite; CI needs more than the default process bound. */
-const CLI_COMMANDS_PROCESS_TIMEOUT_MS = 25 * 60 * 1000;
+/** Per-file bound for process-isolated shards. A clean file should finish well under this. */
+const FILE_PROCESS_TIMEOUT_MS = 5 * 60 * 1000;
 /** Journaled engine and packed SkillOpt tests start Prolog/daemons; 15s isolate kills them. */
 const CLI_ENGINE_SHARD_TIMEOUT_MS = 120_000;
 const COVERAGE_ARGS = [
@@ -62,6 +63,14 @@ const COVERAGE_ARGS = [
   "--isolate",
   "--max-concurrency=1",
 ] as const;
+
+// implements REQ-014
+export class UnitCoverageFailure extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "UnitCoverageFailure";
+  }
+}
 
 // implements REQ-root-suite-batch-diagnostics
 const CLI_ROOT_TESTS = readdirSync("./packages/cli/tests")
@@ -113,13 +122,18 @@ export const COVERAGE_SHARDS: readonly {
   readonly setup?: readonly string[];
   /** Query-string `?case=` imports poison Bun's line map; still run the tests. */
   readonly mergeLcov?: boolean;
+  /**
+   * batch: one Bun process for the shard (default).
+   * process-per-file: one Bun process per test file so a poisoned process
+   * cannot take down later files in the same shard.
+   */
+  readonly isolation?: "batch" | "process-per-file";
 }[] = [
   {
     label: "cli.commands",
-    // sync*, doctor*, and subprocess check suites are isolated below: under
-    // Bun 1.4 + --coverage they can hang the shared commands process
-    // (dangling engine / spawnSync ETIMEDOUT cascade) until the process bound
-    // fires.
+    // Process-per-file: Bun 1.4 + coverage can hang a shared commands process
+    // (dangling engine / spawnSync ETIMEDOUT cascade). Isolation replaces the
+    // former 25-minute shared-process bound.
     paths: CLI_COMMAND_TESTS.filter(
       (path) =>
         !CLI_SYNC_COMMAND_TESTS.includes(path) &&
@@ -127,41 +141,33 @@ export const COVERAGE_SHARDS: readonly {
         !CLI_DOCTOR_COMMAND_TESTS.includes(path),
     ),
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
-    processTimeoutMs: CLI_COMMANDS_PROCESS_TIMEOUT_MS,
+    isolation: "process-per-file",
   },
   {
-    // Isolated from cli.commands: check.test.ts hung the shared Bun 1.4
-    // coverage process for the full 25-minute bound with no further output.
     label: "cli.check-command",
     paths: CLI_CHECK_COMMAND_TESTS,
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
-    processTimeoutMs: 8 * 60 * 1000,
+    isolation: "process-per-file",
   },
   {
     label: "cli.sync-command",
     paths: [CLI_SYNC_COMMAND_TEST],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
-    processTimeoutMs: 5 * 60 * 1000,
+    isolation: "process-per-file",
   },
   {
-    // Isolated from cli.commands: Bun 1.4 + coverage lets sync-coverage
-    // poison spawnSync(/bin/sh) (git add ETIMEDOUT), then 120s timeouts
-    // cascade through migrate/check-remaining until the 25-minute bound.
     label: "cli.sync-coverage",
     paths: CLI_SYNC_COMMAND_TESTS.filter(
       (path) => path !== CLI_SYNC_COMMAND_TEST,
     ),
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
-    processTimeoutMs: 5 * 60 * 1000,
+    isolation: "process-per-file",
   },
   {
-    // Isolated from cli.commands: Bun 1.4 + coverage can leave a dangling
-    // engine after doctor SWI-Prolog checks, then poison spawnSync(/bin/sh)
-    // for every later commands-suite test (ETIMEDOUT cascade).
     label: "cli.doctor",
     paths: CLI_DOCTOR_COMMAND_TESTS,
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
-    processTimeoutMs: 5 * 60 * 1000,
+    isolation: "process-per-file",
   },
   {
     label: "cli.operations",
@@ -201,6 +207,7 @@ export const COVERAGE_SHARDS: readonly {
     label: "cli.engine-remaining",
     paths: ["./packages/cli/tests/engine-remaining.coverage.test.ts"],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+    isolation: "process-per-file",
   },
   {
     // Isolated from engine-remaining: Bun 1.4 + coverage can failWrite EPIPE
@@ -210,7 +217,7 @@ export const COVERAGE_SHARDS: readonly {
       "./packages/cli/tests/coverage-isolates/engine-live-socket.coverage.test.ts",
     ],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
-    processTimeoutMs: 3 * 60 * 1000,
+    isolation: "process-per-file",
   },
   {
     label: "cli.engine",
@@ -222,6 +229,7 @@ export const COVERAGE_SHARDS: readonly {
       );
     }),
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+    isolation: "process-per-file",
   },
   {
     label: "cli.root.lcov",
@@ -260,7 +268,7 @@ export const COVERAGE_SHARDS: readonly {
       "./packages/cli/tests/coverage-isolates/report-remaining.coverage.test.ts",
     ],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
-    processTimeoutMs: 3 * 60 * 1000,
+    isolation: "process-per-file",
   },
   {
     // Same Bun 1.4 + coverage hang pattern observed after report-remaining isolation.
@@ -269,7 +277,7 @@ export const COVERAGE_SHARDS: readonly {
       "./packages/cli/tests/coverage-isolates/sync-tracked-relationships.coverage.test.ts",
     ],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
-    processTimeoutMs: 3 * 60 * 1000,
+    isolation: "process-per-file",
   },
   {
     label: "cli.report",
@@ -476,6 +484,36 @@ export function selectedShards(labels: readonly string[] | undefined) {
   return selected;
 }
 
+type BunTestRunResult = Readonly<{
+  exitCode: number;
+  timedOut: boolean;
+  durationMs: number;
+  lastOutput: string;
+}>;
+
+// implements REQ-014
+export function formatCoverageFailure(
+  options: Readonly<{
+    label: string;
+    file?: string;
+    exitCode: number;
+    durationMs: number;
+    timeoutMs: number;
+    timedOut: boolean;
+    lastOutput?: string;
+    missingCoverage?: boolean;
+  }>,
+): string {
+  const file = options.file ? ` file=${options.file}` : "";
+  const timedOut = options.timedOut ? " timedOut" : "";
+  const missing = options.missingCoverage ? " coverage artifact missing" : "";
+  const tail =
+    options.lastOutput && options.lastOutput.trim().length > 0
+      ? ` lastOutput=${JSON.stringify(options.lastOutput.slice(-500))}`
+      : "";
+  return `${options.label}${file} (exit ${options.exitCode}, ${options.durationMs}ms, timeout=${options.timeoutMs}ms${timedOut}${missing}${tail})`;
+}
+
 async function runBunTest(
   label: string,
   paths: readonly string[],
@@ -483,7 +521,8 @@ async function runBunTest(
   timeoutMs = DEFAULT_SHARD_TIMEOUT_MS,
   setup?: readonly string[],
   processTimeoutMs = SHARD_PROCESS_TIMEOUT_MS,
-): Promise<number> {
+  captureOutput = false,
+): Promise<BunTestRunResult> {
   const args: string[] = [...COVERAGE_ARGS];
   const coverageDirIndex = args.indexOf("--coverage-dir");
   args[coverageDirIndex + 1] = coverageDir;
@@ -492,38 +531,68 @@ async function runBunTest(
   const runtimeDirectory = mkdtempSync(
     join(tmpdir(), "kibi-unit-coverage-runtime-"),
   );
+  const started = Date.now();
   try {
     if (setup !== undefined) {
       const setupResult = childProcess.spawnSync("bun", [...setup], {
-        stdio: "inherit",
+        stdio: captureOutput ? "pipe" : "inherit",
+        encoding: captureOutput ? "utf8" : undefined,
         env: isolatedUnitBatchEnv(runtimeDirectory),
         timeout: processTimeoutMs,
         killSignal: "SIGTERM",
       });
       if (spawnErrorCode(setupResult.error) === "ETIMEDOUT") {
+        const lastOutput = captureOutput
+          ? `${setupResult.stdout ?? ""}${setupResult.stderr ?? ""}`
+          : "";
         console.error(
           `Unit coverage shard ${label} setup timed out after ${processTimeoutMs}ms; continuing with the remaining shards.`,
         );
-        return 1;
+        return {
+          exitCode: 1,
+          timedOut: true,
+          durationMs: Date.now() - started,
+          lastOutput,
+        };
       }
-      if ((setupResult.status ?? 1) !== 0) return setupResult.status ?? 1;
+      if ((setupResult.status ?? 1) !== 0) {
+        return {
+          exitCode: setupResult.status ?? 1,
+          timedOut: false,
+          durationMs: Date.now() - started,
+          lastOutput: captureOutput
+            ? `${setupResult.stdout ?? ""}${setupResult.stderr ?? ""}`
+            : "",
+        };
+      }
     }
     const result = childProcess.spawnSync("bun", [...args, ...paths], {
-      stdio: "inherit",
+      stdio: captureOutput ? "pipe" : "inherit",
+      encoding: captureOutput ? "utf8" : undefined,
       env: isolatedUnitBatchEnv(runtimeDirectory),
-      // Bun's per-test timeout cannot interrupt a synchronous child-process
-      // leak in a test. Bound the Bun process itself so this shard cannot
-      // wedge the serial runner indefinitely.
       timeout: processTimeoutMs,
       killSignal: "SIGTERM",
     });
+    const lastOutput = captureOutput
+      ? `${result.stdout ?? ""}${result.stderr ?? ""}`
+      : "";
     if (spawnErrorCode(result.error) === "ETIMEDOUT") {
       console.error(
         `Unit coverage shard ${label} timed out after ${processTimeoutMs}ms while waiting for the Bun test process; continuing with the remaining shards.`,
       );
-      return 1;
+      return {
+        exitCode: 1,
+        timedOut: true,
+        durationMs: Date.now() - started,
+        lastOutput,
+      };
     }
-    return result.status ?? 1;
+    return {
+      exitCode: result.status ?? 1,
+      timedOut: false,
+      durationMs: Date.now() - started,
+      lastOutput,
+    };
   } finally {
     await stopTestEngines(runtimeDirectory);
     rmSync(runtimeDirectory, { recursive: true, force: true });
@@ -538,6 +607,65 @@ function lineCoveragePercent(lcov: string): number {
     if (line.startsWith("LH:")) linesHit += Number(line.slice(3));
   }
   return linesFound === 0 ? 0 : (linesHit / linesFound) * 100;
+}
+
+async function captureLcovArtifact(
+  options: Readonly<{
+    shardCoverageDir: string;
+    coverageLcovPath: string;
+    /** Passing tests that spawn nested Bun may emit no LCOV; keep the merge going. */
+    allowEmpty?: boolean;
+  }>,
+): Promise<string> {
+  const searchDirs = [
+    options.shardCoverageDir,
+    dirname(options.coverageLcovPath),
+    dirname(BUN_DEFAULT_LCOV_PATH),
+  ].filter((dir, index, all) => all.indexOf(dir) === index);
+
+  const findExisting = async (): Promise<string | undefined> => {
+    for (const dir of searchDirs) {
+      const direct = join(dir, "lcov.info");
+      if (existsSync(direct) && statSync(direct).size > 0) return direct;
+      try {
+        const finalized = await finalizeLcov(dir);
+        if (existsSync(finalized) && statSync(finalized).size > 0) {
+          return finalized;
+        }
+      } catch {
+        // Keep searching sibling coverage directories and tmp LCOV names.
+      }
+    }
+    return undefined;
+  };
+
+  const immediate = await findExisting();
+  if (immediate !== undefined) return immediate;
+
+  if (options.allowEmpty !== true) {
+    const deadline = Date.now() + 400;
+    while (Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      const retried = await findExisting();
+      if (retried !== undefined) return retried;
+    }
+    throw new Error(
+      `No lcov.info or temporary LCOV file found in ${options.shardCoverageDir}`,
+    );
+  }
+
+  mkdirSync(options.shardCoverageDir, { recursive: true });
+  const emptyPath = join(options.shardCoverageDir, "lcov.info");
+  writeFileSync(emptyPath, "TN:\nend_of_record\n");
+  console.warn(
+    `Bun produced no LCOV under ${options.shardCoverageDir}; recording an empty coverage artifact.`,
+  );
+  return emptyPath;
+}
+
+function shardUnitName(path: string, index: number): string {
+  const base = path.split("/").pop() ?? `file-${index}`;
+  return `${String(index).padStart(3, "0")}-${base.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
 }
 
 // implements REQ-014
@@ -594,57 +722,101 @@ export async function runUnitCoverage(
         shard.label.replace(/[^a-zA-Z0-9._-]/g, "_"),
       );
       mkdirSync(shardCoverageDir, { recursive: true });
-      // Bun 1.3.10 ignores --coverage-dir and emits lcov.info at the
-      // repository default. Clear both possible fallback locations before
-      // each shard so a nested/previous report cannot be reused.
-      rmSync(coverageLcovPath, { force: true });
-      if (coverageLcovPath !== BUN_DEFAULT_LCOV_PATH) {
-        rmSync(BUN_DEFAULT_LCOV_PATH, { force: true });
-      }
+      const isolation = shard.isolation ?? "batch";
+      const units =
+        isolation === "process-per-file"
+          ? shard.paths.map((path, index) => ({
+              label: `${shard.label}::${path}`,
+              file: path,
+              paths: [path],
+              coverageDir: join(shardCoverageDir, shardUnitName(path, index)),
+              processTimeoutMs: FILE_PROCESS_TIMEOUT_MS,
+              setup: index === 0 ? shard.setup : undefined,
+              captureOutput: true,
+            }))
+          : [
+              {
+                label: shard.label,
+                file: undefined,
+                paths: shard.paths,
+                coverageDir: shardCoverageDir,
+                processTimeoutMs:
+                  shard.processTimeoutMs ?? SHARD_PROCESS_TIMEOUT_MS,
+                setup: shard.setup,
+                captureOutput: false,
+              },
+            ];
+      const unitLcovs: string[] = [];
       console.info(
-        `Starting unit coverage shard ${shard.label} (${shard.paths.length} path${shard.paths.length === 1 ? "" : "s"})...`,
+        `Starting unit coverage shard ${shard.label} (${units.length} ${isolation === "process-per-file" ? "file" : "path group"}${units.length === 1 ? "" : "s"}, isolation=${isolation})...`,
       );
-      const exitCode = await runBunTest(
-        shard.label,
-        shard.paths,
-        shardCoverageDir,
-        shard.timeoutMs ?? DEFAULT_SHARD_TIMEOUT_MS,
-        shard.setup,
-        shard.processTimeoutMs ?? SHARD_PROCESS_TIMEOUT_MS,
-      );
-      console.info(
-        `Finished unit coverage shard ${shard.label} (exit ${exitCode}).`,
-      );
-      if (exitCode !== 0)
-        failedShards.push(`${shard.label} (exit ${exitCode})`);
-
-      // Allow Bun's post-process coverage writer to publish its fallback
-      // report before selecting the source for this shard.
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      let lcovPath: string;
-      try {
-        const shardLcovPath = join(shardCoverageDir, "lcov.info");
-        if (existsSync(shardLcovPath)) {
-          lcovPath = shardLcovPath;
-        } else if (existsSync(coverageLcovPath)) {
-          // Compatibility fallback for Bun versions that honor the requested
-          // directory only after the child process exits.
-          lcovPath = coverageLcovPath;
-        } else if (existsSync(BUN_DEFAULT_LCOV_PATH)) {
-          // Bun 1.3.10 ignores --coverage-dir and always writes here.
-          lcovPath = BUN_DEFAULT_LCOV_PATH;
-        } else {
-          lcovPath = await finalizeLcov(shardCoverageDir);
+      for (const unit of units) {
+        mkdirSync(unit.coverageDir, { recursive: true });
+        rmSync(coverageLcovPath, { force: true });
+        if (coverageLcovPath !== BUN_DEFAULT_LCOV_PATH) {
+          rmSync(BUN_DEFAULT_LCOV_PATH, { force: true });
         }
-      } catch (error) {
-        failedShards.push(`${shard.label} (coverage artifact missing)`);
-        console.error(error);
-        continue;
+        const result = await runBunTest(
+          unit.label,
+          unit.paths,
+          unit.coverageDir,
+          shard.timeoutMs ?? DEFAULT_SHARD_TIMEOUT_MS,
+          unit.setup,
+          unit.processTimeoutMs,
+          unit.captureOutput,
+        );
+        console.info(
+          `Finished unit coverage ${unit.label} (exit ${result.exitCode}, ${result.durationMs}ms${result.timedOut ? ", timedOut" : ""}).`,
+        );
+        if (result.exitCode !== 0) {
+          failedShards.push(
+            formatCoverageFailure({
+              label: shard.label,
+              file: unit.file,
+              exitCode: result.exitCode,
+              durationMs: result.durationMs,
+              timeoutMs: unit.processTimeoutMs,
+              timedOut: result.timedOut,
+              lastOutput: result.lastOutput,
+            }),
+          );
+        }
+        try {
+          const lcovPath = await captureLcovArtifact({
+            shardCoverageDir: unit.coverageDir,
+            coverageLcovPath,
+            allowEmpty: result.exitCode === 0,
+          });
+          const unitPath = join(unit.coverageDir, "lcov.info");
+          if (lcovPath !== unitPath) cpSync(lcovPath, unitPath);
+          unitLcovs.push(unitPath);
+        } catch (error) {
+          failedShards.push(
+            formatCoverageFailure({
+              label: shard.label,
+              file: unit.file,
+              exitCode: result.exitCode,
+              durationMs: result.durationMs,
+              timeoutMs: unit.processTimeoutMs,
+              timedOut: result.timedOut,
+              lastOutput: result.lastOutput,
+              missingCoverage: true,
+            }),
+          );
+          console.error(error);
+        }
       }
-      // Keep the captured snapshot outside coverageDir until every child has
-      // finished. A nested Bun process may clear coverage/unit/lcov.info.
+      if (unitLcovs.length === 0) continue;
       const shardPath = join(shardCoverageDir, "lcov.info");
-      if (lcovPath !== shardPath) cpSync(lcovPath, shardPath);
+      const firstUnit = unitLcovs[0];
+      if (unitLcovs.length === 1 && firstUnit !== undefined) {
+        if (firstUnit !== shardPath) cpSync(firstUnit, shardPath);
+      } else {
+        const mergedUnits = mergeLcovContentsWithDiagnostics(
+          unitLcovs.map((filePath) => readFileSync(filePath, "utf8")),
+        );
+        writeFileSync(shardPath, mergedUnits.lcov, "utf8");
+      }
       shardArtifacts.push({ label: shard.label, path: shardPath });
       if (shard.mergeLcov !== false) {
         shardFiles.push(shardPath);
@@ -689,11 +861,14 @@ export async function runUnitCoverage(
       ].join("\n")}\n`,
       "utf8",
     );
-    if (options.shardLabels === undefined && lineCoverage < UNIT_LINE_COVERAGE_FLOOR) {
-      console.error(
+    const failures: string[] = [];
+    if (
+      options.shardLabels === undefined &&
+      lineCoverage < UNIT_LINE_COVERAGE_FLOOR
+    ) {
+      failures.push(
         `Unit line coverage ${lineCoverage.toFixed(2)}% is below the ${UNIT_LINE_COVERAGE_FLOOR}% floor.`,
       );
-      process.exitCode = 1;
     }
     if (options.shardLabels === undefined) {
       const missingFiles = writeCoverageManifestAudit(
@@ -702,10 +877,9 @@ export async function runUnitCoverage(
         mergedLcov,
       );
       if (missingFiles.length > 0) {
-        console.error(
+        failures.push(
           `Coverage manifest audit failed: ${missingFiles.length} production source files are absent from LCOV.`,
         );
-        process.exitCode = 1;
       }
     }
     // Publish per-shard snapshots only after all child and nested runners are
@@ -719,8 +893,12 @@ export async function runUnitCoverage(
       "utf8",
     );
     if (failedShards.length > 0) {
-      console.error(`Coverage shards failed:\n${failedShards.join("\n")}`);
-      process.exitCode = 1;
+      failures.push(`Coverage shards failed:\n${failedShards.join("\n")}`);
+    }
+    if (failures.length > 0) {
+      const message = failures.join("\n");
+      console.error(message);
+      throw new UnitCoverageFailure(message);
     }
   } finally {
     rmSync(runShardDir, { recursive: true, force: true });
@@ -732,8 +910,17 @@ export async function runUnitCoverageIfMain(
   options: UnitCoverageOptions = {},
 ): Promise<void> {
   if (!isMain) return;
-  const shardLabels = options.shardLabels ?? shardLabelsFromArgv(process.argv.slice(2));
-  await runUnitCoverage({ ...options, shardLabels });
+  const shardLabels =
+    options.shardLabels ?? shardLabelsFromArgv(process.argv.slice(2));
+  try {
+    await runUnitCoverage({ ...options, shardLabels });
+  } catch (error) {
+    if (error instanceof UnitCoverageFailure) {
+      process.exitCode = 1;
+      return;
+    }
+    throw error;
+  }
 }
 
 await runUnitCoverageIfMain();

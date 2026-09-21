@@ -237,3 +237,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0294033f333c
+  - type: implements
+    from: SYM-package-catalog-dirs-for-slice
+    to: REQ-020
+    created_at: 2026-09-21T15:29:17.583Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1de84a60a822

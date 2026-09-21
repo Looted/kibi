@@ -69,13 +69,13 @@ describe("ci.yml CI workflow contract", () => {
     "packed-e2e-tarball-verify",
     "packed-e2e-branch-workflow",
   ] as readonly string[];
-  const coverageGatedJobs = [...packedJobs, "publish-dry-run"] as const;
+  const coverageGatedJobs = [...packedJobs] as const;
 
   test("artifact names appear in workflow", () => {
     expect(workflowContent).toContain("kibi-tarballs");
     expect(workflowContent).toContain("kibi-e2e-tests-compiled");
-    expect(extractJobBlock(workflowContent, "build-and-test")).toContain(
-      "cd ../runtime && npm pack",
+    expect(extractJobBlock(workflowContent, "ci-package-contract")).toContain(
+      "scripts/pack-packages.ts --slice ci-pack",
     );
   });
 
@@ -115,29 +115,32 @@ describe("ci.yml CI workflow contract", () => {
   });
 
   test("packed compilation performs the E2E typecheck while emitting", () => {
-    const buildBlock = extractJobBlock(workflowContent, "build-and-test");
-    expect(buildBlock).toContain("bun run compile:e2e:packed");
-    expect(buildBlock).not.toContain("bun run typecheck:e2e:packed");
+    const packBlock = extractJobBlock(workflowContent, "ci-package-contract");
+    expect(packBlock).toContain("bun run compile:e2e:packed");
+    expect(packBlock).not.toContain("bun run typecheck:e2e:packed");
   });
 
   test("Docker packed fallback covers every package and uses the shared runner", () => {
-    const packageList = "core cli runtime mcp opencode codex cursor";
-    expect(dockerfileContent).toContain(`for pkg in ${packageList}; do`);
-    expect(dockerEntrypointContent).toContain(`for pkg in ${packageList}; do`);
+    expect(dockerfileContent).toContain(
+      "scripts/pack-packages.ts --slice packed-e2e",
+    );
+    expect(dockerEntrypointContent).toContain(
+      "scripts/pack-packages.ts --slice packed-e2e",
+    );
     expect(dockerEntrypointContent).toContain(
       "/workspace/scripts/run-packed-e2e.mjs",
     );
   });
 
-  test("build-and-test: explicit shallow checkout", () => {
-    const block = extractJobBlock(workflowContent, "build-and-test");
+  test("ci-typecheck-build: explicit shallow checkout", () => {
+    const block = extractJobBlock(workflowContent, "ci-typecheck-build");
     expect(block).toContain("actions/checkout@v6");
     expect(block).toContain("fetch-depth: 1");
     expect(block).not.toContain("fetch-depth: 0");
   });
 
   test("checks Codex hook bundle drift before build regeneration", () => {
-    const block = extractJobBlock(workflowContent, "build-and-test");
+    const block = extractJobBlock(workflowContent, "ci-typecheck-build");
     const dependencyInstall = block.indexOf("bun install --frozen-lockfile");
     const driftCheck = block.indexOf(
       "bun run --filter kibi-codex check:hook-bundle",
@@ -149,14 +152,13 @@ describe("ci.yml CI workflow contract", () => {
     expect(codexBuild).toBeGreaterThan(driftCheck);
   });
 
-  test("build-and-test: unit coverage runs on pull requests and pushes", () => {
-    const block = extractJobBlock(workflowContent, "build-and-test");
+  test("ci-unit-coverage: unit coverage runs on pull requests and pushes", () => {
+    const block = extractJobBlock(workflowContent, "ci-unit-coverage");
     expect(block).toContain("- name: Run unit tests with coverage");
-    expect(block).toContain("if: ${{ !inputs.skip_tests }}");
     expect(block).toContain("run: bun run test:coverage:unit");
-    expect(block).not.toContain(
-      "Run unit tests with coverage\n        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}",
-    );
+    expect(workflowContent).toContain("ci-typecheck-build:");
+    expect(workflowContent).toContain("ci-integration:");
+    expect(workflowContent).toContain("ci-package-contract:");
   });
 
   test("Codecov unit status enforces the initial 50 percent floor", () => {
@@ -173,9 +175,7 @@ describe("ci.yml CI workflow contract", () => {
   test("SWI install avoids Launchpad GPG API and can build from source", () => {
     const installScript = readFileSync(SWI_INSTALL_PATH, "utf8");
     expect(installScript).toContain("library(prolog_coverage)");
-    expect(installScript).toContain(
-      "Failed to fetch .*${SWI_PPA_FETCH_RE}",
-    );
+    expect(installScript).toContain("Failed to fetch .*${SWI_PPA_FETCH_RE}");
     expect(installScript).toContain(
       "refusing Ubuntu 9.0.x fallback that lacks library(prolog_coverage)",
     );
@@ -183,18 +183,35 @@ describe("ci.yml CI workflow contract", () => {
     expect(installScript).not.toContain("apt-add-repository -y");
     expect(installScript).toContain("add_swi_ppa_without_launchpad_api");
     expect(installScript).toContain("install_swi_from_official_source");
-    expect(installScript).toContain('SWIPL_SRC_VERSION:-10.0.2');
+    expect(installScript).toContain("SWIPL_SRC_VERSION:-10.0.2");
     expect(installScript).toContain("swipl-${SWIPL_SRC_VERSION}.tar.gz");
     expect(installScript).toContain(
       "e42cc098f7b8a6051c4f79a99b55162d467098aba60f69649bdc7583f0734b57",
     );
+    expect(installScript).toContain("E8B739E3753FF4A12360BA6A4AB3A5F60EA9AEB3");
+    expect(installScript).toContain("refresh_ubuntu_indexes");
+    expect(installScript).not.toContain('apt-get install -y "$@"');
   });
 
-  test("downstream jobs wait for both JS and Prolog coverage gates", () => {
+  test("downstream packed jobs wait for package artifacts and Prolog coverage, not the serial build", () => {
     for (const job of coverageGatedJobs) {
       const block = extractJobBlock(workflowContent, job);
-      expect(block).toContain("needs: [build-and-test, prolog-unit-coverage]");
+      expect(block).toContain(
+        "needs: [ci-package-contract, prolog-unit-coverage]",
+      );
+      expect(block).not.toContain(
+        "needs: [build-and-test, prolog-unit-coverage]",
+      );
     }
+    expect(workflowContent).toContain("ci-typecheck-build:");
+    expect(workflowContent).toContain("ci-unit-coverage:");
+    expect(workflowContent).toContain("ci-integration:");
+    expect(extractJobBlock(workflowContent, "ci-unit-coverage")).not.toContain(
+      "needs:",
+    );
+    expect(
+      extractJobBlock(workflowContent, "ci-package-contract"),
+    ).not.toContain("needs:");
   });
 
   test("CI defers native Windows ZCode builds", () => {
@@ -202,15 +219,14 @@ describe("ci.yml CI workflow contract", () => {
     expect(workflowContent).not.toContain("windows-latest");
   });
 
-  test("publish-dry-run: explicit shallow checkout", () => {
-    const block = extractJobBlock(workflowContent, "publish-dry-run");
+  test("ci-package-contract: explicit shallow checkout and catalog packing", () => {
+    const block = extractJobBlock(workflowContent, "ci-package-contract");
     expect(block).toContain("actions/checkout@v6");
     expect(block).toContain("fetch-depth: 1");
     expect(block).not.toContain("fetch-depth: 0");
     expect(block).toContain("bun run build:runtime");
-    expect(block).toContain("cd ../runtime && npm pack");
-    expect(block).toContain("cd ../codex && npm pack");
-    expect(block).toContain("cd ../cursor && npm pack");
+    expect(block).toContain("scripts/pack-packages.ts --slice ci-pack");
+    expect(block).toContain("scripts/package-catalog.ts");
   });
 
   describe("negative regression detection", () => {
@@ -225,8 +241,7 @@ describe("ci.yml CI workflow contract", () => {
     });
 
     test("rejects remaining checkout that omits fetch-depth: 1", () => {
-      const block = extractJobBlock(workflowContent, "build-and-test");
-      // Simulate regression: remove fetch-depth: 1
+      const block = extractJobBlock(workflowContent, "ci-typecheck-build");
       const mutated = block.replace("fetch-depth: 1", "fetch-depth: 0");
       expect(mutated).toContain("fetch-depth: 0");
       expect(mutated).not.toContain("fetch-depth: 1");
@@ -235,10 +250,10 @@ describe("ci.yml CI workflow contract", () => {
     test("rejects downstream jobs that bypass prolog coverage", () => {
       const block = extractJobBlock(workflowContent, coverageGatedJobs[0]);
       const mutated = block.replace(
-        "needs: [build-and-test, prolog-unit-coverage]",
-        "needs: build-and-test",
+        "needs: [ci-package-contract, prolog-unit-coverage]",
+        "needs: ci-package-contract",
       );
-      expect(mutated).toContain("needs: build-and-test");
+      expect(mutated).toContain("needs: ci-package-contract");
       expect(mutated).not.toContain("prolog-unit-coverage");
     });
   });

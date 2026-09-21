@@ -1,13 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import {
   KIBI_PLUGIN_API_VERSION,
+  PluginValidationError,
   SEMANTIC_CLASSIFIER_CAPABILITY_ID,
   defineKibiPlugin,
   validateKibiPlugin,
   validateOntologyMatchCandidate,
   validateProjectKibiConfig,
   validateSemanticClassifierResult,
-  PluginValidationError,
 } from "../src/index.js";
 
 // executable_for TEST-capability-plugin-protocol-v1
@@ -106,9 +106,7 @@ describe("kibi-plugin-sdk", () => {
     expect(() =>
       validateSemanticClassifierResult(
         {
-          decisions: [
-            { claimKey: "foreign", lane: "none", confidence: 0 },
-          ],
+          decisions: [{ claimKey: "foreign", lane: "none", confidence: 0 }],
         },
         { expectedClaimKeys: ["local"] },
       ),
@@ -122,5 +120,66 @@ describe("kibi-plugin-sdk", () => {
         ],
       }),
     ).toThrow(/duplicate decision/);
+  });
+
+  test("rejects duplicate package activation and duplicate replace providers", () => {
+    expect(() =>
+      validateProjectKibiConfig({
+        plugins: [
+          {
+            package: "dup",
+            capabilities: {
+              [SEMANTIC_CLASSIFIER_CAPABILITY_ID]: { mode: "augment" },
+            },
+          },
+          {
+            package: "dup",
+            capabilities: {
+              [SEMANTIC_CLASSIFIER_CAPABILITY_ID]: { mode: "shadow" },
+            },
+          },
+        ],
+      }),
+    ).toThrow(/more than once/);
+
+    expect(() =>
+      validateProjectKibiConfig({
+        plugins: [
+          {
+            package: "r1",
+            capabilities: {
+              [SEMANTIC_CLASSIFIER_CAPABILITY_ID]: { mode: "replace" },
+            },
+          },
+          {
+            package: "r2",
+            capabilities: {
+              [SEMANTIC_CLASSIFIER_CAPABILITY_ID]: { mode: "replace" },
+            },
+          },
+        ],
+      }),
+    ).toThrow(/At most one replace provider/);
+  });
+
+  test("rejects duplicate secret names", () => {
+    expect(() =>
+      validateKibiPlugin({
+        apiVersion: KIBI_PLUGIN_API_VERSION,
+        id: "x",
+        version: "1",
+        permissions: {
+          network: true,
+          metered: true,
+          secrets: ["TYPESAFE_API_KEY", "TYPESAFE_API_KEY"],
+        },
+        capabilities: {
+          semanticClassifier: {
+            id: "c",
+            classify: () => ({ decisions: [] }),
+          },
+        },
+      }),
+    ).toThrow(/duplicate names/);
   });
 });

@@ -256,7 +256,10 @@ export async function handleKbSuggestPredicates(
     args.includeExistingSchemas ?? true,
     warnings,
   );
-  const composedCatalog = await composeOntologyCatalogForOperation(context);
+  const composedCatalog = await composeOntologyCatalogForOperation(
+    context,
+    "kb_suggest_predicates",
+  );
   const packSchemas = composedCatalog
     ? ontologyPackSchemasToCandidates(composedCatalog.schemas)
     : [];

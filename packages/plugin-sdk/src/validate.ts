@@ -1,17 +1,4 @@
 import {
-  KIBI_PLUGIN_API_VERSION,
-  ONTOLOGY_PACK_CAPABILITY_ID,
-  PLUGIN_MODES,
-  SEMANTIC_CLASSIFIER_CAPABILITY_ID,
-  SYMBOL_EXTRACTOR_CAPABILITY_ID,
-  type CapabilityId,
-  type KibiPluginV1,
-  type PluginMode,
-  type PluginPermissions,
-  type ProjectKibiConfig,
-  type ProjectPluginEntry,
-} from "./protocol.js";
-import {
   ONTOLOGY_POLARITIES,
   type OntologyMatchCandidate,
   type OntologyPackV1,
@@ -30,6 +17,19 @@ import type {
   SourceSymbolKind,
   SymbolExtractorV1,
 } from "./capabilities/symbol-extractor.js";
+import {
+  type CapabilityId,
+  KIBI_PLUGIN_API_VERSION,
+  type KibiPluginV1,
+  ONTOLOGY_PACK_CAPABILITY_ID,
+  PLUGIN_MODES,
+  type PluginMode,
+  type PluginPermissions,
+  type ProjectKibiConfig,
+  type ProjectPluginEntry,
+  SEMANTIC_CLASSIFIER_CAPABILITY_ID,
+  SYMBOL_EXTRACTOR_CAPABILITY_ID,
+} from "./protocol.js";
 
 const SOURCE_SYMBOL_KINDS = [
   "function",
@@ -65,7 +65,10 @@ function requireString(
   code = "INVALID_PLUGIN",
 ): string {
   if (typeof value !== "string" || value.trim().length === 0) {
-    throw new PluginValidationError(code, `${field} must be a non-empty string`);
+    throw new PluginValidationError(
+      code,
+      `${field} must be a non-empty string`,
+    );
   }
   return value.trim();
 }
@@ -105,9 +108,7 @@ export function isPluginMode(value: string): value is PluginMode {
 }
 
 // implements REQ-capability-plugin-protocol-v1
-export function validatePermissions(
-  value: unknown,
-): PluginPermissions {
+export function validatePermissions(value: unknown): PluginPermissions {
   if (!isRecord(value)) {
     throw new PluginValidationError(
       "INVALID_PERMISSIONS",
@@ -123,8 +124,18 @@ export function validatePermissions(
     );
   }
   const secrets = value.secrets.map((entry, index) =>
-    requireString(entry, `permissions.secrets[${index}]`, "INVALID_PERMISSIONS"),
+    requireString(
+      entry,
+      `permissions.secrets[${index}]`,
+      "INVALID_PERMISSIONS",
+    ),
   );
+  if (new Set(secrets).size !== secrets.length) {
+    throw new PluginValidationError(
+      "INVALID_PERMISSIONS",
+      "permissions.secrets must not contain duplicate names",
+    );
+  }
   return { network, metered, secrets };
 }
 
@@ -234,6 +245,18 @@ export function validateKibiPlugin(value: unknown): KibiPluginV1 {
     );
   }
 
+  const capabilityIds = [
+    capabilities.semanticClassifier?.id,
+    capabilities.ontologyPack?.id,
+    capabilities.symbolExtractor?.id,
+  ].filter((entry): entry is string => typeof entry === "string");
+  if (new Set(capabilityIds).size !== capabilityIds.length) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY",
+      "capability provider ids must be unique within a plugin",
+    );
+  }
+
   return {
     apiVersion: KIBI_PLUGIN_API_VERSION,
     id,
@@ -316,6 +339,39 @@ export function validateProjectKibiConfig(value: unknown): ProjectKibiConfig {
     return { package: packageName, capabilities };
   });
 
+  const seenPackages = new Set<string>();
+  const seenPackageCapabilities = new Set<string>();
+  const replaceOwners = new Map<CapabilityId, string>();
+  for (const plugin of plugins) {
+    if (seenPackages.has(plugin.package)) {
+      throw new PluginValidationError(
+        "INVALID_PROJECT_CONFIG",
+        `kibi.plugins activates '${plugin.package}' more than once`,
+      );
+    }
+    seenPackages.add(plugin.package);
+    for (const [capabilityId, config] of Object.entries(plugin.capabilities)) {
+      const pairKey = `${plugin.package}::${capabilityId}`;
+      if (seenPackageCapabilities.has(pairKey)) {
+        throw new PluginValidationError(
+          "INVALID_PROJECT_CONFIG",
+          `kibi.plugins activates '${plugin.package}' for ${capabilityId} more than once`,
+        );
+      }
+      seenPackageCapabilities.add(pairKey);
+      if (config?.mode === "replace") {
+        const existing = replaceOwners.get(capabilityId as CapabilityId);
+        if (existing !== undefined) {
+          throw new PluginValidationError(
+            "INVALID_PROJECT_CONFIG",
+            `At most one replace provider is allowed for ${capabilityId}; both '${existing}' and '${plugin.package}' requested replace`,
+          );
+        }
+        replaceOwners.set(capabilityId as CapabilityId, plugin.package);
+      }
+    }
+  }
+
   return { plugins };
 }
 
@@ -381,9 +437,7 @@ export function validateSemanticClassifierResult(
           `foreign claimKey '${claimKey}' is not in the supplied classifier input`,
         );
       }
-      let ambiguity:
-        | SemanticClassificationDecision["ambiguity"]
-        | undefined;
+      let ambiguity: SemanticClassificationDecision["ambiguity"] | undefined;
       if (decision.ambiguity !== undefined) {
         if (!isRecord(decision.ambiguity)) {
           throw new PluginValidationError(
@@ -500,7 +554,11 @@ export function validatePredicateSchema(
     ...(Array.isArray(value.aliases)
       ? {
           aliases: value.aliases.map((entry, index) =>
-            requireString(entry, `aliases[${index}]`, "INVALID_ONTOLOGY_SCHEMA"),
+            requireString(
+              entry,
+              `aliases[${index}]`,
+              "INVALID_ONTOLOGY_SCHEMA",
+            ),
           ),
         }
       : {}),
@@ -594,7 +652,11 @@ export function validateOntologyMatchCandidate(
 export function validateSourceAnalysisResult(
   value: unknown,
 ): SourceAnalysisResult {
-  if (!isRecord(value) || !isRecord(value.module) || !Array.isArray(value.symbols)) {
+  if (
+    !isRecord(value) ||
+    !isRecord(value.module) ||
+    !Array.isArray(value.symbols)
+  ) {
     throw new PluginValidationError(
       "INVALID_CAPABILITY_RESULT",
       "symbol analysis result must include module and symbols[]",

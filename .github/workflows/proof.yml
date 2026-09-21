@@ -33,8 +33,19 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Bootstrap Ubuntu packages
+        run: bash scripts/ci-apt-bootstrap.sh bubblewrap
+
+      - name: Cache SWI-Prolog source prefix
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/kibi-swipl-prefix
+          key: swipl-src-10.0.2-${{ runner.os }}-e42cc098f7b8
+
       - name: Install SWI-Prolog
-        run: bash scripts/ci-install-swi-prolog.sh bubblewrap
+        env:
+          KIBI_SWIPL_CACHE_DIR: ${{ runner.temp }}/kibi-swipl-prefix
+        run: bash scripts/ci-install-swi-prolog.sh
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
