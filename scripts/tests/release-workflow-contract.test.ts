@@ -64,7 +64,7 @@ describe("publish.yml CI workflow contract", () => {
     expect(block).toContain("fetch-depth: 1");
     expect(block).toContain("ref: refs/heads/master");
     expect(block).not.toContain("fetch-depth: 0");
-    expect(block).toContain("bun run build:runtime");
+    expect(block).toMatch(/^\s+run: bun run build$/m);
     expect(block).toContain("scripts/pack-packages.ts --slice publishable");
     expect(block).toContain("packages/runtime/*.tgz");
   });
@@ -75,11 +75,11 @@ describe("publish.yml CI workflow contract", () => {
     const driftCheck = block.indexOf(
       "bun run --filter kibi-codex check:hook-bundle",
     );
-    const codexBuild = block.indexOf("bun run build:codex");
+    const packagesBuild = block.search(/\bbun run build\b/);
 
     expect(dependencyInstall).toBeGreaterThanOrEqual(0);
     expect(driftCheck).toBeGreaterThan(dependencyInstall);
-    expect(codexBuild).toBeGreaterThan(driftCheck);
+    expect(packagesBuild).toBeGreaterThan(driftCheck);
   });
 
   test("keeps package packing and smoke-install order canonical", () => {
@@ -127,6 +127,7 @@ describe("publish.yml CI workflow contract", () => {
     expect(block).toContain("ref: refs/heads/master");
     expect(block).not.toContain("fetch-depth: 0");
     expect(block).toContain("packages/runtime/kibi-runtime-*.tgz");
+    expect(block).toContain("bun run build:cli-stack");
   });
 
   // ── publish ─────────────────────────────────────────────────────────

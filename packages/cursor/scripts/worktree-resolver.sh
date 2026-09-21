@@ -97,7 +97,7 @@ try_build_local() {
   printf '%s\n' "kibi-mcp resolver: no trusted built MCP runtime yet; building local MCP dist" >&2
   (
     cd "$workspaceRoot" || exit 1
-    bun run build:cli >&2 || exit 1
+    bun run build:cli-stack >&2 || exit 1
     bun run build:runtime >&2 || exit 1
     bun run build:mcp >&2 || exit 1
   ) || {

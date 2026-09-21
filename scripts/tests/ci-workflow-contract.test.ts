@@ -130,6 +130,7 @@ describe("ci.yml CI workflow contract", () => {
     expect(dockerEntrypointContent).toContain(
       "/workspace/scripts/run-packed-e2e.mjs",
     );
+    expect(dockerEntrypointContent).toContain("bun run build:cli-stack");
   });
 
   test("ci-typecheck-build: explicit shallow checkout", () => {
@@ -145,11 +146,11 @@ describe("ci.yml CI workflow contract", () => {
     const driftCheck = block.indexOf(
       "bun run --filter kibi-codex check:hook-bundle",
     );
-    const codexBuild = block.indexOf("bun run build:codex");
+    const packagesBuild = block.search(/\bbun run build\b/);
 
     expect(dependencyInstall).toBeGreaterThanOrEqual(0);
     expect(driftCheck).toBeGreaterThan(dependencyInstall);
-    expect(codexBuild).toBeGreaterThan(driftCheck);
+    expect(packagesBuild).toBeGreaterThan(driftCheck);
   });
 
   test("ci-unit-coverage: unit coverage runs on pull requests and pushes", () => {
@@ -219,12 +220,32 @@ describe("ci.yml CI workflow contract", () => {
     expect(workflowContent).not.toContain("windows-latest");
   });
 
+  test("jobs that compile CLI also build plugin-sdk and plugin-builtin first", () => {
+    const jobs = [
+      "ci-typecheck-build",
+      "ci-unit-coverage",
+      "ci-integration",
+      "ci-package-contract",
+    ] as const;
+    for (const job of jobs) {
+      const block = extractJobBlock(workflowContent, job);
+      const usesFullBuild = /^\s+run: bun run build$/m.test(block);
+      const usesCliStack = block.includes("bun run build:cli-stack");
+      const usesPluginPrefix =
+        block.includes("bun run build:plugin-sdk") &&
+        block.includes("bun run build:plugin-builtin") &&
+        block.includes("bun run build:cli");
+      expect(usesFullBuild || usesCliStack || usesPluginPrefix).toBe(true);
+      expect(block).not.toMatch(/^\s+run: bun run build:cli$/m);
+    }
+  });
+
   test("ci-package-contract: explicit shallow checkout and catalog packing", () => {
     const block = extractJobBlock(workflowContent, "ci-package-contract");
     expect(block).toContain("actions/checkout@v6");
     expect(block).toContain("fetch-depth: 1");
     expect(block).not.toContain("fetch-depth: 0");
-    expect(block).toContain("bun run build:runtime");
+    expect(block).toMatch(/^\s+run: bun run build$/m);
     expect(block).toContain("scripts/pack-packages.ts --slice ci-pack");
     expect(block).toContain("scripts/package-catalog.ts");
   });

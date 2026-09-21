@@ -35,6 +35,7 @@
     "build:plugin-builtin": "bun --filter ./packages/plugin-builtin build",
     "build:plugin-jev": "bun --filter ./packages/plugin-jev build",
     "build:cli": "bun --filter ./packages/cli build",
+    "build:cli-stack": "bun run build:plugin-sdk && bun run build:plugin-builtin && bun run build:cli",
     "build:runtime": "bun --filter ./packages/runtime build",
     "build:mcp": "bun --filter ./packages/mcp build",
     "build:opencode": "bun --filter ./packages/opencode build",

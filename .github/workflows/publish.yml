@@ -90,16 +90,8 @@ jobs:
       - name: Verify generated symbol classification parity
         run: bun run symbols:check
 
-      - name: Build runtime package
-        run: bun run build:runtime
-      - name: Build CLI package
-        run: bun run build:cli
-      - name: Build MCP package
-        run: bun run build:mcp
-      - name: Build Codex plugin package
-        run: bun run build:codex
-      - name: Build Cursor plugin package
-        run: bun run build:cursor
+      - name: Build packages
+        run: bun run build
       - name: Build and package VS Code extension
         run: bun run --cwd packages/vscode package
       - name: Verify publish metadata for npm provenance
@@ -167,7 +159,7 @@ jobs:
           name: package-tarballs
           path: packages
       - name: Build CLI workspace for packed typecheck
-        run: bun run build:cli
+        run: bun run build:cli-stack
       - name: Tarball content verification
         run: |
           bun test --cwd documentation/tests/e2e/packed --timeout=300000 cli-verify-tarball-core.test.ts packed-path-hygiene.test.ts

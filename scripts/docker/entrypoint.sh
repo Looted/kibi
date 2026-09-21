@@ -162,7 +162,8 @@ run_integration_tests() {
     # Build packages if needed
     if [ ! -f "/workspace/packages/cli/dist/cli.js" ]; then
         echo "🔨 Building packages..."
-        bun run build:cli
+        bun run build:cli-stack
+        bun run build:runtime
         bun run build:mcp
     fi
     
