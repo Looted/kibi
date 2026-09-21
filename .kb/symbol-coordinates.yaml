@@ -8989,7 +8989,7 @@ coordinates:
     sourceLine: 30
   SYM-e2e-coverage-pipeline:
     identityHash: 7d032ae7f0b031a696bf27521c1b42761ef8ba7e89fc011af8acd7b4ce967344
-    sourceHash: b0f9558ca93bceb2e34ec34213eba7ed67807bef88b6d9bb107c2bdc7885c5b1
+    sourceHash: b50d83228d5c238adac7e0ef6f9229ffe673f62b66e9b0d178215889ac12342e
     sourceColumn: 44
     sourceEndColumn: 65
     sourceEndLine: 12
