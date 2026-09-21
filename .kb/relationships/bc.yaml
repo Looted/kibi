@@ -41,3 +41,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d966aea233c9
+  - type: implements
+    from: SYM-run-unit-coverage-shardLabelsFromArgv
+    to: REQ-014
+    created_at: 2026-09-21T12:26:46.725Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c9b3c38e4a4
+  - type: covered_by
+    from: SYM-run-unit-coverage-shardLabelsFromArgv
+    to: TEST-scripts-unit-coverage-runner
+    created_at: 2026-09-21T12:26:46.733Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f0fd6e503a2

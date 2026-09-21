@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { COVERAGE_SHARDS, selectedShards } from "../run-unit-coverage";
+import { COVERAGE_SHARDS, selectedShards, shardLabelsFromArgv } from "../run-unit-coverage";
 
 const runnerSource = readFileSync(
   join(import.meta.dir, "..", "run-unit-coverage.ts"),
@@ -55,6 +55,7 @@ describe("unit coverage runner contract", () => {
       ),
     ).toEqual([
       "cli.commands",
+      "cli.check-command",
       "cli.sync-command",
       "cli.sync-coverage",
       "cli.doctor",
@@ -85,6 +86,17 @@ describe("unit coverage runner contract", () => {
     expect(
       COVERAGE_SHARDS.find((shard) => shard.label === "cli.commands")?.paths,
     ).not.toContain("./packages/cli/tests/commands/sync.test.ts");
+    expect(
+      COVERAGE_SHARDS.find((shard) => shard.label === "cli.check-command")
+        ?.paths,
+    ).toEqual([
+      "./packages/cli/tests/commands/check.test.ts",
+      "./packages/cli/tests/commands/check-remaining.coverage.test.ts",
+      "./packages/cli/tests/commands/check-stale-manifest.test.ts",
+    ]);
+    expect(
+      COVERAGE_SHARDS.find((shard) => shard.label === "cli.commands")?.paths,
+    ).not.toContain("./packages/cli/tests/commands/check.test.ts");
     expect(
       COVERAGE_SHARDS.find((shard) => shard.label === "cli.sync-coverage")
         ?.paths,
@@ -141,5 +153,18 @@ describe("unit coverage runner contract", () => {
     expect(() => selectedShards([])).toThrow(
       "Unknown unit coverage shard label(s):",
     );
+  });
+
+  test("shardLabelsFromArgv reads --shards, equals form, then env", () => {
+    expect(shardLabelsFromArgv(["--shards", "cli.check-command,cli.doctor"])).toEqual(
+      ["cli.check-command", "cli.doctor"],
+    );
+    expect(shardLabelsFromArgv(["--shards=cli.commands"])).toEqual([
+      "cli.commands",
+    ]);
+    expect(
+      shardLabelsFromArgv([], { KIBI_COVERAGE_SHARDS: " cli.sync-command " }),
+    ).toEqual(["cli.sync-command"]);
+    expect(shardLabelsFromArgv([])).toBeUndefined();
   });
 });

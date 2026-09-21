@@ -39935,3 +39935,13 @@ symbols:
     relationships:
       - type: implements
         target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-run-unit-coverage-shardLabelsFromArgv
+    title: shardLabelsFromArgv
+    status: active
+    sourceFile: scripts/run-unit-coverage.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-scripts-unit-coverage-runner
+      - type: implements
+        target: REQ-014

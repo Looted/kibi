@@ -90,6 +90,11 @@ const CLI_SYNC_COMMAND_TESTS = readdirSync(CLI_COMMANDS_DIR)
   .filter((entry) => /^sync.*\.(?:test|spec)\.ts$/.test(entry))
   .map((entry) => `${CLI_COMMANDS_DIR}/${entry}`)
   .sort();
+const CLI_CHECK_COMMAND_TESTS = [
+  `${CLI_COMMANDS_DIR}/check.test.ts`,
+  `${CLI_COMMANDS_DIR}/check-remaining.coverage.test.ts`,
+  `${CLI_COMMANDS_DIR}/check-stale-manifest.test.ts`,
+];
 const CLI_DOCTOR_COMMAND_TESTS = readdirSync(CLI_COMMANDS_DIR)
   .filter((entry) => /^doctor.*\.(?:test|spec)\.ts$/.test(entry))
   .map((entry) => `${CLI_COMMANDS_DIR}/${entry}`)
@@ -111,16 +116,26 @@ export const COVERAGE_SHARDS: readonly {
 }[] = [
   {
     label: "cli.commands",
-    // sync*.test.ts and doctor*.test.ts are isolated below: under Bun 1.4 +
-    // --coverage they can hang the shared commands process (dangling engine /
-    // spawnSync ETIMEDOUT cascade) until the process bound fires.
+    // sync*, doctor*, and subprocess check suites are isolated below: under
+    // Bun 1.4 + --coverage they can hang the shared commands process
+    // (dangling engine / spawnSync ETIMEDOUT cascade) until the process bound
+    // fires.
     paths: CLI_COMMAND_TESTS.filter(
       (path) =>
         !CLI_SYNC_COMMAND_TESTS.includes(path) &&
+        !CLI_CHECK_COMMAND_TESTS.includes(path) &&
         !CLI_DOCTOR_COMMAND_TESTS.includes(path),
     ),
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
     processTimeoutMs: CLI_COMMANDS_PROCESS_TIMEOUT_MS,
+  },
+  {
+    // Isolated from cli.commands: check.test.ts hung the shared Bun 1.4
+    // coverage process for the full 25-minute bound with no further output.
+    label: "cli.check-command",
+    paths: CLI_CHECK_COMMAND_TESTS,
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+    processTimeoutMs: 8 * 60 * 1000,
   },
   {
     label: "cli.sync-command",
@@ -406,6 +421,41 @@ type UnitCoverageOptions = Readonly<{
   readonly shardLabels?: readonly string[];
 }>;
 
+/**
+ * Parse `--shards a,b` / `--shards=a,b` from argv, then `KIBI_COVERAGE_SHARDS`.
+ * Used so local iteration (and act/CI debug) can run one shard without the
+ * full unit-coverage matrix.
+ */
+export function shardLabelsFromArgv(
+  argv: readonly string[],
+  env: NodeJS.ProcessEnv = process.env,
+): readonly string[] | undefined {
+  const eq = argv.find((arg) => arg.startsWith("--shards="));
+  if (eq !== undefined) {
+    return eq
+      .slice("--shards=".length)
+      .split(",")
+      .map((label) => label.trim())
+      .filter((label) => label.length > 0);
+  }
+  const flagIndex = argv.indexOf("--shards");
+  const flagValue = flagIndex >= 0 ? argv[flagIndex + 1] : undefined;
+  if (typeof flagValue === "string") {
+    return flagValue
+      .split(",")
+      .map((label) => label.trim())
+      .filter((label) => label.length > 0);
+  }
+  const fromEnv = env.KIBI_COVERAGE_SHARDS;
+  if (typeof fromEnv === "string" && fromEnv.trim().length > 0) {
+    return fromEnv
+      .split(",")
+      .map((label) => label.trim())
+      .filter((label) => label.length > 0);
+  }
+  return undefined;
+}
+
 export function selectedShards(labels: readonly string[] | undefined) {
   if (labels === undefined) return COVERAGE_SHARDS;
   const wanted = new Set(labels);
@@ -639,22 +689,24 @@ export async function runUnitCoverage(
       ].join("\n")}\n`,
       "utf8",
     );
-    if (lineCoverage < UNIT_LINE_COVERAGE_FLOOR) {
+    if (options.shardLabels === undefined && lineCoverage < UNIT_LINE_COVERAGE_FLOOR) {
       console.error(
         `Unit line coverage ${lineCoverage.toFixed(2)}% is below the ${UNIT_LINE_COVERAGE_FLOOR}% floor.`,
       );
       process.exitCode = 1;
     }
-    const missingFiles = writeCoverageManifestAudit(
-      process.cwd(),
-      coverageDir,
-      mergedLcov,
-    );
-    if (missingFiles.length > 0) {
-      console.error(
-        `Coverage manifest audit failed: ${missingFiles.length} production source files are absent from LCOV.`,
+    if (options.shardLabels === undefined) {
+      const missingFiles = writeCoverageManifestAudit(
+        process.cwd(),
+        coverageDir,
+        mergedLcov,
       );
-      process.exitCode = 1;
+      if (missingFiles.length > 0) {
+        console.error(
+          `Coverage manifest audit failed: ${missingFiles.length} production source files are absent from LCOV.`,
+        );
+        process.exitCode = 1;
+      }
     }
     // Publish per-shard snapshots only after all child and nested runners are
     // done, so Bun's fallback cleanup cannot erase the outer artifacts.
@@ -680,7 +732,8 @@ export async function runUnitCoverageIfMain(
   options: UnitCoverageOptions = {},
 ): Promise<void> {
   if (!isMain) return;
-  await runUnitCoverage(options);
+  const shardLabels = options.shardLabels ?? shardLabelsFromArgv(process.argv.slice(2));
+  await runUnitCoverage({ ...options, shardLabels });
 }
 
 await runUnitCoverageIfMain();
