@@ -330,8 +330,11 @@ export function extractSymbolsFromStagedFile(
 }
 
 /**
- * Capability-aware staged symbol extraction. Prefer this from async CLI
- * surfaces (check, impact) so replace/augment/shadow extractors participate.
+ * Async staged symbol extraction. Defaults to deterministic builtin analysis.
+ * Pass an explicit `registry` only from allowlisted async surfaces that compose
+ * replace/augment/shadow (e.g. symbol repair). Maintenance paths (`check`,
+ * impact, sync, status, proof) must omit `registry` so external extractors
+ * never participate.
  */
 // implements REQ-capability-plugin-activation-disclosure-v1
 export async function extractSymbolsFromStagedFileAsync(
@@ -340,7 +343,6 @@ export async function extractSymbolsFromStagedFileAsync(
   options: ExtractSymbolsOptions &
     Readonly<{
       registry?: import("../plugins/registry.js").CapabilityRegistry;
-      workspaceRoot?: string;
     }>,
 ): Promise<ExtractedSymbol[]> {
   const content = stagedFile.content ?? "";
@@ -360,17 +362,6 @@ export async function extractSymbolsFromStagedFileAsync(
         );
         analysis = await createSourceAnalysisService({
           registry: options.registry,
-        }).analyzeText(stagedFile.path, content);
-      } else if (options.workspaceRoot) {
-        const { ensureCapabilityRegistry } = await import(
-          "../plugins/registry.js"
-        );
-        const { createSourceAnalysisService } = await import(
-          "../plugins/source-analysis-service.js"
-        );
-        const registry = ensureCapabilityRegistry(options.workspaceRoot);
-        analysis = await createSourceAnalysisService({
-          registry,
         }).analyzeText(stagedFile.path, content);
       } else {
         analysis = analyzeWithBuiltinFallback(stagedFile.path, content);

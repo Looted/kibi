@@ -712,16 +712,16 @@ export async function checkCommand(
           Awaited<ReturnType<typeof extractSymbolsFromStagedFileAsync>>
         >();
         const sourceContentByFile = new Map<string, string>();
-        const workspaceRoot = process.cwd();
         for (const f of sourceFiles) {
           try {
             if (f.content !== undefined) {
               sourceContentByFile.set(f.path, f.content);
             }
+            // Maintenance path: builtin-only (no CapabilityRegistry / workspaceRoot).
             const symbols = await extractSymbolsFromStagedFileAsync(
               f,
               manifestLookup,
-              { workspaceRoot },
+              {},
             );
             symbolsByFile.set(f.path, symbols);
             if (symbols?.length) {

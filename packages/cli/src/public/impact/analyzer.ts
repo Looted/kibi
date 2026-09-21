@@ -34,6 +34,7 @@ export async function analyzeChangedFileImpact(
 
   for (const change of sourceChanges) {
     sourceContentByFile.set(change.file, change.content);
+    // Maintenance path: builtin-only (do not pass registry / workspaceRoot).
     const extracted = await extractSymbolsFromStagedFileAsync(
       {
         path: change.file,
@@ -42,7 +43,7 @@ export async function analyzeChangedFileImpact(
         content: change.content,
       },
       manifestLookup,
-      { workspaceRoot },
+      {},
     );
     symbolsByFile.set(
       change.file,

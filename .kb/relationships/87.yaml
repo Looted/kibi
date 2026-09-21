@@ -286,3 +286,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5774fc522776
+  - type: validates
+    from: TEST-capability-plugin-host-resolution-v1
+    to: REQ-capability-plugin-three-capabilities-v1
+    created_at: 2026-09-21T09:45:23.396Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c2a2d1dce64
+  - type: validates
+    from: TEST-capability-plugin-host-resolution-v1
+    to: REQ-capability-plugin-builtin-parity-v1
+    created_at: 2026-09-21T09:45:23.427Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ad8a469397b
+  - type: validates
+    from: TEST-capability-plugin-host-resolution-v1
+    to: REQ-capability-plugin-activation-disclosure-v1
+    created_at: 2026-09-21T09:45:23.450Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c1154bf603d
+  - type: validates
+    from: TEST-capability-plugin-host-resolution-v1
+    to: REQ-capability-plugin-protocol-v1
+    created_at: 2026-09-21T09:45:23.470Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d7a3536c6a24

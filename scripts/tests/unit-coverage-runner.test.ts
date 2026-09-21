@@ -56,6 +56,7 @@ describe("unit coverage runner contract", () => {
     ).toEqual([
       "cli.commands",
       "cli.sync-command",
+      "cli.doctor",
       "cli.operations",
       "cli.public",
       "cli.support",
@@ -83,6 +84,17 @@ describe("unit coverage runner contract", () => {
     expect(
       COVERAGE_SHARDS.find((shard) => shard.label === "cli.commands")?.paths,
     ).not.toContain("./packages/cli/tests/commands/sync.test.ts");
+    expect(
+      COVERAGE_SHARDS.find((shard) => shard.label === "cli.doctor")?.paths,
+    ).toEqual([
+      "./packages/cli/tests/commands/doctor-behavior.test.ts",
+      "./packages/cli/tests/commands/doctor-remaining.coverage.test.ts",
+      "./packages/cli/tests/commands/doctor.in-process.test.ts",
+      "./packages/cli/tests/commands/doctor.test.ts",
+    ]);
+    expect(
+      COVERAGE_SHARDS.find((shard) => shard.label === "cli.commands")?.paths,
+    ).not.toContain("./packages/cli/tests/commands/doctor-behavior.test.ts");
     expect(
       COVERAGE_SHARDS.find((shard) => shard.label === "vscode.activation")
         ?.timeoutMs,

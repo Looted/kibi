@@ -86,6 +86,10 @@ function spawnErrorCode(error: Error | undefined): string | undefined {
 
 const CLI_COMMANDS_DIR = "./packages/cli/tests/commands";
 const CLI_SYNC_COMMAND_TEST = `${CLI_COMMANDS_DIR}/sync.test.ts`;
+const CLI_DOCTOR_COMMAND_TESTS = readdirSync(CLI_COMMANDS_DIR)
+  .filter((entry) => /^doctor.*\.(?:test|spec)\.ts$/.test(entry))
+  .map((entry) => `${CLI_COMMANDS_DIR}/${entry}`)
+  .sort();
 const CLI_COMMAND_TESTS = readdirSync(CLI_COMMANDS_DIR)
   .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
   .map((entry) => `${CLI_COMMANDS_DIR}/${entry}`);
@@ -103,16 +107,29 @@ export const COVERAGE_SHARDS: readonly {
 }[] = [
   {
     label: "cli.commands",
-    // sync.test.ts is isolated below: under Bun 1.4 + --coverage it can hang
-    // the shared commands process with no further test output until the
-    // 25-minute process bound fires.
-    paths: CLI_COMMAND_TESTS.filter((path) => path !== CLI_SYNC_COMMAND_TEST),
+    // sync.test.ts and doctor*.test.ts are isolated below: under Bun 1.4 +
+    // --coverage they can hang the shared commands process (dangling engine /
+    // spawnSync ETIMEDOUT cascade) until the process bound fires.
+    paths: CLI_COMMAND_TESTS.filter(
+      (path) =>
+        path !== CLI_SYNC_COMMAND_TEST &&
+        !CLI_DOCTOR_COMMAND_TESTS.includes(path),
+    ),
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
     processTimeoutMs: CLI_COMMANDS_PROCESS_TIMEOUT_MS,
   },
   {
     label: "cli.sync-command",
     paths: [CLI_SYNC_COMMAND_TEST],
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+    processTimeoutMs: 5 * 60 * 1000,
+  },
+  {
+    // Isolated from cli.commands: Bun 1.4 + coverage can leave a dangling
+    // engine after doctor SWI-Prolog checks, then poison spawnSync(/bin/sh)
+    // for every later commands-suite test (ETIMEDOUT cascade).
+    label: "cli.doctor",
+    paths: CLI_DOCTOR_COMMAND_TESTS,
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
     processTimeoutMs: 5 * 60 * 1000,
   },

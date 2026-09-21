@@ -1141,6 +1141,85 @@ describe("capability plugin host", () => {
   });
 
   // executable_for TEST-capability-plugin-host-resolution-v1
+  test("maintenance staged extract stays builtin unless registry is explicit", async () => {
+    const { extractSymbolsFromStagedFileAsync } = await import(
+      "../../src/traceability/symbol-extract.js"
+    );
+
+    const replacePlugin = makePlugin("replace-sym-plugin", {
+      symbols: {
+        id: "replace-sym-plugin.symbols",
+        supports: ({ path }) => path.endsWith(".ts"),
+        analyze: ({ path }) => ({
+          sourceFile: path,
+          language: "typescript",
+          module: {
+            title: "replace",
+            language: "typescript",
+            analysisMode: "parser",
+          },
+          symbols: [
+            {
+              name: "fromReplacePlugin",
+              kind: "function",
+              startLine: 1,
+              startColumn: 0,
+              endLine: 1,
+              endColumn: 16,
+            },
+          ],
+        }),
+      },
+    });
+
+    const registry = createCapabilityRegistry({
+      workspaceRoot: "/tmp/maint-sym-extract",
+      projectConfig: {
+        plugins: [
+          {
+            package: "replace-sym-pkg",
+            capabilities: {
+              [SYMBOL_EXTRACTOR_CAPABILITY_ID]: { mode: "replace" },
+            },
+          },
+        ],
+      },
+      builtinFactory: () => createStubBuiltinPlugin(),
+      loadPlugin: async () => loaded("replace-sym-pkg", replacePlugin),
+    });
+
+    const content = "export function helloWorld() {\n  return 1;\n}\n";
+    const staged = {
+      path: "src/hello.ts",
+      status: "modified" as const,
+      hunkRanges: [{ start: 1, end: 3 }],
+      content,
+    };
+
+    const maintenance = await extractSymbolsFromStagedFileAsync(
+      staged,
+      undefined,
+      {},
+    );
+    expect(maintenance.some((symbol) => symbol.name === "helloWorld")).toBe(
+      true,
+    );
+    expect(
+      maintenance.some((symbol) => symbol.name === "fromReplacePlugin"),
+    ).toBe(false);
+
+    const composed = await extractSymbolsFromStagedFileAsync(
+      staged,
+      undefined,
+      { registry },
+    );
+    expect(composed.some((symbol) => symbol.name === "fromReplacePlugin")).toBe(
+      true,
+    );
+    expect(composed.some((symbol) => symbol.name === "helloWorld")).toBe(false);
+  });
+
+  // executable_for TEST-capability-plugin-host-resolution-v1
   test("replace ontology abstention clears sync builtin predicate suggestions end-to-end", async () => {
     const { analyzeSemanticAdvisorInputWithPlugins } = await import(
       "../../src/operations/semantic-advisor/plugin-orchestration.js"

@@ -90,8 +90,11 @@ comparison metadata only.
 | Symbol extractor | Builtin first for supported files under `augment` | `replace` gets first claim with builtin fallback |
 
 Sync maintenance paths (`sync`, `check`, `kb_upsert`, `status`, proof, and
-related) keep deterministic builtin semantic analysis and must never invoke an
-external semantic classifier.
+related) keep deterministic builtin analysis for all three capabilities and must
+never invoke external semantic classifiers, ontology packs, or symbol
+extractors. Async advisor / compile-intent / staged-symbol paths compose the
+registry (replace / augment / shadow); replace mode strips or overrides any
+sync-path builtin suggestions before results are returned.
 
 ## Trust boundary
 
