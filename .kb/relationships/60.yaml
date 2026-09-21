@@ -55,3 +55,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6608e75b2d28
+  - type: covered_by
+    from: SYM-package-catalog-tarball-clean-dirs
+    to: TEST-014
+    created_at: 2026-09-21T19:34:28.276Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3dbeb780dfaf

@@ -202,3 +202,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7c6ae662a973
+  - type: covered_by
+    from: SYM-package-catalog-lookup-entry
+    to: TEST-014
+    created_at: 2026-09-21T19:28:05.115Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e62de0956c1

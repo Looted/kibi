@@ -153,3 +153,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aff6eaf6d126
+  - type: covered_by
+    from: SYM-package-catalog-publishable-dirs
+    to: TEST-014
+    created_at: 2026-09-21T19:31:54.949Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-588e8a1a9fd5

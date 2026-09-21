@@ -69,3 +69,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-605791d86d8d
+  - type: covered_by
+    from: SYM-package-catalog-packed-e2e-dirs
+    to: TEST-014
+    created_at: 2026-09-21T19:30:38.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-541868719e8a

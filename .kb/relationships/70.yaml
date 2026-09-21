@@ -146,3 +146,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e664e96d864e
+  - type: covered_by
+    from: SYM-pack-packages-if-main
+    to: TEST-014
+    created_at: 2026-09-21T19:15:29.035Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac83c35046fe

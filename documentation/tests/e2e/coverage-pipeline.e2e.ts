@@ -27,8 +27,10 @@ import { mergeLcovContentsWithDiagnostics } from "../../../scripts/merge-lcov.ts
 import {
   COVERAGE_SHARDS,
   UnitCoverageFailure,
+  formatCoverageFailure,
   runUnitCoverage,
   runUnitCoverageIfMain,
+  shardLabelsFromArgv,
   summarizeBranchCoverage,
 } from "../../../scripts/run-unit-coverage.ts";
 
@@ -63,6 +65,25 @@ end_of_record
 // ── Stage 1: real `bun test --coverage` over a fixture workspace ────────────
 const fixtureRoot = mkdtempSync(join(tmpdir(), "kibi-coverage-pipeline-"));
 try {
+  assert(
+    new UnitCoverageFailure("manifest closed").name === "UnitCoverageFailure",
+    "UnitCoverageFailure must stay a named closed-failure error",
+  );
+  assert(
+    JSON.stringify(shardLabelsFromArgv(["--shards=runtime"])) ===
+      JSON.stringify(["runtime"]),
+    "shardLabelsFromArgv must parse a bounded --shards selection",
+  );
+  assert(
+    formatCoverageFailure({
+      label: "runtime",
+      exitCode: 1,
+      durationMs: 12,
+      timeoutMs: 30,
+      timedOut: false,
+    }) === "runtime (exit 1, 12ms, timeout=30ms)",
+    "formatCoverageFailure must render the shard failure contract",
+  );
   mkdirSync(join(fixtureRoot, "packages", "demo", "src"), { recursive: true });
   mkdirSync(join(fixtureRoot, "packages", "demo", "tests"), {
     recursive: true,

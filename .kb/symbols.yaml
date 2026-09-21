@@ -5065,7 +5065,8 @@ symbols:
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable resource examples
+    title: predicate guidance loads a canonical decision tree with immutable
+      resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -38061,7 +38062,8 @@ symbols:
       - type: executable_for
         target: TEST-zcode-kibi-plugin-v1
   - id: SYM-zcode-case-optional-package-contract
-    title: '''Optional package contract: no install lifecycle or core runtime mutation'''
+    title: '''Optional package contract: no install lifecycle or core runtime
+      mutation'''
     status: active
     sourceFile: packages/zcode/tests/package-contract.test.ts
     symbol_role: behavioral
@@ -39943,6 +39945,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-e2e-coverage-pipeline
+      - type: covered_by
         target: TEST-scripts-unit-coverage-runner
       - type: implements
         target: REQ-014
@@ -39985,6 +39989,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-e2e-coverage-pipeline
+      - type: covered_by
         target: TEST-scripts-unit-coverage-runner
       - type: implements
         target: REQ-014
@@ -39995,6 +40001,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-e2e-coverage-pipeline
+      - type: covered_by
         target: TEST-scripts-unit-coverage-runner
       - type: implements
         target: REQ-014
@@ -40004,6 +40012,8 @@ symbols:
     sourceFile: scripts/pack-packages.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-014
       - type: implements
         target: REQ-020
   - id: SYM-pack-packages-if-main
@@ -40012,6 +40022,8 @@ symbols:
     sourceFile: scripts/pack-packages.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-014
       - type: implements
         target: REQ-020
   - id: SYM-package-catalog-slice
@@ -40020,6 +40032,8 @@ symbols:
     sourceFile: scripts/package-catalog.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-014
       - type: implements
         target: REQ-020
   - id: SYM-package-catalog-entry
@@ -40028,6 +40042,8 @@ symbols:
     sourceFile: scripts/package-catalog.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-014
       - type: implements
         target: REQ-020
   - id: SYM-package-catalog
@@ -40036,6 +40052,8 @@ symbols:
     sourceFile: scripts/package-catalog.ts
     symbol_role: config
     relationships:
+      - type: covered_by
+        target: TEST-014
       - type: implements
         target: REQ-020
   - id: SYM-package-catalog-dir
@@ -40044,6 +40062,8 @@ symbols:
     sourceFile: scripts/package-catalog.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-014
       - type: implements
         target: REQ-020
   - id: SYM-package-catalog-publishable-dirs
@@ -40052,6 +40072,8 @@ symbols:
     sourceFile: scripts/package-catalog.ts
     symbol_role: config
     relationships:
+      - type: covered_by
+        target: TEST-014
       - type: implements
         target: REQ-020
   - id: SYM-package-catalog-ci-pack-dirs
@@ -40060,6 +40082,8 @@ symbols:
     sourceFile: scripts/package-catalog.ts
     symbol_role: config
     relationships:
+      - type: covered_by
+        target: TEST-014
       - type: implements
         target: REQ-020
   - id: SYM-package-catalog-pack-all-dirs
@@ -40068,6 +40092,8 @@ symbols:
     sourceFile: scripts/package-catalog.ts
     symbol_role: config
     relationships:
+      - type: covered_by
+        target: TEST-014
       - type: implements
         target: REQ-020
   - id: SYM-package-catalog-packed-e2e-dirs
@@ -40076,6 +40102,8 @@ symbols:
     sourceFile: scripts/package-catalog.ts
     symbol_role: config
     relationships:
+      - type: covered_by
+        target: TEST-014
       - type: implements
         target: REQ-020
   - id: SYM-package-catalog-default-install-dirs
@@ -40084,6 +40112,10 @@ symbols:
     sourceFile: scripts/package-catalog.ts
     symbol_role: config
     relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: covered_by
+        target: TEST-kibi-distribution-parity-matrix
       - type: implements
         target: REQ-020
       - type: implements
@@ -40094,6 +40126,8 @@ symbols:
     sourceFile: scripts/package-catalog.ts
     symbol_role: config
     relationships:
+      - type: covered_by
+        target: TEST-014
       - type: implements
         target: REQ-020
   - id: SYM-package-catalog-entries-for-slice
@@ -40102,6 +40136,8 @@ symbols:
     sourceFile: scripts/package-catalog.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-014
       - type: implements
         target: REQ-020
   - id: SYM-package-catalog-dirs-for-slice
@@ -40110,6 +40146,8 @@ symbols:
     sourceFile: scripts/package-catalog.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-014
       - type: implements
         target: REQ-020
   - id: SYM-package-catalog-lookup-entry
@@ -40118,6 +40156,8 @@ symbols:
     sourceFile: scripts/package-catalog.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-014
       - type: implements
         target: REQ-020
   - id: SYM-package-catalog-cli-if-main
@@ -40126,5 +40166,7 @@ symbols:
     sourceFile: scripts/package-catalog.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-014
       - type: implements
         target: REQ-020
