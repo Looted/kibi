@@ -1534,19 +1534,30 @@ export async function runEngineDaemon(options: {
     let live = false;
     try {
       const existing = await connectSocket(options.socketPath, 100);
-      // Attach before destroy. Bun 1.4+ can emit a late EPIPE on destroy of a
-      // connected unix socket; that must not replace the live-listener error.
+      // Keep a permanent error sink and leave the probe socket open briefly.
+      // Bun 1.4 can surface write EPIPE from destroy() into the caller promise
+      // on some CI runners, replacing the intended live-listener error.
       existing.on("error", () => undefined);
       live = true;
-      try {
-        existing.destroy();
-      } catch {
-        // Ignore synchronous destroy failures on Bun unix sockets.
+      existing.unref?.();
+    } catch (error) {
+      const code =
+        error && typeof error === "object" && "code" in error
+          ? String((error as NodeJS.ErrnoException).code)
+          : "";
+      // Bun 1.4 can reject the probe with EPIPE/ECONNRESET against a live
+      // unix listener instead of resolving connect.
+      if (code === "EPIPE" || code === "ECONNRESET") {
+        live = true;
       }
-    } catch {
-      // A refused connection means this is a stale filesystem socket.
+      // Otherwise a refused connection means a stale filesystem socket.
     }
     if (live) {
+      try {
+        await prolog.terminate();
+      } catch {
+        // Best-effort cleanup before aborting on a live peer.
+      }
       throw new Error(
         `A Kibi engine is already listening at ${options.socketPath}`,
       );

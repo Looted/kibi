@@ -181,6 +181,16 @@ export const COVERAGE_SHARDS: readonly {
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
   },
   {
+    // Isolated from cli.commands: under Bun 1.4 + --coverage the file can hang
+    // the shared commands process after a long serial suite with no test output.
+    label: "cli.report-remaining",
+    paths: [
+      "./packages/cli/tests/coverage-isolates/report-remaining.coverage.test.ts",
+    ],
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+    processTimeoutMs: 3 * 60 * 1000,
+  },
+  {
     label: "cli.report",
     paths: ["./packages/cli/tests/report"],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,

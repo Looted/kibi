@@ -63,6 +63,7 @@ describe("unit coverage runner contract", () => {
       "cli.root.lcov",
       "cli.root",
       "cli.discovery-remaining",
+      "cli.report-remaining",
       "cli.report",
       "cli.parity",
       "cli.query",

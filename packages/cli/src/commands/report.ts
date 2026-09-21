@@ -18,7 +18,6 @@ import {
   type ReportRepository,
   resolveReportRepository,
 } from "../report/repository.js";
-import { createCliRuntime } from "../runtime/cli-runtime.js";
 import { listGitRemotes } from "./github-init.js";
 
 export type ReportOptions = Readonly<{
@@ -134,6 +133,9 @@ async function loadCoverage(
   tags: readonly string[],
   limit: number,
 ): Promise<ReportCoverage> {
+  // Lazy-load the CLI runtime so coverage suites that inject loadCoverage do
+  // not pull the engine/plugin graph into every reportCommand import.
+  const { createCliRuntime } = await import("../runtime/cli-runtime.js");
   const runtime = createCliRuntime();
   const runtimeSpec = coverageSpec as RuntimeOperationSpec<unknown, unknown>;
   const context = await runtime.open(runtimeSpec);
