@@ -257,6 +257,24 @@ describe("validateSymbolGranularity", () => {
     ).rejects.toThrow(/Non-behavioral symbols/);
   });
 
+  test("accepts a bare unique method title from collectGranularityCandidates parity", async () => {
+    const root = makeTempDir();
+    writeFileSync(
+      path.join(root, "widget.ts"),
+      "export class Widget { public render() {} }\n",
+    );
+    await validateSymbolGranularity(
+      {
+        type: "symbol",
+        id: "SYM-RENDER",
+        title: "render",
+        sourceFile: "widget.ts",
+      },
+      implementsRel,
+      context(root),
+    );
+  });
+
   test("parses tsx, jsx, js, and extra TypeScript extensions and truncates long lists", async () => {
     const root = makeTempDir();
     const functions = Array.from(

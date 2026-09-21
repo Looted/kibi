@@ -1531,6 +1531,18 @@ export async function runEngineDaemon(options: {
 
   mkdirSync(path.dirname(options.socketPath), { recursive: true, mode: 0o700 });
   if (existsSync(options.socketPath)) {
+    const isLivePeerSignal = (error: unknown): boolean => {
+      const code =
+        error && typeof error === "object" && "code" in error
+          ? String((error as NodeJS.ErrnoException).code)
+          : "";
+      const message = error instanceof Error ? error.message : String(error);
+      return (
+        code === "EPIPE" ||
+        code === "ECONNRESET" ||
+        /\bEPIPE\b|\bECONNRESET\b/i.test(message)
+      );
+    };
     let live = false;
     try {
       const existing = await connectSocket(options.socketPath, 100);
@@ -1541,13 +1553,9 @@ export async function runEngineDaemon(options: {
       live = true;
       existing.unref?.();
     } catch (error) {
-      const code =
-        error && typeof error === "object" && "code" in error
-          ? String((error as NodeJS.ErrnoException).code)
-          : "";
       // Bun 1.4 can reject the probe with EPIPE/ECONNRESET against a live
       // unix listener instead of resolving connect.
-      if (code === "EPIPE" || code === "ECONNRESET") {
+      if (isLivePeerSignal(error)) {
         live = true;
       }
       // Otherwise a refused connection means a stale filesystem socket.
@@ -1555,8 +1563,11 @@ export async function runEngineDaemon(options: {
     if (live) {
       try {
         await prolog.terminate();
-      } catch {
-        // Best-effort cleanup before aborting on a live peer.
+      } catch (error) {
+        // Best-effort cleanup; Bun may surface late EPIPE here too.
+        if (!isLivePeerSignal(error)) {
+          // Ignore non-EPIPE terminate failures.
+        }
       }
       throw new Error(
         `A Kibi engine is already listening at ${options.socketPath}`,

@@ -73,6 +73,24 @@ function packOwnedSchemas(
   return { schemas, owned };
 }
 
+function tryPackOwnedSchemas(
+  binding: CapabilityProviderBinding<OntologyPackV1>,
+  diagnostics: string[],
+): {
+  schemas: PredicateSchemaDefinition[];
+  owned: ReadonlySet<string>;
+} | null {
+  try {
+    return packOwnedSchemas(binding);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    diagnostics.push(
+      `ontology pack '${binding.capability.id}' schemas() failed: ${message}`,
+    );
+    return null;
+  }
+}
+
 /**
  * Collect active ontology schemas with replace / augment / shadow semantics.
  * Schema id collisions across packs are rejected. Shadow packs do not alter
@@ -263,35 +281,75 @@ export function composeOntologyMatches(
   ): {
     owned: ReadonlySet<string>;
     schemas: readonly PredicateSchemaDefinition[];
-  } => {
+  } | null => {
+    // Prefer the already-validated catalog schemas so we never re-invoke
+    // schemas() for packs that survived catalog construction (and so a
+    // replace pack that already failed catalog cannot crash matching).
     const fromCatalog = catalog.ownership.get(binding.capability.id);
     if (fromCatalog) {
-      const schemas = binding.capability
-        .schemas()
-        .map((schema) => validatePredicateSchema(schema));
+      const schemas = catalog.schemas.filter((schema) =>
+        fromCatalog.has(schema.schemaId),
+      );
       return { owned: fromCatalog, schemas };
     }
-    // Shadow (or failed replace) packs are not in the canonical catalog.
-    const { schemas, owned } = packOwnedSchemas(binding);
-    return { owned, schemas };
+    // Shadow packs (and replace packs that failed catalog construction) are
+    // not in the canonical catalog; load their schemas with containment.
+    return tryPackOwnedSchemas(binding, diagnostics);
   };
 
   if (resolution.replace) {
-    const { owned, schemas } = ownedFor(resolution.replace);
-    const outcome = runPackMatches(
-      resolution.replace,
-      context,
-      owned,
-      schemas,
-      canonical,
-      canonicalSeen,
-      diagnostics,
-    );
-    if (outcome === "failed") {
+    const replaceOwned = ownedFor(resolution.replace);
+    if (!replaceOwned) {
       diagnostics.push(
-        `replace ontology pack '${resolution.replace.pluginId}' match failed; falling back to builtin`,
+        `replace ontology pack '${resolution.replace.pluginId}' schemas unavailable for match; falling back to builtin`,
       );
       const builtin = ownedFor(resolution.builtin);
+      if (builtin) {
+        runPackMatches(
+          resolution.builtin,
+          context,
+          builtin.owned,
+          builtin.schemas,
+          canonical,
+          canonicalSeen,
+          diagnostics,
+        );
+      }
+    } else {
+      const outcome = runPackMatches(
+        resolution.replace,
+        context,
+        replaceOwned.owned,
+        replaceOwned.schemas,
+        canonical,
+        canonicalSeen,
+        diagnostics,
+      );
+      if (outcome === "failed") {
+        diagnostics.push(
+          `replace ontology pack '${resolution.replace.pluginId}' match failed; falling back to builtin`,
+        );
+        const builtin = ownedFor(resolution.builtin);
+        if (builtin) {
+          runPackMatches(
+            resolution.builtin,
+            context,
+            builtin.owned,
+            builtin.schemas,
+            canonical,
+            canonicalSeen,
+            diagnostics,
+          );
+        }
+      } else if (outcome === "abstained") {
+        diagnostics.push(
+          `replace ontology pack '${resolution.replace.pluginId}' abstained; builtin match not consulted`,
+        );
+      }
+    }
+  } else {
+    const builtin = ownedFor(resolution.builtin);
+    if (builtin) {
       runPackMatches(
         resolution.builtin,
         context,
@@ -301,24 +359,10 @@ export function composeOntologyMatches(
         canonicalSeen,
         diagnostics,
       );
-    } else if (outcome === "abstained") {
-      diagnostics.push(
-        `replace ontology pack '${resolution.replace.pluginId}' abstained; builtin match not consulted`,
-      );
     }
-  } else {
-    const builtin = ownedFor(resolution.builtin);
-    runPackMatches(
-      resolution.builtin,
-      context,
-      builtin.owned,
-      builtin.schemas,
-      canonical,
-      canonicalSeen,
-      diagnostics,
-    );
     for (const augment of resolution.augment) {
       const pack = ownedFor(augment);
+      if (!pack) continue;
       runPackMatches(
         augment,
         context,
@@ -333,6 +377,10 @@ export function composeOntologyMatches(
 
   for (const shadowBinding of resolution.shadow) {
     const pack = ownedFor(shadowBinding);
+    if (!pack) {
+      // Shadow must never fail the host operation; skip this pack.
+      continue;
+    }
     runPackMatches(
       shadowBinding,
       context,

@@ -104,7 +104,7 @@ export function detectSignals(prose: string): readonly DetectedSignal[] {
   });
 }
 
-/** Same lane choice as CLI analysis-receipt chooseLane. */
+/** Lane selection shared with the host analysis receipt. */
 // implements REQ-capability-plugin-builtin-parity-v1
 export function chooseLane(signals: readonly DetectedSignal[]): SemanticLane {
   if (

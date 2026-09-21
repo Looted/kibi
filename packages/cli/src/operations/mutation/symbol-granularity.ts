@@ -1,4 +1,5 @@
 import path from "node:path";
+import { collectGranularityCandidates } from "kibi-plugin-builtin";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import {
   ALLOWED_GRANULARITY_REASONS_PROSE,
@@ -10,39 +11,24 @@ import {
   isAllowedGranularityReason,
   isTraceabilityRelationshipType,
 } from "../../public/symbol-granularity.js";
-import { createSourceAnalysisService } from "../../plugins/source-analysis-service.js";
-import { createTsMorphSourceAnalysisProvider } from "../../extractors/symbols-ts.js";
 import type { RelationshipInput } from "./types.js";
 
 function candidate(name: string, kind: SymbolKind): GranularSymbolCandidate {
   return { name, kind, role: inferSymbolRole(kind) };
 }
 
-function candidatesFromSymbols(
-  symbols: ReadonlyArray<{ name: string; kind: string }>,
-): GranularSymbolCandidate[] {
-  return symbols.map((item) => candidate(item.name, item.kind as SymbolKind));
-}
-
 /**
- * Derive granularity candidates from host symbol analysis (capability seam),
- * not from a direct builtin ts-morph helper import.
+ * Granularity candidates must include bare unique method names (parity with
+ * the pre-plugin `collectGranularityCandidates` behavior). The extractor
+ * symbol list alone is too narrow and rejects previously-valid upserts.
  */
-async function candidates(
+function candidates(
   filePath: string,
   content: string,
-  context: OperationContext,
-): Promise<GranularSymbolCandidate[]> {
-  if (context.ensurePlugins) {
-    const registry = await context.ensurePlugins();
-    const analysis = await createSourceAnalysisService({
-      registry,
-    }).analyzeText(filePath, content);
-    return candidatesFromSymbols(analysis.symbols);
-  }
-  const provider = createTsMorphSourceAnalysisProvider();
-  if (!provider.supportsFile(filePath)) return [];
-  return candidatesFromSymbols(provider.analyzeText(filePath, content).symbols);
+): GranularSymbolCandidate[] {
+  return collectGranularityCandidates(filePath, content)
+    .map((item) => candidate(item.name, item.kind as SymbolKind))
+    .sort((left, right) => left.name.localeCompare(right.name));
 }
 
 function summarized(names: readonly string[]): string {
@@ -81,7 +67,7 @@ export async function validateSymbolGranularity(
     if (error instanceof Error) return;
     throw error;
   }
-  const available = await candidates(entity.sourceFile, content, context);
+  const available = candidates(entity.sourceFile, content);
   const exact = available.find(({ name }) => name === entity.title);
   if (exact && (exact.kind !== "variable" || entity.symbol_role === "config"))
     return;

@@ -191,6 +191,15 @@ export const COVERAGE_SHARDS: readonly {
     processTimeoutMs: 3 * 60 * 1000,
   },
   {
+    // Same Bun 1.4 + coverage hang pattern observed after report-remaining isolation.
+    label: "cli.sync-tracked-relationships",
+    paths: [
+      "./packages/cli/tests/coverage-isolates/sync-tracked-relationships.coverage.test.ts",
+    ],
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+    processTimeoutMs: 3 * 60 * 1000,
+  },
+  {
     label: "cli.report",
     paths: ["./packages/cli/tests/report"],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,

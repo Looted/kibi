@@ -777,6 +777,147 @@ describe("capability plugin host", () => {
   });
 
   // executable_for TEST-capability-plugin-host-resolution-v1
+  test("shadow ontology schemas() throw does not escape composeOntologyMatches", () => {
+    const builtinPack: OntologyPackV1 = {
+      id: "builtin-ont",
+      schemas: () => [
+        {
+          schemaId: "builtin.schema",
+          predicateName: "holds",
+          argumentNames: ["subject"],
+          argumentTypes: ["entity"],
+        },
+      ],
+      match: () => [],
+    };
+    const shadowPack: OntologyPackV1 = {
+      id: "shadow-ont",
+      schemas: () => {
+        throw new Error("shadow pack schemas() exploded");
+      },
+      match: () => [],
+    };
+    const stamp = {
+      pluginId: "x",
+      pluginVersion: "1",
+      capability: ONTOLOGY_PACK_CAPABILITY_ID,
+      mode: "shadow" as const,
+      external: true,
+      network: false,
+      metered: false,
+    };
+    const matched = composeOntologyMatches(
+      {
+        builtin: {
+          pluginId: "builtin",
+          pluginVersion: "1",
+          packageName: null,
+          mode: "builtin",
+          permissions: { network: false, metered: false, secrets: [] },
+          external: false,
+          capability: builtinPack,
+          stamp: { ...stamp, mode: "augment", external: false },
+        },
+        replace: null,
+        augment: [],
+        shadow: [
+          {
+            pluginId: "shadow",
+            pluginVersion: "1",
+            packageName: "s",
+            mode: "shadow",
+            permissions: { network: false, metered: false, secrets: [] },
+            external: true,
+            capability: shadowPack,
+            stamp,
+          },
+        ],
+      },
+      { claimKey: "c1", statement: "anything" },
+    );
+    expect(matched.canonical).toEqual([]);
+    expect(matched.shadow).toEqual([]);
+    expect(
+      matched.diagnostics.some((d) =>
+        /shadow-ont.*schemas\(\) failed/.test(d),
+      ),
+    ).toBe(true);
+  });
+
+  // executable_for TEST-capability-plugin-host-resolution-v1
+  test("replace ontology schemas() throw during match falls back to builtin", () => {
+    const builtinPack: OntologyPackV1 = {
+      id: "builtin-ont",
+      schemas: () => [
+        {
+          schemaId: "builtin.schema",
+          predicateName: "holds",
+          argumentNames: ["subject"],
+          argumentTypes: ["entity"],
+        },
+      ],
+      match: () => [
+        {
+          schemaId: "builtin.schema",
+          predicateName: "holds",
+          arguments: ["x"],
+          polarity: "assert",
+          confidence: 0.9,
+          evidence: "builtin hit",
+        },
+      ],
+    };
+    const replacePack: OntologyPackV1 = {
+      id: "replace-ont",
+      schemas: () => {
+        throw new Error("replace pack schemas() exploded");
+      },
+      match: () => [],
+    };
+    const stamp = {
+      pluginId: "x",
+      pluginVersion: "1",
+      capability: ONTOLOGY_PACK_CAPABILITY_ID,
+      mode: "replace" as const,
+      external: true,
+      network: false,
+      metered: false,
+    };
+    const matched = composeOntologyMatches(
+      {
+        builtin: {
+          pluginId: "builtin",
+          pluginVersion: "1",
+          packageName: null,
+          mode: "builtin",
+          permissions: { network: false, metered: false, secrets: [] },
+          external: false,
+          capability: builtinPack,
+          stamp: { ...stamp, mode: "augment", external: false },
+        },
+        replace: {
+          pluginId: "replace",
+          pluginVersion: "1",
+          packageName: "r",
+          mode: "replace",
+          permissions: { network: false, metered: false, secrets: [] },
+          external: true,
+          capability: replacePack,
+          stamp,
+        },
+        augment: [],
+        shadow: [],
+      },
+      { claimKey: "c1", statement: "anything" },
+    );
+    expect(matched.canonical).toHaveLength(1);
+    expect(matched.canonical[0]?.schemaId).toBe("builtin.schema");
+    expect(
+      matched.diagnostics.some((d) => /falling back to builtin/.test(d)),
+    ).toBe(true);
+  });
+
+  // executable_for TEST-capability-plugin-host-resolution-v1
   test("rejects plugin export version that mismatches package.json", async () => {
     const root = mkdtempSync(join(tmpdir(), "kibi-plugin-ver-"));
     const pluginRoot = join(root, "node_modules", "ver-plugin");
@@ -1093,6 +1234,96 @@ describe("capability plugin host", () => {
     expect(
       orchestrated.analysis.warnings.some((warning) =>
         /Builtin ontology predicate suggestions cleared/.test(warning),
+      ),
+    ).toBe(true);
+  });
+
+  // executable_for TEST-capability-plugin-host-resolution-v1
+  test("replace semantic abstention does not retain sync analyze-prose candidate lane", async () => {
+    const { analyzeSemanticAdvisorInputWithPlugins } = await import(
+      "../../src/operations/semantic-advisor/plugin-orchestration.js"
+    );
+    const { analyzeSemanticAdvisorInput } = await import(
+      "../../src/operations/semantic-advisor/analyze-prose.js"
+    );
+
+    const prose =
+      "Checkout requires payment authorization before submission.";
+    const sync = analyzeSemanticAdvisorInput({
+      payload: {
+        type: "req",
+        id: "REQ-REPLACE-SEM",
+        properties: {
+          title: "Checkout authorization",
+          text_ref: prose,
+        },
+        relationships: [],
+      },
+    });
+    expect(sync.receipt.candidate_lane).not.toBe("none");
+
+    const replaceClassifier: SemanticClassifierV1 = {
+      id: "replace-sem-e2e",
+      classify: async () => ({ decisions: [] }),
+    };
+    const registry = createCapabilityRegistry({
+      workspaceRoot: "/tmp/replace-sem-e2e",
+      projectConfig: {
+        plugins: [
+          {
+            package: "replace-sem",
+            capabilities: {
+              [SEMANTIC_CLASSIFIER_CAPABILITY_ID]: { mode: "replace" },
+            },
+          },
+        ],
+      },
+      builtinFactory: () => createStubBuiltinPlugin(),
+      loadPlugin: async () => ({
+        packageName: "replace-sem",
+        resolved: {
+          packageName: "replace-sem",
+          packageRoot: "/tmp/replace-sem",
+          packageJsonPath: "/tmp/replace-sem/package.json",
+          entryPath: "/tmp/replace-sem/index.js",
+          entryUrl: "file:///tmp/replace-sem/index.js",
+          packageJson: { name: "replace-sem", version: "1.0.0" },
+        },
+        plugin: makePlugin("replace-sem", {
+          classifier: replaceClassifier,
+          permissions: { network: true, metered: true, secrets: [] },
+        }),
+      }),
+    });
+
+    const orchestrated = await analyzeSemanticAdvisorInputWithPlugins(
+      {
+        payload: {
+          type: "req",
+          id: "REQ-REPLACE-SEM",
+          properties: {
+            title: "Checkout authorization",
+            text_ref: prose,
+          },
+          relationships: [],
+        },
+      },
+      {
+        ensurePlugins: async () => registry,
+        operationName: "kb_semantic_advisor",
+      },
+    );
+
+    expect(orchestrated.classification?.fallbackUsed).toBe(false);
+    expect(
+      orchestrated.classification?.decisions.every(
+        (decision) => decision.lane === "none",
+      ),
+    ).toBe(true);
+    expect(orchestrated.analysis.receipt.candidate_lane).toBe("none");
+    expect(
+      orchestrated.analysis.warnings.some((warning) =>
+        /Replace semantic classifier abstained/.test(warning),
       ),
     ).toBe(true);
   });

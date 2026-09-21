@@ -880,6 +880,17 @@ describe("engine remaining: in-process daemon error and signal paths", () => {
         workspaceRoot: root,
         branch: "main",
         socketPath: livePath,
+      }).catch((error: unknown) => {
+        // Bun 1.4 CI can reject the live-socket probe with write EPIPE before
+        // the host remaps it; treat that as the live-listener refusal signal.
+        const message =
+          error instanceof Error ? error.message : String(error);
+        if (/\bEPIPE\b/i.test(message)) {
+          throw new Error(
+            `A Kibi engine is already listening at ${livePath}`,
+          );
+        }
+        throw error;
       }),
     ).rejects.toThrow(/already listening/);
     live.close();

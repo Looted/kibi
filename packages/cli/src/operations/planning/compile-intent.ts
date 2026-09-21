@@ -135,6 +135,42 @@ export type CompilePlanV1 = Readonly<{
   steps: readonly PlanStep[];
   sourceWrites: readonly SourceWritePlan[];
   diagnostics: readonly string[];
+  /** Bounded replace/augment/shadow provenance; never changes canonical steps. */
+  capabilityPlugins?: Readonly<{
+    stamps: readonly {
+      pluginId: string;
+      capability: string;
+      mode: string;
+    }[];
+    classification: Readonly<{
+      fallbackUsed: boolean;
+      decisions: readonly {
+        claimKey: string;
+        lane: string;
+        confidence: number;
+      }[];
+      shadowComparisons: readonly {
+        pluginId: string;
+        mode: string;
+        decisions: readonly {
+          claimKey: string;
+          lane: string;
+          confidence: number;
+        }[];
+      }[];
+    }> | null;
+    ontology: Readonly<{
+      replaced: boolean;
+      matchCount: number;
+      shadowMatchCount: number;
+      shadowMatches: readonly {
+        packId: string;
+        schemaId: string;
+        predicateName: string;
+        confidence: number;
+      }[];
+    }>;
+  }>;
 }>;
 
 export type SourceWritePlan = Readonly<{
@@ -779,6 +815,55 @@ export async function executeCompileIntent(
       `Ontology pack shadow matches observed (${orchestrated.ontologyShadowMatches.length}); canonical compile plan unchanged.`,
     );
   }
+  const capabilityPlugins =
+    orchestrated.stamps.length > 0 ||
+    semanticShadowCount > 0 ||
+    orchestrated.ontologyShadowMatches.length > 0
+      ? {
+          stamps: orchestrated.stamps.map((stamp) => ({
+            pluginId: stamp.pluginId,
+            capability: stamp.capability,
+            mode: stamp.mode,
+          })),
+          classification: orchestrated.classification
+            ? {
+                fallbackUsed: orchestrated.classification.fallbackUsed,
+                decisions: orchestrated.classification.decisions.map(
+                  (decision) => ({
+                    claimKey: decision.claimKey,
+                    lane: decision.lane,
+                    confidence: decision.confidence,
+                  }),
+                ),
+                shadowComparisons:
+                  orchestrated.classification.shadowComparisons.map(
+                    (comparison) => ({
+                      pluginId: comparison.stamp.pluginId,
+                      mode: comparison.stamp.mode,
+                      decisions: comparison.decisions.map((decision) => ({
+                        claimKey: decision.claimKey,
+                        lane: decision.lane,
+                        confidence: decision.confidence,
+                      })),
+                    }),
+                  ),
+              }
+            : null,
+          ontology: {
+            replaced: orchestrated.ontologyCatalog?.replaced ?? false,
+            matchCount: orchestrated.ontologyMatches.length,
+            shadowMatchCount: orchestrated.ontologyShadowMatches.length,
+            shadowMatches: orchestrated.ontologyShadowMatches.map(
+              (candidate) => ({
+                packId: candidate.packId,
+                schemaId: candidate.schemaId,
+                predicateName: candidate.predicateName,
+                confidence: candidate.confidence,
+              }),
+            ),
+          },
+        }
+      : undefined;
   const suggestionByClaim = new Map(
     advisor.receipt.suggestions.map((suggestion) => [
       suggestion.claim_key,
@@ -938,8 +1023,11 @@ export async function executeCompileIntent(
     sourceWrites,
     diagnostics,
   };
+  // Shadow/provenance metadata is returned for observation but must not enter
+  // planHash — shadow providers never affect canonical apply identity.
   const plan: CompilePlanV1 = {
     ...planBody,
+    ...(capabilityPlugins ? { capabilityPlugins } : {}),
     planHash: compilePlanHash(planBody),
   };
   return {

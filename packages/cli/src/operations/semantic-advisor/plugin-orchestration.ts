@@ -256,7 +256,11 @@ export function applyClassificationRouting(
   analysis: SemanticAdvisorAnalysisResult,
   classification: ComposedSemanticClassifierResult,
   ontologyMatches: readonly StampedOntologyCandidate[] = [],
-  options: Readonly<{ replaced?: boolean }> = {},
+  options: Readonly<{
+    replaced?: boolean;
+    /** True when a replace semantic classifier succeeded (not builtin fallback). */
+    classifierReplaced?: boolean;
+  }> = {},
 ): SemanticAdvisorAnalysisResult {
   const receipt = analysis.receipt;
   if (receipt.logic_readiness === "modeled") {
@@ -280,6 +284,7 @@ export function applyClassificationRouting(
   const byClaim = new Map(
     classification.decisions.map((decision) => [decision.claimKey, decision]),
   );
+  const classifierReplaced = options.classifierReplaced === true;
 
   const propositions = receipt.propositions.map((proposition) => {
     const decision = byClaim.get(proposition.claim_key);
@@ -386,7 +391,11 @@ export function applyClassificationRouting(
     }
   }
 
-  let candidateLane = receipt.candidate_lane;
+  // Replace mode owns the candidate lane. Start from none so a valid empty
+  // decisions[] abstention does not inherit sync analyze-prose routing.
+  let candidateLane: SemanticAdvisorLane = classifierReplaced
+    ? "none"
+    : receipt.candidate_lane;
   for (const decision of classification.decisions) {
     if (laneRank(decision.lane) > laneRank(candidateLane)) {
       candidateLane = decision.lane;
@@ -417,6 +426,14 @@ export function applyClassificationRouting(
   if (classification.fallbackUsed) {
     warnings.push(
       "Semantic classifier fell back to the builtin provider after an external classifier failure.",
+    );
+  }
+  if (
+    classifierReplaced &&
+    classification.decisions.every((decision) => decision.lane === "none")
+  ) {
+    warnings.push(
+      "Replace semantic classifier abstained; sync analyze-prose candidate lane was not retained.",
     );
   }
   if (candidateLane === "predicate" || candidateLane === "rule") {
@@ -543,11 +560,14 @@ export async function analyzeSemanticAdvisorInputWithPlugins(
   }
 
   if (classification) {
+    const classifierReplaced =
+      !classification.fallbackUsed &&
+      classification.stamps.some((stamp) => stamp.mode === "replace");
     nextAnalysis = applyClassificationRouting(
       nextAnalysis,
       classification,
       ontologyMatches,
-      { replaced },
+      { replaced, classifierReplaced },
     );
   } else {
     nextAnalysis = applyOntologyMatchSuggestions(

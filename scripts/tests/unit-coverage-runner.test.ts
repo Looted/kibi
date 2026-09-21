@@ -64,6 +64,7 @@ describe("unit coverage runner contract", () => {
       "cli.root",
       "cli.discovery-remaining",
       "cli.report-remaining",
+      "cli.sync-tracked-relationships",
       "cli.report",
       "cli.parity",
       "cli.query",
