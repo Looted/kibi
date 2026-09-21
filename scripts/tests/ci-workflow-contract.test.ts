@@ -170,7 +170,7 @@ describe("ci.yml CI workflow contract", () => {
     expect(codecovConfig).toContain("- unit");
   });
 
-  test("SWI install refuses a distro 9.0 fallback that lacks coverage", () => {
+  test("SWI install avoids Launchpad GPG API and can build from source", () => {
     const installScript = readFileSync(SWI_INSTALL_PATH, "utf8");
     expect(installScript).toContain("library(prolog_coverage)");
     expect(installScript).toContain(
@@ -180,6 +180,14 @@ describe("ci.yml CI workflow contract", () => {
       "refusing Ubuntu 9.0.x fallback that lacks library(prolog_coverage)",
     );
     expect(installScript).toContain("require_prolog_coverage_library");
+    expect(installScript).not.toContain("apt-add-repository -y");
+    expect(installScript).toContain("add_swi_ppa_without_launchpad_api");
+    expect(installScript).toContain("install_swi_from_official_source");
+    expect(installScript).toContain('SWIPL_SRC_VERSION:-10.0.2');
+    expect(installScript).toContain("swipl-${SWIPL_SRC_VERSION}.tar.gz");
+    expect(installScript).toContain(
+      "e42cc098f7b8a6051c4f79a99b55162d467098aba60f69649bdc7583f0734b57",
+    );
   });
 
   test("downstream jobs wait for both JS and Prolog coverage gates", () => {
