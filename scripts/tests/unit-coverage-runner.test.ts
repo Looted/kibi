@@ -55,10 +55,12 @@ describe("unit coverage runner contract", () => {
       ),
     ).toEqual([
       "cli.commands",
+      "cli.sync-command",
       "cli.operations",
       "cli.public",
       "cli.support",
       "cli.engine-remaining",
+      "cli.engine-live-socket",
       "cli.engine",
       "cli.root.lcov",
       "cli.root",
@@ -74,6 +76,13 @@ describe("unit coverage runner contract", () => {
       COVERAGE_SHARDS.find((shard) => shard.label === "cli.commands")
         ?.timeoutMs,
     ).toBe(120_000);
+    expect(
+      COVERAGE_SHARDS.find((shard) => shard.label === "cli.sync-command")
+        ?.paths,
+    ).toEqual(["./packages/cli/tests/commands/sync.test.ts"]);
+    expect(
+      COVERAGE_SHARDS.find((shard) => shard.label === "cli.commands")?.paths,
+    ).not.toContain("./packages/cli/tests/commands/sync.test.ts");
     expect(
       COVERAGE_SHARDS.find((shard) => shard.label === "vscode.activation")
         ?.timeoutMs,

@@ -1532,25 +1532,35 @@ export async function runEngineDaemon(options: {
   mkdirSync(path.dirname(options.socketPath), { recursive: true, mode: 0o700 });
   if (existsSync(options.socketPath)) {
     const isLivePeerSignal = (error: unknown): boolean => {
-      const code =
-        error && typeof error === "object" && "code" in error
-          ? String((error as NodeJS.ErrnoException).code)
-          : "";
+      if (error && typeof error === "object") {
+        const code =
+          "code" in error
+            ? String((error as NodeJS.ErrnoException).code)
+            : "";
+        if (code === "EPIPE" || code === "ECONNRESET") return true;
+        const errno =
+          "errno" in error
+            ? Number((error as NodeJS.ErrnoException).errno)
+            : Number.NaN;
+        // POSIX EPIPE
+        if (errno === -32) return true;
+      }
       const message = error instanceof Error ? error.message : String(error);
-      return (
-        code === "EPIPE" ||
-        code === "ECONNRESET" ||
-        /\bEPIPE\b|\bECONNRESET\b/i.test(message)
-      );
+      return /\bEPIPE\b|\bECONNRESET\b|broken pipe/i.test(message);
     };
     let live = false;
     try {
       const existing = await connectSocket(options.socketPath, 100);
-      // Keep a permanent error sink and leave the probe socket open briefly.
-      // Bun 1.4 can surface write EPIPE from destroy() into the caller promise
-      // on some CI runners, replacing the intended live-listener error.
+      // Keep a permanent error sink. Bun 1.4 can surface write EPIPE from
+      // teardown into the caller promise on some CI runners, replacing the
+      // intended live-listener error.
       existing.on("error", () => undefined);
       live = true;
+      try {
+        existing.destroy();
+      } catch {
+        // Ignore destroy races; live detection already succeeded.
+      }
       existing.unref?.();
     } catch (error) {
       // Bun 1.4 can reject the probe with EPIPE/ECONNRESET against a live

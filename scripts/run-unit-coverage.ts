@@ -84,6 +84,12 @@ function spawnErrorCode(error: Error | undefined): string | undefined {
   return (error as NodeJS.ErrnoException | undefined)?.code;
 }
 
+const CLI_COMMANDS_DIR = "./packages/cli/tests/commands";
+const CLI_SYNC_COMMAND_TEST = `${CLI_COMMANDS_DIR}/sync.test.ts`;
+const CLI_COMMAND_TESTS = readdirSync(CLI_COMMANDS_DIR)
+  .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
+  .map((entry) => `${CLI_COMMANDS_DIR}/${entry}`);
+
 export const COVERAGE_SHARDS: readonly {
   readonly label: string;
   readonly paths: readonly string[];
@@ -97,9 +103,18 @@ export const COVERAGE_SHARDS: readonly {
 }[] = [
   {
     label: "cli.commands",
-    paths: ["./packages/cli/tests/commands"],
+    // sync.test.ts is isolated below: under Bun 1.4 + --coverage it can hang
+    // the shared commands process with no further test output until the
+    // 25-minute process bound fires.
+    paths: CLI_COMMAND_TESTS.filter((path) => path !== CLI_SYNC_COMMAND_TEST),
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
     processTimeoutMs: CLI_COMMANDS_PROCESS_TIMEOUT_MS,
+  },
+  {
+    label: "cli.sync-command",
+    paths: [CLI_SYNC_COMMAND_TEST],
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+    processTimeoutMs: 5 * 60 * 1000,
   },
   {
     label: "cli.operations",
@@ -139,6 +154,16 @@ export const COVERAGE_SHARDS: readonly {
     label: "cli.engine-remaining",
     paths: ["./packages/cli/tests/engine-remaining.coverage.test.ts"],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+  },
+  {
+    // Isolated from engine-remaining: Bun 1.4 + coverage can failWrite EPIPE
+    // from a live unix peer into the shared shard after other socket tests.
+    label: "cli.engine-live-socket",
+    paths: [
+      "./packages/cli/tests/coverage-isolates/engine-live-socket.coverage.test.ts",
+    ],
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+    processTimeoutMs: 3 * 60 * 1000,
   },
   {
     label: "cli.engine",
