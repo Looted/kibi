@@ -104,9 +104,14 @@ export function detectSignals(prose: string): readonly DetectedSignal[] {
   });
 }
 
-/** Lane selection shared with the host analysis receipt. */
+/**
+ * Lane selection shared with the host analysis receipt.
+ * Host snake_case receipts may omit candidateLane; only `kind` is required.
+ */
 // implements REQ-capability-plugin-builtin-parity-v1
-export function chooseLane(signals: readonly DetectedSignal[]): SemanticLane {
+export function chooseLane(
+  signals: readonly { readonly kind: SemanticSignalKind }[],
+): SemanticLane {
   if (
     signals.some(
       ({ kind }) =>

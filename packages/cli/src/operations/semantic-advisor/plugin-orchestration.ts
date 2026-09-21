@@ -168,6 +168,12 @@ export function applyOntologyMatchSuggestions(
 
   for (const match of ontologyMatches) {
     const claimKey =
+      (match.claimKey &&
+      propositions.some(
+        (proposition) => proposition.claim_key === match.claimKey,
+      )
+        ? match.claimKey
+        : undefined) ??
       propositions.find((proposition) =>
         proposition.claim_text.includes(match.evidence),
       )?.claim_key ??

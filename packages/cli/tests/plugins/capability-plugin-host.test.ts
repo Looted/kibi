@@ -912,6 +912,7 @@ describe("capability plugin host", () => {
     );
     expect(matched.canonical).toHaveLength(1);
     expect(matched.canonical[0]?.schemaId).toBe("builtin.schema");
+    expect(matched.canonical[0]?.claimKey).toBe("c1");
     expect(
       matched.diagnostics.some((d) => /falling back to builtin/.test(d)),
     ).toBe(true);

@@ -35,6 +35,8 @@ import type {
 // implements REQ-capability-plugin-activation-disclosure-v1
 export type StampedOntologyCandidate = OntologyMatchCandidate &
   Readonly<{
+    /** Claim key from the match context that produced this candidate. */
+    claimKey: string;
     packId: string;
     stamp: PluginProviderStamp;
   }>;
@@ -54,10 +56,16 @@ export type ComposedOntologyCatalog = Readonly<{
   diagnostics: readonly string[];
 }>;
 
-function candidateKey(candidate: OntologyMatchCandidate): string {
-  return [candidate.schemaId, candidate.polarity, ...candidate.arguments].join(
-    "\0",
-  );
+function candidateKey(
+  candidate: OntologyMatchCandidate,
+  claimKey?: string,
+): string {
+  return [
+    claimKey ?? "",
+    candidate.schemaId,
+    candidate.polarity,
+    ...candidate.arguments,
+  ].join("\0");
 }
 
 function packOwnedSchemas(
@@ -212,11 +220,12 @@ function runPackMatches(
         );
         continue;
       }
-      const key = candidateKey(candidate);
+      const key = candidateKey(candidate, context.claimKey);
       if (seen.has(key)) continue;
       seen.add(key);
       target.push({
         ...candidate,
+        claimKey: context.claimKey,
         packId: binding.capability.id,
         stamp: binding.stamp,
       });

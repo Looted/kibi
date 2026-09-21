@@ -43,6 +43,21 @@ export {
   type PredicateRule,
 } from "./ontology/predicate-rule.js";
 // implements REQ-capability-plugin-builtin-parity-v1
+export { CORE_PREDICATE_RULES } from "./ontology/predicate-rules-core.js";
+// implements REQ-capability-plugin-builtin-parity-v1
+export {
+  LAUNCHER_PREDICATE_RULES,
+  exactLauncherPredicateArgs,
+} from "./ontology/predicate-rules-launcher.js";
+// implements REQ-capability-plugin-builtin-parity-v1
+export { POLICY_PREDICATE_RULES } from "./ontology/predicate-rules-policy.js";
+// implements REQ-capability-plugin-builtin-parity-v1
+export { PRODUCT_PREDICATE_RULES } from "./ontology/predicate-rules-product.js";
+// implements REQ-capability-plugin-builtin-parity-v1
+export {
+  PRODUCT_TAIL_PREDICATE_RULES,
+} from "./ontology/predicate-rules-product-tail.js";
+// implements REQ-capability-plugin-builtin-parity-v1
 export {
   normalizeKey,
   normalizePredicateToken,
