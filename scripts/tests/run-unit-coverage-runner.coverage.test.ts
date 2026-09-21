@@ -258,6 +258,95 @@ describe("runUnitCoverage mocked shards", () => {
       errorSpy.mockRestore();
     }
   }, 20_000);
+
+  test("partial shardLabels still fail the repository manifest audit closed", async () => {
+    const root = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-unit-cov-partial-audit-"),
+    );
+    roots.push(root);
+    mkdirSync(path.join(root, "packages", "demo", "src"), { recursive: true });
+    writeFileSync(path.join(root, "packages", "demo", "src", "main.ts"), "x\n");
+    writeFileSync(
+      path.join(root, "packages", "demo", "src", "unmeasured.ts"),
+      "y\n",
+    );
+    const previousCwd = process.cwd();
+    const errors: string[] = [];
+    const errorSpy = spyOn(console, "error").mockImplementation((message) => {
+      errors.push(String(message));
+    });
+    const spawnSpy = spyOn(childProcess, "spawnSync").mockImplementation(((
+      _command,
+      args,
+    ) => {
+      const list = (args ?? []) as string[];
+      const coverageDir = list[list.indexOf("--coverage-dir") + 1] ?? "";
+      mkdirSync(coverageDir, { recursive: true });
+      writeFileSync(
+        path.join(coverageDir, "lcov.info"),
+        lcovRecord("packages/demo/src/main.ts", 1),
+      );
+      return { status: 0 } as ReturnType<typeof childProcess.spawnSync>;
+    }) as typeof childProcess.spawnSync);
+    process.chdir(root);
+    try {
+      await expect(
+        runUnitCoverage({
+          ...isolatedCoverageOptions(root),
+          shardLabels: ["runtime"],
+        }),
+      ).rejects.toBeInstanceOf(UnitCoverageFailure);
+      expect(errors.join("\n")).toContain("Coverage manifest audit failed");
+      expect(process.exitCode ?? 0).not.toBe(1);
+    } finally {
+      process.chdir(previousCwd);
+      spawnSpy.mockRestore();
+      errorSpy.mockRestore();
+    }
+  }, 20_000);
+
+  test("CLI --shards skips repo-wide gates for local shard iteration", async () => {
+    const root = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-unit-cov-skip-gates-"),
+    );
+    roots.push(root);
+    mkdirSync(path.join(root, "packages", "demo", "src"), { recursive: true });
+    writeFileSync(path.join(root, "packages", "demo", "src", "main.ts"), "x\n");
+    writeFileSync(
+      path.join(root, "packages", "demo", "src", "unmeasured.ts"),
+      "y\n",
+    );
+    const previousCwd = process.cwd();
+    const errors: string[] = [];
+    const errorSpy = spyOn(console, "error").mockImplementation((message) => {
+      errors.push(String(message));
+    });
+    const spawnSpy = spyOn(childProcess, "spawnSync").mockImplementation(((
+      _command,
+      args,
+    ) => {
+      const list = (args ?? []) as string[];
+      const coverageDir = list[list.indexOf("--coverage-dir") + 1] ?? "";
+      mkdirSync(coverageDir, { recursive: true });
+      writeFileSync(
+        path.join(coverageDir, "lcov.info"),
+        lcovRecord("packages/demo/src/main.ts", 1),
+      );
+      return { status: 0 } as ReturnType<typeof childProcess.spawnSync>;
+    }) as typeof childProcess.spawnSync);
+    process.chdir(root);
+    try {
+      await runUnitCoverageIfMain(true, isolatedCoverageOptions(root), [
+        "--shards=runtime",
+      ]);
+      expect(errors.join("\n")).not.toContain("Coverage manifest audit failed");
+      expect(process.exitCode ?? 0).not.toBe(1);
+    } finally {
+      process.chdir(previousCwd);
+      spawnSpy.mockRestore();
+      errorSpy.mockRestore();
+    }
+  }, 20_000);
 });
 
 describe("summarizeBranchCoverage", () => {

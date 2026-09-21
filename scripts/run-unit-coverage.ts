@@ -425,8 +425,18 @@ type UnitCoverageOptions = Readonly<{
    * (for example the end-to-end pipeline exerciser) use this to drive the real
    * orchestration over a bounded shard subset; an omitted list runs every
    * shard exactly as CI does.
+   *
+   * A bounded subset still runs the repository manifest audit unless
+   * `skipRepoGates` is set. CLI `--shards` / `KIBI_COVERAGE_SHARDS` set that
+   * flag so local iteration can finish without the whole-repo LCOV gate.
    */
   readonly shardLabels?: readonly string[];
+  /**
+   * Skip the repository coverage floor and source-manifest audit. Reserved for
+   * CLI `--shards` local iteration; library callers (including the coverage
+   * pipeline e2e) must omit this so a partial shard still fail-closes.
+   */
+  readonly skipRepoGates?: boolean;
 }>;
 
 /**
@@ -862,7 +872,9 @@ export async function runUnitCoverage(
       "utf8",
     );
     const failures: string[] = [];
+    const skipRepoGates = options.skipRepoGates === true;
     if (
+      !skipRepoGates &&
       options.shardLabels === undefined &&
       lineCoverage < UNIT_LINE_COVERAGE_FLOOR
     ) {
@@ -870,7 +882,7 @@ export async function runUnitCoverage(
         `Unit line coverage ${lineCoverage.toFixed(2)}% is below the ${UNIT_LINE_COVERAGE_FLOOR}% floor.`,
       );
     }
-    if (options.shardLabels === undefined) {
+    if (!skipRepoGates) {
       const missingFiles = writeCoverageManifestAudit(
         process.cwd(),
         coverageDir,
@@ -908,12 +920,16 @@ export async function runUnitCoverage(
 export async function runUnitCoverageIfMain(
   isMain = import.meta.main,
   options: UnitCoverageOptions = {},
+  argv: readonly string[] = process.argv.slice(2),
 ): Promise<void> {
   if (!isMain) return;
-  const shardLabels =
-    options.shardLabels ?? shardLabelsFromArgv(process.argv.slice(2));
+  const argvLabels = shardLabelsFromArgv(argv);
+  const shardLabels = options.shardLabels ?? argvLabels;
+  const skipRepoGates =
+    options.skipRepoGates ??
+    (options.shardLabels === undefined && argvLabels !== undefined);
   try {
-    await runUnitCoverage({ ...options, shardLabels });
+    await runUnitCoverage({ ...options, shardLabels, skipRepoGates });
   } catch (error) {
     if (error instanceof UnitCoverageFailure) {
       process.exitCode = 1;

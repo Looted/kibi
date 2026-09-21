@@ -26,6 +26,7 @@ import { writeCoverageManifestAudit } from "../../../scripts/coverage-manifest.t
 import { mergeLcovContentsWithDiagnostics } from "../../../scripts/merge-lcov.ts";
 import {
   COVERAGE_SHARDS,
+  UnitCoverageFailure,
   runUnitCoverage,
   runUnitCoverageIfMain,
   summarizeBranchCoverage,
@@ -231,11 +232,24 @@ describe("covered", () => {
   );
   const pipelineCoverageDir = join(fixtureRoot, "coverage", "pipeline");
   const pipelineShardDir = join(fixtureRoot, "coverage", "pipeline-shards");
-  await runUnitCoverage({
-    coverageDir: pipelineCoverageDir,
-    shardDir: pipelineShardDir,
-    shardLabels: ["runtime"],
-  });
+  let pipelineFailure: unknown;
+  try {
+    await runUnitCoverage({
+      coverageDir: pipelineCoverageDir,
+      shardDir: pipelineShardDir,
+      shardLabels: ["runtime"],
+    });
+  } catch (error) {
+    pipelineFailure = error;
+  }
+  assert(
+    pipelineFailure instanceof UnitCoverageFailure,
+    `a partial-shard run must fail the manifest audit closed (${pipelineFailure})`,
+  );
+  assert(
+    String(pipelineFailure).includes("Coverage manifest audit failed"),
+    `the fail-closed error must be the repository manifest audit:\n${String(pipelineFailure)}`,
+  );
   const pipelineSummary = readFileSync(
     join(pipelineCoverageDir, "coverage-summary.txt"),
     "utf8",
@@ -270,13 +284,9 @@ describe("covered", () => {
     failedShards.trim() === "",
     `the runtime shard must pass inside the orchestrated run: ${failedShards}`,
   );
-  // A bounded shard subset cannot satisfy the whole-repository manifest audit,
-  // so the runner must fail closed exactly like CI would.
-  assert(
-    process.exitCode === 1,
-    `a partial-shard run must fail the manifest audit closed (exit=${process.exitCode})`,
-  );
-  process.exitCode = 0;
+  // Library callers throw instead of setting process.exitCode, so bun-test
+  // isolates are not poisoned. The CLI main path still maps the same failure
+  // onto exit 1.
 
   // The main-module guard must stay a no-op for embedding importers.
   await runUnitCoverageIfMain(false, {
