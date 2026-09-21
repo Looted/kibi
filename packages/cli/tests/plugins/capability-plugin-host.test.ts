@@ -1191,7 +1191,7 @@ describe("capability plugin host", () => {
     const content = "export function helloWorld() {\n  return 1;\n}\n";
     const staged = {
       path: "src/hello.ts",
-      status: "modified" as const,
+      status: "M" as const,
       hunkRanges: [{ start: 1, end: 3 }],
       content,
     };
