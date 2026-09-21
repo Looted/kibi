@@ -56,6 +56,7 @@ describe("unit coverage runner contract", () => {
     ).toEqual([
       "cli.commands",
       "cli.sync-command",
+      "cli.sync-coverage",
       "cli.doctor",
       "cli.operations",
       "cli.public",
@@ -84,6 +85,17 @@ describe("unit coverage runner contract", () => {
     expect(
       COVERAGE_SHARDS.find((shard) => shard.label === "cli.commands")?.paths,
     ).not.toContain("./packages/cli/tests/commands/sync.test.ts");
+    expect(
+      COVERAGE_SHARDS.find((shard) => shard.label === "cli.sync-coverage")
+        ?.paths,
+    ).toEqual([
+      "./packages/cli/tests/commands/sync-coverage.test.ts",
+      "./packages/cli/tests/commands/sync-remaining.coverage.test.ts",
+      "./packages/cli/tests/commands/sync.in-process.test.ts",
+    ]);
+    expect(
+      COVERAGE_SHARDS.find((shard) => shard.label === "cli.commands")?.paths,
+    ).not.toContain("./packages/cli/tests/commands/sync-coverage.test.ts");
     expect(
       COVERAGE_SHARDS.find((shard) => shard.label === "cli.doctor")?.paths,
     ).toEqual([
