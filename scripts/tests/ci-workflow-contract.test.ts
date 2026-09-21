@@ -26,6 +26,11 @@ const DOCKER_ENTRYPOINT_PATH = join(
   "docker",
   "entrypoint.sh",
 );
+const SWI_INSTALL_PATH = join(
+  import.meta.dir,
+  "..",
+  "ci-install-swi-prolog.sh",
+);
 
 /**
  * Extract the text block for a named job from a GitHub Actions YAML workflow.
@@ -163,6 +168,18 @@ describe("ci.yml CI workflow contract", () => {
     expect(codecovConfig).toContain("target: 50%");
     expect(codecovConfig).toContain("threshold: 0%");
     expect(codecovConfig).toContain("- unit");
+  });
+
+  test("SWI install refuses a distro 9.0 fallback that lacks coverage", () => {
+    const installScript = readFileSync(SWI_INSTALL_PATH, "utf8");
+    expect(installScript).toContain("library(prolog_coverage)");
+    expect(installScript).toContain(
+      "Failed to fetch .*${SWI_PPA_FETCH_RE}",
+    );
+    expect(installScript).toContain(
+      "refusing Ubuntu 9.0.x fallback that lacks library(prolog_coverage)",
+    );
+    expect(installScript).toContain("require_prolog_coverage_library");
   });
 
   test("downstream jobs wait for both JS and Prolog coverage gates", () => {

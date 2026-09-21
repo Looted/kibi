@@ -5,6 +5,8 @@ set -euo pipefail
 
 APT_TIMEOUT_SECS="${KIBI_APT_TIMEOUT_SECS:-90}"
 APT_ATTEMPTS="${KIBI_APT_ATTEMPTS:-4}"
+SWI_PPA="ppa:swi-prolog/stable"
+SWI_PPA_FETCH_RE="ppa.launchpadcontent.net/swi-prolog/stable"
 
 wait_for_apt_lock() {
   local n=0
@@ -58,9 +60,9 @@ run_apt() {
   sudo timeout --kill-after=20 "${APT_TIMEOUT_SECS}" "$@"
 }
 
-retry_apt() {
+retry_until() {
   local attempt=1
-  until run_apt "$@"; do
+  until "$@"; do
     if [ "$attempt" -ge "${APT_ATTEMPTS}" ]; then
       return 1
     fi
@@ -71,12 +73,49 @@ retry_apt() {
   done
 }
 
+retry_apt() {
+  retry_until run_apt "$@"
+}
+
+# apt-get update exits 0 when Launchpad returns 503 for one source. Treat a
+# missing SWI PPA index as failure so Ubuntu 9.0.4 is never installed by
+# accident (it lacks library(prolog_coverage)).
+refresh_apt_indexes() {
+  local log status
+  log="$(mktemp)"
+  set +o pipefail
+  run_apt apt-get update 2>&1 | tee "$log"
+  status=${PIPESTATUS[0]}
+  set -o pipefail
+  if [ "$status" -ne 0 ]; then
+    rm -f "$log"
+    return "$status"
+  fi
+  if grep -Eq "Failed to fetch .*${SWI_PPA_FETCH_RE}" "$log"; then
+    echo "SWI-Prolog PPA index fetch failed; refusing Ubuntu 9.0.x fallback that lacks library(prolog_coverage)" >&2
+    rm -f "$log"
+    return 1
+  fi
+  rm -f "$log"
+  return 0
+}
+
+require_prolog_coverage_library() {
+  if ! command -v swipl >/dev/null 2>&1; then
+    echo "swipl is not on PATH after installing swi-prolog" >&2
+    return 1
+  fi
+  swipl --version >&2 || true
+  if ! swipl -q -g "use_module(library(prolog_coverage)), halt" -t "halt(1)"; then
+    echo "Installed SWI-Prolog lacks library(prolog_coverage)." >&2
+    echo "Ubuntu 24.04's 9.0.4 is not sufficient; ${SWI_PPA} (10.x) is required." >&2
+    return 1
+  fi
+}
+
 prefer_archive_ubuntu_mirrors
 retry_apt apt-get install -y software-properties-common
-
-if [ "${GITHUB_ACTOR:-}" != "nektos/act" ]; then
-  retry_apt apt-add-repository -y ppa:swi-prolog/stable
-fi
-
-retry_apt apt-get update
+retry_apt apt-add-repository -y "${SWI_PPA}"
+retry_until refresh_apt_indexes
 retry_apt apt-get install -y swi-prolog "$@"
+require_prolog_coverage_library
