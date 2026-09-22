@@ -1362,5 +1362,71 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-7ce08c1098480fa04513a9a3
+    test_id: TEST-vscode-traceability-coverage
+    scope: integration
+    outcome: passed
+    code_snapshot: 6cecd7c0d94abb719ce50440f1dd485c4928232c022465a202f69397c9ddbef0
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-22T12:00:29.159Z'
+    finished_at: '2026-09-22T12:51:44.779Z'
+    artifact_digest: 8ac234a8e3eff4fb727173cf1cf630ff8e544428281fcd58d3aa19e3ebe6a860
+    contract_hash: f31db0e901bcb6d3a953baf1fb32330aaa41cc3d774a8899400cc14fa4457f4f
+    binding_hash: 546b6d0707e7c670194829cb322fa77f00145b338ad4b015070a81205bc9d264
+    fingerprint: 49830231f9d4e51d7325784379088c215ee78f18d5c5df51f4bbf42696823efc
+    fingerprint_components:
+      contract: f31db0e901bcb6d3a953baf1fb32330aaa41cc3d774a8899400cc14fa4457f4f
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-vscode-traceability-coverage
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-2dcc4abdc1e3881dc7a4e281
+    test_id: TEST-vscode-traceability-coverage
+    scope: integration
+    outcome: passed
+    code_snapshot: ad044833267451532130fb29a270f9fdeb641e43e42361db23c43a42a7ba931b
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-22T13:10:15.732Z'
+    finished_at: '2026-09-22T13:38:55.177Z'
+    artifact_digest: 5093b95178d31888dc8691e48364671fe9579fbc7da67ef6ff29d0cb7acc77ce
+    contract_hash: f31db0e901bcb6d3a953baf1fb32330aaa41cc3d774a8899400cc14fa4457f4f
+    binding_hash: 546b6d0707e7c670194829cb322fa77f00145b338ad4b015070a81205bc9d264
+    fingerprint: 49830231f9d4e51d7325784379088c215ee78f18d5c5df51f4bbf42696823efc
+    fingerprint_components:
+      contract: f31db0e901bcb6d3a953baf1fb32330aaa41cc3d774a8899400cc14fa4457f4f
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-vscode-traceability-coverage
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 Open a linked symbol from the KB tree and a linked requirement from the editor, asserting both navigation directions resolve the expected source and entity targets.

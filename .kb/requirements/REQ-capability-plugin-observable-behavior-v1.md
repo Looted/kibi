@@ -101,6 +101,8 @@ logic_claims:
   - CLAIM-45979739101E3963
 id: REQ-capability-plugin-observable-behavior-v1
 type: req
+proof_exempt: true
+proof_exempt_reason: Executable activation, rejection, mode, fallback, maintenance-path, and doctor behavior is executed by SCEN-capability-plugin-observable-behavior-v1 and TEST-e2e-capability-plugins with fresh command evidence. Strict proof still reports unresolved_semantic_proposition because each clause is an ontology gap and has no predicate schema. The requirement stays exempt so those gaps are not counted as proof and no placeholder facts are invented.
 ---
 # REQ-capability-plugin-observable-behavior-v1
 
