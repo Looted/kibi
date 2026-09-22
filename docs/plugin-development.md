@@ -79,7 +79,7 @@ Rules:
 
 v1 does not add `kibi.config.ts`, generic plugin options, plugin factories, or arbitrary executable config. A later version may add a typed config file if capability-specific settings outgrow this manifest. This note does not choose that future shape.
 
-`kibi doctor` prints the parsed plugin rows (package, capability, mode, declared dependency). Editing `package.json` remains the way to enable or disable a plugin.
+`kibi doctor` prints the parsed plugin rows (package, capability, mode, declared dependency) without importing the plugin package. A configured package that is not listed in `dependencies`, `devDependencies`, or `optionalDependencies` fails that check. Add the package to one of those fields, or remove the `kibi.plugins` entry. Editing `package.json` remains the way to enable or disable a plugin.
 
 ## Modes
 

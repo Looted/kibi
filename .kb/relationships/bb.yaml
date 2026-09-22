@@ -370,3 +370,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bdbfc321dcdf
+  - type: covered_by
+    from: SYM-cap-plugin-createbuiltinontologypack-a6bb7233
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:41:50.774Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ca41faf9708
+  - type: covered_by
+    from: SYM-cap-plugin-singularize-09c7edbe
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:42:22.058Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ec2f195e7e7f
+  - type: covered_by
+    from: SYM-cap-plugin-projectpluginentry-5d305c06
+    to: TEST-capability-plugin-protocol-v1
+    created_at: 2026-09-22T19:47:01.530Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-507d26e16dc9

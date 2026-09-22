@@ -251,3 +251,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a96cf6910188
+  - type: covered_by
+    from: SYM-cap-plugin-symbolextractoranalyzeinput-66f70997
+    to: TEST-capability-plugin-protocol-v1
+    created_at: 2026-09-22T19:46:15.405Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8fcfff055ca4

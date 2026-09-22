@@ -2516,7 +2516,7 @@ coordinates:
     sourceFile: packages/cli/src/plugins/resolve-package.ts
     sourceLine: 97
   SYM-cap-plugin-builtin-predicate-confidence-685e50a6:
-    identityHash: 2215a0e1c6377e0f753aef7b682f1bc485753ad7513a45420e88db82f58c0a7e
+    identityHash: ee63268d59c6e2bc572ddecd26a7adf12b1a174a9a2d003d14c2988d6fc9e1bc
     sourceHash: db995cae6f0e47128821a057b3fc93254862c7a3d800c314604eec912c175639
     sourceColumn: 13
     sourceEndColumn: 48
@@ -2524,7 +2524,7 @@ coordinates:
     sourceFile: packages/plugin-builtin/src/ontology/predicate-rule.ts
     sourceLine: 56
   SYM-cap-plugin-builtin-predicate-rule-sets-0eb8653e:
-    identityHash: 72cfff8949e69541a4a278a86a4323f1bce9d7059f7ddf1027207cd8702b75e5
+    identityHash: 22aaca706ce01ee9b04697acc22ce49924cf211451693c814844fa74a36035d6
     sourceHash: a2ef304563d9039a3f2cca7a75de5de5c03113945d545f8dc67b63c1c0134074
     sourceColumn: 13
     sourceEndColumn: 3
@@ -3004,7 +3004,7 @@ coordinates:
     sourceFile: packages/plugin-builtin/src/ontology/predicate-rules-launcher.ts
     sourceLine: 115
   SYM-cap-plugin-external-semantic-classifier-operations-2fb73e29:
-    identityHash: 81bc0e470bc3b37cbb97a248eed57325e3de7973840f4185789bf2fc4920f52f
+    identityHash: 2d8d54066a9fd373fcb412959d75b251417c1d584a9e3c7477351974e3bf65d0
     sourceHash: 6a53723949528a5a11bf6a56d87b2059ac1e399f79ad87e98f6c44ed5ef42845
     sourceColumn: 13
     sourceEndColumn: 10
@@ -3100,7 +3100,7 @@ coordinates:
     sourceFile: packages/cli/src/plugins/resolve-package.ts
     sourceLine: 154
   SYM-cap-plugin-jev-default-model:
-    identityHash: 9cd8428edaa505208cf020a8c67ffb0e3cb53e6e92be62a5e92cf5344ee4f41f
+    identityHash: e0eb0394d2c4c0bc06dd83987051d4179d7c8035c1486e9705cdeb4a06f28dac
     sourceHash: eeaab31add1f3248deb33353db6f12a678d4a5d723722f2687c7a4cae0d20481
     sourceColumn: 13
     sourceEndColumn: 54
@@ -3204,7 +3204,7 @@ coordinates:
     sourceFile: packages/plugin-sdk/src/protocol.ts
     sourceLine: 6
   SYM-cap-plugin-kibiplugin-1d58a6dc:
-    identityHash: 66d80ff015944c4c7fc9bb0bada41a7ba07d9c97839ffe483a34dfd3c2af20cf
+    identityHash: 07e6f6a59c4048c83f250bb8803834398518c17e8f0b2462d37641ca23a6ea70
     sourceHash: b380c84b6506ba8b0c07f96a5e39b93546da553fa0b82facd8e65f229ed3fd96
     sourceColumn: 13
     sourceEndColumn: 2
@@ -3244,7 +3244,7 @@ coordinates:
     sourceFile: packages/plugin-sdk/src/protocol.ts
     sourceLine: 63
   SYM-cap-plugin-launcher-predicate-rules-d2597a06:
-    identityHash: 29a94900e9dde72fbfbef2f9f338a0b30e31dcff0d69e36f8a22030b8c9fbd42
+    identityHash: 761eda61f8d0b02a8c0066520238760d9e909ea992f4d5ad0a80c153f7761e28
     sourceHash: 8b6492903212b385d5cac6b0cad257b73a7b55d05f317f9c6fcd53033b35de1b
     sourceColumn: 13
     sourceEndColumn: 45
@@ -3764,7 +3764,7 @@ coordinates:
     sourceFile: packages/cli/src/plugins/compose-ontology-packs.ts
     sourceLine: 36
   SYM-cap-plugin-supported-source-extensions-7688bba6:
-    identityHash: 031ff06562446d91ed22ac3b8e4ad865403b41b420ef8fe01e8601926a33eef1
+    identityHash: a09ce89d5e262e6f8ecd2f756eb6ef2d78b2048663dbdd22d2b1cd2bd2f249ad
     sourceHash: 85714fa8e83cfc56be3428b6ff4ebab688865e610034cd6ba64080e873a8d919
     sourceColumn: 13
     sourceEndColumn: 2
@@ -4788,7 +4788,7 @@ coordinates:
     sourceFile: packages/cli/src/types/entities.ts
     sourceLine: 91
   SYM-cli-extract-isprivateclassmember:
-    identityHash: a031d18ed0bd51a50f8f7a9f9fb24223cfd92081a1018225c357f820d733a4b8
+    identityHash: 29a72cfddb73d97ccd80b94193f68795fa47aadec70795f79ee86bb176ca3260
     sourceHash: 0a8c4e7ee9e605d574e6d24bdb7663d4d13b8860faa242f0b0ea2482cb981f71
     sourceColumn: 13
     sourceEndColumn: 63
@@ -11092,7 +11092,7 @@ coordinates:
     sourceFile: packages/cli/src/prolog/janitor.ts
     sourceLine: 61
   SYM-jev-max-timeout-ms:
-    identityHash: c35ef1f48f5a95b760ef4aa430e8e0fb07bad0c25e0cbfe6bb77b03385b7e671
+    identityHash: 30d4cc91e25f99a97cf8e8232843e52b9fc44b5b9bb94a7df8f5be39911ae5c0
     sourceHash: eeaab31add1f3248deb33353db6f12a678d4a5d723722f2687c7a4cae0d20481
     sourceColumn: 13
     sourceEndColumn: 41
@@ -12037,7 +12037,7 @@ coordinates:
     sourceLine: 40
   SYM-kibi-doctor-command:
     identityHash: 16dd5b6a00db911294804920abed826ad139a52771b80e46ae634b40c0f22a06
-    sourceHash: da116ede101c0ba675d2725d3597ab4a305ad567299d2bf78452cb60d214c50d
+    sourceHash: 8d764fa6b9ace59fec547d3aa7fc98441d22658328194841fe60f98c0d195c2c
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 129

@@ -132,3 +132,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e559fb7865b9
+  - type: covered_by
+    from: SYM-cap-plugin-capabilityregistry-workspaceroot-8395b51e
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:39:50.467Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4baa3d6e970b
+  - type: covered_by
+    from: SYM-cap-plugin-kibi-plugin-api-version-f5d09d81
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:47:08.088Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d6e746896f8

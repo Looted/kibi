@@ -251,3 +251,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-07d39a3f1d50
+  - type: covered_by
+    from: SYM-cap-plugin-builtin-predicate-rule-sets-0eb8653e
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:42:11.470Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d9c6d68741fc

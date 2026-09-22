@@ -132,3 +132,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1366bbd3530d
+  - type: covered_by
+    from: SYM-cap-plugin-createcapabilityregistry-24d244b0
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:39:08.037Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12ddedb2abda
+  - type: covered_by
+    from: SYM-cap-plugin-tosourceanalysisprovider-624e8fb1
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:45:59.156Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a0387f8c4c64
+  - type: covered_by
+    from: SYM-cap-plugin-validateontologymatchcandidate-d19f51a4
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:47:57.211Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-436094260fe3

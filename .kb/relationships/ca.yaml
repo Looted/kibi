@@ -118,3 +118,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c32ca8fbf51c
+  - type: requires_predicate
+    from: REQ-capability-plugin-protocol-v1
+    to: FACT-PRED-AA31211A7FD4
+    created_at: 2026-09-22T19:13:39.126Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1709fa8ebaac
+  - type: requires_predicate
+    from: REQ-capability-plugin-protocol-v1
+    to: FACT-PRED-1E92E684E956
+    created_at: 2026-09-22T19:13:39.132Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e11dc0e406f5
+  - type: covered_by
+    from: SYM-cap-plugin-onlycandidate-e892cad2
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:44:13.900Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89b2c051128d

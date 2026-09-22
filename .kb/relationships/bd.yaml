@@ -195,3 +195,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-18ac73fe6476
+  - type: requires_predicate
+    from: REQ-capability-plugin-jev-fallback-v1
+    to: FACT-PRED-423972ABA451
+    created_at: 2026-09-22T19:13:49.984Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09a0b3d0760f
+  - type: requires_predicate
+    from: REQ-capability-plugin-jev-fallback-v1
+    to: FACT-PRED-BFAAB22DB967
+    created_at: 2026-09-22T19:13:49.993Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6af948e8d516
+  - type: requires_predicate
+    from: REQ-capability-plugin-jev-fallback-v1
+    to: FACT-PRED-F84FDFB248C3
+    created_at: 2026-09-22T19:13:50.019Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3413f3d749d3

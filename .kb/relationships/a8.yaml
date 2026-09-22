@@ -160,20 +160,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-204696ba331f
-  - type: implements
-    from: SYM-jev-resolve-model
-    to: REQ-capability-plugin-observable-behavior-v1
-    created_at: 2026-09-22T09:39:20.687Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b199f6d41511
-  - type: implements
-    from: SYM-jev-resolve-model
-    to: REQ-capability-plugin-jev-fallback-v1
-    created_at: 2026-09-22T09:39:20.718Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-d75ffbc455a2
   - type: covered_by
     from: SYM-jev-resolve-model
     to: TEST-e2e-capability-plugins
@@ -181,3 +167,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-af47a88008ee
+  - type: covered_by
+    from: SYM-cap-plugin-ontology-polarities-1200e8a1
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:45:26.548Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d87f02478db4
+  - type: implements
+    from: SYM-jev-resolve-model
+    to: REQ-capability-plugin-configuration-v1
+    created_at: 2026-09-22T19:49:14.347Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-559d468b71dc

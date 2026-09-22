@@ -209,3 +209,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-701be2959660
+  - type: implements
+    from: SYM-cap-plugin-semanticpluginorchestrationresult-0b07ce70
+    to: REQ-capability-plugin-observable-behavior-v1
+    created_at: 2026-09-22T19:34:13.191Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5849757db5a
+  - type: covered_by
+    from: SYM-cap-plugin-semanticpluginorchestrationresult-0b07ce70
+    to: TEST-capability-plugin-host-resolution-v1
+    created_at: 2026-09-22T19:34:13.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31c203daab18
+  - type: implements
+    from: SYM-cap-plugin-composedsemanticclassifierresult-45a3153d
+    to: REQ-capability-plugin-three-capabilities-v1
+    created_at: 2026-09-22T19:34:42.914Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab1872b9f81a
+  - type: covered_by
+    from: SYM-cap-plugin-composedsemanticclassifierresult-45a3153d
+    to: TEST-capability-plugin-host-resolution-v1
+    created_at: 2026-09-22T19:34:42.919Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4468a8b7c175

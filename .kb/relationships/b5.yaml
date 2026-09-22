@@ -349,3 +349,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0a1d9448a53e
+  - type: covered_by
+    from: SYM-plugin-sdk-validate-source-analysis-result-for-path
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:48:38.251Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f46b8ed0037

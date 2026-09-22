@@ -160,3 +160,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c74e3a4077c3
+  - type: covered_by
+    from: SYM-cap-plugin-policy-predicate-rules-67c10eed
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:42:58.618Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-593ea1f492ef

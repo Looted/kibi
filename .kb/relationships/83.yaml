@@ -185,13 +185,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1c38bcb49083
-  - type: implements
-    from: SYM-cap-plugin-readprojectkibiconfig-a3a4195c
-    to: REQ-capability-plugin-observable-behavior-v1
-    created_at: 2026-09-22T09:22:23.194Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-ad7d10af231a
   - type: covered_by
     from: SYM-cap-plugin-readprojectkibiconfig-a3a4195c
     to: TEST-e2e-capability-plugins

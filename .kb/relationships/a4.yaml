@@ -223,3 +223,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d3923368701a
+  - type: covered_by
+    from: SYM-cap-plugin-kibipluginapiversion-e2051f3a
+    to: TEST-capability-plugin-protocol-v1
+    created_at: 2026-09-22T19:46:48.180Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1012d833e0bd
+  - type: covered_by
+    from: SYM-cap-plugin-validateprojectkibiconfig-92b7cbbf
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:47:43.652Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-baf4ada007f4

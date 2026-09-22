@@ -181,3 +181,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8186711b7f0b
+  - type: implements
+    from: SYM-cap-plugin-externalsemanticclassifieroperation-db7b29fe
+    to: REQ-capability-plugin-observable-behavior-v1
+    created_at: 2026-09-22T19:34:47.692Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1673e435ad73
+  - type: covered_by
+    from: SYM-cap-plugin-externalsemanticclassifieroperation-db7b29fe
+    to: TEST-capability-plugin-host-resolution-v1
+    created_at: 2026-09-22T19:34:47.723Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-66aafd0adac4
+  - type: implements
+    from: SYM-cap-plugin-plugin-modes-52a9d01a
+    to: REQ-capability-plugin-three-capabilities-v1
+    created_at: 2026-09-22T19:47:21.740Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4ce2f39b110d
+  - type: covered_by
+    from: SYM-cap-plugin-plugin-modes-52a9d01a
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:47:21.746Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c1c0c850a664

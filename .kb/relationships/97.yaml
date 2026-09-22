@@ -237,3 +237,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-28ec34ddaa94
+  - type: covered_by
+    from: SYM-cap-plugin-projectpackagemanifest-d2e8adeb
+    to: TEST-capability-plugin-host-resolution-v1
+    created_at: 2026-09-22T19:39:03.729Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4e65c95ed5e
+  - type: covered_by
+    from: SYM-cap-plugin-createbuiltintsmorphsymbolextractor-944db424
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:43:48.779Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd97256cbbf2

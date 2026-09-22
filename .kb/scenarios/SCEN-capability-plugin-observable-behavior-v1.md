@@ -8,4 +8,4 @@ type: scenario
 ---
 # SCEN-capability-plugin-observable-behavior-v1
 
-Given a workspace package.json, activation is explicit, unsafe package references are rejected, inactive plugins are not imported, and replace, augment, and shadow compose as documented. Maintenance operations do not import third-party plugins. Jev stays out of the default dependency graph and falls back locally on failure.
+Undeclared, path, and global plugin packages are rejected. An installed plugin that is not activated is not imported. External capability providers do not run during maintenance operations. Optional Jev is absent from the default CLI, MCP, and runtime dependency graphs. An SDK-only plugin can participate through the host capability seam. External semantic classifiers are allowed only for kb_semantic_advisor and kb_compile_intent.

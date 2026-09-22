@@ -76,3 +76,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-541868719e8a
+  - type: covered_by
+    from: SYM-cap-plugin-commalist-09b1179e
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:42:28.631Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82e6d5eeceab

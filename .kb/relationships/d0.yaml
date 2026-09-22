@@ -83,3 +83,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-11533f271926
+  - type: covered_by
+    from: SYM-cli-extract-isprivateclassmember
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:48:14.532Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-932de5a830d9

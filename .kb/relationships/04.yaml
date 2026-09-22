@@ -188,3 +188,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-415a68d38961
+  - type: covered_by
+    from: SYM-cap-plugin-createtypesafejevclient-d0f97996
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:45:07.157Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c582f9589cf

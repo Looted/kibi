@@ -111,3 +111,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1e16496a506a
+  - type: covered_by
+    from: SYM-cli-extract-symbols-options
+    to: TEST-capability-plugin-host-resolution-v1
+    created_at: 2026-09-22T19:48:33.289Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7fd2d25cbf29

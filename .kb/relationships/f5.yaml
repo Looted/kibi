@@ -139,10 +139,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5b4706ba24c2
-  - type: implements
-    from: SYM-plugin-configured-diagnostic
-    to: REQ-capability-plugin-activation-disclosure-v1
-    created_at: 2026-09-22T11:38:10.406Z
+  - type: covered_by
+    from: SYM-cap-plugin-projectkibiconfig-24a81eca
+    to: TEST-capability-plugin-protocol-v1
+    created_at: 2026-09-22T19:47:04.816Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
-    id: rel-6cdd9851619e
+    id: rel-8a2f063e6648
+  - type: implements
+    from: SYM-plugin-configured-diagnostic
+    to: REQ-capability-plugin-configuration-v1
+    created_at: 2026-09-22T19:49:32.637Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d2fa231794e
+  - type: covered_by
+    from: SYM-plugin-configured-diagnostic
+    to: TEST-capability-plugin-host-resolution-v1
+    created_at: 2026-09-22T19:49:32.642Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57c22ecfdcef

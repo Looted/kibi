@@ -87,3 +87,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4452b64911bb
+  - type: covered_by
+    from: SYM-cap-plugin-createbuiltintsmorphsourceanalysisprovider-f315a9b7
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:43:53.544Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1763ebc5abf

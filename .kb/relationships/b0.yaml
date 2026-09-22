@@ -69,3 +69,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d65acb0cb220
+  - type: covered_by
+    from: SYM-cap-plugin-hasconsumernodemoduleslink-dbcab9ae
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:40:43.681Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-884a876739df

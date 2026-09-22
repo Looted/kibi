@@ -178,6 +178,32 @@ try {
     describeConfiguredCapabilityPlugins(root)[0]?.declared === false,
     "doctor rows report undeclared packages",
   );
+  process.chdir(root);
+  const undeclaredDoctorLogs: string[] = [];
+  const undeclaredOriginalLog = console.log;
+  console.log = (...args: unknown[]) => {
+    undeclaredDoctorLogs.push(args.map(String).join(" "));
+  };
+  try {
+    await doctorCommand({ format: "json" });
+  } finally {
+    console.log = undeclaredOriginalLog;
+    process.chdir(originalCwd);
+  }
+  const undeclaredDoctor = JSON.parse(undeclaredDoctorLogs[0] ?? "{}") as {
+    checks?: Array<{ name: string; passed?: boolean; message: string; remediation?: string }>;
+  };
+  const undeclaredPluginCheck = undeclaredDoctor.checks?.find(
+    (check) => check.name === "Capability plugins",
+  );
+  assert(
+    undeclaredPluginCheck?.passed === false &&
+      undeclaredPluginCheck.message ===
+        "example-capability-plugin kibi.semantic-classifier.v1 augment declared=no" &&
+      undeclaredPluginCheck.remediation ===
+        "Add the configured plugin package to dependencies, devDependencies, or optionalDependencies, or remove the kibi.plugins activation entry.",
+    "kibi doctor fails configured plugins that are not declared dependencies",
+  );
   let undeclared = false;
   try {
     await loadPluginPackage(root, "example-capability-plugin");

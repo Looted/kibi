@@ -209,3 +209,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7e878234bbf9
+  - type: covered_by
+    from: SYM-cap-plugin-chooselane-9f87a891
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:43:13.456Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90ed8ba3e3d7

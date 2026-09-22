@@ -307,3 +307,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d3684c3f5fed
+  - type: covered_by
+    from: SYM-cap-plugin-builtinontologypack-schemas-a1165985
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:41:59.819Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5f48d28304c

@@ -195,3 +195,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-02d29b9cecc3
+  - type: covered_by
+    from: SYM-cap-plugin-capabilityregistryoptions-b7aec1ea
+    to: TEST-capability-plugin-host-resolution-v1
+    created_at: 2026-09-22T19:40:29.378Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad9c04e4e684

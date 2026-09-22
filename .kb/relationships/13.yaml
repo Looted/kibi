@@ -118,3 +118,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-befa259dd2cf
+  - type: implements
+    from: SYM-cap-plugin-createsourceanalysisservice-9e91da5d
+    to: REQ-capability-plugin-three-capabilities-v1
+    created_at: 2026-09-22T19:41:20.021Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d61c4fa3ebed
+  - type: covered_by
+    from: SYM-cap-plugin-createsourceanalysisservice-9e91da5d
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:41:20.025Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-adf94f0c3d99
+  - type: covered_by
+    from: SYM-cap-plugin-kibiplugincapabilities-e695d15b
+    to: TEST-capability-plugin-protocol-v1
+    created_at: 2026-09-22T19:46:41.622Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd21b15814dc

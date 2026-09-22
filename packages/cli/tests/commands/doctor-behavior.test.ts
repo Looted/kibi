@@ -761,4 +761,33 @@ describe("doctorCommand capability plugins", () => {
         "kibi-plugin-jev kibi.semantic-classifier.v1 augment declared=yes",
     });
   });
+
+  test("fails when a configured plugin is not a declared dependency", async () => {
+    const cwd = preparedWorkspace();
+    writeFileSync(
+      path.join(cwd, "package.json"),
+      JSON.stringify({
+        name: "consumer",
+        kibi: {
+          plugins: [
+            {
+              package: "kibi-plugin-jev",
+              capabilities: {
+                "kibi.semantic-classifier.v1": { mode: "augment" },
+              },
+            },
+          ],
+        },
+      }),
+    );
+    mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
+    const { payload } = await runDoctorJson(cwd);
+    expect(namedCheck(payload, "Capability plugins")).toMatchObject({
+      passed: false,
+      message:
+        "kibi-plugin-jev kibi.semantic-classifier.v1 augment declared=no",
+      remediation:
+        "Add the configured plugin package to dependencies, devDependencies, or optionalDependencies, or remove the kibi.plugins activation entry.",
+    });
+  });
 });

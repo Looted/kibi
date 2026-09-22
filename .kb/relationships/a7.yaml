@@ -234,3 +234,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c2348c8eb554
+  - type: covered_by
+    from: SYM-cap-plugin-jevchoiceanswer-f3f17b79
+    to: TEST-capability-plugin-jev-mocked-v1
+    created_at: 2026-09-22T19:44:45.947Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c9af5294ebf

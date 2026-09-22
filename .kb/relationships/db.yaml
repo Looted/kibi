@@ -230,13 +230,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7a150ff81a82
-  - type: implements
-    from: SYM-cap-plugin-composesemanticclassification-8220663e
-    to: REQ-capability-plugin-observable-behavior-v1
-    created_at: 2026-09-22T09:24:52.975Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-1ca45cddd150
   - type: covered_by
     from: SYM-cap-plugin-composesemanticclassification-8220663e
     to: TEST-e2e-capability-plugins
@@ -244,3 +237,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bb5519d9817a
+  - type: implements
+    from: SYM-cap-plugin-composesemanticclassification-8220663e
+    to: REQ-capability-plugin-three-capabilities-v1
+    created_at: 2026-09-22T19:34:37.628Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-105e11955dc2

@@ -8,4 +8,4 @@ type: scenario
 ---
 # SCEN-capability-plugin-jev-inactive-v1
 
-Given kibi-plugin-jev is installed but not activated, importing the package and constructing the registry makes no TypeSafe calls. Given activated classification failures, builtin fallback is used without leaking credentials.
+Importing kibi-plugin-jev or leaving it inactive makes no TypeSafe client or network call. When the classifier is unavailable, classification falls back to builtin analysis. Plugin diagnostics do not expose credentials.

@@ -244,3 +244,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-37127fa9f92b
+  - type: covered_by
+    from: SYM-cap-plugin-validatepermissions-aa84267e
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:47:34.751Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4bf9391752d
