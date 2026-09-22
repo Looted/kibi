@@ -8989,7 +8989,7 @@ coordinates:
     sourceLine: 30
   SYM-doctor-detect-execute-apply-plan:
     identityHash: 797844b76baaf88f813fcec00435154edeee1de1d00e05d0c1f19239c3863904
-    sourceHash: da116ede101c0ba675d2725d3597ab4a305ad567299d2bf78452cb60d214c50d
+    sourceHash: 8d764fa6b9ace59fec547d3aa7fc98441d22658328194841fe60f98c0d195c2c
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 141
@@ -8997,7 +8997,7 @@ coordinates:
     sourceLine: 131
   SYM-doctor-nearest-named-package-manifest:
     identityHash: 7c8b0f05960ff4cd918263b770da8800644f49536c9a5084cc0feef5b18f2311
-    sourceHash: da116ede101c0ba675d2725d3597ab4a305ad567299d2bf78452cb60d214c50d
+    sourceHash: 8d764fa6b9ace59fec547d3aa7fc98441d22658328194841fe60f98c0d195c2c
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 331
@@ -9005,7 +9005,7 @@ coordinates:
     sourceLine: 313
   SYM-doctor-next-ancestor-directory:
     identityHash: 69e813e6f91e4a475047dea3db76163ac4e6618df105102a47c2b03c2bd1698e
-    sourceHash: da116ede101c0ba675d2725d3597ab4a305ad567299d2bf78452cb60d214c50d
+    sourceHash: 8d764fa6b9ace59fec547d3aa7fc98441d22658328194841fe60f98c0d195c2c
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 311
@@ -9013,7 +9013,7 @@ coordinates:
     sourceLine: 308
   SYM-doctor-package-migration-actions:
     identityHash: 77561e2144f7e3d3765cede320672c41f34fcc6ffd820cad1a9f6c3c9a07d8d8
-    sourceHash: da116ede101c0ba675d2725d3597ab4a305ad567299d2bf78452cb60d214c50d
+    sourceHash: 8d764fa6b9ace59fec547d3aa7fc98441d22658328194841fe60f98c0d195c2c
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 210
@@ -9021,7 +9021,7 @@ coordinates:
     sourceLine: 143
   SYM-e2e-capability-plugins:
     identityHash: cf75bc7202267169c9ebc409b60b47236096d55d03db39cafa0929e5f0893578
-    sourceHash: 5dfd763f6b4ce5783aa13ccb4d15a13ca8084e474782a72e9b73a72f0f5f788d
+    sourceHash: c5213a50e3b87b3ed18282c108f11ff3d082f222f9e15ea6aaafdf9fab8a1475
     sourceColumn: 44
     sourceEndColumn: 66
     sourceEndLine: 11
@@ -12045,7 +12045,7 @@ coordinates:
     sourceLine: 42
   SYM-kibi-doctor-options:
     identityHash: 9d8e77bf33262430c3960c27af951201552c0f1235c34ba2b3b37f4343364403
-    sourceHash: da116ede101c0ba675d2725d3597ab4a305ad567299d2bf78452cb60d214c50d
+    sourceHash: 8d764fa6b9ace59fec547d3aa7fc98441d22658328194841fe60f98c0d195c2c
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 39

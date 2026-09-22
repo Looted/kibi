@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 101,
-  "proofProven": 101,
+  "currentRequirements": 108,
+  "proofProven": 108,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -77,6 +77,41 @@
       "uncoveredSymbols": []
     },
     "REQ-branch-store-recovery-v3": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-capability-plugin-activation-disclosure-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-capability-plugin-builtin-parity-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-capability-plugin-configuration-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-capability-plugin-jev-fallback-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-capability-plugin-observable-behavior-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-capability-plugin-protocol-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-capability-plugin-three-capabilities-v1": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
