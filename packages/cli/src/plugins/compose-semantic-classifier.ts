@@ -59,6 +59,32 @@ type ClassifierAttempt =
   | { readonly ok: true; readonly result: SemanticClassifierResult }
   | { readonly ok: false; readonly diagnostic: SemanticClassifierDiagnostic };
 
+/** Bounded provenance copied onto advisor and compile-intent results. */
+// implements REQ-capability-plugin-activation-disclosure-v1, REQ-capability-plugin-observable-behavior-v1
+export function publicCapabilityStamp(stamp: PluginProviderStamp): {
+  pluginId: string;
+  pluginVersion: string;
+  capability: string;
+  mode: string;
+  external: boolean;
+  network: boolean;
+  metered: boolean;
+  fallbackUsed?: boolean;
+  model?: string;
+} {
+  return {
+    pluginId: stamp.pluginId,
+    pluginVersion: stamp.pluginVersion,
+    capability: stamp.capability,
+    mode: stamp.mode,
+    external: stamp.external,
+    network: stamp.network,
+    metered: stamp.metered,
+    ...(stamp.fallbackUsed === true ? { fallbackUsed: true } : {}),
+    ...(stamp.model !== undefined ? { model: stamp.model } : {}),
+  };
+}
+
 function withFallback(
   stamp: PluginProviderStamp,
   fallbackUsed: boolean,
@@ -168,7 +194,7 @@ function fillMissingDecisions(
  * External providers are skipped unless `operationName` is on the allowlist
  * (`kb_semantic_advisor`, `kb_compile_intent`).
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
+// implements REQ-capability-plugin-activation-disclosure-v1, REQ-capability-plugin-observable-behavior-v1
 export async function composeSemanticClassification(
   resolution: CapabilityModeResolution<SemanticClassifierV1>,
   input: SemanticClassifierInput,

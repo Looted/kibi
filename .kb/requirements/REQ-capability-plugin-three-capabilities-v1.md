@@ -22,7 +22,7 @@ semantic_inventory:
 id: REQ-capability-plugin-three-capabilities-v1
 type: req
 proof_exempt: true
-proof_exempt_reason: architectural boundary — verified by plugin SDK/host mode-resolution unit tests, not product E2E
+proof_exempt_reason: Replace, augment, and shadow behavior, including shadow isolation, is executed by TEST-e2e-capability-plugins. The closed three-capability catalog is a protocol constant. This requirement stays outside the production-symbol ladder.
 ---
 # REQ-capability-plugin-three-capabilities-v1
 

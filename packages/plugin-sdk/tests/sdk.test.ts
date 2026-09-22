@@ -162,6 +162,38 @@ describe("kibi-plugin-sdk", () => {
     ).toThrow(/At most one replace provider/);
   });
 
+  test("preserves a disclosed classifier model and rejects a blank one", () => {
+    const plugin = validateKibiPlugin({
+      apiVersion: KIBI_PLUGIN_API_VERSION,
+      id: "x",
+      version: "1",
+      permissions: { network: false, metered: false, secrets: [] },
+      capabilities: {
+        semanticClassifier: {
+          id: "c",
+          model: " example-model ",
+          classify: () => ({ decisions: [] }),
+        },
+      },
+    });
+    expect(plugin.capabilities.semanticClassifier?.model).toBe("example-model");
+    expect(() =>
+      validateKibiPlugin({
+        apiVersion: KIBI_PLUGIN_API_VERSION,
+        id: "x",
+        version: "1",
+        permissions: { network: false, metered: false, secrets: [] },
+        capabilities: {
+          semanticClassifier: {
+            id: "c",
+            model: " ",
+            classify: () => ({ decisions: [] }),
+          },
+        },
+      }),
+    ).toThrow(/model must be a non-empty string/);
+  });
+
   test("rejects duplicate secret names", () => {
     expect(() =>
       validateKibiPlugin({

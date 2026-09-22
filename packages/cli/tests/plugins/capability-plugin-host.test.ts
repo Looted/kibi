@@ -56,9 +56,11 @@ import {
   composeSemanticClassification,
   createCapabilityRegistry,
   createStubBuiltinPlugin,
+  describeConfiguredCapabilityPlugins,
   hasDeclaredProjectDependency,
   isBarePackageName,
   loadPluginPackage,
+  publicCapabilityStamp,
   readProjectKibiConfig,
   resolveProjectLocalPackage,
 } from "../../src/plugins/index.js";
@@ -1901,5 +1903,113 @@ describe("capability plugin host", () => {
     await expect(registry.resolveSemanticClassifiers()).rejects.toMatchObject({
       code: "DUPLICATE_PLUGIN_ID",
     });
+  });
+
+  // executable_for TEST-capability-plugin-host-resolution-v1
+  test("describes configured plugins without importing them", () => {
+    const root = mkdtempSync(join(tmpdir(), "kibi-plugin-describe-"));
+    try {
+      writeFileSync(
+        join(root, "package.json"),
+        JSON.stringify({
+          name: "consumer",
+          devDependencies: { "kibi-plugin-jev": "1.0.0" },
+          kibi: {
+            plugins: [
+              {
+                package: "kibi-plugin-jev",
+                capabilities: {
+                  [SEMANTIC_CLASSIFIER_CAPABILITY_ID]: { mode: "augment" },
+                },
+              },
+              {
+                package: "missing-plugin",
+                capabilities: {
+                  [ONTOLOGY_PACK_CAPABILITY_ID]: { mode: "shadow" },
+                },
+              },
+            ],
+          },
+        }),
+      );
+      expect(describeConfiguredCapabilityPlugins(root)).toEqual([
+        {
+          package: "kibi-plugin-jev",
+          capability: SEMANTIC_CLASSIFIER_CAPABILITY_ID,
+          mode: "augment",
+          declared: true,
+        },
+        {
+          package: "missing-plugin",
+          capability: ONTOLOGY_PACK_CAPABILITY_ID,
+          mode: "shadow",
+          declared: false,
+        },
+      ]);
+      expect(describeConfiguredCapabilityPlugins(join(root, "absent"))).toEqual(
+        [],
+      );
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  // executable_for TEST-capability-plugin-host-resolution-v1
+  test("stamps disclose version, trust flags, and the classifier model", async () => {
+    const plugin = makePlugin("example-capability-plugin", {
+      classifier: {
+        id: "example.classifier",
+        model: "example-model",
+        classify: () => ({
+          decisions: [{ claimKey: "c1", lane: "predicate", confidence: 0.8 }],
+        }),
+      },
+      permissions: {
+        network: true,
+        metered: true,
+        secrets: ["TYPESAFE_API_KEY"],
+      },
+    });
+    const registry = createCapabilityRegistry({
+      workspaceRoot: "/tmp/model-stamp",
+      projectConfig: {
+        plugins: [
+          {
+            package: "example-capability-plugin",
+            capabilities: {
+              [SEMANTIC_CLASSIFIER_CAPABILITY_ID]: { mode: "augment" },
+            },
+          },
+        ],
+      },
+      builtinFactory: () => createStubBuiltinPlugin(),
+      loadPlugin: async () => loaded("example-capability-plugin", plugin),
+    });
+    const resolution = await registry.resolveSemanticClassifiers();
+    const composed = await composeSemanticClassification(
+      resolution,
+      {
+        propositions: [{ claimKey: "c1", statement: "Users must own records" }],
+      },
+      { operationName: "kb_compile_intent" },
+    );
+    const external = composed.stamps.find(
+      (stamp) => stamp.pluginId === "example-capability-plugin",
+    );
+    expect(external).toBeDefined();
+    if (external === undefined) {
+      throw new Error("expected an augment provider stamp");
+    }
+    expect(publicCapabilityStamp(external)).toMatchObject({
+      pluginId: "example-capability-plugin",
+      pluginVersion: "1.0.0",
+      capability: SEMANTIC_CLASSIFIER_CAPABILITY_ID,
+      mode: "augment",
+      external: true,
+      network: true,
+      metered: true,
+      model: "example-model",
+    });
+    expect(JSON.stringify(composed)).not.toContain("TYPESAFE_API_KEY");
   });
 });

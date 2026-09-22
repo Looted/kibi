@@ -181,3 +181,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e055b57c1dc7
+  - type: implements
+    from: SYM-cap-plugin-capabilityregistry-a7d51e5f
+    to: REQ-capability-plugin-observable-behavior-v1
+    created_at: 2026-09-22T09:26:09.554Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad88200e99fb
+  - type: covered_by
+    from: SYM-cap-plugin-capabilityregistry-a7d51e5f
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T09:26:09.579Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b1deafda0bee

@@ -52,9 +52,6 @@ Declare the package as a project dependency and activate capabilities under
 
 ```json
 {
-  "devDependencies": {
-    "kibi-plugin-jev": "^0.1.0"
-  },
   "kibi": {
     "plugins": [
       {
@@ -75,6 +72,14 @@ Rules:
   `optionalDependencies`
 - Resolution follows the project's package manager (npm, pnpm symlink, Yarn PnP)
 - `NODE_PATH`, global installs, and ambient ancestor packages are rejected
+
+## Configuration surface (v1)
+
+`package.json#kibi.plugins` is the canonical activation and mode surface. Each entry names a bare package and the capabilities it may provide, with `augment`, `replace`, or `shadow`. That manifest is small, declarative, and validated before any plugin module is imported. Provider secrets stay in the environment, outside repository configuration.
+
+v1 does not add `kibi.config.ts`, generic plugin options, plugin factories, or arbitrary executable config. A later version may add a typed config file if capability-specific settings outgrow this manifest. This note does not choose that future shape.
+
+`kibi doctor` prints the parsed plugin rows (package, capability, mode, declared dependency). Editing `package.json` remains the way to enable or disable a plugin.
 
 ## Modes
 
@@ -127,10 +132,14 @@ providers must declare `metered: true` and list required secret names.
 `kibi-plugin-jev` implements only `kibi.semantic-classifier.v1` via TypeSafe
 Jev (`@typesafe-ai/sdk`). It is **not** a default CLI or MCP dependency.
 
-- Install and activate explicitly (see above)
-- Set `TYPESAFE_API_KEY`
-- Install alone makes zero TypeSafe calls
+- Install and activate explicitly (see [install.md](./install.md))
+- Set `TYPESAFE_API_KEY` in the environment. Never store it in `package.json`
+- Optional `KIBI_JEV_MODEL` (default `jev-latest`; empty or whitespace is unset)
+- Optional `KIBI_JEV_TIMEOUT_MS`, a positive integer of at most 120000. Malformed values fail with a provider diagnostic that includes the effective model and not the API key
+- Explicit `JevSemanticClassifierOptions.model` and `timeoutMs` override those environment defaults. They are a programmatic constructor API, not fields in `package.json`
+- Importing the package, or leaving it installed but inactive, performs no TypeSafe client or network call
 - On failure Kibi falls back to the builtin classifier with an advisory warning
+- `kb_model_requirement` does not invoke this classifier. External semantic classifiers run only from `kb_semantic_advisor` and `kb_compile_intent`
 - Live tests require both `KIBI_JEV_LIVE_TEST=1` and `TYPESAFE_API_KEY`
 
 See also [packages/plugin-jev/README.md](../packages/plugin-jev/README.md).

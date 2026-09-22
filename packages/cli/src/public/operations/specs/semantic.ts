@@ -4,6 +4,7 @@ import type {
   SemanticAdvisorArgs,
   SemanticAdvisorOperationResult,
 } from "../../../operations/semantic-advisor/types.js";
+import { publicCapabilityStamp } from "../../../plugins/compose-semantic-classifier.js";
 import type { OperationContext } from "../runtime-types.js";
 import type { OperationSpec } from "../types.js";
 
@@ -69,7 +70,9 @@ export async function executeSemanticAdvisor(
     (orchestrated.classification?.shadowComparisons.length ?? 0) > 0 ||
     orchestrated.ontologyShadowMatches.length > 0
       ? {
-          stamps: orchestrated.stamps,
+          stamps: orchestrated.stamps.map((stamp) =>
+            publicCapabilityStamp(stamp),
+          ),
           classification: orchestrated.classification
             ? {
                 fallbackUsed: orchestrated.classification.fallbackUsed,
@@ -77,8 +80,7 @@ export async function executeSemanticAdvisor(
                 shadowComparisons:
                   orchestrated.classification.shadowComparisons.map(
                     (comparison) => ({
-                      pluginId: comparison.stamp.pluginId,
-                      mode: comparison.stamp.mode,
+                      ...publicCapabilityStamp(comparison.stamp),
                       decisions: comparison.decisions.map((decision) => ({
                         claimKey: decision.claimKey,
                         lane: decision.lane,

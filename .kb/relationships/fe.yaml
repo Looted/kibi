@@ -223,3 +223,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-82403734929f
+  - type: implements
+    from: SYM-doctor-next-ancestor-directory
+    to: REQ-cli-doctor
+    created_at: 2026-09-22T11:36:17.401Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1e2fcd0acc3
+  - type: implements
+    from: SYM-doctor-next-ancestor-directory
+    to: REQ-agent-guided-migration-orchestration
+    created_at: 2026-09-22T11:36:17.413Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8f039d30719
+  - type: implements
+    from: SYM-doctor-next-ancestor-directory
+    to: REQ-cli-doctor-packed-provenance
+    created_at: 2026-09-22T11:36:17.421Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-876f88043864
+  - type: covered_by
+    from: SYM-doctor-next-ancestor-directory
+    to: TEST-001
+    created_at: 2026-09-22T11:36:17.427Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bdbda8cc517c
+  - type: covered_by
+    from: SYM-doctor-next-ancestor-directory
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-09-22T11:36:17.432Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-281ae6ffff3c
+  - type: covered_by
+    from: SYM-doctor-next-ancestor-directory
+    to: TEST-cli-doctor-packed-provenance
+    created_at: 2026-09-22T11:36:17.437Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0803538e5d5
+  - type: covered_by
+    from: SYM-doctor-next-ancestor-directory
+    to: TEST-cli-doctor-workflows
+    created_at: 2026-09-22T11:36:17.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0bc1c2171b2

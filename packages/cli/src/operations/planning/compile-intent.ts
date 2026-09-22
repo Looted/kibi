@@ -8,6 +8,7 @@ import {
   type SourceLocation,
   executeIntentSearch,
 } from "../../intent-search.js";
+import { publicCapabilityStamp } from "../../plugins/compose-semantic-classifier.js";
 import { normalizeEntityId, parseTriples } from "../../prolog/codec.js";
 import { loadEntities } from "../../public/operations/discovery-entities.js";
 import { executeStatus } from "../../public/operations/discovery-executors.js";
@@ -139,8 +140,14 @@ export type CompilePlanV1 = Readonly<{
   capabilityPlugins?: Readonly<{
     stamps: readonly {
       pluginId: string;
+      pluginVersion: string;
       capability: string;
       mode: string;
+      external: boolean;
+      network: boolean;
+      metered: boolean;
+      fallbackUsed?: boolean;
+      model?: string;
     }[];
     classification: Readonly<{
       fallbackUsed: boolean;
@@ -151,7 +158,14 @@ export type CompilePlanV1 = Readonly<{
       }[];
       shadowComparisons: readonly {
         pluginId: string;
+        pluginVersion: string;
+        capability: string;
         mode: string;
+        external: boolean;
+        network: boolean;
+        metered: boolean;
+        fallbackUsed?: boolean;
+        model?: string;
         decisions: readonly {
           claimKey: string;
           lane: string;
@@ -820,11 +834,9 @@ export async function executeCompileIntent(
     semanticShadowCount > 0 ||
     orchestrated.ontologyShadowMatches.length > 0
       ? {
-          stamps: orchestrated.stamps.map((stamp) => ({
-            pluginId: stamp.pluginId,
-            capability: stamp.capability,
-            mode: stamp.mode,
-          })),
+          stamps: orchestrated.stamps.map((stamp) =>
+            publicCapabilityStamp(stamp),
+          ),
           classification: orchestrated.classification
             ? {
                 fallbackUsed: orchestrated.classification.fallbackUsed,
@@ -838,8 +850,7 @@ export async function executeCompileIntent(
                 shadowComparisons:
                   orchestrated.classification.shadowComparisons.map(
                     (comparison) => ({
-                      pluginId: comparison.stamp.pluginId,
-                      mode: comparison.stamp.mode,
+                      ...publicCapabilityStamp(comparison.stamp),
                       decisions: comparison.decisions.map((decision) => ({
                         claimKey: decision.claimKey,
                         lane: decision.lane,

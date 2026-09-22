@@ -160,3 +160,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-59fbb1db2c74
+  - type: specified_by
+    from: REQ-capability-plugin-observable-behavior-v1
+    to: SCEN-capability-plugin-observable-behavior-v1
+    created_at: 2026-09-22T08:43:28.286Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6398d09ca4ae

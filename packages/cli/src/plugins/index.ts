@@ -18,8 +18,10 @@
 
 // implements REQ-capability-plugin-activation-disclosure-v1
 export {
+  describeConfiguredCapabilityPlugins,
   readProjectKibiConfig,
   readProjectPackageJson,
+  type ConfiguredCapabilityPluginDiagnostic,
   type ProjectPackageManifest,
 } from "./project-config.js";
 // implements REQ-capability-plugin-activation-disclosure-v1
@@ -59,6 +61,7 @@ export {
 // implements REQ-capability-plugin-activation-disclosure-v1
 export {
   composeSemanticClassification,
+  publicCapabilityStamp,
   type ComposedSemanticClassifierResult,
   type SemanticClassifierDiagnostic,
 } from "./compose-semantic-classifier.js";

@@ -22,7 +22,7 @@ semantic_inventory:
 id: REQ-capability-plugin-builtin-parity-v1
 type: req
 proof_exempt: true
-proof_exempt_reason: architectural boundary — verified by builtin parity and host unit tests, not product E2E
+proof_exempt_reason: Historical semantic, ontology, and TypeScript symbol behavior remains on the existing product proof surface. Builtin-only resolution when kibi.plugins is absent is executed by TEST-e2e-capability-plugins. This requirement stays exempt so parity does not depend on a covered_by edge for every internal symbol.
 ---
 # REQ-capability-plugin-builtin-parity-v1
 

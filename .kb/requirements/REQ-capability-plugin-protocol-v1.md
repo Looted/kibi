@@ -23,7 +23,7 @@ semantic_inventory:
 id: REQ-capability-plugin-protocol-v1
 type: req
 proof_exempt: true
-proof_exempt_reason: architectural boundary — verified by capability-plugin host unit tests and package distribution checks, not product E2E
+proof_exempt_reason: The closed capability-id set and named-export schema are protocol invariants. Observable rejection of undeclared, path, and global packages is executed by TEST-e2e-capability-plugins. This requirement stays outside the production-symbol ladder because the SDK validator is a broad internal surface rather than one product entry point.
 ---
 # REQ-capability-plugin-protocol-v1
 

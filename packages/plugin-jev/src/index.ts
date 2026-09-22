@@ -11,6 +11,9 @@ const packageJson = createRequire(import.meta.url)("../package.json") as {
 export {
   createJevSemanticClassifier,
   JEV_DEFAULT_MODEL,
+  JEV_MAX_TIMEOUT_MS,
+  resolveJevModel,
+  resolveJevTimeoutMs,
   type JevSemanticClassifierOptions,
 } from "./semantic-classifier.js";
 // implements REQ-capability-plugin-jev-fallback-v1

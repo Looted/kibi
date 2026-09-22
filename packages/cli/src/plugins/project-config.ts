@@ -19,6 +19,7 @@
 import * as fs from "node:fs";
 import { join } from "node:path";
 import {
+  type CapabilityId,
   PluginValidationError,
   type ProjectKibiConfig,
   validateProjectKibiConfig,
@@ -69,7 +70,7 @@ export function readProjectPackageJson(
  * Missing package.json, `kibi`, or `kibi.plugins` yields empty config
  * (builtin-only), matching historical workspaces without a package manifest.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
+// implements REQ-capability-plugin-activation-disclosure-v1, REQ-capability-plugin-observable-behavior-v1
 export function readProjectKibiConfig(
   workspaceRoot: string,
 ): ProjectKibiConfig {
@@ -79,4 +80,59 @@ export function readProjectKibiConfig(
   }
   const manifest = readProjectPackageJson(workspaceRoot);
   return validateProjectKibiConfig(manifest.kibi);
+}
+
+export type ConfiguredCapabilityPluginDiagnostic = Readonly<{
+  package: string;
+  capability: string;
+  mode: string;
+  /** True when the package is listed in dependencies, devDependencies, or optionalDependencies. */
+  declared: boolean;
+}>;
+
+// implements REQ-capability-plugin-activation-disclosure-v1
+function dependencyDeclared(
+  manifest: ProjectPackageManifest,
+  packageName: string,
+): boolean {
+  return [
+    manifest.dependencies,
+    manifest.devDependencies,
+    manifest.optionalDependencies,
+  ].some(
+    (dependencies) =>
+      Boolean(dependencies) &&
+      Object.prototype.hasOwnProperty.call(dependencies, packageName),
+  );
+}
+
+/**
+ * Parsed `package.json#kibi.plugins` rows. Does not import plugin modules.
+ */
+// implements REQ-capability-plugin-activation-disclosure-v1, REQ-capability-plugin-observable-behavior-v1
+// covered_by TEST-e2e-capability-plugins
+export function describeConfiguredCapabilityPlugins(
+  workspaceRoot: string,
+): readonly ConfiguredCapabilityPluginDiagnostic[] {
+  const config = readProjectKibiConfig(workspaceRoot);
+  const plugins = config.plugins ?? [];
+  if (plugins.length === 0) return [];
+  const manifest = readProjectPackageJson(workspaceRoot);
+  const rows: ConfiguredCapabilityPluginDiagnostic[] = [];
+  for (const plugin of plugins) {
+    const declared = dependencyDeclared(manifest, plugin.package);
+    for (const capability of Object.keys(
+      plugin.capabilities,
+    ) as CapabilityId[]) {
+      const entry = plugin.capabilities[capability];
+      if (!entry) continue;
+      rows.push({
+        package: plugin.package,
+        capability,
+        mode: entry.mode,
+        declared,
+      });
+    }
+  }
+  return rows;
 }

@@ -54,7 +54,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  * Dynamically import a project-local plugin package and validate the named
  * `kibiPlugin` export against kibi.plugin.v1.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
+// implements REQ-capability-plugin-activation-disclosure-v1, REQ-capability-plugin-observable-behavior-v1
 export async function loadPluginPackage(
   workspaceRoot: string,
   packageName: string,

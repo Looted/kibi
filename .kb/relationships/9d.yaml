@@ -178,3 +178,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-795242978903
+  - type: validates
+    from: TEST-e2e-capability-plugins
+    to: SCEN-capability-plugin-observable-behavior-v1
+    created_at: 2026-09-22T08:45:54.300Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78737614a9de
+  - type: validates
+    from: TEST-e2e-capability-plugins
+    to: REQ-capability-plugin-observable-behavior-v1
+    created_at: 2026-09-22T08:45:54.330Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2ce2505f0705

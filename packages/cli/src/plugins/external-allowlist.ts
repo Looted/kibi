@@ -16,7 +16,7 @@ export type ExternalSemanticClassifierOperation =
 
 const ALLOWED = new Set<string>(EXTERNAL_SEMANTIC_CLASSIFIER_OPERATIONS);
 
-// implements REQ-capability-plugin-activation-disclosure-v1
+// implements REQ-capability-plugin-activation-disclosure-v1, REQ-capability-plugin-observable-behavior-v1
 export function allowsExternalSemanticClassifier(
   operationName: string,
 ): boolean {

@@ -93,7 +93,7 @@ export function isBarePackageName(packageName: string): boolean {
   return true;
 }
 
-// implements REQ-capability-plugin-activation-disclosure-v1
+// implements REQ-capability-plugin-activation-disclosure-v1, REQ-capability-plugin-observable-behavior-v1
 export function assertBarePackageName(packageName: string): void {
   if (!isBarePackageName(packageName)) {
     throw new PluginResolutionError(
@@ -103,7 +103,7 @@ export function assertBarePackageName(packageName: string): void {
   }
 }
 
-// implements REQ-capability-plugin-activation-disclosure-v1
+// implements REQ-capability-plugin-activation-disclosure-v1, REQ-capability-plugin-observable-behavior-v1
 export function hasDeclaredProjectDependency(
   workspaceRoot: string,
   packageName: string,
@@ -150,7 +150,7 @@ export function hasConsumerNodeModulesLink(
  * within workspace OR node_modules symlink OR Yarn PnP active resolver.
  * Rejects NODE_PATH / global / ambient packages.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
+// implements REQ-capability-plugin-activation-disclosure-v1, REQ-capability-plugin-observable-behavior-v1
 export function isProjectScopedPackage(
   workspaceRoot: string,
   packageName: string,

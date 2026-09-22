@@ -118,3 +118,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-88547f4efe3e
+  - type: executable_for
+    from: SYM-e2e-capability-plugins
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T09:51:41.853Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c574c5841212

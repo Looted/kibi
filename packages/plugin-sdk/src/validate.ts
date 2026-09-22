@@ -146,10 +146,24 @@ function validateSemanticClassifier(value: unknown): SemanticClassifierV1 {
       "semanticClassifier must expose classify()",
     );
   }
+  const model = optionalClassifierModel(value.model);
   return {
     id: requireString(value.id, "semanticClassifier.id", "INVALID_CAPABILITY"),
     classify: value.classify as SemanticClassifierV1["classify"],
+    ...(model !== undefined ? { model } : {}),
   };
+}
+
+// implements REQ-capability-plugin-protocol-v1
+function optionalClassifierModel(value: unknown): string | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== "string" || value.trim() === "") {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY",
+      "semanticClassifier.model must be a non-empty string when provided",
+    );
+  }
+  return value.trim();
 }
 
 function validateOntologyPack(value: unknown): OntologyPackV1 {

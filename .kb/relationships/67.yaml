@@ -181,3 +181,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8f9250ac438c
+  - type: implements
+    from: SYM-plugin-public-capability-stamp
+    to: REQ-capability-plugin-observable-behavior-v1
+    created_at: 2026-09-22T09:45:29.328Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3170120f8bbf
+  - type: implements
+    from: SYM-plugin-public-capability-stamp
+    to: REQ-capability-plugin-activation-disclosure-v1
+    created_at: 2026-09-22T09:45:29.354Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4eea7f755f35
+  - type: covered_by
+    from: SYM-plugin-public-capability-stamp
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T09:45:29.370Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d8253c5c2aea

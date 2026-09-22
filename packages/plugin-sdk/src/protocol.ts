@@ -44,10 +44,12 @@ export interface PluginProviderStamp {
   readonly network: boolean;
   readonly metered: boolean;
   readonly fallbackUsed?: boolean;
+  /** Effective provider model when the capability discloses one. */
+  readonly model?: string;
 }
 
-import type { SemanticClassifierV1 } from "./capabilities/semantic-classifier.js";
 import type { OntologyPackV1 } from "./capabilities/ontology-pack.js";
+import type { SemanticClassifierV1 } from "./capabilities/semantic-classifier.js";
 import type { SymbolExtractorV1 } from "./capabilities/symbol-extractor.js";
 
 // implements REQ-capability-plugin-protocol-v1

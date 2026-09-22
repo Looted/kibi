@@ -65,6 +65,11 @@ export interface SemanticClassifierResult {
 // implements REQ-capability-plugin-protocol-v1
 export interface SemanticClassifierV1 {
   readonly id: string;
+  /**
+   * Optional provider model id for receipts. Hosts copy this onto provenance
+   * stamps. It is not a generic plugin-options channel.
+   */
+  readonly model?: string;
   classify(
     input: SemanticClassifierInput,
   ): SemanticClassifierResult | Promise<SemanticClassifierResult>;

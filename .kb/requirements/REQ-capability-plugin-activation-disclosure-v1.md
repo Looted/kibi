@@ -22,7 +22,7 @@ semantic_inventory:
 id: REQ-capability-plugin-activation-disclosure-v1
 type: req
 proof_exempt: true
-proof_exempt_reason: architectural boundary — verified by activation/disclosure host unit tests, not product E2E
+proof_exempt_reason: Permissions metadata is disclosure and is not an enforceable sandbox, so that policy is not an executable denial. Explicit activation and inactive-plugin non-import are executed by TEST-e2e-capability-plugins. Remaining host-internal symbols stay outside the production-symbol ladder.
 ---
 # REQ-capability-plugin-activation-disclosure-v1
 

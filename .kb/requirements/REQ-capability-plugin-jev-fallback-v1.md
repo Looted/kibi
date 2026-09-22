@@ -32,7 +32,7 @@ semantic_inventory:
 id: REQ-capability-plugin-jev-fallback-v1
 type: req
 proof_exempt: true
-proof_exempt_reason: architectural boundary — verified by mocked Jev unit tests and default-dependency absence checks, not product E2E
+proof_exempt_reason: Import-time and inactive construction perform no client or network calls, malformed KIBI_JEV_TIMEOUT_MS fails closed, and provider failure falls back to builtin classification without exposing credentials. Those behaviors are executed by TEST-e2e-capability-plugins and the offline Jev tests. Client-mapping helpers stay outside the production-symbol ladder.
 ---
 # REQ-capability-plugin-jev-fallback-v1
 

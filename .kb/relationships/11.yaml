@@ -237,3 +237,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-940d1555c7de
+  - type: implements
+    from: SYM-doctor-nearest-named-package-manifest
+    to: REQ-cli-doctor
+    created_at: 2026-09-22T11:37:04.183Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ddcf7e981b5d
+  - type: implements
+    from: SYM-doctor-nearest-named-package-manifest
+    to: REQ-agent-guided-migration-orchestration
+    created_at: 2026-09-22T11:37:04.195Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07640063f4b5
+  - type: implements
+    from: SYM-doctor-nearest-named-package-manifest
+    to: REQ-cli-doctor-packed-provenance
+    created_at: 2026-09-22T11:37:04.203Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9406d3419d10
+  - type: covered_by
+    from: SYM-doctor-nearest-named-package-manifest
+    to: TEST-001
+    created_at: 2026-09-22T11:37:04.209Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-570c92e538eb
+  - type: covered_by
+    from: SYM-doctor-nearest-named-package-manifest
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-09-22T11:37:04.214Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2815781a57a6
+  - type: covered_by
+    from: SYM-doctor-nearest-named-package-manifest
+    to: TEST-cli-doctor-packed-provenance
+    created_at: 2026-09-22T11:37:04.220Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f13f6b6b69cf
+  - type: covered_by
+    from: SYM-doctor-nearest-named-package-manifest
+    to: TEST-cli-doctor-workflows
+    created_at: 2026-09-22T11:37:04.224Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-221556486dff

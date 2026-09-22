@@ -470,7 +470,7 @@ export function applyClassificationRouting(
  * Async orchestration for allowlisted semantic operations.
  * Maintenance paths must keep calling sync `analyzeSemanticAdvisorInput`.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
+// implements REQ-capability-plugin-activation-disclosure-v1, REQ-capability-plugin-observable-behavior-v1
 export async function analyzeSemanticAdvisorInputWithPlugins(
   input: SemanticAdvisorInput,
   options: Readonly<{

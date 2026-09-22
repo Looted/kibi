@@ -232,8 +232,12 @@ symbols:
         target: TEST-cli-doctor-packed-provenance
       - type: covered_by
         target: TEST-cli-doctor-workflows
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
       - type: implements
         target: REQ-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
       - type: implements
         target: REQ-cli-doctor
       - type: implements
@@ -38468,8 +38472,12 @@ symbols:
     status: active
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
       - type: implements
         target: REQ-capability-plugin-activation-disclosure-v1
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
   - id: SYM-cap-plugin-composesemanticclassificationforoperation-f3a02379
     title: composeSemanticClassificationForOperation
     sourceFile: packages/cli/src/operations/semantic-advisor/plugin-orchestration.ts
@@ -38532,8 +38540,12 @@ symbols:
     status: active
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
       - type: implements
         target: REQ-capability-plugin-activation-disclosure-v1
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
   - id: SYM-cap-plugin-composedsemanticclassifierresult-45a3153d
     title: ComposedSemanticClassifierResult
     sourceFile: packages/cli/src/plugins/compose-semantic-classifier.ts
@@ -38548,8 +38560,12 @@ symbols:
     status: active
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
       - type: implements
         target: REQ-capability-plugin-activation-disclosure-v1
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
   - id: SYM-cap-plugin-externalsemanticclassifieroperation-db7b29fe
     title: ExternalSemanticClassifierOperation
     sourceFile: packages/cli/src/plugins/external-allowlist.ts
@@ -38572,8 +38588,12 @@ symbols:
     status: active
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
       - type: implements
         target: REQ-capability-plugin-activation-disclosure-v1
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
   - id: SYM-cap-plugin-loadedplugin-77e73414
     title: LoadedPlugin
     sourceFile: packages/cli/src/plugins/load-plugin.ts
@@ -38604,8 +38624,12 @@ symbols:
     status: active
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
       - type: implements
         target: REQ-capability-plugin-activation-disclosure-v1
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
   - id: SYM-cap-plugin-projectpackagemanifest-d2e8adeb
     title: ProjectPackageManifest
     sourceFile: packages/cli/src/plugins/project-config.ts
@@ -38620,8 +38644,12 @@ symbols:
     status: active
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
       - type: implements
         target: REQ-capability-plugin-activation-disclosure-v1
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
   - id: SYM-cap-plugin-createcapabilityregistry-24d244b0
     title: createCapabilityRegistry
     sourceFile: packages/cli/src/plugins/registry.ts
@@ -38653,8 +38681,12 @@ symbols:
     symbol_role: behavioral
     granularity_reason: module-level-behavior
     relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
       - type: implements
         target: REQ-capability-plugin-activation-disclosure-v1
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
   - id: SYM-cap-plugin-capabilityregistry-getbuiltinplugin-eac3b9f7
     title: CapabilityRegistry.getBuiltinPlugin
     sourceFile: packages/cli/src/plugins/registry.ts
@@ -38814,16 +38846,24 @@ symbols:
     status: active
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
       - type: implements
         target: REQ-capability-plugin-activation-disclosure-v1
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
   - id: SYM-cap-plugin-hasdeclaredprojectdependency-2d6978f8
     title: hasDeclaredProjectDependency
     sourceFile: packages/cli/src/plugins/resolve-package.ts
     status: active
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
       - type: implements
         target: REQ-capability-plugin-activation-disclosure-v1
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
   - id: SYM-cap-plugin-hasconsumernodemoduleslink-dbcab9ae
     title: hasConsumerNodeModulesLink
     sourceFile: packages/cli/src/plugins/resolve-package.ts
@@ -38838,8 +38878,12 @@ symbols:
     status: active
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
       - type: implements
         target: REQ-capability-plugin-activation-disclosure-v1
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
   - id: SYM-cap-plugin-packagejsonforresolvedfile-d1622c4c
     title: packageJsonForResolvedFile
     sourceFile: packages/cli/src/plugins/resolve-package.ts
@@ -39379,8 +39423,12 @@ symbols:
     status: active
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
       - type: implements
         target: REQ-capability-plugin-jev-fallback-v1
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
   - id: SYM-cap-plugin-jevsemanticclassifieroptions-339de30f
     title: JevSemanticClassifierOptions
     sourceFile: packages/plugin-jev/src/semantic-classifier.ts
@@ -39970,8 +40018,12 @@ symbols:
     sourceFile: packages/plugin-jev/src/semantic-classifier.ts
     symbol_role: config
     relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
       - type: implements
         target: REQ-capability-plugin-jev-fallback-v1
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
   - id: SYM-cap-plugin-jev-provider-error-model
     title: JevProviderError.model
     status: active
@@ -40168,3 +40220,160 @@ symbols:
         target: TEST-014
       - type: implements
         target: REQ-020
+  - id: SYM-jev-max-timeout-ms
+    title: JEV_MAX_TIMEOUT_MS
+    status: active
+    sourceFile: packages/plugin-jev/src/semantic-classifier.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
+  - id: SYM-jev-resolve-model
+    title: resolveJevModel
+    status: active
+    sourceFile: packages/plugin-jev/src/semantic-classifier.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
+  - id: SYM-jev-resolve-timeout
+    title: resolveJevTimeoutMs
+    status: active
+    sourceFile: packages/plugin-jev/src/semantic-classifier.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
+  - id: SYM-plugin-describe-configured
+    title: describeConfiguredCapabilityPlugins
+    status: active
+    sourceFile: packages/cli/src/plugins/project-config.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
+  - id: SYM-plugin-public-capability-stamp
+    title: publicCapabilityStamp
+    status: active
+    sourceFile: packages/cli/src/plugins/compose-semantic-classifier.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
+  - id: SYM-e2e-capability-plugins
+    title: capability-plugins.e2e
+    status: active
+    sourceFile: documentation/tests/e2e/capability-plugins.e2e.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-capability-plugins
+  - id: SYM-doctor-detect-execute-apply-plan
+    title: detectExecuteApplyPlanExport
+    status: active
+    sourceFile: packages/cli/src/commands/doctor.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-001
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-cli-doctor-packed-provenance
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-cli-doctor
+      - type: implements
+        target: REQ-cli-doctor-packed-provenance
+  - id: SYM-doctor-package-migration-actions
+    title: packageMigrationActions
+    status: active
+    sourceFile: packages/cli/src/commands/doctor.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-001
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-cli-doctor-packed-provenance
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-cli-doctor
+      - type: implements
+        target: REQ-cli-doctor-packed-provenance
+  - id: SYM-doctor-next-ancestor-directory
+    title: nextAncestorDirectory
+    status: active
+    sourceFile: packages/cli/src/commands/doctor.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-001
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-cli-doctor-packed-provenance
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-cli-doctor
+      - type: implements
+        target: REQ-cli-doctor-packed-provenance
+  - id: SYM-doctor-nearest-named-package-manifest
+    title: nearestNamedPackageManifest
+    status: active
+    sourceFile: packages/cli/src/commands/doctor.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-001
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-cli-doctor-packed-provenance
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-cli-doctor
+      - type: implements
+        target: REQ-cli-doctor-packed-provenance
+  - id: SYM-plugin-configured-diagnostic
+    title: ConfiguredCapabilityPluginDiagnostic
+    status: active
+    sourceFile: packages/cli/src/plugins/project-config.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1

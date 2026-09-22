@@ -172,11 +172,13 @@ async function defaultBuiltinFactory(): Promise<KibiPluginV1> {
   return { ...validated, version: packageVersion };
 }
 
+// implements REQ-capability-plugin-activation-disclosure-v1
 function stampFor(
   plugin: KibiPluginV1,
   capability: CapabilityId,
   mode: PluginMode | "builtin",
   external: boolean,
+  model?: string,
 ): PluginProviderStamp {
   return {
     pluginId: plugin.id,
@@ -186,7 +188,18 @@ function stampFor(
     external,
     network: plugin.permissions.network,
     metered: plugin.permissions.metered,
+    ...(model !== undefined ? { model } : {}),
   };
+}
+
+// implements REQ-capability-plugin-activation-disclosure-v1
+function disclosedModel(capability: unknown): string | undefined {
+  if (typeof capability !== "object" || capability === null) return undefined;
+  if (!("model" in capability)) return undefined;
+  const model = (capability as { model?: unknown }).model;
+  return typeof model === "string" && model.trim() !== ""
+    ? model.trim()
+    : undefined;
 }
 
 function bindingFor<T>(
@@ -205,7 +218,13 @@ function bindingFor<T>(
     permissions: plugin.permissions,
     external,
     capability,
-    stamp: stampFor(plugin, capabilityId, mode, external),
+    stamp: stampFor(
+      plugin,
+      capabilityId,
+      mode,
+      external,
+      disclosedModel(capability),
+    ),
   };
 }
 
@@ -222,7 +241,7 @@ function capabilityFromPlugin(
  * configured packages load lazily the first time a capability is resolved.
  * Not a process-wide singleton — inject or construct per test/runtime.
  */
-// implements REQ-capability-plugin-activation-disclosure-v1
+// implements REQ-capability-plugin-activation-disclosure-v1, REQ-capability-plugin-observable-behavior-v1
 export class CapabilityRegistry {
   readonly workspaceRoot: string;
   private readonly builtinFactory: BuiltinPluginFactory;

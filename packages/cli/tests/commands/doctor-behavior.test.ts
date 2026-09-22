@@ -262,7 +262,7 @@ describe("doctorCommand legacy storage check", () => {
     });
     writeFileSync(
       path.join(cwd, "documentation", "requirements", "REQ-1.md"),
-      `---\nid: REQ-1\ntitle: Auth\nstatus: open\n---\n`,
+      "---\nid: REQ-1\ntitle: Auth\nstatus: open\n---\n",
     );
     const { exitCode, payload } = await runDoctorJson(cwd);
     expect(exitCode).toBe(1);
@@ -730,5 +730,35 @@ describe("doctorCommand runtime provenance", () => {
     );
     expect(unresolved).toContain("coreVersion");
     expect(unresolved).toContain("mcpVersion");
+  });
+});
+
+describe("doctorCommand capability plugins", () => {
+  test("reports parsed activation without importing packages", async () => {
+    const cwd = preparedWorkspace();
+    writeFileSync(
+      path.join(cwd, "package.json"),
+      JSON.stringify({
+        name: "consumer",
+        devDependencies: { "kibi-plugin-jev": "1.0.0" },
+        kibi: {
+          plugins: [
+            {
+              package: "kibi-plugin-jev",
+              capabilities: {
+                "kibi.semantic-classifier.v1": { mode: "augment" },
+              },
+            },
+          ],
+        },
+      }),
+    );
+    mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
+    const { payload } = await runDoctorJson(cwd);
+    expect(namedCheck(payload, "Capability plugins")).toMatchObject({
+      passed: true,
+      message:
+        "kibi-plugin-jev kibi.semantic-classifier.v1 augment declared=yes",
+    });
   });
 });

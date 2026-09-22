@@ -125,3 +125,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4518c4da9243
+  - type: implements
+    from: SYM-cap-plugin-jev-default-model
+    to: REQ-capability-plugin-observable-behavior-v1
+    created_at: 2026-09-22T09:36:10.803Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc1938d8a91b
+  - type: covered_by
+    from: SYM-cap-plugin-jev-default-model
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T09:36:10.818Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b30e44ff77f8

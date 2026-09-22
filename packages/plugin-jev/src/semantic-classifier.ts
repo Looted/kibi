@@ -28,8 +28,14 @@ const LANE_CRITERIA = {
   none: "Not a machine-checkable modeling obligation",
 } as const satisfies Record<SemanticLane, string>;
 
-// implements REQ-capability-plugin-jev-fallback-v1
+// implements REQ-capability-plugin-jev-fallback-v1, REQ-capability-plugin-observable-behavior-v1
+// covered_by TEST-e2e-capability-plugins
 export const JEV_DEFAULT_MODEL = "jev-latest" as const;
+
+/** Upper bound for `KIBI_JEV_TIMEOUT_MS` and programmatic `timeoutMs`. */
+// implements REQ-capability-plugin-jev-fallback-v1, REQ-capability-plugin-observable-behavior-v1
+// covered_by TEST-e2e-capability-plugins
+export const JEV_MAX_TIMEOUT_MS = 120_000;
 
 // implements REQ-capability-plugin-jev-fallback-v1
 export type JevSemanticClassifierOptions = Readonly<{
@@ -42,6 +48,64 @@ export type JevSemanticClassifierOptions = Readonly<{
    */
   model?: string;
 }>;
+
+// implements REQ-capability-plugin-jev-fallback-v1
+function timeoutConfigError(
+  source: string,
+  received: string,
+): JevProviderError {
+  const shown = received.length > 40 ? `${received.slice(0, 40)}…` : received;
+  return new JevProviderError(
+    "malformed",
+    `${source} must be a positive integer of at most ${JEV_MAX_TIMEOUT_MS} milliseconds; received ${JSON.stringify(shown)}`,
+  );
+}
+
+/**
+ * Programmatic `model` wins. Blank options and blank `KIBI_JEV_MODEL` are unset.
+ */
+// implements REQ-capability-plugin-jev-fallback-v1, REQ-capability-plugin-observable-behavior-v1
+// covered_by TEST-e2e-capability-plugins
+export function resolveJevModel(
+  explicit: string | undefined,
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  const fromOptions = explicit?.trim();
+  if (fromOptions) return fromOptions;
+  const fromEnv = env.KIBI_JEV_MODEL?.trim();
+  if (fromEnv) return fromEnv;
+  return JEV_DEFAULT_MODEL;
+}
+
+/**
+ * Programmatic `timeoutMs` wins. Blank `KIBI_JEV_TIMEOUT_MS` is unset.
+ * Any other value must be a positive integer within `JEV_MAX_TIMEOUT_MS`.
+ */
+// implements REQ-capability-plugin-jev-fallback-v1, REQ-capability-plugin-observable-behavior-v1
+// covered_by TEST-e2e-capability-plugins
+export function resolveJevTimeoutMs(
+  explicit: number | undefined,
+  env: NodeJS.ProcessEnv = process.env,
+): number | undefined {
+  if (explicit !== undefined) {
+    return assertTimeoutMs(explicit, "JevSemanticClassifierOptions.timeoutMs");
+  }
+  const raw = env.KIBI_JEV_TIMEOUT_MS;
+  if (raw === undefined || raw.trim() === "") return undefined;
+  const trimmed = raw.trim();
+  if (!/^[1-9]\d*$/.test(trimmed)) {
+    throw timeoutConfigError("KIBI_JEV_TIMEOUT_MS", trimmed);
+  }
+  return assertTimeoutMs(Number(trimmed), "KIBI_JEV_TIMEOUT_MS");
+}
+
+// implements REQ-capability-plugin-jev-fallback-v1
+function assertTimeoutMs(value: number, source: string): number {
+  if (!Number.isSafeInteger(value) || value < 1 || value > JEV_MAX_TIMEOUT_MS) {
+    throw timeoutConfigError(source, String(value));
+  }
+  return value;
+}
 
 function isLane(value: string): value is SemanticLane {
   return (SEMANTIC_LANES as readonly string[]).includes(value);
@@ -91,26 +155,38 @@ function confidenceFromChoice(answer: JevChoiceAnswer): number {
   return 0.5;
 }
 
-// implements REQ-capability-plugin-jev-fallback-v1
+// implements REQ-capability-plugin-jev-fallback-v1, REQ-capability-plugin-observable-behavior-v1
+// covered_by TEST-e2e-capability-plugins
 export function createJevSemanticClassifier(
   options: JevSemanticClassifierOptions = {},
 ): SemanticClassifierV1 {
   let client: JevClient | undefined;
   const factory = options.clientFactory ?? createTypeSafeJevClient;
-  const model = options.model ?? JEV_DEFAULT_MODEL;
+  const model = resolveJevModel(options.model);
+  let timeoutMs: number | undefined;
+  try {
+    timeoutMs = resolveJevTimeoutMs(options.timeoutMs);
+  } catch (error) {
+    if (error instanceof JevProviderError) {
+      throw new JevProviderError(error.code, error.message, {
+        cause: error,
+        model,
+      });
+    }
+    throw error;
+  }
 
   const ensureClient = (): JevClient => {
     client ??= factory({
       ...(options.apiKey !== undefined ? { apiKey: options.apiKey } : {}),
-      ...(options.timeoutMs !== undefined
-        ? { timeoutMs: options.timeoutMs }
-        : {}),
+      ...(timeoutMs !== undefined ? { timeoutMs } : {}),
     });
     return client;
   };
 
   return {
     id: "jev-semantic-classifier",
+    model,
     async classify(
       input: SemanticClassifierInput,
     ): Promise<SemanticClassifierResult> {
