@@ -21,17 +21,33 @@ afterEach(() => {
 });
 
 function createSession(kbPath: string | null = "/tmp/kibi-branch") {
-  const query = mock(async (goal: string) => ({
+  const query = mock(async (_goal: string, _signal?: AbortSignal) => ({
     success: true,
-    bindings: { goal },
+    bindings: { goal: _goal },
+  }));
+  const queryEntities = mock(
+    async (_input: unknown, _signal?: AbortSignal) => ({
+      entities: [],
+      count: 0,
+    }),
+  );
+  const searchEntities = mock(
+    async (_input: unknown, _signal?: AbortSignal) => ({
+      entities: [],
+      count: 0,
+    }),
+  );
+  const queryStatusJson = mock(async (_signal?: AbortSignal) => ({
+    success: true,
+    bindings: { Json: "{}" },
   }));
   const prolog = {
     query,
     invalidateCache: () => {},
-    queryEntities: async () => ({ entities: [], count: 0 }),
-    searchEntities: async () => ({ entities: [], count: 0 }),
+    queryEntities,
+    searchEntities,
     storageStatus: async () => ({ success: true, bindings: {} }),
-    queryStatusJson: async () => ({ success: true, bindings: { Json: "{}" } }),
+    queryStatusJson,
   };
   return {
     session: {
@@ -45,10 +61,54 @@ function createSession(kbPath: string | null = "/tmp/kibi-branch") {
       updateAttachedBranchStamp: mock((_stamp: unknown) => {}),
     },
     prolog,
+    spies: { query, queryEntities, searchEntities, queryStatusJson },
   };
 }
 
 describe("DEFAULT_TOOLS_RUNTIME session wiring", () => {
+  test("adaptProlog forwards AbortSignal to underlying PrologPort methods", async () => {
+    const { session, spies } = createSession();
+    _setToolsServerDepsForTests(
+      { getSessionModule: async () => session as never },
+      true,
+    );
+    const context = await DEFAULT_TOOLS_RUNTIME.operationRuntime.open(
+      {
+        name: "kb_query",
+        requiresProlog: true,
+        effects: ["kb-read"],
+      } as never,
+      {},
+    );
+    const signal = AbortSignal.abort();
+    await context.prolog?.query("true", signal);
+    await context.prolog?.queryEntities?.(
+      { type: "req", limit: 1, offset: 0 },
+      signal,
+    );
+    await context.prolog?.searchEntities?.(
+      { query: "x", limit: 1, offset: 0 },
+      signal,
+    );
+    await context.prolog?.queryStatusJson?.(signal);
+    await context.prolog?.save(signal);
+    expect(spies.query.mock.calls.some((call) => call[1] === signal)).toBe(
+      true,
+    );
+    expect(
+      spies.queryEntities.mock.calls.some((call) => call[1] === signal),
+    ).toBe(true);
+    expect(
+      spies.searchEntities.mock.calls.some((call) => call[1] === signal),
+    ).toBe(true);
+    expect(
+      spies.queryStatusJson.mock.calls.some((call) => call[0] === signal),
+    ).toBe(true);
+    expect(spies.query.mock.calls.some((call) => call[0] === "kb_save")).toBe(
+      true,
+    );
+  });
+
   test("session accessors and adaptProlog cover optional Prolog methods", async () => {
     const { session, prolog } = createSession();
     _setToolsServerDepsForTests(

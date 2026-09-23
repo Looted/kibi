@@ -55,9 +55,7 @@ const TOOL_TIMEOUT_GRACE_MS = 100;
 // which would reject sibling tools with "Kibi engine connection closed".
 const TOOL_TIMEOUT_WEDGE_MS = 1_000;
 
-function isMutationEffect(
-  effects: readonly string[] | undefined,
-): boolean {
+function isMutationEffect(effects: readonly string[] | undefined): boolean {
   return (
     effects?.some(
       (effect) => effect === "kb-write" || effect === "workspace-write",
@@ -65,30 +63,25 @@ function isMutationEffect(
   );
 }
 
-/** Embed envelope data in content text for hosts that hide structuredContent.
- * Keep summary + JSON on one logical payload (newline-separated) so agents
- * parsing the text block can recover entities/proof fields. */
+/** Embed envelope data in content text for opted-in tools (hosts that hide structuredContent).
+ * Preserves non-text content parts; only augments/replaces text parts. */
 function withAgentVisibleText(
   content: readonly { type: string; text?: string; [key: string]: unknown }[],
   data: unknown,
-): { type: "text"; text: string }[] {
-  const summary = content
-    .filter((part) => part.type === "text" && typeof part.text === "string")
+): { type: string; text?: string; [key: string]: unknown }[] {
+  const textParts = content.filter(
+    (part) => part.type === "text" && typeof part.text === "string",
+  );
+  const nonTextParts = content.filter((part) => part.type !== "text");
+  const summary = textParts
     .map((part) => part.text as string)
     .join(" ")
     .replace(/\s+/g, " ")
     .trim();
   const payload = JSON.stringify(data);
   // Prefer JSON-first so first-line-only host summaries still include machine data.
-  return [
-    {
-      type: "text",
-      text:
-        summary.length > 0
-          ? `${payload}\n${summary}`
-          : payload,
-    },
-  ];
+  const text = summary.length > 0 ? `${payload}\n${summary}` : payload;
+  return [{ type: "text", text }, ...nonTextParts];
 }
 
 // implements REQ-008
@@ -139,32 +132,33 @@ async function withToolTimeout<T>(
   let timeout: ReturnType<typeof setTimeout> | undefined;
 
   try {
-    return await Promise.race([
-      operation,
-      new Promise<never>((_, reject) => {
-        timeout = setTimeout(() => {
-          const error = createToolTimeoutError(toolName, timeoutMs);
-          // Do not report the timeout until cancellation/reset has completed
-          // and the original request has reached a terminal state. This is
-          // especially important for source-first mutations: a caller must
-          // never retry while the authoritative journal is still deciding its
-          // outcome.
-          void onTimeout(error, timeoutMs)
-            .then(async () => {
-              await Promise.race([
-                operation.then(
-                  () => undefined,
-                  () => undefined,
-                ),
-                new Promise<void>((resolve) =>
-                  setTimeout(resolve, TOOL_TIMEOUT_GRACE_MS),
-                ),
-              ]);
-            })
-            .finally(() => reject(error));
-        }, timeoutMs);
-      }),
-    ]);
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeout = setTimeout(() => {
+        const error = createToolTimeoutError(toolName, timeoutMs);
+        // Do not report the timeout until cancellation/reset has completed
+        // and the original request has reached a terminal state. This is
+        // especially important for source-first mutations: a caller must
+        // never retry while the authoritative journal is still deciding its
+        // outcome.
+        void onTimeout(error, timeoutMs)
+          .then(async () => {
+            await Promise.race([
+              operation.then(
+                () => undefined,
+                () => undefined,
+              ),
+              new Promise<void>((resolve) =>
+                setTimeout(resolve, TOOL_TIMEOUT_GRACE_MS),
+              ),
+            ]);
+          })
+          .finally(() => reject(error));
+      }, timeoutMs);
+    });
+    // When abort settles `operation` before this timeout promise rejects,
+    // the late reject must not become an unhandled rejection.
+    timeoutPromise.catch(() => undefined);
+    return await Promise.race([operation, timeoutPromise]);
   } finally {
     if (timeout) {
       clearTimeout(timeout);
@@ -313,9 +307,13 @@ export function addTool<TProlog>(
               [key: string]: unknown;
             }[];
           };
+          const content =
+            operationSpec.agentVisibleStructuredData === true
+              ? withAgentVisibleText(withContent.content, data)
+              : withContent.content;
           return {
             ...(result as Record<string, unknown>),
-            content: withAgentVisibleText(withContent.content, data),
+            content,
             structuredContent: envelope,
           };
         }

@@ -302,6 +302,23 @@ through the previewed `kibi branch recover --apply` workflow.
 {}
 ```
 
+### Engine cancellation limits
+
+MCP tool timeouts abort the operation `AbortSignal`, which `adaptProlog` forwards
+to `EngineClient` (`query`, `queryEntities`, `searchEntities`, `queryStatusJson`,
+`save`). The client rejects pending RPCs and sends a best-effort `cancel`
+frame. **Queued** daemon requests on that connection are skipped before
+`handle()`. Cancel marks are **per-connection** (request ids are not global).
+A request already blocked inside SWI-Prolog (`await prolog.query(...)`) is
+**not** interrupted today: the daemon queue stays busy until that Prolog call
+returns (up to the engine/Prolog timeout). Read-tool timeouts still must
+**not** call `resetProlog` / `terminate()`, so siblings no longer fail with
+`Kibi engine connection closed`; they may wait behind the in-flight goal.
+
+Discovery tools (`kb_query`, `kb_search`, `kb_status`) may opt into
+`agentVisibleStructuredData` so envelope `data` is also embedded in `content`
+text for hosts that hide `structuredContent`.
+
 ### `kb_skills_list`
 
 List bundled Kibi agent skills available for progressive disclosure. Read-only; does not mutate the KB or require Prolog.

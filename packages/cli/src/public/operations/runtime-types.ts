@@ -215,6 +215,11 @@ export interface RuntimeOperationSpec<TInput = unknown, TResult = unknown> {
   readonly name: string;
   readonly effects: readonly OperationEffect[];
   readonly requiresProlog: boolean;
+  /**
+   * When true, MCP embeds envelope `data` JSON in tool `content` for hosts that
+   * hide `structuredContent` (discovery/proof lookup). Default false.
+   */
+  readonly agentVisibleStructuredData?: boolean;
   execute(input: TInput, context: OperationContext): Promise<TResult>;
 }
 

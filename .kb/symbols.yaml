@@ -15295,6 +15295,19 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: implements
         target: REQ-002
+  - id: SYM-adaptPrologForTests
+    title: _adaptPrologForTests
+    status: active
+    sourceFile: packages/mcp/src/server/tools-runtime.ts
+    granularity_reason: legacy-link
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-005
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
+      - type: implements
+        target: REQ-002
   - id: SYM-setupDocsAndPrompts
     title: setupDocsAndPrompts
     status: active

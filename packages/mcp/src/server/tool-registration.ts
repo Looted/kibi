@@ -87,6 +87,9 @@ export function registerConfiguredTools<TProlog>(
       name,
       effects: publicSpec.effects,
       requiresProlog: publicSpec.requiresProlog,
+      ...(publicSpec.agentVisibleStructuredData === true
+        ? { agentVisibleStructuredData: true }
+        : {}),
       execute: (args, context) => execute(context, args),
     };
     registerTool(

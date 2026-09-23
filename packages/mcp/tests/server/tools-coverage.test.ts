@@ -63,6 +63,7 @@ type RegisteredTool = {
 };
 
 type ToolResponse = {
+  content: readonly { type: string; text?: string; [key: string]: unknown }[];
   structuredContent: Record<string, unknown>;
 };
 
@@ -1151,15 +1152,14 @@ describe.serial("server tools coverage", () => {
         structuredContent: { ok: true },
       });
       const siblingResult = (await siblingPromise) as ToolResponse;
-      expect(siblingResult.content?.[0]?.text).toContain('"ok":true');
-      expect(siblingResult.content?.[0]?.text).toContain("sibling ok");
+      expect(siblingResult.content?.[0]?.text).toBe("sibling ok");
       expect(spies.resetProlog).not.toHaveBeenCalled();
     } finally {
       restoreEnvVar("KIBI_MCP_TOOL_TIMEOUT_MS", originalTimeout);
     }
   }, 10_000);
 
-  test("addTool appends envelope data JSON to discovery content text", async () => {
+  test("addTool embeds structured data JSON only when agentVisibleStructuredData is opted in", async () => {
     const { runtime } = createRuntime();
     const { server, registered } = createCapturingServer();
     addTool(
@@ -1173,6 +1173,7 @@ describe.serial("server tools coverage", () => {
             type: "text",
             text: "Found 1 entities. Showing 1 (offset 0, limit 1): REQ-1 (title, status=active)",
           },
+          { type: "resource", uri: "kibi://keep-me" },
         ],
         structuredContent: {
           entities: [
@@ -1190,12 +1191,14 @@ describe.serial("server tools coverage", () => {
         name: "kb_query",
         effects: ["kb-read"],
         requiresProlog: false,
+        agentVisibleStructuredData: true,
         execute: async () => ({
           content: [
             {
               type: "text",
               text: "Found 1 entities. Showing 1 (offset 0, limit 1): REQ-1 (title, status=active)",
             },
+            { type: "resource", uri: "kibi://keep-me" },
           ],
           structuredContent: {
             entities: [
@@ -1210,19 +1213,51 @@ describe.serial("server tools coverage", () => {
         }),
       },
     );
-    const tool = getRegisteredTool(registered, "query_like");
-    const response = (await invokeTool(tool, {})) as ToolResponse;
-    const text = response.content?.[0]?.text ?? "";
+    addTool(
+      server,
+      "ordinary_read",
+      "ordinary",
+      {},
+      async () => ({
+        content: [{ type: "text", text: "plain summary only" }],
+        structuredContent: { huge: "should-not-duplicate" },
+      }),
+      runtime,
+      {
+        name: "ordinary_read",
+        effects: ["kb-read"],
+        requiresProlog: false,
+        execute: async () => ({
+          content: [{ type: "text", text: "plain summary only" }],
+          structuredContent: { huge: "should-not-duplicate" },
+        }),
+      },
+    );
+    const optedIn = (await invokeTool(
+      getRegisteredTool(registered, "query_like"),
+      {},
+    )) as ToolResponse;
+    const text = optedIn.content?.[0]?.text ?? "";
     expect(text).toContain("proof_contract");
     expect(text).toContain("proof_bindings");
     expect(text).toContain("Found 1 entities");
     expect(text.indexOf("proof_contract")).toBeLessThan(
       text.indexOf("Found 1 entities"),
     );
-    expect(response.structuredContent).toMatchObject({
+    expect(optedIn.content?.some((part) => part.type === "resource")).toBe(
+      true,
+    );
+    expect(optedIn.structuredContent).toMatchObject({
       status: "success",
       data: { count: 1 },
     });
+
+    const ordinary = (await invokeTool(
+      getRegisteredTool(registered, "ordinary_read"),
+      {},
+    )) as ToolResponse;
+    expect(ordinary.content?.[0]?.text).toBe("plain summary only");
+    expect(ordinary.content?.[0]?.text).not.toContain("should-not-duplicate");
   });
 
   test("addTool returns MUTATION_OUTCOME_UNKNOWN when a write tool times out", async () => {
