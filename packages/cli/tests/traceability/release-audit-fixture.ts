@@ -17,6 +17,9 @@ export type AuditInput = Readonly<{
 
 const PUBLISHABLE_PACKAGE_SOURCES = {
   "packages/core/src/": "kibi-core",
+  "packages/plugin-sdk/src/": "kibi-plugin-sdk",
+  "packages/plugin-builtin/src/": "kibi-plugin-builtin",
+  "packages/plugin-jev/src/": "kibi-plugin-jev",
   "packages/cli/src/": "kibi-cli",
   "packages/mcp/src/": "kibi-mcp",
   "packages/opencode/src/": "kibi-opencode",

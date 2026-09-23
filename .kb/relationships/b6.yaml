@@ -97,3 +97,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3c3c2f504aee
+  - type: implements
+    from: SYM-skillopt-review-held-out-matrix
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:40:19.782Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28a364ed683c

@@ -13,13 +13,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eb03b9ce0c8d
-  - type: implements
-    from: SYM-skillopt-bridge-cli-execution-run
-    to: REQ-skillopt-external-adoption-verdict
-    created_at: 2026-08-15T23:12:11.906Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-f331ecd5b573
   - type: covered_by
     from: SYM-skillopt-bridge-cli-execution-run
     to: TEST-skillopt-codex-optimization
@@ -139,3 +132,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7fb32c4afc7b
+  - type: covered_by
+    from: SYM-SymbolIndex
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T19:30:46.234Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ececc9fae6a5
+  - type: implements
+    from: SYM-HeldOutTerminalReceiptSchema
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:36:30.820Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-399e3f7c415b
+  - type: implements
+    from: SYM-predicateGate
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:37:57.007Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94ca98acd871
+  - type: implements
+    from: SYM-skillopt-bridge-cli-execution-run
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:38:44.745Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-13221096c067
+  - type: implements
+    from: SYM-skillopt-false-if-enoent
+    to: REQ-skillopt-codex-optimization
+    created_at: 2026-09-19T23:54:58.601Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-656cfd324b05
+  - type: covered_by
+    from: SYM-skillopt-false-if-enoent
+    to: TEST-skillopt-codex-optimization
+    created_at: 2026-09-19T23:54:58.617Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3995adf2c16d
+  - type: implements
+    from: SYM-cap-plugin-isprojectscopedpackage-c0eba0f8
+    to: REQ-capability-plugin-observable-behavior-v1
+    created_at: 2026-09-22T09:31:11.781Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9d2f0f96854f
+  - type: covered_by
+    from: SYM-cap-plugin-isprojectscopedpackage-c0eba0f8
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T09:31:11.802Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-415a68d38961
+  - type: covered_by
+    from: SYM-cap-plugin-createtypesafejevclient-d0f97996
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:45:07.157Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c582f9589cf

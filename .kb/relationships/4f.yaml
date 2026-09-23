@@ -227,3 +227,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7d2d0e32b91c
+  - type: executable_for
+    from: SYM-e2e-coverage-pipeline
+    to: TEST-e2e-coverage-pipeline
+    created_at: 2026-09-19T17:41:21.432Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b03755ccf8e9
+  - type: implements
+    from: SYM-skillopt-fake-provider-debit-receipt
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:41:07.030Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8f5cf4a6325

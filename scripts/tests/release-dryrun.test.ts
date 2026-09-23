@@ -228,9 +228,18 @@ describe("release dry-run: no-commit master publish model", () => {
       expect(decision.action).toBe("PUBLISH_ONLY_RERUN");
       expect(decision.reason).toContain("already published");
 
-      expect(decision.packages).toHaveLength(5);
+      expect(decision.packages).toHaveLength(8);
       const dirs = decision.packages.map((p) => p.dir).sort();
-      expect(dirs).toEqual(["codex", "cursor", "mcp", "opencode", "runtime"]);
+      expect(dirs).toEqual([
+        "codex",
+        "cursor",
+        "mcp",
+        "opencode",
+        "plugin-builtin",
+        "plugin-jev",
+        "plugin-sdk",
+        "runtime",
+      ]);
 
       for (const pkg of decision.packages) {
         expect(pkg.alreadyPublished).toBe(false);
@@ -260,6 +269,9 @@ describe("release dry-run: no-commit master publish model", () => {
         "cursor",
         "mcp",
         "opencode",
+        "plugin-builtin",
+        "plugin-jev",
+        "plugin-sdk",
         "runtime",
       ]);
     });
@@ -272,6 +284,9 @@ describe("release dry-run: no-commit master publish model", () => {
         `${ALL_PACKAGES.codex.name}@${ALL_PACKAGES.codex.version}`,
         `${ALL_PACKAGES.cursor.name}@${ALL_PACKAGES.cursor.version}`,
         `${ALL_PACKAGES.runtime.name}@${ALL_PACKAGES.runtime.version}`,
+        `${ALL_PACKAGES["plugin-sdk"].name}@${ALL_PACKAGES["plugin-sdk"].version}`,
+        `${ALL_PACKAGES["plugin-builtin"].name}@${ALL_PACKAGES["plugin-builtin"].version}`,
+        `${ALL_PACKAGES["plugin-jev"].name}@${ALL_PACKAGES["plugin-jev"].version}`,
       ]);
       const ctx = makeContext({
         changesetFiles: NO_CHANGESETS,
@@ -459,12 +474,15 @@ Expected action: NOOP
         "cursor",
         "mcp",
         "opencode",
+        "plugin-builtin",
+        "plugin-jev",
+        "plugin-sdk",
         "runtime",
       ]);
 
       // --- PUBLISH_ONLY_RERUN only includes unpublished packages ---
       // The runner omits already-published packages from decision.packages.
-      expect(decision.packages).toHaveLength(5);
+      expect(decision.packages).toHaveLength(8);
       const pkgDirs = decision.packages
         .map((p: { dir: string }) => p.dir)
         .sort();
@@ -473,6 +491,9 @@ Expected action: NOOP
         "cursor",
         "mcp",
         "opencode",
+        "plugin-builtin",
+        "plugin-jev",
+        "plugin-sdk",
         "runtime",
       ]);
 
@@ -509,6 +530,9 @@ Summary:
     test("PUBLISHABLE_DIRS contains exactly the expected npm package directories", () => {
       expect([...PUBLISHABLE_DIRS]).toEqual([
         "core",
+        "plugin-sdk",
+        "plugin-builtin",
+        "plugin-jev",
         "runtime",
         "cli",
         "mcp",
@@ -523,6 +547,9 @@ Summary:
         "cursor",
         "mcp",
         "opencode",
+        "plugin-builtin",
+        "plugin-jev",
+        "plugin-sdk",
         "runtime",
       ]);
     });

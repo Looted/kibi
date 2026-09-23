@@ -104,3 +104,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5d8c7dc7f656
+  - type: implements
+    from: SYM-FixtureClaimError-name
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:35:29.881Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84e2b64dac12
+  - type: covered_by
+    from: SYM-cap-plugin-createstubbuiltinplugin-ccd291f8
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T09:27:25.685Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d208af775cd

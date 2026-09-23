@@ -10,13 +10,6 @@ relationships:
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
     source: documentation/adr/ADR-016.md
-  - type: implements
-    from: SYM-HeldOutReceiptStoreError
-    to: REQ-skillopt-external-adoption-verdict
-    created_at: 2026-08-15T23:11:17.891Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-b6c62ce4a0a4
   - type: covered_by
     from: SYM-HeldOutReceiptStoreError
     to: TEST-skillopt-external-adoption-verdict
@@ -143,3 +136,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-56342b0710b4
+  - type: implements
+    from: SYM-HeldOutReceiptStoreError
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:36:18.700Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34c8d48b12ab
+  - type: relates_to
+    from: FACT-engine-live-socket-epipe-bun14
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-20T20:46:38.673Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ad411d2e6373
+  - type: covered_by
+    from: SYM-cap-plugin-symbolcoordinates-7686ab9b
+    to: TEST-capability-plugin-host-resolution-v1
+    created_at: 2026-09-22T19:43:39.321Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-052c200d83a1

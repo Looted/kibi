@@ -21,6 +21,7 @@ import { existsSync, readFileSync, statSync } from "node:fs";
 import { createRequire } from "node:module";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
+import { describeConfiguredCapabilityPlugins } from "../plugins/project-config.js";
 import {
   buildMigrationPlan,
   migrationAction,
@@ -73,6 +74,10 @@ export async function doctorCommand(
     {
       name: "post-rewrite hook",
       check: checkPostRewriteHook,
+    },
+    {
+      name: "Capability plugins",
+      check: checkCapabilityPlugins,
     },
   ];
 
@@ -425,6 +430,52 @@ function checkSWIProlog(): {
       message: "Not installed or not in PATH",
       remediation:
         "Install SWI-Prolog from https://www.swi-prolog.org/ and add to PATH",
+    };
+  }
+}
+
+/**
+ * Read-only view of package.json plugin activation. Does not import plugins.
+ */
+// implements REQ-capability-plugin-configuration-v1
+function checkCapabilityPlugins(): {
+  passed: boolean;
+  message: string;
+  remediation?: string;
+} {
+  try {
+    const rows = describeConfiguredCapabilityPlugins(process.cwd());
+    if (rows.length === 0) {
+      return {
+        passed: true,
+        message: "None configured; builtin providers only",
+      };
+    }
+    const message = rows
+      .map(
+        (row) =>
+          `${row.package} ${row.capability} ${row.mode} declared=${row.declared ? "yes" : "no"}`,
+      )
+      .join("; ");
+    if (rows.some((row) => !row.declared)) {
+      return {
+        passed: false,
+        message,
+        remediation:
+          "Add the configured plugin package to dependencies, devDependencies, or optionalDependencies, or remove the kibi.plugins activation entry.",
+      };
+    }
+    return {
+      passed: true,
+      message,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return {
+      passed: false,
+      message,
+      remediation:
+        "Fix package.json kibi.plugins, then restart long-running Kibi MCP or client processes.",
     };
   }
 }

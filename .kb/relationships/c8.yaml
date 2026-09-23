@@ -237,3 +237,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-455fdc39183b
+  - type: verified_by
+    from: SCEN-skillopt-paid-launch-accounting
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-09-19T17:51:47.974Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd52df29b62a
+  - type: covered_by
+    from: SYM-quality-coverage-branch-summary
+    to: TEST-e2e-coverage-pipeline
+    created_at: 2026-09-19T18:13:24.287Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5afe844b59c

@@ -188,3 +188,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-22cf40a5ec20
+  - type: covered_by
+    from: SYM-vscode-code-lens-provider-refresh
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T19:29:18.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee18c44594d3
+  - type: implements
+    from: SYM-package-catalog-ci-pack-dirs
+    to: REQ-020
+    created_at: 2026-09-21T15:28:05.249Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f7764f047039
+  - type: covered_by
+    from: SYM-package-catalog-ci-pack-dirs
+    to: TEST-014
+    created_at: 2026-09-21T19:19:14.661Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e878234bbf9
+  - type: covered_by
+    from: SYM-cap-plugin-chooselane-9f87a891
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:43:13.456Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-90ed8ba3e3d7

@@ -82,6 +82,56 @@ Validation command: `npm exec -- kibi check`.
 
 The CLI and MCP server are peer agent-operation surfaces. MCP-capable hosts can call the public `kb_*` contracts directly; agents in trusted project-local shells can invoke the equivalent CLI JSON routes with `kibi <route> --input <file|->`. Neither path requires direct access to `.kb/**` files.
 
+### Optional capability plugins
+
+Builtin classification, ontology matching, and symbol extraction need no plugin configuration. Installing an optional package does not activate it.
+
+```text
+install package → explicitly activate in package.json → provide required secret/environment → restart long-lived Kibi MCP/client runtime
+```
+
+`kibi-plugin-jev` is the optional TypeSafe semantic classifier. It is not part of the default Kibi install.
+
+```bash
+npm install --save-dev kibi-plugin-jev
+```
+
+```json
+{
+  "kibi": {
+    "plugins": [
+      {
+        "package": "kibi-plugin-jev",
+        "capabilities": {
+          "kibi.semantic-classifier.v1": {
+            "mode": "augment"
+          }
+        }
+      }
+    ]
+  }
+}
+```
+
+Set `TYPESAFE_API_KEY` in the environment. Do not put that secret in `package.json`. Optional settings:
+
+| Variable | Role |
+| --- | --- |
+| `KIBI_JEV_MODEL` | Model id. Empty is unset. Default `jev-latest`. |
+| `KIBI_JEV_TIMEOUT_MS` | Positive integer timeout in milliseconds, at most 120000. A malformed value fails activation with a provider diagnostic. |
+
+Modes:
+
+```text
+augment — builtin handles normal cases; external provider helps unresolved/ambiguous cases
+replace — configured provider owns the capability; builtin is only failure fallback
+shadow — provider runs for comparison but cannot affect canonical output
+```
+
+Removing the `kibi.plugins` entry disables the plugin. Restart long-running MCP or host processes after plugin configuration changes. Activating a third-party package grants that package code-execution trust. `permissions` metadata is disclosure, not sandbox enforcement.
+
+`kibi doctor` lists configured packages, capabilities, modes, and whether each package is a declared dependency. It does not import plugin modules. Deeper authoring rules live in [plugin-development.md](./plugin-development.md).
+
 ### First-run lifecycle
 
 After installing the packages, use this short path:

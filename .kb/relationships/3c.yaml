@@ -160,3 +160,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1eeecfbdfbb2
+  - type: implements
+    from: SYM-cap-plugin-composeontologycatalogforoperation-905f7a11
+    to: REQ-capability-plugin-observable-behavior-v1
+    created_at: 2026-09-22T19:34:08.016Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8150c6336864
+  - type: covered_by
+    from: SYM-cap-plugin-composeontologycatalogforoperation-905f7a11
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:34:08.022Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-680029655fe5

@@ -125,3 +125,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6a6f373d1795
+  - type: covered_by
+    from: SYM-ArtifactPathError
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-09-19T19:22:46.867Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c203a7d6d0a
+  - type: covered_by
+    from: SYM-PreparedRootError
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-09-19T19:23:38.374Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-402efcfdab4d
+  - type: covered_by
+    from: SYM-cap-plugin-readprojectpackagejson-2990e4ce
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:38:58.797Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aef4a39bbcc4

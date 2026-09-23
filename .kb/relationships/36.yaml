@@ -209,3 +209,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ccccf6ab4630
+  - type: relates_to
+    from: ADR-capability-plugins-v1
+    to: REQ-capability-plugin-protocol-v1
+    created_at: 2026-09-20T08:21:16.659Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8802560cb01d
+  - type: relates_to
+    from: ADR-capability-plugins-v1
+    to: REQ-capability-plugin-builtin-parity-v1
+    created_at: 2026-09-20T08:21:16.668Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb5370b6f52b
+  - type: relates_to
+    from: ADR-capability-plugins-v1
+    to: REQ-capability-plugin-three-capabilities-v1
+    created_at: 2026-09-20T08:21:16.675Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ac9858e6ac3f
+  - type: relates_to
+    from: ADR-capability-plugins-v1
+    to: REQ-capability-plugin-activation-disclosure-v1
+    created_at: 2026-09-20T08:21:16.681Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-db735c9ba1d1
+  - type: relates_to
+    from: ADR-capability-plugins-v1
+    to: REQ-capability-plugin-jev-fallback-v1
+    created_at: 2026-09-20T08:21:16.687Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-052ed7f4c9cf
+  - type: relates_to
+    from: ADR-capability-plugins-v1
+    to: ADR-008
+    created_at: 2026-09-20T08:21:16.693Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-07d39a3f1d50
+  - type: covered_by
+    from: SYM-cap-plugin-builtin-predicate-rule-sets-0eb8653e
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:42:11.470Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d9c6d68741fc

@@ -232,8 +232,12 @@ symbols:
         target: TEST-cli-doctor-packed-provenance
       - type: covered_by
         target: TEST-cli-doctor-workflows
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
       - type: implements
         target: REQ-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-capability-plugin-configuration-v1
       - type: implements
         target: REQ-cli-doctor
       - type: implements
@@ -513,6 +517,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: implements
         target: REQ-vscode-source-to-kb
@@ -523,6 +529,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: implements
@@ -535,6 +543,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: implements
         target: REQ-vscode-source-to-kb
@@ -545,6 +555,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: implements
@@ -557,6 +569,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: implements
         target: REQ-vscode-source-to-kb
@@ -567,6 +581,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: implements
@@ -579,6 +595,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: implements
         target: REQ-vscode-source-to-kb
@@ -589,6 +607,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: implements
@@ -2226,6 +2246,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -2537,6 +2559,8 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -2547,6 +2571,8 @@ symbols:
     status: active
     granularity_reason: extractor-miss
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -2559,6 +2585,8 @@ symbols:
     granularity_reason: extractor-miss
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -2569,6 +2597,8 @@ symbols:
     status: active
     granularity_reason: extractor-miss
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -2581,6 +2611,8 @@ symbols:
     granularity_reason: extractor-miss
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -2591,6 +2623,8 @@ symbols:
     status: active
     granularity_reason: extractor-miss
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -2603,6 +2637,8 @@ symbols:
     granularity_reason: extractor-miss
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -2613,6 +2649,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -2625,6 +2663,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -2635,6 +2675,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -2680,7 +2722,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-assertMaxBytes
     title: assertMaxBytes
     sourceFile: packages/cli/src/public/skill-system/validation.ts
@@ -2700,6 +2742,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -2710,6 +2754,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -2918,13 +2964,15 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-browseLinkedEntities
     title: browseLinkedEntities
     sourceFile: packages/vscode/src/codeActionProvider.ts
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -2980,13 +3028,15 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-buildIndex
     title: buildIndex
     sourceFile: packages/vscode/src/symbolIndex.ts
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -3058,7 +3108,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-canonicalSkillsDir
     title: canonicalSkillsDir
     sourceFile: scripts/sync-agent-skills.ts
@@ -5019,8 +5069,7 @@ symbols:
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable
-      resource examples
+    title: predicate guidance loads a canonical decision tree with immutable resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -5741,7 +5790,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-createAutoUpdateRunner
     title: createAutoUpdateRunner
     status: active
@@ -6706,6 +6755,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -7418,7 +7469,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-error
     title: error
     status: active
@@ -7499,7 +7550,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-execute-model-requirement
     title: executeModelRequirement
     status: active
@@ -7867,7 +7918,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-FixtureAuthorizationClaimSchema
     title: FixtureAuthorizationClaimSchema
     sourceFile: scripts/skillopt-eval/fixtures/fixture-claim.ts
@@ -7878,7 +7929,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-FixtureClaimError
     title: FixtureClaimError
     sourceFile: scripts/skillopt-eval/fixtures/fixture-claim.ts
@@ -7889,7 +7940,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-FixtureClaimError-name
     title: FixtureClaimError.name
     sourceFile: scripts/skillopt-eval/fixtures/fixture-claim.ts
@@ -7900,7 +7951,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-formatUpsertError
     title: formatUpsertError
     status: active
@@ -8011,7 +8062,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-GateMatrix
     title: GateMatrix
     sourceFile: scripts/skillopt-eval/held-out-cell-binding.ts
@@ -8022,7 +8073,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-getBehavioralSymbolNames
     title: getBehavioralSymbolNames
     sourceFile: packages/cli/src/public/symbol-granularity.ts
@@ -8223,6 +8274,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -8483,7 +8536,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-hasOverrideRationale
     title: hasOverrideRationale
     sourceFile: packages/cli/src/traceability/evidence-model.ts
@@ -8501,6 +8554,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -8524,7 +8579,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutEvidenceBinding
     title: HeldOutEvidenceBinding
     sourceFile: scripts/skillopt-eval/held-out-evidence.ts
@@ -8535,7 +8590,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutEvidenceError
     title: HeldOutEvidenceError
     sourceFile: scripts/skillopt-eval/held-out-evidence.ts
@@ -8546,7 +8601,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutEvidenceError-name
     title: HeldOutEvidenceError.name
     sourceFile: scripts/skillopt-eval/held-out-evidence.ts
@@ -8557,7 +8612,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutExecutionLeaseError
     title: HeldOutExecutionLeaseError
     sourceFile: scripts/skillopt-eval/held-out-execution-lease.ts
@@ -8568,7 +8623,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutExecutionLeaseError-name
     title: HeldOutExecutionLeaseError.name
     sourceFile: scripts/skillopt-eval/held-out-execution-lease.ts
@@ -8579,7 +8634,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutGateOutcomes
     title: HeldOutGateOutcomes
     sourceFile: scripts/skillopt-eval/held-out-eligibility.ts
@@ -8590,7 +8645,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutPhysicalCell
     title: HeldOutPhysicalCell
     sourceFile: scripts/skillopt-eval/held-out-eligibility.ts
@@ -8601,7 +8656,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutReceiptStore
     title: HeldOutReceiptStore
     sourceFile: scripts/skillopt-eval/held-out-receipt-store.ts
@@ -8612,7 +8667,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutReceiptStore-withLease
     title: HeldOutReceiptStore.withLease
     sourceFile: scripts/skillopt-eval/held-out-receipt-store.ts
@@ -8623,7 +8678,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutReceiptStoreError
     title: HeldOutReceiptStoreError
     sourceFile: scripts/skillopt-eval/held-out-receipt-store.ts
@@ -8634,7 +8689,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutReceiptStoreError-name
     title: HeldOutReceiptStoreError.name
     sourceFile: scripts/skillopt-eval/held-out-receipt-store.ts
@@ -8645,7 +8700,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutTerminalReceipt
     title: HeldOutTerminalReceipt
     sourceFile: scripts/skillopt-eval/held-out-evidence.ts
@@ -8656,7 +8711,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-HeldOutTerminalReceiptSchema
     title: HeldOutTerminalReceiptSchema
     sourceFile: scripts/skillopt-eval/held-out-evidence.ts
@@ -8667,7 +8722,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-Hooks
     title: Hooks
     status: active
@@ -8937,7 +8992,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-isOperationalArtifactPath
     title: isOperationalArtifactPath
     sourceFile: packages/cli/src/public/operational-artifacts.ts
@@ -9053,6 +9108,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: implements
@@ -9171,6 +9228,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -9192,6 +9251,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -9253,6 +9314,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -9328,6 +9391,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -9413,6 +9478,8 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -9424,6 +9491,8 @@ symbols:
     granularity_reason: legacy-link
     status: active
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -9656,6 +9725,8 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -9667,6 +9738,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -10108,7 +10181,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-mcp-analyzeKbCheckImpact
     title: analyzeKbCheckImpact
     sourceFile: packages/mcp/src/tools/check-impact.ts
@@ -11909,6 +11982,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -12746,7 +12821,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-parseHeldOutTerminalReceipt
     title: parseHeldOutTerminalReceipt
     sourceFile: scripts/skillopt-eval/held-out-evidence.ts
@@ -12757,7 +12832,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-parseKibiImpactOverride
     title: parseKibiImpactOverride
     sourceFile: packages/cli/src/traceability/staged-impact-contract.ts
@@ -12776,6 +12851,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: implements
@@ -13185,7 +13262,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-predicateGate
     title: predicateGate
     sourceFile: scripts/skillopt-eval/held-out-cell-binding.ts
@@ -13196,7 +13273,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-PredicateMatrixCell
     title: PredicateMatrixCell
     sourceFile: scripts/skillopt-eval/held-out-evidence.ts
@@ -13207,7 +13284,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-PredicatePolarity
     title: PredicatePolarity
     sourceFile: packages/cli/src/operations/modeling/predicate-types.ts
@@ -13227,7 +13304,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-predicateReplicateFor
     title: predicateReplicateFor
     sourceFile: scripts/skillopt-eval/held-out-cell-binding.ts
@@ -13238,7 +13315,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-predicateRoots
     title: predicateRoots
     sourceFile: scripts/skillopt-eval/real-workflow-setup.ts
@@ -13249,7 +13326,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-PredicateSchemaCandidate
     title: PredicateSchemaCandidate
     sourceFile: packages/cli/src/operations/modeling/predicate-types.ts
@@ -13287,7 +13364,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-PreflightReasonSchema
     title: PreflightReasonSchema
     sourceFile: scripts/skillopt-eval/preflight-contracts.ts
@@ -13314,6 +13391,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -13335,6 +13414,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -13345,6 +13426,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -13357,6 +13440,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -13367,6 +13452,8 @@ symbols:
     granularity_reason: module-level-behavior
     status: active
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -13379,6 +13466,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -13389,6 +13478,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -13574,11 +13665,12 @@ symbols:
         target: TEST-skillopt-codex-optimization
   - id: SYM-PUBLISHABLE-DIRS
     title: PUBLISHABLE_DIRS
-    sourceFile: scripts/release-state.ts
+    sourceFile: scripts/package-catalog.ts
     links:
       - REQ-020
     status: active
     granularity_reason: legacy-link
+    symbol_role: config
     relationships:
       - type: covered_by
         target: TEST-014
@@ -13590,6 +13682,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -13680,7 +13774,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-readNoFollowBytes
     title: readNoFollowBytes
     sourceFile: scripts/skillopt-eval/preflight-io.ts
@@ -13736,7 +13830,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-reconcileAuditEntries
     title: reconcileAuditEntries
     status: active
@@ -13871,6 +13965,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -13953,6 +14049,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -14014,7 +14112,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-resetBundledSkillsDir
     title: resetBundledSkillsDir
     sourceFile: packages/cli/src/public/skill-system/loader.ts
@@ -14079,6 +14177,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -14090,6 +14190,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -14184,6 +14286,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: implements
         target: REQ-vscode-source-to-kb
@@ -14201,6 +14305,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: implements
@@ -14244,6 +14350,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -15226,6 +15334,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -15241,7 +15351,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-SKILL_FILE_NAME
     title: SKILL_FILE_NAME
     sourceFile: packages/cli/src/public/skill-system/paths.ts
@@ -15274,7 +15384,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-SkillManifest
     title: SkillManifest
     sourceFile: packages/cli/src/public/skill-system/types.ts
@@ -15337,7 +15447,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-adoption-dependencies
     title: AdoptionDependencies
     sourceFile: scripts/skillopt-eval/adoption-types.ts
@@ -15778,7 +15888,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-authorization-broker-tests
     title: trusted broker authorization contracts
     sourceFile: scripts/skillopt-eval/tests/authorization-broker.test.ts
@@ -15806,7 +15916,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-bridge-cli-execution-run
     title: runBridge
     sourceFile: scripts/skillopt-eval/runtime/bridge-cli-execution.ts
@@ -15822,7 +15932,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-bridge-cli-main
     title: bridgeMain
     sourceFile: scripts/skillopt-eval/bridge-cli.ts
@@ -15849,7 +15959,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-bridge-cli-options-failure
     title: bridgeFailure
     sourceFile: scripts/skillopt-eval/runtime/bridge-cli-options.ts
@@ -15865,7 +15975,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-bridge-cli-options-parse
     title: parseBridgeOptions
     sourceFile: scripts/skillopt-eval/runtime/bridge-cli-options.ts
@@ -15881,7 +15991,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-bridge-cli-tests
     title: bridge CLI tests
     sourceFile: scripts/skillopt-eval/tests/bridge-cli.test.ts
@@ -16062,7 +16172,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-build-offline-review-artifacts
     title: buildOfflineReviewArtifacts
     sourceFile: scripts/skillopt-eval/offline-artifacts.ts
@@ -16084,7 +16194,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-build-proposal
     title: buildProposal
     sourceFile: scripts/skillopt-eval/proposal.ts
@@ -16149,7 +16259,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-caller-score-injection-error
     title: CallerScoreInjectionError
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
@@ -16620,7 +16730,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-completed-codex-cell-type
     title: CompletedCodexCell
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-types.ts
@@ -17294,7 +17404,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-default-evaluate-held-out
     title: defaultEvaluateHeldOut
     sourceFile: scripts/skillopt-eval/held-out-evaluation.ts
@@ -17310,7 +17420,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-default-run-mirror-sync
     title: defaultRunMirrorSync
     sourceFile: scripts/skillopt-eval/adoption-approved.ts
@@ -17335,7 +17445,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-trainer-process-infrastructure-error
     title: trainerProcessInfrastructureError
     sourceFile: scripts/skillopt-eval/training-setup.ts
@@ -17463,7 +17573,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-deterministic-variant-label
     title: deterministicVariantLabel
     sourceFile: scripts/skillopt-eval/runtime/codex-events.ts
@@ -17566,7 +17676,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-evaluate-predicate-case
     title: evaluatePredicateCase
     status: active
@@ -17850,6 +17960,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
         target: REQ-skillopt-paid-launch-accounting
@@ -17872,7 +17984,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-forward
     title: FakeProviderSupervisor.forward
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
@@ -17884,7 +17996,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-reconcile
     title: FakeProviderSupervisor.reconcile
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
@@ -17896,7 +18008,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-recover
     title: FakeProviderSupervisor.recover
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
@@ -17908,7 +18020,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-reserve
     title: FakeProviderSupervisor.reserve
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
@@ -17920,7 +18032,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-zero-budget-parent
     title: FakeProviderSupervisor.zeroBudgetVerificationParent
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-supervisor.ts
@@ -17932,7 +18044,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-file-bridge
     title: FileBridge
     sourceFile: scripts/skillopt-eval/runtime/file-bridge.ts
@@ -18475,6 +18587,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
@@ -18500,7 +18614,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-held-out-evaluation-from-receipt
     title: heldOutEvaluationFromReceipt
     sourceFile: scripts/skillopt-eval/held-out-review.ts
@@ -18511,7 +18625,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-held-out-predicate-gate
     title: evaluateHeldOutPredicateGate
     sourceFile: scripts/skillopt-eval/scoring/held-out-predicate.ts
@@ -18560,7 +18674,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-held-out-receipt-store-persist-terminal
     title: HeldOutReceiptStore.persistTerminal
     sourceFile: scripts/skillopt-eval/held-out-receipt-store.ts
@@ -18571,7 +18685,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-held-out-receipt-store-reserve
     title: HeldOutReceiptStore.reserve
     sourceFile: scripts/skillopt-eval/held-out-receipt-store.ts
@@ -18582,7 +18696,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-held-out-test-helpers
     title: held-out evaluation test helpers
     sourceFile: scripts/skillopt-eval/tests/held-out-evaluation-test-helpers.ts
@@ -18815,11 +18929,12 @@ symbols:
     title: MeasuredReportMetrics
     sourceFile: scripts/skillopt-eval/report.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-model-gateway-security-tests
     title: trusted broker model gateway security
     sourceFile: scripts/skillopt-eval/tests/model-gateway-security.test.ts
@@ -18919,7 +19034,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-operator-base-resolution-options
     title: OperatorBaseResolutionOptions
     sourceFile: scripts/skillopt-eval/operator.ts
@@ -19155,7 +19270,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-parse-final-debit-receipt
     title: parseFinalDebitReceipt
     sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
@@ -19166,7 +19281,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-parse-final-verdict-receipt
     title: parseFinalVerdictReceipt
     sourceFile: scripts/skillopt-eval/contracts/paid-launch-receipts.ts
@@ -19177,13 +19292,15 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-parse-generated-artifact-receipt
     title: parseGeneratedArtifactReceipt
     sourceFile: scripts/skillopt-eval/contracts/trust-plane.ts
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
@@ -19194,6 +19311,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
@@ -19213,6 +19332,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
@@ -19234,6 +19355,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
         target: REQ-skillopt-paid-launch-accounting
@@ -19244,6 +19367,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -20302,15 +20427,16 @@ symbols:
     sourceFile: tools/skillopt/kibi_skillopt/models.py
     symbol_role: type-shape
     text_ref: tools/skillopt/kibi_skillopt/models.py#BridgeRequest
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
-      - type: implements
-        target: REQ-skillopt-external-adoption-verdict
       - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-python-bridge-runner
     title: run_bridge
     sourceFile: tools/skillopt/kibi_skillopt/bridge_runner.py
@@ -20356,7 +20482,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-python-canonical-json
     title: canonical_json
     sourceFile: tools/skillopt/kibi_skillopt/common.py
@@ -20448,7 +20574,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-python-parse-timestamp
     title: parse_timestamp
     sourceFile: tools/skillopt/kibi_skillopt/common.py
@@ -20472,11 +20598,12 @@ symbols:
     sourceFile: tools/skillopt/kibi_skillopt/models.py
     symbol_role: type-shape
     text_ref: tools/skillopt/kibi_skillopt/models.py#PublicTaskClaim
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-external-adoption-verdict
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-python-report-v1
     title: ReportV1
     sourceFile: tools/skillopt/kibi_skillopt/workflow.py
@@ -20624,7 +20751,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-load-seed-candidate
     title: loadSeedCandidate
     sourceFile: scripts/skillopt-eval/real-workflow.ts
@@ -20770,20 +20897,22 @@ symbols:
     title: ReconciledDevelopmentReceipt
     sourceFile: scripts/skillopt-eval/report.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-reconciled-paid-receipt-type
     title: ReconciledPaidReceipt
     sourceFile: scripts/skillopt-eval/report.ts
     symbol_role: type-shape
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-recover-adoption-wals
     title: recoverAdoptionWals
     sourceFile: scripts/skillopt-eval/adoption-transaction.ts
@@ -20853,6 +20982,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
         target: REQ-skillopt-paid-launch-accounting
@@ -20901,7 +21032,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-review-held-out-matrix
     title: reviewHeldOutMatrix
     sourceFile: scripts/skillopt-eval/held-out-review.ts
@@ -20912,7 +21043,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-episode-output-schema
     title: EPISODE_OUTPUT_SCHEMA
     sourceFile: scripts/skillopt-eval/runtime/codex-cell-runner.ts
@@ -21046,6 +21177,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: covered_by
@@ -22140,6 +22273,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
@@ -22338,6 +22473,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: covered_by
@@ -22782,6 +22919,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
@@ -22797,6 +22936,8 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
@@ -22811,6 +22952,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: covered_by
@@ -22925,7 +23068,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-StrictModelInput
     title: StrictModelInput
     status: active
@@ -23050,7 +23193,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-SYMBOL_ROLES
     title: SYMBOL_ROLES
     sourceFile: packages/cli/src/public/symbol-granularity.generated.ts
@@ -23113,6 +23256,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -23135,6 +23280,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -23225,6 +23372,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -23235,6 +23384,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -23512,7 +23663,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-TaskFixtureResolutionError-name
     title: TaskFixtureResolutionError.name
     sourceFile: scripts/skillopt-eval/runtime/task-fixture.ts
@@ -23527,7 +23678,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-taskScopedPublicSkillDescriptors
     title: taskScopedPublicSkillDescriptors
     sourceFile: scripts/skillopt-eval/real-workflow-setup.ts
@@ -23542,7 +23693,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-TempKbContext
     title: TempKbContext
     sourceFile: packages/cli/src/traceability/temp-kb.ts
@@ -23814,6 +23965,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -23913,6 +24066,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -24011,6 +24166,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -24021,6 +24178,8 @@ symbols:
     granularity_reason: legacy-link
     status: active
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: covered_by
@@ -24037,6 +24196,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
@@ -24051,6 +24212,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-codex-optimization
       - type: covered_by
@@ -24067,6 +24230,8 @@ symbols:
     status: active
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -24077,6 +24242,8 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
@@ -24128,7 +24295,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
-        target: REQ-skillopt-external-adoption-verdict
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-WorkContext
     title: WorkContext
     status: active
@@ -24224,6 +24391,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-skillopt-trust-boundaries
+      - type: covered_by
         target: TEST-skillopt-external-adoption-verdict
       - type: implements
         target: REQ-skillopt-external-adoption-verdict
@@ -24260,20 +24429,22 @@ symbols:
     title: stageCodexRuntime
     sourceFile: scripts/skillopt-eval/runtime/codex-runtime.ts
     symbol_role: behavioral
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-create-codex-runtime-lease
     title: createCodexRuntimeLease
     sourceFile: scripts/skillopt-eval/runtime/codex-runtime.ts
     symbol_role: behavioral
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-evaluation-infrastructure-error
     title: EvaluationInfrastructureError
     sourceFile: scripts/skillopt-eval/evaluation-infrastructure.ts
@@ -24389,31 +24560,34 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/codex-runtime.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/codex-runtime.ts#StagedCodexRuntime
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-codex-runtime-lease
     title: CodexRuntimeLease
     sourceFile: scripts/skillopt-eval/runtime/codex-runtime.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/codex-runtime.ts#CodexRuntimeLease
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-codex-runtime-staging-dependencies
     title: CodexRuntimeStagingDependencies
     sourceFile: scripts/skillopt-eval/runtime/codex-runtime.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/codex-runtime.ts#CodexRuntimeStagingDependencies
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-codex-optimization
       - type: covered_by
         target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
   - id: SYM-skillopt-bridge-codex-executable-env
     title: BRIDGE_CODEX_EXECUTABLE_ENV
     sourceFile: scripts/skillopt-eval/training-setup.ts
@@ -24441,111 +24615,122 @@ symbols:
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#HashSchema
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-configuration-schema
     title: ConfigurationSchema
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#ConfigurationSchema
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-request-schema
     title: RequestSchema
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#RequestSchema
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-capability-schema
     title: CapabilitySchema
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#CapabilitySchema
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-outcome-schema
     title: OutcomeSchema
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#OutcomeSchema
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-configuration
     title: Configuration
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#Configuration
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-request
     title: Request
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#Request
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-outcome
     title: Outcome
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#Outcome
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-capability
     title: Capability
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#Capability
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-debit-receipt
     title: DebitReceipt
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#DebitReceipt
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-fake-provider-reservation
     title: Reservation
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
     symbol_role: type-shape
     text_ref: scripts/skillopt-eval/runtime/fake-provider-contracts.ts#Reservation
+    status: active
     relationships:
-      - type: implements
-        target: REQ-skillopt-paid-launch-accounting
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
+      - type: implements
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-model-schema
     title: ModelSchema
     sourceFile: scripts/skillopt-eval/runtime/fake-provider-contracts.ts
@@ -24561,7 +24746,7 @@ symbols:
       - type: implements
         target: REQ-skillopt-codex-optimization
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-skillopt-supervisor-parent-fixture
     title: supervisorParentFixture
     sourceFile: scripts/skillopt-eval/tests/fixtures/trust-plane-fixtures.ts
@@ -29882,6 +30067,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -29897,6 +30084,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -29909,6 +30098,8 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -29923,6 +30114,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -29936,6 +30129,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -29948,6 +30143,8 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -29964,6 +30161,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -29977,6 +30176,8 @@ symbols:
     granularity_reason: legacy-link
     relationships:
       - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
+      - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
         target: TEST-vscode-traceability-coverage
@@ -29989,6 +30190,8 @@ symbols:
     symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-vscode-extension-lifecycle
       - type: covered_by
         target: TEST-vscode-traceability
       - type: covered_by
@@ -32770,6 +32973,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-e2e-coverage-pipeline
+      - type: covered_by
         target: TEST-e2e-root-batch-diagnostics
       - type: covered_by
         target: TEST-root-suite-batch-diagnostics
@@ -33096,6 +33301,8 @@ symbols:
     sourceFile: scripts/run-unit-coverage.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-pipeline
       - type: implements
         target: REQ-014
   - id: SYM-COVERAGE_SHARDS
@@ -33112,6 +33319,8 @@ symbols:
     sourceFile: scripts/run-unit-coverage.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-pipeline
       - type: implements
         target: REQ-014
   - id: SYM-runUnitCoverageIfMain
@@ -33120,6 +33329,8 @@ symbols:
     sourceFile: scripts/run-unit-coverage.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-pipeline
       - type: implements
         target: REQ-014
   - id: SYM-summarizeBranchCoverage
@@ -33128,6 +33339,8 @@ symbols:
     sourceFile: scripts/run-unit-coverage.ts
     granularity_reason: legacy-link
     relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-pipeline
       - type: implements
         target: REQ-014
   - id: SYM-currentProofBindingMode
@@ -36335,6 +36548,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-e2e-proof-maintenance-ops
+      - type: covered_by
         target: TEST-native-report-integrity
       - type: implements
         target: REQ-kibi-verification-evidence-contract
@@ -36369,6 +36584,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-e2e-coverage-pipeline
+      - type: covered_by
         target: TEST-scripts-unit-coverage-runner
       - type: implements
         target: REQ-014
@@ -36378,6 +36595,8 @@ symbols:
     sourceFile: packages/cli/src/operations/proof/migrate-legacy-receipts.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-e2e-proof-maintenance-ops
       - type: covered_by
         target: TEST-proof-maintenance-roundtrip
       - type: implements
@@ -36389,6 +36608,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-e2e-proof-maintenance-ops
+      - type: covered_by
         target: TEST-proof-maintenance-roundtrip
       - type: implements
         target: REQ-kibi-verification-evidence-contract
@@ -36399,6 +36620,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-e2e-proof-maintenance-ops
+      - type: covered_by
         target: TEST-proof-maintenance-roundtrip
       - type: implements
         target: REQ-kibi-verification-evidence-contract
@@ -36408,6 +36631,8 @@ symbols:
     sourceFile: packages/cli/src/commands/proof-prune.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-e2e-proof-maintenance-ops
       - type: covered_by
         target: TEST-proof-maintenance-roundtrip
       - type: implements
@@ -36514,6 +36739,8 @@ symbols:
     sourceFile: scripts/run-unit-coverage.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-pipeline
       - type: covered_by
         target: TEST-scripts-unit-coverage-runner
       - type: implements
@@ -36750,6 +36977,8 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-e2e-proof-maintenance-ops
+      - type: covered_by
         target: TEST-proof-maintenance-roundtrip
       - type: implements
         target: REQ-kibi-verification-evidence-contract
@@ -36759,6 +36988,8 @@ symbols:
     status: active
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-e2e-proof-maintenance-ops
       - type: covered_by
         target: TEST-proof-maintenance-roundtrip
       - type: implements
@@ -36896,6 +37127,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-e2e-coverage-pipeline
+      - type: covered_by
         target: TEST-scripts-unit-coverage-runner
       - type: implements
         target: REQ-014
@@ -36905,6 +37138,8 @@ symbols:
     status: active
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-pipeline
       - type: covered_by
         target: TEST-scripts-unit-coverage-runner
       - type: implements
@@ -36916,6 +37151,8 @@ symbols:
     symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-e2e-coverage-pipeline
+      - type: covered_by
         target: TEST-scripts-finalize-lcov
       - type: implements
         target: REQ-014
@@ -36926,6 +37163,8 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-e2e-coverage-pipeline
+      - type: covered_by
         target: TEST-scripts-unit-coverage-runner
       - type: implements
         target: REQ-014
@@ -36935,6 +37174,8 @@ symbols:
     status: active
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-pipeline
       - type: covered_by
         target: TEST-scripts-unit-coverage-runner
       - type: implements
@@ -36958,7 +37199,7 @@ symbols:
       - type: covered_by
         target: TEST-skillopt-paid-launch-accounting
       - type: implements
-        target: REQ-skillopt-paid-launch-accounting
+        target: REQ-skillopt-paid-matrix-infrastructure
   - id: SYM-quality-inventory-522c5b9aeb69
     title: throwIfBundleFailed
     sourceFile: scripts/skillopt-eval/runtime/staged-mcp.ts
@@ -37824,8 +38065,7 @@ symbols:
       - type: executable_for
         target: TEST-zcode-kibi-plugin-v1
   - id: SYM-zcode-case-optional-package-contract
-    title: "'Optional package contract: no install lifecycle or core runtime
-      mutation'"
+    title: '''Optional package contract: no install lifecycle or core runtime mutation'''
     status: active
     sourceFile: packages/zcode/tests/package-contract.test.ts
     symbol_role: behavioral
@@ -38138,3 +38378,2322 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-e2e-root-batch-diagnostics
+  - id: SYM-e2e-coverage-pipeline
+    title: coverage-pipeline.e2e
+    status: active
+    sourceFile: documentation/tests/e2e/coverage-pipeline.e2e.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-coverage-pipeline
+  - id: SYM-e2e-proof-maintenance-ops
+    title: proof-maintenance-ops.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/proof-maintenance-ops.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-proof-maintenance-ops
+  - id: SYM-e2e-skillopt-trust-boundaries
+    title: skillopt-trust-boundaries.e2e
+    status: active
+    sourceFile: documentation/tests/e2e/skillopt-trust-boundaries.e2e.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-skillopt-trust-boundaries
+  - id: SYM-e2e-vscode-extension-lifecycle
+    title: vscode-extension-lifecycle.e2e
+    status: active
+    sourceFile: documentation/tests/e2e/vscode-extension-lifecycle.e2e.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-vscode-extension-lifecycle
+  - id: SYM-run-unit-coverage-selectedShards
+    title: selectedShards
+    status: active
+    sourceFile: scripts/run-unit-coverage.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-pipeline
+      - type: implements
+        target: REQ-014
+  - id: SYM-skillopt-false-if-enoent
+    title: falseIfEnoent
+    status: active
+    sourceFile: scripts/skillopt-eval/runtime/codex-runtime.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-skillopt-codex-optimization
+      - type: implements
+        target: REQ-skillopt-codex-optimization
+  - id: SYM-cap-plugin-analyzesourcetextwithregistry-d1ded392
+    title: analyzeSourceTextWithRegistry
+    sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-onlycandidate-6b1c583b
+    title: onlyCandidate
+    sourceFile: packages/cli/src/extractors/symbols-ts.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-compareeligiblebyapplicabilitythenname-ddb324b4
+    title: compareEligibleByApplicabilityThenName
+    sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-suggest-predicates
+      - type: implements
+        target: REQ-mcp-suggest-predicates
+  - id: SYM-cap-plugin-compareeligiblebyapplicabilityscorethenname-23b39448
+    title: compareEligibleByApplicabilityScoreThenName
+    sourceFile: packages/cli/src/operations/modeling/suggest-predicates.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-mcp-suggest-predicates
+      - type: implements
+        target: REQ-mcp-suggest-predicates
+  - id: SYM-cap-plugin-analyzesemanticadvisorinputwithplugins-a97f0adf
+    title: analyzeSemanticAdvisorInputWithPlugins
+    sourceFile: packages/cli/src/operations/semantic-advisor/plugin-orchestration.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
+  - id: SYM-cap-plugin-composesemanticclassificationforoperation-f3a02379
+    title: composeSemanticClassificationForOperation
+    sourceFile: packages/cli/src/operations/semantic-advisor/plugin-orchestration.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
+  - id: SYM-cap-plugin-composeontologycatalogforoperation-905f7a11
+    title: composeOntologyCatalogForOperation
+    sourceFile: packages/cli/src/operations/semantic-advisor/plugin-orchestration.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
+  - id: SYM-cap-plugin-semanticpluginorchestrationresult-0b07ce70
+    title: SemanticPluginOrchestrationResult
+    sourceFile: packages/cli/src/operations/semantic-advisor/plugin-orchestration.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
+  - id: SYM-cap-plugin-composeontologycatalog-ebc62146
+    title: composeOntologyCatalog
+    sourceFile: packages/cli/src/plugins/compose-ontology-packs.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cap-plugin-composeontologymatches-67448599
+    title: composeOntologyMatches
+    sourceFile: packages/cli/src/plugins/compose-ontology-packs.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cap-plugin-stampedontologycandidate-20abb09e
+    title: StampedOntologyCandidate
+    sourceFile: packages/cli/src/plugins/compose-ontology-packs.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cap-plugin-composedontologycatalog-20b9a119
+    title: ComposedOntologyCatalog
+    sourceFile: packages/cli/src/plugins/compose-ontology-packs.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cap-plugin-composesemanticclassification-8220663e
+    title: composeSemanticClassification
+    sourceFile: packages/cli/src/plugins/compose-semantic-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cap-plugin-composedsemanticclassifierresult-45a3153d
+    title: ComposedSemanticClassifierResult
+    sourceFile: packages/cli/src/plugins/compose-semantic-classifier.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cap-plugin-allowsexternalsemanticclassifier-0e50b53b
+    title: allowsExternalSemanticClassifier
+    sourceFile: packages/cli/src/plugins/external-allowlist.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
+  - id: SYM-cap-plugin-externalsemanticclassifieroperation-db7b29fe
+    title: ExternalSemanticClassifierOperation
+    sourceFile: packages/cli/src/plugins/external-allowlist.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
+  - id: SYM-cap-plugin-external-semantic-classifier-operations-2fb73e29
+    title: EXTERNAL_SEMANTIC_CLASSIFIER_OPERATIONS
+    sourceFile: packages/cli/src/plugins/external-allowlist.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
+  - id: SYM-cap-plugin-loadpluginpackage-007aa5b1
+    title: loadPluginPackage
+    sourceFile: packages/cli/src/plugins/load-plugin.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
+  - id: SYM-cap-plugin-loadedplugin-77e73414
+    title: LoadedPlugin
+    sourceFile: packages/cli/src/plugins/load-plugin.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
+  - id: SYM-cap-plugin-loadpluginoptions-0a355702
+    title: LoadPluginOptions
+    sourceFile: packages/cli/src/plugins/load-plugin.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
+  - id: SYM-cap-plugin-readprojectpackagejson-2990e4ce
+    title: readProjectPackageJson
+    sourceFile: packages/cli/src/plugins/project-config.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-readprojectkibiconfig-a3a4195c
+    title: readProjectKibiConfig
+    sourceFile: packages/cli/src/plugins/project-config.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-projectpackagemanifest-d2e8adeb
+    title: ProjectPackageManifest
+    sourceFile: packages/cli/src/plugins/project-config.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-createstubbuiltinplugin-ccd291f8
+    title: createStubBuiltinPlugin
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-createcapabilityregistry-24d244b0
+    title: createCapabilityRegistry
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-createcapabilityregistrycache-faee68b0
+    title: createCapabilityRegistryCache
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-ensurecapabilityregistry-1a01cf08
+    title: ensureCapabilityRegistry
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilityregistry-a7d51e5f
+    title: CapabilityRegistry
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilityregistry-getbuiltinplugin-eac3b9f7
+    title: CapabilityRegistry.getBuiltinPlugin
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilityregistry-getprojectconfig-bd36cda5
+    title: CapabilityRegistry.getProjectConfig
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilityregistry-resolvesemanticclassifiers-037fdb3f
+    title: CapabilityRegistry.resolveSemanticClassifiers
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cap-plugin-capabilityregistry-resolveontologypacks-db050406
+    title: CapabilityRegistry.resolveOntologyPacks
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cap-plugin-capabilityregistry-resolvesymbolextractors-5e5d4fd7
+    title: CapabilityRegistry.resolveSymbolExtractors
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cap-plugin-capabilityregistry-resolvecapability-18952e36
+    title: CapabilityRegistry.resolveCapability
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilityregistry-canonicalproviders-91e92bfe
+    title: CapabilityRegistry.canonicalProviders
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cap-plugin-capabilityregistry-workspaceroot-8395b51e
+    title: CapabilityRegistry.workspaceRoot
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilityregistrycache-b2070019
+    title: CapabilityRegistryCache
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilityregistrycache-get-27109bcb
+    title: CapabilityRegistryCache.get
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilityregistrycache-getorcreate-9e4d3c06
+    title: CapabilityRegistryCache.getOrCreate
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilityregistrycache-set-024b556e
+    title: CapabilityRegistryCache.set
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilityregistrycache-clear-b9641d16
+    title: CapabilityRegistryCache.clear
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-builtinpluginfactory-ce87dc46
+    title: BuiltinPluginFactory
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilityproviderbinding-cb2f3476
+    title: CapabilityProviderBinding
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-capabilitymoderesolution-812529b3
+    title: CapabilityModeResolution
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cap-plugin-capabilityregistryoptions-b7aec1ea
+    title: CapabilityRegistryOptions
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-ensurecapabilityregistryoptions-650f6e07
+    title: EnsureCapabilityRegistryOptions
+    sourceFile: packages/cli/src/plugins/registry.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-isbarepackagename-4d0b74df
+    title: isBarePackageName
+    sourceFile: packages/cli/src/plugins/resolve-package.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
+  - id: SYM-cap-plugin-assertbarepackagename-4a211175
+    title: assertBarePackageName
+    sourceFile: packages/cli/src/plugins/resolve-package.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
+  - id: SYM-cap-plugin-hasdeclaredprojectdependency-2d6978f8
+    title: hasDeclaredProjectDependency
+    sourceFile: packages/cli/src/plugins/resolve-package.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
+  - id: SYM-cap-plugin-hasconsumernodemoduleslink-dbcab9ae
+    title: hasConsumerNodeModulesLink
+    sourceFile: packages/cli/src/plugins/resolve-package.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-isprojectscopedpackage-c0eba0f8
+    title: isProjectScopedPackage
+    sourceFile: packages/cli/src/plugins/resolve-package.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
+  - id: SYM-cap-plugin-packagejsonforresolvedfile-d1622c4c
+    title: packageJsonForResolvedFile
+    sourceFile: packages/cli/src/plugins/resolve-package.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-resolveprojectlocalpackage-03c57c42
+    title: resolveProjectLocalPackage
+    sourceFile: packages/cli/src/plugins/resolve-package.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-pluginresolutionerror-f76744aa
+    title: PluginResolutionError
+    sourceFile: packages/cli/src/plugins/resolve-package.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-pluginresolutionerror-code-17bded4e
+    title: PluginResolutionError.code
+    sourceFile: packages/cli/src/plugins/resolve-package.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-resolvedprojectpackage-5ff747a1
+    title: ResolvedProjectPackage
+    sourceFile: packages/cli/src/plugins/resolve-package.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-createconservativefallbackanalysis-e17e07ac
+    title: createConservativeFallbackAnalysis
+    sourceFile: packages/cli/src/plugins/source-analysis-service.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cap-plugin-analyzewithresolution-658eaabe
+    title: analyzeWithResolution
+    sourceFile: packages/cli/src/plugins/source-analysis-service.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cap-plugin-createsourceanalysisservice-9e91da5d
+    title: createSourceAnalysisService
+    sourceFile: packages/cli/src/plugins/source-analysis-service.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cap-plugin-sourceanalysisservice-7d953fd1
+    title: SourceAnalysisService
+    sourceFile: packages/cli/src/plugins/source-analysis-service.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cap-plugin-sourceanalysisservice-analyzetext-7b1783aa
+    title: SourceAnalysisService.analyzeText
+    sourceFile: packages/cli/src/plugins/source-analysis-service.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cap-plugin-hostsourceanalysisresult-958aab8c
+    title: HostSourceAnalysisResult
+    sourceFile: packages/cli/src/plugins/source-analysis-service.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cap-plugin-sourceanalysisserviceoptions-e6e416cc
+    title: SourceAnalysisServiceOptions
+    sourceFile: packages/cli/src/plugins/source-analysis-service.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cap-plugin-operationplugins-e4138c00
+    title: OperationPlugins
+    sourceFile: packages/cli/src/public/operations/runtime-types.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-kibiplugin-cd533318
+    title: kibiPlugin
+    sourceFile: packages/plugin-builtin/src/index.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-createbuiltinontologypack-a6bb7233
+    title: createBuiltinOntologyPack
+    sourceFile: packages/plugin-builtin/src/ontology/builtin-ontology-pack.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-builtinontologypack-6de040d0
+    title: BuiltinOntologyPack
+    sourceFile: packages/plugin-builtin/src/ontology/builtin-ontology-pack.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-builtinontologypack-schemas-a1165985
+    title: BuiltinOntologyPack.schemas
+    sourceFile: packages/plugin-builtin/src/ontology/builtin-ontology-pack.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-builtinontologypack-match-b2da9f96
+    title: BuiltinOntologyPack.match
+    sourceFile: packages/plugin-builtin/src/ontology/builtin-ontology-pack.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-builtinontologypack-id-b1f2923e
+    title: BuiltinOntologyPack.id
+    sourceFile: packages/plugin-builtin/src/ontology/builtin-ontology-pack.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-builtin-predicate-rule-sets-0eb8653e
+    title: BUILTIN_PREDICATE_RULE_SETS
+    sourceFile: packages/plugin-builtin/src/ontology/builtin-ontology-pack.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-normalizekey-a7d2e151
+    title: normalizeKey
+    sourceFile: packages/plugin-builtin/src/ontology/normalize.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-normalizepredicatetoken-1a36e10c
+    title: normalizePredicateToken
+    sourceFile: packages/plugin-builtin/src/ontology/normalize.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-singularize-09c7edbe
+    title: singularize
+    sourceFile: packages/plugin-builtin/src/ontology/normalize.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-normalizesubjectkey-3302ec47
+    title: normalizeSubjectKey
+    sourceFile: packages/plugin-builtin/src/ontology/normalize.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-commalist-09b1179e
+    title: commaList
+    sourceFile: packages/plugin-builtin/src/ontology/normalize.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-schemaidfor-b12987e6
+    title: schemaIdFor
+    sourceFile: packages/plugin-builtin/src/ontology/predicate-rule.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-detectpredicaterules-225f467f
+    title: detectPredicateRules
+    sourceFile: packages/plugin-builtin/src/ontology/predicate-rule.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-predicaterule-4bd14e84
+    title: PredicateRule
+    sourceFile: packages/plugin-builtin/src/ontology/predicate-rule.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-matchgroups-f8bcd46e
+    title: MatchGroups
+    sourceFile: packages/plugin-builtin/src/ontology/predicate-rule.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-builtin-predicate-confidence-685e50a6
+    title: BUILTIN_PREDICATE_CONFIDENCE
+    sourceFile: packages/plugin-builtin/src/ontology/predicate-rule.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-core-predicate-rules-f2358fc4
+    title: CORE_PREDICATE_RULES
+    sourceFile: packages/plugin-builtin/src/ontology/predicate-rules-core.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-exactlauncherpredicateargs-04084d31
+    title: exactLauncherPredicateArgs
+    sourceFile: packages/plugin-builtin/src/ontology/predicate-rules-launcher.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-launcher-predicate-rules-d2597a06
+    title: LAUNCHER_PREDICATE_RULES
+    sourceFile: packages/plugin-builtin/src/ontology/predicate-rules-launcher.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-policy-predicate-rules-67c10eed
+    title: POLICY_PREDICATE_RULES
+    sourceFile: packages/plugin-builtin/src/ontology/predicate-rules-policy.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-product-tail-predicate-rules-7612417b
+    title: PRODUCT_TAIL_PREDICATE_RULES
+    sourceFile: packages/plugin-builtin/src/ontology/predicate-rules-product-tail.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-product-predicate-rules-ce4a04a9
+    title: PRODUCT_PREDICATE_RULES
+    sourceFile: packages/plugin-builtin/src/ontology/predicate-rules-product.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-detectsignals-644b5a33
+    title: detectSignals
+    sourceFile: packages/plugin-builtin/src/semantic/builtin-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-chooselane-9f87a891
+    title: chooseLane
+    sourceFile: packages/plugin-builtin/src/semantic/builtin-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-createbuiltinsemanticclassifier-31116572
+    title: createBuiltinSemanticClassifier
+    sourceFile: packages/plugin-builtin/src/semantic/builtin-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-builtinsemanticclassifier-be7eb013
+    title: BuiltinSemanticClassifier
+    sourceFile: packages/plugin-builtin/src/semantic/builtin-classifier.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-builtinsemanticclassifier-classify-b85c9df6
+    title: BuiltinSemanticClassifier.classify
+    sourceFile: packages/plugin-builtin/src/semantic/builtin-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-builtinsemanticclassifier-id-db1373f1
+    title: BuiltinSemanticClassifier.id
+    sourceFile: packages/plugin-builtin/src/semantic/builtin-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-enrichsymbolcoordinateswithtsmorph-c8d71d59
+    title: enrichSymbolCoordinatesWithTsMorph
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-enrichment.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-symbolcoordinates-7686ab9b
+    title: SymbolCoordinates
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-enrichment.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-manifestsymbolentry-884c336b
+    title: ManifestSymbolEntry
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-enrichment.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-createbuiltintsmorphsymbolextractor-944db424
+    title: createBuiltinTsMorphSymbolExtractor
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-extractor.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-createbuiltintsmorphsourceanalysisprovider-f315a9b7
+    title: createBuiltinTsMorphSourceAnalysisProvider
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-extractor.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-collectgranularitycandidates-95f8e20e
+    title: collectGranularityCandidates
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-granularity.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-granularitysymbolcandidate-9bf170cf
+    title: GranularitySymbolCandidate
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-granularity.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-choosescriptkind-eb8b02e2
+    title: chooseScriptKind
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-shared.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-formatmethodsymbolname-45e1d25a
+    title: formatMethodSymbolName
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-shared.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-isprivateclassmember-0e2609b7
+    title: isPrivateClassMember
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-shared.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-onlycandidate-e892cad2
+    title: onlyCandidate
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-shared.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-supported-source-extensions-7688bba6
+    title: SUPPORTED_SOURCE_EXTENSIONS
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-shared.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cap-plugin-createjevplugin-a2c5a4bf
+    title: createJevPlugin
+    sourceFile: packages/plugin-jev/src/index.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-kibiplugin-1d58a6dc
+    title: kibiPlugin
+    sourceFile: packages/plugin-jev/src/index.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-mapjeverror-5602f2ab
+    title: mapJevError
+    sourceFile: packages/plugin-jev/src/jev-client.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-jevprovidererror-fcf1b6bf
+    title: JevProviderError
+    sourceFile: packages/plugin-jev/src/jev-client.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-jevprovidererror-code-4b330f05
+    title: JevProviderError.code
+    sourceFile: packages/plugin-jev/src/jev-client.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-jevclient-9ad53cbc
+    title: JevClient
+    sourceFile: packages/plugin-jev/src/jev-client.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-jev-mocked-v1
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-jevlane-f699c725
+    title: JevLane
+    sourceFile: packages/plugin-jev/src/jev-client.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-jev-mocked-v1
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-jevchoiceanswer-f3f17b79
+    title: JevChoiceAnswer
+    sourceFile: packages/plugin-jev/src/jev-client.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-jev-mocked-v1
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-jevnoulanswer-422f8e2c
+    title: JevNoulAnswer
+    sourceFile: packages/plugin-jev/src/jev-client.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-jev-mocked-v1
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-jevsystemoneresult-05aff1dc
+    title: JevSystemOneResult
+    sourceFile: packages/plugin-jev/src/jev-client.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-jev-mocked-v1
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-jevsystemonerequest-0dceb449
+    title: JevSystemOneRequest
+    sourceFile: packages/plugin-jev/src/jev-client.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-jev-mocked-v1
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-jevclientfactory-d5d8b117
+    title: JevClientFactory
+    sourceFile: packages/plugin-jev/src/jev-client.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-jev-mocked-v1
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-createjevsemanticclassifier-cfdd9a4c
+    title: createJevSemanticClassifier
+    sourceFile: packages/plugin-jev/src/semantic-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-jevsemanticclassifieroptions-339de30f
+    title: JevSemanticClassifierOptions
+    sourceFile: packages/plugin-jev/src/semantic-classifier.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-jev-mocked-v1
+      - type: implements
+        target: REQ-capability-plugin-configuration-v1
+  - id: SYM-cap-plugin-createtypesafejevclient-d0f97996
+    title: createTypeSafeJevClient
+    sourceFile: packages/plugin-jev/src/typesafe-client.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-cap-plugin-predicateschemadefinition-2bf0cc70
+    title: PredicateSchemaDefinition
+    sourceFile: packages/plugin-sdk/src/capabilities/ontology-pack.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-ontologymatchcontext-d744ea2f
+    title: OntologyMatchContext
+    sourceFile: packages/plugin-sdk/src/capabilities/ontology-pack.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-ontologymatchcandidate-87a12d21
+    title: OntologyMatchCandidate
+    sourceFile: packages/plugin-sdk/src/capabilities/ontology-pack.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-ontologypackv1-0788d109
+    title: OntologyPackV1
+    sourceFile: packages/plugin-sdk/src/capabilities/ontology-pack.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-ontologypolarity-5e6342b1
+    title: OntologyPolarity
+    sourceFile: packages/plugin-sdk/src/capabilities/ontology-pack.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-ontology-polarities-1200e8a1
+    title: ONTOLOGY_POLARITIES
+    sourceFile: packages/plugin-sdk/src/capabilities/ontology-pack.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-semanticclassifierproposition-00b0b710
+    title: SemanticClassifierProposition
+    sourceFile: packages/plugin-sdk/src/capabilities/semantic-classifier.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-semanticclassifierinput-80241415
+    title: SemanticClassifierInput
+    sourceFile: packages/plugin-sdk/src/capabilities/semantic-classifier.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-semanticclassificationdecision-2a43bb19
+    title: SemanticClassificationDecision
+    sourceFile: packages/plugin-sdk/src/capabilities/semantic-classifier.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-semanticclassifierresult-45488800
+    title: SemanticClassifierResult
+    sourceFile: packages/plugin-sdk/src/capabilities/semantic-classifier.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-semanticclassifierv1-2216229f
+    title: SemanticClassifierV1
+    sourceFile: packages/plugin-sdk/src/capabilities/semantic-classifier.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-semanticlane-6d81faa5
+    title: SemanticLane
+    sourceFile: packages/plugin-sdk/src/capabilities/semantic-classifier.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-semanticsignalkind-9fd0a6be
+    title: SemanticSignalKind
+    sourceFile: packages/plugin-sdk/src/capabilities/semantic-classifier.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-semantic-lanes-163e7bc6
+    title: SEMANTIC_LANES
+    sourceFile: packages/plugin-sdk/src/capabilities/semantic-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-semantic-signal-kinds-eb004334
+    title: SEMANTIC_SIGNAL_KINDS
+    sourceFile: packages/plugin-sdk/src/capabilities/semantic-classifier.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-tosourceanalysisprovider-624e8fb1
+    title: toSourceAnalysisProvider
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-sourcesymbolanalysis-e01e97dc
+    title: SourceSymbolAnalysis
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-sourcemoduleanalysis-6acb3237
+    title: SourceModuleAnalysis
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-sourceanalysisresult-bd53cc5b
+    title: SourceAnalysisResult
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-symbolextractorsupportsinput-8d674ec8
+    title: SymbolExtractorSupportsInput
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-symbolextractoranalyzeinput-66f70997
+    title: SymbolExtractorAnalyzeInput
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-symbolextractorv1-870b7d37
+    title: SymbolExtractorV1
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-sourceanalysisprovider-977ee540
+    title: SourceAnalysisProvider
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-sourceanalysismode-0a9c1ff9
+    title: SourceAnalysisMode
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-sourcesymbolkind-f8667bb1
+    title: SourceSymbolKind
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-definekibiplugin-b63fe229
+    title: defineKibiPlugin
+    sourceFile: packages/plugin-sdk/src/define-plugin.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-pluginpermissions-a636fdb4
+    title: PluginPermissions
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-pluginproviderstamp-37d86057
+    title: PluginProviderStamp
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-kibiplugincapabilities-e695d15b
+    title: KibiPluginCapabilities
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-kibipluginv1-23855ffb
+    title: KibiPluginV1
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-kibipluginapiversion-e2051f3a
+    title: KibiPluginApiVersion
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-capabilityid-a3817409
+    title: CapabilityId
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cap-plugin-pluginmode-87d5bb1c
+    title: PluginMode
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cap-plugin-projectplugincapabilityconfig-2c82c99a
+    title: ProjectPluginCapabilityConfig
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-projectpluginentry-5d305c06
+    title: ProjectPluginEntry
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-projectkibiconfig-24a81eca
+    title: ProjectKibiConfig
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-kibi-plugin-api-version-f5d09d81
+    title: KIBI_PLUGIN_API_VERSION
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-semantic-classifier-capability-id-c85ff905
+    title: SEMANTIC_CLASSIFIER_CAPABILITY_ID
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cap-plugin-ontology-pack-capability-id-d76dee06
+    title: ONTOLOGY_PACK_CAPABILITY_ID
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cap-plugin-symbol-extractor-capability-id-8f5f547b
+    title: SYMBOL_EXTRACTOR_CAPABILITY_ID
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cap-plugin-plugin-modes-52a9d01a
+    title: PLUGIN_MODES
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cap-plugin-iscapabilityid-2e16a4ad
+    title: isCapabilityId
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-ispluginmode-4ce39fb0
+    title: isPluginMode
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-validatepermissions-aa84267e
+    title: validatePermissions
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-validatekibiplugin-ca84fa32
+    title: validateKibiPlugin
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-validateprojectkibiconfig-92b7cbbf
+    title: validateProjectKibiConfig
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-validatesemanticclassifierresult-5a2483d5
+    title: validateSemanticClassifierResult
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-validatepredicateschema-23fddd5a
+    title: validatePredicateSchema
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-validateontologymatchcandidate-d19f51a4
+    title: validateOntologyMatchCandidate
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-validatesourceanalysisresult-7f251be2
+    title: validateSourceAnalysisResult
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-pluginvalidationerror-edc38c60
+    title: PluginValidationError
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    status: active
+    symbol_role: behavioral
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cap-plugin-pluginvalidationerror-code-0a3bc917
+    title: PluginValidationError.code
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-test-capability-plugin-host-resolution-v1
+    title: capability-plugin-host.test.ts
+    status: active
+    tags:
+      - plugins
+    sourceFile: packages/cli/tests/plugins/capability-plugin-host.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-capability-plugin-host-resolution-v1
+  - id: SYM-test-capability-plugin-protocol-v1
+    title: sdk.test.ts
+    status: active
+    tags:
+      - plugins
+      - protocol
+    sourceFile: packages/plugin-sdk/tests/sdk.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-capability-plugin-protocol-v1
+  - id: SYM-test-capability-plugin-jev-mocked-v1
+    title: jev.test.ts
+    status: active
+    tags:
+      - plugins
+    sourceFile: packages/plugin-jev/tests/jev.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-capability-plugin-jev-mocked-v1
+  - id: SYM-cli-extract-isprivateclassmember
+    title: isPrivateClassMember
+    status: active
+    tags:
+      - plugins
+    sourceFile: packages/cli/src/extractors/symbols-ts.ts
+    granularity_reason: legacy-link
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-cli-apply-classification-routing
+    title: applyClassificationRouting
+    status: active
+    tags:
+      - plugins
+    sourceFile: packages/cli/src/operations/semantic-advisor/plugin-orchestration.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
+  - id: SYM-cli-host-source-analysis-shadow-comparison
+    title: HostSourceAnalysisShadowComparison
+    status: active
+    tags:
+      - plugins
+    sourceFile: packages/cli/src/plugins/source-analysis-service.ts
+    granularity_reason: extractor-miss
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cli-extract-symbols-from-staged-file-async
+    title: extractSymbolsFromStagedFileAsync
+    status: active
+    tags:
+      - plugins
+    sourceFile: packages/cli/src/traceability/symbol-extract.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cli-extract-symbols-options
+    title: ExtractSymbolsOptions
+    status: active
+    tags:
+      - plugins
+    sourceFile: packages/cli/src/traceability/symbol-extract.ts
+    granularity_reason: extractor-miss
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-plugin-sdk-validate-source-analysis-result-for-path
+    title: validateSourceAnalysisResultForPath
+    status: active
+    tags:
+      - plugins
+      - protocol
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cli-strip-sync-builtin-ontology-suggestions
+    title: stripSyncBuiltinOntologySuggestions
+    status: active
+    tags:
+      - plugins
+      - ontology
+      - replace
+    sourceFile: packages/cli/src/operations/semantic-advisor/plugin-orchestration.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
+  - id: SYM-cli-apply-ontology-match-suggestions
+    title: applyOntologyMatchSuggestions
+    status: active
+    tags:
+      - plugins
+      - ontology
+      - replace
+    sourceFile: packages/cli/src/operations/semantic-advisor/plugin-orchestration.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-observable-behavior-v1
+  - id: SYM-run-unit-coverage-shardLabelsFromArgv
+    title: shardLabelsFromArgv
+    status: active
+    sourceFile: scripts/run-unit-coverage.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-pipeline
+      - type: covered_by
+        target: TEST-scripts-unit-coverage-runner
+      - type: implements
+        target: REQ-014
+  - id: SYM-cap-plugin-assert-resolved-entry
+    title: assertResolvedEntryInsidePackageRoot
+    status: active
+    sourceFile: packages/cli/src/plugins/resolve-package.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-activation-disclosure-v1
+  - id: SYM-cap-plugin-semantic-classifier-diagnostic
+    title: SemanticClassifierDiagnostic
+    status: active
+    sourceFile: packages/cli/src/plugins/compose-semantic-classifier.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-three-capabilities-v1
+  - id: SYM-cap-plugin-jev-default-model
+    title: JEV_DEFAULT_MODEL
+    status: active
+    sourceFile: packages/plugin-jev/src/semantic-classifier.ts
+    symbol_role: config
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-configuration-v1
+  - id: SYM-cap-plugin-jev-provider-error-model
+    title: JevProviderError.model
+    status: active
+    sourceFile: packages/plugin-jev/src/jev-client.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-jev-fallback-v1
+  - id: SYM-run-unit-coverage-failure
+    title: UnitCoverageFailure
+    status: active
+    sourceFile: scripts/run-unit-coverage.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-pipeline
+      - type: covered_by
+        target: TEST-scripts-unit-coverage-runner
+      - type: implements
+        target: REQ-014
+  - id: SYM-run-unit-coverage-format-failure
+    title: formatCoverageFailure
+    status: active
+    sourceFile: scripts/run-unit-coverage.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-pipeline
+      - type: covered_by
+        target: TEST-scripts-unit-coverage-runner
+      - type: implements
+        target: REQ-014
+  - id: SYM-pack-packages-pack-catalog
+    title: packCatalogPackages
+    status: active
+    sourceFile: scripts/pack-packages.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
+  - id: SYM-pack-packages-if-main
+    title: runPackPackagesIfMain
+    status: active
+    sourceFile: scripts/pack-packages.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog-slice
+    title: PackageCatalogSlice
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog-entry
+    title: PackageCatalogEntry
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog
+    title: PACKAGE_CATALOG
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog-dir
+    title: CatalogPackageDir
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog-publishable-dirs
+    title: PUBLISHABLE_DIRS
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog-ci-pack-dirs
+    title: CI_PACK_DIRS
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog-pack-all-dirs
+    title: PACK_ALL_DIRS
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog-packed-e2e-dirs
+    title: PACKED_E2E_DIRS
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog-default-install-dirs
+    title: DEFAULT_INSTALL_DIRS
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: covered_by
+        target: TEST-kibi-distribution-parity-matrix
+      - type: implements
+        target: REQ-020
+      - type: implements
+        target: REQ-kibi-distribution-parity-matrix
+  - id: SYM-package-catalog-tarball-clean-dirs
+    title: TARBALL_CLEAN_DIRS
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog-entries-for-slice
+    title: catalogEntriesForSlice
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog-dirs-for-slice
+    title: dirsForSlice
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog-lookup-entry
+    title: lookupCatalogEntry
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
+  - id: SYM-package-catalog-cli-if-main
+    title: runPackageCatalogCliIfMain
+    status: active
+    sourceFile: scripts/package-catalog.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-014
+      - type: implements
+        target: REQ-020
+  - id: SYM-jev-max-timeout-ms
+    title: JEV_MAX_TIMEOUT_MS
+    status: active
+    sourceFile: packages/plugin-jev/src/semantic-classifier.ts
+    symbol_role: config
+    granularity_reason: legacy-link
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-configuration-v1
+  - id: SYM-jev-resolve-model
+    title: resolveJevModel
+    status: active
+    sourceFile: packages/plugin-jev/src/semantic-classifier.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-configuration-v1
+  - id: SYM-jev-resolve-timeout
+    title: resolveJevTimeoutMs
+    status: active
+    sourceFile: packages/plugin-jev/src/semantic-classifier.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-configuration-v1
+  - id: SYM-plugin-describe-configured
+    title: describeConfiguredCapabilityPlugins
+    status: active
+    sourceFile: packages/cli/src/plugins/project-config.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-configuration-v1
+  - id: SYM-plugin-public-capability-stamp
+    title: publicCapabilityStamp
+    status: active
+    sourceFile: packages/cli/src/plugins/compose-semantic-classifier.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-configuration-v1
+  - id: SYM-e2e-capability-plugins
+    title: capability-plugins.e2e
+    status: active
+    sourceFile: documentation/tests/e2e/capability-plugins.e2e.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-capability-plugins
+  - id: SYM-doctor-detect-execute-apply-plan
+    title: detectExecuteApplyPlanExport
+    status: active
+    sourceFile: packages/cli/src/commands/doctor.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-001
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-cli-doctor-packed-provenance
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-cli-doctor
+      - type: implements
+        target: REQ-cli-doctor-packed-provenance
+  - id: SYM-doctor-package-migration-actions
+    title: packageMigrationActions
+    status: active
+    sourceFile: packages/cli/src/commands/doctor.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-001
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-cli-doctor-packed-provenance
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-cli-doctor
+      - type: implements
+        target: REQ-cli-doctor-packed-provenance
+  - id: SYM-doctor-next-ancestor-directory
+    title: nextAncestorDirectory
+    status: active
+    sourceFile: packages/cli/src/commands/doctor.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-001
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-cli-doctor-packed-provenance
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-cli-doctor
+      - type: implements
+        target: REQ-cli-doctor-packed-provenance
+  - id: SYM-doctor-nearest-named-package-manifest
+    title: nearestNamedPackageManifest
+    status: active
+    sourceFile: packages/cli/src/commands/doctor.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-001
+      - type: covered_by
+        target: TEST-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-cli-doctor-packed-provenance
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+      - type: implements
+        target: REQ-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-cli-doctor
+      - type: implements
+        target: REQ-cli-doctor-packed-provenance
+  - id: SYM-plugin-configured-diagnostic
+    title: ConfiguredCapabilityPluginDiagnostic
+    status: active
+    sourceFile: packages/cli/src/plugins/project-config.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-host-resolution-v1
+      - type: implements
+        target: REQ-capability-plugin-configuration-v1

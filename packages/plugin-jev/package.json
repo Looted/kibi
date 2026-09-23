@@ -1,0 +1,41 @@
+{
+  "name": "kibi-plugin-jev",
+  "version": "0.1.0",
+  "description": "Optional TypeSafe Jev semantic classifier for Kibi",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "CHANGELOG.md", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "bun test --timeout 15000 .",
+    "prepack": "npm run build && node ../../scripts/verify-package-contract.mjs kibi-plugin-jev"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "AGPL-3.0-or-later",
+  "author": "Piotr Franczyk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Looted/kibi.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@typesafe-ai/sdk": "^0.6.0",
+    "kibi-plugin-sdk": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "typescript": "^5.7.0"
+  }
+}

@@ -15,732 +15,79 @@
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-import { access, readFile } from "node:fs/promises";
-import * as path from "node:path";
 import {
-  type ClassDeclaration,
-  type ClassExpression,
-  type Node,
-  Project,
-  ScriptKind,
-  type SourceFile,
-  SyntaxKind,
-  type VariableDeclaration,
-} from "ts-morph";
+  createBuiltinTsMorphSourceAnalysisProvider,
+  enrichSymbolCoordinatesWithTsMorph as enrichBuiltinSymbolCoordinates,
+  isPrivateClassMember as isBuiltinPrivateClassMember,
+  onlyCandidate as onlyBuiltinCandidate,
+  type ManifestSymbolEntry as BuiltinManifestSymbolEntry,
+  type SymbolCoordinates as BuiltinSymbolCoordinates,
+} from "kibi-plugin-builtin";
 import type {
   SourceAnalysisProvider,
   SourceAnalysisResult,
-  SourceSymbolAnalysis,
-  SourceSymbolKind,
 } from "./symbols-coordinator.js";
 
-export interface SymbolCoordinates {
-  sourceLine: number;
-  sourceColumn: number;
-  sourceEndLine: number;
-  sourceEndColumn: number;
-  coordinatesGeneratedAt: string;
-}
+// implements REQ-capability-plugin-builtin-parity-v1
+export type SymbolCoordinates = BuiltinSymbolCoordinates;
+// implements REQ-capability-plugin-builtin-parity-v1
+export type ManifestSymbolEntry = BuiltinManifestSymbolEntry;
 
-export interface ManifestSymbolEntry {
-  id: string;
-  title: string;
-  sourceFile?: string;
-  sourceLine?: number;
-  sourceColumn?: number;
-  sourceEndLine?: number;
-  sourceEndColumn?: number;
-  coordinatesGeneratedAt?: string;
-  links?: string[];
-  [key: string]: unknown;
-}
+// implements REQ-capability-plugin-builtin-parity-v1
+export const isPrivateClassMember = isBuiltinPrivateClassMember;
 
-const SUPPORTED_SOURCE_EXTENSIONS = new Set([
-  ".ts",
-  ".tsx",
-  ".js",
-  ".jsx",
-  ".mts",
-  ".cts",
-  ".mjs",
-  ".cjs",
-]);
-
+/**
+ * Thin host adapter over kibi-plugin-builtin's ts-morph extractor.
+ * Preserves the historical `ts-morph` provider id for sync callers and tests.
+ */
 // implements REQ-001
 export function createTsMorphSourceAnalysisProvider(): SourceAnalysisProvider {
-  const project = new Project({
-    skipAddingFilesFromTsConfig: true,
-  });
-
+  const provider = createBuiltinTsMorphSourceAnalysisProvider();
   return {
     id: "ts-morph",
     supportsFile(filePath: string): boolean {
-      return SUPPORTED_SOURCE_EXTENSIONS.has(
-        path.extname(filePath).toLowerCase(),
-      );
+      return provider.supportsFile(filePath);
     },
     analyzeText(filePath: string, content: string): SourceAnalysisResult {
-      const sourceFile = project.createSourceFile(filePath, content, {
-        overwrite: true,
-        scriptKind: chooseScriptKind(filePath),
-      });
-
+      const result = provider.analyzeText(filePath, content);
       return {
-        sourceFile: filePath,
-        language: inferSourceLanguage(filePath),
+        sourceFile: result.sourceFile,
+        language: result.language,
         providerId: "ts-morph",
         module: {
-          title: inferModuleTitle(filePath),
-          language: inferSourceLanguage(filePath),
-          analysisMode: "parser",
+          title: result.module.title,
+          language: result.module.language,
+          analysisMode: result.module.analysisMode,
+          ...(result.module.fallbackReason
+            ? { fallbackReason: result.module.fallbackReason }
+            : {}),
         },
-        symbols: collectSourceSymbols(sourceFile),
+        symbols: result.symbols.map((symbol) => ({
+          name: symbol.name,
+          kind: symbol.kind,
+          startLine: symbol.startLine,
+          startColumn: symbol.startColumn,
+          endLine: symbol.endLine,
+          endColumn: symbol.endColumn,
+          ...(symbol.directiveText
+            ? { directiveText: symbol.directiveText }
+            : {}),
+        })),
       };
     },
   };
 }
 
+// implements REQ-capability-plugin-builtin-parity-v1
 export async function enrichSymbolCoordinatesWithTsMorph(
   entries: ManifestSymbolEntry[],
   workspaceRoot: string,
 ): Promise<ManifestSymbolEntry[]> {
   // implements REQ-vscode-traceability
-  const project = new Project({
-    skipAddingFilesFromTsConfig: true,
-  });
-  const sourceFileCache = new Map<string, SourceFile>();
-
-  const enriched: ManifestSymbolEntry[] = [];
-  for (const entry of entries) {
-    try {
-      const absolutePath = await resolveSourcePath(
-        entry.sourceFile,
-        workspaceRoot,
-      );
-      if (!absolutePath) {
-        enriched.push(entry);
-        continue;
-      }
-
-      const sourceFile = getOrAddSourceFile(
-        project,
-        sourceFileCache,
-        absolutePath,
-      );
-      if (!sourceFile) {
-        enriched.push(await enrichWithTextFallback(entry, absolutePath));
-        continue;
-      }
-
-      const match = findNamedDeclaration(sourceFile, entry.title);
-      if (!match) {
-        enriched.push(entry);
-        continue;
-      }
-
-      const nameStart = match.getNameNode().getStart();
-      const end = match.node.getEnd();
-
-      const startLc = sourceFile.getLineAndColumnAtPos(nameStart);
-      const endLc = sourceFile.getLineAndColumnAtPos(end);
-
-      const coordinates: SymbolCoordinates = {
-        sourceLine: startLc.line,
-        sourceColumn: Math.max(0, startLc.column - 1),
-        sourceEndLine: endLc.line,
-        sourceEndColumn: Math.max(0, endLc.column - 1),
-        coordinatesGeneratedAt: new Date().toISOString(),
-      };
-
-      enriched.push({
-        ...entry,
-        ...coordinates,
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.warn(
-        `[kibi] Failed to enrich symbol coordinates for ${entry.id}: ${message}`,
-      );
-      const absolutePath = await resolveSourcePath(
-        entry.sourceFile,
-        workspaceRoot,
-      );
-      if (!absolutePath) {
-        enriched.push(entry);
-        continue;
-      }
-      enriched.push(await enrichWithTextFallback(entry, absolutePath));
-    }
-  }
-
-  return enriched;
+  return enrichBuiltinSymbolCoordinates(entries, workspaceRoot);
 }
 
-async function resolveSourcePath(
-  sourceFile: string | undefined,
-  workspaceRoot: string,
-): Promise<string | null> {
-  if (!sourceFile) return null;
-
-  const absolute = path.isAbsolute(sourceFile)
-    ? sourceFile
-    : path.resolve(workspaceRoot, sourceFile);
-  const ext = path.extname(absolute).toLowerCase();
-
-  if (!SUPPORTED_SOURCE_EXTENSIONS.has(ext)) return null;
-  try {
-    await access(absolute);
-  } catch {
-    return null;
-  }
-
-  return absolute;
-}
-
-function getOrAddSourceFile(
-  project: Project,
-  cache: Map<string, SourceFile>,
-  absolutePath: string,
-): SourceFile | null {
-  const cached = cache.get(absolutePath);
-  if (cached) return cached;
-
-  try {
-    const sourceFile = project.addSourceFileAtPath(absolutePath);
-    cache.set(absolutePath, sourceFile);
-    return sourceFile;
-  } catch {
-    return null;
-  }
-}
-
-function enrichWithTextFallback(
-  entry: ManifestSymbolEntry,
-  absolutePath: string,
-): Promise<ManifestSymbolEntry> {
-  return enrichWithTextFallbackInternal(entry, absolutePath);
-}
-
-async function enrichWithTextFallbackInternal(
-  entry: ManifestSymbolEntry,
-  absolutePath: string,
-): Promise<ManifestSymbolEntry> {
-  try {
-    const content = await readFile(absolutePath, "utf8");
-    const lines = content.split(/\r?\n/);
-    const escapedTitle = entry.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const pattern = new RegExp(`\\b${escapedTitle}\\b`);
-
-    for (let index = 0; index < lines.length; index++) {
-      const line = lines[index];
-      if (!line) continue;
-      const match = pattern.exec(line);
-      if (!match || match.index < 0) continue;
-
-      return {
-        ...entry,
-        sourceLine: index + 1,
-        sourceColumn: match.index,
-        sourceEndLine: index + 1,
-        sourceEndColumn: match.index + entry.title.length,
-        coordinatesGeneratedAt: new Date().toISOString(),
-      };
-    }
-
-    return entry;
-  } catch {
-    return entry;
-  }
-}
-
-function collectSourceSymbols(sourceFile: SourceFile): SourceSymbolAnalysis[] {
-  const symbols: SourceSymbolAnalysis[] = [];
-
-  for (const decl of sourceFile.getFunctions()) {
-    if (!decl.isExported()) continue;
-    symbols.push(
-      toSourceSymbolAnalysis(
-        sourceFile,
-        decl.getName() ?? "<anonymous>",
-        "function",
-        decl.getNameNode() ?? decl,
-        decl,
-        `${decl.getFullText()}\n${decl
-          .getJsDocs()
-          .map((doc) => doc.getFullText())
-          .join("\n")}`,
-      ),
-    );
-  }
-
-  for (const decl of sourceFile.getClasses()) {
-    if (!decl.isExported()) continue;
-    symbols.push(
-      toSourceSymbolAnalysis(
-        sourceFile,
-        decl.getName() ?? "<anonymous>",
-        "class",
-        decl.getNameNode() ?? decl,
-        decl,
-        decl
-          .getJsDocs()
-          .map((doc) => doc.getFullText())
-          .join("\n"),
-      ),
-    );
-    appendClassMembers(sourceFile, decl, decl.getName(), symbols);
-  }
-
-  for (const decl of sourceFile.getInterfaces()) {
-    if (!decl.isExported()) continue;
-    symbols.push(
-      toSourceSymbolAnalysis(
-        sourceFile,
-        decl.getName() ?? "<anonymous>",
-        "interface",
-        decl.getNameNode() ?? decl,
-        decl,
-        decl.getText(),
-      ),
-    );
-  }
-
-  for (const decl of sourceFile.getTypeAliases()) {
-    if (!decl.isExported()) continue;
-    symbols.push(
-      toSourceSymbolAnalysis(
-        sourceFile,
-        decl.getName() ?? "<anonymous>",
-        "type",
-        decl.getNameNode() ?? decl,
-        decl,
-        decl.getText(),
-      ),
-    );
-  }
-
-  for (const decl of sourceFile.getEnums()) {
-    if (!decl.isExported()) continue;
-    symbols.push(
-      toSourceSymbolAnalysis(
-        sourceFile,
-        decl.getName() ?? "<anonymous>",
-        "enum",
-        decl.getNameNode() ?? decl,
-        decl,
-        decl.getText(),
-      ),
-    );
-  }
-
-  for (const statement of sourceFile.getVariableStatements()) {
-    if (!statement.isExported()) continue;
-
-    for (const declaration of statement.getDeclarations()) {
-      symbols.push(
-        toSourceSymbolAnalysis(
-          sourceFile,
-          declaration.getName(),
-          "variable",
-          declaration.getNameNode() ?? declaration,
-          declaration,
-          declaration.getText(),
-        ),
-      );
-      const classExpression = declaration.getInitializerIfKind(
-        SyntaxKind.ClassExpression,
-      );
-      if (classExpression) {
-        appendClassMembers(
-          sourceFile,
-          classExpression,
-          declaration.getName(),
-          symbols,
-        );
-      }
-    }
-  }
-
-  return symbols;
-}
-
-function appendClassMembers(
-  sourceFile: SourceFile,
-  declaration: ClassDeclaration | ClassExpression,
-  className: string | undefined,
-  symbols: SourceSymbolAnalysis[],
-): void {
-  for (const method of declaration.getMethods()) {
-    if (isPrivateClassMember(method)) continue;
-    symbols.push(
-      toSourceSymbolAnalysis(
-        sourceFile,
-        formatMethodSymbolName(className, method.getName()),
-        "method",
-        method.getNameNode() ?? method,
-        method,
-        `${method.getFullText()}\n${method
-          .getJsDocs()
-          .map((doc) => doc.getFullText())
-          .join("\n")}`,
-      ),
-    );
-  }
-
-  for (const property of declaration.getProperties()) {
-    if (isPrivateClassMember(property)) continue;
-    symbols.push(
-      toSourceSymbolAnalysis(
-        sourceFile,
-        formatMethodSymbolName(className, property.getName()),
-        "property",
-        property.getNameNode() ?? property,
-        property,
-        `${property.getFullText()}\n${property
-          .getJsDocs()
-          .map((doc) => doc.getFullText())
-          .join("\n")}`,
-      ),
-    );
-  }
-
-  for (const accessor of [
-    ...declaration.getGetAccessors(),
-    ...declaration.getSetAccessors(),
-  ]) {
-    if (isPrivateClassMember(accessor)) continue;
-    symbols.push(
-      toSourceSymbolAnalysis(
-        sourceFile,
-        formatMethodSymbolName(className, accessor.getName()),
-        "accessor",
-        accessor.getNameNode() ?? accessor,
-        accessor,
-        `${accessor.getFullText()}\n${accessor
-          .getJsDocs()
-          .map((doc) => doc.getFullText())
-          .join("\n")}`,
-      ),
-    );
-  }
-}
-
-function isPrivateClassMember(member: {
-  hasModifier(kind: SyntaxKind): boolean;
-  getName(): string;
-}): boolean {
-  return (
-    member.hasModifier(SyntaxKind.PrivateKeyword) ||
-    member.getName().startsWith("#")
-  );
-}
-
-function toSourceSymbolAnalysis(
-  sourceFile: SourceFile,
-  name: string,
-  kind: SourceSymbolKind,
-  startNode: Node,
-  endNode: Node,
-  directiveText: string,
-): SourceSymbolAnalysis {
-  const start = sourceFile.getLineAndColumnAtPos(startNode.getStart());
-  const end = sourceFile.getLineAndColumnAtPos(endNode.getEnd());
-
-  return {
-    name,
-    kind,
-    startLine: start.line,
-    startColumn: Math.max(0, start.column - 1),
-    endLine: end.line,
-    endColumn: Math.max(0, end.column - 1),
-    directiveText,
-  };
-}
-
-function formatMethodSymbolName(
-  className: string | undefined,
-  methodName: string,
-): string {
-  return className ? `${className}.${methodName}` : methodName;
-}
-
-function chooseScriptKind(filePath: string): ScriptKind {
-  const lower = filePath.toLowerCase();
-  if (lower.endsWith(".tsx")) return ScriptKind.TSX;
-  if (
-    lower.endsWith(".ts") ||
-    lower.endsWith(".mts") ||
-    lower.endsWith(".cts")
-  ) {
-    return ScriptKind.TS;
-  }
-  if (lower.endsWith(".jsx")) return ScriptKind.JSX;
-  return ScriptKind.JS;
-}
-
-function inferSourceLanguage(filePath: string): string {
-  const extension = path.extname(filePath).toLowerCase();
-  if ([".ts", ".tsx", ".mts", ".cts"].includes(extension)) {
-    return "typescript";
-  }
-  return "javascript";
-}
-
-function inferModuleTitle(filePath: string): string {
-  const extension = path.extname(filePath);
-  const basename = path.basename(filePath, extension);
-  return basename.length > 0 ? basename : path.basename(filePath);
-}
-
-type NamedDeclarationCandidate = Node | ClassDeclaration | VariableDeclaration;
-
+// implements REQ-capability-plugin-builtin-parity-v1
 export function onlyCandidate<T>(candidates: readonly T[]): T | undefined {
-  if (candidates.length !== 1) return undefined;
-  return candidates[0];
-}
-
-function findNamedDeclaration(
-  sourceFile: SourceFile,
-  title: string,
-): { node: NamedDeclarationCandidate; getNameNode: () => Node } | null {
-  const qualifiedMethod = parseQualifiedMethodTitle(title);
-  if (qualifiedMethod) {
-    for (const cls of sourceFile.getClasses()) {
-      if (cls.getName() !== qualifiedMethod.className) continue;
-      const match = findClassMember(cls, qualifiedMethod.methodName);
-      if (match) return match;
-    }
-
-    for (const statement of sourceFile.getVariableStatements()) {
-      if (!statement.isExported()) continue;
-      for (const declaration of statement.getDeclarations()) {
-        if (declaration.getName() !== qualifiedMethod.className) continue;
-        const classExpression = declaration.getInitializerIfKind(
-          SyntaxKind.ClassExpression,
-        );
-        const match = classExpression
-          ? findClassMember(classExpression, qualifiedMethod.methodName)
-          : null;
-        if (match) return match;
-      }
-    }
-
-    return null;
-  }
-
-  const candidates: Array<{
-    node: NamedDeclarationCandidate;
-    getNameNode: () => Node;
-  }> = [];
-
-  for (const decl of sourceFile.getFunctions()) {
-    if (!decl.isExported()) continue;
-    if (decl.getName() !== title) continue;
-    const nameNode = decl.getNameNode();
-    if (!nameNode) continue;
-    candidates.push({ node: decl, getNameNode: () => nameNode });
-  }
-
-  for (const decl of sourceFile.getClasses()) {
-    if (!decl.isExported()) continue;
-    if (decl.getName() !== title) continue;
-    const nameNode = decl.getNameNode();
-    if (!nameNode) continue;
-    candidates.push({ node: decl, getNameNode: () => nameNode });
-  }
-
-  for (const decl of sourceFile.getInterfaces()) {
-    if (!decl.isExported()) continue;
-    if (decl.getName() !== title) continue;
-    const nameNode = decl.getNameNode();
-    if (!nameNode) continue;
-    candidates.push({ node: decl, getNameNode: () => nameNode });
-  }
-
-  for (const decl of sourceFile.getTypeAliases()) {
-    if (!decl.isExported()) continue;
-    if (decl.getName() !== title) continue;
-    const nameNode = decl.getNameNode();
-    if (!nameNode) continue;
-    candidates.push({ node: decl, getNameNode: () => nameNode });
-  }
-
-  for (const decl of sourceFile.getEnums()) {
-    if (!decl.isExported()) continue;
-    if (decl.getName() !== title) continue;
-    const nameNode = decl.getNameNode();
-    if (!nameNode) continue;
-    candidates.push({ node: decl, getNameNode: () => nameNode });
-  }
-
-  for (const statement of sourceFile.getVariableStatements()) {
-    if (!statement.isExported()) continue;
-
-    for (const declaration of statement.getDeclarations()) {
-      if (declaration.getName() !== title) continue;
-      const nameNode = declaration.getNameNode();
-      candidates.push({ node: declaration, getNameNode: () => nameNode });
-    }
-  }
-
-  if (candidates.length === 0) {
-    // Second pass: unique non-exported top-level functions only
-    const internalCandidates: Array<{
-      node: NamedDeclarationCandidate;
-      getNameNode: () => Node;
-    }> = [];
-
-    for (const decl of sourceFile.getFunctions()) {
-      if (decl.isExported()) continue; // Already scanned in first pass
-      if (decl.getName() !== title) continue;
-      const nameNode = decl.getNameNode();
-      if (!nameNode) continue;
-      internalCandidates.push({ node: decl, getNameNode: () => nameNode });
-    }
-
-    const uniqueInternal = onlyCandidate(internalCandidates);
-    if (uniqueInternal) {
-      return uniqueInternal;
-    }
-
-    // Third pass: unique class methods
-    const methodCandidates: Array<{
-      node: NamedDeclarationCandidate;
-      getNameNode: () => Node;
-    }> = [];
-
-    for (const cls of sourceFile.getClasses()) {
-      for (const method of cls.getMethods()) {
-        if (method.getName() !== title) continue;
-        const nameNode = method.getNameNode();
-        if (!nameNode) continue;
-        methodCandidates.push({ node: method, getNameNode: () => nameNode });
-      }
-    }
-
-    for (const statement of sourceFile.getVariableStatements()) {
-      if (!statement.isExported()) continue;
-      for (const declaration of statement.getDeclarations()) {
-        const classExpression = declaration.getInitializerIfKind(
-          SyntaxKind.ClassExpression,
-        );
-        if (!classExpression) continue;
-        for (const method of classExpression.getMethods()) {
-          if (method.getName() !== title) continue;
-          const nameNode = method.getNameNode();
-          if (!nameNode) continue;
-          methodCandidates.push({
-            node: method,
-            getNameNode: () => nameNode,
-          });
-        }
-      }
-    }
-
-    const uniqueMethod = onlyCandidate(methodCandidates);
-    if (uniqueMethod) {
-      return uniqueMethod;
-    }
-
-    const memberCandidates: Array<{
-      node: NamedDeclarationCandidate;
-      getNameNode: () => Node;
-    }> = [];
-
-    for (const cls of sourceFile.getClasses()) {
-      for (const property of cls.getProperties()) {
-        if (property.getName() !== title) continue;
-        const nameNode = property.getNameNode();
-        if (!nameNode) continue;
-        memberCandidates.push({ node: property, getNameNode: () => nameNode });
-      }
-      for (const accessor of [
-        ...cls.getGetAccessors(),
-        ...cls.getSetAccessors(),
-      ]) {
-        if (accessor.getName() !== title) continue;
-        const nameNode = accessor.getNameNode();
-        if (!nameNode) continue;
-        memberCandidates.push({ node: accessor, getNameNode: () => nameNode });
-      }
-    }
-
-    for (const statement of sourceFile.getVariableStatements()) {
-      if (!statement.isExported()) continue;
-      for (const declaration of statement.getDeclarations()) {
-        const classExpression = declaration.getInitializerIfKind(
-          SyntaxKind.ClassExpression,
-        );
-        if (!classExpression) continue;
-        for (const property of classExpression.getProperties()) {
-          if (property.getName() !== title) continue;
-          const nameNode = property.getNameNode();
-          if (!nameNode) continue;
-          memberCandidates.push({
-            node: property,
-            getNameNode: () => nameNode,
-          });
-        }
-        for (const accessor of [
-          ...classExpression.getGetAccessors(),
-          ...classExpression.getSetAccessors(),
-        ]) {
-          if (accessor.getName() !== title) continue;
-          const nameNode = accessor.getNameNode();
-          if (!nameNode) continue;
-          memberCandidates.push({
-            node: accessor,
-            getNameNode: () => nameNode,
-          });
-        }
-      }
-    }
-
-    const uniqueMember = onlyCandidate(memberCandidates);
-    if (uniqueMember) {
-      return uniqueMember;
-    }
-
-    return null;
-  }
-  candidates.sort(
-    (a, b) => a.getNameNode().getStart() - b.getNameNode().getStart(),
-  );
-  return candidates[0] ?? null;
-}
-
-function findClassMember(
-  declaration: ClassDeclaration | ClassExpression,
-  name: string,
-): { node: NamedDeclarationCandidate; getNameNode: () => Node } | null {
-  for (const method of declaration.getMethods()) {
-    if (method.getName() !== name) continue;
-    const nameNode = method.getNameNode();
-    if (nameNode) return { node: method, getNameNode: () => nameNode };
-  }
-  for (const property of declaration.getProperties()) {
-    if (property.getName() !== name) continue;
-    const nameNode = property.getNameNode();
-    if (nameNode) return { node: property, getNameNode: () => nameNode };
-  }
-  for (const accessor of [
-    ...declaration.getGetAccessors(),
-    ...declaration.getSetAccessors(),
-  ]) {
-    if (accessor.getName() !== name) continue;
-    const nameNode = accessor.getNameNode();
-    if (nameNode) return { node: accessor, getNameNode: () => nameNode };
-  }
-  return null;
-}
-
-function parseQualifiedMethodTitle(
-  title: string,
-): { className: string; methodName: string } | null {
-  const separatorIndex = title.lastIndexOf(".");
-  if (separatorIndex <= 0 || separatorIndex === title.length - 1) return null;
-  return {
-    className: title.slice(0, separatorIndex),
-    methodName: title.slice(separatorIndex + 1),
-  };
+  return onlyBuiltinCandidate(candidates);
 }

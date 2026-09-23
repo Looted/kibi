@@ -7,6 +7,7 @@
 export type {
   Clock,
   OperationContext,
+  OperationPlugins,
   OperationRuntime,
   RuntimeOptions,
   RuntimeOperationSpec,
@@ -204,6 +205,36 @@ export {
 // The socket request envelope is intentionally not part of the runtime public
 // surface; adapters use EnginePort and EngineCommandV1 instead.
 export { createCliRuntime } from "kibi-cli/runtime/cli-runtime";
+
+export {
+  CapabilityRegistry,
+  CapabilityRegistryCache,
+  createCapabilityRegistry,
+  createCapabilityRegistryCache,
+  createStubBuiltinPlugin,
+  ensureCapabilityRegistry,
+  allowsExternalSemanticClassifier,
+  EXTERNAL_SEMANTIC_CLASSIFIER_OPERATIONS,
+  SourceAnalysisService,
+  composeSemanticClassification,
+  composeOntologyCatalog,
+  composeOntologyMatches,
+  loadPluginPackage,
+  readProjectKibiConfig,
+  resolveProjectLocalPackage,
+} from "kibi-cli/plugins";
+export type {
+  BuiltinPluginFactory,
+  CapabilityModeResolution,
+  CapabilityProviderBinding,
+  CapabilityRegistryOptions,
+  ComposedOntologyCatalog,
+  ComposedSemanticClassifierResult,
+  ExternalSemanticClassifierOperation,
+  HostSourceAnalysisResult,
+  LoadedPlugin,
+  StampedOntologyCandidate,
+} from "kibi-cli/plugins";
 
 export { createRepoIgnorePolicy } from "kibi-cli/ignore-policy";
 export type { IgnorePolicy } from "kibi-cli/ignore-policy";

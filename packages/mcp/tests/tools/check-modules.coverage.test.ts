@@ -39,14 +39,14 @@ describe("MCP check-impact", () => {
     expect(hasImpactOptions({ sourceFiles: ["src/a.ts"] })).toBe(true);
   });
 
-  test("analyzeKbCheckImpact returns undefined without options and an object with options", () => {
+  test("analyzeKbCheckImpact returns undefined without options and an object with options", async () => {
     const workspaceRoot = mkdtempSync(join(tmpdir(), "kibi-mcp-impact-"));
     roots.push(workspaceRoot);
     mkdirSync(join(workspaceRoot, "src"), { recursive: true });
     writeFileSync(join(workspaceRoot, "src", "a.ts"), "export const x = 1;\n");
 
-    expect(analyzeKbCheckImpact(workspaceRoot, {})).toBeUndefined();
-    expect(() =>
+    expect(await analyzeKbCheckImpact(workspaceRoot, {})).toBeUndefined();
+    await expect(
       analyzeKbCheckImpact(workspaceRoot, {
         includeImpactDiagnostics: true,
         staged: false,
@@ -54,7 +54,7 @@ describe("MCP check-impact", () => {
         sourceFiles: ["src/a.ts"],
         maxDiagnostics: 4,
       }),
-    ).toThrow();
+    ).rejects.toThrow();
   });
 });
 

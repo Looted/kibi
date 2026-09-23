@@ -157,6 +157,10 @@ describe("strict proof workflow contract", () => {
     expect(proofWorkflow).not.toContain("run-proof-contract.mjs");
     expect(proofWorkflow).not.toContain("kibi verify");
     expect(proofWorkflow).toContain("kibi prove --all");
+    expect(proofWorkflow).toContain("scripts/ci-apt-bootstrap.sh bubblewrap");
+    expect(proofWorkflow).not.toContain(
+      "scripts/ci-install-swi-prolog.sh bubblewrap",
+    );
   });
 
   test("proof runs before baseline enforcement and report generation", () => {
@@ -205,39 +209,25 @@ describe("strict proof workflow contract", () => {
     );
   });
 
-  test("ratchet baseline records the stricter per-scenario proof gaps", () => {
+  test("equality baseline locks full current-requirement proof", () => {
     expect(baseline.version).toBe("kibi.proof-baseline.v2");
-    expect(baseline.mode).toBe("ratchet");
+    expect(baseline.mode).toBe("equality");
     expect(baseline.proofProven + baseline.currentUnproven).toBe(
       baseline.currentRequirements,
     );
-    // Ratchet floor: the proven count may only move up. Bump this floor in
-    // the same commit that deliberately raises the baseline.
-    expect(baseline.currentRequirements).toBe(101);
-    expect(baseline.proofProven).toBeGreaterThanOrEqual(93);
-    expect(baseline.currentUnproven).toBeLessThanOrEqual(8);
-    const knownGapVocabulary = new Set([
-      "missing_passing_e2e",
-      "missing_production_symbol_coverage",
-      "missing_proof_receipt",
-      "missing_executable_test_symbol",
-      "missing_scenario_test",
-      "missing_semantic_inventory",
-      "missing_logic_claims",
-      "missing_production_symbol",
-      "stale_proof_receipt",
-      "failed_proof_receipt",
-      "unresolved_semantic_proposition",
-      "logic_manifest_mismatch",
-      "contradiction_check_incomplete",
-      "missing_symbol_coordinates",
-    ]);
-    for (const [gap, count] of Object.entries(baseline.trackedGaps ?? {})) {
-      expect(knownGapVocabulary.has(gap)).toBe(true);
-      expect(count).toBeGreaterThan(0);
-    }
+    // Equality floor: every current requirement is proven end to end. Bump
+    // this floor in the same commit that deliberately raises the baseline.
+    expect(baseline.currentRequirements).toBe(108);
+    expect(baseline.proofProven).toBe(108);
+    expect(baseline.currentUnproven).toBe(0);
+    expect(Object.keys(baseline.trackedGaps ?? {})).toEqual([]);
     expect(Object.keys(baseline.requirements ?? {}).length).toBe(
       baseline.currentRequirements,
     );
+    for (const requirement of Object.values(
+      baseline.requirements ?? {},
+    ) as Array<{ proofStatus?: string }>) {
+      expect(requirement.proofStatus).toBe("proven");
+    }
   });
 });

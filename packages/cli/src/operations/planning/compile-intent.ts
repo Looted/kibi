@@ -8,6 +8,7 @@ import {
   type SourceLocation,
   executeIntentSearch,
 } from "../../intent-search.js";
+import { publicCapabilityStamp } from "../../plugins/compose-semantic-classifier.js";
 import { normalizeEntityId, parseTriples } from "../../prolog/codec.js";
 import { loadEntities } from "../../public/operations/discovery-entities.js";
 import { executeStatus } from "../../public/operations/discovery-executors.js";
@@ -16,7 +17,7 @@ import type {
   WorkspaceSnapshot,
 } from "../../public/operations/runtime-types.js";
 import { configuredSourceTarget } from "../mutation/source-authoring.js";
-import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
+import { analyzeSemanticAdvisorInputWithPlugins } from "../semantic-advisor/plugin-orchestration.js";
 import { canonicalize } from "../semantic-advisor/shared.js";
 import type {
   SemanticAdvisorReceipt,
@@ -135,6 +136,55 @@ export type CompilePlanV1 = Readonly<{
   steps: readonly PlanStep[];
   sourceWrites: readonly SourceWritePlan[];
   diagnostics: readonly string[];
+  /** Bounded replace/augment/shadow provenance; never changes canonical steps. */
+  capabilityPlugins?: Readonly<{
+    stamps: readonly {
+      pluginId: string;
+      pluginVersion: string;
+      capability: string;
+      mode: string;
+      external: boolean;
+      network: boolean;
+      metered: boolean;
+      fallbackUsed?: boolean;
+      model?: string;
+    }[];
+    classification: Readonly<{
+      fallbackUsed: boolean;
+      decisions: readonly {
+        claimKey: string;
+        lane: string;
+        confidence: number;
+      }[];
+      shadowComparisons: readonly {
+        pluginId: string;
+        pluginVersion: string;
+        capability: string;
+        mode: string;
+        external: boolean;
+        network: boolean;
+        metered: boolean;
+        fallbackUsed?: boolean;
+        model?: string;
+        decisions: readonly {
+          claimKey: string;
+          lane: string;
+          confidence: number;
+        }[];
+      }[];
+    }> | null;
+    ontology: Readonly<{
+      replaced: boolean;
+      matchCount: number;
+      shadowMatchCount: number;
+      shadowMatches: readonly {
+        packId: string;
+        schemaId: string;
+        predicateName: string;
+        confidence: number;
+      }[];
+    }>;
+  }>;
 }>;
 
 export type SourceWritePlan = Readonly<{
@@ -731,24 +781,100 @@ export async function executeCompileIntent(
     text(args.sourceLocations?.[0]?.path) ||
     text(existingEntity.source) ||
     "mcp://kibi/compile-intent";
-  const advisor = analyzeSemanticAdvisorInput({
-    payload: {
-      type: "req",
-      id: requirementId,
-      properties: {
-        title,
-        status: text(existingEntity.status) || "open",
-        source,
-        semantic_text: intent,
-        ...(Array.isArray(existingEntity.logic_claims)
-          ? { logic_claims: existingEntity.logic_claims }
-          : {}),
+  const orchestrated = await analyzeSemanticAdvisorInputWithPlugins(
+    {
+      payload: {
+        type: "req",
+        id: requirementId,
+        properties: {
+          title,
+          status: text(existingEntity.status) || "open",
+          source,
+          semantic_text: intent,
+          ...(Array.isArray(existingEntity.logic_claims)
+            ? { logic_claims: existingEntity.logic_claims }
+            : {}),
+        },
       },
+      ...(args.clauses ? { clauses: args.clauses } : {}),
+      ...(args.interpretations
+        ? { interpretations: args.interpretations }
+        : {}),
     },
-    ...(args.clauses ? { clauses: args.clauses } : {}),
-    ...(args.interpretations ? { interpretations: args.interpretations } : {}),
-  });
+    {
+      operationName: "kb_compile_intent",
+      ...(context.ensurePlugins
+        ? { ensurePlugins: context.ensurePlugins }
+        : {}),
+    },
+  );
+  const advisor = orchestrated.analysis;
   diagnostics.push(...advisor.warnings);
+  if (orchestrated.stamps.length > 0) {
+    diagnostics.push(
+      `Capability plugins consulted: ${orchestrated.stamps
+        .map((stamp) => `${stamp.pluginId}/${stamp.capability}`)
+        .join(", ")}.`,
+    );
+  }
+  const semanticShadowCount =
+    orchestrated.classification?.shadowComparisons.length ?? 0;
+  if (semanticShadowCount > 0) {
+    diagnostics.push(
+      `Semantic classifier shadow comparisons observed (${semanticShadowCount}); canonical compile plan unchanged.`,
+    );
+  }
+  if (orchestrated.ontologyShadowMatches.length > 0) {
+    diagnostics.push(
+      `Ontology pack shadow matches observed (${orchestrated.ontologyShadowMatches.length}); canonical compile plan unchanged.`,
+    );
+  }
+  const capabilityPlugins =
+    orchestrated.stamps.length > 0 ||
+    semanticShadowCount > 0 ||
+    orchestrated.ontologyShadowMatches.length > 0
+      ? {
+          stamps: orchestrated.stamps.map((stamp) =>
+            publicCapabilityStamp(stamp),
+          ),
+          classification: orchestrated.classification
+            ? {
+                fallbackUsed: orchestrated.classification.fallbackUsed,
+                decisions: orchestrated.classification.decisions.map(
+                  (decision) => ({
+                    claimKey: decision.claimKey,
+                    lane: decision.lane,
+                    confidence: decision.confidence,
+                  }),
+                ),
+                shadowComparisons:
+                  orchestrated.classification.shadowComparisons.map(
+                    (comparison) => ({
+                      ...publicCapabilityStamp(comparison.stamp),
+                      decisions: comparison.decisions.map((decision) => ({
+                        claimKey: decision.claimKey,
+                        lane: decision.lane,
+                        confidence: decision.confidence,
+                      })),
+                    }),
+                  ),
+              }
+            : null,
+          ontology: {
+            replaced: orchestrated.ontologyCatalog?.replaced ?? false,
+            matchCount: orchestrated.ontologyMatches.length,
+            shadowMatchCount: orchestrated.ontologyShadowMatches.length,
+            shadowMatches: orchestrated.ontologyShadowMatches.map(
+              (candidate) => ({
+                packId: candidate.packId,
+                schemaId: candidate.schemaId,
+                predicateName: candidate.predicateName,
+                confidence: candidate.confidence,
+              }),
+            ),
+          },
+        }
+      : undefined;
   const suggestionByClaim = new Map(
     advisor.receipt.suggestions.map((suggestion) => [
       suggestion.claim_key,
@@ -908,8 +1034,11 @@ export async function executeCompileIntent(
     sourceWrites,
     diagnostics,
   };
+  // Shadow/provenance metadata is returned for observation but must not enter
+  // planHash — shadow providers never affect canonical apply identity.
   const plan: CompilePlanV1 = {
     ...planBody,
+    ...(capabilityPlugins ? { capabilityPlugins } : {}),
     planHash: compilePlanHash(planBody),
   };
   return {

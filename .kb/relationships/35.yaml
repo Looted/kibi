@@ -188,3 +188,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1a34ebf7e002
+  - type: implements
+    from: SYM-skillopt-fake-provider-zero-budget-parent
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:41:48.694Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b0bea777c622
+  - type: covered_by
+    from: SYM-cap-plugin-capabilityregistrycache-b2070019
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:39:54.524Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68ae6b820cb1

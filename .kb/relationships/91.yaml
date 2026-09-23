@@ -48,3 +48,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5694334953d9
+  - type: implements
+    from: SYM-BoundPhysicalCell
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:17:20.330Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28adadd83474

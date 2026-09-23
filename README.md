@@ -349,6 +349,18 @@ See [generic-agent onboarding](docs/generic-agent-onboarding.md) for the copy-pa
 | `kibi-cursor` | Optional Cursor rules, skills, MCP, and advisory hooks |
 | `kibi-zcode` | Optional ZCode skills, command, MCP, and advisory hooks |
 | `kibi-vscode` | VS Code knowledge explorer and traceability integration |
+| `kibi-plugin-sdk` | Public protocol types and validators for capability plugins |
+| `kibi-plugin-builtin` | Default semantic, ontology, and TypeScript symbol capabilities |
+| `kibi-plugin-jev` | Optional TypeSafe Jev semantic classifier (not installed by default) |
+
+## Developing Kibi capability plugins
+
+Capability plugins extend semantic classification, ontology matching, and symbol
+extraction behind a versioned `kibi.plugin.v1` protocol. The builtin package is
+always registered; additional providers activate only through explicit
+`package.json` `kibi.plugins` entries. Third parties need only
+`kibi-plugin-sdk`. See [plugin development](docs/plugin-development.md) for
+modes, the trust boundary, disclosure-only permissions, and optional Jev usage.
 
 ## Documentation
 
@@ -360,6 +372,7 @@ See [generic-agent onboarding](docs/generic-agent-onboarding.md) for the copy-pa
 - [Entity schema](docs/entity-schema.md) — Entity types, relationships, and semantic fact lanes
 - [Inference rules](docs/inference-rules.md) — Validation and contradiction checks
 - [Architecture](docs/architecture.md) — Storage, branch isolation, data flow, and components
+- [Capability plugins](docs/plugin-development.md) — Developing and activating `kibi.plugin.v1` providers
 - [Troubleshooting](docs/troubleshooting.md) — Common setup and recovery procedures
 - [Generic-agent onboarding](docs/generic-agent-onboarding.md) — Copy-paste skill discovery for generic MCP/CLI agents
 

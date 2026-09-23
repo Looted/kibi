@@ -12,11 +12,16 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   parseNpmPackJsonOutput,
   resolveNpmPackFilename,
 } from "./npm-pack-json.js";
+import { packagesForPack } from "./packed-packages.js";
 import { writePackedInstallManifest } from "./packed-install-manifest.js";
+
+// executable_for TEST-test-journaled-engine-harness
+export { packagesForPack } from "./packed-packages.js";
 
 // allow: SIZE_OK — legacy packed E2E helper API spans established tests; splitting it requires a repository-wide migration.
 /**
@@ -30,7 +35,28 @@ import { writePackedInstallManifest } from "./packed-install-manifest.js";
  * - Isolated PATH and HOME
  */
 
-const REPO_ROOT = resolve(process.cwd());
+// Prefer an explicit proof/repo root, then the source tree location of this
+// module, then cwd. Proof packed E2E compiles helpers into a temp outDir, so
+// import.meta.url alone is not a reliable anchor there.
+function resolveRepoRoot(): string {
+  const candidates: string[] = [];
+  const fromEnv = process.env.KIBI_PROOF_REPO_ROOT?.trim();
+  if (fromEnv) candidates.push(resolve(fromEnv));
+  candidates.push(
+    resolve(dirname(fileURLToPath(import.meta.url)), "../../../.."),
+  );
+  candidates.push(resolve(process.cwd()));
+
+  for (const candidate of candidates) {
+    if (existsSync(join(candidate, "packages", "core", "package.json"))) {
+      return candidate;
+    }
+  }
+
+  return candidates[0] ?? resolve(process.cwd());
+}
+
+const REPO_ROOT = resolveRepoRoot();
 
 /**
  * Packed sandboxes are independent Git checkouts. Host CI may set
@@ -446,16 +472,6 @@ function findPrePackedTarball(
   return null;
 }
 
-const packagesForPack = [
-  "core",
-  "cli",
-  "runtime",
-  "mcp",
-  "opencode",
-  "codex",
-  "cursor",
-] as const;
-
 function resolvePackSource(): PackSource {
   const configuredRoot = process.env.KIBI_TEST_TARBALLS;
   if (configuredRoot && existsSync(configuredRoot)) {
@@ -518,6 +534,8 @@ async function bootstrapSharedInstall(
     tarballs.opencode,
     tarballs.codex,
     tarballs.cursor,
+    tarballs["plugin-sdk"],
+    tarballs["plugin-builtin"],
   ].join("|");
   const existing = sharedInstallations.get(installKey);
   if (existing) {
@@ -634,6 +652,9 @@ export interface Tarballs {
   opencode: string;
   codex: string;
   cursor: string;
+  "plugin-sdk": string;
+  "plugin-builtin": string;
+  "plugin-jev": string;
 }
 
 /** Options for running commands */
@@ -918,6 +939,8 @@ export function createSandbox(): TestSandbox {
         tarballs.opencode,
         tarballs.codex,
         tarballs.cursor,
+        tarballs["plugin-sdk"],
+        tarballs["plugin-builtin"],
       ].join("|");
 
       const existing = sharedInstallations.get(installKey);

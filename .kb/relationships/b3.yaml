@@ -146,3 +146,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a1e9849d3217
+  - type: executable_for
+    from: SYM-e2e-proof-maintenance-ops
+    to: TEST-e2e-proof-maintenance-ops
+    created_at: 2026-09-19T17:43:23.140Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d2e8736d7f4
+  - type: verified_by
+    from: SCEN-vscode-source-to-kb
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T17:54:31.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5506cdd9ccde
+  - type: implements
+    from: SYM-FixtureAuthorizationClaim
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:35:17.291Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a05e049ece3

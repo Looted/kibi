@@ -1,13 +1,18 @@
 ---
 id: SCEN-skillopt-external-adoption-verdict
-title: SkillOpt production adoption waits for an external verdict
+title: SkillOpt rejects local-only evidence for production adoption
 type: scenario
 status: active
-created_at: 2026-07-30T00:00:00Z
-updated_at: 2026-08-01T00:00:00Z
+created_at: 2026-07-30T00:00:00.000Z
+updated_at: 2026-08-01T00:00:00.000Z
 source: docs/skillopt.md
 priority: must
-tags: [skillopt, codex, evaluation, security, self-improvement]
+tags:
+  - skillopt
+  - codex
+  - evaluation
+  - security
+  - self-improvement
 links:
   - type: verified_by
     target: TEST-skillopt-external-adoption-verdict

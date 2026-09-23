@@ -167,3 +167,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4952189ca2ed
+  - type: implements
+    from: SYM-doctor-package-migration-actions
+    to: REQ-cli-doctor
+    created_at: 2026-09-22T11:35:30.676Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f5def13b558
+  - type: implements
+    from: SYM-doctor-package-migration-actions
+    to: REQ-agent-guided-migration-orchestration
+    created_at: 2026-09-22T11:35:30.686Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f2278830ea0a
+  - type: implements
+    from: SYM-doctor-package-migration-actions
+    to: REQ-cli-doctor-packed-provenance
+    created_at: 2026-09-22T11:35:30.692Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b09ac254a6d4
+  - type: covered_by
+    from: SYM-doctor-package-migration-actions
+    to: TEST-001
+    created_at: 2026-09-22T11:35:30.696Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49217da9eb79
+  - type: covered_by
+    from: SYM-doctor-package-migration-actions
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-09-22T11:35:30.699Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-68c329c5d0ee
+  - type: covered_by
+    from: SYM-doctor-package-migration-actions
+    to: TEST-cli-doctor-packed-provenance
+    created_at: 2026-09-22T11:35:30.703Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbd95c7e3477
+  - type: covered_by
+    from: SYM-doctor-package-migration-actions
+    to: TEST-cli-doctor-workflows
+    created_at: 2026-09-22T11:35:30.707Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02dc003f7e26
+  - type: implements
+    from: SYM-cap-plugin-loadedplugin-77e73414
+    to: REQ-capability-plugin-observable-behavior-v1
+    created_at: 2026-09-22T19:38:48.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21b93fc2ea63
+  - type: covered_by
+    from: SYM-cap-plugin-loadedplugin-77e73414
+    to: TEST-capability-plugin-host-resolution-v1
+    created_at: 2026-09-22T19:38:48.661Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e46500e6142f

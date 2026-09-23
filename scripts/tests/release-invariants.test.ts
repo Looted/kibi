@@ -165,6 +165,9 @@ describe("release invariants: develop-to-master model", () => {
         "cursor",
         "mcp",
         "opencode",
+        "plugin-builtin",
+        "plugin-jev",
+        "plugin-sdk",
         "runtime",
       ]);
     });
@@ -232,6 +235,9 @@ describe("release invariants: develop-to-master model", () => {
         "cursor",
         "mcp",
         "opencode",
+        "plugin-builtin",
+        "plugin-jev",
+        "plugin-sdk",
         "runtime",
       ]);
     });
@@ -296,6 +302,9 @@ describe("release invariants: develop-to-master model", () => {
         "cursor",
         "mcp",
         "opencode",
+        "plugin-builtin",
+        "plugin-jev",
+        "plugin-sdk",
         "runtime",
       ]);
     });
@@ -336,6 +345,9 @@ describe("release invariants: develop-to-master model", () => {
         "cursor",
         "mcp",
         "opencode",
+        "plugin-builtin",
+        "plugin-jev",
+        "plugin-sdk",
         "runtime",
       ]);
     });
@@ -364,6 +376,9 @@ describe("release invariants: develop-to-master model", () => {
         "cursor",
         "mcp",
         "opencode",
+        "plugin-builtin",
+        "plugin-jev",
+        "plugin-sdk",
         "runtime",
       ]);
     });

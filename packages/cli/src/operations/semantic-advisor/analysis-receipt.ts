@@ -1,3 +1,4 @@
+import { chooseLane as chooseBuiltinLane } from "kibi-plugin-builtin";
 import type { SemanticClause } from "./clauses.js";
 import {
   type Payload,
@@ -19,26 +20,9 @@ import type {
   SemanticSignal,
 } from "./types.js";
 
+/** Builtin classifier is the single source of signal→lane selection. */
 function chooseLane(signals: readonly SemanticSignal[]): SemanticAdvisorLane {
-  if (
-    signals.some(
-      ({ kind }) =>
-        kind === "numeric_cardinality" || kind === "numeric_threshold",
-    )
-  )
-    return "strict_property";
-  if (
-    signals.some(
-      ({ kind }) =>
-        kind === "conditional" ||
-        kind === "permission" ||
-        kind === "state_or_default",
-    )
-  )
-    return "predicate";
-  return signals.some(({ kind }) => kind === "normative_modal")
-    ? "observation_review"
-    : "none";
+  return chooseBuiltinLane(signals);
 }
 
 function summary(

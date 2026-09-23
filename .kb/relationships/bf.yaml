@@ -129,3 +129,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f78664d6ec6e
+  - type: covered_by
+    from: SYM-cap-plugin-semanticclassifierproposition-00b0b710
+    to: TEST-capability-plugin-protocol-v1
+    created_at: 2026-09-22T19:45:29.750Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-67e7000f78a4

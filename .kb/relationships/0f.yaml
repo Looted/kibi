@@ -111,3 +111,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-689d35801c9c
+  - type: covered_by
+    from: SYM-PreparedRootSchema
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-09-19T19:23:53.733Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b28886be4a90
+  - type: implements
+    from: SYM-publicSkillDescriptors
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:38:09.408Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b3a3d8cb9038
+  - type: covered_by
+    from: SYM-cap-plugin-capabilityregistry-resolvecapability-18952e36
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:39:42.248Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a763e66ef937

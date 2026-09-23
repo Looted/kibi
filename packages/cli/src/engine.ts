@@ -1531,15 +1531,54 @@ export async function runEngineDaemon(options: {
 
   mkdirSync(path.dirname(options.socketPath), { recursive: true, mode: 0o700 });
   if (existsSync(options.socketPath)) {
+    const isLivePeerSignal = (error: unknown): boolean => {
+      if (error && typeof error === "object") {
+        const code =
+          "code" in error
+            ? String((error as NodeJS.ErrnoException).code)
+            : "";
+        if (code === "EPIPE" || code === "ECONNRESET") return true;
+        const errno =
+          "errno" in error
+            ? Number((error as NodeJS.ErrnoException).errno)
+            : Number.NaN;
+        // POSIX EPIPE
+        if (errno === -32) return true;
+      }
+      const message = error instanceof Error ? error.message : String(error);
+      return /\bEPIPE\b|\bECONNRESET\b|broken pipe/i.test(message);
+    };
     let live = false;
     try {
       const existing = await connectSocket(options.socketPath, 100);
-      existing.destroy();
+      // Keep a permanent error sink. Bun 1.4 can surface write EPIPE from
+      // teardown into the caller promise on some CI runners, replacing the
+      // intended live-listener error.
+      existing.on("error", () => undefined);
       live = true;
-    } catch {
-      // A refused connection means this is a stale filesystem socket.
+      try {
+        existing.destroy();
+      } catch {
+        // Ignore destroy races; live detection already succeeded.
+      }
+      existing.unref?.();
+    } catch (error) {
+      // Bun 1.4 can reject the probe with EPIPE/ECONNRESET against a live
+      // unix listener instead of resolving connect.
+      if (isLivePeerSignal(error)) {
+        live = true;
+      }
+      // Otherwise a refused connection means a stale filesystem socket.
     }
     if (live) {
+      try {
+        await prolog.terminate();
+      } catch (error) {
+        // Best-effort cleanup; Bun may surface late EPIPE here too.
+        if (!isLivePeerSignal(error)) {
+          // Ignore non-EPIPE terminate failures.
+        }
+      }
       throw new Error(
         `A Kibi engine is already listening at ${options.socketPath}`,
       );

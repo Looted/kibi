@@ -97,3 +97,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0b344f7a7f63
+  - type: implements
+    from: SYM-sha256Text
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:38:21.707Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d3cee40a8a21
+  - type: implements
+    from: SYM-skillopt-python-main-module
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:40:03.797Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0664888bb036
+  - type: covered_by
+    from: SYM-cap-plugin-ispluginmode-4ce39fb0
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:47:30.157Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8285c4d6a7f1

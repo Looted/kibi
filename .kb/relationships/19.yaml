@@ -132,3 +132,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e34b5faecfca
+  - type: covered_by
+    from: SYM-getWorkspaceFolderUri
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T19:32:20.614Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a71f52ac9666
+  - type: covered_by
+    from: SYM-cap-plugin-predicateschemadefinition-2bf0cc70
+    to: TEST-capability-plugin-protocol-v1
+    created_at: 2026-09-22T19:45:10.328Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d78e175a66d8

@@ -223,3 +223,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-03b42b848989
+  - type: covered_by
+    from: SYM-skillopt-require-external-trust-plane
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-09-19T19:27:55.203Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e406fc50f6e
+  - type: implements
+    from: SYM-episodeHashes
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:37:26.626Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-740957fa947c
+  - type: implements
+    from: SYM-skillopt-reconciled-paid-receipt-type
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:42:18.937Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1f429aa066aa

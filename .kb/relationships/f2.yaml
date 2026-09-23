@@ -70,13 +70,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-905e607d4959
   - type: implements
-    from: SYM-PredicateReplicate
-    to: REQ-skillopt-external-adoption-verdict
-    created_at: 2026-09-10T15:00:55.541Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-8cdf15c3e23c
-  - type: implements
     from: SYM-symbol-repair-plan-type
     to: REQ-kibi-dependency-ordered-repair-plan
     created_at: 2026-09-14T13:38:10.190Z
@@ -104,3 +97,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-69803e415f50
+  - type: implements
+    from: SYM-PredicateReplicate
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:36:44.047Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e4b1bf001265

@@ -90,3 +90,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-18c032f0ab45
+  - type: covered_by
+    from: SYM-SourceTreeHash
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-09-19T19:24:02.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c3c63ce92df
+  - type: implements
+    from: SYM-buildFixtureAuthorizationClaim
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:37:13.641Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4877b647e846
+  - type: implements
+    from: SYM-skillopt-model-schema
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:41:57.054Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b32a34989d3c
+  - type: specified_by
+    from: REQ-capability-plugin-protocol-v1
+    to: SCEN-capability-plugin-host-resolution-v1
+    created_at: 2026-09-20T08:20:56.870Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c32ca8fbf51c
+  - type: requires_predicate
+    from: REQ-capability-plugin-protocol-v1
+    to: FACT-PRED-AA31211A7FD4
+    created_at: 2026-09-22T19:13:39.126Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1709fa8ebaac
+  - type: requires_predicate
+    from: REQ-capability-plugin-protocol-v1
+    to: FACT-PRED-1E92E684E956
+    created_at: 2026-09-22T19:13:39.132Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e11dc0e406f5
+  - type: covered_by
+    from: SYM-cap-plugin-onlycandidate-e892cad2
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:44:13.900Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89b2c051128d

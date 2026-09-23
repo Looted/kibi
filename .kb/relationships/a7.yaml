@@ -220,3 +220,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e5bb7145e8a2
+  - type: implements
+    from: SYM-PredicateVariant
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:36:48.530Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-646417b754d3
+  - type: implements
+    from: SYM-skillopt-fake-provider-configuration-schema
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:41:03.451Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c2348c8eb554
+  - type: covered_by
+    from: SYM-cap-plugin-jevchoiceanswer-f3f17b79
+    to: TEST-capability-plugin-jev-mocked-v1
+    created_at: 2026-09-22T19:44:45.947Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c9af5294ebf

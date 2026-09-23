@@ -1,4 +1,8 @@
 import {
+  createBuiltinOntologyPack,
+  detectSignals as detectBuiltinSignals,
+} from "kibi-plugin-builtin";
+import {
   logicSemanticKey,
   renderLogicProlog,
   utf8Span,
@@ -12,17 +16,12 @@ import {
   semanticClaimKey,
 } from "./clauses.js";
 import { observationPlan } from "./observation-plan.js";
-import { detectPredicateRules } from "./predicate-rule.js";
-import { CORE_PREDICATE_RULES } from "./predicate-rules-core.js";
-import { LAUNCHER_PREDICATE_RULES } from "./predicate-rules-launcher.js";
-import { POLICY_PREDICATE_RULES } from "./predicate-rules-policy.js";
-import { PRODUCT_TAIL_PREDICATE_RULES } from "./predicate-rules-product-tail.js";
-import { PRODUCT_PREDICATE_RULES } from "./predicate-rules-product.js";
 import {
   type Payload,
   type SemanticSourceField,
   isRecord,
   payloadHash,
+  predicateSuggestion as buildPredicateSuggestion,
   propertiesOf,
   relationship,
   semanticClausesOf,
@@ -56,59 +55,6 @@ export function stringLogicClaims(value: unknown): string[] {
     ? value.filter((entry): entry is string => typeof entry === "string")
     : [];
 }
-
-type SignalPattern = {
-  readonly kind: SemanticSignalKind;
-  readonly candidateLane: SemanticAdvisorLane;
-  readonly confidence: number;
-  readonly pattern: RegExp;
-};
-
-const SIGNAL_PATTERNS = [
-  {
-    kind: "numeric_cardinality",
-    candidateLane: "strict_property",
-    confidence: 0.92,
-    pattern:
-      /\b(?:(?:at\s+most|at\s+least|exactly|no\s+more\s+than|up\s+to|cap(?:ped)?\s+at)\s+)?(?:\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten)\b/i,
-  },
-  {
-    kind: "numeric_threshold",
-    candidateLane: "strict_property",
-    confidence: 0.86,
-    pattern:
-      /\b(?:maximum|minimum|under|within|below|above|expires?|retained\s+for)\s+(?:\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten)\b/i,
-  },
-  {
-    kind: "conditional",
-    candidateLane: "predicate",
-    confidence: 0.82,
-    pattern: /\b(?:if|when|unless|except|only\s+if|provided\s+that)\b/i,
-  },
-  {
-    kind: "permission",
-    candidateLane: "predicate",
-    confidence: 0.8,
-    pattern:
-      /\b(?:only|may|can|allowed|denied|forbidden|must\s+not|cannot|can't)\b/i,
-  },
-  {
-    kind: "state_or_default",
-    candidateLane: "predicate",
-    confidence: 0.74,
-    pattern:
-      /\b(?:state|mode|defaults?\s+to|ready|disabled|enabled|terminal)\b/i,
-  },
-  {
-    kind: "normative_modal",
-    candidateLane: "observation_review",
-    confidence: 0.65,
-    // Modal-free validity, rejection, prohibition, and failure-outcome
-    // assertions are normative even when they omit must/shall.
-    pattern:
-      /\b(?:must|shall|should|may|must\s+not|cannot|can't|invalid|unresolved|reject(?:ed|ion)?|prohibited|forbidden|fail(?:s|ed|ure)?\s+(?:clearly|explicitly|with)|required\s+outcome)\b/i,
-  },
-] as const satisfies readonly SignalPattern[];
 
 function proseOf(payload: Payload): string {
   const properties = propertiesOf(payload);
@@ -175,21 +121,14 @@ function isModeled(
   );
 }
 
+/** Builtin semantic classifier is the single source of signal/lane detection. */
 function detectSignals(prose: string): readonly SemanticSignal[] {
-  const seen = new Set<SemanticSignalKind>();
-  return SIGNAL_PATTERNS.flatMap((candidate) => {
-    const evidence = prose.match(candidate.pattern)?.[0];
-    if (!evidence || seen.has(candidate.kind)) return [];
-    seen.add(candidate.kind);
-    return [
-      {
-        kind: candidate.kind,
-        evidence,
-        candidate_lane: candidate.candidateLane,
-        confidence: candidate.confidence,
-      },
-    ];
-  });
+  return detectBuiltinSignals(prose).map((signal) => ({
+    kind: signal.kind,
+    evidence: signal.evidence,
+    candidate_lane: signal.candidateLane,
+    confidence: signal.confidence,
+  }));
 }
 
 function ambiguitySuggestion(
@@ -256,12 +195,20 @@ function predicateSuggestion(
   payload: Payload,
   statement: string,
 ): SemanticModelingSuggestion | null {
-  return (
-    detectPredicateRules(payload, statement, LAUNCHER_PREDICATE_RULES) ??
-    detectPredicateRules(payload, statement, CORE_PREDICATE_RULES) ??
-    detectPredicateRules(payload, statement, POLICY_PREDICATE_RULES) ??
-    detectPredicateRules(payload, statement, PRODUCT_PREDICATE_RULES) ??
-    detectPredicateRules(payload, statement, PRODUCT_TAIL_PREDICATE_RULES)
+  // Deterministic builtin pack — never loads external plugins on sync paths.
+  const matches = createBuiltinOntologyPack().match({
+    claimKey: "",
+    statement,
+  });
+  const hit = matches[0];
+  if (!hit) return null;
+  return buildPredicateSuggestion(
+    payload,
+    hit.evidence,
+    hit.predicateName,
+    hit.arguments,
+    hit.rationale ?? "",
+    hit.polarity,
   );
 }
 

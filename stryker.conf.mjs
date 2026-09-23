@@ -71,7 +71,14 @@ const config = {
   // copy, then repair both drifts inside each sandbox. The slash in
   // "plugins/**" is deliberate: without it, glob matchBase would also
   // exclude .agents/plugins/marketplace.json, which the tests read.
-  ignorePatterns: ["plugins/**", "tools/skillopt/.venv/**"],
+  ignorePatterns: [
+    "plugins/**",
+    "tools/skillopt/.venv/**",
+    // Root-level symlink to an external tool's index store; the sandbox
+    // copier follows it and fails with EISDIR.
+    ".codegraph",
+    ".codegraph/**",
+  ],
   buildCommand: "sh scripts/mutation-sandbox-setup.sh",
   // All-or-nothing: a single surviving mutant fails `bun run test:mutation`.
   thresholds: { high: 100, low: 100, break: 100 },

@@ -104,3 +104,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-005296fd59aa
+  - type: verified_by
+    from: SCEN-capability-plugin-observable-behavior-v1
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T08:44:42.589Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-096ddae257ee
+  - type: implements
+    from: SYM-cap-plugin-capabilityregistry-canonicalproviders-91e92bfe
+    to: REQ-capability-plugin-three-capabilities-v1
+    created_at: 2026-09-22T19:39:46.414Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-59030c463641
+  - type: covered_by
+    from: SYM-cap-plugin-capabilityregistry-canonicalproviders-91e92bfe
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:39:46.419Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9bd196c2820d
+  - type: covered_by
+    from: SYM-cap-plugin-normalizekey-a7d2e151
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:42:15.345Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-88ff1b2139f3
+  - type: covered_by
+    from: SYM-cap-plugin-sourceanalysisresult-bd53cc5b
+    to: TEST-capability-plugin-protocol-v1
+    created_at: 2026-09-22T19:46:08.915Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d9cd9356e3f

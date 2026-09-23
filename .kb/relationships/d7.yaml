@@ -188,3 +188,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-ba54d8f8b97f
+  - type: covered_by
+    from: SYM-canonical-KibiTreeDataProvider-getNavigationTargetForEntity
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T19:28:02.051Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5c66770b185d
+  - type: implements
+    from: SYM-skillopt-fake-provider-reserve
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:41:45.278Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4f8bd0435064
+  - type: implements
+    from: SYM-package-catalog
+    to: REQ-020
+    created_at: 2026-09-21T15:27:42.843Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b824540cdf12
+  - type: covered_by
+    from: SYM-package-catalog
+    to: TEST-014
+    created_at: 2026-09-21T19:17:59.475Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d9385a7c1cf5

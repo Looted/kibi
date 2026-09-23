@@ -171,3 +171,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0dc68f371109
+  - type: covered_by
+    from: SYM-cap-plugin-formatmethodsymbolname-45e1d25a
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:44:07.376Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4157e5228640

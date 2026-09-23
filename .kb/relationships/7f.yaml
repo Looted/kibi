@@ -167,3 +167,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-613dc411779e
+  - type: implements
+    from: SYM-HeldOutEvidenceError-name
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:35:50.659Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b52f07d4e723

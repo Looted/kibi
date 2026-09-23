@@ -74,13 +74,17 @@ old_ref=$1
 new_ref=$2
 branch_flag=$3
 
+# File checkouts never refresh the KB; skip binary resolution so sandboxed
+# test workspaces without an installed kibi CLI can restore tracked files.
+if [ "$branch_flag" != "1" ]; then
+  exit 0
+fi
+
 ${KIBI_BIN_RESOLVER}
 
-if [ "$branch_flag" = "1" ]; then
-  # Branch stores are derived from the checked-out tracked sources. Never copy
-  # the old branch's compiled store during checkout.
-  "$KIBI_BIN" sync
-fi
+# Branch stores are derived from the checked-out tracked sources. Never copy
+# the old branch's compiled store during checkout.
+"$KIBI_BIN" sync
 `;
 
 const POST_MERGE_HOOK = `#!/bin/sh

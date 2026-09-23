@@ -13,18 +13,20 @@ function runGit(workspaceRoot: string, args: readonly string[]): void {
   });
 }
 
-function withTempWorkspace(run: (workspaceRoot: string) => void): void {
+async function withTempWorkspace(
+  run: (workspaceRoot: string) => void | Promise<void>,
+): Promise<void> {
   const workspaceRoot = mkdtempSync(join(tmpdir(), "kibi-impact-analyzer-"));
   try {
-    run(workspaceRoot);
+    await run(workspaceRoot);
   } finally {
     rmSync(workspaceRoot, { recursive: true, force: true });
   }
 }
 
 describe("analyzeChangedFileImpact", () => {
-  it("summarizes explicit source-file impact without diagnostics when requested", () => {
-    withTempWorkspace((workspaceRoot) => {
+  it("summarizes explicit source-file impact without diagnostics when requested", async () => {
+    await withTempWorkspace(async (workspaceRoot) => {
       mkdirSync(join(workspaceRoot, "src"), { recursive: true });
       const sourcePath = join(workspaceRoot, "src", "upload.ts");
       writeFileSync(
@@ -38,7 +40,7 @@ describe("analyzeChangedFileImpact", () => {
         ].join("\n"),
       );
 
-      const result = analyzeChangedFileImpact({
+      const result = await analyzeChangedFileImpact({
         workspaceRoot,
         sourceFiles: [sourcePath],
         includeImpactDiagnostics: false,
@@ -58,8 +60,8 @@ describe("analyzeChangedFileImpact", () => {
     });
   });
 
-  it("caps generated impact diagnostics when maxDiagnostics is non-negative", () => {
-    withTempWorkspace((workspaceRoot) => {
+  it("caps generated impact diagnostics when maxDiagnostics is non-negative", async () => {
+    await withTempWorkspace(async (workspaceRoot) => {
       mkdirSync(join(workspaceRoot, "src"), { recursive: true });
       const sourcePath = join(workspaceRoot, "src", "upload.ts");
       writeFileSync(
@@ -73,7 +75,7 @@ describe("analyzeChangedFileImpact", () => {
         ].join("\n"),
       );
 
-      const result = analyzeChangedFileImpact({
+      const result = await analyzeChangedFileImpact({
         workspaceRoot,
         sourceFiles: [sourcePath],
         maxDiagnostics: 0,
@@ -84,8 +86,8 @@ describe("analyzeChangedFileImpact", () => {
     });
   });
 
-  it("includes active manifest results for changed source files", () => {
-    withTempWorkspace((workspaceRoot) => {
+  it("includes active manifest results for changed source files", async () => {
+    await withTempWorkspace(async (workspaceRoot) => {
       mkdirSync(join(workspaceRoot, ".kb"), { recursive: true });
       mkdirSync(join(workspaceRoot, "src"), { recursive: true });
       const sourcePath = join(workspaceRoot, "src", "upload.ts");
@@ -114,7 +116,7 @@ describe("analyzeChangedFileImpact", () => {
         ),
       );
 
-      const result = analyzeChangedFileImpact({
+      const result = await analyzeChangedFileImpact({
         workspaceRoot,
         sourceFiles: [sourcePath],
         includeImpactDiagnostics: false,
@@ -131,8 +133,8 @@ describe("analyzeChangedFileImpact", () => {
     });
   });
 
-  it("does not report a coarse manifest symbol when a working-tree sibling changes", () => {
-    withTempWorkspace((workspaceRoot) => {
+  it("does not report a coarse manifest symbol when a working-tree sibling changes", async () => {
+    await withTempWorkspace(async (workspaceRoot) => {
       // Given
       mkdirSync(join(workspaceRoot, ".kb"), { recursive: true });
       mkdirSync(join(workspaceRoot, "src"), { recursive: true });
@@ -188,7 +190,7 @@ describe("analyzeChangedFileImpact", () => {
       );
 
       // When
-      const result = analyzeChangedFileImpact({
+      const result = await analyzeChangedFileImpact({
         workspaceRoot,
         sourceFiles: [sourcePath],
         includeWorkingTreeDiff: true,

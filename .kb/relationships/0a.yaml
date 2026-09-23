@@ -195,3 +195,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a9e9a638b55c
+  - type: implements
+    from: SYM-cap-plugin-composeontologymatches-67448599
+    to: REQ-capability-plugin-three-capabilities-v1
+    created_at: 2026-09-22T19:34:22.988Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f4a719f2fc0
+  - type: covered_by
+    from: SYM-cap-plugin-composeontologymatches-67448599
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:34:22.994Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-824c94bb1dbe
+  - type: implements
+    from: SYM-cap-plugin-capabilityregistry-resolveontologypacks-db050406
+    to: REQ-capability-plugin-three-capabilities-v1
+    created_at: 2026-09-22T19:39:33.877Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04351019c593
+  - type: covered_by
+    from: SYM-cap-plugin-capabilityregistry-resolveontologypacks-db050406
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:39:33.882Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e68938071e0

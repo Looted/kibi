@@ -234,3 +234,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-363bbbb80097
+  - type: executable_for
+    from: SYM-e2e-vscode-extension-lifecycle
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T17:46:44.200Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-128cb88a66e9

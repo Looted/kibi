@@ -164,3 +164,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aa5d557e2a34
+  - type: implements
+    from: SYM-HeldOutEvidenceBinding
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:35:41.427Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b409f2bea394
+  - type: implements
+    from: SYM-skillopt-fake-provider-execute-with-crash
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:41:10.559Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7615894ab71

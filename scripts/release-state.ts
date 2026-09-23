@@ -65,15 +65,8 @@ export interface ReleaseContext {
 // --- Constants --------------------------------------------------------------
 
 /** Canonical publishable package directories */
-export const PUBLISHABLE_DIRS = [
-  "core",
-  "runtime",
-  "cli",
-  "mcp",
-  "opencode",
-  "codex",
-  "cursor",
-] as const; // implements REQ-020
+import { PUBLISHABLE_DIRS } from "./package-catalog";
+export { PUBLISHABLE_DIRS };
 
 // --- Implementation ---------------------------------------------------------
 

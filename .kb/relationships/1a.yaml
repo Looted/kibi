@@ -202,3 +202,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-80165208ea70
+  - type: validates
+    from: TEST-e2e-vscode-extension-lifecycle
+    to: SCEN-vscode-kb-to-source
+    created_at: 2026-09-19T17:45:34.543Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2b7b3c1b074
+  - type: validates
+    from: TEST-e2e-vscode-extension-lifecycle
+    to: SCEN-vscode-sidebar-kb-tree
+    created_at: 2026-09-19T17:45:34.667Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c2e80e8c808
+  - type: validates
+    from: TEST-e2e-vscode-extension-lifecycle
+    to: SCEN-vscode-source-to-kb
+    created_at: 2026-09-19T17:45:34.788Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-634e790b948b
+  - type: validates
+    from: TEST-e2e-vscode-extension-lifecycle
+    to: SCEN-vscode-traceability-coverage
+    created_at: 2026-09-19T17:45:34.839Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71f6c6eaf907
+  - type: covered_by
+    from: SYM-sync-agent-skills-locked
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-09-19T19:26:40.120Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2f7a38f93979
+  - type: covered_by
+    from: SYM-resetWorkspaceFsDepsForTests
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T19:32:58.838Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-37127fa9f92b
+  - type: covered_by
+    from: SYM-cap-plugin-validatepermissions-aa84267e
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:47:34.751Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b4bf9391752d

@@ -34,3 +34,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bf0ee4247b74
+  - type: implements
+    from: SYM-run-unit-coverage-selectedShards
+    to: REQ-014
+    created_at: 2026-09-19T23:24:32.712Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-477880d37c29
+  - type: covered_by
+    from: SYM-run-unit-coverage-selectedShards
+    to: TEST-e2e-coverage-pipeline
+    created_at: 2026-09-20T06:00:20.474Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9f0778c53ad
+  - type: implements
+    from: SYM-package-catalog-tarball-clean-dirs
+    to: REQ-020
+    created_at: 2026-09-21T15:28:54.699Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6608e75b2d28
+  - type: covered_by
+    from: SYM-package-catalog-tarball-clean-dirs
+    to: TEST-014
+    created_at: 2026-09-21T19:34:28.276Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3dbeb780dfaf
+  - type: implements
+    from: SYM-cap-plugin-analyzesemanticadvisorinputwithplugins-a97f0adf
+    to: REQ-capability-plugin-observable-behavior-v1
+    created_at: 2026-09-22T09:33:39.979Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a463132fbc0
+  - type: covered_by
+    from: SYM-cap-plugin-analyzesemanticadvisorinputwithplugins-a97f0adf
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T09:33:39.991Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b58ccc92855c
+  - type: implements
+    from: SYM-cap-plugin-compareeligiblebyapplicabilitythenname-ddb324b4
+    to: REQ-mcp-suggest-predicates
+    created_at: 2026-09-22T19:33:52.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52a07a30ad56
+  - type: covered_by
+    from: SYM-cap-plugin-compareeligiblebyapplicabilitythenname-ddb324b4
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-22T19:33:52.412Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-022dc8cde3e8
+  - type: implements
+    from: SYM-cap-plugin-composeontologycatalog-ebc62146
+    to: REQ-capability-plugin-three-capabilities-v1
+    created_at: 2026-09-22T19:34:18.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5063397875d9
+  - type: covered_by
+    from: SYM-cap-plugin-composeontologycatalog-ebc62146
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:34:18.150Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-744f44b3a082

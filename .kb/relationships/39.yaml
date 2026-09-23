@@ -83,3 +83,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3423f1065a63
+  - type: implements
+    from: SYM-skillopt-parse-final-verdict-receipt
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:42:10.092Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1aabe4255bc3

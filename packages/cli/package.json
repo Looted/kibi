@@ -48,6 +48,10 @@
       "types": "./dist/runtime/cli-runtime.d.ts",
       "default": "./dist/runtime/cli-runtime.js"
     },
+    "./plugins": {
+      "types": "./dist/plugins/index.d.ts",
+      "default": "./dist/plugins/index.js"
+    },
     "./operations/node-ports": {
       "types": "./dist/public/operations/node-ports.d.ts",
       "default": "./dist/public/operations/node-ports.js"
@@ -220,14 +224,16 @@
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
     "kibi-core": "^0.12.0",
+    "kibi-plugin-builtin": "^0.1.0",
+    "kibi-plugin-sdk": "^0.1.0",
     "saxes": "^6.0.0",
-    "ts-morph": "^23.0.0",
     "ignore": "^5.3.0",
     "yaml": "^2.9.0"
   },
   "devDependencies": {
     "@types/node": "latest",
     "semver": "^7.7.4",
+    "ts-morph": "^23.0.0",
     "typescript": "^5.7.0"
   },
   "license": "AGPL-3.0-or-later",

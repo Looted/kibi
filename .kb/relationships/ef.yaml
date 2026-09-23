@@ -83,3 +83,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b85c7bc0a27e
+  - type: covered_by
+    from: SYM-ArtifactPath-close
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-09-19T19:22:13.573Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-885bb4a01b03
+  - type: covered_by
+    from: SYM-cap-plugin-capabilityregistrycache-set-024b556e
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:40:07.239Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6ca460f9785b
+  - type: covered_by
+    from: SYM-cap-plugin-packagejsonforresolvedfile-d1622c4c
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:40:48.222Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-419c50f32d66

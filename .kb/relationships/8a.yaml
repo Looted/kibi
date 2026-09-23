@@ -125,3 +125,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-00fd28174377
+  - type: specified_by
+    from: REQ-capability-plugin-three-capabilities-v1
+    to: SCEN-capability-plugin-host-resolution-v1
+    created_at: 2026-09-20T08:21:01.024Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-407ba2e3515f
+  - type: requires_predicate
+    from: REQ-capability-plugin-three-capabilities-v1
+    to: FACT-PRED-E54FC8EDF7AB
+    created_at: 2026-09-22T19:13:42.017Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a10db9e81a58
+  - type: requires_predicate
+    from: REQ-capability-plugin-three-capabilities-v1
+    to: FACT-PRED-20836C7ECF57
+    created_at: 2026-09-22T19:13:42.023Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2dd562a9f33d
+  - type: requires_predicate
+    from: REQ-capability-plugin-three-capabilities-v1
+    to: FACT-PRED-5407B00B552E
+    created_at: 2026-09-22T19:13:42.053Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b3c0f7ed0f6
+  - type: requires_predicate
+    from: REQ-capability-plugin-three-capabilities-v1
+    to: FACT-PRED-F309BE3590E3
+    created_at: 2026-09-22T19:13:42.060Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3fe0d0957556

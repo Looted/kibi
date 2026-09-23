@@ -153,3 +153,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4251d388053f
+  - type: covered_by
+    from: SYM-cap-plugin-builtinontologypack-match-b2da9f96
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:42:03.690Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-807282fd0ec3
+  - type: covered_by
+    from: SYM-cap-plugin-iscapabilityid-2e16a4ad
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:47:25.657Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e8dc488fff9c

@@ -195,3 +195,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-561307813595
+  - type: covered_by
+    from: SYM-quality-maintenance-proofMigrateLegacyCommand
+    to: TEST-e2e-proof-maintenance-ops
+    created_at: 2026-09-19T19:21:44.767Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb403e7352ee
+  - type: covered_by
+    from: SYM-canonical-KibiTreeDataProvider-getTreeItem
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T19:31:51.522Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e1252eaed9d
+  - type: implements
+    from: SYM-cap-plugin-compareeligiblebyapplicabilityscorethenname-23b39448
+    to: REQ-mcp-suggest-predicates
+    created_at: 2026-09-22T19:33:58.370Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cccd3ce1f68b
+  - type: covered_by
+    from: SYM-cap-plugin-compareeligiblebyapplicabilityscorethenname-23b39448
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-22T19:33:58.377Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-229f681b41e6
+  - type: covered_by
+    from: SYM-cap-plugin-builtin-predicate-confidence-685e50a6
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:42:45.223Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e4d16b65888f
+  - type: covered_by
+    from: SYM-cap-plugin-sourcesymbolanalysis-e01e97dc
+    to: TEST-capability-plugin-protocol-v1
+    created_at: 2026-09-22T19:46:02.386Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-462ceef164fc
