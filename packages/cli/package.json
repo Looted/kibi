@@ -213,6 +213,10 @@
       "types": "./dist/public/ignore-policy.d.ts",
       "import": "./dist/public/ignore-policy.js",
       "default": "./dist/public/ignore-policy.js"
+    },
+    "./env-bootstrap": {
+      "types": "./dist/env/bootstrap.d.ts",
+      "default": "./dist/env/bootstrap.js"
     }
   },
   "types": "./dist/cli.d.ts",

@@ -224,5 +224,32 @@ relationships:
         created_by: kibi/upsert,
         source: mcp://kibi/upsert,
         id: rel-faa2b247b499
+      },
+    {
+        type: implements,
+        from: SYM-mcp-resolve-env-file-path,
+        to: REQ-kibi-env-bootstrap,
+        created_at: 2026-09-23T11:20:20.530Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-a0d46d13662d
+      },
+    {
+        type: covered_by,
+        from: SYM-mcp-resolve-env-file-path,
+        to: TEST-cli-env-bootstrap,
+        created_at: 2026-09-23T11:20:20.551Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-d0a790d76862
+      },
+    {
+        type: covered_by,
+        from: SYM-mcp-resolve-env-file-path,
+        to: TEST-e2e-kibi-env-bootstrap,
+        created_at: 2026-09-23T15:05:00.089Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-4357cc3cd3d9
       }
   ]

@@ -132,6 +132,7 @@ describe("kibi init", () => {
     expect(content).toContain(".kb/briefs/");
     expect(content).toContain(".kb/migrations/");
     expect(content).toContain(".kb/usage.log");
+    expect(content).toContain(".env.kibi");
     expect(content).not.toMatch(/^\.kb\/$/m);
   }, 120000);
 

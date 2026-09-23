@@ -1,8 +1,16 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import {
+  SEMANTIC_CLASSIFIER_CAPABILITY_ID,
+  defineKibiPlugin,
+} from "kibi-plugin-sdk";
 import { executeOperation } from "../src/cli-protocol.js";
 import type { CliContext } from "../src/cli-protocol.js";
+import {
+  createCapabilityRegistry,
+  createStubBuiltinPlugin,
+} from "../src/plugins/index.js";
 
-function createContext(): CliContext {
+function createContext(overrides: Partial<CliContext> = {}): CliContext {
   return {
     workspaceRoot: process.cwd(),
     signal: new AbortController().signal,
@@ -33,7 +41,59 @@ function createContext(): CliContext {
         fileCount: 12,
       }),
     },
+    ...overrides,
   };
+}
+
+function createConfiguredPluginRegistry() {
+  return createCapabilityRegistry({
+    workspaceRoot: process.cwd(),
+    builtinFactory: () => createStubBuiltinPlugin(),
+    projectConfig: {
+      plugins: [
+        {
+          package: "example-capability-plugin",
+          capabilities: {
+            [SEMANTIC_CLASSIFIER_CAPABILITY_ID]: { mode: "augment" },
+          },
+        },
+      ],
+    },
+    loadPlugin: async (_root, packageName) => ({
+      packageName,
+      plugin: defineKibiPlugin({
+        apiVersion: "kibi.plugin.v1",
+        id: packageName,
+        version: "1.2.3",
+        permissions: {
+          network: false,
+          metered: false,
+          secrets: [],
+        },
+        capabilities: {
+          semanticClassifier: {
+            id: `${packageName}.classifier`,
+            model: "example-model",
+            classify: (input) => ({
+              decisions: input.propositions.map((proposition) => ({
+                claimKey: proposition.claimKey,
+                lane: "observation_review" as const,
+                confidence: 0.4,
+              })),
+            }),
+          },
+        },
+      }),
+      resolved: {
+        packageName,
+        packageRoot: `/tmp/${packageName}`,
+        packageJsonPath: `/tmp/${packageName}/package.json`,
+        packageJson: { name: packageName, version: "1.2.3" },
+        entryPath: `/tmp/${packageName}/index.js`,
+        entryUrl: `file:///tmp/${packageName}/index.js`,
+      },
+    }),
+  });
 }
 
 describe("executeOperation", () => {
@@ -120,5 +180,42 @@ describe("executeOperation", () => {
     // Then
     expect(result.exitCode).toBe(2);
     expect(result.stderr).toContain("_skipContradictionCheck");
+  });
+
+  // executable_for TEST-capability-plugin-host-resolution-v1
+  test("accepts plugin-bearing semantic-advisor envelopes under the output contract", async () => {
+    const registry = createConfiguredPluginRegistry();
+    const result = await executeOperation(
+      "kb_semantic_advisor",
+      {
+        text: "Customer data must be retained for 7 years.",
+        type: "req",
+        id: "REQ-PROTOCOL-PLUGINS",
+      },
+      createContext({
+        ensurePlugins: async () => registry,
+      }),
+    );
+
+    expect(result.exitCode, result.stderr).toBe(0);
+    const envelope = JSON.parse(result.stdout ?? "");
+    expect(envelope).toMatchObject({
+      kibiProtocol: 1,
+      operation: "kb_semantic_advisor",
+      status: "success",
+      data: {
+        receipt: expect.any(Object),
+        warnings: expect.any(Array),
+        capabilityPlugins: {
+          stamps: expect.arrayContaining([
+            expect.objectContaining({
+              pluginId: "example-capability-plugin",
+              capability: SEMANTIC_CLASSIFIER_CAPABILITY_ID,
+              mode: "augment",
+            }),
+          ]),
+        },
+      },
+    });
   });
 });

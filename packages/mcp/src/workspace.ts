@@ -13,38 +13,19 @@
  GNU Affero General Public License for more details.
 
  You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ along with this program. If not, see <https://www.gnu.org/licenses/>.
 */
-import fs from "node:fs";
 import path from "node:path";
-import { branchStorePath } from "kibi-runtime";
-
-const WORKSPACE_ENV_KEYS = [
-  "KIBI_WORKSPACE",
-  "KIBI_PROJECT_ROOT",
-  "KIBI_ROOT",
-] as const;
+import { branchStorePath, resolveKibiWorkspaceRoot } from "kibi-runtime";
 
 const KB_PATH_ENV_KEYS = ["KIBI_KB_PATH", "KB_PATH"] as const;
 
-// implements REQ-002, REQ-012
+/**
+ * Canonical workspace root — delegates to shared resolveKibiWorkspaceRoot.
+ */
+// implements REQ-002, REQ-012, REQ-kibi-env-bootstrap
 export function resolveWorkspaceRoot(startDir: string = process.cwd()): string {
-  const envRoot = readFirstEnv(WORKSPACE_ENV_KEYS);
-  if (envRoot) {
-    return path.resolve(envRoot);
-  }
-
-  const kbRoot = findUpwards(startDir, ".kb");
-  if (kbRoot) {
-    return kbRoot;
-  }
-
-  const gitRoot = findUpwards(startDir, ".git");
-  if (gitRoot) {
-    return gitRoot;
-  }
-
-  return path.resolve(startDir);
+  return resolveKibiWorkspaceRoot(startDir);
 }
 
 // implements REQ-002, REQ-012
@@ -85,18 +66,6 @@ function readFirstEnv(keys: readonly string[]): string | null {
 export function nextAncestorDirectory(current: string): string | undefined {
   const parent = path.dirname(current);
   return parent === current ? undefined : parent;
-}
-
-function findUpwards(startDir: string, marker: string): string | null {
-  let current: string | undefined = path.resolve(startDir);
-  while (current !== undefined) {
-    const candidate = path.join(current, marker);
-    if (fs.existsSync(candidate)) {
-      return current;
-    }
-    current = nextAncestorDirectory(current);
-  }
-  return null;
 }
 
 function isBranchPath(p: string): boolean {

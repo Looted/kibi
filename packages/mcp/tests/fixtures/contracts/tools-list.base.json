@@ -2022,6 +2022,10 @@
           "data": {
             "additionalProperties": false,
             "properties": {
+              "capabilityPlugins": {
+                "additionalProperties": true,
+                "type": "object"
+              },
               "receipt": {
                 "additionalProperties": true,
                 "type": "object"
@@ -4885,6 +4889,10 @@
           "data": {
             "additionalProperties": false,
             "properties": {
+              "capabilityPlugins": {
+                "additionalProperties": true,
+                "type": "object"
+              },
               "contradictionAnalysis": {
                 "additionalProperties": true,
                 "type": "object"

@@ -78,6 +78,7 @@ reports/mutation/
 .artifacts/
 artifacts/skillopt/
 .env
+.env.kibi
 .omo
 .zcode/
 .slim/deepwork/
