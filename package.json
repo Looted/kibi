@@ -8,6 +8,16 @@
   "license": "AGPL-3.0-or-later",
   "author": "Piotr Franczyk",
   "workspaces": ["packages/*"],
+  "kibi": {
+    "plugins": [
+      {
+        "package": "kibi-plugin-jev",
+        "capabilities": {
+          "kibi.semantic-classifier.v1": { "mode": "replace" }
+        }
+      }
+    ]
+  },
   "scripts": {
     "test": "bun run test:unit && bun run test:e2e:local",
     "test:unit": "bun ./test/root.test.ts",
@@ -101,6 +111,7 @@
     "canonicalize": "^3.0.0",
     "kibi-cli": "workspace:*",
     "kibi-mcp": "workspace:*",
+    "kibi-plugin-jev": "workspace:*",
     "mitata": "^1.0.34",
     "semver": "^7.8.5",
     "typescript": "^5.9.3",
