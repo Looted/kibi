@@ -1049,7 +1049,20 @@ export class EngineClient {
     command: EngineCommandV1,
     signal?: AbortSignal,
   ): Promise<T> {
-    return this.request<T>({ method: "command", command }, signal);
+    // Share the client-side requestTail with query(): command frames (status,
+    // entities, search, …) must not race query frames on the same socket or
+    // response ids can be mismatched under concurrent MCP session traffic.
+    const previous = this.requestTail;
+    let release!: () => void;
+    this.requestTail = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await previous;
+    try {
+      return await this.request<T>({ method: "command", command }, signal);
+    } finally {
+      release();
+    }
   }
 
   async queryBatch(goals: readonly string[]): Promise<PrologQueryResult> {
@@ -1146,7 +1159,17 @@ export class EngineClient {
   }
 
   async storageStatus(): Promise<PrologQueryResult> {
-    return this.request<PrologQueryResult>({ method: "status" });
+    const previous = this.requestTail;
+    let release!: () => void;
+    this.requestTail = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await previous;
+    try {
+      return await this.request<PrologQueryResult>({ method: "status" });
+    } finally {
+      release();
+    }
   }
 
   async checkpoint(): Promise<PrologQueryResult> {
