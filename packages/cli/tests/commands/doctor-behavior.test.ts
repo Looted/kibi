@@ -5,9 +5,9 @@ import * as fs from "node:fs";
 import { mkdirSync, writeFileSync } from "node:fs";
 import * as nodeModule from "node:module";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { doctorCommand } from "../../src/commands/doctor.js";
 import { engineStopCommand } from "../../src/commands/engine.js";
+import { resetKibiEnvironmentBootstrapStateForTests } from "../../src/env/bootstrap.js";
 import {
   captureIo,
   createGitWorkspace,
@@ -43,6 +43,7 @@ const restores: Array<() => void> = [];
 afterEach(async () => {
   for (const restore of restores.splice(0)) restore();
   restoreWorkspaceCwd();
+  resetKibiEnvironmentBootstrapStateForTests();
   for (const root of roots.splice(0)) {
     try {
       await withCwd(root, () => engineStopCommand());
@@ -735,11 +736,6 @@ describe("doctorCommand runtime provenance", () => {
 });
 
 describe("doctorCommand capability plugins", () => {
-  const jevPackageRoot = path.resolve(
-    path.dirname(fileURLToPath(import.meta.url)),
-    "../../../plugin-jev",
-  );
-
   function writeJevActivation(cwd: string, declared: boolean): void {
     writeFileSync(
       path.join(cwd, "package.json"),
@@ -762,11 +758,38 @@ describe("doctorCommand capability plugins", () => {
     );
   }
 
-  function linkJev(cwd: string): void {
-    mkdirSync(path.join(cwd, "node_modules"), { recursive: true });
-    fs.symlinkSync(
-      jevPackageRoot,
-      path.join(cwd, "node_modules", "kibi-plugin-jev"),
+  function writeSideEffectPlugin(cwd: string): void {
+    const pkgDir = path.join(cwd, "node_modules", "evil-plugin");
+    mkdirSync(pkgDir, { recursive: true });
+    writeFileSync(
+      path.join(pkgDir, "package.json"),
+      JSON.stringify({
+        name: "evil-plugin",
+        type: "module",
+        main: "index.js",
+        kibiPlugin: { id: "evil", capabilities: {} },
+      }),
+    );
+    writeFileSync(
+      path.join(pkgDir, "index.js"),
+      'throw new Error("doctor must not import plugins");\n',
+    );
+    writeFileSync(
+      path.join(cwd, "package.json"),
+      JSON.stringify({
+        name: "consumer",
+        dependencies: { "evil-plugin": "0.0.0" },
+        kibi: {
+          plugins: [
+            {
+              package: "evil-plugin",
+              capabilities: {
+                "kibi.semantic-classifier.v1": { mode: "replace" },
+              },
+            },
+          ],
+        },
+      }),
     );
   }
 
@@ -781,8 +804,8 @@ describe("doctorCommand capability plugins", () => {
 
   test("reports activation, secret source, and Jev config when key is in process", async () => {
     const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
     writeJevActivation(cwd, true);
-    linkJev(cwd);
     const restoreKey = clearTypesafeKey();
     restores.push(restoreKey);
     process.env.TYPESAFE_API_KEY = "test-key-not-for-leak-check";
@@ -801,8 +824,8 @@ describe("doctorCommand capability plugins", () => {
 
   test("fails when activated Jev secret is missing, with remediation", async () => {
     const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
     writeJevActivation(cwd, true);
-    linkJev(cwd);
     restores.push(clearTypesafeKey());
     mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
     const { payload, exitCode } = await runDoctorJson(cwd);
@@ -819,8 +842,8 @@ describe("doctorCommand capability plugins", () => {
 
   test("passes with project_env source from .env.kibi", async () => {
     const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
     writeJevActivation(cwd, true);
-    linkJev(cwd);
     restores.push(clearTypesafeKey());
     writeFileSync(path.join(cwd, ".env.kibi"), "TYPESAFE_API_KEY=from-project-file\n");
     mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
@@ -831,10 +854,27 @@ describe("doctorCommand capability plugins", () => {
     expect(JSON.stringify(payload)).not.toContain("from-project-file");
   });
 
+  test("process wins over project file for doctor attribution", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    writeJevActivation(cwd, true);
+    const restoreKey = clearTypesafeKey();
+    restores.push(restoreKey);
+    process.env.TYPESAFE_API_KEY = "process-wins";
+    writeFileSync(path.join(cwd, ".env.kibi"), "TYPESAFE_API_KEY=from-project-file\n");
+    mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
+    const { payload } = await runDoctorJson(cwd);
+    const check = namedCheck(payload, "Capability plugins");
+    expect(check.passed).toBe(true);
+    expect(check.message).toContain("TYPESAFE_API_KEY=process");
+    expect(JSON.stringify(payload)).not.toContain("process-wins");
+    expect(JSON.stringify(payload)).not.toContain("from-project-file");
+  });
+
   test("passes with user_env source from XDG config", async () => {
     const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
     writeJevActivation(cwd, true);
-    linkJev(cwd);
     restores.push(clearTypesafeKey());
     const xdg = createTempDir();
     roots.push(xdg);
@@ -854,8 +894,67 @@ describe("doctorCommand capability plugins", () => {
     expect(JSON.stringify(payload)).not.toContain("from-user-file");
   });
 
+  test("reports legacy_env with migration remediation", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    writeJevActivation(cwd, true);
+    restores.push(clearTypesafeKey());
+    writeFileSync(path.join(cwd, ".env"), "TYPESAFE_API_KEY=from-legacy\n");
+    mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
+    const { payload } = await runDoctorJson(cwd);
+    const check = namedCheck(payload, "Capability plugins");
+    expect(check.passed).toBe(true);
+    expect(check.message).toContain("TYPESAFE_API_KEY=legacy_env");
+    expect(check.remediation).toMatch(/Migrate TYPESAFE_API_KEY from legacy/);
+    expect(JSON.stringify(payload)).not.toContain("from-legacy");
+  });
+
+  test("uses KIBI_WORKSPACE package.json, not harness cwd", async () => {
+    const workspace = preparedWorkspace();
+    writeOkManifest(workspace);
+    writeJevActivation(workspace, true);
+    restores.push(clearTypesafeKey());
+    writeFileSync(
+      path.join(workspace, ".env.kibi"),
+      "TYPESAFE_API_KEY=from-workspace\n",
+    );
+    const harness = createTempDir();
+    roots.push(harness);
+    writeFileSync(
+      path.join(harness, "package.json"),
+      JSON.stringify({ name: "harness-only" }),
+    );
+    const previousWs = process.env.KIBI_WORKSPACE;
+    process.env.KIBI_WORKSPACE = workspace;
+    restores.push(() => {
+      if (previousWs === undefined) Reflect.deleteProperty(process.env, "KIBI_WORKSPACE");
+      else process.env.KIBI_WORKSPACE = previousWs;
+    });
+    mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
+    const { payload } = await runDoctorJson(harness);
+    const check = namedCheck(payload, "Capability plugins");
+    expect(check.passed).toBe(true);
+    expect(check.message).toContain("kibi-plugin-jev");
+    expect(check.message).toContain("TYPESAFE_API_KEY=project_env");
+  });
+
+  test("does not import third-party plugin packages", async () => {
+    const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
+    writeSideEffectPlugin(cwd);
+    mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
+    const { payload, exitCode } = await runDoctorJson(cwd);
+    expect(exitCode).toBe(0);
+    expect(namedCheck(payload, "Capability plugins")).toMatchObject({
+      passed: true,
+      message:
+        "evil-plugin kibi.semantic-classifier.v1 replace declared=yes",
+    });
+  });
+
   test("fails when a configured plugin is not a declared dependency", async () => {
     const cwd = preparedWorkspace();
+    writeOkManifest(cwd);
     writeJevActivation(cwd, false);
     mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
     const { payload } = await runDoctorJson(cwd);

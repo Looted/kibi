@@ -146,7 +146,7 @@ shadow — provider runs for comparison but cannot affect canonical output
 
 Removing the `kibi.plugins` entry disables the plugin. Restart long-running MCP or host processes after plugin configuration changes. Activating a third-party package grants that package code-execution trust. `permissions` metadata is disclosure, not sandbox enforcement.
 
-`kibi doctor` lists configured packages, capabilities, modes, dependency declaration, secret source labels (`process` / `project_env` / `user_env` / `missing`) without values, and for Jev the effective model and timeout. It fails when a declared plugin secret is missing. Deeper authoring rules live in [plugin-development.md](./plugin-development.md).
+`kibi doctor` lists configured packages, capabilities, modes, and dependency declaration without importing plugin packages. For first-party Jev it also reports secret source labels (`process` / `project_env` / `user_env` / `legacy_env` / `missing`) without values, plus effective model and timeout from env. It fails when a known first-party plugin secret is missing. Legacy `.env` sources get a migration hint. Deeper authoring rules live in [plugin-development.md](./plugin-development.md).
 
 ### First-run lifecycle
 

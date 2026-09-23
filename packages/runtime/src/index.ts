@@ -263,13 +263,16 @@ export type {
 
 export {
   bootstrapKibiEnvironment,
+  getLastBootstrapResult,
   inspectSecretSource,
   isSecretAvailable,
   parseEnvContent,
+  resetKibiEnvironmentBootstrapStateForTests,
   resolveEnvFilePath,
   resolveKibiProjectEnvPath,
   resolveKibiUserEnvPath,
   resolveKibiWorkspaceRoot,
+  secretSourceFromBootstrap,
   KIBI_LEGACY_ENV_FILE,
   KIBI_PROJECT_ENV_FILE,
 } from "kibi-cli/env-bootstrap";

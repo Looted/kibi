@@ -1,4 +1,4 @@
-// implements REQ-002
+// implements REQ-kibi-env-bootstrap
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import fs from "node:fs";
 import os from "node:os";
@@ -7,8 +7,10 @@ import {
   bootstrapKibiEnvironment,
   inspectSecretSource,
   parseEnvContent,
+  resetKibiEnvironmentBootstrapStateForTests,
   resolveKibiUserEnvPath,
   resolveKibiWorkspaceRoot,
+  secretSourceFromBootstrap,
 } from "../../src/env/bootstrap.js";
 
 const originalCwd = process.cwd();
@@ -23,6 +25,7 @@ function trackEnv(key: string, value: string | undefined): void {
 }
 
 beforeEach(() => {
+  resetKibiEnvironmentBootstrapStateForTests();
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-env-boot-"));
   userConfigRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-env-user-"));
   fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
@@ -39,6 +42,7 @@ beforeEach(() => {
     "BOOT_PROJECT",
     "BOOT_LEGACY",
     "BOOT_BOTH",
+    "BOOT_BLANK",
     "SECRET_KEY",
   ]) {
     trackEnv(key, undefined);
@@ -51,6 +55,7 @@ afterEach(() => {
     Reflect.deleteProperty(process.env, key);
   }
   touchedKeys.clear();
+  resetKibiEnvironmentBootstrapStateForTests();
   fs.rmSync(tmpDir, { recursive: true, force: true });
   fs.rmSync(userConfigRoot, { recursive: true, force: true });
 });
@@ -97,7 +102,52 @@ describe("bootstrapKibiEnvironment precedence", () => {
     expect(result.sources.BOOT_USER).toBe("user_env");
     expect(result.sources.BOOT_PROJECT).toBe("project_env");
     expect(result.sources.BOOT_BOTH).toBe("project_env");
+    expect(result.sources.BOOT_LEGACY).toBe("legacy_env");
     expect(result.keysLoadedFromLegacy).toContain("BOOT_LEGACY");
+  });
+
+  test("re-entry keeps process attribution when project file also defines the key", () => {
+    trackEnv("BOOT_PROCESS", "from-process");
+    fs.writeFileSync(
+      path.join(tmpDir, ".env.kibi"),
+      "BOOT_PROCESS=from-project\n",
+    );
+    const first = bootstrapKibiEnvironment({
+      startDir: tmpDir,
+      xdgConfigHome: userConfigRoot,
+    });
+    expect(first.sources.BOOT_PROCESS).toBe("process");
+    expect(process.env.BOOT_PROCESS).toBe("from-process");
+
+    const second = bootstrapKibiEnvironment({
+      startDir: tmpDir,
+      xdgConfigHome: userConfigRoot,
+    });
+    expect(second.sources.BOOT_PROCESS).toBe("process");
+    expect(process.env.BOOT_PROCESS).toBe("from-process");
+    expect(secretSourceFromBootstrap("BOOT_PROCESS", second)).toBe("process");
+  });
+
+  test("blank project value does not overwrite user value", () => {
+    writeUserEnv("BOOT_BLANK=user-value\n");
+    fs.writeFileSync(path.join(tmpDir, ".env.kibi"), "BOOT_BLANK=\n");
+    const result = bootstrapKibiEnvironment({
+      startDir: tmpDir,
+      xdgConfigHome: userConfigRoot,
+    });
+    expect(process.env.BOOT_BLANK).toBe("user-value");
+    expect(result.sources.BOOT_BLANK).toBe("user_env");
+  });
+
+  test("blank process value is unset and allows file fill", () => {
+    trackEnv("BOOT_BLANK", "   ");
+    writeUserEnv("BOOT_BLANK=from-user\n");
+    const result = bootstrapKibiEnvironment({
+      startDir: tmpDir,
+      xdgConfigHome: userConfigRoot,
+    });
+    expect(process.env.BOOT_BLANK).toBe("from-user");
+    expect(result.sources.BOOT_BLANK).toBe("user_env");
   });
 
   test("user file works alone", () => {
@@ -107,9 +157,9 @@ describe("bootstrapKibiEnvironment precedence", () => {
       xdgConfigHome: userConfigRoot,
     });
     expect(process.env.BOOT_USER).toBe("only-user");
-    expect(inspectSecretSource("BOOT_USER", { xdgConfigHome: userConfigRoot })).toBe(
-      "user_env",
-    );
+    expect(
+      inspectSecretSource("BOOT_USER", { xdgConfigHome: userConfigRoot }),
+    ).toBe("user_env");
   });
 
   test("missing stays missing", () => {
@@ -138,18 +188,19 @@ describe("bootstrapKibiEnvironment precedence", () => {
     ).toBe("project_env");
   });
 
-  test("legacy .env fills only gaps", () => {
+  test("legacy .env fills only gaps and attributes legacy_env", () => {
     writeUserEnv("BOOT_USER=user\n");
     fs.writeFileSync(
       path.join(tmpDir, ".env"),
       "BOOT_USER=legacy-user\nBOOT_LEGACY=legacy\n",
     );
-    bootstrapKibiEnvironment({
+    const result = bootstrapKibiEnvironment({
       startDir: tmpDir,
       xdgConfigHome: userConfigRoot,
     });
     expect(process.env.BOOT_USER).toBe("user");
     expect(process.env.BOOT_LEGACY).toBe("legacy");
+    expect(result.sources.BOOT_LEGACY).toBe("legacy_env");
   });
 
   test("serialized diagnostics never contain secret values", () => {
@@ -160,9 +211,9 @@ describe("bootstrapKibiEnvironment precedence", () => {
     });
     const serialized = JSON.stringify(result);
     expect(serialized).not.toContain("super-secret-value");
-    expect(inspectSecretSource("SECRET_KEY", { xdgConfigHome: userConfigRoot })).toBe(
-      "user_env",
-    );
+    expect(
+      inspectSecretSource("SECRET_KEY", { xdgConfigHome: userConfigRoot }),
+    ).toBe("user_env");
   });
 
   test("resolveKibiWorkspaceRoot honors KIBI_WORKSPACE over cwd", () => {

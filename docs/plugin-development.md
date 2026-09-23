@@ -79,7 +79,7 @@ Rules:
 
 v1 does not add `kibi.config.ts`, generic plugin options, plugin factories, or arbitrary executable config. A later version may add a typed config file if capability-specific settings outgrow this manifest. This note does not choose that future shape.
 
-`kibi doctor` prints the parsed plugin rows (package, capability, mode, declared dependency) without importing the plugin package. A configured package that is not listed in `dependencies`, `devDependencies`, or `optionalDependencies` fails that check. Add the package to one of those fields, or remove the `kibi.plugins` entry. Editing `package.json` remains the way to enable or disable a plugin.
+`kibi doctor` prints the parsed plugin rows (package, capability, mode, declared dependency) without importing the plugin package. First-party Jev secret/model diagnostics are known statically; generic plugins do not get secret introspection until a future static manifest contract exists. A configured package that is not listed in `dependencies`, `devDependencies`, or `optionalDependencies` fails that check. Add the package to one of those fields, or remove the `kibi.plugins` entry. Editing `package.json` remains the way to enable or disable a plugin.
 
 ## Modes
 
@@ -150,6 +150,6 @@ printf '%s\n' 'TYPESAFE_API_KEY=...' >> ~/.config/kibi/env
 - On failure Kibi falls back to the builtin classifier with an advisory warning
 - `kb_model_requirement` does not invoke this classifier. External semantic classifiers run only from `kb_semantic_advisor` and `kb_compile_intent`
 - Live tests require both `KIBI_JEV_LIVE_TEST=1` and `TYPESAFE_API_KEY`
-- `kibi doctor` reports secret source labels and Jev model/timeout without leaking values
+- `kibi doctor` reports first-party Jev secret source labels and model/timeout without importing the plugin or leaking values
 
 See also [packages/plugin-jev/README.md](../packages/plugin-jev/README.md).
