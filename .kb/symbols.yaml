@@ -41041,3 +41041,23 @@ symbols:
         target: TEST-cli-env-bootstrap
       - type: implements
         target: REQ-kibi-env-bootstrap
+  - id: SYM-cli-contracts-nullable-json-schema
+    title: nullableJsonSchema
+    status: active
+    sourceFile: packages/cli/src/public/operations/contracts.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-protocol-capability-plugins
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-cli-contracts-assert-unique-effect-kinds
+    title: assertUniqueEffectKinds
+    status: active
+    sourceFile: packages/cli/src/public/operations/contracts.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cli-protocol-capability-plugins
+      - type: implements
+        target: REQ-kibi-operation-interface-parity

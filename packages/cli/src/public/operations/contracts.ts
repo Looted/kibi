@@ -154,6 +154,7 @@ export const OPERATION_DATA_SCHEMAS: Readonly<
   kb_semantic_advisor: objectData({
     receipt: recordValue,
     warnings: stringArray,
+    capabilityPlugins: recordValue,
   }),
   kb_model_requirement: objectData({
     statement: stringValue,
@@ -291,6 +292,7 @@ export const OPERATION_DATA_SCHEMAS: Readonly<
     steps: valueArray,
     sourceWrites: recordArray,
     diagnostics: stringArray,
+    capabilityPlugins: recordValue,
   }),
   kb_apply_plan: objectData({
     version: stringValue,

@@ -272,3 +272,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a06f11c96b1b
+  - type: verified_by
+    from: REQ-kibi-operation-interface-parity
+    to: TEST-cli-protocol-capability-plugins
+    created_at: 2026-09-23T12:11:50.431Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-edbfb5b678e9

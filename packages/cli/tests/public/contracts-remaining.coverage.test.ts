@@ -23,6 +23,18 @@ describe("operation contracts remaining catalog and effect declarations", () => 
     expect(validate.semanticAdvisor).toMatchObject({
       type: ["object", "null"],
     });
+    const advisor = OPERATION_DATA_SCHEMAS.kb_semantic_advisor
+      .properties as Record<string, unknown>;
+    const compile = OPERATION_DATA_SCHEMAS.kb_compile_intent
+      .properties as Record<string, unknown>;
+    expect(advisor.capabilityPlugins).toEqual({
+      type: "object",
+      additionalProperties: true,
+    });
+    expect(compile.capabilityPlugins).toEqual({
+      type: "object",
+      additionalProperties: true,
+    });
     const effects = declaredEffects("kb_status", ["local-read", "kb-read"]);
     expect(effects.map((effect) => effect.kind)).toEqual([
       "local-read",

@@ -4267,6 +4267,22 @@ coordinates:
     sourceEndLine: 22
     sourceFile: packages/cli/src/cli-protocol.ts
     sourceLine: 20
+  SYM-cli-contracts-assert-unique-effect-kinds:
+    identityHash: 4c0f73be4f34b3228c96ec436e4437051536acdac4163bb6c6deae75b5c833c6
+    sourceHash: 4a25a1b8a424f75ef293faf71d261c2fd8bf6560cb2194409127a05527935f5f
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 385
+    sourceFile: packages/cli/src/public/operations/contracts.ts
+    sourceLine: 377
+  SYM-cli-contracts-nullable-json-schema:
+    identityHash: cc6f008a46deff97475e3052ede47fbd94e3cb5989fe5b28dc67a839d95d5483
+    sourceHash: 4a25a1b8a424f75ef293faf71d261c2fd8bf6560cb2194409127a05527935f5f
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 75
+    sourceFile: packages/cli/src/public/operations/contracts.ts
+    sourceLine: 67
   SYM-cli-delete-input-type:
     identityHash: bc80190195e4ea57e95c9ea429d86428d0a047fc8b6c982cfebfa3a8051cf1ca
     sourceHash: a66ecc514fe280b251cbda3a5a94d6aa77026eae8b7196ad7d64c9915f11102e
