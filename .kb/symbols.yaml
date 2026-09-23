@@ -234,6 +234,8 @@ symbols:
         target: TEST-cli-doctor-workflows
       - type: covered_by
         target: TEST-e2e-capability-plugins
+      - type: covered_by
+        target: TEST-e2e-kibi-env-bootstrap
       - type: implements
         target: REQ-agent-guided-migration-orchestration
       - type: implements
@@ -40759,6 +40761,8 @@ symbols:
         target: TEST-cli-doctor-workflows
       - type: covered_by
         target: TEST-cli-env-bootstrap
+      - type: covered_by
+        target: TEST-e2e-kibi-env-bootstrap
       - type: implements
         target: REQ-cli-doctor
       - type: implements
@@ -40813,6 +40817,8 @@ symbols:
         target: TEST-cli-doctor-workflows
       - type: covered_by
         target: TEST-cli-env-bootstrap
+      - type: covered_by
+        target: TEST-e2e-kibi-env-bootstrap
       - type: implements
         target: REQ-cli-doctor
       - type: implements
@@ -40835,6 +40841,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-doctor-workflows
+      - type: covered_by
+        target: TEST-e2e-kibi-env-bootstrap
       - type: implements
         target: REQ-cli-doctor
       - type: implements
@@ -40885,40 +40893,48 @@ symbols:
     status: active
     symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-002
+      - type: covered_by
+        target: TEST-001
       - type: covered_by
         target: TEST-cli-doctor-workflows
+      - type: implements
+        target: REQ-002
   - id: SYM-mcp-env-get-branch-override
     title: getBranchOverride
     sourceFile: packages/mcp/src/env.ts
     status: active
     symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-002
+      - type: covered_by
+        target: TEST-001
       - type: covered_by
         target: TEST-cli-doctor-workflows
+      - type: implements
+        target: REQ-002
   - id: SYM-mcp-env-get-kb-pl-path-override
     title: getKbPlPathOverride
     sourceFile: packages/mcp/src/env.ts
     status: active
     symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-002
+      - type: covered_by
+        target: TEST-001
       - type: covered_by
         target: TEST-cli-doctor-workflows
+      - type: implements
+        target: REQ-002
   - id: SYM-mcp-env-get-core-module-path-override
     title: getCoreModulePathOverride
     sourceFile: packages/mcp/src/env.ts
     status: active
     symbol_role: behavioral
     relationships:
-      - type: implements
-        target: REQ-002
+      - type: covered_by
+        target: TEST-001
       - type: covered_by
         target: TEST-cli-doctor-workflows
+      - type: implements
+        target: REQ-002
   - id: SYM-mcp-env-load-env-result
     title: LoadEnvResult
     sourceFile: packages/mcp/src/env.ts
@@ -40977,6 +40993,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-env-bootstrap
+      - type: covered_by
+        target: TEST-e2e-kibi-env-bootstrap
       - type: implements
         target: REQ-kibi-env-bootstrap
   - id: SYM-mcp-resolve-workspace-root
@@ -40989,6 +41007,8 @@ symbols:
         target: TEST-cli-doctor-env-bootstrap
       - type: covered_by
         target: TEST-cli-env-bootstrap
+      - type: covered_by
+        target: TEST-e2e-kibi-env-bootstrap
       - type: implements
         target: REQ-kibi-env-bootstrap
   - id: SYM-env-bootstrap-get-last-result
@@ -40999,6 +41019,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-env-bootstrap
+      - type: covered_by
+        target: TEST-e2e-kibi-env-bootstrap
       - type: implements
         target: REQ-kibi-env-bootstrap
   - id: SYM-env-bootstrap-reset-state-for-tests
@@ -41009,6 +41031,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-env-bootstrap
+      - type: covered_by
+        target: TEST-e2e-kibi-env-bootstrap
       - type: implements
         target: REQ-kibi-env-bootstrap
   - id: SYM-mcp-resolve-kb-path
@@ -41019,6 +41043,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-env-bootstrap
+      - type: covered_by
+        target: TEST-e2e-kibi-env-bootstrap
       - type: implements
         target: REQ-kibi-env-bootstrap
   - id: SYM-mcp-resolve-env-file-path
@@ -41029,6 +41055,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-env-bootstrap
+      - type: covered_by
+        target: TEST-e2e-kibi-env-bootstrap
       - type: implements
         target: REQ-kibi-env-bootstrap
   - id: SYM-mcp-next-ancestor-directory
@@ -41039,6 +41067,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-env-bootstrap
+      - type: covered_by
+        target: TEST-e2e-kibi-env-bootstrap
       - type: implements
         target: REQ-kibi-env-bootstrap
   - id: SYM-cli-contracts-nullable-json-schema
@@ -41049,6 +41079,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-protocol-capability-plugins
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-contracts-assert-unique-effect-kinds
@@ -41059,5 +41091,16 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-cli-protocol-capability-plugins
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-kibi-operation-interface-parity
+  - id: SYM-e2e-cli-env-bootstrap
+    title: cli-env-bootstrap.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/cli-env-bootstrap.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-kibi-env-bootstrap

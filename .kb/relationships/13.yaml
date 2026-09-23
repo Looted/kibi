@@ -139,3 +139,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bd21b15814dc
+  - type: executable_for
+    from: SYM-e2e-cli-env-bootstrap
+    to: TEST-e2e-kibi-env-bootstrap
+    created_at: 2026-09-23T15:01:33.244Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-22084c7e514e

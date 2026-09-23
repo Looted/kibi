@@ -242,5 +242,14 @@ relationships:
         created_by: kibi/upsert,
         source: mcp://kibi/upsert,
         id: rel-d0a790d76862
+      },
+    {
+        type: covered_by,
+        from: SYM-mcp-resolve-env-file-path,
+        to: TEST-e2e-kibi-env-bootstrap,
+        created_at: 2026-09-23T15:05:00.089Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-4357cc3cd3d9
       }
   ]

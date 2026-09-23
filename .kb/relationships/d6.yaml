@@ -192,3 +192,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9d7007773580
+  - type: covered_by
+    from: SYM-env-bootstrap-get-last-result
+    to: TEST-e2e-kibi-env-bootstrap
+    created_at: 2026-09-23T15:04:24.883Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-96fe78a4154b

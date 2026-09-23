@@ -188,3 +188,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4009fe882ee8
+  - type: covered_by
+    from: SYM-mcp-next-ancestor-directory
+    to: TEST-e2e-kibi-env-bootstrap
+    created_at: 2026-09-23T15:05:09.286Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6040afc723d5
