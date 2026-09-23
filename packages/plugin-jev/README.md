@@ -7,8 +7,14 @@ Optional Kibi capability plugin that uses TypeSafe Jev (`@typesafe-ai/sdk`) for
 
 ```bash
 npm install --save-dev kibi-plugin-jev
-export TYPESAFE_API_KEY=...
+mkdir -p ~/.config/kibi
+printf '%s\n' 'TYPESAFE_API_KEY=...' >> ~/.config/kibi/env
 ```
+
+Optional project override: put `TYPESAFE_API_KEY=...` in `<workspace>/.env.kibi`.
+Process environment variables always win. No Cursor/OpenCode/Codex/ZCode-specific
+secret config is required — any harness that starts `kibi` / `kibi-mcp` uses the
+same resolution. Restart long-running MCP after changing env files.
 
 Activation is explicit in the project `package.json`. Installing the package
 does not activate it, and the API key must not be stored in that file.
@@ -33,7 +39,7 @@ Removing that entry disables the plugin.
 
 | Variable | Required | Meaning |
 | --- | --- | --- |
-| `TYPESAFE_API_KEY` | yes, when a call is made | TypeSafe credential. Read only when a client is constructed for a real classification. |
+| `TYPESAFE_API_KEY` | yes, when a call is made | TypeSafe credential. Prefer `~/.config/kibi/env` or `.env.kibi`. Read only when a client is constructed for a real classification. |
 | `KIBI_JEV_MODEL` | no | Model id. Empty is unset. Default `jev-latest`. |
 | `KIBI_JEV_TIMEOUT_MS` | no | Positive integer milliseconds, at most 120000. Malformed values throw `JevProviderError` (`malformed`) before any network call. |
 
@@ -50,4 +56,5 @@ Installing the package without activation makes **zero** TypeSafe calls.
 Importing the module does not create a client. Kibi does not depend on Jev.
 When active, proposition text is sent to TypeSafe. On provider failure Kibi
 falls back to the builtin classifier. Diagnostics include the effective model
-and never the API key. The host loads the named `kibiPlugin` export.
+and never the API key. The host loads the named `kibiPlugin` export. `kibi doctor`
+reports secret source labels and Jev model/timeout without values.

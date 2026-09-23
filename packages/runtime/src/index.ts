@@ -261,6 +261,25 @@ export type {
   SourceSymbolAnalysis,
 } from "kibi-cli/extractors/symbols-coordinator";
 
+export {
+  bootstrapKibiEnvironment,
+  inspectSecretSource,
+  isSecretAvailable,
+  parseEnvContent,
+  resolveEnvFilePath,
+  resolveKibiProjectEnvPath,
+  resolveKibiUserEnvPath,
+  resolveKibiWorkspaceRoot,
+  KIBI_LEGACY_ENV_FILE,
+  KIBI_PROJECT_ENV_FILE,
+} from "kibi-cli/env-bootstrap";
+export type {
+  BootstrapKibiEnvironmentOptions,
+  BootstrapKibiEnvironmentResult,
+  EnvValueSource,
+  InspectSecretSourceOptions,
+} from "kibi-cli/env-bootstrap";
+
 /** Canonical bundled-skill registry used by first-party adapters. */
 export {
   listBundledSkills,

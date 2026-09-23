@@ -21,7 +21,12 @@ import { existsSync, readFileSync, statSync } from "node:fs";
 import { createRequire } from "node:module";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
-import { describeConfiguredCapabilityPlugins } from "../plugins/project-config.js";
+import { inspectSecretSource } from "../env/bootstrap.js";
+import { loadPluginPackage } from "../plugins/load-plugin.js";
+import {
+  describeConfiguredCapabilityPlugins,
+  readProjectKibiConfig,
+} from "../plugins/project-config.js";
 import {
   buildMigrationPlan,
   migrationAction,
@@ -31,7 +36,9 @@ import { planLegacyStorageMigration } from "./legacy-storage-migration.js";
 
 interface DoctorCheck {
   name: string;
-  check: () => { passed: boolean; message: string; remediation?: string };
+  check: () =>
+    | { passed: boolean; message: string; remediation?: string }
+    | Promise<{ passed: boolean; message: string; remediation?: string }>;
 }
 
 export interface DoctorOptions {
@@ -81,7 +88,10 @@ export async function doctorCommand(
     },
   ];
 
-  const results = checks.map(({ name, check }) => ({ name, ...check() }));
+  const results = [];
+  for (const { name, check } of checks) {
+    results.push({ name, ...(await check()) });
+  }
   const allPassed = results.every((result) => result.passed);
   const runtime = await runtimeProvenance();
   const packageActions = await packageMigrationActions(runtime);
@@ -438,33 +448,81 @@ function checkSWIProlog(): {
  * Read-only view of package.json plugin activation. Does not import plugins.
  */
 // implements REQ-capability-plugin-configuration-v1
-function checkCapabilityPlugins(): {
+async function checkCapabilityPlugins(): Promise<{
+  // implements REQ-cli-doctor, REQ-capability-plugin-observable-behavior-v1
   passed: boolean;
   message: string;
   remediation?: string;
-} {
+}> {
   try {
-    const rows = describeConfiguredCapabilityPlugins(process.cwd());
+    const workspaceRoot = process.cwd();
+    const rows = describeConfiguredCapabilityPlugins(workspaceRoot);
     if (rows.length === 0) {
       return {
         passed: true,
         message: "None configured; builtin providers only",
       };
     }
-    const message = rows
-      .map(
-        (row) =>
-          `${row.package} ${row.capability} ${row.mode} declared=${row.declared ? "yes" : "no"}`,
-      )
-      .join("; ");
+    const parts: string[] = rows.map(
+      (row) =>
+        `${row.package} ${row.capability} ${row.mode} declared=${row.declared ? "yes" : "no"}`,
+    );
+
     if (rows.some((row) => !row.declared)) {
       return {
         passed: false,
-        message,
+        message: parts.join("; "),
         remediation:
           "Add the configured plugin package to dependencies, devDependencies, or optionalDependencies, or remove the kibi.plugins activation entry.",
       };
     }
+
+    const config = readProjectKibiConfig(workspaceRoot);
+    const packages = [
+      ...new Set((config.plugins ?? []).map((plugin) => plugin.package)),
+    ];
+    const missingSecrets: string[] = [];
+
+    for (const packageName of packages) {
+      let secrets: readonly string[] = [];
+      let entryUrl: string | undefined;
+      try {
+        const loaded = await loadPluginPackage(workspaceRoot, packageName);
+        secrets = loaded.plugin.permissions.secrets ?? [];
+        entryUrl = loaded.resolved.entryUrl;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return {
+          passed: false,
+          message: `${parts.join("; ")}; ${packageName} load failed: ${message}`,
+          remediation:
+            "Install the configured plugin package in this workspace, then restart long-running Kibi MCP/host processes.",
+        };
+      }
+
+      for (const secret of secrets) {
+        const source = inspectSecretSource(secret);
+        parts.push(`${secret}=${source}`);
+        if (source === "missing") missingSecrets.push(secret);
+      }
+
+      if (packageName === "kibi-plugin-jev" && entryUrl) {
+        parts.push(...(await formatJevSafeConfigParts(entryUrl)));
+      }
+    }
+
+    const message = parts.join("; ");
+    if (missingSecrets.length > 0) {
+      const jevMissing = missingSecrets.includes("TYPESAFE_API_KEY");
+      return {
+        passed: false,
+        message,
+        remediation: jevMissing
+          ? "Set `TYPESAFE_API_KEY` in `~/.config/kibi/env` (user-wide) or `<workspace>/.env.kibi` (project override), then restart long-running Kibi MCP/host processes."
+          : `Set missing plugin secret(s) (${missingSecrets.join(", ")}) in ~/.config/kibi/env or <workspace>/.env.kibi, then restart long-running Kibi MCP/host processes.`,
+      };
+    }
+
     return {
       passed: true,
       message,
@@ -477,6 +535,31 @@ function checkCapabilityPlugins(): {
       remediation:
         "Fix package.json kibi.plugins, then restart long-running Kibi MCP or client processes.",
     };
+  }
+}
+
+async function formatJevSafeConfigParts(entryUrl: string): Promise<string[]> {
+  try {
+    const mod = (await import(entryUrl)) as {
+      resolveJevModel?: (explicit: string | undefined) => string;
+      resolveJevTimeoutMs?: (
+        explicit: number | undefined,
+      ) => number | undefined;
+    };
+    if (
+      typeof mod.resolveJevModel !== "function" ||
+      typeof mod.resolveJevTimeoutMs !== "function"
+    ) {
+      return ["jev.model=unresolved", "jev.timeoutMs=unresolved"];
+    }
+    const model = mod.resolveJevModel(undefined);
+    const timeoutMs = mod.resolveJevTimeoutMs(undefined);
+    return [
+      `jev.model=${model}`,
+      `jev.timeoutMs=${timeoutMs === undefined ? "default" : String(timeoutMs)}`,
+    ];
+  } catch {
+    return ["jev.model=unresolved", "jev.timeoutMs=unresolved"];
   }
 }
 

@@ -40697,3 +40697,263 @@ symbols:
         target: TEST-capability-plugin-host-resolution-v1
       - type: implements
         target: REQ-capability-plugin-configuration-v1
+  - id: SYM-env-bootstrap-kibi-project-env-file
+    title: KIBI_PROJECT_ENV_FILE
+    sourceFile: packages/cli/src/env/bootstrap.ts
+    status: active
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-cli-doctor
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+  - id: SYM-env-bootstrap-kibi-legacy-env-file
+    title: KIBI_LEGACY_ENV_FILE
+    sourceFile: packages/cli/src/env/bootstrap.ts
+    status: active
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-cli-doctor
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+  - id: SYM-env-bootstrap-env-value-source
+    title: EnvValueSource
+    sourceFile: packages/cli/src/env/bootstrap.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-cli-doctor
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+  - id: SYM-env-bootstrap-result
+    title: BootstrapKibiEnvironmentResult
+    sourceFile: packages/cli/src/env/bootstrap.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-cli-doctor
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+  - id: SYM-env-bootstrap-options
+    title: BootstrapKibiEnvironmentOptions
+    sourceFile: packages/cli/src/env/bootstrap.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-cli-doctor
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+  - id: SYM-env-bootstrap-resolve-workspace-root
+    title: resolveKibiWorkspaceRoot
+    sourceFile: packages/cli/src/env/bootstrap.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-doctor
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+  - id: SYM-env-bootstrap-resolve-env-file-path
+    title: resolveEnvFilePath
+    sourceFile: packages/cli/src/env/bootstrap.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-doctor
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+  - id: SYM-env-bootstrap-resolve-user-env-path
+    title: resolveKibiUserEnvPath
+    sourceFile: packages/cli/src/env/bootstrap.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-doctor
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+  - id: SYM-env-bootstrap-resolve-project-env-path
+    title: resolveKibiProjectEnvPath
+    sourceFile: packages/cli/src/env/bootstrap.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-doctor
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+  - id: SYM-env-bootstrap-parse-env-content
+    title: parseEnvContent
+    sourceFile: packages/cli/src/env/bootstrap.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-doctor
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+  - id: SYM-env-bootstrap-kibi-environment
+    title: bootstrapKibiEnvironment
+    sourceFile: packages/cli/src/env/bootstrap.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-doctor
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+  - id: SYM-env-bootstrap-inspect-secret-source-options
+    title: InspectSecretSourceOptions
+    sourceFile: packages/cli/src/env/bootstrap.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-cli-doctor
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+  - id: SYM-env-bootstrap-inspect-secret-source
+    title: inspectSecretSource
+    sourceFile: packages/cli/src/env/bootstrap.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-doctor
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+  - id: SYM-env-bootstrap-is-secret-available
+    title: isSecretAvailable
+    sourceFile: packages/cli/src/env/bootstrap.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-doctor
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+  - id: SYM-mcp-env-get-env-file-name
+    title: getEnvFileName
+    sourceFile: packages/mcp/src/env.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-doctor
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+  - id: SYM-mcp-env-load-default-env-file
+    title: loadDefaultEnvFile
+    sourceFile: packages/mcp/src/env.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-doctor
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+  - id: SYM-mcp-env-load-env-file
+    title: loadEnvFile
+    sourceFile: packages/mcp/src/env.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cli-doctor
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+  - id: SYM-mcp-env-is-mcp-debug-enabled
+    title: isMcpDebugEnabled
+    sourceFile: packages/mcp/src/env.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+  - id: SYM-mcp-env-get-branch-override
+    title: getBranchOverride
+    sourceFile: packages/mcp/src/env.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+  - id: SYM-mcp-env-get-kb-pl-path-override
+    title: getKbPlPathOverride
+    sourceFile: packages/mcp/src/env.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+  - id: SYM-mcp-env-get-core-module-path-override
+    title: getCoreModulePathOverride
+    sourceFile: packages/mcp/src/env.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+  - id: SYM-mcp-env-load-env-result
+    title: LoadEnvResult
+    sourceFile: packages/mcp/src/env.ts
+    status: active
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-cli-doctor
+      - type: covered_by
+        target: TEST-cli-doctor-workflows
+  - id: SYM-cli-is-cli-entrypoint
+    title: isCliEntrypoint
+    sourceFile: packages/cli/src/cli.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-exit-code-from-cli-failure
+    title: exitCodeFromCliFailure
+    sourceFile: packages/cli/src/cli.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-package-version
+    title: packageVersion
+    sourceFile: packages/cli/src/cli.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+  - id: SYM-cli-run-cli-if-entrypoint
+    title: runCliIfEntrypoint
+    sourceFile: packages/cli/src/cli.ts
+    status: active
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity

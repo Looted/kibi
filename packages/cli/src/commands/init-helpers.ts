@@ -204,6 +204,7 @@ const CANONICAL_DERIVED_GITIGNORE_ENTRIES = [
   ".kb/briefs/",
   ".kb/migrations/",
   ".kb/usage.log",
+  ".env.kibi",
 ] as const;
 
 /**

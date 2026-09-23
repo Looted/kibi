@@ -5,6 +5,7 @@ import * as fs from "node:fs";
 import { mkdirSync, writeFileSync } from "node:fs";
 import * as nodeModule from "node:module";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { doctorCommand } from "../../src/commands/doctor.js";
 import { engineStopCommand } from "../../src/commands/engine.js";
 import {
@@ -734,13 +735,19 @@ describe("doctorCommand runtime provenance", () => {
 });
 
 describe("doctorCommand capability plugins", () => {
-  test("reports parsed activation without importing packages", async () => {
-    const cwd = preparedWorkspace();
+  const jevPackageRoot = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../../../plugin-jev",
+  );
+
+  function writeJevActivation(cwd: string, declared: boolean): void {
     writeFileSync(
       path.join(cwd, "package.json"),
       JSON.stringify({
         name: "consumer",
-        devDependencies: { "kibi-plugin-jev": "1.0.0" },
+        ...(declared
+          ? { devDependencies: { "kibi-plugin-jev": "0.1.0" } }
+          : {}),
         kibi: {
           plugins: [
             {
@@ -753,33 +760,103 @@ describe("doctorCommand capability plugins", () => {
         },
       }),
     );
+  }
+
+  function linkJev(cwd: string): void {
+    mkdirSync(path.join(cwd, "node_modules"), { recursive: true });
+    fs.symlinkSync(
+      jevPackageRoot,
+      path.join(cwd, "node_modules", "kibi-plugin-jev"),
+    );
+  }
+
+  function clearTypesafeKey(): () => void {
+    const previous = process.env.TYPESAFE_API_KEY;
+    Reflect.deleteProperty(process.env, "TYPESAFE_API_KEY");
+    return () => {
+      if (previous === undefined) Reflect.deleteProperty(process.env, "TYPESAFE_API_KEY");
+      else process.env.TYPESAFE_API_KEY = previous;
+    };
+  }
+
+  test("reports activation, secret source, and Jev config when key is in process", async () => {
+    const cwd = preparedWorkspace();
+    writeJevActivation(cwd, true);
+    linkJev(cwd);
+    const restoreKey = clearTypesafeKey();
+    restores.push(restoreKey);
+    process.env.TYPESAFE_API_KEY = "test-key-not-for-leak-check";
     mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
     const { payload } = await runDoctorJson(cwd);
+    const check = namedCheck(payload, "Capability plugins");
+    expect(check.passed).toBe(true);
+    expect(check.message).toContain(
+      "kibi-plugin-jev kibi.semantic-classifier.v1 augment declared=yes",
+    );
+    expect(check.message).toContain("TYPESAFE_API_KEY=process");
+    expect(check.message).toMatch(/jev\.model=/);
+    expect(check.message).toMatch(/jev\.timeoutMs=/);
+    expect(JSON.stringify(payload)).not.toContain("test-key-not-for-leak-check");
+  });
+
+  test("fails when activated Jev secret is missing, with remediation", async () => {
+    const cwd = preparedWorkspace();
+    writeJevActivation(cwd, true);
+    linkJev(cwd);
+    restores.push(clearTypesafeKey());
+    mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
+    const { payload, exitCode } = await runDoctorJson(cwd);
+    expect(exitCode).toBe(1);
     expect(namedCheck(payload, "Capability plugins")).toMatchObject({
-      passed: true,
-      message:
-        "kibi-plugin-jev kibi.semantic-classifier.v1 augment declared=yes",
+      passed: false,
+      remediation:
+        "Set `TYPESAFE_API_KEY` in `~/.config/kibi/env` (user-wide) or `<workspace>/.env.kibi` (project override), then restart long-running Kibi MCP/host processes.",
     });
+    expect(namedCheck(payload, "Capability plugins").message).toContain(
+      "TYPESAFE_API_KEY=missing",
+    );
+  });
+
+  test("passes with project_env source from .env.kibi", async () => {
+    const cwd = preparedWorkspace();
+    writeJevActivation(cwd, true);
+    linkJev(cwd);
+    restores.push(clearTypesafeKey());
+    writeFileSync(path.join(cwd, ".env.kibi"), "TYPESAFE_API_KEY=from-project-file\n");
+    mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
+    const { payload } = await runDoctorJson(cwd);
+    const check = namedCheck(payload, "Capability plugins");
+    expect(check.passed).toBe(true);
+    expect(check.message).toContain("TYPESAFE_API_KEY=project_env");
+    expect(JSON.stringify(payload)).not.toContain("from-project-file");
+  });
+
+  test("passes with user_env source from XDG config", async () => {
+    const cwd = preparedWorkspace();
+    writeJevActivation(cwd, true);
+    linkJev(cwd);
+    restores.push(clearTypesafeKey());
+    const xdg = createTempDir();
+    roots.push(xdg);
+    mkdirSync(path.join(xdg, "kibi"), { recursive: true });
+    writeFileSync(path.join(xdg, "kibi", "env"), "TYPESAFE_API_KEY=from-user-file\n");
+    const previousXdg = process.env.XDG_CONFIG_HOME;
+    process.env.XDG_CONFIG_HOME = xdg;
+    restores.push(() => {
+      if (previousXdg === undefined) Reflect.deleteProperty(process.env, "XDG_CONFIG_HOME");
+      else process.env.XDG_CONFIG_HOME = previousXdg;
+    });
+    mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
+    const { payload } = await runDoctorJson(cwd);
+    const check = namedCheck(payload, "Capability plugins");
+    expect(check.passed).toBe(true);
+    expect(check.message).toContain("TYPESAFE_API_KEY=user_env");
+    expect(JSON.stringify(payload)).not.toContain("from-user-file");
   });
 
   test("fails when a configured plugin is not a declared dependency", async () => {
     const cwd = preparedWorkspace();
-    writeFileSync(
-      path.join(cwd, "package.json"),
-      JSON.stringify({
-        name: "consumer",
-        kibi: {
-          plugins: [
-            {
-              package: "kibi-plugin-jev",
-              capabilities: {
-                "kibi.semantic-classifier.v1": { mode: "augment" },
-              },
-            },
-          ],
-        },
-      }),
-    );
+    writeJevActivation(cwd, false);
     mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
     const { payload } = await runDoctorJson(cwd);
     expect(namedCheck(payload, "Capability plugins")).toMatchObject({

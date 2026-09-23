@@ -113,7 +113,23 @@ npm install --save-dev kibi-plugin-jev
 }
 ```
 
-Set `TYPESAFE_API_KEY` in the environment. Do not put that secret in `package.json`. Optional settings:
+Set provider secrets through Kibi-owned env files (same resolution for every
+harness that starts `kibi` / `kibi-mcp` — no Cursor/OpenCode/Codex/ZCode-specific
+secret config is required):
+
+```bash
+mkdir -p ~/.config/kibi
+printf '%s\n' 'TYPESAFE_API_KEY=...' >> ~/.config/kibi/env
+```
+
+Optional project override: `<workspace>/.env.kibi`. Existing process environment
+variables always win. `KIBI_ENV_FILE` replaces the project file path. A legacy
+`<workspace>/.env` is still loaded for compatibility to fill remaining gaps, but
+is not preferred (it can pull unrelated app secrets into Kibi). Restart
+long-running MCP or host processes after changing env files. Do not put secrets
+in `package.json`.
+
+Optional settings:
 
 | Variable | Role |
 | --- | --- |
@@ -130,7 +146,7 @@ shadow — provider runs for comparison but cannot affect canonical output
 
 Removing the `kibi.plugins` entry disables the plugin. Restart long-running MCP or host processes after plugin configuration changes. Activating a third-party package grants that package code-execution trust. `permissions` metadata is disclosure, not sandbox enforcement.
 
-`kibi doctor` lists configured packages, capabilities, modes, and whether each package is a declared dependency. It does not import plugin modules. Deeper authoring rules live in [plugin-development.md](./plugin-development.md).
+`kibi doctor` lists configured packages, capabilities, modes, dependency declaration, secret source labels (`process` / `project_env` / `user_env` / `missing`) without values, and for Jev the effective model and timeout. It fails when a declared plugin secret is missing. Deeper authoring rules live in [plugin-development.md](./plugin-development.md).
 
 ### First-run lifecycle
 
