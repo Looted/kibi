@@ -124,7 +124,7 @@ export interface PrologPort {
   /** Present on the journaled engine; used to distinguish a persistent port from one-shot SWI. */
   storageStatus?(): Promise<PrologQueryResult>;
   /** Typed public freshness query; avoids exposing module loading over RPC. */
-  queryStatusJson?(): Promise<PrologQueryResult>;
+  queryStatusJson?(signal?: AbortSignal): Promise<PrologQueryResult>;
 }
 
 export type FilesystemStat = {

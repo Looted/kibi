@@ -1125,8 +1125,11 @@ export class EngineClient {
     return this.command<PrologQueryResult>({ version: 1, kind: "checkpoint" });
   }
 
-  async queryStatusJson(): Promise<PrologQueryResult> {
-    return this.command<PrologQueryResult>({ version: 1, kind: "status" });
+  async queryStatusJson(signal?: AbortSignal): Promise<PrologQueryResult> {
+    return this.command<PrologQueryResult>(
+      { version: 1, kind: "status" },
+      signal,
+    );
   }
 
   async compact(): Promise<PrologQueryResult> {

@@ -46,10 +46,50 @@ export { _resetSessionModulePromise, _setToolsServerDepsForTests };
 
 const DEFAULT_TOOL_TIMEOUT_MS = 90_000;
 const TOOL_TIMEOUT_ENV = "KIBI_MCP_TOOL_TIMEOUT_MS";
-// Give cancellation and the Prolog reset a short bounded grace period, but do
-// not hold the MCP request open for the full five-second shutdown budget when
-// a handler never observes AbortSignal.
+// Give cancellation a short bounded grace period, but do not hold the MCP
+// request open for the full five-second shutdown budget when a handler never
+// observes AbortSignal.
 const TOOL_TIMEOUT_GRACE_MS = 100;
+// Mutations that ignore AbortSignal may leave the journal indeterminate. Only
+// then tear down the shared session engine — never on ordinary read timeouts,
+// which would reject sibling tools with "Kibi engine connection closed".
+const TOOL_TIMEOUT_WEDGE_MS = 1_000;
+
+function isMutationEffect(
+  effects: readonly string[] | undefined,
+): boolean {
+  return (
+    effects?.some(
+      (effect) => effect === "kb-write" || effect === "workspace-write",
+    ) ?? false
+  );
+}
+
+/** Embed envelope data in content text for hosts that hide structuredContent.
+ * Keep summary + JSON on one logical payload (newline-separated) so agents
+ * parsing the text block can recover entities/proof fields. */
+function withAgentVisibleText(
+  content: readonly { type: string; text?: string; [key: string]: unknown }[],
+  data: unknown,
+): { type: "text"; text: string }[] {
+  const summary = content
+    .filter((part) => part.type === "text" && typeof part.text === "string")
+    .map((part) => part.text as string)
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const payload = JSON.stringify(data);
+  // Prefer JSON-first so first-line-only host summaries still include machine data.
+  return [
+    {
+      type: "text",
+      text:
+        summary.length > 0
+          ? `${payload}\n${summary}`
+          : payload,
+    },
+  ];
+}
 
 // implements REQ-008
 function debugLog(...args: Parameters<typeof console.error>): void {
@@ -211,14 +251,34 @@ export function addTool<TProlog>(
           name,
           handlerPromise,
           async (error) => {
-            resetAttempted = true;
             controller.abort(error);
+            // Read/discovery timeouts must cancel in-flight RPCs without
+            // terminating the shared session engine. A global resetProlog here
+            // rejects sibling tools with "Kibi engine connection closed".
+            if (!isMutationEffect(operationSpec.effects)) {
+              return;
+            }
+            const settled = await Promise.race([
+              handlerPromise.then(
+                () => true,
+                () => true,
+              ),
+              new Promise<boolean>((resolve) =>
+                setTimeout(() => resolve(false), TOOL_TIMEOUT_WEDGE_MS),
+              ),
+            ]);
+            if (settled) {
+              return;
+            }
+            resetAttempted = true;
             try {
               await runtime.resetProlog(`tool timeout: ${name}`);
               resetSucceeded = true;
-            } catch (error) {
+            } catch (resetFailure) {
               resetError =
-                error instanceof Error ? error.message : String(error);
+                resetFailure instanceof Error
+                  ? resetFailure.message
+                  : String(resetFailure);
             }
           },
         );
@@ -246,8 +306,16 @@ export function addTool<TProlog>(
           !Array.isArray(result) &&
           "content" in result
         ) {
+          const withContent = result as {
+            content: readonly {
+              type: string;
+              text?: string;
+              [key: string]: unknown;
+            }[];
+          };
           return {
             ...(result as Record<string, unknown>),
+            content: withAgentVisibleText(withContent.content, data),
             structuredContent: envelope,
           };
         }
@@ -272,9 +340,7 @@ export function addTool<TProlog>(
         }
         if (
           isToolTimeoutError(error) &&
-          operationSpec.effects.some(
-            (effect) => effect === "kb-write" || effect === "workspace-write",
-          )
+          isMutationEffect(operationSpec.effects)
         ) {
           const recoveryActions = [
             {

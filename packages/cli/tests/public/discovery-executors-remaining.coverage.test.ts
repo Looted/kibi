@@ -1,5 +1,5 @@
 // implements REQ-014
-import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import { afterEach, describe, expect, mock, spyOn, test } from "bun:test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { EngineClient } from "../../src/engine.js";
@@ -116,5 +116,54 @@ describe("discovery-executors remaining owned-engine and vendored status", () =>
     expect(structured.bootstrap?.nextAction).toEqual(
       expect.objectContaining({ operation: "move-to-project-root" }),
     );
+  });
+
+  test("executeStatus reuses ensureProlog and does not terminate the session engine", async () => {
+    restores.push(isolateKibiEnv());
+    const root = createTempDir("kibi-status-session-");
+    roots.push(root);
+    healthyStore(root);
+    const queryStatusJson = mock(async () => ({
+      success: true,
+      bindings: {
+        JsonString: JSON.stringify({
+          branch: "compiled",
+          snapshotId: "snap-session",
+          syncedAt: null,
+          dirty: false,
+          syncState: "clean",
+          staleReasons: [],
+        }),
+      },
+    }));
+    const terminate = mock(async () => undefined);
+    const sessionProlog = {
+      query: async () => ({ success: true, bindings: {} }),
+      nextSolution: async () => null,
+      save: async () => ({ success: true, bindings: {} }),
+      queryStatusJson,
+      terminate,
+    };
+    const ensureProlog = mock(async () => sessionProlog);
+    const ownedTerminate = spyOn(
+      EngineClient.prototype,
+      "terminate",
+    ).mockResolvedValue(undefined);
+    spies.push(ownedTerminate);
+
+    const result = await executeStatus(
+      {},
+      context(root, {
+        ensureProlog: ensureProlog as OperationContext["ensureProlog"],
+      }),
+    );
+    expect(ensureProlog).toHaveBeenCalled();
+    expect(queryStatusJson).toHaveBeenCalled();
+    expect(ownedTerminate).not.toHaveBeenCalled();
+    expect(terminate).not.toHaveBeenCalled();
+    expect(
+      (result.structuredContent as unknown as { snapshotId: string })
+        .snapshotId,
+    ).toBe("snap-session");
   });
 });
