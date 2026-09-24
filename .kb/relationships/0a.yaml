@@ -223,3 +223,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7e68938071e0
+  - type: implements
+    from: SYM-cli-discovery-load-search-candidates
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-09-24T22:58:28.744Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5bf5910c35d
+  - type: implements
+    from: SYM-cli-discovery-load-search-candidates
+    to: REQ-mcp-search-discovery
+    created_at: 2026-09-24T22:58:28.759Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47d860daf1e4
+  - type: covered_by
+    from: SYM-cli-discovery-load-search-candidates
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-24T22:58:28.768Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55a384253b36
+  - type: covered_by
+    from: SYM-cli-discovery-load-search-candidates
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-09-24T22:58:28.776Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3658f94f4fa6

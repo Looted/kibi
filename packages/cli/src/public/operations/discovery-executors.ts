@@ -19,6 +19,7 @@ import {
 } from "../../utils/branch-store.js";
 import {
   loadEntities,
+  loadSearchCandidates,
   paginateResults,
   validateEntityType,
 } from "./discovery-entities.js";
@@ -264,18 +265,17 @@ export async function executeSearch(
       };
     }
     const indexedCandidates = prolog.searchEntities
-      ? await prolog.searchEntities(
+      ? await loadSearchCandidates(
+          prolog,
           {
             query: trimmedQuery,
             ...(type !== undefined ? { type } : {}),
-            limit: 100_000,
-            offset: 0,
           },
           context.signal,
         )
       : null;
     const entities = indexedCandidates
-      ? [...indexedCandidates.entities]
+      ? [...indexedCandidates]
       : await loadEntities(prolog, {
           ...(type !== undefined ? { type } : {}),
         });

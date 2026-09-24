@@ -41160,3 +41160,27 @@ symbols:
         target: TEST-004
       - type: implements
         target: REQ-cli-check
+  - id: SYM-cli-discovery-load-search-candidates
+    title: loadSearchCandidates
+    status: active
+    sourceFile: packages/cli/src/public/operations/discovery-entities.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-mcp-search-discovery
+  - id: SYM-cli-discovery-search-candidate-page-size
+    title: SEARCH_CANDIDATE_PAGE_SIZE
+    status: active
+    sourceFile: packages/cli/src/public/operations/discovery-entities.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-mcp-search-discovery
