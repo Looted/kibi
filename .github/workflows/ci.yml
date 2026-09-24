@@ -64,6 +64,16 @@ jobs:
       - name: Check Codex hook bundle drift
         run: bun run --filter kibi-codex check:hook-bundle
 
+      - name: Verify generated symbol classification parity
+        run: bun run symbols:check
+
+      - name: Verify symbol classification generation and formatting are stable
+        run: |
+          bun run symbols:generate
+          ./node_modules/.bin/biome format --write packages/cli/src/public/symbol-granularity.generated.ts
+          bun run symbols:check
+          git diff --exit-code -- packages/cli/src/public/symbol-granularity.generated.ts packages/core/src/symbol_classification.pl
+
       - name: Typecheck matrix
         run: bun run typecheck
 
