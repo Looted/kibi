@@ -6,7 +6,10 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const cliRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const cliRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../..",
+);
 const mcpRoot = path.resolve(cliRoot, "../mcp");
 const originalCwd = process.cwd();
 
@@ -15,7 +18,9 @@ let userConfigRoot = "";
 
 beforeEach(() => {
   workspace = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-env-harness-"));
-  userConfigRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-env-harness-user-"));
+  userConfigRoot = fs.mkdtempSync(
+    path.join(os.tmpdir(), "kibi-env-harness-user-"),
+  );
   fs.mkdirSync(path.join(workspace, ".kb"), { recursive: true });
   fs.mkdirSync(path.join(workspace, ".git"), { recursive: true });
   fs.mkdirSync(path.join(userConfigRoot, "kibi"), { recursive: true });
@@ -59,11 +64,15 @@ function runBootstrapScript(options: {
       workspaceRoot: result.workspaceRoot,
     }));
   `;
-  const ran = spawnSync(process.execPath, ["--input-type=module", "-e", script], {
-    cwd: options.cwd,
-    env: options.env,
-    encoding: "utf8",
-  });
+  const ran = spawnSync(
+    process.execPath,
+    ["--input-type=module", "-e", script],
+    {
+      cwd: options.cwd,
+      env: options.env,
+      encoding: "utf8",
+    },
+  );
   return { status: ran.status, stdout: ran.stdout, stderr: ran.stderr };
 }
 
@@ -103,8 +112,7 @@ describe("harness-independent env bootstrap", () => {
     };
 
     const mcpScript = `
-      import { loadDefaultEnvFile } from ${JSON.stringify(path.join(mcpRoot, "src/env.ts"))};
-      import { inspectSecretSource } from ${JSON.stringify(path.join(cliRoot, "src/env/bootstrap.ts"))};
+      import { loadDefaultEnvFile, inspectSecretSource } from ${JSON.stringify(path.join(mcpRoot, "src/env.ts"))};
       loadDefaultEnvFile();
       process.stdout.write(JSON.stringify({
         HARNESS_USER: process.env.HARNESS_USER,
@@ -137,14 +145,15 @@ describe("harness-independent env bootstrap", () => {
   });
 
   test("MCP bootstrap with explicit KIBI_WORKSPACE and different cwd", () => {
-    const otherCwd = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-env-other-cwd-"));
+    const otherCwd = fs.mkdtempSync(
+      path.join(os.tmpdir(), "kibi-env-other-cwd-"),
+    );
     try {
       const env = baseEnv();
       env.KIBI_WORKSPACE = workspace;
 
       const script = `
-        import { loadDefaultEnvFile } from ${JSON.stringify(path.join(mcpRoot, "src/env.ts"))};
-        import { inspectSecretSource } from ${JSON.stringify(path.join(cliRoot, "src/env/bootstrap.ts"))};
+        import { loadDefaultEnvFile, inspectSecretSource } from ${JSON.stringify(path.join(mcpRoot, "src/env.ts"))};
         const loaded = loadDefaultEnvFile();
         process.stdout.write(JSON.stringify({
           HARNESS_PROJECT: process.env.HARNESS_PROJECT,

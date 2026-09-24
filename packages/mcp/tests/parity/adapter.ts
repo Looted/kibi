@@ -61,8 +61,8 @@ export async function runMcpOperation(
       path.join(workspaceRoot, ".kb", "branches", "contracts-seed"),
     ensureProlog,
     adaptProlog: () => ({
-      query: async (goal) => {
-        lastResult = await prolog.query(goal);
+      query: async (goal, signal) => {
+        lastResult = await prolog.query(goal, signal);
         return lastResult;
       },
       nextSolution: async () => {
@@ -70,10 +70,13 @@ export async function runMcpOperation(
         lastResult = null;
         return result;
       },
-      save: () => prolog.query("kb_save"),
-      queryEntities: (input) => prolog.queryEntities(input),
-      searchEntities: (input) => prolog.searchEntities(input),
+      save: (signal) => prolog.query("kb_save", signal),
+      queryEntities: (input, signal) => prolog.queryEntities(input, signal),
+      searchEntities: (input, signal) => prolog.searchEntities(input, signal),
       storageStatus: () => prolog.storageStatus(),
+      // Required for status parity: typed status goes through the daemon's
+      // exactBranchStatus enrichment (attachedPath / attachedGeneration).
+      queryStatusJson: (signal) => prolog.queryStatusJson(signal),
     }),
     net: { fetch: (input, init) => globalThis.fetch(input, init) },
     refreshAttachedBranchStamp: async () => undefined,

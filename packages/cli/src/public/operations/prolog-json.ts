@@ -55,6 +55,7 @@ export async function runOperationJsonQuery<T>(
   fileName: string,
   goal: string,
   errorLabel: string,
+  signal?: AbortSignal,
 ): Promise<T> {
   const modulePath = escapeAtom(
     resolveCoreModulePath(fileName).replaceAll("\\", "/"),
@@ -73,10 +74,19 @@ export async function runOperationJsonQuery<T>(
   const typedStatusQuery = prolog.queryStatusJson;
   const result =
     fileName === "status.pl" && typeof typedStatusQuery === "function"
-      ? await typedStatusQuery.call(prolog)
+      ? await typedStatusQuery.call(prolog, signal)
       : oneShotMode
-        ? await prolog.query(`(use_module('${modulePath}'), ${goal})`)
-        : await runInteractiveModuleQuery(prolog, modulePath, goal, errorLabel);
+        ? await prolog.query(
+            `(use_module('${modulePath}'), ${goal})`,
+            signal,
+          )
+        : await runInteractiveModuleQuery(
+            prolog,
+            modulePath,
+            goal,
+            errorLabel,
+            signal,
+          );
   if (!result.success) {
     throw new Error(
       `${errorLabel} query failed: ${result.error ?? "Unknown error"}`,
@@ -115,14 +125,18 @@ async function runInteractiveModuleQuery(
   modulePath: string,
   goal: string,
   errorLabel: string,
+  signal?: AbortSignal,
 ) {
-  const loadResult = await prolog.query(`use_module('${modulePath}')`);
+  const loadResult = await prolog.query(
+    `use_module('${modulePath}')`,
+    signal,
+  );
   if (!loadResult.success) {
     throw new Error(
       `${errorLabel} module load failed: ${loadResult.error ?? "Unknown error"}`,
     );
   }
-  return prolog.query(goal);
+  return prolog.query(goal, signal);
 }
 
 export function toPrologAtom(value?: string): string {

@@ -124,7 +124,7 @@ export interface PrologPort {
   /** Present on the journaled engine; used to distinguish a persistent port from one-shot SWI. */
   storageStatus?(): Promise<PrologQueryResult>;
   /** Typed public freshness query; avoids exposing module loading over RPC. */
-  queryStatusJson?(): Promise<PrologQueryResult>;
+  queryStatusJson?(signal?: AbortSignal): Promise<PrologQueryResult>;
 }
 
 export type FilesystemStat = {
@@ -215,6 +215,11 @@ export interface RuntimeOperationSpec<TInput = unknown, TResult = unknown> {
   readonly name: string;
   readonly effects: readonly OperationEffect[];
   readonly requiresProlog: boolean;
+  /**
+   * When true, MCP embeds envelope `data` JSON in tool `content` for hosts that
+   * hide `structuredContent` (discovery/proof lookup). Default false.
+   */
+  readonly agentVisibleStructuredData?: boolean;
   execute(input: TInput, context: OperationContext): Promise<TResult>;
 }
 

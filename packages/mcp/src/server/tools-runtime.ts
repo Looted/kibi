@@ -81,10 +81,17 @@ function adaptProlog(prolog: PrologProcess): PrologPort {
   if (existing) {
     return existing;
   }
+  const engine = prolog as PrologProcess & {
+    query: (goal: string, signal?: AbortSignal) => Promise<PrologQueryResult>;
+    queryEntities?: NonNullable<PrologPort["queryEntities"]>;
+    searchEntities?: NonNullable<PrologPort["searchEntities"]>;
+    storageStatus?: () => Promise<PrologQueryResult>;
+    queryStatusJson?: (signal?: AbortSignal) => Promise<PrologQueryResult>;
+  };
   let lastResult: PrologQueryResult | null = null;
   const port: PrologPort = {
-    query: async (goal) => {
-      lastResult = await prolog.query(goal);
+    query: async (goal, signal) => {
+      lastResult = await engine.query(goal, signal);
       return lastResult;
     },
     nextSolution: async () => {
@@ -92,58 +99,44 @@ function adaptProlog(prolog: PrologProcess): PrologPort {
       lastResult = null;
       return result;
     },
-    save: () => prolog.query("kb_save"),
-    ...(typeof (prolog as { queryEntities?: unknown }).queryEntities ===
-    "function"
+    save: (signal) => engine.query("kb_save", signal),
+    ...(typeof engine.queryEntities === "function"
       ? {
+          // Call through `engine.` so EngineClient methods keep their `this`
+          // (extracted unbound refs break queryStatusJson → this.command).
           queryEntities: (
             input: Parameters<NonNullable<PrologPort["queryEntities"]>>[0],
-          ) =>
-            (
-              prolog as PrologProcess & {
-                queryEntities: NonNullable<PrologPort["queryEntities"]>;
-              }
-            ).queryEntities(input),
+            signal?: AbortSignal,
+          ) => engine.queryEntities!(input, signal),
         }
       : {}),
-    ...(typeof (prolog as { searchEntities?: unknown }).searchEntities ===
-    "function"
+    ...(typeof engine.searchEntities === "function"
       ? {
           searchEntities: (
             input: Parameters<NonNullable<PrologPort["searchEntities"]>>[0],
-          ) =>
-            (
-              prolog as PrologProcess & {
-                searchEntities: NonNullable<PrologPort["searchEntities"]>;
-              }
-            ).searchEntities(input),
+            signal?: AbortSignal,
+          ) => engine.searchEntities!(input, signal),
         }
       : {}),
-    ...(typeof (prolog as { storageStatus?: unknown }).storageStatus ===
-    "function"
+    ...(typeof engine.storageStatus === "function"
       ? {
-          storageStatus: () =>
-            (
-              prolog as PrologProcess & {
-                storageStatus: () => Promise<PrologQueryResult>;
-              }
-            ).storageStatus(),
+          storageStatus: () => engine.storageStatus!(),
         }
       : {}),
-    ...(typeof (prolog as { queryStatusJson?: unknown }).queryStatusJson ===
-    "function"
+    ...(typeof engine.queryStatusJson === "function"
       ? {
-          queryStatusJson: () =>
-            (
-              prolog as PrologProcess & {
-                queryStatusJson: () => Promise<PrologQueryResult>;
-              }
-            ).queryStatusJson(),
+          queryStatusJson: (signal?: AbortSignal) =>
+            engine.queryStatusJson!(signal),
         }
       : {}),
   };
   prologPorts.set(prolog, port);
   return port;
+}
+
+/** Test seam: adapt a session engine so AbortSignal reaches EngineClient/PrologPort methods. */
+export function _adaptPrologForTests(prolog: PrologProcess): PrologPort {
+  return adaptProlog(prolog);
 }
 
 const operationRuntime = createMcpRuntime<PrologProcess>({

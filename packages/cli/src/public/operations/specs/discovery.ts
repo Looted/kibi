@@ -70,6 +70,7 @@ export const querySpec = {
   },
   requiresProlog: true,
   effects: ["kb-read"],
+  agentVisibleStructuredData: true,
   execute: executeQuery,
 } as const satisfies OperationSpec<QueryInput, QueryPayload>;
 
@@ -164,6 +165,7 @@ export const searchSpec = {
   },
   requiresProlog: true,
   effects: ["kb-read"],
+  agentVisibleStructuredData: true,
   execute: executeSearch,
 } as const satisfies OperationSpec<SearchInput, SearchPayload>;
 
@@ -176,5 +178,6 @@ export const statusSpec = {
   // Status must remain available when the branch store cannot be attached.
   requiresProlog: false,
   effects: ["kb-read", "workspace-read"],
+  agentVisibleStructuredData: true,
   execute: executeStatus,
 } as const satisfies OperationSpec<StatusInput, StatusPayload>;

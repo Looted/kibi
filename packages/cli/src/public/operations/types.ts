@@ -93,6 +93,11 @@ export interface OperationSpec<
   readonly businessInputSchema: Readonly<Record<string, unknown>>;
   readonly requiresProlog: boolean;
   readonly effects: readonly OperationEffect[];
+  /**
+   * When true, MCP duplicates envelope `data` into tool `content` text so hosts
+   * that hide `structuredContent` still expose discovery/proof payloads.
+   */
+  readonly agentVisibleStructuredData?: boolean;
   /** Generated effect metadata used by MCP annotations and telemetry. */
   readonly declaredEffects?: readonly OperationEffectDeclaration[];
   /** Version of the machine-readable result data for this operation. */

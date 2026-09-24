@@ -46,10 +46,43 @@ export { _resetSessionModulePromise, _setToolsServerDepsForTests };
 
 const DEFAULT_TOOL_TIMEOUT_MS = 90_000;
 const TOOL_TIMEOUT_ENV = "KIBI_MCP_TOOL_TIMEOUT_MS";
-// Give cancellation and the Prolog reset a short bounded grace period, but do
-// not hold the MCP request open for the full five-second shutdown budget when
-// a handler never observes AbortSignal.
+// Give cancellation a short bounded grace period, but do not hold the MCP
+// request open for the full five-second shutdown budget when a handler never
+// observes AbortSignal.
 const TOOL_TIMEOUT_GRACE_MS = 100;
+// Mutations that ignore AbortSignal may leave the journal indeterminate. Only
+// then tear down the shared session engine — never on ordinary read timeouts,
+// which would reject sibling tools with "Kibi engine connection closed".
+const TOOL_TIMEOUT_WEDGE_MS = 1_000;
+
+function isMutationEffect(effects: readonly string[] | undefined): boolean {
+  return (
+    effects?.some(
+      (effect) => effect === "kb-write" || effect === "workspace-write",
+    ) ?? false
+  );
+}
+
+/** Embed envelope data in content text for opted-in tools (hosts that hide structuredContent).
+ * Preserves non-text content parts; only augments/replaces text parts. */
+function withAgentVisibleText(
+  content: readonly { type: string; text?: string; [key: string]: unknown }[],
+  data: unknown,
+): { type: string; text?: string; [key: string]: unknown }[] {
+  const textParts = content.filter(
+    (part) => part.type === "text" && typeof part.text === "string",
+  );
+  const nonTextParts = content.filter((part) => part.type !== "text");
+  const summary = textParts
+    .map((part) => part.text as string)
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const payload = JSON.stringify(data);
+  // Prefer JSON-first so first-line-only host summaries still include machine data.
+  const text = summary.length > 0 ? `${payload}\n${summary}` : payload;
+  return [{ type: "text", text }, ...nonTextParts];
+}
 
 // implements REQ-008
 function debugLog(...args: Parameters<typeof console.error>): void {
@@ -99,32 +132,33 @@ async function withToolTimeout<T>(
   let timeout: ReturnType<typeof setTimeout> | undefined;
 
   try {
-    return await Promise.race([
-      operation,
-      new Promise<never>((_, reject) => {
-        timeout = setTimeout(() => {
-          const error = createToolTimeoutError(toolName, timeoutMs);
-          // Do not report the timeout until cancellation/reset has completed
-          // and the original request has reached a terminal state. This is
-          // especially important for source-first mutations: a caller must
-          // never retry while the authoritative journal is still deciding its
-          // outcome.
-          void onTimeout(error, timeoutMs)
-            .then(async () => {
-              await Promise.race([
-                operation.then(
-                  () => undefined,
-                  () => undefined,
-                ),
-                new Promise<void>((resolve) =>
-                  setTimeout(resolve, TOOL_TIMEOUT_GRACE_MS),
-                ),
-              ]);
-            })
-            .finally(() => reject(error));
-        }, timeoutMs);
-      }),
-    ]);
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeout = setTimeout(() => {
+        const error = createToolTimeoutError(toolName, timeoutMs);
+        // Do not report the timeout until cancellation/reset has completed
+        // and the original request has reached a terminal state. This is
+        // especially important for source-first mutations: a caller must
+        // never retry while the authoritative journal is still deciding its
+        // outcome.
+        void onTimeout(error, timeoutMs)
+          .then(async () => {
+            await Promise.race([
+              operation.then(
+                () => undefined,
+                () => undefined,
+              ),
+              new Promise<void>((resolve) =>
+                setTimeout(resolve, TOOL_TIMEOUT_GRACE_MS),
+              ),
+            ]);
+          })
+          .finally(() => reject(error));
+      }, timeoutMs);
+    });
+    // When abort settles `operation` before this timeout promise rejects,
+    // the late reject must not become an unhandled rejection.
+    timeoutPromise.catch(() => undefined);
+    return await Promise.race([operation, timeoutPromise]);
   } finally {
     if (timeout) {
       clearTimeout(timeout);
@@ -211,14 +245,34 @@ export function addTool<TProlog>(
           name,
           handlerPromise,
           async (error) => {
-            resetAttempted = true;
             controller.abort(error);
+            // Read/discovery timeouts must cancel in-flight RPCs without
+            // terminating the shared session engine. A global resetProlog here
+            // rejects sibling tools with "Kibi engine connection closed".
+            if (!isMutationEffect(operationSpec.effects)) {
+              return;
+            }
+            const settled = await Promise.race([
+              handlerPromise.then(
+                () => true,
+                () => true,
+              ),
+              new Promise<boolean>((resolve) =>
+                setTimeout(() => resolve(false), TOOL_TIMEOUT_WEDGE_MS),
+              ),
+            ]);
+            if (settled) {
+              return;
+            }
+            resetAttempted = true;
             try {
               await runtime.resetProlog(`tool timeout: ${name}`);
               resetSucceeded = true;
-            } catch (error) {
+            } catch (resetFailure) {
               resetError =
-                error instanceof Error ? error.message : String(error);
+                resetFailure instanceof Error
+                  ? resetFailure.message
+                  : String(resetFailure);
             }
           },
         );
@@ -246,8 +300,20 @@ export function addTool<TProlog>(
           !Array.isArray(result) &&
           "content" in result
         ) {
+          const withContent = result as {
+            content: readonly {
+              type: string;
+              text?: string;
+              [key: string]: unknown;
+            }[];
+          };
+          const content =
+            operationSpec.agentVisibleStructuredData === true
+              ? withAgentVisibleText(withContent.content, data)
+              : withContent.content;
           return {
             ...(result as Record<string, unknown>),
+            content,
             structuredContent: envelope,
           };
         }
@@ -272,9 +338,7 @@ export function addTool<TProlog>(
         }
         if (
           isToolTimeoutError(error) &&
-          operationSpec.effects.some(
-            (effect) => effect === "kb-write" || effect === "workspace-write",
-          )
+          isMutationEffect(operationSpec.effects)
         ) {
           const recoveryActions = [
             {

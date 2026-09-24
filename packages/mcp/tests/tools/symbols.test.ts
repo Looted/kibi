@@ -552,49 +552,55 @@ symbols:
     ).not.toHaveProperty("version");
   });
 
-  it("fails closed and preserves the artifact when the targeted read is denied", async () => {
-    const yamlWithSymbol =
-      "symbols:\n  - id: test-symbol\n    title: testSymbol\n    sourceFile: src/test.ts\n";
-    writeRefreshFixture(yamlWithSymbol);
-    fs.mkdirSync(path.join(refreshTestRoot, "src"), { recursive: true });
-    fs.writeFileSync(
-      path.join(refreshTestRoot, "src/test.ts"),
-      "export function testSymbol() {\n  return true;\n}\n",
-      "utf-8",
-    );
-    const originalArtifact = [
-      "version: 2",
-      "coordinates:",
-      "  test-symbol:",
-      "    sourceFile: src/test.ts",
-      "    sourceLine: 1",
-      "    sourceColumn: 16",
-      "    sourceEndLine: 1",
-      "    sourceEndColumn: 26",
-      `    identityHash: ${"a".repeat(64)}`,
-      `    sourceHash: ${"b".repeat(64)}`,
-      "",
-    ].join("\n");
-    fs.writeFileSync(refreshCoordinatesPath, originalArtifact, "utf-8");
-    fs.chmodSync(refreshCoordinatesPath, 0o000);
+  // Root ignores file mode bits, so a denied read cannot be simulated.
+  it.skipIf(process.getuid?.() === 0)(
+    "fails closed and preserves the artifact when the targeted read is denied",
+    async () => {
+      const yamlWithSymbol =
+        "symbols:\n  - id: test-symbol\n    title: testSymbol\n    sourceFile: src/test.ts\n";
+      writeRefreshFixture(yamlWithSymbol);
+      fs.mkdirSync(path.join(refreshTestRoot, "src"), { recursive: true });
+      fs.writeFileSync(
+        path.join(refreshTestRoot, "src/test.ts"),
+        "export function testSymbol() {\n  return true;\n}\n",
+        "utf-8",
+      );
+      const originalArtifact = [
+        "version: 2",
+        "coordinates:",
+        "  test-symbol:",
+        "    sourceFile: src/test.ts",
+        "    sourceLine: 1",
+        "    sourceColumn: 16",
+        "    sourceEndLine: 1",
+        "    sourceEndColumn: 26",
+        `    identityHash: ${"a".repeat(64)}`,
+        `    sourceHash: ${"b".repeat(64)}`,
+        "",
+      ].join("\n");
+      fs.writeFileSync(refreshCoordinatesPath, originalArtifact, "utf-8");
+      fs.chmodSync(refreshCoordinatesPath, 0o000);
 
-    try {
-      await expect(
-        refreshCoordinatesForSymbolId("test-symbol", refreshTestRoot),
-      ).rejects.toMatchObject({ code: "EACCES" });
-    } finally {
-      fs.chmodSync(refreshCoordinatesPath, 0o644);
-    }
+      try {
+        await expect(
+          refreshCoordinatesForSymbolId("test-symbol", refreshTestRoot),
+        ).rejects.toMatchObject({ code: "EACCES" });
+      } finally {
+        fs.chmodSync(refreshCoordinatesPath, 0o644);
+      }
 
-    expect(fs.readFileSync(refreshCoordinatesPath, "utf-8")).toBe(
-      originalArtifact,
-    );
-    expect(
-      fs
-        .readdirSync(path.dirname(refreshCoordinatesPath))
-        .filter((entry) => entry.includes("symbol-coordinates.yaml.kibi-tmp-")),
-    ).toEqual([]);
-  });
+      expect(fs.readFileSync(refreshCoordinatesPath, "utf-8")).toBe(
+        originalArtifact,
+      );
+      expect(
+        fs
+          .readdirSync(path.dirname(refreshCoordinatesPath))
+          .filter((entry) =>
+            entry.includes("symbol-coordinates.yaml.kibi-tmp-"),
+          ),
+      ).toEqual([]);
+    },
+  );
 
   it("rejects fractional and reversed legacy spans", async () => {
     writeRefreshFixture(

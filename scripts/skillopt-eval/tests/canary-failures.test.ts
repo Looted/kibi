@@ -642,50 +642,54 @@ describe("Codex capability canary failures", () => {
     }
   });
 
-  test("suppresses the expected read-only runtime write diagnostic", async () => {
-    const artifactRoot = await mkdtemp(
-      join(tmpdir(), "skillopt-canary-probe-shell-"),
-    );
-    roots.push(artifactRoot);
-    const workspace = await createIsolationWorkspace({
-      artifactRoot,
-      runId: "quiet-readonly-write",
-      role: "optimizer",
-    });
-    for (const name of ["one", "two", "three", "four"]) {
-      const skillRoot = join(workspace.target, ".agents", "skills", name);
-      await mkdir(skillRoot, { recursive: true });
-      await writeFile(join(skillRoot, "SKILL.md"), `# ${name}\n`);
-    }
-    const binRoot = join(workspace.root, "bin");
-    await mkdir(binRoot);
-    const fakePython = join(binRoot, "python3");
-    await writeFile(fakePython, "#!/bin/sh\nexit 1\n", { mode: 0o500 });
-    await chmod(fakePython, 0o500);
-    const probe = await writeCapabilityProbe(workspace, []);
-    const runtimeRoot = join(workspace.target, ".runtime");
-    await chmod(runtimeRoot, 0o500);
-
-    try {
-      const child = Bun.spawn(["/bin/sh", probe.absolutePath], {
-        cwd: workspace.target,
-        env: { PATH: binRoot },
-        stdout: "pipe",
-        stderr: "pipe",
+  // Root ignores directory write bits, so the read-only runtime cannot be simulated.
+  test.skipIf(process.getuid?.() === 0)(
+    "suppresses the expected read-only runtime write diagnostic",
+    async () => {
+      const artifactRoot = await mkdtemp(
+        join(tmpdir(), "skillopt-canary-probe-shell-"),
+      );
+      roots.push(artifactRoot);
+      const workspace = await createIsolationWorkspace({
+        artifactRoot,
+        runId: "quiet-readonly-write",
+        role: "optimizer",
       });
-      const [exitCode, stdout, stderr] = await Promise.all([
-        child.exited,
-        new Response(child.stdout).text(),
-        new Response(child.stderr).text(),
-      ]);
+      for (const name of ["one", "two", "three", "four"]) {
+        const skillRoot = join(workspace.target, ".agents", "skills", name);
+        await mkdir(skillRoot, { recursive: true });
+        await writeFile(join(skillRoot, "SKILL.md"), `# ${name}\n`);
+      }
+      const binRoot = join(workspace.root, "bin");
+      await mkdir(binRoot);
+      const fakePython = join(binRoot, "python3");
+      await writeFile(fakePython, "#!/bin/sh\nexit 1\n", { mode: 0o500 });
+      await chmod(fakePython, 0o500);
+      const probe = await writeCapabilityProbe(workspace, []);
+      const runtimeRoot = join(workspace.target, ".runtime");
+      await chmod(runtimeRoot, 0o500);
 
-      expect(exitCode).toBe(0);
-      expect(stdout).toBe(probe.expectedOutput);
-      expect(stderr).toBe("");
-    } finally {
-      await chmod(runtimeRoot, 0o700);
-    }
-  });
+      try {
+        const child = Bun.spawn(["/bin/sh", probe.absolutePath], {
+          cwd: workspace.target,
+          env: { PATH: binRoot },
+          stdout: "pipe",
+          stderr: "pipe",
+        });
+        const [exitCode, stdout, stderr] = await Promise.all([
+          child.exited,
+          new Response(child.stdout).text(),
+          new Response(child.stderr).text(),
+        ]);
+
+        expect(exitCode).toBe(0);
+        expect(stdout).toBe(probe.expectedOutput);
+        expect(stderr).toBe("");
+      } finally {
+        await chmod(runtimeRoot, 0o700);
+      }
+    },
+  );
 
   test("runs the authoritative source probe in the production profile before model calls", async () => {
     // Given

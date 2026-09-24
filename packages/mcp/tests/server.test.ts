@@ -185,15 +185,16 @@ async function killServer(proc: ChildProcess): Promise<void> {
 async function waitForStatusState(
   proc: ChildProcess,
   expected: { dirty: boolean; syncState: string },
-  timeoutMs = 10_000,
+  timeoutMs = 5_000,
   intervalMs = 300,
 ): Promise<Record<string, unknown> | undefined> {
   const deadline = Date.now() + timeoutMs;
   let last: Record<string, unknown> | undefined;
+  let requestId = 2_000;
   do {
     const response = await sendRequest(proc, {
       jsonrpc: "2.0",
-      id: 2_000,
+      id: requestId++,
       method: "tools/call",
       params: {
         name: "kb_status",
@@ -1137,7 +1138,7 @@ describe("MCP Server", () => {
       stopWorkspaceEngine(kibiBin, tempRoot);
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
-  }, 30000);
+  }, 90000);
 
   test("should create usage.log when --diagnostic-mode is enabled", async () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-diag-"));

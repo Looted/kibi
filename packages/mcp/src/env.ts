@@ -17,8 +17,9 @@
 */
 import fs from "node:fs";
 import {
-  bootstrapKibiEnvironment,
   KIBI_PROJECT_ENV_FILE,
+  bootstrapKibiEnvironment,
+  inspectSecretSource,
   parseEnvContent,
   resolveEnvFilePath,
   resolveKibiProjectEnvPath,
@@ -132,4 +133,5 @@ export {
   resolveEnvFilePath,
   resolveKibiProjectEnvPath,
   resolveKibiWorkspaceRoot,
+  inspectSecretSource,
 };

@@ -213,6 +213,7 @@ describe("MCP kb.query Parsing Functions", () => {
       await handleKbQuery(mockProlog, {});
       expect(mockProlog.query).toHaveBeenCalledWith(
         "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)",
+        expect.any(AbortSignal),
       );
     });
 
@@ -225,6 +226,7 @@ describe("MCP kb.query Parsing Functions", () => {
       await handleKbQuery(mockProlog, { type: "req" });
       expect(mockProlog.query).toHaveBeenCalledWith(
         "findall([Id,'req',Props], kb_entity(Id, 'req', Props), Results)",
+        expect.any(AbortSignal),
       );
     });
 
@@ -237,6 +239,7 @@ describe("MCP kb.query Parsing Functions", () => {
       await handleKbQuery(mockProlog, { id: "id1", type: "req" });
       expect(mockProlog.query).toHaveBeenCalledWith(
         "findall(['id1','req',Props], kb_entity('id1', 'req', Props), Results)",
+        expect.any(AbortSignal),
       );
     });
 
@@ -249,6 +252,7 @@ describe("MCP kb.query Parsing Functions", () => {
       await handleKbQuery(mockProlog, { id: "o'brien", type: "req" });
       expect(mockProlog.query).toHaveBeenCalledWith(
         "findall(['o''brien','req',Props], kb_entity('o''brien', 'req', Props), Results)",
+        expect.any(AbortSignal),
       );
     });
 
@@ -261,6 +265,7 @@ describe("MCP kb.query Parsing Functions", () => {
       await handleKbQuery(mockProlog, { tags: ["it's", "safe"] });
       expect(mockProlog.query).toHaveBeenCalledWith(
         "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)",
+        expect.any(AbortSignal),
       );
     });
 
@@ -273,6 +278,7 @@ describe("MCP kb.query Parsing Functions", () => {
       await handleKbQuery(mockProlog, { tags: ["t1", "t2"] });
       expect(mockProlog.query).toHaveBeenCalledWith(
         "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)",
+        expect.any(AbortSignal),
       );
     });
 
@@ -395,6 +401,7 @@ describe("MCP kb.query Parsing Functions", () => {
       expect(ensureProlog).toHaveBeenCalledTimes(1);
       expect(query).toHaveBeenCalledWith(
         "findall([Id,'req',Props], kb_entity(Id, 'req', Props), Results)",
+        expect.any(AbortSignal),
       );
       expect(calls).toEqual(["ensureProlog", "query"]);
     });

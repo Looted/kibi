@@ -63,6 +63,7 @@ type RegisteredTool = {
 };
 
 type ToolResponse = {
+  content: readonly { type: string; text?: string; [key: string]: unknown }[];
   structuredContent: Record<string, unknown>;
 };
 
@@ -1019,7 +1020,7 @@ describe.serial("server tools coverage", () => {
     ).toBe(true);
   });
 
-  test("addTool times out hung handlers, resets Prolog, logs diagnostics, and cleans in-flight requests", async () => {
+  test("addTool times out hung read handlers without resetting Prolog", async () => {
     const originalTimeout = process.env.KIBI_MCP_TOOL_TIMEOUT_MS;
     process.env.KIBI_MCP_TOOL_TIMEOUT_MS = "5";
     try {
@@ -1071,9 +1072,7 @@ describe.serial("server tools coverage", () => {
         "Tool timeout_tool failed: Tool timeout_tool timed out after 5ms",
       );
       expect(trackedRequests.size).toBe(0);
-      expect(spies.resetProlog).toHaveBeenCalledWith(
-        "tool timeout: timeout_tool",
-      );
+      expect(spies.resetProlog).not.toHaveBeenCalled();
       expect(spies.appendUsageLogLine).toHaveBeenCalledWith(
         expect.objectContaining({
           request_id: "req-timeout",
@@ -1081,8 +1080,8 @@ describe.serial("server tools coverage", () => {
           status: "error",
           diagnostic_phase: "error",
           error_category: "tool_timeout",
-          reset_attempted: true,
-          reset_succeeded: true,
+          reset_attempted: false,
+          reset_succeeded: false,
           reset_error: null,
           diagnostic_hints: expect.arrayContaining([
             expect.stringContaining("tool_timeout runtime:"),
@@ -1096,6 +1095,170 @@ describe.serial("server tools coverage", () => {
       restoreEnvVar("KIBI_MCP_TOOL_TIMEOUT_MS", originalTimeout);
     }
   }, 10_000);
+
+  test("addTool does not reset Prolog when a sibling read tool is still running", async () => {
+    const originalTimeout = process.env.KIBI_MCP_TOOL_TIMEOUT_MS;
+    process.env.KIBI_MCP_TOOL_TIMEOUT_MS = "20";
+    try {
+      const { runtime, spies } = createRuntime();
+      const { server, registered } = createCapturingServer();
+      const hung = createDeferred<never>();
+      const sibling = createDeferred<{
+        content: { type: string; text: string }[];
+        structuredContent: { ok: boolean };
+      }>();
+
+      addTool(
+        server,
+        "slow_read",
+        "slow read",
+        {},
+        async () => hung.promise,
+        runtime,
+        {
+          name: "slow_read",
+          effects: ["kb-read"],
+          requiresProlog: false,
+          execute: async () => hung.promise,
+        },
+      );
+      addTool(
+        server,
+        "sibling_read",
+        "sibling read",
+        {},
+        async () => sibling.promise,
+        runtime,
+        {
+          name: "sibling_read",
+          effects: ["kb-read"],
+          requiresProlog: false,
+          execute: async () => sibling.promise,
+        },
+      );
+
+      const slowTool = getRegisteredTool(registered, "slow_read");
+      const siblingTool = getRegisteredTool(registered, "sibling_read");
+      const slowPromise = invokeTool(slowTool, { _requestId: "slow" });
+      const siblingPromise = invokeTool(siblingTool, { _requestId: "sibling" });
+
+      await flushWrappedHandlerSetup();
+      const slowError = await getRejectedError(slowPromise);
+      expect(slowError.message).toContain("timed out");
+      expect(spies.resetProlog).not.toHaveBeenCalled();
+
+      sibling.resolve({
+        content: [{ type: "text", text: "sibling ok" }],
+        structuredContent: { ok: true },
+      });
+      const siblingResult = (await siblingPromise) as ToolResponse;
+      expect(siblingResult.content?.[0]?.text).toBe("sibling ok");
+      expect(spies.resetProlog).not.toHaveBeenCalled();
+    } finally {
+      restoreEnvVar("KIBI_MCP_TOOL_TIMEOUT_MS", originalTimeout);
+    }
+  }, 10_000);
+
+  test("addTool embeds structured data JSON only when agentVisibleStructuredData is opted in", async () => {
+    const { runtime } = createRuntime();
+    const { server, registered } = createCapturingServer();
+    addTool(
+      server,
+      "query_like",
+      "query like",
+      {},
+      async () => ({
+        content: [
+          {
+            type: "text",
+            text: "Found 1 entities. Showing 1 (offset 0, limit 1): REQ-1 (title, status=active)",
+          },
+          { type: "resource", uri: "kibi://keep-me" },
+        ],
+        structuredContent: {
+          entities: [
+            {
+              id: "REQ-1",
+              proof_contract: { required: true },
+              proof_bindings: [{ test: "TEST-1" }],
+            },
+          ],
+          count: 1,
+        },
+      }),
+      runtime,
+      {
+        name: "kb_query",
+        effects: ["kb-read"],
+        requiresProlog: false,
+        agentVisibleStructuredData: true,
+        execute: async () => ({
+          content: [
+            {
+              type: "text",
+              text: "Found 1 entities. Showing 1 (offset 0, limit 1): REQ-1 (title, status=active)",
+            },
+            { type: "resource", uri: "kibi://keep-me" },
+          ],
+          structuredContent: {
+            entities: [
+              {
+                id: "REQ-1",
+                proof_contract: { required: true },
+                proof_bindings: [{ test: "TEST-1" }],
+              },
+            ],
+            count: 1,
+          },
+        }),
+      },
+    );
+    addTool(
+      server,
+      "ordinary_read",
+      "ordinary",
+      {},
+      async () => ({
+        content: [{ type: "text", text: "plain summary only" }],
+        structuredContent: { huge: "should-not-duplicate" },
+      }),
+      runtime,
+      {
+        name: "ordinary_read",
+        effects: ["kb-read"],
+        requiresProlog: false,
+        execute: async () => ({
+          content: [{ type: "text", text: "plain summary only" }],
+          structuredContent: { huge: "should-not-duplicate" },
+        }),
+      },
+    );
+    const optedIn = (await invokeTool(
+      getRegisteredTool(registered, "query_like"),
+      {},
+    )) as ToolResponse;
+    const text = optedIn.content?.[0]?.text ?? "";
+    expect(text).toContain("proof_contract");
+    expect(text).toContain("proof_bindings");
+    expect(text).toContain("Found 1 entities");
+    expect(text.indexOf("proof_contract")).toBeLessThan(
+      text.indexOf("Found 1 entities"),
+    );
+    expect(optedIn.content?.some((part) => part.type === "resource")).toBe(
+      true,
+    );
+    expect(optedIn.structuredContent).toMatchObject({
+      status: "success",
+      data: { count: 1 },
+    });
+
+    const ordinary = (await invokeTool(
+      getRegisteredTool(registered, "ordinary_read"),
+      {},
+    )) as ToolResponse;
+    expect(ordinary.content?.[0]?.text).toBe("plain summary only");
+    expect(ordinary.content?.[0]?.text).not.toContain("should-not-duplicate");
+  });
 
   test("addTool returns MUTATION_OUTCOME_UNKNOWN when a write tool times out", async () => {
     const originalTimeout = process.env.KIBI_MCP_TOOL_TIMEOUT_MS;
