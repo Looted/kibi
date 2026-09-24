@@ -191,7 +191,12 @@ try {
     process.chdir(originalCwd);
   }
   const undeclaredDoctor = JSON.parse(undeclaredDoctorLogs[0] ?? "{}") as {
-    checks?: Array<{ name: string; passed?: boolean; message: string; remediation?: string }>;
+    checks?: Array<{
+      name: string;
+      passed?: boolean;
+      message: string;
+      remediation?: string;
+    }>;
   };
   const undeclaredPluginCheck = undeclaredDoctor.checks?.find(
     (check) => check.name === "Capability plugins",

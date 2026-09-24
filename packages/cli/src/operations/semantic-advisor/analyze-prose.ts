@@ -19,9 +19,9 @@ import { observationPlan } from "./observation-plan.js";
 import {
   type Payload,
   type SemanticSourceField,
+  predicateSuggestion as buildPredicateSuggestion,
   isRecord,
   payloadHash,
-  predicateSuggestion as buildPredicateSuggestion,
   propertiesOf,
   relationship,
   semanticClausesOf,

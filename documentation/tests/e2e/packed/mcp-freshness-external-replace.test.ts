@@ -88,7 +88,9 @@ First scenario.
         const before = mcpToolPayload(
           await server.call("kb_query", { type: "scenario", limit: 100 }),
         ) as QueryPayload;
-        const beforeIds = (before.entities ?? before.rows ?? []).map((row) => row.id);
+        const beforeIds = (before.entities ?? before.rows ?? []).map(
+          (row) => row.id,
+        );
         assert.ok(
           beforeIds.includes("SCEN-FRESH-ONE"),
           `baseline query must see the first scenario: ${JSON.stringify(beforeIds)} payload=${JSON.stringify(before).slice(0, 600)}`,
@@ -117,7 +119,9 @@ Second scenario.
         const after = mcpToolPayload(
           await server.call("kb_query", { type: "scenario", limit: 100 }),
         ) as QueryPayload;
-        const afterIds = (after.entities ?? after.rows ?? []).map((row) => row.id);
+        const afterIds = (after.entities ?? after.rows ?? []).map(
+          (row) => row.id,
+        );
         assert.ok(
           afterIds.includes("SCEN-FRESH-ONE"),
           `refreshed query must keep the first scenario: ${JSON.stringify(afterIds)}`,

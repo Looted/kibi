@@ -79,9 +79,11 @@ describe("bootstrapKibiEnvironment precedence", () => {
     );
     fs.writeFileSync(
       path.join(tmpDir, ".env.kibi"),
-      ["BOOT_PROCESS=from-project", "BOOT_PROJECT=project-only", "BOOT_BOTH=project"].join(
-        "\n",
-      ),
+      [
+        "BOOT_PROCESS=from-project",
+        "BOOT_PROJECT=project-only",
+        "BOOT_BOTH=project",
+      ].join("\n"),
     );
     fs.writeFileSync(
       path.join(tmpDir, ".env"),

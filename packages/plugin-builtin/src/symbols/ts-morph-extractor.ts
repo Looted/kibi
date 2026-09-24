@@ -17,14 +17,6 @@
 */
 
 import * as path from "node:path";
-import {
-  type ClassDeclaration,
-  type ClassExpression,
-  type Node,
-  Project,
-  type SourceFile,
-  SyntaxKind,
-} from "ts-morph";
 import type {
   SourceAnalysisProvider,
   SourceAnalysisResult,
@@ -33,6 +25,14 @@ import type {
   SymbolExtractorV1,
 } from "kibi-plugin-sdk";
 import { toSourceAnalysisProvider } from "kibi-plugin-sdk";
+import {
+  type ClassDeclaration,
+  type ClassExpression,
+  type Node,
+  Project,
+  type SourceFile,
+  SyntaxKind,
+} from "ts-morph";
 import {
   SUPPORTED_SOURCE_EXTENSIONS,
   chooseScriptKind,
@@ -273,7 +273,9 @@ function appendClassMembers(
   // body). Method-local `// implements` stay on the method via getFullText.
   const classLeading = leadingCommentsAndJsDocs(sourceFile, declaration);
   const methods =
-    typeof declaration.getMethods === "function" ? declaration.getMethods() : [];
+    typeof declaration.getMethods === "function"
+      ? declaration.getMethods()
+      : [];
   for (const method of methods) {
     if (isPrivateClassMember(method)) continue;
     pushSymbol(symbols, () =>

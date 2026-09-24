@@ -71,19 +71,15 @@ assert(
 const sandbox = mkdtempSync(join(tmpdir(), "kibi-vscode-e2e-"));
 try {
   const git = (args: readonly string[]) =>
-    run(
-      "git",
-      args,
-      {
-        cwd: sandbox,
-        env: {
-          GIT_AUTHOR_NAME: "vscode-e2e",
-          GIT_AUTHOR_EMAIL: "vscode-e2e@example.invalid",
-          GIT_COMMITTER_NAME: "vscode-e2e",
-          GIT_COMMITTER_EMAIL: "vscode-e2e@example.invalid",
-        },
+    run("git", args, {
+      cwd: sandbox,
+      env: {
+        GIT_AUTHOR_NAME: "vscode-e2e",
+        GIT_AUTHOR_EMAIL: "vscode-e2e@example.invalid",
+        GIT_COMMITTER_NAME: "vscode-e2e",
+        GIT_COMMITTER_EMAIL: "vscode-e2e@example.invalid",
       },
-    );
+    });
   assert(git(["init", "--quiet"]).status === 0, "sandbox git init failed");
   assert(
     git(["commit", "--allow-empty", "-q", "-m", "initial"]).status === 0,
@@ -100,19 +96,13 @@ try {
   );
 
   const kibi = (args: readonly string[]) =>
-    run(
-      join(REPO_ROOT, "packages", "cli", "bin", "kibi"),
-      args,
-      { cwd: sandbox, env: { PATH: `${binDir}:${process.env.PATH ?? ""}` } },
-    );
+    run(join(REPO_ROOT, "packages", "cli", "bin", "kibi"), args, {
+      cwd: sandbox,
+      env: { PATH: `${binDir}:${process.env.PATH ?? ""}` },
+    });
   assert(kibi(["init"]).status === 0, "kibi init failed in the sandbox");
 
-  const entityDirs = [
-    ".kb/requirements",
-    ".kb/scenarios",
-    ".kb/tests",
-    "src",
-  ];
+  const entityDirs = [".kb/requirements", ".kb/scenarios", ".kb/tests", "src"];
   for (const dir of entityDirs) {
     mkdirSync(join(sandbox, dir), { recursive: true });
   }
@@ -204,7 +194,13 @@ Fixture test for the extension lifecycle chain.
 
   // ── 3. Drive the built artifact against the real workspace ────────────────
   const driver = run(BUN, [
-    join(REPO_ROOT, "documentation", "tests", "e2e", "vscode-extension-driver.ts"),
+    join(
+      REPO_ROOT,
+      "documentation",
+      "tests",
+      "e2e",
+      "vscode-extension-driver.ts",
+    ),
     sandbox,
     distPath,
   ]);

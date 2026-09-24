@@ -22,10 +22,10 @@ import { createRequire } from "node:module";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  bootstrapKibiEnvironment,
-  secretSourceFromBootstrap,
   type BootstrapKibiEnvironmentResult,
   type EnvValueSource,
+  bootstrapKibiEnvironment,
+  secretSourceFromBootstrap,
 } from "../env/bootstrap.js";
 import {
   describeConfiguredCapabilityPlugins,
@@ -43,11 +43,10 @@ import { planLegacyStorageMigration } from "./legacy-storage-migration.js";
  * Generic third-party plugins report package/capability/mode/declared only.
  */
 // implements REQ-kibi-env-bootstrap, REQ-capability-plugin-configuration-v1
-const FIRST_PARTY_PLUGIN_SECRETS: Readonly<
-  Record<string, readonly string[]>
-> = {
-  "kibi-plugin-jev": ["TYPESAFE_API_KEY"],
-};
+const FIRST_PARTY_PLUGIN_SECRETS: Readonly<Record<string, readonly string[]>> =
+  {
+    "kibi-plugin-jev": ["TYPESAFE_API_KEY"],
+  };
 
 /** Static Jev defaults — must stay aligned with kibi-plugin-jev (no import). */
 const JEV_DEFAULT_MODEL = "jev-latest";

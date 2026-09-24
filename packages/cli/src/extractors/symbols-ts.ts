@@ -16,12 +16,12 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 import {
+  type ManifestSymbolEntry as BuiltinManifestSymbolEntry,
+  type SymbolCoordinates as BuiltinSymbolCoordinates,
   createBuiltinTsMorphSourceAnalysisProvider,
   enrichSymbolCoordinatesWithTsMorph as enrichBuiltinSymbolCoordinates,
   isPrivateClassMember as isBuiltinPrivateClassMember,
   onlyCandidate as onlyBuiltinCandidate,
-  type ManifestSymbolEntry as BuiltinManifestSymbolEntry,
-  type SymbolCoordinates as BuiltinSymbolCoordinates,
 } from "kibi-plugin-builtin";
 import type {
   SourceAnalysisProvider,

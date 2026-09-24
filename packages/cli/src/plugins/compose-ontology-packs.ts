@@ -26,11 +26,11 @@ import {
   validatePredicateSchema,
 } from "kibi-plugin-sdk";
 
-import { PluginResolutionError } from "./resolve-package.js";
 import type {
   CapabilityModeResolution,
   CapabilityProviderBinding,
 } from "./registry.js";
+import { PluginResolutionError } from "./resolve-package.js";
 
 // implements REQ-capability-plugin-activation-disclosure-v1
 export type StampedOntologyCandidate = OntologyMatchCandidate &
@@ -68,9 +68,7 @@ function candidateKey(
   ].join("\0");
 }
 
-function packOwnedSchemas(
-  binding: CapabilityProviderBinding<OntologyPackV1>,
-): {
+function packOwnedSchemas(binding: CapabilityProviderBinding<OntologyPackV1>): {
   schemas: PredicateSchemaDefinition[];
   owned: Set<string>;
 } {

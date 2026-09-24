@@ -76,10 +76,7 @@ export async function runOperationJsonQuery<T>(
     fileName === "status.pl" && typeof typedStatusQuery === "function"
       ? await typedStatusQuery.call(prolog, signal)
       : oneShotMode
-        ? await prolog.query(
-            `(use_module('${modulePath}'), ${goal})`,
-            signal,
-          )
+        ? await prolog.query(`(use_module('${modulePath}'), ${goal})`, signal)
         : await runInteractiveModuleQuery(
             prolog,
             modulePath,
@@ -127,10 +124,7 @@ async function runInteractiveModuleQuery(
   errorLabel: string,
   signal?: AbortSignal,
 ) {
-  const loadResult = await prolog.query(
-    `use_module('${modulePath}')`,
-    signal,
-  );
+  const loadResult = await prolog.query(`use_module('${modulePath}')`, signal);
   if (!loadResult.success) {
     throw new Error(
       `${errorLabel} module load failed: ${loadResult.error ?? "Unknown error"}`,

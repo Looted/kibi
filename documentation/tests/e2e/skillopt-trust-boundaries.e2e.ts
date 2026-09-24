@@ -26,15 +26,15 @@ import {
   cpSync,
   mkdirSync,
   mkdtempSync,
-  readdirSync,
   readFileSync,
+  readdirSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { prepareArtifact } from "../../../scripts/skillopt-eval/prepared-root";
 import { receipt as hostReceipt } from "../../../scripts/skillopt-eval/preflight-host-model";
+import { prepareArtifact } from "../../../scripts/skillopt-eval/prepared-root";
 import {
   rootAuthorizationFixture,
   supervisorParentFixture,
@@ -90,7 +90,9 @@ function directoryFingerprint(root: string): string {
         continue;
       }
       hash.update(`${entry.name}\n`);
-      hash.update(createHash("sha256").update(readFileSync(full)).digest("hex"));
+      hash.update(
+        createHash("sha256").update(readFileSync(full)).digest("hex"),
+      );
       hash.update("\n");
     }
   };
@@ -109,7 +111,9 @@ try {
     trust.status === 78,
     `the trust probe must exit 78 (config error) when the external plane is missing, got ${trust.status}:\n${trust.stdout}\n${trust.stderr}`,
   );
-  const noActivity = JSON.parse(trust.stderr.trim().split("\n").pop() ?? "{}") as {
+  const noActivity = JSON.parse(
+    trust.stderr.trim().split("\n").pop() ?? "{}",
+  ) as {
     code?: string;
     missing?: string[];
     processSpawned?: boolean;
@@ -249,7 +253,9 @@ try {
     strippedPath.status === 1,
     `a paid launch without the Codex runtime must exit 1, got ${strippedPath.status}:\n${strippedPath.stdout}\n${strippedPath.stderr}`,
   );
-  const noGo = JSON.parse(strippedPath.stdout.trim().split("\n").pop() ?? "{}") as {
+  const noGo = JSON.parse(
+    strippedPath.stdout.trim().split("\n").pop() ?? "{}",
+  ) as {
     command?: string;
     stage?: string;
     verdict?: string;
@@ -305,7 +311,9 @@ try {
     reviewAdopt.status === 0,
     `offline adopt must produce a review plan, got ${reviewAdopt.status}:\n${reviewAdopt.stdout}\n${reviewAdopt.stderr}`,
   );
-  const plan = JSON.parse(reviewAdopt.stdout.trim().split("\n").pop() ?? "{}") as {
+  const plan = JSON.parse(
+    reviewAdopt.stdout.trim().split("\n").pop() ?? "{}",
+  ) as {
     command?: string;
     dryRun?: boolean;
   };
@@ -424,9 +432,13 @@ try {
     },
   };
   writeFileSync(verificationParent, JSON.stringify(tamperedParent), "utf8");
-  const tampered = runBun("scripts/skillopt-eval/verify-harness.ts", harnessArgs, {
-    cwd: verifySource,
-  });
+  const tampered = runBun(
+    "scripts/skillopt-eval/verify-harness.ts",
+    harnessArgs,
+    {
+      cwd: verifySource,
+    },
+  );
   assert(
     tampered.status === 2,
     `a tampered candidate binding must be rejected (exit 2), got ${tampered.status}:\n${tampered.stdout}\n${tampered.stderr}`,
@@ -439,14 +451,20 @@ try {
   );
 
   writeFileSync(verificationParent, JSON.stringify(parent), "utf8");
-  const verified = runBun("scripts/skillopt-eval/verify-harness.ts", harnessArgs, {
-    cwd: verifySource,
-  });
+  const verified = runBun(
+    "scripts/skillopt-eval/verify-harness.ts",
+    harnessArgs,
+    {
+      cwd: verifySource,
+    },
+  );
   assert(
     verified.status === 0,
     `the bound verification harness must complete, got ${verified.status}:\n${verified.stdout}\n${verified.stderr}`,
   );
-  const review = JSON.parse(verified.stdout.trim().split("\n").pop() ?? "{}") as {
+  const review = JSON.parse(
+    verified.stdout.trim().split("\n").pop() ?? "{}",
+  ) as {
     productionAdoption?: string;
     paidModelCalls?: number;
     sourceModified?: boolean;

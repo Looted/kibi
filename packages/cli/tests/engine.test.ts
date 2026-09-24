@@ -432,7 +432,8 @@ describe("journaled engine", () => {
         client.queryStatusJson(),
         new Promise<never>((_, reject) =>
           setTimeout(
-            () => reject(new Error("queryStatusJson hung (requestTail deadlock)")),
+            () =>
+              reject(new Error("queryStatusJson hung (requestTail deadlock)")),
             5_000,
           ),
         ),

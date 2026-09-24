@@ -16,8 +16,8 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Project } from "ts-morph";
 import type { SourceSymbolKind } from "kibi-plugin-sdk";
+import { Project } from "ts-morph";
 import { chooseScriptKind, isPrivateClassMember } from "./ts-morph-shared.js";
 
 // implements REQ-capability-plugin-builtin-parity-v1
@@ -55,7 +55,8 @@ export function collectGranularityCandidates(
     for (const method of cls.getMethods()) {
       if (isPrivateClassMember(method)) continue;
       const name = method.getName();
-      if (className) found.push({ name: `${className}.${name}`, kind: "method" });
+      if (className)
+        found.push({ name: `${className}.${name}`, kind: "method" });
       bareMethods.set(name, { name, kind: "method" });
       methodCounts.set(name, (methodCounts.get(name) ?? 0) + 1);
     }

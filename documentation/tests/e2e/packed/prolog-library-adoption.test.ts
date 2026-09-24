@@ -1,6 +1,6 @@
 import assert from "node:assert";
-import { createServer, type Server } from "node:http";
 import { mkdirSync, writeFileSync } from "node:fs";
+import { type Server, createServer } from "node:http";
 import { join } from "node:path";
 import { after, before, describe, it } from "node:test";
 import {
@@ -67,7 +67,9 @@ Local fixture.
             body += chunk.toString("utf8");
           });
           request.on("end", () => {
-            response.writeHead(200, { "content-type": "application/sparql-results+json" });
+            response.writeHead(200, {
+              "content-type": "application/sparql-results+json",
+            });
             response.end(
               JSON.stringify({
                 head: { vars: ["s", "p", "o"] },
@@ -94,7 +96,8 @@ Local fixture.
 
     after(
       async () => {
-        if (endpoint) await new Promise<void>((resolve) => endpoint.close(() => resolve()));
+        if (endpoint)
+          await new Promise<void>((resolve) => endpoint.close(() => resolve()));
         if (sandbox) await sandbox.cleanup();
       },
       { timeout: 60000 },
@@ -140,12 +143,17 @@ Local fixture.
           "--input",
           inputPath,
         ]);
-        assert.strictEqual(result.exitCode, 0, `${result.stdout}${result.stderr}`);
+        assert.strictEqual(
+          result.exitCode,
+          0,
+          `${result.stdout}${result.stderr}`,
+        );
         const envelope = JSON.parse(result.stdout) as {
           data?: { rows?: unknown[] };
         };
         assert.ok(
-          Array.isArray(envelope.data?.rows) && (envelope.data?.rows ?? []).length > 0,
+          Array.isArray(envelope.data?.rows) &&
+            (envelope.data?.rows ?? []).length > 0,
           `remote SPARQL must return endpoint rows: ${result.stdout.slice(0, 300)}`,
         );
       },

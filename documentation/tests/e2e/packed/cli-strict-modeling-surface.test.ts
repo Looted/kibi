@@ -75,7 +75,11 @@ if (RUN_NODE_TEST_SUITE) {
       async () => {
         if (!hasProlog) return;
         const result = await runModelRequirement(sandbox, 0.9);
-        assert.strictEqual(result.exitCode, 0, `${result.stdout}${result.stderr}`);
+        assert.strictEqual(
+          result.exitCode,
+          0,
+          `${result.stdout}${result.stderr}`,
+        );
         const envelope = JSON.parse(result.stdout) as {
           data?: ModelRequirementPayload;
         };
@@ -99,7 +103,11 @@ if (RUN_NODE_TEST_SUITE) {
       async () => {
         if (!hasProlog) return;
         const result = await runModelRequirement(sandbox, 0.3);
-        assert.strictEqual(result.exitCode, 0, `${result.stdout}${result.stderr}`);
+        assert.strictEqual(
+          result.exitCode,
+          0,
+          `${result.stdout}${result.stderr}`,
+        );
         const envelope = JSON.parse(result.stdout) as {
           data?: ModelRequirementPayload;
         };

@@ -70,7 +70,11 @@ Status freshness fixture requirement.
 
     async function readStatus() {
       const status = await kibi(sandbox, ["status", "--format", "json"]);
-      assert.strictEqual(status.exitCode, 0, `${status.stdout}${status.stderr}`);
+      assert.strictEqual(
+        status.exitCode,
+        0,
+        `${status.stdout}${status.stderr}`,
+      );
       return parseKibiResult<{
         dirty: boolean;
         syncState: string;

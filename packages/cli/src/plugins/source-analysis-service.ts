@@ -21,8 +21,8 @@ import {
   type PluginProviderStamp,
   type SourceAnalysisResult,
   type SymbolExtractorV1,
-  validateSourceAnalysisResultForPath,
   toSourceAnalysisProvider,
+  validateSourceAnalysisResultForPath,
 } from "kibi-plugin-sdk";
 
 import type {

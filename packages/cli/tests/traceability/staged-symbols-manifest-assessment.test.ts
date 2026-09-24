@@ -37,11 +37,12 @@ function staged(filePath: string, content: string | undefined): StagedFile {
   return { path: filePath, status: "M", hunkRanges: [], content };
 }
 
-const ALPHA_SOURCE = `export function alpha() {\n  return 1;\n}\n`;
+const ALPHA_SOURCE = "export function alpha() {\n  return 1;\n}\n";
 const TWO_FN_SOURCE = `${ALPHA_SOURCE}\nexport function beta() {\n  return 2;\n}\n`;
-const FRESH_SOURCE = `export function freshFn() {\n  return 1;\n}\n`;
-const STALE_A_SOURCE = `export function keepFn() {\n  return 1;\n}\n\nexport function addedFn() {\n  return 2;\n}\n`;
-const STALE_B_SOURCE = `export function bFn() {\n  return 1;\n}\n`;
+const FRESH_SOURCE = "export function freshFn() {\n  return 1;\n}\n";
+const STALE_A_SOURCE =
+  "export function keepFn() {\n  return 1;\n}\n\nexport function addedFn() {\n  return 2;\n}\n";
+const STALE_B_SOURCE = "export function bFn() {\n  return 1;\n}\n";
 const MANY_FN_SOURCE = `${Array.from(
   { length: 8 },
   (_, index) =>

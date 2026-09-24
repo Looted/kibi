@@ -17,10 +17,7 @@
 */
 
 import { createRequire } from "node:module";
-import {
-  KIBI_PLUGIN_API_VERSION,
-  defineKibiPlugin,
-} from "kibi-plugin-sdk";
+import { KIBI_PLUGIN_API_VERSION, defineKibiPlugin } from "kibi-plugin-sdk";
 import { createBuiltinOntologyPack } from "./ontology/builtin-ontology-pack.js";
 import { createBuiltinSemanticClassifier } from "./semantic/builtin-classifier.js";
 import { createBuiltinTsMorphSymbolExtractor } from "./symbols/ts-morph-extractor.js";
@@ -54,9 +51,7 @@ export { POLICY_PREDICATE_RULES } from "./ontology/predicate-rules-policy.js";
 // implements REQ-capability-plugin-builtin-parity-v1
 export { PRODUCT_PREDICATE_RULES } from "./ontology/predicate-rules-product.js";
 // implements REQ-capability-plugin-builtin-parity-v1
-export {
-  PRODUCT_TAIL_PREDICATE_RULES,
-} from "./ontology/predicate-rules-product-tail.js";
+export { PRODUCT_TAIL_PREDICATE_RULES } from "./ontology/predicate-rules-product-tail.js";
 // implements REQ-capability-plugin-builtin-parity-v1
 export {
   normalizeKey,

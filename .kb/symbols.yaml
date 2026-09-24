@@ -5073,7 +5073,8 @@ symbols:
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable resource examples
+    title: predicate guidance loads a canonical decision tree with immutable
+      resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -38082,7 +38083,8 @@ symbols:
       - type: executable_for
         target: TEST-zcode-kibi-plugin-v1
   - id: SYM-zcode-case-optional-package-contract
-    title: '''Optional package contract: no install lifecycle or core runtime mutation'''
+    title: '''Optional package contract: no install lifecycle or core runtime
+      mutation'''
     status: active
     sourceFile: packages/zcode/tests/package-contract.test.ts
     symbol_role: behavioral
@@ -41126,3 +41128,27 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-e2e-runtime-symbol-portability
+  - id: SYM-packed-mcp-stdio-server-interface
+    title: McpStdioServer
+    status: active
+    sourceFile: documentation/tests/e2e/packed/mcp-stdio-client.ts
+    symbol_role: type-shape
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-mcp-freshness-external-replace
+  - id: SYM-packed-mcp-stdio-server-start
+    title: startMcpStdioServer
+    status: active
+    sourceFile: documentation/tests/e2e/packed/mcp-stdio-client.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-mcp-freshness-external-replace
+  - id: SYM-packed-mcp-tool-payload
+    title: mcpToolPayload
+    status: active
+    sourceFile: documentation/tests/e2e/packed/mcp-stdio-client.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-mcp-freshness-external-replace

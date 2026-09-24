@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
 import { createRequire } from "node:module";
+import { join } from "node:path";
 import { after, before, describe, it } from "node:test";
 import {
   type Tarballs,
@@ -44,9 +44,7 @@ if (RUN_NODE_TEST_SUITE) {
     );
 
     function loadRuntime() {
-      const require = createRequire(
-        join(sandbox.npmPrefix, "package.json"),
-      );
+      const require = createRequire(join(sandbox.npmPrefix, "package.json"));
       return require("kibi-runtime") as {
         bootstrapKibiEnvironment: (options?: {
           env?: NodeJS.ProcessEnv;

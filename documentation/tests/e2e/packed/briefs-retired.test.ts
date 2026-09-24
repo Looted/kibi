@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { after, before, describe, it } from "node:test";
 import {
@@ -65,7 +65,8 @@ if (RUN_NODE_TEST_SUITE) {
       async () => {
         if (!server) return;
         const result = await server.protocol("tools/list");
-        const tools = (result.tools as Array<{ name: string }> | undefined) ?? [];
+        const tools =
+          (result.tools as Array<{ name: string }> | undefined) ?? [];
         assert.ok(tools.length > 0, "tool list must not be empty");
         const briefing = tools.filter((tool) => /brief/i.test(tool.name));
         assert.deepStrictEqual(
@@ -124,10 +125,17 @@ if (RUN_NODE_TEST_SUITE) {
       "VS Code extension manifest contributes no briefing commands",
       { timeout: 60000 },
       () => {
-        const manifestPath = join(REPO_ROOT, "packages", "vscode", "package.json");
+        const manifestPath = join(
+          REPO_ROOT,
+          "packages",
+          "vscode",
+          "package.json",
+        );
         assert.ok(existsSync(manifestPath), "vscode package.json must exist");
         const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as {
-          contributes?: { commands?: Array<{ command: string; title: string }> };
+          contributes?: {
+            commands?: Array<{ command: string; title: string }>;
+          };
         };
         const commands = manifest.contributes?.commands ?? [];
         const briefing = commands.filter((command) =>

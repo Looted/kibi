@@ -1,4 +1,4 @@
-import { spawn, type ChildProcess } from "node:child_process";
+import { type ChildProcess, spawn } from "node:child_process";
 import { createInterface } from "node:readline";
 
 /**
@@ -9,8 +9,14 @@ import { createInterface } from "node:readline";
  * free so packed tests can exercise the real MCP transport surface.
  */
 export interface McpStdioServer {
-  call(name: string, args: Record<string, unknown>): Promise<Record<string, unknown>>;
-  protocol(method: string, params?: Record<string, unknown>): Promise<Record<string, unknown>>;
+  call(
+    name: string,
+    args: Record<string, unknown>,
+  ): Promise<Record<string, unknown>>;
+  protocol(
+    method: string,
+    params?: Record<string, unknown>,
+  ): Promise<Record<string, unknown>>;
   close(): Promise<void>;
 }
 
@@ -100,7 +106,9 @@ export async function startMcpStdioServer(options: {
   }
 
   function notify(method: string, params: Record<string, unknown>): void {
-    child.stdin?.write(`${JSON.stringify({ jsonrpc: "2.0", method, params })}\n`);
+    child.stdin?.write(
+      `${JSON.stringify({ jsonrpc: "2.0", method, params })}\n`,
+    );
   }
 
   const callTimeout = options.timeoutMs ?? 60_000;
@@ -167,5 +175,7 @@ export function mcpToolPayload(
       return parsed;
     }
   }
-  throw new Error(`MCP tool result carried no payload: ${JSON.stringify(result).slice(0, 400)}`);
+  throw new Error(
+    `MCP tool result carried no payload: ${JSON.stringify(result).slice(0, 400)}`,
+  );
 }

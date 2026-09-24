@@ -797,7 +797,8 @@ describe("doctorCommand capability plugins", () => {
     const previous = process.env.TYPESAFE_API_KEY;
     Reflect.deleteProperty(process.env, "TYPESAFE_API_KEY");
     return () => {
-      if (previous === undefined) Reflect.deleteProperty(process.env, "TYPESAFE_API_KEY");
+      if (previous === undefined)
+        Reflect.deleteProperty(process.env, "TYPESAFE_API_KEY");
       else process.env.TYPESAFE_API_KEY = previous;
     };
   }
@@ -819,7 +820,9 @@ describe("doctorCommand capability plugins", () => {
     expect(check.message).toContain("TYPESAFE_API_KEY=process");
     expect(check.message).toMatch(/jev\.model=/);
     expect(check.message).toMatch(/jev\.timeoutMs=/);
-    expect(JSON.stringify(payload)).not.toContain("test-key-not-for-leak-check");
+    expect(JSON.stringify(payload)).not.toContain(
+      "test-key-not-for-leak-check",
+    );
   });
 
   test("fails when activated Jev secret is missing, with remediation", async () => {
@@ -845,7 +848,10 @@ describe("doctorCommand capability plugins", () => {
     writeOkManifest(cwd);
     writeJevActivation(cwd, true);
     restores.push(clearTypesafeKey());
-    writeFileSync(path.join(cwd, ".env.kibi"), "TYPESAFE_API_KEY=from-project-file\n");
+    writeFileSync(
+      path.join(cwd, ".env.kibi"),
+      "TYPESAFE_API_KEY=from-project-file\n",
+    );
     mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
     const { payload } = await runDoctorJson(cwd);
     const check = namedCheck(payload, "Capability plugins");
@@ -861,7 +867,10 @@ describe("doctorCommand capability plugins", () => {
     const restoreKey = clearTypesafeKey();
     restores.push(restoreKey);
     process.env.TYPESAFE_API_KEY = "process-wins";
-    writeFileSync(path.join(cwd, ".env.kibi"), "TYPESAFE_API_KEY=from-project-file\n");
+    writeFileSync(
+      path.join(cwd, ".env.kibi"),
+      "TYPESAFE_API_KEY=from-project-file\n",
+    );
     mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
     const { payload } = await runDoctorJson(cwd);
     const check = namedCheck(payload, "Capability plugins");
@@ -879,11 +888,15 @@ describe("doctorCommand capability plugins", () => {
     const xdg = createTempDir();
     roots.push(xdg);
     mkdirSync(path.join(xdg, "kibi"), { recursive: true });
-    writeFileSync(path.join(xdg, "kibi", "env"), "TYPESAFE_API_KEY=from-user-file\n");
+    writeFileSync(
+      path.join(xdg, "kibi", "env"),
+      "TYPESAFE_API_KEY=from-user-file\n",
+    );
     const previousXdg = process.env.XDG_CONFIG_HOME;
     process.env.XDG_CONFIG_HOME = xdg;
     restores.push(() => {
-      if (previousXdg === undefined) Reflect.deleteProperty(process.env, "XDG_CONFIG_HOME");
+      if (previousXdg === undefined)
+        Reflect.deleteProperty(process.env, "XDG_CONFIG_HOME");
       else process.env.XDG_CONFIG_HOME = previousXdg;
     });
     mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
@@ -927,7 +940,8 @@ describe("doctorCommand capability plugins", () => {
     const previousWs = process.env.KIBI_WORKSPACE;
     process.env.KIBI_WORKSPACE = workspace;
     restores.push(() => {
-      if (previousWs === undefined) Reflect.deleteProperty(process.env, "KIBI_WORKSPACE");
+      if (previousWs === undefined)
+        Reflect.deleteProperty(process.env, "KIBI_WORKSPACE");
       else process.env.KIBI_WORKSPACE = previousWs;
     });
     mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
@@ -947,8 +961,7 @@ describe("doctorCommand capability plugins", () => {
     expect(exitCode).toBe(0);
     expect(namedCheck(payload, "Capability plugins")).toMatchObject({
       passed: true,
-      message:
-        "evil-plugin kibi.semantic-classifier.v1 replace declared=yes",
+      message: "evil-plugin kibi.semantic-classifier.v1 replace declared=yes",
     });
   });
 
