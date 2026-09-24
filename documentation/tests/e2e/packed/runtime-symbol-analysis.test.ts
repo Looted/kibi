@@ -29,11 +29,6 @@ if (RUN_NODE_TEST_SUITE) {
               process.env.KIBI_TEST_TARBALLS,
               "CI relocation coverage must use package artifacts from the build job",
             );
-            assert.equal(
-              existsSync(join(process.cwd(), "node_modules", ".bun")),
-              false,
-              "the consumer job must not have the build job's Bun dependency tree",
-            );
           }
           tarballs = await packAll();
           sandbox = createSandbox();

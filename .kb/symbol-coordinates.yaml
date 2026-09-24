@@ -9133,10 +9133,10 @@ coordinates:
     sourceLine: 1
   SYM-e2e-runtime-symbol-portability:
     identityHash: f76466b328b5e22f1c423ea6836748ce7a83fa4d7683fb70a73ff319241b8296
-    sourceHash: 60f5bd0c1e6690264ecfef15095e22122a315eb6bc2a1bfdb670354654eafebc
+    sourceHash: ff2a952dd35b9ae69619bc6bf9c0d557db2cab1171d8b45b2944d4c86b50a4cd
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 168
+    sourceEndLine: 163
     sourceFile: documentation/tests/e2e/packed/runtime-symbol-analysis.test.ts
     sourceLine: 1
   SYM-e2e-skillopt-trust-boundaries:
@@ -28493,10 +28493,10 @@ coordinates:
     sourceLine: 1
   SYM-zcode-case-packed-consumer-install-launch:
     identityHash: eb046879fc79208dc926208053eeed4ebb80d19df1ca997591711a9d41c89749
-    sourceHash: fe9840e01b7470fb2c5fc3b8b65ba25126f6e905f6088ad3f1a8ba933f8fb30a
+    sourceHash: e167447f9ec0396518b05f81a545dbe8111cfef8011a7efef69ea52249de1b06
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 312
+    sourceEndLine: 333
     sourceFile: packages/zcode/tests/packed-consumer-smoke.test.ts
     sourceLine: 1
   SYM-zcode-case-readme-optional-adapter:
