@@ -9131,6 +9131,14 @@ coordinates:
     sourceEndLine: 569
     sourceFile: documentation/tests/e2e/packed/proof-maintenance-ops.test.ts
     sourceLine: 1
+  SYM-e2e-runtime-symbol-portability:
+    identityHash: f76466b328b5e22f1c423ea6836748ce7a83fa4d7683fb70a73ff319241b8296
+    sourceHash: 60f5bd0c1e6690264ecfef15095e22122a315eb6bc2a1bfdb670354654eafebc
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 168
+    sourceFile: documentation/tests/e2e/packed/runtime-symbol-analysis.test.ts
+    sourceLine: 1
   SYM-e2e-skillopt-trust-boundaries:
     identityHash: 159cd066924e9a81b2532ea21ed5e75952f025e4e469a0b622030f7f4699ead5
     sourceHash: 8577cb2ddda3fb36cb15623b079e467909e77fdb8d6f02b61ff626282bbac468
@@ -18845,10 +18853,10 @@ coordinates:
     sourceLine: 226
   SYM-runtime-packed-daemon-build:
     identityHash: 440226a4ad44f665e21422a4f393158be4d0cfab64649ec501bbdd4cdbda6451
-    sourceHash: 0518eba7ed44719ec78eb4e3b89103ebc470e02b2a5c6dbee903f06b15e2fae9
+    sourceHash: e8c1eef7e6ebe03f565e519536512af4cb8f96a905a6ec69e8a6b4ef4f76d330
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 36
+    sourceEndLine: 37
     sourceFile: packages/runtime/package.json
     sourceLine: 1
   SYM-runtime-PrologPort:

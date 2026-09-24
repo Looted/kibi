@@ -174,3 +174,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bb88da942573
+  - type: verified_by
+    from: SCEN-capability-plugin-host-resolution-v1
+    to: TEST-e2e-runtime-symbol-portability
+    created_at: 2026-09-24T03:08:15.080Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe75b9425ead

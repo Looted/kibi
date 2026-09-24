@@ -403,7 +403,11 @@ jobs:
           path: ${{ runner.temp }}/kibi-e2e-packed-compiled
       - name: Run tarball verification
         run: |
-          NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 "$RUNNER_TEMP/kibi-e2e-packed-compiled/cli-verify-tarball-core.test.js"
+          # These tarballs were built in ci-package-contract on another runner,
+          # so the package build tree is unavailable to this consumer install.
+          NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 \
+            "$RUNNER_TEMP/kibi-e2e-packed-compiled/cli-verify-tarball-core.test.js" \
+            "$RUNNER_TEMP/kibi-e2e-packed-compiled/runtime-symbol-analysis.test.js"
         env:
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
         timeout-minutes: 5

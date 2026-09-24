@@ -41104,3 +41104,12 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-e2e-kibi-env-bootstrap
+  - id: SYM-e2e-runtime-symbol-portability
+    title: runtime-symbol-analysis.test
+    status: active
+    sourceFile: documentation/tests/e2e/packed/runtime-symbol-analysis.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-runtime-symbol-portability
