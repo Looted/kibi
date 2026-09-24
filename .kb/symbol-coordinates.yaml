@@ -9149,10 +9149,10 @@ coordinates:
     sourceLine: 1
   SYM-e2e-runtime-symbol-portability:
     identityHash: f76466b328b5e22f1c423ea6836748ce7a83fa4d7683fb70a73ff319241b8296
-    sourceHash: ff2a952dd35b9ae69619bc6bf9c0d557db2cab1171d8b45b2944d4c86b50a4cd
+    sourceHash: ae1478148a2ff5ebd47d9519ccb4629381c2f0d6de012e7e9938d76ec088bd0b
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 163
+    sourceEndLine: 164
     sourceFile: documentation/tests/e2e/packed/runtime-symbol-analysis.test.ts
     sourceLine: 1
   SYM-e2e-skillopt-trust-boundaries:
@@ -18893,7 +18893,7 @@ coordinates:
     sourceLine: 231
   SYM-runtime-packed-daemon-build:
     identityHash: 440226a4ad44f665e21422a4f393158be4d0cfab64649ec501bbdd4cdbda6451
-    sourceHash: e8c1eef7e6ebe03f565e519536512af4cb8f96a905a6ec69e8a6b4ef4f76d330
+    sourceHash: 06c6b6a676a95113ba8d79a1d87b57f9e1a6b438a8c993b7607552ecf01e5281
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 37
@@ -28557,10 +28557,10 @@ coordinates:
     sourceLine: 1
   SYM-zcode-case-shipped-plugin-payload:
     identityHash: e8111d855bee43b1c01f12b6ab8221e997ff78bcc3568f70ea485c6ea4f2aaaa
-    sourceHash: a9958e545da4cc32d730b2ef3af6d1af755bbd76319950fd419b984fe730d261
+    sourceHash: cd52fef7b93babc645e2e4ab3ee875b4bd26b312e5b0325929153ce4f13899cf
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 153
+    sourceEndLine: 156
     sourceFile: packages/zcode/tests/install-artifact.test.ts
     sourceLine: 1
   SYM-zcode-case-unconfigured-workspace-silent:
@@ -28757,7 +28757,7 @@ coordinates:
     sourceLine: 1
   SYM-zcode-mcp-registration-config:
     identityHash: a49902dfe1abb97958a5441b1232d9235135aea24308be1265c4be0c751661e5
-    sourceHash: 1092ccd64b242aca660c344b13043b689e86fb1a551dde0d6f049a71438705e4
+    sourceHash: af1342b6e1016e56aa6c63d9e061661ac444577bdc9e6acd62bc4001d45959c6
     sourceColumn: 0
     sourceEndColumn: 0
     sourceEndLine: 22

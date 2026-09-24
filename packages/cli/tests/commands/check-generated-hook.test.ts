@@ -11,6 +11,7 @@ import {
 import { tmpdir } from "node:os";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
+import { checkGeneratedManifests } from "../../src/commands/check-generated.js";
 import { installGitHooks } from "../../src/commands/init-helpers.js";
 import { refreshManifestCoordinates } from "../../src/commands/sync/manifest.js";
 
@@ -135,6 +136,15 @@ describe("installed pre-commit generated-manifest gate", () => {
         ".kb/symbol-coordinates.yaml",
       ]).status,
     ).toBe(0);
+    const previousCwd = process.cwd();
+    try {
+      process.chdir(cwd);
+      expect(await checkGeneratedManifests({ changedOnly: true })).toEqual({
+        exitCode: 0,
+      });
+    } finally {
+      process.chdir(previousCwd);
+    }
     const commit = git(cwd, ["commit", "-m", "current"], env);
     expect(commit.output).toContain("staged generated manifests are current");
     expect(commit.status).toBe(0);

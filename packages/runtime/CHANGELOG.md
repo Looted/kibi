@@ -1,5 +1,66 @@
 # kibi-runtime
 
+## 2.0.1
+
+### Patch Changes
+
+- 783cc75: Capability plugins now participate at the real CLI/MCP call sites while default installs keep the same builtin-only behavior.
+
+  Symbol analysis prefers the capability registry when available, ontology matching can compose activated packs for suggest-predicates, and external semantic classifiers run only from `kb_semantic_advisor` and `kb_compile_intent`. `kb_model_requirement` stays a modeling operation and does not call an external classifier. Sync/check/upsert/status/proof paths stay on deterministic builtin analysis. Distribution lists, pack scripts, and docs cover the new plugin packages; Jev remains opt-in.
+
+- 783cc75: Capability plugins can now be loaded safely from a project's package.json without changing default behavior when none are configured.
+
+  Kibi hosts a lazy, injectable capability-plugin registry shared by CLI and MCP. Builtin providers always register; optional packages load only when a capability is first used, with replace/augment/shadow mode rules and an allowlist that keeps external semantic classifiers out of sync/check/upsert/status/proof paths.
+
+  - Add `packages/cli/src/plugins` host loader/registry, composition helpers, and source-analysis service
+  - Wire `OperationContext.ensurePlugins` through CLI and MCP runtimes
+  - Pass operation context through MCP semantic-advisor / model-requirement / suggest-predicates registration
+  - Depend on `kibi-plugin-sdk` `^0.1.0` and re-export the registry from `kibi-runtime`
+
+- 217b044: Provider secrets now resolve the same way in every harness: existing process env wins, then project `.env.kibi` (or `KIBI_ENV_FILE`), then `~/.config/kibi/env`, with legacy `.env` only filling gaps (labeled `legacy_env`). Blank values are unset. `kibi doctor` stays import-free: package/capability/mode/declared for any plugin, plus static first-party Jev secret/model diagnostics from the real bootstrap attribution — never by re-reading files without the pre-bootstrap process snapshot, and never by executing plugin code.
+
+  - Shared `bootstrapKibiEnvironment` with remembered process-key snapshot, blank-as-unset, and `legacy_env`
+  - Doctor uses `resolveKibiWorkspaceRoot` + bootstrap `sources`; no `loadPluginPackage` / dynamic import
+  - MCP `resolveWorkspaceRoot` delegates to the same canonical resolver
+  - Re-export bootstrap helpers from `kibi-runtime`
+
+- 188f875: No user-facing behavior change: `kibi-runtime` now resolves its bundled-skills directory lazily on first use instead of at import time, `isWithinRoot` drops a redundant same-path comparison, `kibi-cursor` drops a provably dead `planDelivered` early return and an always-true stdin branch, and the hook runners' stdin buffering is simplified to an unconditional `Buffer.from`. The reshaping lets the new mutation-testing suite (`docs/mutation-testing.md`, run via `bun run test:mutation`) prove these paths exhaustively — the suite holds a 100% mutation score over `kibi-runtime`, `kibi-codex`, and `kibi-cursor` sources.
+- 8985874: Capability plugins now fail closed on unsafe resolution, poisoned loads, and silent classifier errors, and Jev records the model it actually called.
+
+  Project config rejects duplicate package activation and duplicate replace providers. Package entry resolution uses Node/Bun as the source of truth and refuses entries that escape the package root, including via symlinks. A failed plugin import no longer poisons later retries in the same registry. Semantic classifier failures are returned as diagnostics instead of being swallowed, and Jev includes its configured model id in those diagnostics.
+
+  - Validate duplicate plugin activation, secrets, and provider ids
+  - Confine resolved plugin entries to the realpath'd package root
+  - Evict rejected loadedPackages promises
+  - Typed classifier attempt outcomes with diagnostics
+  - Configurable Jev model (default `jev-latest`) on errors and requests
+
+- aabd57f: Kibi's runtime package keeps TypeScript symbol analysis portable when installed from a build made elsewhere. It resolves the builtin analyzer through its declared package dependency, so TypeScript resources come from the consumer's install.
+
+  - Externalize `kibi-plugin-builtin` from the runtime bundle and declare it as a runtime dependency.
+
+- db07d8f: Proof diagnostics now agree with the Prolog decision: a structural type-shape unit contract is shown as qualifying, `kibi proof impact` compares against the Git HEAD baseline and exits 0 after a successful report, and mixed-role symbols fail the strict proof integrity gate.
+
+  - Mode-aware candidate evaluation in Prolog; receipt fallback uses `test_receipt_evidence(Context, TestId, Evidence)`.
+  - `proof impact` reads `HEAD:proof/baseline.json` with no worktree fallback; diagnostic exit 0.
+  - Strict proof workflow and baseline checker include canonical `symbol-traceability`.
+
+- f33a665: Proof failures now name the exact requirement, symbol, and why each `covered_by` candidate did not qualify, without changing what counts as proven. Agents can inspect a requirement with `kibi proof explain` and compare current proof state to the committed `proof/baseline.json` snapshot with `kibi proof impact`, instead of reverse-engineering Prolog or guessing from aggregate counts.
+
+  - Keep `kibi.requirement-proof.v3` and add additive production-symbol `explanations` plus TEST `testResolutions` on the same Proof.
+  - Ratchet `proof/baseline.json` to v2 with compact requirement fingerprints; aggregate counts stay the ratchet.
+  - Add `kibi proof explain` and `kibi proof impact` as Proof projections, mixed-role leftovers in `symbol-traceability`, and advisory `proof-contract-symbols`.
+  - Document the proof-regression workflow in `kibi-usage` 2.1.3.
+
+- Updated dependencies [b375e8f]
+- Updated dependencies [e6571b4]
+- Updated dependencies [783cc75]
+- Updated dependencies [783cc75]
+- Updated dependencies [db07d8f]
+- Updated dependencies [f33a665]
+  - kibi-plugin-builtin@0.2.0
+  - kibi-core@0.13.0
+
 ## 2.0.0
 
 ### Major Changes

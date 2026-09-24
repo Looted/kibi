@@ -1,6 +1,6 @@
 {
   "name": "kibi-plugin-jev",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Optional TypeSafe Jev semantic classifier for Kibi",
   "type": "module",
   "main": "./dist/index.js",
@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@typesafe-ai/sdk": "^0.6.0",
-    "kibi-plugin-sdk": "^0.1.0"
+    "kibi-plugin-sdk": "^0.2.0"
   },
   "devDependencies": {
     "@types/node": "latest",

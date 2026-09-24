@@ -1,6 +1,6 @@
 {
   "name": "kibi-zcode",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Kibi ZCode plugin manifest for integrating the Kibi MCP, bundled Kibi skills, and advisory workflow hooks into ZCode sessions.",
   "author": {
     "name": "Piotr Franczyk"
