@@ -10,8 +10,9 @@
 # migrations, or test runs belong here.
 set -euo pipefail
 
-# Bun pin. Keep in sync with .github/workflows/ci.yml (bun-version).
-BUN_VERSION="1.3.10"
+# Bun pin. Keep in sync with .github/workflows/ci.yml (bun-version) and the
+# package.json "engines.bun" range.
+BUN_VERSION="1.4.2"
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${repo_root}"
