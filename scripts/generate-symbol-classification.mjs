@@ -13,11 +13,15 @@
  --check compares the emitted files against the working tree and exits 1 on
  drift (used by CI).
 */
+import { execFileSync } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const require = createRequire(import.meta.url);
+const biomeCli = require.resolve("@biomejs/biome/bin/biome");
 const sourcePath = path.join(
   root,
   "packages/core/schema/symbol-classification.json",
@@ -85,6 +89,18 @@ export const COARSE_GRANULARITY_REASONS_PARENTHESIZED = ${JSON.stringify(`(${sou
 `;
 }
 
+function formatTs(content) {
+  return execFileSync(
+    process.execPath,
+    [
+      biomeCli,
+      "format",
+      `--stdin-file-path=${path.relative(root, targets.ts)}`,
+    ],
+    { cwd: root, encoding: "utf8", input: content },
+  );
+}
+
 function renderProlog() {
   const source = globalThis.__classification;
   const fact = (name, value) => `${name}('${escapeSingleQuotes(value)}').`;
@@ -124,7 +140,7 @@ const raw = await readFile(sourcePath, "utf8");
 globalThis.__classification = JSON.parse(raw);
 
 const outputs = [
-  [targets.ts, renderTs()],
+  [targets.ts, formatTs(renderTs())],
   [targets.prologFacts, renderProlog()],
 ];
 
