@@ -114,9 +114,12 @@ describe("kibi-zcode distribution artifacts", () => {
       cwd: packageRoot,
       stdio: "ignore",
     });
+    const { name, version } = JSON.parse(
+      fs.readFileSync(path.join(packageRoot, "package.json"), "utf8"),
+    ) as { name: string; version: string };
     const tarball = fs
       .readdirSync(packDestination)
-      .find((name) => name === "kibi-zcode-0.1.0.tgz");
+      .find((filename) => filename === `${name}-${version}.tgz`);
     expect(tarball).toBeTruthy();
 
     const listed = new Set(

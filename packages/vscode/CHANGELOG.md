@@ -1,5 +1,37 @@
 # kibi-vscode
 
+## 1.0.2
+
+### Patch Changes
+
+- This coordinated release includes the OpenCode adapter and VS Code extension after their package manifests were reformatted. Their runtime behavior and package metadata values are unchanged.
+
+  - Publish fresh package versions for the two manifest-only changes alongside the other packages changed since the previous versioning commit.
+
+- Updated dependencies [b375e8f]
+- Updated dependencies [783cc75]
+- Updated dependencies [58a9181]
+- Updated dependencies [783cc75]
+- Updated dependencies [e6571b4]
+- Updated dependencies [142d7ee]
+- Updated dependencies [39a6d3a]
+- Updated dependencies [86ec793]
+- Updated dependencies [b466319]
+- Updated dependencies [5420c44]
+- Updated dependencies [783cc75]
+- Updated dependencies [217b044]
+- Updated dependencies [e6be0cc]
+- Updated dependencies [86ec793]
+- Updated dependencies [16919be]
+- Updated dependencies [8985874]
+- Updated dependencies [c77b371]
+- Updated dependencies [db07d8f]
+- Updated dependencies [7de8890]
+- Updated dependencies [f33a665]
+- Updated dependencies [5e8c9ef]
+- Updated dependencies [e697943]
+  - kibi-cli@2.1.0
+
 ## 1.0.1
 
 ### Patch Changes

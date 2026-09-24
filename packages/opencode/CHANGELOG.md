@@ -1,5 +1,23 @@
 # kibi-opencode
 
+## 2.0.1
+
+### Patch Changes
+
+- This coordinated release includes the OpenCode adapter and VS Code extension after their package manifests were reformatted. Their runtime behavior and package metadata values are unchanged.
+
+  - Publish fresh package versions for the two manifest-only changes alongside the other packages changed since the previous versioning commit.
+
+- Updated dependencies [783cc75]
+- Updated dependencies [783cc75]
+- Updated dependencies [217b044]
+- Updated dependencies [188f875]
+- Updated dependencies [8985874]
+- Updated dependencies [aabd57f]
+- Updated dependencies [db07d8f]
+- Updated dependencies [f33a665]
+  - kibi-runtime@2.0.1
+
 ## 2.0.0
 
 ### Major Changes

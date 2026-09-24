@@ -25,7 +25,7 @@
     },
     "packages/cli": {
       "name": "kibi-cli",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "bin": {
         "kibi": "bin/kibi",
       },
@@ -52,7 +52,7 @@
     },
     "packages/codex": {
       "name": "kibi-codex",
-      "version": "2.0.0",
+      "version": "2.0.1",
       "devDependencies": {
         "@types/node": "latest",
         "typescript": "^5.7.0",
@@ -68,11 +68,11 @@
     },
     "packages/core": {
       "name": "kibi-core",
-      "version": "0.12.0",
+      "version": "0.13.0",
     },
     "packages/cursor": {
       "name": "kibi-cursor",
-      "version": "2.0.0",
+      "version": "2.0.1",
       "devDependencies": {
         "@types/node": "latest",
         "typescript": "^5.7.0",
@@ -88,7 +88,7 @@
     },
     "packages/mcp": {
       "name": "kibi-mcp",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "bin": {
         "kibi-mcp": "bin/kibi-mcp",
       },
@@ -115,7 +115,7 @@
     },
     "packages/opencode": {
       "name": "kibi-opencode",
-      "version": "2.0.0",
+      "version": "2.0.1",
       "dependencies": {
         "@opencode-ai/plugin": "^1.4.7",
         "@opentui/core": "^0.1.99",
@@ -129,7 +129,7 @@
     },
     "packages/plugin-builtin": {
       "name": "kibi-plugin-builtin",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "kibi-plugin-sdk": "^0.1.0",
         "ts-morph": "^23.0.0",
@@ -141,7 +141,7 @@
     },
     "packages/plugin-jev": {
       "name": "kibi-plugin-jev",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "@typesafe-ai/sdk": "^0.6.0",
         "kibi-plugin-sdk": "^0.1.0",
@@ -153,7 +153,7 @@
     },
     "packages/plugin-sdk": {
       "name": "kibi-plugin-sdk",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "devDependencies": {
         "@types/node": "latest",
         "typescript": "^5.7.0",
@@ -161,7 +161,7 @@
     },
     "packages/runtime": {
       "name": "kibi-runtime",
-      "version": "2.0.0",
+      "version": "2.0.1",
       "dependencies": {
         "gray-matter": "^4.0.3",
         "kibi-core": "^0.12.0",
@@ -173,7 +173,7 @@
     },
     "packages/vscode": {
       "name": "kibi-vscode",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "dependencies": {
         "js-yaml": "^4.1.0",
         "kibi-cli": "^2.0.0",
@@ -189,7 +189,7 @@
     },
     "packages/zcode": {
       "name": "kibi-zcode",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "devDependencies": {
         "@types/node": "latest",
         "typescript": "^5.7.0",

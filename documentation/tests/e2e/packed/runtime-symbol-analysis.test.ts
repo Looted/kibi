@@ -63,12 +63,13 @@ if (RUN_NODE_TEST_SUITE) {
             { encoding: "utf8" },
           ),
         ) as {
+          version: string;
           dependencies?: Record<string, string>;
         };
 
         assert.equal(
           runtimePackage.dependencies?.["kibi-plugin-builtin"],
-          "^0.1.0",
+          `^${pluginPackage.version}`,
         );
         assert.equal(pluginPackage.dependencies?.["ts-morph"], "^23.0.0");
       });

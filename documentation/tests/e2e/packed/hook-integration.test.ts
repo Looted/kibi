@@ -167,14 +167,21 @@ status: open
 `,
       );
 
+      const refresh = await kibi(sandbox, [
+        "sync",
+        "--refresh-symbol-coordinates",
+      ]);
+      assert.strictEqual(refresh.exitCode, 0);
+
       await run("git", ["add", "."], {
         cwd: sandbox.repoDir,
         env: sandbox.env,
       });
-      await run("git", ["commit", "-m", "initial"], {
+      const initialCommit = await run("git", ["commit", "-m", "initial"], {
         cwd: sandbox.repoDir,
         env: sandbox.env,
       });
+      assert.strictEqual(initialCommit.exitCode, 0, initialCommit.stderr);
 
       await kibi(sandbox, ["sync"]);
 
@@ -404,14 +411,21 @@ status: open
 `,
         );
 
+        const refresh = await kibi(sandbox, [
+          "sync",
+          "--refresh-symbol-coordinates",
+        ]);
+        assert.strictEqual(refresh.exitCode, 0);
+
         await run("git", ["add", "."], {
           cwd: sandbox.repoDir,
           env: sandbox.env,
         });
-        await run("git", ["commit", "-m", "commit1"], {
+        const firstCommit = await run("git", ["commit", "-m", "commit1"], {
           cwd: sandbox.repoDir,
           env: sandbox.env,
         });
+        assert.strictEqual(firstCommit.exitCode, 0, firstCommit.stderr);
 
         const { stdout: commitHash } = await run("git", ["rev-parse", "HEAD"], {
           cwd: sandbox.repoDir,

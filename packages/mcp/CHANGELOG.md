@@ -1,5 +1,69 @@
 # kibi-mcp
 
+## 2.1.0
+
+### Minor Changes
+
+- c77b371: Proof coverage reaches every requirement that has honest end-to-end evidence: fourteen new packed end-to-end tests wire previously unproven scenarios (status freshness, conservative proof reporting, snapshot relevance, MCP model-requirement and freshness, schema version, strict modeling, plan-hash enforcement, OpenCode enforcement, briefing removal, Prolog/SPARQL adoption, check-gate enforcement, evaluator gold runs, batch diagnostics) into the proof ladder, and requirements that are historically retired can now actually opt out of E2E proof.
+
+  - `kb_check` with `async: true` returns a `kibi.job.v1` receipt whose shape is declared in the tool's output contract, so hosts no longer reject the response schema mismatch on large KBs.
+  - Authored `proof_exempt` / `proof_exempt_reason` frontmatter on requirement documents is now extracted and persisted; previously the exemption was silently dropped on sync.
+  - The MCP JSON-Schema-to-Zod bridge converts `anyOf` unions faithfully for declared output contracts (input `oneOf` guards keep their intentional lenient behavior).
+  - Proof-entity maintenance: stale `SYM-proof-runner` obligation removed from the journaled-engine harness contract, and `REQ-*` inline annotations repointed to the modeled verification-evidence requirement.
+  - New proof obligations: `TEST-e2e-*` packed scenarios, `TEST-kibi-change-to-proof-evaluation-live` gold-corpus run, and `TEST-e2e-root-batch-diagnostics`; `runBatch` is exported from the curated suite runner for diagnostic reuse.
+
+### Patch Changes
+
+- b375e8f: This maintenance update brings the affected package code and tests into line with Kibi's Biome checks while preserving runtime behavior. It also replaces MCP non-null assertions with receiver-preserving method calls.
+
+  - Format affected files, sort imports, and remove unnecessary template literals.
+  - Preserve EngineClient `this` when forwarding optional Prolog methods.
+
+- 783cc75: Capability plugins now participate at the real CLI/MCP call sites while default installs keep the same builtin-only behavior.
+
+  Symbol analysis prefers the capability registry when available, ontology matching can compose activated packs for suggest-predicates, and external semantic classifiers run only from `kb_semantic_advisor` and `kb_compile_intent`. `kb_model_requirement` stays a modeling operation and does not call an external classifier. Sync/check/upsert/status/proof paths stay on deterministic builtin analysis. Distribution lists, pack scripts, and docs cover the new plugin packages; Jev remains opt-in.
+
+- 783cc75: Capability plugins can now be loaded safely from a project's package.json without changing default behavior when none are configured.
+
+  Kibi hosts a lazy, injectable capability-plugin registry shared by CLI and MCP. Builtin providers always register; optional packages load only when a capability is first used, with replace/augment/shadow mode rules and an allowlist that keeps external semantic classifiers out of sync/check/upsert/status/proof paths.
+
+  - Add `packages/cli/src/plugins` host loader/registry, composition helpers, and source-analysis service
+  - Wire `OperationContext.ensurePlugins` through CLI and MCP runtimes
+  - Pass operation context through MCP semantic-advisor / model-requirement / suggest-predicates registration
+  - Depend on `kibi-plugin-sdk` `^0.1.0` and re-export the registry from `kibi-runtime`
+
+- 142d7ee: Semantic advisor and compile-intent responses that include capability-plugin provenance no longer fail host output validation. Agents and CLI clients can read `capabilityPlugins` stamps on successful envelopes instead of hitting `PROTOCOL_VALIDATION_FAILED`.
+
+  - fix(cli): declare optional `capabilityPlugins` on kb_semantic_advisor and kb_compile_intent output contracts
+  - test(cli): protocol regression for plugin-bearing semantic-advisor envelopes
+
+- 217b044: Provider secrets now resolve the same way in every harness: existing process env wins, then project `.env.kibi` (or `KIBI_ENV_FILE`), then `~/.config/kibi/env`, with legacy `.env` only filling gaps (labeled `legacy_env`). Blank values are unset. `kibi doctor` stays import-free: package/capability/mode/declared for any plugin, plus static first-party Jev secret/model diagnostics from the real bootstrap attribution — never by re-reading files without the pre-bootstrap process snapshot, and never by executing plugin code.
+
+  - Shared `bootstrapKibiEnvironment` with remembered process-key snapshot, blank-as-unset, and `legacy_env`
+  - Doctor uses `resolveKibiWorkspaceRoot` + bootstrap `sources`; no `loadPluginPackage` / dynamic import
+  - MCP `resolveWorkspaceRoot` delegates to the same canonical resolver
+  - Re-export bootstrap helpers from `kibi-runtime`
+
+- 16919be: MCP discovery no longer dies when one tool hits the host timeout. Timed-out reads cancel in-flight work without tearing down the shared engine, so parallel `kb_status` / `kb_search` / `kb_query` calls stop cascading into `Kibi engine connection closed`. Healthy `kb_status` reuses the session engine. Discovery tools that opt into `agentVisibleStructuredData` embed JSON in `content` for hosts that hide `structuredContent`.
+
+  - MCP: abort-only on read tool timeouts; reset Prolog only for wedged mutations
+  - MCP: `adaptProlog` forwards AbortSignal to EngineClient query/status/save paths
+  - CLI: EngineClient settles pending RPCs once (abort vs response race-safe); cancel marks are per-connection
+  - CLI: `executeStatus` prefers `ensureProlog` / session port; pass AbortSignal through status/query/search
+  - MCP: opt-in `agentVisibleStructuredData` for kb_query/kb_search/kb_status only (preserves non-text content parts)
+  - Documented engine limit: cancel skips queued requests but cannot interrupt an already-running Prolog goal
+
+- Updated dependencies [783cc75]
+- Updated dependencies [783cc75]
+- Updated dependencies [217b044]
+- Updated dependencies [188f875]
+- Updated dependencies [8985874]
+- Updated dependencies [aabd57f]
+- Updated dependencies [db07d8f]
+- Updated dependencies [f33a665]
+  - kibi-runtime@2.0.1
+  - kibi-core@0.13.0
+
 ## 2.0.0
 
 ### Major Changes

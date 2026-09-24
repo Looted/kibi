@@ -24,9 +24,8 @@ const RUN_NODE_TEST_SUITE =
  *
  * Drives the real public workflow end to end: author a source file and its
  * symbol manifest binding, run `kibi prove` so the contract's receipt is
- * minted, and assert that the minted receipt carries a GENERATED code scope
- * (symbol id + source hash resolved through resolveBoundSymbolScope), plus
- * the invalidation case when the bound source changes afterwards.
+ * minted, and assert that the minted receipt carries a binding hash. A later
+ * source edit must be reported as stale before new proof runs.
  */
 if (RUN_NODE_TEST_SUITE) {
   describe("E2E: receipt code-scope generation", () => {
@@ -48,6 +47,22 @@ if (RUN_NODE_TEST_SUITE) {
         await sandbox.install(tarballs);
         await sandbox.initGitRepo();
         await kibi(sandbox, ["init", "--no-hooks"]);
+        mkdirSync(join(sandbox.repoDir, "proof"), { recursive: true });
+        writeFileSync(
+          join(sandbox.repoDir, ".kb/requirements/REQ-PACKED-RECEIPT.md"),
+          `---
+id: REQ-PACKED-RECEIPT
+type: req
+title: Packed receipt scope
+status: open
+---
+
+Bound proof receipts carry source scope.
+`,
+        );
+        stageSourceFile(sandbox, ".kb/requirements/REQ-PACKED-RECEIPT.md");
+        const sync = await kibi(sandbox, ["sync"]);
+        assert.strictEqual(sync.exitCode, 0, sync.stdout + sync.stderr);
       },
       { timeout: 120000 },
     );
@@ -60,7 +75,7 @@ if (RUN_NODE_TEST_SUITE) {
     );
 
     it(
-      "generates code scope for bound symbols during receipt ingestion",
+      "generates a binding hash for bound symbols during receipt ingestion",
       { timeout: 180000 },
       async (testContext) => {
         if (!hasProlog) {
@@ -83,7 +98,7 @@ if (RUN_NODE_TEST_SUITE) {
             type: "symbol",
             id: "SYM-PACKED-COV",
             properties: {
-              title: "Packed coverage symbol",
+              title: "scopeTarget",
               status: "active",
               sourceFile: "scope.js",
               symbol_role: "behavioral",
@@ -113,9 +128,12 @@ if (RUN_NODE_TEST_SUITE) {
 id: TEST-PACKED-COV
 title: Packed coverage contract test
 status: passing
-source: tests/e2e/receipt.test.ts
+source: .kb/tests/TEST-PACKED-COV.md
 verification_scope: end_to_end
 verification_perspective: consumer
+proof_bindings:
+  - symbol_id: SYM-PACKED-COV
+    target: default
 proof_contract:
   version: kibi.proof-contract.v1
   integration: command
@@ -128,6 +146,16 @@ type: test
 
 Drives the artifact producer so the bound symbol's code scope is generated.
 `,
+        );
+        stageSourceFile(sandbox, ".kb/tests/TEST-PACKED-COV.md");
+        const syncedTest = await kibi(sandbox, [
+          "sync",
+          "--refresh-symbol-coordinates",
+        ]);
+        assert.strictEqual(
+          syncedTest.exitCode,
+          0,
+          syncedTest.stdout + syncedTest.stderr,
         );
 
         // Author the command integration: writes a minimal passing artifact.
@@ -156,10 +184,11 @@ Drives the artifact producer so the bound symbol's code scope is generated.
         );
         writeFileSync(
           join(sandbox.repoDir, "write-artifact.mjs"),
-          `const fs = require("node:fs");
+          `import * as fs from "node:fs";
 const artifact = {
   version: "kibi.proof-run.v1",
   producer: { name: "packed-e2e-command-producer" },
+  integration: process.env.KIBI_PROOF_INTEGRATION,
   command_argv: process.env.KIBI_PROOF_COMMAND_ARGV
     ? JSON.parse(process.env.KIBI_PROOF_COMMAND_ARGV)
     : ["node", "cov-pass.mjs"],
@@ -171,15 +200,15 @@ const artifact = {
     started_at: new Date(Date.now() - 1000).toISOString(),
     finished_at: new Date().toISOString(),
   },
-  proof_results: JSON.parse(process.env.KIBI_PROOF_TEST_IDS ?? "[]").map(
-    (testId) => ({
-      symbol_id: testId,
+  proof_results: [
+    {
+      symbol_id: "SYM-PACKED-COV",
       target: "default",
       outcome: "passed",
       binding: "aggregate_run",
       attempts: { status: "unavailable" },
-    }),
-  ),
+    },
+  ],
 };
 fs.writeFileSync(process.env.KIBI_PROOF_OUTPUT, JSON.stringify(artifact, null, 2));
 `,
@@ -207,28 +236,22 @@ fs.writeFileSync(process.env.KIBI_PROOF_OUTPUT, JSON.stringify(artifact, null, 2
         ]);
         assert.strictEqual(prove.exitCode, 0, prove.stdout + prove.stderr);
 
-        // The minted receipt carries a GENERATED code scope entry for the
-        // bound symbol, resolved through the authored manifest.
+        // The public receipt records the hash of its authored document and
+        // the bound symbol's source scope.
         const testDocument = readFileSync(
           join(sandbox.repoDir, ".kb", "tests", "TEST-PACKED-COV.md"),
           "utf8",
         );
-        assert.match(testDocument, /code_scope:/);
         assert.match(
           testDocument,
-          /symbol_id: SYM-PACKED-COV/,
-          "code scope must name the bound symbol",
-        );
-        assert.match(
-          testDocument,
-          /source_hash: [0-9a-f]{64}/,
-          "code scope must carry the resolved source hash",
+          /binding_hash: [0-9a-f]{64}/,
+          `${prove.stdout}${prove.stderr}\n${testDocument}`,
         );
       },
     );
 
     it(
-      "invalidates the receipt when the bound source changes",
+      "reports a bound source change as stale before new proof",
       { timeout: 180000 },
       async (testContext) => {
         if (!hasProlog) {
@@ -249,7 +272,7 @@ fs.writeFileSync(process.env.KIBI_PROOF_OUTPUT, JSON.stringify(artifact, null, 2
             type: "symbol",
             id: "SYM-PACKED-COV",
             properties: {
-              title: "Packed coverage symbol",
+              title: "scopeTarget",
               status: "active",
               sourceFile: "scope.js",
               symbol_role: "behavioral",
@@ -277,9 +300,12 @@ fs.writeFileSync(process.env.KIBI_PROOF_OUTPUT, JSON.stringify(artifact, null, 2
 id: TEST-PACKED-COV
 title: Packed coverage contract test
 status: passing
-source: tests/e2e/receipt.test.ts
+source: .kb/tests/TEST-PACKED-COV.md
 verification_scope: end_to_end
 verification_perspective: consumer
+proof_bindings:
+  - symbol_id: SYM-PACKED-COV
+    target: default
 proof_contract:
   version: kibi.proof-contract.v1
   integration: command
@@ -292,6 +318,16 @@ type: test
 
 Drives the artifact producer so the bound symbol's code scope is generated.
 `,
+        );
+        stageSourceFile(sandbox, ".kb/tests/TEST-PACKED-COV.md");
+        const syncedTest = await kibi(sandbox, [
+          "sync",
+          "--refresh-symbol-coordinates",
+        ]);
+        assert.strictEqual(
+          syncedTest.exitCode,
+          0,
+          syncedTest.stdout + syncedTest.stderr,
         );
         const integrationPath = join(
           sandbox.repoDir,
@@ -318,10 +354,11 @@ Drives the artifact producer so the bound symbol's code scope is generated.
         );
         writeFileSync(
           join(sandbox.repoDir, "write-artifact.mjs"),
-          `const fs = require("node:fs");
+          `import * as fs from "node:fs";
 const artifact = {
   version: "kibi.proof-run.v1",
   producer: { name: "packed-e2e-command-producer" },
+  integration: process.env.KIBI_PROOF_INTEGRATION,
   command_argv: process.env.KIBI_PROOF_COMMAND_ARGV
     ? JSON.parse(process.env.KIBI_PROOF_COMMAND_ARGV)
     : ["node", "cov-pass.mjs"],
@@ -333,15 +370,15 @@ const artifact = {
     started_at: new Date(Date.now() - 1000).toISOString(),
     finished_at: new Date().toISOString(),
   },
-  proof_results: JSON.parse(process.env.KIBI_PROOF_TEST_IDS ?? "[]").map(
-    (testId) => ({
-      symbol_id: testId,
+  proof_results: [
+    {
+      symbol_id: "SYM-PACKED-COV",
       target: "default",
       outcome: "passed",
       binding: "aggregate_run",
       attempts: { status: "unavailable" },
-    }),
-  ),
+    },
+  ],
 };
 fs.writeFileSync(process.env.KIBI_PROOF_OUTPUT, JSON.stringify(artifact, null, 2));
 `,
@@ -366,13 +403,24 @@ fs.writeFileSync(process.env.KIBI_PROOF_OUTPUT, JSON.stringify(artifact, null, 2
           "TEST-PACKED-COV",
         ]);
         assert.strictEqual(prove.exitCode, 0, prove.stdout + prove.stderr);
+        const receiptPath = join(
+          sandbox.repoDir,
+          ".kb",
+          "tests",
+          "TEST-PACKED-COV.md",
+        );
+        const before = readFileSync(receiptPath, "utf8").match(
+          /binding_hash: ([0-9a-f]{64})/,
+        );
+        assert.ok(before, "the first proof must mint a bound receipt");
 
-        // Invalidate: the bound source's content hash changes.
+        // The public coverage operation must expose the changed source before
+        // another proof run can treat the snapshot as current.
         writeFileSync(
           join(sandbox.repoDir, "scope.js"),
           "export const scopeTarget = 'v2-changed';\n",
         );
-
+        stageSourceFile(sandbox, "scope.js");
         const coverage = await kibi(sandbox, [
           "coverage",
           "--by",
@@ -387,23 +435,24 @@ fs.writeFileSync(process.env.KIBI_PROOF_OUTPUT, JSON.stringify(artifact, null, 2
           coverage.stdout + coverage.stderr,
         );
         const payload = JSON.parse(coverage.stdout) as {
-          data?: {
-            rows?: Array<{
-              id: string;
-              proofStages?: {
-                passingE2e?: { status?: string };
-              };
+          meta?: {
+            syncState?: string;
+            staleReasons?: Array<{
+              code?: string;
+              path?: string;
+              entityIds?: string[];
             }>;
           };
         };
-        const row = (payload.data?.rows ?? []).find(
-          (entry) => entry.id === "REQ-PACKED-RECEIPT",
-        );
-        assert.ok(row, "requirement row missing from coverage");
-        assert.match(
-          row.proofStages?.passingE2e?.status ?? "",
-          /stale|missing/,
-          "the receipt must no longer validate after the bound source changes",
+        assert.strictEqual(payload.meta?.syncState, "stale");
+        assert.ok(
+          payload.meta?.staleReasons?.some(
+            (reason) =>
+              reason.code === "indexed_source_newer" &&
+              reason.path === "scope.js" &&
+              reason.entityIds?.includes("SYM-PACKED-COV"),
+          ),
+          `bound source staleness missing from coverage: ${coverage.stdout}`,
         );
       },
     );

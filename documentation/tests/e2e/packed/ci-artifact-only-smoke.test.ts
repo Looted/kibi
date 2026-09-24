@@ -70,65 +70,18 @@ if (RUN_NODE_TEST_SUITE) {
           tarballs = await packAll();
         }
 
-        // Create artifactRoot and copy tarballs into it under package-named subdirs
-        // Use run('cp', ...) to avoid introducing fs copy logic here
-        await run("mkdir", ["-p", join(artifactRoot, "core")], {
-          cwd: "/tmp",
-          env: process.env,
-        });
-        await run("mkdir", ["-p", join(artifactRoot, "cli")], {
-          cwd: "/tmp",
-          env: process.env,
-        });
-        await run("mkdir", ["-p", join(artifactRoot, "runtime")], {
-          cwd: "/tmp",
-          env: process.env,
-        });
-        await run("mkdir", ["-p", join(artifactRoot, "mcp")], {
-          cwd: "/tmp",
-          env: process.env,
-        });
-        await run("mkdir", ["-p", join(artifactRoot, "opencode")], {
-          cwd: "/tmp",
-          env: process.env,
-        });
-        await run("mkdir", ["-p", join(artifactRoot, "codex")], {
-          cwd: "/tmp",
-          env: process.env,
-        });
-        await run("mkdir", ["-p", join(artifactRoot, "cursor")], {
-          cwd: "/tmp",
-          env: process.env,
-        });
-
-        await run("cp", [tarballs.core, join(artifactRoot, "core")], {
-          cwd: "/tmp",
-          env: process.env,
-        });
-        await run("cp", [tarballs.cli, join(artifactRoot, "cli")], {
-          cwd: "/tmp",
-          env: process.env,
-        });
-        await run("cp", [tarballs.runtime, join(artifactRoot, "runtime")], {
-          cwd: "/tmp",
-          env: process.env,
-        });
-        await run("cp", [tarballs.mcp, join(artifactRoot, "mcp")], {
-          cwd: "/tmp",
-          env: process.env,
-        });
-        await run("cp", [tarballs.opencode, join(artifactRoot, "opencode")], {
-          cwd: "/tmp",
-          env: process.env,
-        });
-        await run("cp", [tarballs.codex, join(artifactRoot, "codex")], {
-          cwd: "/tmp",
-          env: process.env,
-        });
-        await run("cp", [tarballs.cursor, join(artifactRoot, "cursor")], {
-          cwd: "/tmp",
-          env: process.env,
-        });
+        // Keep the simulated artifact download complete as packages are added.
+        for (const [packageName, tarball] of Object.entries(tarballs)) {
+          const destination = join(artifactRoot, packageName);
+          await run("mkdir", ["-p", destination], {
+            cwd: "/tmp",
+            env: process.env,
+          });
+          await run("cp", [tarball, destination], {
+            cwd: "/tmp",
+            env: process.env,
+          });
+        }
 
         // Now create an empty workspace (no checked-out repo) and a sandbox that
         // will install from the artifactRoot via KIBI_TEST_TARBALLS. Ensure any

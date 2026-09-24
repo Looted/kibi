@@ -786,6 +786,18 @@ XB
 
 ## Staged Symbol Traceability
 
+`kibi check-generated --staged` compares the staged `.kb/symbols.yaml` and
+`.kb/symbol-coordinates.yaml` bytes with the output of a coordinate refresh
+computed from the exact Git index. It fails if either manifest would change or
+if the index changes while it runs. The command does not alter the index or
+working tree. Run `kibi sync --refresh-symbol-coordinates`, review the diff,
+then stage only the intended hunks (`git add -p`) before retrying. CI runs the
+full check before `prove --all`. The installed pre-commit hook uses
+`--changed-only` to avoid regeneration when staged paths cannot affect symbol
+manifests; commits touching symbol sources or manifests run the full check.
+An initialized repository with no symbols has no coordinate artifact to
+refresh, so its first commit is allowed without that file.
+
 The `kibi check --staged` command inventories every staged path and enforces traceability on code before commit.
 
 **Purpose:**

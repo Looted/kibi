@@ -453,9 +453,8 @@ describe("init-helpers", () => {
     );
     expect(preCommitContent).toContain("KIBI_BIN=");
     expect(preCommitContent).toContain('"$KIBI_BIN" check --staged');
-    expect(preCommitContent).toContain(".kb/symbols.yaml");
     expect(preCommitContent).toContain(
-      "kibi sync --refresh-symbol-coordinates",
+      '"$KIBI_BIN" check-generated --staged --changed-only',
     );
   });
 

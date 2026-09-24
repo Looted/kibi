@@ -122,13 +122,14 @@ const PRE_COMMIT_HOOK = `#!/bin/sh
 # Behavior-changing source edits require staged Kibi impact evidence
 # (KB entity docs under .kb/, authored symbols metadata, or refreshed
 # symbol coordinates). Test-only and docs-only edits are exempt.
-# Refresh with:
-#   kibi sync --refresh-symbol-coordinates && git add .kb/symbol-coordinates.yaml .kb/symbols.yaml
+# Generated manifests are checked against the exact staged snapshot before
+# traceability validation. The check never stages files on the user's behalf.
 
 set -e
 
 ${KIBI_BIN_RESOLVER}
 
+"$KIBI_BIN" check-generated --staged --changed-only
 "$KIBI_BIN" check --staged
 `;
 
