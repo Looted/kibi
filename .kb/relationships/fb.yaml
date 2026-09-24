@@ -237,3 +237,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4468a8b7c175
+  - type: validates
+    from: TEST-e2e-runtime-symbol-portability
+    to: REQ-capability-plugin-builtin-parity-v1
+    created_at: 2026-09-23T21:42:18.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a61f47f2bc91
+  - type: validates
+    from: TEST-e2e-runtime-symbol-portability
+    to: SCEN-capability-plugin-host-resolution-v1
+    created_at: 2026-09-23T21:42:18.550Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9d7fab23203

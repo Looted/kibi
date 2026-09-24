@@ -104,3 +104,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-74e2b48a80b0
+  - type: executable_for
+    from: SYM-e2e-runtime-symbol-portability
+    to: TEST-e2e-runtime-symbol-portability
+    created_at: 2026-09-23T21:47:10.206Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-451b9722a601

@@ -369,6 +369,16 @@
     ]
   },
   {
+    "test_id": "TEST-e2e-runtime-symbol-portability",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/runtime-symbol-analysis.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-013",
     "steps": [
       [
