@@ -88,10 +88,6 @@ function adaptProlog(prolog: PrologProcess): PrologPort {
     storageStatus?: () => Promise<PrologQueryResult>;
     queryStatusJson?: (signal?: AbortSignal) => Promise<PrologQueryResult>;
   };
-  const queryEntities = engine.queryEntities;
-  const searchEntities = engine.searchEntities;
-  const storageStatus = engine.storageStatus;
-  const queryStatusJson = engine.queryStatusJson;
   let lastResult: PrologQueryResult | null = null;
   const port: PrologPort = {
     query: async (goal, signal) => {
@@ -104,30 +100,33 @@ function adaptProlog(prolog: PrologProcess): PrologPort {
       return result;
     },
     save: (signal) => engine.query("kb_save", signal),
-    ...(typeof queryEntities === "function"
+    ...(typeof engine.queryEntities === "function"
       ? {
+          // Call through `engine.` so EngineClient methods keep their `this`
+          // (extracted unbound refs break queryStatusJson → this.command).
           queryEntities: (
             input: Parameters<NonNullable<PrologPort["queryEntities"]>>[0],
             signal?: AbortSignal,
-          ) => queryEntities(input, signal),
+          ) => engine.queryEntities!(input, signal),
         }
       : {}),
-    ...(typeof searchEntities === "function"
+    ...(typeof engine.searchEntities === "function"
       ? {
           searchEntities: (
             input: Parameters<NonNullable<PrologPort["searchEntities"]>>[0],
             signal?: AbortSignal,
-          ) => searchEntities(input, signal),
+          ) => engine.searchEntities!(input, signal),
         }
       : {}),
-    ...(typeof storageStatus === "function"
+    ...(typeof engine.storageStatus === "function"
       ? {
-          storageStatus: () => storageStatus(),
+          storageStatus: () => engine.storageStatus!(),
         }
       : {}),
-    ...(typeof queryStatusJson === "function"
+    ...(typeof engine.queryStatusJson === "function"
       ? {
-          queryStatusJson: (signal?: AbortSignal) => queryStatusJson(signal),
+          queryStatusJson: (signal?: AbortSignal) =>
+            engine.queryStatusJson!(signal),
         }
       : {}),
   };

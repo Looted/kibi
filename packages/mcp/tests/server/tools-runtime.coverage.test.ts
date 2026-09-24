@@ -66,6 +66,65 @@ function createSession(kbPath: string | null = "/tmp/kibi-branch") {
 }
 
 describe("DEFAULT_TOOLS_RUNTIME session wiring", () => {
+  test("adaptProlog keeps EngineClient this when calling queryStatusJson", async () => {
+    // Regression for MCP kb_status dirty:true fallback: extracting
+    // engine.queryStatusJson and invoking it unbound made `this.command`
+    // undefined inside EngineClient.
+    class FakeEngine {
+      commandCalls = 0;
+      async query(_goal: string, _signal?: AbortSignal) {
+        return { success: true, bindings: {} };
+      }
+      async command(_command: unknown, _signal?: AbortSignal) {
+        this.commandCalls += 1;
+        return {
+          success: true,
+          bindings: {
+            JsonString: JSON.stringify({
+              branch: "main",
+              snapshotId: "snap",
+              syncedAt: null,
+              dirty: false,
+              syncState: "fresh",
+            }),
+          },
+        };
+      }
+      async queryStatusJson(signal?: AbortSignal) {
+        return this.command({ version: 1, kind: "status" }, signal);
+      }
+    }
+    const engine = new FakeEngine();
+    _setToolsServerDepsForTests(
+      {
+        getSessionModule: async () =>
+          ({
+            getActiveBranchName: () => "main",
+            getAttachedBranchKbPath: () => "/tmp/kb",
+            ensureProlog: async () => engine,
+            resetProlog: async () => {},
+            inFlightRequests: new Map(),
+            getIsShuttingDown: () => false,
+            getPrologProcess: () => ({ getPid: () => 1 }),
+            updateAttachedBranchStamp: () => {},
+          }) as never,
+      },
+      true,
+    );
+    const context = await DEFAULT_TOOLS_RUNTIME.operationRuntime.open(
+      {
+        name: "kb_status",
+        requiresProlog: false,
+        effects: ["local-read"],
+      } as never,
+      {},
+    );
+    const prolog = await context.ensureProlog?.();
+    const result = await prolog?.queryStatusJson?.();
+    expect(result?.success).toBe(true);
+    expect(engine.commandCalls).toBe(1);
+  });
+
   test("adaptProlog forwards AbortSignal to underlying PrologPort methods", async () => {
     const { session, spies } = createSession();
     _setToolsServerDepsForTests(

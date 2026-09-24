@@ -974,57 +974,12 @@ export class EngineClient {
     request: Omit<EngineRequest, "id">,
     signal?: AbortSignal,
   ): Promise<T> {
+    // Connect/reconcile before taking the client queue. Holding requestTail
+    // across start()→reconcileAttachment()→queryStatusJson() deadlocks because
+    // that nested status RPC needs the same queue (see command-first clients).
     await this.start();
-    const socket = this.socket;
-    if (socket === null || socket.destroyed)
-      throw new Error("Kibi engine is not connected");
-    const id = ++this.requestId;
-    const result = new Promise<T>((resolve, reject) => {
-      this.pending.set(id, {
-        resolve: resolve as (value: unknown) => void,
-        reject,
-        settled: false,
-      });
-      try {
-        socket.write(
-          frame({
-            ...request,
-            id,
-            protocolVersion: ENGINE_PROTOCOL_VERSION,
-            packageVersions: ENGINE_PACKAGE_VERSIONS,
-            workspaceRoot: this.workspaceRoot,
-            branch: this.branch,
-          } satisfies EngineRequest),
-        );
-      } catch (error) {
-        const pending = this.pending.get(id);
-        this.pending.delete(id);
-        if (pending) {
-          this.settlePending(pending, () =>
-            reject(error instanceof Error ? error : new Error(String(error))),
-          );
-        }
-        return;
-      }
-      if (signal !== undefined) {
-        const abort = (): void => {
-          const pending = this.pending.get(id);
-          if (!pending || pending.settled) return;
-          this.pending.delete(id);
-          this.cancel(id);
-          this.settlePending(pending, () =>
-            reject(new Error("Kibi engine request cancelled")),
-          );
-        };
-        if (signal.aborted) abort();
-        else signal.addEventListener("abort", abort, { once: true });
-      }
-    });
-    return result;
-  }
-
-  async query(goal: string, signal?: AbortSignal): Promise<PrologQueryResult> {
-    let result!: PrologQueryResult;
+    // Serialize query and command frames on one socket so concurrent MCP
+    // traffic cannot interleave length-prefixed writes/responses.
     const previous = this.requestTail;
     let release!: () => void;
     this.requestTail = new Promise<void>((resolve) => {
@@ -1032,15 +987,63 @@ export class EngineClient {
     });
     await previous;
     try {
-      result = await this.request<PrologQueryResult>(
-        { method: "query", goal },
-        signal,
-      );
-      this.lastResult = result;
-      return result;
+      const socket = this.socket;
+      if (socket === null || socket.destroyed)
+        throw new Error("Kibi engine is not connected");
+      const id = ++this.requestId;
+      return await new Promise<T>((resolve, reject) => {
+        this.pending.set(id, {
+          resolve: resolve as (value: unknown) => void,
+          reject,
+          settled: false,
+        });
+        try {
+          socket.write(
+            frame({
+              ...request,
+              id,
+              protocolVersion: ENGINE_PROTOCOL_VERSION,
+              packageVersions: ENGINE_PACKAGE_VERSIONS,
+              workspaceRoot: this.workspaceRoot,
+              branch: this.branch,
+            } satisfies EngineRequest),
+          );
+        } catch (error) {
+          const pending = this.pending.get(id);
+          this.pending.delete(id);
+          if (pending) {
+            this.settlePending(pending, () =>
+              reject(error instanceof Error ? error : new Error(String(error))),
+            );
+          }
+          return;
+        }
+        if (signal !== undefined) {
+          const abort = (): void => {
+            const pending = this.pending.get(id);
+            if (!pending || pending.settled) return;
+            this.pending.delete(id);
+            this.cancel(id);
+            this.settlePending(pending, () =>
+              reject(new Error("Kibi engine request cancelled")),
+            );
+          };
+          if (signal.aborted) abort();
+          else signal.addEventListener("abort", abort, { once: true });
+        }
+      });
     } finally {
       release();
     }
+  }
+
+  async query(goal: string, signal?: AbortSignal): Promise<PrologQueryResult> {
+    const result = await this.request<PrologQueryResult>(
+      { method: "query", goal },
+      signal,
+    );
+    this.lastResult = result;
+    return result;
   }
 
   /** Execute a versioned, goal-free engine command. Raw query remains private
@@ -1049,20 +1052,7 @@ export class EngineClient {
     command: EngineCommandV1,
     signal?: AbortSignal,
   ): Promise<T> {
-    // Share the client-side requestTail with query(): command frames (status,
-    // entities, search, …) must not race query frames on the same socket or
-    // response ids can be mismatched under concurrent MCP session traffic.
-    const previous = this.requestTail;
-    let release!: () => void;
-    this.requestTail = new Promise<void>((resolve) => {
-      release = resolve;
-    });
-    await previous;
-    try {
-      return await this.request<T>({ method: "command", command }, signal);
-    } finally {
-      release();
-    }
+    return this.request<T>({ method: "command", command }, signal);
   }
 
   async queryBatch(goals: readonly string[]): Promise<PrologQueryResult> {
@@ -1159,17 +1149,7 @@ export class EngineClient {
   }
 
   async storageStatus(): Promise<PrologQueryResult> {
-    const previous = this.requestTail;
-    let release!: () => void;
-    this.requestTail = new Promise<void>((resolve) => {
-      release = resolve;
-    });
-    await previous;
-    try {
-      return await this.request<PrologQueryResult>({ method: "status" });
-    } finally {
-      release();
-    }
+    return this.request<PrologQueryResult>({ method: "status" });
   }
 
   async checkpoint(): Promise<PrologQueryResult> {
