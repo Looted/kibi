@@ -17771,6 +17771,14 @@ coordinates:
     sourceEndLine: 30
     sourceFile: packages/opencode/tests/index.coverage.shared.ts
     sourceLine: 7
+  SYM-registerJobStatusTool:
+    identityHash: 89ab8999f90f7d1c17991c1381b248fb3bf6342daa552db984c3f1170b11bc93
+    sourceHash: d82e40e1a1a1e1ecbf4c7138d21d8cba62005d3c0cf3d982d19a028b984a532d
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 501
+    sourceFile: packages/mcp/src/server/tools.ts
+    sourceLine: 442
   SYM-registerTraceability:
     identityHash: 7f364d52d90b75eebf5851ce44328550ca37c2c4508fd907b2969a1c5605a99b
     sourceHash: 9462b147c64fe5a5ed127cf3e4cf67c281c098cff9a27816b0a350cad12b4ac5

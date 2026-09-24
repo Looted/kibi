@@ -490,7 +490,6 @@ function registerJobStatusTool(server: McpServer): void {
     },
     undefined,
     undefined,
-    undefined,
     {
       title: "Poll a Kibi background job",
       readOnlyHint: true,
