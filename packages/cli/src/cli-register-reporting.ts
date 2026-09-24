@@ -12,6 +12,24 @@ async function runJsonInvocation(invocation: JsonInvocation): Promise<void> {
 // implements REQ-kibi-operation-interface-parity
 export function registerReportingCommands(program: Command): void {
   program
+    .command("check-generated")
+    .description(
+      "Compare generated symbol manifests with the staged Git snapshot",
+    )
+    .requiredOption("--staged", "Use the exact Git index bytes")
+    .option(
+      "--changed-only",
+      "Skip regeneration when staged paths cannot affect symbols",
+    )
+    .action(
+      withExitCode(async (options: { changedOnly?: boolean }) =>
+        (await import("./commands/check-generated.js")).checkGeneratedManifests(
+          options,
+        ),
+      ),
+    );
+
+  program
     .command("find-gaps [type]")
     .alias("gaps")
     .description(getCliOperationMetadata("kb_find_gaps").description)

@@ -235,7 +235,10 @@ export async function refreshManifestCoordinates(
   // implements REQ-003
   manifestPath: string,
   workspaceRoot: string,
-  deps?: Partial<ManifestDeps> & { refreshSymbolCoordinates?: boolean },
+  deps?: Partial<ManifestDeps> & {
+    refreshSymbolCoordinates?: boolean;
+    quiet?: boolean;
+  },
 ): Promise<void> {
   const resolved = resolveDeps(deps);
 
@@ -409,29 +412,31 @@ export async function refreshManifestCoordinates(
   // The generated coordinates live in the artifact beside the manifest, not
   // in the authored symbols.yaml this command also rewrites; naming the
   // artifact keeps diff audits pointed at the file that actually changed.
-  const counts = `(refreshed=${refreshed}, unchanged=${unchanged}, failed=${failures.length})`;
-  if (coordinatesPath !== null) {
-    console.log(
-      `\u2713 Refreshed symbol coordinates in ${path.relative(workspaceRoot, coordinatesPath)} ${counts}`,
-    );
-  } else {
-    console.log(
-      `\u2713 Normalized symbol manifest ${path.relative(workspaceRoot, manifestPath)} ${counts}`,
-    );
-  }
-  const maxReportedFailures = 10;
-  for (const failure of failures.slice(0, maxReportedFailures)) {
-    console.log(`  failed ${failure.id}: ${failure.reason}`);
-  }
-  if (failures.length > maxReportedFailures) {
-    console.log(
-      `  ... and ${failures.length - maxReportedFailures} more failed symbol(s)`,
-    );
-  }
-  if (failures.length > 0) {
-    console.log(
-      "  Symbols without a published coordinate entry are dropped from coverage on the next plain sync until they succeed.",
-    );
+  if (!deps?.quiet) {
+    const counts = `(refreshed=${refreshed}, unchanged=${unchanged}, failed=${failures.length})`;
+    if (coordinatesPath !== null) {
+      console.log(
+        `\u2713 Refreshed symbol coordinates in ${path.relative(workspaceRoot, coordinatesPath)} ${counts}`,
+      );
+    } else {
+      console.log(
+        `\u2713 Normalized symbol manifest ${path.relative(workspaceRoot, manifestPath)} ${counts}`,
+      );
+    }
+    const maxReportedFailures = 10;
+    for (const failure of failures.slice(0, maxReportedFailures)) {
+      console.log(`  failed ${failure.id}: ${failure.reason}`);
+    }
+    if (failures.length > maxReportedFailures) {
+      console.log(
+        `  ... and ${failures.length - maxReportedFailures} more failed symbol(s)`,
+      );
+    }
+    if (failures.length > 0) {
+      console.log(
+        "  Symbols without a published coordinate entry are dropped from coverage on the next plain sync until they succeed.",
+      );
+    }
   }
 }
 

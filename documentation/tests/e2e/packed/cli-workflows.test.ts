@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { after, before, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -629,5 +629,99 @@ if (RUN_NODE_TEST_SUITE) {
 
       console.log("  ✓ KB directory structure validated");
     });
+
+    it(
+      "rejects staged generated manifest drift through the packed CLI",
+      { timeout: 120000 },
+      async (testContext) => {
+        if (!hasProlog) {
+          testContext.skip("SWI-Prolog is unavailable");
+          return;
+        }
+
+        const driftSandbox = createSandbox();
+        try {
+          await driftSandbox.install(tarballs);
+          await driftSandbox.initGitRepo();
+          const initialized = await kibi(driftSandbox, ["init", "--no-hooks"]);
+          assert.strictEqual(
+            initialized.exitCode,
+            0,
+            initialized.stdout + initialized.stderr,
+          );
+
+          await mkdir(path.join(driftSandbox.repoDir, "src"), {
+            recursive: true,
+          });
+          const source = path.join(driftSandbox.repoDir, "src", "sample.ts");
+          await writeFile(source, "export function sample() { return 1; }\n");
+          await writeFile(
+            path.join(driftSandbox.repoDir, ".kb", "symbols.yaml"),
+            "symbols:\n  - id: SYMBOL-sample\n    title: sample\n    sourceFile: src/sample.ts\n",
+          );
+          const authored = await run(
+            "git",
+            ["add", "src/sample.ts", ".kb/symbols.yaml"],
+            { cwd: driftSandbox.repoDir, env: driftSandbox.env },
+          );
+          assert.strictEqual(
+            authored.exitCode,
+            0,
+            authored.stdout + authored.stderr,
+          );
+          const refreshed = await kibi(driftSandbox, [
+            "sync",
+            "--refresh-symbol-coordinates",
+          ]);
+          assert.strictEqual(
+            refreshed.exitCode,
+            0,
+            refreshed.stdout + refreshed.stderr,
+          );
+          const staged = await run(
+            "git",
+            ["add", ".kb/symbols.yaml", ".kb/symbol-coordinates.yaml"],
+            { cwd: driftSandbox.repoDir, env: driftSandbox.env },
+          );
+          assert.strictEqual(staged.exitCode, 0, staged.stdout + staged.stderr);
+
+          const clean = await kibi(driftSandbox, [
+            "check-generated",
+            "--staged",
+          ]);
+          assert.strictEqual(clean.exitCode, 0, clean.stdout + clean.stderr);
+          assert.match(clean.stdout, /staged generated manifests are current/);
+
+          await writeFile(
+            source,
+            "// changed\nexport function sample() { return 1; }\n",
+          );
+          const restaged = await run("git", ["add", "src/sample.ts"], {
+            cwd: driftSandbox.repoDir,
+            env: driftSandbox.env,
+          });
+          assert.strictEqual(
+            restaged.exitCode,
+            0,
+            restaged.stdout + restaged.stderr,
+          );
+          const drift = await kibi(driftSandbox, [
+            "check-generated",
+            "--staged",
+          ]);
+          assert.notStrictEqual(drift.exitCode, 0);
+          assert.match(
+            drift.stdout + drift.stderr,
+            /\.kb\/symbol-coordinates\.yaml/,
+          );
+          assert.match(
+            drift.stdout + drift.stderr,
+            /kibi sync --refresh-symbol-coordinates/,
+          );
+        } finally {
+          await driftSandbox.cleanup();
+        }
+      },
+    );
   });
 }

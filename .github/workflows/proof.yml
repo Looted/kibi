@@ -81,6 +81,9 @@ jobs:
       - name: Build packages used by packed proof contracts
         run: bun run build
 
+      - name: Reject generated manifest drift in committed snapshot
+        run: bun packages/cli/bin/kibi check-generated --staged
+
       - name: Compile packed proof tests
         run: bun run compile:e2e:packed
 
@@ -88,6 +91,10 @@ jobs:
         id: integrity
         run: |
           bun packages/cli/bin/kibi sync --refresh-symbol-coordinates
+          if ! git diff --quiet -- .kb/symbols.yaml .kb/symbol-coordinates.yaml; then
+            echo '::error::Kibi generated manifests changed during sync. Run kibi sync --refresh-symbol-coordinates and commit the reviewed manifest changes.'
+            exit 1
+          fi
           bun packages/cli/bin/kibi check --format json --rules no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness,symbol-traceability
 
       - name: Prove every contracted test through Kibi

@@ -104,3 +104,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-744f44b3a082
+  - type: implements
+    from: SYM-cli-check-generated-manifests
+    to: REQ-cli-check
+    created_at: 2026-09-24T19:46:13.476Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-77424ff08dc8
+  - type: covered_by
+    from: SYM-cli-check-generated-manifests
+    to: TEST-004
+    created_at: 2026-09-24T19:53:25.783Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b1a7d4c3649

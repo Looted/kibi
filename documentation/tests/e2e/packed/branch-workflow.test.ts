@@ -637,16 +637,21 @@ status: open
 `,
         );
 
-        await kibi(sandbox, ["sync"]);
+        const refresh = await kibi(sandbox, [
+          "sync",
+          "--refresh-symbol-coordinates",
+        ]);
+        assert.strictEqual(refresh.exitCode, 0);
 
         await run("git", ["add", "."], {
           cwd: sandbox.repoDir,
           env: sandbox.env,
         });
-        await run("git", ["commit", "-m", "seed develop"], {
+        const seedCommit = await run("git", ["commit", "-m", "seed develop"], {
           cwd: sandbox.repoDir,
           env: sandbox.env,
         });
+        assert.strictEqual(seedCommit.exitCode, 0, seedCommit.stderr);
 
         // The post-checkout hook fires here and compiles the exact feature
         // branch from the tracked checkout. It must not copy the develop store.

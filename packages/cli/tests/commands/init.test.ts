@@ -343,8 +343,9 @@ describe("kibi init", () => {
 
     const content = readFileSync(preCommit, "utf8");
     expect(content).toContain("kibi check");
-    expect(content).toContain(".kb/symbols.yaml");
-    expect(content).toContain("kibi sync --refresh-symbol-coordinates");
+    expect(content).toContain(
+      '"$KIBI_BIN" check-generated --staged --changed-only',
+    );
   });
 
   test("exits with code 0 on success", () => {
