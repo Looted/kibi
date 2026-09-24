@@ -682,7 +682,10 @@ function extractFromMarkdownContent(
       entity.proof_exempt = data.proof_exempt;
     }
     if (type === "req" && data.proof_exempt_reason !== undefined) {
-      if (typeof data.proof_exempt_reason !== "string" || data.proof_exempt_reason.trim() === "") {
+      if (
+        typeof data.proof_exempt_reason !== "string" ||
+        data.proof_exempt_reason.trim() === ""
+      ) {
         throw new FrontmatterError(
           "Invalid proof_exempt_reason; expected a non-empty string",
           filePath,

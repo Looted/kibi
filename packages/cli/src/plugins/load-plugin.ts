@@ -24,8 +24,8 @@ import {
 
 import {
   PluginResolutionError,
-  resolveProjectLocalPackage,
   type ResolvedProjectPackage,
+  resolveProjectLocalPackage,
 } from "./resolve-package.js";
 
 // implements REQ-capability-plugin-activation-disclosure-v1

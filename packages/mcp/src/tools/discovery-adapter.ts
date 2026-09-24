@@ -21,6 +21,10 @@ export function createDiscoveryContext(
     storageStatus?: () => Promise<PrologQueryResult>;
     queryStatusJson?: (signal?: AbortSignal) => Promise<PrologQueryResult>;
   };
+  const queryEntities = engine.queryEntities;
+  const searchEntities = engine.searchEntities;
+  const storageStatus = engine.storageStatus;
+  const queryStatusJson = engine.queryStatusJson;
   let lastResult: PrologQueryResult | null = null;
   const mode = (prolog as unknown as { useOneShotMode?: unknown })
     .useOneShotMode;
@@ -40,31 +44,31 @@ export function createDiscoveryContext(
       return result;
     },
     save: (saveSignal) => engine.query("kb_save", saveSignal ?? signal),
-    ...(typeof engine.queryEntities === "function"
+    ...(typeof queryEntities === "function"
       ? {
           queryEntities: (
             input: Parameters<NonNullable<PrologPort["queryEntities"]>>[0],
             querySignal?: AbortSignal,
-          ) => engine.queryEntities!(input, querySignal ?? signal),
+          ) => queryEntities.call(engine, input, querySignal ?? signal),
         }
       : {}),
-    ...(typeof engine.searchEntities === "function"
+    ...(typeof searchEntities === "function"
       ? {
           searchEntities: (
             input: Parameters<NonNullable<PrologPort["searchEntities"]>>[0],
             querySignal?: AbortSignal,
-          ) => engine.searchEntities!(input, querySignal ?? signal),
+          ) => searchEntities.call(engine, input, querySignal ?? signal),
         }
       : {}),
-    ...(typeof engine.storageStatus === "function"
+    ...(typeof storageStatus === "function"
       ? {
-          storageStatus: () => engine.storageStatus!(),
+          storageStatus: () => storageStatus.call(engine),
         }
       : {}),
-    ...(typeof engine.queryStatusJson === "function"
+    ...(typeof queryStatusJson === "function"
       ? {
           queryStatusJson: (statusSignal?: AbortSignal) =>
-            engine.queryStatusJson!(statusSignal ?? signal),
+            queryStatusJson.call(engine, statusSignal ?? signal),
         }
       : {}),
   };

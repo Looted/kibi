@@ -41126,3 +41126,27 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-e2e-runtime-symbol-portability
+  - id: SYM-packed-mcp-stdio-server-interface
+    title: McpStdioServer
+    status: active
+    sourceFile: documentation/tests/e2e/packed/mcp-stdio-client.ts
+    symbol_role: type-shape
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-mcp-freshness-external-replace
+  - id: SYM-packed-mcp-stdio-server-start
+    title: startMcpStdioServer
+    status: active
+    sourceFile: documentation/tests/e2e/packed/mcp-stdio-client.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-mcp-freshness-external-replace
+  - id: SYM-packed-mcp-tool-payload
+    title: mcpToolPayload
+    status: active
+    sourceFile: documentation/tests/e2e/packed/mcp-stdio-client.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-mcp-freshness-external-replace

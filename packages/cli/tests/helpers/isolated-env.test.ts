@@ -56,9 +56,9 @@ describe("isolatedCliSandboxEnv", () => {
 
 describe("sandbox child timeouts", () => {
   test("execSync fails closed when a child exceeds the explicit timeout", () => {
-    expect(() =>
-      execSync("sleep 2", { timeout: 200, stdio: "pipe" }),
-    ).toThrow(/ETIMEDOUT|TIMEDOUT/);
+    expect(() => execSync("sleep 2", { timeout: 200, stdio: "pipe" })).toThrow(
+      /ETIMEDOUT|TIMEDOUT/,
+    );
   });
 });
 

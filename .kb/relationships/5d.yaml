@@ -251,3 +251,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f79b0d6ce3c7
+  - type: executable_for
+    from: SYM-packed-mcp-stdio-server-interface
+    to: TEST-e2e-mcp-freshness-external-replace
+    created_at: 2026-09-24T15:56:23.565Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81269fea12e8

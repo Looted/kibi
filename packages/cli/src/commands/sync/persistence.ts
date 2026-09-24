@@ -460,10 +460,7 @@ export async function persistEntities(
       if (entity.type === "req" && entity.proof_exempt !== undefined) {
         props.push(`proof_exempt=${entity.proof_exempt}`);
       }
-      if (
-        entity.type === "req" &&
-        entity.proof_exempt_reason !== undefined
-      ) {
+      if (entity.type === "req" && entity.proof_exempt_reason !== undefined) {
         props.push(
           `proof_exempt_reason=${toPrologString(entity.proof_exempt_reason)}`,
         );

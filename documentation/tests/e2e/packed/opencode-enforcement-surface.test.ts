@@ -32,7 +32,10 @@ type RiskModule = {
 type CacheModule = {
   getGuidanceCache: () => {
     isSatisfied: (key: Record<string, unknown>) => boolean;
-    recordSatisfied: (key: Record<string, unknown>, preflightType: string) => void;
+    recordSatisfied: (
+      key: Record<string, unknown>,
+      preflightType: string,
+    ) => void;
     invalidateForPosture: (posture: string) => void;
   };
   resetGuidanceCache: (ttlMs?: number, idleResetMs?: number) => void;
@@ -72,7 +75,9 @@ if (RUN_NODE_TEST_SUITE) {
         installOpencodeTarball(installDir, tarballPath);
 
         const dist = join(installDir, "node_modules/kibi-opencode/dist");
-        posture = (await import(join(dist, "repo-posture.js"))) as PostureModule;
+        posture = (await import(
+          join(dist, "repo-posture.js")
+        )) as PostureModule;
         risk = (await import(join(dist, "risk-classifier.js"))) as RiskModule;
         cache = (await import(join(dist, "guidance-cache.js"))) as CacheModule;
         enforcement = (await import(
@@ -86,75 +91,67 @@ if (RUN_NODE_TEST_SUITE) {
       if (tmpDir) rmSync(tmpDir, { recursive: true, force: true });
     });
 
-    it(
-      "detects repository posture states",
-      { timeout: 60000 },
-      async () => {
-        const uninitialized = resolve(join(tmpDir, "posture-uninitialized"));
-        mkdirSync(uninitialized, { recursive: true });
-        const emptyResult = posture.detectPosture(uninitialized);
-        assert.strictEqual(
-          emptyResult.state,
-          "root_uninitialized",
-          `a workspace without any Kibi installation must be root_uninitialized: ${JSON.stringify(emptyResult)}`,
-        );
-        assert.strictEqual(emptyResult.needsBootstrap, true);
+    it("detects repository posture states", { timeout: 60000 }, async () => {
+      const uninitialized = resolve(join(tmpDir, "posture-uninitialized"));
+      mkdirSync(uninitialized, { recursive: true });
+      const emptyResult = posture.detectPosture(uninitialized);
+      assert.strictEqual(
+        emptyResult.state,
+        "root_uninitialized",
+        `a workspace without any Kibi installation must be root_uninitialized: ${JSON.stringify(emptyResult)}`,
+      );
+      assert.strictEqual(emptyResult.needsBootstrap, true);
 
-        const vendored = resolve(join(tmpDir, "posture-vendored"));
-        mkdirSync(join(vendored, "kibi", ".kb"), { recursive: true });
-        const vendoredResult = posture.detectPosture(vendored);
-        assert.strictEqual(
-          vendoredResult.state,
-          "vendored_only",
-          `a vendored kibi tree must be detected: ${JSON.stringify(vendoredResult)}`,
-        );
-      },
-    );
+      const vendored = resolve(join(tmpDir, "posture-vendored"));
+      mkdirSync(join(vendored, "kibi", ".kb"), { recursive: true });
+      const vendoredResult = posture.detectPosture(vendored);
+      assert.strictEqual(
+        vendoredResult.state,
+        "vendored_only",
+        `a vendored kibi tree must be detected: ${JSON.stringify(vendoredResult)}`,
+      );
+    });
 
-    it(
-      "classifies edit risk deterministically",
-      { timeout: 60000 },
-      () => {
-        const requirementEdit = risk.classifyRisk({
-          pathKind: "requirement",
-          isUnderKb: true,
-          hasMustPriority: true,
-          hasDurableComment: false,
-          fileContent: "# requirement",
-        });
-        assert.strictEqual(
-          requirementEdit.riskClass,
-          "req_policy_candidate",
-          `requirement edits are policy candidates: ${JSON.stringify(requirementEdit)}`,
-        );
+    it("classifies edit risk deterministically", { timeout: 60000 }, () => {
+      const requirementEdit = risk.classifyRisk({
+        pathKind: "requirement",
+        isUnderKb: true,
+        hasMustPriority: true,
+        hasDurableComment: false,
+        fileContent: "# requirement",
+      });
+      assert.strictEqual(
+        requirementEdit.riskClass,
+        "req_policy_candidate",
+        `requirement edits are policy candidates: ${JSON.stringify(requirementEdit)}`,
+      );
 
-        const manualKbEdit = risk.classifyRisk({
-          pathKind: "kb",
-          isUnderKb: true,
-          hasMustPriority: false,
-          hasDurableComment: false,
-          fileContent: "{}",
-        });
-        assert.strictEqual(
-          manualKbEdit.riskClass,
-          "manual_kb_edit",
-          `opaque .kb edits are manual: ${JSON.stringify(manualKbEdit)}`,
-        );
+      const manualKbEdit = risk.classifyRisk({
+        pathKind: "kb",
+        isUnderKb: true,
+        hasMustPriority: false,
+        hasDurableComment: false,
+        fileContent: "{}",
+      });
+      assert.strictEqual(
+        manualKbEdit.riskClass,
+        "manual_kb_edit",
+        `opaque .kb edits are manual: ${JSON.stringify(manualKbEdit)}`,
+      );
 
-        const testEdit = risk.classifyRisk({
-          pathKind: "test",
-          isUnderKb: false,
-          hasMustPriority: false,
-          hasDurableComment: false,
-          fileContent: "test() {}",
-        });
-        assert.strictEqual(
-          testEdit.riskClass,
-          "safe_test_only",
-          `test-only edits are safe: ${JSON.stringify(testEdit)}`,
-        );
-      },
-    );
+      const testEdit = risk.classifyRisk({
+        pathKind: "test",
+        isUnderKb: false,
+        hasMustPriority: false,
+        hasDurableComment: false,
+        fileContent: "test() {}",
+      });
+      assert.strictEqual(
+        testEdit.riskClass,
+        "safe_test_only",
+        `test-only edits are safe: ${JSON.stringify(testEdit)}`,
+      );
+    });
 
     it(
       "caches guidance per context and invalidates on posture change",

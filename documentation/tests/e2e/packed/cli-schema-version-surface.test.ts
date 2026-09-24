@@ -60,7 +60,11 @@ if (RUN_NODE_TEST_SUITE) {
       async () => {
         if (!hasProlog) return;
         const status = await kibi(sandbox, ["status", "--format", "json"]);
-        assert.strictEqual(status.exitCode, 0, `${status.stdout}${status.stderr}`);
+        assert.strictEqual(
+          status.exitCode,
+          0,
+          `${status.stdout}${status.stderr}`,
+        );
         const parsed = parseKibiResult<StatusJson>(status.stdout);
         const schema = parsed.schemaStatus;
         assert.ok(schema, "status must expose schemaStatus");
@@ -71,7 +75,8 @@ if (RUN_NODE_TEST_SUITE) {
         );
         assert.strictEqual(schema.needsMigration, false);
         assert.ok(
-          typeof schema.currentVersion === "number" && schema.currentVersion > 0,
+          typeof schema.currentVersion === "number" &&
+            schema.currentVersion > 0,
           "currentVersion must be a positive number",
         );
         assert.strictEqual(

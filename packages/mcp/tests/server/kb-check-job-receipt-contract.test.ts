@@ -1,6 +1,6 @@
+import { describe, expect, test } from "bun:test";
 // implements REQ-kibi-verification-evidence-contract
 import Ajv2020 from "ajv/dist/2020";
-import { describe, expect, test } from "bun:test";
 
 import { startJob } from "../../src/server/jobs.js";
 import { TOOLS } from "../../src/tools-config.js";
@@ -69,5 +69,4 @@ describe("kb_check output contract admits async job receipts", () => {
     };
     expect(validate(envelope(partial))).toBe(false);
   });
-
 });

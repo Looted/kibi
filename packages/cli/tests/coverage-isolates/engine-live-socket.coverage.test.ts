@@ -214,9 +214,9 @@ describe("engine live-socket isolate", () => {
       throw new Error("expected live-socket refusal");
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
-      expect(
-        isEpipeLike(error) || /already listening/.test(message),
-      ).toBe(true);
+      expect(isEpipeLike(error) || /already listening/.test(message)).toBe(
+        true,
+      );
     } finally {
       live.close();
     }
@@ -656,4 +656,3 @@ describe("engine remaining: in-process daemon error and signal paths", () => {
     await waitForExitCall(exit);
   }, 20_000);
 });
-

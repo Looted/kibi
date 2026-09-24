@@ -79,14 +79,19 @@ if (RUN_NODE_TEST_SUITE) {
           "--input",
           compileInput,
         ]);
-        assert.strictEqual(compile.exitCode, 0, `${compile.stdout}${compile.stderr}`);
+        assert.strictEqual(
+          compile.exitCode,
+          0,
+          `${compile.stdout}${compile.stderr}`,
+        );
         const compileEnvelope = JSON.parse(compile.stdout) as {
           data?: CompilePlanPayload;
         };
         const plan = compileEnvelope.data;
         assert.ok(plan, "compile-intent must return a plan payload");
         assert.ok(
-          typeof plan.planHash === "string" && /^[a-f0-9]{64}$/.test(plan.planHash),
+          typeof plan.planHash === "string" &&
+            /^[a-f0-9]{64}$/.test(plan.planHash),
           `plan hash must be a canonical sha-256 digest: ${String(plan.planHash)}`,
         );
         assert.strictEqual(
@@ -99,7 +104,11 @@ if (RUN_NODE_TEST_SUITE) {
           plan: { ...plan, planHash: `${"0".repeat(63)}1` },
           approvedPlanHash: `${"0".repeat(63)}1`,
         });
-        const apply = await kibi(sandbox, ["apply-plan", "--input", applyInput]);
+        const apply = await kibi(sandbox, [
+          "apply-plan",
+          "--input",
+          applyInput,
+        ]);
         assert.notStrictEqual(
           apply.exitCode,
           0,

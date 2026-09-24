@@ -1,3 +1,4 @@
+import { mock } from "bun:test";
 /*
  * VS Code extension e2e driver.
  *
@@ -10,7 +11,6 @@
  */
 import { createRequire } from "node:module";
 import { join } from "node:path";
-import { mock } from "bun:test";
 import {
   getVscodeMockModule,
   resetVscodeMock,
@@ -50,10 +50,12 @@ const vscode = getVscodeMockModule() as ReturnType<
 
 // Capture command + code-lens registrations without disturbing the mock.
 const originalRegisterCommand = vscode.commands.registerCommand;
-vscode.commands.registerCommand = mock((commandId: string, callback: unknown) => {
-  registeredCommands.set(commandId, callback);
-  return originalRegisterCommand(commandId, callback);
-}) as never;
+vscode.commands.registerCommand = mock(
+  (commandId: string, callback: unknown) => {
+    registeredCommands.set(commandId, callback);
+    return originalRegisterCommand(commandId, callback);
+  },
+) as never;
 const originalRegisterCodeLens = vscode.languages.registerCodeLensProvider;
 vscode.languages.registerCodeLensProvider = mock(
   (selector: unknown, provider: unknown) => {
@@ -144,7 +146,7 @@ const treeViewCalls = (
   }
 ).createTreeViewCalls;
 
-expect(treeViewCalls.length === 1, `expected one tree view registration`);
+expect(treeViewCalls.length === 1, "expected one tree view registration");
 const treeDataProvider = treeViewCalls[0]?.options
   .treeDataProvider as unknown as {
   getChildren: (element?: TreeItemLike) => Promise<TreeItemLike[]>;
@@ -176,9 +178,9 @@ const requirementNode = requirementNodes.find(
   (node) =>
     node.id === "REQ-E2E-001" ||
     node.label?.includes("REQ-E2E-001") ||
-    (node.targetId === "REQ-E2E-001"),
+    node.targetId === "REQ-E2E-001",
 );
-expect(!!requirementNode, `REQ-E2E-001 missing from the tree`);
+expect(!!requirementNode, "REQ-E2E-001 missing from the tree");
 const requirementTreeItem = requirementNode
   ? treeDataProvider.getTreeItem(requirementNode)
   : undefined;
@@ -187,7 +189,8 @@ expect(
   "the requirement node must be expandable",
 );
 if (requirementNode) {
-  const requirementChildren = await treeDataProvider.getChildren(requirementNode);
+  const requirementChildren =
+    await treeDataProvider.getChildren(requirementNode);
   evidence.requirementChildLabels = requirementChildren.map((c) => c.label);
   expect(
     requirementChildren.some((child) => child.label?.includes("SCEN-E2E-001")),
@@ -195,9 +198,7 @@ if (requirementNode) {
   );
 }
 
-const symbolsRoot = roots.find((node) =>
-  node.label?.startsWith("Symbols"),
-);
+const symbolsRoot = roots.find((node) => node.label?.startsWith("Symbols"));
 const symbolNodes = symbolsRoot
   ? await treeDataProvider.getChildren(symbolsRoot)
   : [];
@@ -234,8 +235,7 @@ if (symbolTreeItem?.command?.arguments) {
 const navigationTarget =
   treeDataProvider.getNavigationTargetForEntity("SYM-FEATURE-HELLO");
 expect(
-  navigationTarget?.localPath?.endsWith("src/feature.ts") ??
-    false === true,
+  navigationTarget?.localPath?.endsWith("src/feature.ts") ?? false === true,
   `navigation target must resolve, got ${JSON.stringify(navigationTarget)}`,
 );
 const openEntityById = registeredCommands.get("kibi.openEntityById") as

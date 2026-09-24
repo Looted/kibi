@@ -35,7 +35,8 @@ describe("kibi-plugin-builtin", () => {
 
     const result = extractor.analyze({
       path: "src/hello.ts",
-      content: "export function greet(name: string): string {\n  return name;\n}\n",
+      content:
+        "export function greet(name: string): string {\n  return name;\n}\n",
     });
 
     const validated = validateSourceAnalysisResult(result);

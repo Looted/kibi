@@ -10,6 +10,7 @@ import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { COVERAGE_SHARDS } from "../../../scripts/run-unit-coverage.ts";
 import {
   BATCH_TIMEOUT_MINUTES,
   getBatchFailureMessage,
@@ -17,7 +18,6 @@ import {
   parseSuiteSummaries,
   runBatch,
 } from "../../../test/root.test.ts";
-import { COVERAGE_SHARDS } from "../../../scripts/run-unit-coverage.ts";
 
 function assert(condition: unknown, message: string): void {
   if (!condition) {
@@ -113,11 +113,15 @@ describe("root batch diagnostics passing fixture", () => {
 `,
     "utf8",
   );
-  const passingRun = spawnSync("bun", ["test", "--timeout", "15000", passingFixture], {
-    cwd: fixtureDir,
-    encoding: "utf8",
-    timeout: 120_000,
-  });
+  const passingRun = spawnSync(
+    "bun",
+    ["test", "--timeout", "15000", passingFixture],
+    {
+      cwd: fixtureDir,
+      encoding: "utf8",
+      timeout: 120_000,
+    },
+  );
   const passingSummaries = parseSuiteSummaries(
     `${passingRun.stdout ?? ""}${passingRun.stderr ?? ""}`,
   );
@@ -143,7 +147,9 @@ describe("root batch diagnostics passing fixture", () => {
   );
   assert(
     COVERAGE_SHARDS.length > 0 &&
-      COVERAGE_SHARDS.every((shard) => shard.label && Array.isArray(shard.paths)),
+      COVERAGE_SHARDS.every(
+        (shard) => shard.label && Array.isArray(shard.paths),
+      ),
     "coverage shards must declare labels and paths",
   );
 

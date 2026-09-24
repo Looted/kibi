@@ -22,12 +22,16 @@ import type {
   OntologyPackV1,
   PredicateSchemaDefinition,
 } from "kibi-plugin-sdk";
-import { detectPredicateRules, schemaIdFor, type PredicateRule } from "./predicate-rule.js";
+import {
+  type PredicateRule,
+  detectPredicateRules,
+  schemaIdFor,
+} from "./predicate-rule.js";
 import { CORE_PREDICATE_RULES } from "./predicate-rules-core.js";
 import { LAUNCHER_PREDICATE_RULES } from "./predicate-rules-launcher.js";
 import { POLICY_PREDICATE_RULES } from "./predicate-rules-policy.js";
-import { PRODUCT_PREDICATE_RULES } from "./predicate-rules-product.js";
 import { PRODUCT_TAIL_PREDICATE_RULES } from "./predicate-rules-product-tail.js";
+import { PRODUCT_PREDICATE_RULES } from "./predicate-rules-product.js";
 
 /** Same evaluation order as CLI analyze-prose predicate detection. */
 // implements REQ-capability-plugin-builtin-parity-v1

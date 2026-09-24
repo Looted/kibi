@@ -17,8 +17,8 @@ import {
   parseNpmPackJsonOutput,
   resolveNpmPackFilename,
 } from "./npm-pack-json.js";
-import { packagesForPack } from "./packed-packages.js";
 import { writePackedInstallManifest } from "./packed-install-manifest.js";
+import { packagesForPack } from "./packed-packages.js";
 
 // executable_for TEST-test-journaled-engine-harness
 export { packagesForPack } from "./packed-packages.js";

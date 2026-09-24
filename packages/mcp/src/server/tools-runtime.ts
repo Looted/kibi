@@ -88,6 +88,10 @@ function adaptProlog(prolog: PrologProcess): PrologPort {
     storageStatus?: () => Promise<PrologQueryResult>;
     queryStatusJson?: (signal?: AbortSignal) => Promise<PrologQueryResult>;
   };
+  const queryEntities = engine.queryEntities;
+  const searchEntities = engine.searchEntities;
+  const storageStatus = engine.storageStatus;
+  const queryStatusJson = engine.queryStatusJson;
   let lastResult: PrologQueryResult | null = null;
   const port: PrologPort = {
     query: async (goal, signal) => {
@@ -100,33 +104,33 @@ function adaptProlog(prolog: PrologProcess): PrologPort {
       return result;
     },
     save: (signal) => engine.query("kb_save", signal),
-    ...(typeof engine.queryEntities === "function"
+    ...(typeof queryEntities === "function"
       ? {
-          // Call through `engine.` so EngineClient methods keep their `this`
-          // (extracted unbound refs break queryStatusJson → this.command).
+          // The captured method uses .call(engine, ...) below to preserve the
+          // EngineClient receiver (unbound queryStatusJson breaks this.command).
           queryEntities: (
             input: Parameters<NonNullable<PrologPort["queryEntities"]>>[0],
             signal?: AbortSignal,
-          ) => engine.queryEntities!(input, signal),
+          ) => queryEntities.call(engine, input, signal),
         }
       : {}),
-    ...(typeof engine.searchEntities === "function"
+    ...(typeof searchEntities === "function"
       ? {
           searchEntities: (
             input: Parameters<NonNullable<PrologPort["searchEntities"]>>[0],
             signal?: AbortSignal,
-          ) => engine.searchEntities!(input, signal),
+          ) => searchEntities.call(engine, input, signal),
         }
       : {}),
-    ...(typeof engine.storageStatus === "function"
+    ...(typeof storageStatus === "function"
       ? {
-          storageStatus: () => engine.storageStatus!(),
+          storageStatus: () => storageStatus.call(engine),
         }
       : {}),
-    ...(typeof engine.queryStatusJson === "function"
+    ...(typeof queryStatusJson === "function"
       ? {
           queryStatusJson: (signal?: AbortSignal) =>
-            engine.queryStatusJson!(signal),
+            queryStatusJson.call(engine, signal),
         }
       : {}),
   };

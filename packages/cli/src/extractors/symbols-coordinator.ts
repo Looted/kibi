@@ -20,8 +20,8 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import type { CapabilityRegistry } from "../plugins/registry.js";
 import {
-  createSourceAnalysisService,
   type HostSourceAnalysisResult,
+  createSourceAnalysisService,
 } from "../plugins/source-analysis-service.js";
 import {
   type ManifestSymbolEntry,
