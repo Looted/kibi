@@ -30,7 +30,12 @@ describe("kb_job_status tool", () => {
         arguments: { jobId: "job-kb_check-1-does-not-exist" },
       });
       expect(result.isError).toBeFalsy();
-      const receipt = JSON.parse(result.content[0]?.text ?? "{}") as {
+      // The SDK types callTool results generically; narrow the text content
+      // here instead of asserting on unknown values below.
+      const content = (
+        result as { content?: readonly { type: string; text?: string }[] }
+      ).content;
+      const receipt = JSON.parse(content?.[0]?.text ?? "{}") as {
         kibiProtocol?: number;
         jobVersion?: string;
         jobId?: string;
