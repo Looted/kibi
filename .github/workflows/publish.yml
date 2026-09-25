@@ -252,6 +252,74 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+  publish-mcp-registry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [build-and-check, publish]
+    if: ${{ needs.publish.result == 'success' && contains(needs.build-and-check.outputs.toPublish, 'mcp=kibi-mcp') }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout released package metadata
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+      - name: Confirm kibi-mcp is in the successful npm release set
+        env:
+          TO_PUBLISH: ${{ needs.build-and-check.outputs.toPublish }}
+        run: |
+          if ! grep -Fxq 'mcp=kibi-mcp' <<< "$TO_PUBLISH"; then
+            echo "kibi-mcp was not included in this npm release"
+            exit 1
+          fi
+      - name: Install MCP Registry publisher
+        run: |
+          mkdir -p "$RUNNER_TEMP/mcp-publisher"
+          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar -xz -C "$RUNNER_TEMP/mcp-publisher" mcp-publisher
+          echo "$RUNNER_TEMP/mcp-publisher" >> "$GITHUB_PATH"
+      - name: Prepare registry manifest from the released npm package
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFile, writeFile } from 'node:fs/promises';
+
+          const packageJson = JSON.parse(await readFile('packages/mcp/package.json', 'utf8'));
+          const manifest = JSON.parse(await readFile('packages/mcp/server.json', 'utf8'));
+          if (packageJson.name !== 'kibi-mcp') {
+            throw new Error(`Unexpected MCP npm package name: ${packageJson.name}`);
+          }
+          if (packageJson.mcpName !== manifest.name) {
+            throw new Error(`npm mcpName ${packageJson.mcpName} does not match registry name ${manifest.name}`);
+          }
+          const npmPackages = manifest.packages.filter((entry) =>
+            entry.registryType === 'npm' && entry.identifier === packageJson.name,
+          );
+          if (npmPackages.length !== 1) {
+            throw new Error(`Expected exactly one registry entry for ${packageJson.name}`);
+          }
+
+          manifest.version = packageJson.version;
+          npmPackages[0].version = packageJson.version;
+          await writeFile('/tmp/kibi-mcp-server.json', `${JSON.stringify(manifest, null, 2)}\n`);
+          console.log(`Prepared MCP Registry version ${packageJson.version}`);
+          NODE
+      - name: Validate MCP Registry manifest
+        run: mcp-publisher validate /tmp/kibi-mcp-server.json
+      - name: Verify the published npm package has the registry name
+        run: |
+          version=$(node -p "require('./packages/mcp/package.json').version")
+          expected_name=$(node -p "require('./packages/mcp/package.json').mcpName")
+          published_name=$(npm view "kibi-mcp@${version}" mcpName)
+          if [ "$published_name" != "$expected_name" ]; then
+            echo "Published kibi-mcp@${version} has mcpName '${published_name}', expected '${expected_name}'"
+            exit 1
+          fi
+      - name: Authenticate to MCP Registry with GitHub OIDC
+        run: mcp-publisher login github-oidc
+      - name: Publish kibi-mcp to the official MCP Registry
+        run: mcp-publisher publish /tmp/kibi-mcp-server.json
+
   create-github-releases:
     runs-on: ubuntu-latest
     needs: [publish, build-and-check, check-release]
