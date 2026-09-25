@@ -825,11 +825,28 @@ describe("doctorCommand capability plugins", () => {
     );
   });
 
+  // Redirects the user-level env lane (~/.config/kibi/env, resolved through
+  // XDG_CONFIG_HOME) to an empty temp directory so these checks observe the
+  // env matrix they author instead of the host's real user config.
+  function isolateUserEnvConfig(): void {
+    const previousXdg = process.env.XDG_CONFIG_HOME;
+    const xdg = createTempDir();
+    roots.push(xdg);
+    mkdirSync(path.join(xdg, "kibi"), { recursive: true });
+    process.env.XDG_CONFIG_HOME = xdg;
+    restores.push(() => {
+      if (previousXdg === undefined)
+        Reflect.deleteProperty(process.env, "XDG_CONFIG_HOME");
+      else process.env.XDG_CONFIG_HOME = previousXdg;
+    });
+  }
+
   test("fails when activated Jev secret is missing, with remediation", async () => {
     const cwd = preparedWorkspace();
     writeOkManifest(cwd);
     writeJevActivation(cwd, true);
     restores.push(clearTypesafeKey());
+    isolateUserEnvConfig();
     mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
     const { payload, exitCode } = await runDoctorJson(cwd);
     expect(exitCode).toBe(1);
@@ -912,6 +929,7 @@ describe("doctorCommand capability plugins", () => {
     writeOkManifest(cwd);
     writeJevActivation(cwd, true);
     restores.push(clearTypesafeKey());
+    isolateUserEnvConfig();
     writeFileSync(path.join(cwd, ".env"), "TYPESAFE_API_KEY=from-legacy\n");
     mockSwipl("SWI-Prolog version 9.2 (threaded, 64 bits)\n");
     const { payload } = await runDoctorJson(cwd);

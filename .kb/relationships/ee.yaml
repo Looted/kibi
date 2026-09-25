@@ -286,3 +286,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b13f942580e7
+  - type: implements
+    from: SYM-cli-discovery-search-candidate-page-size
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-09-24T22:59:22.357Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-434b7851384b
+  - type: implements
+    from: SYM-cli-discovery-search-candidate-page-size
+    to: REQ-mcp-search-discovery
+    created_at: 2026-09-24T22:59:22.374Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3d951eaecafd
+  - type: covered_by
+    from: SYM-cli-discovery-search-candidate-page-size
+    to: TEST-mcp-search-discovery
+    created_at: 2026-09-25T09:07:58.515Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d98ac6c5aed
+  - type: covered_by
+    from: SYM-cli-discovery-search-candidate-page-size
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-25T09:07:58.534Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-41a5b8bd2f74

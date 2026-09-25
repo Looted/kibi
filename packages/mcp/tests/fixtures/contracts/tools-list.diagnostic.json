@@ -6462,6 +6462,13 @@
       }
     },
     {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "Poll a Kibi background job"
+      },
       "description": "Poll a background job started with async:true (e.g. kb_check async jobs). Returns the kibi.job.v1 state: running, succeeded (with the full result), or failed (with the error).",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
