@@ -4003,6 +4003,22 @@ coordinates:
     sourceEndLine: 51
     sourceFile: packages/opencode/src/workspace-health.ts
     sourceLine: 22
+  SYM-CI-PROOF-REUSE-DECISION:
+    identityHash: e3e3131040a5420f7b5b4daa95df4b382733a3fe2782deb396895b5311d8efac
+    sourceHash: 91decbb6b53c3111e65a4726768176a3dea7f629e5aaedb64fb48fc4f2018b44
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 199
+    sourceFile: scripts/ci-proof-reuse.ts
+    sourceLine: 81
+  SYM-CI-PROOF-REUSE-TYPE:
+    identityHash: 16020a28e3596dea566a529334d84fbf7ed136957b6407105f9f2c69931b6aa4
+    sourceHash: 91decbb6b53c3111e65a4726768176a3dea7f629e5aaedb64fb48fc4f2018b44
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 66
+    sourceFile: scripts/ci-proof-reuse.ts
+    sourceLine: 59
   SYM-classify-store-lock-holder:
     identityHash: 574a4e6f4eec3637ae2c6227086827d54f040d363da126ef4dabe50818f5af14
     sourceHash: 1539cf23a093a2a90b195122b55bbd8c29a436a3b124adc51a2970ba10cb3659
