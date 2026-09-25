@@ -1,5 +1,19 @@
 # kibi-mcp
 
+## 2.1.1
+
+### Patch Changes
+
+- 5d87559: MCP clients can discover Kibi in the official MCP Registry and see the exact npm package version they will run. After Kibi publishes a new `kibi-mcp` version to npm, GitHub Actions will publish the matching registry metadata using GitHub OIDC.
+
+  - Add the official registry name to the npm package and describe its stdio transport in `packages/mcp/server.json`.
+  - Publish registry metadata only after the corresponding `kibi-mcp` npm package has been published successfully.
+
+- a53a8f5: Fixed `kb_job_status` crashing with "Cannot read properties of undefined (reading '\_zod')" on every call. The tool's annotations object was passed one parameter slot too far and landed in the output-schema slot, so the MCP server advertised a bogus output schema and the SDK's output validator crashed before returning the job state. The background-job polling flow (`kb_check` with `async: true` followed by `kb_job_status`) now works end to end, and the tool's annotations (title, read-only hints) are actually published on `tools/list`.
+
+  - Pass the `kb_job_status` annotations in the `annotations` parameter of `addTool` instead of the `outputSchema` parameter.
+  - Pin the call contract with an MCP round-trip test (unknown job returns a typed `kibi.job.v1` receipt; annotations appear on `tools/list`).
+
 ## 2.1.0
 
 ### Minor Changes
