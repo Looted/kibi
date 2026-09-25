@@ -30737,6 +30737,8 @@ symbols:
       - type: covered_by
         target: TEST-cursor-consumer-local-mcp-launcher-v1
       - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
         target: TEST-kibi-consumer-local-plugin-launcher-ontology-v1
       - type: implements
         target: REQ-cursor-consumer-local-mcp-launcher-v1
@@ -41196,7 +41198,7 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
-        target: TEST-005
+        target: TEST-001
       - type: covered_by
         target: TEST-kibi-telemetry-remediation-evidence
       - type: implements
