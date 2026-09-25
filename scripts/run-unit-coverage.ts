@@ -108,6 +108,18 @@ const CLI_DOCTOR_COMMAND_TESTS = readdirSync(CLI_COMMANDS_DIR)
   .filter((entry) => /^doctor.*\.(?:test|spec)\.ts$/.test(entry))
   .map((entry) => `${CLI_COMMANDS_DIR}/${entry}`)
   .sort();
+const CLI_SUPPORT_STAGED_SYMBOLS_MANIFEST_TEST =
+  "./packages/cli/tests/traceability/staged-symbols-manifest.test.ts";
+const CLI_SUPPORT_TRACEABILITY_TEST_DIRECTORY =
+  "./packages/cli/tests/traceability";
+const CLI_SUPPORT_TRACEABILITY_TESTS = readdirSync(
+  CLI_SUPPORT_TRACEABILITY_TEST_DIRECTORY,
+  { withFileTypes: true },
+)
+  .filter((entry) => entry.isFile() && /\.(?:test|spec)\.ts$/.test(entry.name))
+  .map((entry) => `${CLI_SUPPORT_TRACEABILITY_TEST_DIRECTORY}/${entry.name}`)
+  .filter((path) => path !== CLI_SUPPORT_STAGED_SYMBOLS_MANIFEST_TEST)
+  .sort();
 const CLI_COMMAND_TESTS = readdirSync(CLI_COMMANDS_DIR)
   .filter((entry) => /\.(?:test|spec)\.ts$/.test(entry))
   .map((entry) => `${CLI_COMMANDS_DIR}/${entry}`);
@@ -180,6 +192,15 @@ export const COVERAGE_SHARDS: readonly {
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
   },
   {
+    // Keep this Git-fixture-heavy file out of the shared support process. A
+    // poisoned Bun 1.4 coverage process can make later git spawnSync calls
+    // time out in beforeEach; its own LCOV artifact is still merged normally.
+    label: "cli.support.staged-symbols-manifest",
+    paths: [CLI_SUPPORT_STAGED_SYMBOLS_MANIFEST_TEST],
+    timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+    isolation: "process-per-file",
+  },
+  {
     label: "cli.support",
     paths: [
       "./packages/cli/tests/extractors",
@@ -187,7 +208,7 @@ export const COVERAGE_SHARDS: readonly {
       "./packages/cli/tests/logic",
       "./packages/cli/tests/proof",
       "./packages/cli/tests/relationships",
-      "./packages/cli/tests/traceability",
+      ...CLI_SUPPORT_TRACEABILITY_TESTS,
       "./packages/cli/tests/prolog",
       "./packages/cli/tests/helpers",
     ],

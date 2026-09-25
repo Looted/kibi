@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import {
   COVERAGE_SHARDS,
@@ -66,6 +66,7 @@ describe("unit coverage runner contract", () => {
       "cli.doctor",
       "cli.operations",
       "cli.public",
+      "cli.support.staged-symbols-manifest",
       "cli.support",
       "cli.engine-remaining",
       "cli.engine-live-socket",
@@ -206,6 +207,7 @@ describe("unit coverage runner contract", () => {
       "cli.sync-command",
       "cli.sync-coverage",
       "cli.doctor",
+      "cli.support.staged-symbols-manifest",
       "cli.engine-live-socket",
       "cli.report-remaining",
       "cli.sync-tracked-relationships",
@@ -217,5 +219,42 @@ describe("unit coverage runner contract", () => {
     expect(runnerSource).not.toContain("25 * 60 * 1000");
     expect(runnerSource).toContain("allowEmpty: result.exitCode === 0");
     expect(runnerSource).toContain("recording an empty coverage artifact");
+  });
+
+  test("isolates staged-symbols-manifest without dropping traceability coverage", () => {
+    const traceabilityDirectory = "./packages/cli/tests/traceability";
+    const isolatedTest =
+      "./packages/cli/tests/traceability/staged-symbols-manifest.test.ts";
+    const isolatedShard = COVERAGE_SHARDS.find(
+      (shard) => shard.label === "cli.support.staged-symbols-manifest",
+    );
+    const supportShard = COVERAGE_SHARDS.find(
+      (shard) => shard.label === "cli.support",
+    );
+    const traceabilityTests = readdirSync(traceabilityDirectory, {
+      withFileTypes: true,
+    });
+    expect(
+      traceabilityTests
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name),
+    ).toEqual([]);
+    const traceabilityTestPaths = traceabilityTests
+      .filter(
+        (entry) => entry.isFile() && /\.(?:test|spec)\.ts$/.test(entry.name),
+      )
+      .map((entry) => `${traceabilityDirectory}/${entry.name}`)
+      .sort();
+
+    expect(isolatedShard?.paths).toEqual([isolatedTest]);
+    expect(isolatedShard?.isolation).toBe("process-per-file");
+    expect(supportShard?.paths).not.toContain(traceabilityDirectory);
+    const assignedTraceabilityTests = [
+      ...(supportShard?.paths.filter((path) =>
+        path.startsWith(`${traceabilityDirectory}/`),
+      ) ?? []),
+      ...(isolatedShard?.paths ?? []),
+    ].sort();
+    expect(assignedTraceabilityTests).toEqual(traceabilityTestPaths);
   });
 });
