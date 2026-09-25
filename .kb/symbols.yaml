@@ -5073,7 +5073,8 @@ symbols:
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable resource examples
+    title: predicate guidance loads a canonical decision tree with immutable
+      resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -38082,7 +38083,8 @@ symbols:
       - type: executable_for
         target: TEST-zcode-kibi-plugin-v1
   - id: SYM-zcode-case-optional-package-contract
-    title: '''Optional package contract: no install lifecycle or core runtime mutation'''
+    title: '''Optional package contract: no install lifecycle or core runtime
+      mutation'''
     status: active
     sourceFile: packages/zcode/tests/package-contract.test.ts
     symbol_role: behavioral
@@ -41170,6 +41172,8 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-mcp-search-discovery
       - type: implements
         target: REQ-kibi-operation-interface-parity
       - type: implements
@@ -41180,6 +41184,10 @@ symbols:
     sourceFile: packages/cli/src/public/operations/discovery-entities.ts
     symbol_role: config
     relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-mcp-search-discovery
       - type: implements
         target: REQ-kibi-operation-interface-parity
       - type: implements
@@ -41192,7 +41200,11 @@ symbols:
     granularity_reason: extractor-miss
     relationships:
       - type: covered_by
+        target: TEST-agent-kibi-interface-selection
+      - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
       - type: implements
         target: REQ-002
       - type: implements

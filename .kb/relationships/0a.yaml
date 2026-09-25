@@ -251,3 +251,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3658f94f4fa6
+  - type: covered_by
+    from: SYM-cli-discovery-load-search-candidates
+    to: TEST-mcp-search-discovery
+    created_at: 2026-09-25T09:07:03.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b9259a54d94
