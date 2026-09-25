@@ -4333,7 +4333,7 @@ coordinates:
     sourceLine: 37
   SYM-cli-discovery-build-entity-goal:
     identityHash: 54885ad84d0a6567c18f03971ea738c8691120e18a780e9ee13d443d086ad251
-    sourceHash: 5a50c8ce1db8381b6e3616e51d08b2429a66ed6a6d8d865aadce12cd1f6b7777
+    sourceHash: 750dd5ac3e0520a4709728406b1be6733fd472bd0ccc8b61731db4222fccd0b6
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 76
@@ -4349,12 +4349,12 @@ coordinates:
     sourceLine: 17
   SYM-cli-discovery-dedupe-entities:
     identityHash: 39980a61217478e7d0ed93fcbd78e73d4ea70e720e198baa544359e48a5fdb81
-    sourceHash: 5a50c8ce1db8381b6e3616e51d08b2429a66ed6a6d8d865aadce12cd1f6b7777
+    sourceHash: 750dd5ac3e0520a4709728406b1be6733fd472bd0ccc8b61731db4222fccd0b6
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 175
+    sourceEndLine: 176
     sourceFile: packages/cli/src/public/operations/discovery-entities.ts
-    sourceLine: 165
+    sourceLine: 166
   SYM-cli-discovery-deps:
     identityHash: b8de7d5ed0cc5de230236268d510a504b3c6f0529c43cadbcfd58c5c805f0c8c
     sourceHash: 1c72a5636fb289cbda77a507eda02eb9a54634558182d9e21cabbf0528e4eec3
@@ -4365,7 +4365,7 @@ coordinates:
     sourceLine: 22
   SYM-cli-discovery-entity-query-input:
     identityHash: 1b04c6c2949f2238d67318af49bfaa72c66ee48241c60de55894231860a58e4c
-    sourceHash: 5a50c8ce1db8381b6e3616e51d08b2429a66ed6a6d8d865aadce12cd1f6b7777
+    sourceHash: 750dd5ac3e0520a4709728406b1be6733fd472bd0ccc8b61731db4222fccd0b6
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 17
@@ -4381,7 +4381,7 @@ coordinates:
     sourceLine: 28
   SYM-cli-discovery-load-entities:
     identityHash: 048f10724618dbb08d8ef0a0ca570498e2cc77ac3c94dd3920ddb9a18b781630
-    sourceHash: 5a50c8ce1db8381b6e3616e51d08b2429a66ed6a6d8d865aadce12cd1f6b7777
+    sourceHash: 750dd5ac3e0520a4709728406b1be6733fd472bd0ccc8b61731db4222fccd0b6
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 108
@@ -4389,15 +4389,15 @@ coordinates:
     sourceLine: 79
   SYM-cli-discovery-load-search-candidates:
     identityHash: 1e3d6653d1cd463f7835bae82efbe25035dc2dcfd6e7f21e8bf025112b5ea8da
-    sourceHash: 5a50c8ce1db8381b6e3616e51d08b2429a66ed6a6d8d865aadce12cd1f6b7777
+    sourceHash: 750dd5ac3e0520a4709728406b1be6733fd472bd0ccc8b61731db4222fccd0b6
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 162
+    sourceEndLine: 163
     sourceFile: packages/cli/src/public/operations/discovery-entities.ts
     sourceLine: 129
   SYM-cli-discovery-paginate-results:
     identityHash: e84be555d5eefb12176bb2ec8618b3d0ce9651f7b427d9042af2a0d1d33d7f85
-    sourceHash: 5a50c8ce1db8381b6e3616e51d08b2429a66ed6a6d8d865aadce12cd1f6b7777
+    sourceHash: 750dd5ac3e0520a4709728406b1be6733fd472bd0ccc8b61731db4222fccd0b6
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 117
@@ -4453,7 +4453,7 @@ coordinates:
     sourceLine: 107
   SYM-cli-discovery-search-candidate-page-size:
     identityHash: 5ad36de69ad00800122f904e1cca37d15ac4df3b6be6f781ca948d781f639499
-    sourceHash: 5a50c8ce1db8381b6e3616e51d08b2429a66ed6a6d8d865aadce12cd1f6b7777
+    sourceHash: 750dd5ac3e0520a4709728406b1be6733fd472bd0ccc8b61731db4222fccd0b6
     sourceColumn: 13
     sourceEndColumn: 45
     sourceEndLine: 126
@@ -4461,7 +4461,7 @@ coordinates:
     sourceLine: 126
   SYM-cli-discovery-valid-entity-types:
     identityHash: 990a69485cdb05c4aff1f384aea49700b7a99364fef4adf5452a65025f736bb2
-    sourceHash: 5a50c8ce1db8381b6e3616e51d08b2429a66ed6a6d8d865aadce12cd1f6b7777
+    sourceHash: 750dd5ac3e0520a4709728406b1be6733fd472bd0ccc8b61731db4222fccd0b6
     sourceColumn: 13
     sourceEndColumn: 10
     sourceEndLine: 28
@@ -4469,7 +4469,7 @@ coordinates:
     sourceLine: 19
   SYM-cli-discovery-validate-entity-type:
     identityHash: cc438110b0f68684efc512c65905363d828e47f8843127fb733c461bc5c0c291
-    sourceHash: 5a50c8ce1db8381b6e3616e51d08b2429a66ed6a6d8d865aadce12cd1f6b7777
+    sourceHash: 750dd5ac3e0520a4709728406b1be6733fd472bd0ccc8b61731db4222fccd0b6
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 37

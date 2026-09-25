@@ -10,7 +10,10 @@ import {
 import { executeSearch } from "../../../src/public/operations/discovery-executors.js";
 import { nodeFilesystem } from "../../../src/public/operations/node-ports.js";
 import type { OperationContext } from "../../../src/public/operations/runtime-types.js";
-import type { PrologSearchQueryInput } from "../../../src/public/operations/runtime-types.js";
+import type {
+  PrologPort,
+  PrologSearchQueryInput,
+} from "../../../src/public/operations/runtime-types.js";
 
 function makeFakeSearchIndex(total: number) {
   const requests: PrologSearchQueryInput[] = [];
@@ -79,6 +82,35 @@ describe("search candidate paging", () => {
       { query: "session" },
     );
     expect(empty).toHaveLength(0);
+  });
+
+  test("loadSearchCandidates preserves the searchEntities method receiver", async () => {
+    // EngineClient.searchEntities reads `this` (this.command), so a detached
+    // call like `const fetchPage = port.searchEntities; fetchPage(...)`
+    // crashes on any PrologPort implementation that is not pre-bound. This
+    // fake is a normal method reading instance state exactly so it fails
+    // under receiver loss instead of silently succeeding.
+    const total = SEARCH_CANDIDATE_PAGE_SIZE + 5;
+    const seenOffsets: number[] = [];
+    const port: {
+      readonly seenOffsets: number[];
+      searchEntities: NonNullable<PrologPort["searchEntities"]>;
+    } = {
+      seenOffsets,
+      async searchEntities(input) {
+        this.seenOffsets.push(input.offset);
+        const rows = Array.from({ length: total }, (_, index) => ({
+          id: `REQ-${index + 1}`,
+        })) as Record<string, unknown>[];
+        return {
+          entities: rows.slice(input.offset, input.offset + input.limit),
+          count: total,
+        };
+      },
+    };
+    const candidates = await loadSearchCandidates(port, { query: "session" });
+    expect(candidates).toHaveLength(total);
+    expect(seenOffsets).toEqual([0, SEARCH_CANDIDATE_PAGE_SIZE]);
   });
 
   test("executeSearch keeps ranking results while fetching candidates in bounded pages", async () => {
