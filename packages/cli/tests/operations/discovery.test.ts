@@ -14,6 +14,7 @@ import {
   searchSpec,
   statusSpec,
 } from "../../src/public/operations/specs/discovery.js";
+import { SEARCH_CANDIDATE_PAGE_SIZE } from "../../src/public/operations/discovery-entities.js";
 import {
   branchStorePath,
   ensureBranchStoreManifest,
@@ -152,7 +153,7 @@ describe("shared discovery operation executors", () => {
   test("kb_search pages indexed candidates instead of one unbounded read", async () => {
     // Given a corpus larger than one page, so a single unbounded read would
     // serialize the whole matching corpus into one Prolog response.
-    const total = 600;
+    const total = SEARCH_CANDIDATE_PAGE_SIZE * 2 + 100;
     const entities = Array.from({ length: total }, (_, index) => ({
       id: `REQ-${index}`,
       type: "req",
@@ -185,8 +186,12 @@ describe("shared discovery operation executors", () => {
 
     // Then every request stays bounded, and the full candidate set is still
     // ranked and counted.
-    expect(Math.max(...requestedLimits)).toBeLessThanOrEqual(250);
-    expect(requestedOffsets.slice(0, 3)).toEqual([0, 250, 500]);
+    expect(Math.max(...requestedLimits)).toBe(SEARCH_CANDIDATE_PAGE_SIZE);
+    expect(requestedOffsets.slice(0, 3)).toEqual([
+      0,
+      SEARCH_CANDIDATE_PAGE_SIZE,
+      SEARCH_CANDIDATE_PAGE_SIZE * 2,
+    ]);
     expect(result.structuredContent?.count).toBe(total);
     expect(result.structuredContent?.results).toHaveLength(5);
   });
