@@ -8863,8 +8863,16 @@ symbols:
         target: REQ-git-hook-effective-install
       - type: covered_by
         target: TEST-git-hook-effective-install
+  - id: SYM-git-repository-resolution-type
+    title: GitRepositoryResolution
+    status: active
+    sourceFile: packages/cli/src/utils/git-repository-context.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-git-hook-effective-install
   - id: SYM-git-repository-context-resolver
-    title: resolveGitRepositoryContext
+    title: resolveGitRepository
     status: active
     sourceFile: packages/cli/src/utils/git-repository-context.ts
     symbol_role: behavioral

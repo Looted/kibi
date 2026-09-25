@@ -22,7 +22,10 @@ import { fileURLToPath } from "node:url";
 import { classifyActivation } from "../operations/bootstrap/activation.js";
 import { nodeFilesystem } from "../public/operations/node-ports.js";
 import { resolveBranchAttachment } from "../utils/branch-resolver.js";
-import { resolveGitRepositoryContext } from "../utils/git-repository-context.js";
+import {
+  type GitRepositoryContext,
+  resolveGitRepository,
+} from "../utils/git-repository-context.js";
 import { scaffoldGitHubIntegration } from "./github-init.js";
 import {
   copySchemaFiles,
@@ -44,9 +47,7 @@ const __dirname = path.dirname(__filename);
  * must never receive auto-installed hooks.
  * implements REQ-git-hook-effective-install
  */
-function isRepositoryManagedHooksDir(
-  context: NonNullable<ReturnType<typeof resolveGitRepositoryContext>>,
-): boolean {
+function isRepositoryManagedHooksDir(context: GitRepositoryContext): boolean {
   const hooksDir = context.effectiveHooksDir;
   const within = (root: string) =>
     hooksDir === root || hooksDir.startsWith(`${root}${path.sep}`);
@@ -123,17 +124,29 @@ export async function initCommand(
 
   // Resolve the repository once and derive every project path from Git's own
   // answer, so init works from linked worktrees (.git is a file there) and
-  // from subdirectories (cwd has no .kb or .git at all).
+  // from subdirectories (cwd has no .kb or .git at all). Bare repositories
+  // and unreadable contexts are refused before any workspace write.
   // implements REQ-git-hook-effective-install
-  const repoContext = resolveGitRepositoryContext(process.cwd());
+  const resolution = resolveGitRepository(process.cwd());
+  if (resolution.status === "unsupported") {
+    console.error(`Error: ${resolution.reason}`);
+    console.error(
+      "Kibi requires a working-tree checkout; refusing to create workspace state.",
+    );
+    return { exitCode: 1 };
+  }
+  const repoContext = resolution.status === "ok" ? resolution.context : null;
   const projectRoot = repoContext?.worktreeRoot ?? process.cwd();
   const kbDir = path.join(projectRoot, ".kb");
   const kbExists = existsSync(kbDir);
 
-  // Resolve the exact active Git branch. Standalone use must be explicit via
-  // KIBI_BRANCH; there is no implicit default branch.
+  // Resolve the exact active Git branch against the project root (not cwd):
+  // recovery journals, legacy stores, and identity manifests are read from
+  // the same .kb tree init is about to write.
+  // Standalone use must be explicit via KIBI_BRANCH; there is no implicit
+  // default branch.
   let currentBranch: string;
-  const result = resolveBranchAttachment();
+  const result = resolveBranchAttachment(projectRoot);
 
   if ("error" in result) {
     const isNonGitError =
@@ -188,7 +201,9 @@ export async function initCommand(
         installGitHooks(repoContext.effectiveHooksDir, {
           hooksPathOrigin: repoContext.hooksPathOrigin,
         });
-        if (repoContext.isLinkedWorktree) {
+        if (repoContext.isLinkedWorktree && !repoContext.hooksPathConfig) {
+          // Only the default common hooks directory is shared by Git across
+          // worktrees; a configured hooksPath resolves per checkout.
           console.log(
             `✓ Repository-common hooks directory shared with all worktrees (${repoContext.effectiveHooksDir})`,
           );

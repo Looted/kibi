@@ -313,7 +313,7 @@ describe("doctorCommand companion git hooks check", () => {
     expect(check.passed).toBe(false);
     expect(check.message).toBe("Installed but not executable");
     expect(check.remediation).toBe(
-      "Run: chmod +x .git/hooks/post-checkout .git/hooks/post-merge",
+      `Run: chmod +x '${cwd}/.git/hooks/post-checkout' '${cwd}/.git/hooks/post-merge'`,
     );
   });
 
@@ -399,7 +399,9 @@ describe("doctorCommand pre-commit hook check", () => {
     const check = namedCheck(payload, "pre-commit hook");
     expect(check.passed).toBe(false);
     expect(check.message).toBe("Installed but not executable");
-    expect(check.remediation).toBe("Run: chmod +x .git/hooks/pre-commit");
+    expect(check.remediation).toBe(
+      `Run: chmod +x '${cwd}/.git/hooks/pre-commit'`,
+    );
   });
 
   test("fails a pre-commit hook that never invokes kibi", async () => {
@@ -513,7 +515,9 @@ describe("doctorCommand post-rewrite hook check", () => {
     const check = namedCheck(payload, "post-rewrite hook");
     expect(check.passed).toBe(false);
     expect(check.message).toBe("Installed but not executable");
-    expect(check.remediation).toBe("Run: chmod +x .git/hooks/post-rewrite");
+    expect(check.remediation).toBe(
+      `Run: chmod +x '${cwd}/.git/hooks/post-rewrite'`,
+    );
   });
 
   test("fails a post-rewrite hook that never invokes kibi", async () => {

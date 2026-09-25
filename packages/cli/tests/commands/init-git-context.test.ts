@@ -13,6 +13,15 @@ import {
   execSync as nodeExecSync,
   isolatedCliSandboxEnv,
 } from "../helpers/isolated-env.js";
+import { initCommand } from "../../src/commands/init.js";
+import { branchStorePath, legacyBranchStorePath } from "../../src/utils/branch-store-locator.js";
+import {
+  captureIo,
+  createGitWorkspace,
+  isolateKibiEnv,
+  removeTempDir,
+  withCwd,
+} from "../helpers/in-process-workspace.js";
 
 // executable_for TEST-git-hook-effective-install
 function git(cwd: string, args: string): string {
@@ -138,5 +147,218 @@ describe("kibi init repository-context fixes", () => {
       "refusing to install hooks into unrelated directories",
     );
     expect(existsSync(path.join(externalHooks, "pre-commit"))).toBe(false);
+  }, 180000);
+});
+
+
+describe("kibi init branch-attachment context agreement", () => {
+  let roots: string[];
+  let restores: Array<() => void>;
+
+  beforeEach(() => {
+    roots = [];
+    restores = [];
+    restores.push(isolateKibiEnv());
+  });
+
+  afterEach(() => {
+    for (const restore of restores.reverse()) restore();
+    for (const root of roots) removeTempDir(root);
+  });
+
+  function fixtureWorkspace(name: string, plant: (cwd: string) => void): string {
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    plant(cwd);
+    return cwd;
+  }
+
+  async function runFrom(cwd: string, sub: string | null) {
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await withCwd(sub ? path.join(cwd, sub) : cwd, () =>
+      initCommand({}),
+    );
+    return { result, io };
+  }
+
+  const cases: Array<[string, (cwd: string) => void, string]> = [
+    [
+      "unfinished recovery journal",
+      (cwd) => {
+        const journalDir = path.join(
+          cwd,
+          ".kb",
+          "recovery",
+          "branch-migrations",
+        );
+        mkdirSync(journalDir, { recursive: true });
+        writeFileSync(
+          path.join(journalDir, "mig-1.json"),
+          JSON.stringify({ state: "pending" }),
+        );
+      },
+      "Incomplete branch migration journal 'mig-1'",
+    ],
+    [
+      "corrupted recovery journal",
+      (cwd) => {
+        const journalDir = path.join(
+          cwd,
+          ".kb",
+          "recovery",
+          "branch-migrations",
+        );
+        mkdirSync(journalDir, { recursive: true });
+        writeFileSync(path.join(journalDir, "mig-bad.json"), "{not json");
+      },
+      "Unreadable branch migration journal 'mig-bad.json'",
+    ],
+    [
+      "legacy branch store",
+      (cwd) => {
+        mkdirSync(legacyBranchStorePath(cwd, "main"), { recursive: true });
+      },
+      "legacy branch storage",
+    ],
+    [
+      "legacy and hashed store conflict",
+      (cwd) => {
+        mkdirSync(legacyBranchStorePath(cwd, "main"), { recursive: true });
+        mkdirSync(branchStorePath(cwd, "main"), { recursive: true });
+      },
+      "Ambiguous branch storage",
+    ],
+    [
+      "broken hashed store identity manifest",
+      (cwd) => {
+        const store = branchStorePath(cwd, "main");
+        mkdirSync(store, { recursive: true });
+        writeFileSync(
+          path.join(store, "branch.json"),
+          JSON.stringify({ version: 1, branch: "other", key: "deadbeef" }),
+        );
+      },
+      "identity manifest mismatch",
+    ],
+  ];
+
+  for (const [name, plant, expectedText] of cases) {
+    test(`init from root and subdirectory agree: ${name}`, async () => {
+      const cwd = fixtureWorkspace(name, plant);
+      mkdirSync(path.join(cwd, "sub"), { recursive: true });
+
+      const fromRoot = await runFrom(cwd, null);
+      const fromSub = await runFrom(cwd, "sub");
+
+      expect(fromRoot.result.exitCode).toBe(1);
+      expect(fromSub.result.exitCode).toBe(1);
+      expect(fromSub.io.errorText()).toBe(fromRoot.io.errorText());
+      expect(fromSub.io.errorText()).toContain(expectedText);
+      // A blocked run must not create workspace state in the subdirectory.
+      expect(existsSync(path.join(cwd, "sub", ".kb"))).toBe(false);
+    }, 120000);
+  }
+});
+
+describe("kibi init hook-path coverage messaging", () => {
+  let tmpRoot: string;
+  const kibiBin = path.resolve(__dirname, "../../bin/kibi");
+
+  beforeEach(() => {
+    tmpRoot = mkdtempSync(path.join(os.tmpdir(), "kibi-test-init-cov-"));
+  });
+
+  afterEach(() => {
+    rmSync(tmpRoot, { recursive: true, force: true });
+  });
+
+  function makeRepo(name: string): string {
+    const repo = path.join(tmpRoot, name);
+    nodeExecSync(`git init -q -b main ${JSON.stringify(repo)}`, {
+      env: isolatedCliSandboxEnv(),
+    });
+    git(repo, "config user.email test@test.com");
+    git(repo, "config user.name Test User");
+    return repo;
+  }
+
+  function kibi(args: string, cwd: string): string {
+    return nodeExecSync(`bun ${JSON.stringify(kibiBin)} ${args} 2>&1`, {
+      cwd,
+      encoding: "utf8",
+      env: isolatedCliSandboxEnv(),
+    });
+  }
+
+  function commitReadme(repo: string): void {
+    writeFileSync(path.join(repo, "README.md"), "# t\n");
+    git(repo, "add README.md");
+    git(repo, "commit -qm init");
+  }
+
+  test("linked worktree with default hooks reports the shared common dir", () => {
+    const primary = makeRepo("primary");
+    commitReadme(primary);
+    const linked = path.join(tmpRoot, "linked");
+    git(primary, `worktree add -q -b feature ${JSON.stringify(linked)}`);
+    kibi("init", linked);
+
+    const output = kibi("init", linked);
+    expect(output).toContain("shared with all worktrees");
+  }, 180000);
+
+  test("linked worktree with relative core.hooksPath reports unverified coverage", () => {
+    const primary = makeRepo("hooked");
+    commitReadme(primary);
+    git(primary, "config core.hooksPath .githooks");
+    const linked = path.join(tmpRoot, "linked-hooked");
+    git(primary, `worktree add -q -b feature ${JSON.stringify(linked)}`);
+    // The worktree checkout has no .githooks (never committed): init must
+    // install for THIS checkout and state the coverage limitation.
+    const output = kibi("init", linked);
+    expect(output).toContain("core.hooksPath is configured");
+    expect(output).toContain("INCOMPLETE/UNVERIFIED");
+    expect(output).not.toContain("shared with all worktrees");
+    expect(existsSync(path.join(linked, ".githooks/pre-commit"))).toBe(true);
+    expect(existsSync(path.join(primary, ".githooks"))).toBe(false);
+  }, 180000);
+
+  test("foreign pre-commit recipe includes both staged checks", () => {
+    const repo = makeRepo("recipe");
+    const hooksDir = path.join(repo, ".git/hooks");
+    mkdirSync(hooksDir, { recursive: true });
+    writeFileSync(
+      path.join(hooksDir, "pre-commit"),
+      "#!/bin/sh\necho 'user hook'\n",
+    );
+    writeFileSync(path.join(hooksDir, "post-merge"), "#!/bin/sh\necho fm\n");
+
+    const output = kibi("init", repo);
+    expect(output).toContain(
+      "kibi check-generated --staged --changed-only && kibi check --staged",
+    );
+    const postLine = output
+      .split("\n")
+      .find((line) => line.startsWith("! post-merge:"));
+    expect(postLine).toContain("kibi sync");
+  }, 180000);
+
+  test("init refuses to write workspace state into a bare repository", () => {
+    const bare = path.join(tmpRoot, "bare.git");
+    nodeExecSync(`git init -q --bare -b main ${JSON.stringify(bare)}`, {
+      env: isolatedCliSandboxEnv(),
+    });
+
+    let output = "";
+    try {
+      output = kibi("init", bare);
+    } catch (error) {
+      // init refuses bare repositories with exit code 1.
+      output = String((error as { stdout?: unknown }).stdout ?? "");
+    }
+    expect(output).toContain("Bare repository");
+    expect(output).toContain("refusing to create workspace state");
+    expect(existsSync(path.join(bare, ".kb"))).toBe(false);
   }, 180000);
 });
