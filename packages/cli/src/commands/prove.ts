@@ -226,8 +226,9 @@ async function selectTests(
   context: OperationContext,
   options: ProveCommandOptions,
 ): Promise<SelectedTest[]> {
-  // Contracts only. Full receipt histories are loaded again at ingest and
-  // blow the Prolog output buffer when selected up front.
+  // Contract plus bindings only. Receipt histories are loaded again at ingest
+  // and blow the Prolog output buffer when selected up front. JUnit and TAP
+  // conversion needs the bindings before that reload.
   const loadAll = async (): Promise<Record<string, unknown>[]> =>
     loadEntities(context.prolog as never, {
       type: "test",

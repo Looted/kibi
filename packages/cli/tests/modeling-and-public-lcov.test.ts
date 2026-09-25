@@ -415,6 +415,9 @@ describe("discovery entities and Prolog JSON helpers", () => {
       "kb_entities_by_tag",
     );
     expect(buildEntityGoal({ tags: ["a"] })).toContain("kb_entities_by_tag");
+    expect(
+      buildEntityGoal({ type: "test", projection: "proof_contract" }),
+    ).toContain("proof_bindings=Bindings");
     expect(buildEntityGoal({ type: "req" })).toContain("kb_entity(Id");
     expect(buildEntityGoal({})).toContain("kb_entity(Id, Type, Props)");
     expect(paginateResults([1, 2, 3], 1, 1)).toEqual([2]);

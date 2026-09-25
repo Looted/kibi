@@ -49,7 +49,7 @@ export function buildEntityGoal(input: EntityQueryInput): string {
     const entityGoal = id
       ? `kb_entity(${idTerm}, test, Props)`
       : "kb_entity(Id, test, Props)";
-    return `findall([${idTerm},'test',[id=${idTerm},proof_contract=Contract]], (${entityGoal}, memberchk(proof_contract=Contract, Props)), Results)`;
+    return `findall([${idTerm},'test',Projected], (${entityGoal}, memberchk(proof_contract=Contract, Props), (memberchk(proof_bindings=Bindings, Props) -> Projected = [id=${idTerm},proof_contract=Contract,proof_bindings=Bindings] ; Projected = [id=${idTerm},proof_contract=Contract])), Results)`;
   }
   if (sourceFile) {
     const safeSource = escapeAtomContent(sourceFile);

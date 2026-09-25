@@ -4357,7 +4357,7 @@ coordinates:
     sourceLine: 37
   SYM-cli-discovery-build-entity-goal:
     identityHash: 54885ad84d0a6567c18f03971ea738c8691120e18a780e9ee13d443d086ad251
-    sourceHash: 9b510c74e63ed5dac6fb937b001d803693162ddea991d2d0c0d4f5867a4a2702
+    sourceHash: 852973cb7cac418e9a5e9a98a94db8262d4f1a97b4a7a202145051bdfa488df0
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 88
@@ -4373,7 +4373,7 @@ coordinates:
     sourceLine: 17
   SYM-cli-discovery-dedupe-entities:
     identityHash: 39980a61217478e7d0ed93fcbd78e73d4ea70e720e198baa544359e48a5fdb81
-    sourceHash: 9b510c74e63ed5dac6fb937b001d803693162ddea991d2d0c0d4f5867a4a2702
+    sourceHash: 852973cb7cac418e9a5e9a98a94db8262d4f1a97b4a7a202145051bdfa488df0
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 188
@@ -4389,7 +4389,7 @@ coordinates:
     sourceLine: 22
   SYM-cli-discovery-entity-query-input:
     identityHash: 1b04c6c2949f2238d67318af49bfaa72c66ee48241c60de55894231860a58e4c
-    sourceHash: 9b510c74e63ed5dac6fb937b001d803693162ddea991d2d0c0d4f5867a4a2702
+    sourceHash: 852973cb7cac418e9a5e9a98a94db8262d4f1a97b4a7a202145051bdfa488df0
     sourceColumn: 12
     sourceEndColumn: 2
     sourceEndLine: 22
@@ -4405,7 +4405,7 @@ coordinates:
     sourceLine: 28
   SYM-cli-discovery-load-entities:
     identityHash: 048f10724618dbb08d8ef0a0ca570498e2cc77ac3c94dd3920ddb9a18b781630
-    sourceHash: 9b510c74e63ed5dac6fb937b001d803693162ddea991d2d0c0d4f5867a4a2702
+    sourceHash: 852973cb7cac418e9a5e9a98a94db8262d4f1a97b4a7a202145051bdfa488df0
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 120
@@ -4413,7 +4413,7 @@ coordinates:
     sourceLine: 91
   SYM-cli-discovery-load-search-candidates:
     identityHash: 1e3d6653d1cd463f7835bae82efbe25035dc2dcfd6e7f21e8bf025112b5ea8da
-    sourceHash: 9b510c74e63ed5dac6fb937b001d803693162ddea991d2d0c0d4f5867a4a2702
+    sourceHash: 852973cb7cac418e9a5e9a98a94db8262d4f1a97b4a7a202145051bdfa488df0
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 175
@@ -4421,7 +4421,7 @@ coordinates:
     sourceLine: 141
   SYM-cli-discovery-paginate-results:
     identityHash: e84be555d5eefb12176bb2ec8618b3d0ce9651f7b427d9042af2a0d1d33d7f85
-    sourceHash: 9b510c74e63ed5dac6fb937b001d803693162ddea991d2d0c0d4f5867a4a2702
+    sourceHash: 852973cb7cac418e9a5e9a98a94db8262d4f1a97b4a7a202145051bdfa488df0
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 129
@@ -4477,7 +4477,7 @@ coordinates:
     sourceLine: 107
   SYM-cli-discovery-search-candidate-page-size:
     identityHash: 5ad36de69ad00800122f904e1cca37d15ac4df3b6be6f781ca948d781f639499
-    sourceHash: 9b510c74e63ed5dac6fb937b001d803693162ddea991d2d0c0d4f5867a4a2702
+    sourceHash: 852973cb7cac418e9a5e9a98a94db8262d4f1a97b4a7a202145051bdfa488df0
     sourceColumn: 13
     sourceEndColumn: 45
     sourceEndLine: 138
@@ -4485,7 +4485,7 @@ coordinates:
     sourceLine: 138
   SYM-cli-discovery-valid-entity-types:
     identityHash: 990a69485cdb05c4aff1f384aea49700b7a99364fef4adf5452a65025f736bb2
-    sourceHash: 9b510c74e63ed5dac6fb937b001d803693162ddea991d2d0c0d4f5867a4a2702
+    sourceHash: 852973cb7cac418e9a5e9a98a94db8262d4f1a97b4a7a202145051bdfa488df0
     sourceColumn: 13
     sourceEndColumn: 10
     sourceEndLine: 33
@@ -4493,7 +4493,7 @@ coordinates:
     sourceLine: 24
   SYM-cli-discovery-validate-entity-type:
     identityHash: cc438110b0f68684efc512c65905363d828e47f8843127fb733c461bc5c0c291
-    sourceHash: 9b510c74e63ed5dac6fb937b001d803693162ddea991d2d0c0d4f5867a4a2702
+    sourceHash: 852973cb7cac418e9a5e9a98a94db8262d4f1a97b4a7a202145051bdfa488df0
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 42
@@ -7533,7 +7533,7 @@ coordinates:
     sourceLine: 218
   SYM-command-environment:
     identityHash: f92296d9d63f00a6847e211e72d5006b66266a9178545cf68b2e128960e33631
-    sourceHash: aaf84b5faeeb83c8272a505a9c46572df34386198ede53cba28bf4da856660a6
+    sourceHash: 6652e5836cb9d1558bd256dff9fb1a4c772920e2f5ef69f56dfea7f7de6dbe89
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 159
@@ -8893,7 +8893,7 @@ coordinates:
     sourceLine: 41
   SYM-describe-workspace-drift:
     identityHash: 38436e97be84bd04e267da2fb210477132b61a25ec0e335a8374dab56053e8e1
-    sourceHash: aaf84b5faeeb83c8272a505a9c46572df34386198ede53cba28bf4da856660a6
+    sourceHash: 6652e5836cb9d1558bd256dff9fb1a4c772920e2f5ef69f56dfea7f7de6dbe89
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 76
@@ -15813,7 +15813,7 @@ coordinates:
     sourceLine: 23
   SYM-parse-integration-selector:
     identityHash: 56855dbf9e9fe5edbb88ab82fa8452ae3a4b6701e4acb792a05f1ccbdf5dc1c6
-    sourceHash: aaf84b5faeeb83c8272a505a9c46572df34386198ede53cba28bf4da856660a6
+    sourceHash: 6652e5836cb9d1558bd256dff9fb1a4c772920e2f5ef69f56dfea7f7de6dbe89
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 97
@@ -16925,15 +16925,15 @@ coordinates:
     sourceLine: 24
   SYM-prove-command:
     identityHash: bccbcddbe6faddfb0483f16677558e9a3ee69c13d5b7e8064cacf55449e0afae
-    sourceHash: aaf84b5faeeb83c8272a505a9c46572df34386198ede53cba28bf4da856660a6
+    sourceHash: 6652e5836cb9d1558bd256dff9fb1a4c772920e2f5ef69f56dfea7f7de6dbe89
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 503
+    sourceEndLine: 504
     sourceFile: packages/cli/src/commands/prove.ts
-    sourceLine: 324
+    sourceLine: 325
   SYM-prove-command-dependencies:
     identityHash: 781a489d79f6873f94a0566e5d132d6df343dd7297d000dc6f6668b8a90a61cb
-    sourceHash: aaf84b5faeeb83c8272a505a9c46572df34386198ede53cba28bf4da856660a6
+    sourceHash: 6652e5836cb9d1558bd256dff9fb1a4c772920e2f5ef69f56dfea7f7de6dbe89
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 46
@@ -16941,7 +16941,7 @@ coordinates:
     sourceLine: 43
   SYM-prove-command-options:
     identityHash: d0482515995bcdbc422a1c76703c7c79e33b457a64da23ed3fd1c3d3aa69a1c9
-    sourceHash: aaf84b5faeeb83c8272a505a9c46572df34386198ede53cba28bf4da856660a6
+    sourceHash: 6652e5836cb9d1558bd256dff9fb1a4c772920e2f5ef69f56dfea7f7de6dbe89
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 40
@@ -16949,7 +16949,7 @@ coordinates:
     sourceLine: 33
   SYM-prove-test-id:
     identityHash: 4fda145410cbbc5b6d78aad443e9cba4801c0f22a818a67be57ac749e144d8d4
-    sourceHash: aaf84b5faeeb83c8272a505a9c46572df34386198ede53cba28bf4da856660a6
+    sourceHash: 6652e5836cb9d1558bd256dff9fb1a4c772920e2f5ef69f56dfea7f7de6dbe89
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 107
