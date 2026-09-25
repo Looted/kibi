@@ -104,3 +104,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0dc7e30c6922
+  - type: implements
+    from: SYM-CI-PROOF-REUSE-DECISION
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-09-25T12:16:39.282Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fd2a00c52f47
+  - type: covered_by
+    from: SYM-CI-PROOF-REUSE-DECISION
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-25T12:16:39.291Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9e740f67c25

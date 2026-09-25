@@ -62,3 +62,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7fa92a40ca2d
+  - type: implements
+    from: SYM-CI-PROOF-REUSE-TYPE
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-09-25T12:17:46.408Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e6da92b8fb4
+  - type: covered_by
+    from: SYM-CI-PROOF-REUSE-TYPE
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-25T12:27:53.379Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f49283d7f6f5

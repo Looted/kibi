@@ -175,7 +175,8 @@
         "--timeout",
         "120000",
         "./packages/cli/tests/proof/receipt-binding.test.ts",
-        "./packages/cli/tests/extractors/manifest.test.ts"
+        "./packages/cli/tests/extractors/manifest.test.ts",
+        "./scripts/tests/ci-proof-reuse.test.ts"
       ]
     ]
   },

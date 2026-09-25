@@ -93,6 +93,7 @@ describe("strict proof workflow contract", () => {
       "120000",
       "./packages/cli/tests/proof/receipt-binding.test.ts",
       "./packages/cli/tests/extractors/manifest.test.ts",
+      "./scripts/tests/ci-proof-reuse.test.ts",
     ]);
 
     expect(steps.length).toBeGreaterThan(0);
@@ -184,6 +185,61 @@ describe("strict proof workflow contract", () => {
     expect(baselineChecker).toContain('"symbol-traceability"');
     expect(proofWorkflow).not.toContain("proof-contract-symbols");
     expect(ciWorkflow).not.toContain("Generate Kibi requirement health report");
+  });
+
+  test("master PR proof gate reuses only an attested develop push", () => {
+    const workflow = Bun.YAML.parse(proofWorkflow) as {
+      on: {
+        push: { branches: string[] };
+        pull_request: { branches: string[] };
+      };
+      permissions: Record<string, string>;
+      jobs: { proof: { steps: Array<Record<string, unknown>> } };
+    };
+    expect(workflow.on.push.branches).toEqual(["develop"]);
+    expect(workflow.on.pull_request.branches).toEqual(["develop", "master"]);
+    expect(workflow.permissions).toMatchObject({
+      contents: "read",
+      actions: "read",
+    });
+    const proofSteps = workflow.jobs.proof.steps;
+    const names = proofSteps.map((step) => step.name);
+    expect(
+      proofSteps.find((step) => step.name === "Checkout")?.with,
+    ).toMatchObject({
+      ref: "${{ github.sha }}",
+      "fetch-depth": 1,
+    });
+    expect(
+      names.indexOf("Check whether master PR can reuse develop proof"),
+    ).toBeLessThan(names.indexOf("Bootstrap Ubuntu packages"));
+    expect(names.indexOf("Attest successful develop proof")).toBeGreaterThan(
+      names.indexOf("Generate requirement health report"),
+    );
+    for (const name of [
+      "Bootstrap Ubuntu packages",
+      "Install SWI-Prolog",
+      "Build packages used by packed proof contracts",
+      "Sync and validate integrity of the proof snapshot",
+      "Prove every contracted test through Kibi",
+      "Enforce proof baseline and clean snapshot",
+    ]) {
+      expect(proofSteps.find((step) => step.name === name)?.if).toContain(
+        "steps.reuse.outputs.reuse != 'true'",
+      );
+      expect(proofSteps.find((step) => step.name === name)?.if).toContain(
+        "steps.reuse.outcome != 'success'",
+      );
+    }
+    expect(proofWorkflow).toContain(
+      "KIBI_BRANCH: ${{ github.event_name == 'pull_request' && github.base_ref == 'master' && 'master'",
+    );
+    expect(names).toContain("Upload develop proof attestation");
+    expect(names).toContain("Upload proof reuse decision");
+    expect(
+      proofSteps.find((step) => step.name === "Attest successful develop proof")
+        ?.if,
+    ).toContain("github.event_name == 'push'");
   });
 
   test("packed proof steps isolate compilation and cleanup", () => {
