@@ -59,43 +59,61 @@ const { keep, root: rootArg } = parseArgs(process.argv.slice(2));
 const cacheRoot =
   rootArg ?? process.env.KIBI_E2E_PACK_CACHE_ROOT?.trim() ?? tmpdir();
 const namespacesPath = path.join(cacheRoot, "kibi-e2e-pack");
+const compiledNamespacesPath = path.join(cacheRoot, "kibi-e2e-compiled");
 
-let namespaces = [];
-try {
-  namespaces = readdirSync(namespacesPath);
-} catch (error) {
-  if (error?.code !== "ENOENT") throw error;
-}
-
-let removed = 0;
-let retained = 0;
-for (const namespace of namespaces) {
-  const namespacePath = path.join(namespacesPath, namespace);
-  const entries = readdirSync(namespacePath)
-    .map((name) => {
-      const entryPath = path.join(namespacePath, name);
-      try {
-        return { name, path: entryPath, mtimeMs: statSync(entryPath).mtimeMs };
-      } catch {
-        return null;
-      }
-    })
-    .filter(Boolean)
-    .sort((left, right) => right.mtimeMs - left.mtimeMs);
-  for (const [index, entry] of entries.entries()) {
-    // Staging trees (".tmp-*") belong to a live or crashed publisher; drop
-    // only the ones older than an hour so an in-flight population survives.
-    const isStaging = entry.name.includes(".tmp-");
-    if (isStaging && Date.now() - entry.mtimeMs < 3_600_000) continue;
-    if (index < keep && !isStaging) {
-      retained++;
-      continue;
-    }
-    rmSync(entry.path, { recursive: true, force: true });
-    removed++;
+function readNamespaces(root) {
+  try {
+    return readdirSync(root);
+  } catch (error) {
+    if (error?.code !== "ENOENT") throw error;
+    return [];
   }
 }
 
+function pruneNamespaces(root, keepCount) {
+  let removed = 0;
+  let retained = 0;
+  for (const namespace of readNamespaces(root)) {
+    const namespacePath = path.join(root, namespace);
+    const entries = readdirSync(namespacePath)
+      .map((name) => {
+        const entryPath = path.join(namespacePath, name);
+        try {
+          return {
+            name,
+            path: entryPath,
+            mtimeMs: statSync(entryPath).mtimeMs,
+          };
+        } catch {
+          return null;
+        }
+      })
+      .filter(Boolean)
+      .sort((left, right) => right.mtimeMs - left.mtimeMs);
+    for (const [index, entry] of entries.entries()) {
+      // Staging trees (".tmp-*") belong to a live or crashed publisher; drop
+      // only the ones older than an hour so an in-flight population survives.
+      const isStaging = entry.name.includes(".tmp-");
+      if (isStaging && Date.now() - entry.mtimeMs < 3_600_000) continue;
+      if (index < keepCount && !isStaging) {
+        retained++;
+        continue;
+      }
+      rmSync(entry.path, { recursive: true, force: true });
+      removed++;
+    }
+  }
+  return { removed, retained };
+}
+
+const packed = pruneNamespaces(namespacesPath, keep);
+const compiled = pruneNamespaces(compiledNamespacesPath, keep);
+
 process.stdout.write(
-  `${JSON.stringify({ cacheRoot: namespacesPath, removed, retained })}\n`,
+  `${JSON.stringify({
+    cacheRoot: namespacesPath,
+    compiledRoot: compiledNamespacesPath,
+    removed: packed.removed + compiled.removed,
+    retained: packed.retained + compiled.retained,
+  })}\n`,
 );

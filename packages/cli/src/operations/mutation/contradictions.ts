@@ -26,6 +26,47 @@ export function buildUpsertCommitGoal(input: TransactionInput): string {
   return `kb_commit_upsert(${type}, ${buildPropertyList(input.entity)}, [${relationships.join(", ")}], ${input.skipContradictionCheck ? "true" : "false"}, ChangeKind)`;
 }
 
+function upsertBatchEntry(input: TransactionInput): string {
+  const type = String(input.entity.type);
+  const relationships = input.relationships.map(
+    (relationship) =>
+      `rel(${String(relationship.type)}, '${escapeAtom(String(relationship.from))}', '${escapeAtom(String(relationship.to))}', ${buildRelationshipMetadata(relationship)})`,
+  );
+  return `upsert(${type}, ${buildPropertyList(input.entity)}, [${relationships.join(", ")}], ${input.skipContradictionCheck ? "true" : "false"})`;
+}
+
+/** One transaction and one journal flush for a receipt campaign. */
+// implements REQ-core-atomic-upsert-persistence
+export function buildUpsertBatchCommitGoal(
+  inputs: readonly TransactionInput[],
+): string {
+  const first = inputs[0];
+  if (!first) throw new Error("Upsert batch requires at least one entity");
+  if (inputs.length === 1) return buildUpsertCommitGoal(first);
+  return `kb_commit_upsert_batch([${inputs.map(upsertBatchEntry).join(", ")}], ChangeKinds)`;
+}
+
+// implements REQ-core-atomic-upsert-persistence
+export function parseUpsertChangeKinds(
+  bindings: Readonly<Record<string, string>>,
+  count: number,
+): Array<"created" | "updated"> {
+  const listed = bindings.ChangeKinds;
+  if (typeof listed === "string") {
+    const kinds = [...listed.matchAll(/\b(created|updated)\b/g)].map(
+      (match) => match[1] as "created" | "updated",
+    );
+    if (kinds.length === count) return kinds;
+  }
+  const one = bindings.ChangeKind;
+  if ((one === "created" || one === "updated") && count >= 1) {
+    return Array.from({ length: count }, () => one);
+  }
+  throw new Error(
+    `Upsert batch completed without ${count} created/updated result(s)`,
+  );
+}
+
 // implements REQ-kibi-operation-interface-parity
 export function formatUpsertError(
   entityId: string,

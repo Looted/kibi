@@ -41227,3 +41227,107 @@ symbols:
         target: TEST-kibi-verification-evidence-contract
       - type: implements
         target: REQ-kibi-verification-evidence-contract
+  - id: SYM-buildUpsertBatchCommitGoal
+    title: buildUpsertBatchCommitGoal
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/contradictions.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+  - id: SYM-parseUpsertChangeKinds
+    title: parseUpsertChangeKinds
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/contradictions.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+  - id: SYM-proofStepConcurrency
+    title: proofStepConcurrency
+    status: active
+    sourceFile: scripts/run-proof-producer.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-proof-runner-integrity
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-groupProofSteps
+    title: groupProofSteps
+    status: active
+    sourceFile: scripts/run-proof-producer.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: covered_by
+        target: TEST-proof-runner-integrity
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-packed-sanitizeCacheKey
+    title: sanitizeCacheKey
+    status: active
+    sourceFile: scripts/compile-e2e-packed.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+  - id: SYM-packed-hashPackedSources
+    title: hashPackedSources
+    status: active
+    sourceFile: scripts/compile-e2e-packed.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+  - id: SYM-packed-packedCompileCacheArea
+    title: packedCompileCacheArea
+    status: active
+    sourceFile: scripts/compile-e2e-packed.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+  - id: SYM-packed-packedCompilationReady
+    title: packedCompilationReady
+    status: active
+    sourceFile: scripts/compile-e2e-packed.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+  - id: SYM-packed-preparePackedCompilation
+    title: preparePackedCompilation
+    status: active
+    sourceFile: scripts/compile-e2e-packed.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+  - id: SYM-packed-compile-main
+    title: main
+    status: active
+    sourceFile: scripts/compile-e2e-packed.mjs
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-test-journaled-engine-harness

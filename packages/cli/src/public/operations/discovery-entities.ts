@@ -14,6 +14,11 @@ export type EntityQueryInput = {
   /** Page size for index-backed queries; bounds each query's output. */
   readonly limit?: number;
   readonly offset?: number;
+  /**
+   * Proof selection only needs the contract. Omit receipt histories so a
+   * campaign does not page every full test entity.
+   */
+  readonly projection?: "proof_contract";
 };
 
 export const VALID_ENTITY_TYPES = [
@@ -39,6 +44,13 @@ export function validateEntityType(type?: string): void {
 // implements REQ-002, REQ-013
 export function buildEntityGoal(input: EntityQueryInput): string {
   const { type, id, tags, sourceFile } = input;
+  if (type === "test" && input.projection === "proof_contract") {
+    const idTerm = id ? `'${escapeAtomContent(id)}'` : "Id";
+    const entityGoal = id
+      ? `kb_entity(${idTerm}, test, Props)`
+      : "kb_entity(Id, test, Props)";
+    return `findall([${idTerm},'test',[id=${idTerm},proof_contract=Contract]], (${entityGoal}, memberchk(proof_contract=Contract, Props)), Results)`;
+  }
   if (sourceFile) {
     const safeSource = escapeAtomContent(sourceFile);
     if (type) {

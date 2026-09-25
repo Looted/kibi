@@ -56,6 +56,12 @@ export type UpsertPayload = {
     readonly checked_req_id: string;
     readonly strict_readiness: string;
   };
+  readonly deferredCommit?: {
+    readonly entity: Readonly<Record<string, unknown>>;
+    readonly relationships: readonly RelationshipInput[];
+    readonly skipContradictionCheck: boolean;
+    readonly rollback: () => Promise<unknown>;
+  };
 };
 
 // implements REQ-kibi-operation-interface-parity
