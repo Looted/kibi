@@ -457,6 +457,14 @@ export async function persistEntities(
           `semantic_inventory=${toPrologString(JSON.stringify(entity.semantic_inventory))}`,
         );
       }
+      if (entity.type === "req" && entity.proof_exempt !== undefined) {
+        props.push(`proof_exempt=${entity.proof_exempt}`);
+      }
+      if (entity.type === "req" && entity.proof_exempt_reason !== undefined) {
+        props.push(
+          `proof_exempt_reason=${toPrologString(entity.proof_exempt_reason)}`,
+        );
+      }
       if (sourceFile) props.push(`sourceFile=${toPrologString(sourceFile)}`);
 
       if (entity.type === "symbol") {

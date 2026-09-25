@@ -16,9 +16,15 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 import fs from "node:fs";
-import { resolveEnvFilePath, resolveWorkspaceRoot } from "./workspace.js";
-
-const DEFAULT_ENV_FILE = ".env";
+import {
+  KIBI_PROJECT_ENV_FILE,
+  bootstrapKibiEnvironment,
+  inspectSecretSource,
+  parseEnvContent,
+  resolveEnvFilePath,
+  resolveKibiProjectEnvPath,
+  resolveKibiWorkspaceRoot,
+} from "kibi-runtime";
 
 function getEnvValue(key: string): string | undefined {
   const value = process.env[key];
@@ -30,9 +36,10 @@ function getTrimmedEnvValue(key: string): string | undefined {
   return value ? value : undefined;
 }
 
+/** Preferred project env file name (`.env.kibi` or `KIBI_ENV_FILE` override). */
 export function getEnvFileName(): string {
   // implements REQ-002
-  return getTrimmedEnvValue("KIBI_ENV_FILE") ?? DEFAULT_ENV_FILE;
+  return getTrimmedEnvValue("KIBI_ENV_FILE") ?? KIBI_PROJECT_ENV_FILE;
 }
 
 export function isMcpDebugEnabled(): boolean {
@@ -68,13 +75,27 @@ export type LoadEnvResult = {
   keysLoaded: string[];
 };
 
+/**
+ * Harness-independent bootstrap: process → project `.env.kibi`/`KIBI_ENV_FILE`
+ * → user `~/.config/kibi/env`, plus legacy `.env` gap-fill.
+ * Prefer calling from `startServer()` only.
+ */
 export function loadDefaultEnvFile(): LoadEnvResult {
   // implements REQ-002
-  const envFileName = getEnvFileName();
-  const workspaceRoot = resolveWorkspaceRoot();
-  return loadEnvFile({ envFileName, workspaceRoot });
+  const result = bootstrapKibiEnvironment();
+  const keysLoaded = [
+    ...result.keysLoadedFromUser,
+    ...result.keysLoadedFromProject,
+    ...result.keysLoadedFromLegacy,
+  ];
+  return {
+    loaded: keysLoaded.length > 0,
+    envFilePath: result.projectEnvPath,
+    keysLoaded,
+  };
 }
 
+/** @deprecated Prefer bootstrapKibiEnvironment; kept for targeted file tests. */
 export function loadEnvFile(options: {
   // implements REQ-002
   envFileName: string;
@@ -108,35 +129,9 @@ export function loadEnvFile(options: {
   }
 }
 
-interface EnvEntry {
-  key: string;
-  value: string;
-}
-
-function parseEnvContent(content: string): EnvEntry[] {
-  const lines = content.split(/\r?\n/);
-  const entries: EnvEntry[] = [];
-
-  for (const rawLine of lines) {
-    const line = rawLine.trim();
-    if (!line || line.startsWith("#")) {
-      continue;
-    }
-    const eqIndex = line.indexOf("=");
-    if (eqIndex <= 0) {
-      continue;
-    }
-    const key = line.substring(0, eqIndex).trim();
-    let value = line.substring(eqIndex + 1).trim();
-
-    if (value.startsWith('"') && value.endsWith('"')) {
-      value = value.slice(1, -1);
-    } else if (value.startsWith("'") && value.endsWith("'")) {
-      value = value.slice(1, -1);
-    }
-
-    entries.push({ key, value });
-  }
-
-  return entries;
-}
+export {
+  resolveEnvFilePath,
+  resolveKibiProjectEnvPath,
+  resolveKibiWorkspaceRoot,
+  inspectSecretSource,
+};

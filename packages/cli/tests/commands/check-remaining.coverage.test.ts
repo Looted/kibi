@@ -267,10 +267,11 @@ describe("checkCommand remaining runtime branches", () => {
     const overlayDir = path.join(cwd, "overlay");
     mkdirSync(overlayDir, { recursive: true });
     const overlayPath = path.join(overlayDir, "changed_symbols.pl");
+    mkdirSync(path.join(overlayDir, "kb"), { recursive: true });
     writeFileSync(overlayPath, "");
     const create = spyOn(tempKb, "createTempKb").mockResolvedValue({
       tempDir: overlayDir,
-      kbPath: overlayDir,
+      kbPath: path.join(overlayDir, "kb"),
       overlayPath,
       prolog: { query: async () => ({ success: true, bindings: {} }) } as never,
     });
@@ -312,8 +313,8 @@ describe("checkCommand remaining runtime branches", () => {
     const extract = await import("../../src/traceability/symbol-extract.js");
     const extractSpy = spyOn(
       extract,
-      "extractSymbolsFromStagedFile",
-    ).mockReturnValue([]);
+      "extractSymbolsFromStagedFileAsync",
+    ).mockResolvedValue([]);
     restores.push(() => extractSpy.mockRestore());
     const granularity = spyOn(
       impact,
@@ -374,8 +375,8 @@ describe("checkCommand remaining runtime branches", () => {
     const extract = await import("../../src/traceability/symbol-extract.js");
     const extractSpy = spyOn(
       extract,
-      "extractSymbolsFromStagedFile",
-    ).mockReturnValue([]);
+      "extractSymbolsFromStagedFileAsync",
+    ).mockResolvedValue([]);
     restores.push(() => extractSpy.mockRestore());
     const granularity = spyOn(
       impact,
@@ -428,8 +429,8 @@ describe("checkCommand remaining runtime branches", () => {
     const extract = await import("../../src/traceability/symbol-extract.js");
     const extractSpy = spyOn(
       extract,
-      "extractSymbolsFromStagedFile",
-    ).mockImplementation(() => {
+      "extractSymbolsFromStagedFileAsync",
+    ).mockImplementation(async () => {
       throw "parse exploded";
     });
     restores.push(() => extractSpy.mockRestore());
@@ -453,10 +454,11 @@ describe("checkCommand remaining runtime branches", () => {
     const overlayDir = path.join(cwd, "overlay");
     mkdirSync(overlayDir, { recursive: true });
     const overlayPath = path.join(overlayDir, "changed_symbols.pl");
+    mkdirSync(path.join(overlayDir, "kb"), { recursive: true });
     writeFileSync(overlayPath, "");
     const create = spyOn(tempKb, "createTempKb").mockResolvedValue({
       tempDir: overlayDir,
-      kbPath: overlayDir,
+      kbPath: path.join(overlayDir, "kb"),
       overlayPath,
       prolog: { query: async () => ({ success: true, bindings: {} }) } as never,
     });
@@ -619,10 +621,11 @@ describe("checkCommand remaining runtime branches", () => {
     const overlayDir = path.join(cwd, "overlay");
     mkdirSync(overlayDir, { recursive: true });
     const overlayPath = path.join(overlayDir, "changed_symbols.pl");
+    mkdirSync(path.join(overlayDir, "kb"), { recursive: true });
     writeFileSync(overlayPath, "");
     const create = spyOn(tempKb, "createTempKb").mockResolvedValue({
       tempDir: overlayDir,
-      kbPath: overlayDir,
+      kbPath: path.join(overlayDir, "kb"),
       overlayPath,
       prolog: { query: async () => ({ success: true, bindings: {} }) } as never,
     });
@@ -706,10 +709,11 @@ describe("checkCommand remaining runtime branches", () => {
     const overlayDir = path.join(cwd, "overlay");
     mkdirSync(overlayDir, { recursive: true });
     const overlayPath = path.join(overlayDir, "changed_symbols.pl");
+    mkdirSync(path.join(overlayDir, "kb"), { recursive: true });
     writeFileSync(overlayPath, "");
     const create = spyOn(tempKb, "createTempKb").mockResolvedValue({
       tempDir: overlayDir,
-      kbPath: overlayDir,
+      kbPath: path.join(overlayDir, "kb"),
       overlayPath,
       prolog: { query: async () => ({ success: true, bindings: {} }) } as never,
     });
@@ -758,8 +762,8 @@ describe("checkCommand remaining runtime branches", () => {
     const extract = await import("../../src/traceability/symbol-extract.js");
     const extractSpy = spyOn(
       extract,
-      "extractSymbolsFromStagedFile",
-    ).mockReturnValue([]);
+      "extractSymbolsFromStagedFileAsync",
+    ).mockResolvedValue([]);
     restores.push(() => extractSpy.mockRestore());
     const io = captureIo();
     restores.push(io.restore);
@@ -928,10 +932,11 @@ Must stay independently testable.
     const overlayDir = path.join(cwd, "overlay");
     mkdirSync(overlayDir, { recursive: true });
     const overlayPath = path.join(overlayDir, "changed_symbols.pl");
+    mkdirSync(path.join(overlayDir, "kb"), { recursive: true });
     writeFileSync(overlayPath, "");
     const create = spyOn(tempKb, "createTempKb").mockResolvedValue({
       tempDir: overlayDir,
-      kbPath: overlayDir,
+      kbPath: path.join(overlayDir, "kb"),
       overlayPath,
       prolog: { query: async () => ({ success: true, bindings: {} }) } as never,
     });

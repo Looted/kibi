@@ -55,3 +55,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7ce540816cca
+  - type: implements
+    from: SYM-assertSourceWriteStaysInWorkspace
+    to: REQ-kibi-change-to-proof-plan-compiler
+    created_at: 2026-09-18T06:52:36.096Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04ae058e5906
+  - type: covered_by
+    from: SYM-assertSourceWriteStaysInWorkspace
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-09-18T06:52:36.107Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eff6e3362e4d
+  - type: covered_by
+    from: SYM-assertSourceWriteStaysInWorkspace
+    to: TEST-e2e-plan-compiler-hash
+    created_at: 2026-09-18T06:52:36.131Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f36774a79ec6
+  - type: verified_by
+    from: SCEN-opencode-posture-detection
+    to: TEST-e2e-opencode-enforcement-surface
+    created_at: 2026-09-18T10:57:59.481Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2be30c01643b

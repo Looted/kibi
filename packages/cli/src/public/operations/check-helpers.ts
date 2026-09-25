@@ -144,10 +144,10 @@ export function hasImpactOptions(args: CheckInput): boolean {
 }
 
 // implements REQ-mcp-tool-check
-export function analyzeKbCheckImpact(
+export async function analyzeKbCheckImpact(
   workspaceRoot: string,
   args: CheckInput,
-): ChangedFileImpactResult | undefined {
+): Promise<ChangedFileImpactResult | undefined> {
   if (!hasImpactOptions(args)) {
     return undefined;
   }

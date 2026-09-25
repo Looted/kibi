@@ -18,6 +18,7 @@
 
 export {
   analyzeSourceText,
+  analyzeSourceTextWithRegistry,
   enrichSymbolCoordinates,
   type ManifestSymbolEntry,
   type AnalyzeSourceTextOptions,

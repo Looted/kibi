@@ -104,3 +104,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3ff027fb27b7
+  - type: implements
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compile-plan-version
+    to: REQ-kibi-change-to-proof-plan-compiler
+    created_at: 2026-09-18T07:14:52.217Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60157968a33a
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-compile-plan-version
+    to: TEST-e2e-plan-compiler-hash
+    created_at: 2026-09-18T07:14:52.222Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14e283a682d1
+  - type: covered_by
+    from: SYM-cap-plugin-matchgroups-f8bcd46e
+    to: TEST-capability-plugin-host-resolution-v1
+    created_at: 2026-09-22T19:42:41.900Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f42cb98cf303
+  - type: covered_by
+    from: SYM-cap-plugin-createjevplugin-a2c5a4bf
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:44:21.067Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-248a7607b1b0
+  - type: covered_by
+    from: SYM-cap-plugin-definekibiplugin-b63fe229
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:46:31.809Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae0a8893ff1c

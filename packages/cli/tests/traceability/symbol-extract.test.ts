@@ -118,9 +118,9 @@ describe("symbol-extract (real integration)", () => {
       { name: "runBehavior", kind: "function", role: "behavioral" },
       { name: "Worker", kind: "class", role: "behavioral" },
       { name: "Worker.execute", kind: "method", role: "behavioral" },
-      { name: "WorkerState", kind: "enum", role: "type-shape" },
       { name: "WorkerShape", kind: "interface", role: "type-shape" },
       { name: "WorkerAlias", kind: "type", role: "type-shape" },
+      { name: "WorkerState", kind: "enum", role: "type-shape" },
       { name: "WORKER_TOKEN", kind: "variable", role: "unknown" },
     ]);
     expect(inferSymbolRole("unknown")).toBe("unknown");
@@ -473,6 +473,8 @@ describe("symbol-extract (cache and failure branches)", () => {
     const sourceFile = {
       getFunctions: () => [goodFunction],
       getClasses: () => [],
+      getInterfaces: () => [],
+      getTypeAliases: () => [],
       getEnums: () => [],
       getVariableStatements: () => [],
       getLineAndColumnAtPos: (pos: number) => ({ line: pos, column: 1 }),

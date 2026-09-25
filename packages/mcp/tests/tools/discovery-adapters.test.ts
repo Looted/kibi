@@ -2,6 +2,7 @@ import { describe, expect, mock, test } from "bun:test";
 import { querySpec, searchSpec, statusSpec } from "kibi-cli/operations";
 import type { PrologPort } from "kibi-cli/operations/runtime-types";
 import type { PrologProcess } from "kibi-cli/prolog";
+import "../helpers/ensure-test-branch.js";
 import { handleKbQuery } from "../../src/tools/query.js";
 import { handleKbSearch } from "../../src/tools/search.js";
 import { handleKbStatus } from "../../src/tools/status.js";

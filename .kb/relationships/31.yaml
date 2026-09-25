@@ -143,3 +143,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-bcdd9645c909
+  - type: implements
+    from: SYM-reqcompiler-coverage-command
+    to: REQ-kibi-conservative-requirement-proof
+    created_at: 2026-09-18T07:44:39.153Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d6eb28745396
+  - type: covered_by
+    from: SYM-reqcompiler-coverage-command
+    to: TEST-e2e-coverage-proof-status
+    created_at: 2026-09-18T07:44:39.159Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b05a93d83c93
+  - type: verified_by
+    from: SCEN-kibi-change-to-proof-evaluation
+    to: TEST-kibi-change-to-proof-evaluation-live
+    created_at: 2026-09-18T10:55:15.982Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6360387dedfd
+  - type: covered_by
+    from: SYM-DEFAULT-TOOLS-RUNTIME
+    to: TEST-agent-kibi-interface-selection
+    created_at: 2026-09-18T14:49:42.522Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0dc68f371109
+  - type: covered_by
+    from: SYM-cap-plugin-formatmethodsymbolname-45e1d25a
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:44:07.376Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4157e5228640

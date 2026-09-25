@@ -8,34 +8,67 @@
  */
 // implements REQ-core-extractors
 
-export const ALLOWED_GRANULARITY_REASONS = ["config-artifact","module-level-behavior","extractor-miss","legacy-link","test-suite"] as const;
+export const ALLOWED_GRANULARITY_REASONS = [
+  "config-artifact",
+  "module-level-behavior",
+  "extractor-miss",
+  "legacy-link",
+  "test-suite",
+] as const;
 
-export type GranularityReason =
-  (typeof ALLOWED_GRANULARITY_REASONS)[number];
+export type GranularityReason = (typeof ALLOWED_GRANULARITY_REASONS)[number];
 
-export const COARSE_GRANULARITY_REASONS = ["config-artifact","module-level-behavior","extractor-miss","test-suite"] as const;
+export const COARSE_GRANULARITY_REASONS = [
+  "config-artifact",
+  "module-level-behavior",
+  "extractor-miss",
+  "test-suite",
+] as const;
 
 export type CoarseGranularityReason =
   (typeof COARSE_GRANULARITY_REASONS)[number];
 
-export const SYMBOL_ROLES = ["behavioral","structural","type-shape","config","module","unknown"] as const;
+export const SYMBOL_ROLES = [
+  "behavioral",
+  "structural",
+  "type-shape",
+  "config",
+  "module",
+  "unknown",
+] as const;
 
 export type SymbolRole = (typeof SYMBOL_ROLES)[number];
 
-export const ROLE_INFERENCE: Readonly<
-  Record<string, SymbolRole>
-> = {"function":"behavioral","class":"behavioral","method":"behavioral","property":"behavioral","accessor":"behavioral","interface":"type-shape","type":"type-shape","enum":"type-shape","variable":"unknown","unknown":"unknown"};
+export const ROLE_INFERENCE: Readonly<Record<string, SymbolRole>> = {
+  function: "behavioral",
+  class: "behavioral",
+  method: "behavioral",
+  property: "behavioral",
+  accessor: "behavioral",
+  interface: "type-shape",
+  type: "type-shape",
+  enum: "type-shape",
+  variable: "unknown",
+  unknown: "unknown",
+};
 
-export const TRACEABILITY_RELATIONSHIP_TYPES = ["implements","covered_by","executable_for"] as const;
+export const TRACEABILITY_RELATIONSHIP_TYPES = [
+  "implements",
+  "covered_by",
+  "executable_for",
+] as const;
 
 export type TraceabilityRelationshipType =
   (typeof TRACEABILITY_RELATIONSHIP_TYPES)[number];
 
 /** Comma-or list of every allowed granularity reason ("a, b, or c"). */
-export const ALLOWED_GRANULARITY_REASONS_PROSE = "config-artifact, module-level-behavior, extractor-miss, legacy-link, or test-suite";
+export const ALLOWED_GRANULARITY_REASONS_PROSE =
+  "config-artifact, module-level-behavior, extractor-miss, legacy-link, or test-suite";
 
 /** Comma-or list of the coarse granularity reasons ("a, b, or c"). */
-export const COARSE_GRANULARITY_REASONS_PROSE = "config-artifact, module-level-behavior, extractor-miss, or test-suite";
+export const COARSE_GRANULARITY_REASONS_PROSE =
+  "config-artifact, module-level-behavior, extractor-miss, or test-suite";
 
 /** Parenthesized coarse list for inline suggestions ("(a, b, c, d)"). */
-export const COARSE_GRANULARITY_REASONS_PARENTHESIZED = "(config-artifact, module-level-behavior, extractor-miss, test-suite)";
+export const COARSE_GRANULARITY_REASONS_PARENTHESIZED =
+  "(config-artifact, module-level-behavior, extractor-miss, test-suite)";

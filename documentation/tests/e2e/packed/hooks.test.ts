@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import { existsSync } from "node:fs";
+import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { after, before, describe, it } from "node:test";
 import {
@@ -170,15 +170,26 @@ if (RUN_NODE_TEST_SUITE) {
           "Testing hook execution.",
         );
 
+        const refresh = await kibi(sandbox, [
+          "sync",
+          "--refresh-symbol-coordinates",
+        ]);
+        assert.strictEqual(refresh.exitCode, 0);
+
         // Initial commit
         await run("git", ["add", "."], {
           cwd: sandbox.repoDir,
           env: sandbox.env,
         });
-        await run("git", ["commit", "-m", "Initial commit"], {
-          cwd: sandbox.repoDir,
-          env: sandbox.env,
-        });
+        const initialCommit = await run(
+          "git",
+          ["commit", "-m", "Initial commit"],
+          {
+            cwd: sandbox.repoDir,
+            env: sandbox.env,
+          },
+        );
+        assert.strictEqual(initialCommit.exitCode, 0, initialCommit.stderr);
 
         // Run sync on develop
         await kibi(sandbox, ["sync"]);
@@ -241,16 +252,11 @@ if (RUN_NODE_TEST_SUITE) {
       // Initialize kibi
       await kibi(sandbox, ["init"]);
 
-      // Create a file to commit
-      createMarkdownFile(
-        sandbox,
-        ".kb/requirements/REQ-PRE-001.md",
-        {
-          id: "REQ-PRE-001",
-          title: "Pre-commit test",
-          status: "open",
-        },
-        "Testing pre-commit hook.",
+      // Exercise the hook with an unrelated staged file; KB authoring is
+      // covered by the dedicated staged-validation tests.
+      writeFileSync(
+        join(sandbox.repoDir, "pre-commit-note.md"),
+        "Hook smoke.\n",
       );
 
       // Stage and attempt commit

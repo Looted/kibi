@@ -19,13 +19,13 @@
 import { executeMigrateLegacyReceipts } from "../operations/proof/migrate-legacy-receipts.js";
 import { createCliRuntime } from "../runtime/cli-runtime.js";
 
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export type ProofMigrateLegacyOptions = Readonly<{
-  // implements REQ-kibi-proof-evidence-protocol
+  // implements REQ-kibi-verification-evidence-contract
   test?: string;
 }>;
 
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export async function proofMigrateLegacyCommand(
   options: ProofMigrateLegacyOptions,
 ): Promise<{ exitCode: number }> {

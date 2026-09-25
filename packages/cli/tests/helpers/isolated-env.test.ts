@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { isolateKibiEnv } from "./in-process-workspace.js";
-import { isolatedCliSandboxEnv } from "./isolated-env.js";
+import { execSync, isolatedCliSandboxEnv } from "./isolated-env.js";
 
 describe("isolatedCliSandboxEnv", () => {
   test("strips a host KIBI_BRANCH unless the caller sets a different identity", () => {
@@ -51,6 +51,14 @@ describe("isolatedCliSandboxEnv", () => {
       }
       Reflect.deleteProperty(process.env, "KIBI_PROOF_WORKSPACE");
     }
+  });
+});
+
+describe("sandbox child timeouts", () => {
+  test("execSync fails closed when a child exceeds the explicit timeout", () => {
+    expect(() => execSync("sleep 2", { timeout: 200, stdio: "pipe" })).toThrow(
+      /ETIMEDOUT|TIMEDOUT/,
+    );
   });
 });
 

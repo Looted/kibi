@@ -123,13 +123,7 @@ run_e2e_tests() {
         # Pre-pack packages to avoid npm execution issues in test environment
         echo "📦 Pre-packing packages..."
         mkdir -p /tmp/kibi-tarballs
-        for pkg in core cli runtime mcp opencode codex cursor; do
-            pkg_dir="/workspace/packages/$pkg"
-            tarball=$(cd "$pkg_dir" && /usr/bin/npm pack --pack-destination /tmp/kibi-tarballs 2>/dev/null | tail -1)
-            if [ -n "$tarball" ]; then
-                echo "  ✓ Packed $pkg -> $tarball"
-            fi
-        done
+        bun /workspace/scripts/pack-packages.ts --slice packed-e2e --destination /tmp/kibi-tarballs
         echo "  ✓ All packages pre-packed in /tmp/kibi-tarballs/"
         export KIBI_TEST_TARBALLS="/tmp/kibi-tarballs"
     fi
@@ -168,7 +162,8 @@ run_integration_tests() {
     # Build packages if needed
     if [ ! -f "/workspace/packages/cli/dist/cli.js" ]; then
         echo "🔨 Building packages..."
-        bun run build:cli
+        bun run build:cli-stack
+        bun run build:runtime
         bun run build:mcp
     fi
     

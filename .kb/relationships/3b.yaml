@@ -209,3 +209,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d35ebdf732a1
+  - type: implements
+    from: SYM-classifyRisk
+    to: REQ-opencode-risk-classification
+    created_at: 2026-09-18T07:00:29.489Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1a8ff46f1268
+  - type: covered_by
+    from: SYM-classifyRisk
+    to: TEST-e2e-opencode-enforcement-surface
+    created_at: 2026-09-18T07:00:29.509Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c401ded9aaa
+  - type: implements
+    from: SYM-kibi-cli-src-public-operations-specs-planning-ts-compileintentspec
+    to: REQ-kibi-change-to-proof-plan-compiler
+    created_at: 2026-09-18T07:20:03.825Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1755b1e17609
+  - type: covered_by
+    from: SYM-kibi-cli-src-public-operations-specs-planning-ts-compileintentspec
+    to: TEST-e2e-plan-compiler-hash
+    created_at: 2026-09-18T07:20:03.835Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1b0ab27bae5c
+  - type: implements
+    from: SYM-test-root-runBatch
+    to: REQ-root-suite-batch-diagnostics
+    created_at: 2026-09-18T08:13:16.953Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-786044f468c3
+  - type: covered_by
+    from: SYM-test-root-runBatch
+    to: TEST-root-suite-batch-diagnostics
+    created_at: 2026-09-18T08:13:16.975Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8036b7724808
+  - type: implements
+    from: SYM-test-root-runBatch
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-09-18T08:13:16.985Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32ad6a3524a9
+  - type: covered_by
+    from: SYM-test-root-runBatch
+    to: TEST-e2e-root-batch-diagnostics
+    created_at: 2026-09-18T08:13:16.995Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1b8b9893c86
+  - type: covered_by
+    from: SYM-SkillsLoadResult
+    to: TEST-mcp-skills-resource-discoverability
+    created_at: 2026-09-18T14:57:58.245Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c4c3a593c9e1

@@ -188,3 +188,94 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1c79b4966ee3
+  - type: covered_by
+    from: SYM-auto-3317F858EB14
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-18T06:55:10.625Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9a6d68cdb80f
+  - type: covered_by
+    from: SYM-SymbolsRefreshArgs
+    to: TEST-agent-kibi-interface-selection
+    created_at: 2026-09-18T15:00:02.311Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c490b75cfd94
+  - type: covered_by
+    from: SYM-withDiagnosticTelemetrySchema
+    to: TEST-agent-kibi-interface-selection
+    created_at: 2026-09-18T15:28:34.890Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbccc1d26dac
+  - type: executable_for
+    from: SYM-zcode-test-FIXTURE_ENTRY_SCRIPT
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-09-18T22:25:57.692Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e823836d82f
+  - type: covered_by
+    from: SYM-vscode-code-lens-provider-resolve-code-lens
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T19:29:24.794Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82403734929f
+  - type: implements
+    from: SYM-doctor-next-ancestor-directory
+    to: REQ-cli-doctor
+    created_at: 2026-09-22T11:36:17.401Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1e2fcd0acc3
+  - type: implements
+    from: SYM-doctor-next-ancestor-directory
+    to: REQ-agent-guided-migration-orchestration
+    created_at: 2026-09-22T11:36:17.413Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c8f039d30719
+  - type: implements
+    from: SYM-doctor-next-ancestor-directory
+    to: REQ-cli-doctor-packed-provenance
+    created_at: 2026-09-22T11:36:17.421Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-876f88043864
+  - type: covered_by
+    from: SYM-doctor-next-ancestor-directory
+    to: TEST-001
+    created_at: 2026-09-22T11:36:17.427Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bdbda8cc517c
+  - type: covered_by
+    from: SYM-doctor-next-ancestor-directory
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-09-22T11:36:17.432Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-281ae6ffff3c
+  - type: covered_by
+    from: SYM-doctor-next-ancestor-directory
+    to: TEST-cli-doctor-packed-provenance
+    created_at: 2026-09-22T11:36:17.437Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c0803538e5d5
+  - type: covered_by
+    from: SYM-doctor-next-ancestor-directory
+    to: TEST-cli-doctor-workflows
+    created_at: 2026-09-22T11:36:17.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f0bc1c2171b2
+  - type: covered_by
+    from: SYM-cap-plugin-operationplugins-e4138c00
+    to: TEST-capability-plugin-host-resolution-v1
+    created_at: 2026-09-22T19:41:42.248Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2beae8e437ca

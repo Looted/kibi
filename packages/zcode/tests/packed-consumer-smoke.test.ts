@@ -13,6 +13,8 @@ import { afterAll, describe, expect, test } from "bun:test";
 const packageRoot = path.resolve(import.meta.dir, "..");
 const repoRoot = path.resolve(packageRoot, "../..");
 const coreRoot = path.join(repoRoot, "packages", "core");
+const pluginSdkRoot = path.join(repoRoot, "packages", "plugin-sdk");
+const pluginBuiltinRoot = path.join(repoRoot, "packages", "plugin-builtin");
 const runtimeRoot = path.join(repoRoot, "packages", "runtime");
 const mcpRoot = path.join(repoRoot, "packages", "mcp");
 const buildLockPath = path.join(repoRoot, ".zcode-proof-build.lock");
@@ -70,6 +72,8 @@ function buildProofArtifacts(): Promise<void> {
     withBuildLock(() => {
       // Always build the complete first-party runtime chain before packing. A
       // pre-existing dist directory may belong to a different source snapshot.
+      runBun(["run", "build:plugin-sdk"], repoRoot);
+      runBun(["run", "build:plugin-builtin"], repoRoot);
       runBun(["run", "build:cli"], repoRoot);
       runBun(["run", "build:runtime"], repoRoot);
       runBun(["run", "build:mcp"], repoRoot);
@@ -166,6 +170,11 @@ describe("packed kibi-mcp consumer resolution", () => {
     async () => {
       await buildProofArtifacts();
       const coreTarball = makeTarball(coreRoot, "kibi-core");
+      const pluginSdkTarball = makeTarball(pluginSdkRoot, "kibi-plugin-sdk");
+      const pluginBuiltinTarball = makeTarball(
+        pluginBuiltinRoot,
+        "kibi-plugin-builtin",
+      );
       const runtimeTarball = makeTarball(runtimeRoot, "kibi-runtime");
       const mcpTarball = makeMcpTarball();
       const zcodeTarball = makeZcodeTarball();
@@ -194,6 +203,8 @@ describe("packed kibi-mcp consumer resolution", () => {
           mcpTarball,
           runtimeTarball,
           coreTarball,
+          pluginBuiltinTarball,
+          pluginSdkTarball,
         ],
         { cwd: consumerRoot, stdio: "inherit" },
       );
@@ -208,6 +219,11 @@ describe("packed kibi-mcp consumer resolution", () => {
         "node_modules",
         "kibi-zcode",
       );
+      const installedBuiltinPluginRoot = path.join(
+        consumerRoot,
+        "node_modules",
+        "kibi-plugin-builtin",
+      );
       const installedEntry = path.join(installedMcpRoot, "bin", "kibi-mcp");
       const installedLauncher = path.join(
         installedZcodeRoot,
@@ -216,6 +232,11 @@ describe("packed kibi-mcp consumer resolution", () => {
       );
       expect(fs.existsSync(installedLauncher)).toBe(true);
       expect(fs.existsSync(installedEntry)).toBe(true);
+      expect(
+        fs.existsSync(
+          path.join(installedBuiltinPluginRoot, "dist", "index.js"),
+        ),
+      ).toBe(true);
 
       const env = {
         ...isolatedConsumerEnv(),

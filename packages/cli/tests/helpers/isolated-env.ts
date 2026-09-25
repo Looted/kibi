@@ -76,6 +76,21 @@ export function isolatedCliSandboxEnv(
   return env;
 }
 
+/** Bound sandbox CLI/git children so a hung engine cannot wedge Bun coverage. */
+const DEFAULT_SANDBOX_CHILD_TIMEOUT_MS = 60_000;
+
+function withSandboxChildTimeout<T extends { timeout?: number }>(
+  options: T | undefined,
+): T & { timeout: number } {
+  return {
+    ...(options ?? ({} as T)),
+    timeout:
+      options?.timeout !== undefined
+        ? options.timeout
+        : DEFAULT_SANDBOX_CHILD_TIMEOUT_MS,
+  };
+}
+
 export function execSync(
   command: string,
   options: ExecSyncOptions & { encoding: BufferEncoding },
@@ -85,9 +100,10 @@ export function execSync(
   command: string,
   options?: ExecSyncOptions,
 ): string | Buffer {
+  const bounded = withSandboxChildTimeout(options);
   return nodeExecSync(command, {
-    ...options,
-    env: isolatedCliSandboxEnv(options?.env ?? {}),
+    ...bounded,
+    env: isolatedCliSandboxEnv(bounded.env ?? {}),
   });
 }
 
@@ -106,9 +122,10 @@ export function spawnSync(
   args: readonly string[],
   options?: SpawnSyncOptions,
 ): SpawnSyncReturns<string | Buffer> {
+  const bounded = withSandboxChildTimeout(options);
   return nodeSpawnSync(command, args as string[], {
-    ...options,
-    env: isolatedCliSandboxEnv(options?.env ?? {}),
+    ...bounded,
+    env: isolatedCliSandboxEnv(bounded.env ?? {}),
   });
 }
 
@@ -127,8 +144,9 @@ export function execFileSync(
   args: readonly string[],
   options?: ExecFileSyncOptions,
 ): string | Buffer {
+  const bounded = withSandboxChildTimeout(options);
   return nodeExecFileSync(command, args as string[], {
-    ...options,
-    env: isolatedCliSandboxEnv(options?.env ?? {}),
+    ...bounded,
+    env: isolatedCliSandboxEnv(bounded.env ?? {}),
   });
 }

@@ -157,6 +157,10 @@ describe("strict proof workflow contract", () => {
     expect(proofWorkflow).not.toContain("run-proof-contract.mjs");
     expect(proofWorkflow).not.toContain("kibi verify");
     expect(proofWorkflow).toContain("kibi prove --all");
+    expect(proofWorkflow).toContain("scripts/ci-apt-bootstrap.sh bubblewrap");
+    expect(proofWorkflow).not.toContain(
+      "scripts/ci-install-swi-prolog.sh bubblewrap",
+    );
   });
 
   test("proof runs before baseline enforcement and report generation", () => {
@@ -170,9 +174,15 @@ describe("strict proof workflow contract", () => {
     expect(runner).toBeGreaterThanOrEqual(0);
     expect(baselineCheck).toBeGreaterThan(runner);
     expect(report).toBeGreaterThan(baselineCheck);
-    expect(proofWorkflow).toContain(
-      "--rules no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness",
+    const integrityRules =
+      "no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness,symbol-traceability";
+    const baselineChecker = readFileSync(
+      join(ROOT, "scripts", "check-proof-baseline.mjs"),
+      "utf8",
     );
+    expect(proofWorkflow).toContain(`--rules ${integrityRules}`);
+    expect(baselineChecker).toContain('"symbol-traceability"');
+    expect(proofWorkflow).not.toContain("proof-contract-symbols");
     expect(ciWorkflow).not.toContain("Generate Kibi requirement health report");
   });
 
@@ -199,17 +209,25 @@ describe("strict proof workflow contract", () => {
     );
   });
 
-  test("ratchet baseline records the stricter per-scenario proof gaps", () => {
-    expect(baseline.mode).toBe("ratchet");
-    expect(baseline.currentRequirements).toBe(104);
-    expect(baseline.proofProven).toBe(66);
-    expect(baseline.currentUnproven).toBe(38);
-    expect(baseline.trackedGaps).toEqual({
-      missing_passing_e2e: 21,
-      missing_production_symbol_coverage: 26,
-      missing_proof_receipt: 12,
-      unresolved_semantic_proposition: 2,
-      missing_production_symbol: 2,
-    });
+  test("equality baseline locks full current-requirement proof", () => {
+    expect(baseline.version).toBe("kibi.proof-baseline.v2");
+    expect(baseline.mode).toBe("equality");
+    expect(baseline.proofProven + baseline.currentUnproven).toBe(
+      baseline.currentRequirements,
+    );
+    // Equality floor: every current requirement is proven end to end. Bump
+    // this floor in the same commit that deliberately raises the baseline.
+    expect(baseline.currentRequirements).toBe(109);
+    expect(baseline.proofProven).toBe(109);
+    expect(baseline.currentUnproven).toBe(0);
+    expect(Object.keys(baseline.trackedGaps ?? {})).toEqual([]);
+    expect(Object.keys(baseline.requirements ?? {}).length).toBe(
+      baseline.currentRequirements,
+    );
+    for (const requirement of Object.values(
+      baseline.requirements ?? {},
+    ) as Array<{ proofStatus?: string }>) {
+      expect(requirement.proofStatus).toBe("proven");
+    }
   });
 });

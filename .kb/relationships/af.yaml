@@ -76,3 +76,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d732bf58716b
+  - type: covered_by
+    from: SYM-SuggestPredicatesArgs
+    to: TEST-mcp-suggest-predicates
+    created_at: 2026-09-18T14:59:33.582Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c768d63761e6
+  - type: implements
+    from: SYM-SuggestPredicatesArgs
+    to: REQ-mcp-suggest-predicates
+    created_at: 2026-09-18T14:59:33.588Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51c323ff5159
+  - type: covered_by
+    from: SYM-SuggestPredicatesArgs
+    to: TEST-e2e-mcp-model-requirement
+    created_at: 2026-09-18T14:59:33.593Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1b95fde149e
+  - type: implements
+    from: SYM-cap-plugin-assertbarepackagename-4a211175
+    to: REQ-capability-plugin-observable-behavior-v1
+    created_at: 2026-09-22T09:28:41.872Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf2dd207c774
+  - type: covered_by
+    from: SYM-cap-plugin-assertbarepackagename-4a211175
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T09:28:41.888Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bccd0a3c0418

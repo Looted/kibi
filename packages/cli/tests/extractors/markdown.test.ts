@@ -208,6 +208,61 @@ The policy must preserve code evidence.`,
     });
   });
 
+  test("carries authored proof exemptions into requirement entities", () => {
+    const result = extractFromMarkdownString(
+      `---
+id: REQ-EXEMPT
+title: Retired demonstration requirement
+type: req
+proof_exempt: true
+proof_exempt_reason: Retired demonstration; outside E2E-proof scope.
+---`,
+      "/tmp/requirements/REQ-EXEMPT.md",
+    );
+    expect(result.entity.proof_exempt).toBe(true);
+    expect(result.entity.proof_exempt_reason).toBe(
+      "Retired demonstration; outside E2E-proof scope.",
+    );
+
+    const missingReason = extractFromMarkdownString(
+      `---
+id: REQ-EXEMPT-NOREASON
+title: Exemption without reason
+type: req
+proof_exempt: true
+---`,
+      "/tmp/requirements/REQ-EXEMPT-NOREASON.md",
+    );
+    expect(missingReason.entity.proof_exempt).toBe(true);
+    expect(missingReason.entity.proof_exempt_reason).toBeUndefined();
+
+    const nonExempt = extractFromMarkdownString(
+      `---
+id: REQ-NOT-EXEMPT
+title: Live requirement
+type: req
+proof_exempt: false
+---`,
+      "/tmp/requirements/REQ-NOT-EXEMPT.md",
+    );
+    expect(nonExempt.entity.proof_exempt).toBe(false);
+  });
+
+  test("rejects non-boolean proof_exempt flags", () => {
+    expect(() =>
+      extractFromMarkdownString(
+        `---
+id: REQ-BAD-EXEMPT
+title: Bad exemption
+type: req
+proof_exempt: yes-please
+proof_exempt_reason: intent
+---`,
+        "/tmp/requirements/REQ-BAD-EXEMPT.md",
+      ),
+    ).toThrow(/Invalid proof_exempt/);
+  });
+
   test("preserves logical claim manifests and predicate ontology fields", () => {
     const requirement = extractFromMarkdownString(
       `---

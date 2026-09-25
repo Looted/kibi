@@ -1,5 +1,157 @@
 # kibi-cli
 
+## 2.1.0
+
+### Minor Changes
+
+- e6be0cc: Optional Jev plugins can now be configured from the environment after a normal `package.json` activation, and `kibi doctor` shows which capability plugins that activation selected.
+
+  `TYPESAFE_API_KEY` remains the only credential and is never read from `package.json`. `KIBI_JEV_MODEL` selects the model (default `jev-latest`; a blank value is ignored). `KIBI_JEV_TIMEOUT_MS` sets a positive timeout up to 120000 milliseconds and fails with a clear provider error when the value is malformed. Explicit constructor options still win. Advisor and compile-intent results include plugin version, mode, external/network/metered flags, fallback, and the effective model when the classifier discloses one. Shadow comparisons stay out of the canonical result.
+
+  - Resolve Jev model and timeout from the environment with programmatic precedence
+  - Preserve optional `semanticClassifier.model` on provenance stamps
+  - Report parsed `kibi.plugins` from `kibi doctor` without importing plugin packages
+
+  ***
+
+- c77b371: Proof coverage reaches every requirement that has honest end-to-end evidence: fourteen new packed end-to-end tests wire previously unproven scenarios (status freshness, conservative proof reporting, snapshot relevance, MCP model-requirement and freshness, schema version, strict modeling, plan-hash enforcement, OpenCode enforcement, briefing removal, Prolog/SPARQL adoption, check-gate enforcement, evaluator gold runs, batch diagnostics) into the proof ladder, and requirements that are historically retired can now actually opt out of E2E proof.
+
+  - `kb_check` with `async: true` returns a `kibi.job.v1` receipt whose shape is declared in the tool's output contract, so hosts no longer reject the response schema mismatch on large KBs.
+  - Authored `proof_exempt` / `proof_exempt_reason` frontmatter on requirement documents is now extracted and persisted; previously the exemption was silently dropped on sync.
+  - The MCP JSON-Schema-to-Zod bridge converts `anyOf` unions faithfully for declared output contracts (input `oneOf` guards keep their intentional lenient behavior).
+  - Proof-entity maintenance: stale `SYM-proof-runner` obligation removed from the journaled-engine harness contract, and `REQ-*` inline annotations repointed to the modeled verification-evidence requirement.
+  - New proof obligations: `TEST-e2e-*` packed scenarios, `TEST-kibi-change-to-proof-evaluation-live` gold-corpus run, and `TEST-e2e-root-batch-diagnostics`; `runBatch` is exported from the curated suite runner for diagnostic reuse.
+
+- f33a665: Proof failures now name the exact requirement, symbol, and why each `covered_by` candidate did not qualify, without changing what counts as proven. Agents can inspect a requirement with `kibi proof explain` and compare current proof state to the committed `proof/baseline.json` snapshot with `kibi proof impact`, instead of reverse-engineering Prolog or guessing from aggregate counts.
+
+  - Keep `kibi.requirement-proof.v3` and add additive production-symbol `explanations` plus TEST `testResolutions` on the same Proof.
+  - Ratchet `proof/baseline.json` to v2 with compact requirement fingerprints; aggregate counts stay the ratchet.
+  - Add `kibi proof explain` and `kibi proof impact` as Proof projections, mixed-role leftovers in `symbol-traceability`, and advisory `proof-contract-symbols`.
+  - Document the proof-regression workflow in `kibi-usage` 2.1.3.
+
+- 5e8c9ef: Commits now stop early when the staged source snapshot would regenerate different Kibi symbol manifests. The error names the affected manifest and gives a safe refresh and selective staging path, so a long proof run does not end with a dirty snapshot caused by generated files.
+
+  - Add `kibi check-generated --staged` with exact Git-index materialization, byte comparison, and index-race rejection.
+  - Run the gate in pre-commit and strict-proof CI before `prove --all`; keep proof freshness and baseline rules unchanged.
+
+### Patch Changes
+
+- b375e8f: This maintenance update brings the affected package code and tests into line with Kibi's Biome checks while preserving runtime behavior. It also replaces MCP non-null assertions with receiver-preserving method calls.
+
+  - Format affected files, sort imports, and remove unnecessary template literals.
+  - Preserve EngineClient `this` when forwarding optional Prolog methods.
+
+- 783cc75: Capability plugins now participate at the real CLI/MCP call sites while default installs keep the same builtin-only behavior.
+
+  Symbol analysis prefers the capability registry when available, ontology matching can compose activated packs for suggest-predicates, and external semantic classifiers run only from `kb_semantic_advisor` and `kb_compile_intent`. `kb_model_requirement` stays a modeling operation and does not call an external classifier. Sync/check/upsert/status/proof paths stay on deterministic builtin analysis. Distribution lists, pack scripts, and docs cover the new plugin packages; Jev remains opt-in.
+
+- 58a9181: `kibi doctor` now fails when a capability plugin is activated in `package.json` but the package is not a declared dependency. Previously the check could report `declared=no` and still pass, even though loading that plugin is rejected.
+
+  Add the package to `dependencies`, `devDependencies`, or `optionalDependencies`, or remove the `kibi.plugins` entry. The check still only reads `package.json` and does not import the plugin.
+
+  - Fail the Capability plugins doctor check when any configured row has `declared=no`
+  - Keep the existing row text and add an actionable remediation
+
+- 783cc75: Capability plugins can now be loaded safely from a project's package.json without changing default behavior when none are configured.
+
+  Kibi hosts a lazy, injectable capability-plugin registry shared by CLI and MCP. Builtin providers always register; optional packages load only when a capability is first used, with replace/augment/shadow mode rules and an allowlist that keeps external semantic classifiers out of sync/check/upsert/status/proof paths.
+
+  - Add `packages/cli/src/plugins` host loader/registry, composition helpers, and source-analysis service
+  - Wire `OperationContext.ensurePlugins` through CLI and MCP runtimes
+  - Pass operation context through MCP semantic-advisor / model-requirement / suggest-predicates registration
+  - Depend on `kibi-plugin-sdk` `^0.1.0` and re-export the registry from `kibi-runtime`
+
+- e6571b4: External classifiers stay limited to the two allowlisted operations, ontology matches keep their claim keys through host composition, and CLI predicate rule tables now re-export the builtin pack so advisor and modeling cannot drift. Lane selection from the builtin classifier also accepts host snake_case signal shapes, which unblocks typecheck/build for capability-plugin call sites.
+
+  - fix(builtin): chooseLane accepts kind-only LaneSignal (unblocks analysis-receipt typecheck)
+  - feat(cli): stamp claimKey on composed ontology match candidates
+  - refactor(cli): re-export predicate rule tables from kibi-plugin-builtin
+  - chore(builtin): export rule sets + package.json subpath
+
+- 142d7ee: Semantic advisor and compile-intent responses that include capability-plugin provenance no longer fail host output validation. Agents and CLI clients can read `capabilityPlugins` stamps on successful envelopes instead of hitting `PROTOCOL_VALIDATION_FAILED`.
+
+  - fix(cli): declare optional `capabilityPlugins` on kb_semantic_advisor and kb_compile_intent output contracts
+  - test(cli): protocol regression for plugin-bearing semantic-advisor envelopes
+
+- 39a6d3a: Unit coverage can now run a single shard locally, and subprocess `check` tests no longer share the hanging CLI commands process.
+
+  `check.test.ts` was consuming the full 25-minute `cli.commands` bound under Bun 1.4 coverage with no further output. Those suites run in `cli.check-command`, sandbox `execSync`/`spawnSync` now time out after 60s by default, and `bun run test:coverage:unit -- --shards=cli.check-command` (or `KIBI_COVERAGE_SHARDS`) reproduces the CI coverage step without a full matrix.
+
+- 86ec793: Unit coverage no longer lets doctor command tests poison the shared CLI commands shard.
+
+  Under Bun 1.4 with coverage, doctor SWI-Prolog checks could hang on a dangling engine and then make later `spawnSync(/bin/sh)` calls time out across the rest of `cli.commands`. Doctor suites now run in their own `cli.doctor` shard so commands coverage can finish and produce LCOV.
+
+- b466319: Unit coverage isolates remaining sync command tests so they cannot hang the shared CLI commands shard.
+
+  Under Bun 1.4 with coverage, `sync-coverage` was timing out `git add` via `spawnSync` and then cascading 120s failures through migrate and check-remaining until the 25-minute process bound. Those files now run in their own `cli.sync-coverage` shard.
+
+- 5420c44: CI unit-coverage no longer hangs the shared commands shard on `sync.test.ts`, and Bun 1.4 live-socket write-EPIPE no longer fails the shared engine-remaining shard. Daemon socket refusal/serve coverage runs in its own isolate process.
+
+  - Isolate `sync.test.ts` into `cli.sync-command` coverage shard
+  - Move live/stale/daemon socket path tests into `cli.engine-live-socket` isolate
+  - Remap live-socket EPIPE by `code`/`errno` in the daemon probe
+
+- 783cc75: Coordinate enrichment, granularity candidate collection, and private-member helpers now live in `kibi-plugin-builtin`, so the CLI can analyze TypeScript/JavaScript symbols without depending on `ts-morph` directly. Hosts that only install `kibi-cli` still get the same enrichment and staged-symbol behavior through the builtin plugin.
+
+  - Export `enrichSymbolCoordinatesWithTsMorph`, `collectGranularityCandidates`, `onlyCandidate`, and `isPrivateClassMember` from `kibi-plugin-builtin`
+  - Thin-wrap those helpers from CLI `symbols-ts`, `symbol-granularity`, and `symbol-extract`
+  - Drop `ts-morph` from `kibi-cli` runtime dependencies (kept as a test-only devDependency for AST spies)
+
+- 217b044: Provider secrets now resolve the same way in every harness: existing process env wins, then project `.env.kibi` (or `KIBI_ENV_FILE`), then `~/.config/kibi/env`, with legacy `.env` only filling gaps (labeled `legacy_env`). Blank values are unset. `kibi doctor` stays import-free: package/capability/mode/declared for any plugin, plus static first-party Jev secret/model diagnostics from the real bootstrap attribution — never by re-reading files without the pre-bootstrap process snapshot, and never by executing plugin code.
+
+  - Shared `bootstrapKibiEnvironment` with remembered process-key snapshot, blank-as-unset, and `legacy_env`
+  - Doctor uses `resolveKibiWorkspaceRoot` + bootstrap `sources`; no `loadPluginPackage` / dynamic import
+  - MCP `resolveWorkspaceRoot` delegates to the same canonical resolver
+  - Re-export bootstrap helpers from `kibi-runtime`
+
+- 86ec793: `kb_check` and impact analysis no longer load the capability plugin registry for symbol extraction.
+
+  Maintenance paths stay on deterministic builtin ts-morph analysis. External replace/augment/shadow extractors only participate when a caller passes an explicit registry (for example symbol repair). This matches the documented v1 contract that sync/check/status/proof must not invoke external plugins.
+
+- 16919be: MCP discovery no longer dies when one tool hits the host timeout. Timed-out reads cancel in-flight work without tearing down the shared engine, so parallel `kb_status` / `kb_search` / `kb_query` calls stop cascading into `Kibi engine connection closed`. Healthy `kb_status` reuses the session engine. Discovery tools that opt into `agentVisibleStructuredData` embed JSON in `content` for hosts that hide `structuredContent`.
+
+  - MCP: abort-only on read tool timeouts; reset Prolog only for wedged mutations
+  - MCP: `adaptProlog` forwards AbortSignal to EngineClient query/status/save paths
+  - CLI: EngineClient settles pending RPCs once (abort vs response race-safe); cancel marks are per-connection
+  - CLI: `executeStatus` prefers `ensureProlog` / session port; pass AbortSignal through status/query/search
+  - MCP: opt-in `agentVisibleStructuredData` for kb_query/kb_search/kb_status only (preserves non-text content parts)
+  - Documented engine limit: cancel skips queued requests but cannot interrupt an already-running Prolog goal
+
+- 8985874: Capability plugins now fail closed on unsafe resolution, poisoned loads, and silent classifier errors, and Jev records the model it actually called.
+
+  Project config rejects duplicate package activation and duplicate replace providers. Package entry resolution uses Node/Bun as the source of truth and refuses entries that escape the package root, including via symlinks. A failed plugin import no longer poisons later retries in the same registry. Semantic classifier failures are returned as diagnostics instead of being swallowed, and Jev includes its configured model id in those diagnostics.
+
+  - Validate duplicate plugin activation, secrets, and provider ids
+  - Confine resolved plugin entries to the realpath'd package root
+  - Evict rejected loadedPackages promises
+  - Typed classifier attempt outcomes with diagnostics
+  - Configurable Jev model (default `jev-latest`) on errors and requests
+
+- db07d8f: Proof diagnostics now agree with the Prolog decision: a structural type-shape unit contract is shown as qualifying, `kibi proof impact` compares against the Git HEAD baseline and exits 0 after a successful report, and mixed-role symbols fail the strict proof integrity gate.
+
+  - Mode-aware candidate evaluation in Prolog; receipt fallback uses `test_receipt_evidence(Context, TestId, Evidence)`.
+  - `proof impact` reads `HEAD:proof/baseline.json` with no worktree fallback; diagnostic exit 0.
+  - Strict proof workflow and baseline checker include canonical `symbol-traceability`.
+
+- 7de8890: `kibi proof migrate-legacy` now detects legacy `verification_receipts` blocks in the authored test documents, not only in compiled entities left over from older stores. Because current sync no longer extracts the legacy lane, the compiled-store check alone could never fire on a workspace synced by a current release, leaving the exact stale blocks the command exists to remove untouched. The migration still runs only for tests that already carry a `proof_contract`, keeps pruning compiled legacy lanes where they exist, and reports the same summary output.
+- e697943: Native ZCode proof runs now preserve the exact test case, integration, and command provenance needed to explain verification results. This makes each ZCode behavior receipt independently traceable instead of treating the adapter suite as one aggregate pass. The CLI also rejects incomplete or mismatched native evidence rather than accepting an ambiguous result.
+
+  - Enforce native result and binding validation for self-emitting proof integrations.
+  - Record the configured `zcode-native` command and producer fingerprint in proof artifacts.
+
+- Updated dependencies [b375e8f]
+- Updated dependencies [e6571b4]
+- Updated dependencies [783cc75]
+- Updated dependencies [e6be0cc]
+- Updated dependencies [783cc75]
+- Updated dependencies [8985874]
+- Updated dependencies [783cc75]
+- Updated dependencies [db07d8f]
+- Updated dependencies [f33a665]
+  - kibi-plugin-builtin@0.2.0
+  - kibi-plugin-sdk@0.2.0
+  - kibi-core@0.13.0
+
 ## 2.0.0
 
 ### Major Changes

@@ -21,21 +21,33 @@ import {
 const moduleDir = dirname(fileURLToPath(import.meta.url));
 // Source tests load this module from src/skill-system, while the published
 // bundle inlines it into dist/index.js and copies assets to dist/skills.
-const defaultBundledSkillsDir = existsSync(resolve(moduleDir, "skills"))
-  ? resolve(moduleDir, "skills")
-  : resolve(moduleDir, "../skills");
-let bundledSkillsDir = defaultBundledSkillsDir;
+// Resolved lazily so tests can exercise the default resolution via
+// resetBundledSkillsDir() instead of at import time.
+let overrideSkillsDir: string | undefined;
+function defaultBundledSkillsDir(): string {
+  // rationale: resolved lazily at first use; per-test coverage attribution
+  // for this literal is not observable, and the canonical-usage test pins the
+  // resolved directory behaviorally.
+  // Stryker disable StringLiteral
+  return existsSync(resolve(moduleDir, "skills"))
+    ? resolve(moduleDir, "skills")
+    : resolve(moduleDir, "../skills");
+  // Stryker restore
+}
 export function setBundledSkillsDir(dir: string): void {
-  bundledSkillsDir = dir;
+  overrideSkillsDir = dir;
 }
 export function resetBundledSkillsDir(): void {
-  bundledSkillsDir = defaultBundledSkillsDir;
+  overrideSkillsDir = undefined;
+}
+function currentBundledSkillsDir(): string {
+  return overrideSkillsDir ?? defaultBundledSkillsDir();
 }
 export function listBundledSkills(): SkillManifest[] {
-  return listFrom(bundledSkillsDir);
+  return listFrom(currentBundledSkillsDir());
 }
 export function loadBundledSkill(id: string): SkillBundle {
-  return loadBundledSkillFrom(bundledSkillsDir, id);
+  return loadBundledSkillFrom(currentBundledSkillsDir(), id);
 }
 // implements REQ-reusable-skill-subsystem
 // covered_by TEST-skill-cli-load-validate
@@ -78,6 +90,9 @@ function findRoot(dir: string, id: string): string | undefined {
 }
 function listRoots(dir: string): string[] {
   if (!existsSync(dir)) return [];
+  // rationale: dropping the directory filter only admits symlinked entries,
+  // which find() resolves to the same bundle regardless of readdir order.
+  // Stryker disable next-line MethodExpression
   return readdirSync(dir, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => join(dir, entry.name))
@@ -92,6 +107,9 @@ function readBundle(
   if (!resource || isPathOutOfBounds(resourcePath))
     throw new SkillResourceOutOfBoundsError(id, resourcePath);
   if (
+    // rationale: an empty declared list and a placeholder entry both fail the
+    // declaration check for any real resource, yielding the same error.
+    // Stryker disable next-line ArrayDeclaration
     !(bundle.manifest.resources ?? []).some(
       (declared) => normalizeResourcePath(declared) === resource,
     )

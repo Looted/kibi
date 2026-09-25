@@ -1,3 +1,5 @@
+import { join } from "node:path";
+import { resolveBoundSymbolScope } from "../../extractors/manifest.js";
 import {
   type ProofGap,
   evaluateContractAgainstRun,
@@ -33,8 +35,6 @@ import {
   proofReceiptHistoryErrors,
 } from "../../public/proof-receipt.js";
 import { projectEntityProperties } from "../mutation/entity-projection.js";
-import { join } from "node:path";
-import { resolveBoundSymbolScope } from "../../extractors/manifest.js";
 import { resolveContainedSourcePath } from "../mutation/source-authoring.js";
 import { executeUpsert } from "../mutation/upsert.js";
 import {
@@ -42,7 +42,7 @@ import {
   removeFrontmatterBlock,
 } from "./receipt-document.js";
 
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export type IngestProofArgs = Readonly<{
   snapshot: string;
   artifact: Readonly<Record<string, unknown>>;
@@ -59,7 +59,7 @@ export type IngestProofTestResult = Readonly<{
   gaps: readonly ProofGap[];
 }>;
 
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export type IngestProofResult = Readonly<{
   artifactDigest: string;
   environmentHash: string;
@@ -200,7 +200,10 @@ function enforceNativeCaseBindings(
         `Proof ingest failed: test ${testId} native_case result ${resultLabel} has an ambiguous proof_binding`,
       );
     }
-    const boundNativeIds = [binding.native_id, ...(binding.aliases ?? [])].filter(
+    const boundNativeIds = [
+      binding.native_id,
+      ...(binding.aliases ?? []),
+    ].filter(
       (value): value is string => typeof value === "string" && value !== "",
     );
     if (!boundNativeIds.includes(nativeId)) {
@@ -228,7 +231,7 @@ function existingReceipts(
     : [];
 }
 
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export async function executeIngestProof(
   args: IngestProofArgs,
   context: OperationContext,
@@ -365,7 +368,11 @@ export async function executeIngestProof(
           join(context.workspaceRoot, ".kb", "symbols.yaml"),
           bindings.map((binding) => binding.symbol_id),
         );
-        bindingHash = receiptBindingHash(contract, stripped ?? authored, codeScope);
+        bindingHash = receiptBindingHash(
+          contract,
+          stripped ?? authored,
+          codeScope,
+        );
       } catch {
         bindingHash = undefined;
       }

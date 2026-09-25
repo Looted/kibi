@@ -146,3 +146,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d12eaa105c4c
+  - type: covered_by
+    from: SYM-auto-210A3DA3A95D
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-18T06:54:32.147Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-458caf5da93e
+  - type: covered_by
+    from: SYM-cap-plugin-launcher-predicate-rules-d2597a06
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:42:55.221Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cde48d4850a9

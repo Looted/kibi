@@ -10,6 +10,8 @@ tags: [cli, skills]
 links:
   - type: verified_by
     target: TEST-skill-cli-load-validate
+  - type: verified_by
+    target: TEST-mcp-skills-resource-discoverability
 ---
 
 The skills subsystem lists bundled skills, loads skill metadata/body content, validates resource paths, and rejects invalid or oversized bundles.

@@ -227,3 +227,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-580868ac07d0
+  - type: covered_by
+    from: SYM-cli-symbol-granularity-validate
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-18T07:07:05.523Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c6f42445065c
+  - type: covered_by
+    from: SYM-cap-plugin-resolveprojectlocalpackage-03c57c42
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:40:52.788Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2c9e4be9ac15

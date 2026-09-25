@@ -193,14 +193,14 @@ export const findGapsSpec = {
  * KIBI_PROOF_BINDING_MODE=strict-snapshot opts out (receipts then match only
  * against the whole-workspace snapshot they were proven on).
  */
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export function currentProofBindingMode(): "per_contract" | "strict_snapshot" {
   return process.env.KIBI_PROOF_BINDING_MODE?.trim() === "strict-snapshot"
     ? "strict_snapshot"
     : "per_contract";
 }
 
-async function perContractTestBindings(
+export async function perContractTestBindings(
   context: OperationContext,
 ): Promise<string | null> {
   if (currentProofBindingMode() !== "per_contract") return null;

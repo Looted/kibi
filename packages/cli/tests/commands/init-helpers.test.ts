@@ -145,6 +145,7 @@ describe("init-helpers", () => {
     expect(content).toContain(".kb/briefs/");
     expect(content).toContain(".kb/migrations/");
     expect(content).toContain(".kb/usage.log");
+    expect(content).toContain(".env.kibi");
     expect(content).not.toMatch(/^\.kb\/$/m);
   });
 
@@ -452,9 +453,8 @@ describe("init-helpers", () => {
     );
     expect(preCommitContent).toContain("KIBI_BIN=");
     expect(preCommitContent).toContain('"$KIBI_BIN" check --staged');
-    expect(preCommitContent).toContain(".kb/symbols.yaml");
     expect(preCommitContent).toContain(
-      "kibi sync --refresh-symbol-coordinates",
+      '"$KIBI_BIN" check-generated --staged --changed-only',
     );
   });
 

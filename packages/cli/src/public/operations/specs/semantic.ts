@@ -1,9 +1,10 @@
 import { InputError } from "../../../cli-errors.js";
-import { analyzeSemanticAdvisorInput } from "../../../operations/semantic-advisor/analyze-prose.js";
+import { analyzeSemanticAdvisorInputWithPlugins } from "../../../operations/semantic-advisor/plugin-orchestration.js";
 import type {
   SemanticAdvisorArgs,
   SemanticAdvisorOperationResult,
 } from "../../../operations/semantic-advisor/types.js";
+import { publicCapabilityStamp } from "../../../plugins/compose-semantic-classifier.js";
 import type { OperationContext } from "../runtime-types.js";
 import type { OperationSpec } from "../types.js";
 
@@ -25,28 +26,85 @@ function optionalString(value: unknown): string | undefined {
 
 export async function executeSemanticAdvisor(
   args: SemanticAdvisorArgs,
-  _context?: OperationContext,
+  context?: OperationContext,
 ): Promise<SemanticAdvisorOperationResult> {
   const text = requiredText(args.text);
   const id = optionalString(args.id) ?? "REQ-SEMANTIC-ADVISOR-PREVIEW";
   const title = optionalString(args.title) ?? text.split(/[.!?]/, 1)[0] ?? text;
   const source = optionalString(args.source) ?? "mcp://kibi/semantic-advisor";
-  const result = analyzeSemanticAdvisorInput({
-    payload: {
-      type: optionalString(args.type) ?? "req",
-      id,
-      properties: {
-        title,
-        status: optionalString(args.status) ?? "open",
-        source,
-        semantic_text: text,
+  const orchestrated = await analyzeSemanticAdvisorInputWithPlugins(
+    {
+      payload: {
+        type: optionalString(args.type) ?? "req",
+        id,
+        properties: {
+          title,
+          status: optionalString(args.status) ?? "open",
+          source,
+          semantic_text: text,
+        },
       },
+      ...(args.clauses !== undefined ? { clauses: args.clauses } : {}),
+      ...(args.interpretations !== undefined
+        ? { interpretations: args.interpretations }
+        : {}),
     },
-    ...(args.clauses !== undefined ? { clauses: args.clauses } : {}),
-    ...(args.interpretations !== undefined
-      ? { interpretations: args.interpretations }
-      : {}),
-  });
+    {
+      operationName: "kb_semantic_advisor",
+      ...(context?.ensurePlugins
+        ? { ensurePlugins: context.ensurePlugins }
+        : {}),
+    },
+  );
+  const result = orchestrated.analysis;
+  const pluginWarnings =
+    orchestrated.stamps.length > 0
+      ? [
+          `Capability plugins consulted: ${orchestrated.stamps
+            .map((stamp) => `${stamp.pluginId}/${stamp.capability}`)
+            .join(", ")}.`,
+        ]
+      : [];
+  const capabilityPlugins =
+    orchestrated.stamps.length > 0 ||
+    (orchestrated.classification?.shadowComparisons.length ?? 0) > 0 ||
+    orchestrated.ontologyShadowMatches.length > 0
+      ? {
+          stamps: orchestrated.stamps.map((stamp) =>
+            publicCapabilityStamp(stamp),
+          ),
+          classification: orchestrated.classification
+            ? {
+                fallbackUsed: orchestrated.classification.fallbackUsed,
+                decisions: orchestrated.classification.decisions,
+                shadowComparisons:
+                  orchestrated.classification.shadowComparisons.map(
+                    (comparison) => ({
+                      ...publicCapabilityStamp(comparison.stamp),
+                      decisions: comparison.decisions.map((decision) => ({
+                        claimKey: decision.claimKey,
+                        lane: decision.lane,
+                        confidence: decision.confidence,
+                      })),
+                    }),
+                  ),
+              }
+            : null,
+          ontology: {
+            replaced: orchestrated.ontologyCatalog?.replaced ?? false,
+            matchCount: orchestrated.ontologyMatches.length,
+            shadowMatchCount: orchestrated.ontologyShadowMatches.length,
+            shadowMatches: orchestrated.ontologyShadowMatches.map(
+              (candidate) => ({
+                packId: candidate.packId,
+                schemaId: candidate.schemaId,
+                predicateName: candidate.predicateName,
+                confidence: candidate.confidence,
+              }),
+            ),
+          },
+        }
+      : undefined;
   return {
     content: [
       {
@@ -54,7 +112,11 @@ export async function executeSemanticAdvisor(
         text: `kb_semantic_advisor: ${result.receipt.summary} Suggestions: ${result.receipt.suggestions.map(({ kind }) => kind).join(", ") || "none"}.`,
       },
     ],
-    structuredContent: { receipt: result.receipt, warnings: result.warnings },
+    structuredContent: {
+      receipt: result.receipt,
+      warnings: [...result.warnings, ...pluginWarnings],
+      ...(capabilityPlugins ? { capabilityPlugins } : {}),
+    },
   };
 }
 

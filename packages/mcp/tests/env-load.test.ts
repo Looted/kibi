@@ -110,27 +110,50 @@ describe("env loading", () => {
     );
   });
 
-  test("loadDefaultEnvFile resolves workspace root and env file name from environment", () => {
+  test("loadDefaultEnvFile resolves workspace root and loads .env.kibi by default", () => {
+    fs.mkdirSync(path.join(tmpDir, ".git"), { recursive: true });
+    fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpDir, ".env.kibi"),
+      "DEFAULT_KEY=from-default\n",
+    );
+    Reflect.deleteProperty(process.env, "KIBI_WORKSPACE");
+    Reflect.deleteProperty(process.env, "KIBI_PROJECT_ROOT");
+    Reflect.deleteProperty(process.env, "KIBI_ROOT");
+    Reflect.deleteProperty(process.env, "KIBI_ENV_FILE");
+    Reflect.deleteProperty(process.env, "DEFAULT_KEY");
+    process.chdir(tmpDir);
+
+    const result = loadDefaultEnvFile();
+
+    expect(result.envFilePath).toBe(path.join(tmpDir, ".env.kibi"));
+    expect(result.keysLoaded).toContain("DEFAULT_KEY");
+    expect(process.env.DEFAULT_KEY).toBe("from-default");
+  });
+
+  test("loadDefaultEnvFile honors KIBI_ENV_FILE override and legacy .env gap-fill", () => {
     fs.mkdirSync(path.join(tmpDir, ".git"), { recursive: true });
     fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
     fs.writeFileSync(
       path.join(tmpDir, ".env.custom"),
       "DEFAULT_KEY=from-default\n",
     );
+    fs.writeFileSync(path.join(tmpDir, ".env"), "LEGACY_ONLY=legacy\n");
     Reflect.deleteProperty(process.env, "KIBI_WORKSPACE");
     Reflect.deleteProperty(process.env, "KIBI_PROJECT_ROOT");
     Reflect.deleteProperty(process.env, "KIBI_ROOT");
+    Reflect.deleteProperty(process.env, "DEFAULT_KEY");
+    Reflect.deleteProperty(process.env, "LEGACY_ONLY");
     process.env.KIBI_ENV_FILE = " .env.custom ";
     process.chdir(tmpDir);
 
     const result = loadDefaultEnvFile();
 
-    expect(result).toEqual({
-      loaded: true,
-      envFilePath: path.join(tmpDir, ".env.custom"),
-      keysLoaded: ["DEFAULT_KEY"],
-    });
+    expect(result.envFilePath).toBe(path.join(tmpDir, ".env.custom"));
+    expect(result.keysLoaded).toContain("DEFAULT_KEY");
+    expect(result.keysLoaded).toContain("LEGACY_ONLY");
     expect(process.env.DEFAULT_KEY).toBe("from-default");
+    expect(process.env.LEGACY_ONLY).toBe("legacy");
   });
 
   test("getCoreModulePathOverride normalizes non-word characters in filenames", () => {
@@ -148,7 +171,7 @@ describe("env loading", () => {
     Reflect.deleteProperty(process.env, "KIBI_KB_PL_PATH");
     Reflect.deleteProperty(process.env, "KIBI_DISCOVERY_PL_PATH");
 
-    expect(getEnvFileName()).toBe(".env");
+    expect(getEnvFileName()).toBe(".env.kibi");
     expect(getBranchOverride()).toBeUndefined();
     expect(isMcpDebugEnabled()).toBe(false);
     expect(getKbPlPathOverride()).toBeUndefined();
@@ -156,7 +179,7 @@ describe("env loading", () => {
 
     process.env.KIBI_ENV_FILE = "   ";
     process.env.KIBI_BRANCH = "";
-    expect(getEnvFileName()).toBe(".env");
+    expect(getEnvFileName()).toBe(".env.kibi");
     expect(getBranchOverride()).toBeUndefined();
   });
 

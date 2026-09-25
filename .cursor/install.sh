@@ -10,8 +10,9 @@
 # migrations, or test runs belong here.
 set -euo pipefail
 
-# Bun pin. Keep in sync with .github/workflows/ci.yml (bun-version).
-BUN_VERSION="1.3.10"
+# Bun pin. Keep in sync with .github/workflows/ci.yml (bun-version) and the
+# package.json "engines.bun" range.
+BUN_VERSION="1.4.2"
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${repo_root}"
@@ -79,6 +80,20 @@ if [ -f .opencode/package.json ] || [ -f .opencode/bun.lock ] || [ -f .opencode/
   echo "==> bun install (.opencode)"
   (cd .opencode && bun install --frozen-lockfile)
 fi
+
+# 5. Build the workspace packages. Kibi dogfoods itself in this repo, and the
+#    dogfooding surfaces all load compiled output from the git-ignored dist/
+#    directories, so a fresh checkout is non-functional until they are built:
+#      * Cursor agent hooks run `node packages/cursor/dist/hook-runner.js` on
+#        session start and every tool call (see .cursor/hooks.json); they have
+#        no build fallback and hard-fail when dist/ is absent.
+#      * The Kibi MCP server resolver requires packages/mcp/dist
+#        (see .cursor/mcp.json -> packages/cursor/scripts/worktree-resolver.sh).
+#      * The `kibi` CLI bin loads packages/cli/dist/cli.js, which also backs the
+#        pre-commit `kibi check --staged` traceability gate.
+#    `bun run build` is idempotent and re-runnable, matching CONTRIBUTING.md.
+echo "==> bun run build (workspace packages for kibi dogfooding)"
+bun run build
 
 echo "==> toolchain versions"
 swipl --version

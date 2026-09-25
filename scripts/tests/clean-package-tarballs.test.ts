@@ -45,6 +45,9 @@ function makeTempRepo(): string {
     "packages/opencode",
     "packages/codex",
     "packages/cursor",
+    "packages/plugin-sdk",
+    "packages/plugin-builtin",
+    "packages/plugin-jev",
   ]) {
     mkdirSync(join(root, dir), { recursive: true });
   }

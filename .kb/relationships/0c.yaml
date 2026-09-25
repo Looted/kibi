@@ -104,3 +104,108 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-0c6ae1cbd8d3
+  - type: implements
+    from: SYM-cap-plugin-hostsourceanalysisresult-958aab8c
+    to: REQ-capability-plugin-three-capabilities-v1
+    created_at: 2026-09-22T19:41:33.518Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-796cb184fb5b
+  - type: covered_by
+    from: SYM-cap-plugin-hostsourceanalysisresult-958aab8c
+    to: TEST-capability-plugin-host-resolution-v1
+    created_at: 2026-09-22T19:41:33.521Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e2865dc5793e
+  - type: specified_by
+    from: REQ-kibi-env-bootstrap
+    to: SCEN-kibi-env-bootstrap
+    created_at: 2026-09-23T10:40:33.670Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-40ab379ac55e
+  - type: verified_by
+    from: REQ-kibi-env-bootstrap
+    to: TEST-cli-env-bootstrap
+    created_at: 2026-09-23T10:40:33.701Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a619b6dbf491
+  - type: verified_by
+    from: REQ-kibi-env-bootstrap
+    to: TEST-cli-doctor-env-bootstrap
+    created_at: 2026-09-23T10:40:33.711Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8071712ff37
+  - type: constrains
+    from: REQ-kibi-env-bootstrap
+    to: FACT-SUBJECT-KIBI-ENV-BOOTSTRAP
+    created_at: 2026-09-23T15:03:28.715Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b85cb751d6ab
+  - type: requires_property
+    from: REQ-kibi-env-bootstrap
+    to: FACT-PROP-ENV-BOOTSTRAP-SHARED
+    created_at: 2026-09-23T15:03:28.734Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-be7fab92dfec
+  - type: requires_property
+    from: REQ-kibi-env-bootstrap
+    to: FACT-PROP-ENV-BOOTSTRAP-PRECEDENCE
+    created_at: 2026-09-23T15:03:28.748Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-58195ceba4c4
+  - type: requires_property
+    from: REQ-kibi-env-bootstrap
+    to: FACT-PROP-ENV-BOOTSTRAP-BLANK
+    created_at: 2026-09-23T15:03:28.763Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fdd83b618d2c
+  - type: requires_property
+    from: REQ-kibi-env-bootstrap
+    to: FACT-PROP-ENV-BOOTSTRAP-WORKSPACE
+    created_at: 2026-09-23T15:03:28.775Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e47af8d9120
+  - type: requires_property
+    from: REQ-kibi-env-bootstrap
+    to: FACT-PROP-ENV-BOOTSTRAP-SOURCE-LABELS
+    created_at: 2026-09-23T15:03:28.786Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-82c340d363fe
+  - type: requires_property
+    from: REQ-kibi-env-bootstrap
+    to: FACT-PROP-ENV-BOOTSTRAP-SECRET-ATTR
+    created_at: 2026-09-23T15:03:28.797Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e67c22fa195
+  - type: requires_property
+    from: REQ-kibi-env-bootstrap
+    to: FACT-PROP-ENV-BOOTSTRAP-DOCTOR-REPORT
+    created_at: 2026-09-23T15:03:28.809Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-482b6681574b
+  - type: requires_property
+    from: REQ-kibi-env-bootstrap
+    to: FACT-PROP-ENV-BOOTSTRAP-JEV-STATIC
+    created_at: 2026-09-23T15:03:28.821Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-94ddf70f9c65
+  - type: requires_property
+    from: REQ-kibi-env-bootstrap
+    to: FACT-PROP-ENV-BOOTSTRAP-LEGACY-LABEL
+    created_at: 2026-09-23T15:03:28.834Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e4685a05886

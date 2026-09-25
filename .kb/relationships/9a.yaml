@@ -104,3 +104,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-63490dea0db7
+  - type: covered_by
+    from: SYM-auto-09D119AE523D
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-18T06:53:16.253Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f30f33bee8ab
+  - type: covered_by
+    from: SYM-DiagnosticErrorFields
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-09-18T14:52:55.966Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-548101a2ac3e

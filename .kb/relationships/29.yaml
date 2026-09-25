@@ -125,3 +125,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-993acfbcdc60
+  - type: verified_by
+    from: SCEN-prolog-library-adoption
+    to: TEST-e2e-prolog-library-adoption
+    created_at: 2026-09-18T10:59:09.246Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca35025d8cee

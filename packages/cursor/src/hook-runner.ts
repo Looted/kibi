@@ -73,10 +73,15 @@ function isEditLikeTool(toolName: string | undefined): boolean {
 }
 
 function isKnownEditableTool(toolName: string | undefined): boolean {
+  // rationale: the undefined check narrows the type for Set<string>.has;
+  // at runtime Set.has(undefined) is false, so the result is the same.
+  // Stryker disable next-line ConditionalExpression
   return toolName !== undefined && editableTools.has(toolName);
 }
 
 function isPlanDeliveryTool(toolName: string | undefined): boolean {
+  // rationale: same type-narrowing as isKnownEditableTool above.
+  // Stryker disable next-line ConditionalExpression
   return toolName !== undefined && planDeliveryTools.has(toolName);
 }
 
@@ -234,9 +239,13 @@ export async function runHook(
       }
 
       if (isEditLikeTool(input.toolName)) {
+        // rationale: the runner only ever passes "read" or "write"; an empty
+        // kind selects the same write bucket.
+        // Stryker disable StringLiteral
         if (hasGuidedPath(state, "write", relativePath)) {
           return emptyResult();
         }
+        // Stryker restore
 
         const guidance = writeGuidance(primaryPath, {
           cwd,
@@ -248,7 +257,10 @@ export async function runHook(
           return emptyResult();
         }
 
+        // rationale: same bucket equivalence as the lookup above.
+        // Stryker disable StringLiteral
         rememberGuidedPath(stateDir, "write", relativePath);
+        // Stryker restore
         return { additional_context: guidance };
       }
 
@@ -258,10 +270,7 @@ export async function runHook(
     case "stop": {
       const state = loadHookState(stateDir);
       const shouldClearSession =
-        state.dirtyPaths.length > 0 ||
-        state.kbMutationTools.length > 0 ||
-        state.kbCheckRun ||
-        state.planDelivered;
+        state.dirtyPaths.length > 0 || state.kbCheckRun || state.planDelivered;
 
       if (input.status === "aborted" || input.status === "error") {
         if (shouldClearSession) {

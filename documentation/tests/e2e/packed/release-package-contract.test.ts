@@ -16,7 +16,14 @@ import {
   resolvePnpm,
 } from "./pnpm-upgrade-utils.js";
 
-const packageNames = ["core", "cli", "runtime", "mcp"] as const;
+const packageNames = [
+  "core",
+  "plugin-sdk",
+  "plugin-builtin",
+  "cli",
+  "runtime",
+  "mcp",
+] as const;
 type PackageName = (typeof packageNames)[number];
 
 async function resolveReleaseTarballs(): Promise<Record<PackageName, string>> {

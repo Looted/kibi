@@ -56,9 +56,7 @@ RUN bun install \
 
 # Bake pre-packed tarballs into the image (eliminates npm pack at runtime)
 RUN mkdir -p /opt/kibi-tarballs \
-    && for pkg in core cli runtime mcp opencode codex cursor; do \
-        (cd /workspace/packages/$pkg && /usr/bin/npm pack --pack-destination /opt/kibi-tarballs); \
-    done
+    && bun /workspace/scripts/pack-packages.ts --slice packed-e2e --destination /opt/kibi-tarballs
 
 # Pre-install packages into an image-owned prefix (eliminates per-test npm install)
 RUN npm install -g --prefix /opt/kibi-e2e-prefix /opt/kibi-tarballs/*.tgz \

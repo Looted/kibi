@@ -209,3 +209,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b64d9a281f86
+  - type: implements
+    from: SYM-cli-mutation-serialization-buildPropertyList
+    to: REQ-kibi-conservative-requirement-proof
+    created_at: 2026-09-18T07:02:28.106Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d10f0da383b4
+  - type: implements
+    from: SYM-cli-mutation-serialization-buildPropertyList
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-09-18T07:02:28.120Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8fe11ebeb2b5
+  - type: implements
+    from: SYM-cli-mutation-serialization-buildPropertyList
+    to: REQ-kibi-proposition-complete-ingestion
+    created_at: 2026-09-18T07:02:28.131Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ea5b3b4e16bc
+  - type: covered_by
+    from: SYM-cli-mutation-serialization-buildPropertyList
+    to: TEST-e2e-coverage-proof-status
+    created_at: 2026-09-18T07:02:28.141Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3430ed2e93d6
+  - type: verified_by
+    from: SCEN-mcp-kb-freshness-coverage
+    to: TEST-e2e-mcp-freshness-external-replace
+    created_at: 2026-09-18T10:56:49.560Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8436a9236180
+  - type: implements
+    from: SYM-GateMatrix
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:35:33.457Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4981928ce00c
+  - type: implements
+    from: SYM-skillopt-bridge-cli-options-failure
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:38:54.845Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b689ad083914
+  - type: implements
+    from: SYM-env-bootstrap-kibi-environment
+    to: REQ-kibi-env-bootstrap
+    created_at: 2026-09-23T10:43:34.468Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98f074047f16
+  - type: covered_by
+    from: SYM-env-bootstrap-kibi-environment
+    to: TEST-cli-env-bootstrap
+    created_at: 2026-09-23T10:59:50.667Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd337f220fd1
+  - type: covered_by
+    from: SYM-env-bootstrap-kibi-environment
+    to: TEST-e2e-kibi-env-bootstrap
+    created_at: 2026-09-23T15:03:42.572Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8309b65b7e03

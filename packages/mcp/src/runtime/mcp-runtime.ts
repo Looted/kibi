@@ -4,11 +4,17 @@ import type {
   GitPort,
   NetworkPort,
   OperationContext,
+  OperationPlugins,
   OperationRuntime,
   PrologPort,
   RuntimeOptions,
 } from "kibi-runtime";
-import { resolveBranchAttachment } from "kibi-runtime";
+import {
+  type CapabilityRegistry,
+  CapabilityRegistryCache,
+  ensureCapabilityRegistry,
+  resolveBranchAttachment,
+} from "kibi-runtime";
 
 // implements REQ-kibi-operation-interface-parity
 export interface McpSession<TProlog = PrologPort> {
@@ -27,6 +33,8 @@ export interface McpSession<TProlog = PrologPort> {
   readonly fs?: FilesystemPort;
   readonly git?: GitPort;
   readonly net?: NetworkPort;
+  /** Optional injectable capability registry (or lazy factory). */
+  readonly plugins?: OperationPlugins;
 }
 
 export interface McpOperationRuntime<TProlog> extends OperationRuntime {
@@ -40,21 +48,40 @@ export function attachedContextWithProlog<T extends object>(
   return { ...withAttachment, prolog };
 }
 
+function resolvePluginsOption(
+  plugins: OperationPlugins | undefined,
+): (() => Promise<CapabilityRegistry>) | undefined {
+  if (plugins === undefined) return undefined;
+  if (typeof plugins === "function") return plugins;
+  return async () => plugins;
+}
+
 // implements REQ-kibi-operation-interface-parity
 export function createMcpRuntime<TProlog = PrologPort>(
   session: McpSession<TProlog>,
 ): McpOperationRuntime<TProlog> {
   const sessionPrologs = new WeakMap<OperationContext, TProlog>();
+  // Per-runtime cache — not a process-global singleton.
+  const pluginCache = new CapabilityRegistryCache();
   return {
     open: async (spec, options: RuntimeOptions = {}) => {
       const fs = options.fs ?? session.fs;
       const git = options.git ?? session.git;
       const net = options.net ?? session.net;
+      const pluginsOption = options.plugins ?? session.plugins;
+      const injectedPlugins = resolvePluginsOption(pluginsOption);
+      const workspaceRoot = options.workspaceRoot ?? session.workspaceRoot;
+      const ensurePlugins = async (): Promise<CapabilityRegistry> => {
+        if (injectedPlugins) return injectedPlugins();
+        return ensureCapabilityRegistry(workspaceRoot, { cache: pluginCache });
+      };
       const context: OperationContext = {
-        workspaceRoot: options.workspaceRoot ?? session.workspaceRoot,
+        workspaceRoot,
         signal:
           options.signal ?? session.signal ?? new AbortController().signal,
         clock: options.clock ?? session.clock ?? (() => new Date()),
+        ensurePlugins,
+        ...(pluginsOption !== undefined ? { plugins: pluginsOption } : {}),
         ...(fs ? { fs } : {}),
         ...(fs ? { sourceFirst: true } : {}),
         ...(git ? { git } : {}),

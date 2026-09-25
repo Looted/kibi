@@ -160,3 +160,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a7571f0f56ee
+  - type: covered_by
+    from: SYM-ArtifactRootMetadata
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-09-19T19:22:54.922Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-483c87912a61
+  - type: covered_by
+    from: SYM-sync-agent-skills-unlocked
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-09-19T19:26:48.559Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-32e14d42ded5
+  - type: covered_by
+    from: SYM-cap-plugin-builtinsemanticclassifier-classify-b85c9df6
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:43:26.962Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eeab85a60cff

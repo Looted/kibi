@@ -1,6 +1,6 @@
 ---
 id: SCEN-009
-title: Commit blocked when must-priority requirement lacks scenario coverage
+title: Pre-commit hook blocks commit on coverage violation
 status: active
 created_at: 2026-02-20T09:36:22.000Z
 updated_at: 2026-02-20T09:36:22.000Z

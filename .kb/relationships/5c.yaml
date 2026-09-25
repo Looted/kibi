@@ -195,3 +195,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c73248875a69
+  - type: implements
+    from: SYM-legacy-migration-plan-build-from-context
+    to: REQ-kibi-legacy-migration-preview
+    created_at: 2026-09-18T07:25:01.901Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a7c196decc30
+  - type: implements
+    from: SYM-legacy-migration-plan-build-from-context
+    to: REQ-kibi-legacy-migration-preview-v2
+    created_at: 2026-09-18T07:25:01.913Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57897836fa3d
+  - type: covered_by
+    from: SYM-legacy-migration-plan-build-from-context
+    to: TEST-kibi-legacy-migration-preview
+    created_at: 2026-09-18T07:25:01.921Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3b3f0f95c4f
+  - type: covered_by
+    from: SYM-legacy-migration-plan-build-from-context
+    to: TEST-kibi-legacy-migration-preview-v2
+    created_at: 2026-09-18T07:25:01.928Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee28df23e38d
+  - type: implements
+    from: SYM-HeldOutReceiptStoreError-name
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:36:23.183Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04d2fda6f7dd
+  - type: implements
+    from: SYM-PUBLISHABLE-DIRS
+    to: REQ-020
+    created_at: 2026-09-21T15:32:26.336Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05c67ab5ed42
+  - type: covered_by
+    from: SYM-cap-plugin-semantic-signal-kinds-eb004334
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:45:55.806Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df81c5dac8f5
+  - type: implements
+    from: SYM-cli-contracts-nullable-json-schema
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-09-23T12:11:36.442Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dafb84e8f7d7
+  - type: covered_by
+    from: SYM-cli-contracts-nullable-json-schema
+    to: TEST-cli-protocol-capability-plugins
+    created_at: 2026-09-23T12:11:36.457Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f5e2ba2e5aee
+  - type: covered_by
+    from: SYM-cli-contracts-nullable-json-schema
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-23T14:59:31.815Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9aee0be1c344

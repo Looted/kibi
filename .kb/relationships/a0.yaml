@@ -104,3 +104,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f3922cfc7555
+  - type: executable_for
+    from: SYM-e2e-test-coverage-proof-status
+    to: TEST-e2e-coverage-proof-status
+    created_at: 2026-09-18T06:23:21.172Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8f364cb50d27
+  - type: covered_by
+    from: SYM-quality-inventory-13d78ccca022
+    to: TEST-e2e-coverage-pipeline
+    created_at: 2026-09-19T18:14:21.409Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f13b936e6f43
+  - type: covered_by
+    from: SYM-quality-maintenance-executePruneReceipts
+    to: TEST-e2e-proof-maintenance-ops
+    created_at: 2026-09-19T19:21:37.226Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce59ede49714
+  - type: implements
+    from: SYM-HeldOutReceiptStore-withLease
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:36:15.276Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9ce1de16ff7
+  - type: covered_by
+    from: SYM-cap-plugin-validatekibiplugin-ca84fa32
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:47:39.285Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b680a0c535d9
+  - type: implements
+    from: SYM-cap-plugin-semantic-classifier-diagnostic
+    to: REQ-capability-plugin-three-capabilities-v1
+    created_at: 2026-09-22T19:48:57.337Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-21ef29713707
+  - type: covered_by
+    from: SYM-cap-plugin-semantic-classifier-diagnostic
+    to: TEST-capability-plugin-host-resolution-v1
+    created_at: 2026-09-22T19:48:57.341Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ce8edb62a0ca

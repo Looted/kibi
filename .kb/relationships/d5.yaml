@@ -69,3 +69,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-75eab2e76813
+  - type: implements
+    from: SYM-kibi-script-change-to-proof-eval-ts-evaluatesearch
+    to: REQ-kibi-change-to-proof-evaluation
+    created_at: 2026-09-18T07:22:09.887Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a261d35b655f
+  - type: covered_by
+    from: SYM-kibi-script-change-to-proof-eval-ts-evaluatesearch
+    to: TEST-kibi-change-to-proof-evaluation-live
+    created_at: 2026-09-18T07:22:09.893Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c72d7682c35
+  - type: covered_by
+    from: SYM-cap-plugin-builtinontologypack-id-b1f2923e
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:42:07.590Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ab4e5ccc3a0
+  - type: covered_by
+    from: SYM-cap-plugin-pluginvalidationerror-edc38c60
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:48:06.463Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cd9d600c94a1

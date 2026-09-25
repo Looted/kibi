@@ -558,7 +558,7 @@ export interface ReceiptCodeScopeEntry {
  * editing the production code behind a test stales only that test's receipts
  * (per-contract binding mode).
  */
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 // Receipt-binding scope reads run once per proof-bearing test; a campaign
 // touches dozens-to-hundreds of tests, so the parsed overlay is memoized per
 // manifest state (path + mtime + size) and invalidated when the file changes.
@@ -591,8 +591,7 @@ export function resolveBoundSymbolScope(
   const records = boundSymbolScopeRecords(manifestPath);
   const scope: { symbolId: string; sourceHash: string }[] = [];
   for (const record of records) {
-    const symbolId =
-      typeof record.id === "string" ? record.id : undefined;
+    const symbolId = typeof record.id === "string" ? record.id : undefined;
     if (symbolId === undefined || !wanted.has(symbolId)) continue;
     const sourceHash = (record as { sourceHash?: unknown }).sourceHash;
     if (typeof sourceHash === "string" && sourceHash !== "") {

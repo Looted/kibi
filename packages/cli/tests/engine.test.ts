@@ -417,6 +417,114 @@ describe("journaled engine", () => {
     }
   });
 
+  test("command-first status before start does not deadlock the request queue", async () => {
+    // Regression: serializing requestTail around command() (including start)
+    // deadlocked start→reconcileAttachment→queryStatusJson→command. Queueing
+    // must happen only after start() so nested reconcile status can proceed.
+    const root = tempRoot();
+    const client = new EngineClient({
+      workspaceRoot: root,
+      branch: "main",
+      timeout: 10_000,
+    });
+    try {
+      const status = await Promise.race([
+        client.queryStatusJson(),
+        new Promise<never>((_, reject) =>
+          setTimeout(
+            () =>
+              reject(new Error("queryStatusJson hung (requestTail deadlock)")),
+            5_000,
+          ),
+        ),
+      ]);
+      expect(status.success).toBe(true);
+      expect(typeof status.bindings.JsonString).toBe("string");
+    } finally {
+      await client.terminate().catch(() => undefined);
+    }
+  }, 15_000);
+
+  test("interleaves query and status commands on one client without frame races", async () => {
+    const root = tempRoot();
+    const client = new EngineClient({
+      workspaceRoot: root,
+      branch: "main",
+      timeout: 15_000,
+    });
+    try {
+      await client.start();
+      const [queryResult, statusResult] = await Promise.all([
+        client.query("true"),
+        client.queryStatusJson(),
+      ]);
+      expect(queryResult.success).toBe(true);
+      expect(statusResult.success).toBe(true);
+      expect(typeof statusResult.bindings.JsonString).toBe("string");
+      const parsed = JSON.parse(
+        JSON.parse(statusResult.bindings.JsonString as string),
+      ) as { dirty?: unknown; syncState?: unknown };
+      expect(typeof parsed.dirty).toBe("boolean");
+      expect(typeof parsed.syncState).toBe("string");
+    } finally {
+      await client.terminate().catch(() => undefined);
+    }
+  }, 20_000);
+
+  test("client abort of an in-flight query leaves the shared daemon usable without connection closed", async () => {
+    // Limitation: cancelOf does not interrupt an already-running Prolog goal;
+    // the daemon queue stays busy until the goal returns. The client still
+    // rejects locally and must not tear down the socket (no "Kibi engine
+    // connection closed"). Cancel marks are per-connection so a sibling
+    // EngineClient reusing id=1 is not poisoned by this cancelOf.
+    const root = tempRoot();
+    const client = new EngineClient({
+      workspaceRoot: root,
+      branch: "main",
+      timeout: 30_000,
+    });
+    try {
+      await client.start();
+      const controller = new AbortController();
+      const slow = client
+        // aggregate_all(between) is not optimized away like once((between,_));
+        // abort at ~200ms must land while SWI is still counting.
+        .query(
+          "aggregate_all(count, between(1, 80000000, _), C)",
+          controller.signal,
+        )
+        .then(() => ({ ok: true as const }))
+        .catch((error: unknown) => ({
+          ok: false as const,
+          err: error instanceof Error ? error.message : String(error),
+        }));
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      controller.abort();
+      const aborted = await slow;
+      expect(aborted.ok).toBe(false);
+      expect(String((aborted as { err?: string }).err)).toMatch(/cancelled/i);
+      expect(String((aborted as { err?: string }).err)).not.toMatch(
+        /connection closed/i,
+      );
+      const after = await client.query("true");
+      expect(after.success).toBe(true);
+      const sibling = new EngineClient({
+        workspaceRoot: root,
+        branch: "main",
+        timeout: 30_000,
+      });
+      try {
+        await sibling.start();
+        const ok = await sibling.query("true");
+        expect(ok.success).toBe(true);
+      } finally {
+        await sibling.terminate().catch(() => undefined);
+      }
+    } finally {
+      await client.stop().catch(() => undefined);
+    }
+  }, 20_000);
+
   test("replays durable writes after an engine crash", async () => {
     const root = tempRoot();
     const first = new EngineClient({ workspaceRoot: root, branch: "main" });

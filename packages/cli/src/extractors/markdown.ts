@@ -120,6 +120,8 @@ export interface ExtractedEntity {
   sourceEndColumn?: number;
   verification_scope?: "unit" | "integration" | "end_to_end";
   verification_perspective?: "internal" | "consumer";
+  proof_exempt?: boolean;
+  proof_exempt_reason?: string;
   proof_contract?: ProofContract;
   proof_bindings?: readonly ProofBinding[];
   proof_receipts?: readonly ProofReceipt[];
@@ -665,6 +667,35 @@ function extractFromMarkdownContent(
     }
     if (type === "req" && data.semantic_source_hash !== undefined) {
       entity.semantic_source_hash = data.semantic_source_hash;
+    }
+    if (type === "req" && data.proof_exempt !== undefined) {
+      if (typeof data.proof_exempt !== "boolean") {
+        throw new FrontmatterError(
+          "Invalid proof_exempt; expected true or false",
+          filePath,
+          {
+            classification: "Invalid Proof Exemption Flag",
+            hint: "Set proof_exempt: true with a non-empty proof_exempt_reason.",
+          },
+        );
+      }
+      entity.proof_exempt = data.proof_exempt;
+    }
+    if (type === "req" && data.proof_exempt_reason !== undefined) {
+      if (
+        typeof data.proof_exempt_reason !== "string" ||
+        data.proof_exempt_reason.trim() === ""
+      ) {
+        throw new FrontmatterError(
+          "Invalid proof_exempt_reason; expected a non-empty string",
+          filePath,
+          {
+            classification: "Invalid Proof Exemption Reason",
+            hint: "proof_exempt requires a non-empty proof_exempt_reason explaining why the requirement is outside E2E-proof scope.",
+          },
+        );
+      }
+      entity.proof_exempt_reason = data.proof_exempt_reason;
     }
 
     if (type !== "fact") {

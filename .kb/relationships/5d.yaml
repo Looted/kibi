@@ -216,3 +216,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-be2d0d274486
+  - type: covered_by
+    from: SYM-markdown-ExtractedRelationship
+    to: TEST-007
+    created_at: 2026-09-18T07:26:17.623Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9636aea557af
+  - type: implements
+    from: SYM-markdown-ExtractedRelationship
+    to: REQ-core-extractors
+    created_at: 2026-09-18T07:26:17.638Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-12486df9ba7b
+  - type: covered_by
+    from: SYM-markdown-ExtractedRelationship
+    to: TEST-coordinate-repair-capability
+    created_at: 2026-09-18T07:26:17.647Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1c45b01e223
+  - type: executable_for
+    from: SYM-e2e-test-cli-check-gate-enforcement
+    to: TEST-e2e-check-gate-enforcement
+    created_at: 2026-09-18T08:01:37.339Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0702cf7ffea3
+  - type: implements
+    from: SYM-FixtureClaimError
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:35:25.693Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f79b0d6ce3c7
+  - type: executable_for
+    from: SYM-packed-mcp-stdio-server-interface
+    to: TEST-e2e-mcp-freshness-external-replace
+    created_at: 2026-09-24T15:56:23.565Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-81269fea12e8

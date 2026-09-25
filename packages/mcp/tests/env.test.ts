@@ -178,10 +178,10 @@ describe("env file loading behavior", () => {
     expect(getEnvFileName()).toBe(".env.custom");
   });
 
-  test("getEnvFileName falls back to .env", () => {
+  test("getEnvFileName falls back to .env.kibi", () => {
     process.env.KIBI_ENV_FILE = "";
 
-    expect(getEnvFileName()).toBe(".env");
+    expect(getEnvFileName()).toBe(".env.kibi");
   });
 
   test("isMcpDebugEnabled reflects KIBI_MCP_DEBUG", () => {

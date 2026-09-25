@@ -188,3 +188,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-657c035b1654
+  - type: verified_by
+    from: SCEN-cli-strict-modeling-v1
+    to: TEST-e2e-strict-modeling-surface
+    created_at: 2026-09-18T10:54:52.759Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2dc074ad77b3
+  - type: executable_for
+    from: SYM-zcode-test-hermeticEnv
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-09-18T22:23:10.313Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-46408cae60c2
+  - type: implements
+    from: SYM-HeldOutTerminalReceipt
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:36:26.534Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-701be2959660
+  - type: implements
+    from: SYM-cap-plugin-semanticpluginorchestrationresult-0b07ce70
+    to: REQ-capability-plugin-observable-behavior-v1
+    created_at: 2026-09-22T19:34:13.191Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e5849757db5a
+  - type: covered_by
+    from: SYM-cap-plugin-semanticpluginorchestrationresult-0b07ce70
+    to: TEST-capability-plugin-host-resolution-v1
+    created_at: 2026-09-22T19:34:13.197Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31c203daab18
+  - type: implements
+    from: SYM-cap-plugin-composedsemanticclassifierresult-45a3153d
+    to: REQ-capability-plugin-three-capabilities-v1
+    created_at: 2026-09-22T19:34:42.914Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab1872b9f81a
+  - type: covered_by
+    from: SYM-cap-plugin-composedsemanticclassifierresult-45a3153d
+    to: TEST-capability-plugin-host-resolution-v1
+    created_at: 2026-09-22T19:34:42.919Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4468a8b7c175
+  - type: validates
+    from: TEST-e2e-runtime-symbol-portability
+    to: REQ-capability-plugin-builtin-parity-v1
+    created_at: 2026-09-23T21:42:18.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a61f47f2bc91
+  - type: validates
+    from: TEST-e2e-runtime-symbol-portability
+    to: SCEN-capability-plugin-host-resolution-v1
+    created_at: 2026-09-23T21:42:18.550Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9d7fab23203

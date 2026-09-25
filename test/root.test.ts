@@ -285,7 +285,7 @@ function formatSuiteSummary(
 
 // implements REQ-root-suite-batch-diagnostics
 // covered_by TEST-root-suite-batch-diagnostics
-async function runBatch(
+export async function runBatch(
   batch: Batch,
 ): Promise<SuiteSummary & { label: string }> {
   console.info(`\n$ bun ${batch.args.join(" ")}`);

@@ -209,3 +209,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5fec2c01544c
+  - type: covered_by
+    from: SYM-modeling-requirement-utils-normalizeSourceFiles
+    to: TEST-e2e-mcp-model-requirement
+    created_at: 2026-09-18T15:20:39.697Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-99847391c26f
+  - type: covered_by
+    from: SYM-resetSessionModulePromise
+    to: TEST-agent-kibi-interface-selection
+    created_at: 2026-09-18T15:25:26.323Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69c24c29220a
+  - type: implements
+    from: SYM-skillopt-reconciled-development-receipt-type
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:42:14.480Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-405e684e6569
+  - type: covered_by
+    from: SYM-cap-plugin-builtinpluginfactory-ce87dc46
+    to: TEST-capability-plugin-host-resolution-v1
+    created_at: 2026-09-22T19:40:15.069Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1e3cc380229a

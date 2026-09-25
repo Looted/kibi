@@ -104,3 +104,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3ab87c4a36c1
+  - type: covered_by
+    from: SYM-modeling-requirement-heuristics-buildFallbackClaim
+    to: TEST-e2e-mcp-model-requirement
+    created_at: 2026-09-18T15:17:13.060Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55331665ff11
+  - type: covered_by
+    from: SYM-KIBI-VIEW-ID
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T19:29:58.337Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-788d84e3d0eb

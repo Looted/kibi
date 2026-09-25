@@ -74,13 +74,17 @@ old_ref=$1
 new_ref=$2
 branch_flag=$3
 
+# File checkouts never refresh the KB; skip binary resolution so sandboxed
+# test workspaces without an installed kibi CLI can restore tracked files.
+if [ "$branch_flag" != "1" ]; then
+  exit 0
+fi
+
 ${KIBI_BIN_RESOLVER}
 
-if [ "$branch_flag" = "1" ]; then
-  # Branch stores are derived from the checked-out tracked sources. Never copy
-  # the old branch's compiled store during checkout.
-  "$KIBI_BIN" sync
-fi
+# Branch stores are derived from the checked-out tracked sources. Never copy
+# the old branch's compiled store during checkout.
+"$KIBI_BIN" sync
 `;
 
 const POST_MERGE_HOOK = `#!/bin/sh
@@ -118,13 +122,14 @@ const PRE_COMMIT_HOOK = `#!/bin/sh
 # Behavior-changing source edits require staged Kibi impact evidence
 # (KB entity docs under .kb/, authored symbols metadata, or refreshed
 # symbol coordinates). Test-only and docs-only edits are exempt.
-# Refresh with:
-#   kibi sync --refresh-symbol-coordinates && git add .kb/symbol-coordinates.yaml .kb/symbols.yaml
+# Generated manifests are checked against the exact staged snapshot before
+# traceability validation. The check never stages files on the user's behalf.
 
 set -e
 
 ${KIBI_BIN_RESOLVER}
 
+"$KIBI_BIN" check-generated --staged --changed-only
 "$KIBI_BIN" check --staged
 `;
 
@@ -200,6 +205,7 @@ const CANONICAL_DERIVED_GITIGNORE_ENTRIES = [
   ".kb/briefs/",
   ".kb/migrations/",
   ".kb/usage.log",
+  ".env.kibi",
 ] as const;
 
 /**

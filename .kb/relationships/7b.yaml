@@ -97,3 +97,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f38428a9d83e
+  - type: implements
+    from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-plan-apply-result-version
+    to: REQ-kibi-change-to-proof-plan-compiler
+    created_at: 2026-09-18T07:14:26.552Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bd13a7df08c1
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-planning-apply-plan-ts-plan-apply-result-version
+    to: TEST-e2e-plan-compiler-hash
+    created_at: 2026-09-18T07:14:26.557Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6e597acc17d3

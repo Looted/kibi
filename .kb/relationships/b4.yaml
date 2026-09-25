@@ -104,3 +104,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-30bed19c8186
+  - type: covered_by
+    from: SYM-markdown-ExtractionResult
+    to: TEST-007
+    created_at: 2026-09-18T07:26:44.853Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9240d0f6ac54
+  - type: implements
+    from: SYM-markdown-ExtractionResult
+    to: REQ-core-extractors
+    created_at: 2026-09-18T07:26:44.865Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9edb48a8b607
+  - type: covered_by
+    from: SYM-markdown-ExtractionResult
+    to: TEST-coordinate-repair-capability
+    created_at: 2026-09-18T07:26:44.875Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-93b90e154328
+  - type: covered_by
+    from: SYM-prepareArtifact
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-09-19T19:25:39.341Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98bc10a4ef1f
+  - type: implements
+    from: SYM-parseHeldOutTerminalReceipt
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:37:52.603Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0772e79b0e35

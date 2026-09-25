@@ -1,4 +1,12 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import {
+  SEMANTIC_CLASSIFIER_CAPABILITY_ID,
+  defineKibiPlugin,
+} from "kibi-plugin-sdk";
+import {
+  createCapabilityRegistry,
+  createStubBuiltinPlugin,
+} from "../../src/plugins/index.js";
 
 import type {
   OperationContext,
@@ -162,5 +170,121 @@ describe("kb_compile_intent", () => {
     expect(plan.contradictionAnalysis.witnesses[0]?.reason).toBe(
       "retention conflict",
     );
+  });
+
+  test("exposes bounded plugin provenance without raw provider payloads", async () => {
+    const calls: string[] = [];
+    const registry = createCapabilityRegistry({
+      workspaceRoot: process.cwd(),
+      builtinFactory: () => createStubBuiltinPlugin(),
+      projectConfig: {
+        plugins: [
+          {
+            package: "example-capability-plugin",
+            capabilities: {
+              [SEMANTIC_CLASSIFIER_CAPABILITY_ID]: { mode: "augment" },
+            },
+          },
+          {
+            package: "example-shadow-plugin",
+            capabilities: {
+              [SEMANTIC_CLASSIFIER_CAPABILITY_ID]: { mode: "shadow" },
+            },
+          },
+        ],
+      },
+      loadPlugin: async (_root, packageName) => ({
+        packageName,
+        plugin: defineKibiPlugin({
+          apiVersion: "kibi.plugin.v1",
+          id: packageName,
+          version: "1.2.3",
+          permissions: {
+            network: packageName.includes("shadow"),
+            metered: false,
+            secrets: [],
+          },
+          capabilities: {
+            semanticClassifier: {
+              id: `${packageName}.classifier`,
+              model: packageName.includes("shadow")
+                ? "shadow-model"
+                : "example-model",
+              classify: (input) => {
+                calls.push(packageName);
+                return {
+                  decisions: input.propositions.map((proposition) => ({
+                    claimKey: proposition.claimKey,
+                    lane: packageName.includes("shadow")
+                      ? ("rule" as const)
+                      : ("observation_review" as const),
+                    confidence: 0.4,
+                  })),
+                };
+              },
+            },
+          },
+        }),
+        resolved: {
+          packageName,
+          packageRoot: `/tmp/${packageName}`,
+          packageJsonPath: `/tmp/${packageName}/package.json`,
+          packageJson: { name: packageName, version: "1.2.3" },
+          entryPath: `/tmp/${packageName}/index.js`,
+          entryUrl: `file:///tmp/${packageName}/index.js`,
+        },
+      }),
+    });
+    const query = mock(
+      async (): Promise<PrologQueryResult> => ({
+        success: true,
+        bindings: { Results: "[]", Rows: "[]", Edges: "[]" },
+      }),
+    );
+    const plan = (
+      await compileIntentSpec.execute(
+        {
+          intent:
+            "Operators should feel that the workspace is pleasantly fast.",
+          mode: "create",
+        },
+        {
+          ...contextFor(query),
+          ensurePlugins: async () => registry,
+        },
+      )
+    ).structuredContent;
+    const plugins = plan.capabilityPlugins;
+    expect(plugins).toBeDefined();
+    const external = plugins?.stamps.find(
+      (stamp) => stamp.pluginId === "example-capability-plugin",
+    );
+    const shadow = plugins?.classification?.shadowComparisons.find(
+      (comparison) => comparison.pluginId === "example-shadow-plugin",
+    );
+    expect(external).toMatchObject({
+      pluginVersion: "1.2.3",
+      capability: SEMANTIC_CLASSIFIER_CAPABILITY_ID,
+      mode: "augment",
+      external: true,
+      network: false,
+      metered: false,
+      model: "example-model",
+    });
+    expect(shadow).toMatchObject({
+      pluginVersion: "1.2.3",
+      mode: "shadow",
+      model: "shadow-model",
+      network: true,
+    });
+    expect(calls).toEqual([
+      "example-capability-plugin",
+      "example-shadow-plugin",
+    ]);
+    const canonicalLane = plugins?.classification?.decisions.find(
+      (decision) => decision.lane === "rule",
+    );
+    expect(canonicalLane).toBeUndefined();
+    expect(JSON.stringify(plugins)).not.toContain("sk-");
   });
 });

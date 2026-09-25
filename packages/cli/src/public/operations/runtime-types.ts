@@ -1,8 +1,17 @@
+import type { CapabilityRegistry } from "../../plugins/registry.js";
 import type { PrologErrorRecord } from "../../prolog/error-terms.js";
 import type { BranchAttachment } from "../../utils/branch-resolver.js";
 import type { OperationEffect } from "./types.js";
 
 export type { OperationEffect } from "./types.js";
+// implements REQ-capability-plugin-activation-disclosure-v1
+export type { CapabilityRegistry } from "../../plugins/registry.js";
+
+/** Lazy or pre-materialized capability-plugin registry for an operation. */
+// implements REQ-capability-plugin-activation-disclosure-v1
+export type OperationPlugins =
+  | CapabilityRegistry
+  | (() => Promise<CapabilityRegistry>);
 
 export type PrologQueryResult = {
   readonly success: boolean;
@@ -115,7 +124,7 @@ export interface PrologPort {
   /** Present on the journaled engine; used to distinguish a persistent port from one-shot SWI. */
   storageStatus?(): Promise<PrologQueryResult>;
   /** Typed public freshness query; avoids exposing module loading over RPC. */
-  queryStatusJson?(): Promise<PrologQueryResult>;
+  queryStatusJson?(signal?: AbortSignal): Promise<PrologQueryResult>;
 }
 
 export type FilesystemStat = {
@@ -175,6 +184,8 @@ export type RuntimeOptions = {
   readonly fs?: FilesystemPort;
   readonly git?: GitPort;
   readonly net?: NetworkPort;
+  /** Optional injectable capability registry (or lazy factory). */
+  readonly plugins?: OperationPlugins;
 };
 
 export type OperationContext = {
@@ -195,12 +206,20 @@ export type OperationContext = {
   readonly git?: GitPort;
   readonly net?: NetworkPort;
   readonly branchAttachment?: BranchAttachment;
+  /** Pre-materialized or lazy capability registry supplied by the host runtime. */
+  readonly plugins?: OperationPlugins;
+  /** Lazily materialize the workspace capability registry. */
+  readonly ensurePlugins?: () => Promise<CapabilityRegistry>;
 };
-
 export interface RuntimeOperationSpec<TInput = unknown, TResult = unknown> {
   readonly name: string;
   readonly effects: readonly OperationEffect[];
   readonly requiresProlog: boolean;
+  /**
+   * When true, MCP embeds envelope `data` JSON in tool `content` for hosts that
+   * hide `structuredContent` (discovery/proof lookup). Default false.
+   */
+  readonly agentVisibleStructuredData?: boolean;
   execute(input: TInput, context: OperationContext): Promise<TResult>;
 }
 

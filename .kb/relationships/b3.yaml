@@ -125,3 +125,45 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-26497843d97e
+  - type: implements
+    from: SYM-core-discovery-requirementCoverageRow
+    to: REQ-kibi-conservative-requirement-proof
+    created_at: 2026-09-18T07:08:28.125Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a5e7f4c3be6a
+  - type: covered_by
+    from: SYM-core-discovery-requirementCoverageRow
+    to: TEST-e2e-coverage-proof-status
+    created_at: 2026-09-18T07:08:28.132Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-89ec9abc680d
+  - type: executable_for
+    from: SYM-zcode-test-createFixtureWorkspace
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-09-18T22:22:38.905Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1e9849d3217
+  - type: executable_for
+    from: SYM-e2e-proof-maintenance-ops
+    to: TEST-e2e-proof-maintenance-ops
+    created_at: 2026-09-19T17:43:23.140Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6d2e8736d7f4
+  - type: verified_by
+    from: SCEN-vscode-source-to-kb
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T17:54:31.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5506cdd9ccde
+  - type: implements
+    from: SYM-FixtureAuthorizationClaim
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:35:17.291Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a05e049ece3

@@ -223,3 +223,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f6c2ecd18d62
+  - type: covered_by
+    from: SYM-quality-producer-validateRequestedTestIds
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-18T07:44:15.374Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4059d0867a5
+  - type: covered_by
+    from: SYM-canonical-KibiTreeDataProvider-getChildren
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T19:28:08.539Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34d8c79bf883
+  - type: implements
+    from: SYM-evidenceHashes
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:37:31.108Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-639927b2e303
+  - type: implements
+    from: SYM-skillopt-build-held-out-reservation
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:39:05.680Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3692558943fa

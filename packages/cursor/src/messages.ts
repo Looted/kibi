@@ -18,6 +18,9 @@ export function interfaceAdvisory(
 ): string | undefined {
   const selectedInterface = resolveKibiInterface(mcpState, workspaceTrusted);
   switch (selectedInterface) {
+    // rationale: an unmatched switch case already returns undefined, so the
+    // mcp case is behaviorally redundant.
+    // Stryker disable next-line ConditionalExpression, StringLiteral
     case "mcp":
       return undefined;
     case "cli":
@@ -38,17 +41,6 @@ export function stopFollowupMessage(state: HookState): string | undefined {
     (sourcePath) => !state.impactCheckedPaths.includes(sourcePath),
   );
   const freshnessPaths = state.dirtyPaths.filter(isKbFreshnessRelevantPath);
-  const hasFollowupWork =
-    uncheckedSourcePaths.length > 0 ||
-    (freshnessPaths.length > 0 && !state.kbCheckRun);
-
-  if (state.planDelivered && !hasFollowupWork) {
-    return undefined;
-  }
-
-  if (uncheckedSourcePaths.length > 0 && !state.impactCheckRun) {
-    return impactCheckFollowup(uncheckedSourcePaths);
-  }
 
   if (uncheckedSourcePaths.length > 0) {
     return impactCheckFollowup(uncheckedSourcePaths);

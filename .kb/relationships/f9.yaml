@@ -171,3 +171,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f8e9d9430681
+  - type: covered_by
+    from: SYM-ArtifactPath-remove
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-09-19T19:22:33.488Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e7a6d195760e
+  - type: covered_by
+    from: SYM-canonical-KibiTreeDataProvider-getEntityCount
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T19:31:30.599Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f14d99be250

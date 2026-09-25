@@ -7,6 +7,7 @@
 export type {
   Clock,
   OperationContext,
+  OperationPlugins,
   OperationRuntime,
   RuntimeOptions,
   RuntimeOperationSpec,
@@ -205,6 +206,36 @@ export {
 // surface; adapters use EnginePort and EngineCommandV1 instead.
 export { createCliRuntime } from "kibi-cli/runtime/cli-runtime";
 
+export {
+  CapabilityRegistry,
+  CapabilityRegistryCache,
+  createCapabilityRegistry,
+  createCapabilityRegistryCache,
+  createStubBuiltinPlugin,
+  ensureCapabilityRegistry,
+  allowsExternalSemanticClassifier,
+  EXTERNAL_SEMANTIC_CLASSIFIER_OPERATIONS,
+  SourceAnalysisService,
+  composeSemanticClassification,
+  composeOntologyCatalog,
+  composeOntologyMatches,
+  loadPluginPackage,
+  readProjectKibiConfig,
+  resolveProjectLocalPackage,
+} from "kibi-cli/plugins";
+export type {
+  BuiltinPluginFactory,
+  CapabilityModeResolution,
+  CapabilityProviderBinding,
+  CapabilityRegistryOptions,
+  ComposedOntologyCatalog,
+  ComposedSemanticClassifierResult,
+  ExternalSemanticClassifierOperation,
+  HostSourceAnalysisResult,
+  LoadedPlugin,
+  StampedOntologyCandidate,
+} from "kibi-cli/plugins";
+
 export { createRepoIgnorePolicy } from "kibi-cli/ignore-policy";
 export type { IgnorePolicy } from "kibi-cli/ignore-policy";
 export {
@@ -229,6 +260,28 @@ export type {
   SourceModuleAnalysis,
   SourceSymbolAnalysis,
 } from "kibi-cli/extractors/symbols-coordinator";
+
+export {
+  bootstrapKibiEnvironment,
+  getLastBootstrapResult,
+  inspectSecretSource,
+  isSecretAvailable,
+  parseEnvContent,
+  resetKibiEnvironmentBootstrapStateForTests,
+  resolveEnvFilePath,
+  resolveKibiProjectEnvPath,
+  resolveKibiUserEnvPath,
+  resolveKibiWorkspaceRoot,
+  secretSourceFromBootstrap,
+  KIBI_LEGACY_ENV_FILE,
+  KIBI_PROJECT_ENV_FILE,
+} from "kibi-cli/env-bootstrap";
+export type {
+  BootstrapKibiEnvironmentOptions,
+  BootstrapKibiEnvironmentResult,
+  EnvValueSource,
+  InspectSecretSourceOptions,
+} from "kibi-cli/env-bootstrap";
 
 /** Canonical bundled-skill registry used by first-party adapters. */
 export {

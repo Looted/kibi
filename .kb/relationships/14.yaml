@@ -3,7 +3,7 @@ relationships:
     type: covered_by
     from: SYM-cli-engine-idle-timeout
     to: TEST-core-journaled-engine-lifecycle
-    created_at: "2026-08-16T19:47:37.156Z"
+    created_at: 2026-08-16T19:47:37.156Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
   - type: implements
@@ -167,3 +167,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-41e7ea63736f
+  - type: covered_by
+    from: SYM-quality-inventory-d98db976efac
+    to: TEST-004
+    created_at: 2026-09-18T07:38:44.656Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ee80350d39e7
+  - type: covered_by
+    from: SYM-vscode-code-action-provider-watch-manifest
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T19:28:57.808Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7d79b355fedf
+  - type: implements
+    from: SYM-doctor-detect-execute-apply-plan
+    to: REQ-cli-doctor
+    created_at: 2026-09-22T11:34:43.879Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-23e5ebd82cc4
+  - type: implements
+    from: SYM-doctor-detect-execute-apply-plan
+    to: REQ-agent-guided-migration-orchestration
+    created_at: 2026-09-22T11:34:43.889Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-08291ad87a1c
+  - type: implements
+    from: SYM-doctor-detect-execute-apply-plan
+    to: REQ-cli-doctor-packed-provenance
+    created_at: 2026-09-22T11:34:43.896Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b23ee2afd8a1
+  - type: covered_by
+    from: SYM-doctor-detect-execute-apply-plan
+    to: TEST-001
+    created_at: 2026-09-22T11:34:43.900Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b561e47adac5
+  - type: covered_by
+    from: SYM-doctor-detect-execute-apply-plan
+    to: TEST-agent-guided-migration-orchestration
+    created_at: 2026-09-22T11:34:43.904Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ff9b48c98d5
+  - type: covered_by
+    from: SYM-doctor-detect-execute-apply-plan
+    to: TEST-cli-doctor-packed-provenance
+    created_at: 2026-09-22T11:34:43.908Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8aea13871e10
+  - type: covered_by
+    from: SYM-doctor-detect-execute-apply-plan
+    to: TEST-cli-doctor-workflows
+    created_at: 2026-09-22T11:34:43.913Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ab4fb31c93c
+  - type: covered_by
+    from: SYM-cap-plugin-schemaidfor-b12987e6
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:42:32.001Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-dc92352b9dcd

@@ -339,38 +339,43 @@ describe("syncCommand remaining runtime branches", () => {
     expect(io.warns.join("\n")).toMatch(/Failed to hash relationship shard/);
   }, 90_000);
 
-  test("chmod-unreadable tracked shards still emit the hash warning before extract fails", async () => {
-    const cwd = preparedGitWorkspace();
-    await withCwd(cwd, () => initCommand({}));
-    const req = writeRequirement(cwd, "REQ-SYNC-CHMOD");
-    const shard = writeRelationshipShard(
-      cwd,
-      "gg.yaml",
-      "REQ-SYNC-CHMOD",
-      "REQ-OTHER",
-    );
-    git(cwd, `add ${req} ${shard} .kb`);
-    git(cwd, "commit --no-verify -m shard");
-    chmodSync(path.join(cwd, shard), 0o000);
-    restores.push(() => {
-      try {
-        chmodSync(path.join(cwd, shard), 0o644);
-      } catch {
-        // Cleanup is best-effort before the temp tree is removed.
-      }
-    });
-    const io = captureIo();
-    restores.push(io.restore);
-    await expect(
-      syncCommand(
-        { workspaceRoot: cwd },
-        { createProlog: () => scriptedProlog() as never },
-      ),
-    ).rejects.toThrow(/Failed to extract relationships|Failed to hash/);
-    expect(io.warns.join("\n") + io.errorText()).toMatch(
-      /Failed to hash relationship shard|Failed to extract/,
-    );
-  }, 90_000);
+  // Root ignores file mode bits, so an unreadable shard cannot be simulated.
+  test.skipIf(process.getuid?.() === 0)(
+    "chmod-unreadable tracked shards still emit the hash warning before extract fails",
+    async () => {
+      const cwd = preparedGitWorkspace();
+      await withCwd(cwd, () => initCommand({}));
+      const req = writeRequirement(cwd, "REQ-SYNC-CHMOD");
+      const shard = writeRelationshipShard(
+        cwd,
+        "gg.yaml",
+        "REQ-SYNC-CHMOD",
+        "REQ-OTHER",
+      );
+      git(cwd, `add ${req} ${shard} .kb`);
+      git(cwd, "commit --no-verify -m shard");
+      chmodSync(path.join(cwd, shard), 0o000);
+      restores.push(() => {
+        try {
+          chmodSync(path.join(cwd, shard), 0o644);
+        } catch {
+          // Cleanup is best-effort before the temp tree is removed.
+        }
+      });
+      const io = captureIo();
+      restores.push(io.restore);
+      await expect(
+        syncCommand(
+          { workspaceRoot: cwd },
+          { createProlog: () => scriptedProlog() as never },
+        ),
+      ).rejects.toThrow(/Failed to extract relationships|Failed to hash/);
+      expect(io.warns.join("\n") + io.errorText()).toMatch(
+        /Failed to hash relationship shard|Failed to extract/,
+      );
+    },
+    90_000,
+  );
 
   test("journaled save failure reports an attachment mismatch after status errors", async () => {
     const cwd = preparedGitWorkspace();

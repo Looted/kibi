@@ -192,3 +192,8 @@ Before staging, committing, or handing off:
 - `docs/generic-agent-onboarding.md`
 - `docs/cli-reference.md`
 - `docs/ui-requirements.md`
+- `docs/mutation-testing.md`
+
+## Code review before handoff (OCR)
+
+Before handing off any coding task — committing, opening a PR, or reporting work as done — review your own changes with `ocr` (Open Code Review) in delegation mode: run `ocr delegate preview` on the diff (or follow the `open-code-review-delegate` skill) and fix, or clearly report, every finding before finishing.

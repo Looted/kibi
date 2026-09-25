@@ -22,15 +22,41 @@ import { createRequire } from "node:module";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  type BootstrapKibiEnvironmentResult,
+  type EnvValueSource,
+  bootstrapKibiEnvironment,
+  secretSourceFromBootstrap,
+} from "../env/bootstrap.js";
+import {
+  describeConfiguredCapabilityPlugins,
+  readProjectKibiConfig,
+} from "../plugins/project-config.js";
+import {
   buildMigrationPlan,
   migrationAction,
 } from "../public/operations/migration-plan.js";
 import { readKbManifestStatus } from "../utils/kb-manifest.js";
 import { planLegacyStorageMigration } from "./legacy-storage-migration.js";
 
+/**
+ * First-party plugin diagnostics known without importing the package.
+ * Generic third-party plugins report package/capability/mode/declared only.
+ */
+// implements REQ-kibi-env-bootstrap, REQ-capability-plugin-configuration-v1
+const FIRST_PARTY_PLUGIN_SECRETS: Readonly<Record<string, readonly string[]>> =
+  {
+    "kibi-plugin-jev": ["TYPESAFE_API_KEY"],
+  };
+
+/** Static Jev defaults — must stay aligned with kibi-plugin-jev (no import). */
+const JEV_DEFAULT_MODEL = "jev-latest";
+const JEV_MAX_TIMEOUT_MS = 120_000;
+
 interface DoctorCheck {
   name: string;
-  check: () => { passed: boolean; message: string; remediation?: string };
+  check: () =>
+    | { passed: boolean; message: string; remediation?: string }
+    | Promise<{ passed: boolean; message: string; remediation?: string }>;
 }
 
 export interface DoctorOptions {
@@ -74,9 +100,16 @@ export async function doctorCommand(
       name: "post-rewrite hook",
       check: checkPostRewriteHook,
     },
+    {
+      name: "Capability plugins",
+      check: checkCapabilityPlugins,
+    },
   ];
 
-  const results = checks.map(({ name, check }) => ({ name, ...check() }));
+  const results = [];
+  for (const { name, check } of checks) {
+    results.push({ name, ...(await check()) });
+  }
   const allPassed = results.every((result) => result.passed);
   const runtime = await runtimeProvenance();
   const packageActions = await packageMigrationActions(runtime);
@@ -427,6 +460,131 @@ function checkSWIProlog(): {
         "Install SWI-Prolog from https://www.swi-prolog.org/ and add to PATH",
     };
   }
+}
+
+/**
+ * Read-only view of package.json plugin activation.
+ * Does not import or execute plugin packages (no loadPluginPackage / dynamic import).
+ */
+// implements REQ-capability-plugin-configuration-v1, REQ-kibi-env-bootstrap
+function checkCapabilityPlugins(): {
+  // implements REQ-cli-doctor, REQ-capability-plugin-observable-behavior-v1
+  passed: boolean;
+  message: string;
+  remediation?: string;
+} {
+  try {
+    const bootstrap = bootstrapKibiEnvironment();
+    const workspaceRoot = bootstrap.workspaceRoot;
+    const rows = describeConfiguredCapabilityPlugins(workspaceRoot);
+    if (rows.length === 0) {
+      return {
+        passed: true,
+        message: "None configured; builtin providers only",
+      };
+    }
+    const parts: string[] = rows.map(
+      (row) =>
+        `${row.package} ${row.capability} ${row.mode} declared=${row.declared ? "yes" : "no"}`,
+    );
+
+    if (rows.some((row) => !row.declared)) {
+      return {
+        passed: false,
+        message: parts.join("; "),
+        remediation:
+          "Add the configured plugin package to dependencies, devDependencies, or optionalDependencies, or remove the kibi.plugins activation entry.",
+      };
+    }
+
+    const config = readProjectKibiConfig(workspaceRoot);
+    const packages = [
+      ...new Set((config.plugins ?? []).map((plugin) => plugin.package)),
+    ];
+    const missingSecrets: string[] = [];
+    const legacySecrets: string[] = [];
+
+    for (const packageName of packages) {
+      const secrets = FIRST_PARTY_PLUGIN_SECRETS[packageName] ?? [];
+      for (const secret of secrets) {
+        const source = formatSecretSourcePart(secret, bootstrap);
+        parts.push(`${secret}=${source}`);
+        if (source === "missing") missingSecrets.push(secret);
+        if (source === "legacy_env") legacySecrets.push(secret);
+      }
+
+      if (packageName === "kibi-plugin-jev") {
+        parts.push(...formatJevStaticConfigParts());
+      }
+    }
+
+    const message = parts.join("; ");
+    if (missingSecrets.length > 0) {
+      const jevMissing = missingSecrets.includes("TYPESAFE_API_KEY");
+      return {
+        passed: false,
+        message,
+        remediation: jevMissing
+          ? "Set `TYPESAFE_API_KEY` in `~/.config/kibi/env` (user-wide) or `<workspace>/.env.kibi` (project override), then restart long-running Kibi MCP/host processes."
+          : `Set missing plugin secret(s) (${missingSecrets.join(", ")}) in ~/.config/kibi/env or <workspace>/.env.kibi, then restart long-running Kibi MCP/host processes.`,
+      };
+    }
+
+    if (legacySecrets.length > 0) {
+      return {
+        passed: true,
+        message,
+        remediation: `Migrate ${legacySecrets.join(", ")} from legacy \`.env\` to \`~/.config/kibi/env\` or \`<workspace>/.env.kibi\`, then restart long-running Kibi MCP/host processes.`,
+      };
+    }
+
+    return {
+      passed: true,
+      message,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return {
+      passed: false,
+      message,
+      remediation:
+        "Fix package.json kibi.plugins, then restart long-running Kibi MCP or client processes.",
+    };
+  }
+}
+
+function formatSecretSourcePart(
+  secret: string,
+  bootstrap: BootstrapKibiEnvironmentResult,
+): EnvValueSource {
+  return secretSourceFromBootstrap(secret, bootstrap);
+}
+
+/**
+ * Static first-party Jev diagnostics — mirrors plugin resolve helpers without importing.
+ */
+// implements REQ-kibi-env-bootstrap, REQ-capability-plugin-configuration-v1
+function formatJevStaticConfigParts(
+  env: NodeJS.ProcessEnv = process.env,
+): string[] {
+  const model = env.KIBI_JEV_MODEL?.trim() || JEV_DEFAULT_MODEL;
+  const raw = env.KIBI_JEV_TIMEOUT_MS;
+  if (raw === undefined || raw.trim() === "") {
+    return [`jev.model=${model}`, "jev.timeoutMs=default"];
+  }
+  const trimmed = raw.trim();
+  if (!/^[1-9]\d*$/.test(trimmed)) {
+    return [`jev.model=${model}`, "jev.timeoutMs=invalid"];
+  }
+  const timeoutMs = Number(trimmed);
+  if (
+    !Number.isSafeInteger(timeoutMs) ||
+    timeoutMs < 1 ||
+    timeoutMs > JEV_MAX_TIMEOUT_MS
+  ) {
+    return [`jev.model=${model}`, "jev.timeoutMs=invalid"];
+  }
+  return [`jev.model=${model}`, `jev.timeoutMs=${String(timeoutMs)}`];
 }
 
 function checkKbDirectory(): {

@@ -182,7 +182,7 @@ function directoryExists(root: string, relative: string): boolean {
   }
 }
 
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export function inspectProofEnvironment(root: string): ProofInspection {
   const languages = new Set<string>();
   const buildSystems = new Set<string>();

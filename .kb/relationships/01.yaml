@@ -3,7 +3,7 @@ relationships:
     type: executable_for
     from: SYM-auto-E94328F678DF
     to: TEST-kibi-operation-interface-parity
-    created_at: "2026-08-15T22:15:14.836Z"
+    created_at: 2026-08-15T22:15:14.836Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
   - type: covered_by
@@ -139,3 +139,52 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2afde2518b00
+  - type: implements
+    from: SYM-core-kb-value-to-literal
+    to: REQ-kibi-conservative-requirement-proof
+    created_at: 2026-09-18T07:10:04.371Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8cad7799d969
+  - type: covered_by
+    from: SYM-core-kb-value-to-literal
+    to: TEST-e2e-coverage-proof-status
+    created_at: 2026-09-18T07:10:04.378Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9e2df0d9c41e
+  - type: covered_by
+    from: SYM-quality-inventory-8201a4e33563
+    to: TEST-004
+    created_at: 2026-09-18T07:36:24.872Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fea4a769b621
+  - type: implements
+    from: SYM-HeldOutPhysicalCell
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:36:06.400Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c04ceaa5e8fe
+  - type: implements
+    from: SYM-predicateRoots
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:38:05.853Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-51164613983e
+  - type: implements
+    from: SYM-cap-plugin-jevsemanticclassifieroptions-339de30f
+    to: REQ-capability-plugin-configuration-v1
+    created_at: 2026-09-22T19:45:03.298Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4c00e3e9f1f9
+  - type: covered_by
+    from: SYM-cap-plugin-jevsemanticclassifieroptions-339de30f
+    to: TEST-capability-plugin-jev-mocked-v1
+    created_at: 2026-09-22T19:45:03.302Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d661a099ac9b

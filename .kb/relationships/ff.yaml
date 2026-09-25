@@ -160,3 +160,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6e2b04778a7a
+  - type: implements
+    from: SYM-run-unit-coverage-format-failure
+    to: REQ-014
+    created_at: 2026-09-21T15:27:02.660Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ffd13ee0522
+  - type: covered_by
+    from: SYM-run-unit-coverage-format-failure
+    to: TEST-scripts-unit-coverage-runner
+    created_at: 2026-09-21T15:27:02.665Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cde4ec92544c
+  - type: covered_by
+    from: SYM-run-unit-coverage-format-failure
+    to: TEST-e2e-coverage-pipeline
+    created_at: 2026-09-21T19:12:58.111Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7f9230e66159

@@ -23,16 +23,16 @@ import { resolveContainedSourcePath } from "../mutation/source-authoring.js";
 import { executeUpsert } from "../mutation/upsert.js";
 import { removeFrontmatterBlock } from "./receipt-document.js";
 
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export type MigrateLegacyReceiptsArgs = Readonly<{
   /** Migrate a single test entity only. */
-  // implements REQ-kibi-proof-evidence-protocol
+  // implements REQ-kibi-verification-evidence-contract
   testId?: string;
 }>;
 
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export type MigrateLegacyReceiptsResult = Readonly<{
-  // implements REQ-kibi-proof-evidence-protocol
+  // implements REQ-kibi-verification-evidence-contract
   migrated: number;
   tests: readonly { readonly testId: string }[];
 }>;
@@ -48,7 +48,7 @@ export type MigrateLegacyReceiptsResult = Readonly<{
  * the authored document and the compiled entity — one block splice, no
  * canonical re-render.
  */
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export async function executeMigrateLegacyReceipts(
   args: MigrateLegacyReceiptsArgs,
   context: OperationContext,
@@ -75,30 +75,39 @@ export async function executeMigrateLegacyReceipts(
   const migratedTests: { testId: string }[] = [];
   for (const test of tests) {
     const testId = String(test.id);
-    const hasLegacy = Array.isArray(test.verification_receipts);
+    // The compiled lane only survives in stores compiled by older versions:
+    // current sync does not extract verification_receipts, so the authored
+    // document is the durable carrier of the legacy block. Both signals must
+    // trigger the migration.
+    const hasCompiledLegacy = Array.isArray(test.verification_receipts);
     const hasProofContract =
       test.proof_contract !== null && typeof test.proof_contract === "object";
-    if (!hasLegacy || !hasProofContract) continue;
+    if (!hasProofContract) continue;
 
     const source = typeof test.source === "string" ? test.source : "";
-    let patchedContent: string | undefined;
-    if (context.fs && source !== "" && /\.(md|mdx)$/i.test(source)) {
-      const absolute = resolveContainedSourcePath(
-        context.workspaceRoot,
-        source,
-      );
-      const before = await context.fs.readFile(absolute);
-      patchedContent =
-        removeFrontmatterBlock(before, "verification_receipts") ?? undefined;
-      if (patchedContent === undefined) {
+    const patchableSource =
+      source !== "" && /\.(md|mdx)$/i.test(source) && context.fs !== undefined;
+    if (!patchableSource) {
+      if (hasCompiledLegacy) {
+        throw new Error(
+          `Legacy receipt migration failed for ${testId}: test source '${source || "unknown"}' is not an authored markdown document`,
+        );
+      }
+      continue;
+    }
+    const absolute = resolveContainedSourcePath(context.workspaceRoot, source);
+    const before = await context.fs.readFile(absolute);
+    const patchedContent = removeFrontmatterBlock(
+      before,
+      "verification_receipts",
+    );
+    if (patchedContent === null) {
+      if (hasCompiledLegacy) {
         throw new Error(
           `Legacy receipt migration failed for ${testId}: ${source} is not a patchable frontmatter document`,
         );
       }
-    } else {
-      throw new Error(
-        `Legacy receipt migration failed for ${testId}: test source '${source || "unknown"}' is not an authored markdown document`,
-      );
+      continue;
     }
 
     const properties = Object.fromEntries(
@@ -108,10 +117,6 @@ export async function executeMigrateLegacyReceipts(
     );
     // Drop the legacy lane from the compiled entity; proof_receipts stay
     // untouched so append-only validation keeps holding.
-    const upsertOptions =
-      patchedContent === undefined
-        ? {}
-        : { sourceDocumentOverride: patchedContent };
     await executeUpsert(
       {
         type: "test",
@@ -119,7 +124,7 @@ export async function executeMigrateLegacyReceipts(
         properties: { ...properties },
       },
       context,
-      upsertOptions,
+      { sourceDocumentOverride: patchedContent },
     );
     migratedTests.push({ testId });
   }

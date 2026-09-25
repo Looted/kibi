@@ -83,6 +83,30 @@ validate_candidate() {
   return 0
 }
 
+try_build_local() {
+  if [ "$runtimeExecutable" != bun ]; then
+    return 1
+  fi
+  if [ ! -f "$workspaceRoot/packages/mcp/bin/kibi-mcp" ]; then
+    return 1
+  fi
+  if [ -d "$workspaceRoot/packages/mcp/dist" ]; then
+    return 1
+  fi
+
+  printf '%s\n' "kibi-mcp resolver: no trusted built MCP runtime yet; building local MCP dist" >&2
+  (
+    cd "$workspaceRoot" || exit 1
+    bun run build:cli-stack >&2 || exit 1
+    bun run build:runtime >&2 || exit 1
+    bun run build:mcp >&2 || exit 1
+  ) || {
+    printf '%s\n' "kibi-mcp resolver: local MCP build failed" >&2
+    return 1
+  }
+  return 0
+}
+
 if validate_candidate local "$workspaceRoot"; then
   :
 else
@@ -96,13 +120,23 @@ else
     primaryRejection=$rejectionReason
     runtimeRoot=
   fi
+fi
 
-  if [ -z "${runtimeRoot:-}" ]; then
-    printf 'kibi-mcp resolver: %s\n' "$localRejection" >&2
-    printf 'kibi-mcp resolver: %s\n' "$primaryRejection" >&2
-    printf '%s\n' "kibi-mcp resolver: no trusted built MCP runtime is available" >&2
-    exit 1
+if [ -z "${runtimeRoot:-}" ]; then
+  if try_build_local; then
+    if validate_candidate local "$workspaceRoot"; then
+      localRejection=
+    else
+      localRejection=$rejectionReason
+    fi
   fi
+fi
+
+if [ -z "${runtimeRoot:-}" ]; then
+  printf 'kibi-mcp resolver: %s\n' "${localRejection:-}" >&2
+  printf 'kibi-mcp resolver: %s\n' "${primaryRejection:-}" >&2
+  printf '%s\n' "kibi-mcp resolver: no trusted built MCP runtime is available" >&2
+  exit 1
 fi
 
 cd "$runtimeRoot" || {

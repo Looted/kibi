@@ -40,6 +40,22 @@ async function fakeExecutables(root: string) {
 }
 
 describe("staged Codex runtime", () => {
+  test("fails closed with a structured reason when the Codex executable is missing", async () => {
+    const root = await mkdtemp(
+      join(tmpdir(), "skillopt-runtime-missing-codex-"),
+    );
+    roots.push(root);
+
+    await expect(
+      stageCodexRuntime(join(root, "target"), {
+        codexExecutable: join(root, "installed", "bin", "codex"),
+      }),
+    ).rejects.toMatchObject({
+      name: "RuntimePrerequisiteError",
+      message: "missing_isolation:codex_executable",
+    });
+  });
+
   test("copies Codex, code-mode host, and bwrap to absolute private executable paths", async () => {
     const root = await mkdtemp(join(tmpdir(), "skillopt-runtime-stage-"));
     roots.push(root);

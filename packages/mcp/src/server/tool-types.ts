@@ -77,7 +77,10 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
     args: StatusArgs,
     context?: OperationContext,
   ) => Promise<unknown>;
-  handleKbSemanticAdvisor: (args: SemanticAdvisorArgs) => Promise<unknown>;
+  handleKbSemanticAdvisor: (
+    args: SemanticAdvisorArgs,
+    context: OperationContext,
+  ) => Promise<unknown>;
   handleKbSkillsList: (args: SkillsListArgs) => Promise<unknown>;
   handleKbSkillsLoad: (args: SkillsLoadArgs) => Promise<unknown>;
   handleKbSkillsRead: (args: SkillsReadArgs) => Promise<unknown>;
@@ -89,10 +92,12 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
   handleKbModelRequirement: (
     prolog: TProlog,
     args: ModelRequirementArgs,
+    context: OperationContext,
   ) => Promise<unknown>;
   handleKbSuggestPredicates: (
     prolog: TProlog,
     args: SuggestPredicatesArgs,
+    context: OperationContext,
   ) => Promise<unknown>;
   handleKbPlanBootstrap: (
     args: PlanBootstrapArgs,

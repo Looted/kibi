@@ -80,7 +80,6 @@ describe("coverage manifest", () => {
         join(coverageDir, "lcov.info"),
         "TN:\nSF:packages/demo/src/other.ts\nend_of_record\n",
       );
-      const previousExit = process.exitCode;
       try {
         await runCoverageManifestCli([
           "bun",
@@ -90,7 +89,7 @@ describe("coverage manifest", () => {
         ]);
         expect(process.exitCode).toBe(1);
       } finally {
-        process.exitCode = previousExit;
+        process.exitCode = 0;
       }
       await runCoverageManifestIfMain(false);
     } finally {

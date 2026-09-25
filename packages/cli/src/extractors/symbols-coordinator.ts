@@ -18,6 +18,11 @@
 
 import * as fs from "node:fs";
 import * as path from "node:path";
+import type { CapabilityRegistry } from "../plugins/registry.js";
+import {
+  type HostSourceAnalysisResult,
+  createSourceAnalysisService,
+} from "../plugins/source-analysis-service.js";
 import {
   type ManifestSymbolEntry,
   createTsMorphSourceAnalysisProvider,
@@ -84,6 +89,8 @@ export interface SourceAnalysisProvider {
 
 export interface AnalyzeSourceTextOptions {
   providers?: SourceAnalysisProvider[];
+  /** When set, prefer the host SourceAnalysisService over sync providers. */
+  registry?: CapabilityRegistry;
 }
 
 interface EnrichSymbolCoordinatesDeps {
@@ -145,6 +152,7 @@ export function analyzeSourceText(
     );
   }
 
+  // Sync path: ignore registry (async callers use analyzeSourceTextWithRegistry).
   const providers =
     (optionsOrDeps as AnalyzeSourceTextOptions | undefined)?.providers ??
     DEFAULT_SOURCE_ANALYSIS_PROVIDERS;
@@ -160,6 +168,51 @@ export function analyzeSourceText(
   }
 
   return createFallbackAnalysis(filePathOrEntries, "unsupported_language");
+}
+
+function toCoordinatorResult(
+  result: HostSourceAnalysisResult,
+): SourceAnalysisResult {
+  return {
+    sourceFile: result.sourceFile,
+    language: result.language,
+    providerId: result.providerId,
+    module: {
+      title: result.module.title,
+      language: result.module.language,
+      analysisMode: result.module.analysisMode,
+      ...(result.module.fallbackReason
+        ? { fallbackReason: result.module.fallbackReason }
+        : {}),
+    },
+    symbols: result.symbols.map((symbol) => ({
+      name: symbol.name,
+      kind: symbol.kind,
+      startLine: symbol.startLine,
+      startColumn: symbol.startColumn,
+      endLine: symbol.endLine,
+      endColumn: symbol.endColumn,
+      ...(symbol.directiveText ? { directiveText: symbol.directiveText } : {}),
+    })),
+  };
+}
+
+/**
+ * Prefer the capability registry / SourceAnalysisService when available.
+ * Falls back to the sync builtin ts-morph provider path on registry failure.
+ */
+// implements REQ-capability-plugin-activation-disclosure-v1
+export async function analyzeSourceTextWithRegistry(
+  filePath: string,
+  content: string,
+  registry: CapabilityRegistry,
+): Promise<SourceAnalysisResult> {
+  try {
+    const service = createSourceAnalysisService({ registry });
+    return toCoordinatorResult(await service.analyzeText(filePath, content));
+  } catch {
+    return analyzeSourceText(filePath, content);
+  }
 }
 
 export async function enrichSymbolCoordinates(

@@ -41,6 +41,18 @@ describe("repo cursor dogfood config", () => {
     expect(resolver).not.toContain("wget");
   });
 
+  test("sync-cursor-dogfood runs the full workspace build before copying rules", () => {
+    const script = fs.readFileSync(
+      path.join(repoRoot, "scripts", "sync-cursor-dogfood.sh"),
+      "utf8",
+    );
+
+    expect(script).toMatch(/^bun run build$/m);
+    expect(script.indexOf("bun run build")).toBeLessThan(
+      script.indexOf("cp packages/cursor/rules/kibi-workflow.mdc"),
+    );
+  });
+
   test("cursor hooks config points at the local hook runner", () => {
     const configPath = path.join(repoRoot, ".cursor", "hooks.json");
     const raw = fs.readFileSync(configPath, "utf8");

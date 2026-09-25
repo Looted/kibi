@@ -14,18 +14,23 @@ import {
   packAll as packAllPackages,
 } from "./helpers.js";
 
+// executable_for TEST-test-journaled-engine-harness
 export interface PnpmCommand {
   command: string;
   argsPrefix: string[];
 }
 
+// implements REQ-test-journaled-engine-harness
 export interface Tarballs {
   core: string;
   cli: string;
   runtime: string;
   mcp: string;
+  "plugin-sdk": string;
+  "plugin-builtin": string;
 }
 
+// executable_for TEST-test-journaled-engine-harness
 export interface PnpmUpgradeSandbox {
   baseDir: string;
   projectDir: string;
@@ -34,17 +39,20 @@ export interface PnpmUpgradeSandbox {
   cleanup(): void;
 }
 
+// executable_for TEST-test-journaled-engine-harness
 export type IsolatedPnpmEnvironment = Readonly<{
   env: NodeJS.ProcessEnv;
   storeDir: string;
 }>;
 
+// executable_for TEST-test-journaled-engine-harness
 export interface CommandResult {
   stdout: string;
   stderr: string;
   exitCode: number;
 }
 
+// executable_for TEST-test-journaled-engine-harness
 export function resolvePnpm(): PnpmCommand {
   const envPnpm = process.env.PNPM_BIN;
   if (envPnpm) {
@@ -75,6 +83,7 @@ export function resolvePnpm(): PnpmCommand {
   );
 }
 
+// executable_for TEST-test-journaled-engine-harness
 export function createPnpmUpgradeSandbox(): PnpmUpgradeSandbox {
   const pnpm = resolvePnpm();
   const baseDir = mkdtempSync(join(tmpdir(), "kibi-e2e-pnpm-upgrade-"));
@@ -105,6 +114,7 @@ export function createPnpmUpgradeSandbox(): PnpmUpgradeSandbox {
   };
 }
 
+// executable_for TEST-test-journaled-engine-harness
 export function createIsolatedPnpmEnvironment(
   baseDir: string,
   pnpm: PnpmCommand = resolvePnpm(),
@@ -191,6 +201,7 @@ function seedCorepackHome(corepackHome: string): void {
   cpSync(source, corepackHome, { recursive: true });
 }
 
+// executable_for TEST-test-journaled-engine-harness
 export function runCommand(
   command: string,
   args: string[],
@@ -238,6 +249,7 @@ export function runCommand(
   });
 }
 
+// executable_for TEST-test-journaled-engine-harness
 export function runPnpm(
   sandbox: PnpmUpgradeSandbox,
   args: string[],
@@ -254,6 +266,7 @@ export function runPnpm(
   );
 }
 
+// executable_for TEST-test-journaled-engine-harness
 export async function installTarballsWithPnpm(
   sandbox: PnpmUpgradeSandbox,
   tarballs: string[],
@@ -268,6 +281,7 @@ export async function installTarballsWithPnpm(
   return runPnpm(sandbox, installArgs, { timeoutMs: 300000 });
 }
 
+// executable_for TEST-test-journaled-engine-harness
 export async function resolveInstalledKibiMcp(
   sandbox: PnpmUpgradeSandbox,
 ): Promise<string> {
@@ -288,6 +302,7 @@ export async function resolveInstalledKibiMcp(
   return result.stdout.trim();
 }
 
+// executable_for TEST-test-journaled-engine-harness
 export function pnpmLabel(pnpm: PnpmCommand): string {
   return [basename(pnpm.command), ...pnpm.argsPrefix].join(" ");
 }
@@ -300,5 +315,7 @@ export async function packAllForPnpmUpgrade(): Promise<Tarballs> {
     cli: tarballs.cli,
     runtime: tarballs.runtime,
     mcp: tarballs.mcp,
+    "plugin-sdk": tarballs["plugin-sdk"],
+    "plugin-builtin": tarballs["plugin-builtin"],
   };
 }

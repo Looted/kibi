@@ -29,7 +29,7 @@ import {
 } from "../public/proof-protocol.js";
 import { createCliRuntime } from "../runtime/cli-runtime.js";
 
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export type ProveCommandOptions = Readonly<{
   testId?: string;
   requirement?: string;
@@ -39,7 +39,7 @@ export type ProveCommandOptions = Readonly<{
   workspaceRoot?: string;
 }>;
 
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export type ProveCommandDependencies = Readonly<{
   runtime?: OperationRuntime;
   ingestProof?: typeof executeIngestProof;
@@ -53,7 +53,7 @@ type SelectedTest = Record<string, unknown>;
  * Snapshot-relevant changes come first (receipt-only and ignored edits do
  * not affect the hash), and the list is capped to keep the error readable.
  */
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export function describeWorkspaceDrift(
   snapshot: Awaited<ReturnType<typeof readWorkspaceSnapshot>>,
 ): string {
@@ -80,7 +80,7 @@ export function describeWorkspaceDrift(
  * trimmed, non-empty ids. Empty selectors yield an empty set; blank items
  * fail fast instead of silently narrowing the selection.
  */
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export function parseIntegrationSelector(
   value: string | undefined,
   flagName: string,
@@ -137,7 +137,7 @@ async function runChild(
   });
 }
 
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export function commandEnvironment(
   integration: ProofIntegration,
   commandArgv: readonly string[],
@@ -327,7 +327,7 @@ function summarize(result: IngestProofResult): string {
   return parts.join(", ");
 }
 
-// implements REQ-kibi-proof-evidence-protocol
+// implements REQ-kibi-verification-evidence-contract
 export async function proveCommand(
   options: ProveCommandOptions,
   deps: ProveCommandDependencies = {},

@@ -236,5 +236,9 @@ export async function executeModelRequirement(
   args: ModelRequirementArgs,
   context: OperationContext,
 ): Promise<ModelRequirementResult> {
+  // kb_model_requirement is intentionally off the external semantic-classifier
+  // allowlist: classification after modeling only produced provenance warnings
+  // and is not worth a metered provider call. Use kb_semantic_advisor when
+  // classifier routing is needed.
   return handleKbModelRequirement(context.prolog, args, context.workspaceRoot);
 }

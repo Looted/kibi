@@ -63,7 +63,13 @@ export async function runHook(
   const stateDir = resolveWorkspaceStateDir(pluginData, workspace.root);
 
   switch (input.event) {
+    // rationale: the default case below returns the same defaultResult, so
+    // this case is behaviorally redundant.
+    // Stryker disable next-line ConditionalExpression, StringLiteral
     case "SessionStart":
+      // rationale: same redundancy as above; the default case already
+      // returns defaultResult.
+      // Stryker disable next-line StringLiteral
       return defaultResult();
 
     case "PreToolUse": {
@@ -123,6 +129,10 @@ export async function runHook(
         };
       }
 
+      // rationale: reaching this line with dirty paths implies every path is
+      // source-impact relevant and impact checked, and recording a check also
+      // sets kbCheckRun, so the length term cannot change the outcome.
+      // Stryker disable next-line ConditionalExpression
       if (state.dirtyPaths.length > 0 || state.kbCheckRun) {
         clearDirtyPaths(stateDir);
       }

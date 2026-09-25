@@ -1,6 +1,6 @@
 {
   "name": "kibi-core",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "private": false,
   "description": "Core Prolog modules and RDF graph logic for Kibi",
   "type": "module",
@@ -8,10 +8,7 @@
     "node": ">=18"
   },
   "main": "./src/kb.pl",
-  "files": [
-    "src/**/*.pl",
-    "schema/**/*.pl"
-  ],
+  "files": ["src/**/*.pl", "schema/**/*.pl"],
   "license": "AGPL-3.0-or-later",
   "author": "Piotr Franczyk",
   "repository": {

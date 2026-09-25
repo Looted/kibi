@@ -43,8 +43,9 @@ describe("Git hooks", () => {
     expect(content).toContain('"$KIBI_BIN" check --staged');
     expect(content).toContain("KIBI_BIN=");
     expect(content).toContain("Hard enforcement boundary");
-    expect(content).toContain(".kb/symbols.yaml");
-    expect(content).toContain("kibi sync --refresh-symbol-coordinates");
+    expect(content).toContain(
+      '"$KIBI_BIN" check-generated --staged --changed-only',
+    );
   });
 
   it("should resolve a locally installed kibi when node_modules/.bin is off PATH", () => {

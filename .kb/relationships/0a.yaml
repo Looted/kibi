@@ -188,3 +188,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f276ae4b5ede
+  - type: covered_by
+    from: SYM-registerConfiguredTools
+    to: TEST-agent-kibi-interface-selection
+    created_at: 2026-09-18T15:23:51.025Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9e9a638b55c
+  - type: implements
+    from: SYM-cap-plugin-composeontologymatches-67448599
+    to: REQ-capability-plugin-three-capabilities-v1
+    created_at: 2026-09-22T19:34:22.988Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f4a719f2fc0
+  - type: covered_by
+    from: SYM-cap-plugin-composeontologymatches-67448599
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:34:22.994Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-824c94bb1dbe
+  - type: implements
+    from: SYM-cap-plugin-capabilityregistry-resolveontologypacks-db050406
+    to: REQ-capability-plugin-three-capabilities-v1
+    created_at: 2026-09-22T19:39:33.877Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-04351019c593
+  - type: covered_by
+    from: SYM-cap-plugin-capabilityregistry-resolveontologypacks-db050406
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:39:33.882Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7e68938071e0
+  - type: implements
+    from: SYM-cli-discovery-load-search-candidates
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-09-24T22:58:28.744Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5bf5910c35d
+  - type: implements
+    from: SYM-cli-discovery-load-search-candidates
+    to: REQ-mcp-search-discovery
+    created_at: 2026-09-24T22:58:28.759Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-47d860daf1e4
+  - type: covered_by
+    from: SYM-cli-discovery-load-search-candidates
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-24T22:58:28.768Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-55a384253b36
+  - type: covered_by
+    from: SYM-cli-discovery-load-search-candidates
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-09-24T22:58:28.776Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3658f94f4fa6
+  - type: covered_by
+    from: SYM-cli-discovery-load-search-candidates
+    to: TEST-mcp-search-discovery
+    created_at: 2026-09-25T09:07:03.726Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b9259a54d94

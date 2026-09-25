@@ -3,7 +3,7 @@ relationships:
     type: implements
     from: SYM-auto-9AEF238324D1
     to: REQ-kibi-operation-interface-parity
-    created_at: "2026-08-15T22:21:22.155Z"
+    created_at: 2026-08-15T22:21:22.155Z
     created_by: kibi/upsert
     source: mcp://kibi/upsert
   - type: implements
@@ -97,3 +97,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fa0a09836539
+  - type: covered_by
+    from: SYM-quality-packed-summary
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-09-17T20:23:34.889Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d8c7dc7f656
+  - type: implements
+    from: SYM-FixtureClaimError-name
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:35:29.881Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-84e2b64dac12
+  - type: covered_by
+    from: SYM-cap-plugin-createstubbuiltinplugin-ccd291f8
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T09:27:25.685Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0d208af775cd
+  - type: executable_for
+    from: SYM-packed-mcp-tool-payload
+    to: TEST-e2e-mcp-freshness-external-replace
+    created_at: 2026-09-24T15:58:09.175Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f3723d35f0c4

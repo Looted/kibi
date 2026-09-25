@@ -1,6 +1,6 @@
 {
   "name": "kibi-cli",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "type": "module",
   "description": "Kibi CLI for knowledge base management",
   "engines": {
@@ -10,14 +10,7 @@
   "bin": {
     "kibi": "bin/kibi"
   },
-  "files": [
-    "dist",
-    "bin",
-    "schema",
-    "src/schemas",
-    "src/public",
-    "templates"
-  ],
+  "files": ["dist", "bin", "schema", "src/schemas", "src/public", "templates"],
   "scripts": {
     "build": "tsc -p tsconfig.json && rm -rf dist/public/skills && mkdir -p dist/public/skills dist/report && cp -r src/public/skills/. dist/public/skills/ && cp src/report/html-report.css dist/report/html-report.css && node ../../scripts/generate-entity-schema.mjs --check",
     "test": "node ../../scripts/run-owned-engine-tests.mjs -- bun test --timeout 15000 .",
@@ -54,6 +47,10 @@
     "./runtime/cli-runtime": {
       "types": "./dist/runtime/cli-runtime.d.ts",
       "default": "./dist/runtime/cli-runtime.js"
+    },
+    "./plugins": {
+      "types": "./dist/plugins/index.d.ts",
+      "default": "./dist/plugins/index.js"
     },
     "./operations/node-ports": {
       "types": "./dist/public/operations/node-ports.d.ts",
@@ -216,6 +213,10 @@
       "types": "./dist/public/ignore-policy.d.ts",
       "import": "./dist/public/ignore-policy.js",
       "default": "./dist/public/ignore-policy.js"
+    },
+    "./env-bootstrap": {
+      "types": "./dist/env/bootstrap.d.ts",
+      "default": "./dist/env/bootstrap.js"
     }
   },
   "types": "./dist/cli.d.ts",
@@ -226,15 +227,17 @@
     "fast-glob": "^3.2.12",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
-    "kibi-core": "^0.12.0",
+    "kibi-core": "^0.13.0",
+    "kibi-plugin-builtin": "^0.2.0",
+    "kibi-plugin-sdk": "^0.2.0",
     "saxes": "^6.0.0",
-    "ts-morph": "^23.0.0",
     "ignore": "^5.3.0",
     "yaml": "^2.9.0"
   },
   "devDependencies": {
     "@types/node": "latest",
     "semver": "^7.7.4",
+    "ts-morph": "^23.0.0",
     "typescript": "^5.7.0"
   },
   "license": "AGPL-3.0-or-later",

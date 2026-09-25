@@ -83,3 +83,73 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b1c673570850
+  - type: implements
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-contradictionwitness
+    to: REQ-kibi-change-to-proof-plan-compiler
+    created_at: 2026-09-18T07:16:38.954Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ab2262e9f07f
+  - type: covered_by
+    from: SYM-kibi-cli-src-operations-planning-compile-intent-ts-contradictionwitness
+    to: TEST-e2e-plan-compiler-hash
+    created_at: 2026-09-18T07:16:38.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5ad8f281c537
+  - type: verified_by
+    from: SCEN-opencode-guidance-caching
+    to: TEST-e2e-opencode-enforcement-surface
+    created_at: 2026-09-18T10:57:36.181Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1bdce35fdec8
+  - type: verified_by
+    from: SCEN-skillopt-paid-matrix-infrastructure
+    to: TEST-skillopt-paid-launch-accounting
+    created_at: 2026-09-19T17:32:33.867Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-046204d83676
+  - type: verified_by
+    from: SCEN-skillopt-paid-matrix-infrastructure
+    to: TEST-skillopt-external-adoption-verdict
+    created_at: 2026-09-19T17:32:33.890Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8b246cf52d31
+  - type: implements
+    from: SYM-isErrno
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:37:43.964Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c25b8893f7a
+  - type: implements
+    from: SYM-cli-extract-symbols-from-staged-file-async
+    to: REQ-capability-plugin-activation-disclosure-v1
+    created_at: 2026-09-20T19:51:47.956Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-458069e1b002
+  - type: covered_by
+    from: SYM-cli-extract-symbols-from-staged-file-async
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:48:28.311Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b8a76b30ffe4
+  - type: implements
+    from: SYM-cli-strip-sync-builtin-ontology-suggestions
+    to: REQ-capability-plugin-observable-behavior-v1
+    created_at: 2026-09-22T19:48:42.971Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-592f519d724f
+  - type: covered_by
+    from: SYM-cli-strip-sync-builtin-ontology-suggestions
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:48:42.976Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c4960f03ce2

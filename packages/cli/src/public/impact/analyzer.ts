@@ -1,6 +1,6 @@
 import * as path from "node:path";
 import type { ExtractedSymbol } from "../../traceability/symbol-extract.js";
-import { extractSymbolsFromStagedFile } from "../../traceability/symbol-extract.js";
+import { extractSymbolsFromStagedFileAsync } from "../../traceability/symbol-extract.js";
 import {
   createSemanticReviewDiagnostics,
   createSymbolGranularityDiagnostics,
@@ -21,9 +21,9 @@ import type {
   ChangedFileImpactResult,
 } from "./types.js";
 
-export function analyzeChangedFileImpact(
+export async function analyzeChangedFileImpact(
   options: ChangedFileImpactOptions,
-): ChangedFileImpactResult {
+): Promise<ChangedFileImpactResult> {
   const workspaceRoot = path.resolve(options.workspaceRoot);
   const sourceChanges = collectSourceChanges({ ...options, workspaceRoot });
   const sourceFiles = uniqueSorted(sourceChanges.map((change) => change.file));
@@ -34,17 +34,20 @@ export function analyzeChangedFileImpact(
 
   for (const change of sourceChanges) {
     sourceContentByFile.set(change.file, change.content);
+    // Maintenance path: builtin-only (do not pass registry / workspaceRoot).
+    const extracted = await extractSymbolsFromStagedFileAsync(
+      {
+        path: change.file,
+        status: change.status,
+        hunkRanges: [...change.hunkRanges],
+        content: change.content,
+      },
+      manifestLookup,
+      {},
+    );
     symbolsByFile.set(
       change.file,
-      extractSymbolsFromStagedFile(
-        {
-          path: change.file,
-          status: change.status,
-          hunkRanges: [...change.hunkRanges],
-          content: change.content,
-        },
-        manifestLookup,
-      ).filter((symbol) => symbol.hunkRanges.length > 0),
+      extracted.filter((symbol) => symbol.hunkRanges.length > 0),
     );
   }
 

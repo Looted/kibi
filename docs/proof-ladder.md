@@ -80,7 +80,7 @@ pass):
 | `scenarioTests` | Each scenario is validated by at least one test (`verified_by`/`validates`). | `passed`, `missing` |
 | `passingE2E` | Every linked scenario has at least one end-to-end test, and every linked E2E proof-bearing test carries a valid, fresh, passing `kibi.proof-receipt.v1` bound to the current snapshot, contract hash, and fingerprint. Per-scenario results are exposed in `scenarioObligations`; unit/integration-only ancillary tests remain nonblocking. | `passed`, `missing`, `unresolved` |
 | `executableSymbols` | Each qualifying E2E test is linked to executable test code via `executable_for`. | `passed`, `missing` |
-| `productionSymbols` | Production symbols implementing the requirement are covered by those passing E2E tests (`covered_by`). | `passed`, `missing`, `blocked` |
+| `productionSymbols` | Production symbols implementing the requirement are covered by those passing E2E tests (`covered_by`). Additive `explanations[]` (still `kibi.requirement-proof.v3`) give each symbol a rollup reason and per-candidate primary plus optional secondary rejection codes. | `passed`, `missing`, `blocked` |
 | `sourceCoordinates` | The requirement source and all linked symbols carry exact published coordinates. | `passed`, `missing`, `blocked` |
 
 ### Stage statuses, precisely
@@ -95,7 +95,15 @@ pass):
     conflict is not evidence of safety.
   - `productionSymbols`: there is no passing E2E evidence at all in the
     current snapshot (typically stale or missing receipts). The stage now
-    says so with `reason` instead of an opaque word.
+    says so with `reason` instead of an opaque word. Existing
+    `uncoveredSymbols` still lists every remaining production symbol; each
+    explanation uses `stage_blocked_no_passing_e2e` rather than implying the
+    symbol independently lacks `covered_by`.
+  - Additive `explanations[]` never change `status`, `reason`,
+    `uncoveredSymbols`, or `proofStatus`. Rejected `covered_by` candidates
+    carry the earliest disqualifying `reason` and optional
+    `secondaryReasons` already known from cheaper gates. Out-of-chain tests
+    do not walk receipts.
 - `unresolved` — evidence exists but is not conclusive (e.g. unresolved
   propositions in the inventory).
 
@@ -137,6 +145,12 @@ maps to `proofStatus: unresolved`, not `proven`.
   KB.
 - `kibi proof inspect` — detect test infrastructure and pick a proof
   integration.
+- `kibi proof explain REQ-*` / `kibi proof explain SYM-*` — project the same
+  Proof, labeling `required_proofs`, `executable_for`, and `covered_by`
+  separately.
+- `kibi proof impact` — compare current proof state to `HEAD:proof/baseline.json`
+  (diagnostic; exits 0 after a successful report). The ratchet remains
+  `scripts/check-proof-baseline.mjs`.
 - `kibi proof prune --keep 1` — drop superseded receipts (re-proving the same
   snapshot appends duplicates).
 - `kibi proof migrate-legacy` — remove legacy `verification_receipts` blocks

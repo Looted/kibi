@@ -146,3 +146,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dcc86187ac22
+  - type: covered_by
+    from: SYM-cli-persistEntities
+    to: TEST-007
+    created_at: 2026-09-18T07:03:39.090Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9c27f0b5d42
+  - type: covered_by
+    from: SYM-cli-persistEntities
+    to: TEST-coverage-depth-labels
+    created_at: 2026-09-18T07:03:39.108Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-44b4adeb8bfb
+  - type: implements
+    from: SYM-cli-persistEntities
+    to: REQ-audit-quality-diagnostics-v1
+    created_at: 2026-09-18T07:03:39.119Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb10dfb7c178
+  - type: implements
+    from: SYM-cli-persistEntities
+    to: REQ-core-persistence
+    created_at: 2026-09-18T07:03:39.124Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-667af4c4a3dc
+  - type: implements
+    from: SYM-cli-persistEntities
+    to: REQ-kibi-conservative-requirement-proof
+    created_at: 2026-09-18T07:03:39.131Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-322bab881d60
+  - type: implements
+    from: SYM-cli-persistEntities
+    to: REQ-kibi-logical-requirement-coverage
+    created_at: 2026-09-18T07:03:39.137Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9067f0f752d5
+  - type: implements
+    from: SYM-cli-persistEntities
+    to: REQ-kibi-proposition-complete-ingestion
+    created_at: 2026-09-18T07:03:39.144Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1f969ee0ab8
+  - type: covered_by
+    from: SYM-cli-persistEntities
+    to: TEST-e2e-coverage-proof-status
+    created_at: 2026-09-18T07:03:39.151Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31ff56ddbec6
+  - type: implements
+    from: SYM-assertFixtureAuthorizationClaim
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:37:09.475Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cbd2f28fbf09

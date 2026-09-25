@@ -8,3 +8,4 @@ tags:
 id: SCEN-cli-doctor
 type: scenario
 ---
+Doctor reports capability-plugin activation, dependency declaration, secret source labels (process/project_env/user_env/missing) without values, and remediation when declared secrets are missing. After init, environment and KB health checks pass.

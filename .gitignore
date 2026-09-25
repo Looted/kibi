@@ -46,6 +46,10 @@ documentation/tests/e2e/packed/.compiled/
 .kibi/
 .playwright-mcp/
 
+# --- Mutation testing ---
+.stryker-tmp/
+reports/mutation/
+
 # --- Bun ---
 .bun/
 
@@ -74,6 +78,7 @@ documentation/tests/e2e/packed/.compiled/
 .artifacts/
 artifacts/skillopt/
 .env
+.env.kibi
 .omo
 .zcode/
 .slim/deepwork/

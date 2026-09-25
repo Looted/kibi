@@ -1,12 +1,20 @@
 import { createHash } from "node:crypto";
-import { Project, Scope, ScriptKind, type SourceFile } from "ts-morph";
+import type { SourceAnalysisResult as SdkSourceAnalysisResult } from "kibi-plugin-sdk";
 import { readManifestWithCoordinateOverlay } from "../extractors/manifest.js";
+import {
+  createTsMorphSourceAnalysisProvider,
+  isPrivateClassMember,
+} from "../extractors/symbols-ts.js";
 import {
   type SymbolKind,
   type SymbolRole,
   inferSymbolRole,
 } from "../public/symbol-granularity.js";
 import type { HunkRange, StagedFile } from "./git-staged.js";
+
+type SourceAnalysisResult = SdkSourceAnalysisResult & {
+  providerId?: string | null;
+};
 
 type TraceabilityRelationship = { type: string; to: string };
 const TRACEABILITY_RELATIONSHIP_TYPES = new Set([
@@ -211,28 +219,17 @@ function buildSymbolResult(
 }
 
 // Simple in-memory cache keyed by blob sha with 30s TTL
-const sourceFileCache = new Map<
+const analysisCache = new Map<
   string,
-  { tsf: SourceFile | null; ts: number }
+  { result: SourceAnalysisResult | null; ts: number }
 >();
 
 const CACHE_TTL_MS = 30 * 1000;
-
-const project = new Project({ skipAddingFilesFromTsConfig: true });
 
 function computeContentSha(content: string): string {
   const h = createHash("sha256");
   h.update(content);
   return h.digest("hex");
-}
-
-function chooseScriptKind(path: string): ScriptKind {
-  const lower = path.toLowerCase();
-  if (lower.endsWith(".tsx")) return ScriptKind.TSX;
-  if (lower.endsWith(".ts") || lower.endsWith(".mts") || lower.endsWith(".cts"))
-    return ScriptKind.TS;
-  if (lower.endsWith(".jsx")) return ScriptKind.JSX;
-  return ScriptKind.JS;
 }
 
 function parseReqDirectives(text: string): string[] {
@@ -270,296 +267,138 @@ function rangesIntersect(
   return aStart <= bEnd && bStart <= aEnd;
 }
 
+// implements REQ-capability-plugin-activation-disclosure-v1
+export type ExtractSymbolsOptions = Readonly<{
+  /**
+   * Host-owned analysis. Prefer SourceAnalysisService / capability registry.
+   * When omitted, falls back to the builtin ts-morph provider for parity.
+   */
+  analyzeText?: (
+    filePath: string,
+    content: string,
+  ) => SourceAnalysisResult | null | Promise<SourceAnalysisResult | null>;
+}>;
+
+function analyzeWithBuiltinFallback(
+  filePath: string,
+  content: string,
+): SourceAnalysisResult | null {
+  const provider = createTsMorphSourceAnalysisProvider();
+  if (!provider.supportsFile(filePath)) return null;
+  return provider.analyzeText(filePath, content);
+}
+
 export function extractSymbolsFromStagedFile(
   // implements REQ-008
   stagedFile: StagedFile,
   manifestLookup?: ManifestLookup,
+  options?: ExtractSymbolsOptions,
 ): ExtractedSymbol[] {
   const content = stagedFile.content ?? "";
-  const sha = computeContentSha(`${content}|${stagedFile.path}`);
+  const sha = computeContentSha(
+    `${content}|${stagedFile.path}|${options?.analyzeText ? "custom" : "builtin"}`,
+  );
 
   // TTL cache lookup
   const now = Date.now();
-  let cached = sourceFileCache.get(sha);
+  let cached = analysisCache.get(sha);
   if (!cached || now - cached.ts > CACHE_TTL_MS) {
-    // create or recreate SourceFile in project (in-memory)
     try {
-      const scriptKind = chooseScriptKind(stagedFile.path);
-      const sf = project.createSourceFile(
-        `${stagedFile.path}::staged`,
-        content,
-        {
-          overwrite: true,
-          scriptKind,
-        },
-      );
-      cached = { tsf: sf, ts: now };
-      sourceFileCache.set(sha, cached);
-    } catch (err) {
+      const analyze = options?.analyzeText ?? analyzeWithBuiltinFallback;
+      const raw = analyze(stagedFile.path, content);
+      if (raw instanceof Promise) {
+        throw new Error(
+          "extractSymbolsFromStagedFile received async analyzeText; use extractSymbolsFromStagedFileAsync",
+        );
+      }
+      cached = { result: raw, ts: now };
+      analysisCache.set(sha, cached);
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message.includes("extractSymbolsFromStagedFileAsync")
+      ) {
+        throw error;
+      }
       // on parse error, cache null to avoid retry storms briefly
-      cached = { tsf: null, ts: now };
-      sourceFileCache.set(sha, cached);
+      cached = { result: null, ts: now };
+      analysisCache.set(sha, cached);
     }
   }
 
-  const sf = cached.tsf;
-  if (!sf) return [];
+  return symbolsFromAnalysis(stagedFile, cached.result, manifestLookup);
+}
+
+/**
+ * Async staged symbol extraction. Defaults to deterministic builtin analysis.
+ * Pass an explicit `registry` only from allowlisted async surfaces that compose
+ * replace/augment/shadow (e.g. symbol repair). Maintenance paths (`check`,
+ * impact, sync, status, proof) must omit `registry` so external extractors
+ * never participate.
+ */
+// implements REQ-capability-plugin-activation-disclosure-v1
+export async function extractSymbolsFromStagedFileAsync(
+  stagedFile: StagedFile,
+  manifestLookup: ManifestLookup | undefined,
+  options: ExtractSymbolsOptions &
+    Readonly<{
+      registry?: import("../plugins/registry.js").CapabilityRegistry;
+    }>,
+): Promise<ExtractedSymbol[]> {
+  const content = stagedFile.content ?? "";
+  const sha = computeContentSha(
+    `${content}|${stagedFile.path}|async|${options.registry ? "registry" : "custom"}`,
+  );
+  const now = Date.now();
+  let cached = analysisCache.get(sha);
+  if (!cached || now - cached.ts > CACHE_TTL_MS) {
+    try {
+      let analysis: SourceAnalysisResult | null = null;
+      if (options.analyzeText) {
+        analysis = await options.analyzeText(stagedFile.path, content);
+      } else if (options.registry) {
+        const { createSourceAnalysisService } = await import(
+          "../plugins/source-analysis-service.js"
+        );
+        analysis = await createSourceAnalysisService({
+          registry: options.registry,
+        }).analyzeText(stagedFile.path, content);
+      } else {
+        analysis = analyzeWithBuiltinFallback(stagedFile.path, content);
+      }
+      cached = { result: analysis, ts: now };
+      analysisCache.set(sha, cached);
+    } catch {
+      cached = { result: null, ts: now };
+      analysisCache.set(sha, cached);
+    }
+  }
+  return symbolsFromAnalysis(stagedFile, cached.result, manifestLookup);
+}
+
+function symbolsFromAnalysis(
+  stagedFile: StagedFile,
+  analysis: SourceAnalysisResult | null,
+  manifestLookup?: ManifestLookup,
+): ExtractedSymbol[] {
+  if (!analysis) return [];
 
   const results: ExtractedSymbol[] = [];
 
-  // helpers to compute line spans
-  const getSpan = (startPos: number, endPos: number) => {
-    const start = sf.getLineAndColumnAtPos(startPos);
-    const end = sf.getLineAndColumnAtPos(endPos);
-    return { startLine: start.line, endLine: end.line };
-  };
-
-  // Functions
-  for (const fn of sf.getFunctions()) {
-    if (!fn.isExported()) continue;
+  for (const symbol of analysis.symbols) {
     try {
-      const name = fn.getName() ?? "<anonymous>";
-      const nameNode = fn.getNameNode();
-      const start = nameNode ? nameNode.getStart() : fn.getStart();
-      const end = fn.getEnd();
-      const span = getSpan(start, end);
-      const reqLinks = parseReqDirectives(
-        `${fn.getFullText()}\n${fn
-          .getJsDocs()
-          .map((d) => d.getFullText())
-          .join("\n")}`,
-      );
       results.push(
         buildSymbolResult(
           stagedFile,
-          name,
-          "function",
-          span,
-          reqLinks,
+          symbol.name,
+          symbol.kind as ExtractedSymbol["kind"],
+          { startLine: symbol.startLine, endLine: symbol.endLine },
+          parseReqDirectives(symbol.directiveText ?? ""),
           manifestLookup,
         ),
       );
     } catch {
       void stagedFile.path;
-    }
-  }
-
-  // Classes
-  for (const cls of sf.getClasses()) {
-    if (!cls.isExported()) continue;
-    try {
-      const name = cls.getName() ?? "<anonymous>";
-      const start = cls.getNameNode()?.getStart() ?? cls.getStart();
-      const end = cls.getEnd();
-      const span = getSpan(start, end);
-      const reqLinks = parseReqDirectives(getJsDocText(cls.getJsDocs()));
-      results.push(
-        buildSymbolResult(
-          stagedFile,
-          name,
-          "class",
-          span,
-          reqLinks,
-          manifestLookup,
-        ),
-      );
-    } catch {
-      void stagedFile.path;
-    }
-
-    for (const method of typeof cls.getMethods === "function"
-      ? cls.getMethods()
-      : []) {
-      try {
-        if (isPrivateClassMember(method)) continue;
-        const name = formatMethodSymbolName(cls.getName(), method.getName());
-        const start = method.getNameNode()?.getStart() ?? method.getStart();
-        const end = method.getEnd();
-        const span = getSpan(start, end);
-        const reqLinks = parseReqDirectives(
-          `${method.getFullText()}\n${method
-            .getJsDocs()
-            .map((d) => d.getFullText())
-            .join("\n")}`,
-        );
-        results.push(
-          buildSymbolResult(
-            stagedFile,
-            name,
-            "method",
-            span,
-            reqLinks,
-            manifestLookup,
-          ),
-        );
-      } catch {
-        void stagedFile.path;
-      }
-    }
-
-    for (const property of typeof cls.getProperties === "function"
-      ? cls.getProperties()
-      : []) {
-      try {
-        if (isPrivateClassMember(property)) continue;
-        const name = formatMethodSymbolName(cls.getName(), property.getName());
-        const start = property.getNameNode()?.getStart() ?? property.getStart();
-        const end = property.getEnd();
-        const span = getSpan(start, end);
-        const reqLinks = parseReqDirectives(
-          `${property.getFullText()}\n${property
-            .getJsDocs()
-            .map((d) => d.getFullText())
-            .join("\n")}`,
-        );
-        results.push(
-          buildSymbolResult(
-            stagedFile,
-            name,
-            "property",
-            span,
-            reqLinks,
-            manifestLookup,
-          ),
-        );
-      } catch {
-        void stagedFile.path;
-      }
-    }
-
-    for (const accessor of [
-      ...(typeof cls.getGetAccessors === "function"
-        ? cls.getGetAccessors()
-        : []),
-      ...(typeof cls.getSetAccessors === "function"
-        ? cls.getSetAccessors()
-        : []),
-    ]) {
-      try {
-        if (isPrivateClassMember(accessor)) continue;
-        const name = formatMethodSymbolName(cls.getName(), accessor.getName());
-        const start = accessor.getNameNode()?.getStart() ?? accessor.getStart();
-        const end = accessor.getEnd();
-        const span = getSpan(start, end);
-        const reqLinks = parseReqDirectives(
-          `${accessor.getFullText()}\n${accessor
-            .getJsDocs()
-            .map((d) => d.getFullText())
-            .join("\n")}`,
-        );
-        results.push(
-          buildSymbolResult(
-            stagedFile,
-            name,
-            "accessor",
-            span,
-            reqLinks,
-            manifestLookup,
-          ),
-        );
-      } catch {
-        void stagedFile.path;
-      }
-    }
-  }
-
-  // Enums
-  for (const en of sf.getEnums()) {
-    if (!en.isExported()) continue;
-    try {
-      const name = en.getName() ?? "<anonymous>";
-      const start = en.getNameNode()?.getStart() ?? en.getStart();
-      const end = en.getEnd();
-      const span = getSpan(start, end);
-      const reqLinks = parseReqDirectives(en.getText());
-      results.push(
-        buildSymbolResult(
-          stagedFile,
-          name,
-          "enum",
-          span,
-          reqLinks,
-          manifestLookup,
-        ),
-      );
-    } catch {
-      void stagedFile.path;
-    }
-  }
-
-  for (const iface of typeof sf.getInterfaces === "function"
-    ? sf.getInterfaces()
-    : []) {
-    if (!iface.isExported()) continue;
-    try {
-      const name = iface.getName();
-      const start = iface.getNameNode().getStart();
-      const end = iface.getEnd();
-      const span = getSpan(start, end);
-      const reqLinks = parseReqDirectives(iface.getText());
-      results.push(
-        buildSymbolResult(
-          stagedFile,
-          name,
-          "interface",
-          span,
-          reqLinks,
-          manifestLookup,
-        ),
-      );
-    } catch {
-      void stagedFile.path;
-    }
-  }
-
-  for (const alias of typeof sf.getTypeAliases === "function"
-    ? sf.getTypeAliases()
-    : []) {
-    if (!alias.isExported()) continue;
-    try {
-      const name = alias.getName();
-      const start = alias.getNameNode().getStart();
-      const end = alias.getEnd();
-      const span = getSpan(start, end);
-      const reqLinks = parseReqDirectives(alias.getText());
-      results.push(
-        buildSymbolResult(
-          stagedFile,
-          name,
-          "type",
-          span,
-          reqLinks,
-          manifestLookup,
-        ),
-      );
-    } catch {
-      void stagedFile.path;
-    }
-  }
-
-  // Variable statements (exported)
-  for (const vs of sf.getVariableStatements()) {
-    if (!vs.isExported()) continue;
-    for (const decl of vs.getDeclarations()) {
-      try {
-        const name = decl.getName();
-        const start = decl.getNameNode()?.getStart() ?? decl.getStart();
-        const end = decl.getEnd();
-        const span = getSpan(start, end);
-        const reqLinks = parseReqDirectives(decl.getText());
-        results.push(
-          buildSymbolResult(
-            stagedFile,
-            name,
-            "variable",
-            span,
-            reqLinks,
-            manifestLookup,
-          ),
-        );
-      } catch {
-        void stagedFile.path;
-      }
     }
   }
 
@@ -575,30 +414,7 @@ export function extractSymbolsFromStagedFile(
   return results;
 }
 
-export function isPrivateClassMember(member: {
-  getName?: () => string;
-  getScope?: () => Scope;
-}): boolean {
-  const name = typeof member.getName === "function" ? member.getName() : "";
-  if (name.startsWith("#")) {
-    return true;
-  }
-  if (typeof member.getScope === "function") {
-    return member.getScope() === Scope.Private;
-  }
-  return false;
-}
-
-function formatMethodSymbolName(
-  className: string | undefined,
-  methodName: string,
-): string {
-  return className ? `${className}.${methodName}` : methodName;
-}
-
-function getJsDocText(jsDocs: Array<{ getFullText(): string }>): string {
-  return jsDocs.map((d) => d.getFullText()).join("\n");
-}
+export { isPrivateClassMember };
 
 function intersectingHunks(
   startLine: number,

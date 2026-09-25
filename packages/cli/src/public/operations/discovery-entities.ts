@@ -116,6 +116,52 @@ export function paginateResults<T>(
   return results.slice(offset, offset + limit);
 }
 
+/**
+ * Page size for index-backed search candidate fetches. Each page is one
+ * Prolog query, so a fixed page size substantially bounds each response and
+ * fixes the observed large-KB output overflow; it is a practical bound, not
+ * a byte-size guarantee for arbitrarily large individual entity payloads.
+ */
+// implements REQ-kibi-operation-interface-parity, REQ-mcp-search-discovery
+export const SEARCH_CANDIDATE_PAGE_SIZE = 500;
+
+// implements REQ-kibi-operation-interface-parity, REQ-mcp-search-discovery
+export async function loadSearchCandidates(
+  prolog: Pick<PrologPort, "searchEntities">,
+  input: {
+    readonly query: string;
+    readonly type?: string;
+    readonly maxCandidates?: number;
+  },
+  signal?: AbortSignal,
+): Promise<Record<string, unknown>[]> {
+  const maxCandidates = input.maxCandidates ?? Number.POSITIVE_INFINITY;
+  const candidates: Record<string, unknown>[] = [];
+  let offset = 0;
+  let total = Number.POSITIVE_INFINITY;
+  while (offset < total && candidates.length < maxCandidates) {
+    // Call through the port property, never via a detached local: EngineClient
+    // searchEntities depends on `this` (this.command), and the PrologPort
+    // contract does not promise a pre-bound method.
+    const page = await prolog.searchEntities?.(
+      {
+        query: input.query,
+        ...(input.type !== undefined ? { type: input.type } : {}),
+        limit: SEARCH_CANDIDATE_PAGE_SIZE,
+        offset,
+      },
+      signal,
+    );
+    if (!page || page.entities.length === 0) break;
+    candidates.push(...page.entities);
+    total = page.count;
+    offset += page.entities.length;
+  }
+  return Number.isFinite(maxCandidates)
+    ? candidates.slice(0, maxCandidates)
+    : candidates;
+}
+
 // implements REQ-002
 export function dedupeEntities(
   entities: readonly Record<string, unknown>[],

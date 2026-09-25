@@ -202,3 +202,59 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2c8204964b01
+  - type: implements
+    from: SYM-kibi-script-change-to-proof-eval-ts-compilegoldcase
+    to: REQ-kibi-change-to-proof-evaluation
+    created_at: 2026-09-18T07:21:16.531Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f647fe08e400
+  - type: covered_by
+    from: SYM-kibi-script-change-to-proof-eval-ts-compilegoldcase
+    to: TEST-kibi-change-to-proof-evaluation-live
+    created_at: 2026-09-18T07:21:16.544Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95709751f5ec
+  - type: covered_by
+    from: SYM-DIAGNOSTIC_MODE_ENABLED
+    to: TEST-kibi-telemetry-acceptance-gate
+    created_at: 2026-09-18T14:50:10.752Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60365e3fa0d2
+  - type: covered_by
+    from: SYM-test
+    to: TEST-mcp-upsert-coverage
+    created_at: 2026-09-18T15:28:03.536Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb06ff28ade4
+  - type: covered_by
+    from: SYM-buildIndex
+    to: TEST-e2e-vscode-extension-lifecycle
+    created_at: 2026-09-19T19:31:16.672Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3fbf22392ea7
+  - type: implements
+    from: SYM-pack-packages-pack-catalog
+    to: REQ-020
+    created_at: 2026-09-21T15:27:14.640Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-044933ebfe02
+  - type: covered_by
+    from: SYM-pack-packages-pack-catalog
+    to: TEST-014
+    created_at: 2026-09-21T19:16:44.227Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a96cf6910188
+  - type: covered_by
+    from: SYM-cap-plugin-symbolextractoranalyzeinput-66f70997
+    to: TEST-capability-plugin-protocol-v1
+    created_at: 2026-09-22T19:46:15.405Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8fcfff055ca4

@@ -19,6 +19,7 @@ import {
 } from "../../utils/branch-store.js";
 import {
   loadEntities,
+  loadSearchCandidates,
   paginateResults,
   validateEntityType,
 } from "./discovery-entities.js";
@@ -140,15 +141,19 @@ export async function executeQuery(
   const { type, id, tags, sourceFile, limit = 100, offset = 0 } = input;
   try {
     const prolog = requireProlog(context);
+    const signal = context.signal;
     const indexedPage = prolog.queryEntities
-      ? await prolog.queryEntities({
-          ...(type !== undefined ? { type } : {}),
-          ...(id !== undefined ? { id } : {}),
-          ...(tags !== undefined ? { tags } : {}),
-          ...(sourceFile !== undefined ? { sourceFile } : {}),
-          limit,
-          offset,
-        })
+      ? await prolog.queryEntities(
+          {
+            ...(type !== undefined ? { type } : {}),
+            ...(id !== undefined ? { id } : {}),
+            ...(tags !== undefined ? { tags } : {}),
+            ...(sourceFile !== undefined ? { sourceFile } : {}),
+            limit,
+            offset,
+          },
+          signal,
+        )
       : null;
     if (indexedPage !== null) {
       const paginated = indexedPage.entities;
@@ -260,15 +265,17 @@ export async function executeSearch(
       };
     }
     const indexedCandidates = prolog.searchEntities
-      ? await prolog.searchEntities({
-          query: trimmedQuery,
-          ...(type !== undefined ? { type } : {}),
-          limit: 100_000,
-          offset: 0,
-        })
+      ? await loadSearchCandidates(
+          prolog,
+          {
+            query: trimmedQuery,
+            ...(type !== undefined ? { type } : {}),
+          },
+          context.signal,
+        )
       : null;
     const entities = indexedCandidates
-      ? [...indexedCandidates.entities]
+      ? [...indexedCandidates]
       : await loadEntities(prolog, {
           ...(type !== undefined ? { type } : {}),
         });
@@ -335,21 +342,27 @@ export async function executeStatus(
       };
     } else
       try {
-        const prolog =
-          context.prolog ??
-          (() => {
-            ownedEngine = new EngineClient({
-              workspaceRoot: context.workspaceRoot,
-              branch: attachment.kbBranch,
-              timeout: 15_000,
-            });
-            return ownedEngine;
-          })();
+        // Prefer an injected or session-backed engine so MCP status shares the
+        // same client as discovery tools. Only spawn an owned fallback when no
+        // host session is available (CLI status without a live runtime port).
+        let prolog = context.prolog;
+        if (!prolog && context.ensureProlog) {
+          prolog = await context.ensureProlog();
+        }
+        if (!prolog) {
+          ownedEngine = new EngineClient({
+            workspaceRoot: context.workspaceRoot,
+            branch: attachment.kbBranch,
+            timeout: 15_000,
+          });
+          prolog = ownedEngine;
+        }
         payload = await runOperationJsonQuery<StatusPayload>(
           prolog,
           "status.pl",
           "status:kb_status_json(JsonString)",
           "Status execution",
+          context.signal,
         );
         if (!isStatusPayload(payload)) {
           throw new Error("Status execution query returned an invalid payload");

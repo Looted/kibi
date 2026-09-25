@@ -33,6 +33,7 @@ known_rule('strict-req-fact-pairing').
 known_rule('predicate-verifiability').
 known_rule('strict-readiness').
 known_rule('semantic-completeness').
+known_rule('proof-contract-symbols').
 
 rule_enforcement_class('must-priority-coverage', canonical).
 rule_enforcement_class('symbol-coverage', canonical).
@@ -53,6 +54,7 @@ rule_enforcement_class('strict-req-fact-pairing', advisory).
 rule_enforcement_class('predicate-verifiability', advisory).
 rule_enforcement_class('strict-readiness', migration).
 rule_enforcement_class('semantic-completeness', migration).
+rule_enforcement_class('proof-contract-symbols', advisory).
 
 rule_implementation('must-priority-coverage', prolog).
 rule_implementation('symbol-coverage', prolog).
@@ -73,6 +75,7 @@ rule_implementation('strict-req-fact-pairing', prolog).
 rule_implementation('predicate-verifiability', prolog).
 rule_implementation('strict-readiness', prolog).
 rule_implementation('semantic-completeness', prolog).
+rule_implementation('proof-contract-symbols', prolog).
 
 rule_predicate('must-priority-coverage', check_must_priority_coverage).
 rule_predicate('symbol-coverage', check_symbol_coverage).
@@ -91,6 +94,7 @@ rule_predicate('strict-req-fact-pairing', check_strict_req_fact_pairing).
 rule_predicate('predicate-verifiability', check_predicate_verifiability).
 rule_predicate('strict-readiness', check_strict_readiness).
 rule_predicate('semantic-completeness', check_semantic_completeness).
+rule_predicate('proof-contract-symbols', check_proof_contract_symbols).
 
 rule_predicate_arity('must-priority-coverage', 1).
 rule_predicate_arity('symbol-coverage', 1).
@@ -109,6 +113,7 @@ rule_predicate_arity('strict-req-fact-pairing', 1).
 rule_predicate_arity('predicate-verifiability', 1).
 rule_predicate_arity('strict-readiness', 1).
 rule_predicate_arity('semantic-completeness', 1).
+rule_predicate_arity('proof-contract-symbols', 1).
 
 rule_description('must-priority-coverage', 'Every must-priority requirement must have a scenario and a test').
 rule_description('symbol-coverage', 'Production symbols need qualifying coverage via covered_by plus a canonical requirement/scenario test path').
@@ -129,3 +134,4 @@ rule_description('strict-req-fact-pairing', 'Detect requirements with incomplete
 rule_description('predicate-verifiability', 'Detect requires_predicate links that do not target ground fact_kind: predicate facts').
 rule_description('strict-readiness', 'Report strict contradiction-readiness levels for requirements that are still prose-only or otherwise not contradiction-ready').
 rule_description('semantic-completeness', 'Every inventoried assertive proposition is modeled or explicitly classified').
+rule_description('proof-contract-symbols', 'Detect unresolved required_proofs.symbol_id values, type-shape required proofs, and proof_bindings.source_file disagreement with the named symbol sourceFile').

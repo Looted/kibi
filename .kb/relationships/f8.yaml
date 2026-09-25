@@ -160,3 +160,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4dad5c111330
+  - type: covered_by
+    from: SYM-DeleteResult
+    to: TEST-mcp-upsert-coverage
+    created_at: 2026-09-18T14:52:24.670Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09b826878980
+  - type: covered_by
+    from: SYM-resolveManifestPath
+    to: TEST-agent-kibi-interface-selection
+    created_at: 2026-09-18T15:25:57.854Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e919ff1334b1
+  - type: implements
+    from: SYM-skillopt-one-shot-variant
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:39:51.930Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e242d1aa83f8
+  - type: implements
+    from: SYM-skillopt-fake-provider-outcome
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:41:20.994Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d084f7a777fd

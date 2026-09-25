@@ -240,10 +240,9 @@ export async function buildSymbolRepairPlan(
       : path.resolve(context.workspaceRoot, source);
     if (!existsSync(absolute)) continue;
     try {
-      const analysis = analyzeSourceText(
-        absolute,
-        readFileSync(absolute, "utf8"),
-      );
+      const content = readFileSync(absolute, "utf8");
+      // Coverage/impact is a maintenance path: never import project plugins.
+      const analysis = analyzeSourceText(absolute, content);
       if (analysis.providerId === null) continue;
       extractedByPath.set(
         source,

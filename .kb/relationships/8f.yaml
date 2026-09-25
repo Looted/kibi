@@ -63,13 +63,6 @@ relationships:
     source: mcp://kibi/upsert
     id: rel-f91a4e4bbc8f
   - type: implements
-    from: SYM-skillopt-python-env-adapter
-    to: REQ-skillopt-external-adoption-verdict
-    created_at: 2026-09-10T15:00:27.612Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-55428fce602a
-  - type: implements
     from: SYM-classify-store-lock-holder
     to: REQ-core-journaled-engine-persistence
     created_at: 2026-09-14T12:37:50.306Z
@@ -83,3 +76,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8e3874db2f81
+  - type: implements
+    from: SYM-skillopt-python-env-adapter
+    to: REQ-skillopt-paid-matrix-infrastructure
+    created_at: 2026-09-19T19:40:00.279Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c45ed37a136a
+  - type: implements
+    from: SYM-cap-plugin-external-semantic-classifier-operations-2fb73e29
+    to: REQ-capability-plugin-observable-behavior-v1
+    created_at: 2026-09-22T19:38:43.801Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a40721509e7
+  - type: covered_by
+    from: SYM-cap-plugin-external-semantic-classifier-operations-2fb73e29
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T19:38:43.806Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a6f2e9a24be

@@ -125,3 +125,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-46dec4e971dc
+  - type: covered_by
+    from: SYM-quality-inventory-c15938c764d8
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-18T07:37:53.738Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7a659f5ea5f1
+  - type: covered_by
+    from: SYM-skillopt-source-tree-hash-main
+    to: TEST-e2e-skillopt-trust-boundaries
+    created_at: 2026-09-19T19:26:23.196Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5b4706ba24c2
+  - type: covered_by
+    from: SYM-cap-plugin-projectkibiconfig-24a81eca
+    to: TEST-capability-plugin-protocol-v1
+    created_at: 2026-09-22T19:47:04.816Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8a2f063e6648
+  - type: implements
+    from: SYM-plugin-configured-diagnostic
+    to: REQ-capability-plugin-configuration-v1
+    created_at: 2026-09-22T19:49:32.637Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2d2fa231794e
+  - type: covered_by
+    from: SYM-plugin-configured-diagnostic
+    to: TEST-capability-plugin-host-resolution-v1
+    created_at: 2026-09-22T19:49:32.642Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-57c22ecfdcef

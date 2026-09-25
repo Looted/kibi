@@ -141,9 +141,9 @@ describe("kibi-zcode skills", () => {
   });
 
   test("finds CRLF frontmatter delimiters without normalizing body bytes", () => {
-    expect(skillBodyAfterFrontmatter("---\r\nname: test\r\n---\r\nbody\r\n")).toBe(
-      "body\r\n",
-    );
+    expect(
+      skillBodyAfterFrontmatter("---\r\nname: test\r\n---\r\nbody\r\n"),
+    ).toBe("body\r\n");
   });
 
   test("skill bodies are byte-identical to the canonical bundled skills", () => {

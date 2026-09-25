@@ -94,3 +94,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4af5d1d35684
+  - type: covered_by
+    from: SYM-plugin-describe-configured
+    to: TEST-e2e-capability-plugins
+    created_at: 2026-09-22T09:43:29.164Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d7d49cac28d
+  - type: implements
+    from: SYM-plugin-describe-configured
+    to: REQ-capability-plugin-configuration-v1
+    created_at: 2026-09-22T19:49:23.375Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-035762fe9fa2
