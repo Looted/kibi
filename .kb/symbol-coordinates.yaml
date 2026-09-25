@@ -10117,12 +10117,12 @@ coordinates:
     sourceLine: 116
   SYM-execute-ingest-proof:
     identityHash: cb968bafe7d9d580f61a9c725c6344f3ed839234bdc99e6d5d3ed9072ba01395
-    sourceHash: 095c0fdc9692b04ecd530bc523333eb182d75248369a0e6586c9d4ddcaa1d93f
+    sourceHash: 8ca87445da8be7ebbcdef7abb15c11cc43dad0504055618754ca85149cfb2617
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 597
+    sourceEndLine: 596
     sourceFile: packages/cli/src/operations/proof/ingest-proof.ts
-    sourceLine: 239
+    sourceLine: 240
   SYM-execute-model-requirement:
     identityHash: 5f994a22338ad9cfd1fc95aa6cbfca981432eb412836757ccb1ac367b136a026
     sourceHash: e098a70fb907deb9e0190960b96c4554f6c8d1c501478fd38af8f256d2a86b78
@@ -10141,12 +10141,12 @@ coordinates:
     sourceLine: 421
   SYM-executeIngestProof:
     identityHash: a070b8dea1c3bf11901912befd1138f0a58d9b6d4c9a5be007dfed588c085121
-    sourceHash: 095c0fdc9692b04ecd530bc523333eb182d75248369a0e6586c9d4ddcaa1d93f
+    sourceHash: 8ca87445da8be7ebbcdef7abb15c11cc43dad0504055618754ca85149cfb2617
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 597
+    sourceEndLine: 596
     sourceFile: packages/cli/src/operations/proof/ingest-proof.ts
-    sourceLine: 239
+    sourceLine: 240
   SYM-executeOperation:
     identityHash: 5153b78a00eaa4d644861b116ca70b6c0376500b8912b7d37658c59c6ab04f66
     sourceHash: fe1f6bc7245dc8c2285a78c79017a6b777b2db4b40755076853522dffe3f1e4b
@@ -11061,20 +11061,20 @@ coordinates:
     sourceLine: 46
   SYM-ingest-proof-args:
     identityHash: 8acbc5604755731c9c898c9a60d2361d9446e05533276c1e5e293bcdcb0ee852
-    sourceHash: 095c0fdc9692b04ecd530bc523333eb182d75248369a0e6586c9d4ddcaa1d93f
+    sourceHash: 8ca87445da8be7ebbcdef7abb15c11cc43dad0504055618754ca85149cfb2617
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 54
+    sourceEndLine: 55
     sourceFile: packages/cli/src/operations/proof/ingest-proof.ts
-    sourceLine: 50
+    sourceLine: 51
   SYM-ingest-proof-result:
     identityHash: ab2dbf6ff4ba90fd396b7c6e501fd7b9b023b27dd5bb789c5b79c232e0d68c8f
-    sourceHash: 095c0fdc9692b04ecd530bc523333eb182d75248369a0e6586c9d4ddcaa1d93f
+    sourceHash: 8ca87445da8be7ebbcdef7abb15c11cc43dad0504055618754ca85149cfb2617
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 75
+    sourceEndLine: 76
     sourceFile: packages/cli/src/operations/proof/ingest-proof.ts
-    sourceLine: 67
+    sourceLine: 68
   SYM-ingest-proof-spec:
     identityHash: 42f8644c9693dffbf1427e8504352cb2a69609f1ad0309e04a09f24eb1f3296b
     sourceHash: 64a3a4155747f37326a024c060354ff94dd42d5a9adb31e3ad9cfa398e2e990e
@@ -11085,12 +11085,12 @@ coordinates:
     sourceLine: 16
   SYM-ingest-proof-test-result:
     identityHash: a879510e82484ec688d7b047497b05541274dadeceea9ed2ddee61159731d772
-    sourceHash: 095c0fdc9692b04ecd530bc523333eb182d75248369a0e6586c9d4ddcaa1d93f
+    sourceHash: 8ca87445da8be7ebbcdef7abb15c11cc43dad0504055618754ca85149cfb2617
     sourceColumn: 12
     sourceEndColumn: 3
-    sourceEndLine: 64
+    sourceEndLine: 65
     sourceFile: packages/cli/src/operations/proof/ingest-proof.ts
-    sourceLine: 56
+    sourceLine: 57
   SYM-initializeDiagnosticMode:
     identityHash: 6e0333ce11fcf08013963a9b0dc076dda54c42dc7a20048878cc80e53946ce1e
     sourceHash: 516640885646876b3c4c08fb8a5bf6c3a3073b87d4cb4041c3eb778d3b3137e1

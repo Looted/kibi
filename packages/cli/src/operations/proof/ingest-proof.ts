@@ -41,6 +41,7 @@ import {
   parseUpsertChangeKinds,
 } from "../mutation/contradictions.js";
 import { executeUpsert } from "../mutation/upsert.js";
+import type { UpsertPayload } from "../mutation/types.js";
 import {
   patchReceiptsIntoDocument,
   removeFrontmatterBlock,
@@ -427,9 +428,7 @@ export async function executeIngestProof(
     receiptId: string;
     receiptCount: number;
     gaps: readonly ProofGap[];
-    deferred: NonNullable<
-      Awaited<ReturnType<typeof executeUpsert>>["structuredContent"]["deferredCommit"]
-    >;
+    deferred: NonNullable<UpsertPayload["deferredCommit"]>;
   }[] = [];
   let passed = 0;
   let failed = 0;
@@ -515,7 +514,7 @@ export async function executeIngestProof(
       context,
       upsertOptions,
     );
-    const deferred = upsert.structuredContent.deferredCommit;
+    const deferred = upsert.structuredContent?.deferredCommit;
     if (!deferred) {
       throw new Error(
         `Proof ingest failed for ${testId}: receipt commit was not prepared`,
