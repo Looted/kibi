@@ -30,9 +30,10 @@ export interface GitRepositoryContext {
   effectiveHooksDir: string;
   isLinkedWorktree: boolean;
   /**
-   * Primary checkout root when it can be derived unambiguously, i.e. when the
-   * common Git directory is `<primary>/.git`. Null for bare repositories and
-   * separate-git-dir layouts where dirname(commonGitDir) is not a checkout.
+   * Primary checkout root, only when it can be validated as a real checkout
+   * (`git -C <candidate> rev-parse --show-toplevel` resolves to the
+   * candidate). Null for bare repositories, separate-git-dir layouts, and any
+   * candidate that is not itself a working tree.
    */
   primaryWorktreeRoot: string | null;
   /** Raw core.hooksPath value when configured, else null. */
@@ -40,6 +41,12 @@ export interface GitRepositoryContext {
   /** Config origin line (from --show-origin) for the configured hooksPath. */
   hooksPathOrigin: string | null;
 }
+
+export type GitRepositoryResolution =
+  | { status: "ok"; context: GitRepositoryContext }
+  | { status: "not-a-repository" }
+  | { status: "git-unavailable" }
+  | { status: "unsupported"; reason: string };
 
 // `git rev-parse --path-format=absolute` requires git 2.31 (2021-03). Older
 // git returns cwd-relative paths for --git-dir/--git-common-dir/--git-path,
@@ -75,16 +82,33 @@ function resolveAgainstCwd(candidate: string, cwd: string): string {
 
 /**
  * Resolve the effective Git repository context for `cwd` by asking Git
- * instead of assuming `<cwd>/.git`. Returns null when `cwd` is not inside a
- * Git repository or Git is unavailable; callers decide how to report that.
+ * instead of assuming `<cwd>/.git`. The result distinguishes "no repository"
+ * (callers may fall back to standalone-workspace behavior) from repositories
+ * Kibi must not touch (bare repositories, unreadable contexts), so an
+ * operational Git error can never trigger workspace writes.
  *
  * implements REQ-git-hook-effective-install
  */
-export function resolveGitRepositoryContext(
+export function resolveGitRepository(
   cwd: string = process.cwd(),
-): GitRepositoryContext | null {
+): GitRepositoryResolution {
+  const gitAvailable = runGit(cwd, ["--version"]) !== null;
+  if (!gitAvailable) return { status: "git-unavailable" };
+
   const worktreeRoot = runGit(cwd, ["rev-parse", "--show-toplevel"]);
-  if (!worktreeRoot) return null;
+  if (!worktreeRoot) {
+    // A bare repository has no working tree (--show-toplevel fails) but is
+    // still a repository; treat it as unsupported instead of "no repository"
+    // so callers refuse to write workspace state into it.
+    const gitDirProbe = runGit(cwd, ["rev-parse", "--git-dir"]);
+    if (gitDirProbe) {
+      return {
+        status: "unsupported",
+        reason: "Bare repository: no working tree to attach Kibi to.",
+      };
+    }
+    return { status: "not-a-repository" };
+  }
 
   const version = parseGitVersion(runGit(cwd, ["--version"]) ?? "");
   const absolute = version !== null &&
@@ -105,7 +129,13 @@ export function resolveGitRepositoryContext(
     "--git-path",
     "hooks",
   ]);
-  if (!gitDirRaw || !commonGitDirRaw || !hooksDirRaw) return null;
+  if (!gitDirRaw || !commonGitDirRaw || !hooksDirRaw) {
+    return {
+      status: "unsupported",
+      reason:
+        "Git refused to report its directory layout for this repository.",
+    };
+  }
 
   // Without --path-format the outputs above are relative to cwd (or absolute
   // for linked-worktree git dirs); normalize everything against cwd.
@@ -132,17 +162,32 @@ export function resolveGitRepositoryContext(
   }
 
   const isLinkedWorktree = gitDir !== commonGitDir;
-  const primaryWorktreeRoot =
-    path.basename(commonGitDir) === ".git" ? path.dirname(commonGitDir) : null;
+  let primaryWorktreeRoot: string | null = null;
+  if (path.basename(commonGitDir) === ".git") {
+    const candidate = path.dirname(commonGitDir);
+    // Validate the candidate as a real checkout: a linked worktree of a bare
+    // repository also has commonDir `<bare>/.git`, and dirname of that is the
+    // bare holder directory, not a checkout.
+    const candidateToplevel = runGit(candidate, [
+      "rev-parse",
+      "--show-toplevel",
+    ]);
+    if (candidateToplevel === candidate) {
+      primaryWorktreeRoot = candidate;
+    }
+  }
 
   return {
-    worktreeRoot,
-    gitDir,
-    commonGitDir,
-    effectiveHooksDir,
-    isLinkedWorktree,
-    primaryWorktreeRoot,
-    hooksPathConfig,
-    hooksPathOrigin,
+    status: "ok",
+    context: {
+      worktreeRoot,
+      gitDir,
+      commonGitDir,
+      effectiveHooksDir,
+      isLinkedWorktree,
+      primaryWorktreeRoot,
+      hooksPathConfig,
+      hooksPathOrigin,
+    },
   };
 }

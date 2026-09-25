@@ -38,7 +38,7 @@ import {
 import { readKbManifestStatus } from "../utils/kb-manifest.js";
 import {
   type GitRepositoryContext,
-  resolveGitRepositoryContext,
+  resolveGitRepository,
 } from "../utils/git-repository-context.js";
 import { planLegacyStorageMigration } from "./legacy-storage-migration.js";
 
@@ -71,6 +71,10 @@ export interface DoctorOptions {
 export async function doctorCommand(
   options: DoctorOptions = {},
 ): Promise<{ exitCode: number }> {
+  // The repository context is per-diagnostic-run state: clearing here keeps
+  // repeated in-process invocations honest when core.hooksPath changes
+  // between runs, without introducing another ambient cache.
+  cachedRepositoryContext = undefined;
   const checks: DoctorCheck[] = [
     {
       name: "SWI-Prolog",
@@ -708,7 +712,11 @@ let cachedRepositoryContext:
 function doctorRepositoryContext(): GitRepositoryContext | null {
   const cwd = process.cwd();
   if (cachedRepositoryContext?.cwd !== cwd) {
-    cachedRepositoryContext = { cwd, context: resolveGitRepositoryContext(cwd) };
+    const resolution = resolveGitRepository(cwd);
+    cachedRepositoryContext = {
+      cwd,
+      context: resolution.status === "ok" ? resolution.context : null,
+    };
   }
   return cachedRepositoryContext.context;
 }
@@ -718,6 +726,15 @@ function effectiveHooksDir(): string {
   return (
     context?.effectiveHooksDir ?? path.join(process.cwd(), ".git", "hooks")
   );
+}
+
+function shellQuote(value: string): string {
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+function remediationHookPaths(...hooks: string[]): string {
+  const dir = effectiveHooksDir();
+  return `Run: chmod +x ${hooks.map((hook) => shellQuote(path.join(dir, hook))).join(" ")}`;
 }
 
 function hooksPathSuffix(): string {
@@ -734,14 +751,17 @@ function checkGitHooks(): {
 } {
   const postCheckoutPath = path.join(effectiveHooksDir(), "post-checkout");
   const postMergePath = path.join(effectiveHooksDir(), "post-merge");
+  const preCommitPath = path.join(effectiveHooksDir(), "pre-commit");
 
   const postCheckoutExists = existsSync(postCheckoutPath);
   const postMergeExists = existsSync(postMergePath);
 
-  if (!postCheckoutExists && !postMergeExists) {
+  // An existing pre-commit is hard enforcement; the companions being absent
+  // must not downgrade the summary to "optional".
+  if (!postCheckoutExists && !postMergeExists && !existsSync(preCommitPath)) {
     return {
       passed: true,
-      message: "Not installed (optional)",
+      message: `Not installed (optional)${hooksPathSuffix()}`,
     };
   }
 
@@ -761,9 +781,9 @@ function checkGitHooks(): {
       }
       return {
         passed: false,
-        message: "Installed but not executable",
+        message: `Installed but not executable${hooksPathSuffix()}`,
         remediation:
-          "Run: chmod +x .git/hooks/post-checkout .git/hooks/post-merge",
+          remediationHookPaths("post-checkout", "post-merge"),
       };
     } catch (error) {
       return {
@@ -775,7 +795,7 @@ function checkGitHooks(): {
 
   return {
     passed: false,
-    message: "Partially installed",
+    message: `Partially installed${hooksPathSuffix()}`,
     remediation: "Run: kibi init",
   };
 }
@@ -795,7 +815,7 @@ function checkPreCommitHook(): {
   if (!postCheckoutExists && !postMergeExists) {
     return {
       passed: true,
-      message: "Not installed (optional)",
+      message: `Not installed (optional)${hooksPathSuffix()}`,
     };
   }
 
@@ -867,8 +887,8 @@ function checkPreCommitHook(): {
 
     return {
       passed: false,
-      message: "Installed but not executable",
-      remediation: "Run: chmod +x .git/hooks/pre-commit",
+      message: `Installed but not executable${hooksPathSuffix()}`,
+      remediation: remediationHookPaths("pre-commit"),
     };
   } catch (error) {
     return {
@@ -894,7 +914,7 @@ function checkPostRewriteHook(): {
   if (!postCheckoutExists && !postMergeExists) {
     return {
       passed: true,
-      message: "Not installed (optional)",
+      message: `Not installed (optional)${hooksPathSuffix()}`,
     };
   }
 
@@ -946,8 +966,8 @@ function checkPostRewriteHook(): {
 
     return {
       passed: false,
-      message: "Installed but not executable",
-      remediation: "Run: chmod +x .git/hooks/post-rewrite",
+      message: `Installed but not executable${hooksPathSuffix()}`,
+      remediation: remediationHookPaths("post-rewrite"),
     };
   } catch (error) {
     return {

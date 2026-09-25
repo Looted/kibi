@@ -20,9 +20,11 @@ import {
   chmodSync,
   copyFileSync,
   existsSync,
+  lstatSync,
   mkdirSync,
   readFileSync,
   writeFileSync,
+  type Stats,
 } from "node:fs";
 import * as path from "node:path";
 import fg from "fast-glob";
@@ -281,7 +283,30 @@ function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-export type InstallHookResult = "installed" | "updated" | "skipped-foreign";
+export type InstallHookResult =
+  | "installed"
+  | "updated"
+  | "skipped-foreign"
+  | "skipped-symlink"
+  | "skipped-unsupported";
+
+function hookIntegrationRecipe(hook: string): string {
+  // Recipes must reproduce the exact checks the Kibi template runs for that
+  // hook, with failure propagation, or the delegation is weaker than the
+  // template it replaces.
+  switch (hook) {
+    case "pre-commit":
+      return "delegate from that hook with 'kibi check-generated --staged --changed-only && kibi check --staged' (both commands must succeed; '&&' propagates the first failure)";
+    case "post-checkout":
+      return "delegate from that hook to 'kibi sync' on branch checkouts (the template skips file checkouts)";
+    case "post-merge":
+      return "delegate from that hook to 'kibi sync'";
+    case "post-rewrite":
+      return "delegate from that hook to 'kibi sync' after rebase/amend rewrites";
+    default:
+      return "delegate to the matching Kibi template command";
+  }
+}
 
 export function installHook(
   hookPath: string,
@@ -291,7 +316,38 @@ export function installHook(
   // implements REQ-git-hook-effective-install
   const kibiSection = `${KIBI_HOOK_BEGIN}\n${content}\n${KIBI_HOOK_END}`;
 
-  if (existsSync(hookPath)) {
+  let hookStats: Stats;
+  try {
+    hookStats = lstatSync(hookPath);
+  } catch (error) {
+    if (
+      (error as NodeJS.ErrnoException).code === "ENOENT" ||
+      (error as NodeJS.ErrnoException).code === "ENOTDIR"
+    ) {
+      // Missing hook: create it through the parent directory. Refuse when an
+      // ancestor is itself a symlink whose target leaves the resolved path
+      // (realpath is checked by the caller's hooks-dir guard).
+      writeFileSync(hookPath, `#!/bin/sh\n${kibiSection}\n`, { mode: 0o755 });
+      chmodSync(hookPath, 0o755);
+      return "installed";
+    }
+    console.error(
+      `! Unable to inspect ${hookPath}: ${(error as Error).message}; leaving it untouched.`,
+    );
+    return "skipped-unsupported";
+  }
+
+  if (hookStats.isSymbolicLink()) {
+    // Never follow a symlinked hook: read/write/chmod would modify an
+    // arbitrary target outside our guard. Dangling symlinks are treated the
+    // same (the intended target must not be auto-created either).
+    return "skipped-symlink";
+  }
+  if (!hookStats.isFile()) {
+    return "skipped-unsupported";
+  }
+
+  try {
     const existing = readFileSync(hookPath, "utf8");
 
     if (
@@ -321,10 +377,11 @@ export function installHook(
       chmodSync(hookPath, 0o755);
       return "installed";
     }
-  } else {
-    writeFileSync(hookPath, `#!/bin/sh\n${kibiSection}\n`, { mode: 0o755 });
-    chmodSync(hookPath, 0o755);
-    return "installed";
+  } catch (error) {
+    console.error(
+      `! Unable to read ${hookPath}: ${(error as Error).message}; leaving it untouched.`,
+    );
+    return "skipped-unsupported";
   }
 }
 
@@ -377,7 +434,15 @@ export function installGitHooks(
   for (const { hook, result } of results) {
     if (result === "skipped-foreign") {
       console.log(
-        `! ${hook}: existing non-Kibi hook left untouched; Kibi enforcement is NOT installed for this hook (delegate to 'kibi check --staged' from that hook to integrate).`,
+        `! ${hook}: existing non-Kibi hook left untouched; Kibi enforcement is NOT installed for this hook. To integrate: ${hookIntegrationRecipe(hook)}.`,
+      );
+    } else if (result === "skipped-symlink") {
+      console.log(
+        `! ${hook}: hook is a symlink; Kibi never edits symlink targets. Manage the target manually (${hookIntegrationRecipe(hook)}).`,
+      );
+    } else if (result === "skipped-unsupported") {
+      console.log(
+        `! ${hook}: hook path is not a regular file; left untouched.`,
       );
     }
   }
@@ -395,7 +460,7 @@ export function installGitHooks(
   }
   if (options.hooksPathOrigin) {
     console.log(
-      `! core.hooksPath is configured (${options.hooksPathOrigin}); hooks were installed into the directory Git executes. A relative hooks path resolves per worktree, so other worktrees may need their own 'kibi init'.`,
+      `! core.hooksPath is configured (${options.hooksPathOrigin}); hooks were installed for THIS checkout at ${hooksDir}. Git resolves a relative hooks path separately under every worktree, so coverage of other worktrees is INCOMPLETE/UNVERIFIED: commit a versioned launcher that delegates to kibi, or run 'kibi init' in each checkout. Kibi will not change core.hooksPath.`,
     );
   }
   return results;
