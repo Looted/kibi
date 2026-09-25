@@ -36,6 +36,10 @@ import {
   migrationAction,
 } from "../public/operations/migration-plan.js";
 import { readKbManifestStatus } from "../utils/kb-manifest.js";
+import {
+  type GitRepositoryContext,
+  resolveGitRepositoryContext,
+} from "../utils/git-repository-context.js";
 import { planLegacyStorageMigration } from "./legacy-storage-migration.js";
 
 /**
@@ -693,13 +697,43 @@ function checkGitRepository(): {
   }
 }
 
+// Hook health must be diagnosed against the hooks directory Git actually
+// executes (resolved via git rev-parse --git-path hooks, honoring
+// core.hooksPath and linked worktrees), not against <cwd>/.git/hooks.
+// implements REQ-git-hook-effective-install
+let cachedRepositoryContext:
+  | { cwd: string; context: GitRepositoryContext | null }
+  | undefined;
+
+function doctorRepositoryContext(): GitRepositoryContext | null {
+  const cwd = process.cwd();
+  if (cachedRepositoryContext?.cwd !== cwd) {
+    cachedRepositoryContext = { cwd, context: resolveGitRepositoryContext(cwd) };
+  }
+  return cachedRepositoryContext.context;
+}
+
+function effectiveHooksDir(): string {
+  const context = doctorRepositoryContext();
+  return (
+    context?.effectiveHooksDir ?? path.join(process.cwd(), ".git", "hooks")
+  );
+}
+
+function hooksPathSuffix(): string {
+  const context = doctorRepositoryContext();
+  if (!context?.hooksPathConfig) return "";
+  const origin = context.hooksPathOrigin ? ` from ${context.hooksPathOrigin}` : "";
+  return ` (core.hooksPath=${context.hooksPathConfig}${origin})`;
+}
+
 function checkGitHooks(): {
   passed: boolean;
   message: string;
   remediation?: string;
 } {
-  const postCheckoutPath = path.join(process.cwd(), ".git/hooks/post-checkout");
-  const postMergePath = path.join(process.cwd(), ".git/hooks/post-merge");
+  const postCheckoutPath = path.join(effectiveHooksDir(), "post-checkout");
+  const postMergePath = path.join(effectiveHooksDir(), "post-merge");
 
   const postCheckoutExists = existsSync(postCheckoutPath);
   const postMergeExists = existsSync(postMergePath);
@@ -722,7 +756,7 @@ function checkGitHooks(): {
       if (checkoutExecutable && mergeExecutable) {
         return {
           passed: true,
-          message: "Installed and executable",
+          message: `Installed and executable${hooksPathSuffix()}`,
         };
       }
       return {
@@ -751,9 +785,9 @@ function checkPreCommitHook(): {
   message: string;
   remediation?: string;
 } {
-  const postCheckoutPath = path.join(process.cwd(), ".git/hooks/post-checkout");
-  const postMergePath = path.join(process.cwd(), ".git/hooks/post-merge");
-  const preCommitPath = path.join(process.cwd(), ".git/hooks/pre-commit");
+  const postCheckoutPath = path.join(effectiveHooksDir(), "post-checkout");
+  const postMergePath = path.join(effectiveHooksDir(), "post-merge");
+  const preCommitPath = path.join(effectiveHooksDir(), "pre-commit");
 
   const postCheckoutExists = existsSync(postCheckoutPath);
   const postMergeExists = existsSync(postMergePath);
@@ -817,7 +851,7 @@ function checkPreCommitHook(): {
         return {
           passed: true,
           message:
-            "Installed and executable (resolves kibi CLI; uses 'kibi check --staged')",
+            `Installed and executable (resolves kibi CLI; uses 'kibi check --staged')${hooksPathSuffix()}`,
         };
       }
 
@@ -850,9 +884,9 @@ function checkPostRewriteHook(): {
   message: string;
   remediation?: string;
 } {
-  const postCheckoutPath = path.join(process.cwd(), ".git/hooks/post-checkout");
-  const postMergePath = path.join(process.cwd(), ".git/hooks/post-merge");
-  const postRewritePath = path.join(process.cwd(), ".git/hooks/post-rewrite");
+  const postCheckoutPath = path.join(effectiveHooksDir(), "post-checkout");
+  const postMergePath = path.join(effectiveHooksDir(), "post-merge");
+  const postRewritePath = path.join(effectiveHooksDir(), "post-rewrite");
 
   const postCheckoutExists = existsSync(postCheckoutPath);
   const postMergeExists = existsSync(postMergePath);
@@ -906,7 +940,7 @@ function checkPostRewriteHook(): {
       }
       return {
         passed: true,
-        message: "Installed and executable",
+        message: `Installed and executable${hooksPathSuffix()}`,
       };
     }
 

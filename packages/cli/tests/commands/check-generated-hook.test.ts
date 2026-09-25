@@ -76,7 +76,7 @@ async function fixture() {
     `#!/bin/sh\nif [ "$1" = "check" ]; then exit 0; fi\nexec "${cli}" "$@"\n`,
   );
   chmodSync(wrapper, 0o755);
-  installGitHooks(path.join(cwd, ".git"));
+  installGitHooks(path.join(cwd, ".git", "hooks"));
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     PATH: `${binDir}:${process.env.PATH ?? ""}`,
@@ -110,7 +110,7 @@ describe("installed pre-commit generated-manifest gate", () => {
       `#!/bin/sh\nif [ "$1" = "check" ]; then exit 0; fi\nexec "${cli}" "$@"\n`,
     );
     chmodSync(wrapper, 0o755);
-    installGitHooks(path.join(cwd, ".git"));
+    installGitHooks(path.join(cwd, ".git", "hooks"));
     expect(git(cwd, ["add", ".kb/symbols.yaml"]).status).toBe(0);
     const commit = git(cwd, ["commit", "-m", "first"], {
       ...process.env,
