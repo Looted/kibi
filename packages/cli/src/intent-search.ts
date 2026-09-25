@@ -4,6 +4,7 @@ import { escapeAtom, normalizeEntityId, parseTriples } from "./prolog/codec.js";
 import {
   type VALID_ENTITY_TYPES,
   loadEntities,
+  loadSearchCandidates,
 } from "./public/operations/discovery-entities.js";
 import type { PrologPort } from "./public/operations/runtime-types.js";
 import type { SearchMatch } from "./search-ranking.js";
@@ -515,13 +516,12 @@ async function loadIntentCandidates(
       options.sourceLocations.length === 0)
   ) {
     for (const term of terms) {
-      const page = await prolog.searchEntities({
+      const page = await loadSearchCandidates(prolog, {
         query: term,
         ...(options.type !== undefined ? { type: options.type } : {}),
-        limit: MAX_CANDIDATES,
-        offset: 0,
+        maxCandidates: MAX_CANDIDATES,
       });
-      for (const entity of page.entities) {
+      for (const entity of page) {
         candidates.set(
           `${String(entity.type ?? "")}::${String(entity.id ?? "")}`,
           { ...entity },

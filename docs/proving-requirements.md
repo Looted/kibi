@@ -64,6 +64,31 @@ For each configured integration, `kibi prove`:
 One suite run can satisfy many TEST contracts; unrelated results are ignored
 per contract.
 
+### CI proof reuse for release PRs
+
+The canonical `kibi.workspace-snapshot.v2` verification snapshot, rather than a
+Git commit or branch name, identifies the source state proven by Kibi. On each
+successful `develop` push, the strict proof workflow uploads a
+`kibi-proof-attestation` artifact with the snapshot version and hash, source
+commit, outcome, and workflow run provenance. The artifact is emitted only
+after full proof, baseline enforcement, and report generation succeed.
+
+For a PR targeting `master`, the same workflow checks out GitHub's merge
+commit and computes its snapshot through Kibi's production snapshot code. It
+reuses proof only for a same-repository `develop` PR whose head still equals
+the current `develop` branch, whose checkout is the expected merge commit,
+and whose exact head has one successful `develop` push proof run with a matching
+attestation. If the canonical snapshots match, the workflow records a reused
+proof decision and skips the full proof steps. If lookup, provenance, version,
+or snapshot comparison is uncertain, it runs the full proof on the merge
+checkout using the `master` KB branch identity. Scheduled, manual, and
+`develop` PR proof runs remain full runs.
+
+Reuse is a CI gate decision only. It does not execute tests again, create new
+proof receipts, or attach `master` to the `develop` KB branch. The decision
+artifact and job summary say whether proof ran or was reused. Attestation
+artifacts expire after seven days; expiration simply causes a full proof run.
+
 ## Proof contracts
 
 A `TEST-*` entity declares its semantic obligations:

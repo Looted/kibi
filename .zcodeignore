@@ -1,0 +1,114 @@
+# --- Dependencies ---
+node_modules/
+bun.lockb
+package-lock.json
+.worktrees
+
+# --- Build outputs ---
+dist/
+*.tgz
+!documentation/tests/e2e/packed/fixtures/*.tgz
+*.tar.gz
+*.vsix
+packages/vscode/kibi-vscode-*.vsix
+
+# --- Logs & temp ---
+*.log
+*.log.*
+npm-debug.log*
+*.tmp
+*.bak
+*.log
+*.log.*
+npm-debug.log*
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Editor ---
+.vscode/settings.json
+*.swp
+*.swo
+*~
+
+# --- Build tools ---
+.turbo/
+.cache/
+.venv/
+
+# --- Test artifacts ---
+coverage/
+kibi-report/
+*.lcov
+documentation/tests/e2e/packed/.compiled/
+.kibi/
+.playwright-mcp/
+
+# --- Mutation testing ---
+.stryker-tmp/
+reports/mutation/
+
+# --- Bun ---
+.bun/
+
+# --- Do NOT ignore these (intentionally tracked) ---
+#! .kb/manifest.json
+#! .kb/requirements/
+#! .kb/scenarios/
+#! .kb/tests/
+#! .kb/facts/
+#! .kb/adr/
+#! .kb/flags/
+#! .kb/events/
+#! .kb/symbols.yaml
+#! .kb/symbol-coordinates.yaml
+#! .kb/schema/
+.kb/branches
+.kb/branches/*/sync-cache.json
+.kb/recovery/
+.kb/proof/runs/
+.kb/.symbol-compiler.lock/
+.kb/usage.log
+.kb/briefs/
+.kb/migrations/
+#! bun.lock
+.sisyphus
+.artifacts/
+artifacts/skillopt/
+.env
+.env.kibi
+.omo
+.zcode/
+.slim/deepwork/
+
+# ===== ↑ 以上同步自 .gitignore（「从 .gitignore 同步」只重写以上部分）=====
+.git/
+.hg/
+.svn/
+bower_components/
+jspm_packages/
+__pycache__/
+site-packages/
+venv/
+htmlcov/
+lcov-report/
+cmakefiles/
+cmake-build-*/
+bazel-*/
+pods/
+deriveddata/
+storybook-static/
+playwright-report/
+test-results/
+allure-results/
+allure-report/
+cdk.out/
+*.egg-info/
+*.dist-info/
+eggs/
+pip-wheel-metadata/
+wheels/
+# ----- ↑ 以上为 ZCode 默认排除规则（自定义规则请写在本行下方，不会被同步/恢复改动）-----
+# 自定义规则写在下方（本行提示可删除）

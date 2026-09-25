@@ -41251,3 +41251,70 @@ symbols:
     relationships:
       - type: implements
         target: REQ-cursor-kibi-plugin-v1
+  - id: SYM-cli-discovery-load-search-candidates
+    title: loadSearchCandidates
+    status: active
+    sourceFile: packages/cli/src/public/operations/discovery-entities.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-mcp-search-discovery
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-mcp-search-discovery
+  - id: SYM-cli-discovery-search-candidate-page-size
+    title: SEARCH_CANDIDATE_PAGE_SIZE
+    status: active
+    sourceFile: packages/cli/src/public/operations/discovery-entities.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-mcp-search-discovery
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-mcp-search-discovery
+  - id: SYM-registerJobStatusTool
+    title: registerJobStatusTool
+    status: active
+    sourceFile: packages/mcp/src/server/tools.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-agent-kibi-interface-selection
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-002
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-CI-PROOF-REUSE-DECISION
+    title: assessProofReuse
+    status: active
+    sourceFile: scripts/ci-proof-reuse.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-CI-PROOF-REUSE-TYPE
+    title: ReuseDecision
+    status: active
+    sourceFile: scripts/ci-proof-reuse.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract

@@ -8,12 +8,13 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read
 
 on:
   push:
     branches: [develop]
   pull_request:
-    branches: [develop]
+    branches: [develop, master]
   schedule:
     - cron: "17 3 * * *"
   workflow_dispatch:
@@ -21,7 +22,7 @@ on:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   KIBI_CLI: ./packages/cli/bin/kibi
-  KIBI_BRANCH: ${{ github.head_ref || github.ref_name }}
+  KIBI_BRANCH: ${{ github.event_name == 'pull_request' && github.base_ref == 'master' && 'master' || github.head_ref || github.ref_name }}
 
 jobs:
   proof:
@@ -31,21 +32,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
+          ref: ${{ github.sha }}
           fetch-depth: 1
-
-      - name: Bootstrap Ubuntu packages
-        run: bash scripts/ci-apt-bootstrap.sh bubblewrap
-
-      - name: Cache SWI-Prolog source prefix
-        uses: actions/cache@v4
-        with:
-          path: ${{ runner.temp }}/kibi-swipl-prefix
-          key: swipl-src-10.0.2-${{ runner.os }}-e42cc098f7b8
-
-      - name: Install SWI-Prolog
-        env:
-          KIBI_SWIPL_CACHE_DIR: ${{ runner.temp }}/kibi-swipl-prefix
-        run: bash scripts/ci-install-swi-prolog.sh
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -57,7 +45,50 @@ jobs:
         with:
           node-version: "26.7.0"
 
+      - name: Install dependencies for canonical snapshot
+        run: bun install --frozen-lockfile
+
+      - name: Check whether master PR can reuse develop proof
+        id: reuse
+        if: ${{ github.event_name == 'pull_request' && github.base_ref == 'master' && github.head_ref == 'develop' && github.event.pull_request.head.repo.full_name == github.repository }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          PR_HEAD_BRANCH: ${{ github.head_ref }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: bun scripts/ci-proof-reuse.ts decide "$RUNNER_TEMP/kibi-proof-decision.json"
+
+      - name: Upload proof reuse decision
+        if: ${{ github.event_name == 'pull_request' && github.base_ref == 'master' && steps.reuse.outcome == 'success' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@v5
+        with:
+          name: kibi-proof-reuse-decision
+          path: ${{ runner.temp }}/kibi-proof-decision.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Bootstrap Ubuntu packages
+        if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
+        run: bash scripts/ci-apt-bootstrap.sh bubblewrap
+
+      - name: Cache SWI-Prolog source prefix
+        if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/kibi-swipl-prefix
+          key: swipl-src-10.0.2-${{ runner.os }}-e42cc098f7b8
+
+      - name: Install SWI-Prolog
+        if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
+        env:
+          KIBI_SWIPL_CACHE_DIR: ${{ runner.temp }}/kibi-swipl-prefix
+        run: bash scripts/ci-install-swi-prolog.sh
+
       - name: Provision strict-proof host prerequisites
+        if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
         env:
           UV_VERSION: "0.9.26"
           CODEX_CLI_VERSION: "0.144.6"
@@ -73,22 +104,25 @@ jobs:
           uv sync --project tools/skillopt --frozen
           uv run --project tools/skillopt python tools/skillopt/verify_pin.py
 
-      - name: Install dependencies
-        run: |
-          bun install --frozen-lockfile
-          cd .opencode && bun install --frozen-lockfile
+      - name: Install proof-only dependencies
+        if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
+        run: cd .opencode && bun install --frozen-lockfile
 
       - name: Build packages used by packed proof contracts
+        if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
         run: bun run build
 
       - name: Reject generated manifest drift in committed snapshot
+        if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
         run: bun packages/cli/bin/kibi check-generated --staged
 
       - name: Compile packed proof tests
+        if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
         run: bun run compile:e2e:packed
 
       - name: Sync and validate integrity of the proof snapshot
         id: integrity
+        if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
         run: |
           bun packages/cli/bin/kibi sync --refresh-symbol-coordinates
           if ! git diff --quiet -- .kb/symbols.yaml .kb/symbol-coordinates.yaml; then
@@ -98,23 +132,38 @@ jobs:
           bun packages/cli/bin/kibi check --format json --rules no-dangling-refs,source-relationship-parity,no-cycles,required-fields,deprecated-adr-no-successor,domain-contradictions,query-plan-safety,logic-coverage,strict-fact-shape,strict-req-fact-pairing,predicate-verifiability,rule-safety,rule-verifiability,semantic-completeness,symbol-traceability
 
       - name: Prove every contracted test through Kibi
+        if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
         run: bun packages/cli/bin/kibi prove --all
 
       - name: Enforce proof baseline and clean snapshot
+        if: ${{ (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
         run: node scripts/check-proof-baseline.mjs
 
       - name: Generate requirement health report
-        if: ${{ !cancelled() && steps.integrity.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.integrity.outcome == 'success' && (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
         run: bun packages/cli/bin/kibi report --output kibi-report
 
       - name: Upload Kibi proof artifacts
-        if: ${{ !cancelled() && steps.integrity.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.integrity.outcome == 'success' && (steps.reuse.outcome != 'success' || steps.reuse.outputs.reuse != 'true') }}
         uses: actions/upload-artifact@v5
         with:
           name: kibi-requirement-proof
           path: |
             kibi-report
             proof
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Attest successful develop proof
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+        run: bun scripts/ci-proof-reuse.ts attest "$RUNNER_TEMP/kibi-proof-attestation"
+
+      - name: Upload develop proof attestation
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: kibi-proof-attestation
+          path: ${{ runner.temp }}/kibi-proof-attestation/attestation.json
           if-no-files-found: error
           retention-days: 7
 

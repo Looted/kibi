@@ -26,6 +26,7 @@ type CapturedTool = {
   name: string;
   description: string;
   inputSchema: { _zod?: unknown };
+  annotations?: JsonRecord;
 };
 
 const CONTRACT_FIXTURES_ROOT = path.resolve(
@@ -216,6 +217,9 @@ function createRegisteredToolsSnapshot(): CapturedTool[] {
         // tools-list fixture must reflect the wire output, so keep the Zod
         // schema and convert at snapshot time.
         inputSchema: config.inputSchema,
+        // Annotations reach the wire on tools/list (e.g. kb_job_status's
+        // read-only hints), so the fixture must capture them too.
+        ...(config.annotations ? { annotations: config.annotations } : {}),
       });
     },
   } as unknown as McpServer;
@@ -304,6 +308,13 @@ describe("mcp contract fixtures", () => {
           inputSchema: stableSchema(
             z.toJSONSchema(jobStatus.inputSchema as never),
           ) as JsonRecord,
+          ...(jobStatus.annotations
+            ? {
+                annotations: stableSchema(
+                  jobStatus.annotations,
+                ) as JsonRecord,
+              }
+            : {}),
         }
       : null;
     const baseTools = {

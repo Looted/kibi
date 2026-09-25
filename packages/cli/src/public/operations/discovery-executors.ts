@@ -19,6 +19,7 @@ import {
 } from "../../utils/branch-store.js";
 import {
   loadEntities,
+  loadSearchCandidates,
   paginateResults,
   validateEntityType,
 } from "./discovery-entities.js";
@@ -204,18 +205,6 @@ export async function executeQuery(
 }
 
 /**
- * Lexical ranking scores the whole candidate set, so every candidate must be
- * read before results can be ordered or counted. Reading them in one request
- * serializes the entire matching corpus into a single Prolog response, which
- * overflows the bounded output buffer (ENOBUFS) on a mature KB and makes the
- * request cost scale with stored entity size rather than with the query.
- * Paging keeps each response small while preserving the same candidate set,
- * ranking, and total count.
- */
-const SEARCH_CANDIDATE_PAGE_SIZE = 250;
-const SEARCH_CANDIDATE_LIMIT = 100_000;
-
-/**
  * Identifying metadata a caller needs to decide which hits to open.
  *
  * Search is a discovery step, so returning complete entity bodies for every
@@ -255,40 +244,6 @@ function projectMatches<TMatch extends { readonly entity: unknown }>(
   fields: SearchInput["fields"],
 ): readonly TMatch[] {
   return fields === "full" ? matches : matches.map(summarizeMatch);
-}
-
-async function loadSearchCandidates(
-  prolog: PrologPort,
-  query: string,
-  type: string | undefined,
-  signal: AbortSignal | undefined,
-): Promise<Record<string, unknown>[]> {
-  const searchEntities = prolog.searchEntities;
-  if (!searchEntities) return [];
-
-  const entities: Record<string, unknown>[] = [];
-  for (
-    let offset = 0;
-    offset < SEARCH_CANDIDATE_LIMIT;
-    offset += SEARCH_CANDIDATE_PAGE_SIZE
-  ) {
-    const page = await searchEntities.call(
-      prolog,
-      {
-        query,
-        ...(type !== undefined ? { type } : {}),
-        limit: Math.min(
-          SEARCH_CANDIDATE_PAGE_SIZE,
-          SEARCH_CANDIDATE_LIMIT - offset,
-        ),
-        offset,
-      },
-      signal,
-    );
-    entities.push(...page.entities);
-    if (page.entities.length < SEARCH_CANDIDATE_PAGE_SIZE) break;
-  }
-  return entities;
 }
 
 export async function executeSearch(
@@ -353,8 +308,18 @@ export async function executeSearch(
         },
       };
     }
-    const entities = prolog.searchEntities
-      ? await loadSearchCandidates(prolog, trimmedQuery, type, context.signal)
+    const indexedCandidates = prolog.searchEntities
+      ? await loadSearchCandidates(
+          prolog,
+          {
+            query: trimmedQuery,
+            ...(type !== undefined ? { type } : {}),
+          },
+          context.signal,
+        )
+      : null;
+    const entities = indexedCandidates
+      ? [...indexedCandidates]
       : await loadEntities(prolog, {
           ...(type !== undefined ? { type } : {}),
         });
