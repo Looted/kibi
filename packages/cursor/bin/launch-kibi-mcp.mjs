@@ -362,7 +362,14 @@ export function launchKibiMcp(
     [projectLocal.binPath, ...childArgs],
     {
       cwd: workspaceRoot,
-      env: { ...env, KIBI_WORKSPACE: workspaceRoot },
+      env: {
+        ...env,
+        KIBI_WORKSPACE: workspaceRoot,
+        // Identify the host on usage rows. This never enables telemetry;
+        // KIBI_DIAGNOSTIC_MODE stays the operator's explicit opt-in and is
+        // passed through untouched.
+        KIBI_MCP_HOST: "cursor",
+      },
       stdio: ["inherit", "inherit", "inherit"],
     },
   );

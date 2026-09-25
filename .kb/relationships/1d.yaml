@@ -223,3 +223,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-42b4edd3fef5
+  - type: implements
+    from: SYM-appendPayloadCountField
+    to: REQ-kibi-telemetry-acceptance-gate
+    created_at: 2026-09-25T16:14:45.787Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-096519e07a8c
+  - type: implements
+    from: SYM-appendPayloadCountField
+    to: REQ-kibi-telemetry-remediation-evidence
+    created_at: 2026-09-25T16:14:45.791Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fdae7614a9f3

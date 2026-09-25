@@ -8,6 +8,7 @@ function state(overrides: Partial<HookState> = {}): HookState {
     mcpState: "unknown",
     dirtyPaths: [],
     guidedReadPaths: [],
+    guidedPreEditPaths: [],
     guidedWritePaths: [],
     kbMutationTools: [],
     kbCheckRun: false,

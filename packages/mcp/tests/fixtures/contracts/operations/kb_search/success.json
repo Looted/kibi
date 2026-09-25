@@ -24,6 +24,12 @@
     "description": "Search KB entities for discovery using legacy lexical ranking or deterministic intent-v1 ranking. Intent mode accepts host-agent semantic facets and source locations, returns evidence and abstains below its confidence threshold. Use for exploratory lookup before exact follow-up with kb_query. No mutation side effects.",
     "inputSchema": {
       "properties": {
+        "fields": {
+          "default": "summary",
+          "description": "Optional result detail. 'summary' returns identifying metadata plus the match snippet for discovery. Use 'full' to include complete entity bodies, or follow up with kb_query for the exact entities you need.",
+          "enum": ["summary", "full"],
+          "type": "string"
+        },
         "limit": {
           "default": 20,
           "description": "Optional max rows to return after ranking. Default: 20.",

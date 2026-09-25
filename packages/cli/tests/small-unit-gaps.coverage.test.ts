@@ -498,10 +498,21 @@ describe("coverage gaps: diagnostic usage", () => {
       kibiProtocol: 1,
       resultVersion: "kibi.search.v1",
       status: "ok",
-      count: 0,
+      data: { count: 0 },
     });
     expect(envelope.protocol_version).toBe(1);
     expect(envelope.zero_results).toBe(true);
+
+    // An envelope carrying no payload cannot report a count, so it stays
+    // unknown instead of being recorded as an empty result.
+    const payloadless = deriveDiagnosticUsageFields("kb_search", {}, null, {
+      kibiProtocol: 1,
+      resultVersion: "kibi.search.v1",
+      status: "ok",
+    });
+    expect(payloadless.protocol_version).toBe(1);
+    expect(payloadless.result_count).toBeNull();
+    expect(payloadless).not.toHaveProperty("zero_results");
 
     const coverage = deriveDiagnosticUsageFields(
       "kb_coverage",

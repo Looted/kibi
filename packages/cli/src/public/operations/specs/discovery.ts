@@ -161,6 +161,13 @@ export const searchSpec = {
         description:
           "Intent-v1 acceptance threshold between 0 and 1. Low-confidence queries abstain instead of returning misleading matches.",
       },
+      fields: {
+        type: "string",
+        enum: ["summary", "full"],
+        default: "summary",
+        description:
+          "Optional result detail. 'summary' returns identifying metadata plus the match snippet for discovery. Use 'full' to include complete entity bodies, or follow up with kb_query for the exact entities you need.",
+      },
     },
   },
   requiresProlog: true,

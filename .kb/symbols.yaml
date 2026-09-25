@@ -30741,6 +30741,8 @@ symbols:
       - type: implements
         target: REQ-cursor-consumer-local-mcp-launcher-v1
       - type: implements
+        target: REQ-cursor-kibi-plugin-v1
+      - type: implements
         target: REQ-kibi-consumer-local-plugin-launcher-ontology-v1
   - id: SYM-codex-packed-plugin-e2e
     title: packed Codex plugin consumer-local MCP registration
@@ -41160,3 +41162,92 @@ symbols:
         target: TEST-004
       - type: implements
         target: REQ-cli-check
+  - id: SYM-normalizeResultPayload
+    title: normalizeResultPayload
+    status: active
+    text_ref: packages/cli/src/public/operations/result-envelope.ts#normalizeResultPayload
+    sourceFile: packages/cli/src/public/operations/result-envelope.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-telemetry-remediation-evidence
+      - type: implements
+        target: REQ-kibi-telemetry-remediation-evidence
+  - id: SYM-appendPayloadCountField
+    title: appendPayloadCountField
+    status: active
+    text_ref: packages/cli/src/public/operations/result-envelope.ts#appendPayloadCountField
+    sourceFile: packages/cli/src/public/operations/result-envelope.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-acceptance-gate
+      - type: implements
+        target: REQ-kibi-telemetry-remediation-evidence
+  - id: SYM-diagnosticModeRequested
+    title: diagnosticModeRequested
+    status: active
+    text_ref: packages/mcp/src/diagnostics.ts#diagnosticModeRequested
+    sourceFile: packages/mcp/src/diagnostics.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: implements
+        target: REQ-kibi-telemetry-remediation-evidence
+  - id: SYM-cursor-preEditGuidance
+    title: preEditGuidance
+    status: active
+    text_ref: packages/cursor/src/guidance.ts#preEditGuidance
+    sourceFile: packages/cursor/src/guidance.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-agent-kibi-interface-selection
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1
+  - id: SYM-cursor-getSourceLinkedRequirementIds
+    title: getSourceLinkedRequirementIds
+    status: active
+    text_ref: packages/cursor/src/source-linked-requirements.ts#getSourceLinkedRequirementIds
+    sourceFile: packages/cursor/src/source-linked-requirements.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1
+  - id: SYM-failedEffectStatus
+    title: failedEffectStatus
+    status: active
+    text_ref: packages/cli/src/public/operations/result-envelope.ts#failedEffectStatus
+    sourceFile: packages/cli/src/public/operations/result-envelope.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-NormalizedResultPayload
+    title: NormalizedResultPayload
+    status: active
+    text_ref: packages/cli/src/public/operations/result-envelope.ts#NormalizedResultPayload
+    sourceFile: packages/cli/src/public/operations/result-envelope.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-kibi-telemetry-remediation-evidence
+  - id: SYM-cursor-GuidedPathKind
+    title: GuidedPathKind
+    status: active
+    text_ref: packages/cursor/src/hook-state.ts#GuidedPathKind
+    sourceFile: packages/cursor/src/hook-state.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1
+  - id: SYM-cursor-parseSymbolsManifest
+    title: parseSymbolsManifest
+    status: active
+    text_ref: packages/cursor/src/source-linked-requirements.ts#parseSymbolsManifest
+    sourceFile: packages/cursor/src/source-linked-requirements.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1

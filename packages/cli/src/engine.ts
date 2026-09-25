@@ -310,10 +310,19 @@ function frame(value: unknown): Buffer {
   return Buffer.concat([header, payload]);
 }
 
+/**
+ * Swallow a write failure for a peer that is already gone.
+ *
+ * A socket write reports EPIPE/ECONNRESET asynchronously, so a surrounding
+ * try/catch cannot see it and Node raises it as an unhandled error. Passing a
+ * callback keeps the failure local to this write.
+ */
+function ignoreWriteFailure(): void {}
+
 function writeSocketFrame(socket: net.Socket, value: unknown): void {
   if (socket.destroyed || !socket.writable) return;
   try {
-    socket.write(frame(value));
+    socket.write(frame(value), ignoreWriteFailure);
   } catch {
     // A client may disconnect while a queued request is finishing. The
     // journal transaction remains authoritative; there is no response to
@@ -1007,6 +1016,7 @@ export class EngineClient {
               workspaceRoot: this.workspaceRoot,
               branch: this.branch,
             } satisfies EngineRequest),
+            ignoreWriteFailure,
           );
         } catch (error) {
           const pending = this.pending.get(id);
@@ -1135,6 +1145,7 @@ export class EngineClient {
         workspaceRoot: this.workspaceRoot,
         branch: this.branch,
       } satisfies EngineRequest),
+      ignoreWriteFailure,
     );
   }
 

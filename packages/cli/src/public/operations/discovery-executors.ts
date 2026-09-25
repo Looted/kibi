@@ -59,6 +59,7 @@ export type SearchInput = {
   readonly semanticFacets?: IntentSearchFacets;
   readonly sourceLocations?: readonly SourceLocation[];
   readonly minScore?: number;
+  readonly fields?: "summary" | "full";
 };
 
 export type SearchPayload = {
@@ -202,6 +203,94 @@ export async function executeQuery(
   }
 }
 
+/**
+ * Lexical ranking scores the whole candidate set, so every candidate must be
+ * read before results can be ordered or counted. Reading them in one request
+ * serializes the entire matching corpus into a single Prolog response, which
+ * overflows the bounded output buffer (ENOBUFS) on a mature KB and makes the
+ * request cost scale with stored entity size rather than with the query.
+ * Paging keeps each response small while preserving the same candidate set,
+ * ranking, and total count.
+ */
+const SEARCH_CANDIDATE_PAGE_SIZE = 250;
+const SEARCH_CANDIDATE_LIMIT = 100_000;
+
+/**
+ * Identifying metadata a caller needs to decide which hits to open.
+ *
+ * Search is a discovery step, so returning complete entity bodies for every
+ * hit spends a large share of an agent's context before it has chosen
+ * anything. Full bodies stay available through `fields: "full"` or a follow-up
+ * kb_query for the exact ids.
+ */
+const SUMMARY_ENTITY_FIELDS = [
+  "id",
+  "type",
+  "title",
+  "status",
+  "priority",
+  "tags",
+  "source",
+  "sourceFile",
+  "updated_at",
+] as const;
+
+function summarizeMatch<TMatch extends { readonly entity: unknown }>(
+  match: TMatch,
+): TMatch {
+  const entity = match.entity;
+  if (entity === null || typeof entity !== "object" || Array.isArray(entity)) {
+    return match;
+  }
+  const row = entity as Record<string, unknown>;
+  const summary: Record<string, unknown> = {};
+  for (const field of SUMMARY_ENTITY_FIELDS) {
+    if (row[field] !== undefined) summary[field] = row[field];
+  }
+  return { ...match, entity: summary };
+}
+
+function projectMatches<TMatch extends { readonly entity: unknown }>(
+  matches: readonly TMatch[],
+  fields: SearchInput["fields"],
+): readonly TMatch[] {
+  return fields === "full" ? matches : matches.map(summarizeMatch);
+}
+
+async function loadSearchCandidates(
+  prolog: PrologPort,
+  query: string,
+  type: string | undefined,
+  signal: AbortSignal | undefined,
+): Promise<Record<string, unknown>[]> {
+  const searchEntities = prolog.searchEntities;
+  if (!searchEntities) return [];
+
+  const entities: Record<string, unknown>[] = [];
+  for (
+    let offset = 0;
+    offset < SEARCH_CANDIDATE_LIMIT;
+    offset += SEARCH_CANDIDATE_PAGE_SIZE
+  ) {
+    const page = await searchEntities.call(
+      prolog,
+      {
+        query,
+        ...(type !== undefined ? { type } : {}),
+        limit: Math.min(
+          SEARCH_CANDIDATE_PAGE_SIZE,
+          SEARCH_CANDIDATE_LIMIT - offset,
+        ),
+        offset,
+      },
+      signal,
+    );
+    entities.push(...page.entities);
+    if (page.entities.length < SEARCH_CANDIDATE_PAGE_SIZE) break;
+  }
+  return entities;
+}
+
 export async function executeSearch(
   input: SearchInput,
   context: OperationContext,
@@ -216,6 +305,7 @@ export async function executeSearch(
     semanticFacets,
     sourceLocations,
     minScore,
+    fields = "summary",
   } = input;
   const trimmedQuery = query.trim();
   if (!trimmedQuery) {
@@ -257,25 +347,14 @@ export async function executeSearch(
       return {
         content: [{ type: "text", text }],
         structuredContent: {
-          results: paginated,
+          results: projectMatches(paginated, fields),
           count: intentResult.matches.length,
           queryAnalysis: intentResult.analysis,
         },
       };
     }
-    const indexedCandidates = prolog.searchEntities
-      ? await prolog.searchEntities(
-          {
-            query: trimmedQuery,
-            ...(type !== undefined ? { type } : {}),
-            limit: 100_000,
-            offset: 0,
-          },
-          context.signal,
-        )
-      : null;
-    const entities = indexedCandidates
-      ? [...indexedCandidates.entities]
+    const entities = prolog.searchEntities
+      ? await loadSearchCandidates(prolog, trimmedQuery, type, context.signal)
       : await loadEntities(prolog, {
           ...(type !== undefined ? { type } : {}),
         });
@@ -296,7 +375,10 @@ export async function executeSearch(
             .join(", ")}`;
     return {
       content: [{ type: "text", text }],
-      structuredContent: { results: paginated, count: matches.length },
+      structuredContent: {
+        results: projectMatches(paginated, fields),
+        count: matches.length,
+      },
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
