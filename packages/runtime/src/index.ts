@@ -191,10 +191,13 @@ export {
 } from "kibi-cli/public/branch-resolver";
 export {
   KIBI_PROTOCOL_VERSION,
+  appendPayloadCountField,
+  normalizeResultPayload,
   operationData,
   resultVersion,
   toKibiResult,
 } from "kibi-cli/operations/result-envelope";
+export type { NormalizedResultPayload } from "kibi-cli/operations/result-envelope";
 export * from "kibi-cli/public/branch-resolver";
 export { EngineClient, engineSocketPath } from "kibi-cli/engine";
 export { PrologProcess, resolveKbPlPath } from "kibi-cli/prolog";

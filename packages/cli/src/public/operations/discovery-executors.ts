@@ -60,6 +60,7 @@ export type SearchInput = {
   readonly semanticFacets?: IntentSearchFacets;
   readonly sourceLocations?: readonly SourceLocation[];
   readonly minScore?: number;
+  readonly fields?: "summary" | "full";
 };
 
 export type SearchPayload = {
@@ -203,6 +204,48 @@ export async function executeQuery(
   }
 }
 
+/**
+ * Identifying metadata a caller needs to decide which hits to open.
+ *
+ * Search is a discovery step, so returning complete entity bodies for every
+ * hit spends a large share of an agent's context before it has chosen
+ * anything. Full bodies stay available through `fields: "full"` or a follow-up
+ * kb_query for the exact ids.
+ */
+const SUMMARY_ENTITY_FIELDS = [
+  "id",
+  "type",
+  "title",
+  "status",
+  "priority",
+  "tags",
+  "source",
+  "sourceFile",
+  "updated_at",
+] as const;
+
+function summarizeMatch<TMatch extends { readonly entity: unknown }>(
+  match: TMatch,
+): TMatch {
+  const entity = match.entity;
+  if (entity === null || typeof entity !== "object" || Array.isArray(entity)) {
+    return match;
+  }
+  const row = entity as Record<string, unknown>;
+  const summary: Record<string, unknown> = {};
+  for (const field of SUMMARY_ENTITY_FIELDS) {
+    if (row[field] !== undefined) summary[field] = row[field];
+  }
+  return { ...match, entity: summary };
+}
+
+function projectMatches<TMatch extends { readonly entity: unknown }>(
+  matches: readonly TMatch[],
+  fields: SearchInput["fields"],
+): readonly TMatch[] {
+  return fields === "full" ? matches : matches.map(summarizeMatch);
+}
+
 export async function executeSearch(
   input: SearchInput,
   context: OperationContext,
@@ -217,6 +260,7 @@ export async function executeSearch(
     semanticFacets,
     sourceLocations,
     minScore,
+    fields = "summary",
   } = input;
   const trimmedQuery = query.trim();
   if (!trimmedQuery) {
@@ -258,7 +302,7 @@ export async function executeSearch(
       return {
         content: [{ type: "text", text }],
         structuredContent: {
-          results: paginated,
+          results: projectMatches(paginated, fields),
           count: intentResult.matches.length,
           queryAnalysis: intentResult.analysis,
         },
@@ -296,7 +340,10 @@ export async function executeSearch(
             .join(", ")}`;
     return {
       content: [{ type: "text", text }],
-      structuredContent: { results: paginated, count: matches.length },
+      structuredContent: {
+        results: projectMatches(paginated, fields),
+        count: matches.length,
+      },
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

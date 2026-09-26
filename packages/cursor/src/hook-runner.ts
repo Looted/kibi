@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { readGuidance, writeGuidance } from "./guidance.js";
+import { preEditGuidance, readGuidance, writeGuidance } from "./guidance.js";
 import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
 import {
   addDirtyPaths,
@@ -30,6 +30,7 @@ import {
   isMeaningfulTrackedPath,
   toRepoRelativePath,
 } from "./path-policy.js";
+import { getSourceLinkedRequirementIds } from "./source-linked-requirements.js";
 
 export type CursorHookResult = {
   additional_context?: string;
@@ -151,7 +152,30 @@ export async function runHook(
         };
       }
 
-      return emptyResult();
+      const primaryPath = resolvePrimaryPath(input);
+      if (!primaryPath || !kibiReady || !isKnownEditableTool(input.toolName)) {
+        return emptyResult();
+      }
+
+      const relativePath = toRepoRelativePath(primaryPath, cwd);
+      const state = loadHookState(stateDir);
+      if (hasGuidedPath(state, "pre-edit", relativePath)) {
+        return emptyResult();
+      }
+
+      const guidance = preEditGuidance(primaryPath, {
+        cwd,
+        hasKibi: kibiReady,
+        mcpState: state.mcpState,
+        workspaceTrusted,
+        linkedRequirementIds: getSourceLinkedRequirementIds(cwd, primaryPath),
+      });
+      if (!guidance) {
+        return emptyResult();
+      }
+
+      rememberGuidedPath(stateDir, "pre-edit", relativePath);
+      return { permission: "allow", agent_message: guidance };
     }
 
     case "beforeReadFile": {

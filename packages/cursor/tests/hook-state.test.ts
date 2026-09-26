@@ -22,6 +22,7 @@ const EMPTY_HOOK_STATE: HookState = {
   mcpState: "unknown",
   dirtyPaths: [],
   guidedReadPaths: [],
+  guidedPreEditPaths: [],
   guidedWritePaths: [],
   kbMutationTools: [],
   kbCheckRun: false,
@@ -75,6 +76,7 @@ describe("Cursor hook state", () => {
         { length: 120 },
         (_, index) => ` read\\${index}.ts `,
       ),
+      guidedPreEditPaths: [" pre\\a.ts ", "pre/a.ts"],
       guidedWritePaths: [" write\\a.ts ", "write/a.ts"],
       kbMutationTools: Array.from(
         { length: 25 },
@@ -91,6 +93,7 @@ describe("Cursor hook state", () => {
     expect(state.dirtyPaths).toEqual(["src/a.ts", "docs/a.md"]);
     expect(state.guidedReadPaths).toHaveLength(100);
     expect(state.guidedReadPaths.at(0)).toBe("read/20.ts");
+    expect(state.guidedPreEditPaths).toEqual(["pre/a.ts"]);
     expect(state.guidedWritePaths).toEqual(["write/a.ts"]);
     expect(state.kbMutationTools).toHaveLength(20);
     expect(state.kbMutationTools.at(0)).toBe("kb_tool_5");

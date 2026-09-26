@@ -477,7 +477,13 @@ exit 1
     const root = tempRoot();
     mkdirSync(root, { recursive: true });
     const socketPath = engineSocketPath(root, "main");
+    const accepted: net.Socket[] = [];
     const server = net.createServer((socket) => {
+      accepted.push(socket);
+      // The client terminates mid-exchange, so writes from this fake server
+      // can fail asynchronously. Without a handler the EPIPE surfaces as an
+      // unhandled error in whichever test file runs next.
+      socket.on("error", () => undefined);
       let buffer = Buffer.alloc(0);
       socket.on("data", (chunk) => {
         buffer = Buffer.concat([buffer, chunk as unknown as Uint8Array]);
@@ -509,9 +515,11 @@ exit 1
       server.once("error", reject);
       server.listen(socketPath, () => resolve());
     });
-    restores.push(() => {
+    const closeServer = () => {
+      for (const socket of accepted.splice(0)) socket.destroy();
       server.close();
-    });
+    };
+    restores.push(closeServer);
 
     const client = new EngineClient({
       workspaceRoot: root,
@@ -556,7 +564,7 @@ exit 1
       socket?.emit("data", overflow);
     } finally {
       await client.terminate();
-      server.close();
+      closeServer();
     }
 
     const disconnected = new EngineClient({

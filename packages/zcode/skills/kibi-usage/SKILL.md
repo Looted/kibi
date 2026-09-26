@@ -4,7 +4,7 @@ description: Use Kibi's source-first, exact-Git, migration-aware, proof-aware op
 license: AGPL-3.0-or-later
 metadata:
   id: kibi-usage
-  version: 2.1.3
+  version: 2.2.0
   kibiCompatibility: ">=1.0.0"
   tags:
     - kibi
@@ -61,7 +61,11 @@ mutability, and Prolog requirements of each operation.
 ## Safe workflow
 
 1. Always discover before you mutate: start with `kb_search`, then exact-filter with `kb_query`. Use
-   `kb_status` when branch or freshness confidence matters.
+   `kb_status` when branch or freshness confidence matters. `kb_search` ranks
+   lexically unless you pass `rankingMode: "intent-v1"`, `semanticFacets`, or
+   `sourceLocations`; use intent mode with grounded facets for conceptual
+   questions and before changing a source file, and keep lexical search for
+   literal identifiers. See `resources/workflows.md` for the mode recipe.
 2. Resolve genuine ambiguity with the human; use semantic advisor/modeling
    operations for deterministic interpretation and typed facts.
 3. Create endpoints before relationships and upsert small batches sequentially.

@@ -14,6 +14,7 @@ import {
   searchSpec,
   statusSpec,
 } from "../../src/public/operations/specs/discovery.js";
+import { SEARCH_CANDIDATE_PAGE_SIZE } from "../../src/public/operations/discovery-entities.js";
 import {
   branchStorePath,
   ensureBranchStoreManifest,
@@ -147,6 +148,86 @@ describe("shared discovery operation executors", () => {
     expect(result.structuredContent?.count).toBe(2);
     expect(result.structuredContent?.results).toHaveLength(1);
     expect(result.structuredContent?.results[0]?.entity.id).toBe("REQ-2");
+  });
+
+  test("kb_search pages indexed candidates instead of one unbounded read", async () => {
+    // Given a corpus larger than one page, so a single unbounded read would
+    // serialize the whole matching corpus into one Prolog response.
+    const total = SEARCH_CANDIDATE_PAGE_SIZE * 2 + 100;
+    const entities = Array.from({ length: total }, (_, index) => ({
+      id: `REQ-${index}`,
+      type: "req",
+      title: "OAuth login flow",
+    }));
+    const requestedLimits: number[] = [];
+    const requestedOffsets: number[] = [];
+    const searchEntities = mock(
+      async (input: { limit: number; offset: number }) => {
+        requestedLimits.push(input.limit);
+        requestedOffsets.push(input.offset);
+        return {
+          entities: entities.slice(input.offset, input.offset + input.limit),
+          count: total,
+        };
+      },
+    );
+
+    const context = createContext(async () => ({
+      success: true,
+      bindings: {},
+    }));
+    const prolog = { ...context.prolog, searchEntities } as PrologPort;
+
+    // When
+    const result = await searchSpec.execute(
+      { query: "OAuth login", limit: 5, offset: 0 },
+      { ...context, prolog },
+    );
+
+    // Then every request stays bounded, and the full candidate set is still
+    // ranked and counted.
+    expect(Math.max(...requestedLimits)).toBe(SEARCH_CANDIDATE_PAGE_SIZE);
+    expect(requestedOffsets.slice(0, 3)).toEqual([
+      0,
+      SEARCH_CANDIDATE_PAGE_SIZE,
+      SEARCH_CANDIDATE_PAGE_SIZE * 2,
+    ]);
+    expect(result.structuredContent?.count).toBe(total);
+    expect(result.structuredContent?.results).toHaveLength(5);
+  });
+
+  test("kb_search summarizes entities by default and returns full bodies on request", async () => {
+    const query = mock(async () => ({
+      success: true,
+      bindings: {
+        Results:
+          '[[REQ-1,req,[title="OAuth login flow",status=open,semantic_text="a very long normative body",tags=[auth]]]]',
+      },
+    }));
+
+    const summary = await searchSpec.execute(
+      { query: "OAuth login" },
+      createContext(query),
+    );
+    const summarized = summary.structuredContent?.results[0];
+    expect(summarized?.entity).toEqual({
+      id: "REQ-1",
+      type: "req",
+      title: "OAuth login flow",
+      status: "open",
+      tags: ["auth"],
+    });
+    // Ranking evidence survives the projection; only the body is withheld.
+    expect(summarized?.score).toBeGreaterThan(0);
+    expect(summarized?.reasons.length).toBeGreaterThan(0);
+
+    const full = await searchSpec.execute(
+      { query: "OAuth login", fields: "full" },
+      createContext(query),
+    );
+    expect(full.structuredContent?.results[0]?.entity.semantic_text).toBe(
+      "a very long normative body",
+    );
   });
 
   test("kb_search intent-v1 returns semantic evidence and analysis", async () => {

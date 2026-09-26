@@ -145,8 +145,13 @@ cd "$runtimeRoot" || {
 }
 KIBI_WORKSPACE=$workspaceRoot
 export KIBI_WORKSPACE
+# Identify the host on usage rows without enabling telemetry. Usage logging
+# stays off unless the operator opts in with KIBI_DIAGNOSTIC_MODE=1, which the
+# server reads directly from the environment.
+KIBI_MCP_HOST=cursor
+export KIBI_MCP_HOST
 
 if [ "$runtimeExecutable" = bun ]; then
-  exec bun run "$mcpBin" --diagnostic-mode
+  exec bun run "$mcpBin"
 fi
-exec node "$mcpBin" --diagnostic-mode
+exec node "$mcpBin"

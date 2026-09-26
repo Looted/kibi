@@ -139,3 +139,68 @@ export function operationData(value: unknown): unknown {
   }
   return value;
 }
+
+// implements REQ-kibi-telemetry-remediation-evidence
+export interface NormalizedResultPayload {
+  /** The versioned KibiResult envelope, when the result carries one. */
+  readonly envelope?: Record<string, unknown>;
+  /** The operation payload that operation-specific telemetry fields read. */
+  readonly data?: Record<string, unknown>;
+}
+
+/**
+ * Resolve a tool result into its envelope and its operation payload.
+ *
+ * Callers hand results over in two shapes: MCP tool handlers pass the bare
+ * `toKibiResult` envelope, while some CLI and SDK routes wrap it as
+ * `{ structuredContent }`.  Deriving telemetry from the wrong shape silently
+ * yields an absent payload, so both shapes resolve here instead of at each
+ * call site.  An unresolvable payload stays `undefined` so callers can record
+ * the count as unknown rather than as zero.
+ */
+export function normalizeResultPayload(
+  result: unknown,
+): NormalizedResultPayload {
+  if (!record(result)) return {};
+  const candidate = record(result.structuredContent)
+    ? result.structuredContent
+    : result;
+  if (candidate.kibiProtocol !== KIBI_PROTOCOL_VERSION) {
+    return { data: candidate };
+  }
+  return {
+    envelope: candidate,
+    ...(record(candidate.data) ? { data: candidate.data } : {}),
+  };
+}
+
+function readPayloadCount(raw: unknown): number | null {
+  if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
+  // Some transports serialize counts as strings; an absent or unparseable
+  // value stays null so it is never coerced to a plausible zero.
+  if (typeof raw === "string" && raw.trim() !== "") {
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+/**
+ * Record a count that could not be read as unknown rather than as zero.
+ *
+ * A missing payload and an empty result are different facts, and collapsing
+ * them hides retrieval failures behind a plausible "0 results" row. Both the
+ * MCP and CLI diagnostic loggers derive counts here so the two surfaces stay
+ * at parity.
+ */
+export function appendPayloadCountField(
+  fields: Record<string, unknown>,
+  countKey: string,
+  noun: string,
+  payload: Record<string, unknown> | undefined,
+): void {
+  const count = readPayloadCount(payload?.count);
+  fields[countKey] = count;
+  fields.result_summary =
+    count === null ? `${noun} count unavailable` : `${count} ${noun}`;
+}

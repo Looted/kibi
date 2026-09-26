@@ -11,6 +11,9 @@
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+import { appendPayloadCountField, normalizeResultPayload } from "kibi-runtime";
 
 import { resolveWorkspaceRoot } from "./workspace.js";
 export {
@@ -23,16 +26,35 @@ export {
 } from "./diagnostics-helpers.js";
 
 const DIAGNOSTIC_MODE_FLAG = "--diagnostic-mode";
+const DIAGNOSTIC_MODE_ENV_KEY = "KIBI_DIAGNOSTIC_MODE";
 
-export const DIAGNOSTIC_MODE_ENABLED =
-  process.argv.includes(DIAGNOSTIC_MODE_FLAG);
+/**
+ * Usage telemetry is opt-in and stays off unless the operator asks for it.
+ *
+ * The launch flag covers hosts whose MCP command line the operator writes by
+ * hand.  `KIBI_DIAGNOSTIC_MODE=1` covers hosts where a plugin owns the command
+ * line, so opting in never requires editing a shipped launcher.  Neither
+ * signal is set by default, and plugin installation alone never enables it.
+ */
+export function diagnosticModeRequested(
+  argv: readonly string[] = process.argv,
+  env: NodeJS.ProcessEnv = process.env,
+): boolean {
+  if (argv.includes(DIAGNOSTIC_MODE_FLAG)) return true;
+  const optIn = env[DIAGNOSTIC_MODE_ENV_KEY]?.trim().toLowerCase();
+  return optIn === "1" || optIn === "true";
+}
+
+export const DIAGNOSTIC_MODE_ENABLED = diagnosticModeRequested();
 
 let diagnosticUsageLogPath: string | null = null;
+let diagnosticOriginFields: Record<string, unknown> = {};
 
 export function initializeDiagnosticMode(
   enabled: boolean = DIAGNOSTIC_MODE_ENABLED,
 ): void {
   diagnosticUsageLogPath = null;
+  diagnosticOriginFields = {};
   if (!enabled) {
     process.env.KIBI_MCP_DIAGNOSTIC_MODE = "0";
     return;
@@ -47,13 +69,50 @@ export function initializeDiagnosticMode(
   diagnosticUsageLogPath =
     process.env.KIBI_MCP_DIAGNOSTIC_USAGE_LOG_PATH ??
     path.join(workspaceRoot, ".kb", "usage.log");
+  diagnosticOriginFields = resolveOriginFields(workspaceRoot);
   process.env.KIBI_MCP_DIAGNOSTIC_MODE = "1";
+}
+
+/**
+ * Identify which host, package build, and checkout produced a usage row.
+ *
+ * Without these a multi-worktree or multi-host setup cannot tell whether a
+ * behavioral difference came from the agent, the editor integration, or the
+ * installed Kibi version, because nothing else in a row names its origin.
+ */
+function resolveOriginFields(workspaceRoot: string): Record<string, unknown> {
+  return {
+    interface: "mcp",
+    host: process.env.KIBI_MCP_HOST?.trim() || "unknown",
+    package_version: readMcpPackageVersion(),
+    workspace_root: workspaceRoot,
+  };
+}
+
+function readMcpPackageVersion(): string | null {
+  let current = path.dirname(fileURLToPath(import.meta.url));
+  while (true) {
+    const candidate = path.join(current, "package.json");
+    if (fs.existsSync(candidate)) {
+      try {
+        const parsed: unknown = JSON.parse(fs.readFileSync(candidate, "utf8"));
+        const version = isRecord(parsed) ? parsed.version : undefined;
+        return typeof version === "string" ? version : null;
+      } catch {
+        return null;
+      }
+    }
+    const parent = path.dirname(current);
+    if (parent === current) return null;
+    current = parent;
+  }
 }
 
 export function appendUsageLogLine(entry: Record<string, unknown>): void {
   if (!diagnosticUsageLogPath) return;
   fs.mkdirSync(path.dirname(diagnosticUsageLogPath), { recursive: true });
-  fs.appendFileSync(diagnosticUsageLogPath, `${JSON.stringify(entry)}\n`, {
+  const row = { ...diagnosticOriginFields, ...entry };
+  fs.appendFileSync(diagnosticUsageLogPath, `${JSON.stringify(row)}\n`, {
     encoding: "utf8",
   });
 }
@@ -132,14 +191,6 @@ export interface DiagnosticToolCall {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
-
-function structuredContentFrom(
-  result: unknown,
-): Record<string, unknown> | undefined {
-  if (!isRecord(result)) return undefined;
-  const structuredContent = result.structuredContent;
-  return isRecord(structuredContent) ? structuredContent : undefined;
 }
 
 function stringArray(value: unknown): string[] {
@@ -377,12 +428,8 @@ export function deriveDiagnosticFields(
     }
   }
 
-  const envelope = structuredContentFrom(result);
-  const structuredContent =
-    envelope?.kibiProtocol === 1 && isRecord(envelope.data)
-      ? envelope.data
-      : envelope;
-  if (envelope?.kibiProtocol === 1) {
+  const { envelope, data: structuredContent } = normalizeResultPayload(result);
+  if (envelope) {
     fields.protocol_version = envelope.kibiProtocol;
     fields.result_version = envelope.resultVersion ?? null;
     fields.result_status = envelope.status ?? null;
@@ -404,19 +451,25 @@ export function deriveDiagnosticFields(
   }
 
   if (toolName === "kb_query" || toolName === "kb_search") {
-    const resultCount = Number(structuredContent?.count ?? 0);
-    fields.result_count = resultCount;
-    fields.zero_results = resultCount === 0;
-    fields.result_summary =
-      resultCount === 0 ? "0 results" : `${resultCount} results`;
+    appendPayloadCountField(
+      fields,
+      "result_count",
+      "results",
+      structuredContent,
+    );
+    if (typeof fields.result_count === "number") {
+      fields.zero_results = fields.result_count === 0;
+    }
   }
 
   if (toolName === "kb_check") {
-    const violationCount = Number(structuredContent?.count ?? 0);
-    fields.violation_count = violationCount;
+    appendPayloadCountField(
+      fields,
+      "violation_count",
+      "violations",
+      structuredContent,
+    );
     fields.requested_rules = Array.isArray(args.rules) ? args.rules : [];
-    fields.result_summary =
-      violationCount === 0 ? "0 violations" : `${violationCount} violations`;
   }
 
   if (toolName === "kb_coverage" && structuredContent) {

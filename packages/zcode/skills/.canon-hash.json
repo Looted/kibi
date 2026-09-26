@@ -13,7 +13,7 @@
   "kibi-traceability/resources/operation-access.md": "39f7972ab7f4ae7479e78f7072bb50e8e6c4cdf4f857425f69d2522d37db437c",
   "kibi-traceability/resources/source-authoring.md": "408c6ee2bef1b84e0194c0538ef929c26a0a617e631b2234247388140dbbdd08",
   "kibi-traceability/resources/traceability.md": "38c290a0bc71bd1692e115f22694743946e2f69630e134acfd43cee5f613fb88",
-  "kibi-usage/SKILL.md": "1ef5c74753a4b9adce0fbb372a60c3f8fb92413e94200121480f1cfc1f12bbae",
+  "kibi-usage/SKILL.md": "b57f13167c788880cdb9d82adf2fd3b16ad9a458220d3d9ca01dac98269a7518",
   "kibi-usage/resources/branch-lifecycle.md": "f1bf359e9826e83c548f3cd0287f8175a62456527b0132b06b3f9f74aa59b7d6",
   "kibi-usage/resources/fact-lanes.md": "41b28023a57593009867ea0ebc8e9f3f05c3bd837144772d12844423f922e763",
   "kibi-usage/resources/kb-improvement.md": "17e8b6cf6a0dd43b443a2bfd92e7205d099647a5f1c75fe85413a6cea63d86c6",
@@ -23,5 +23,5 @@
   "kibi-usage/resources/relationship-directions.md": "a357072d3370db9b7d80e505795f952909a68778cc18b1d089970de91e4fda46",
   "kibi-usage/resources/source-authoring.md": "ac4f1a9b5785462f8c3530bdcdb82ad9a0ee1f4049454ae28bf4df09ff267ebd",
   "kibi-usage/resources/ui-requirements.md": "b7c31ab1affa3ab25ae5242d8fd8c4d546532d1cafc65d84088375317c1682cc",
-  "kibi-usage/resources/workflows.md": "776b97a794325e7012a230d2b9fc32fc89b2a51df45dfd8498cad49170bdc43d"
+  "kibi-usage/resources/workflows.md": "52cadc2b1e41af7d0c3129b721d81bb542fefb97113ba3a7c817f7ab7a1f787e"
 }
