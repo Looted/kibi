@@ -41488,6 +41488,8 @@ symbols:
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-proof-contract-projection-pagination
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
       - type: implements
         target: REQ-kibi-operation-interface-parity
       - type: implements
