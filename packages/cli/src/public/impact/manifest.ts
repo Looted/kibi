@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import * as path from "node:path";
 import { extractFromManifest } from "../../extractors/manifest.js";
 import type { ExtractionResult } from "../../extractors/markdown.js";
+import { createManifestLookupSentinelKey } from "../../traceability/symbol-extract.js";
 import type { ManifestLookup } from "../../traceability/symbol-extract.js";
 import { CANONICAL_ENTITY_PATHS } from "../../utils/kb-paths.js";
 import { isTraceabilityRelationshipType } from "../symbol-granularity.js";
@@ -42,10 +43,22 @@ export function createImpactManifestLookup(
   manifestResults: readonly ExtractionResult[],
 ): ManifestLookup {
   const manifestLookup: ManifestLookup = new Map();
+  manifestLookup.set(createManifestLookupSentinelKey(".kb/symbols.yaml"), {
+    id: "__captured_manifest__",
+    relationships: [],
+  });
+  const ambiguous = new Set<string>();
 
   for (const result of manifestResults) {
     const sourceFile = result.sourceFile ?? result.entity.source;
-    manifestLookup.set(`${sourceFile}:${result.entity.title}`, {
+    const key = `${sourceFile}:${result.entity.title}`;
+    if (ambiguous.has(key)) continue;
+    if (manifestLookup.has(key)) {
+      manifestLookup.delete(key);
+      ambiguous.add(key);
+      continue;
+    }
+    manifestLookup.set(key, {
       id: result.entity.id,
       relationships: toTraceabilityRelationships(result.relationships),
     });

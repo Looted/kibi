@@ -641,6 +641,7 @@ async function executeIngestProofUnlocked(
   };
 }
 
+// implements REQ-kibi-verification-evidence-contract
 export async function executeIngestProof(
   args: IngestProofArgs,
   context: OperationContext,

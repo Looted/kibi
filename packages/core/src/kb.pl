@@ -25,6 +25,7 @@
     kb_indexed_sources/1,
     kb_query_entities/8,
     kb_search_entities/6,
+    kb_search_candidates/6,
     kb_rebuild_indexes/0,
     kb_entity/3,
     kb_entities_by_source/2,
@@ -262,15 +263,16 @@ kb_write_lock_owner(Directory) :-
     ;   BootId = ""
     ),
     get_time(Now),
-    format_time(atom(StartedAt), '%FT%TZ', Now),
+    stamp_date_time(Now, NowUTC, 'UTC'),
+    format_time(atom(StartedAt), '%FT%TZ', NowUTC),
     atom_concat(Path, '.tmp', TmpPath),
     setup_call_cleanup(
         open(TmpPath, write, Stream),
         json_write_dict(Stream,
-                        json([pid:Pid,
-                              workspaceRoot:Directory,
-                              bootId:BootId,
-                              startedAt:StartedAt]),
+                        _{pid:Pid,
+                          workspaceRoot:Directory,
+                          bootId:BootId,
+                          startedAt:StartedAt},
                         []),
         (close(Stream), rename_file(TmpPath, Path))).
 
@@ -1674,6 +1676,27 @@ take_index_ids(Limit, [Id|Rest], [Id|Page]) :-
 % for the entity. The TypeScript ranker remains responsible for scores,
 % reasons, snippets, and final ordering.
 kb_search_entities(TypeFilter, Query, Limit, Offset, Rows, Count) :-
+    kb_search_page_ids(TypeFilter, Query, Limit, Offset, PageIds, Count),
+    findall([Id, Type, Props],
+            ( member(Id, PageIds), kb_entity(Id, Type, Props) ),
+            Rows).
+
+%% kb_search_candidates(+Type, +Query, +Limit, +Offset, -Rows, -Count)
+% Ranking needs metadata and semantic properties, never proof receipt history.
+% Keep all other properties; selected full entities remain available by query.
+% implements REQ-mcp-search-discovery, REQ-kibi-operation-interface-parity
+kb_search_candidates(TypeFilter, Query, Limit, Offset, Rows, Count) :-
+    kb_search_page_ids(TypeFilter, Query, Limit, Offset, PageIds, Count),
+    findall([Id, Type, Props],
+            ( member(Id, PageIds),
+              kb_entity(Id, Type, FullProps),
+              findall(Key=Value,
+                      (member(Key=Value, FullProps), Key \== proof_receipts),
+                      Props) ),
+            Rows).
+
+% implements REQ-mcp-search-discovery, REQ-kibi-operation-interface-parity
+kb_search_page_ids(TypeFilter, Query, Limit, Offset, PageIds, Count) :-
     integer(Limit),
     integer(Offset),
     Limit >= 0,
@@ -1691,10 +1714,7 @@ kb_search_entities(TypeFilter, Query, Limit, Offset, Rows, Count) :-
     sort(RawIds, Ids),
     length(Ids, Count),
     drop_index_ids(Offset, Ids, Remaining),
-    take_index_ids(Limit, Remaining, PageIds),
-    findall([Id, Type, Props],
-            ( member(Id, PageIds), kb_entity(Id, Type, Props) ),
-            Rows).
+    take_index_ids(Limit, Remaining, PageIds).
 
 indexed_token_match(QueryToken, Id) :-
     kb_index_token(IndexedToken, Id),

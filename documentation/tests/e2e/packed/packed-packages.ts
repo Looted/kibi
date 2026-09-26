@@ -5,6 +5,7 @@ export const packagesForPack = [
   "plugin-sdk",
   "plugin-builtin",
   "plugin-jev",
+  "plugin-treesitter",
   "runtime",
   "cli",
   "mcp",

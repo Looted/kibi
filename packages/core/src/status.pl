@@ -90,7 +90,8 @@ synced_at(DataFile, SyncedAt) :-
     exists_file(DataFile),
     !,
     time_file(DataFile, Timestamp),
-    format_time(atom(SyncedAt), '%FT%TZ', Timestamp).
+    stamp_date_time(Timestamp, TimestampUTC, 'UTC'),
+    format_time(atom(SyncedAt), '%FT%TZ', TimestampUTC).
 % Before the first successful sync there is no kb.rdf, so the public JSON contract must expose syncedAt: null.
 synced_at(_, null).
 
@@ -250,14 +251,15 @@ documentation_tree_changed(SnapshotTime) :-
     !.
 
 directory_tree_newer(Path, SnapshotTime) :-
+    \+ ignored_documentation_file(Path),
     exists_file(Path),
     entity_documentation_file(Path),
-    \+ ignored_documentation_file(Path),
     time_file(Path, EntryTime),
     EntryTime > SnapshotTime,
     !.
 
 directory_tree_newer(Path, SnapshotTime) :-
+    \+ ignored_documentation_file(Path),
     exists_directory(Path),
     directory_files(Path, Entries),
     member(Entry, Entries),
@@ -268,12 +270,13 @@ directory_tree_newer(Path, SnapshotTime) :-
     !.
 
 directory_tree_newer_path(Path, SnapshotTime, Path) :-
+    \+ ignored_documentation_file(Path),
     exists_file(Path),
     entity_documentation_file(Path),
-    \+ ignored_documentation_file(Path),
     time_file(Path, EntryTime),
     EntryTime > SnapshotTime.
 directory_tree_newer_path(Path, SnapshotTime, ChildPath) :-
+    \+ ignored_documentation_file(Path),
     exists_directory(Path),
     directory_files(Path, Entries),
     member(Entry, Entries),
@@ -364,14 +367,20 @@ ignored_documentation_file(Path) :-
 ignored_documentation_file(Path) :-
     sub_atom(Path, _, _, _, '/tests/e2e/').
 ignored_documentation_file(Path) :-
+    sub_atom(Path, _, _, 0, '/tests/e2e').
+ignored_documentation_file(Path) :-
     sub_atom(Path, _, _, _, '/tests/benchmarks/').
+ignored_documentation_file(Path) :-
+    sub_atom(Path, _, _, 0, '/tests/benchmarks').
 
 entity_documentation_file(Path) :-
     read_file_to_string(Path, Content, []),
     sub_string(Content, 0, 3, _, "---"),
-    sub_string(Content, _, _, _, "id:"),
-    sub_string(Content, _, _, _, "title:"),
-    sub_string(Content, _, _, _, "status:").
+    % These are existence checks, not generators. Repeated metadata examples
+    % must not multiply freshness reasons or cause Cartesian backtracking.
+    once(sub_string(Content, _, _, _, "id:")),
+    once(sub_string(Content, _, _, _, "title:")),
+    once(sub_string(Content, _, _, _, "status:")).
 
 dict_json_string(Dict, JsonString) :-
     with_output_to(string(JsonString), json_write_dict(current_output, Dict, [])).

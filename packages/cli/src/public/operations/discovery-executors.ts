@@ -239,11 +239,42 @@ function summarizeMatch<TMatch extends { readonly entity: unknown }>(
   return { ...match, entity: summary };
 }
 
-function projectMatches<TMatch extends { readonly entity: unknown }>(
+// implements REQ-mcp-search-discovery, REQ-kibi-operation-interface-parity
+async function projectMatches<
+  TMatch extends { readonly entity: Record<string, unknown> },
+>(
   matches: readonly TMatch[],
   fields: SearchInput["fields"],
-): readonly TMatch[] {
-  return fields === "full" ? matches : matches.map(summarizeMatch);
+  prolog: PrologPort,
+  signal?: AbortSignal,
+): Promise<readonly TMatch[]> {
+  if (fields !== "full") return matches.map(summarizeMatch);
+  // Legacy ports already return full entities. Indexed search omits receipt
+  // histories, so hydrate only the hits the caller has selected after ranking.
+  if (!prolog.searchEntities) return matches;
+  const hydrated: TMatch[] = [];
+  for (const match of matches) {
+    signal?.throwIfAborted();
+    const id = String(match.entity.id ?? "");
+    const type = String(match.entity.type ?? "");
+    const input = { id, ...(type ? { type } : {}) };
+    const page = prolog.queryEntities
+      ? await prolog.queryEntities({ ...input, limit: 1, offset: 0 }, signal)
+      : null;
+    const entities = page?.entities ?? (await loadEntities(prolog, input));
+    const entity = entities[0];
+    if (
+      (page !== null && page.count !== 1) ||
+      entities.length !== 1 ||
+      !entity ||
+      entity.id !== id ||
+      (type && entity.type !== type)
+    ) {
+      throw new Error(`Full search entity is missing or ambiguous: ${id}`);
+    }
+    hydrated.push({ ...match, entity });
+  }
+  return hydrated;
 }
 
 export async function executeSearch(
@@ -302,7 +333,12 @@ export async function executeSearch(
       return {
         content: [{ type: "text", text }],
         structuredContent: {
-          results: projectMatches(paginated, fields),
+          results: await projectMatches(
+            paginated,
+            fields,
+            prolog,
+            context.signal,
+          ),
           count: intentResult.matches.length,
           queryAnalysis: intentResult.analysis,
         },
@@ -341,7 +377,12 @@ export async function executeSearch(
     return {
       content: [{ type: "text", text }],
       structuredContent: {
-        results: projectMatches(paginated, fields),
+        results: await projectMatches(
+          paginated,
+          fields,
+          prolog,
+          context.signal,
+        ),
         count: matches.length,
       },
     };

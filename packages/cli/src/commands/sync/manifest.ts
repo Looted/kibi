@@ -285,6 +285,9 @@ export async function refreshManifestCoordinates(
   const enriched = await resolved.enrichSymbolCoordinates(
     before,
     workspaceRoot,
+    shouldRefreshCoordinates
+      ? { allowPythonDecoratorCoordinates: true }
+      : undefined,
   );
 
   // Publish the generated coordinate artifact when explicitly requested.

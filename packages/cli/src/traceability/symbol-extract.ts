@@ -14,6 +14,7 @@ import type { HunkRange, StagedFile } from "./git-staged.js";
 
 type SourceAnalysisResult = SdkSourceAnalysisResult & {
   providerId?: string | null;
+  status?: "ok" | "partial" | "unsupported" | "failed";
 };
 
 type TraceabilityRelationship = { type: string; to: string };
@@ -111,9 +112,10 @@ function resolveSymbolTraceability(
   const candidateManifestPaths = getCandidateManifestPaths(filePath);
   if (
     manifestLookup &&
-    candidateManifestPaths.some((manifestPath) =>
-      manifestLookup.has(createManifestLookupSentinelKey(manifestPath)),
-    )
+    (manifestLookup.has(createManifestLookupSentinelKey(".kb/symbols.yaml")) ||
+      candidateManifestPaths.some((manifestPath) =>
+        manifestLookup.has(createManifestLookupSentinelKey(manifestPath)),
+      ))
   ) {
     return { id: createHashFallbackId(filePath, name) };
   }
@@ -330,11 +332,8 @@ export function extractSymbolsFromStagedFile(
 }
 
 /**
- * Async staged symbol extraction. Defaults to deterministic builtin analysis.
- * Pass an explicit `registry` only from allowlisted async surfaces that compose
- * replace/augment/shadow (e.g. symbol repair). Maintenance paths (`check`,
- * impact, sync, status, proof) must omit `registry` so external extractors
- * never participate.
+ * Async extraction from supplied snapshot bytes. Maintenance callers inject the
+ * shared, host-approved v2 analysis; legacy direct callers retain v1 behavior.
  */
 // implements REQ-capability-plugin-activation-disclosure-v1
 export async function extractSymbolsFromStagedFileAsync(
@@ -346,34 +345,27 @@ export async function extractSymbolsFromStagedFileAsync(
     }>,
 ): Promise<ExtractedSymbol[]> {
   const content = stagedFile.content ?? "";
-  const sha = computeContentSha(
-    `${content}|${stagedFile.path}|async|${options.registry ? "registry" : "custom"}`,
-  );
-  const now = Date.now();
-  let cached = analysisCache.get(sha);
-  if (!cached || now - cached.ts > CACHE_TTL_MS) {
-    try {
-      let analysis: SourceAnalysisResult | null = null;
-      if (options.analyzeText) {
-        analysis = await options.analyzeText(stagedFile.path, content);
-      } else if (options.registry) {
-        const { createSourceAnalysisService } = await import(
-          "../plugins/source-analysis-service.js"
-        );
-        analysis = await createSourceAnalysisService({
-          registry: options.registry,
-        }).analyzeText(stagedFile.path, content);
-      } else {
-        analysis = analyzeWithBuiltinFallback(stagedFile.path, content);
-      }
-      cached = { result: analysis, ts: now };
-      analysisCache.set(sha, cached);
-    } catch {
-      cached = { result: null, ts: now };
-      analysisCache.set(sha, cached);
-    }
+  // Do not cache by a generic "custom" provider key: provider/query versions
+  // and snapshot contexts differ. The host owns any structural-analysis cache.
+  let analysis: SourceAnalysisResult | null;
+  if (options.analyzeText) {
+    analysis = await options.analyzeText(stagedFile.path, content);
+  } else if (options.registry) {
+    const { createSourceAnalysisService } = await import(
+      "../plugins/source-analysis-service.js"
+    );
+    analysis = await createSourceAnalysisService({
+      registry: options.registry,
+    }).analyzeText(stagedFile.path, content);
+  } else {
+    analysis = analyzeWithBuiltinFallback(stagedFile.path, content);
   }
-  return symbolsFromAnalysis(stagedFile, cached.result, manifestLookup);
+  if (analysis?.status === "failed" || analysis?.status === "partial") {
+    throw new Error(
+      `Source analysis ${analysis.status} for ${stagedFile.path}; complete symbol validation is unavailable`,
+    );
+  }
+  return symbolsFromAnalysis(stagedFile, analysis, manifestLookup);
 }
 
 function symbolsFromAnalysis(
@@ -382,6 +374,18 @@ function symbolsFromAnalysis(
   manifestLookup?: ManifestLookup,
 ): ExtractedSymbol[] {
   if (!analysis) return [];
+  if (analysis.status !== undefined) {
+    const locators = new Set<string>();
+    for (const symbol of analysis.symbols) {
+      const locator =
+        (symbol as { qualifiedName?: string }).qualifiedName ?? symbol.name;
+      if (locators.has(locator))
+        throw new Error(
+          `Ambiguous declaration locator '${locator}' in ${stagedFile.path}; authored identity cannot be assigned`,
+        );
+      locators.add(locator);
+    }
+  }
 
   const results: ExtractedSymbol[] = [];
 
@@ -390,14 +394,20 @@ function symbolsFromAnalysis(
       results.push(
         buildSymbolResult(
           stagedFile,
-          symbol.name,
+          sourceSymbolLocator(
+            symbol,
+            analysis.symbols,
+            stagedFile.path,
+            manifestLookup,
+          ),
           symbol.kind as ExtractedSymbol["kind"],
           { startLine: symbol.startLine, endLine: symbol.endLine },
           parseReqDirectives(symbol.directiveText ?? ""),
           manifestLookup,
         ),
       );
-    } catch {
+    } catch (error) {
+      if (analysis.status !== undefined) throw error;
       void stagedFile.path;
     }
   }
@@ -426,4 +436,26 @@ function intersectingHunks(
     if (rangesIntersect(startLine, endLine, h.start, h.end)) out.push(h);
   }
   return out;
+}
+
+// implements REQ-008
+function sourceSymbolLocator(
+  symbol: SdkSourceAnalysisResult["symbols"][number] & {
+    qualifiedName?: string;
+  },
+  symbols: SdkSourceAnalysisResult["symbols"],
+  filePath: string,
+  lookup?: ManifestLookup,
+): string {
+  const qualified = symbol.qualifiedName;
+  if (!qualified || qualified === symbol.name) return symbol.name;
+  if (lookup?.has(`${filePath}:${qualified}`)) return qualified;
+  // Preserve an authored legacy unqualified locator only when unambiguous.
+  if (
+    symbols.filter((candidate) => candidate.name === symbol.name).length ===
+      1 &&
+    lookup?.has(`${filePath}:${symbol.name}`)
+  )
+    return symbol.name;
+  return qualified;
 }

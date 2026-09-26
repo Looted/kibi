@@ -15,12 +15,13 @@ import {
 const ROOT = join(import.meta.dir, "..", "..");
 
 describe("canonical package catalog", () => {
-  test("publishable dirs include the three plugin packages and exclude zcode", () => {
+  test("publishable dirs include all packages and exclude zcode", () => {
     expect([...PUBLISHABLE_DIRS]).toEqual([
       "core",
       "plugin-sdk",
       "plugin-builtin",
       "plugin-jev",
+      "plugin-treesitter",
       "runtime",
       "cli",
       "mcp",
@@ -33,13 +34,19 @@ describe("canonical package catalog", () => {
     expect(CI_PACK_DIRS).toEqual(PUBLISHABLE_DIRS);
   });
 
-  test("default install excludes optional Jev", () => {
+  test("default install excludes optional plugins", () => {
     expect(DEFAULT_INSTALL_DIRS).toContain("plugin-builtin");
     expect(DEFAULT_INSTALL_DIRS).toContain("plugin-sdk");
     expect(DEFAULT_INSTALL_DIRS).not.toContain("plugin-jev");
     const jev = PACKAGE_CATALOG.find((entry) => entry.dir === "plugin-jev");
     expect(jev?.optional).toBe(true);
     expect(jev?.includedInDefaultInstall).toBe(false);
+    expect(DEFAULT_INSTALL_DIRS).not.toContain("plugin-treesitter");
+    const treeSitter = PACKAGE_CATALOG.find(
+      (entry) => entry.dir === "plugin-treesitter",
+    );
+    expect(treeSitter?.optional).toBe(true);
+    expect(treeSitter?.includedInDefaultInstall).toBe(false);
   });
 
   test("packed e2e pack list matches the canonical CI pack slice", () => {
@@ -69,7 +76,7 @@ describe("canonical package catalog", () => {
     expect(ci).not.toContain("const dirs = ['core', 'runtime', 'cli'");
   });
 
-  test("CLI and MCP default dependency trees exclude Jev", () => {
+  test("CLI and MCP default dependency trees exclude optional plugins", () => {
     const cli = JSON.parse(
       readFileSync(join(ROOT, "packages/cli/package.json"), "utf8"),
     ) as { dependencies?: Record<string, string> };
@@ -78,10 +85,12 @@ describe("canonical package catalog", () => {
     ) as { dependencies?: Record<string, string> };
     expect(cli.dependencies?.["kibi-plugin-jev"]).toBeUndefined();
     expect(mcp.dependencies?.["kibi-plugin-jev"]).toBeUndefined();
+    expect(cli.dependencies?.["kibi-plugin-treesitter"]).toBeUndefined();
+    expect(mcp.dependencies?.["kibi-plugin-treesitter"]).toBeUndefined();
     expect(cli.dependencies?.["kibi-plugin-builtin"]).toBeDefined();
   });
 
-  test("packed default-install manifest matches the catalog and excludes Jev", () => {
+  test("packed default-install manifest matches the catalog and excludes optional plugins", () => {
     const manifest = readFileSync(
       join(ROOT, "documentation/tests/e2e/packed/packed-install-manifest.ts"),
       "utf8",
@@ -92,6 +101,7 @@ describe("canonical package catalog", () => {
       expect(manifest).toContain(`"${entry?.npmName}"`);
     }
     expect(manifest).not.toContain("kibi-plugin-jev");
+    expect(manifest).not.toContain("kibi-plugin-treesitter");
     expect(manifest).not.toContain("kibi-zcode");
   });
 });

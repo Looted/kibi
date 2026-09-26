@@ -1822,7 +1822,7 @@ source: .kb/requirements/REQ-STAGED-001.md
   );
 
   test(
-    "--staged projects only manifest entities for staged source files",
+    "--staged rejects dangling snapshot relationships outside changed source files",
     async () => {
       const docDir = path.join(tmpDir, ".kb");
       const reqDocDir = path.join(docDir, "requirements");
@@ -1934,11 +1934,12 @@ source: .kb/requirements/REQ-STAGED-SCOPED-001.md
       );
 
       const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
-      const output = stdoutToString(result.stdout || result.stderr);
+      const output =
+        stdoutToString(result.stdout) + stdoutToString(result.stderr);
 
-      expect(result.status).toBe(0);
-      expect(output).toContain("No violations found");
-      expect(output).not.toContain("REQ-UNRELATED-MISSING-001");
+      expect(result.status).toBe(1);
+      expect(output).toContain("missing endpoint");
+      expect(output).toContain("REQ-UNRELATED-MISSING-001");
     },
     TEST_TIMEOUT_MS,
   );

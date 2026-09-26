@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 109,
-  "proofProven": 109,
+  "currentRequirements": 110,
+  "proofProven": 110,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -502,6 +502,11 @@
       "uncoveredSymbols": []
     },
     "REQ-skillopt-predicate-first-requirements": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-source-analysis-v2": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

@@ -1,19 +1,31 @@
 import { describe, expect, it } from "bun:test";
 import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { basename, dirname, join } from "node:path";
+import {
   BATCH_CONCURRENCY,
   BATCH_TIMEOUT_MINUTES,
   CLI_ENGINE_BATCH_TIMEOUT_MS,
+  CLI_UNIT_BATCHES,
   type SuiteSummary,
   getBatchFailureMessage,
   isCuratedSuiteEntryPoint,
   isolatedUnitBatchEnv,
   parseSuiteSummaries,
+  runBatch,
 } from "./root.test.ts";
 
 // executable_for TEST-root-suite-batch-diagnostics
 describe("getBatchFailureMessage", () => {
   it("bounds package-process parallelism", () => {
     expect(BATCH_CONCURRENCY).toBe(2);
+    expect(BATCH_TIMEOUT_MINUTES).toBe(25);
   });
 
   it("gives journaled-engine and SkillOpt batches 120s isolates", () => {
@@ -65,6 +77,109 @@ describe("getBatchFailureMessage", () => {
     ).toBe(
       `cli timed out after ${BATCH_TIMEOUT_MINUTES} minutes (status null; 0 summaries).`,
     );
+  });
+});
+
+// executable_for TEST-root-suite-batch-diagnostics
+describe("CLI process partition", () => {
+  it("executes every CLI file exactly once across private process batches", async () => {
+    const workspace = mkdtempSync(join(tmpdir(), "kibi-unit-partition-"));
+    const previousCwd = process.cwd();
+    const recordsPath = join(workspace, "executed.jsonl");
+    const files = [
+      "packages/cli/tests/operations/check.test.ts",
+      "packages/cli/tests/operations/apply-plan-recovery.test.ts",
+      "packages/cli/tests/operations/apply-plan-coverage.test.ts",
+      "packages/cli/tests/operations/proof-impact.test.ts",
+      "packages/cli/tests/public/source-changes.test.ts",
+      "packages/cli/tests/commands/discovery-shared-remaining.coverage.test.ts",
+      // Similarly named files and tests outside tests/ must remain in the main batch.
+      "packages/cli/tests/commands/check.test.ts",
+      "packages/cli/src/runtime/cli-runtime.test.ts",
+    ];
+    try {
+      for (const file of files) {
+        const filePath = join(workspace, file);
+        mkdirSync(dirname(filePath), { recursive: true });
+        writeFileSync(
+          filePath,
+          `
+import { expect, test } from "bun:test";
+import { appendFileSync, existsSync } from "node:fs";
+test(${JSON.stringify(file)}, () => {
+  expect(process.env.NODE_ENV).toBe("test");
+  expect(process.env.KIBI_BRANCH).toBeUndefined();
+  const runtime = process.env.KIBI_RUNTIME_DIR;
+  expect(runtime).toContain("kibi-unit-engine-runtime-");
+  expect(existsSync(runtime)).toBe(true);
+  appendFileSync(${JSON.stringify(recordsPath)}, JSON.stringify({file: ${JSON.stringify(file)}, runtime}) + "\\n");
+});
+`,
+        );
+      }
+      process.chdir(workspace);
+      const unpartitioned = await runBatch({
+        label: "unpartitioned CLI fixture",
+        args: [
+          "test",
+          "--timeout",
+          String(CLI_ENGINE_BATCH_TIMEOUT_MS),
+          "--isolate",
+          "--max-concurrency=1",
+          "./packages/cli",
+        ],
+      });
+      const before = readFileSync(recordsPath, "utf8")
+        .trim()
+        .split("\n")
+        .map((line) => JSON.parse(line) as { file: string; runtime: string });
+      rmSync(recordsPath);
+
+      const summaries: SuiteSummary[] = [];
+      for (const batch of CLI_UNIT_BATCHES) {
+        expect(batch.args).toContain("--isolate");
+        expect(batch.args).toContain("--max-concurrency=1");
+        expect(batch.args[batch.args.indexOf("--timeout") + 1]).toBe("120000");
+        summaries.push(await runBatch(batch));
+      }
+      const after = readFileSync(recordsPath, "utf8")
+        .trim()
+        .split("\n")
+        .map((line) => JSON.parse(line) as { file: string; runtime: string });
+      expect(after.map((record) => record.file).sort()).toEqual(
+        before.map((record) => record.file).sort(),
+      );
+      expect(new Set(after.map((record) => record.file)).size).toBe(
+        files.length,
+      );
+      expect(after).toHaveLength(files.length);
+      expect(
+        summaries.reduce((total, summary) => total + summary.pass, 0),
+      ).toBe(unpartitioned.pass);
+      expect(
+        summaries.reduce((total, summary) => total + summary.files, 0),
+      ).toBe(unpartitioned.files);
+      expect(
+        summaries.every((summary) => summary.fail === 0 && summary.pass > 0),
+      ).toBe(true);
+      expect(new Set(after.map((record) => record.runtime)).size).toBe(
+        CLI_UNIT_BATCHES.length,
+      );
+      expect(
+        after.every((record) =>
+          basename(record.runtime).startsWith("kibi-unit-engine-runtime-"),
+        ),
+      ).toBe(true);
+    } finally {
+      process.chdir(previousCwd);
+      rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
+  it("rejects a successful process that produced no test summary", async () => {
+    await expect(
+      runBatch({ label: "empty partition", args: ["-e", "void 0"] }),
+    ).rejects.toThrow("Expected one Bun summary for empty partition, got 0.");
   });
 });
 
@@ -160,7 +275,7 @@ describe("parseSuiteSummaries", () => {
       "",
       "  1 pass",
       "  0 fail",
-      "Ran 1 tests across 1 file.",
+      "Ran 1 test across 1 file.",
     ].join("\n");
     const withPlural = [
       "",

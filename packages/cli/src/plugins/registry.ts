@@ -29,8 +29,10 @@ import {
   type ProjectPluginEntry,
   SEMANTIC_CLASSIFIER_CAPABILITY_ID,
   SYMBOL_EXTRACTOR_CAPABILITY_ID,
+  SYMBOL_EXTRACTOR_V2_CAPABILITY_ID,
   type SemanticClassifierV1,
   type SymbolExtractorV1,
+  type SymbolExtractorV2,
   defineKibiPlugin,
   validateKibiPlugin,
 } from "kibi-plugin-sdk";
@@ -83,12 +85,17 @@ export type CapabilityRegistryOptions = Readonly<{
   loadPluginOptions?: LoadPluginOptions;
 }>;
 
-type CapabilitySlot = "semanticClassifier" | "ontologyPack" | "symbolExtractor";
+type CapabilitySlot =
+  | "semanticClassifier"
+  | "ontologyPack"
+  | "symbolExtractor"
+  | "symbolExtractorV2";
 
 const CAPABILITY_SLOT: Record<CapabilityId, CapabilitySlot> = {
   [SEMANTIC_CLASSIFIER_CAPABILITY_ID]: "semanticClassifier",
   [ONTOLOGY_PACK_CAPABILITY_ID]: "ontologyPack",
   [SYMBOL_EXTRACTOR_CAPABILITY_ID]: "symbolExtractor",
+  [SYMBOL_EXTRACTOR_V2_CAPABILITY_ID]: "symbolExtractorV2",
 };
 
 /**
@@ -231,7 +238,12 @@ function bindingFor<T>(
 function capabilityFromPlugin(
   plugin: KibiPluginV1,
   capabilityId: CapabilityId,
-): SemanticClassifierV1 | OntologyPackV1 | SymbolExtractorV1 | undefined {
+):
+  | SemanticClassifierV1
+  | OntologyPackV1
+  | SymbolExtractorV1
+  | SymbolExtractorV2
+  | undefined {
   const slot = CAPABILITY_SLOT[capabilityId];
   return plugin.capabilities[slot];
 }
@@ -308,6 +320,15 @@ export class CapabilityRegistry {
   > {
     return this.resolveCapability(SYMBOL_EXTRACTOR_CAPABILITY_ID) as Promise<
       CapabilityModeResolution<SymbolExtractorV1>
+    >;
+  }
+
+  // implements REQ-capability-plugin-activation-disclosure-v1
+  async resolveSymbolExtractorsV2(): Promise<
+    CapabilityModeResolution<SymbolExtractorV2>
+  > {
+    return this.resolveCapability(SYMBOL_EXTRACTOR_V2_CAPABILITY_ID) as Promise<
+      CapabilityModeResolution<SymbolExtractorV2>
     >;
   }
 

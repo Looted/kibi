@@ -4,7 +4,9 @@
 :- use_module('../src/discovery.pl').
 :- use_module('../src/derived_chr.pl').
 :- use_module('../src/sparql_client.pl').
+:- use_module('../src/status.pl').
 :- use_module(library(http/json)).
+:- use_module(library(date)).
 :- use_module(library(plunit)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(filesex)).
@@ -4014,9 +4016,9 @@ test(req_status_vocabulary_rejects_adr_statuses_on_requirements, [setup(setup_kb
 test(req_status_vocabulary_is_wired_into_check_all, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
     assert_fixture_entity(req, 'REQ-BAD-STATUS', "Bad status", accepted, []),
     checks:check_all(Dict),
-    member('REQ-BAD-STATUS'-_, Pairs),
     dict_pairs(Dict, _, Pairs0),
-    assertion(member(req_status_vocabulary-_, Pairs0)),
+    memberchk(req_status_vocabulary-StatusViolations, Pairs0),
+    assertion(member(violation('req-status-vocabulary', 'REQ-BAD-STATUS', _, _, _), StatusViolations)),
     checks:check_req_status_vocabulary([_|_]).
 
 test(requirement_proof_reports_typed_reason_for_noncurrent_status, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
@@ -4091,7 +4093,7 @@ test(coverage_report_status_filter_can_enumerate_missing_rows, [setup(setup_kb),
 
 test(production_symbol_stage_reports_reason_with_status, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
     assert_fixture_entity(req, 'REQ-STAGE-REASON', "Stage reason", active, [priority=must]),
-    kb_entity('REQ-STAGE-REASON', req, Props),
+    kb_entity('REQ-STAGE-REASON', req, _Props),
     requirement_proof:production_symbol_stage('REQ-STAGE-REASON', [], Stage, _),
     Stage.status == missing,
     sub_atom(Stage.reason, _, _, _, "no production symbols implement").
@@ -4491,3 +4493,87 @@ cleanup_isolation_children :-
            catch(write_isolation_barrier(Path), _, true)),
     forall(retract(isolation_child_process(Pid)),
            catch(process_wait(Pid, _), _, true)).
+
+:- begin_tests(kb_timestamp_formats).
+
+test(status_synced_at_uses_utc_in_non_utc_child) :-
+    tmp_file(kibi_status_timezone, DataFile),
+    setup_call_cleanup(
+        create_fixed_timestamp_file(DataFile),
+        ( run_timezone_child(status_synced_at_child(DataFile), ChildResult),
+          assertion(ChildResult.syncedAt == "2000-01-01T00:00:00Z")
+        ),
+        catch(delete_file(DataFile), _, true)
+    ).
+
+test(lock_owner_started_at_is_current_utc_in_non_utc_child) :-
+    tmp_file(kibi_lock_owner_timezone, LockDirectory),
+    make_directory_path(LockDirectory),
+    get_time(Before),
+    setup_call_cleanup(
+        true,
+        ( run_timezone_child(lock_owner_json_child(LockDirectory), Owner),
+          assertion(integer(Owner.pid)),
+          assertion(Owner.pid > 0),
+          assertion(string(Owner.workspaceRoot)),
+          assertion(string(Owner.bootId)),
+          assertion(string(Owner.startedAt)),
+          atom_string(LockDirectory, Owner.workspaceRoot),
+          get_time(After),
+          parse_time(Owner.startedAt, iso_8601, StartedAt),
+          LowerBound is Before - 1,
+          UpperBound is After + 1,
+          assertion(StartedAt >= LowerBound),
+          assertion(StartedAt =< UpperBound)
+        ),
+        delete_directory_and_contents(LockDirectory)
+    ).
+
+:- end_tests(kb_timestamp_formats).
+
+create_fixed_timestamp_file(DataFile) :-
+    setup_call_cleanup(
+        open(DataFile, write, Stream, [encoding(utf8)]),
+        true,
+        close(Stream)
+    ),
+    % A fixed epoch makes the status assertion independent of test runtime.
+    set_time_file(DataFile, _OldTimes, [modified(946684800.0)]).
+
+run_timezone_child(GoalTerm, ChildResult) :-
+    test_source_directory(TestDirectory),
+    directory_file_path(TestDirectory, 'kb.plt', TestSource),
+    format(string(Goal), '~q', [GoalTerm]),
+    process_create(path(swipl),
+                   ['-q', '-s', TestSource, '-g', Goal, '-t', halt],
+                   [process(Pid), stdout(pipe(Output)), stderr(pipe(Error)),
+                    environment(['TZ'='Europe/Warsaw'])]),
+    read_string(Output, _, OutputText),
+    close(Output),
+    read_string(Error, _, ErrorText),
+    close(Error),
+    process_wait(Pid, ExitStatus),
+    (   ExitStatus == exit(0)
+    ->  true
+    ;   throw(error(child_process_failed(ExitStatus, ErrorText),
+                    run_timezone_child/2))
+    ),
+    atom_json_dict(OutputText, ChildResult, []).
+
+status_synced_at_child(DataFile) :-
+    getenv('TZ', 'Europe/Warsaw'),
+    status:synced_at(DataFile, SyncedAt),
+    json_write_dict(current_output, _{syncedAt:SyncedAt}, []),
+    nl.
+
+lock_owner_json_child(LockDirectory) :-
+    getenv('TZ', 'Europe/Warsaw'),
+    kb:kb_write_lock_owner(LockDirectory),
+    kb:kb_lock_owner_path(LockDirectory, OwnerPath),
+    setup_call_cleanup(
+        open(OwnerPath, read, OwnerStream, [encoding(utf8)]),
+        json_read_dict(OwnerStream, Owner),
+        close(OwnerStream)
+    ),
+    json_write_dict(current_output, Owner, []),
+    nl.
