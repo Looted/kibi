@@ -25,42 +25,6 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-3b778b9ff15ff2c1b9b82342
-    test_id: TEST-013
-    scope: end_to_end
-    outcome: failed
-    code_snapshot: 71b43ef38f0945d5febd8dad9a12223a2f13e5092564f8222974a6fb48fc1ea5
-    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
-    started_at: '2026-09-06T06:30:49.943Z'
-    finished_at: '2026-09-06T07:22:27.216Z'
-    artifact_digest: 874dd5c6d454cff93bdf784b60380ee2fa22f4058f4382076d931c84dde61ccd
-    contract_hash: b9d5f2462dcdad98a14ee13e3cc4addb6de3c5cc76a18c215eab4fbab6c6acc6
-    fingerprint: 901da7fae22689611b3a4c603ab197c36a25b5e876befb3c903df29843b77eb8
-    fingerprint_components:
-      contract: b9d5f2462dcdad98a14ee13e3cc4addb6de3c5cc76a18c215eab4fbab6c6acc6
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: failed
-    proof_results:
-      - symbol_id: SYM-test-core-adr-supersession
-        target: default
-        outcome: failed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-    gaps:
-      - symbol_id: SYM-test-core-adr-supersession
-        target: default
-        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-test-packed-dependency-ordered-repair-plan (failed), SYM-e2e-packed-cli-github-report (failed), SYM-test-core-journaled-engine-delta-sync (failed), SYM-test-opencode-bootstrap-paths (failed), SYM-codex-packed-plugin-e2e (failed) +83 more'
-  - version: kibi.proof-receipt.v1
     receipt_id: PR-8275178b2f39f84ce97bec70
     test_id: TEST-013
     scope: end_to_end
@@ -1704,6 +1668,39 @@ proof_receipts:
       - symbol_id: SYM-test-core-adr-supersession
         target: default
         reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +107 more'
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-07f9add5eaaec3a15c77e0b5
+    test_id: TEST-013
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a3c1a48e120e41d83d68ccf876658668c913dd55b88bb2ac812d0bc0bf2acccd
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-26T16:13:59.550Z'
+    finished_at: '2026-09-26T16:48:47.610Z'
+    artifact_digest: 930eef24b16e9c22c9ff81a84ada6b666cbf92db14067f5ddc7f3fa497217e38
+    contract_hash: b9d5f2462dcdad98a14ee13e3cc4addb6de3c5cc76a18c215eab4fbab6c6acc6
+    binding_hash: 70f7c4057d4ec57e2e73f9fea2c54db5f4823f693259078853cda1b411918d5e
+    fingerprint: 901da7fae22689611b3a4c603ab197c36a25b5e876befb3c903df29843b77eb8
+    fingerprint_components:
+      contract: b9d5f2462dcdad98a14ee13e3cc4addb6de3c5cc76a18c215eab4fbab6c6acc6
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-test-core-adr-supersession
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 ## Test Cases
 

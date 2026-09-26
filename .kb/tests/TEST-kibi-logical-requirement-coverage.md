@@ -1610,6 +1610,39 @@ proof_receipts:
       - symbol_id: SYM-e2e-test-kibi-logical-requirement-coverage
         target: default
         reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +107 more'
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-4693d72ba8a4f10aa64bccf7
+    test_id: TEST-kibi-logical-requirement-coverage
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a3c1a48e120e41d83d68ccf876658668c913dd55b88bb2ac812d0bc0bf2acccd
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-26T16:13:59.550Z'
+    finished_at: '2026-09-26T16:48:47.610Z'
+    artifact_digest: 930eef24b16e9c22c9ff81a84ada6b666cbf92db14067f5ddc7f3fa497217e38
+    contract_hash: 169368fa251f7e0e38eda65faf205649c6758c3d20a4439939edb6474f848759
+    binding_hash: bf40404360f266794bdd503ac8aa8ed32668f7aced87470d55fa2589a551a1b7
+    fingerprint: 39433cadb755c70041e3e080507df0a234fe35369581e29b1f82603195b3ca81
+    fingerprint_components:
+      contract: 169368fa251f7e0e38eda65faf205649c6758c3d20a4439939edb6474f848759
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-kibi-logical-requirement-coverage
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 Verifies stable clause keys including trailing-punctuation normalization, compound semantic-advisor receipts, merged modeling manifests, paired and hash-consistent claim provenance, bijective manifest-to-ground-fact coverage, duplicate-term rejection, lossless repeated-relationship decoding, default rule activation, title-independent logical-debt diagnostics, exact predicate polarity contradictions, MCP contradiction rejection, MCP schema preservation of claim patterns, uniqueness, and conditional provenance, staged-overlay preservation of manifests, predicate fields, and verification metadata, final-state evidence normalization, and Skillopt logical-coverage scoring.
 

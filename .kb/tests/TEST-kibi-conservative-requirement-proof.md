@@ -27,42 +27,6 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-1e0e89458d91595cbc16c70e
-    test_id: TEST-kibi-conservative-requirement-proof
-    scope: end_to_end
-    outcome: failed
-    code_snapshot: 3f8b48dd84116905859ff9ad9beb6f42472888fcc02de24d6ff6ef46c41cba7f
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-09-01T02:00:18.844Z'
-    finished_at: '2026-09-01T02:24:25.062Z'
-    artifact_digest: e0a3f7afc30f978f4299d03e9c4487f5048bf904f91509c6d0747dcbb0c5d1ea
-    contract_hash: 6fca1d15c40cc5f85c9d09af7fad4174203475e2a02e3622b2365c88b14c613a
-    fingerprint: c90e7768818b86786448ca4566590ae7fef4aebb5e037def02aa82cc030005b9
-    fingerprint_components:
-      contract: 6fca1d15c40cc5f85c9d09af7fad4174203475e2a02e3622b2365c88b14c613a
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: failed
-    proof_results:
-      - symbol_id: SYM-test-conservative-requirement-proof-chain
-        target: default
-        outcome: failed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-    gaps:
-      - symbol_id: SYM-test-conservative-requirement-proof-chain
-        target: default
-        reason: 'run did not pass (outcome: failed)'
-  - version: kibi.proof-receipt.v1
     receipt_id: PR-07bfcb91406ef9f82f9026f4
     test_id: TEST-kibi-conservative-requirement-proof
     scope: end_to_end
@@ -1710,5 +1674,38 @@ proof_receipts:
       - symbol_id: SYM-test-conservative-requirement-proof-chain
         target: default
         reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +107 more'
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-72616a66f99e59df4804cf3a
+    test_id: TEST-kibi-conservative-requirement-proof
+    scope: integration
+    outcome: passed
+    code_snapshot: a3c1a48e120e41d83d68ccf876658668c913dd55b88bb2ac812d0bc0bf2acccd
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-26T16:13:59.550Z'
+    finished_at: '2026-09-26T16:48:47.610Z'
+    artifact_digest: 930eef24b16e9c22c9ff81a84ada6b666cbf92db14067f5ddc7f3fa497217e38
+    contract_hash: 6fca1d15c40cc5f85c9d09af7fad4174203475e2a02e3622b2365c88b14c613a
+    binding_hash: 6a73e7e10d65b202bf4364d7962e8790978e9151421c8b04ebbf90459c0f916e
+    fingerprint: c90e7768818b86786448ca4566590ae7fef4aebb5e037def02aa82cc030005b9
+    fingerprint_components:
+      contract: 6fca1d15c40cc5f85c9d09af7fad4174203475e2a02e3622b2365c88b14c613a
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-test-conservative-requirement-proof-chain
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 Verifies the conservative requirement-proof contract through core Prolog, the CLI command surface, and the MCP adapter. It covers structural false positives, complete proof chains, semantic-inventory RDF round trips, refresh-before-extract source-coordinate persistence, executable-versus-production symbol classification, stable proof gaps, ranked repairs, and compatibility of existing coverage fields.
