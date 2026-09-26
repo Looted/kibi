@@ -9283,6 +9283,14 @@ coordinates:
     sourceEndLine: 12
     sourceFile: documentation/tests/e2e/coverage-pipeline.e2e.ts
     sourceLine: 12
+  SYM-e2e-installed-sdk-source-analysis-input-limits:
+    identityHash: 322262e26f1ba47a95b8a0aa0deefb78e6479378837a97b4cc9ffed7c0c68787
+    sourceHash: a8fc204ebd7f3d594cff6b4a11d484bdc97721630afe2f649bc0e1b2b53e1390
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 234
+    sourceFile: documentation/tests/e2e/packed/installed-sdk-source-analysis-input-limits.test.ts
+    sourceLine: 174
   SYM-e2e-multilingual-source-analysis:
     identityHash: c768de50d5f33af6f16317243e684afb5bf25fb25e232e4bee5198f038f9fef3
     sourceHash: 10b9a3e39b418498477a24c4956d52e9d91603ad0dfee43af5674f059840cd12

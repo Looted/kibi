@@ -41904,6 +41904,8 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-capability-plugin-protocol-v1
+      - type: covered_by
+        target: TEST-installed-sdk-source-analysis-input-limits
       - type: implements
         target: REQ-capability-plugin-protocol-v1
   - id: SYM-cli-MutationRollbackFailureError
@@ -42113,3 +42115,15 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-e2e-installed-sdk-source-analysis-input-limits
+    title: runInstalledSdkSourceAnalysisInputLimitsWorkflow
+    status: active
+    sourceFile: documentation/tests/e2e/packed/installed-sdk-source-analysis-input-limits.test.ts
+    symbol_role: behavioral
+    tags:
+      - e2e
+      - consumer
+      - source-analysis
+    relationships:
+      - type: executable_for
+        target: TEST-installed-sdk-source-analysis-input-limits
