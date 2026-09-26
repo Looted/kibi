@@ -41,15 +41,21 @@ export function validateEntityType(type?: string): void {
   }
 }
 
+/**
+ * Proof campaign selection must not materialize every contracted test in a
+ * single Prolog result. The specialized projection excludes receipt histories
+ * and returns one bounded page at a time.
+ */
+export const PROOF_CONTRACT_PAGE_SIZE = 100;
+
 // implements REQ-002, REQ-013
 export function buildEntityGoal(input: EntityQueryInput): string {
   const { type, id, tags, sourceFile } = input;
   if (type === "test" && input.projection === "proof_contract") {
-    const idTerm = id ? `'${escapeAtomContent(id)}'` : "Id";
-    const entityGoal = id
-      ? `kb_entity(${idTerm}, test, Props)`
-      : "kb_entity(Id, test, Props)";
-    return `findall([${idTerm},'test',Projected], (${entityGoal}, memberchk(proof_contract=Contract, Props), (memberchk(proof_bindings=Bindings, Props) -> Projected = [id=${idTerm},proof_contract=Contract,proof_bindings=Bindings] ; Projected = [id=${idTerm},proof_contract=Contract])), Results)`;
+    const idTerm = id ? `some('${escapeAtomContent(id)}')` : "none";
+    const limit = input.limit ?? PROOF_CONTRACT_PAGE_SIZE;
+    const offset = input.offset ?? 0;
+    return `kb_query_proof_contracts(${idTerm},${limit},${offset},Results)`;
   }
   if (sourceFile) {
     const safeSource = escapeAtomContent(sourceFile);
@@ -93,18 +99,41 @@ export async function loadEntities(
   input: EntityQueryInput,
 ): Promise<Record<string, unknown>[]> {
   validateEntityType(input.type);
-  const queryResult = await prolog.query(buildEntityGoal(input));
-  if (!queryResult.success) {
-    throw new Error(queryResult.error || "Query failed with unknown error");
-  }
+  const readPage = async (
+    pageInput: EntityQueryInput,
+  ): Promise<Record<string, unknown>[]> => {
+    const queryResult = await prolog.query(buildEntityGoal(pageInput));
+    if (!queryResult.success) {
+      throw new Error(queryResult.error || "Query failed with unknown error");
+    }
+    const resultsBinding = queryResult.bindings.Results;
+    const resultBinding = queryResult.bindings.Result;
+    if (resultsBinding) {
+      return parseListOfLists(resultsBinding).map(parseEntityFromList);
+    }
+    return resultBinding ? [parseEntityFromBinding(resultBinding)] : [];
+  };
 
-  let entities: Record<string, unknown>[] = [];
-  const resultsBinding = queryResult.bindings.Results;
-  const resultBinding = queryResult.bindings.Result;
-  if (resultsBinding) {
-    entities = parseListOfLists(resultsBinding).map(parseEntityFromList);
-  } else if (resultBinding) {
-    entities = [parseEntityFromBinding(resultBinding)];
+  let entities: Record<string, unknown>[];
+  if (
+    input.type === "test" &&
+    input.projection === "proof_contract" &&
+    input.id === undefined &&
+    input.limit === undefined &&
+    input.offset === undefined
+  ) {
+    entities = [];
+    for (let offset = 0; ; offset += PROOF_CONTRACT_PAGE_SIZE) {
+      const page = await readPage({
+        ...input,
+        limit: PROOF_CONTRACT_PAGE_SIZE,
+        offset,
+      });
+      entities.push(...page);
+      if (page.length < PROOF_CONTRACT_PAGE_SIZE) break;
+    }
+  } else {
+    entities = await readPage(input);
   }
   if (input.tags && input.tags.length > 0) {
     const requested = new Set(input.tags.map((tag) => tag.trim()));

@@ -36,7 +36,7 @@ import {
   validateStrictLanePairing,
   validateSupersedesSourceHistory,
 } from "./relationships.js";
-import { MutationSaga } from "./saga.js";
+import { MutationRollbackFailureError, MutationSaga } from "./saga.js";
 import {
   writePendingSourceReceipt,
   writeSourceForUpsert,
@@ -501,11 +501,47 @@ export async function executeUpsert(
     }
 
     if (options.deferCompiledCommit === true) {
+      let deferredState:
+        | "prepared"
+        | "rolling_back"
+        | "rolled_back"
+        | "committed" = "prepared";
+      let rollbackPromise:
+        | Promise<Awaited<ReturnType<typeof saga.rollback>>>
+        | undefined;
       const deferredCommit: NonNullable<UpsertPayload["deferredCommit"]> = {
         entity: commitEntity ?? validated.entity,
         relationships: validated.relationships,
         skipContradictionCheck: input._skipContradictionCheck === true,
-        rollback: () => saga.rollback(),
+        get state() {
+          return deferredState;
+        },
+        finalize: () => {
+          if (deferredState !== "prepared") {
+            throw new Error(
+              `Cannot finalize deferred upsert ${input.id} from state ${deferredState}`,
+            );
+          }
+          saga.markCommitted();
+          deferredState = "committed";
+        },
+        rollback: () => {
+          if (deferredState === "committed") {
+            return Promise.reject(
+              new Error(
+                `Cannot roll back deferred upsert ${input.id} after its compiled commit`,
+              ),
+            );
+          }
+          if (deferredState === "rolled_back") return Promise.resolve([]);
+          if (rollbackPromise !== undefined) return rollbackPromise;
+          deferredState = "rolling_back";
+          rollbackPromise = saga.rollback().then((failures) => {
+            deferredState = "rolled_back";
+            return failures;
+          });
+          return rollbackPromise;
+        },
       };
       return {
         content: [
@@ -698,9 +734,10 @@ export async function executeUpsert(
       (failure) => failure.step === "symbol-coordinates",
     );
     if (coordinateFailure !== undefined) {
-      const failure = new AggregateError(
+      const failure = new MutationRollbackFailureError(
         [error, coordinateFailure.error],
         `Upsert failed and coordinate artifact rollback failed for ${input.id}`,
+        rollbackFailures,
       );
       operationFailure = { error: failure };
       throw failure;
@@ -713,9 +750,10 @@ export async function executeUpsert(
         sourceFailure.error instanceof Error
           ? sourceFailure.error.message
           : String(sourceFailure.error);
-      const failure = new AggregateError(
+      const failure = new MutationRollbackFailureError(
         [error, sourceFailure.error],
         `Upsert failed and authored source rollback failed for ${input.id}: ${rollbackMessage}`,
+        rollbackFailures,
       );
       operationFailure = { error: failure };
       throw failure;

@@ -1363,6 +1363,8 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-proof-contract-projection-pagination
       - type: implements
         target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-discovery-dedupe-entities
@@ -1389,6 +1391,8 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-proof-contract-projection-pagination
       - type: implements
         target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-discovery-paginate-results
@@ -7630,6 +7634,8 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-proof-ingest-batch-atomicity
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
@@ -34277,6 +34283,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
+        target: TEST-kibi-proof-ingest-batch-atomicity
+      - type: covered_by
         target: TEST-kibi-verification-receipts-v2
       - type: implements
         target: REQ-kibi-fresh-verification-receipts
@@ -37740,9 +37748,12 @@ symbols:
     status: active
     sourceFile: packages/cli/src/operations/proof/ingest-proof.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-proof-ingest-batch-atomicity
       - type: implements
         target: REQ-kibi-fresh-verification-receipts
       - type: implements
@@ -41446,3 +41457,104 @@ symbols:
         target: TEST-test-journaled-engine-harness
       - type: implements
         target: REQ-test-journaled-engine-harness
+  - id: SYM-parity-deferred-upsert-commit-type
+    title: DeferredUpsertCommit
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/types.ts
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-cli-discovery-proof-contract-page-size
+    title: PROOF_CONTRACT_PAGE_SIZE
+    status: active
+    sourceFile: packages/cli/src/public/operations/discovery-entities.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-proof-contract-projection-pagination
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-core-kb-query-proof-contracts
+    title: kb_query_proof_contracts
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-proof-contract-projection-pagination
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-cli-MutationRollbackFailureError
+    title: MutationRollbackFailureError
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/saga.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-011
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
+      - type: implements
+        target: REQ-014
+  - id: SYM-cli-MutationSaga-add
+    title: MutationSaga.add
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/saga.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-011
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
+      - type: implements
+        target: REQ-014
+  - id: SYM-cli-MutationSaga-committed
+    title: MutationSaga.committed
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/saga.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-011
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
+      - type: implements
+        target: REQ-014
+  - id: SYM-cli-MutationSaga-markCommitted
+    title: MutationSaga.markCommitted
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/saga.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-011
+      - type: covered_by
+        target: TEST-kibi-proof-ingest-batch-atomicity
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
+      - type: implements
+        target: REQ-014
+  - id: SYM-cli-MutationSaga-rollback
+    title: MutationSaga.rollback
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/saga.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-011
+      - type: covered_by
+        target: TEST-kibi-proof-ingest-batch-atomicity
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
+      - type: implements
+        target: REQ-014

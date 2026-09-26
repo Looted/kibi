@@ -51,6 +51,19 @@ export type SagaRollbackFailure = Readonly<{
   error: unknown;
 }>;
 
+/** A mutation failed before commit and at least one compensation also failed. */
+// implements REQ-014
+export class MutationRollbackFailureError extends AggregateError {
+  constructor(
+    errors: readonly unknown[],
+    message: string,
+    readonly rollbackFailures: readonly SagaRollbackFailure[],
+  ) {
+    super(errors, message);
+    this.name = "MutationRollbackFailureError";
+  }
+}
+
 // implements REQ-014
 export class MutationSaga {
   private readonly steps: SagaStep[] = [];
