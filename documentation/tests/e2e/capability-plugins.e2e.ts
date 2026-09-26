@@ -58,6 +58,24 @@ const originalCwd = process.cwd();
 const originalWorkspace = process.env.KIBI_WORKSPACE;
 const originalModel = process.env.KIBI_JEV_MODEL;
 const originalTimeout = process.env.KIBI_JEV_TIMEOUT_MS;
+const WORKSPACE_ENV_KEYS = [
+  "KIBI_WORKSPACE",
+  "KIBI_PROJECT_ROOT",
+  "KIBI_ROOT",
+] as const;
+
+function pinKibiWorkspace(workspaceRoot: string): () => void {
+  const previous = WORKSPACE_ENV_KEYS.map(
+    (key) => [key, process.env[key]] as const,
+  );
+  for (const key of WORKSPACE_ENV_KEYS) process.env[key] = workspaceRoot;
+  return () => {
+    for (const [key, value] of previous) {
+      if (value === undefined) Reflect.deleteProperty(process.env, key);
+      else process.env[key] = value;
+    }
+  };
+}
 
 function restoreWorkspace(): void {
   if (originalWorkspace === undefined) {
@@ -197,6 +215,7 @@ try {
   try {
     await doctorCommand({ format: "json" });
   } finally {
+    restoreUndeclaredWorkspace();
     console.log = undeclaredOriginalLog;
     process.chdir(originalCwd);
     restoreWorkspace();
@@ -581,6 +600,7 @@ try {
   console.log = (...args: unknown[]) => {
     doctorLogs.push(args.map(String).join(" "));
   };
+  const restoreDeclaredWorkspace = pinKibiWorkspace(root);
   try {
     writeFileSync(
       join(root, "package.json"),
@@ -601,6 +621,7 @@ try {
     );
     await doctorCommand({ format: "json" });
   } finally {
+    restoreDeclaredWorkspace();
     console.log = originalLog;
     process.chdir(originalCwd);
     restoreWorkspace();
