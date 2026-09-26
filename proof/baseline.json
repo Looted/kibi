@@ -236,6 +236,11 @@
       "gaps": [],
       "uncoveredSymbols": []
     },
+    "REQ-git-hook-effective-install": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
     "REQ-git-hook-sync-v2": {
       "proofStatus": "proven",
       "gaps": [],
