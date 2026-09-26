@@ -248,6 +248,12 @@ export type UpsertExecutionOptions = Readonly<{
    * entries. Everything else keeps the append-only invariant fail-closed.
    */
   readonly allowReceiptsPrune?: boolean;
+  /**
+   * Prepare source and validation, then return the commit payload without
+   * talking to Prolog. Proof ingest batches those payloads into one
+   * transaction.
+   */
+  readonly deferCompiledCommit?: boolean;
 }>;
 
 export async function executeUpsert(
@@ -494,6 +500,31 @@ export async function executeUpsert(
       };
     }
 
+    if (options.deferCompiledCommit === true) {
+      const deferredCommit: NonNullable<UpsertPayload["deferredCommit"]> = {
+        entity: commitEntity ?? validated.entity,
+        relationships: validated.relationships,
+        skipContradictionCheck: input._skipContradictionCheck === true,
+        rollback: () => saga.rollback(),
+      };
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Prepared ${input.id} for a batched proof commit.`,
+          },
+        ],
+        structuredContent: {
+          created: 0,
+          updated: 0,
+          relationships_created: validated.relationships.length,
+          warnings: semantic.warnings,
+          semanticAdvisor: semantic.receipt,
+          deferredCommit,
+          ...(sourceWrite ? { sourceWrites: [sourceWrite.receipt] } : {}),
+        },
+      };
+    }
     const transaction = buildUpsertCommitGoal({
       entity: commitEntity ?? validated.entity,
       relationships: validated.relationships,

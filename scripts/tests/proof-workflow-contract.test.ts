@@ -40,6 +40,10 @@ const proofPackedRunner = readFileSync(
   join(ROOT, "scripts", "run-proof-packed-e2e.mjs"),
   "utf8",
 );
+const packedCompile = readFileSync(
+  join(ROOT, "scripts", "compile-e2e-packed.mjs"),
+  "utf8",
+);
 
 describe("strict proof workflow contract", () => {
   test("integrations execute through kibi prove with declarative steps", () => {
@@ -257,12 +261,14 @@ describe("strict proof workflow contract", () => {
       );
       expect(step.join(" ")).not.toContain("/tmp/kibi-e2e-packed-compiled");
     }
-    expect(proofPackedRunner).toContain("mkdtemp(");
+    expect(proofPackedRunner).toContain("preparePackedCompilation");
     expect(proofPackedRunner).toContain("run-packed-e2e.mjs");
     expect(proofPackedRunner).toContain("KIBI_PROOF_PACKED");
+    expect(proofPackedRunner).toContain("prepared.ownsDirectory");
     expect(proofPackedRunner).toContain(
-      "rm(compiledDirectory, { recursive: true, force: true })",
+      "rm(prepared.directory, { recursive: true, force: true })",
     );
+    expect(packedCompile).toContain("mkdtemp(");
   });
 
   test("equality baseline locks full current-requirement proof", () => {

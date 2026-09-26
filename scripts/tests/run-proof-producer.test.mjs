@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
+import { EventEmitter } from "node:events";
 import {
   existsSync,
   mkdtempSync,
@@ -11,6 +13,8 @@ import path from "node:path";
 import process from "node:process";
 import { test } from "node:test";
 import {
+  groupProofSteps,
+  proofStepConcurrency,
   runProofProducer,
   validateProofSteps,
   validateRequestedTestIds,
@@ -207,4 +211,98 @@ setInterval(() => {}, 1000);
     false,
     "timed out step left a descendant alive",
   );
+});
+
+test("proof producer runs an identical argv once and fans the attempt out", async () => {
+  let spawns = 0;
+  const result = await runProofProducer({
+    testIds: ["TEST-A", "TEST-B", "TEST-C"],
+    entries: [
+      {
+        test_id: "TEST-A",
+        steps: [
+          [process.execPath, "-e", "process.exit(0)"],
+          [process.execPath, "-e", "process.exit(3)"],
+        ],
+      },
+      {
+        test_id: "TEST-B",
+        steps: [[process.execPath, "-e", "process.exit(0)"]],
+      },
+      {
+        test_id: "TEST-C",
+        steps: [[process.execPath, "-e", "process.exit(3)"]],
+      },
+    ],
+    env: { ...process.env },
+    spawnProcess: (command, args, options) => {
+      spawns += 1;
+      return spawn(command, args, options);
+    },
+    write: () => undefined,
+  });
+
+  assert.equal(spawns, 2);
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.attempts.length, 4);
+  assert.deepEqual(
+    result.attempts.map((attempt) => [
+      attempt.test_id,
+      attempt.step_index,
+      attempt.outcome,
+    ]),
+    [
+      ["TEST-A", 1, "passed"],
+      ["TEST-A", 2, "failed"],
+      ["TEST-B", 1, "passed"],
+      ["TEST-C", 1, "failed"],
+    ],
+  );
+  const grouped = groupProofSteps([
+    {
+      test_id: "TEST-A",
+      steps: [
+        ["node", "a"],
+        ["node", "b"],
+      ],
+    },
+    { test_id: "TEST-B", steps: [["node", "a"]] },
+  ]);
+  assert.equal(grouped.groups.length, 2);
+  assert.equal(grouped.groups[0].slots.length, 2);
+});
+
+test("proof step concurrency stays sequential unless configured", () => {
+  assert.equal(proofStepConcurrency({}), 1);
+  assert.equal(proofStepConcurrency({ KIBI_PROOF_STEP_CONCURRENCY: "0" }), 1);
+  assert.equal(proofStepConcurrency({ KIBI_PROOF_STEP_CONCURRENCY: "2" }), 2);
+});
+
+test("proof producer overlaps distinct commands when concurrency is set", async () => {
+  let inFlight = 0;
+  let maxInFlight = 0;
+  const result = await runProofProducer({
+    testIds: ["TEST-P1", "TEST-P2"],
+    entries: [
+      { test_id: "TEST-P1", steps: [["sleep-a"]] },
+      { test_id: "TEST-P2", steps: [["sleep-b"]] },
+    ],
+    env: { ...process.env, KIBI_PROOF_STEP_CONCURRENCY: "2" },
+    spawnProcess: () => {
+      inFlight += 1;
+      maxInFlight = Math.max(maxInFlight, inFlight);
+      const child = new EventEmitter();
+      child.pid = 1;
+      queueMicrotask(() => {
+        inFlight -= 1;
+        child.emit("close", 0, null);
+      });
+      return child;
+    },
+    write: () => undefined,
+  });
+
+  assert.equal(result.exitCode, 0);
+  assert.equal(maxInFlight, 2);
+  assert.equal(result.attempts.length, 2);
 });
