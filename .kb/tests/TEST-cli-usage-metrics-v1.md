@@ -1635,5 +1635,38 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-82bf12d9372e7165f8ab3692
+    test_id: TEST-cli-usage-metrics-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: de201a2dd0c317058bd0fb2437de496eaadfbdd3e21c3fd432d77169cc672e2e
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-26T12:51:30.031Z'
+    finished_at: '2026-09-26T13:07:42.195Z'
+    artifact_digest: c9cece4a6c8412af4af92cf82807f3850d2b801045aacf7d48830d68278a660f
+    contract_hash: 20a60e54df1ffce9dae9639e4b6009d54ea102a86bb4cbdcde5a431f990f4f7b
+    binding_hash: fc0dc3e4e99675d06bfe43a2728f882bc4919624fa221f993d0cfa4e95fcf14b
+    fingerprint: ee4a7f87378b245720a07fbd8e1fb904ddc07a73c453e01a0bf09dd19494ea9e
+    fingerprint_components:
+      contract: 20a60e54df1ffce9dae9639e4b6009d54ea102a86bb4cbdcde5a431f990f4f7b
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-cli-usage-metrics-v1
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 Verifies the usage metrics command reads diagnostic event data and reports expected summaries.
