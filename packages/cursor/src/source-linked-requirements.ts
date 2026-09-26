@@ -1,6 +1,7 @@
 // implements REQ-cursor-kibi-plugin-v1
 import fs from "node:fs";
 import path from "node:path";
+import { parse as parseYaml } from "yaml";
 
 /**
  * Resolve the requirements a source file already implements, from the symbol
@@ -18,11 +19,8 @@ const SYMBOLS_MANIFEST_PATH = ".kb/symbols.yaml";
 
 const MAX_LINKED_REQUIREMENTS = 3;
 
-const OWNERSHIP_RELATIONSHIPS = ["implements", "covered_by", "executable_for"];
-
 type ManifestRow = {
-  sourceFile?: string;
-  links: string[];
+  sourceFile: string;
   relationships: { type: string; target: string }[];
 };
 
@@ -54,15 +52,10 @@ export function getSourceLinkedRequirementIds(
     ordered.push(id);
   };
 
-  for (const relationship of OWNERSHIP_RELATIONSHIPS) {
-    for (const row of rows) {
-      for (const link of row.relationships) {
-        if (link.type === relationship) remember(link.target);
-      }
-    }
-  }
   for (const row of rows) {
-    for (const link of row.links) remember(link);
+    for (const link of row.relationships) {
+      if (link.type === "implements") remember(link.target);
+    }
   }
 
   return ordered.slice(0, MAX_LINKED_REQUIREMENTS);
@@ -75,68 +68,39 @@ function toManifestPath(workspaceRoot: string, filePath: string): string {
   return path.relative(workspaceRoot, absolute).split(path.sep).join("/");
 }
 
-/**
- * Parse the subset of `symbols.yaml` this guidance needs: each entry's
- * `sourceFile`, its `links`, and its `relationships` type/target pairs.
- */
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+/** Parse canonical YAML and keep only source files and typed relationships. */
 // implements REQ-cursor-kibi-plugin-v1
 export function parseSymbolsManifest(content: string): ManifestRow[] {
-  const rows: ManifestRow[] = [];
-  let current: ManifestRow | null = null;
-  let section: "none" | "links" | "relationships" = "none";
-  let pendingType: string | null = null;
-
-  for (const line of content.split("\n")) {
-    if (line.trim().startsWith("#")) continue;
-
-    if (/^\s+-\s+id:\s*\S/.test(line)) {
-      current = { links: [], relationships: [] };
-      rows.push(current);
-      section = "none";
-      pendingType = null;
-      continue;
-    }
-    if (!current) continue;
-
-    const sourceFile = line.match(/^\s+sourceFile:\s*(.+)$/);
-    if (sourceFile?.[1]) {
-      current.sourceFile = sourceFile[1].trim();
-      section = "none";
-      continue;
-    }
-    if (/^\s+links:\s*$/.test(line)) {
-      section = "links";
-      pendingType = null;
-      continue;
-    }
-    if (/^\s+relationships:\s*$/.test(line)) {
-      section = "relationships";
-      pendingType = null;
-      continue;
-    }
-
-    if (section === "links") {
-      const link = line.match(/^\s+-\s+([A-Za-z]+-[A-Za-z0-9_-]+)\s*$/);
-      if (link?.[1]) current.links.push(link[1]);
-      continue;
-    }
-
-    if (section === "relationships") {
-      const type = line.match(/^\s+-\s+type:\s*(.+)$/);
-      if (type?.[1]) {
-        pendingType = type[1].trim();
-        continue;
-      }
-      const target = line.match(/^\s+target:\s*(.+)$/);
-      if (target?.[1] && pendingType) {
-        current.relationships.push({
-          type: pendingType,
-          target: target[1].trim(),
-        });
-        pendingType = null;
-      }
-    }
+  let parsed: unknown;
+  try {
+    parsed = parseYaml(content);
+  } catch {
+    return [];
   }
 
-  return rows;
+  const symbols = asRecord(parsed)?.symbols;
+  if (!Array.isArray(symbols)) return [];
+
+  return symbols.flatMap((value): ManifestRow[] => {
+    const symbol = asRecord(value);
+    if (typeof symbol?.sourceFile !== "string") return [];
+
+    const relationships = Array.isArray(symbol.relationships)
+      ? symbol.relationships.flatMap((value) => {
+          const relationship = asRecord(value);
+          return typeof relationship?.type === "string" &&
+            typeof relationship.target === "string"
+            ? [{ type: relationship.type, target: relationship.target }]
+            : [];
+        })
+      : [];
+
+    return [{ sourceFile: symbol.sourceFile, relationships }];
+  });
 }

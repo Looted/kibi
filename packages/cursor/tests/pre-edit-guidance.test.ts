@@ -33,11 +33,18 @@ const MANIFEST = `symbols:
       - type: implements
         target: REQ-checkout-total
       - type: covered_by
-        target: REQ-checkout-audit
+        target: TEST-checkout-total
+      - type: executable_for
+        target: TEST-checkout-total
   - id: SYM-checkout-legacy
     sourceFile: src/checkout.ts
     links:
       - REQ-checkout-legacy
+  - id: SYM-checkout-test
+    sourceFile: src/checkout.test.ts
+    relationships:
+      - type: executable_for
+        target: TEST-checkout-total
   - id: SYM-unrelated
     sourceFile: src/other.ts
     relationships:
@@ -46,13 +53,34 @@ const MANIFEST = `symbols:
 `;
 
 describe("source-linked requirement resolution", () => {
-  test("names the requirements a file already owns, ownership first", () => {
+  test("uses only implements relationships as requirement ownership", () => {
     const root = createWorkspace(MANIFEST);
     expect(getSourceLinkedRequirementIds(root, "src/checkout.ts")).toEqual([
       "REQ-checkout-total",
-      "REQ-checkout-audit",
-      "REQ-checkout-legacy",
     ]);
+  });
+
+  test("does not infer requirement ownership from generic legacy links", () => {
+    const root = createWorkspace(`symbols:
+  - id: SYM-checkout-legacy
+    sourceFile: src/checkout.ts
+    links:
+      - REQ-checkout-legacy
+`);
+    expect(getSourceLinkedRequirementIds(root, "src/checkout.ts")).toEqual([]);
+  });
+
+  test("parses quoted YAML scalar paths and relationship targets", () => {
+    const root = createWorkspace(`symbols:
+  - id: SYM-checkout-total
+    sourceFile: "src/checkout: totals.ts"
+    relationships:
+      - type: "implements"
+        target: 'REQ-checkout-total'
+`);
+    expect(
+      getSourceLinkedRequirementIds(root, "src/checkout: totals.ts"),
+    ).toEqual(["REQ-checkout-total"]);
   });
 
   test("resolves absolute edit paths against the workspace", () => {
@@ -95,6 +123,44 @@ describe("pre-edit guidance content", () => {
     expect(guidance).toContain("kb_search");
   });
 
+  test("does not describe test-only traceability as requirement ownership", () => {
+    const root = createWorkspace(MANIFEST);
+    const linkedRequirementIds = getSourceLinkedRequirementIds(
+      root,
+      "src/checkout.test.ts",
+    );
+    const guidance = preEditGuidance("/repo/src/checkout.test.ts", {
+      ...context,
+      linkedRequirementIds,
+    });
+
+    expect(linkedRequirementIds).toEqual([]);
+    expect(guidance).toContain("no linked requirement");
+    expect(guidance).toContain("kb_search");
+    expect(guidance).not.toContain("TEST-checkout-total");
+    expect(guidance).not.toContain("implements TEST");
+  });
+
+  test("falls back to discovery when only legacy links are present", () => {
+    const root = createWorkspace(`symbols:
+  - id: SYM-checkout-legacy
+    sourceFile: src/checkout.ts
+    links:
+      - REQ-checkout-legacy
+`);
+    const guidance = preEditGuidance("/repo/src/checkout.ts", {
+      ...context,
+      linkedRequirementIds: getSourceLinkedRequirementIds(
+        root,
+        "src/checkout.ts",
+      ),
+    });
+
+    expect(guidance).toContain("no linked requirement");
+    expect(guidance).toContain("kb_search");
+    expect(guidance).not.toContain("REQ-checkout-legacy");
+  });
+
   test("stays quiet for documentation and untracked paths", () => {
     expect(preEditGuidance("/repo/docs/guide.md", context)).toBeUndefined();
     expect(preEditGuidance("/repo/untracked.bin", context)).toBeUndefined();
@@ -123,6 +189,8 @@ describe("preToolUse emits guidance before the edit is written", () => {
     expect(first.permission).toBe("allow");
     expect(first.agent_message).toContain("Kibi pre-edit guidance");
     expect(first.agent_message).toContain("REQ-checkout-total");
+    expect(first.agent_message).not.toContain("TEST-checkout-total");
+    expect(first.agent_message).not.toContain("REQ-checkout-legacy");
 
     expect(await runHook(payload, { pluginData })).toStrictEqual({});
   });

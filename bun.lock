@@ -73,6 +73,9 @@
     "packages/cursor": {
       "name": "kibi-cursor",
       "version": "2.0.1",
+      "dependencies": {
+        "yaml": "^2.9.0",
+      },
       "devDependencies": {
         "@types/node": "latest",
         "typescript": "^5.7.0",
