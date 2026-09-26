@@ -55,10 +55,19 @@ function assert(condition: unknown, message: string): void {
 const REPO_ROOT = join(import.meta.dir, "../../..");
 const root = mkdtempSync(join(tmpdir(), "kibi-capability-plugins-"));
 const originalCwd = process.cwd();
+const originalWorkspace = process.env.KIBI_WORKSPACE;
 const originalModel = process.env.KIBI_JEV_MODEL;
 const originalTimeout = process.env.KIBI_JEV_TIMEOUT_MS;
 
+function restoreWorkspace(): void {
+  if (originalWorkspace === undefined) {
+    // biome-ignore lint/performance/noDelete: unset must remove the key; assigning undefined stringifies it.
+    delete process.env.KIBI_WORKSPACE;
+  } else process.env.KIBI_WORKSPACE = originalWorkspace;
+}
+
 function restoreEnv(): void {
+  restoreWorkspace();
   if (originalModel === undefined) {
     // biome-ignore lint/performance/noDelete: unset must remove the key; assigning undefined stringifies it.
     delete process.env.KIBI_JEV_MODEL;
@@ -184,11 +193,13 @@ try {
   console.log = (...args: unknown[]) => {
     undeclaredDoctorLogs.push(args.map(String).join(" "));
   };
+  process.env.KIBI_WORKSPACE = root;
   try {
     await doctorCommand({ format: "json" });
   } finally {
     console.log = undeclaredOriginalLog;
     process.chdir(originalCwd);
+    restoreWorkspace();
   }
   const undeclaredDoctor = JSON.parse(undeclaredDoctorLogs[0] ?? "{}") as {
     checks?: Array<{
@@ -564,6 +575,7 @@ try {
   );
 
   process.chdir(root);
+  process.env.KIBI_WORKSPACE = root;
   const doctorLogs: string[] = [];
   const originalLog = console.log;
   console.log = (...args: unknown[]) => {
@@ -591,6 +603,7 @@ try {
   } finally {
     console.log = originalLog;
     process.chdir(originalCwd);
+    restoreWorkspace();
   }
   const doctor = JSON.parse(doctorLogs[0] ?? "{}") as {
     checks?: Array<{ name: string; message: string }>;

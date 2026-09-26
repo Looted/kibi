@@ -1633,4 +1633,74 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-14b9513421aa6f12366aa095
+    test_id: TEST-codex-consumer-local-mcp-registration-v1
+    scope: end_to_end
+    outcome: failed
+    code_snapshot: 17d26c6bf27a3e5fa42113f021bf2b250140851aea8a51dcb29e71ea85465ffc
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-26T11:09:39.572Z'
+    finished_at: '2026-09-26T11:26:46.912Z'
+    artifact_digest: 5e15c583ed601b53256856b0f62aa348fec3a03cc76f327007241136eff85214
+    contract_hash: 7b29e35547a59070b55bf4c40c2104f6669e91783ae4db028daf1e6469cd02d3
+    binding_hash: cce530a90bd084316a9012b38a45f40879dbcd33d6bcd2e907ac32148c08120f
+    fingerprint: 1e95b07047d3e1d44d685c212e49b5f856f0a98f85af76d6f6aaab05bf056b0d
+    fingerprint_components:
+      contract: 7b29e35547a59070b55bf4c40c2104f6669e91783ae4db028daf1e6469cd02d3
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: failed
+    proof_results:
+      - symbol_id: SYM-codex-packed-plugin-e2e
+        target: default
+        outcome: failed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+    gaps:
+      - symbol_id: SYM-codex-packed-plugin-e2e
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +105 more'
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-708fb719eed55ce710e2f3d2
+    test_id: TEST-codex-consumer-local-mcp-registration-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a20108970eddbe026c332f8f0fef6001fa956bf246b5dee956c8c7586f878071
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-26T11:43:16.296Z'
+    finished_at: '2026-09-26T11:59:41.121Z'
+    artifact_digest: b458ebe1ef850179dd754bc08eb0a62bb0e46b7bbf068e00bb4230915cc296ed
+    contract_hash: 7b29e35547a59070b55bf4c40c2104f6669e91783ae4db028daf1e6469cd02d3
+    binding_hash: cce530a90bd084316a9012b38a45f40879dbcd33d6bcd2e907ac32148c08120f
+    fingerprint: 1e95b07047d3e1d44d685c212e49b5f856f0a98f85af76d6f6aaab05bf056b0d
+    fingerprint_components:
+      contract: 7b29e35547a59070b55bf4c40c2104f6669e91783ae4db028daf1e6469cd02d3
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-codex-packed-plugin-e2e
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---

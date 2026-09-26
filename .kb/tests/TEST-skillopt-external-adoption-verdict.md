@@ -1536,6 +1536,76 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-b5712270397b413866299b66
+    test_id: TEST-skillopt-external-adoption-verdict
+    scope: integration
+    outcome: failed
+    code_snapshot: 17d26c6bf27a3e5fa42113f021bf2b250140851aea8a51dcb29e71ea85465ffc
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-26T11:09:39.572Z'
+    finished_at: '2026-09-26T11:26:46.912Z'
+    artifact_digest: 5e15c583ed601b53256856b0f62aa348fec3a03cc76f327007241136eff85214
+    contract_hash: 045b2eae677eca3a28946fd99e1d4d0b99be19990af0b521bbc5f77dc334d93e
+    binding_hash: fd1b8b90f514b9e0a74f4095bbd2bad35c992ad33e97978abae16defa3b1faa1
+    fingerprint: 41580ab3960834bc6cc6ea6af29abd2e734c1473434db3aecabe2fce26340ad7
+    fingerprint_components:
+      contract: 045b2eae677eca3a28946fd99e1d4d0b99be19990af0b521bbc5f77dc334d93e
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: failed
+    proof_results:
+      - symbol_id: SYM-e2e-test-skillopt-external-adoption-verdict
+        target: default
+        outcome: failed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+    gaps:
+      - symbol_id: SYM-e2e-test-skillopt-external-adoption-verdict
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +105 more'
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-7a1fda6b0222ff876aa9172c
+    test_id: TEST-skillopt-external-adoption-verdict
+    scope: integration
+    outcome: passed
+    code_snapshot: a20108970eddbe026c332f8f0fef6001fa956bf246b5dee956c8c7586f878071
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-26T11:43:16.296Z'
+    finished_at: '2026-09-26T11:59:41.121Z'
+    artifact_digest: b458ebe1ef850179dd754bc08eb0a62bb0e46b7bbf068e00bb4230915cc296ed
+    contract_hash: 045b2eae677eca3a28946fd99e1d4d0b99be19990af0b521bbc5f77dc334d93e
+    binding_hash: fd1b8b90f514b9e0a74f4095bbd2bad35c992ad33e97978abae16defa3b1faa1
+    fingerprint: 41580ab3960834bc6cc6ea6af29abd2e734c1473434db3aecabe2fce26340ad7
+    fingerprint_components:
+      contract: 045b2eae677eca3a28946fd99e1d4d0b99be19990af0b521bbc5f77dc334d93e
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-skillopt-external-adoption-verdict
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 The contract suite verifies that local or fake SkillOpt evidence remains review-only and cannot mutate canonical or mirror state. Production adoption stays blocked until an independently verified external verdict binds the source root, candidate hash, immutable root authorization, supervisor parent, invocation and matrix identity, and terminal evidence.
 

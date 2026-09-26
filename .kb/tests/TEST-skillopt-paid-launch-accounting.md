@@ -1537,6 +1537,76 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-85cf09447b0f6ec9c4c1d6e9
+    test_id: TEST-skillopt-paid-launch-accounting
+    scope: integration
+    outcome: failed
+    code_snapshot: 17d26c6bf27a3e5fa42113f021bf2b250140851aea8a51dcb29e71ea85465ffc
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-26T11:09:39.572Z'
+    finished_at: '2026-09-26T11:26:46.912Z'
+    artifact_digest: 5e15c583ed601b53256856b0f62aa348fec3a03cc76f327007241136eff85214
+    contract_hash: 810b6374f2a76c2c74f29906eda2835317f5fc9ef271cd84697bf77daa23d2ab
+    binding_hash: a166bbe16659bc5fcab7e949ef9faa5ec9ef07ae42095bf45c01a02defc02dba
+    fingerprint: a8a972ce00cf9a0129592f57ab1583ed4b1799c04064b7899ac15f6ec9f19826
+    fingerprint_components:
+      contract: 810b6374f2a76c2c74f29906eda2835317f5fc9ef271cd84697bf77daa23d2ab
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: failed
+    proof_results:
+      - symbol_id: SYM-e2e-test-skillopt-paid-launch-accounting
+        target: default
+        outcome: failed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+    gaps:
+      - symbol_id: SYM-e2e-test-skillopt-paid-launch-accounting
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +105 more'
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-30106c9c006d48a5a6015d30
+    test_id: TEST-skillopt-paid-launch-accounting
+    scope: integration
+    outcome: passed
+    code_snapshot: a20108970eddbe026c332f8f0fef6001fa956bf246b5dee956c8c7586f878071
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-26T11:43:16.296Z'
+    finished_at: '2026-09-26T11:59:41.121Z'
+    artifact_digest: b458ebe1ef850179dd754bc08eb0a62bb0e46b7bbf068e00bb4230915cc296ed
+    contract_hash: 810b6374f2a76c2c74f29906eda2835317f5fc9ef271cd84697bf77daa23d2ab
+    binding_hash: a166bbe16659bc5fcab7e949ef9faa5ec9ef07ae42095bf45c01a02defc02dba
+    fingerprint: a8a972ce00cf9a0129592f57ab1583ed4b1799c04064b7899ac15f6ec9f19826
+    fingerprint_components:
+      contract: 810b6374f2a76c2c74f29906eda2835317f5fc9ef271cd84697bf77daa23d2ab
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-skillopt-paid-launch-accounting
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 The model-gateway suites verify exact request-ID attribution under equal request hashes, byte-identical same-request retries, one-use capability replay rejection, approved-pricing binding, pinned CA/TLS/SNI/IP/egress policy, and request, invoice, and authorization ceilings.
 

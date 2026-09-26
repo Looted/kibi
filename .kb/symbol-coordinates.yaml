@@ -9229,7 +9229,7 @@ coordinates:
     sourceLine: 171
   SYM-e2e-capability-plugins:
     identityHash: cf75bc7202267169c9ebc409b60b47236096d55d03db39cafa0929e5f0893578
-    sourceHash: c9016be72433d0397e4fc10d67d4f653815807ca1fbb0063650bb62e711b924e
+    sourceHash: ee8f92646fe1e75e53c5e800928e3b5a6833fdafdfbe043f868811d688ac0b5d
     sourceColumn: 44
     sourceEndColumn: 66
     sourceEndLine: 11
