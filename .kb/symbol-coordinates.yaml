@@ -9117,7 +9117,7 @@ coordinates:
     sourceLine: 179
   SYM-e2e-capability-plugins:
     identityHash: cf75bc7202267169c9ebc409b60b47236096d55d03db39cafa0929e5f0893578
-    sourceHash: c9016be72433d0397e4fc10d67d4f653815807ca1fbb0063650bb62e711b924e
+    sourceHash: 656fd3082b7e96806d5b82b1e922f24d3d5498a613556473758f89b754e88931
     sourceColumn: 44
     sourceEndColumn: 66
     sourceEndLine: 11
