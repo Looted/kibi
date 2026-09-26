@@ -1,5 +1,12 @@
 # kibi-runtime
 
+## 2.0.2
+
+### Patch Changes
+
+- Updated dependencies
+  - kibi-plugin-builtin@0.3.0
+
 ## 2.0.1
 
 ### Patch Changes

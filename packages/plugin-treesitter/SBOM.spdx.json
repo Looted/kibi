@@ -1,0 +1,129 @@
+{
+  "spdxVersion": "SPDX-2.3",
+  "dataLicense": "CC0-1.0",
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "name": "kibi-plugin-treesitter-0.1.1",
+  "documentNamespace": "https://github.com/Looted/kibi/spdx/plugin-treesitter/0.1.1",
+  "creationInfo": {
+    "creators": ["Tool: Kibi qualification record"],
+    "created": "2026-09-25T00:00:00Z"
+  },
+  "packages": [
+    {
+      "name": "kibi-plugin-treesitter",
+      "SPDXID": "SPDXRef-KibiPluginTreeSitter",
+      "versionInfo": "0.1.1",
+      "downloadLocation": "https://github.com/Looted/kibi/tree/develop/packages/plugin-treesitter",
+      "filesAnalyzed": false,
+      "licenseConcluded": "AGPL-3.0-or-later",
+      "licenseDeclared": "AGPL-3.0-or-later",
+      "copyrightText": "Copyright (C) 2026 Piotr Franczyk",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/kibi-plugin-treesitter@0.1.1"
+        }
+      ]
+    },
+    {
+      "name": "web-tree-sitter",
+      "SPDXID": "SPDXRef-WebTreeSitter",
+      "versionInfo": "0.27.0",
+      "downloadLocation": "https://registry.npmjs.org/web-tree-sitter/-/web-tree-sitter-0.27.0.tgz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "comment": "Exact registry integrity is recorded in catalog.json; this dependency's resolved JS and runtime WASM are covered by the host approval digest.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/web-tree-sitter@0.27.0"
+        }
+      ]
+    },
+    {
+      "name": "tree-sitter-python",
+      "SPDXID": "SPDXRef-TreeSitterPython",
+      "versionInfo": "0.25.0",
+      "downloadLocation": "https://registry.npmjs.org/tree-sitter-python/-/tree-sitter-python-0.25.0.tgz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "comment": "Only the parser WASM, upstream tags query, and MIT text are vendored. The package SRI and source commit are in catalog.json.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/tree-sitter-python@0.25.0"
+        }
+      ]
+    },
+    {
+      "name": "tree-sitter-go",
+      "SPDXID": "SPDXRef-TreeSitterGo",
+      "versionInfo": "0.25.0",
+      "downloadLocation": "https://registry.npmjs.org/tree-sitter-go/-/tree-sitter-go-0.25.0.tgz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "comment": "Only the parser WASM, upstream tags query, and MIT text are vendored. The package SRI and source commit are in catalog.json.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/tree-sitter-go@0.25.0"
+        }
+      ]
+    },
+    {
+      "name": "tree-sitter-rust",
+      "SPDXID": "SPDXRef-TreeSitterRust",
+      "versionInfo": "0.24.0",
+      "downloadLocation": "https://registry.npmjs.org/tree-sitter-rust/-/tree-sitter-rust-0.24.0.tgz",
+      "filesAnalyzed": false,
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "copyrightText": "NOASSERTION",
+      "comment": "Only the parser WASM, upstream tags query, and MIT text are vendored. The package SRI and source commit are in catalog.json.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceType": "purl",
+          "referenceLocator": "pkg:npm/tree-sitter-rust@0.24.0"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-KibiPluginTreeSitter"
+    },
+    {
+      "spdxElementId": "SPDXRef-KibiPluginTreeSitter",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-WebTreeSitter"
+    },
+    {
+      "spdxElementId": "SPDXRef-KibiPluginTreeSitter",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-TreeSitterPython"
+    },
+    {
+      "spdxElementId": "SPDXRef-KibiPluginTreeSitter",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-TreeSitterGo"
+    },
+    {
+      "spdxElementId": "SPDXRef-KibiPluginTreeSitter",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-TreeSitterRust"
+    }
+  ]
+}

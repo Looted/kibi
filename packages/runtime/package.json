@@ -1,6 +1,6 @@
 {
   "name": "kibi-runtime",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Narrow first-party runtime contracts and adapters for Kibi operations.",
   "type": "module",
   "main": "./dist/index.js",
@@ -19,7 +19,7 @@
   "dependencies": {
     "gray-matter": "^4.0.3",
     "kibi-core": "^0.13.0",
-    "kibi-plugin-builtin": "^0.2.0"
+    "kibi-plugin-builtin": "^0.3.0"
   },
   "devDependencies": {
     "kibi-cli": "workspace:*"

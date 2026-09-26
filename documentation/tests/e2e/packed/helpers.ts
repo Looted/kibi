@@ -655,6 +655,7 @@ export interface Tarballs {
   "plugin-sdk": string;
   "plugin-builtin": string;
   "plugin-jev": string;
+  "plugin-treesitter": string;
 }
 
 /** Options for running commands */

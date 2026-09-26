@@ -1,0 +1,101 @@
+{
+  "schemaVersion": "kibi.treesitter-language-catalog.v1",
+  "plugin": "kibi-plugin-treesitter",
+  "pluginVersion": "0.1.1",
+  "runtime": {
+    "package": "web-tree-sitter",
+    "version": "0.27.0",
+    "license": "MIT",
+    "npmTarball": "https://registry.npmjs.org/web-tree-sitter/-/web-tree-sitter-0.27.0.tgz",
+    "npmIntegrity": "sha512-XK08gj6RwTMQatAG7uVRP8MunqotL/XC19vHgkSPKmELgbGPBj4ECvB8haHOUnyj6ls2B8t42UTro14zxGgAHg==",
+    "packedBytes": 1161704,
+    "unpackedBytes": 4683395,
+    "parserAbi": {
+      "minimum": 13,
+      "maximum": 15
+    }
+  },
+  "languages": [
+    {
+      "id": "python",
+      "extensions": [".py", ".pyi"],
+      "package": "tree-sitter-python",
+      "version": "0.25.0",
+      "gitCommit": "293fdc02038ee2bf0e2e206711b69c90ac0d413f",
+      "sourceUrl": "https://github.com/tree-sitter/tree-sitter-python/tree/293fdc02038ee2bf0e2e206711b69c90ac0d413f",
+      "npmTarball": "https://registry.npmjs.org/tree-sitter-python/-/tree-sitter-python-0.25.0.tgz",
+      "npmIntegrity": "sha512-eCmJx6zQa35GxaCtQD+wXHOhYqBxEL+bp71W/s3fcDMu06MrtzkVXR437dRrCrbrDbyLuUDJpAgycs7ncngLXw==",
+      "license": "MIT",
+      "scanner": {
+        "present": true,
+        "path": "src/scanner.c",
+        "license": "MIT"
+      },
+      "parserAbi": 15,
+      "asset": "assets/tree-sitter-python.wasm",
+      "assetBytes": 457883,
+      "assetSha256": "16108b50df4ee9a30168794252ab55e7c93bfc5765d7fa0aa3e335752c515f47",
+      "query": "assets/queries/python.scm",
+      "querySource": "https://github.com/tree-sitter/tree-sitter-python/blob/293fdc02038ee2bf0e2e206711b69c90ac0d413f/queries/tags.scm",
+      "queryBytes": 350,
+      "querySha256": "d0f3e577878167bfabc30e526e497bce58d1699b9bcabf8ab3a50698efb5ca3e"
+    },
+    {
+      "id": "go",
+      "extensions": [".go"],
+      "package": "tree-sitter-go",
+      "version": "0.25.0",
+      "gitCommit": "1547678a9da59885853f5f5cc8a99cc203fa2e2c",
+      "sourceUrl": "https://github.com/tree-sitter/tree-sitter-go/tree/1547678a9da59885853f5f5cc8a99cc203fa2e2c",
+      "npmTarball": "https://registry.npmjs.org/tree-sitter-go/-/tree-sitter-go-0.25.0.tgz",
+      "npmIntegrity": "sha512-APBc/Dq3xz/e35Xpkhb1blu5UgW+2E3RyGWawZSCNcbGwa7jhSQPS8KsUupuzBla8PCo8+lz9W/JDJjmfRa2tw==",
+      "license": "MIT",
+      "scanner": {
+        "present": false,
+        "license": "MIT"
+      },
+      "parserAbi": 15,
+      "asset": "assets/tree-sitter-go.wasm",
+      "assetBytes": 217182,
+      "assetSha256": "9504573f352b20be7f2f1911754d710622aedc15afff16d5ed8fb5645681aee7",
+      "query": "assets/queries/go.scm",
+      "querySource": "https://github.com/tree-sitter/tree-sitter-go/blob/1547678a9da59885853f5f5cc8a99cc203fa2e2c/queries/tags.scm",
+      "queryBytes": 1097,
+      "querySha256": "d1a9b1f678fe0278b85054e2dc56a28ef26aa478b8c88fb2b0dd83cdcdb9db35"
+    },
+    {
+      "id": "rust",
+      "extensions": [".rs"],
+      "package": "tree-sitter-rust",
+      "version": "0.24.0",
+      "gitCommit": "18b0515fca567f5a10aee9978c6d2640e878671a",
+      "sourceUrl": "https://github.com/tree-sitter/tree-sitter-rust/tree/18b0515fca567f5a10aee9978c6d2640e878671a",
+      "npmTarball": "https://registry.npmjs.org/tree-sitter-rust/-/tree-sitter-rust-0.24.0.tgz",
+      "npmIntegrity": "sha512-NWemUDf629Tfc90Y0Z55zuwPCAHkLxWnMf2RznYu4iBkkrQl2o/CHGB7Cr52TyN5F1DAx8FmUnDtCy9iUkXZEQ==",
+      "license": "MIT",
+      "scanner": {
+        "present": true,
+        "path": "src/scanner.c",
+        "license": "MIT"
+      },
+      "parserAbi": 14,
+      "asset": "assets/tree-sitter-rust.wasm",
+      "assetBytes": 1102547,
+      "assetSha256": "f65f354215611fd94ad34134b3427eb3d58cbb745df7b6509ba722184db73d57",
+      "query": "assets/queries/rust.scm",
+      "querySource": "https://github.com/tree-sitter/tree-sitter-rust/blob/18b0515fca567f5a10aee9978c6d2640e878671a/queries/tags.scm",
+      "queryBytes": 1194,
+      "querySha256": "f22867fdebde5cb091861c08d34690dc2540f4318068bf81be9f6b0d348ab8c1",
+      "supplementalQueries": [
+        {
+          "path": "assets/queries/rust-extra.scm",
+          "origin": "Kibi-authored; adds trait method signatures omitted by upstream tags.scm",
+          "queryBytes": 72,
+          "querySha256": "511a492200e813f15b7ebec324eae69a245986a9d6813ddabe776075fd65976c"
+        }
+      ]
+    }
+  ],
+  "runtimeNetworkRequired": false,
+  "qualificationDate": "2026-09-25"
+}

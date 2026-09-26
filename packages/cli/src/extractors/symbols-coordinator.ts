@@ -18,7 +18,9 @@
 
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { createMaintenanceSourceAnalysisService } from "../plugins/maintenance-source-analysis.js";
 import type { CapabilityRegistry } from "../plugins/registry.js";
+import type { SourceAnalysisService } from "../plugins/source-analysis-service.js";
 import {
   type HostSourceAnalysisResult,
   createSourceAnalysisService,
@@ -94,6 +96,7 @@ export interface AnalyzeSourceTextOptions {
 }
 
 interface EnrichSymbolCoordinatesDeps {
+  sourceAnalysisService: SourceAnalysisService;
   enrichTsCoordinates: typeof enrichSymbolCoordinatesWithTsMorph;
 }
 
@@ -224,6 +227,13 @@ export async function enrichSymbolCoordinates(
   const enrichTsCoordinates =
     deps?.enrichTsCoordinates ?? enrichSymbolCoordinatesWithTsMorph;
   const output = entries.map((entry) => withoutGeneratedCoordinates(entry));
+  const service =
+    deps?.sourceAnalysisService ??
+    createMaintenanceSourceAnalysisService(workspaceRoot);
+  const analyses = new Map<
+    string,
+    Awaited<ReturnType<SourceAnalysisService["analyzeTextV2"]>>
+  >();
 
   const tsIndices: number[] = [];
   const tsEntries: ManifestSymbolEntry[] = [];
@@ -233,7 +243,7 @@ export async function enrichSymbolCoordinates(
     if (!entry) continue;
 
     const resolved = resolveSourcePath(entry.sourceFile, workspaceRoot);
-    if (!resolved) continue;
+    if (!resolved || !fs.statSync(resolved.absolutePath).isFile()) continue;
 
     const ext = path.extname(resolved.absolutePath).toLowerCase();
     if (TS_JS_EXTENSIONS.has(ext)) {
@@ -242,7 +252,43 @@ export async function enrichSymbolCoordinates(
       continue;
     }
 
-    output[index] = enrichWithRegexHeuristic(entry, resolved.absolutePath);
+    const logicalPath = path
+      .relative(workspaceRoot, resolved.absolutePath)
+      .replaceAll("\\", "/");
+    let analysis = analyses.get(logicalPath);
+    if (!analysis) {
+      analysis = await service.analyzeTextV2(
+        logicalPath,
+        fs.readFileSync(resolved.absolutePath, "utf8"),
+      );
+      analyses.set(logicalPath, analysis);
+    }
+    if (analysis.status === "failed" || analysis.status === "partial")
+      throw new Error(
+        `Cannot refresh incomplete source analysis for ${logicalPath}: ${analysis.diagnostics.map((d) => d.message).join("; ")}`,
+      );
+    if (analysis.status === "unsupported") {
+      // Preserve the legacy coarse heuristic until the file-level migration;
+      // it is never exposed as parser-backed symbol evidence.
+      output[index] = enrichWithRegexHeuristic(entry, resolved.absolutePath);
+      continue;
+    }
+    const exact = analysis.symbols.filter(
+      (symbol) => (symbol.qualifiedName ?? symbol.name) === entry.title,
+    );
+    const candidates = exact.length
+      ? exact
+      : analysis.symbols.filter((symbol) => symbol.name === entry.title);
+    if (candidates.length !== 1) continue;
+    const symbol = candidates[0];
+    if (!symbol) continue;
+    output[index] = {
+      ...entry,
+      sourceLine: symbol.startLine,
+      sourceColumn: symbol.startColumn,
+      sourceEndLine: symbol.endLine,
+      sourceEndColumn: symbol.endColumn,
+    };
   }
 
   if (tsEntries.length > 0) {

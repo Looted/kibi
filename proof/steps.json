@@ -1,5 +1,29 @@
 [
   {
+    "test_id": "TEST-source-analysis-v2-contract",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./packages/plugin-sdk/tests",
+        "./packages/plugin-builtin/tests",
+        "./packages/cli/tests/plugins/source-analysis-v2.test.ts"
+      ],
+      [
+        "node",
+        "--test",
+        "packages/plugin-treesitter/tests/plugin.test.js"
+      ],
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/multilingual-source-analysis.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-kibi-source-relationship-parity",
     "steps": [
       [
@@ -214,6 +238,13 @@
         "node",
         "scripts/run-proof-packed-e2e.mjs",
         "documentation/tests/e2e/packed/cli-workflows.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./test/root-summary.test.ts"
       ]
     ]
   },

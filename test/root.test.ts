@@ -90,18 +90,58 @@ export function getBatchFailureMessage(
   return null;
 }
 
-const BATCHES: Batch[] = [
+const CLI_BATCH_ARGS = [
+  "test",
+  "--timeout",
+  String(CLI_ENGINE_BATCH_TIMEOUT_MS),
+  "--isolate",
+  "--max-concurrency=1",
+];
+const CLI_PROCESS_ISOLATED_TESTS = [
+  {
+    label: "cli check operation",
+    path: "./packages/cli/tests/operations/check.test.ts",
+  },
+  {
+    label: "cli discovery shared",
+    path: "./packages/cli/tests/commands/discovery-shared-remaining.coverage.test.ts",
+  },
+];
+
+// implements REQ-test-journaled-engine-harness
+// covered_by TEST-root-suite-batch-diagnostics
+export const CLI_UNIT_BATCHES: readonly Batch[] = [
   {
     label: "cli",
     args: [
-      "test",
-      "--timeout",
-      String(CLI_ENGINE_BATCH_TIMEOUT_MS),
-      "--isolate",
-      "--max-concurrency=1",
+      ...CLI_BATCH_ARGS,
+      // These files hung in long-lived Bun processes with exited Git children.
+      // Each still runs once below, with a fresh process and private runtime.
+      ...CLI_PROCESS_ISOLATED_TESTS.map(
+        (test) => `--path-ignore-patterns=${test.path.slice(2)}`,
+      ),
       "./packages/cli",
     ],
   },
+  ...CLI_PROCESS_ISOLATED_TESTS.map((test) => ({
+    label: test.label,
+    args: [...CLI_BATCH_ARGS, test.path],
+  })),
+];
+
+const BATCHES: Batch[] = [
+  {
+    label: "source-analysis plugins",
+    args: [
+      "test",
+      "--timeout",
+      "15000",
+      "./packages/plugin-sdk/tests",
+      "./packages/plugin-builtin/tests",
+      "./packages/plugin-treesitter/tests",
+    ],
+  },
+  ...CLI_UNIT_BATCHES,
   {
     label: "skillopt evaluator",
     args: [
@@ -192,7 +232,7 @@ const BATCHES: Batch[] = [
 export function parseSuiteSummaries(output: string): SuiteSummary[] {
   const summaries: SuiteSummary[] = [];
   const summaryPattern =
-    /\n\s*(\d+) pass(?:\n\s*\d+ skip)?\n\s*(\d+) fail[\s\S]*?Ran \d+ tests across (\d+) files?/g;
+    /\n\s*(\d+) pass(?:\n\s*\d+ skip)?\n\s*(\d+) fail[\s\S]*?Ran \d+ tests? across (\d+) files?/g;
   for (const match of output.matchAll(summaryPattern)) {
     summaries.push({
       pass: Number(match[1]),

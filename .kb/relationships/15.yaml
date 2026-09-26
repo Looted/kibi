@@ -118,3 +118,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e3ef7498c4d0
+  - type: implements
+    from: SYM-source-analysis-v2-readsnapshotknowledge-00be17fe
+    to: REQ-source-analysis-v2
+    created_at: 2026-09-26T09:04:34.933Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8819720de2f3
+  - type: covered_by
+    from: SYM-source-analysis-v2-readsnapshotknowledge-00be17fe
+    to: TEST-source-analysis-v2-contract
+    created_at: 2026-09-26T09:04:34.945Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9a595c3eebc

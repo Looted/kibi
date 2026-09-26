@@ -1,0 +1,163 @@
+{
+  "schemaVersion": "kibi.package-integrity.v1",
+  "package": "kibi-plugin-treesitter",
+  "version": "0.1.1",
+  "algorithm": "sha256",
+  "selfHash": {
+    "path": "integrity.json",
+    "excluded": true,
+    "reason": "A manifest cannot contain its own digest; the host approval digest covers this file."
+  },
+  "files": [
+    {
+      "path": "CHANGELOG.md",
+      "bytes": 744,
+      "sha256": "95df0a8e7330f8b47846033519ee1fa982fbd9c107dbaf0baebac92111f97bb8"
+    },
+    {
+      "path": "LICENSE.md",
+      "bytes": 34519,
+      "sha256": "068de0a1cda6e78feb18db2150be2f023dca2b157062257b0fb8de50a359b22c"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2030,
+      "sha256": "7d108b592d9dd84d731790b0b84d74caa715085b2ef5d5fa92c2026d942635bc"
+    },
+    {
+      "path": "SBOM.spdx.json",
+      "bytes": 4612,
+      "sha256": "4a1f27c73f61119d137962f9a9072f10c44efa5ef6ab542a39a4c8d4b845d568"
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "bytes": 1588,
+      "sha256": "6a9736302ea4d0687eabfdaa9d4aba9ab182f0e50cf00c812bbf763fd1b8eb97"
+    },
+    {
+      "path": "assets/queries/go.scm",
+      "bytes": 1097,
+      "sha256": "d1a9b1f678fe0278b85054e2dc56a28ef26aa478b8c88fb2b0dd83cdcdb9db35"
+    },
+    {
+      "path": "assets/queries/python.scm",
+      "bytes": 350,
+      "sha256": "d0f3e577878167bfabc30e526e497bce58d1699b9bcabf8ab3a50698efb5ca3e"
+    },
+    {
+      "path": "assets/queries/rust-extra.scm",
+      "bytes": 72,
+      "sha256": "511a492200e813f15b7ebec324eae69a245986a9d6813ddabe776075fd65976c"
+    },
+    {
+      "path": "assets/queries/rust.scm",
+      "bytes": 1194,
+      "sha256": "f22867fdebde5cb091861c08d34690dc2540f4318068bf81be9f6b0d348ab8c1"
+    },
+    {
+      "path": "assets/tree-sitter-go.wasm",
+      "bytes": 217182,
+      "sha256": "9504573f352b20be7f2f1911754d710622aedc15afff16d5ed8fb5645681aee7"
+    },
+    {
+      "path": "assets/tree-sitter-python.wasm",
+      "bytes": 457883,
+      "sha256": "16108b50df4ee9a30168794252ab55e7c93bfc5765d7fa0aa3e335752c515f47"
+    },
+    {
+      "path": "assets/tree-sitter-rust.wasm",
+      "bytes": 1102547,
+      "sha256": "f65f354215611fd94ad34134b3427eb3d58cbb745df7b6509ba722184db73d57"
+    },
+    {
+      "path": "catalog.json",
+      "bytes": 4368,
+      "sha256": "7b902a307ad5f9058ede69a11d025c113b115df6b2bd5b1d257709b0eb3976f5"
+    },
+    {
+      "path": "dist/analysis-worker.d.ts",
+      "bytes": 56,
+      "sha256": "50864cdad96a88d3606c92bd3f09a11290594108e5d6b844e9e9415d370d7bcd"
+    },
+    {
+      "path": "dist/analysis-worker.d.ts.map",
+      "bytes": 124,
+      "sha256": "2fc9926dadf7643acb82c91087da988293305dab5c141f417600d7a070eddf0c"
+    },
+    {
+      "path": "dist/analysis-worker.js",
+      "bytes": 15706,
+      "sha256": "59404246864a2d91ceceab64f3ff0ee89ee6c275b1cfddb08c3bfaa1a0e6064e"
+    },
+    {
+      "path": "dist/catalog.d.ts",
+      "bytes": 601,
+      "sha256": "905d20f7207abc6e871fb4c434062d10b13611544c981ca5eab8a5dd7033c4d6"
+    },
+    {
+      "path": "dist/catalog.d.ts.map",
+      "bytes": 347,
+      "sha256": "46162ab1ff8ec46f769b3ace486554166295103ef23b1008bec8ad3cc369aba1"
+    },
+    {
+      "path": "dist/catalog.js",
+      "bytes": 890,
+      "sha256": "f968a2bae1da2d7fc17f915728d419a85d558fb0c4e72baa236633b309a66ae0"
+    },
+    {
+      "path": "dist/extractor.d.ts",
+      "bytes": 394,
+      "sha256": "90e17ce1dc6992c4dd9ba569329d9e7d2947fa8e1d5f9f5f4114ff23664125b5"
+    },
+    {
+      "path": "dist/extractor.d.ts.map",
+      "bytes": 255,
+      "sha256": "d5fecba59cf57e63d7e966bf0687ceded95e0527573dcaedcd4c599a0c185145"
+    },
+    {
+      "path": "dist/extractor.js",
+      "bytes": 6221,
+      "sha256": "ceae91d6b2e20242c439b84d9f92ad3c3090c1035d137d1cf29531e256f830f1"
+    },
+    {
+      "path": "dist/index.d.ts",
+      "bytes": 514,
+      "sha256": "1199b320598a74ccec4a908ab15f9099b30cb87f00a47a5f2c8f0a00a1cff45a"
+    },
+    {
+      "path": "dist/index.d.ts.map",
+      "bytes": 237,
+      "sha256": "e400f9fff37599813ac75e8c9d1dc3c360efc1221b4ac0296ffd87c2b3fa8c1f"
+    },
+    {
+      "path": "dist/index.js",
+      "bytes": 784,
+      "sha256": "adc03d77d94c0133b3188950b35f79db19e447cf7bfa1f7e1cf1f5c97a582a44"
+    },
+    {
+      "path": "licenses/tree-sitter-go-MIT.txt",
+      "bytes": 1080,
+      "sha256": "2e0110e07abef7c2548b26ec9d6969775617ca539a0dc8dbeeb14d6452c711d1"
+    },
+    {
+      "path": "licenses/tree-sitter-python-MIT.txt",
+      "bytes": 1080,
+      "sha256": "d724405ce238a22c0d35769c5a36b386ad5958192efe8bbb304fb2896254575f"
+    },
+    {
+      "path": "licenses/tree-sitter-rust-MIT.txt",
+      "bytes": 1080,
+      "sha256": "31d5b6f4243d5c7c6e1c4ebbbb9f6407bd1457a08bcc4f706521710341acba36"
+    },
+    {
+      "path": "licenses/web-tree-sitter-MIT.txt",
+      "bytes": 1080,
+      "sha256": "c5cfb43042b6b72045f4ba997834d0a7786d2793d91680868b5815b39f14fc78"
+    },
+    {
+      "path": "package.json",
+      "bytes": 1355,
+      "sha256": "fbd7dc0105a3b50b409f0d10101f310b2eeaf31718dec1c7de3dea13a8655eca"
+    }
+  ]
+}

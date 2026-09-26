@@ -2,6 +2,7 @@
 // branches: staged coverage rendering (text/json), staged impact-evidence
 // classification, manifest duplicate handling, and full-KB violation output.
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
+import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -16,14 +17,11 @@ import {
   checkStrictFactShape,
   getAllEntityIds,
 } from "../../src/commands/check.js";
-import * as manifestExtractor from "../../src/extractors/manifest.js";
-import type { ExtractionResult } from "../../src/extractors/markdown.js";
 import { PrologProcess } from "../../src/prolog.js";
 import type { PrologProcess as PrologProcessType } from "../../src/prolog.js";
 import * as impact from "../../src/public/impact-diagnostics.js";
 import * as checkExecutor from "../../src/public/operations/check-executor.js";
 import type { StagedPath } from "../../src/traceability/git-staged.js";
-import * as gitStaged from "../../src/traceability/git-staged.js";
 import * as stagedDiagnostics from "../../src/traceability/staged-diagnostics.js";
 import * as stagedCoverageModule from "../../src/traceability/staged-file-coverage.js";
 import * as symbolExtract from "../../src/traceability/symbol-extract.js";
@@ -103,11 +101,13 @@ function emptyCoverage(files: StagedPath[]): {
   };
 }
 
-function mockStagedInventory(entries: StagedPath[]): void {
-  const inventory = spyOn(gitStaged, "getStagedInventory").mockReturnValue(
-    entries,
-  );
-  restores.push(() => inventory.mockRestore());
+function stageInventory(cwd: string, entries: StagedPath[]): void {
+  for (const entry of entries) {
+    const file = path.join(cwd, entry.path);
+    mkdirSync(path.dirname(file), { recursive: true });
+    writeFileSync(file, entry.content ?? "");
+    execFileSync("git", ["add", "--", entry.path], { cwd, stdio: "pipe" });
+  }
 }
 
 function mockImpactDiagnostics(): {
@@ -197,7 +197,7 @@ function respondTo(
 describe("checkCommand staged rendering", () => {
   test("renders coverage counts, per-file details, and advisory diagnostics in text mode", async () => {
     const cwd = prepareWorkspace();
-    mockStagedInventory([]);
+    stageInventory(cwd, []);
     const analyze = spyOn(
       stagedCoverageModule,
       "analyzeStagedFileCoverage",
@@ -264,7 +264,7 @@ describe("checkCommand staged rendering", () => {
 
   test("emits the crafted staged coverage as one structured JSON document", async () => {
     const cwd = prepareWorkspace();
-    mockStagedInventory([]);
+    stageInventory(cwd, []);
     const analyze = spyOn(
       stagedCoverageModule,
       "analyzeStagedFileCoverage",
@@ -391,13 +391,13 @@ Body.
     expect(dry.exitCode).toBe(0);
   });
 
-  test("keeps staged symbol-extraction failures silent in JSON mode", async () => {
+  test("reports staged extraction failure as one JSON operational error", async () => {
     const cwd = prepareWorkspace();
     const entry = stagedPath({
       path: "src/broken.ts",
       content: "export function broken() { return true; }\n",
     });
-    mockStagedInventory([entry]);
+    stageInventory(cwd, [entry]);
     const analyze = spyOn(
       stagedCoverageModule,
       "analyzeStagedFileCoverage",
@@ -429,13 +429,11 @@ Body.
       }),
     );
 
-    expect(result.exitCode).toBe(0);
+    expect(result.exitCode).toBe(1);
     expect(io.errorText()).toBe("");
-    const output = JSON.parse(io.logText()) as {
-      structuredContent: { messages: string[] };
-    };
-    expect(output.structuredContent.messages).toContain(
-      "No exported symbols or staged entities found in staged files.",
+    const output = JSON.parse(io.logText());
+    expect(output.structuredContent.operationalError).toContain(
+      "parse exploded",
     );
   });
 
@@ -448,7 +446,7 @@ Body.
         content: "Kibi-Impact: none\nRationale: config-only tweak\n",
       }),
       stagedPath({
-        path: ".kb/facts/impact-note-2.md",
+        path: ".kb/facts/impact-z-note.md",
         analysisDepth: "metadata",
         content:
           "Kibi-Impact: none\nRationale: second declaration is ignored\n",
@@ -459,7 +457,7 @@ Body.
         diffText: "@@ -1 +1 @@\n-const x = 0;\n+const x = 1;\n",
       }),
     ];
-    mockStagedInventory(entries);
+    stageInventory(cwd, entries);
     const analyze = spyOn(
       stagedCoverageModule,
       "analyzeStagedFileCoverage",
@@ -516,7 +514,7 @@ Body.
         content: "export function greet() { return 1; }\n",
       }),
     ];
-    mockStagedInventory(entries);
+    stageInventory(cwd, entries);
     const analyze = spyOn(
       stagedCoverageModule,
       "analyzeStagedFileCoverage",
@@ -543,92 +541,32 @@ Body.
     expect(io.logText()).not.toContain("No violations found");
   });
 
-  test("keeps the newest definition when a staged manifest repeats a symbol id", async () => {
+  test("rejects duplicate authored symbol IDs instead of transferring ownership", async () => {
     const cwd = prepareWorkspace();
-    const entries = [
-      stagedPath({
-        path: "src/greet.ts",
-        content: "export function greet() { return 1; }\n",
-      }),
+    stageInventory(cwd, [
       stagedPath({
         path: ".kb/symbols.yaml",
         analysisDepth: "metadata",
-        content: "symbols: []\n",
+        content:
+          "symbols:\n  - id: SYM-DUP\n    title: first\n    sourceFile: src/one.ts\n  - id: SYM-DUP\n    title: second\n    sourceFile: src/two.ts\n",
       }),
-    ];
-    mockStagedInventory(entries);
-    const analyze = spyOn(
-      stagedCoverageModule,
-      "analyzeStagedFileCoverage",
-    ).mockReturnValue(emptyCoverage(entries) as never);
-    restores.push(() => analyze.mockRestore());
-    const baseEntity = {
-      id: "SYM-DUP",
-      title: "greet",
-      type: "symbol",
-      status: "active",
-      created_at: "2026-01-01T00:00:00Z",
-      updated_at: "2026-01-01T00:00:00Z",
-      source: ".kb/symbols.yaml",
-    };
-    const olderDefinition = {
-      entity: { ...baseEntity },
-      relationships: [{ type: "implements", from: "SYM-DUP", to: "REQ-OLD" }],
-      sourceFile: "src/greet.ts",
-    };
-    const newerDefinition = {
-      entity: { ...baseEntity },
-      relationships: [{ type: "implements", from: "SYM-DUP", to: "REQ-NEW" }],
-      sourceFile: "src/greet.ts",
-    };
-    const fromString = spyOn(
-      manifestExtractor,
-      "extractFromManifestString",
-    ).mockReturnValue([olderDefinition, newerDefinition] as never);
-    restores.push(() => fromString.mockRestore());
-    const advisoryDiagnostic = {
-      id: "kibi_impact_override_missing_rationale",
-      severity: "warning",
-      blocking: false,
-      category: "traceability",
-      files: ["src/greet.ts"],
-      docs: ["docs/modeling-cheatsheet.md"],
-      message: "advisory review",
-      suggestion: "refresh the manifest",
-    };
-    const collect = spyOn(
-      stagedDiagnostics,
-      "collectStagedKibiDiagnostics",
-    ).mockReturnValue([advisoryDiagnostic] as never);
-    restores.push(() => collect.mockRestore());
-    const { granularity } = mockImpactDiagnostics();
-    const { project } = mockTempKb();
+    ]);
     const io = captureIo();
     restores.push(io.restore);
-
     const result = await withCwd(cwd, () =>
-      checkCommand({ staged: true, kbPath: path.join(cwd, "kb-store") }),
+      checkCommand({
+        staged: true,
+        format: "json",
+        kbPath: path.join(cwd, "kb-store"),
+      }),
     );
-
-    expect(result.exitCode).toBe(0);
-    const projected = project.mock.calls[0]?.[1] as ExtractionResult[];
-    expect(projected).toHaveLength(1);
-    expect(projected[0]?.relationships[0]?.to).toBe("REQ-NEW");
-    const granularityInput = granularity.mock.calls[0]?.[0] as {
-      manifestResults: ExtractionResult[];
-    };
-    expect(granularityInput.manifestResults).toHaveLength(1);
-    expect(granularityInput.manifestResults[0]?.relationships[0]?.to).toBe(
-      "REQ-NEW",
-    );
-    const text = io.logText();
-    expect(text).toContain(
-      "[WARNING kibi_impact_override_missing_rationale] advisory review",
-    );
-    expect(text).toContain("Files: src/greet.ts");
-    expect(text).toContain("Docs: docs/modeling-cheatsheet.md");
-    expect(text).toContain("Suggestion: refresh the manifest");
-    expect(text).toContain("No violations found in staged symbols");
+    expect(result.exitCode).toBe(1);
+    const operationalError = JSON.parse(io.logText()).structuredContent
+      .operationalError as string;
+    expect(operationalError).toContain("Duplicate snapshot entities:");
+    expect(operationalError).toContain("SYM-DUP");
+    expect(operationalError).toContain("src/one.ts");
+    expect(operationalError).toContain("src/two.ts");
   });
 });
 

@@ -174,3 +174,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6539de2261e9
+  - type: specified_by
+    from: REQ-source-analysis-v2
+    to: SCEN-source-analysis-v2-contract
+    created_at: 2026-09-25T21:44:54.151Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f72ffef4568a
+  - type: requires_rule
+    from: REQ-source-analysis-v2
+    to: FACT-RULE-5685EBEB57411C24
+    created_at: 2026-09-26T09:18:12.968Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b5dc90504833
+  - type: requires_rule
+    from: REQ-source-analysis-v2
+    to: FACT-RULE-BBC9D3EC149FAF41
+    created_at: 2026-09-26T09:18:12.987Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8d780cc5a6c9
+  - type: requires_rule
+    from: REQ-source-analysis-v2
+    to: FACT-RULE-96B9853A521A8A09
+    created_at: 2026-09-26T09:18:12.997Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cabaf09212dc

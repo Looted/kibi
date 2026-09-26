@@ -80,6 +80,14 @@ jobs:
       - name: Build packages
         run: bun run build
 
+      - name: Verify approved source analyzer closure
+        run: node scripts/qualify-source-analyzers.mjs
+
+      - name: Test source analysis contracts and offline parsers
+        run: |
+          bun test ./packages/plugin-sdk/tests ./packages/plugin-builtin/tests
+          bun run --cwd packages/plugin-treesitter test
+
   ci-unit-coverage:
     runs-on: ubuntu-latest
     timeout-minutes: 60

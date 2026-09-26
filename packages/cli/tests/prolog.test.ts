@@ -317,6 +317,7 @@ describe("PrologProcess", () => {
     prolog = new PrologProcess({ timeout: 1000, oneShot: true });
     await prolog.start();
     let staleWriter: ReturnType<typeof spawn> | null = null;
+    let staleWriterClosed: Promise<void> | null = null;
 
     try {
       const quote = String.fromCharCode(39);
@@ -332,19 +333,53 @@ describe("PrologProcess", () => {
         [
           "-q",
           "-g",
-          `open(${quote}${path.join(tempKbDir, "audit.log")}${quote}, append, Stream, [lock(write)]), repeat, fail`,
+          `open(${quote}${path.join(tempKbDir, "audit.log")}${quote}, append, Stream, [lock(write)]), writeln('LOCK_READY'), flush_output, read_line_to_string(user_input, _), close(Stream)`,
           "-t",
           "halt",
         ],
-        { stdio: "ignore" },
+        { stdio: ["pipe", "pipe", "pipe"] },
       );
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      const writer = staleWriter;
+      staleWriterClosed = new Promise((resolve) =>
+        writer.once("close", () => resolve()),
+      );
+      // Observe the acquired lock instead of guessing startup time. The holder
+      // waits on stdin without consuming CPU until the test terminates it.
+      await new Promise<void>((resolve, reject) => {
+        let output = "";
+        let errors = "";
+        const finish = (error?: Error) => {
+          clearTimeout(timer);
+          writer.stdout?.off("data", onData);
+          writer.stderr?.off("data", onStderr);
+          writer.off("error", onError);
+          writer.off("exit", onExit);
+          if (error) reject(error);
+          else resolve();
+        };
+        const onData = (chunk: Buffer) => {
+          output += chunk.toString();
+          if (/LOCK_READY\r?\n/.test(output)) finish();
+        };
+        const onStderr = (chunk: Buffer) => {
+          errors += chunk.toString();
+        };
+        const onError = (error: Error) => finish(error);
+        const onExit = (code: number | null) =>
+          finish(new Error(`Audit lock holder exited ${code}: ${errors}`));
+        const timer = setTimeout(
+          () => finish(new Error(`Audit lock holder was not ready: ${errors}`)),
+          1000,
+        );
+        writer.stdout?.on("data", onData);
+        writer.stderr?.on("data", onStderr);
+        writer.once("error", onError);
+        writer.once("exit", onExit);
+      });
 
-      const started = Date.now();
       const result = await prolog.query(
         'kb_commit_upsert(req, [id=\'REQ-AUDIT-LOCK-NEW\', title="Blocked", status=open, created_at="2026-01-01T00:00:00Z", updated_at="2026-01-01T00:00:00Z", source="test"], [], false, ChangeKind)',
       );
-      expect(Date.now() - started).toBeLessThan(900);
       expect(result.success).toBe(false);
       expect(result.error).toContain("Audit journal is locked");
       expect(
@@ -352,9 +387,7 @@ describe("PrologProcess", () => {
       ).not.toContain("REQ-AUDIT-LOCK-NEW");
     } finally {
       staleWriter?.kill("SIGKILL");
-      await new Promise(
-        (resolve) => staleWriter?.once("close", resolve) ?? resolve(undefined),
-      );
+      await staleWriterClosed;
       await prolog.query("kb_detach");
       if (existsSync(tempKbDir)) {
         rmSync(tempKbDir, { recursive: true, force: true });

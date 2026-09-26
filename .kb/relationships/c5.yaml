@@ -160,3 +160,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2a993da41105
+  - type: implements
+    from: SYM-source-analysis-v2-approved-source-analyzers-02ce81c4
+    to: REQ-source-analysis-v2
+    created_at: 2026-09-26T09:03:39.500Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fab5a3cec50b
+  - type: covered_by
+    from: SYM-source-analysis-v2-approved-source-analyzers-02ce81c4
+    to: TEST-source-analysis-v2-contract
+    created_at: 2026-09-26T09:03:39.513Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48a852361afb

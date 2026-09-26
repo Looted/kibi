@@ -89,6 +89,7 @@ describe("opencode packed utility helpers", () => {
       "plugin-sdk": "/tmp/kibi/plugin-sdk.tgz",
       "plugin-builtin": "/tmp/kibi/plugin-builtin.tgz",
       "plugin-jev": "/tmp/kibi/plugin-jev.tgz",
+      "plugin-treesitter": "/tmp/kibi/plugin-treesitter.tgz",
     };
     const packageFiles = {
       "kibi-core": `file:${tarballs.core}`,

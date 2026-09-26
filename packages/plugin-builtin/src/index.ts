@@ -20,7 +20,10 @@ import { createRequire } from "node:module";
 import { KIBI_PLUGIN_API_VERSION, defineKibiPlugin } from "kibi-plugin-sdk";
 import { createBuiltinOntologyPack } from "./ontology/builtin-ontology-pack.js";
 import { createBuiltinSemanticClassifier } from "./semantic/builtin-classifier.js";
-import { createBuiltinTsMorphSymbolExtractor } from "./symbols/ts-morph-extractor.js";
+import {
+  createBuiltinTsMorphSymbolExtractor,
+  createBuiltinTsMorphSymbolExtractorV2,
+} from "./symbols/ts-morph-extractor.js";
 
 const packageJson = createRequire(import.meta.url)("../package.json") as {
   version: string;
@@ -70,6 +73,7 @@ export {
 // implements REQ-capability-plugin-builtin-parity-v1
 export {
   createBuiltinTsMorphSymbolExtractor,
+  createBuiltinTsMorphSymbolExtractorV2,
   createBuiltinTsMorphSourceAnalysisProvider,
 } from "./symbols/ts-morph-extractor.js";
 // implements REQ-capability-plugin-builtin-parity-v1
@@ -106,6 +110,7 @@ export const kibiPlugin = defineKibiPlugin({
     semanticClassifier: createBuiltinSemanticClassifier(),
     ontologyPack: createBuiltinOntologyPack(),
     symbolExtractor: createBuiltinTsMorphSymbolExtractor(),
+    symbolExtractorV2: createBuiltinTsMorphSymbolExtractorV2(),
   },
 });
 

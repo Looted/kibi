@@ -1,5 +1,13 @@
 # kibi-core
 
+## 0.13.1
+
+### Patch Changes
+
+- Kibi now checks documentation freshness once per relevant file, even when the document repeats entity metadata examples. Ignored documentation and test fixture directories are skipped before reading their contents, avoiding unnecessary work and decoding warnings during status checks.
+
+  - Make metadata marker checks deterministic and apply ignored-path filters before traversal and file reads.
+
 ## 0.13.0
 
 ### Minor Changes
