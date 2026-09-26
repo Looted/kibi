@@ -142,7 +142,9 @@ describe("publish.yml CI workflow contract", () => {
     const block = extractJobBlock(workflowContent, "publish-mcp-registry");
 
     expect(block).toContain("needs: [build-and-check, publish]");
-    expect(block).toContain("contains(needs.build-and-check.outputs.toPublish, 'mcp=kibi-mcp')");
+    expect(block).toContain(
+      "contains(needs.build-and-check.outputs.toPublish, 'mcp=kibi-mcp')",
+    );
     expect(block).toContain("needs.publish.result == 'success'");
     expect(block).toContain("grep -Fxq 'mcp=kibi-mcp'");
     expect(block).toContain("id-token: write");

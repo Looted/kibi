@@ -358,6 +358,60 @@ test(indexed_search_materializes_only_matching_page, [setup(setup_kb), cleanup(c
     assertion(Count == 1),
     Rows = [['REQ-SEARCH-UNIQUE', req, _]].
 
+test(proof_contract_projection_pages_without_receipt_histories, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    Contract = _{
+        version: 'kibi.proof-contract.v1',
+        integration: 'self-proof',
+        required_proofs: [_{symbol_id: 'SYM-PROJECTION', target: default}],
+        success_policy: all_required_first_attempt
+    },
+    atom_json_dict(ContractAtom, Contract, []),
+    atom_string(ContractAtom, ContractJson),
+    length(PaddingCodes, 8192),
+    maplist(=('x'), PaddingCodes),
+    string_chars(Padding, PaddingCodes),
+    format(string(ReceiptHistory), '[{"history":"~s"}]', [Padding]),
+    forall(
+        between(1, 123, Number),
+        ( format(atom(Id), 'TEST-PROJECTION-~d', [Number]),
+          format(atom(NativeId), 'native-~d', [Number]),
+          Bindings = [_{
+              symbol_id: 'SYM-PROJECTION',
+              target: default,
+              native_id: NativeId
+          }],
+          atom_json_dict(BindingsAtom, Bindings, []),
+          atom_string(BindingsAtom, BindingsJson),
+          assert_fixture_entity(test, Id, "Projected test", active, [
+              proof_contract=ContractJson,
+              proof_bindings=BindingsJson,
+              proof_receipts=ReceiptHistory
+          ])
+        )
+    ),
+    kb_query_proof_contracts(none, 37, 0, FirstPage),
+    kb_query_proof_contracts(none, 37, 37, SecondPage),
+    kb_query_proof_contracts(none, 37, 74, ThirdPage),
+    kb_query_proof_contracts(none, 37, 111, FourthPage),
+    kb_query_proof_contracts(some('TEST-PROJECTION-1'), 1, 0, ExactPage),
+    length(FirstPage, 37),
+    length(SecondPage, 37),
+    length(ThirdPage, 37),
+    length(FourthPage, 12),
+    ExactPage = [['TEST-PROJECTION-1', test, _]],
+    append([FirstPage, SecondPage, ThirdPage, FourthPage], Pages),
+    findall(Id, member([Id, test, _], Pages), PageIds),
+    sort(PageIds, SortedPageIds),
+    PageIds == SortedPageIds,
+    length(SortedPageIds, 123),
+    forall(
+        member([_, test, Projected], Pages),
+        ( memberchk(proof_contract=_, Projected),
+          memberchk(proof_bindings=_, Projected),
+          assertion(\+ memberchk(proof_receipts=_, Projected))
+        )
+    ).
+
 test(accepts_symbol_metadata_fields, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_assert_entity(symbol, [
         id='sym-metadata-fields',

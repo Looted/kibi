@@ -312,11 +312,13 @@ describe("proveCommand", () => {
         },
       ]);
       const extra = `,proof_contract=${JSON.stringify(JSON.stringify(contract))}`;
+      const goals: string[] = [];
       const { value } = await captureStdout(() =>
         proveCommand(
           { requirement: "REQ-001", workspaceRoot: dir },
           {
             runtime: fakeRuntime(dir, async (goal) => {
+              goals.push(goal);
               if (goal.includes("specified_by")) {
                 return {
                   success: true,
@@ -336,6 +338,14 @@ describe("proveCommand", () => {
         ),
       );
       expect(value.exitCode).toBe(0);
+      expect(goals.some((goal) => goal.includes("kb_entity(T, test, _)"))).toBe(
+        false,
+      );
+      expect(
+        goals.some((goal) =>
+          goal.includes("kb_query_proof_contracts(none,100,0,Results)"),
+        ),
+      ).toBe(true);
     });
   });
 

@@ -104,3 +104,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-28a364ed683c
+  - type: implements
+    from: SYM-cli-MutationSaga-committed
+    to: REQ-014
+    created_at: 2026-09-26T09:52:31.117Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b58b74c033b5
+  - type: covered_by
+    from: SYM-cli-MutationSaga-committed
+    to: TEST-011
+    created_at: 2026-09-26T09:52:31.124Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5d677535c2a7
+  - type: covered_by
+    from: SYM-cli-MutationSaga-committed
+    to: TEST-mcp-upsert-coverage
+    created_at: 2026-09-26T09:52:31.126Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7ac92da65597

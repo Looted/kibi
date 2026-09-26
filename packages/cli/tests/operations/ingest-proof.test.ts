@@ -1,9 +1,18 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
+import { acquireWorkspaceMutationLock } from "../../src/operations/mutation/workspace-mutation-lock.js";
 import { executeIngestProof } from "../../src/operations/proof/ingest-proof.js";
+import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
 import type {
   OperationContext,
   PrologPort,
@@ -947,5 +956,189 @@ describe("kb_ingest_proof", () => {
       expect(second.structuredContent.results[0]?.duplicate).toBe(true);
       expect(second.structuredContent.results[1]?.applied).toBe(true);
     });
+  });
+
+  test("failed receipt batches restore all uncommitted sources under the lock", async () => {
+    const ids = Array.from(
+      { length: 52 },
+      (_, index) => `TEST-BATCH-${String(index + 1).padStart(3, "0")}`,
+    );
+
+    const runFailureCase = async (
+      failedBatch: number,
+      expectedCommitted: number,
+    ): Promise<void> => {
+      await withTempWorkspace(async (dir) => {
+        const sourceRoot = path.join(dir, ".kb", "tests");
+        const lockPath = path.join(
+          dir,
+          ".kb",
+          "recovery",
+          "source-authoring.lock",
+        );
+        mkdirSync(sourceRoot, { recursive: true });
+        const originals = new Map<string, string>();
+        for (const id of ids) {
+          const body = [
+            "---",
+            `id: ${id}`,
+            'title: "Contracted flow"',
+            "status: active",
+            "verification_scope: end_to_end",
+            "proof_contract:",
+            "  version: kibi.proof-contract.v1",
+            "  integration: self-proof",
+            "  required_proofs:",
+            "    - symbol_id: SYM-CASE-1",
+            "      target: default",
+            "  success_policy: all_required_first_attempt",
+            "proof_receipts: []",
+            "---",
+            `Original authored body for ${id}.`,
+            "",
+          ].join("\n");
+          const absolute = path.join(sourceRoot, `${id}.md`);
+          writeFileSync(absolute, body);
+          originals.set(absolute, body);
+        }
+
+        const compiledReceipts = new Map<string, string>();
+        const rollbackWrites: string[] = [];
+        let batchNumber = 0;
+        let lockOwnerToken: string | undefined;
+        const assertSameLockOwner = (): void => {
+          expect(existsSync(lockPath)).toBe(true);
+          const owner = JSON.parse(
+            readFileSync(path.join(lockPath, "owner.json"), "utf8"),
+          ) as { token?: string };
+          expect(owner.token).toBeTruthy();
+          if (lockOwnerToken === undefined) lockOwnerToken = owner.token;
+          expect(owner.token).toBe(lockOwnerToken);
+        };
+        const query = async (goal: string): Promise<PrologQueryResult> => {
+          if (goal.includes("kb_commit_upsert_batch")) {
+            batchNumber += 1;
+            assertSameLockOwner();
+            expect(
+              [...originals].filter(
+                ([absolute, original]) =>
+                  readFileSync(absolute, "utf8") !== original,
+              ),
+            ).toHaveLength(ids.length);
+            const batchIds = [...goal.matchAll(/id='(TEST-BATCH-\d+)'/g)].map(
+              (match) => match[1],
+            );
+            expect(batchIds).toEqual(
+              ids.slice((batchNumber - 1) * 25, batchNumber * 25),
+            );
+            if (failedBatch > 1 && batchNumber === 2) {
+              let competingWriter:
+                | Awaited<ReturnType<typeof acquireWorkspaceMutationLock>>
+                | undefined;
+              try {
+                competingWriter = await acquireWorkspaceMutationLock(dir, {
+                  timeoutMs: 75,
+                });
+              } catch (error) {
+                expect(error).toMatchObject({
+                  code: "SOURCE_MUTATION_LOCK_TIMEOUT",
+                });
+              }
+              if (competingWriter !== undefined) {
+                competingWriter.release();
+                throw new Error(
+                  "Concurrent source writer acquired the lock between proof batches",
+                );
+              }
+            }
+            if (batchNumber === failedBatch) {
+              return {
+                success: false,
+                bindings: {},
+                error: `injected failure in batch ${batchNumber}`,
+              };
+            }
+            for (const id of batchIds) {
+              compiledReceipts.set(id, goal);
+            }
+            return {
+              success: true,
+              bindings: {
+                ChangeKinds: `[${Array.from({ length: batchIds.length }, () => "updated").join(",")}]`,
+              },
+            };
+          }
+
+          const entityId = ids.find((id) => goal.includes(`kb_entity('${id}'`));
+          if (entityId) {
+            const relative = `.kb/tests/${entityId}.md`;
+            return {
+              success: true,
+              bindings: {
+                Results: `[[${entityId},test,[id='${entityId}',title="Contracted flow",status=active,source="${relative}",created_at="2026-08-13T00:00:00Z",updated_at="2026-08-13T00:00:00Z",verification_scope=end_to_end,proof_contract=${JSON.stringify(JSON.stringify(contract))},proof_receipts=[]]]]`,
+              },
+            };
+          }
+          return { success: true, bindings: { Results: "[]" } };
+        };
+
+        const filesystem = {
+          ...nodeFilesystem,
+          writeFile: async (pathname: string, data: string): Promise<void> => {
+            if (pathname.includes(".kibi-rollback-")) {
+              assertSameLockOwner();
+              rollbackWrites.push(pathname);
+            }
+            await nodeFilesystem.writeFile(pathname, data);
+          },
+        };
+        const mutationContext: OperationContext = {
+          ...context(dir, query),
+          fs: filesystem,
+          branchAttachment: {
+            gitBranch: "test-branch",
+            kbBranch: "test-branch",
+            storePath: path.join(dir, ".kb", "branches", "test-branch"),
+            kind: "exact",
+            migrationRequired: false,
+          },
+        };
+
+        await expect(
+          executeIngestProof(
+            {
+              snapshot: SNAPSHOT,
+              artifact: baseArtifact(),
+              testIds: ids,
+            },
+            mutationContext,
+          ),
+        ).rejects.toThrow(`injected failure in batch ${failedBatch}`);
+
+        expect(batchNumber).toBe(failedBatch);
+        expect(compiledReceipts.size).toBe(expectedCommitted);
+        expect(rollbackWrites).toHaveLength(ids.length - expectedCommitted);
+        expect(existsSync(lockPath)).toBe(false);
+        for (const [absolute, original] of originals) {
+          const id = path.basename(absolute, ".md");
+          const current = readFileSync(absolute, "utf8");
+          if (compiledReceipts.has(id)) {
+            expect(current).not.toBe(original);
+            expect(current).toContain("proof_receipts:");
+            const receiptId = current.match(
+              /receipt_id:\s*["']?(PR-[^\s,"'}]+)/,
+            )?.[1];
+            expect(receiptId).toBeDefined();
+            expect(compiledReceipts.get(id)).toContain(receiptId);
+          } else {
+            expect(compiledReceipts.has(id)).toBe(false);
+            expect(current).toBe(original);
+          }
+        }
+      });
+    };
+
+    await runFailureCase(1, 0);
+    await runFailureCase(2, 25);
   });
 });

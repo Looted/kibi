@@ -1,4 +1,5 @@
 import type { SemanticAdvisorReceipt } from "../semantic-advisor/types.js";
+import type { SagaRollbackFailure } from "./saga.js";
 
 // implements REQ-kibi-operation-interface-parity
 export type RelationshipInput = Readonly<Record<string, unknown>>;
@@ -56,12 +57,21 @@ export type UpsertPayload = {
     readonly checked_req_id: string;
     readonly strict_readiness: string;
   };
-  readonly deferredCommit?: {
-    readonly entity: Readonly<Record<string, unknown>>;
-    readonly relationships: readonly RelationshipInput[];
-    readonly skipContradictionCheck: boolean;
-    readonly rollback: () => Promise<unknown>;
-  };
+  readonly deferredCommit?: DeferredUpsertCommit;
+};
+
+/**
+ * Internal lifecycle for source writes prepared ahead of a batched Prolog
+ * commit. Finalization crosses the compiled commit boundary and permanently
+ * disables source rollback for that mutation.
+ */
+export type DeferredUpsertCommit = {
+  readonly entity: Readonly<Record<string, unknown>>;
+  readonly relationships: readonly RelationshipInput[];
+  readonly skipContradictionCheck: boolean;
+  readonly state: "prepared" | "rolling_back" | "rolled_back" | "committed";
+  readonly finalize: () => void;
+  readonly rollback: () => Promise<readonly SagaRollbackFailure[]>;
 };
 
 // implements REQ-kibi-operation-interface-parity

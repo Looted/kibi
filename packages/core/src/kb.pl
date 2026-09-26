@@ -29,6 +29,7 @@
     kb_entity/3,
     kb_entities_by_source/2,
     kb_assert_relationship/4,
+    kb_query_proof_contracts/4,
     kb_assert_relationship_no_audit/4,
     kb_log_relationship_upsert/4,
     kb_relationship/3,
@@ -76,6 +77,7 @@
 :- use_module(library(aggregate), [aggregate_all/3]).
 :- use_module(library(lists), [sum_list/2]).
 :- use_module(library(ordsets)).
+:- use_module(library(solution_sequences), [distinct/1, limit/2, offset/2, order_by/2]).
 :- use_module('../schema/entities.pl', [entity_type/1, entity_property/3, required_property/2]).
 :- use_module('../schema/relationships.pl', [relationship_type/1, valid_relationship/3]).
 :- use_module('../schema/validation.pl', [validate_entity/2, validate_relationship/3]).
@@ -1571,6 +1573,66 @@ kb_query_entities(TypeFilter, IdFilter, Tags, SourceFilter, Limit, Offset, Rows,
             ( member(Id, PageIds),
               kb_entity(Id, Type, Props) ),
             Rows).
+
+%% kb_query_proof_contracts(+Id, +Limit, +Offset, -Rows)
+% Page proof-campaign candidates while reading only contract and binding RDF
+% properties. In particular, do not call kb_entity/3 here: that materializes
+% complete entity properties, including potentially large receipt histories.
+% implements REQ-kibi-verification-evidence-contract
+kb_query_proof_contracts(IdFilter, Limit, Offset, Rows) :-
+    integer(Limit),
+    integer(Offset),
+    Limit >= 0,
+    Offset >= 0,
+    findall([Id, test, Projected],
+            ( limit(Limit,
+                    offset(Offset,
+                           order_by([asc(Id)],
+                                    distinct(proof_contract_candidate(IdFilter, Id))))),
+              proof_contract_properties(Id, Contract, Bindings),
+              (   var(Bindings)
+              ->  Projected = [id=Id, proof_contract=Contract]
+              ;   Projected = [id=Id, proof_contract=Contract,
+                               proof_bindings=Bindings]
+              ) ),
+            Rows).
+
+proof_contract_properties(Id, Contract, Bindings) :-
+    (   (   kb_graph(Graph),
+            entity_id_to_uri(Id, EntityURI),
+            rdf(EntityURI, kb:type, TypeLiteral, Graph),
+            literal_to_atom(TypeLiteral, test),
+            atom_concat('kb:', 'proof_contract', ContractURI),
+            rdf(EntityURI, ContractURI, ContractLiteral, Graph)
+        )
+    ->  literal_to_value(proof_contract, ContractLiteral, Contract),
+        atom_concat('kb:', 'proof_bindings', BindingsURI),
+        (   rdf(EntityURI, BindingsURI, BindingsLiteral, Graph)
+        ->  literal_to_value(proof_bindings, BindingsLiteral, Bindings)
+        ;   true
+        )
+    ;   entity(test, Id, _, Properties),
+        memberchk(proof_contract=Contract, Properties),
+        (   memberchk(proof_bindings=Bindings, Properties)
+        ->  true
+        ;   true
+        )
+    ).
+
+% implements REQ-kibi-verification-evidence-contract
+proof_contract_candidate(none, Id) :-
+    kb_graph(Graph),
+    atom_concat('kb:', 'proof_contract', ContractURI),
+    rdf(EntityURI, ContractURI, _, Graph),
+    entity_uri_to_id(EntityURI, Id),
+    rdf(EntityURI, kb:type, TypeLiteral, Graph),
+    literal_to_atom(TypeLiteral, test).
+proof_contract_candidate(none, Id) :-
+    entity(test, Id, _, Properties),
+    memberchk(proof_contract=_, Properties).
+proof_contract_candidate(some(Id), Id) :-
+    atom(Id),
+    proof_contract_properties(Id, _, _).
 
 indexed_entity_match(TypeFilter, IdFilter, Tags, SourceFilter, Id) :-
     (   IdFilter == none

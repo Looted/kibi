@@ -245,7 +245,7 @@ async function selectTests(
   } else if (options.requirement) {
     const requirementId = options.requirement;
     const scenarioResult = await context.prolog?.query(
-      `findall([S,T], (kb_relationship(specified_by, '${requirementId}', S), (kb_relationship(verified_by, S, T) ; kb_relationship(validates, T, S)), kb_entity(T, test, _)), Rows)`,
+      `findall([S,T], (kb_relationship(specified_by, '${requirementId}', S), (kb_relationship(verified_by, S, T) ; kb_relationship(validates, T, S))), Rows)`,
     );
     const rowsRaw = scenarioResult?.success
       ? scenarioResult.bindings.Rows
@@ -260,7 +260,7 @@ async function selectTests(
       }
     }
     const directResult = await context.prolog?.query(
-      `findall(T, (kb_relationship(validates, T, '${requirementId}'), kb_entity(T, test, _)), Rows)`,
+      `findall(T, kb_relationship(validates, T, '${requirementId}'), Rows)`,
     );
     const directRaw = directResult?.success
       ? directResult.bindings.Rows
