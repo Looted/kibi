@@ -551,6 +551,9 @@ describe("kb_ingest_proof", () => {
                 },
               };
             }
+            if (goal.includes("kb_commit_upsert")) {
+              return { success: true, bindings: { ChangeKind: "updated" } };
+            }
             return { success: true, bindings: { Results: "[]" } };
           }),
         ),

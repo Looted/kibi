@@ -63,6 +63,7 @@ function createFixture(prefix = "kibi-cursor-resolver-"): RepositoryFixture {
       'printf "workspace=%s\\n" "$KIBI_WORKSPACE"',
       'printf "launcher=%s\\n" "$2"',
       'printf "arguments=%s\\n" "$*"',
+      'printf "host=%s\\n" "$KIBI_MCP_HOST"',
     ].join("\n"),
   );
   writeFakeCommand(binRoot, "swipl", "exit 0");
@@ -113,7 +114,10 @@ function expectLaunch(
     `launcher=${path.join(runtimeRoot, "packages", "mcp", "bin", "kibi-mcp")}\n`,
   );
   expect(result.stdout).toContain("arguments=run ");
-  expect(result.stdout).toContain(" --diagnostic-mode\n");
+  // Usage telemetry is opt-in: the resolver identifies the host but never
+  // turns logging on for the operator.
+  expect(result.stdout).not.toContain("--diagnostic-mode");
+  expect(result.stdout).toContain("host=cursor\n");
   expect(result.stderr).toBe("");
 }
 
@@ -259,6 +263,7 @@ describe("Cursor worktree MCP resolver", () => {
         'printf "workspace=%s\\n" "$KIBI_WORKSPACE"',
         'printf "launcher=%s\\n" "$2"',
         'printf "arguments=%s\\n" "$*"',
+        'printf "host=%s\\n" "$KIBI_MCP_HOST"',
       ].join("\n"),
     );
 
@@ -271,7 +276,8 @@ describe("Cursor worktree MCP resolver", () => {
       `launcher=${path.join(fixture.worktreeRoot, "packages", "mcp", "bin", "kibi-mcp")}\n`,
     );
     expect(result.stdout).toContain("arguments=run ");
-    expect(result.stdout).toContain(" --diagnostic-mode\n");
+    expect(result.stdout).not.toContain("--diagnostic-mode");
+    expect(result.stdout).toContain("host=cursor\n");
     expect(result.stderr).toContain("building local MCP dist");
     expect(
       fs

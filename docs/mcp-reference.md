@@ -211,9 +211,14 @@ Search entities by metadata and markdown body text for exploratory discovery. Se
 - `semanticFacets` (optional): Host-provided `actors`, `actions`, `objects`, `constraints`, or `aliases` arrays
 - `sourceLocations` (optional): Workspace-relative `{path, line?, column?, symbol?}` locations for changed code
 - `minScore` (optional): Intent acceptance threshold between `0` and `1`; defaults to `0.18`
+- `fields` (optional): `summary` (default) or `full`
 
 **Returns:**
 Ranked results with match reasons and optional snippets.
+
+By default each result carries identifying metadata only — `id`, `type`, `title`, `status`, `priority`, `tags`, `source`, and `updated_at` — alongside its `score`, `reasons`, and `snippet`. Search is a discovery step, so complete entity bodies are withheld until the caller has chosen what to open: request them with `fields: "full"`, or follow up with `kb_query` for the exact ids. Ranking, ordering, and `count` are identical in both modes.
+
+Candidate retrieval is paged internally, so a large KB no longer serializes its entire matching corpus into one Prolog response.
 
 Intent-mode results additionally carry `evidence` for matched facets, source locations, graph paths, and normalized score. The payload includes `queryAnalysis` with candidate/accepted counts, top score, top-two margin, ranking mode, and `abstained`. An abstention is an explicit no-answer signal, not a successful empty lexical search.
 
@@ -596,6 +601,31 @@ envelope under `result`), `failed` (error message under `error`), or
 { "kb_check": { "async": true } }
 { "kb_job_status": { "jobId": "job-kb_check-1-9f2a" } }
 ```
+
+## Usage Telemetry (opt-in)
+
+Kibi records no usage telemetry by default. Installing a host plugin, enabling
+it, or running the MCP server never turns logging on. Until an operator opts in,
+`.kb/usage.log` is not created and no row is written.
+
+Opt in per workspace with either signal:
+
+- `--diagnostic-mode` on the MCP command line, when you own that command line.
+- `KIBI_DIAGNOSTIC_MODE=1` in the server environment, for hosts where a plugin
+  owns the command line. Set it in the host's MCP server `env` block.
+
+Opting out is removing the signal; no other state persists.
+
+While opted in, every row carries `interface`, `host`, `package_version`, and
+`workspace_root` so rows stay attributable across worktrees, hosts, and Kibi
+versions. Host plugins set `KIBI_MCP_HOST` for attribution only; it is not an
+opt-in signal and never enables logging on its own. Rows record business
+arguments and agent-supplied telemetry metadata, and the log stays local to the
+workspace under `.kb/usage.log`.
+
+Counts are only recorded when they can be read. A call whose payload cannot be
+parsed records `result_count: null` rather than zero, and acceptance metrics
+treat unreadable counts as insufficient evidence instead of a pass.
 
 ## Discoverability
 

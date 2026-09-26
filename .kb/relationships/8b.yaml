@@ -286,3 +286,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f8dbd45e2634
+  - type: implements
+    from: SYM-packed-sanitizeCacheKey
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-09-26T11:15:51.972Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9cbbcde06324
+  - type: covered_by
+    from: SYM-packed-sanitizeCacheKey
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-09-26T11:15:51.996Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-536659632f9e

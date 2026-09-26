@@ -181,3 +181,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eeab85a60cff
+  - type: implements
+    from: SYM-groupProofSteps
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-09-26T11:15:12.144Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe3c574c690a
+  - type: covered_by
+    from: SYM-groupProofSteps
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-26T11:15:12.161Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b2bc2abc4472
+  - type: covered_by
+    from: SYM-groupProofSteps
+    to: TEST-proof-runner-integrity
+    created_at: 2026-09-26T11:15:12.169Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1c59d6be384c

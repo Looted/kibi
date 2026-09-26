@@ -2,6 +2,11 @@ import { createHash, randomUUID } from "node:crypto";
 import { appendFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
 
+import {
+  appendPayloadCountField,
+  normalizeResultPayload,
+} from "./operations/result-envelope.js";
+
 export interface DiagnosticUsageInput {
   readonly workspaceRoot: string;
   readonly tool: string;
@@ -18,16 +23,6 @@ export interface DiagnosticUsageInput {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
-
-function resultRecord(result: unknown): Record<string, unknown> | undefined {
-  if (!isRecord(result)) return undefined;
-  if (isRecord(result.structuredContent)) return result.structuredContent;
-  // CLI JSON operations return the same versioned KibiResult envelope as MCP
-  // structuredContent.  Unwrap its data before deriving operation-specific
-  // telemetry fields (coverage/proof fields in particular).
-  if (result.kibiProtocol === 1 && isRecord(result.data)) return result.data;
-  return result;
 }
 
 function stringArray(value: unknown): string[] {
@@ -188,11 +183,7 @@ export function deriveDiagnosticUsageFields(
     }
   }
 
-  const structured = resultRecord(result);
-  const envelope =
-    isRecord(structured) && structured.kibiProtocol === 1
-      ? structured
-      : undefined;
+  const { envelope, data: structured } = normalizeResultPayload(result);
   if (envelope) {
     fields.protocol_version = envelope.kibiProtocol;
     fields.result_version =
@@ -214,18 +205,19 @@ export function deriveDiagnosticUsageFields(
     fields.unsafe_original_retry = telemetry?.unsafe_original_retry === true;
   }
   if (tool === "kb_query" || tool === "kb_search") {
-    const resultCount = Number(structured?.count ?? 0);
-    fields.result_count = resultCount;
-    fields.zero_results = resultCount === 0;
-    fields.result_summary =
-      resultCount === 0 ? "0 results" : `${resultCount} results`;
+    appendPayloadCountField(fields, "result_count", "results", structured);
+    if (typeof fields.result_count === "number") {
+      fields.zero_results = fields.result_count === 0;
+    }
   }
   if (tool === "kb_check") {
-    const count = Number(structured?.count ?? 0);
-    fields.violation_count = count;
+    appendPayloadCountField(
+      fields,
+      "violation_count",
+      "violations",
+      structured,
+    );
     fields.requested_rules = Array.isArray(args.rules) ? args.rules : [];
-    fields.result_summary =
-      count === 0 ? "0 violations" : `${count} violations`;
   }
   if (tool === "kb_coverage" && structured) {
     appendCoverageFields(fields, args, structured);

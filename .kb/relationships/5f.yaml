@@ -111,3 +111,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-451b9722a601
+  - type: implements
+    from: SYM-packed-compile-main
+    to: REQ-test-journaled-engine-harness
+    created_at: 2026-09-26T11:15:18.191Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6fda5e9b6fac
+  - type: covered_by
+    from: SYM-packed-compile-main
+    to: TEST-test-journaled-engine-harness
+    created_at: 2026-09-26T11:15:18.203Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d29e9b46e3fd

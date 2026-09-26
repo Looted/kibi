@@ -36,7 +36,12 @@ import {
 } from "../../public/proof-receipt.js";
 import { projectEntityProperties } from "../mutation/entity-projection.js";
 import { resolveContainedSourcePath } from "../mutation/source-authoring.js";
+import {
+  buildUpsertBatchCommitGoal,
+  parseUpsertChangeKinds,
+} from "../mutation/contradictions.js";
 import { executeUpsert } from "../mutation/upsert.js";
+import type { UpsertPayload } from "../mutation/types.js";
 import {
   patchReceiptsIntoDocument,
   removeFrontmatterBlock,
@@ -417,9 +422,18 @@ export async function executeIngestProof(
   }
 
   const results: IngestProofTestResult[] = [];
+  const pendingCommits: {
+    testId: string;
+    outcome: ProofReceipt["outcome"];
+    receiptId: string;
+    receiptCount: number;
+    gaps: readonly ProofGap[];
+    deferred: NonNullable<UpsertPayload["deferredCommit"]>;
+  }[] = [];
   let passed = 0;
   let failed = 0;
   let unchanged = 0;
+  try {
   for (const entry of prepared) {
     const { testId, test, contract, evaluation, receipt, existing } = entry;
     // Idempotent re-ingestion: the same artifact against the same effective
@@ -485,8 +499,12 @@ export async function executeIngestProof(
       }
     }
     // exactOptionalPropertyTypes: only pass the override when one exists.
-    const upsertOptions =
-      sourceDocumentOverride === undefined ? {} : { sourceDocumentOverride };
+    const upsertOptions = {
+      deferCompiledCommit: true as const,
+      ...(sourceDocumentOverride === undefined
+        ? {}
+        : { sourceDocumentOverride }),
+    };
     const upsert = await executeUpsert(
       {
         type: "test",
@@ -496,18 +514,67 @@ export async function executeIngestProof(
       context,
       upsertOptions,
     );
-    void upsert;
-    if (receipt.outcome === "passed") passed += 1;
-    else failed += 1;
-    results.push({
+    const deferred = upsert.structuredContent?.deferredCommit;
+    if (!deferred) {
+      throw new Error(
+        `Proof ingest failed for ${testId}: receipt commit was not prepared`,
+      );
+    }
+    pendingCommits.push({
       testId,
       outcome: receipt.outcome,
       receiptId: receipt.receipt_id,
-      applied: true,
-      duplicate: false,
       receiptCount: nextReceipts.length,
       gaps: evaluation.gaps,
+      deferred,
     });
+  }
+  } catch (error) {
+    for (const entry of pendingCommits) {
+      await entry.deferred.rollback();
+    }
+    throw error;
+  }
+
+  const prolog = context.prolog;
+  if (!prolog) throw new Error("Proof ingest failed: Prolog runtime is unavailable");
+  const batchSize = 25;
+  for (let offset = 0; offset < pendingCommits.length; offset += batchSize) {
+    const batch = pendingCommits.slice(offset, offset + batchSize);
+    let written: Awaited<ReturnType<typeof prolog.query>>;
+    try {
+      written = await prolog.query(
+        buildUpsertBatchCommitGoal(
+          batch.map((entry) => ({
+            entity: entry.deferred.entity,
+            relationships: entry.deferred.relationships,
+            skipContradictionCheck: entry.deferred.skipContradictionCheck,
+          })),
+        ),
+      );
+      if (!written.success) {
+        throw new Error(written.error || "batch commit failed");
+      }
+      parseUpsertChangeKinds(written.bindings, batch.length);
+    } catch (error) {
+      for (const entry of batch) {
+        await entry.deferred.rollback();
+      }
+      throw error;
+    }
+    for (const entry of batch) {
+      if (entry.outcome === "passed") passed += 1;
+      else failed += 1;
+      results.push({
+        testId: entry.testId,
+        outcome: entry.outcome,
+        receiptId: entry.receiptId,
+        applied: true,
+        duplicate: false,
+        receiptCount: entry.receiptCount,
+        gaps: entry.gaps,
+      });
+    }
   }
 
   const summary =

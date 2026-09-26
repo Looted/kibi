@@ -267,6 +267,12 @@
             },
             "type": "object"
           },
+          "fields": {
+            "default": "summary",
+            "description": "Optional result detail. 'summary' returns identifying metadata plus the match snippet for discovery. Use 'full' to include complete entity bodies, or follow up with kb_query for the exact entities you need.",
+            "enum": ["summary", "full"],
+            "type": "string"
+          },
           "limit": {
             "default": 20,
             "description": "Optional max rows to return after ranking. Default: 20.",

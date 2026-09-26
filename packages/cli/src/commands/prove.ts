@@ -226,26 +226,20 @@ async function selectTests(
   context: OperationContext,
   options: ProveCommandOptions,
 ): Promise<SelectedTest[]> {
-  // Paginated: loading every test entity with full props in one query can
-  // exceed the Prolog output buffer once receipt histories grow.
-  const loadAll = async (): Promise<Record<string, unknown>[]> => {
-    const pageSize = 25;
-    const all: Record<string, unknown>[] = [];
-    for (let offset = 0; ; offset += pageSize) {
-      const page = await loadEntities(context.prolog as never, {
-        type: "test",
-        limit: pageSize,
-        offset,
-      });
-      all.push(...page);
-      if (page.length < pageSize) return all;
-    }
-  };
+  // Contract plus bindings only. Receipt histories are loaded again at ingest
+  // and blow the Prolog output buffer when selected up front. JUnit and TAP
+  // conversion needs the bindings before that reload.
+  const loadAll = async (): Promise<Record<string, unknown>[]> =>
+    loadEntities(context.prolog as never, {
+      type: "test",
+      projection: "proof_contract",
+    });
   let candidates: SelectedTest[] = [];
   if (options.testId) {
     const found = await loadEntities(context.prolog as never, {
       id: options.testId,
       type: "test",
+      projection: "proof_contract",
     });
     candidates = found.map(withId);
   } else if (options.requirement) {

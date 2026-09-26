@@ -14,6 +14,7 @@
     kb_assert_entity/2,
     kb_assert_entity_no_audit/2,
     kb_commit_upsert/5,
+    kb_commit_upsert_batch/2,
     kb_log_entity_upsert/3,
     kb_retract_entity/1,
     kb_retract_entity/3,
@@ -1088,6 +1089,62 @@ kb_maybe_check_req_contradiction(req, Id, false) :-
     kb_stage(contradiction_check),
     check_req_contradiction(Id).
 kb_maybe_check_req_contradiction(_, _, _).
+
+% Stage one upsert inside an already-open transaction. The caller saves once.
+kb_stage_upsert(Type, Props, Relationships, SkipContradiction, ChangeKind) :-
+    memberchk(id=Id, Props),
+    memberchk(SkipContradiction, [true, false]),
+    upsert_change_kind(Id, ChangeKind),
+    kb_assert_entity_no_audit(Type, Props),
+    kb_commit_relationships_no_audit(Relationships),
+    kb_maybe_check_req_contradiction(Type, Id, SkipContradiction),
+    kb_log_entity_upsert(ChangeKind, Type, Props),
+    kb_commit_relationship_audits(Relationships).
+
+kb_stage_upserts([], []).
+kb_stage_upserts([
+    upsert(Type, Props, Relationships, SkipContradiction)|Rest
+], [ChangeKind|Kinds]) :-
+    kb_stage_upsert(Type, Props, Relationships, SkipContradiction, ChangeKind),
+    kb_stage_upserts(Rest, Kinds).
+
+%% kb_commit_upsert_batch(+Entries, -ChangeKinds)
+% implements REQ-core-atomic-upsert-persistence
+% Commit many upserts in one RDF transaction and one journal flush.
+% Entries are upsert(Type, Props, Relationships, SkipContradiction) terms.
+kb_commit_upsert_batch(Entries, ChangeKinds) :-
+    kb_storage_mode(journaled),
+    !,
+    with_kb_mutex((
+        (   kb_dirty -> WasDirty = true ; WasDirty = false ),
+        catch(
+            rdf_transaction((
+                kb_stage(rdf_mutation),
+                kb_stage_upserts(Entries, ChangeKinds)
+            )),
+            Error,
+            (   (WasDirty == false -> retractall(kb_dirty) ; true),
+                throw(Error)
+            )
+        ),
+        kb_mark_dirty,
+        kb_save_journaled
+    )).
+kb_commit_upsert_batch(Entries, ChangeKinds) :-
+    kb_attached(Directory),
+    atom_concat(Directory, '/kb.rdf', DataFile),
+    kb_stage(runtime),
+    kb_runtime_diagnostic,
+    kb_stage(lock),
+    with_kb_file_lock(Directory, (
+        audit_store_writable,
+        ensure_snapshot_current(DataFile),
+        rdf_transaction((
+            kb_stage(rdf_mutation),
+            kb_stage_upserts(Entries, ChangeKinds),
+            kb_save_locked(Directory)
+        ))
+    )).
 
 kb_commit_relationship_audits([]).
 kb_commit_relationship_audits([
