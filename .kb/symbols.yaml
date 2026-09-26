@@ -8841,6 +8841,8 @@ symbols:
     sourceFile: packages/cli/src/utils/git-repository-context.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-git-hook-effective-install
       - type: implements
         target: REQ-git-hook-effective-install
   - id: SYM-install-hook-result-type
@@ -8869,6 +8871,8 @@ symbols:
     sourceFile: packages/cli/src/utils/git-repository-context.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-git-hook-effective-install
       - type: implements
         target: REQ-git-hook-effective-install
   - id: SYM-git-repository-context-resolver
@@ -41283,3 +41287,57 @@ symbols:
         target: TEST-kibi-verification-evidence-contract
       - type: implements
         target: REQ-kibi-verification-evidence-contract
+  - id: SYM-git-hook-effective-install-init-context-verifier
+    title: Real Git init context and effective hooks path verifier
+    status: active
+    sourceFile: packages/cli/tests/commands/init-git-context.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    tags:
+      - test
+      - git-hooks
+      - proof
+    relationships:
+      - type: executable_for
+        target: TEST-git-hook-effective-install
+  - id: SYM-git-hook-effective-install-installer-verifier
+    title: Git hook installer result and safety verifier
+    status: active
+    sourceFile: packages/cli/tests/commands/install-hook-safety.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    tags:
+      - test
+      - git-hooks
+      - proof
+    relationships:
+      - type: executable_for
+        target: TEST-git-hook-effective-install
+  - id: SYM-git-hook-effective-install-doctor-verifier
+    title: Doctor Git path diagnostics verifier
+    status: active
+    sourceFile: packages/cli/tests/commands/doctor-git-context.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    tags:
+      - test
+      - git-hooks
+      - doctor
+      - proof
+    relationships:
+      - type: executable_for
+        target: TEST-git-hook-effective-install
+  - id: SYM-git-hook-effective-install-repository-context-verifier
+    title: Real Git repository and linked-worktree context verifier
+    status: active
+    sourceFile: packages/cli/tests/utils/git-repository-context.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    tags:
+      - test
+      - git-hooks
+      - worktree
+      - proof
+    relationships:
+      - type: executable_for
+        target: TEST-git-hook-effective-install

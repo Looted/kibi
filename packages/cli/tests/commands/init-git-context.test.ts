@@ -1,20 +1,23 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import {
   existsSync,
+  lstatSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
+  readlinkSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import {
-  execSync as nodeExecSync,
-  isolatedCliSandboxEnv,
-} from "../helpers/isolated-env.js";
 import { initCommand } from "../../src/commands/init.js";
-import { branchStorePath, legacyBranchStorePath } from "../../src/utils/branch-store-locator.js";
+import {
+  branchStorePath,
+  legacyBranchStorePath,
+} from "../../src/utils/branch-store-locator.js";
 import {
   captureIo,
   createGitWorkspace,
@@ -22,6 +25,10 @@ import {
   removeTempDir,
   withCwd,
 } from "../helpers/in-process-workspace.js";
+import {
+  isolatedCliSandboxEnv,
+  execSync as nodeExecSync,
+} from "../helpers/isolated-env.js";
 
 // executable_for TEST-git-hook-effective-install
 function git(cwd: string, args: string): string {
@@ -58,6 +65,33 @@ describe("kibi init repository-context fixes", () => {
     writeFileSync(path.join(repo, "README.md"), "# t\n");
     git(repo, "add README.md");
     git(repo, "commit -qm init");
+  }
+
+  function snapshotDirectory(root: string): string[] {
+    const snapshot: string[] = [];
+    const visit = (directory: string, prefix = "") => {
+      const entries = readdirSync(directory, { withFileTypes: true }).sort(
+        (left, right) => left.name.localeCompare(right.name),
+      );
+      for (const entry of entries) {
+        const fullPath = path.join(directory, entry.name);
+        const relativePath = path.join(prefix, entry.name);
+        if (entry.isSymbolicLink()) {
+          snapshot.push(`link ${relativePath} -> ${readlinkSync(fullPath)}`);
+        } else if (entry.isDirectory()) {
+          snapshot.push(`directory ${relativePath}`);
+          visit(fullPath, relativePath);
+        } else if (entry.isFile()) {
+          const mode = lstatSync(fullPath).mode & 0o777;
+          const contents = readFileSync(fullPath).toString("base64");
+          snapshot.push(`file ${relativePath} ${mode.toString(8)} ${contents}`);
+        } else {
+          snapshot.push(`other ${relativePath}`);
+        }
+      }
+    };
+    visit(root);
+    return snapshot;
   }
 
   function kibi(args: string, cwd: string): string {
@@ -148,8 +182,55 @@ describe("kibi init repository-context fixes", () => {
     );
     expect(existsSync(path.join(externalHooks, "pre-commit"))).toBe(false);
   }, 180000);
-});
 
+  test("init refuses a repository-local hooks path symlinked outside", () => {
+    const repo = makeRepo("symlink-hooks");
+    const externalHooks = path.join(tmpRoot, "external-symlink-hooks");
+    mkdirSync(externalHooks, { recursive: true });
+    writeFileSync(
+      path.join(externalHooks, "pre-commit"),
+      "#!/bin/sh\n# BEGIN kibi-managed\nold\n# END kibi-managed\n",
+      { mode: 0o755 },
+    );
+    writeFileSync(path.join(externalHooks, "operator-file"), "keep me\n");
+    symlinkSync(externalHooks, path.join(repo, ".githooks"));
+    git(repo, "config core.hooksPath .githooks");
+    const before = snapshotDirectory(externalHooks);
+
+    const output = kibi("init", repo);
+
+    expect(output).toContain(
+      "refusing to install hooks into unrelated directories",
+    );
+    expect(readlinkSync(path.join(repo, ".githooks"))).toBe(externalHooks);
+    expect(snapshotDirectory(externalHooks)).toEqual(before);
+    expect(readdirSync(externalHooks).sort()).toEqual([
+      "operator-file",
+      "pre-commit",
+    ]);
+    expect(existsSync(path.join(externalHooks, "post-checkout"))).toBe(false);
+    expect(existsSync(path.join(externalHooks, "post-merge"))).toBe(false);
+    expect(existsSync(path.join(externalHooks, "post-rewrite"))).toBe(false);
+  }, 180000);
+
+  test("checks the nearest existing ancestor when the hooks directory is missing", () => {
+    const repo = makeRepo("missing-symlink-hooks");
+    const externalParent = path.join(tmpRoot, "external-missing-hooks");
+    mkdirSync(externalParent, { recursive: true });
+    writeFileSync(path.join(externalParent, "operator-file"), "keep me\n");
+    symlinkSync(externalParent, path.join(repo, ".githooks"));
+    git(repo, "config core.hooksPath .githooks/new-hooks");
+    const before = snapshotDirectory(externalParent);
+
+    const output = kibi("init", repo);
+
+    expect(output).toContain(
+      "refusing to install hooks into unrelated directories",
+    );
+    expect(existsSync(path.join(externalParent, "new-hooks"))).toBe(false);
+    expect(snapshotDirectory(externalParent)).toEqual(before);
+  }, 180000);
+});
 
 describe("kibi init branch-attachment context agreement", () => {
   let roots: string[];
@@ -166,7 +247,10 @@ describe("kibi init branch-attachment context agreement", () => {
     for (const root of roots) removeTempDir(root);
   });
 
-  function fixtureWorkspace(name: string, plant: (cwd: string) => void): string {
+  function fixtureWorkspace(
+    name: string,
+    plant: (cwd: string) => void,
+  ): string {
     const cwd = createGitWorkspace();
     roots.push(cwd);
     plant(cwd);

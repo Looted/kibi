@@ -67,7 +67,7 @@ export async function runOperationJsonQuery<T>(
   const longLivedEngine =
     typeof (prolog as { storageStatus?: unknown }).storageStatus === "function";
   const oneShotMode =
-    prolog.oneShotMode === true ||
+    prolog.oneShotMode ??
     (!longLivedEngine &&
       process.env.NODE_ENV === "test" &&
       typeof (globalThis as { Bun?: unknown }).Bun !== "undefined");

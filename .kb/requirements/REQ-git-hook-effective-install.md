@@ -20,19 +20,17 @@ semantic_inventory:
   - claim_key: CLAIM-7FBA2ADB25083C8E
     claim_text: '`kibi init` and `kibi doctor` must resolve Git''s effective hooks directory with `git rev-parse --git-path hooks` and install or diagnose hooks there instead of assuming `.git/hooks` under the current directory. `kibi init` must succeed inside a linked worktree'
     role: normative
-    status: ontology_gap
+    status: modeled
     span:
       start: 0
       end: 260
-    reason: No deterministic strict-property or declared predicate grounding yet; kept explicit instead of treating prose as logic-complete.
   - claim_key: CLAIM-9D13628F3ADA9A84
     claim_text: from a subdirectory, must derive all project state from the repository root, and must install hooks into the repository-managed hooks directory. `kibi init` must report a per-hook installation result and must not announce success for a foreign hook that it left untouched
     role: normative
-    status: ontology_gap
+    status: modeled
     span:
       start: 265
       end: 536
-    reason: No deterministic strict-property or declared predicate grounding yet; kept explicit instead of treating prose as logic-complete.
 id: REQ-git-hook-effective-install
 type: req
 links:

@@ -16,7 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { existsSync } from "node:fs";
+import { existsSync, lstatSync, realpathSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { classifyActivation } from "../operations/bootstrap/activation.js";
@@ -48,10 +48,53 @@ const __dirname = path.dirname(__filename);
  * implements REQ-git-hook-effective-install
  */
 function isRepositoryManagedHooksDir(context: GitRepositoryContext): boolean {
-  const hooksDir = context.effectiveHooksDir;
-  const within = (root: string) =>
-    hooksDir === root || hooksDir.startsWith(`${root}${path.sep}`);
-  return within(context.commonGitDir) || within(context.worktreeRoot);
+  const realpathAllowMissingTail = (candidate: string): string | null => {
+    let current = path.resolve(candidate);
+    const missingSegments: string[] = [];
+
+    while (true) {
+      try {
+        return path.resolve(realpathSync.native(current), ...missingSegments);
+      } catch (error) {
+        const code = (error as NodeJS.ErrnoException).code;
+        if (code !== "ENOENT" && code !== "ENOTDIR") return null;
+
+        // A dangling symlink cannot be canonicalized. Do not treat it as an
+        // ordinary missing suffix: mkdir could follow it into an external
+        // directory when Git's hooks path is created.
+        try {
+          if (lstatSync(current).isSymbolicLink()) return null;
+        } catch (statError) {
+          const statCode = (statError as NodeJS.ErrnoException).code;
+          if (statCode !== "ENOENT" && statCode !== "ENOTDIR") return null;
+        }
+
+        const parent = path.dirname(current);
+        if (parent === current) return null;
+        missingSegments.unshift(path.basename(current));
+        current = parent;
+      }
+    }
+  };
+
+  const isWithin = (candidate: string, root: string) => {
+    const relative = path.relative(root, candidate);
+    return (
+      relative === "" ||
+      (relative !== ".." &&
+        !relative.startsWith(`..${path.sep}`) &&
+        !path.isAbsolute(relative))
+    );
+  };
+
+  const hooksDir = realpathAllowMissingTail(context.effectiveHooksDir);
+  const commonGitDir = realpathAllowMissingTail(context.commonGitDir);
+  const worktreeRoot = realpathAllowMissingTail(context.worktreeRoot);
+  if (!hooksDir || !commonGitDir || !worktreeRoot) return false;
+
+  // The default hooks dir in a linked worktree is shared under the common Git
+  // directory, which can sit outside the current worktree root.
+  return isWithin(hooksDir, commonGitDir) || isWithin(hooksDir, worktreeRoot);
 }
 
 interface InitOptions {
@@ -60,9 +103,7 @@ interface InitOptions {
   badgeOnly?: boolean;
 }
 
-async function initNextAction(
-  projectRoot: string,
-): Promise<{
+async function initNextAction(projectRoot: string): Promise<{
   readonly operation: string;
   readonly message: string;
 }> {

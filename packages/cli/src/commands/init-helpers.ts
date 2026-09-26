@@ -17,6 +17,7 @@
 */
 
 import {
+  type Stats,
   chmodSync,
   copyFileSync,
   existsSync,
@@ -24,7 +25,6 @@ import {
   mkdirSync,
   readFileSync,
   writeFileSync,
-  type Stats,
 } from "node:fs";
 import * as path from "node:path";
 import fg from "fast-glob";
@@ -364,19 +364,20 @@ export function installHook(
       writeFileSync(hookPath, updated, { mode: 0o755 });
       chmodSync(hookPath, 0o755);
       return "updated";
-    } else if (existing.trim().length > 0) {
+    }
+    if (existing.trim().length > 0) {
       // A hook we did not write: never overwrite foreign enforcement.
       return "skipped-foreign";
-    } else {
-      const shebang = existing.startsWith("#!/") ? "" : "#!/bin/sh\n";
-      writeFileSync(
-        hookPath,
-        `${shebang}${existing.trimEnd()}\n${kibiSection}\n`,
-        { mode: 0o755 },
-      );
-      chmodSync(hookPath, 0o755);
-      return "installed";
     }
+
+    const shebang = existing.startsWith("#!/") ? "" : "#!/bin/sh\n";
+    writeFileSync(
+      hookPath,
+      `${shebang}${existing.trimEnd()}\n${kibiSection}\n`,
+      { mode: 0o755 },
+    );
+    chmodSync(hookPath, 0o755);
+    return "installed";
   } catch (error) {
     console.error(
       `! Unable to read ${hookPath}: ${(error as Error).message}; leaving it untouched.`,
@@ -447,7 +448,7 @@ export function installGitHooks(
     }
   }
   const installedOrUpdated = results.filter(
-    (entry) => entry.result !== "skipped-foreign",
+    (entry) => entry.result === "installed" || entry.result === "updated",
   );
   if (installedOrUpdated.length > 0) {
     console.log(
@@ -455,7 +456,7 @@ export function installGitHooks(
     );
   } else {
     console.log(
-      "! No Kibi git hooks were installed; every hook path is managed by other tooling.",
+      `! No Kibi git hooks installed at ${hooksDir} (all hooks were skipped).`,
     );
   }
   if (options.hooksPathOrigin) {

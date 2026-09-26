@@ -1244,5 +1244,38 @@
         "documentation/tests/e2e/packed/cli-env-bootstrap.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-git-hook-effective-install",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "180000",
+        "./packages/cli/tests/commands/init-git-context.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "180000",
+        "./packages/cli/tests/commands/install-hook-safety.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "180000",
+        "./packages/cli/tests/commands/doctor-git-context.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "180000",
+        "./packages/cli/tests/utils/git-repository-context.test.ts"
+      ]
+    ]
   }
 ]

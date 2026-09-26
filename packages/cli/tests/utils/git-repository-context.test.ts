@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { execSync as nodeExecSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -8,10 +9,9 @@ import {
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { execSync as nodeExecSync } from "node:child_process";
 import {
-  resolveGitRepository,
   type GitRepositoryContext,
+  resolveGitRepository,
 } from "../../src/utils/git-repository-context.js";
 
 // executable_for TEST-git-hook-effective-install
@@ -39,9 +39,7 @@ function git(cwd: string, args: string): void {
   nodeExecSync(`git ${args}`, { cwd, stdio: "ignore", env: isolatedGitEnv() });
 }
 
-function contextOf(
-  cwd: string,
-): GitRepositoryContext {
+function contextOf(cwd: string): GitRepositoryContext {
   const resolution = resolveGitRepository(cwd);
   if (resolution.status !== "ok") {
     throw new Error(`expected ok resolution, got ${resolution.status}`);
@@ -69,7 +67,11 @@ describe("resolveGitRepository", () => {
   beforeEach(() => {
     tmpRoot = mkdtempSync(path.join(os.tmpdir(), "kibi-git-context-"));
     envRestores = [];
-    for (const key of ["GIT_CONFIG_GLOBAL", "GIT_CONFIG_SYSTEM", "GIT_CONFIG_NOSYSTEM"]) {
+    for (const key of [
+      "GIT_CONFIG_GLOBAL",
+      "GIT_CONFIG_SYSTEM",
+      "GIT_CONFIG_NOSYSTEM",
+    ]) {
       const previous = process.env[key];
       envRestores.push(() => {
         if (previous === undefined) {
@@ -129,15 +131,16 @@ describe("resolveGitRepository", () => {
     expect(context.worktreeRoot).toBe(linked);
     expect(context.isLinkedWorktree).toBe(true);
     expect(context.commonGitDir).toBe(path.join(primary, ".git"));
-    expect(context.effectiveHooksDir).toBe(
-      path.join(primary, ".git", "hooks"),
-    );
+    expect(context.effectiveHooksDir).toBe(path.join(primary, ".git", "hooks"));
     expect(context.primaryWorktreeRoot).toBe(primary);
   });
 
   test("does not derive a primary checkout for a worktree of a bare repository", () => {
     const bare = path.join(tmpRoot, "holder.git");
     git(tmpRoot, `init -q --bare -b main ${JSON.stringify(bare)}`);
+    const seed = makeRepo(tmpRoot, "seed");
+    git(seed, `remote add origin ${JSON.stringify(bare)}`);
+    git(seed, "push -q origin main");
     const linked = path.join(tmpRoot, "from-bare");
     git(bare, `worktree add -q -b feature ${JSON.stringify(linked)}`);
     const context = contextOf(linked);
