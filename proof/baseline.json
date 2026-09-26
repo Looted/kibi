@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 109,
-  "proofProven": 109,
+  "currentRequirements": 110,
+  "proofProven": 110,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -232,6 +232,11 @@
       "uncoveredSymbols": []
     },
     "REQ-generated-coordinate-persistence": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-git-hook-effective-install": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
