@@ -1,5 +1,15 @@
 # kibi-core
 
+## 0.13.3
+
+### Patch Changes
+
+- Status and lock-owner timestamps now stay accurate when Kibi runs in a non-UTC timezone. Persisted sync times are labeled in UTC, and journaled stores write a valid owner record with a parseable start time so operators can identify the process holding a store lock.
+
+  - Convert sync-file and lock-start timestamps to UTC before formatting the `Z` suffix.
+  - Serialize lock-owner metadata as a JSON object and cover both timestamp paths with spawned SWI-Prolog tests under `Europe/Warsaw`.
+  - Make the existing aggregate requirement-status test assert the actual reported requirement violation.
+
 ## 0.13.2
 
 ### Patch Changes

@@ -1,5 +1,17 @@
 # kibi-cli
 
+## 2.3.2
+
+### Patch Changes
+
+- Proof campaigns now keep source updates consistent when several batches of results arrive together or a later batch fails. Successful batches remain recorded, and incomplete writes are rolled back while Kibi holds the workspace mutation lock.
+
+  - Integrate the existing receipt batch transaction and mutation saga fixes.
+  - Project proof contracts without loading accumulated receipt histories into discovery frames.
+
+- Updated dependencies
+  - kibi-core@0.13.3
+
 ## 2.3.1
 
 ### Patch Changes

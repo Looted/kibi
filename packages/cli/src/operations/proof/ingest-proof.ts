@@ -41,7 +41,13 @@ import {
   parseUpsertChangeKinds,
 } from "../mutation/contradictions.js";
 import { executeUpsert } from "../mutation/upsert.js";
-import type { UpsertPayload } from "../mutation/types.js";
+import type { DeferredUpsertCommit } from "../mutation/types.js";
+import {
+  type WorkspaceMutationLockHandle,
+  acquireWorkspaceMutationLock,
+  releaseWorkspaceMutationLock,
+} from "../mutation/workspace-mutation-lock.js";
+import { MutationRollbackFailureError } from "../mutation/saga.js";
 import {
   patchReceiptsIntoDocument,
   removeFrontmatterBlock,
@@ -74,6 +80,52 @@ export type IngestProofResult = Readonly<{
   unchanged: number;
   results: readonly IngestProofTestResult[];
 }>;
+
+type IngestProofOutput = {
+  content: Array<{ type: "text"; text: string }>;
+  structuredContent: IngestProofResult;
+};
+
+type IngestProofMutationLifecycle = Readonly<{
+  onBatchCommitted?: () => void;
+  onRollbackFailure?: () => void;
+}>;
+
+type PendingReceiptCommit = {
+  testId: string;
+  outcome: ProofReceipt["outcome"];
+  receiptId: string;
+  receiptCount: number;
+  gaps: readonly ProofGap[];
+  deferred: DeferredUpsertCommit;
+};
+
+async function rollbackUncommittedReceipts(
+  pending: readonly PendingReceiptCommit[],
+  originalError: unknown,
+  lifecycle?: IngestProofMutationLifecycle,
+): Promise<never> {
+  const failures: Array<{ testId: string; step: string; error: unknown }> = [];
+  for (const entry of pending) {
+    if (entry.deferred.state === "committed") continue;
+    try {
+      const rollbackFailures = await entry.deferred.rollback();
+      for (const failure of rollbackFailures) {
+        failures.push({ testId: entry.testId, ...failure });
+      }
+    } catch (error) {
+      failures.push({ testId: entry.testId, step: "rollback", error });
+    }
+  }
+  if (failures.length > 0) {
+    lifecycle?.onRollbackFailure?.();
+    throw new AggregateError(
+      [originalError, ...failures.map((failure) => failure.error)],
+      `Proof ingest failed and could not restore every uncommitted receipt source; the source mutation lock remains held for recovery (${failures.map(({ testId, step }) => `${testId}:${step}`).join(", ")})`,
+    );
+  }
+  throw originalError;
+}
 
 function text(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
@@ -237,13 +289,11 @@ function existingReceipts(
 }
 
 // implements REQ-kibi-verification-evidence-contract
-export async function executeIngestProof(
+async function executeIngestProofUnlocked(
   args: IngestProofArgs,
   context: OperationContext,
-): Promise<{
-  content: Array<{ type: "text"; text: string }>;
-  structuredContent: IngestProofResult;
-}> {
+  lifecycle?: IngestProofMutationLifecycle,
+): Promise<IngestProofOutput> {
   if (!context.prolog)
     throw new Error("Proof ingest requires a Prolog runtime");
   const snapshot = requiredString(args.snapshot, "snapshot");
@@ -422,14 +472,7 @@ export async function executeIngestProof(
   }
 
   const results: IngestProofTestResult[] = [];
-  const pendingCommits: {
-    testId: string;
-    outcome: ProofReceipt["outcome"];
-    receiptId: string;
-    receiptCount: number;
-    gaps: readonly ProofGap[];
-    deferred: NonNullable<UpsertPayload["deferredCommit"]>;
-  }[] = [];
+  const pendingCommits: PendingReceiptCommit[] = [];
   let passed = 0;
   let failed = 0;
   let unchanged = 0;
@@ -530,10 +573,10 @@ export async function executeIngestProof(
     });
   }
   } catch (error) {
-    for (const entry of pendingCommits) {
-      await entry.deferred.rollback();
+    if (error instanceof MutationRollbackFailureError) {
+      lifecycle?.onRollbackFailure?.();
     }
-    throw error;
+    await rollbackUncommittedReceipts(pendingCommits, error, lifecycle);
   }
 
   const prolog = context.prolog;
@@ -555,12 +598,15 @@ export async function executeIngestProof(
       if (!written.success) {
         throw new Error(written.error || "batch commit failed");
       }
+      // Prolog success is the irreversible commit boundary. Finalize this
+      // batch before parsing auxiliary metadata or doing more work, so later
+      // failures can only roll back still-prepared source writes.
+      for (const entry of batch) entry.deferred.finalize();
+      lifecycle?.onBatchCommitted?.();
+      prolog.invalidateCache?.();
       parseUpsertChangeKinds(written.bindings, batch.length);
     } catch (error) {
-      for (const entry of batch) {
-        await entry.deferred.rollback();
-      }
-      throw error;
+      await rollbackUncommittedReceipts(pendingCommits, error, lifecycle);
     }
     for (const entry of batch) {
       if (entry.outcome === "passed") passed += 1;
@@ -593,4 +639,49 @@ export async function executeIngestProof(
       results,
     },
   };
+}
+
+// implements REQ-kibi-verification-evidence-contract
+export async function executeIngestProof(
+  args: IngestProofArgs,
+  context: OperationContext,
+): Promise<IngestProofOutput> {
+  if (
+    !context.fs ||
+    context.sourceFirst === false ||
+    context.sourceMutationLockHeld === true
+  ) {
+    return executeIngestProofUnlocked(args, context);
+  }
+
+  const lock: WorkspaceMutationLockHandle = await acquireWorkspaceMutationLock(
+    context.workspaceRoot,
+  );
+  let operationFailure: { readonly error: unknown } | undefined;
+  let committed = false;
+  let releaseSafe = true;
+  try {
+    return await executeIngestProofUnlocked(
+      args,
+      { ...context, sourceMutationLockHeld: true },
+      {
+        onBatchCommitted: () => {
+          committed = true;
+        },
+        onRollbackFailure: () => {
+          releaseSafe = false;
+        },
+      },
+    );
+  } catch (error) {
+    operationFailure = { error };
+    throw error;
+  } finally {
+    // A failed compensation must leave the cooperative lock fail-closed. The
+    // next writer will require verified recovery rather than observing a
+    // partially restored set of receipt documents.
+    if (releaseSafe) {
+      releaseWorkspaceMutationLock(lock, operationFailure, committed);
+    }
+  }
 }

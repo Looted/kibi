@@ -275,6 +275,16 @@
         "--timeout",
         "120000",
         "./packages/cli/tests/engine.test.ts"
+      ],
+      [
+        "swipl",
+        "-q",
+        "-s",
+        "packages/core/tests/kb.plt",
+        "-g",
+        "run_tests(kb_timestamp_formats)",
+        "-t",
+        "halt"
       ]
     ]
   },

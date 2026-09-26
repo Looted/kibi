@@ -132,3 +132,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1d7f12c35f9f
+  - type: implements
+    from: SYM-executeIngestProof
+    to: REQ-kibi-fresh-verification-receipts
+    created_at: 2026-09-26T09:58:53.095Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a8ff1729236e
+  - type: implements
+    from: SYM-executeIngestProof
+    to: REQ-kibi-verification-receipts-v2
+    created_at: 2026-09-26T09:58:53.103Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2bad0f3de09e
+  - type: covered_by
+    from: SYM-executeIngestProof
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-09-26T09:58:53.107Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bf34d0e7c036
+  - type: covered_by
+    from: SYM-executeIngestProof
+    to: TEST-kibi-proof-ingest-batch-atomicity
+    created_at: 2026-09-26T09:58:53.110Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ddf66a311c7

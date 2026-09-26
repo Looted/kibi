@@ -47,6 +47,7 @@ import {
   narrowerManifestSymbols,
 } from "../src/public/impact/symbol-quality-model.js";
 import {
+  PROOF_CONTRACT_PAGE_SIZE,
   buildEntityGoal,
   dedupeEntities,
   loadEntities,
@@ -417,7 +418,14 @@ describe("discovery entities and Prolog JSON helpers", () => {
     expect(buildEntityGoal({ tags: ["a"] })).toContain("kb_entities_by_tag");
     expect(
       buildEntityGoal({ type: "test", projection: "proof_contract" }),
-    ).toContain("proof_bindings=Bindings");
+    ).toContain("kb_query_proof_contracts(none,100,0,Results)");
+    expect(
+      buildEntityGoal({
+        id: "TEST-1",
+        type: "test",
+        projection: "proof_contract",
+      }),
+    ).toContain("kb_query_proof_contracts(some('TEST-1'),100,0,Results)");
     expect(buildEntityGoal({ type: "req" })).toContain("kb_entity(Id");
     expect(buildEntityGoal({})).toContain("kb_entity(Id, Type, Props)");
     expect(paginateResults([1, 2, 3], 1, 1)).toEqual([2]);
@@ -458,6 +466,57 @@ describe("discovery entities and Prolog JSON helpers", () => {
       {},
     );
     expect(single[0]?.id).toBe("REQ-9");
+  });
+
+  test("pages large proof-contract selection without receipt histories", async () => {
+    const ids = Array.from(
+      { length: PROOF_CONTRACT_PAGE_SIZE * 2 + 35 },
+      (_, index) => `TEST-PROJECTED-${String(index + 1).padStart(4, "0")}`,
+    );
+    const contract = {
+      version: "kibi.proof-contract.v1",
+      integration: "self-proof",
+      required_proofs: [{ symbol_id: "SYM-1", target: "default" }],
+      success_policy: "all_required_first_attempt",
+    };
+    const encodedContract = JSON.stringify(JSON.stringify(contract));
+    const goals: string[] = [];
+    let largestPage = 0;
+    const selected = await loadEntities(
+      asPort(async (goal) => {
+        goals.push(goal);
+        const match = goal.match(
+          /kb_query_proof_contracts\(none,(\d+),(\d+),Results\)/,
+        );
+        if (!match) throw new Error(`Unexpected selection goal: ${goal}`);
+        const limit = Number(match[1]);
+        const offset = Number(match[2]);
+        const page = ids.slice(offset, offset + limit);
+        largestPage = Math.max(largestPage, page.length);
+        return {
+          success: true,
+          bindings: {
+            Results: `[${page
+              .map(
+                (id) =>
+                  `['${id}',test,[id='${id}',proof_contract=${encodedContract}]]`,
+              )
+              .join(",")}]`,
+          },
+        };
+      }),
+      { type: "test", projection: "proof_contract" },
+    );
+
+    expect(selected).toHaveLength(ids.length);
+    expect(selected.map((row) => row.id)).toEqual(ids);
+    expect(selected.every((row) => !("proof_receipts" in row))).toBe(true);
+    expect(largestPage).toBe(PROOF_CONTRACT_PAGE_SIZE);
+    expect(goals).toHaveLength(3);
+    expect(goals.every((goal) => !goal.includes("proof_receipts"))).toBe(true);
+    expect(
+      goals.map((goal) => Number(goal.match(/,(\d+),Results/)?.[1])),
+    ).toEqual([0, PROOF_CONTRACT_PAGE_SIZE, PROOF_CONTRACT_PAGE_SIZE * 2]);
   });
 
   test("decodes operation JSON and formats Prolog terms", async () => {

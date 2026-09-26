@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { validateAgainstSchema } from "../../src/cli-validate.js";
 import { PrologProcess } from "../../src/prolog.js";
+import { SEARCH_CANDIDATE_PAGE_SIZE } from "../../src/public/operations/discovery-entities.js";
 import type {
   OperationContext,
   PrologPort,
@@ -14,7 +15,6 @@ import {
   searchSpec,
   statusSpec,
 } from "../../src/public/operations/specs/discovery.js";
-import { SEARCH_CANDIDATE_PAGE_SIZE } from "../../src/public/operations/discovery-entities.js";
 import {
   branchStorePath,
   ensureBranchStoreManifest,

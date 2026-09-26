@@ -1363,6 +1363,8 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-proof-contract-projection-pagination
       - type: implements
         target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-discovery-dedupe-entities
@@ -1389,6 +1391,8 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-proof-contract-projection-pagination
       - type: implements
         target: REQ-kibi-operation-interface-parity
   - id: SYM-cli-discovery-paginate-results
@@ -7630,6 +7634,8 @@ symbols:
         target: TEST-kibi-change-to-proof-plan-compiler
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-proof-ingest-batch-atomicity
       - type: covered_by
         target: TEST-kibi-proposition-complete-ingestion
       - type: implements
@@ -34258,6 +34264,8 @@ symbols:
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
+        target: TEST-kibi-proof-ingest-batch-atomicity
+      - type: covered_by
         target: TEST-kibi-verification-receipts-v2
       - type: implements
         target: REQ-kibi-fresh-verification-receipts
@@ -37721,9 +37729,12 @@ symbols:
     status: active
     sourceFile: packages/cli/src/operations/proof/ingest-proof.ts
     granularity_reason: legacy-link
+    symbol_role: behavioral
     relationships:
       - type: covered_by
         target: TEST-kibi-fresh-verification-receipts
+      - type: covered_by
+        target: TEST-kibi-proof-ingest-batch-atomicity
       - type: implements
         target: REQ-kibi-fresh-verification-receipts
       - type: implements
@@ -41895,3 +41906,210 @@ symbols:
         target: TEST-capability-plugin-protocol-v1
       - type: implements
         target: REQ-capability-plugin-protocol-v1
+  - id: SYM-cli-MutationRollbackFailureError
+    title: MutationRollbackFailureError
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/saga.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-011
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
+      - type: implements
+        target: REQ-014
+  - id: SYM-cli-MutationSaga-add
+    title: MutationSaga.add
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/saga.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-011
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
+      - type: implements
+        target: REQ-014
+  - id: SYM-cli-MutationSaga-committed
+    title: MutationSaga.committed
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/saga.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-011
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
+      - type: implements
+        target: REQ-014
+  - id: SYM-cli-MutationSaga-markCommitted
+    title: MutationSaga.markCommitted
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/saga.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-011
+      - type: covered_by
+        target: TEST-kibi-proof-ingest-batch-atomicity
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
+      - type: implements
+        target: REQ-014
+  - id: SYM-cli-MutationSaga-rollback
+    title: MutationSaga.rollback
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/saga.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-011
+      - type: covered_by
+        target: TEST-kibi-proof-ingest-batch-atomicity
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
+      - type: implements
+        target: REQ-014
+  - id: SYM-cli-discovery-proof-contract-page-size
+    title: PROOF_CONTRACT_PAGE_SIZE
+    status: active
+    sourceFile: packages/cli/src/public/operations/discovery-entities.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-proof-contract-projection-pagination
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-core-kb-query-proof-contracts
+    title: kb_query_proof_contracts
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-kibi-proof-contract-projection-pagination
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-parity-deferred-upsert-commit-type
+    title: DeferredUpsertCommit
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/types.ts
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-core-kb-write-lock-owner
+    title: kb_write_lock_owner
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    tags:
+      - core
+      - utc
+      - lock-owner
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-core-status-synced-at
+    title: synced_at
+    status: active
+    sourceFile: packages/core/src/status.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    tags:
+      - core
+      - utc
+      - lock-owner
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-test-core-status-utc
+    title: status_synced_at_uses_utc_in_non_utc_child
+    status: active
+    sourceFile: packages/core/tests/kb.plt
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    tags:
+      - core
+      - utc
+      - lock-owner
+    relationships:
+      - type: executable_for
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-test-core-lock-owner-utc
+    title: lock_owner_started_at_is_current_utc_in_non_utc_child
+    status: active
+    sourceFile: packages/core/tests/kb.plt
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    tags:
+      - core
+      - utc
+      - lock-owner
+    relationships:
+      - type: executable_for
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-test-core-fixed-timestamp-file
+    title: create_fixed_timestamp_file
+    status: active
+    sourceFile: packages/core/tests/kb.plt
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    tags:
+      - core
+      - utc
+      - lock-owner
+    relationships:
+      - type: executable_for
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-test-core-timezone-child
+    title: run_timezone_child
+    status: active
+    sourceFile: packages/core/tests/kb.plt
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    tags:
+      - core
+      - utc
+      - lock-owner
+    relationships:
+      - type: executable_for
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-test-core-status-timezone-child
+    title: status_synced_at_child
+    status: active
+    sourceFile: packages/core/tests/kb.plt
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    tags:
+      - core
+      - utc
+      - lock-owner
+    relationships:
+      - type: executable_for
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-test-core-lock-owner-timezone-child
+    title: lock_owner_json_child
+    status: active
+    sourceFile: packages/core/tests/kb.plt
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    tags:
+      - core
+      - utc
+      - lock-owner
+    relationships:
+      - type: executable_for
+        target: TEST-core-journaled-engine-lifecycle
