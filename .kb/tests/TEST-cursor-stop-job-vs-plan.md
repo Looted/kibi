@@ -1570,6 +1570,43 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-c0b02446caf73aadcd35a34e
+    test_id: TEST-cursor-stop-job-vs-plan
+    scope: end_to_end
+    outcome: failed
+    code_snapshot: 026ba98b14e8f9c63ae16ae56544c40c7a9aec88d99e765c467feab4c93aed44
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-26T09:37:01.236Z'
+    finished_at: '2026-09-26T10:28:52.392Z'
+    artifact_digest: 5ed6041777a5f930fb58af9f9643f36713c9610a885e9dd9822d3c3563759421
+    contract_hash: 1f8045bbd7864441e5c7f721c47d11b40a70655ffe7f083fc1204c4da2ef9436
+    binding_hash: b8c9d1ba0d7d5e701e6d82005a50cc67313ce5b10395b5179957d36a8eaeab0a
+    fingerprint: 82e93963df14d8d90cb1919fa9417821e955c40215f1303bdb44c4762c1e8b57
+    fingerprint_components:
+      contract: 1f8045bbd7864441e5c7f721c47d11b40a70655ffe7f083fc1204c4da2ef9436
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: failed
+    proof_results:
+      - symbol_id: SYM-e2e-test-cursor-stop-job-vs-plan
+        target: default
+        outcome: failed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+    gaps:
+      - symbol_id: SYM-e2e-test-cursor-stop-job-vs-plan
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +106 more'
 ---
 Verification for Cursor stop-hook plan-versus-job behavior lives in `packages/cursor` unit tests:
 

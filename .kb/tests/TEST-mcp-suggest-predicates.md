@@ -1534,5 +1534,42 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-aa179a8423e6cdd029d3db97
+    test_id: TEST-mcp-suggest-predicates
+    scope: end_to_end
+    outcome: failed
+    code_snapshot: 026ba98b14e8f9c63ae16ae56544c40c7a9aec88d99e765c467feab4c93aed44
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-26T09:37:01.236Z'
+    finished_at: '2026-09-26T10:28:52.392Z'
+    artifact_digest: 5ed6041777a5f930fb58af9f9643f36713c9610a885e9dd9822d3c3563759421
+    contract_hash: a07bade69813f89e22de06d9c85b75dd78d33c0d15a5c32a6122a6d191fb1e36
+    binding_hash: 89bc2da9c73fd3a9db55474527996bd476a4596629d132604c7cffe9f9505f82
+    fingerprint: d59db9961d9acae5f85f026a34d62d8f0f0df1790c6815832e565a974fec1505
+    fingerprint_components:
+      contract: a07bade69813f89e22de06d9c85b75dd78d33c0d15a5c32a6122a6d191fb1e36
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: failed
+    proof_results:
+      - symbol_id: SYM-e2e-test-mcp-suggest-predicates
+        target: default
+        outcome: failed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+    gaps:
+      - symbol_id: SYM-e2e-test-mcp-suggest-predicates
+        target: default
+        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +106 more'
 ---
 Verifies predicate candidate ranking, safe apply-plan generation, existing schema loading, relationship guidance, argument validation, declared-schema argument binding, prohibition polarity preservation, and ontology-gap fallback behavior for `kb_suggest_predicates`.

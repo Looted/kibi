@@ -127,6 +127,8 @@ const CLI_COMMAND_TESTS = readdirSync(CLI_COMMANDS_DIR)
 export const COVERAGE_SHARDS: readonly {
   readonly label: string;
   readonly paths: readonly string[];
+  /** Node V8 coverage maps parser conformance and worker execution to TS. */
+  readonly runtime?: "node-parser";
   readonly timeoutMs?: number;
   /** Override the Bun process wall-clock bound for oversized serial shards. */
   readonly processTimeoutMs?: number;
@@ -213,6 +215,11 @@ export const COVERAGE_SHARDS: readonly {
       "./packages/cli/tests/helpers",
     ],
     timeoutMs: CLI_ENGINE_SHARD_TIMEOUT_MS,
+  },
+  {
+    label: "parser.node",
+    paths: ["./packages/plugin-treesitter/tests"],
+    runtime: "node-parser",
   },
   {
     label: "capability-plugins",
@@ -753,6 +760,48 @@ export async function runUnitCoverage(
         shard.label.replace(/[^a-zA-Z0-9._-]/g, "_"),
       );
       mkdirSync(shardCoverageDir, { recursive: true });
+      if (shard.runtime === "node-parser") {
+        const started = Date.now();
+        const result = childProcess.spawnSync(
+          "node",
+          [
+            join(import.meta.dir, "parser-unit-coverage.mjs"),
+            process.cwd(),
+            shardCoverageDir,
+          ],
+          {
+            stdio: "pipe",
+            encoding: "utf8",
+            timeout: FILE_PROCESS_TIMEOUT_MS,
+            killSignal: "SIGKILL",
+          },
+        );
+        const lastOutput = `${result.stdout ?? ""}${result.stderr ?? ""}`;
+        if (result.status !== 0 || result.error) {
+          failedShards.push(
+            formatCoverageFailure({
+              label: shard.label,
+              exitCode: result.status ?? 1,
+              durationMs: Date.now() - started,
+              timeoutMs: FILE_PROCESS_TIMEOUT_MS,
+              timedOut: spawnErrorCode(result.error) === "ETIMEDOUT",
+              lastOutput,
+            }),
+          );
+          continue;
+        }
+        const parserLcov = join(shardCoverageDir, "lcov.info");
+        if (!existsSync(parserLcov)) {
+          failedShards.push(`${shard.label} coverage artifact missing`);
+          continue;
+        }
+        shardFiles.push(parserLcov);
+        shardArtifacts.push({ label: shard.label, path: parserLcov });
+        console.info(
+          `Finished unit coverage ${shard.label} (exit 0, ${Date.now() - started}ms).`,
+        );
+        continue;
+      }
       const isolation = shard.isolation ?? "batch";
       const units =
         isolation === "process-per-file"

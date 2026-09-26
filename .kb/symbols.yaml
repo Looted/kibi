@@ -41605,3 +41605,16 @@ symbols:
         target: TEST-source-analysis-v2-contract
       - type: implements
         target: REQ-source-analysis-v2
+  - id: SYM-parser-unit-worker-coverage
+    title: runParserUnitCoverage
+    status: active
+    sourceFile: scripts/parser-unit-coverage.mjs
+    tags:
+      - coverage
+      - parser
+      - worker
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-pipeline
+      - type: implements
+        target: REQ-014

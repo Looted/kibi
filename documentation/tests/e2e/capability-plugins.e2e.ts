@@ -57,6 +57,8 @@ const root = mkdtempSync(join(tmpdir(), "kibi-capability-plugins-"));
 const originalCwd = process.cwd();
 const originalModel = process.env.KIBI_JEV_MODEL;
 const originalTimeout = process.env.KIBI_JEV_TIMEOUT_MS;
+const originalWorkspace = process.env.KIBI_WORKSPACE;
+process.env.KIBI_WORKSPACE = root;
 
 function restoreEnv(): void {
   if (originalModel === undefined) {
@@ -67,6 +69,10 @@ function restoreEnv(): void {
     // biome-ignore lint/performance/noDelete: unset must remove the key; assigning undefined stringifies it.
     delete process.env.KIBI_JEV_TIMEOUT_MS;
   } else process.env.KIBI_JEV_TIMEOUT_MS = originalTimeout;
+  if (originalWorkspace === undefined) {
+    // biome-ignore lint/performance/noDelete: unset must remove the key; assigning undefined stringifies it.
+    delete process.env.KIBI_WORKSPACE;
+  } else process.env.KIBI_WORKSPACE = originalWorkspace;
 }
 
 try {
@@ -207,7 +213,7 @@ try {
         "example-capability-plugin kibi.semantic-classifier.v1 augment declared=no" &&
       undeclaredPluginCheck.remediation ===
         "Add the configured plugin package to dependencies, devDependencies, or optionalDependencies, or remove the kibi.plugins activation entry.",
-    "kibi doctor fails configured plugins that are not declared dependencies",
+    `kibi doctor fails configured plugins that are not declared dependencies; actual check=${JSON.stringify(undeclaredPluginCheck)}`,
   );
   let undeclared = false;
   try {
