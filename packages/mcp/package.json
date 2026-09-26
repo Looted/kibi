@@ -1,6 +1,6 @@
 {
   "name": "kibi-mcp",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "mcpName": "io.github.looted/kibi-mcp",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
@@ -10,8 +10,8 @@
     "fast-glob": "^3.2.12",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
-    "kibi-runtime": "^2.0.2",
-    "kibi-core": "^0.13.0",
+    "kibi-runtime": "^2.0.3",
+    "kibi-core": "^0.13.2",
     "mcpcat": "^0.1.12",
     "zod": "^4.3.6"
   },
@@ -29,7 +29,10 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prepack": "npm run build && node ../../scripts/verify-package-contract.mjs kibi-mcp"
   },
-  "files": ["dist", "bin"],
+  "files": [
+    "dist",
+    "bin"
+  ],
   "engines": {
     "node": ">=22"
   },

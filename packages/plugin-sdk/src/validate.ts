@@ -12,19 +12,20 @@ import {
   type SemanticClassifierV1,
   type SemanticSignalKind,
 } from "./capabilities/semantic-classifier.js";
-import type {
-  SourceAnalysisDiagnosticV2,
-  SourceAnalysisRangeV2,
-  SourceAnalysisResult,
-  SourceAnalysisResultV2,
-  SourceAnalysisStatusV2,
-  SourceAnalysisUncoveredRangeV2,
-  SourceSymbolAnalysisV2,
-  SourceSymbolKind,
-  SymbolExtractorV1,
-  SymbolExtractorV2,
-  SymbolExtractorV2AnalyzeInput,
-  ValidateSourceAnalysisResultV2Options,
+import {
+  SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS,
+  type SourceAnalysisDiagnosticV2,
+  type SourceAnalysisRangeV2,
+  type SourceAnalysisResult,
+  type SourceAnalysisResultV2,
+  type SourceAnalysisStatusV2,
+  type SourceAnalysisUncoveredRangeV2,
+  type SourceSymbolAnalysisV2,
+  type SourceSymbolKind,
+  type SymbolExtractorV1,
+  type SymbolExtractorV2,
+  type SymbolExtractorV2AnalyzeInput,
+  type ValidateSourceAnalysisResultV2Options,
 } from "./capabilities/symbol-extractor.js";
 import {
   type CapabilityId,
@@ -876,7 +877,7 @@ const V2_FORBIDDEN_PROVENANCE_FIELDS = [
 ] as const;
 
 const DEFAULT_V2_MAX_SYMBOLS = 100_000;
-const DEFAULT_V2_MAX_INPUT_SIZE = 5 * 1024 * 1024;
+const DEFAULT_V2_MAX_INPUT_SIZE = SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS;
 
 function validateV2Limit(
   value: number | undefined,
@@ -1050,12 +1051,7 @@ export function validateSourceAnalysisResultV2(
     DEFAULT_V2_MAX_INPUT_SIZE,
     "maxInputSize",
   );
-  if (input.content.length > maxInputSize) {
-    throw new PluginValidationError(
-      "INVALID_CAPABILITY_RESULT",
-      `input.content exceeds the ${maxInputSize} UTF-16 code unit limit`,
-    );
-  }
+  const inputExceedsLimit = input.content.length > maxInputSize;
   if (value.contractVersion !== "kibi.symbol-extractor.v2") {
     throw new PluginValidationError(
       "INVALID_CAPABILITY_RESULT",
@@ -1109,9 +1105,43 @@ export function validateSourceAnalysisResultV2(
     );
   }
 
-  const lineLengths = input.content
-    .split(/\r\n|\n|\r/)
-    .map((line) => line.length);
+  // Oversized input still needs a representable host-level failure result.
+  // Accept only a failure with no source-derived ranges, so validation does
+  // not split or scan the over-limit content to establish line coordinates.
+  if (inputExceedsLimit) {
+    if (status !== "failed") {
+      throw new PluginValidationError(
+        "INVALID_CAPABILITY_RESULT",
+        `input.content exceeds the ${maxInputSize} UTF-16 code unit limit; oversized input requires a failed result`,
+      );
+    }
+    if (sourceSymbols.length > 0) {
+      throw new PluginValidationError(
+        "INVALID_CAPABILITY_RESULT",
+        "oversized failed input must not include symbols",
+      );
+    }
+    if (value.uncoveredRanges.length > 0) {
+      throw new PluginValidationError(
+        "INVALID_CAPABILITY_RESULT",
+        "oversized failed input must not include uncovered source ranges",
+      );
+    }
+    if (
+      value.diagnostics.some(
+        (diagnostic) => isRecord(diagnostic) && diagnostic.range !== undefined,
+      )
+    ) {
+      throw new PluginValidationError(
+        "INVALID_CAPABILITY_RESULT",
+        "oversized failed input diagnostics must not include source ranges",
+      );
+    }
+  }
+
+  const lineLengths = inputExceedsLimit
+    ? []
+    : input.content.split(/\r\n|\n|\r/).map((line) => line.length);
   const legacy = validateSourceAnalysisResult(value);
   if (legacy.module.language !== legacy.language) {
     throw new PluginValidationError(

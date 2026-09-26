@@ -1,5 +1,6 @@
 // executable_for TEST-source-analysis-v2-contract
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { describe, it } from "node:test";
 import { validateSourceAnalysisResultV2 } from "kibi-plugin-sdk";
@@ -50,6 +51,28 @@ describe("offline Tree-sitter symbol extractor", () => {
       extractor.supports({ path: "src/a.unknown", language: " Python " }),
       true,
     );
+  });
+
+  it("starts its parser worker from Node --input-type entrypoints", () => {
+    const input = {
+      path: "entrypoint.py",
+      content: "def entrypoint():\n    return 1\n",
+    };
+    const moduleUrl = new URL("../dist/index.js", import.meta.url).href;
+    const childProgram = [
+      `import { createTreeSitterSymbolExtractor } from ${JSON.stringify(moduleUrl)};`,
+      `const result = await createTreeSitterSymbolExtractor().analyze(${JSON.stringify(input)});`,
+      "process.stdout.write(JSON.stringify(result));",
+    ].join("\n");
+    const stdout = execFileSync(
+      "node",
+      ["--input-type=module", "-e", childProgram],
+      { encoding: "utf8", timeout: 15_000 },
+    );
+    const result = JSON.parse(stdout);
+    assert.equal(result.status, "ok");
+    assertValidV2(result, input);
+    assert(findSymbol(result, "entrypoint"));
   });
 
   it("preserves same-named declarations in nested Python scopes", async () => {

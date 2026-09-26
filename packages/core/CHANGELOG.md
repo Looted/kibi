@@ -1,5 +1,22 @@
 # kibi-core
 
+## 0.13.2
+
+### Patch Changes
+
+- f7c2d56: A full proof campaign spends much less time repeating the same packed test and rewriting the knowledge base once per receipt. Contracts that declare the identical command now share one execution, and the receipt campaign commits in batches instead of flushing the journal after every test. Selecting which tests to prove no longer loads every receipt history up front.
+
+  - Run each distinct proof-step command once and record that attempt on every contract that declared it.
+  - Honor `KIBI_PROOF_STEP_CONCURRENCY` (default 1) when distinct commands can run together.
+  - Reuse one snapshot-keyed compilation of the packed end-to-end suite across proof steps.
+  - Commit proof-receipt upserts with `kb_commit_upsert_batch/2`, one transaction and one journal flush per batch of 25.
+  - Load only test id and `proof_contract` while choosing the campaign.
+
+- Search remains usable when test histories contain many proof receipts, and Node applications can start a parser from an evaluated module entrypoint. Full search results still include the selected entities' complete receipt histories, while summary results avoid serializing histories that ranking does not need. Parser workers retain their existing resource limits and never execute the analyzed program.
+
+  - Project indexed search candidates before transport and hydrate only selected full entities; preserve ranking, facets, and explicit transport failures.
+  - Start parser file workers without inheriting evaluation-only Node flags; verify the actual public subprocess path.
+
 ## 0.13.1
 
 ### Patch Changes

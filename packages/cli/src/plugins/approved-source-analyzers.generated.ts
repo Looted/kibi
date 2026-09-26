@@ -4,10 +4,10 @@
 export const qualifiedSourceAnalyzers = [
   {
     packageName: "kibi-plugin-treesitter",
-    version: "0.1.1",
+    version: "0.1.2",
     files: {
       "SBOM.spdx.json":
-        "4a1f27c73f61119d137962f9a9072f10c44efa5ef6ab542a39a4c8d4b845d568",
+        "55bc42e9b7776a5b8212f4a5eda7269a2ca25dd5213043124d073f6f26f74148",
       "THIRD_PARTY_NOTICES.md":
         "6a9736302ea4d0687eabfdaa9d4aba9ab182f0e50cf00c812bbf763fd1b8eb97",
       "assets/queries/go.scm":
@@ -25,17 +25,17 @@ export const qualifiedSourceAnalyzers = [
       "assets/tree-sitter-rust.wasm":
         "f65f354215611fd94ad34134b3427eb3d58cbb745df7b6509ba722184db73d57",
       "catalog.json":
-        "7b902a307ad5f9058ede69a11d025c113b115df6b2bd5b1d257709b0eb3976f5",
+        "239ae4201dfa147a26fa5d19ea995b8d00c3c72114997c7e6bebf2918be464c8",
       "dist/analysis-worker.js":
         "59404246864a2d91ceceab64f3ff0ee89ee6c275b1cfddb08c3bfaa1a0e6064e",
       "dist/catalog.js":
         "f968a2bae1da2d7fc17f915728d419a85d558fb0c4e72baa236633b309a66ae0",
       "dist/extractor.js":
-        "ceae91d6b2e20242c439b84d9f92ad3c3090c1035d137d1cf29531e256f830f1",
+        "420eb0861c90a869fef2472bb5bdbc758383dbc47b1aa42174b6dc289704f441",
       "dist/index.js":
         "adc03d77d94c0133b3188950b35f79db19e447cf7bfa1f7e1cf1f5c97a582a44",
       "integrity.json":
-        "3a29b1c1c2c673ffc22927f4176845eb1c558c988def5150dbfe287ab753ff49",
+        "fcc5a29bef0697e3e8ba60a04a32ddf35c63538908369addf324d65fd0ac4d7e",
       "licenses/tree-sitter-go-MIT.txt":
         "2e0110e07abef7c2548b26ec9d6969775617ca539a0dc8dbeeb14d6452c711d1",
       "licenses/tree-sitter-python-MIT.txt":
@@ -45,7 +45,7 @@ export const qualifiedSourceAnalyzers = [
       "licenses/web-tree-sitter-MIT.txt":
         "c5cfb43042b6b72045f4ba997834d0a7786d2793d91680868b5815b39f14fc78",
       "package.json":
-        "fbd7dc0105a3b50b409f0d10101f310b2eeaf31718dec1c7de3dea13a8655eca",
+        "1a402e94d0d93fd37111a854f275eaeb2c340af24141e062a6da2864e500aeea",
     },
     dependencies: [
       {

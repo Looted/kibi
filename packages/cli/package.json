@@ -1,6 +1,6 @@
 {
   "name": "kibi-cli",
-  "version": "2.2.0",
+  "version": "2.3.1",
   "type": "module",
   "description": "Kibi CLI for knowledge base management",
   "engines": {
@@ -10,7 +10,14 @@
   "bin": {
     "kibi": "bin/kibi"
   },
-  "files": ["dist", "bin", "schema", "src/schemas", "src/public", "templates"],
+  "files": [
+    "dist",
+    "bin",
+    "schema",
+    "src/schemas",
+    "src/public",
+    "templates"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json && rm -rf dist/public/skills && mkdir -p dist/public/skills dist/report && cp -r src/public/skills/. dist/public/skills/ && cp src/report/html-report.css dist/report/html-report.css && node ../../scripts/generate-entity-schema.mjs --check",
     "test": "node ../../scripts/run-owned-engine-tests.mjs -- bun test --timeout 15000 .",
@@ -227,9 +234,9 @@
     "fast-glob": "^3.2.12",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
-    "kibi-core": "^0.13.0",
+    "kibi-core": "^0.13.2",
     "kibi-plugin-builtin": "^0.3.0",
-    "kibi-plugin-sdk": "^0.3.0",
+    "kibi-plugin-sdk": "^0.3.1",
     "saxes": "^6.0.0",
     "ignore": "^5.3.0",
     "yaml": "^2.9.0"

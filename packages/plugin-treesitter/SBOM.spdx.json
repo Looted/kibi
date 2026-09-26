@@ -2,17 +2,19 @@
   "spdxVersion": "SPDX-2.3",
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
-  "name": "kibi-plugin-treesitter-0.1.1",
-  "documentNamespace": "https://github.com/Looted/kibi/spdx/plugin-treesitter/0.1.1",
+  "name": "kibi-plugin-treesitter-0.1.2",
+  "documentNamespace": "https://github.com/Looted/kibi/spdx/plugin-treesitter/0.1.2",
   "creationInfo": {
-    "creators": ["Tool: Kibi qualification record"],
+    "creators": [
+      "Tool: Kibi qualification record"
+    ],
     "created": "2026-09-25T00:00:00Z"
   },
   "packages": [
     {
       "name": "kibi-plugin-treesitter",
       "SPDXID": "SPDXRef-KibiPluginTreeSitter",
-      "versionInfo": "0.1.1",
+      "versionInfo": "0.1.2",
       "downloadLocation": "https://github.com/Looted/kibi/tree/develop/packages/plugin-treesitter",
       "filesAnalyzed": false,
       "licenseConcluded": "AGPL-3.0-or-later",
@@ -22,7 +24,7 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceType": "purl",
-          "referenceLocator": "pkg:npm/kibi-plugin-treesitter@0.1.1"
+          "referenceLocator": "pkg:npm/kibi-plugin-treesitter@0.1.2"
         }
       ]
     },

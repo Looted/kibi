@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { before, describe, it } from "node:test";
 import {
@@ -238,7 +238,7 @@ async function runLanguageWorkflow(
     const packageConfig = {
       name: `multilingual-source-analysis-${fixture.language.toLowerCase()}`,
       private: true,
-      dependencies: { "kibi-plugin-treesitter": "0.1.1" },
+      dependencies: { "kibi-plugin-treesitter": "*" },
       kibi: {
         plugins: [
           {
@@ -277,6 +277,24 @@ async function runLanguageWorkflow(
       },
     );
     assertCommandExit(localPluginInstall, 0, "consumer-local parser install");
+
+    const installedParser = JSON.parse(
+      readFileSync(
+        join(
+          sandbox.repoDir,
+          "node_modules/kibi-plugin-treesitter/package.json",
+        ),
+        "utf8",
+      ),
+    ) as { version?: unknown };
+    assert.equal(typeof installedParser.version, "string");
+    packageConfig.dependencies["kibi-plugin-treesitter"] =
+      installedParser.version as string;
+    writeFileSync(
+      join(sandbox.repoDir, "package.json"),
+      `${JSON.stringify(packageConfig, null, 2)}\n`,
+      "utf8",
+    );
 
     createNetworkGuard(sandbox);
     const guardProbe = await run(

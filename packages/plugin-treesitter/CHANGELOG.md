@@ -1,5 +1,14 @@
 # kibi-plugin-treesitter
 
+## 0.1.2
+
+### Patch Changes
+
+- Search remains usable when test histories contain many proof receipts, and Node applications can start a parser from an evaluated module entrypoint. Full search results still include the selected entities' complete receipt histories, while summary results avoid serializing histories that ranking does not need. Parser workers retain their existing resource limits and never execute the analyzed program.
+
+  - Project indexed search candidates before transport and hydrate only selected full entities; preserve ranking, facets, and explicit transport failures.
+  - Start parser file workers without inheriting evaluation-only Node flags; verify the actual public subprocess path.
+
 ## 0.1.1
 
 ### Patch Changes

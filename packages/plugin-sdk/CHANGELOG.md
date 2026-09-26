@@ -1,5 +1,15 @@
 # kibi-plugin-sdk
 
+## 0.3.1
+
+### Patch Changes
+
+- Large source files now return a useful, explicit analysis failure instead of causing a second validation error when the host reports that a file exceeded its analysis limit. The SDK keeps ordinary results within a shared UTF-16 size bound and accepts oversized failures only when they contain no symbols or source ranges. This preserves clear diagnostics without trusting coordinates that cannot be safely checked.
+
+  - Export a shared UTF-16 source-analysis limit from the SDK and use it in the host.
+  - Validate oversized failures without splitting the source into lines, while rejecting non-failure statuses and any source-derived ranges.
+  - Keep the existing UTF-8 byte cap as an additional host resource bound.
+
 ## 0.3.0
 
 ### Minor Changes

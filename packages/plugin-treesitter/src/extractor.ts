@@ -93,6 +93,7 @@ function withinWorker(
     let worker: Worker;
     try {
       worker = new Worker(new URL("./analysis-worker.js", import.meta.url), {
+        execArgv: [],
         workerData: { language, content },
         resourceLimits: {
           maxOldGenerationSizeMb: 64,

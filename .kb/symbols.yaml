@@ -41837,3 +41837,61 @@ symbols:
         target: TEST-proof-runner-integrity
       - type: implements
         target: REQ-kibi-verification-evidence-contract
+  - id: SYM-core-search-candidates
+    title: kb_search_candidates
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    tags:
+      - search
+      - proof-receipts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-mcp-search-discovery
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-mcp-search-discovery
+  - id: SYM-core-search-page-ids
+    title: kb_search_page_ids
+    status: active
+    sourceFile: packages/core/src/kb.pl
+    tags:
+      - search
+      - proof-receipts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-mcp-search-discovery
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-mcp-search-discovery
+  - id: SYM-search-receipt-fixture
+    title: receiptFixture
+    status: active
+    sourceFile: packages/cli/tests/public/operations/discovery-search-paging.test.ts
+    tags:
+      - search
+      - proof-receipts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-mcp-search-discovery
+  - id: SYM-source-analysis-v2-max-input-code-units
+    title: SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    symbol_role: config
+    tags:
+      - source-analysis
+      - resource-limits
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1

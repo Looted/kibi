@@ -1,7 +1,7 @@
 {
   "schemaVersion": "kibi.treesitter-language-catalog.v1",
   "plugin": "kibi-plugin-treesitter",
-  "pluginVersion": "0.1.1",
+  "pluginVersion": "0.1.2",
   "runtime": {
     "package": "web-tree-sitter",
     "version": "0.27.0",
@@ -18,7 +18,10 @@
   "languages": [
     {
       "id": "python",
-      "extensions": [".py", ".pyi"],
+      "extensions": [
+        ".py",
+        ".pyi"
+      ],
       "package": "tree-sitter-python",
       "version": "0.25.0",
       "gitCommit": "293fdc02038ee2bf0e2e206711b69c90ac0d413f",
@@ -42,7 +45,9 @@
     },
     {
       "id": "go",
-      "extensions": [".go"],
+      "extensions": [
+        ".go"
+      ],
       "package": "tree-sitter-go",
       "version": "0.25.0",
       "gitCommit": "1547678a9da59885853f5f5cc8a99cc203fa2e2c",
@@ -65,7 +70,9 @@
     },
     {
       "id": "rust",
-      "extensions": [".rs"],
+      "extensions": [
+        ".rs"
+      ],
       "package": "tree-sitter-rust",
       "version": "0.24.0",
       "gitCommit": "18b0515fca567f5a10aee9978c6d2640e878671a",

@@ -4,6 +4,10 @@ import type {
   SourceAnalysisResultV2,
   SymbolExtractorV2,
 } from "kibi-plugin-sdk";
+import {
+  SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS,
+  validateSourceAnalysisResultV2,
+} from "kibi-plugin-sdk";
 import type {
   CapabilityModeResolution,
   CapabilityProviderBinding,
@@ -89,6 +93,63 @@ describe("source analysis v2 host", () => {
     expect(unsupported.status).toBe("unsupported");
     expect(unsupported.providerId).toBeNull();
     expect(supported.inputFingerprint).toHaveLength(64);
+  });
+  test("returns validator-compatible no-range failures at UTF-16 and UTF-8 limits without dispatch", async () => {
+    let calls = 0;
+    const oversizedService = service(
+      resolution(
+        binding("must-not-run", async () => {
+          calls++;
+          return result();
+        }),
+      ),
+    );
+    const overCodeUnitLimit = `${"a".repeat(SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS)}x`;
+    const codeUnitFailure = await oversizedService.analyzeTextV2(
+      "large.py",
+      overCodeUnitLimit,
+    );
+    expect(codeUnitFailure).toMatchObject({
+      status: "failed",
+      providerId: null,
+      symbols: [],
+      uncoveredRanges: [],
+      diagnostics: [{ code: "input_limit" }],
+    });
+    expect(
+      validateSourceAnalysisResultV2(codeUnitFailure, {
+        path: "large.py",
+        content: overCodeUnitLimit,
+      }).status,
+    ).toBe("failed");
+
+    const multibyteAtUnitLimit = "😀".repeat(
+      SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS / 2,
+    );
+    expect(multibyteAtUnitLimit.length).toBe(
+      SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS,
+    );
+    expect(Buffer.byteLength(multibyteAtUnitLimit, "utf8")).toBeGreaterThan(
+      8 * 1024 * 1024,
+    );
+    const byteFailure = await oversizedService.analyzeTextV2(
+      "large.py",
+      multibyteAtUnitLimit,
+    );
+    expect(byteFailure).toMatchObject({
+      status: "failed",
+      providerId: null,
+      symbols: [],
+      uncoveredRanges: [],
+      diagnostics: [{ code: "input_limit" }],
+    });
+    expect(
+      validateSourceAnalysisResultV2(byteFailure, {
+        path: "large.py",
+        content: multibyteAtUnitLimit,
+      }).status,
+    ).toBe("failed");
+    expect(calls).toBe(0);
   });
   test("a required provider failure cannot fall through to a successful provider", async () => {
     let calls = 0;

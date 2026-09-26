@@ -90,3 +90,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-932de5a830d9
+  - type: implements
+    from: SYM-core-search-candidates
+    to: REQ-mcp-search-discovery
+    created_at: 2026-09-26T12:06:49.269Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-698bdb0f8a25
+  - type: implements
+    from: SYM-core-search-candidates
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-09-26T12:06:49.280Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9c6c4faeecae
+  - type: covered_by
+    from: SYM-core-search-candidates
+    to: TEST-mcp-search-discovery
+    created_at: 2026-09-26T12:06:49.289Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3fa7bc87be01
+  - type: covered_by
+    from: SYM-core-search-candidates
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-26T12:06:49.295Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ca07889166c0

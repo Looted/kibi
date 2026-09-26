@@ -1,7 +1,7 @@
 {
   "schemaVersion": "kibi.package-integrity.v1",
   "package": "kibi-plugin-treesitter",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "algorithm": "sha256",
   "selfHash": {
     "path": "integrity.json",
@@ -11,8 +11,8 @@
   "files": [
     {
       "path": "CHANGELOG.md",
-      "bytes": 744,
-      "sha256": "95df0a8e7330f8b47846033519ee1fa982fbd9c107dbaf0baebac92111f97bb8"
+      "bytes": 1456,
+      "sha256": "aa236f1dd277cd86d471a246f3f8a331c338246ff60922bf85d628948d765216"
     },
     {
       "path": "LICENSE.md",
@@ -21,13 +21,13 @@
     },
     {
       "path": "README.md",
-      "bytes": 2030,
-      "sha256": "7d108b592d9dd84d731790b0b84d74caa715085b2ef5d5fa92c2026d942635bc"
+      "bytes": 2337,
+      "sha256": "6acadba8fa46eca258b17fc276699c556326347c88f284dfe900cb880cc6df97"
     },
     {
       "path": "SBOM.spdx.json",
-      "bytes": 4612,
-      "sha256": "4a1f27c73f61119d137962f9a9072f10c44efa5ef6ab542a39a4c8d4b845d568"
+      "bytes": 4624,
+      "sha256": "55bc42e9b7776a5b8212f4a5eda7269a2ca25dd5213043124d073f6f26f74148"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -71,8 +71,8 @@
     },
     {
       "path": "catalog.json",
-      "bytes": 4368,
-      "sha256": "7b902a307ad5f9058ede69a11d025c113b115df6b2bd5b1d257709b0eb3976f5"
+      "bytes": 4424,
+      "sha256": "239ae4201dfa147a26fa5d19ea995b8d00c3c72114997c7e6bebf2918be464c8"
     },
     {
       "path": "dist/analysis-worker.d.ts",
@@ -112,12 +112,12 @@
     {
       "path": "dist/extractor.d.ts.map",
       "bytes": 255,
-      "sha256": "d5fecba59cf57e63d7e966bf0687ceded95e0527573dcaedcd4c599a0c185145"
+      "sha256": "a65a95d6966772752d3478d4017e8d9276600fa7896009e0a9148ff025f6a4f8"
     },
     {
       "path": "dist/extractor.js",
-      "bytes": 6221,
-      "sha256": "ceae91d6b2e20242c439b84d9f92ad3c3090c1035d137d1cf29531e256f830f1"
+      "bytes": 6251,
+      "sha256": "420eb0861c90a869fef2472bb5bdbc758383dbc47b1aa42174b6dc289704f441"
     },
     {
       "path": "dist/index.d.ts",
@@ -157,7 +157,7 @@
     {
       "path": "package.json",
       "bytes": 1355,
-      "sha256": "fbd7dc0105a3b50b409f0d10101f310b2eeaf31718dec1c7de3dea13a8655eca"
+      "sha256": "1a402e94d0d93fd37111a854f275eaeb2c340af24141e062a6da2864e500aeea"
     }
   ]
 }

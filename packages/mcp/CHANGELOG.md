@@ -1,5 +1,32 @@
 # kibi-mcp
 
+## 2.1.2
+
+### Patch Changes
+
+- f01838e: Usage telemetry stays off by default for every client, and there is now a supported way to turn it on. Previously the only way to capture usage was to hand-write an MCP command line with `--diagnostic-mode`, which meant anyone using a shipped plugin recorded nothing at all and had no documented alternative. Operators can now opt in with an environment variable, and once they do, each row identifies the host, package version, and checkout that produced it, so behavior can be compared across editors, worktrees, and Kibi versions.
+
+  - Honor `KIBI_DIAGNOSTIC_MODE=1` alongside the existing `--diagnostic-mode` flag, for hosts where a plugin owns the MCP command line.
+  - Stamp `interface`, `host`, `package_version`, and `workspace_root` on every usage row.
+  - Set `KIBI_MCP_HOST` from the Cursor and Codex launchers for attribution only; it never enables logging, and installing or enabling a plugin never starts telemetry.
+  - Stop the bundled Cursor worktree resolver from hard-coding `--diagnostic-mode`, so a shipped launcher cannot enable capture on an operator's behalf.
+  - Document the opt-in, what a row contains, and how to opt out in `docs/mcp-reference.md`.
+
+- f01838e: Usage telemetry now records what a call actually returned. Since mid-August every MCP tool result was logged with a count of zero, so a search that returned 190 hits looked identical to one that found nothing, and acceptance reports drew conclusions from fabricated data. Result and violation counts are now read correctly, and a payload that genuinely cannot be parsed is recorded as unknown rather than as an empty result, so a broken logger can no longer look like a healthy but empty knowledge base.
+
+  - Add `normalizeResultPayload` to the result-envelope module and use it in both the MCP and CLI diagnostic loggers, resolving the `{ structuredContent }` wrapper and the bare `kibiProtocol` envelope through one contract.
+  - Record `result_count` and `violation_count` as `null` with a `count unavailable` summary when no payload is readable, and omit `zero_results` in that case.
+  - Restore `protocol_version`, `result_version`, `result_status`, and `effect_failures` on MCP rows, and fix the mirrored CLI case where a wrapped envelope logged protocol fields but lost the count.
+  - Treat unreadable counts as `insufficient_evidence` in the source-lookup acceptance metric instead of silently counting them as non-zero hits.
+  - Cover the boundary with an end-to-end test through the real MCP tool registration and logger path; the previous helper-level tests passed throughout the outage.
+
+- Updated dependencies [f7c2d56]
+- Updated dependencies
+- Updated dependencies [f01838e]
+- Updated dependencies [f01838e]
+  - kibi-core@0.13.2
+  - kibi-runtime@2.0.3
+
 ## 2.1.1
 
 ### Patch Changes

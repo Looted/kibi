@@ -3,6 +3,7 @@ import {
   KIBI_PLUGIN_API_VERSION,
   PluginValidationError,
   SEMANTIC_CLASSIFIER_CAPABILITY_ID,
+  SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS,
   SYMBOL_EXTRACTOR_V2_CAPABILITY_ID,
   createSymbolExtractorV2Adapter,
   defineKibiPlugin,
@@ -404,6 +405,121 @@ describe("kibi-plugin-sdk", () => {
     expect(() =>
       validateSourceAnalysisResultV2(result, input, { maxInputSize: 1 }),
     ).toThrow(/UTF-16 code unit limit/);
+  });
+
+  test("accepts only an empty failed result above the bounded UTF-16 input limit", () => {
+    const atLimit = "😀".repeat(SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS / 2);
+    expect(atLimit.length).toBe(SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS);
+    const base = {
+      contractVersion: "kibi.symbol-extractor.v2",
+      sourceFile: "large.ts",
+      language: "typescript",
+      module: {
+        title: "large",
+        language: "typescript",
+        analysisMode: "fallback",
+        fallbackReason: "input_limit",
+      },
+      symbols: [],
+      diagnostics: [
+        { code: "input_limit", message: "Source input is too large" },
+      ],
+      uncoveredRanges: [],
+    };
+    expect(
+      validateSourceAnalysisResultV2(
+        {
+          ...base,
+          status: "ok",
+          diagnostics: [],
+          module: {
+            title: "large",
+            language: "typescript",
+            analysisMode: "parser",
+          },
+        },
+        { path: "large.ts", content: atLimit },
+      ).status,
+    ).toBe("ok");
+
+    const oversized = `${atLimit}x`;
+    expect(oversized.length).toBe(SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS + 1);
+    const failed = validateSourceAnalysisResultV2(
+      { ...base, status: "failed" },
+      { path: "large.ts", content: oversized },
+    );
+    expect(failed).toMatchObject({
+      status: "failed",
+      sourceFile: "large.ts",
+      symbols: [],
+      uncoveredRanges: [],
+      diagnostics: [{ code: "input_limit" }],
+    });
+
+    expect(() =>
+      validateSourceAnalysisResultV2(
+        { ...base, status: "unsupported" },
+        { path: "large.ts", content: oversized },
+      ),
+    ).toThrow(/requires a failed result/);
+    expect(() =>
+      validateSourceAnalysisResultV2(
+        {
+          ...base,
+          status: "failed",
+          symbols: [
+            {
+              name: "forged",
+              kind: "function",
+              startLine: 1,
+              startColumn: 0,
+              endLine: 1,
+              endColumn: 1,
+            },
+          ],
+        },
+        { path: "large.ts", content: oversized },
+      ),
+    ).toThrow(/must not include symbols/);
+    expect(() =>
+      validateSourceAnalysisResultV2(
+        {
+          ...base,
+          status: "failed",
+          diagnostics: [
+            {
+              code: "input_limit",
+              message: "Source input is too large",
+              range: {
+                startLine: 1,
+                startColumn: 0,
+                endLine: 1,
+                endColumn: 1,
+              },
+            },
+          ],
+        },
+        { path: "large.ts", content: oversized },
+      ),
+    ).toThrow(/must not include source ranges/);
+    expect(() =>
+      validateSourceAnalysisResultV2(
+        {
+          ...base,
+          status: "failed",
+          uncoveredRanges: [
+            {
+              startLine: 1,
+              startColumn: 0,
+              endLine: 1,
+              endColumn: 1,
+              reason: "too large",
+            },
+          ],
+        },
+        { path: "large.ts", content: oversized },
+      ),
+    ).toThrow(/must not include uncovered source ranges/);
   });
 
   test("enforces v2 diagnostic and coverage status invariants", () => {

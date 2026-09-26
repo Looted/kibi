@@ -92,6 +92,10 @@ export interface SourceAnalysisResultV2
   readonly uncoveredRanges: readonly SourceAnalysisUncoveredRangeV2[];
 }
 
+/** Maximum source size accepted for ranged v2 analysis, measured in UTF-16 code units. */
+// implements REQ-capability-plugin-protocol-v1
+export const SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS = 5 * 1024 * 1024;
+
 // implements REQ-capability-plugin-protocol-v1
 export interface SymbolExtractorSupportsInput {
   readonly path: string;

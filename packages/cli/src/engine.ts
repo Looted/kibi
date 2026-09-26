@@ -1527,7 +1527,7 @@ function recoverInterruptedGeneration(branchPath: string): void {
   }
 }
 
-// implements REQ-core-journaled-engine-lifecycle
+// implements REQ-core-journaled-engine-persistence
 export async function runEngineDaemon(options: {
   readonly workspaceRoot: string;
   readonly branch: string;
@@ -1804,7 +1804,7 @@ export async function runEngineDaemon(options: {
             ? "none"
             : `'${quoteProlog(request.type)}'`;
         const result = await prolog.query(
-          `kb_search_entities(${type}, '${quoteProlog(request.searchQuery)}', ${limit}, ${offset}, Rows, Count)`,
+          `kb_search_candidates(${type}, '${quoteProlog(request.searchQuery)}', ${limit}, ${offset}, Rows, Count)`,
         );
         if (!result.success) {
           throw new Error(
@@ -1960,7 +1960,7 @@ export async function runEngineDaemon(options: {
                 ? "none"
                 : `'${quoteProlog(command.type)}'`;
             return prolog.query(
-              `kb_search_entities(${type}, '${quoteProlog(command.query)}', ${command.limit}, ${command.offset}, Rows, Count)`,
+              `kb_search_candidates(${type}, '${quoteProlog(command.query)}', ${command.limit}, ${command.offset}, Rows, Count)`,
             );
           }
           default:

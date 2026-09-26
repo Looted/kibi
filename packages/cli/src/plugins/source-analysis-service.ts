@@ -20,6 +20,7 @@ import { createHash } from "node:crypto";
 import * as path from "node:path";
 import {
   type PluginProviderStamp,
+  SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS,
   SYMBOL_EXTRACTOR_V2_CAPABILITY_ID,
   type SourceAnalysisResult,
   type SourceAnalysisResultV2,
@@ -227,11 +228,14 @@ export class SourceAnalysisService {
       providerFingerprint: null,
       shadowComparisons: [],
     });
-    if (Buffer.byteLength(content, "utf8") > 8 * 1024 * 1024)
+    if (
+      content.length > SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS ||
+      Buffer.byteLength(content, "utf8") > 8 * 1024 * 1024
+    )
       return fallback(
         "failed",
         "input_limit",
-        "Source input exceeds the 8 MiB analysis limit",
+        `Source input exceeds the ${SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS} UTF-16 code unit or 8 MiB UTF-8 analysis limit`,
       );
     let resolution: CapabilityModeResolution<SymbolExtractorV2>;
     try {

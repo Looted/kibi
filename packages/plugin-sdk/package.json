@@ -1,6 +1,6 @@
 {
   "name": "kibi-plugin-sdk",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Public protocol types and validators for Kibi capability plugins",
   "type": "module",
   "main": "./dist/index.js",
@@ -11,7 +11,10 @@
       "default": "./dist/index.js"
     }
   },
-  "files": ["dist", "CHANGELOG.md"],
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
