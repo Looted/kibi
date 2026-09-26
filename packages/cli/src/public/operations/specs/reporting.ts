@@ -209,11 +209,20 @@ export async function perContractTestBindings(
   const { removeFrontmatterBlock } = await import(
     "../../../operations/proof/receipt-document.js"
   );
+  // Only the contract, bound symbols, and authored source feed the binding
+  // hash. The paged projection never materializes receipt histories, which
+  // grow without bound and previously overflowed the bounded Prolog output
+  // on real stores. Engine failures must surface: silently dropping to strict
+  // snapshot semantics would hide an unhealthy engine behind stale receipts.
   let tests: Record<string, unknown>[];
   try {
-    tests = await loadEntities(context.prolog as never, { type: "test" });
-  } catch {
-    return null;
+    tests = await loadEntities(requireProlog(context), {
+      type: "test",
+      projection: "proof_contract",
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Per-contract receipt binding query failed: ${message}`);
   }
   const entries: string[] = [];
   const manifestPath = join(context.workspaceRoot, ".kb", "symbols.yaml");

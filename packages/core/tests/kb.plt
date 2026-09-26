@@ -4,6 +4,7 @@
 :- use_module('../src/discovery.pl').
 :- use_module('../src/derived_chr.pl').
 :- use_module('../src/sparql_client.pl').
+:- use_module('../src/status.pl', []).
 :- use_module(library(http/json)).
 :- use_module(library(plunit)).
 :- use_module(library(semweb/rdf11)).
@@ -292,7 +293,57 @@ test(journal_persistence, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
     assertion(TitleVal = ^^("Persistent Entity", _)),
     kb_detach.
 
+% A reloaded store carries expanded property URIs ('urn-kibi:Key') rather
+% than the in-session 'kb:Key' atoms; the bounded proof-contract projection
+% must still find every contracted test and project its source.
+test(proof_contract_projection_survives_reload, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    test_kb_dir(Dir),
+    kb_attach(Dir),
+    assert_fixture_entity(test, 'TEST-RELOADED', "Reloaded test", active, [
+        source=".kb/tests/TEST-RELOADED.md",
+        proof_contract="{\"version\":\"kibi.proof-contract.v1\"}",
+        proof_bindings="[{\"symbol_id\":\"SYM-RELOADED\"}]",
+        proof_receipts="[{\"history\":\"large\"}]"
+    ]),
+    kb_save,
+    kb_detach,
+    kb_attach(Dir),
+    kb_query_proof_contracts(none, 10, 0, Rows),
+    kb_detach,
+    assertion(Rows = [['TEST-RELOADED', test, _]]),
+    Rows = [[_, _, Projected]],
+    assertion(memberchk(proof_contract=_, Projected)),
+    assertion(memberchk(proof_bindings=_, Projected)),
+    assertion((memberchk(source=Source, Projected),
+               Source = ^^(".kb/tests/TEST-RELOADED.md", _))),
+    assertion(\+ memberchk(proof_receipts=_, Projected)).
+
 :- end_tests(kb_persistence).
+
+:- begin_tests(status_freshness).
+
+% Freshness scans every knowledge-lane and documentation file. The content
+% test must be deterministic and run after the cheap mtime test: repeated
+% id:/title:/status: keys previously produced a combinatorial number of
+% redos per unchanged file (minutes of status time on real workspaces).
+test(entity_documentation_check_is_deterministic_and_mtime_first) :-
+    tmp_file_stream(text, File, Stream),
+    format(Stream, "---~n", []),
+    forall(between(1, 200, N),
+           format(Stream, "id: X~d~ntitle: T~d~nstatus: active~n", [N, N])),
+    format(Stream, "---~n", []),
+    close(Stream),
+    time_file(File, Modified),
+    call_cleanup(status:newer_entity_documentation_file(File, 0), Det = true),
+    assertion(Det == true),
+    Future is Modified + 3600,
+    statistics(inferences, I0),
+    assertion(\+ status:newer_entity_documentation_file(File, Future)),
+    statistics(inferences, I1),
+    assertion(I1 - I0 < 1000),
+    delete_file(File).
+
+:- end_tests(status_freshness).
 
 :- begin_tests(kb_source_queries).
 

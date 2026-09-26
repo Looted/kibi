@@ -62,7 +62,12 @@ function restoreEnv(name: string, value: string | undefined): void {
 type FakeChild = EventEmitter & {
   stdout: EventEmitter | null;
   stderr: EventEmitter | null;
-  stdin: { write: (chunk: string) => boolean; end: () => void } | null;
+  stdin:
+    | (EventEmitter & {
+        write: (chunk: string) => boolean;
+        end: () => void;
+      })
+    | null;
   pid: number | undefined;
   exitCode: number | null;
   signalCode: NodeJS.Signals | null;
@@ -99,7 +104,7 @@ function fakeChild(
   child.stdin =
     options.stdin === false
       ? null
-      : {
+      : Object.assign(new EventEmitter(), {
           write(chunk: string) {
             if (options.echoTrue && stdout && String(chunk).includes("true.")) {
               queueMicrotask(() => stdout.emit("data", Buffer.from("true.\n")));
@@ -109,7 +114,7 @@ function fakeChild(
           end() {
             return undefined;
           },
-        };
+        });
   child.kill = () => {
     child.killed = true;
     child.exitCode = 1;

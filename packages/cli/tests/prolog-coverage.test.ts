@@ -108,7 +108,7 @@ describe("PrologProcess leftover query paths", () => {
     await prolog.terminate();
   });
 
-  test("interactive query after the child exits reports the process is not started", async () => {
+  test("interactive query after the child exits fails loudly instead of running one-shot", async () => {
     const prolog = new PrologProcess({ oneShot: false, timeout: 15_000 });
     await prolog.start();
     const pid = prolog.getPid();
@@ -118,7 +118,10 @@ describe("PrologProcess leftover query paths", () => {
     while (prolog.isRunning() && Date.now() < deadline) {
       await new Promise((resolve) => setTimeout(resolve, 25));
     }
-    await expect(prolog.query("true")).rejects.toThrow(/not started/);
+    await expect(prolog.query("true")).rejects.toThrow(
+      /Prolog process is no longer running/,
+    );
+    expect(prolog.needsRestart()).toBe(true);
     await prolog.terminate();
   });
 });

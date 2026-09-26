@@ -273,7 +273,12 @@ test("interactive mode rejects queued queries immediately after timeout terminat
     await assert.rejects(timedOutQuery, /Query timeout after/);
 
     const startedAt = Date.now();
-    await assert.rejects(queuedQuery, /Prolog process not started/);
+    // The lost session fails loudly (never a one-shot fallback) and names
+    // the cause so the owner can restart it.
+    await assert.rejects(
+      queuedQuery,
+      /Prolog process is no longer running \(query timeout: repeat\)/,
+    );
     const elapsed = Date.now() - startedAt;
 
     assert(

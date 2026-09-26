@@ -250,11 +250,7 @@ documentation_tree_changed(SnapshotTime) :-
     !.
 
 directory_tree_newer(Path, SnapshotTime) :-
-    exists_file(Path),
-    entity_documentation_file(Path),
-    \+ ignored_documentation_file(Path),
-    time_file(Path, EntryTime),
-    EntryTime > SnapshotTime,
+    newer_entity_documentation_file(Path, SnapshotTime),
     !.
 
 directory_tree_newer(Path, SnapshotTime) :-
@@ -268,11 +264,7 @@ directory_tree_newer(Path, SnapshotTime) :-
     !.
 
 directory_tree_newer_path(Path, SnapshotTime, Path) :-
-    exists_file(Path),
-    entity_documentation_file(Path),
-    \+ ignored_documentation_file(Path),
-    time_file(Path, EntryTime),
-    EntryTime > SnapshotTime.
+    newer_entity_documentation_file(Path, SnapshotTime).
 directory_tree_newer_path(Path, SnapshotTime, ChildPath) :-
     exists_directory(Path),
     directory_files(Path, Entries),
@@ -366,12 +358,24 @@ ignored_documentation_file(Path) :-
 ignored_documentation_file(Path) :-
     sub_atom(Path, _, _, _, '/tests/benchmarks/').
 
+%% newer_entity_documentation_file(+Path, +SnapshotTime) is semidet.
+% Cheap path and mtime tests run before the file is read, and the content
+% test is deterministic. Previously each sub_string/5 left a choicepoint per
+% occurrence, so a failing mtime test backtracked through every combination
+% of id:/title:/status: positions (millions of redos on large trees).
+newer_entity_documentation_file(Path, SnapshotTime) :-
+    exists_file(Path),
+    \+ ignored_documentation_file(Path),
+    time_file(Path, EntryTime),
+    EntryTime > SnapshotTime,
+    entity_documentation_file(Path).
+
 entity_documentation_file(Path) :-
     read_file_to_string(Path, Content, []),
     sub_string(Content, 0, 3, _, "---"),
-    sub_string(Content, _, _, _, "id:"),
-    sub_string(Content, _, _, _, "title:"),
-    sub_string(Content, _, _, _, "status:").
+    once(sub_string(Content, _, _, _, "id:")),
+    once(sub_string(Content, _, _, _, "title:")),
+    once(sub_string(Content, _, _, _, "status:")).
 
 dict_json_string(Dict, JsonString) :-
     with_output_to(string(JsonString), json_write_dict(current_output, Dict, [])).

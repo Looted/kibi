@@ -8,9 +8,10 @@ import { handleKbCheck } from "../../src/tools/check.js";
 
 function emptyFullQualityResult(goal: string) {
   if (goal.includes("kb_entity")) {
+    // Bounded full-KB projection: id enumeration, then id-batched pages.
     return {
       success: true,
-      bindings: { Results: "[]" },
+      bindings: { Results: "[]", Ids: "[]" },
     };
   }
 

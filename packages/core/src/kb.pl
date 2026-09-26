@@ -1589,26 +1589,42 @@ kb_query_proof_contracts(IdFilter, Limit, Offset, Rows) :-
                     offset(Offset,
                            order_by([asc(Id)],
                                     distinct(proof_contract_candidate(IdFilter, Id))))),
-              proof_contract_properties(Id, Contract, Bindings),
-              (   var(Bindings)
-              ->  Projected = [id=Id, proof_contract=Contract]
-              ;   Projected = [id=Id, proof_contract=Contract,
-                               proof_bindings=Bindings]
-              ) ),
+              proof_contract_properties(Id, Contract, Bindings, Source),
+              optional_projected_property(proof_bindings, Bindings,
+                                          BindingProps),
+              optional_projected_property(source, Source, SourceProps),
+              append([[id=Id, proof_contract=Contract],
+                      BindingProps, SourceProps],
+                     Projected) ),
             Rows).
 
+optional_projected_property(_Key, Value, []) :-
+    var(Value),
+    !.
+optional_projected_property(Key, Value, [Key=Value]).
+
 proof_contract_properties(Id, Contract, Bindings) :-
+    proof_contract_properties(Id, Contract, Bindings, _Source).
+
+% Source is projected alongside the contract so per-contract receipt binding
+% can hash the authored document without materializing receipt histories.
+proof_contract_properties(Id, Contract, Bindings, Source) :-
     (   (   kb_graph(Graph),
             entity_id_to_uri(Id, EntityURI),
             rdf(EntityURI, kb:type, TypeLiteral, Graph),
             literal_to_atom(TypeLiteral, test),
-            atom_concat('kb:', 'proof_contract', ContractURI),
+            kb_property_uri(proof_contract, ContractURI),
             rdf(EntityURI, ContractURI, ContractLiteral, Graph)
         )
     ->  literal_to_value(proof_contract, ContractLiteral, Contract),
-        atom_concat('kb:', 'proof_bindings', BindingsURI),
-        (   rdf(EntityURI, BindingsURI, BindingsLiteral, Graph)
+        (   kb_property_uri(proof_bindings, BindingsURI),
+            rdf(EntityURI, BindingsURI, BindingsLiteral, Graph)
         ->  literal_to_value(proof_bindings, BindingsLiteral, Bindings)
+        ;   true
+        ),
+        (   kb_property_uri(source, SourceURI),
+            rdf(EntityURI, SourceURI, SourceLiteral, Graph)
+        ->  literal_to_value(source, SourceLiteral, Source)
         ;   true
         )
     ;   entity(test, Id, _, Properties),
@@ -1616,13 +1632,28 @@ proof_contract_properties(Id, Contract, Bindings) :-
         (   memberchk(proof_bindings=Bindings, Properties)
         ->  true
         ;   true
+        ),
+        (   memberchk(source=Source, Properties)
+        ->  true
+        ;   true
         )
     ).
+
+%% kb_property_uri(+Key, -URI)
+% Property predicates are asserted in-session as the prefixed atom 'kb:Key',
+% but a store reloaded from its snapshot carries the expanded 'urn-kibi:Key'
+% form. Direct RDF lookups must accept both (as uri_to_key/2 already does),
+% or projections silently miss every entity of a reloaded store.
+kb_property_uri(Key, URI) :-
+    kb_uri(BaseURI),
+    atom_concat(BaseURI, Key, URI).
+kb_property_uri(Key, URI) :-
+    atom_concat('kb:', Key, URI).
 
 % implements REQ-kibi-verification-evidence-contract
 proof_contract_candidate(none, Id) :-
     kb_graph(Graph),
-    atom_concat('kb:', 'proof_contract', ContractURI),
+    kb_property_uri(proof_contract, ContractURI),
     rdf(EntityURI, ContractURI, _, Graph),
     entity_uri_to_id(EntityURI, Id),
     rdf(EntityURI, kb:type, TypeLiteral, Graph),

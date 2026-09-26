@@ -347,16 +347,32 @@ async function executeIngestProofUnlocked(
       tests.push(test);
     }
   } else {
-    const all = await loadEntities(context.prolog, { type: "test" });
-    for (const test of all) {
-      const contract = record(test.proof_contract);
+    // Select candidates from the paged contract projection (no receipt
+    // histories), then load each matching test in full: the append-only
+    // receipt update needs that test's existing history, but never every
+    // test's history in a single Prolog answer.
+    const candidates = await loadEntities(context.prolog, {
+      type: "test",
+      projection: "proof_contract",
+    });
+    for (const candidate of candidates) {
+      const contract = record(candidate.proof_contract);
       if (
-        contract &&
-        contract.version === PROOF_CONTRACT_VERSION &&
-        text(contract.integration) === integrationId
+        !contract ||
+        contract.version !== PROOF_CONTRACT_VERSION ||
+        text(contract.integration) !== integrationId
       ) {
-        tests.push(test);
+        continue;
       }
+      const testId = String(candidate.id);
+      const found = await loadEntities(context.prolog, {
+        id: testId,
+        type: "test",
+      });
+      const test = found[0];
+      if (!test)
+        throw new Error(`Proof ingest failed: test ${testId} was not found`);
+      tests.push(test);
     }
     if (tests.length === 0)
       throw new Error(
