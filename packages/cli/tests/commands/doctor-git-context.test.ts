@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { mkdirSync, writeFileSync } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { mkdirSync, writeFileSync } from "node:fs";
 import { doctorCommand } from "../../src/commands/doctor.js";
 import {
   captureIo,
@@ -47,9 +47,15 @@ describe("doctor effective hooks context", () => {
     process.env.GIT_CONFIG_GLOBAL = globalConfig;
     process.env.GIT_CONFIG_SYSTEM = "/dev/null";
     process.env.GIT_CONFIG_NOSYSTEM = "1";
-    restores.push(() => delete process.env.GIT_CONFIG_GLOBAL);
-    restores.push(() => delete process.env.GIT_CONFIG_SYSTEM);
-    restores.push(() => delete process.env.GIT_CONFIG_NOSYSTEM);
+    restores.push(() =>
+      Reflect.deleteProperty(process.env, "GIT_CONFIG_GLOBAL"),
+    );
+    restores.push(() =>
+      Reflect.deleteProperty(process.env, "GIT_CONFIG_SYSTEM"),
+    );
+    restores.push(() =>
+      Reflect.deleteProperty(process.env, "GIT_CONFIG_NOSYSTEM"),
+    );
   }
 
   function installManagedHooks(cwd: string): void {
@@ -76,7 +82,9 @@ describe("doctor effective hooks context", () => {
     mkdirSync(sub, { recursive: true });
     const ioSub = captureIo();
     restores.push(ioSub.restore);
-    const subResult = await withCwd(sub, () => doctorCommand({ format: "json" }));
+    const subResult = await withCwd(sub, () =>
+      doctorCommand({ format: "json" }),
+    );
     expect(subResult).toBeDefined();
     expect(ioSub.logText()).toContain("Installed and executable");
   });

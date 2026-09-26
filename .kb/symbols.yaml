@@ -8855,6 +8855,8 @@ symbols:
     sourceFile: packages/cli/src/utils/git-repository-context.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-git-hook-effective-install
       - type: implements
         target: REQ-git-hook-effective-install
   - id: SYM-install-hook-result-type
@@ -8883,6 +8885,8 @@ symbols:
     sourceFile: packages/cli/src/utils/git-repository-context.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-git-hook-effective-install
       - type: implements
         target: REQ-git-hook-effective-install
   - id: SYM-git-repository-context-resolver

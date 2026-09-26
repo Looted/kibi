@@ -423,7 +423,8 @@ jobs:
         timeout-minutes: 5
       - name: Verify tarball path hygiene
         run: |
-          bun test --cwd documentation/tests/e2e/packed --timeout=300000 packed-path-hygiene.test.ts
+          NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 \
+            "$RUNNER_TEMP/kibi-e2e-packed-compiled/packed-path-hygiene.test.js"
         env:
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
         timeout-minutes: 5

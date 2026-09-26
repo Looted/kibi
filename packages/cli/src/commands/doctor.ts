@@ -35,11 +35,11 @@ import {
   buildMigrationPlan,
   migrationAction,
 } from "../public/operations/migration-plan.js";
-import { readKbManifestStatus } from "../utils/kb-manifest.js";
 import {
   type GitRepositoryContext,
   resolveGitRepository,
 } from "../utils/git-repository-context.js";
+import { readKbManifestStatus } from "../utils/kb-manifest.js";
 import { planLegacyStorageMigration } from "./legacy-storage-migration.js";
 
 /**
@@ -740,7 +740,9 @@ function remediationHookPaths(...hooks: string[]): string {
 function hooksPathSuffix(): string {
   const context = doctorRepositoryContext();
   if (!context?.hooksPathConfig) return "";
-  const origin = context.hooksPathOrigin ? ` from ${context.hooksPathOrigin}` : "";
+  const origin = context.hooksPathOrigin
+    ? ` from ${context.hooksPathOrigin}`
+    : "";
   return ` (core.hooksPath=${context.hooksPathConfig}${origin})`;
 }
 
@@ -782,8 +784,7 @@ function checkGitHooks(): {
       return {
         passed: false,
         message: `Installed but not executable${hooksPathSuffix()}`,
-        remediation:
-          remediationHookPaths("post-checkout", "post-merge"),
+        remediation: remediationHookPaths("post-checkout", "post-merge"),
       };
     } catch (error) {
       return {
@@ -870,8 +871,7 @@ function checkPreCommitHook(): {
 
         return {
           passed: true,
-          message:
-            `Installed and executable (resolves kibi CLI; uses 'kibi check --staged')${hooksPathSuffix()}`,
+          message: `Installed and executable (resolves kibi CLI; uses 'kibi check --staged')${hooksPathSuffix()}`,
         };
       }
 

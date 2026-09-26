@@ -128,6 +128,7 @@ describe("unit coverage runner contract", () => {
       COVERAGE_SHARDS.find((shard) => shard.label === "cli.doctor")?.paths,
     ).toEqual([
       "./packages/cli/tests/commands/doctor-behavior.test.ts",
+      "./packages/cli/tests/commands/doctor-git-context.test.ts",
       "./packages/cli/tests/commands/doctor-remaining.coverage.test.ts",
       "./packages/cli/tests/commands/doctor.in-process.test.ts",
       "./packages/cli/tests/commands/doctor.test.ts",
@@ -135,6 +136,9 @@ describe("unit coverage runner contract", () => {
     expect(
       COVERAGE_SHARDS.find((shard) => shard.label === "cli.commands")?.paths,
     ).not.toContain("./packages/cli/tests/commands/doctor-behavior.test.ts");
+    expect(
+      COVERAGE_SHARDS.find((shard) => shard.label === "cli.commands")?.paths,
+    ).not.toContain("./packages/cli/tests/commands/doctor-git-context.test.ts");
     expect(
       COVERAGE_SHARDS.find((shard) => shard.label === "vscode.activation")
         ?.timeoutMs,

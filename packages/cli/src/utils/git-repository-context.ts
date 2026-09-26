@@ -111,7 +111,8 @@ export function resolveGitRepository(
   }
 
   const version = parseGitVersion(runGit(cwd, ["--version"]) ?? "");
-  const absolute = version !== null &&
+  const absolute =
+    version !== null &&
     (version.major > PATH_FORMAT_MINIMUM.major ||
       (version.major === PATH_FORMAT_MINIMUM.major &&
         version.minor >= PATH_FORMAT_MINIMUM.minor));
@@ -132,8 +133,7 @@ export function resolveGitRepository(
   if (!gitDirRaw || !commonGitDirRaw || !hooksDirRaw) {
     return {
       status: "unsupported",
-      reason:
-        "Git refused to report its directory layout for this repository.",
+      reason: "Git refused to report its directory layout for this repository.",
     };
   }
 
