@@ -118,3 +118,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e3ef7498c4d0
+  - type: covered_by
+    from: SYM-source-analysis-v2-coordinate-only-decorator-partial
+    to: TEST-source-analysis-v2-contract
+    created_at: 2026-09-26T16:55:46.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0c858dcd0a9f
+  - type: implements
+    from: SYM-source-analysis-v2-coordinate-only-decorator-partial
+    to: REQ-source-analysis-v2
+    created_at: 2026-09-26T16:55:46.038Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2948b71ac3da
+  - type: covered_by
+    from: SYM-source-analysis-v2-readsnapshotknowledge-00be17fe
+    to: TEST-source-analysis-v2-contract
+    created_at: 2026-09-26T16:57:02.387Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a9a595c3eebc
+  - type: implements
+    from: SYM-source-analysis-v2-readsnapshotknowledge-00be17fe
+    to: REQ-source-analysis-v2
+    created_at: 2026-09-26T16:57:02.403Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8819720de2f3

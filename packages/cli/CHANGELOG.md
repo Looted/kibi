@@ -1,5 +1,103 @@
 # kibi-cli
 
+## 2.3.4
+
+### Patch Changes
+
+- Agents can refresh the locations of explicit Python declarations when decorators leave the runtime inventory incomplete. Kibi reports that limitation and keeps completeness-sensitive checks strict. The MCP package also requires the runtime containing the engine shutdown handoff repair.
+
+  - Allow only validated Python decorator limitations during explicit coordinate refresh, preserving diagnostics and uncovered ranges.
+  - Keep default enrichment and generated-manifest checks unchanged until an explicit policy migration.
+  - Rebuild the bundled runtime and update the MCP runtime minimum.
+
+## 2.3.3
+
+### Patch Changes
+
+- Kibi now stops accepting new connections before an idle engine saves and releases its knowledge store. A command arriving during that handoff waits for the previous engine to finish, and an explicit stop waits for the durability save. This prevents intermittent connection failures without replaying application writes.
+
+  - Drain accepted requests before saving and retain the engine PID until the store is released.
+  - Bound startup handoff and the read-only attachment handshake; isolate framing and events by connection.
+  - Add regressions for idle shutdown, explicit stop, successor startup, interrupted handshakes, and in-flight requests.
+
+## 2.3.2
+
+### Patch Changes
+
+- Proof campaigns now keep source updates consistent when several batches of results arrive together or a later batch fails. Successful batches remain recorded, and incomplete writes are rolled back while Kibi holds the workspace mutation lock.
+
+  - Integrate the existing receipt batch transaction and mutation saga fixes.
+  - Project proof contracts without loading accumulated receipt histories into discovery frames.
+
+- Updated dependencies
+  - kibi-core@0.13.3
+
+## 2.3.1
+
+### Patch Changes
+
+- Large source files now return a useful, explicit analysis failure instead of causing a second validation error when the host reports that a file exceeded its analysis limit. The SDK keeps ordinary results within a shared UTF-16 size bound and accepts oversized failures only when they contain no symbols or source ranges. This preserves clear diagnostics without trusting coordinates that cannot be safely checked.
+
+  - Export a shared UTF-16 source-analysis limit from the SDK and use it in the host.
+  - Validate oversized failures without splitting the source into lines, while rejecting non-failure statuses and any source-derived ranges.
+  - Keep the existing UTF-8 byte cap as an additional host resource bound.
+
+- Updated dependencies
+  - kibi-plugin-sdk@0.3.1
+
+## 2.3.0
+
+### Minor Changes
+
+- f7c2d56: A full proof campaign spends much less time repeating the same packed test and rewriting the knowledge base once per receipt. Contracts that declare the identical command now share one execution, and the receipt campaign commits in batches instead of flushing the journal after every test. Selecting which tests to prove no longer loads every receipt history up front.
+
+  - Run each distinct proof-step command once and record that attempt on every contract that declared it.
+  - Honor `KIBI_PROOF_STEP_CONCURRENCY` (default 1) when distinct commands can run together.
+  - Reuse one snapshot-keyed compilation of the packed end-to-end suite across proof steps.
+  - Commit proof-receipt upserts with `kb_commit_upsert_batch/2`, one transaction and one journal flush per batch of 25.
+  - Load only test id and `proof_contract` while choosing the campaign.
+
+- f01838e: Search works again on a mature knowledge base, including searches grounded to a changed source file, and it no longer spends a large share of an agent's context on results it has not chosen yet. Search used to ask Prolog for up to 100,000 full entity records regardless of the requested limit, so on this repository even `limit: 5` failed outright with a bounded-output error. Results now come back as summaries by default, which cut a five-hit response from 154 KB to 3 KB while keeping ranking, ordering, and totals identical.
+
+  - Page indexed candidate retrieval in bounded chunks instead of one unbounded read, fixing the `ENOBUFS` failures without changing the candidate set or ranking.
+  - Use paged source-file queries for intent searches with source locations instead of falling back to an unbounded full-KB read.
+  - Add `fields` to `kb_search`: `summary` (default) returns identifying metadata plus score, reasons, and snippet; `full` returns complete entity bodies as before.
+  - Teach the bundled `kibi-usage` skill when to select intent-v1 ranking with grounded facets or source locations, and when a literal lexical query is still the right choice.
+  - Fix an unhandled `EPIPE` between tests when an engine socket write lost its peer.
+
+### Patch Changes
+
+- Search remains usable when test histories contain many proof receipts, and Node applications can start a parser from an evaluated module entrypoint. Full search results still include the selected entities' complete receipt histories, while summary results avoid serializing histories that ranking does not need. Parser workers retain their existing resource limits and never execute the analyzed program.
+
+  - Project indexed search candidates before transport and hydrate only selected full entities; preserve ranking, facets, and explicit transport failures.
+  - Start parser file workers without inheriting evaluation-only Node flags; verify the actual public subprocess path.
+
+- f01838e: Usage telemetry now records what a call actually returned. Since mid-August every MCP tool result was logged with a count of zero, so a search that returned 190 hits looked identical to one that found nothing, and acceptance reports drew conclusions from fabricated data. Result and violation counts are now read correctly, and a payload that genuinely cannot be parsed is recorded as unknown rather than as an empty result, so a broken logger can no longer look like a healthy but empty knowledge base.
+
+  - Add `normalizeResultPayload` to the result-envelope module and use it in both the MCP and CLI diagnostic loggers, resolving the `{ structuredContent }` wrapper and the bare `kibiProtocol` envelope through one contract.
+  - Record `result_count` and `violation_count` as `null` with a `count unavailable` summary when no payload is readable, and omit `zero_results` in that case.
+  - Restore `protocol_version`, `result_version`, `result_status`, and `effect_failures` on MCP rows, and fix the mirrored CLI case where a wrapped envelope logged protocol fields but lost the count.
+  - Treat unreadable counts as `insufficient_evidence` in the source-lookup acceptance metric instead of silently counting them as non-zero hits.
+  - Cover the boundary with an end-to-end test through the real MCP tool registration and logger path; the previous helper-level tests passed throughout the outage.
+
+- Updated dependencies [f7c2d56]
+- Updated dependencies
+  - kibi-core@0.13.2
+
+## 2.2.0
+
+### Minor Changes
+
+- Projects can opt into offline Python, Go and Rust symbol analysis while retaining the existing JavaScript and TypeScript workflow. Staged checks use captured source and knowledge from the same Git snapshot, so unstaged files cannot supply missing ownership evidence. Incomplete parsing and provider failures remain explicit instead of appearing as successful empty results.
+
+  - Add the asynchronous symbol extractor v2 contract and source-bound validation.
+  - Qualify an optional Tree-sitter package with pinned WASM grammars, queries, runtime assets and license provenance.
+  - Analyze immutable Git versions and verify approved source analyzers before importing maintenance plugins.
+
+- Updated dependencies
+  - kibi-plugin-sdk@0.3.0
+  - kibi-plugin-builtin@0.3.0
+
 ## 2.1.0
 
 ### Minor Changes

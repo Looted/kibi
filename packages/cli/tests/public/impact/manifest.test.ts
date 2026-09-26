@@ -130,6 +130,10 @@ describe("impact manifest", () => {
     expect(createImpactManifestLookup(manifestResults)).toEqual(
       new Map([
         [
+          "__manifest__:.kb/symbols.yaml",
+          { id: "__captured_manifest__", relationships: [] },
+        ],
+        [
           "src/upload.ts:upload",
           { id: "SYM-A", relationships: [{ type: "implements", to: "REQ-A" }] },
         ],

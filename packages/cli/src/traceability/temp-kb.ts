@@ -339,42 +339,89 @@ async function consultOverlay(ctx: TempKbContext): Promise<void> {
 
 export { consultOverlay };
 
+const PROJECTION_BATCH_SIZE = 128;
+
+// implements REQ-014
+function contextualProjectionGoal(goal: string, context: string): string {
+  const label = toPrologString(context);
+  // A failed goal must abort the transaction just like an exception. Keep the
+  // individual record in the error even when it belongs to a larger batch.
+  // Use the existing structured validation-error transport; unrecognized error
+  // terms can lose their record context during generic error classification.
+  return `catch((${goal} -> true ; throw(staged_goal_failed)), ProjectionError, (message_to_string(ProjectionError, ProjectionDetail), format(atom(ProjectionMessage), '~s: ~s', [${label}, ProjectionDetail]), throw(error(validation_error(ProjectionMessage), context(projectStagedEntities, ${label})))))`;
+}
+
 // implements REQ-014
 export async function projectStagedEntities(
   prolog: PrologProcess,
   results: ExtractionResult[],
 ): Promise<void> {
-  for (const { entity, sourceFile } of results) {
-    // Retract stale relationships before re-asserting entity
-    // (kb_assert_entity_no_audit preserves relationships on upsert)
-    await prolog.query(`kb_retract_entity_relationships('${entity.id}')`);
-    const assertEntityResult = await prolog.query(
-      buildEntityAssertionGoal(entity, sourceFile),
-    );
-    if (!assertEntityResult.success) {
+  for (
+    let offset = 0;
+    offset < results.length;
+    offset += PROJECTION_BATCH_SIZE
+  ) {
+    const batch = results.slice(offset, offset + PROJECTION_BATCH_SIZE);
+    const goals = batch.flatMap(({ entity, sourceFile }) => [
+      // Upserts preserve relationships, so replace them with snapshot edges.
+      contextualProjectionGoal(
+        `kb_retract_entity_relationships(${toPrologAtom(entity.id)})`,
+        `retract staged relationships for entity ${entity.id}`,
+      ),
+      contextualProjectionGoal(
+        buildEntityAssertionGoal(entity, sourceFile),
+        `assert staged entity ${entity.id}`,
+      ),
+    ]);
+    // query(array) wraps the batch in an RDF transaction and saves once.
+    const result = await prolog.query(goals);
+    if (!result.success) {
+      const label = batch.map(({ entity }) => entity.id).join(", ");
       throw new Error(
-        `Failed to assert staged entity ${entity.id}: ${assertEntityResult.error || "unknown error"}`,
+        `Failed to assert staged entity ${label}: ${result.error || "unknown error"}`,
       );
     }
   }
 
+  // Finish every entity before adding any relationships, including endpoints
+  // in later batches. Keep only one bounded batch of relationship goals.
+  let relationshipGoals: string[] = [];
+  let relationshipLabels: string[] = [];
+  // implements REQ-014
+  const flushRelationships = async (): Promise<void> => {
+    if (relationshipGoals.length === 0) return;
+    const result = await prolog.query(relationshipGoals);
+    if (!result.success) {
+      const label = relationshipLabels.join(", ");
+      throw new Error(
+        `Failed to assert staged relationship ${label}: ${result.error || "unknown error"}`,
+      );
+    }
+    relationshipGoals = [];
+    relationshipLabels = [];
+  };
   for (const { relationships } of results) {
     for (const relationship of relationships) {
-      const assertRelationshipResult = await prolog.query(
-        buildRelationshipAssertionGoal(relationship),
+      const label = `${relationship.type} ${relationship.from} -> ${relationship.to}`;
+      relationshipLabels.push(label);
+      relationshipGoals.push(
+        contextualProjectionGoal(
+          buildRelationshipAssertionGoal(relationship),
+          `assert staged relationship ${label}`,
+        ),
       );
-      if (!assertRelationshipResult.success) {
-        throw new Error(
-          `Failed to assert staged relationship ${relationship.type} ${relationship.from} -> ${relationship.to}: ${assertRelationshipResult.error || "unknown error"}`,
-        );
-      }
+      if (relationshipGoals.length === PROJECTION_BATCH_SIZE)
+        await flushRelationships();
     }
   }
+  await flushRelationships();
 }
 
-export async function createTempKb(baseKbPath: string): Promise<TempKbContext> {
+export async function createTempKb(
+  baseKbPath?: string,
+): Promise<TempKbContext> {
   // implements REQ-014
-  if (!existsSync(baseKbPath)) {
+  if (baseKbPath !== undefined && !existsSync(baseKbPath)) {
     throw new Error(`Base KB path does not exist: ${baseKbPath}`);
   }
 
@@ -390,7 +437,9 @@ export async function createTempKb(baseKbPath: string): Promise<TempKbContext> {
   await mkdir(tempDir, { recursive: true });
 
   trace(`copying base KB ${baseKbPath} -> ${kbPath}`);
-  await cp(baseKbPath, kbPath, { recursive: true });
+  if (baseKbPath !== undefined)
+    await cp(baseKbPath, kbPath, { recursive: true });
+  else await mkdir(kbPath, { recursive: true });
 
   await writeFile(overlayPath, "", "utf8");
 

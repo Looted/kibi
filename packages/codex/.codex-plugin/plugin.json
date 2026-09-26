@@ -1,6 +1,6 @@
 {
   "name": "kibi-codex",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Kibi Codex plugin manifest for integrating the Kibi MCP into Codex workflows.",
   "skills": "./skills/",
   "hooks": "./hooks/hooks.json",

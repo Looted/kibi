@@ -139,3 +139,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d601158488f6
+  - type: implements
+    from: SYM-ReceiptCodeScopeEntry
+    to: REQ-kibi-verification-receipts-v2
+    created_at: 2026-09-26T17:41:41.581Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-492f14f12575
+  - type: implements
+    from: SYM-ReceiptCodeScopeEntry
+    to: REQ-kibi-fresh-verification-receipts
+    created_at: 2026-09-26T17:41:41.593Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-34669d1a6a51
+  - type: covered_by
+    from: SYM-ReceiptCodeScopeEntry
+    to: TEST-kibi-verification-receipts-v2
+    created_at: 2026-09-26T17:41:41.599Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bbfcd09a9f5b
+  - type: covered_by
+    from: SYM-ReceiptCodeScopeEntry
+    to: TEST-kibi-fresh-verification-receipts
+    created_at: 2026-09-26T17:41:41.604Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-78d1920e94b1

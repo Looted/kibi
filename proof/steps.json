@@ -1,5 +1,29 @@
 [
   {
+    "test_id": "TEST-source-analysis-v2-contract",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "15000",
+        "./packages/plugin-sdk/tests",
+        "./packages/plugin-builtin/tests",
+        "./packages/cli/tests/plugins/source-analysis-v2.test.ts"
+      ],
+      [
+        "node",
+        "--test",
+        "packages/plugin-treesitter/tests/plugin.test.js"
+      ],
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/multilingual-source-analysis.test.ts"
+      ]
+    ]
+  },
+  {
     "test_id": "TEST-kibi-source-relationship-parity",
     "steps": [
       [
@@ -214,6 +238,13 @@
         "node",
         "scripts/run-proof-packed-e2e.mjs",
         "documentation/tests/e2e/packed/cli-workflows.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./test/root-summary.test.ts"
       ]
     ]
   },
@@ -244,6 +275,16 @@
         "--timeout",
         "120000",
         "./packages/cli/tests/engine.test.ts"
+      ],
+      [
+        "swipl",
+        "-q",
+        "-s",
+        "packages/core/tests/kb.plt",
+        "-g",
+        "run_tests(kb_timestamp_formats)",
+        "-t",
+        "halt"
       ]
     ]
   },
@@ -739,6 +780,13 @@
         "node",
         "scripts/run-proof-packed-e2e.mjs",
         "documentation/tests/e2e/packed/discovery-bundle.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/public/operations/discovery-search-paging.test.ts"
       ]
     ]
   },
@@ -1002,6 +1050,13 @@
         "node",
         "scripts/run-proof-packed-e2e.mjs",
         "documentation/tests/e2e/packed/mcp-cli-operation-parity.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/public/operations/discovery-search-paging.test.ts"
       ]
     ]
   },
@@ -1192,6 +1247,13 @@
         "bun",
         "run",
         "documentation/tests/e2e/coverage-pipeline.e2e.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--timeout",
+        "120000",
+        "./scripts/tests/parser-unit-coverage.test.ts"
       ]
     ]
   },
@@ -1242,6 +1304,26 @@
         "node",
         "scripts/run-proof-packed-e2e.mjs",
         "documentation/tests/e2e/packed/cli-env-bootstrap.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-installed-sdk-source-analysis-input-limits",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/installed-sdk-source-analysis-input-limits.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-e2e-proof-all-bounded-projection",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/proof-all-bounded-projection.test.ts"
       ]
     ]
   }

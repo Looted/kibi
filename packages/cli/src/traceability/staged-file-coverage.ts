@@ -18,6 +18,24 @@ export interface StagedFileCoverageRecord {
   requirementIds: string[];
   evidencePaths: string[];
   providerId: string | null;
+  sourceAnalysis?: {
+    before: {
+      status: string;
+      language: string;
+      symbolCount: number;
+      providerId: string | null;
+      inputFingerprint: string;
+      providerFingerprint: string | null;
+    } | null;
+    after: {
+      status: string;
+      language: string;
+      symbolCount: number;
+      providerId: string | null;
+      inputFingerprint: string;
+      providerFingerprint: string | null;
+    } | null;
+  };
 }
 
 export interface StagedFileCoverageDiagnostic {
@@ -33,6 +51,7 @@ export interface StagedFileCoverageDiagnostic {
 
 export interface StagedFileCoverageResult {
   version: typeof STAGED_FILE_COVERAGE_RESULT_VERSION;
+  snapshot?: { baseTree: string; headTree: string; headCommit: string | null };
   files: StagedFileCoverageRecord[];
   diagnostics: StagedFileCoverageDiagnostic[];
 }

@@ -1,6 +1,6 @@
 {
   "name": "kibi-plugin-builtin",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Default Kibi capability plugins: TS symbol extraction, ontology pack, and semantic classifier",
   "type": "module",
   "main": "./dist/index.js",
@@ -32,7 +32,7 @@
     "access": "public"
   },
   "dependencies": {
-    "kibi-plugin-sdk": "^0.2.0",
+    "kibi-plugin-sdk": "^0.3.0",
     "ts-morph": "^23.0.0"
   },
   "devDependencies": {

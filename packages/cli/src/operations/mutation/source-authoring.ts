@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { isDeepStrictEqual } from "node:util";
 import { dump as dumpYaml, load as loadYaml } from "js-yaml";
 import { parseDocument, stringify } from "yaml";
 import { OperationError } from "../../cli-errors.js";
@@ -339,17 +340,134 @@ export function manifestRelationships(
   });
 }
 
-function mergeManifestRelationships(
-  existing: readonly Readonly<{ type: string; target: string }>[],
+// implements REQ-source-analysis-v2
+function manifestRecord(item: unknown): Record<string, unknown> | undefined {
+  if (
+    item === null ||
+    typeof item !== "object" ||
+    !("toJSON" in item) ||
+    typeof (item as { toJSON?: unknown }).toJSON !== "function"
+  ) {
+    return undefined;
+  }
+  const value = (item as { toJSON(): unknown }).toJSON();
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : undefined;
+}
+
+// implements REQ-source-analysis-v2
+function failDuplicateConflict(entityId: string, field: string): never {
+  throw new OperationError(
+    "SOURCE_DUPLICATE_CONFLICT",
+    `Duplicate symbol ${entityId} has conflicting authored field "${field}"; no source was written`,
+    false,
+  );
+}
+
+// implements REQ-source-analysis-v2
+function mergeCompatibleManifestField(
+  target: Record<string, unknown>,
+  field: string,
+  value: unknown,
+  entityId: string,
+  conflictField = field,
+): void {
+  if (Object.hasOwn(target, field)) {
+    if (!isDeepStrictEqual(target[field], value)) {
+      failDuplicateConflict(entityId, conflictField);
+    }
+    return;
+  }
+  Object.defineProperty(target, field, {
+    configurable: true,
+    enumerable: true,
+    value,
+    writable: true,
+  });
+}
+
+// implements REQ-source-analysis-v2
+function mergeDuplicateManifestFields(
+  records: readonly Record<string, unknown>[],
+  entityId: string,
+): Record<string, unknown> {
+  const merged = Object.create(null) as Record<string, unknown>;
+  for (const record of records) {
+    // Links and typed relationships are collections, so merge them separately
+    // instead of treating a difference as conflicting scalar metadata.
+    const authored = Object.fromEntries(
+      Object.entries(symbolManifestRecord(record)).filter(
+        ([key]) => key !== "links",
+      ),
+    );
+    for (const [key, value] of Object.entries(authored)) {
+      mergeCompatibleManifestField(merged, key, value, entityId);
+    }
+  }
+  return merged;
+}
+
+// implements REQ-source-analysis-v2
+function manifestRelationshipRecords(
+  record: Readonly<Record<string, unknown>>,
+  entityId: string,
+): unknown[] {
+  if (record.relationships === undefined) return [];
+  if (!Array.isArray(record.relationships)) {
+    failDuplicateConflict(entityId, "relationships");
+  }
+  return record.relationships;
+}
+
+// implements REQ-source-analysis-v2
+function mergeManifestRelationshipRecords(
+  records: readonly Record<string, unknown>[],
   incoming: readonly RelationshipInput[],
   entityId: string,
-): Array<{ type: string; target: string }> {
-  const merged = new Map<string, { type: string; target: string }>();
-  for (const relationship of existing) {
-    merged.set(`${relationship.type}\u0000${relationship.target}`, {
-      type: relationship.type,
-      target: relationship.target,
-    });
+): unknown[] {
+  const merged = new Map<string, Record<string, unknown>>();
+  const untyped: unknown[] = [];
+  for (const record of records) {
+    for (const row of manifestRelationshipRecords(record, entityId)) {
+      if (row === null || typeof row !== "object" || Array.isArray(row)) {
+        if (!untyped.some((value) => isDeepStrictEqual(value, row))) {
+          untyped.push(row);
+        }
+        continue;
+      }
+      const candidate = row as Record<string, unknown>;
+      const type = candidate.type;
+      const target = candidate.target ?? candidate.to;
+      if (typeof type !== "string" || typeof target !== "string") {
+        if (!untyped.some((value) => isDeepStrictEqual(value, row))) {
+          untyped.push(row);
+        }
+        continue;
+      }
+      const key = `${type}\u0000${target}`;
+      const normalized = {
+        ...Object.fromEntries(
+          Object.entries(candidate).filter(([key]) => key !== "to"),
+        ),
+        type,
+        target,
+      };
+      const previous = merged.get(key);
+      if (previous) {
+        for (const [field, value] of Object.entries(normalized)) {
+          mergeCompatibleManifestField(
+            previous,
+            field,
+            value,
+            entityId,
+            `relationship ${type} -> ${target}.${field}`,
+          );
+        }
+      } else {
+        merged.set(key, normalized);
+      }
+    }
   }
   for (const relationship of incoming) {
     if (
@@ -359,14 +477,61 @@ function mergeManifestRelationships(
     ) {
       continue;
     }
-    const normalized = { type: relationship.type, target: relationship.to };
-    merged.set(`${normalized.type}\u0000${normalized.target}`, normalized);
+    const key = `${relationship.type}\u0000${relationship.to}`;
+    const normalized = {
+      ...Object.fromEntries(
+        Object.entries(relationship).filter(
+          ([key]) => key !== "from" && key !== "to",
+        ),
+      ),
+      type: relationship.type,
+      target: relationship.to,
+    };
+    const previous = merged.get(key);
+    if (previous) {
+      for (const [field, value] of Object.entries(normalized)) {
+        mergeCompatibleManifestField(
+          previous,
+          field,
+          value,
+          entityId,
+          `relationship ${relationship.type} -> ${relationship.to}.${field}`,
+        );
+      }
+    } else {
+      merged.set(key, normalized);
+    }
   }
-  return [...merged.values()].sort((left, right) =>
-    `${left.type}\u0000${left.target}`.localeCompare(
-      `${right.type}\u0000${right.target}`,
+  return [
+    ...[...merged.values()].sort((left, right) =>
+      `${String(left.type)}\u0000${String(left.target)}`.localeCompare(
+        `${String(right.type)}\u0000${String(right.target)}`,
+      ),
     ),
-  );
+    ...untyped,
+  ];
+}
+
+// implements REQ-source-analysis-v2
+function mergeManifestLinks(
+  records: readonly Record<string, unknown>[],
+  entity: Readonly<Record<string, unknown>>,
+): unknown[] | undefined {
+  const values = [
+    ...records.map((record) => record.links),
+    entity.links,
+  ].filter((value) => value !== undefined);
+  if (values.length === 0) return undefined;
+  const links: unknown[] = [];
+  for (const value of values) {
+    const entries = Array.isArray(value) ? value : [value];
+    for (const entry of entries) {
+      if (!links.some((existing) => isDeepStrictEqual(existing, entry))) {
+        links.push(entry);
+      }
+    }
+  }
+  return links;
 }
 
 function renderSymbolManifest(
@@ -375,16 +540,14 @@ function renderSymbolManifest(
   existingContent: string | undefined,
 ): string {
   if (existingContent === undefined) {
-    const doc = parseDocument(
-      stringify({
-        symbols: [
-          symbolManifestRecord(
-            entity,
-            mergeManifestRelationships([], relationships, String(entity.id)),
-          ),
-        ],
-      }),
+    const created = symbolManifestRecord(entity);
+    const rows = mergeManifestRelationshipRecords(
+      [],
+      relationships,
+      String(entity.id),
     );
+    if (rows.length > 0) created.relationships = rows;
+    const doc = parseDocument(stringify({ symbols: [created] }));
     return doc.toString();
   }
   const doc = parseDocument(existingContent);
@@ -397,37 +560,39 @@ function renderSymbolManifest(
   }
   const items = (symbols as { items: unknown[] }).items;
   const id = String(entity.id);
-  const index = items.findIndex((item) => {
-    if (!item || typeof item !== "object" || !("get" in item)) return false;
-    return String((item as { get(key: string): unknown }).get("id")) === id;
+  const indices = items.flatMap((item, index) => {
+    if (!item || typeof item !== "object" || !("get" in item)) return [];
+    return String((item as { get(key: string): unknown }).get("id")) === id
+      ? [index]
+      : [];
   });
-  const existingRelationships =
-    index >= 0 ? manifestRelationships(items[index]) : [];
-  let next = symbolManifestRecord(
-    entity,
-    mergeManifestRelationships(existingRelationships, relationships, id),
+  const existingRecords = indices
+    .map((index) => manifestRecord(items[index]))
+    .filter(
+      (record): record is Record<string, unknown> => record !== undefined,
+    );
+  if (existingRecords.length !== indices.length) {
+    failDuplicateConflict(id, "record");
+  }
+  const previous = mergeDuplicateManifestFields(existingRecords, id);
+  const next = { ...previous, ...symbolManifestRecord(entity) };
+  const mergedRelationships = mergeManifestRelationshipRecords(
+    existingRecords,
+    relationships,
+    id,
   );
-  if (index >= 0) {
-    // Partial symbol payloads (for example a relationship-only upsert) must
-    // never erase authored provenance from the manifest. Preserve fields the
-    // payload omits, with incoming values winning on explicit conflicts.
-    const item = items[index] as {
-      toJSON?: () => unknown;
-    };
-    const previous =
-      typeof item?.toJSON === "function" ? (item.toJSON() as unknown) : null;
-    if (
-      typeof previous === "object" &&
-      previous !== null &&
-      !Array.isArray(previous)
-    ) {
-      const preserved = symbolManifestRecord(
-        previous as Readonly<Record<string, unknown>>,
-        [],
-      );
-      next = { ...preserved, ...next };
+  if (mergedRelationships.length > 0) {
+    next.relationships = mergedRelationships;
+  }
+  const mergedLinks = mergeManifestLinks(existingRecords, entity);
+  if (mergedLinks !== undefined) next.links = mergedLinks;
+  if (indices.length > 0) {
+    // Patch one canonical row and remove all redundant copies only after
+    // compatible authored fields and all links have been merged successfully.
+    doc.setIn(["symbols", indices[0]], next);
+    for (const duplicateIndex of indices.slice(1).reverse()) {
+      items.splice(duplicateIndex, 1);
     }
-    doc.setIn(["symbols", index], next);
   } else {
     doc.addIn(["symbols"], next);
   }

@@ -13887,10 +13887,14 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
-      - type: implements
-        target: REQ-kibi-verification-receipts-v2
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
         target: TEST-kibi-verification-receipts-v2
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
   - id: SYM-refreshCoordinatesForSymbolId
     title: refreshCoordinatesForSymbolId
     status: active
@@ -14227,10 +14231,18 @@ symbols:
     status: active
     granularity_reason: legacy-link
     relationships:
-      - type: implements
-        target: REQ-kibi-verification-receipts-v2
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
         target: TEST-kibi-verification-receipts-v2
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
   - id: SYM-resolveKbPlPath
     title: resolveKbPlPath
     sourceFile: packages/cli/src/prolog.ts
@@ -33008,6 +33020,8 @@ symbols:
       - type: covered_by
         target: TEST-scripts-unit-coverage-runner
       - type: implements
+        target: REQ-014
+      - type: implements
         target: REQ-root-suite-batch-diagnostics
   - id: SYM-skillopt-fixture-assert-coordinates-present
     title: assertSymbolCoordinatesPresent
@@ -33301,16 +33315,6 @@ symbols:
         target: TEST-skill-cli-load-validate
       - type: implements
         target: REQ-reusable-skill-subsystem
-  - id: SYM-ReceiptCodeScopeEntry
-    title: ReceiptCodeScopeEntry
-    status: active
-    sourceFile: packages/cli/src/extractors/manifest.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-fresh-verification-receipts
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts
   - id: SYM-symbol-classification
     title: symbol_classification
     status: active
@@ -33330,14 +33334,6 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-e2e-coverage-pipeline
-      - type: implements
-        target: REQ-014
-  - id: SYM-COVERAGE_SHARDS
-    title: COVERAGE_SHARDS
-    status: active
-    sourceFile: scripts/run-unit-coverage.ts
-    granularity_reason: legacy-link
-    relationships:
       - type: implements
         target: REQ-014
   - id: SYM-runUnitCoverage
@@ -33380,21 +33376,6 @@ symbols:
         target: TEST-kibi-fresh-verification-receipts
       - type: implements
         target: REQ-kibi-fresh-verification-receipts
-  - id: SYM-resolveBoundSymbolScope
-    title: resolveBoundSymbolScope
-    sourceFile: packages/cli/src/extractors/manifest.ts
-    status: active
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-generated-coordinate-repair
-      - type: covered_by
-        target: TEST-kibi-fresh-verification-receipts
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts
-      - type: implements
-        target: REQ-generated-coordinate-persistence
   - id: SYM-coordinateIdentityKey
     title: coordinateIdentityKey
     sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
@@ -41485,6 +41466,10 @@ symbols:
     symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-e2e-proof-all-bounded-projection
+      - type: covered_by
+        target: TEST-e2e-proof-maintenance-ops
+      - type: covered_by
         target: TEST-kibi-operation-interface-parity
       - type: covered_by
         target: TEST-kibi-proof-contract-projection-pagination
@@ -41558,3 +41543,613 @@ symbols:
         target: TEST-mcp-upsert-coverage
       - type: implements
         target: REQ-014
+  - id: SYM-core-kb-write-lock-owner
+    title: kb_write_lock_owner
+    status: active
+    tags:
+      - core
+      - utc
+      - lock-owner
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-core-search-candidates
+    title: kb_search_candidates
+    status: active
+    tags:
+      - search
+      - proof-receipts
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-mcp-search-discovery
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-mcp-search-discovery
+  - id: SYM-core-search-page-ids
+    title: kb_search_page_ids
+    status: active
+    tags:
+      - search
+      - proof-receipts
+    sourceFile: packages/core/src/kb.pl
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: covered_by
+        target: TEST-mcp-search-discovery
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-mcp-search-discovery
+  - id: SYM-core-status-synced-at
+    title: synced_at
+    status: active
+    tags:
+      - core
+      - utc
+      - lock-owner
+    sourceFile: packages/core/src/status.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-core-journaled-engine-lifecycle
+      - type: implements
+        target: REQ-core-journaled-engine-persistence
+  - id: SYM-e2e-installed-sdk-source-analysis-input-limits
+    title: runInstalledSdkSourceAnalysisInputLimitsWorkflow
+    status: active
+    tags:
+      - e2e
+      - consumer
+      - source-analysis
+    sourceFile: documentation/tests/e2e/packed/installed-sdk-source-analysis-input-limits.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-installed-sdk-source-analysis-input-limits
+  - id: SYM-e2e-multilingual-source-analysis
+    title: runMultilingualSourceAnalysisWorkflow
+    status: active
+    tags:
+      - multilingual
+      - e2e
+      - consumer
+    sourceFile: documentation/tests/e2e/packed/multilingual-source-analysis.test.ts
+    relationships:
+      - type: executable_for
+        target: TEST-source-analysis-v2-contract
+  - id: SYM-e2e-proof-all-bounded-projection
+    title: runProofAllBoundedProjectionWorkflow
+    status: active
+    sourceFile: documentation/tests/e2e/packed/proof-all-bounded-projection.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-e2e-proof-all-bounded-projection
+  - id: SYM-parser-unit-worker-coverage
+    title: runParserUnitCoverage
+    status: active
+    tags:
+      - coverage
+      - parser
+      - worker
+    sourceFile: scripts/parser-unit-coverage.mjs
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-coverage-pipeline
+      - type: implements
+        target: REQ-014
+  - id: SYM-search-receipt-fixture
+    title: receiptFixture
+    status: active
+    tags:
+      - search
+      - proof-receipts
+    sourceFile: packages/cli/tests/public/operations/discovery-search-paging.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-mcp-search-discovery
+  - id: SYM-source-analysis-v2-analyzesourcechanges-94b9974e
+    title: analyzeSourceChanges
+    status: active
+    sourceFile: packages/cli/src/plugins/source-change-analysis.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-approved-source-analyzers-02ce81c4
+    title: APPROVED_SOURCE_ANALYZERS
+    status: active
+    sourceFile: packages/cli/src/plugins/approved-source-analyzers.ts
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-approvedsourceanalyzer-628b809f
+    title: ApprovedSourceAnalyzer
+    status: active
+    sourceFile: packages/cli/src/plugins/approved-source-analyzers.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-capabilityregistry-resolvesymbolextractorsv2-ed6a09db
+    title: CapabilityRegistry.resolveSymbolExtractorsV2
+    status: active
+    sourceFile: packages/cli/src/plugins/registry.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-capturediffsnapshot-171fbd16
+    title: captureDiffSnapshot
+    status: active
+    sourceFile: packages/cli/src/traceability/git-change-snapshot.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-capturestagedsnapshot-3478b419
+    title: captureStagedSnapshot
+    status: active
+    sourceFile: packages/cli/src/traceability/git-change-snapshot.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-coordinate-only-decorator-partial
+    title: isCoordinateOnlyDecoratorPartial
+    status: active
+    text_ref: Private decorator-coordinate predicate; JS/TS public declaration inventory omits this private helper. Explicit refresh invokes it while preserving partial diagnostics.
+    sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-createbuiltintsmorphsymbolextractorv2-27715771
+    title: createBuiltinTsMorphSymbolExtractorV2
+    status: active
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-extractor.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-createmaintenancesourceanalysisservice-cfb40815
+    title: createMaintenanceSourceAnalysisService
+    status: active
+    sourceFile: packages/cli/src/plugins/maintenance-source-analysis.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-createsymbolextractorv2adapter-b56c8cdd
+    title: createSymbolExtractorV2Adapter
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-createtreesittersymbolextractor-be0c7582
+    title: createTreeSitterSymbolExtractor
+    status: active
+    sourceFile: packages/plugin-treesitter/src/extractor.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-gitchangesnapshot-c5e637cb
+    title: GitChangeSnapshot
+    status: active
+    sourceFile: packages/cli/src/traceability/git-change-snapshot.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-hostsourceanalysisresultv2-1bcf8177
+    title: HostSourceAnalysisResultV2
+    status: active
+    sourceFile: packages/cli/src/plugins/source-analysis-service.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-kibiplugin-3fdbdf07
+    title: kibiPlugin
+    status: active
+    sourceFile: packages/plugin-treesitter/src/index.ts
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-max-input-code-units
+    title: SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS
+    status: active
+    tags:
+      - source-analysis
+      - resource-limits
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: covered_by
+        target: TEST-installed-sdk-source-analysis-input-limits
+      - type: implements
+        target: REQ-capability-plugin-protocol-v1
+  - id: SYM-source-analysis-v2-qualifiedsourceanalyzers-b03426b8
+    title: qualifiedSourceAnalyzers
+    status: active
+    sourceFile: packages/cli/src/plugins/approved-source-analyzers.generated.ts
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-readsnapshotknowledge-00be17fe
+    title: readSnapshotKnowledge
+    status: active
+    sourceFile: packages/cli/src/traceability/snapshot-knowledge.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-readsnapshotsourceconfig-2fef553a
+    title: readSnapshotSourceConfig
+    status: active
+    sourceFile: packages/cli/src/plugins/maintenance-source-analysis.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-snapshotgitreader-83ceb338
+    title: SnapshotGitReader
+    status: active
+    sourceFile: packages/cli/src/traceability/git-change-snapshot.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-sourceanalysisdiagnosticv2-cfab71cb
+    title: SourceAnalysisDiagnosticV2
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-sourceanalysisrangev2-66780153
+    title: SourceAnalysisRangeV2
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-sourceanalysisresultv2-3b00f293
+    title: SourceAnalysisResultV2
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-sourceanalysisservice-analyzetextv2-12afca51
+    title: SourceAnalysisService.analyzeTextV2
+    status: active
+    sourceFile: packages/cli/src/plugins/source-analysis-service.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-sourceanalysisstatusv2-cd22533e
+    title: SourceAnalysisStatusV2
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-sourceanalysisuncoveredrangev2-6edeafd3
+    title: SourceAnalysisUncoveredRangeV2
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-sourcechangeanalysis-89f0dd10
+    title: SourceChangeAnalysis
+    status: active
+    sourceFile: packages/cli/src/plugins/source-change-analysis.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-sourcesymbolanalysisv2-6bf5bdbd
+    title: SourceSymbolAnalysisV2
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-symbol-extractor-v2-capability-id-43e5dbce
+    title: SYMBOL_EXTRACTOR_V2_CAPABILITY_ID
+    status: active
+    sourceFile: packages/plugin-sdk/src/protocol.ts
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-symbolextractorv2-0c4764f1
+    title: SymbolExtractorV2
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-symbolextractorv2analyzeinput-5753074c
+    title: SymbolExtractorV2AnalyzeInput
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-symbolextractorv2supportsinput-ab271ea7
+    title: SymbolExtractorV2SupportsInput
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-tree-sitter-languages-dae6879e
+    title: TREE_SITTER_LANGUAGES
+    status: active
+    sourceFile: packages/plugin-treesitter/src/catalog.ts
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-validatesourceanalysisresultv2-213d878d
+    title: validateSourceAnalysisResultV2
+    status: active
+    sourceFile: packages/plugin-sdk/src/validate.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-validatesourceanalysisresultv2options-882eaa93
+    title: ValidateSourceAnalysisResultV2Options
+    status: active
+    sourceFile: packages/plugin-sdk/src/capabilities/symbol-extractor.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-source-analysis-v2-verifyapprovedsourceanalyzer-d6ab0f3c
+    title: verifyApprovedSourceAnalyzer
+    status: active
+    sourceFile: packages/cli/src/plugins/maintenance-source-analysis.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-test-core-fixed-timestamp-file
+    title: create_fixed_timestamp_file
+    status: active
+    tags:
+      - core
+      - utc
+      - lock-owner
+    sourceFile: packages/core/tests/kb.plt
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-test-core-lock-owner-timezone-child
+    title: lock_owner_json_child
+    status: active
+    tags:
+      - core
+      - utc
+      - lock-owner
+    sourceFile: packages/core/tests/kb.plt
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-test-core-lock-owner-utc
+    title: lock_owner_started_at_is_current_utc_in_non_utc_child
+    status: active
+    tags:
+      - core
+      - utc
+      - lock-owner
+    sourceFile: packages/core/tests/kb.plt
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-test-core-status-timezone-child
+    title: status_synced_at_child
+    status: active
+    tags:
+      - core
+      - utc
+      - lock-owner
+    sourceFile: packages/core/tests/kb.plt
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-test-core-status-utc
+    title: status_synced_at_uses_utc_in_non_utc_child
+    status: active
+    tags:
+      - core
+      - utc
+      - lock-owner
+    sourceFile: packages/core/tests/kb.plt
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-test-core-timezone-child
+    title: run_timezone_child
+    status: active
+    tags:
+      - core
+      - utc
+      - lock-owner
+    sourceFile: packages/core/tests/kb.plt
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: executable_for
+        target: TEST-core-journaled-engine-lifecycle
+  - id: SYM-test-root-cli-unit-batches
+    title: CLI_UNIT_BATCHES
+    status: active
+    sourceFile: test/root.test.ts
+    symbol_role: config
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-root-suite-batch-diagnostics
+      - type: covered_by
+        target: TEST-test-journaled-engine-harness
+      - type: implements
+        target: REQ-test-journaled-engine-harness
+  - id: SYM-test-root-parseSuiteSummaries
+    title: parseSuiteSummaries
+    status: active
+    sourceFile: test/root.test.ts
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-root-batch-diagnostics
+      - type: covered_by
+        target: TEST-root-suite-batch-diagnostics
+      - type: implements
+        target: REQ-root-suite-batch-diagnostics
+  - id: SYM-treesitter-language-for-path
+    title: treeSitterLanguageForPath
+    status: active
+    sourceFile: packages/plugin-treesitter/src/catalog.ts
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-treesitter-language-type
+    title: TreeSitterLanguage
+    status: active
+    sourceFile: packages/plugin-treesitter/src/catalog.ts
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2
+  - id: SYM-treesitter-normalize-language
+    title: normalizeTreeSitterLanguage
+    status: active
+    sourceFile: packages/plugin-treesitter/src/catalog.ts
+    relationships:
+      - type: covered_by
+        target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-source-analysis-v2

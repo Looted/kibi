@@ -1,0 +1,57 @@
+{
+  "name": "kibi-plugin-treesitter",
+  "version": "0.1.2",
+  "description": "Offline Tree-sitter symbol extraction for Python, Go, and Rust",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./catalog.json": "./catalog.json"
+  },
+  "files": [
+    "dist",
+    "assets",
+    "licenses",
+    "catalog.json",
+    "integrity.json",
+    "SBOM.spdx.json",
+    "THIRD_PARTY_NOTICES.md",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "bun run build && bun test tests && node --test tests/*.test.js",
+    "prepack": "bun run build && node scripts/verify-assets.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "AGPL-3.0-or-later",
+  "author": "Piotr Franczyk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Looted/kibi.git",
+    "directory": "packages/plugin-treesitter"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "web-tree-sitter": "0.27.0"
+  },
+  "devDependencies": {
+    "@types/node": "25.9.8",
+    "kibi-plugin-sdk": "^0.3.0",
+    "typescript": "^5.7.0"
+  },
+  "peerDependencies": {
+    "kibi-plugin-sdk": "^0.3.0"
+  }
+}

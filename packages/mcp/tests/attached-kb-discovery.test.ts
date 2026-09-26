@@ -3,6 +3,7 @@ import { spawn, spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { StringDecoder } from "node:string_decoder";
 import { isolatedMcpSandboxEnv } from "./helpers/isolated-env.js";
 
 type JsonObject = Readonly<Record<string, unknown>>;
@@ -109,28 +110,81 @@ function stopWorkspaceEngine(workspaceRoot: string): void {
 
 function readMessage(
   child: ReturnType<typeof spawn>,
+  requestId: number,
+  send: () => void,
   timeoutMs = 120_000,
 ): Promise<JsonObject> {
   const stdout = child.stdout;
   if (!stdout) return Promise.reject(new Error("MCP stdout is unavailable"));
   return new Promise((resolve, reject) => {
     let buffer = "";
+    let stderr = "";
+    const decoder = new StringDecoder("utf8");
     const timeout = setTimeout(() => {
       cleanup();
-      reject(new Error("Timed out waiting for MCP response"));
+      reject(
+        new Error(
+          `Timed out waiting for MCP response ${requestId}; exit=${child.exitCode}, signal=${child.signalCode}\n${stderr}`,
+        ),
+      );
     }, timeoutMs);
     const onData = (chunk: Buffer) => {
-      buffer += chunk.toString();
-      const newline = buffer.indexOf("\n");
-      if (newline < 0) return;
+      buffer += decoder.write(chunk);
+      if (buffer.length > 16 * 1024 * 1024) {
+        onError(new Error("MCP fixture frame exceeded its input bound"));
+        return;
+      }
+      for (;;) {
+        const newline = buffer.indexOf("\n");
+        if (newline < 0) return;
+        const line = buffer.slice(0, newline);
+        buffer = buffer.slice(newline + 1);
+        if (!line.trim()) continue;
+        try {
+          const message = parseObject(line);
+          if (message.id !== requestId) continue;
+          cleanup();
+          resolve(message);
+          return;
+        } catch (error) {
+          onError(error instanceof Error ? error : new Error(String(error)));
+          return;
+        }
+      }
+    };
+    const onStderr = (chunk: Buffer) => {
+      stderr = `${stderr}${chunk.toString()}`.slice(-64 * 1024);
+    };
+    const onError = (error: Error) => {
       cleanup();
-      resolve(parseObject(buffer.slice(0, newline)));
+      reject(error);
+    };
+    const onClose = (code: number | null, signal: NodeJS.Signals | null) => {
+      onError(
+        new Error(
+          `MCP closed before response ${requestId}; exit=${code}, signal=${signal}\n${stderr}`,
+        ),
+      );
     };
     const cleanup = () => {
       clearTimeout(timeout);
       stdout.off("data", onData);
+      child.stderr?.off("data", onStderr);
+      child.stdin?.off("error", onError);
+      child.off("error", onError);
+      child.off("close", onClose);
     };
     stdout.on("data", onData);
+    child.stderr?.on("data", onStderr);
+    child.stdin?.once("error", onError);
+    child.once("error", onError);
+    child.once("close", onClose);
+    // Register response readers before a fast peer can answer the write.
+    try {
+      send();
+    } catch (error) {
+      onError(error instanceof Error ? error : new Error(String(error)));
+    }
   });
 }
 
@@ -142,8 +196,9 @@ async function request(
 ): Promise<JsonObject> {
   const stdin = child.stdin;
   if (!stdin) throw new Error("MCP stdin is unavailable");
-  stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id, method, params })}\n`);
-  return readMessage(child);
+  return readMessage(child, id, () => {
+    stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id, method, params })}\n`);
+  });
 }
 
 function structuredContent(response: JsonObject): JsonObject {
@@ -190,6 +245,48 @@ async function stop(child: ReturnType<typeof spawn>): Promise<void> {
   child.kill("SIGTERM");
   await new Promise<void>((resolve) => child.once("exit", () => resolve()));
 }
+
+test("discovery fixture reads a split UTF-8 response after a notification", async () => {
+  const child = spawn(
+    "node",
+    [
+      "-e",
+      `process.stdin.once('data', () => {
+        const bytes = Buffer.from(JSON.stringify({jsonrpc:'2.0',id:7,result:{text:'ready🙂'}})+'\\n');
+        const split = bytes.indexOf(Buffer.from('🙂')) + 2;
+        process.stdout.write(JSON.stringify({jsonrpc:'2.0',method:'notifications/message'})+'\\n');
+        process.stdout.write(bytes.subarray(0,split));
+        setTimeout(() => process.stdout.write(bytes.subarray(split)), 20);
+      });`,
+    ],
+    { stdio: ["pipe", "pipe", "pipe"] },
+  );
+  try {
+    expect((await request(child, 7, "initialize", {})).result).toEqual({
+      text: "ready🙂",
+    });
+  } finally {
+    await stop(child);
+  }
+}, 10_000);
+
+test("discovery fixture rejects a closed peer with its bounded stderr", async () => {
+  const child = spawn(
+    "node",
+    [
+      "-e",
+      "process.stdin.once('data', () => { process.stderr.write('startup failed'); process.exit(1); });",
+    ],
+    { stdio: ["pipe", "pipe", "pipe"] },
+  );
+  try {
+    await expect(request(child, 7, "initialize", {})).rejects.toThrow(
+      "MCP closed before response 7; exit=1, signal=null\nstartup failed",
+    );
+  } finally {
+    await stop(child);
+  }
+}, 10_000);
 
 // executable_for TEST-test-journaled-engine-harness
 test("Node CLI and MCP consume complete attached-KB discovery frames repeatedly", async () => {
