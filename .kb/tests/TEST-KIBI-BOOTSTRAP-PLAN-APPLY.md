@@ -15,42 +15,6 @@ proof_contract:
   success_policy: all_required_first_attempt
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-c5ae0fd1ad47c3692bad250f
-    test_id: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
-    scope: end_to_end
-    outcome: failed
-    code_snapshot: 71b43ef38f0945d5febd8dad9a12223a2f13e5092564f8222974a6fb48fc1ea5
-    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
-    started_at: '2026-09-06T06:30:49.943Z'
-    finished_at: '2026-09-06T07:22:27.216Z'
-    artifact_digest: 874dd5c6d454cff93bdf784b60380ee2fa22f4058f4382076d931c84dde61ccd
-    contract_hash: 906cca7199309d273a9dc61b3a175e23e3f2fe82764c51173ada6cf69c4404db
-    fingerprint: d1c4ba3eb0ee1a1e0d812dd0e2b9febb776704c1fd7006fdb30ccf46462d3094
-    fingerprint_components:
-      contract: 906cca7199309d273a9dc61b3a175e23e3f2fe82764c51173ada6cf69c4404db
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: failed
-    proof_results:
-      - symbol_id: SYM-e2e-test-kibi-bootstrap-plan-apply
-        target: default
-        outcome: failed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-    gaps:
-      - symbol_id: SYM-e2e-test-kibi-bootstrap-plan-apply
-        target: default
-        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-test-packed-dependency-ordered-repair-plan (failed), SYM-e2e-packed-cli-github-report (failed), SYM-test-core-journaled-engine-delta-sync (failed), SYM-test-opencode-bootstrap-paths (failed), SYM-codex-packed-plugin-e2e (failed) +83 more'
-  - version: kibi.proof-receipt.v1
     receipt_id: PR-0e99900b0587f7b36f201507
     test_id: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
     scope: end_to_end
@@ -1667,6 +1631,39 @@ proof_receipts:
     started_at: '2026-09-26T12:23:22.746Z'
     finished_at: '2026-09-26T12:51:34.877Z'
     artifact_digest: 0a7403d1c8dd53721eb26b4662e3a3dce6f8718b2d08b6af1084b986cf357e5c
+    contract_hash: 906cca7199309d273a9dc61b3a175e23e3f2fe82764c51173ada6cf69c4404db
+    binding_hash: 5a2cbf8af5c1573ca5d76680d20843a07932bc46e3210dc8a8acca40bafb1060
+    fingerprint: d1c4ba3eb0ee1a1e0d812dd0e2b9febb776704c1fd7006fdb30ccf46462d3094
+    fingerprint_components:
+      contract: 906cca7199309d273a9dc61b3a175e23e3f2fe82764c51173ada6cf69c4404db
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-kibi-bootstrap-plan-apply
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-92feafda6e875793525a8bf1
+    test_id: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a7ed89bae32292cfe9ed19c85d9e29156dd9f407801a376c53b17bd99c516272
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-26T13:28:00.705Z'
+    finished_at: '2026-09-26T14:05:07.818Z'
+    artifact_digest: b8a1b2bed3a49e14541c6419f9fdb0610b30509d8cf70f6f6fb0e2f446ee9dbd
     contract_hash: 906cca7199309d273a9dc61b3a175e23e3f2fe82764c51173ada6cf69c4404db
     binding_hash: 5a2cbf8af5c1573ca5d76680d20843a07932bc46e3210dc8a8acca40bafb1060
     fingerprint: d1c4ba3eb0ee1a1e0d812dd0e2b9febb776704c1fd7006fdb30ccf46462d3094

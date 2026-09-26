@@ -25,42 +25,6 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-a317a8e4b9dce9b7a2151a97
-    test_id: TEST-012
-    scope: end_to_end
-    outcome: failed
-    code_snapshot: 71b43ef38f0945d5febd8dad9a12223a2f13e5092564f8222974a6fb48fc1ea5
-    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
-    started_at: '2026-09-06T06:30:49.943Z'
-    finished_at: '2026-09-06T07:22:27.216Z'
-    artifact_digest: 874dd5c6d454cff93bdf784b60380ee2fa22f4058f4382076d931c84dde61ccd
-    contract_hash: bca81a1b5c8493d4567cf823c2da3e46809b51250715050d3d27eab1a8564029
-    fingerprint: 5a728f314da3f5a32ce68601f04e727449cb7a1c14fd6ac6638255834fb3c2e3
-    fingerprint_components:
-      contract: bca81a1b5c8493d4567cf823c2da3e46809b51250715050d3d27eab1a8564029
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: failed
-    proof_results:
-      - symbol_id: SYM-e2e-test-012
-        target: default
-        outcome: failed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-    gaps:
-      - symbol_id: SYM-e2e-test-012
-        target: default
-        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-test-packed-dependency-ordered-repair-plan (failed), SYM-e2e-packed-cli-github-report (failed), SYM-test-core-journaled-engine-delta-sync (failed), SYM-test-opencode-bootstrap-paths (failed), SYM-codex-packed-plugin-e2e (failed) +83 more'
-  - version: kibi.proof-receipt.v1
     receipt_id: PR-e7e94231e8c13780063172d4
     test_id: TEST-012
     scope: end_to_end
@@ -1677,6 +1641,39 @@ proof_receipts:
     started_at: '2026-09-26T12:23:22.746Z'
     finished_at: '2026-09-26T12:51:34.877Z'
     artifact_digest: 0a7403d1c8dd53721eb26b4662e3a3dce6f8718b2d08b6af1084b986cf357e5c
+    contract_hash: bca81a1b5c8493d4567cf823c2da3e46809b51250715050d3d27eab1a8564029
+    binding_hash: 39783f3f9e10a4db427d29610e6de7be45471e19a64de0c5f6de3e4fc98d14cf
+    fingerprint: 5a728f314da3f5a32ce68601f04e727449cb7a1c14fd6ac6638255834fb3c2e3
+    fingerprint_components:
+      contract: bca81a1b5c8493d4567cf823c2da3e46809b51250715050d3d27eab1a8564029
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-012
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-c2966929fe4165400b0ce2f8
+    test_id: TEST-012
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a7ed89bae32292cfe9ed19c85d9e29156dd9f407801a376c53b17bd99c516272
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-26T13:28:00.705Z'
+    finished_at: '2026-09-26T14:05:07.818Z'
+    artifact_digest: b8a1b2bed3a49e14541c6419f9fdb0610b30509d8cf70f6f6fb0e2f446ee9dbd
     contract_hash: bca81a1b5c8493d4567cf823c2da3e46809b51250715050d3d27eab1a8564029
     binding_hash: 39783f3f9e10a4db427d29610e6de7be45471e19a64de0c5f6de3e4fc98d14cf
     fingerprint: 5a728f314da3f5a32ce68601f04e727449cb7a1c14fd6ac6638255834fb3c2e3

@@ -668,6 +668,39 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-87ed596c695a457b48adc070
+    test_id: TEST-e2e-briefs-retired
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a7ed89bae32292cfe9ed19c85d9e29156dd9f407801a376c53b17bd99c516272
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-26T13:28:00.705Z'
+    finished_at: '2026-09-26T14:05:07.818Z'
+    artifact_digest: b8a1b2bed3a49e14541c6419f9fdb0610b30509d8cf70f6f6fb0e2f446ee9dbd
+    contract_hash: e20cf45e6aacdf3a6709054f6112f73e51c661df0563df45e5532e5ee96abee4
+    binding_hash: 3da9b9c399db9351d6481442c83512d2d437462b30e5f99ffb173770b63dff5c
+    fingerprint: 26462f3b09fd2e7cd1c7772ee6a7913f9a82c2c51c81468eecc96ba1e4a17ae4
+    fingerprint_components:
+      contract: e20cf45e6aacdf3a6709054f6112f73e51c661df0563df45e5532e5ee96abee4
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-briefs-retired
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 
 Packed end-to-end regression for briefing surfaces stay retired across shipped artifacts.

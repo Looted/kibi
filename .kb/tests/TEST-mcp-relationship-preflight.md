@@ -1599,5 +1599,38 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-6c28901c7dff6d69895acea1
+    test_id: TEST-mcp-relationship-preflight
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a7ed89bae32292cfe9ed19c85d9e29156dd9f407801a376c53b17bd99c516272
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-26T13:28:00.705Z'
+    finished_at: '2026-09-26T14:05:07.818Z'
+    artifact_digest: b8a1b2bed3a49e14541c6419f9fdb0610b30509d8cf70f6f6fb0e2f446ee9dbd
+    contract_hash: 695eedecc766b6816d6524034bfa45da6319b09ce0a5ae4c92ee0458412b5a8c
+    binding_hash: f9cce25e51a1556a7359faa79e1409d5a6756662e1c1198ce3e16f523e84e814
+    fingerprint: 10e92f3ac6b5e92b6e361caef4f99188856aec35645d5ac291f74a8569165f8a
+    fingerprint_components:
+      contract: 695eedecc766b6816d6524034bfa45da6319b09ce0a5ae4c92ee0458412b5a8c
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-mcp-relationship-preflight
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 Submit malformed relationship tuples, missing targets, and source mismatches and assert that validation rejects them with stable diagnostics before persistence. Executable coverage spans `packages/mcp/tests/tools/validate-upsert.test.ts`, `packages/mcp/tests/tools/upsert.test.ts`, and `packages/mcp/tests/tools/relationship-validation.test.ts`.
