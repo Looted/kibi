@@ -8835,6 +8835,54 @@ symbols:
         target: REQ-opencode-guidance-injection
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
+  - id: SYM-git-repository-context-type
+    title: GitRepositoryContext
+    status: active
+    sourceFile: packages/cli/src/utils/git-repository-context.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-git-hook-effective-install
+  - id: SYM-install-hook-result-type
+    title: InstallHookResult
+    status: active
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-git-hook-effective-install
+      - type: covered_by
+        target: TEST-git-hook-effective-install
+  - id: SYM-git-hook-install-result-type
+    title: GitHookInstallResult
+    status: active
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-git-hook-effective-install
+      - type: covered_by
+        target: TEST-git-hook-effective-install
+  - id: SYM-git-repository-resolution-type
+    title: GitRepositoryResolution
+    status: active
+    sourceFile: packages/cli/src/utils/git-repository-context.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-git-hook-effective-install
+  - id: SYM-git-repository-context-resolver
+    title: resolveGitRepository
+    status: active
+    sourceFile: packages/cli/src/utils/git-repository-context.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-git-hook-effective-install
+      - type: covered_by
+        target: TEST-git-hook-effective-install
+      - type: implements
+        target: REQ-git-hook-effective-install
   - id: SYM-installGitHooks
     title: installGitHooks
     status: active
@@ -8850,6 +8898,10 @@ symbols:
         target: REQ-cli-init
       - type: implements
         target: REQ-git-hook-sync-v2
+      - type: implements
+        target: REQ-git-hook-effective-install
+      - type: covered_by
+        target: TEST-git-hook-effective-install
   - id: SYM-installHook
     title: installHook
     status: active
@@ -8865,6 +8917,10 @@ symbols:
         target: REQ-cli-init
       - type: implements
         target: REQ-git-hook-sync-v2
+      - type: implements
+        target: REQ-git-hook-effective-install
+      - type: covered_by
+        target: TEST-git-hook-effective-install
   - id: SYM-invalidateKibiOpencodePackage
     title: invalidateKibiOpencodePackage
     status: active

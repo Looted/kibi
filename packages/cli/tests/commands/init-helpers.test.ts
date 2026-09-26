@@ -413,12 +413,11 @@ describe("init-helpers", () => {
   });
 
   test("installGitHooks creates hooks", () => {
-    const gitDir = path.join(tmpDir, ".git");
-    mkdirSync(gitDir);
+    const hooksDir = path.join(tmpDir, ".git", "hooks");
+    mkdirSync(hooksDir, { recursive: true });
 
-    installGitHooks(gitDir);
+    installGitHooks(hooksDir);
 
-    const hooksDir = path.join(gitDir, "hooks");
     expect(existsSync(path.join(hooksDir, "pre-commit"))).toBe(true);
     expect(existsSync(path.join(hooksDir, "post-checkout"))).toBe(true);
     expect(existsSync(path.join(hooksDir, "post-merge"))).toBe(true);
@@ -459,12 +458,10 @@ describe("init-helpers", () => {
   });
 
   test("installGitHooks creates hooks without --refresh-symbol-coordinates", () => {
-    const gitDir = path.join(tmpDir, ".git");
-    mkdirSync(gitDir);
+    const hooksDir = path.join(tmpDir, ".git", "hooks");
+    mkdirSync(hooksDir, { recursive: true });
 
-    installGitHooks(gitDir);
-
-    const hooksDir = path.join(gitDir, "hooks");
+    installGitHooks(hooksDir);
 
     // All automatic hooks must NOT include coordinate-refresh flags
     const postCheckout = readFileSync(
@@ -484,12 +481,11 @@ describe("init-helpers", () => {
   });
 
   test("installed post-checkout hook uses source compilation without branch cloning", () => {
-    const gitDir = path.join(tmpDir, ".git");
-    mkdirSync(gitDir);
+    const hooksDir = path.join(tmpDir, ".git", "hooks");
+    mkdirSync(hooksDir, { recursive: true });
 
-    installGitHooks(gitDir);
+    installGitHooks(hooksDir);
 
-    const hooksDir = path.join(gitDir, "hooks");
     const postCheckout = readFileSync(
       path.join(hooksDir, "post-checkout"),
       "utf8",
