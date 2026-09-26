@@ -12,6 +12,8 @@ Git inventory precedes language analysis. Capture the index once with `git write
 
 The official Tree-sitter plugin supplies a small qualified catalog, starting with Python and Go and then Rust. Installation supplies the runtime, WASM grammars, queries and license material; analysis does not download artifacts or run consumer toolchains. Grammar availability alone does not mean qualified symbol support. A worker provides bounded execution and failure containment, not a sandbox for arbitrary JavaScript.
 
+Explicit `sync --refresh-symbol-coordinates` can refresh unique, already authored Python declarations when the host-validated Tree-sitter result is partial only because of decorator expansion. The command prints a partial-analysis warning and preserves diagnostics and uncovered ranges. It does not invent decorator-created declarations or mark analysis complete. Default enrichment and the generated-manifest gate remain strict in this delivery; policy-bound migration is a separate stage. Syntax, integrity, timeout and other incomplete-analysis failures remain errors.
+
 Maintenance may only use builtin providers and explicitly activated, host-approved source analyzers whose package contents were verified before importing code. Ontology and semantic-classifier activation does not authorize running those capabilities during a check. Package names and `network: false` declarations alone are not a trust boundary.
 
 ## Delivery sequence

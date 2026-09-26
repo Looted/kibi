@@ -1,4 +1,5 @@
 import { afterAll, afterEach, describe, expect, spyOn, test } from "bun:test";
+import * as childProcess from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -7,14 +8,18 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
+import * as net from "node:net";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import {
   EngineClient,
+  enginePidPath,
   engineSocketPath,
   ensureJournaledBranchStoreAsync,
+  readEngineAttachmentIdentity,
   runEngineDaemon,
 } from "../src/engine.js";
+import { PrologProcess } from "../src/prolog.js";
 import { ensureBranchStoreManifest } from "../src/utils/branch-store-locator.js";
 
 const roots: string[] = [];
@@ -349,6 +354,439 @@ describe("runEngineDaemon in-process", () => {
     ]);
     expect(exitSpy).toHaveBeenCalled();
   }, 20_000);
+
+  test("idle shutdown refuses new connections before a delayed durability save finishes", async () => {
+    const previousIdle = process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS;
+    process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS = "100";
+    restores.push(() => {
+      if (previousIdle === undefined)
+        Reflect.deleteProperty(process.env, "KIBI_ENGINE_IDLE_TIMEOUT_MS");
+      else process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS = previousIdle;
+    });
+    let releaseSave!: () => void;
+    let enteredSave!: () => void;
+    const saveStarted = new Promise<void>((resolve) => {
+      enteredSave = resolve;
+    });
+    const saveBarrier = new Promise<void>((resolve) => {
+      releaseSave = resolve;
+    });
+    const start = spyOn(PrologProcess.prototype, "start").mockResolvedValue(
+      undefined,
+    );
+    const terminate = spyOn(
+      PrologProcess.prototype,
+      "terminate",
+    ).mockResolvedValue(undefined);
+    const query = spyOn(PrologProcess.prototype, "query").mockImplementation(
+      async (goal) => {
+        if (goal === "kb_save") {
+          enteredSave();
+          await saveBarrier;
+        }
+        return { success: true, bindings: {} };
+      },
+    );
+    restores.push(() => {
+      start.mockRestore();
+      terminate.mockRestore();
+      query.mockRestore();
+    });
+    const root = tempRoot();
+    const socketPath = engineSocketPath(root, "main");
+    const daemon = runEngineDaemon({
+      workspaceRoot: root,
+      branch: "main",
+      socketPath,
+    });
+    let daemonFinished = false;
+    void daemon.then(() => {
+      daemonFinished = true;
+    });
+    try {
+      await Promise.race([
+        saveStarted,
+        new Promise((_, reject) =>
+          setTimeout(
+            () => reject(new Error("shutdown never reached save")),
+            2_000,
+          ),
+        ),
+      ]);
+      expect(daemonFinished).toBe(false);
+      expect(existsSync(enginePidPath(root, "main"))).toBe(true);
+      const connection = new Promise<void>((resolve, reject) => {
+        const socket = net.createConnection(socketPath);
+        const timer = setTimeout(() => {
+          socket.destroy();
+          reject(new Error("connection timeout"));
+        }, 250);
+        socket.once("connect", () => {
+          clearTimeout(timer);
+          socket.destroy();
+          resolve();
+        });
+        socket.on("error", (error) => {
+          clearTimeout(timer);
+          socket.destroy();
+          reject(error);
+        });
+      });
+      await expect(connection).rejects.toThrow();
+      const stopObserver = new EngineClient({
+        workspaceRoot: root,
+        branch: "main",
+        timeout: 1_000,
+      });
+      let stopFinished = false;
+      const stopping = stopObserver.stop(false).then(() => {
+        stopFinished = true;
+      });
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      expect(stopFinished).toBe(false);
+      releaseSave();
+      await stopping;
+      await stopObserver.terminate();
+      expect(stopFinished).toBe(true);
+      expect(terminate).toHaveBeenCalledTimes(1);
+    } finally {
+      releaseSave();
+      await daemon;
+    }
+    expect(terminate).toHaveBeenCalledTimes(1);
+    expect(existsSync(enginePidPath(root, "main"))).toBe(false);
+  }, 5_000);
+
+  test("explicit stop waits for the delayed save after the listener closes", async () => {
+    let releaseSave!: () => void;
+    let enteredSave!: () => void;
+    const saveStarted = new Promise<void>((resolve) => {
+      enteredSave = resolve;
+    });
+    const saveBarrier = new Promise<void>((resolve) => {
+      releaseSave = resolve;
+    });
+    const start = spyOn(PrologProcess.prototype, "start").mockResolvedValue(
+      undefined,
+    );
+    const terminate = spyOn(
+      PrologProcess.prototype,
+      "terminate",
+    ).mockResolvedValue(undefined);
+    const query = spyOn(PrologProcess.prototype, "query").mockImplementation(
+      async (goal) => {
+        if (goal === "kb_save") {
+          enteredSave();
+          await saveBarrier;
+        }
+        return {
+          success: true,
+          bindings: {
+            JsonString: JSON.stringify(JSON.stringify({ branch: "main" })),
+          },
+        };
+      },
+    );
+    restores.push(() => {
+      start.mockRestore();
+      terminate.mockRestore();
+      query.mockRestore();
+    });
+    const root = tempRoot();
+    const socketPath = engineSocketPath(root, "main");
+    const daemon = runEngineDaemon({
+      workspaceRoot: root,
+      branch: "main",
+      socketPath,
+    });
+    await waitForSocket(socketPath);
+    const client = new EngineClient({
+      workspaceRoot: root,
+      branch: "main",
+      timeout: 2_000,
+    });
+    await client.start(false);
+    const peer = new EngineClient({
+      workspaceRoot: root,
+      branch: "main",
+      timeout: 2_000,
+    });
+    await peer.start(false);
+    let stopped = false;
+    const stopping = client.stop(false).then(() => {
+      stopped = true;
+    });
+    try {
+      await saveStarted;
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      expect(stopped).toBe(false);
+      expect(terminate).not.toHaveBeenCalled();
+      expect(existsSync(enginePidPath(root, "main"))).toBe(true);
+      await expect(peer.query("true")).rejects.toThrow(
+        "request was not executed",
+      );
+      expect(query.mock.calls.filter(([goal]) => goal === "true")).toHaveLength(
+        0,
+      );
+    } finally {
+      releaseSave();
+      await stopping;
+      await daemon;
+      await client.terminate();
+      await peer.terminate();
+    }
+    expect(stopped).toBe(true);
+    expect(terminate).toHaveBeenCalledTimes(1);
+  }, 5_000);
+
+  test("startup waits for a draining daemon before its read-only handshake and sends the application request once", async () => {
+    const previousIdle = process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS;
+    process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS = "100";
+    restores.push(() => {
+      if (previousIdle === undefined)
+        Reflect.deleteProperty(process.env, "KIBI_ENGINE_IDLE_TIMEOUT_MS");
+      else process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS = previousIdle;
+    });
+    let releaseSave!: () => void;
+    let enteredSave!: () => void;
+    const saveStarted = new Promise<void>((resolve) => {
+      enteredSave = resolve;
+    });
+    const saveBarrier = new Promise<void>((resolve) => {
+      releaseSave = resolve;
+    });
+    let saves = 0;
+    const goals: string[] = [];
+    const start = spyOn(PrologProcess.prototype, "start").mockResolvedValue(
+      undefined,
+    );
+    const terminate = spyOn(
+      PrologProcess.prototype,
+      "terminate",
+    ).mockResolvedValue(undefined);
+    const query = spyOn(PrologProcess.prototype, "query").mockImplementation(
+      async (goal) => {
+        const text = Array.isArray(goal) ? goal.join(", ") : goal;
+        goals.push(text);
+        if (text === "kb_save" && saves++ === 0) {
+          enteredSave();
+          await saveBarrier;
+        }
+        return {
+          success: true,
+          bindings: {
+            JsonString: JSON.stringify(JSON.stringify({ branch: "main" })),
+          },
+        };
+      },
+    );
+    const spawn = spyOn(childProcess, "spawn");
+    restores.push(() => {
+      spawn.mockRestore();
+      start.mockRestore();
+      terminate.mockRestore();
+      query.mockRestore();
+    });
+    const root = tempRoot();
+    const socketPath = engineSocketPath(root, "main");
+    const daemon = runEngineDaemon({
+      workspaceRoot: root,
+      branch: "main",
+      socketPath,
+    });
+    await saveStarted;
+    // Model another waiting starter publishing a successor after the old
+    // writer releases its branch lock. No application RPC is retried.
+    const successor = daemon.then(() =>
+      runEngineDaemon({ workspaceRoot: root, branch: "main", socketPath }),
+    );
+    const client = new EngineClient({
+      workspaceRoot: root,
+      branch: "main",
+      timeout: 2_000,
+    });
+    const application = client.query("true");
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      expect(spawn).not.toHaveBeenCalled();
+      expect(goals.filter((goal) => goal === "true")).toHaveLength(0);
+      releaseSave();
+      expect((await application).success).toBe(true);
+      expect(goals.filter((goal) => goal === "true")).toHaveLength(1);
+      expect(spawn).not.toHaveBeenCalled();
+    } finally {
+      releaseSave();
+      await application.catch(() => undefined);
+      await client.stop(false);
+      await client.terminate();
+      await successor;
+    }
+  }, 5_000);
+
+  test("startup retries only a closed attachment handshake and discards its partial frame", async () => {
+    const createConnection = spyOn(net, "createConnection");
+    restores.push(() => createConnection.mockRestore());
+    const root = tempRoot();
+    const attached = readEngineAttachmentIdentity(
+      ensureBranchStoreManifest(root, "main"),
+    );
+    expect(attached).not.toBeNull();
+    const statusBindings = {
+      JsonString: JSON.stringify(
+        JSON.stringify({
+          attachedPath: attached?.path,
+          attachedGeneration: attached?.generation,
+          attachedDev: attached?.dev,
+          attachedIno: attached?.ino,
+        }),
+      ),
+    };
+    const socketPath = engineSocketPath(root, "main");
+    mkdirSync(path.dirname(socketPath), { recursive: true });
+    let connections = 0;
+    let applicationRequests = 0;
+    const server = net.createServer((socket) => {
+      const connection = ++connections;
+      socket.on("error", () => undefined);
+      let buffer = Buffer.alloc(0);
+      socket.on("data", (chunk) => {
+        buffer = Buffer.concat([
+          buffer,
+          typeof chunk === "string" ? Buffer.from(chunk) : chunk,
+        ]);
+        while (buffer.length >= 4) {
+          const length = buffer.readUInt32BE(0);
+          if (buffer.length < length + 4) return;
+          const request = JSON.parse(
+            buffer.subarray(4, length + 4).toString("utf8"),
+          );
+          buffer = buffer.subarray(length + 4);
+          if (connection === 1) {
+            // The first listener drains after accepting the connection. Its
+            // incomplete status response must not prefix the next connection.
+            socket.end(Buffer.from([0, 0]));
+            return;
+          }
+          if (request.method === "query" && request.goal === "true") {
+            applicationRequests += 1;
+            const oldClientSocket = createConnection.mock.results[0]?.value;
+            if (!(oldClientSocket instanceof net.Socket)) {
+              throw new Error(
+                "Expected the retired client connection to be a Socket",
+              );
+            }
+            // A late fragment from the retired connection must not alter the
+            // current connection's frame buffer while its response is pending.
+            oldClientSocket.emit("data", Buffer.from([0, 0]));
+          }
+          const payload = Buffer.from(
+            JSON.stringify({
+              id: request.id,
+              ok: true,
+              result: { success: true, bindings: statusBindings },
+            }),
+          );
+          const header = Buffer.alloc(4);
+          header.writeUInt32BE(payload.length);
+          socket.write(Buffer.concat([header, payload]));
+        }
+      });
+    });
+    await new Promise<void>((resolve, reject) => {
+      server.once("error", reject);
+      server.listen(socketPath, resolve);
+    });
+    const client = new EngineClient({
+      workspaceRoot: root,
+      branch: "main",
+      timeout: 1_000,
+    });
+    try {
+      expect((await client.query("true")).success).toBe(true);
+      expect(connections).toBe(2);
+      expect(applicationRequests).toBe(1);
+    } finally {
+      await client.terminate();
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+  }, 5_000);
+
+  test("signal shutdown finishes an accepted request before saving and releasing the writer", async () => {
+    let releaseQuery!: () => void;
+    let enteredQuery!: () => void;
+    const queryStarted = new Promise<void>((resolve) => {
+      enteredQuery = resolve;
+    });
+    const queryBarrier = new Promise<void>((resolve) => {
+      releaseQuery = resolve;
+    });
+    const order: string[] = [];
+    const start = spyOn(PrologProcess.prototype, "start").mockResolvedValue(
+      undefined,
+    );
+    const terminate = spyOn(
+      PrologProcess.prototype,
+      "terminate",
+    ).mockImplementation(async () => {
+      order.push("terminate");
+    });
+    const query = spyOn(PrologProcess.prototype, "query").mockImplementation(
+      async (goal) => {
+        if (goal === "kb_test_active_query") {
+          enteredQuery();
+          await queryBarrier;
+          order.push("accepted-query");
+        }
+        if (goal === "kb_save") order.push("save");
+        return {
+          success: true,
+          bindings: {
+            JsonString: JSON.stringify(JSON.stringify({ branch: "main" })),
+          },
+        };
+      },
+    );
+    restores.push(() => {
+      start.mockRestore();
+      terminate.mockRestore();
+      query.mockRestore();
+    });
+    const root = tempRoot();
+    const socketPath = engineSocketPath(root, "main");
+    const daemon = runEngineDaemon({
+      workspaceRoot: root,
+      branch: "main",
+      socketPath,
+    });
+    await waitForSocket(socketPath);
+    const client = new EngineClient({
+      workspaceRoot: root,
+      branch: "main",
+      timeout: 2_000,
+    });
+    await client.start(false);
+    const application = client.query("kb_test_active_query");
+    try {
+      await queryStarted;
+      const signal = process
+        .listeners("SIGTERM")
+        .find((listener) => !baselineSigterm.includes(listener));
+      expect(signal).toBeDefined();
+      signal?.("SIGTERM");
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      expect(order).toEqual([]);
+      expect(existsSync(enginePidPath(root, "main"))).toBe(true);
+      releaseQuery();
+      expect((await application).success).toBe(true);
+      await daemon;
+      expect(order).toEqual(["accepted-query", "save", "terminate"]);
+    } finally {
+      releaseQuery();
+      await application.catch(() => undefined);
+      await daemon;
+      await client.terminate();
+    }
+  }, 5_000);
 
   test("getPid returns 0 when the pid file is absent", () => {
     const root = tempRoot();

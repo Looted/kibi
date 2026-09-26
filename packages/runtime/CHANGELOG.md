@@ -1,5 +1,25 @@
 # kibi-runtime
 
+## 2.0.5
+
+### Patch Changes
+
+- Agents can refresh the locations of explicit Python declarations when decorators leave the runtime inventory incomplete. Kibi reports that limitation and keeps completeness-sensitive checks strict. The MCP package also requires the runtime containing the engine shutdown handoff repair.
+
+  - Allow only validated Python decorator limitations during explicit coordinate refresh, preserving diagnostics and uncovered ranges.
+  - Keep default enrichment and generated-manifest checks unchanged until an explicit policy migration.
+  - Rebuild the bundled runtime and update the MCP runtime minimum.
+
+## 2.0.4
+
+### Patch Changes
+
+- Kibi now stops accepting new connections before an idle engine saves and releases its knowledge store. A command arriving during that handoff waits for the previous engine to finish, and an explicit stop waits for the durability save. This prevents intermittent connection failures without replaying application writes.
+
+  - Drain accepted requests before saving and retain the engine PID until the store is released.
+  - Bound startup handoff and the read-only attachment handshake; isolate framing and events by connection.
+  - Add regressions for idle shutdown, explicit stop, successor startup, interrupted handshakes, and in-flight requests.
+
 ## 2.0.3
 
 ### Patch Changes

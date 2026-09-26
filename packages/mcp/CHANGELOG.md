@@ -1,5 +1,18 @@
 # kibi-mcp
 
+## 2.1.3
+
+### Patch Changes
+
+- Agents can refresh the locations of explicit Python declarations when decorators leave the runtime inventory incomplete. Kibi reports that limitation and keeps completeness-sensitive checks strict. The MCP package also requires the runtime containing the engine shutdown handoff repair.
+
+  - Allow only validated Python decorator limitations during explicit coordinate refresh, preserving diagnostics and uncovered ranges.
+  - Keep default enrichment and generated-manifest checks unchanged until an explicit policy migration.
+  - Rebuild the bundled runtime and update the MCP runtime minimum.
+
+- Updated dependencies
+  - kibi-runtime@2.0.5
+
 ## 2.1.2
 
 ### Patch Changes

@@ -99,6 +99,22 @@ const CLI_BATCH_ARGS = [
 ];
 const CLI_PROCESS_ISOLATED_TESTS = [
   {
+    label: "cli compile plan source recovery",
+    path: "./packages/cli/tests/operations/apply-plan-recovery.test.ts",
+  },
+  {
+    label: "cli apply plan migration branches",
+    path: "./packages/cli/tests/operations/apply-plan-coverage.test.ts",
+  },
+  {
+    label: "cli proof impact",
+    path: "./packages/cli/tests/operations/proof-impact.test.ts",
+  },
+  {
+    label: "cli working tree source changes",
+    path: "./packages/cli/tests/public/source-changes.test.ts",
+  },
+  {
     label: "cli check operation",
     path: "./packages/cli/tests/operations/check.test.ts",
   },

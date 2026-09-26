@@ -88,6 +88,10 @@ describe("CLI process partition", () => {
     const recordsPath = join(workspace, "executed.jsonl");
     const files = [
       "packages/cli/tests/operations/check.test.ts",
+      "packages/cli/tests/operations/apply-plan-recovery.test.ts",
+      "packages/cli/tests/operations/apply-plan-coverage.test.ts",
+      "packages/cli/tests/operations/proof-impact.test.ts",
+      "packages/cli/tests/public/source-changes.test.ts",
       "packages/cli/tests/commands/discovery-shared-remaining.coverage.test.ts",
       // Similarly named files and tests outside tests/ must remain in the main batch.
       "packages/cli/tests/commands/check.test.ts",

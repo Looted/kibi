@@ -17,6 +17,10 @@ import {
 const RUN_NODE_TEST_SUITE =
   typeof (globalThis as { Bun?: unknown }).Bun === "undefined";
 const COMMAND_TIMEOUT_MS = 120_000;
+const PYTHON_DECORATED_SYMBOL_ID = "SYM-python-decorated";
+const PYTHON_DECORATED_SOURCE =
+  'def baseline():\n    return "baseline"\n\ndef added_unowned():\n    return "new behavior"\n\n@identity\ndef decorated():\n    return "decorated"\n';
+const PYTHON_SYNTAX_ERROR_SOURCE = "@identity\ndef decorated(\n";
 
 type LanguageFixture = Readonly<{
   language: "Python" | "Go" | "Rust";
@@ -108,7 +112,11 @@ function stagedViolations(result: {
   return content.violations;
 }
 
-function symbolsManifest(fixture: LanguageFixture, includeAdded: boolean) {
+function symbolsManifest(
+  fixture: LanguageFixture,
+  includeAdded: boolean,
+  includeDecorated = false,
+) {
   const entries = [
     {
       id: `SYM-${fixture.language.toLowerCase()}-baseline`,
@@ -121,6 +129,9 @@ function symbolsManifest(fixture: LanguageFixture, includeAdded: boolean) {
             title: fixture.unownedName,
           },
         ]
+      : []),
+    ...(includeDecorated && fixture.language === "Python"
+      ? [{ id: PYTHON_DECORATED_SYMBOL_ID, title: "decorated" }]
       : []),
   ];
   return [
@@ -135,6 +146,157 @@ function symbolsManifest(fixture: LanguageFixture, includeAdded: boolean) {
     ]),
     "",
   ].join("\n");
+}
+
+type QueriedSymbol = Readonly<{
+  id: string;
+  sourceLine?: number;
+  sourceColumn?: number;
+  sourceEndLine?: number;
+  sourceEndColumn?: number;
+}>;
+
+async function querySymbols(
+  sandbox: TestSandbox,
+  args: readonly string[],
+  label: string,
+): Promise<QueriedSymbol[]> {
+  const result = await kibi(sandbox, [
+    "query",
+    "symbol",
+    "--format",
+    "json",
+    ...args,
+  ]);
+  assertCommandExit(result, 0, label);
+  return JSON.parse(result.stdout) as QueriedSymbol[];
+}
+
+function manifestSymbolIds(content: string): string[] {
+  return [...content.matchAll(/^\s+- id: ([^\r\n]+)$/gm)].map(
+    (match) => match[1] ?? "",
+  );
+}
+
+async function runPythonDecoratorCoordinateWorkflow(
+  sandbox: TestSandbox,
+  fixture: LanguageFixture,
+): Promise<void> {
+  assert.equal(fixture.language, "Python");
+  const sourcePath = join(sandbox.repoDir, fixture.sourcePath);
+  const symbolsPath = join(sandbox.repoDir, ".kb/symbols.yaml");
+  const expectedManifest = symbolsManifest(fixture, true, true);
+  const expectedSymbolIds = [
+    "SYM-python-baseline",
+    "SYM-python-added-unowned",
+    PYTHON_DECORATED_SYMBOL_ID,
+  ];
+  const expectedSourceBytes = Buffer.from(PYTHON_DECORATED_SOURCE, "utf8");
+
+  writeFileSync(sourcePath, expectedSourceBytes);
+  writeFileSync(symbolsPath, expectedManifest, "utf8");
+  stageSourceFile(sandbox, fixture.sourcePath);
+  stageSourceFile(sandbox, ".kb/symbols.yaml");
+
+  const coordinateRefresh = await kibi(
+    sandbox,
+    ["sync", "--refresh-symbol-coordinates"],
+    { timeoutMs: COMMAND_TIMEOUT_MS },
+  );
+  assertCommandExit(coordinateRefresh, 0, "explicit decorated Python coordinate refresh");
+  assert.match(
+    outputOf(coordinateRefresh),
+    /Coordinate-only refresh for src\/sample\.py; source analysis remains partial:/i,
+    "coordinate refresh must keep the parser's partial status visible",
+  );
+  assert.match(
+    outputOf(coordinateRefresh),
+    /Python decorators are not evaluated and may alter or synthesize declarations/i,
+  );
+  stageSourceFile(sandbox, ".kb/symbol-coordinates.yaml");
+
+  assert.deepEqual(
+    readFileSync(sourcePath),
+    expectedSourceBytes,
+    "coordinate refresh must preserve exact Python source bytes",
+  );
+  assert.deepEqual(
+    manifestSymbolIds(readFileSync(symbolsPath, "utf8")).sort(),
+    [...expectedSymbolIds].sort(),
+    "coordinate refresh must not author or synthesize symbol declarations",
+  );
+
+  const decorated = await querySymbols(
+    sandbox,
+    ["--id", PYTHON_DECORATED_SYMBOL_ID],
+    "query decorated Python symbol coordinates",
+  );
+  assert.equal(decorated.length, 1);
+  assert.deepEqual(
+    {
+      sourceLine: decorated[0]?.sourceLine,
+      sourceColumn: decorated[0]?.sourceColumn,
+      sourceEndLine: decorated[0]?.sourceEndLine,
+      sourceEndColumn: decorated[0]?.sourceEndColumn,
+    },
+    { sourceLine: 8, sourceColumn: 0, sourceEndLine: 9, sourceEndColumn: 22 },
+    "public query must return the decorated declaration's known source range",
+  );
+  const pythonSymbols = await querySymbols(
+    sandbox,
+    ["--source", fixture.sourcePath],
+    "query all authored Python source symbols",
+  );
+  assert.deepEqual(
+    pythonSymbols.map((symbol) => symbol.id).sort(),
+    [...expectedSymbolIds].sort(),
+    "partial parser analysis must not create declarations that were not authored",
+  );
+
+  const partialDefaultCheck = await kibi(sandbox, [
+    "check-generated",
+    "--staged",
+  ]);
+  assert.notEqual(
+    partialDefaultCheck.exitCode,
+    0,
+    "default staged generated-manifest check must still reject partial decorated analysis",
+  );
+  assert.match(
+    outputOf(partialDefaultCheck),
+    /Cannot refresh incomplete source analysis for src\/sample\.py/i,
+  );
+  assert.deepEqual(readFileSync(sourcePath), expectedSourceBytes);
+  assert.deepEqual(
+    manifestSymbolIds(readFileSync(symbolsPath, "utf8")).sort(),
+    [...expectedSymbolIds].sort(),
+  );
+
+  const syntaxErrorBytes = Buffer.from(PYTHON_SYNTAX_ERROR_SOURCE, "utf8");
+  writeFileSync(sourcePath, syntaxErrorBytes);
+  stageSourceFile(sandbox, fixture.sourcePath);
+  const syntaxDefaultCheck = await kibi(sandbox, [
+    "check-generated",
+    "--staged",
+  ]);
+  assert.notEqual(
+    syntaxDefaultCheck.exitCode,
+    0,
+    "default staged generated-manifest check must reject Python syntax errors",
+  );
+  assert.match(
+    outputOf(syntaxDefaultCheck),
+    /Cannot refresh incomplete source analysis for src\/sample\.py/i,
+  );
+  assert.deepEqual(
+    readFileSync(sourcePath),
+    syntaxErrorBytes,
+    "failed syntax validation must not rewrite Python source bytes",
+  );
+  assert.deepEqual(
+    manifestSymbolIds(readFileSync(symbolsPath, "utf8")).sort(),
+    [...expectedSymbolIds].sort(),
+  );
 }
 
 function createNetworkGuard(sandbox: TestSandbox): string {
@@ -444,6 +606,9 @@ async function runLanguageWorkflow(
       /staged generated manifests are current/i,
       "generated-manifest validation must confirm the staged snapshot",
     );
+    if (fixture.language === "Python") {
+      await runPythonDecoratorCoordinateWorkflow(sandbox, fixture);
+    }
   } finally {
     await sandbox.cleanup();
   }
