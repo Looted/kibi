@@ -258,3 +258,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d9c6d68741fc
+  - type: executable_for
+    from: SYM-claude-case-advisory-boundary
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:50:40.978Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e9d09811ff9e

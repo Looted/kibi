@@ -216,3 +216,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c24764ddcc2a
+  - type: executable_for
+    from: SYM-claude-case-shipped-bundle-runs
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:50:56.925Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-02feeb42b54f

@@ -55,3 +55,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-28adadd83474
+  - type: executable_for
+    from: SYM-claude-case-unconfigured-workspace-silent
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:49:56.432Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c25aaade9102

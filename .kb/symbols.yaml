@@ -42690,3 +42690,93 @@ symbols:
         target: TEST-claude-code-kibi-plugin-v1
       - type: implements
         target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-case-unconfigured-workspace-silent
+    title: Every event is silent and stateless outside a Kibi workspace
+    status: active
+    sourceFile: packages/claude/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-case-read-snippet-once
+    title: A linked file shows requirement titles, symbols, tests, and next calls once
+    status: active
+    sourceFile: packages/claude/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-case-edit-focus
+    title: A first edit names the edited symbol and the impact check
+    status: active
+    sourceFile: packages/claude/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-case-stop-reminder-once
+    title: Unchecked source edits are reminded once, then the agent may stop
+    status: active
+    sourceFile: packages/claude/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-case-prefixed-check-acknowledges
+    title: A host-prefixed kb_check naming the file acknowledges it
+    status: active
+    sourceFile: packages/claude/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-case-advisory-boundary
+    title: Hooks never deny, rewrite input, or touch the workspace
+    status: active
+    sourceFile: packages/claude/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-case-scanner-equivalence
+    title: Matches a full YAML parse on the canonical writer layout
+    status: active
+    sourceFile: packages/claude/tests/knowledge-index.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-case-shipped-bundle-runs
+    title: The bundle runs under node and emits Claude Code hook JSON
+    status: active
+    sourceFile: packages/claude/tests/distribution.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-case-mcp-silent-outside-kibi
+    title: Serves no tools when the project dir does not own .kb/manifest.json
+    status: active
+    sourceFile: packages/claude/tests/distribution.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-case-optional-package-contract
+    title: Optional package contract has no install lifecycle or runtime dependencies
+    status: active
+    sourceFile: packages/claude/tests/distribution.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
