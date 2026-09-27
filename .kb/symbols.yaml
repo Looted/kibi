@@ -42310,6 +42310,8 @@ symbols:
       - sdk-contract
     relationships:
       - type: covered_by
+        target: TEST-capability-plugin-protocol-v1
+      - type: covered_by
         target: TEST-source-analysis-v2-contract
       - type: implements
         target: REQ-capability-plugin-protocol-v1
