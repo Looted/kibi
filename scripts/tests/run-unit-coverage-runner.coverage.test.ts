@@ -50,6 +50,13 @@ function isolatedCoverageOptions(root: string): {
   };
 }
 
+// The Node parser shard writes directly to its explicit private directory;
+// Bun shards still use the --coverage-dir flag and fallback lifecycle.
+function mockedCoverageDirectory(args: readonly string[]): string {
+  if (args[0]?.endsWith("parser-unit-coverage.mjs")) return args[2] ?? "";
+  return args[args.indexOf("--coverage-dir") + 1] ?? "";
+}
+
 describe("runUnitCoverage mocked shards", () => {
   test("captures Bun fallback LCOV and preserves outer shard snapshots", async () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "kibi-unit-cov-"));
@@ -84,7 +91,7 @@ describe("runUnitCoverage mocked shards", () => {
     ) => {
       if (options?.timeout !== undefined) spawnTimeouts.push(options.timeout);
       const list = (args ?? []) as string[];
-      const coverageDir = list[list.indexOf("--coverage-dir") + 1] ?? "";
+      const coverageDir = mockedCoverageDirectory(list);
       const selected = list.find((value) => value.startsWith("./")) ?? "";
       mkdirSync(coverageDir, { recursive: true });
       if (selected.includes("runtime")) {
@@ -191,7 +198,7 @@ describe("runUnitCoverage mocked shards", () => {
       args,
     ) => {
       const list = (args ?? []) as string[];
-      const coverageDir = list[list.indexOf("--coverage-dir") + 1] ?? "";
+      const coverageDir = mockedCoverageDirectory(list);
       mkdirSync(coverageDir, { recursive: true });
       writeFileSync(
         path.join(coverageDir, "lcov.info"),
@@ -237,7 +244,7 @@ describe("runUnitCoverage mocked shards", () => {
       args,
     ) => {
       const list = (args ?? []) as string[];
-      const coverageDir = list[list.indexOf("--coverage-dir") + 1] ?? "";
+      const coverageDir = mockedCoverageDirectory(list);
       mkdirSync(coverageDir, { recursive: true });
       writeFileSync(
         path.join(coverageDir, "lcov.info"),
@@ -280,7 +287,7 @@ describe("runUnitCoverage mocked shards", () => {
       args,
     ) => {
       const list = (args ?? []) as string[];
-      const coverageDir = list[list.indexOf("--coverage-dir") + 1] ?? "";
+      const coverageDir = mockedCoverageDirectory(list);
       mkdirSync(coverageDir, { recursive: true });
       writeFileSync(
         path.join(coverageDir, "lcov.info"),
@@ -326,7 +333,7 @@ describe("runUnitCoverage mocked shards", () => {
       args,
     ) => {
       const list = (args ?? []) as string[];
-      const coverageDir = list[list.indexOf("--coverage-dir") + 1] ?? "";
+      const coverageDir = mockedCoverageDirectory(list);
       mkdirSync(coverageDir, { recursive: true });
       writeFileSync(
         path.join(coverageDir, "lcov.info"),

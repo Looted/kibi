@@ -387,6 +387,31 @@ describe("kb_suggest_predicates", () => {
     ]);
   });
 
+  test("preserves permission arguments and polarity for never cues", async () => {
+    const cases = [
+      { text: "Users must never export customer data.", decision: "deny" },
+      { text: "Users never export customer data.", decision: "deny" },
+      { text: "Users may export customer data.", decision: "assert" },
+    ] as const;
+
+    for (const testCase of cases) {
+      const result = await suggest({
+        text: testCase.text,
+        schemaId: "FACT-SCHEMA-PERMISSION-RULE",
+        maxCandidates: 1,
+      });
+      const candidates = result.structuredContent.candidates as Array<
+        Record<string, unknown>
+      >;
+
+      expect(candidates[0]).toMatchObject({
+        predicate_name: "permission_rule",
+        predicate_args: ["user", "export", "customer_data", testCase.decision],
+        polarity: testCase.decision,
+      });
+    }
+  });
+
   test("covers semantic advisor predicate names as production predicate families", async () => {
     const cases = [
       {

@@ -241,3 +241,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3b547362e786
+  - type: relates_to
+    from: FACT-source-analysis-v2-format-qualification
+    to: REQ-source-analysis-v2
+    created_at: 2026-09-26T17:28:59.853Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b99fbd0b6d33

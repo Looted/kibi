@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, expect, it } from "bun:test";
+import { afterEach, beforeEach, expect, it, spyOn } from "bun:test";
 import fs from "node:fs";
 import path from "node:path";
 import * as symbolsCoordinatorExports from "../../src/extractors/symbols-coordinator.js";
@@ -426,4 +426,197 @@ it("mixes multiple symbols with different file types", async () => {
 
   expect(out[0]?.sourceLine).toBe(100);
   expect(out[1]?.sourceLine).toBe(3);
+});
+
+it("allows only explicit coordinate-only decorator partials without upgrading analysis", async () => {
+  const { CapabilityRegistry } = await import("../../src/plugins/registry.js");
+  const { SourceAnalysisService } = await import(
+    "../../src/plugins/source-analysis-service.js"
+  );
+  const content = "@identity\ndef run():\n    pass\n";
+  writeFile("decorated.py", content);
+  const span = { startLine: 1, startColumn: 0, endLine: 3, endColumn: 8 };
+  const raw = {
+    contractVersion: "kibi.symbol-extractor.v2" as const,
+    status: "partial" as const,
+    sourceFile: "decorated.py",
+    language: "python",
+    module: {
+      title: "decorated",
+      language: "python",
+      analysisMode: "parser" as const,
+    },
+    symbols: [
+      {
+        name: "run",
+        qualifiedName: "run",
+        kind: "function" as const,
+        startLine: 2,
+        startColumn: 0,
+        endLine: 3,
+        endColumn: 8,
+      },
+    ],
+    diagnostics: [
+      {
+        code: "TREESITTER_DECORATOR_EXPANSION_UNAVAILABLE",
+        message: "Decorators may alter or synthesize declarations.",
+        range: span,
+      },
+    ],
+    uncoveredRanges: [
+      { ...span, reason: "decorator-may-alter-or-create-declarations" },
+    ],
+  };
+  let response: import("kibi-plugin-sdk").SourceAnalysisResultV2 = raw;
+  const service = new SourceAnalysisService({
+    registry: new CapabilityRegistry({ workspaceRoot: tmpDir }),
+    resolveExtractorsV2: async () => ({
+      builtin: {
+        pluginId: "kibi-plugin-treesitter",
+        pluginVersion: "0.1.2",
+        packageName: null,
+        mode: "builtin",
+        external: false,
+        permissions: { network: false, metered: false, secrets: [] },
+        capability: {
+          id: "kibi-plugin-treesitter.tree-sitter.v2",
+          supports: () => true,
+          analyze: async () => response,
+        },
+        stamp: {
+          pluginId: "kibi-plugin-treesitter",
+          pluginVersion: "0.1.2",
+          capability: "kibi.symbol-extractor.v2",
+          mode: "augment",
+          external: false,
+          network: false,
+          metered: false,
+        },
+      },
+      replace: null,
+      augment: [],
+      shadow: [],
+    }),
+  });
+  const entries = [
+    { id: "SYM-run", title: "run", sourceFile: "decorated.py" },
+    { id: "SYM-missing", title: "synthesized", sourceFile: "decorated.py" },
+  ];
+  const warn = spyOn(console, "warn").mockImplementation(() => {});
+  try {
+    await expect(
+      enrichSymbolCoordinates(entries, tmpDir, {
+        sourceAnalysisService: service,
+      }),
+    ).rejects.toThrow("Cannot refresh incomplete source analysis");
+    const output = await enrichSymbolCoordinates(entries, tmpDir, {
+      sourceAnalysisService: service,
+      allowPythonDecoratorCoordinates: true,
+    });
+    expect(output[0]).toMatchObject({ sourceLine: 2, sourceEndLine: 3 });
+    expect(output[1]?.sourceLine).toBeUndefined();
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0]?.[0]).toContain("remains partial");
+    expect(raw.status).toBe("partial");
+    expect(raw.uncoveredRanges).toEqual([
+      { ...span, reason: "decorator-may-alter-or-create-declarations" },
+    ]);
+    const analyzed = await service.analyzeTextV2("decorated.py", content);
+    expect(analyzed.status).toBe("partial");
+    expect(analyzed.diagnostics).toEqual(raw.diagnostics);
+    expect(analyzed.uncoveredRanges).toEqual(raw.uncoveredRanges);
+    for (const code of [
+      "TREESITTER_SYNTAX_ERROR",
+      "TREESITTER_DECLARATION_PARSE_ERROR",
+      "TREESITTER_DIAGNOSTIC_LIMIT",
+      "TREESITTER_SYMBOL_LIMIT",
+      "TREESITTER_LOCATOR_COLLISION",
+    ]) {
+      response = {
+        ...raw,
+        diagnostics: [
+          { code, message: "Not a decorator-only omission", range: span },
+        ],
+      };
+      await expect(
+        enrichSymbolCoordinates(entries, tmpDir, {
+          sourceAnalysisService: service,
+          allowPythonDecoratorCoordinates: true,
+        }),
+      ).rejects.toThrow("Cannot refresh incomplete source analysis");
+    }
+    response = {
+      ...raw,
+      uncoveredRanges: [{ ...span, reason: "unknown-omission" }],
+    };
+    await expect(
+      enrichSymbolCoordinates(entries, tmpDir, {
+        sourceAnalysisService: service,
+        allowPythonDecoratorCoordinates: true,
+      }),
+    ).rejects.toThrow("Cannot refresh incomplete source analysis");
+    const firstSymbol = raw.symbols[0];
+    if (firstSymbol === undefined) {
+      throw new Error("Expected source analysis to return a symbol");
+    }
+    response = { ...raw, symbols: [{ ...firstSymbol, endLine: 99 }] };
+    await expect(
+      enrichSymbolCoordinates(entries, tmpDir, {
+        sourceAnalysisService: service,
+        allowPythonDecoratorCoordinates: true,
+      }),
+    ).rejects.toThrow("Cannot refresh incomplete source analysis");
+    response = raw;
+    const { refreshManifestCoordinates } = await import(
+      "../../src/commands/sync/manifest.js"
+    );
+    const manifest = writeFile(
+      "symbols.yaml",
+      "symbols:\n  - id: SYM-run\n    title: run\n    sourceFile: decorated.py\n",
+    );
+    // Exact-index generation supplies this strict callback. The sync-only
+    // option is not forwarded to the completeness-sensitive coordinator.
+    await expect(
+      refreshManifestCoordinates(manifest, tmpDir, {
+        refreshSymbolCoordinates: true,
+        enrichSymbolCoordinates: (rows, root) =>
+          enrichSymbolCoordinates(rows, root, {
+            sourceAnalysisService: service,
+          }),
+        resolveSymbolsManifestPaths: () => ({
+          symbolsPath: manifest,
+          coordinatesPath: path.join(tmpDir, "coordinates.yaml"),
+          coordinates: {},
+          coordinateArtifactStatus: "absent",
+        }),
+      }),
+    ).rejects.toThrow("Cannot refresh incomplete source analysis");
+    response = {
+      ...raw,
+      status: "failed",
+      symbols: [],
+      diagnostics: [
+        { code: "provider_failed", message: "Integrity mismatch or timeout" },
+      ],
+      uncoveredRanges: [],
+    };
+    await expect(
+      enrichSymbolCoordinates(entries, tmpDir, {
+        sourceAnalysisService: service,
+        allowPythonDecoratorCoordinates: true,
+      }),
+    ).rejects.toThrow("Cannot refresh incomplete source analysis");
+    response = {
+      ...raw,
+      symbols: [firstSymbol, { ...firstSymbol, startLine: 3, endLine: 3 }],
+    };
+    const ambiguous = await enrichSymbolCoordinates(entries, tmpDir, {
+      sourceAnalysisService: service,
+      allowPythonDecoratorCoordinates: true,
+    });
+    expect(ambiguous[0]?.sourceLine).toBeUndefined();
+  } finally {
+    warn.mockRestore();
+  }
 });

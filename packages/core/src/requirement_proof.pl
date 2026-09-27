@@ -889,10 +889,10 @@ receipt_for_current_mode(TestId, Context, Receipts, SnapshotReceipts) :-
     (   Context.proofBindingMode == per_contract,
         get_dict(TestId, Context.proofTestBindings, CurrentBinding)
     ->  include(receipt_with_binding_hash, Receipts, BoundReceipts),
-        include(receipt_for_binding(CurrentBinding), BoundReceipts, SnapshotReceipts),
-        (   SnapshotReceipts == []
+        include(receipt_for_binding(CurrentBinding), BoundReceipts, BindingReceipts),
+        (   BindingReceipts == []
         ->  include(receipt_for_snapshot(Context.proofSnapshot), Receipts, SnapshotReceipts)
-        ;   true
+        ;   SnapshotReceipts = BindingReceipts
         )
     ;   include(receipt_for_snapshot(Context.proofSnapshot), Receipts, SnapshotReceipts)
     ).

@@ -93,6 +93,7 @@ describe("publish.yml CI workflow contract", () => {
       "plugin-sdk",
       "plugin-builtin",
       "plugin-jev",
+      "plugin-treesitter",
       "runtime",
       "cli",
       "mcp",

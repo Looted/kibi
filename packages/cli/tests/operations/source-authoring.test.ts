@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { load as loadYaml } from "js-yaml";
 import {
   clearRecoveredPendingSourceReceipts,
   discoverSourceFiles,
@@ -206,6 +207,190 @@ describe("source-first authoring", () => {
     expect(updated).toContain("granularity_reason: module-level-behavior");
     expect(updated).toContain("symbol_role: behavioral");
     expect(updated).toContain("target: TEST-COVERAGE");
+  });
+
+  test("coalesces compatible duplicate symbols and preserves every link", async () => {
+    const workspace = await mkdtemp(path.join(tmpdir(), "kibi-source-"));
+    workspaces.push(workspace);
+    const target = path.join(workspace, "symbols.yaml");
+    const original = [
+      "symbols:",
+      "  - id: SYM-DUP",
+      "    title: Duplicate",
+      "    status: active",
+      "    sourceFile: src/example.ts",
+      "    symbol_role: function",
+      "    links:",
+      "      - REQ-LEGACY-A",
+      "      - type: verified_by",
+      "        target: TEST-LEGACY",
+      "    relationships:",
+      "      - type: implements",
+      "        target: REQ-ONE",
+      "        evidence: source-manifest",
+      "  - id: SYM-DUP",
+      "    title: Duplicate",
+      "    status: active",
+      "    sourceFile: src/example.ts",
+      "    granularity_reason: one-declaration",
+      "    links:",
+      "      - REQ-LEGACY-B",
+      "    relationships:",
+      "      - type: covered_by",
+      "        target: TEST-TWO",
+      "  - id: SYM-KEEP",
+      "    title: Keep",
+      "",
+    ].join("\n");
+    await writeFile(target, original);
+
+    await writeSourceForUpsert(
+      {
+        type: "symbol",
+        id: "SYM-DUP",
+        properties: { title: "Duplicate", status: "active" },
+        relationships: [
+          { type: "covered_by", from: "SYM-DUP", to: "TEST-NEW" },
+        ],
+        document: { path: "symbols.yaml" },
+      },
+      {
+        id: "SYM-DUP",
+        type: "symbol",
+        title: "Duplicate",
+        status: "active",
+        sourceFile: "src/example.ts",
+        source: "symbols.yaml",
+      },
+      { id: "SYM-DUP", source: "symbols.yaml" },
+      context(workspace),
+    );
+
+    const parsed = loadYaml(await readFile(target, "utf8")) as {
+      symbols: Array<Record<string, unknown>>;
+    };
+    const coalesced = parsed.symbols.filter(
+      (symbol) => symbol.id === "SYM-DUP",
+    );
+    expect(coalesced).toHaveLength(1);
+    expect(coalesced[0]).toMatchObject({
+      sourceFile: "src/example.ts",
+      symbol_role: "function",
+      granularity_reason: "one-declaration",
+    });
+    expect(coalesced[0]?.links).toEqual([
+      "REQ-LEGACY-A",
+      { type: "verified_by", target: "TEST-LEGACY" },
+      "REQ-LEGACY-B",
+    ]);
+    expect(coalesced[0]?.relationships).toEqual([
+      { type: "covered_by", target: "TEST-NEW" },
+      { type: "covered_by", target: "TEST-TWO" },
+      {
+        type: "implements",
+        target: "REQ-ONE",
+        evidence: "source-manifest",
+      },
+    ]);
+    expect(parsed.symbols.some((symbol) => symbol.id === "SYM-KEEP")).toBe(
+      true,
+    );
+  });
+
+  test("rejects conflicting duplicate fields before changing source bytes", async () => {
+    const workspace = await mkdtemp(path.join(tmpdir(), "kibi-source-"));
+    workspaces.push(workspace);
+    const target = path.join(workspace, "symbols.yaml");
+    const original = [
+      "symbols:",
+      "  - id: SYM-CONFLICT",
+      "    title: Same",
+      "    sourceFile: src/one.ts",
+      "  - id: SYM-CONFLICT",
+      "    title: Same",
+      "    sourceFile: src/two.ts",
+      "",
+    ].join("\n");
+    await writeFile(target, original);
+
+    await expect(
+      writeSourceForUpsert(
+        {
+          type: "symbol",
+          id: "SYM-CONFLICT",
+          properties: { title: "Same" },
+          document: { path: "symbols.yaml" },
+        },
+        {
+          id: "SYM-CONFLICT",
+          type: "symbol",
+          title: "Same",
+          source: "symbols.yaml",
+        },
+        { id: "SYM-CONFLICT", source: "symbols.yaml" },
+        context(workspace),
+      ),
+    ).rejects.toMatchObject({ code: "SOURCE_DUPLICATE_CONFLICT" });
+
+    expect(await readFile(target, "utf8")).toBe(original);
+  });
+
+  test("rejects conflicting or malformed duplicate relationships before writing", async () => {
+    const workspace = await mkdtemp(path.join(tmpdir(), "kibi-source-"));
+    workspaces.push(workspace);
+    const target = path.join(workspace, "symbols.yaml");
+    const input = {
+      type: "symbol",
+      id: "SYM-RELATION-CONFLICT",
+      properties: { title: "Same" },
+      document: { path: "symbols.yaml" },
+    } as const;
+    const entity = {
+      id: "SYM-RELATION-CONFLICT",
+      type: "symbol",
+      title: "Same",
+      source: "symbols.yaml",
+    } as const;
+    const existing = { id: "SYM-RELATION-CONFLICT", source: "symbols.yaml" };
+    const upsert = () =>
+      writeSourceForUpsert(input, entity, existing, context(workspace));
+
+    const conflicting = [
+      "symbols:",
+      "  - id: SYM-RELATION-CONFLICT",
+      "    title: Same",
+      "    relationships:",
+      "      - type: implements",
+      "        target: REQ-1",
+      "        evidence: first",
+      "  - id: SYM-RELATION-CONFLICT",
+      "    title: Same",
+      "    relationships:",
+      "      - type: implements",
+      "        target: REQ-1",
+      "        evidence: second",
+      "",
+    ].join("\n");
+    await writeFile(target, conflicting);
+    await expect(upsert()).rejects.toMatchObject({
+      code: "SOURCE_DUPLICATE_CONFLICT",
+    });
+    expect(await readFile(target, "utf8")).toBe(conflicting);
+
+    const malformed = [
+      "symbols:",
+      "  - id: SYM-RELATION-CONFLICT",
+      "    title: Same",
+      "    relationships: not-a-list",
+      "  - id: SYM-RELATION-CONFLICT",
+      "    title: Same",
+      "",
+    ].join("\n");
+    await writeFile(target, malformed);
+    await expect(upsert()).rejects.toMatchObject({
+      code: "SOURCE_DUPLICATE_CONFLICT",
+    });
+    expect(await readFile(target, "utf8")).toBe(malformed);
   });
 
   test("removes one exact YAML symbol relationship without rewriting unrelated content", () => {

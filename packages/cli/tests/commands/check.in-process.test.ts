@@ -104,7 +104,7 @@ describe("checkCommand", () => {
       structuredContent: { operationalError: string; staged: null };
     };
     expect(failureOutput.structuredContent.operationalError).toContain(
-      "failed to list staged files",
+      "git command failed",
     );
     expect(failureOutput.structuredContent.staged).toBeNull();
   });
@@ -621,7 +621,7 @@ Login works.
     expect(ok.exitCode).toBe(0);
   });
 
-  test("ignores malformed staged manifests and test-only sources", async () => {
+  test("rejects malformed staged manifests even for test-only source changes", async () => {
     const restoreEnv = isolateKibiEnv();
     restores.push(restoreEnv);
     const cwd = createGitWorkspace();
@@ -634,37 +634,13 @@ Login works.
       "export function testGreet() { return true; }\n",
     );
     git(cwd, "add .kb/symbols.yaml tests/greet.test.ts");
-    const overlayDir = mkdtempSync(path.join(os.tmpdir(), "kibi-overlay-"));
-    roots.push(overlayDir);
-    const overlayPath = path.join(overlayDir, "changed_symbols.pl");
-    mkdirSync(path.join(overlayDir, "kb"), { recursive: true });
-    writeFileSync(overlayPath, "");
-    const create = spyOn(tempKb, "createTempKb").mockResolvedValue({
-      tempDir: overlayDir,
-      kbPath: path.join(overlayDir, "kb"),
-      overlayPath,
-      prolog: { query: async () => ({ success: true, bindings: {} }) } as never,
-    });
-    const consult = spyOn(tempKb, "consultOverlay").mockResolvedValue(
-      undefined,
-    );
-    const cleanup = spyOn(tempKb, "cleanupTempKb").mockResolvedValue(undefined);
-    const validate = spyOn(
-      stagedValidate,
-      "validateStagedSymbols",
-    ).mockResolvedValue([]);
-    restores.push(() => {
-      create.mockRestore();
-      consult.mockRestore();
-      cleanup.mockRestore();
-      validate.mockRestore();
-    });
     const io = captureIo();
     restores.push(io.restore);
     const result = await withCwd(cwd, () =>
       checkCommand({ staged: true, kbPath: path.join(cwd, "kb-store") }),
     );
-    expect(result.exitCode).toBe(0);
+    expect(result.exitCode).toBe(1);
+    expect(io.errorText()).toContain("Error running staged validation");
   });
 
   test("treats staged validation overlay failures as errors", async () => {

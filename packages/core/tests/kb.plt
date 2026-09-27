@@ -6,6 +6,7 @@
 :- use_module('../src/sparql_client.pl').
 :- use_module('../src/status.pl', []).
 :- use_module(library(http/json)).
+:- use_module(library(date)).
 :- use_module(library(plunit)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(filesex)).
@@ -459,6 +460,7 @@ test(proof_contract_projection_pages_without_receipt_histories, [setup(setup_kb)
         member([_, test, Projected], Pages),
         ( memberchk(proof_contract=_, Projected),
           memberchk(proof_bindings=_, Projected),
+          memberchk(source=_, Projected),
           assertion(\+ memberchk(proof_receipts=_, Projected))
         )
     ).
@@ -2109,6 +2111,44 @@ test(requirement_proof_extra_missing_receipts_block_when_strict_proof_exists, [s
     assertion(memberchk(_{id: 'SCEN-PROOF-ADVISORY', path: '.kb/scenarios/SCEN-PROOF-ADVISORY.md'}, Row.proofStages.scenarios.sources)),
     assertion(memberchk(_{id: 'TEST-PROOF-ADVISORY-E2E', path: 'documentation/tests/e2e/advisory.test.ts'}, Row.proofStages.scenarioTests.sources)),
     assertion(memberchk(_{id: 'FACT-PROOF-ADV-PROPERTY', path: '.kb/facts/FACT-PROOF-ADV-PROPERTY.md'}, Row.proofStages.logicGrounding.sources)).
+
+test(per_contract_receipts_preserve_snapshot_fallback_and_requirement_rows, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    OtherSnapshot = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+    Binding = 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+    OtherBinding = 'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
+    TestId = 'TEST-BINDING-FALLBACK',
+    proof_receipt_json(TestId, Snapshot, passed, '2026-08-10T11:55:00Z', '2026-08-10T12:00:00Z', LegacyJson),
+    atom_json_dict(LegacyJson, [LegacyReceipt], []),
+    put_dict(binding_hash, LegacyReceipt, Binding, BoundReceipt),
+    atom_json_dict(BoundAtom, [BoundReceipt], []),
+    atom_string(BoundAtom, BoundJson),
+    assert_fixture_entity(req, 'REQ-BINDING-FALLBACK', "Binding fallback", active, [priority=must]),
+    assert_fixture_entity(scenario, 'SCEN-BINDING-FALLBACK', "Binding fallback scenario", active, []),
+    assert_fixture_entity(test, TestId, "Binding fallback E2E", passing, [verification_scope=end_to_end, proof_receipts=BoundJson]),
+    kb_assert_relationship(specified_by, 'REQ-BINDING-FALLBACK', 'SCEN-BINDING-FALLBACK', []),
+    kb_assert_relationship(verified_by, 'SCEN-BINDING-FALLBACK', TestId, []),
+    requirement_proof:requirement_proof_context(OtherSnapshot, '2026-08-10T12:05:00Z', 604800, per_contract, _{'TEST-BINDING-FALLBACK':Binding}, MatchingContext),
+    requirement_proof:test_receipt_evidence(MatchingContext, TestId, MatchingEvidence),
+    assertion(MatchingEvidence.state == passed),
+    requirement_proof:requirement_proof_context(Snapshot, '2026-08-10T12:05:00Z', 604800, per_contract, _{'TEST-BINDING-FALLBACK':OtherBinding}, FallbackContext),
+    requirement_proof:test_receipt_evidence(FallbackContext, TestId, FallbackEvidence),
+    assertion(FallbackEvidence.state == passed),
+    requirement_proof:requirement_proof_context(OtherSnapshot, '2026-08-10T12:05:00Z', 604800, per_contract, _{'TEST-BINDING-FALLBACK':OtherBinding}, UnrelatedContext),
+    requirement_proof:test_receipt_evidence(UnrelatedContext, TestId, UnrelatedEvidence),
+    assertion(UnrelatedEvidence.state == stale),
+    coverage_report_json(req, [], true, per_contract, _{'TEST-BINDING-FALLBACK':OtherBinding}, true, 100, 0, Snapshot, '2026-08-10T12:05:00Z', 604800, ReportJson),
+    json_string_dict(ReportJson, Report),
+    assertion(Report.summary.total == 1),
+    coverage_row(Report.rows, 'REQ-BINDING-FALLBACK', Row),
+    assertion(Row.proofStatus \== proven),
+    evidence_for_test(Row.proofStages.passingE2e.receiptEvidence, TestId, RowEvidence),
+    assertion(RowEvidence.state == passed),
+    assert_fixture_entity(test, TestId, "Legacy fallback E2E", passing, [verification_scope=end_to_end, proof_receipts=LegacyJson]),
+    requirement_proof:test_receipt_evidence(FallbackContext, TestId, LegacyEvidence),
+    assertion(LegacyEvidence.state == passed),
+    requirement_proof:test_receipt_evidence(UnrelatedContext, TestId, StaleLegacyEvidence),
+    assertion(StaleLegacyEvidence.state == stale).
 
 test(requirement_proof_receipts_are_snapshot_bound_fresh_and_outcome_sensitive, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     Snapshot = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
@@ -4065,9 +4105,9 @@ test(req_status_vocabulary_rejects_adr_statuses_on_requirements, [setup(setup_kb
 test(req_status_vocabulary_is_wired_into_check_all, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
     assert_fixture_entity(req, 'REQ-BAD-STATUS', "Bad status", accepted, []),
     checks:check_all(Dict),
-    member('REQ-BAD-STATUS'-_, Pairs),
     dict_pairs(Dict, _, Pairs0),
-    assertion(member(req_status_vocabulary-_, Pairs0)),
+    memberchk(req_status_vocabulary-StatusViolations, Pairs0),
+    assertion(member(violation('req-status-vocabulary', 'REQ-BAD-STATUS', _, _, _), StatusViolations)),
     checks:check_req_status_vocabulary([_|_]).
 
 test(requirement_proof_reports_typed_reason_for_noncurrent_status, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
@@ -4142,7 +4182,7 @@ test(coverage_report_status_filter_can_enumerate_missing_rows, [setup(setup_kb),
 
 test(production_symbol_stage_reports_reason_with_status, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
     assert_fixture_entity(req, 'REQ-STAGE-REASON', "Stage reason", active, [priority=must]),
-    kb_entity('REQ-STAGE-REASON', req, Props),
+    kb_entity('REQ-STAGE-REASON', req, _Props),
     requirement_proof:production_symbol_stage('REQ-STAGE-REASON', [], Stage, _),
     Stage.status == missing,
     sub_atom(Stage.reason, _, _, _, "no production symbols implement").
@@ -4542,3 +4582,87 @@ cleanup_isolation_children :-
            catch(write_isolation_barrier(Path), _, true)),
     forall(retract(isolation_child_process(Pid)),
            catch(process_wait(Pid, _), _, true)).
+
+:- begin_tests(kb_timestamp_formats).
+
+test(status_synced_at_uses_utc_in_non_utc_child) :-
+    tmp_file(kibi_status_timezone, DataFile),
+    setup_call_cleanup(
+        create_fixed_timestamp_file(DataFile),
+        ( run_timezone_child(status_synced_at_child(DataFile), ChildResult),
+          assertion(ChildResult.syncedAt == "2000-01-01T00:00:00Z")
+        ),
+        catch(delete_file(DataFile), _, true)
+    ).
+
+test(lock_owner_started_at_is_current_utc_in_non_utc_child) :-
+    tmp_file(kibi_lock_owner_timezone, LockDirectory),
+    make_directory_path(LockDirectory),
+    get_time(Before),
+    setup_call_cleanup(
+        true,
+        ( run_timezone_child(lock_owner_json_child(LockDirectory), Owner),
+          assertion(integer(Owner.pid)),
+          assertion(Owner.pid > 0),
+          assertion(string(Owner.workspaceRoot)),
+          assertion(string(Owner.bootId)),
+          assertion(string(Owner.startedAt)),
+          atom_string(LockDirectory, Owner.workspaceRoot),
+          get_time(After),
+          parse_time(Owner.startedAt, iso_8601, StartedAt),
+          LowerBound is Before - 1,
+          UpperBound is After + 1,
+          assertion(StartedAt >= LowerBound),
+          assertion(StartedAt =< UpperBound)
+        ),
+        delete_directory_and_contents(LockDirectory)
+    ).
+
+:- end_tests(kb_timestamp_formats).
+
+create_fixed_timestamp_file(DataFile) :-
+    setup_call_cleanup(
+        open(DataFile, write, Stream, [encoding(utf8)]),
+        true,
+        close(Stream)
+    ),
+    % A fixed epoch makes the status assertion independent of test runtime.
+    set_time_file(DataFile, _OldTimes, [modified(946684800.0)]).
+
+run_timezone_child(GoalTerm, ChildResult) :-
+    test_source_directory(TestDirectory),
+    directory_file_path(TestDirectory, 'kb.plt', TestSource),
+    format(string(Goal), '~q', [GoalTerm]),
+    process_create(path(swipl),
+                   ['-q', '-s', TestSource, '-g', Goal, '-t', halt],
+                   [process(Pid), stdout(pipe(Output)), stderr(pipe(Error)),
+                    environment(['TZ'='Europe/Warsaw'])]),
+    read_string(Output, _, OutputText),
+    close(Output),
+    read_string(Error, _, ErrorText),
+    close(Error),
+    process_wait(Pid, ExitStatus),
+    (   ExitStatus == exit(0)
+    ->  true
+    ;   throw(error(child_process_failed(ExitStatus, ErrorText),
+                    run_timezone_child/2))
+    ),
+    atom_json_dict(OutputText, ChildResult, []).
+
+status_synced_at_child(DataFile) :-
+    getenv('TZ', 'Europe/Warsaw'),
+    status:synced_at(DataFile, SyncedAt),
+    json_write_dict(current_output, _{syncedAt:SyncedAt}, []),
+    nl.
+
+lock_owner_json_child(LockDirectory) :-
+    getenv('TZ', 'Europe/Warsaw'),
+    kb:kb_write_lock_owner(LockDirectory),
+    kb:kb_lock_owner_path(LockDirectory, OwnerPath),
+    setup_call_cleanup(
+        open(OwnerPath, read, OwnerStream, [encoding(utf8)]),
+        json_read_dict(OwnerStream, Owner),
+        close(OwnerStream)
+    ),
+    json_write_dict(current_output, Owner, []),
+    nl.

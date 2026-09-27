@@ -326,7 +326,10 @@ describe("engine remaining: in-process daemon error and signal paths", () => {
     await ensureJournaledBranchStoreAsync(branchStorePath(root, "main"));
     const socketPath = engineSocketPath(root, "main");
     const restore = mockPrologForDaemon(async (goal) => {
-      if (goal.includes("kb_search_entities") && goal.includes("fail-search")) {
+      if (
+        goal.includes("kb_search_candidates") &&
+        goal.includes("fail-search")
+      ) {
         return { success: false, bindings: {} };
       }
       if (goal.includes("kb_query_entities") && goal.includes("REQ-FAIL")) {

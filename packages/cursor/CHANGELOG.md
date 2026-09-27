@@ -1,5 +1,26 @@
 # kibi-cursor
 
+## 2.1.0
+
+### Minor Changes
+
+- f01838e: The Cursor plugin now asks the agent to consult Kibi before it edits a file, not only after. Every nudge used to fire once the change was already written — the post-edit message opened with "After editing" twice — so the plugin could only ever prompt repair, never inform the change. Before an edit, the plugin now names only requirements the file explicitly implements and asks for them to be read first, which is the one point where retrieval can still change what gets written.
+
+  - Emit source-linked pre-edit guidance from `preToolUse` for edit-like tools, resolved synchronously from the symbol manifest so no KB round-trip is added to the edit path.
+  - Name up to three `implements` requirement targets for the file, or ask for discovery and ownership when no requirement ownership is known.
+  - Narrow the post-edit message to the impact review that only becomes possible once the change exists, and stop repeating the retrieval ask there.
+  - Track pre-edit guidance in its own hook-state bucket so it is emitted once per path without suppressing the post-edit review.
+
+### Patch Changes
+
+- f01838e: Usage telemetry stays off by default for every client, and there is now a supported way to turn it on. Previously the only way to capture usage was to hand-write an MCP command line with `--diagnostic-mode`, which meant anyone using a shipped plugin recorded nothing at all and had no documented alternative. Operators can now opt in with an environment variable, and once they do, each row identifies the host, package version, and checkout that produced it, so behavior can be compared across editors, worktrees, and Kibi versions.
+
+  - Honor `KIBI_DIAGNOSTIC_MODE=1` alongside the existing `--diagnostic-mode` flag, for hosts where a plugin owns the MCP command line.
+  - Stamp `interface`, `host`, `package_version`, and `workspace_root` on every usage row.
+  - Set `KIBI_MCP_HOST` from the Cursor and Codex launchers for attribution only; it never enables logging, and installing or enabling a plugin never starts telemetry.
+  - Stop the bundled Cursor worktree resolver from hard-coding `--diagnostic-mode`, so a shipped launcher cannot enable capture on an operator's behalf.
+  - Document the opt-in, what a row contains, and how to opt out in `docs/mcp-reference.md`.
+
 ## 2.0.1
 
 ### Patch Changes

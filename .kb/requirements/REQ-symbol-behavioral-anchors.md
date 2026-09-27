@@ -22,6 +22,7 @@ links:
 semantic_text: Symbol traceability granularity checks must reject coarse file/module links only when narrower behavioral symbols are available. Type-shape symbols such as interfaces, type aliases, and enums must not by themselves block a coarse behavioral link.
 logic_claims:
   - CLAIM-867030205D8FADB4
+  - CLAIM-6F780FCF425E5D75
 semantic_clauses:
   - Symbol traceability granularity checks must reject coarse file/module links only when narrower behavioral symbols are available
   - Type-shape symbols such as interfaces, type aliases, and enums must not by themselves block a coarse behavioral link
@@ -38,11 +39,12 @@ semantic_inventory:
       end: 127
   - claim_key: CLAIM-6F780FCF425E5D75
     claim_text: Type-shape symbols such as interfaces, type aliases, and enums must not by themselves block a coarse behavioral link
-    role: example
-    status: nonlogical
+    role: normative
+    status: modeled
     span:
       start: 129
       end: 245
+    payload_hash: e4d62b6bf58a64ec6953debe96d3b3367de5995a73bce0449744561a9a141f30
 type: req
 ---
 

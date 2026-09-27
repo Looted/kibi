@@ -12,10 +12,20 @@ import {
   type SemanticClassifierV1,
   type SemanticSignalKind,
 } from "./capabilities/semantic-classifier.js";
-import type {
-  SourceAnalysisResult,
-  SourceSymbolKind,
-  SymbolExtractorV1,
+import {
+  SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS,
+  type SourceAnalysisDiagnosticV2,
+  type SourceAnalysisRangeV2,
+  type SourceAnalysisResult,
+  type SourceAnalysisResultV2,
+  type SourceAnalysisStatusV2,
+  type SourceAnalysisUncoveredRangeV2,
+  type SourceSymbolAnalysisV2,
+  type SourceSymbolKind,
+  type SymbolExtractorV1,
+  type SymbolExtractorV2,
+  type SymbolExtractorV2AnalyzeInput,
+  type ValidateSourceAnalysisResultV2Options,
 } from "./capabilities/symbol-extractor.js";
 import {
   type CapabilityId,
@@ -29,6 +39,7 @@ import {
   type ProjectPluginEntry,
   SEMANTIC_CLASSIFIER_CAPABILITY_ID,
   SYMBOL_EXTRACTOR_CAPABILITY_ID,
+  SYMBOL_EXTRACTOR_V2_CAPABILITY_ID,
 } from "./protocol.js";
 
 const SOURCE_SYMBOL_KINDS = [
@@ -98,7 +109,8 @@ export function isCapabilityId(value: string): value is CapabilityId {
   return (
     value === SEMANTIC_CLASSIFIER_CAPABILITY_ID ||
     value === ONTOLOGY_PACK_CAPABILITY_ID ||
-    value === SYMBOL_EXTRACTOR_CAPABILITY_ID
+    value === SYMBOL_EXTRACTOR_CAPABILITY_ID ||
+    value === SYMBOL_EXTRACTOR_V2_CAPABILITY_ID
   );
 }
 
@@ -202,6 +214,24 @@ function validateSymbolExtractor(value: unknown): SymbolExtractorV1 {
   };
 }
 
+function validateSymbolExtractorV2(value: unknown): SymbolExtractorV2 {
+  if (
+    !isRecord(value) ||
+    typeof value.supports !== "function" ||
+    typeof value.analyze !== "function"
+  ) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY",
+      "symbolExtractorV2 must expose supports() and analyze()",
+    );
+  }
+  return {
+    id: requireString(value.id, "symbolExtractorV2.id", "INVALID_CAPABILITY"),
+    supports: value.supports as SymbolExtractorV2["supports"],
+    analyze: value.analyze as SymbolExtractorV2["analyze"],
+  };
+}
+
 // implements REQ-capability-plugin-protocol-v1
 export function validateKibiPlugin(value: unknown): KibiPluginV1 {
   if (!isRecord(value)) {
@@ -247,11 +277,19 @@ export function validateKibiPlugin(value: unknown): KibiPluginV1 {
       ),
     });
   }
+  if (value.capabilities.symbolExtractorV2 !== undefined) {
+    Object.assign(capabilities, {
+      symbolExtractorV2: validateSymbolExtractorV2(
+        value.capabilities.symbolExtractorV2,
+      ),
+    });
+  }
 
   if (
     capabilities.semanticClassifier === undefined &&
     capabilities.ontologyPack === undefined &&
-    capabilities.symbolExtractor === undefined
+    capabilities.symbolExtractor === undefined &&
+    capabilities.symbolExtractorV2 === undefined
   ) {
     throw new PluginValidationError(
       "INVALID_CAPABILITY",
@@ -263,6 +301,7 @@ export function validateKibiPlugin(value: unknown): KibiPluginV1 {
     capabilities.semanticClassifier?.id,
     capabilities.ontologyPack?.id,
     capabilities.symbolExtractor?.id,
+    capabilities.symbolExtractorV2?.id,
   ].filter((entry): entry is string => typeof entry === "string");
   if (new Set(capabilityIds).size !== capabilityIds.length) {
     throw new PluginValidationError(
@@ -820,4 +859,452 @@ export function validateSourceAnalysisResultForPath(
     );
   }
   return result;
+}
+
+const V2_FORBIDDEN_PROVENANCE_FIELDS = [
+  "provenance",
+  "provider",
+  "providerStamp",
+  "pluginId",
+  "pluginVersion",
+  "capability",
+  "mode",
+  "external",
+  "network",
+  "metered",
+  "fallbackUsed",
+  "model",
+] as const;
+
+const DEFAULT_V2_MAX_SYMBOLS = 100_000;
+const DEFAULT_V2_MAX_INPUT_SIZE = SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS;
+
+function validateV2Limit(
+  value: number | undefined,
+  fallback: number,
+  field: string,
+): number {
+  if (value === undefined) return fallback;
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      `${field} must be a non-negative safe integer`,
+    );
+  }
+  return value;
+}
+
+function validateSourceAnalysisRangeV2(
+  value: unknown,
+  field: string,
+  lineLengths: readonly number[],
+): SourceAnalysisRangeV2 {
+  if (!isRecord(value)) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      `${field} must be a source range object`,
+    );
+  }
+  const startLine = requireFiniteNumber(value.startLine, `${field}.startLine`);
+  const startColumn = requireFiniteNumber(
+    value.startColumn,
+    `${field}.startColumn`,
+  );
+  const endLine = requireFiniteNumber(value.endLine, `${field}.endLine`);
+  const endColumn = requireFiniteNumber(value.endColumn, `${field}.endColumn`);
+  for (const [name, number] of [
+    ["startLine", startLine],
+    ["endLine", endLine],
+  ] as const) {
+    if (!Number.isSafeInteger(number) || number < 1) {
+      throw new PluginValidationError(
+        "INVALID_CAPABILITY_RESULT",
+        `${field}.${name} must be a positive safe integer`,
+      );
+    }
+  }
+  for (const [name, number] of [
+    ["startColumn", startColumn],
+    ["endColumn", endColumn],
+  ] as const) {
+    if (!Number.isSafeInteger(number) || number < 0) {
+      throw new PluginValidationError(
+        "INVALID_CAPABILITY_RESULT",
+        `${field}.${name} must be a non-negative safe integer`,
+      );
+    }
+  }
+  if (startLine > lineLengths.length || endLine > lineLengths.length) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      `${field} line is outside the supplied source content`,
+    );
+  }
+  const startLength = lineLengths[startLine - 1];
+  const endLength = lineLengths[endLine - 1];
+  if (
+    startLength === undefined ||
+    endLength === undefined ||
+    startColumn > startLength ||
+    endColumn > endLength
+  ) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      `${field} column is outside the supplied source line`,
+    );
+  }
+  if (
+    endLine < startLine ||
+    (endLine === startLine && endColumn < startColumn)
+  ) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      `${field} end position must not precede start position`,
+    );
+  }
+  return { startLine, startColumn, endLine, endColumn };
+}
+
+function compareV2Position(
+  left: Pick<SourceAnalysisRangeV2, "startLine" | "startColumn">,
+  right: Pick<SourceAnalysisRangeV2, "startLine" | "startColumn">,
+): number {
+  return (
+    left.startLine - right.startLine || left.startColumn - right.startColumn
+  );
+}
+
+function compareV2EndPosition(
+  left: Pick<SourceAnalysisRangeV2, "endLine" | "endColumn">,
+  right: Pick<SourceAnalysisRangeV2, "endLine" | "endColumn">,
+): number {
+  return left.endLine - right.endLine || left.endColumn - right.endColumn;
+}
+
+function validateOptionalV2String(
+  record: Record<string, unknown>,
+  key: "qualifiedName" | "containerName" | "nativeKind" | "signature",
+  field: string,
+): string | undefined {
+  if (record[key] === undefined) return undefined;
+  return requireString(record[key], field, "INVALID_CAPABILITY_RESULT");
+}
+
+/**
+ * Validate an untrusted v2 result against the exact source path and content
+ * supplied to the extractor. Columns use JavaScript UTF-16 code units and
+ * line splitting preserves CRLF boundaries.
+ */
+// implements REQ-capability-plugin-protocol-v1
+export function validateSourceAnalysisResultV2(
+  value: unknown,
+  input: SymbolExtractorV2AnalyzeInput,
+  options?: ValidateSourceAnalysisResultV2Options,
+): SourceAnalysisResultV2 {
+  if (!isRecord(value)) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      "symbol analysis v2 result must be an object",
+    );
+  }
+  for (const field of V2_FORBIDDEN_PROVENANCE_FIELDS) {
+    if (Object.hasOwn(value, field)) {
+      throw new PluginValidationError(
+        "INVALID_CAPABILITY_RESULT",
+        `symbol analysis v2 result must not provide host provenance field '${field}'`,
+      );
+    }
+  }
+  if (!isRecord(input)) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      "symbol analysis v2 input must include path and content",
+    );
+  }
+  if (typeof input.path !== "string" || input.path.trim().length === 0) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      "input.path must be a non-empty string",
+    );
+  }
+  const requestedPath = input.path;
+  if (typeof input.content !== "string") {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      "input.content must be a string",
+    );
+  }
+  if (input.language !== undefined && typeof input.language !== "string") {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      "input.language must be a string when provided",
+    );
+  }
+
+  const maxSymbols = validateV2Limit(
+    options?.maxSymbols,
+    DEFAULT_V2_MAX_SYMBOLS,
+    "maxSymbols",
+  );
+  const maxInputSize = validateV2Limit(
+    options?.maxInputSize,
+    DEFAULT_V2_MAX_INPUT_SIZE,
+    "maxInputSize",
+  );
+  const inputExceedsLimit = input.content.length > maxInputSize;
+  if (value.contractVersion !== "kibi.symbol-extractor.v2") {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      "contractVersion must be 'kibi.symbol-extractor.v2'",
+    );
+  }
+  const status = requireString(
+    value.status,
+    "status",
+    "INVALID_CAPABILITY_RESULT",
+  );
+  if (
+    !(["ok", "partial", "unsupported", "failed"] as const).includes(
+      status as SourceAnalysisStatusV2,
+    )
+  ) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      `Unsupported symbol analysis status '${status}'`,
+    );
+  }
+  if (!Array.isArray(value.symbols)) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      "symbol analysis v2 result must include symbols[]",
+    );
+  }
+  const sourceSymbols = value.symbols;
+  if (sourceSymbols.length > maxSymbols) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      `symbols[] exceeds the ${maxSymbols} symbol limit`,
+    );
+  }
+  if (!Array.isArray(value.diagnostics)) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      "symbol analysis v2 result must include diagnostics[]",
+    );
+  }
+  if (!Array.isArray(value.uncoveredRanges)) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      "symbol analysis v2 result must include uncoveredRanges[]",
+    );
+  }
+  if (value.sourceFile !== requestedPath) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      `result sourceFile '${String(value.sourceFile)}' does not match requested path '${requestedPath}'`,
+    );
+  }
+
+  // Oversized input still needs a representable host-level failure result.
+  // Accept only a failure with no source-derived ranges, so validation does
+  // not split or scan the over-limit content to establish line coordinates.
+  if (inputExceedsLimit) {
+    if (status !== "failed") {
+      throw new PluginValidationError(
+        "INVALID_CAPABILITY_RESULT",
+        `input.content exceeds the ${maxInputSize} UTF-16 code unit limit; oversized input requires a failed result`,
+      );
+    }
+    if (sourceSymbols.length > 0) {
+      throw new PluginValidationError(
+        "INVALID_CAPABILITY_RESULT",
+        "oversized failed input must not include symbols",
+      );
+    }
+    if (value.uncoveredRanges.length > 0) {
+      throw new PluginValidationError(
+        "INVALID_CAPABILITY_RESULT",
+        "oversized failed input must not include uncovered source ranges",
+      );
+    }
+    if (
+      value.diagnostics.some(
+        (diagnostic) => isRecord(diagnostic) && diagnostic.range !== undefined,
+      )
+    ) {
+      throw new PluginValidationError(
+        "INVALID_CAPABILITY_RESULT",
+        "oversized failed input diagnostics must not include source ranges",
+      );
+    }
+  }
+
+  const lineLengths = inputExceedsLimit
+    ? []
+    : input.content.split(/\r\n|\n|\r/).map((line) => line.length);
+  const legacy = validateSourceAnalysisResult(value);
+  if (legacy.module.language !== legacy.language) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      "module.language must match result.language",
+    );
+  }
+  const symbols: SourceSymbolAnalysisV2[] = legacy.symbols.map(
+    (legacySymbol, index) => {
+      const sourceSymbol = sourceSymbols[index];
+      if (!isRecord(sourceSymbol)) {
+        throw new PluginValidationError(
+          "INVALID_CAPABILITY_RESULT",
+          `symbols[${index}] must be an object`,
+        );
+      }
+      const symbolRange = validateSourceAnalysisRangeV2(
+        sourceSymbol,
+        `symbols[${index}]`,
+        lineLengths,
+      );
+      const qualifiedName = validateOptionalV2String(
+        sourceSymbol,
+        "qualifiedName",
+        `symbols[${index}].qualifiedName`,
+      );
+      const containerName = validateOptionalV2String(
+        sourceSymbol,
+        "containerName",
+        `symbols[${index}].containerName`,
+      );
+      const nativeKind = validateOptionalV2String(
+        sourceSymbol,
+        "nativeKind",
+        `symbols[${index}].nativeKind`,
+      );
+      const signature = validateOptionalV2String(
+        sourceSymbol,
+        "signature",
+        `symbols[${index}].signature`,
+      );
+      if (
+        sourceSymbol.directiveText !== undefined &&
+        typeof sourceSymbol.directiveText !== "string"
+      ) {
+        throw new PluginValidationError(
+          "INVALID_CAPABILITY_RESULT",
+          `symbols[${index}].directiveText must be a string when provided`,
+        );
+      }
+      let nameRange: SourceAnalysisRangeV2 | undefined;
+      if (sourceSymbol.nameRange !== undefined) {
+        nameRange = validateSourceAnalysisRangeV2(
+          sourceSymbol.nameRange,
+          `symbols[${index}].nameRange`,
+          lineLengths,
+        );
+        if (
+          compareV2Position(nameRange, symbolRange) < 0 ||
+          compareV2EndPosition(nameRange, symbolRange) > 0
+        ) {
+          throw new PluginValidationError(
+            "INVALID_CAPABILITY_RESULT",
+            `symbols[${index}].nameRange must be inside its symbol range`,
+          );
+        }
+      }
+      return {
+        ...legacySymbol,
+        ...(qualifiedName !== undefined ? { qualifiedName } : {}),
+        ...(containerName !== undefined ? { containerName } : {}),
+        ...(nativeKind !== undefined ? { nativeKind } : {}),
+        ...(signature !== undefined ? { signature } : {}),
+        ...(nameRange !== undefined ? { nameRange } : {}),
+      };
+    },
+  );
+  const diagnostics: SourceAnalysisDiagnosticV2[] = value.diagnostics.map(
+    (diagnostic, index) => {
+      if (!isRecord(diagnostic)) {
+        throw new PluginValidationError(
+          "INVALID_CAPABILITY_RESULT",
+          `diagnostics[${index}] must be an object`,
+        );
+      }
+      let range: SourceAnalysisRangeV2 | undefined;
+      if (diagnostic.range !== undefined) {
+        range = validateSourceAnalysisRangeV2(
+          diagnostic.range,
+          `diagnostics[${index}].range`,
+          lineLengths,
+        );
+      }
+      return {
+        code: requireString(
+          diagnostic.code,
+          `diagnostics[${index}].code`,
+          "INVALID_CAPABILITY_RESULT",
+        ),
+        message: requireString(
+          diagnostic.message,
+          `diagnostics[${index}].message`,
+          "INVALID_CAPABILITY_RESULT",
+        ),
+        ...(range !== undefined ? { range } : {}),
+      };
+    },
+  );
+  const uncoveredRanges: SourceAnalysisUncoveredRangeV2[] =
+    value.uncoveredRanges.map((entry, index) => {
+      if (!isRecord(entry)) {
+        throw new PluginValidationError(
+          "INVALID_CAPABILITY_RESULT",
+          `uncoveredRanges[${index}] must be an object`,
+        );
+      }
+      return {
+        ...validateSourceAnalysisRangeV2(
+          entry,
+          `uncoveredRanges[${index}]`,
+          lineLengths,
+        ),
+        reason: requireString(
+          entry.reason,
+          `uncoveredRanges[${index}].reason`,
+          "INVALID_CAPABILITY_RESULT",
+        ),
+      };
+    });
+
+  if (status !== "ok" && diagnostics.length === 0) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      `status '${status}' requires at least one diagnostic`,
+    );
+  }
+  if (status === "partial" && uncoveredRanges.length === 0) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      "status 'partial' requires at least one uncovered range",
+    );
+  }
+  if (status === "ok" && uncoveredRanges.length > 0) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      "status 'ok' cannot include uncovered ranges; use 'partial'",
+    );
+  }
+  if ((status === "failed" || status === "unsupported") && symbols.length > 0) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      `status '${status}' must not include symbols`,
+    );
+  }
+
+  return {
+    contractVersion: "kibi.symbol-extractor.v2",
+    status: status as SourceAnalysisStatusV2,
+    sourceFile: input.path,
+    language: legacy.language,
+    module: legacy.module,
+    symbols,
+    diagnostics,
+    uncoveredRanges,
+  };
 }

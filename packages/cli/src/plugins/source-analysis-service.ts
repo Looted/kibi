@@ -16,13 +16,19 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { createHash } from "node:crypto";
 import * as path from "node:path";
 import {
   type PluginProviderStamp,
+  SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS,
+  SYMBOL_EXTRACTOR_V2_CAPABILITY_ID,
   type SourceAnalysisResult,
+  type SourceAnalysisResultV2,
   type SymbolExtractorV1,
+  type SymbolExtractorV2,
   toSourceAnalysisProvider,
   validateSourceAnalysisResultForPath,
+  validateSourceAnalysisResultV2,
 } from "kibi-plugin-sdk";
 
 import type {
@@ -38,7 +44,7 @@ const SOURCE_LANGUAGE_EXTENSIONS: Record<string, string> = {
   ".cs": "csharp",
   ".cts": "typescript",
   ".go": "go",
-  ".h": "c",
+  ".h": "c-or-cpp",
   ".hpp": "cpp",
   ".java": "java",
   ".js": "javascript",
@@ -48,6 +54,17 @@ const SOURCE_LANGUAGE_EXTENSIONS: Record<string, string> = {
   ".mts": "typescript",
   ".php": "php",
   ".py": "python",
+  ".pyi": "python",
+  ".sh": "shell",
+  ".bash": "bash",
+  ".tf": "hcl",
+  ".hcl": "hcl",
+  ".sql": "sql",
+  ".html": "html",
+  ".css": "css",
+  ".json": "json",
+  ".yaml": "yaml",
+  ".yml": "yaml",
   ".rb": "ruby",
   ".rs": "rust",
   ".swift": "swift",
@@ -79,6 +96,14 @@ export type HostSourceAnalysisResult = SourceAnalysisResult &
 // implements REQ-capability-plugin-activation-disclosure-v1
 export type SourceAnalysisServiceOptions = Readonly<{
   registry: CapabilityRegistry;
+  /** Explicit v2 resolution; maintenance callers supply only approved providers. */
+  resolveExtractorsV2?: () => Promise<
+    CapabilityModeResolution<SymbolExtractorV2>
+  >;
+  /** Wall-clock deadline for async providers; CPU-bound plugins need their own terminable worker. */
+  analysisTimeoutMs?: number;
+  /** Host-verified package/asset fingerprint, never accepted from result data. */
+  providerFingerprints?: Readonly<Record<string, string>>;
   /** Injectable resolution for tests. */
   resolveExtractors?: () => Promise<
     CapabilityModeResolution<SymbolExtractorV1>
@@ -154,15 +179,156 @@ function dedupeSymbols(
 // implements REQ-capability-plugin-activation-disclosure-v1
 export class SourceAnalysisService {
   private readonly registry: CapabilityRegistry;
+  private readonly options: SourceAnalysisServiceOptions;
   private readonly resolveExtractors: () => Promise<
     CapabilityModeResolution<SymbolExtractorV1>
   >;
 
   constructor(options: SourceAnalysisServiceOptions) {
     this.registry = options.registry;
+    this.options = options;
     this.resolveExtractors =
       options.resolveExtractors ??
       (() => this.registry.resolveSymbolExtractors());
+  }
+
+  /** Analyze supplied snapshot bytes with explicit completeness and host provenance. */
+  // implements REQ-capability-plugin-activation-disclosure-v1
+  async analyzeTextV2(
+    filePath: string,
+    content: string,
+  ): Promise<HostSourceAnalysisResultV2> {
+    const input = { path: filePath, content };
+    const inputFingerprint = createHash("sha256")
+      .update(filePath)
+      .update("\0")
+      .update(content)
+      .digest("hex");
+    const fallback = (
+      status: "unsupported" | "failed",
+      code: string,
+      message: string,
+    ): HostSourceAnalysisResultV2 => ({
+      contractVersion: SYMBOL_EXTRACTOR_V2_CAPABILITY_ID,
+      status,
+      sourceFile: filePath,
+      language: detectSourceLanguage(filePath),
+      module: {
+        title: inferModuleTitle(filePath),
+        language: detectSourceLanguage(filePath),
+        analysisMode: "fallback",
+        fallbackReason: code,
+      },
+      symbols: [],
+      diagnostics: [{ code, message }],
+      uncoveredRanges: [],
+      providerId: null,
+      stamp: null,
+      inputFingerprint,
+      providerFingerprint: null,
+      shadowComparisons: [],
+    });
+    if (
+      content.length > SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS ||
+      Buffer.byteLength(content, "utf8") > 8 * 1024 * 1024
+    )
+      return fallback(
+        "failed",
+        "input_limit",
+        `Source input exceeds the ${SOURCE_ANALYSIS_V2_MAX_INPUT_CODE_UNITS} UTF-16 code unit or 8 MiB UTF-8 analysis limit`,
+      );
+    let resolution: CapabilityModeResolution<SymbolExtractorV2>;
+    try {
+      resolution = await (this.options.resolveExtractorsV2?.() ??
+        this.registry.resolveSymbolExtractorsV2());
+    } catch (error) {
+      return fallback("failed", "provider_resolution_failed", String(error));
+    }
+    const run = async (
+      entry: CapabilityModeResolution<SymbolExtractorV2>["builtin"],
+    ): Promise<HostSourceAnalysisResultV2 | null> => {
+      try {
+        if (!entry.capability.supports({ path: filePath })) return null;
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        let raw: unknown;
+        try {
+          const requestedTimeout = this.options.analysisTimeoutMs ?? 10000;
+          const timeout =
+            Number.isFinite(requestedTimeout) && requestedTimeout > 0
+              ? Math.min(requestedTimeout, 60000)
+              : 10000;
+          raw = await Promise.race([
+            entry.capability.analyze(input),
+            new Promise<never>((_, reject) => {
+              timer = setTimeout(
+                () => reject(new Error("Source analysis deadline exceeded")),
+                timeout,
+              );
+            }),
+          ]);
+        } finally {
+          if (timer !== undefined) clearTimeout(timer);
+        }
+        const validated = validateSourceAnalysisResultV2(raw, input);
+        return {
+          ...validated,
+          providerId: entry.capability.id,
+          stamp: entry.stamp,
+          inputFingerprint,
+          providerFingerprint:
+            this.options.providerFingerprints?.[entry.pluginId] ??
+            createHash("sha256")
+              .update(
+                `${entry.pluginId}\0${entry.pluginVersion}\0${entry.stamp.capability}`,
+              )
+              .digest("hex"),
+          shadowComparisons: [],
+        };
+      } catch (error) {
+        return {
+          ...fallback(
+            "failed",
+            "provider_failed",
+            `Extractor '${entry.capability.id}' failed: ${String(error)}`,
+          ),
+          providerId: entry.capability.id,
+          stamp: entry.stamp,
+        };
+      }
+    };
+    const entries = resolution.replace
+      ? [resolution.replace, resolution.builtin, ...resolution.augment]
+      : [resolution.builtin, ...resolution.augment];
+    let canonical: HostSourceAnalysisResultV2 | null = null;
+    for (const entry of entries) {
+      const result = await run(entry);
+      if (result === null) continue;
+      // A claimed file's incomplete/failed result is authoritative uncertainty.
+      // Never turn a required provider failure into empty symbols or success.
+      canonical = result;
+      break;
+    }
+    canonical ??= fallback(
+      "unsupported",
+      "unsupported_language",
+      "No configured source analyzer claims this file; file-level review remains required.",
+    );
+    const shadowComparisons: HostSourceAnalysisShadowComparison[] = [];
+    for (const entry of resolution.shadow) {
+      const result = await run(entry);
+      if (!result) continue;
+      shadowComparisons.push({
+        pluginId: entry.pluginId,
+        stamp: entry.stamp,
+        symbolCount: result.symbols.length,
+        language: result.language,
+        ok: result.status === "ok",
+        ...(result.status !== "ok"
+          ? { error: result.diagnostics.map((d) => d.message).join("; ") }
+          : {}),
+      });
+    }
+    return { ...canonical, shadowComparisons };
   }
 
   async analyzeText(
@@ -323,3 +489,14 @@ export function createSourceAnalysisService(
 ): SourceAnalysisService {
   return new SourceAnalysisService(options);
 }
+
+/** V2 results preserve failure/completeness; provenance is always assigned by the host. */
+// implements REQ-capability-plugin-activation-disclosure-v1
+export type HostSourceAnalysisResultV2 = SourceAnalysisResultV2 &
+  Readonly<{
+    providerId: string | null;
+    stamp: PluginProviderStamp | null;
+    inputFingerprint: string;
+    providerFingerprint: string | null;
+    shadowComparisons: readonly HostSourceAnalysisShadowComparison[];
+  }>;

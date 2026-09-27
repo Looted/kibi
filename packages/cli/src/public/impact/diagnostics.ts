@@ -74,11 +74,13 @@ function getGranularSymbolsForSourceFile(
   readonly candidateSymbols: readonly ExtractedSymbol[];
   readonly sourceSymbols: readonly ExtractedSymbol[];
 } {
-  const sourceSymbols = readSourceSymbols(
-    sourceFile,
-    options.sourceContentByFile,
-    options.workspaceRoot ?? process.cwd(),
-  );
+  const sourceSymbols = options.sourceSymbolsByFile
+    ? (options.sourceSymbolsByFile.get(sourceFile) ?? [])
+    : readSourceSymbols(
+        sourceFile,
+        options.sourceContentByFile,
+        options.workspaceRoot ?? process.cwd(),
+      );
   const changedSymbols = options.symbolsByFile.get(sourceFile);
 
   return {

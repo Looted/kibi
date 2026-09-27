@@ -73,6 +73,15 @@ export const PACKAGE_CATALOG = [
     packAll: true,
   },
   {
+    dir: "plugin-treesitter",
+    npmName: "kibi-plugin-treesitter",
+    publishable: true,
+    packInCi: true,
+    includedInDefaultInstall: false,
+    optional: true,
+    packAll: true,
+  },
+  {
     dir: "runtime",
     npmName: "kibi-runtime",
     publishable: true,

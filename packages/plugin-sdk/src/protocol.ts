@@ -15,12 +15,16 @@ export const ONTOLOGY_PACK_CAPABILITY_ID = "kibi.ontology-pack.v1" as const;
 // implements REQ-capability-plugin-protocol-v1
 export const SYMBOL_EXTRACTOR_CAPABILITY_ID =
   "kibi.symbol-extractor.v1" as const;
+// implements REQ-capability-plugin-protocol-v1
+export const SYMBOL_EXTRACTOR_V2_CAPABILITY_ID =
+  "kibi.symbol-extractor.v2" as const;
 
 // implements REQ-capability-plugin-protocol-v1
 export type CapabilityId =
   | typeof SEMANTIC_CLASSIFIER_CAPABILITY_ID
   | typeof ONTOLOGY_PACK_CAPABILITY_ID
-  | typeof SYMBOL_EXTRACTOR_CAPABILITY_ID;
+  | typeof SYMBOL_EXTRACTOR_CAPABILITY_ID
+  | typeof SYMBOL_EXTRACTOR_V2_CAPABILITY_ID;
 
 // implements REQ-capability-plugin-protocol-v1
 export const PLUGIN_MODES = ["replace", "augment", "shadow"] as const;
@@ -50,13 +54,17 @@ export interface PluginProviderStamp {
 
 import type { OntologyPackV1 } from "./capabilities/ontology-pack.js";
 import type { SemanticClassifierV1 } from "./capabilities/semantic-classifier.js";
-import type { SymbolExtractorV1 } from "./capabilities/symbol-extractor.js";
+import type {
+  SymbolExtractorV1,
+  SymbolExtractorV2,
+} from "./capabilities/symbol-extractor.js";
 
 // implements REQ-capability-plugin-protocol-v1
 export interface KibiPluginCapabilities {
   readonly semanticClassifier?: SemanticClassifierV1;
   readonly ontologyPack?: OntologyPackV1;
   readonly symbolExtractor?: SymbolExtractorV1;
+  readonly symbolExtractorV2?: SymbolExtractorV2;
 }
 
 // implements REQ-capability-plugin-protocol-v1

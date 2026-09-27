@@ -167,3 +167,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8868c192be63
+  - type: executable_for
+    from: SYM-test-core-fixed-timestamp-file
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-09-26T16:59:59.414Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e4d8eea784fb

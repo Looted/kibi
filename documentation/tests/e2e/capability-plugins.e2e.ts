@@ -218,7 +218,7 @@ try {
         "example-capability-plugin kibi.semantic-classifier.v1 augment declared=no" &&
       undeclaredPluginCheck.remediation ===
         "Add the configured plugin package to dependencies, devDependencies, or optionalDependencies, or remove the kibi.plugins activation entry.",
-    "kibi doctor fails configured plugins that are not declared dependencies",
+    `kibi doctor fails configured plugins that are not declared dependencies; actual check=${JSON.stringify(undeclaredPluginCheck)}`,
   );
   let undeclared = false;
   try {
