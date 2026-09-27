@@ -23605,10 +23605,10 @@ coordinates:
     sourceLine: 81
   SYM-skillopt-mcp-broker-tests:
     identityHash: 6b2ed137912c1241f61f99ac440b434e1bd9ed41077b7eecd21eab9494d8429c
-    sourceHash: 0ffe4a910e4d18dd3b20d142560856dcba6a6dcd34862ce6ed53c3758eb0490f
+    sourceHash: a5b33eff6442bd1ac085d1cac5d2a085b5d0ecfcce955924a954e603ef2889ba
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 376
+    sourceEndLine: 377
     sourceFile: scripts/skillopt-eval/tests/mcp-broker.test.ts
     sourceLine: 1
   SYM-skillopt-mcp-startup-probe-tests:
