@@ -181,3 +181,129 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-eeab85a60cff
+  - type: constrains
+    from: REQ-claude-code-kibi-plugin-v1
+    to: FACT-SUBJECT-7D8A11CB905D46FD
+    created_at: 2026-09-27T09:13:17.148Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b62076208866
+  - type: requires_property
+    from: REQ-claude-code-kibi-plugin-v1
+    to: FACT-PROP-1F67EBC2F714237E
+    created_at: 2026-09-27T09:13:17.179Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a90a6c9e4197
+  - type: requires_predicate
+    from: REQ-claude-code-kibi-plugin-v1
+    to: FACT-PRED-84D9BC5F78D9
+    created_at: 2026-09-27T09:13:17.192Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-54c889707e2f
+  - type: requires_predicate
+    from: REQ-claude-code-kibi-plugin-v1
+    to: FACT-PRED-E34B529A9CF1
+    created_at: 2026-09-27T09:13:17.199Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-593bd67be47e
+  - type: requires_predicate
+    from: REQ-claude-code-kibi-plugin-v1
+    to: FACT-PRED-F96961200D79
+    created_at: 2026-09-27T09:13:17.206Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-017ce4f542f5
+  - type: requires_predicate
+    from: REQ-claude-code-kibi-plugin-v1
+    to: FACT-PRED-0580134D3146
+    created_at: 2026-09-27T09:13:17.214Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31ece52ce5b4
+  - type: requires_predicate
+    from: REQ-claude-code-kibi-plugin-v1
+    to: FACT-PRED-FA86886E0CAF
+    created_at: 2026-09-27T09:13:17.223Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e949f8d93535
+  - type: requires_predicate
+    from: REQ-claude-code-kibi-plugin-v1
+    to: FACT-PRED-B867B426704A
+    created_at: 2026-09-27T09:13:17.230Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3c63617b2fc8
+  - type: requires_predicate
+    from: REQ-claude-code-kibi-plugin-v1
+    to: FACT-PRED-2516940E9C79
+    created_at: 2026-09-27T09:13:17.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-050625efc9b8
+  - type: requires_predicate
+    from: REQ-claude-code-kibi-plugin-v1
+    to: FACT-PRED-8FEC71EF2D20
+    created_at: 2026-09-27T09:13:17.250Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a1cc6a55b2d5
+  - type: constrains
+    from: REQ-claude-code-kibi-plugin-v1
+    to: FACT-SUBJECT-14DDB5E66BF76BC7
+    created_at: 2026-09-27T09:13:17.259Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4939271bdb3a
+  - type: requires_property
+    from: REQ-claude-code-kibi-plugin-v1
+    to: FACT-PROP-DB72C1F7BFAC4B5F
+    created_at: 2026-09-27T09:13:17.271Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-97be19c631e0
+  - type: requires_predicate
+    from: REQ-claude-code-kibi-plugin-v1
+    to: FACT-PRED-F1E8F379B305
+    created_at: 2026-09-27T09:13:17.287Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-95f2f5366386
+  - type: requires_predicate
+    from: REQ-claude-code-kibi-plugin-v1
+    to: FACT-PRED-615636D1873A
+    created_at: 2026-09-27T09:13:17.298Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-019ba9e61f9b
+  - type: constrains
+    from: REQ-claude-code-kibi-plugin-v1
+    to: FACT-SUBJECT-B495FB4B1BC95C41
+    created_at: 2026-09-27T09:13:17.309Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b4f5e599345
+  - type: requires_property
+    from: REQ-claude-code-kibi-plugin-v1
+    to: FACT-PROP-E5A7DECFE2B39039
+    created_at: 2026-09-27T09:13:17.322Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2a9765495858
+  - type: specified_by
+    from: REQ-claude-code-kibi-plugin-v1
+    to: SCEN-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:14:36.842Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e48f6bec7ce5
+  - type: verified_by
+    from: REQ-claude-code-kibi-plugin-v1
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:14:36.864Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-43570da71bf9

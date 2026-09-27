@@ -199,6 +199,10 @@ export function paginateResults<T>(
 // implements REQ-kibi-operation-interface-parity, REQ-mcp-search-discovery
 export const SEARCH_CANDIDATE_PAGE_SIZE = 500;
 
+function isPrologOutputOverflow(error: unknown): boolean {
+  return error instanceof Error && error.message.includes("ENOBUFS");
+}
+
 // implements REQ-kibi-operation-interface-parity, REQ-mcp-search-discovery
 export async function loadSearchCandidates(
   prolog: Pick<PrologPort, "searchEntities"> &
@@ -265,13 +269,27 @@ async function readCandidatePages(
   const candidates: Record<string, unknown>[] = [];
   let offset = 0;
   let total = Number.POSITIVE_INFINITY;
+  let pageSize = SEARCH_CANDIDATE_PAGE_SIZE;
   while (offset < total && candidates.length < maxCandidates) {
-    const page = await readPage({
-      query: input.query,
-      ...(input.type !== undefined ? { type: input.type } : {}),
-      limit: SEARCH_CANDIDATE_PAGE_SIZE,
-      offset,
-    });
+    let page: PrologSearchQueryResult;
+    try {
+      page = await readPage({
+        query: input.query,
+        ...(input.type !== undefined ? { type: input.type } : {}),
+        limit: pageSize,
+        offset,
+      });
+    } catch (error) {
+      // A page of unusually large rows can still exceed the bounded Prolog
+      // output. Halve the page and retry the same offset; the smaller size is
+      // kept for the rest of the scan. Only a single row that overflows on its
+      // own is a real failure.
+      if (pageSize > 1 && isPrologOutputOverflow(error)) {
+        pageSize = Math.max(1, Math.floor(pageSize / 2));
+        continue;
+      }
+      throw error;
+    }
     if (page.entities.length === 0) break;
     candidates.push(...page.entities);
     total = page.count;

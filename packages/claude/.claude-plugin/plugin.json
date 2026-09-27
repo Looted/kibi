@@ -1,0 +1,12 @@
+{
+  "name": "kibi-claude",
+  "version": "0.1.0",
+  "description": "Kibi for Claude Code: requirement and test context surfaced before reads and edits, advisory KB freshness reminders, bundled Kibi skills, and the workspace-gated Kibi MCP server. Silent in workspaces without Kibi.",
+  "author": {
+    "name": "Piotr Franczyk"
+  },
+  "homepage": "https://github.com/Looted/kibi/blob/develop/packages/claude/README.md",
+  "repository": "https://github.com/Looted/kibi",
+  "license": "AGPL-3.0-or-later",
+  "keywords": ["kibi", "mcp", "requirements", "traceability", "knowledge-base"]
+}

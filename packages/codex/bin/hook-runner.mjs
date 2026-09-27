@@ -301,9 +301,14 @@ function readRecord(record, keys) {
   }
   return;
 }
+function canonicalKbToolName(toolName) {
+  const trimmed = toolName?.trim() ?? "";
+  const lastSegment = trimmed.includes("__") ? trimmed.split("__").at(-1) ?? "" : trimmed.replace(/^MCP:/i, "");
+  const operation = lastSegment.replace(/^kibi_/, "");
+  return operation.startsWith("kb_") ? operation : undefined;
+}
 function extractKbMcpToolCall(toolName, toolInput) {
-  const directToolName = toolName?.trim();
-  let normalizedToolName = directToolName?.startsWith("kb_") ? directToolName : undefined;
+  let normalizedToolName = canonicalKbToolName(toolName);
   if (!isRecord3(toolInput)) {
     return normalizedToolName ? { toolName: normalizedToolName, impactCheckRun: false, sourceFiles: [] } : undefined;
   }

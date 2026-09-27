@@ -337,6 +337,7 @@ export const COVERAGE_SHARDS: readonly {
     paths: ZCODE_UNIT_TESTS,
     setup: ["run", "build:zcode"],
   },
+  { label: "claude", paths: ["./packages/claude"] },
   {
     label: "skillopt",
     paths: ["./scripts/skillopt-eval/tests"],

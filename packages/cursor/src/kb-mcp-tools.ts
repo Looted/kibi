@@ -63,6 +63,22 @@ function readRecord(
   return undefined;
 }
 
+/**
+ * Canonical Kibi operation name for a host tool name. Hosts prefix MCP tools
+ * (`mcp__kibi__kb_check`, `mcp__plugin_<plugin>_kibi__kb_check`,
+ * `MCP:kb_check`, `kibi_kb_check`); an unprefixed `kb_check` passes through.
+ */
+export function canonicalKbToolName(
+  toolName: string | undefined,
+): string | undefined {
+  const trimmed = toolName?.trim() ?? "";
+  const lastSegment = trimmed.includes("__")
+    ? (trimmed.split("__").at(-1) ?? "")
+    : trimmed.replace(/^MCP:/i, "");
+  const operation = lastSegment.replace(/^kibi_/, "");
+  return operation.startsWith("kb_") ? operation : undefined;
+}
+
 export type KbMcpToolCall = {
   toolName: string;
   impactCheckRun: boolean;
@@ -86,10 +102,7 @@ export function extractKbMcpToolCall(
   toolName: string | undefined,
   toolInput: unknown,
 ): KbMcpToolCall | undefined {
-  const directToolName = toolName?.trim();
-  let normalizedToolName = directToolName?.startsWith("kb_")
-    ? directToolName
-    : undefined;
+  let normalizedToolName = canonicalKbToolName(toolName);
 
   if (isRecord(toolInput)) {
     normalizedToolName ??= readString(toolInput, [

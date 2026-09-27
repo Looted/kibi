@@ -104,3 +104,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e4b1bf001265
+  - type: implements
+    from: SYM-claude-sessionDir
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:24:13.237Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0be6ca3dbe9d
+  - type: covered_by
+    from: SYM-claude-sessionDir
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:24:13.253Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fea9a24e9867
+  - type: implements
+    from: SYM-claude-sessionStartContext
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:26:23.529Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-720fd2307b5a
+  - type: covered_by
+    from: SYM-claude-sessionStartContext
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:26:23.540Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-91d646aa0671

@@ -48,6 +48,53 @@ function context(
 }
 
 describe("search candidate paging", () => {
+  test("loadSearchCandidates halves the page after an output overflow and keeps every candidate", async () => {
+    const total = SEARCH_CANDIDATE_PAGE_SIZE + 50;
+    const { requests, fetchPage } = makeFakeSearchIndex(total);
+    // Any page larger than 200 entities overflows the bounded output.
+    const overflowing = async (input: PrologSearchQueryInput) => {
+      if (input.limit > 200) {
+        requests.push(input);
+        throw new Error(
+          "Query exceeded bounded Prolog output capacity (ENOBUFS); narrow the operation or reduce stored entity size",
+        );
+      }
+      return fetchPage(input);
+    };
+    const candidates = await loadSearchCandidates(
+      { searchEntities: overflowing },
+      { query: "session" },
+    );
+    expect(candidates.map((entity) => entity.id)).toEqual(
+      Array.from({ length: total }, (_, index) => `REQ-${index + 1}`),
+    );
+    // 500 and 250 overflow once each; 125-entity pages are kept afterwards.
+    expect(requests.map((request) => request.limit)).toEqual([
+      500, 250, 125, 125, 125, 125, 125,
+    ]);
+  });
+
+  test("loadSearchCandidates rethrows when a single entity overflows or the error is not an overflow", async () => {
+    const overflowAlways = async (): Promise<never> => {
+      throw new Error(
+        "Query exceeded bounded Prolog output capacity (ENOBUFS)",
+      );
+    };
+    await expect(
+      loadSearchCandidates({ searchEntities: overflowAlways }, { query: "x" }),
+    ).rejects.toThrow("ENOBUFS");
+
+    let calls = 0;
+    const brokenEngine = async (): Promise<never> => {
+      calls += 1;
+      throw new Error("engine unavailable");
+    };
+    await expect(
+      loadSearchCandidates({ searchEntities: brokenEngine }, { query: "x" }),
+    ).rejects.toThrow("engine unavailable");
+    expect(calls).toBe(1);
+  });
+
   test("loadSearchCandidates aggregates paged responses under the bounded page size", async () => {
     const total = SEARCH_CANDIDATE_PAGE_SIZE * 2 + 200;
     const { requests, fetchPage } = makeFakeSearchIndex(total);

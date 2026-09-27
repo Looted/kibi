@@ -135,6 +135,15 @@ export const PACKAGE_CATALOG = [
     optional: false,
     packAll: true,
   },
+  {
+    dir: "claude",
+    npmName: "kibi-claude",
+    publishable: false,
+    packInCi: false,
+    includedInDefaultInstall: false,
+    optional: false,
+    packAll: true,
+  },
 ] as const satisfies readonly PackageCatalogEntry[];
 
 // implements REQ-020

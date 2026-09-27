@@ -348,6 +348,7 @@ See [generic-agent onboarding](docs/generic-agent-onboarding.md) for the copy-pa
 | `kibi-codex` | Optional Codex skills, MCP, and lifecycle adapter |
 | `kibi-cursor` | Optional Cursor rules, skills, MCP, and advisory hooks |
 | `kibi-zcode` | Optional ZCode skills, command, MCP, and advisory hooks |
+| `kibi-claude` | Optional Claude Code skills, MCP, knowledge snippets before reads/edits, and advisory freshness hooks |
 | `kibi-vscode` | VS Code knowledge explorer and traceability integration |
 | `kibi-plugin-sdk` | Public protocol types and validators for capability plugins |
 | `kibi-plugin-builtin` | Default semantic, ontology, and TypeScript symbol capabilities |

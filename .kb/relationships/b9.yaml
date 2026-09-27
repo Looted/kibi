@@ -104,3 +104,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-49200acc6919
+  - type: implements
+    from: SYM-claude-SessionState
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:25:20.977Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a3d6e38ee58e
+  - type: covered_by
+    from: SYM-claude-SessionState
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:25:20.990Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8c73e1db2fe2

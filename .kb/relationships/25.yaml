@@ -160,3 +160,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1ddf66a311c7
+  - type: executable_for
+    from: SYM-claude-test-Fixture
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:29:17.085Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b886a4f9746d

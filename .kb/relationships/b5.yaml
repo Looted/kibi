@@ -356,3 +356,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1f46b8ed0037
+  - type: implements
+    from: SYM-claude-adapterKind
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:20:08.919Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d68e69a38f7d
+  - type: covered_by
+    from: SYM-claude-adapterKind
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:20:08.967Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-050b94383760

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "kibi": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/bin/mcp-launcher.cjs"]
+    }
+  }
+}

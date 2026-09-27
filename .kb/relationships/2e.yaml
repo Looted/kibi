@@ -147,3 +147,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-3ed30ee0fde9
+  - type: implements
+    from: SYM-claude-KIBI_WORKSPACE_ENV_KEYS
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:27:47.517Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6359f9d9a2aa
+  - type: covered_by
+    from: SYM-claude-KIBI_WORKSPACE_ENV_KEYS
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:27:47.531Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-22177de92e95

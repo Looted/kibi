@@ -70,11 +70,11 @@ describe("sync-agent-skills argument parsing", () => {
   test("defaults to write mode for all targets", () => {
     expect(parseArgs([])).toEqual({
       mode: "write",
-      targets: ["cursor", "codex", "zcode"],
+      targets: ["cursor", "codex", "zcode", "claude"],
     });
     expect(parseArgs(["--write"])).toEqual({
       mode: "write",
-      targets: ["cursor", "codex", "zcode"],
+      targets: ["cursor", "codex", "zcode", "claude"],
     });
     expect(parseArgs(["--check", "--target", "cursor"])).toEqual({
       mode: "check",
@@ -282,6 +282,37 @@ describe("sync-agent-skills planning and drift", () => {
         "utf8",
       ),
     ).toBe("guide\n");
+  });
+
+  test("processTarget sets claude skill names to the id so slash commands stay usable", () => {
+    const root = tempRoot();
+    for (const id of EXPECTED_SKILL_IDS) {
+      const skillDir = join(root, "packages/runtime/src/skills", id);
+      mkdirSync(skillDir, { recursive: true });
+      writeFileSync(
+        join(skillDir, "SKILL.md"),
+        `---\nid: ${id}\nname: Display ${id}\ndescription: ${id} guidance\nversion: 1.0.0\n---\n# ${id}\n`,
+      );
+    }
+
+    const result = processTarget(
+      root,
+      canonicalSkillsDir(root),
+      "claude",
+      "write",
+    );
+    expect(result.drifted).toBe(false);
+
+    const raw = readFileSync(
+      join(root, "packages/claude/skills/kibi-usage/SKILL.md"),
+      "utf8",
+    );
+    expect(raw).toMatch(/^name: kibi-usage$/m);
+    expect(raw).toMatch(/^description: kibi-usage guidance$/m);
+    expect(raw).toMatch(
+      /^metadata:\n {2}displayName: Display kibi-usage\n {2}id: kibi-usage/m,
+    );
+    expect(raw).toContain("# kibi-usage\n");
   });
 
   test("main exits 2 on invalid flags", async () => {

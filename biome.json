@@ -9,6 +9,7 @@
     "ignore": [
       "packages/cli/src/schemas/entity.schema.json",
       "packages/codex/bin/hook-runner.mjs",
+      "packages/claude/bin/hook-runner.mjs",
       "proof/**"
     ]
   },

@@ -646,6 +646,42 @@ describe("ZCode hook runner workspace opt-in", () => {
     );
   });
 
+  test("a host-prefixed kb_check acknowledges the edited paths", async () => {
+    const { cwd, pluginData } = workspaceFixture("kibi-zcode-prefixed");
+
+    await runHook(
+      {
+        hook_event_name: "PostToolUse",
+        session_id: "s1",
+        cwd,
+        tool_name: "Edit",
+        tool_input: { file_path: "src/a.ts" },
+      },
+      { pluginData },
+    );
+    await runHook(
+      {
+        hook_event_name: "PostToolUse",
+        session_id: "s1",
+        cwd,
+        tool_name: "mcp__kibi__kb_check",
+        tool_input: {
+          sourceFiles: ["src/a.ts"],
+          includeImpactDiagnostics: true,
+          includeWorkingTreeDiff: true,
+        },
+      },
+      { pluginData },
+    );
+
+    expectQuiet(
+      await runHook(
+        { hook_event_name: "Stop", session_id: "s1", cwd },
+        { pluginData },
+      ),
+    );
+  });
+
   test("dot-prefixed edit paths canonicalize identically", async () => {
     const { cwd, pluginData } = workspaceFixture("kibi-zcode-dotchk");
 

@@ -148,6 +148,10 @@ const BATCHES: Batch[] = [
     args: ["test", "--timeout", "15000", "./packages/zcode"],
   },
   {
+    label: "claude",
+    args: ["test", "--timeout", "15000", "./packages/claude"],
+  },
+  {
     label: "vscode activation",
     args: [
       "test",

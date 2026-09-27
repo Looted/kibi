@@ -1,7 +1,20 @@
 {
   "name": "kibi",
-  "description": "Kibi plugins for ZCode: requirement-traceable agent workflows backed by the Kibi MCP.",
+  "owner": {
+    "name": "Piotr Franczyk"
+  },
+  "description": "Kibi plugins for Claude Code and ZCode: requirement-traceable agent workflows backed by the Kibi MCP.",
+  "metadata": {
+    "description": "Kibi plugins for Claude Code and ZCode: requirement-traceable agent workflows backed by the Kibi MCP."
+  },
   "plugins": [
+    {
+      "name": "kibi-claude",
+      "source": "./packages/claude",
+      "description": "Kibi for Claude Code: requirement and test snippets before reads and edits, advisory KB freshness reminders, bundled Kibi skills, and the workspace-gated Kibi MCP server. Prerequisite: SWI-Prolog 9+ and project-local kibi-cli, kibi-mcp, kibi-core.",
+      "homepage": "https://github.com/Looted/kibi/blob/develop/packages/claude/README.md",
+      "category": "Productivity"
+    },
     {
       "name": "kibi-zcode",
       "source": "./packages/zcode",
