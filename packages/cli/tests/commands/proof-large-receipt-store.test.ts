@@ -6,6 +6,10 @@ import { engineStopCommand } from "../../src/commands/engine.js";
 import { initCommand } from "../../src/commands/init.js";
 import { proofImpactCommand } from "../../src/commands/proof-impact.js";
 import { resolveBoundSymbolScope } from "../../src/extractors/manifest.js";
+import {
+  loadCoveredBySymbolsByTest,
+  receiptCodeScopeSymbolIds,
+} from "../../src/operations/proof/code-scope.js";
 import { removeFrontmatterBlock } from "../../src/operations/proof/receipt-document.js";
 import { PrologProcess } from "../../src/prolog.js";
 import { toPrologString } from "../../src/prolog/codec.js";
@@ -244,6 +248,9 @@ describe("proof reporting on a receipt store larger than the Prolog output cap",
     // reference computation itself stays under the cap.
     const manifestPath = join(root, ".kb", "symbols.yaml");
     const entries: string[] = [];
+    const coveredBy = await loadCoveredBySymbolsByTest(
+      prolog as unknown as PrologPort,
+    );
     const full: Record<string, unknown>[] = [];
     for (let offset = 0; ; offset += 4) {
       const page = await loadEntities(prolog as unknown as PrologPort, {
@@ -260,13 +267,15 @@ describe("proof reporting on a receipt store larger than the Prolog output cap",
       const source = String(entity.source);
       const authored = await nodeFilesystem.readFile(join(root, source));
       const stripped = removeFrontmatterBlock(authored, "proof_receipts");
-      const bound = (entity.proof_bindings as { symbol_id: string }[]).map(
-        (binding) => binding.symbol_id,
+      const scoped = receiptCodeScopeSymbolIds(
+        entity.proof_contract,
+        entity.proof_bindings,
+        coveredBy.get(id) ?? [],
       );
       const binding = receiptBindingHash(
         entity.proof_contract as never,
         stripped ?? authored,
-        resolveBoundSymbolScope(manifestPath, bound),
+        resolveBoundSymbolScope(manifestPath, scoped),
       );
       entries.push(`${toPrologAtom(id)}: ${toPrologAtom(binding)}`);
     }

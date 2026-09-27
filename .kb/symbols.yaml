@@ -41747,3 +41747,23 @@ symbols:
         target: TEST-kibi-verification-evidence-contract
       - type: implements
         target: REQ-kibi-verification-evidence-contract
+  - id: SYM-cli-receiptCodeScopeSymbolIds
+    title: receiptCodeScopeSymbolIds
+    status: active
+    sourceFile: packages/cli/src/operations/proof/code-scope.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-cli-loadCoveredBySymbolsByTest
+    title: loadCoveredBySymbolsByTest
+    status: active
+    sourceFile: packages/cli/src/operations/proof/code-scope.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract

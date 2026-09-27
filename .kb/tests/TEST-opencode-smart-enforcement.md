@@ -26,42 +26,6 @@ proof_contract:
   success_policy: all_required_first_attempt
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-d32b3bdc767365f75add1fe0
-    test_id: TEST-opencode-smart-enforcement
-    scope: end_to_end
-    outcome: failed
-    code_snapshot: 71b43ef38f0945d5febd8dad9a12223a2f13e5092564f8222974a6fb48fc1ea5
-    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
-    started_at: '2026-09-06T06:30:49.943Z'
-    finished_at: '2026-09-06T07:22:27.216Z'
-    artifact_digest: 874dd5c6d454cff93bdf784b60380ee2fa22f4058f4382076d931c84dde61ccd
-    contract_hash: 113b22362747b0a04384c2908a81b60f6b006720fe5537c58f37bf21c4014be7
-    fingerprint: 28dcaa3947b34c8b9f8da049adc44fb465cf12664f39ba577556b010c1ec1a7a
-    fingerprint_components:
-      contract: 113b22362747b0a04384c2908a81b60f6b006720fe5537c58f37bf21c4014be7
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: failed
-    proof_results:
-      - symbol_id: SYM-e2e-test-opencode-smart-enforcement
-        target: default
-        outcome: failed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-    gaps:
-      - symbol_id: SYM-e2e-test-opencode-smart-enforcement
-        target: default
-        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-test-packed-dependency-ordered-repair-plan (failed), SYM-e2e-packed-cli-github-report (failed), SYM-test-core-journaled-engine-delta-sync (failed), SYM-test-opencode-bootstrap-paths (failed), SYM-codex-packed-plugin-e2e (failed) +83 more'
-  - version: kibi.proof-receipt.v1
     receipt_id: PR-3f11ca8afc1bdf45ed0f6b2c
     test_id: TEST-opencode-smart-enforcement
     scope: end_to_end
@@ -1683,6 +1647,39 @@ proof_receipts:
     artifact_digest: 601f3dfdaa45bbef34f649d3ddd7d3e53a7dc2ba372aa80398ec1e1a58170f59
     contract_hash: 113b22362747b0a04384c2908a81b60f6b006720fe5537c58f37bf21c4014be7
     binding_hash: a3de4776f0df4894385d9719d356502522890c762778b8b0bda45aa60b46b6bf
+    fingerprint: 28dcaa3947b34c8b9f8da049adc44fb465cf12664f39ba577556b010c1ec1a7a
+    fingerprint_components:
+      contract: 113b22362747b0a04384c2908a81b60f6b006720fe5537c58f37bf21c4014be7
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-opencode-smart-enforcement
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-6ba2e11a0cc895e90ea12391
+    test_id: TEST-opencode-smart-enforcement
+    scope: unit
+    outcome: passed
+    code_snapshot: 1c7fc342e7e2f6dde52ad4d4bfb3dccda5184f524d128ad26d3d6aa8928b80df
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-27T15:30:37.315Z'
+    finished_at: '2026-09-27T16:09:53.858Z'
+    artifact_digest: cab9ee9d09f579ccae00bea019b0266d72e41c24a37e65651b84956de238bb61
+    contract_hash: 113b22362747b0a04384c2908a81b60f6b006720fe5537c58f37bf21c4014be7
+    binding_hash: ea7f75735de2736fa25ea11c3465a19e0372173ca1046a7baf9f892f2aca3a3b
     fingerprint: 28dcaa3947b34c8b9f8da049adc44fb465cf12664f39ba577556b010c1ec1a7a
     fingerprint_components:
       contract: 113b22362747b0a04384c2908a81b60f6b006720fe5537c58f37bf21c4014be7

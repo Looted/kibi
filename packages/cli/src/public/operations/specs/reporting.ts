@@ -209,7 +209,9 @@ export async function perContractTestBindings(
   const { removeFrontmatterBlock } = await import(
     "../../../operations/proof/receipt-document.js"
   );
-  // Only the contract, bound symbols, and authored source feed the binding
+  const { loadCoveredBySymbolsByTest, receiptCodeScopeSymbolIds } =
+    await import("../../../operations/proof/code-scope.js");
+  // Only the contract, scoped code, and authored source feed the binding
   // hash. The paged projection never materializes receipt histories, which
   // grow without bound and previously overflowed the bounded Prolog output
   // on real stores. Engine failures must surface: silently dropping to strict
@@ -224,6 +226,9 @@ export async function perContractTestBindings(
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Per-contract receipt binding query failed: ${message}`);
   }
+  const coveredBy = tests.length
+    ? await loadCoveredBySymbolsByTest(requireProlog(context))
+    : new Map<string, readonly string[]>();
   const entries: string[] = [];
   const manifestPath = join(context.workspaceRoot, ".kb", "symbols.yaml");
   for (const test of tests) {
@@ -242,17 +247,14 @@ export async function perContractTestBindings(
       const absolute = join(context.workspaceRoot, source);
       const authored = await context.fs.readFile(absolute);
       const stripped = removeFrontmatterBlock(authored, "proof_receipts");
-      const rawBindings: ReadonlyArray<{ symbol_id?: unknown }> = Array.isArray(
-        test.proof_bindings,
-      )
-        ? (test.proof_bindings as ReadonlyArray<{ symbol_id?: unknown }>)
-        : [];
-      const boundIds = rawBindings
-        .map((binding) =>
-          typeof binding.symbol_id === "string" ? binding.symbol_id : "",
-        )
-        .filter((id) => id !== "");
-      const codeScope = resolveBoundSymbolScope(manifestPath, boundIds);
+      const codeScope = resolveBoundSymbolScope(
+        manifestPath,
+        receiptCodeScopeSymbolIds(
+          contract,
+          test.proof_bindings,
+          coveredBy.get(testId) ?? [],
+        ),
+      );
       const binding = receiptBindingHash(
         contract as never,
         stripped ?? authored,
