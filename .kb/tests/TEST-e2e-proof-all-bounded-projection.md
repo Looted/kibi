@@ -56,4 +56,103 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-859e427da0ba7230cb69bb8e
+    test_id: TEST-e2e-proof-all-bounded-projection
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 279c75d5e89a7f57373d2a99f32dc668cce54b9c7c454df115722fcb2088762d
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-26T21:19:41.697Z'
+    finished_at: '2026-09-26T21:51:59.383Z'
+    artifact_digest: ea2ec21bf8ebe523493b8797005c5699ed64e6437a611a7893219d88cbebb0b2
+    contract_hash: e907fd1c9501319fb8fc5095259d957e65ed3f47f001ff09d33b6731491b6fa9
+    binding_hash: 9c317aae2d5230ab825fdc56a1b09029dd05d98b0a1181d462f6a441e9690587
+    fingerprint: 11fbce064ce17639cfde47d49343868d55f0f45e291f3e8957f46a2cb45ce696
+    fingerprint_components:
+      contract: e907fd1c9501319fb8fc5095259d957e65ed3f47f001ff09d33b6731491b6fa9
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: ece4d7e80cdc573eca949587eef9a5e70569e82dfca2500a5499082cbab90e0f
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-proof-all-bounded-projection
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-8bb2fe39a379382df4ebe922
+    test_id: TEST-e2e-proof-all-bounded-projection
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: dd570855ae419209361167772401788be6d17ae147c25dff13ad1e92daed3d43
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-27T10:17:38.192Z'
+    finished_at: '2026-09-27T10:52:33.895Z'
+    artifact_digest: 2200dffdd4f1cf4aab062fe2f655a48a020797a1661bde4140baa964edd0aa71
+    contract_hash: e907fd1c9501319fb8fc5095259d957e65ed3f47f001ff09d33b6731491b6fa9
+    binding_hash: 9c317aae2d5230ab825fdc56a1b09029dd05d98b0a1181d462f6a441e9690587
+    fingerprint: 11fbce064ce17639cfde47d49343868d55f0f45e291f3e8957f46a2cb45ce696
+    fingerprint_components:
+      contract: e907fd1c9501319fb8fc5095259d957e65ed3f47f001ff09d33b6731491b6fa9
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: ece4d7e80cdc573eca949587eef9a5e70569e82dfca2500a5499082cbab90e0f
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-proof-all-bounded-projection
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-0a84e801c71577ddb0d6d12e
+    test_id: TEST-e2e-proof-all-bounded-projection
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: f7be4ad7689f79542c901c3d4abd17321b2de74dc5a42a4f3e181fa4388301fb
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-27T11:03:41.438Z'
+    finished_at: '2026-09-27T11:38:11.633Z'
+    artifact_digest: d6ba04f64f847cb08f207889bbb37118a5a1399f665d6b626f1d259ddce79b44
+    contract_hash: e907fd1c9501319fb8fc5095259d957e65ed3f47f001ff09d33b6731491b6fa9
+    binding_hash: 9c317aae2d5230ab825fdc56a1b09029dd05d98b0a1181d462f6a441e9690587
+    fingerprint: 11fbce064ce17639cfde47d49343868d55f0f45e291f3e8957f46a2cb45ce696
+    fingerprint_components:
+      contract: e907fd1c9501319fb8fc5095259d957e65ed3f47f001ff09d33b6731491b6fa9
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: ece4d7e80cdc573eca949587eef9a5e70569e82dfca2500a5499082cbab90e0f
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-proof-all-bounded-projection
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
