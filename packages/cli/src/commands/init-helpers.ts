@@ -460,8 +460,10 @@ export function installGitHooks(
     );
   }
   if (options.hooksPathOrigin) {
+    // Configuration/location reporting stays neutral about what happened:
+    // the per-hook lines and the aggregate above carry the install verdict.
     console.log(
-      `! core.hooksPath is configured (${options.hooksPathOrigin}); hooks were installed for THIS checkout at ${hooksDir}. Git resolves a relative hooks path separately under every worktree, so coverage of other worktrees is INCOMPLETE/UNVERIFIED: commit a versioned launcher that delegates to kibi, or run 'kibi init' in each checkout. Kibi will not change core.hooksPath.`,
+      `! core.hooksPath is configured (${options.hooksPathOrigin}); the effective hooks directory for THIS checkout is ${hooksDir}. Git resolves a relative hooks path separately under every worktree, so coverage of other worktrees is INCOMPLETE/UNVERIFIED: commit a versioned launcher that delegates to kibi, or run 'kibi init' in each checkout. Kibi will not change core.hooksPath.`,
     );
   }
   return results;

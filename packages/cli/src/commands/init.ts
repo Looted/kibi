@@ -165,10 +165,19 @@ export async function initCommand(
 
   // Resolve the repository once and derive every project path from Git's own
   // answer, so init works from linked worktrees (.git is a file there) and
-  // from subdirectories (cwd has no .kb or .git at all). Bare repositories
-  // and unreadable contexts are refused before any workspace write.
+  // from subdirectories (cwd has no .kb or .git at all). Bare repositories,
+  // unreadable contexts, and operational Git refusals are rejected before any
+  // workspace write — even when KIBI_BRANCH makes a standalone fallback
+  // available for genuinely non-repository directories.
   // implements REQ-git-hook-effective-install
   const resolution = resolveGitRepository(process.cwd());
+  if (resolution.status === "git-refused") {
+    console.error(`Error: ${resolution.reason}`);
+    console.error(
+      "Kibi cannot verify this directory's Git context; refusing to create workspace state.",
+    );
+    return { exitCode: 1 };
+  }
   if (resolution.status === "unsupported") {
     console.error(`Error: ${resolution.reason}`);
     console.error(

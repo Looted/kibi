@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { doctorCommand } from "../../src/commands/doctor.js";
@@ -17,6 +17,35 @@ import {
 // executable_for TEST-git-hook-effective-install
 // Doctor must diagnose the hooks directory Git executes (effective path,
 // honoring core.hooksPath and linked worktrees), freshly on every invocation.
+
+interface DoctorCheck {
+  name: string;
+  passed?: boolean;
+  message: string;
+  remediation?: string;
+}
+
+const HOOK_CHECK_NAMES = [
+  "Git hooks",
+  "pre-commit hook",
+  "post-rewrite hook",
+] as const;
+
+function hookChecks(io: { logs: string[] }): DoctorCheck[] {
+  const parsed = JSON.parse(io.logs[0] ?? "{}") as { checks?: DoctorCheck[] };
+  return (parsed.checks ?? []).filter((check) =>
+    (HOOK_CHECK_NAMES as readonly string[]).includes(check.name),
+  );
+}
+
+function checkByName(
+  checks: DoctorCheck[],
+  name: (typeof HOOK_CHECK_NAMES)[number],
+): DoctorCheck {
+  const check = checks.find((entry) => entry.name === name);
+  expect(check, `doctor reported no "${name}" check`).toBeDefined();
+  return check as DoctorCheck;
+}
 
 describe("doctor effective hooks context", () => {
   let restores: Array<() => void>;
@@ -47,15 +76,12 @@ describe("doctor effective hooks context", () => {
     process.env.GIT_CONFIG_GLOBAL = globalConfig;
     process.env.GIT_CONFIG_SYSTEM = "/dev/null";
     process.env.GIT_CONFIG_NOSYSTEM = "1";
-    restores.push(() =>
-      Reflect.deleteProperty(process.env, "GIT_CONFIG_GLOBAL"),
-    );
-    restores.push(() =>
-      Reflect.deleteProperty(process.env, "GIT_CONFIG_SYSTEM"),
-    );
-    restores.push(() =>
-      Reflect.deleteProperty(process.env, "GIT_CONFIG_NOSYSTEM"),
-    );
+    restores.push(() => {
+      rmSync(globalConfig, { force: true });
+      Reflect.deleteProperty(process.env, "GIT_CONFIG_GLOBAL");
+      Reflect.deleteProperty(process.env, "GIT_CONFIG_SYSTEM");
+      Reflect.deleteProperty(process.env, "GIT_CONFIG_NOSYSTEM");
+    });
   }
 
   function installManagedHooks(cwd: string): void {
@@ -67,26 +93,35 @@ describe("doctor effective hooks context", () => {
     makeExecutable(path.join(cwd, ".git", "hooks", "post-merge"));
   }
 
+  async function doctorAt(cwd: string): Promise<ReturnType<typeof captureIo>> {
+    const io = captureIo();
+    restores.push(io.restore);
+    await withCwd(cwd, () => doctorCommand({ format: "json" }));
+    return io;
+  }
+
   test("agrees between the repository root and a subdirectory", async () => {
     const cwd = track(createGitWorkspace());
     installManagedHooks(cwd);
 
-    const ioRoot = captureIo();
-    restores.push(ioRoot.restore);
-    const rootResult = await withCwd(cwd, () =>
-      doctorCommand({ format: "json" }),
-    );
+    const ioRoot = await doctorAt(cwd);
     expect(ioRoot.logText()).toContain("Installed and executable");
 
     const sub = path.join(cwd, "sub");
     mkdirSync(sub, { recursive: true });
-    const ioSub = captureIo();
-    restores.push(ioSub.restore);
-    const subResult = await withCwd(sub, () =>
-      doctorCommand({ format: "json" }),
-    );
-    expect(subResult).toBeDefined();
-    expect(ioSub.logText()).toContain("Installed and executable");
+    const ioSub = await doctorAt(sub);
+
+    // The root/sub agreement claim covers the concrete hook checks: each
+    // verdict must be identical, not merely present.
+    for (const name of HOOK_CHECK_NAMES) {
+      const rootCheck = checkByName(hookChecks(ioRoot), name);
+      const subCheck = checkByName(hookChecks(ioSub), name);
+      expect(subCheck).toEqual(rootCheck);
+    }
+    expect(checkByName(hookChecks(ioRoot), "Git hooks").passed).toBe(true);
+    expect(
+      checkByName(hookChecks(ioRoot), "Git hooks").message,
+    ).toContain("Installed and executable");
   });
 
   test("sees a core.hooksPath change between in-process invocations", async () => {
@@ -94,17 +129,17 @@ describe("doctor effective hooks context", () => {
     const cwd = track(createGitWorkspace());
     installManagedHooks(cwd);
 
-    const before = captureIo();
-    restores.push(before.restore);
-    await withCwd(cwd, () => doctorCommand({ format: "json" }));
-    expect(before.logText()).not.toContain("core.hooksPath=");
+    const before = await doctorAt(cwd);
+    const beforeCheck = checkByName(hookChecks(before), "Git hooks");
+    expect(beforeCheck.message).not.toContain("core.hooksPath=");
 
     git(cwd, "config core.hooksPath .githooks");
 
-    const after = captureIo();
-    restores.push(after.restore);
-    await withCwd(cwd, () => doctorCommand({ format: "json" }));
-    expect(after.logText()).toContain("core.hooksPath=.githooks");
+    const after = await doctorAt(cwd);
+    const afterCheck = checkByName(hookChecks(after), "Git hooks");
+    expect(afterCheck.passed).toBe(beforeCheck.passed);
+    expect(afterCheck.message).toContain("core.hooksPath=.githooks");
+    expect(afterCheck.message).not.toBe(beforeCheck.message);
   });
 
   test("matches the primary checkout verdict from a linked worktree", async () => {
@@ -116,10 +151,16 @@ describe("doctor effective hooks context", () => {
     roots.push(linked);
     installManagedHooks(primary);
 
-    const ioLinked = captureIo();
-    restores.push(ioLinked.restore);
-    await withCwd(linked, () => doctorCommand({ format: "json" }));
-    expect(ioLinked.logText()).toContain("Installed and executable");
+    const ioLinked = await doctorAt(linked);
+    const ioPrimary = await doctorAt(primary);
+
+    const linkedCheck = checkByName(hookChecks(ioLinked), "Git hooks");
+    const primaryCheck = checkByName(hookChecks(ioPrimary), "Git hooks");
+    expect(linkedCheck).toEqual(primaryCheck);
+    expect(linkedCheck.passed).toBe(true);
+    expect(linkedCheck.message).toContain("Installed and executable");
+    // The verdicts come from the shared common hooks directory.
+    expect(linkedCheck.message).toBe(primaryCheck.message);
   });
 
   test("keeps configuration visible when hooks are missing", async () => {
@@ -127,10 +168,10 @@ describe("doctor effective hooks context", () => {
     const cwd = track(createGitWorkspace());
     git(cwd, "config core.hooksPath .githooks");
 
-    const io = captureIo();
-    restores.push(io.restore);
-    await withCwd(cwd, () => doctorCommand({ format: "json" }));
-    expect(io.logText()).toContain("core.hooksPath=.githooks");
-    expect(io.logText()).toContain("Not installed (optional)");
+    const io = await doctorAt(cwd);
+    const check = checkByName(hookChecks(io), "Git hooks");
+    expect(check.passed).toBe(true);
+    expect(check.message).toContain("Not installed (optional)");
+    expect(check.message).toContain("core.hooksPath=.githooks");
   });
 });

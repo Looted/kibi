@@ -1917,7 +1917,7 @@ coordinates:
     sourceLine: 89
   SYM-canonical-createManifestFile:
     identityHash: 7600137157606e76b2265200414025cc47860e6a2ee881de08bcddcf154fe7f1
-    sourceHash: 6e51ba74643155d7baac9cf12c49acde8c32ee98f9c153fde069034cc77981c2
+    sourceHash: 688202b19f738a258fb19e1de759901ec1e8418061b06ed968b23e555abf3ffb
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 169
@@ -5629,10 +5629,10 @@ coordinates:
     sourceLine: 1
   SYM-cli-init-command:
     identityHash: 823f873f8d9020c1782bc765fa25b4e99ff4b01fe1f7b860c2e14544298c8af8
-    sourceHash: 785a8d97c0e80e0a139edeb9a47e6c5dfdb1d3fa5807323148dc8f32beb2b39a
+    sourceHash: cdcb6406d9267bf335c1f9070fe48565cbe88a034c35585c393a226ec605b528
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 279
+    sourceEndLine: 288
     sourceFile: packages/cli/src/commands/init.ts
     sourceLine: 156
   SYM-cli-input-error:
@@ -7997,7 +7997,7 @@ coordinates:
     sourceLine: 111
   SYM-copySchemaFiles:
     identityHash: 509b6a46582413cbd6b2c412b1f82b34155bf996ea05692af87d9204df6b46eb
-    sourceHash: 6e51ba74643155d7baac9cf12c49acde8c32ee98f9c153fde069034cc77981c2
+    sourceHash: 688202b19f738a258fb19e1de759901ec1e8418061b06ed968b23e555abf3ffb
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 277
@@ -8453,10 +8453,10 @@ coordinates:
     sourceLine: 121
   SYM-createConfigFile:
     identityHash: d657271efb227c46d5315d37c2ce998138f6d9e069d5db1febe00863092f2ddc
-    sourceHash: 6e51ba74643155d7baac9cf12c49acde8c32ee98f9c153fde069034cc77981c2
+    sourceHash: 688202b19f738a258fb19e1de759901ec1e8418061b06ed968b23e555abf3ffb
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 469
+    sourceEndLine: 471
     sourceFile: packages/cli/src/commands/init-helpers.ts
     sourceLine: 1
   SYM-createFileOperationState:
@@ -8469,7 +8469,7 @@ coordinates:
     sourceLine: 47
   SYM-createKbDirectoryStructure:
     identityHash: ebd3e400d3d98a0d2b97bd406d7c16828154f8739a2daa57fd28b0802daa958c
-    sourceHash: 6e51ba74643155d7baac9cf12c49acde8c32ee98f9c153fde069034cc77981c2
+    sourceHash: 688202b19f738a258fb19e1de759901ec1e8418061b06ed968b23e555abf3ffb
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 164
@@ -10293,7 +10293,7 @@ coordinates:
     sourceLine: 82
   SYM-ensureSymbolsManifestFile:
     identityHash: 4c866328e3155277ee2521543a00ec9d6660eaa2b2b811685621b1cb5b5469f5
-    sourceHash: 6e51ba74643155d7baac9cf12c49acde8c32ee98f9c153fde069034cc77981c2
+    sourceHash: 688202b19f738a258fb19e1de759901ec1e8418061b06ed968b23e555abf3ffb
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 260
@@ -11037,7 +11037,7 @@ coordinates:
     sourceLine: 300
   SYM-getCurrentBranch:
     identityHash: c4bb05b6e772f658f17862f054de9d8eebf7d49de8f96e848703657fef3f3f42
-    sourceHash: 6e51ba74643155d7baac9cf12c49acde8c32ee98f9c153fde069034cc77981c2
+    sourceHash: 688202b19f738a258fb19e1de759901ec1e8418061b06ed968b23e555abf3ffb
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 149
@@ -11181,18 +11181,18 @@ coordinates:
     sourceLine: 39
   SYM-git-hook-effective-install-doctor-verifier:
     identityHash: ba25b172c07010516e268276207a48864ed8ca61a9cdb01a9ec26d9599894aef
-    sourceHash: 6299ffc0b45a34be908ab1f980ec8c7464aefdea4020ae6830ea5fb02c59001f
+    sourceHash: 8f4afbe0148b272724977f0753a4e9890d08afe17aa8ce5858c6e5938c12e674
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 137
+    sourceEndLine: 178
     sourceFile: packages/cli/tests/commands/doctor-git-context.test.ts
     sourceLine: 1
   SYM-git-hook-effective-install-init-context-verifier:
     identityHash: 164d2e5c9501d46832e55a52d9b24d506f14e1b93e3a8c8493278c16bc269911
-    sourceHash: cae9eb4256ab6cdc577e5c71a971f0313d744ff67568dcb473e70a885bb5bb3b
+    sourceHash: bcca2c2066017dfa373a7d18181a7f0d1589f54b7b33c2abf4ff6a39af07f108
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 449
+    sourceEndLine: 573
     sourceFile: packages/cli/tests/commands/init-git-context.test.ts
     sourceLine: 1
   SYM-git-hook-effective-install-installer-verifier:
@@ -11205,15 +11205,15 @@ coordinates:
     sourceLine: 1
   SYM-git-hook-effective-install-repository-context-verifier:
     identityHash: f2975b6173a786c3e0476ce19eb73d2f113a120d5fc5f126adb2d762efb46c5e
-    sourceHash: 21e6fc47a599dce12ac13674956a80c0fa4fd1ca64804e88977b006aa2a1a9aa
+    sourceHash: a4bbc5d76fa8ad898fb931162591810e64d82ae3895f62c85429dcef614de5bd
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 181
+    sourceEndLine: 246
     sourceFile: packages/cli/tests/utils/git-repository-context.test.ts
     sourceLine: 1
   SYM-git-hook-install-result-type:
     identityHash: 35e1e467a3b01296a2a4a9c84bb1552d07b7dfa8764d299a9525c5f1edd379f2
-    sourceHash: 6e51ba74643155d7baac9cf12c49acde8c32ee98f9c153fde069034cc77981c2
+    sourceHash: 688202b19f738a258fb19e1de759901ec1e8418061b06ed968b23e555abf3ffb
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 392
@@ -11221,28 +11221,28 @@ coordinates:
     sourceLine: 389
   SYM-git-repository-context-resolver:
     identityHash: c029c277f93f1a8835ccb156c9d0715297cdfd19023686394668e1bf3c7399e1
-    sourceHash: 762a94b45ab2de0b93a0a62c1021a1ed3c2b2c72677b38dfb592cac72429e1f4
+    sourceHash: cd14214601e6f352d5ae2b38c615b5d505a58390727fd5883db4976eb4e63884
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 193
+    sourceEndLine: 304
     sourceFile: packages/cli/src/utils/git-repository-context.ts
-    sourceLine: 92
+    sourceLine: 174
   SYM-git-repository-context-type:
     identityHash: 7d8bfd5d91bf23e68fc02d1f85e68d023b46e3a551c182a625ab52ab883869bf
-    sourceHash: 762a94b45ab2de0b93a0a62c1021a1ed3c2b2c72677b38dfb592cac72429e1f4
+    sourceHash: cd14214601e6f352d5ae2b38c615b5d505a58390727fd5883db4976eb4e63884
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 43
+    sourceEndLine: 44
     sourceFile: packages/cli/src/utils/git-repository-context.ts
-    sourceLine: 22
+    sourceLine: 23
   SYM-git-repository-resolution-type:
     identityHash: b8497983f1a53a620a13b01bcdefe834380e329db1e9f6dc1b34de1a683f6fbd
-    sourceHash: 762a94b45ab2de0b93a0a62c1021a1ed3c2b2c72677b38dfb592cac72429e1f4
+    sourceHash: cd14214601e6f352d5ae2b38c615b5d505a58390727fd5883db4976eb4e63884
     sourceColumn: 12
     sourceEndColumn: 46
-    sourceEndLine: 49
+    sourceEndLine: 55
     sourceFile: packages/cli/src/utils/git-repository-context.ts
-    sourceLine: 45
+    sourceLine: 46
   SYM-GranularityReason:
     identityHash: 26d86bca9adf3708e1f61c3ce90d56dc5d1762446e3d1e9ad552d1de3d7f3e56
     sourceHash: d9d0be881396bc0e6e23743552c6a487dc95448be74bac7a3ec712dabaee6d94
@@ -11645,7 +11645,7 @@ coordinates:
     sourceLine: 36
   SYM-install-hook-result-type:
     identityHash: 49f0e0fc5ab50fcea3a4d84f4a956b8559e6e39a2fa91898707e9ed7c8d7540e
-    sourceHash: 6e51ba74643155d7baac9cf12c49acde8c32ee98f9c153fde069034cc77981c2
+    sourceHash: 688202b19f738a258fb19e1de759901ec1e8418061b06ed968b23e555abf3ffb
     sourceColumn: 12
     sourceEndColumn: 26
     sourceEndLine: 291
@@ -11653,15 +11653,15 @@ coordinates:
     sourceLine: 286
   SYM-installGitHooks:
     identityHash: 8d527e8ad281a8abf0c730a5637006ec882354bebe3d9b8d5cfd5a340938ebaa
-    sourceHash: 6e51ba74643155d7baac9cf12c49acde8c32ee98f9c153fde069034cc77981c2
+    sourceHash: 688202b19f738a258fb19e1de759901ec1e8418061b06ed968b23e555abf3ffb
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 468
+    sourceEndLine: 470
     sourceFile: packages/cli/src/commands/init-helpers.ts
     sourceLine: 394
   SYM-installHook:
     identityHash: 49fd6e5ada6abb256602f5c33cddf13f24683f659d3b6aeb5ec24c6189e23db3
-    sourceHash: 6e51ba74643155d7baac9cf12c49acde8c32ee98f9c153fde069034cc77981c2
+    sourceHash: 688202b19f738a258fb19e1de759901ec1e8418061b06ed968b23e555abf3ffb
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 387
@@ -28629,7 +28629,7 @@ coordinates:
     sourceLine: 143
   SYM-updateGitIgnore:
     identityHash: b9d10bf438a59b7341334176ea0cedbc826d1d705c0d1e11a39daf6232d2b37a
-    sourceHash: 6e51ba74643155d7baac9cf12c49acde8c32ee98f9c153fde069034cc77981c2
+    sourceHash: 688202b19f738a258fb19e1de759901ec1e8418061b06ed968b23e555abf3ffb
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 200

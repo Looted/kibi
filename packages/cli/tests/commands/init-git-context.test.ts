@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import {
+  chmodSync,
   existsSync,
   lstatSync,
   mkdirSync,
@@ -94,12 +95,22 @@ describe("kibi init repository-context fixes", () => {
     return snapshot;
   }
 
-  function kibi(args: string, cwd: string): string {
+  function kibi(args: string, cwd: string, env = isolatedCliSandboxEnv()): string {
     return nodeExecSync(`bun ${JSON.stringify(kibiBin)} ${args} 2>&1`, {
       cwd,
       encoding: "utf8",
-      env: isolatedCliSandboxEnv(),
+      env,
     });
+  }
+
+  function refusalOutput(args: string, cwd: string, branch: string): string {
+    try {
+      return kibi(args, cwd, isolatedCliSandboxEnv({ KIBI_BRANCH: branch }));
+    } catch (error) {
+      // init refuses with exit code 1; 2>&1 merges the diagnostics into
+      // stdout, which nodeExecSync attaches to the thrown error.
+      return String((error as { stdout?: unknown }).stdout ?? "");
+    }
   }
 
   test("init succeeds inside a linked worktree and installs into the common hooks dir", () => {
@@ -229,6 +240,57 @@ describe("kibi init repository-context fixes", () => {
     );
     expect(existsSync(path.join(externalParent, "new-hooks"))).toBe(false);
     expect(snapshotDirectory(externalParent)).toEqual(before);
+  }, 180000);
+
+  test("init refuses an unreadable .git instead of standalone fallback (explicit branch)", () => {
+    const repo = makeRepo("unreadable-git");
+    commitReadme(repo);
+    const before = snapshotDirectory(repo);
+    chmodSync(path.join(repo, ".git"), 0o000);
+    let output: string;
+    try {
+      output = refusalOutput("init", repo, "review-probe");
+    } finally {
+      chmodSync(path.join(repo, ".git"), 0o755);
+    }
+    expect(output).toContain("Git reported no repository");
+    expect(output).toContain("cannot be read");
+    expect(output).toContain("refusing to create workspace state");
+    // No workspace or hook mutations, even though KIBI_BRANCH makes the
+    // standalone path available for genuine non-repositories.
+    expect(existsSync(path.join(repo, ".kb"))).toBe(false);
+    expect(existsSync(path.join(repo, ".git/hooks/pre-commit"))).toBe(false);
+    expect(snapshotDirectory(repo)).toEqual(before);
+  }, 180000);
+
+  test("init from a subdirectory refuses an unreadable .git identically", () => {
+    const repo = makeRepo("unreadable-git-sub");
+    commitReadme(repo);
+    const sub = path.join(repo, "sub");
+    mkdirSync(sub, { recursive: true });
+    const before = snapshotDirectory(repo);
+    chmodSync(path.join(repo, ".git"), 0o000);
+    let output: string;
+    try {
+      output = refusalOutput("init", sub, "review-probe");
+    } finally {
+      chmodSync(path.join(repo, ".git"), 0o755);
+    }
+    expect(output).toContain("Git reported no repository");
+    expect(output).toContain("cannot be read");
+    expect(output).toContain("refusing to create workspace state");
+    expect(existsSync(path.join(sub, ".kb"))).toBe(false);
+    expect(existsSync(path.join(repo, ".kb"))).toBe(false);
+    expect(existsSync(path.join(repo, ".git/hooks/pre-commit"))).toBe(false);
+    expect(snapshotDirectory(repo)).toEqual(before);
+  }, 180000);
+
+  test("init still treats a genuine non-repository as standalone with an explicit branch", () => {
+    const standalone = path.join(tmpRoot, "standalone");
+    mkdirSync(standalone, { recursive: true });
+    const output = refusalOutput("init", standalone, "review-probe");
+    expect(output).toContain("Kibi initialized");
+    expect(existsSync(path.join(standalone, ".kb/manifest.json"))).toBe(true);
   }, 180000);
 });
 
@@ -406,6 +468,68 @@ describe("kibi init hook-path coverage messaging", () => {
     expect(output).not.toContain("shared with all worktrees");
     expect(existsSync(path.join(linked, ".githooks/pre-commit"))).toBe(true);
     expect(existsSync(path.join(primary, ".githooks"))).toBe(false);
+  }, 180000);
+
+  test("all-skipped hooks with a configured path do not claim installation", () => {
+    const repo = makeRepo("all-skipped");
+    git(repo, "config core.hooksPath .githooks");
+    const configured = path.join(repo, ".githooks");
+    mkdirSync(configured, { recursive: true });
+    for (const hook of [
+      "pre-commit",
+      "post-checkout",
+      "post-merge",
+      "post-rewrite",
+    ]) {
+      writeFileSync(path.join(configured, hook), "#!/bin/sh\necho 'user hook'\n", {
+        mode: 0o755,
+      });
+    }
+
+    const output = kibi("init", repo);
+    // The configured-path note must stay neutral: the all-skipped verdict
+    // comes from the per-hook and aggregate lines only.
+    expect(output).toContain("core.hooksPath is configured");
+    expect(output).toContain("the effective hooks directory for THIS checkout");
+    expect(output).toContain("! No Kibi git hooks installed");
+    expect(output).not.toContain("hooks were installed");
+    expect(output).not.toContain("✓ Installed/updated");
+    for (const hook of [
+      "pre-commit",
+      "post-checkout",
+      "post-merge",
+      "post-rewrite",
+    ]) {
+      expect(readFileSync(path.join(configured, hook), "utf8")).toBe(
+        "#!/bin/sh\necho 'user hook'\n",
+      );
+    }
+  }, 180000);
+
+  test("mixed outcomes with a configured path keep the skipped pre-commit unclaimed", () => {
+    const repo = makeRepo("mixed-skipped");
+    git(repo, "config core.hooksPath .githooks");
+    const configured = path.join(repo, ".githooks");
+    mkdirSync(configured, { recursive: true });
+    writeFileSync(path.join(configured, "pre-commit"), "#!/bin/sh\necho 'user hook'\n", {
+      mode: 0o755,
+    });
+
+    const output = kibi("init", repo);
+    const installedLine = output
+      .split("\n")
+      .find((line) => line.includes("✓ Installed/updated Kibi git hooks"));
+    expect(installedLine).toBeDefined();
+    expect(installedLine).toContain("post-checkout");
+    expect(installedLine).toContain("post-merge");
+    expect(installedLine).toContain("post-rewrite");
+    expect(installedLine).not.toContain("pre-commit");
+    expect(output).toContain("core.hooksPath is configured");
+    expect(output).not.toContain("No Kibi git hooks installed");
+    expect(readFileSync(path.join(configured, "pre-commit"), "utf8")).toBe(
+      "#!/bin/sh\necho 'user hook'\n",
+    );
+    expect(existsSync(path.join(configured, "post-checkout"))).toBe(true);
   }, 180000);
 
   test("foreign pre-commit recipe includes both staged checks", () => {
