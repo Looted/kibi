@@ -435,6 +435,51 @@ test(receipt_history_memo_caches_both_outcomes) :-
 
 :- end_tests(kb_entity_memo).
 
+:- begin_tests(search_candidates).
+
+% Search candidates are projected rows: ranking fields only, never receipt
+% histories or other large structured properties.
+test(search_candidates_are_projected, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(test, 'TEST-SEARCH-PROJ', "Projected search test", active, [
+        source="docs/search-proj.md",
+        tags=[proof],
+        proof_contract="{\"version\":\"kibi.proof-contract.v1\"}",
+        proof_receipts="[{\"history\":\"large\"}]"
+    ]),
+    kb_search_entities(test, "projected search", 10, 0, Rows, Count),
+    assertion(Count == 1),
+    assertion(Rows = [['TEST-SEARCH-PROJ', test, _]]),
+    Rows = [[_, _, Props]],
+    assertion(memberchk(title=_, Props)),
+    assertion(memberchk(source=_, Props)),
+    assertion(memberchk(tags=_, Props)),
+    assertion(\+ memberchk(proof_receipts=_, Props)),
+    assertion(\+ memberchk(proof_contract=_, Props)),
+    kb_entity('TEST-SEARCH-PROJ', test, Full),
+    assertion(memberchk(proof_receipts=_, Full)).
+
+test(list_search_candidates_pages_projected_rows_by_id, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    forall(member(Id, ['REQ-LIST-C', 'REQ-LIST-A', 'REQ-LIST-B']),
+           assert_fixture_entity(req, Id, "Listed", active, [])),
+    assert_fixture_entity(test, 'TEST-LIST', "Listed test", active, [
+        proof_receipts="[{\"history\":\"large\"}]"
+    ]),
+    kb_list_search_candidates(req, 2, 0, First, Count),
+    kb_list_search_candidates(req, 2, 2, Second, _),
+    assertion(Count == 3),
+    findall(Id, member([Id, _, _], First), FirstIds),
+    findall(Id, member([Id, _, _], Second), SecondIds),
+    assertion(FirstIds == ['REQ-LIST-A', 'REQ-LIST-B']),
+    assertion(SecondIds == ['REQ-LIST-C']),
+    kb_list_search_candidates(none, 10, 0, All, AllCount),
+    assertion(AllCount == 4),
+    forall(member([_, _, Props], All),
+           assertion(\+ memberchk(proof_receipts=_, Props))),
+    kb_entity_ids(Ids),
+    assertion(Ids == ['REQ-LIST-A', 'REQ-LIST-B', 'REQ-LIST-C', 'TEST-LIST']).
+
+:- end_tests(search_candidates).
+
 :- begin_tests(status_freshness).
 
 % Freshness scans every knowledge-lane and documentation file. The content

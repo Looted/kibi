@@ -16,6 +16,8 @@ function serializedBroadSearchEntities(count: number): string {
   ).join(",")}]`;
 }
 
+// These ports have no engine `searchEntities`, so search runs the bounded
+// kb_search_entities candidate query through `query` (Rows + Count).
 describe("MCP search tool handler", () => {
   let workspaceRoot: string;
   const originalWorkspace = process.env.KIBI_WORKSPACE;
@@ -53,8 +55,8 @@ describe("MCP search tool handler", () => {
     const query = mock(async () => ({
       success: true,
       bindings: {
-        Results:
-          '[[REQ-001,req,[title="OAuth login flow",status=open,source=".kb/requirements/REQ-001.md"]],[REQ-002,req,[title="Session refresh",status=open,source=".kb/requirements/REQ-002.md"]]]',
+        Rows: '[[REQ-001,req,[title="OAuth login flow",status=open,source=".kb/requirements/REQ-001.md"]],[REQ-002,req,[title="Session refresh",status=open,source=".kb/requirements/REQ-002.md"]]]',
+        Count: "2",
       },
     }));
 
@@ -83,8 +85,8 @@ describe("MCP search tool handler", () => {
     const query = mock(async () => ({
       success: true,
       bindings: {
-        Results:
-          '[[REQ-003,req,[title="Searchable markdown",status=open,source=".kb/requirements/REQ-003.md"]],[SYM-hidden,symbol,[title="hidden",status=active,source="src/hidden.ts"]]]',
+        Rows: '[[REQ-003,req,[title="Searchable markdown",status=open,source=".kb/requirements/REQ-003.md"]],[SYM-hidden,symbol,[title="hidden",status=active,source="src/hidden.ts"]]]',
+        Count: "2",
       },
     }));
 
@@ -101,8 +103,8 @@ describe("MCP search tool handler", () => {
     const query = mock(async () => ({
       success: true,
       bindings: {
-        Results:
-          '[[REQ-404,req,[title="Missing source fallback",status=open,source=".kb/requirements/MISSING.md"]]]',
+        Rows: '[[REQ-404,req,[title="Missing source fallback",status=open,source=".kb/requirements/MISSING.md"]]]',
+        Count: "1",
       },
     }));
 
@@ -148,8 +150,8 @@ describe("MCP search tool handler", () => {
     const query = mock(async () => ({
       success: true,
       bindings: {
-        Results:
-          '[[FACT-search-apple-signin-revenuecat-recovery,req,[title="Apple Sign-In RevenueCat recovery",status=open,source=".kb/requirements/FACT-search-apple-signin-revenuecat-recovery.md"]],[REQ-search-revenuecat-entitlement,req,[title="RevenueCat entitlement restore",status=open,source=".kb/requirements/REQ-search-revenuecat-entitlement.md"]],[FACT-search-unrelated-sync-feedback,req,[title="Sync feedback note",status=open,source=".kb/requirements/FACT-search-unrelated-sync-feedback.md"]]]',
+        Rows: '[[FACT-search-apple-signin-revenuecat-recovery,req,[title="Apple Sign-In RevenueCat recovery",status=open,source=".kb/requirements/FACT-search-apple-signin-revenuecat-recovery.md"]],[REQ-search-revenuecat-entitlement,req,[title="RevenueCat entitlement restore",status=open,source=".kb/requirements/REQ-search-revenuecat-entitlement.md"]],[FACT-search-unrelated-sync-feedback,req,[title="Sync feedback note",status=open,source=".kb/requirements/FACT-search-unrelated-sync-feedback.md"]]]',
+        Count: "3",
       },
     }));
 
@@ -178,9 +180,10 @@ describe("MCP search tool handler", () => {
     const query = mock(async () => ({
       success: true,
       bindings: {
-        Results: serializedBroadSearchEntities(
+        Rows: serializedBroadSearchEntities(
           ABOVE_FORMER_TRANSPORT_CAPACITY_COUNT,
         ),
+        Count: String(ABOVE_FORMER_TRANSPORT_CAPACITY_COUNT),
       },
     }));
     const prolog = { query } as unknown as PrologProcess;
@@ -233,7 +236,7 @@ describe("MCP search tool handler", () => {
   test("returns no results for no-signal queries", async () => {
     const query = mock(async () => ({
       success: true,
-      bindings: { Results: "[]" },
+      bindings: { Rows: "[]", Count: "0" },
     }));
 
     const prolog = { query } as unknown as PrologProcess;

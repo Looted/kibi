@@ -25,6 +25,8 @@
     kb_indexed_sources/1,
     kb_query_entities/8,
     kb_search_entities/6,
+    kb_list_search_candidates/5,
+    kb_entity_ids/1,
     kb_rebuild_indexes/0,
     kb_entity/3,
     kb_entities_by_source/2,
@@ -1787,9 +1789,73 @@ kb_search_entities(TypeFilter, Query, Limit, Offset, Rows, Count) :-
     length(Ids, Count),
     drop_index_ids(Offset, Ids, Remaining),
     take_index_ids(Limit, Remaining, PageIds),
-    findall([Id, Type, Props],
-            ( member(Id, PageIds), kb_entity(Id, Type, Props) ),
+    search_candidate_rows(PageIds, Rows).
+
+%% kb_list_search_candidates(+Type, +Limit, +Offset, -Rows, -Count)
+% Page every indexed entity (optionally of one type) as projected search
+% candidate rows, ordered by id. Semantic discovery uses it when no lexical
+% token can pre-filter the candidate set.
+kb_list_search_candidates(TypeFilter, Limit, Offset, Rows, Count) :-
+    integer(Limit),
+    integer(Offset),
+    Limit >= 0,
+    Offset >= 0,
+    kb_ensure_indexes,
+    findall(Id,
+            ( kb_index_entity(Id, _),
+              (TypeFilter == none -> true ; kb_index_type(TypeFilter, Id)) ),
+            RawIds),
+    sort(RawIds, Ids),
+    length(Ids, Count),
+    drop_index_ids(Offset, Ids, Remaining),
+    take_index_ids(Limit, Remaining, PageIds),
+    search_candidate_rows(PageIds, Rows).
+
+%% kb_entity_ids(-Ids)
+% Every entity id, without materializing any properties.
+kb_entity_ids(Ids) :-
+    kb_ensure_indexes,
+    findall(Id, kb_index_entity(Id, _), RawIds),
+    sort(RawIds, Ids).
+
+% Search candidates carry only the properties ranking, snippets, and summary
+% output read. Large structured properties (receipt histories, proof
+% contracts, semantic inventories, rule IR) stay in the store: a candidate
+% page of receipt-bearing tests otherwise exceeds the bounded engine output.
+% Callers that need complete entities reload the final page by id.
+search_candidate_rows(PageIds, Rows) :-
+    findall([Id, Type, Projected],
+            ( member(Id, PageIds),
+              kb_entity(Id, Type, Props),
+              include(search_candidate_property, Props, Projected) ),
             Rows).
+
+search_candidate_property(Key=_) :-
+    search_candidate_key(Key).
+
+search_candidate_key(id).
+search_candidate_key(title).
+search_candidate_key(status).
+search_candidate_key(priority).
+search_candidate_key(severity).
+search_candidate_key(owner).
+search_candidate_key(tags).
+search_candidate_key(source).
+search_candidate_key(sourceFile).
+search_candidate_key(sourceLine).
+search_candidate_key(sourceColumn).
+search_candidate_key(sourceEndLine).
+search_candidate_key(sourceEndColumn).
+search_candidate_key(source_line).
+search_candidate_key(source_end_line).
+search_candidate_key(updated_at).
+search_candidate_key(created_at).
+search_candidate_key(semantic_text).
+search_candidate_key(text_ref).
+search_candidate_key(body).
+search_candidate_key(content).
+search_candidate_key(markdownBody).
+search_candidate_key(markdown_body).
 
 indexed_token_match(QueryToken, Id) :-
     kb_index_token(IndexedToken, Id),
