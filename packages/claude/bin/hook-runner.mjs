@@ -5,6 +5,7 @@ import fs4 from "node:fs";
 import os from "node:os";
 import path5 from "node:path";
 import { pathToFileURL } from "node:url";
+import { spawnSync } from "node:child_process";
 
 // src/hook-input.ts
 function isRecord(value) {
@@ -110,6 +111,14 @@ var CLI_ROUTES = {
   upsert: "kb_upsert",
   sync: "kb_sync"
 };
+function isVerifiedGitCommit(command) {
+  if (typeof command !== "string")
+    return false;
+  const gitCommit = /(?:^|[\s;&|(])git(?:\s+-[Cc]\s+\S+|\s+--?[\w-]+(?:=\S+)?)*\s+commit(?=\s|$|[;&|)])/;
+  if (!gitCommit.test(command))
+    return false;
+  return !/\s(?:--no-verify|-n)(?=\s|$)/.test(command);
+}
 function extractCliKbUsage(command) {
   if (typeof command !== "string")
     return;
@@ -987,6 +996,15 @@ function recordKbUsage(usage, workspace, events) {
     events.push({ kind: "checked", paths, all: usage.checkAll });
   }
 }
+function hasKibiPreCommitGate(workspaceRoot) {
+  const resolved = spawnSync("git", ["rev-parse", "--git-path", "hooks/pre-commit"], { cwd: workspaceRoot, encoding: "utf8", timeout: 2000 });
+  const hookPath = resolved.status === 0 && resolved.stdout.trim().length > 0 ? path5.resolve(workspaceRoot, resolved.stdout.trim()) : path5.join(workspaceRoot, ".git", "hooks", "pre-commit");
+  try {
+    return /kibi[^\n]*\bcheck\b/.test(fs4.readFileSync(hookPath, "utf8"));
+  } catch {
+    return false;
+  }
+}
 function postToolUse(input, workspace) {
   const toolName = input.toolName ?? "";
   const events = [];
@@ -1001,9 +1019,13 @@ function postToolUse(input, workspace) {
       });
     }
   } else if (toolName === "Bash") {
-    const usage = isRecord3(input.toolInput) ? extractCliKbUsage(input.toolInput.command) : undefined;
+    const command = isRecord3(input.toolInput) ? input.toolInput.command : undefined;
+    const usage = extractCliKbUsage(command);
     if (usage)
       recordKbUsage(usage, workspace, events);
+    if (isVerifiedGitCommit(command) && hasKibiPreCommitGate(workspace.root)) {
+      events.push({ kind: "checked", paths: [], all: true });
+    }
   } else {
     const usage = extractMcpKbUsage(toolName, input.toolInput);
     if (usage)

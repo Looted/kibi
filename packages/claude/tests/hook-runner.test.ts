@@ -336,6 +336,31 @@ describe("stop reminders", () => {
     }
   });
 
+  test("a commit through Kibi's pre-commit gate acknowledges pending edits", async () => {
+    const gated = createKibiWorkspace();
+    write(
+      gated.root,
+      ".git/hooks/pre-commit",
+      "#!/bin/sh\nnpx --no-install kibi check --staged\n",
+    );
+    const withGate = session(gated);
+    await withGate.post("Edit", { file_path: "src/checkout.ts" });
+    await withGate.post("Bash", { command: "git add -A && git commit -m fix" });
+    expect(await withGate.stop()).toBeUndefined();
+
+    // Skipping the hook, or a repository without the gate, proves nothing.
+    const bypass = session(gated, "bypass");
+    await bypass.post("Edit", { file_path: "src/checkout.ts" });
+    await bypass.post("Bash", { command: "git commit --no-verify -m fix" });
+    expect(await bypass.stop()).toContain("src/checkout.ts");
+
+    const ungated = createKibiWorkspace();
+    const withoutGate = session(ungated);
+    await withoutGate.post("Edit", { file_path: "src/checkout.ts" });
+    await withoutGate.post("Bash", { command: "git commit -m fix" });
+    expect(await withoutGate.stop()).toContain("src/checkout.ts");
+  });
+
   test("an edit after a check makes the path pending again", async () => {
     const fixture = createKibiWorkspace();
     const { post, stop } = session(fixture);

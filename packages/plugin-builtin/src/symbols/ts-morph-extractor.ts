@@ -25,14 +25,14 @@ import type {
   SymbolExtractorV1,
 } from "kibi-plugin-sdk";
 import { toSourceAnalysisProvider } from "kibi-plugin-sdk";
-import {
-  type ClassDeclaration,
-  type ClassExpression,
-  type Node,
+import type {
+  ClassDeclaration,
+  ClassExpression,
+  Node,
   Project,
-  type SourceFile,
-  SyntaxKind,
+  SourceFile,
 } from "ts-morph";
+import { tsMorph } from "./ts-morph-runtime.js";
 import {
   SUPPORTED_SOURCE_EXTENSIONS,
   chooseScriptKind,
@@ -48,9 +48,13 @@ const EXTRACTOR_ID = "kibi-plugin-builtin.ts-morph";
  */
 // implements REQ-capability-plugin-builtin-parity-v1
 export function createBuiltinTsMorphSymbolExtractor(): SymbolExtractorV1 {
-  const project = new Project({
-    skipAddingFilesFromTsConfig: true,
-  });
+  // Plugin registration creates the extractor on every CLI start; the project
+  // (and the TypeScript compiler behind it) is built on the first analysis.
+  let project: Project | undefined;
+  const getProject = (): Project => {
+    project ??= new (tsMorph().Project)({ skipAddingFilesFromTsConfig: true });
+    return project;
+  };
 
   return {
     id: EXTRACTOR_ID,
@@ -60,10 +64,14 @@ export function createBuiltinTsMorphSymbolExtractor(): SymbolExtractorV1 {
       );
     },
     analyze(input): SourceAnalysisResult {
-      const sourceFile = project.createSourceFile(input.path, input.content, {
-        overwrite: true,
-        scriptKind: chooseScriptKind(input.path),
-      });
+      const sourceFile = getProject().createSourceFile(
+        input.path,
+        input.content,
+        {
+          overwrite: true,
+          scriptKind: chooseScriptKind(input.path),
+        },
+      );
 
       return {
         sourceFile: input.path,
@@ -188,7 +196,9 @@ function collectSourceSymbols(sourceFile: SourceFile): SourceSymbolAnalysis[] {
       try {
         const classExpression =
           typeof declaration.getInitializerIfKind === "function"
-            ? declaration.getInitializerIfKind(SyntaxKind.ClassExpression)
+            ? declaration.getInitializerIfKind(
+                tsMorph().SyntaxKind.ClassExpression,
+              )
             : undefined;
         if (classExpression) {
           appendClassMembers(

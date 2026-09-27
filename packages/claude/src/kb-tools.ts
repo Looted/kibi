@@ -104,6 +104,20 @@ const CLI_ROUTES: Record<string, string> = {
 };
 
 /**
+ * A `git commit` that ran its hooks. With Kibi's pre-commit gate installed,
+ * a commit that reached PostToolUse (failures go to PostToolUseFailure)
+ * passed `kibi check --staged`.
+ */
+export function isVerifiedGitCommit(command: unknown): boolean {
+  if (typeof command !== "string") return false;
+  // `git [-C dir | -c key=value | --flag]... commit` followed by a separator.
+  const gitCommit =
+    /(?:^|[\s;&|(])git(?:\s+-[Cc]\s+\S+|\s+--?[\w-]+(?:=\S+)?)*\s+commit(?=\s|$|[;&|)])/;
+  if (!gitCommit.test(command)) return false;
+  return !/\s(?:--no-verify|-n)(?=\s|$)/.test(command);
+}
+
+/**
  * Recognize a Kibi CLI call in a Bash command. JSON piped to `--input -` is
  * inspected when it appears inline in the command.
  */

@@ -5,12 +5,15 @@ import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
+import { spawnSync } from "node:child_process";
 import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
 import type { HookInput } from "./hook-input.js";
+
 import {
   type KbUsage,
   extractCliKbUsage,
   extractMcpKbUsage,
+  isVerifiedGitCommit,
 } from "./kb-tools.js";
 import {
   type EntitySummary,
@@ -284,6 +287,24 @@ function recordKbUsage(
   }
 }
 
+/** True when the repository's pre-commit hook runs Kibi's staged check. */
+function hasKibiPreCommitGate(workspaceRoot: string): boolean {
+  const resolved = spawnSync(
+    "git",
+    ["rev-parse", "--git-path", "hooks/pre-commit"],
+    { cwd: workspaceRoot, encoding: "utf8", timeout: 2000 },
+  );
+  const hookPath =
+    resolved.status === 0 && resolved.stdout.trim().length > 0
+      ? path.resolve(workspaceRoot, resolved.stdout.trim())
+      : path.join(workspaceRoot, ".git", "hooks", "pre-commit");
+  try {
+    return /kibi[^\n]*\bcheck\b/.test(fs.readFileSync(hookPath, "utf8"));
+  } catch {
+    return false;
+  }
+}
+
 function postToolUse(input: HookInput, workspace: Workspace): HookOutput {
   const toolName = input.toolName ?? "";
   const events: SessionEvent[] = [];
@@ -301,10 +322,14 @@ function postToolUse(input: HookInput, workspace: Workspace): HookOutput {
       });
     }
   } else if (toolName === "Bash") {
-    const usage = isRecord(input.toolInput)
-      ? extractCliKbUsage(input.toolInput.command)
+    const command = isRecord(input.toolInput)
+      ? input.toolInput.command
       : undefined;
+    const usage = extractCliKbUsage(command);
     if (usage) recordKbUsage(usage, workspace, events);
+    if (isVerifiedGitCommit(command) && hasKibiPreCommitGate(workspace.root)) {
+      events.push({ kind: "checked", paths: [], all: true });
+    }
   } else {
     const usage = extractMcpKbUsage(toolName, input.toolInput);
     if (usage) recordKbUsage(usage, workspace, events);

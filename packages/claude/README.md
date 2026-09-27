@@ -50,11 +50,14 @@ symbols, and the exact call that opens the next layer. Snippets are capped at
 Unlinked source files, docs, config, and generated or vendored paths get no
 snippet on read.
 
-A check acknowledges pending edits when it names the files in `sourceFiles`
-or covers the working tree (`includeWorkingTreeDiff: true`). A project-local
-CLI `kibi check` run through Bash also counts. KB usage is recognized under
-any MCP host prefix (for example `mcp__plugin_kibi-claude_kibi__kb_check`)
-and through the CLI (`npx --no-install kibi search --input -`).
+A check acknowledges pending edits when it names the files in `sourceFiles` or
+covers the working tree (`includeWorkingTreeDiff: true`). A project-local CLI
+`kibi check` run through Bash also counts, and so does a successful `git
+commit` in a repository whose pre-commit hook runs Kibi's staged check,
+because that commit passed the gate. `--no-verify` commits don't count. KB
+usage is recognized under any MCP host prefix (for example
+`mcp__plugin_kibi-claude_kibi__kb_check`) and through the CLI (`npx
+--no-install kibi search --input -`).
 
 ## Performance
 

@@ -18,7 +18,7 @@
 
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
-import Ajv from "ajv";
+import Ajv, { type ValidateFunction } from "ajv";
 import { load as yamlLoad } from "js-yaml";
 import { semanticClaimKey } from "../operations/semantic-advisor/clauses.js";
 import {
@@ -92,7 +92,13 @@ const TEST_ENUM_FIELDS = [
 ] as const;
 
 const ajv = new Ajv({ strict: false, allErrors: true });
-const validateExtractedEntity = ajv.compile(entitySchema);
+// Compiled on first extraction: every CLI command imports this module, and
+// most never extract Markdown entities.
+let extractedEntityValidator: ValidateFunction | undefined;
+function validateExtractedEntity(): ValidateFunction {
+  extractedEntityValidator ??= ajv.compile(entitySchema);
+  return extractedEntityValidator;
+}
 
 export interface ExtractedEntity {
   id: string;
@@ -916,8 +922,9 @@ function extractFromMarkdownContent(
       );
     }
 
-    if (!validateExtractedEntity(entity)) {
-      const messages = (validateExtractedEntity.errors || [])
+    const validateEntity = validateExtractedEntity();
+    if (!validateEntity(entity)) {
+      const messages = (validateEntity.errors || [])
         .map((e) => `${e.instancePath || "root"}: ${e.message}`)
         .join("; ");
       throw new FrontmatterError(
