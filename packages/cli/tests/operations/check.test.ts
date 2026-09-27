@@ -33,7 +33,8 @@ function createContext(
 
 function emptyFullQualityResult(goal: string): PrologQueryResult | undefined {
   if (goal.includes("kb_entity")) {
-    return { success: true, bindings: { Results: "[]" } };
+    // Bounded full-KB projection: id enumeration, then id-batched pages.
+    return { success: true, bindings: { Results: "[]", Ids: "[]" } };
   }
   if (goal.includes("kb_relationship")) {
     return { success: true, bindings: { Rels: "[]" } };

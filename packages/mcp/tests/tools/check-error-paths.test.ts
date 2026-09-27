@@ -10,9 +10,10 @@ const originalWorkspace = process.env.KIBI_WORKSPACE;
 
 function emptyFullQualityResult(goal: string) {
   if (goal.includes("kb_entity")) {
+    // Bounded full-KB projection: id enumeration, then id-batched pages.
     return {
       success: true,
-      bindings: { Results: "[]" },
+      bindings: { Results: "[]", Ids: "[]" },
     };
   }
 

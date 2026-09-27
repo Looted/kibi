@@ -62,8 +62,14 @@ export async function runOperationJsonQuery<T>(
   );
   // Loading a module and invoking its predicate in one interactive goal makes
   // SWI reject `use_module/1` under the engine's guarded `once/1` wrapper, so
-  // use two serialized requests for production and retain the combined goal
-  // only for the repository's Bun-based one-shot tests.
+  // an interactive port gets two serialized requests. That split is only
+  // sound when both requests reach the same live session: the engine daemon
+  // guarantees it by recycling a lost session with every loaded module
+  // restored, and a started PrologProcess fails loudly once its session is
+  // lost. Any port whose queries run in isolated processes (an unstarted or
+  // one-shot PrologProcess reports `oneShotMode`) must receive the combined
+  // goal, or the module load and the predicate call land in different SWI
+  // processes and the call fails with an existence error.
   const longLivedEngine =
     typeof (prolog as { storageStatus?: unknown }).storageStatus === "function";
   const oneShotMode =

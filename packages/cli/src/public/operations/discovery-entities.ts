@@ -93,6 +93,31 @@ export function buildEntityGoal(input: EntityQueryInput): string {
   return "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)";
 }
 
+/**
+ * Full test entities carry their receipt histories, which only grow. Callers
+ * that must see every full entity of a type page through the indexed query so
+ * no single Prolog answer can approach the bounded output capacity.
+ */
+const FULL_ENTITY_PAGE_SIZE = 25;
+
+// implements REQ-002, REQ-013
+export async function loadEntitiesPaged(
+  prolog: Pick<PrologPort, "query">,
+  type: (typeof VALID_ENTITY_TYPES)[number],
+  pageSize: number = FULL_ENTITY_PAGE_SIZE,
+): Promise<Record<string, unknown>[]> {
+  if (!Number.isInteger(pageSize) || pageSize <= 0) {
+    throw new Error("loadEntitiesPaged pageSize must be a positive integer");
+  }
+  const entities: Record<string, unknown>[] = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const page = await loadEntities(prolog, { type, limit: pageSize, offset });
+    entities.push(...page);
+    if (page.length < pageSize) break;
+  }
+  return dedupeEntities(entities);
+}
+
 // implements REQ-002, REQ-013
 export async function loadEntities(
   prolog: Pick<PrologPort, "query">,

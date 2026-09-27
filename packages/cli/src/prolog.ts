@@ -28,7 +28,7 @@ import {
 } from "./prolog/error-terms.js";
 
 const importMetaDir = path.dirname(fileURLToPath(import.meta.url));
-const PROLOG_OUTPUT_MAX_BUFFER_BYTES = 8 * 1024 * 1024;
+const DEFAULT_PROLOG_OUTPUT_MAX_BUFFER_BYTES = 8 * 1024 * 1024;
 const PROLOG_OUTPUT_OVERFLOW_ERROR =
   "Query exceeded bounded Prolog output capacity (ENOBUFS); narrow the operation or reduce stored entity size";
 const INTERACTIVE_QUERY_FRAME_END = "__KIBI_QUERY_FRAME_END__";
@@ -100,6 +100,31 @@ export interface PrologOptions {
    * repository tests that still run under Bun.
    */
   oneShot?: boolean;
+  /**
+   * Bounded stdout/stderr capacity per query. Defaults to 8 MiB; tests inject
+   * a small cap to exercise the overflow path deterministically.
+   */
+  maxOutputBytes?: number;
+}
+
+/**
+ * Raised when a query reaches an interactive process that was started and
+ * later terminated (output overflow, timeout, crash, or explicit terminate).
+ * Such a port must be restarted by its owner (the engine daemon recycles it);
+ * it never degrades into isolated one-shot SWI processes, which would lose
+ * the attached KB and every module loaded into the interactive session.
+ */
+export class PrologProcessTerminatedError extends Error {
+  readonly code = "prolog_process_terminated";
+  readonly reason: string;
+
+  constructor(reason: string) {
+    super(
+      `Kibi Prolog process is no longer running (${reason}); the interactive session and its attached KB were lost. The owning engine must restart it before serving more queries — run 'kibi engine stop' and retry if this persists.`,
+    );
+    this.name = "PrologProcessTerminatedError";
+    this.reason = reason;
+  }
 }
 
 export interface QueryResult {
@@ -153,10 +178,24 @@ export class PrologProcess {
   private useOneShotMode: boolean;
   private attachedKbPath: string | null = null;
   private onProcessExit: (() => void) | null = null;
+  private readonly maxOutputBytes: number;
+  /**
+   * Set once start() spawned an interactive process. From then on the
+   * isolated one-shot fallback is unreachable: a lost interactive process
+   * must fail loudly instead of silently changing execution semantics.
+   */
+  private interactiveStarted = false;
+  private terminationReason: string | null = null;
 
   constructor(options: PrologOptions = {}) {
     this.swiplPath = options.swiplPath || "swipl";
     this.timeout = options.timeout || 30000;
+    this.maxOutputBytes =
+      options.maxOutputBytes !== undefined &&
+      Number.isInteger(options.maxOutputBytes) &&
+      options.maxOutputBytes > 0
+        ? options.maxOutputBytes
+        : DEFAULT_PROLOG_OUTPUT_MAX_BUFFER_BYTES;
     this.useOneShotMode =
       options.oneShot ??
       (process.env.NODE_ENV === "test" &&
@@ -175,6 +214,22 @@ export class PrologProcess {
     );
   }
 
+  /**
+   * True when every query runs in its own isolated SWI process, so callers
+   * must not rely on state (loaded modules) carried between queries.
+   */
+  get oneShotMode(): boolean {
+    return this.useOneShotMode || !this.interactiveStarted;
+  }
+
+  /**
+   * True once a started interactive process has been lost. The owner must
+   * restart it (and re-establish its session state) before querying again.
+   */
+  needsRestart(): boolean {
+    return this.interactiveStarted && !this.isProcessUsable();
+  }
+
   async start(): Promise<void> {
     if (!existsSync(this.swiplPath) && this.swiplPath !== "swipl") {
       throw new Error(
@@ -183,6 +238,9 @@ export class PrologProcess {
     }
 
     const kbPath = resolveKbPlPath();
+    this.interactiveStarted = true;
+    this.terminationReason = null;
+    this.invalidateCache();
     this.process = spawn(
       this.swiplPath,
       [
@@ -215,6 +273,17 @@ export class PrologProcess {
 
     this.process.stderr.on("data", (chunk: Buffer) => {
       this.appendErrorChunk(chunk);
+    });
+
+    // A write racing the child's death (native crash, external kill) fails
+    // asynchronously with EPIPE. Unhandled, that error event crashes the
+    // whole host (the engine daemon); record the loss instead so the owner
+    // sees needsRestart() and the in-flight query reports the termination.
+    const child = this.process;
+    child.stdin?.on("error", (error: NodeJS.ErrnoException) => {
+      if (this.process === child) {
+        this.terminationReason ??= `stdin ${error.code ?? "error"}`;
+      }
     });
 
     this.process.stdin.write("true.\n");
@@ -315,10 +384,10 @@ export class PrologProcess {
       // runtimes provide an EngineClient, while explicitly attached callers
       // call start() and stay interactive; this fallback never participates
       // in the engine-backed workflow.
-      if (this.process === null) {
+      if (this.process === null && !this.interactiveStarted) {
         return this.execOneShot(goal as string, this.attachedKbPath);
       }
-      throw new Error("Prolog process not started");
+      throw this.lostProcessError();
     }
 
     const runInteractiveQuery = async (): Promise<QueryResult> => {
@@ -366,6 +435,7 @@ export class PrologProcess {
             );
           }
           settled = true;
+          this.terminationReason = `query timeout: ${goalLabel}`;
           void this.terminate().finally(() => {
             reject(new Error(msg));
           });
@@ -378,6 +448,7 @@ export class PrologProcess {
           if (this.outputOverflowed) {
             clearTimeout(timeoutId);
             settled = true;
+            this.terminationReason = `output overflow (ENOBUFS): ${goalLabel}`;
             void this.terminate().finally(() => {
               resolve({
                 success: false,
@@ -390,6 +461,7 @@ export class PrologProcess {
           if (!this.isProcessUsable()) {
             clearTimeout(timeoutId);
             settled = true;
+            this.terminationReason ??= `process exited during query: ${goalLabel}`;
             resolve({
               success: false,
               bindings: {},
@@ -478,7 +550,7 @@ export class PrologProcess {
     await previousQuery;
     try {
       if (!this.isProcessUsable()) {
-        throw new Error("Prolog process not started");
+        throw this.lostProcessError();
       }
       return await runInteractiveQuery();
     } finally {
@@ -662,7 +734,7 @@ export class PrologProcess {
     const appendChunk = (chunk: Buffer, target: "stdout" | "stderr"): void => {
       if (outputOverflowed) return;
       const bytes = target === "stdout" ? outputBytes : errorBytes;
-      const remaining = PROLOG_OUTPUT_MAX_BUFFER_BYTES - bytes;
+      const remaining = this.maxOutputBytes - bytes;
       if (chunk.byteLength > remaining) {
         const clipped = chunk.subarray(0, Math.max(0, remaining)).toString();
         if (target === "stdout") stdout += clipped;
@@ -811,10 +883,10 @@ export class PrologProcess {
 
   private appendOutputChunk(chunk: Buffer): void {
     if (this.outputOverflowed) return;
-    const remaining = PROLOG_OUTPUT_MAX_BUFFER_BYTES - this.outputBufferBytes;
+    const remaining = this.maxOutputBytes - this.outputBufferBytes;
     if (chunk.byteLength > remaining) {
       this.outputBuffer += chunk.subarray(0, remaining).toString();
-      this.outputBufferBytes = PROLOG_OUTPUT_MAX_BUFFER_BYTES;
+      this.outputBufferBytes = this.maxOutputBytes;
       this.outputOverflowed = true;
       return;
     }
@@ -824,10 +896,10 @@ export class PrologProcess {
 
   private appendErrorChunk(chunk: Buffer): void {
     if (this.outputOverflowed) return;
-    const remaining = PROLOG_OUTPUT_MAX_BUFFER_BYTES - this.errorBufferBytes;
+    const remaining = this.maxOutputBytes - this.errorBufferBytes;
     if (chunk.byteLength > remaining) {
       this.errorBuffer += chunk.subarray(0, remaining).toString();
-      this.errorBufferBytes = PROLOG_OUTPUT_MAX_BUFFER_BYTES;
+      this.errorBufferBytes = this.maxOutputBytes;
       this.outputOverflowed = true;
       return;
     }
@@ -1049,7 +1121,19 @@ export class PrologProcess {
     return this.process?.pid || 0;
   }
 
+  private lostProcessError(): Error {
+    if (!this.interactiveStarted) {
+      return new Error("Prolog process not started");
+    }
+    return new PrologProcessTerminatedError(
+      this.terminationReason ?? "process exited",
+    );
+  }
+
   async terminate(): Promise<void> {
+    if (this.interactiveStarted) {
+      this.terminationReason ??= "terminated";
+    }
     if (this.terminationPromise) {
       await this.terminationPromise;
       return;

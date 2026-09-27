@@ -1527,11 +1527,118 @@ function recoverInterruptedGeneration(branchPath: string): void {
   }
 }
 
+function isEngineLifecycleRequest(request: EngineRequest): boolean {
+  if (request.method === "stop" || request.method === "cancel") return true;
+  const kind = request.command?.kind;
+  return (
+    request.method === "command" &&
+    (kind === "stop" || kind === "cancel" || kind === "lifecycle")
+  );
+}
+
+const ENGINE_PRELOADED_MODULES = [
+  ["status.pl", "status"],
+  ["discovery.pl", "discovery"],
+] as const;
+
+const USE_MODULE_GOAL = /^use_module\('(?:[^']|'')*'\)$/u;
+
+/**
+ * Owns the daemon's interactive SWI session: the attached branch store plus
+ * every module loaded into it. An overflow or timeout terminates the SWI
+ * child; the next request recycles the session (restart, reattach, reload
+ * modules) instead of letting the port degrade into isolated one-shot
+ * processes that have lost the attachment and module state.
+ */
+// implements REQ-core-journaled-engine-persistence
+export class EngineSession {
+  private readonly modules: { goal: string; label: string }[] = [];
+
+  constructor(
+    private readonly prolog: PrologProcess,
+    private readonly branchPath: string,
+  ) {
+    const coreModuleDir = path.dirname(resolveKbPlPath());
+    for (const [fileName, label] of ENGINE_PRELOADED_MODULES) {
+      const modulePath = path.join(coreModuleDir, fileName);
+      this.modules.push({
+        goal: `use_module('${quoteProlog(modulePath.replaceAll("\\", "/"))}')`,
+        label,
+      });
+    }
+  }
+
+  async boot(): Promise<void> {
+    await this.prolog.start();
+    const attached = await this.prolog.query(
+      `kb_attach('${quoteProlog(this.branchPath)}')`,
+    );
+    if (!attached.success) {
+      // The daemon hosts the branch store for every later request, so a
+      // store-locked startup with a provably dead holder is auto-healed here
+      // exactly like the CLI runtime path; live holders abort the startup
+      // with the holder identity surfaced.
+      const recovered = await retryAttachAfterBreakingStaleLock(
+        this.prolog,
+        this.branchPath,
+        attached,
+      );
+      if (!recovered.success)
+        throw new Error(recovered.error ?? "Failed to attach branch KB");
+    }
+    for (const { goal, label } of this.modules) {
+      const loaded = await this.prolog.query(goal);
+      if (!loaded.success) {
+        throw new Error(loaded.error ?? `Failed to load Kibi ${label} module`);
+      }
+    }
+  }
+
+  /** Remember a successful client module load so a recycle restores it. */
+  recordModuleLoad(goal: string, result: PrologQueryResult): void {
+    const normalized = goal.trim().replace(/\.+\s*$/u, "");
+    if (
+      result.success &&
+      USE_MODULE_GOAL.test(normalized) &&
+      !this.modules.some((module) => module.goal === normalized)
+    ) {
+      this.modules.push({ goal: normalized, label: "client-loaded" });
+    }
+  }
+
+  needsRecycle(): boolean {
+    return this.prolog.needsRestart();
+  }
+
+  /**
+   * Restart a lost interactive session. Returns true when a recycle ran. A
+   * failed recycle leaves the process stopped so the next request retries.
+   */
+  async ensureLive(): Promise<boolean> {
+    if (!this.prolog.needsRestart()) return false;
+    console.error(
+      "[KIBI] engine Prolog session was lost (output overflow, timeout, or crash); restarting and reattaching the branch store",
+    );
+    try {
+      await this.boot();
+    } catch (error) {
+      await this.prolog.terminate().catch(() => undefined);
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(
+        `Kibi engine failed to recycle its Prolog session: ${message}`,
+      );
+    }
+    return true;
+  }
+}
+
 // implements REQ-core-journaled-engine-lifecycle
 export async function runEngineDaemon(options: {
   readonly workspaceRoot: string;
   readonly branch: string;
   readonly socketPath: string;
+  /** Test seam: bounded Prolog output per query (defaults to 8 MiB). */
+  readonly maxOutputBytes?: number;
 }): Promise<void> {
   if (!isValidBranchName(options.branch)) {
     throw new Error(`Invalid Kibi engine branch name: ${options.branch}`);
@@ -1541,38 +1648,16 @@ export async function runEngineDaemon(options: {
     options.branch,
   );
   await ensureJournaledBranchStoreAsync(branchPath);
-  const prolog = new PrologProcess({ timeout: 120_000, oneShot: false });
-  await prolog.start();
-  const attached = await prolog.query(
-    `kb_attach('${quoteProlog(branchPath)}')`,
-  );
-  if (!attached.success) {
-    // The daemon hosts the branch store for every later request, so a
-    // store-locked startup with a provably dead holder is auto-healed here
-    // exactly like the CLI runtime path; live holders abort the startup
-    // with the holder identity surfaced.
-    const recovered = await retryAttachAfterBreakingStaleLock(
-      prolog,
-      branchPath,
-      attached,
-    );
-    if (!recovered.success)
-      throw new Error(recovered.error ?? "Failed to attach branch KB");
-  }
-  const attachedIdentity = readEngineAttachmentIdentity(branchPath);
-  const coreModuleDir = path.dirname(resolveKbPlPath());
-  for (const [fileName, label] of [
-    ["status.pl", "status"],
-    ["discovery.pl", "discovery"],
-  ] as const) {
-    const modulePath = path.join(coreModuleDir, fileName);
-    const loaded = await prolog.query(
-      `use_module('${quoteProlog(modulePath.replaceAll("\\", "/"))}')`,
-    );
-    if (!loaded.success) {
-      throw new Error(loaded.error ?? `Failed to load Kibi ${label} module`);
-    }
-  }
+  const prolog = new PrologProcess({
+    timeout: 120_000,
+    oneShot: false,
+    ...(options.maxOutputBytes === undefined
+      ? {}
+      : { maxOutputBytes: options.maxOutputBytes }),
+  });
+  const session = new EngineSession(prolog, branchPath);
+  await session.boot();
+  let attachedIdentity = readEngineAttachmentIdentity(branchPath);
 
   mkdirSync(path.dirname(options.socketPath), { recursive: true, mode: 0o700 });
   if (existsSync(options.socketPath)) {
@@ -1705,7 +1790,8 @@ export async function runEngineDaemon(options: {
       idleCompactionQueued = true;
       queue = queue
         .then(async () => {
-          if (activeClients === 0) {
+          // A lost session is recycled by the next request, not by idle work.
+          if (activeClients === 0 && !session.needsRecycle()) {
             await prolog.query("kb_storage_compact_if_needed");
           }
         })
@@ -1744,6 +1830,13 @@ export async function runEngineDaemon(options: {
       request.branch !== options.branch
     ) {
       throw new Error("Kibi engine workspace identity mismatch");
+    }
+    if (!isEngineLifecycleRequest(request) && (await session.ensureLive())) {
+      // A recycled session re-read the store; nothing cached from the lost
+      // session may be served, and the attachment identity may have moved.
+      queryCache.clear();
+      freshnessCache = null;
+      attachedIdentity = readEngineAttachmentIdentity(branchPath);
     }
     switch (request.method) {
       case "entities": {
@@ -1999,6 +2092,7 @@ export async function runEngineDaemon(options: {
           if (cached !== undefined) return cached;
         }
         const result = await prolog.query(request.goal);
+        session.recordModuleLoad(request.goal, result);
         if (result.success && mutatingEngineGoal(request.goal)) {
           fsyncJournaledBranchStore(branchPath);
         }
@@ -2063,7 +2157,9 @@ export async function runEngineDaemon(options: {
     process.off("SIGINT", requestSignalShutdown);
     if (idleTimer) clearTimeout(idleTimer);
     clearInterval(workspaceWatchdog);
-    const saved = await prolog.query("kb_save").catch(() => null);
+    const saved = session.needsRecycle()
+      ? null
+      : await prolog.query("kb_save").catch(() => null);
     if (saved?.success) {
       try {
         fsyncJournaledBranchStore(branchPath);

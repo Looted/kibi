@@ -568,22 +568,10 @@ export async function loadKbExtractionResults(
       prolog.queryEntities.bind(prolog),
     );
   } else {
-    const entityResult = await prolog.query(
-      "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)",
-    );
-    if (entityResult.success) {
-      entities = entityResult.bindings.Results
-        ? parseListOfLists(entityResult.bindings.Results).map(
-            parseEntityFromList,
-          )
-        : [];
-    } else if (isOutputCapacityError(entityResult.error)) {
-      entities = await loadBoundedEntityProjection(prolog);
-    } else {
-      throw new Error(
-        `Full KB entity projection query failed: ${entityResult.error ?? "Unknown error"}`,
-      );
-    }
+    // Never probe with an unbounded all-entities findall: receipt histories
+    // make that answer grow without limit, and an overflow terminates the
+    // interactive Prolog process that serves every later query.
+    entities = await loadBoundedEntityProjection(prolog);
   }
   const relationships = new Map<string, ExtractionResult["relationships"]>();
 

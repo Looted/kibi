@@ -251,3 +251,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-c9d7fab23203
+  - type: implements
+    from: SYM-cli-PrologProcessTerminatedError-reason
+    to: REQ-core-journaled-engine-persistence
+    created_at: 2026-09-26T23:17:49.027Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6718979f852e
+  - type: covered_by
+    from: SYM-cli-PrologProcessTerminatedError-reason
+    to: TEST-core-journaled-engine-lifecycle
+    created_at: 2026-09-26T23:17:49.088Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f09e97cd09c1

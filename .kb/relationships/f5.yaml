@@ -160,3 +160,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-57c22ecfdcef
+  - type: implements
+    from: SYM-cli-PruneReceiptsResult
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-09-26T23:18:53.905Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ba87e0a6985a
+  - type: covered_by
+    from: SYM-cli-PruneReceiptsResult
+    to: TEST-e2e-proof-maintenance-ops
+    created_at: 2026-09-26T23:18:53.920Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5f0f681bdde0
