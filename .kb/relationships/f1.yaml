@@ -167,3 +167,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-79dcea93e187
+  - type: requires_rule
+    from: REQ-multilingual-language-catalog
+    to: FACT-RULE-09E18DDD6312EFC5
+    created_at: 2026-09-27T12:01:30.224Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-11e7d57edac0
+  - type: requires_rule
+    from: REQ-multilingual-language-catalog
+    to: FACT-RULE-80DBBE3D00CA8719
+    created_at: 2026-09-27T12:01:30.243Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b16ef297efcf
+  - type: requires_rule
+    from: REQ-multilingual-language-catalog
+    to: FACT-RULE-B12EB4C838298116
+    created_at: 2026-09-27T12:01:30.251Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-16790bc023f9
+  - type: requires_rule
+    from: REQ-multilingual-language-catalog
+    to: FACT-RULE-EA35BE875DE14685
+    created_at: 2026-09-27T12:01:30.258Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c9331b6fcb47
+  - type: specified_by
+    from: REQ-multilingual-language-catalog
+    to: SCEN-multilingual-language-catalog
+    created_at: 2026-09-27T12:03:38.141Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-353bb2c5f5a0

@@ -227,3 +227,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-55236cba84d1
+  - type: covered_by
+    from: SYM-source-analysis-v2-tree-sitter-languages-dae6879e
+    to: TEST-multilingual-language-catalog
+    created_at: 2026-09-27T12:04:59.156Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cb6ef752dcdd
+  - type: implements
+    from: SYM-source-analysis-v2-tree-sitter-languages-dae6879e
+    to: REQ-multilingual-language-catalog
+    created_at: 2026-09-27T12:04:59.165Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5966d8661c3b
+  - type: covered_by
+    from: SYM-treesitter-normalize-language
+    to: TEST-multilingual-language-catalog
+    created_at: 2026-09-27T12:05:39.483Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eebb752063fe
+  - type: implements
+    from: SYM-treesitter-normalize-language
+    to: REQ-multilingual-language-catalog
+    created_at: 2026-09-27T12:05:39.493Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-520e8cdcf5d2

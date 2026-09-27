@@ -1,7 +1,7 @@
 {
   "name": "kibi-plugin-treesitter",
-  "version": "0.1.2",
-  "description": "Offline Tree-sitter symbol extraction for Python, Go, and Rust",
+  "version": "0.2.0",
+  "description": "Offline multi-language Tree-sitter symbol extraction",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

@@ -26,7 +26,7 @@
     },
     "packages/cli": {
       "name": "kibi-cli",
-      "version": "2.3.7",
+      "version": "2.4.0",
       "bin": {
         "kibi": "bin/kibi",
       },
@@ -133,7 +133,7 @@
     },
     "packages/plugin-builtin": {
       "name": "kibi-plugin-builtin",
-      "version": "0.3.0",
+      "version": "0.3.1",
       "dependencies": {
         "kibi-plugin-sdk": "^0.3.0",
         "ts-morph": "^23.0.0",
@@ -165,7 +165,7 @@
     },
     "packages/plugin-treesitter": {
       "name": "kibi-plugin-treesitter",
-      "version": "0.1.2",
+      "version": "0.2.0",
       "dependencies": {
         "web-tree-sitter": "0.27.0",
       },
@@ -180,7 +180,7 @@
     },
     "packages/runtime": {
       "name": "kibi-runtime",
-      "version": "2.0.5",
+      "version": "2.0.6",
       "dependencies": {
         "gray-matter": "^4.0.3",
         "kibi-core": "^0.13.0",

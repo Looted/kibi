@@ -41921,9 +41921,16 @@ symbols:
     status: active
     sourceFile: packages/plugin-builtin/src/symbols/ts-morph-extractor.ts
     symbol_role: behavioral
+    tags:
+      - multilingual
+      - catalog
     relationships:
       - type: covered_by
+        target: TEST-multilingual-language-catalog
+      - type: covered_by
         target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-multilingual-language-catalog
       - type: implements
         target: REQ-source-analysis-v2
   - id: SYM-source-analysis-v2-createmaintenancesourceanalysisservice-cfb40815
@@ -41951,9 +41958,16 @@ symbols:
     status: active
     sourceFile: packages/plugin-treesitter/src/extractor.ts
     symbol_role: behavioral
+    tags:
+      - multilingual
+      - catalog
     relationships:
       - type: covered_by
+        target: TEST-multilingual-language-catalog
+      - type: covered_by
         target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-multilingual-language-catalog
       - type: implements
         target: REQ-source-analysis-v2
   - id: SYM-source-analysis-v2-gitchangesnapshot-c5e637cb
@@ -42067,9 +42081,16 @@ symbols:
     status: active
     sourceFile: packages/cli/src/plugins/source-analysis-service.ts
     symbol_role: behavioral
+    tags:
+      - multilingual
+      - catalog
     relationships:
       - type: covered_by
+        target: TEST-multilingual-language-catalog
+      - type: covered_by
         target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-multilingual-language-catalog
       - type: implements
         target: REQ-source-analysis-v2
   - id: SYM-source-analysis-v2-sourceanalysisstatusv2-cd22533e
@@ -42149,9 +42170,16 @@ symbols:
     sourceFile: packages/plugin-treesitter/src/catalog.ts
     symbol_role: config
     granularity_reason: config-artifact
+    tags:
+      - multilingual
+      - catalog
     relationships:
       - type: covered_by
+        target: TEST-multilingual-language-catalog
+      - type: covered_by
         target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-multilingual-language-catalog
       - type: implements
         target: REQ-source-analysis-v2
   - id: SYM-source-analysis-v2-validatesourceanalysisresultv2-213d878d
@@ -42277,27 +42305,51 @@ symbols:
     title: treeSitterLanguageForPath
     status: active
     sourceFile: packages/plugin-treesitter/src/catalog.ts
+    tags:
+      - multilingual
+      - catalog
+    symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-multilingual-language-catalog
+      - type: covered_by
         target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-multilingual-language-catalog
       - type: implements
         target: REQ-source-analysis-v2
   - id: SYM-treesitter-language-type
     title: TreeSitterLanguage
     status: active
     sourceFile: packages/plugin-treesitter/src/catalog.ts
+    tags:
+      - multilingual
+      - catalog
+    symbol_role: type-shape
     relationships:
       - type: covered_by
+        target: TEST-multilingual-language-catalog
+      - type: covered_by
         target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-multilingual-language-catalog
       - type: implements
         target: REQ-source-analysis-v2
   - id: SYM-treesitter-normalize-language
     title: normalizeTreeSitterLanguage
     status: active
     sourceFile: packages/plugin-treesitter/src/catalog.ts
+    tags:
+      - multilingual
+      - catalog
+    symbol_role: behavioral
     relationships:
       - type: covered_by
+        target: TEST-multilingual-language-catalog
+      - type: covered_by
         target: TEST-source-analysis-v2-contract
+      - type: implements
+        target: REQ-multilingual-language-catalog
       - type: implements
         target: REQ-source-analysis-v2
   - id: SYM-source-analysis-v2-sourceanalysisuncoveredrangev2
@@ -42330,3 +42382,41 @@ symbols:
         target: TEST-source-analysis-v2-contract
       - type: implements
         target: REQ-source-analysis-v2
+  - id: SYM-classify-source-language
+    title: classifySource
+    status: active
+    tags:
+      - multilingual
+      - catalog
+    sourceFile: packages/cli/src/plugins/source-classification.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-multilingual-language-catalog
+      - type: implements
+        target: REQ-multilingual-language-catalog
+  - id: SYM-e2e-multilingual-language-catalog
+    title: runMultilingualLanguageCatalogWorkflow
+    status: active
+    tags:
+      - multilingual
+      - e2e
+      - consumer
+    sourceFile: documentation/tests/e2e/packed/multilingual-language-catalog.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-multilingual-language-catalog
+  - id: SYM-source-language-classification-type
+    title: SourceClassification
+    status: active
+    tags:
+      - multilingual
+      - catalog
+    sourceFile: packages/cli/src/plugins/source-classification.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-multilingual-language-catalog
+      - type: implements
+        target: REQ-multilingual-language-catalog

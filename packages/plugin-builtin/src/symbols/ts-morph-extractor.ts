@@ -33,6 +33,7 @@ import {
   type ClassExpression,
   type Node,
   Project,
+  ScriptKind,
   type SourceFile,
   SyntaxKind,
 } from "ts-morph";
@@ -44,6 +45,38 @@ import {
 } from "./ts-morph-shared.js";
 
 const EXTRACTOR_ID = "kibi-plugin-builtin.ts-morph";
+
+function normalizeV2ScriptLanguage(
+  language: string | undefined,
+): "javascript" | "typescript" | undefined {
+  const normalized = language?.trim().toLowerCase();
+  if (["javascript", "js", "node", "nodejs"].includes(normalized ?? "")) {
+    return "javascript";
+  }
+  if (["typescript", "ts"].includes(normalized ?? "")) {
+    return "typescript";
+  }
+  return undefined;
+}
+
+function v2ScriptKind(
+  filePath: string,
+  languageHint: string | undefined,
+): ScriptKind | undefined {
+  const extension = path.extname(filePath).toLowerCase();
+  const language = normalizeV2ScriptLanguage(languageHint);
+  if (SUPPORTED_SOURCE_EXTENSIONS.has(extension)) {
+    if (languageHint !== undefined && language === undefined) return undefined;
+    if (language !== undefined && language !== inferSourceLanguage(filePath)) {
+      return undefined;
+    }
+    return chooseScriptKind(filePath);
+  }
+  if (extension === "" && language !== undefined) {
+    return language === "typescript" ? ScriptKind.TS : ScriptKind.JS;
+  }
+  return undefined;
+}
 
 /**
  * Built-in ts-morph symbol extractor. Behavior matches the historical CLI
@@ -92,21 +125,23 @@ export function createBuiltinTsMorphSymbolExtractorV2(): SymbolExtractorV2 {
   return {
     id: `${EXTRACTOR_ID}.v2`,
     supports(input): boolean {
-      return SUPPORTED_SOURCE_EXTENSIONS.has(
-        path.extname(input.path).toLowerCase(),
-      );
+      return v2ScriptKind(input.path, input.language) !== undefined;
     },
     async analyze(input): Promise<SourceAnalysisResultV2> {
+      const extension = path.extname(input.path).toLowerCase();
       const language =
-        input.language?.trim() || inferSourceLanguage(input.path);
+        normalizeV2ScriptLanguage(input.language) ??
+        (input.language?.trim() ||
+          (SUPPORTED_SOURCE_EXTENSIONS.has(extension)
+            ? inferSourceLanguage(input.path)
+            : "unknown"));
       const module = {
         title: inferModuleTitle(input.path),
         language,
         analysisMode: "parser" as const,
       };
-      if (
-        !SUPPORTED_SOURCE_EXTENSIONS.has(path.extname(input.path).toLowerCase())
-      ) {
+      const scriptKind = v2ScriptKind(input.path, input.language);
+      if (scriptKind === undefined) {
         return {
           contractVersion: "kibi.symbol-extractor.v2",
           status: "unsupported",
@@ -127,7 +162,7 @@ export function createBuiltinTsMorphSymbolExtractorV2(): SymbolExtractorV2 {
       try {
         const sourceFile = project.createSourceFile(input.path, input.content, {
           overwrite: true,
-          scriptKind: chooseScriptKind(input.path),
+          scriptKind,
         });
         const diagnostics = sourceFile
           .getProject()

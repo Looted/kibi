@@ -237,3 +237,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1e3cc380229a
+  - type: validates
+    from: TEST-multilingual-language-catalog
+    to: REQ-multilingual-language-catalog
+    created_at: 2026-09-27T12:03:51.641Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b05431192c0
+  - type: validates
+    from: TEST-multilingual-language-catalog
+    to: SCEN-multilingual-language-catalog
+    created_at: 2026-09-27T12:03:51.665Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1f95fd94226

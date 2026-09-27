@@ -1,5 +1,15 @@
 # kibi-plugin-treesitter
 
+## 0.2.0
+
+### Minor Changes
+
+- Kibi now extracts structured symbols across a broader set of common programming and configuration languages, while keeping parser assets available offline in the installed package. JavaScript and TypeScript extraction also handles script files and more declaration forms consistently. The runtime package receives the matching capability updates so installed Kibi uses the same analyzers as development builds.
+
+  - Expand Tree-sitter language and declaration coverage with pinned grammar assets, queries, licenses, and integrity metadata.
+  - Improve built-in JavaScript and TypeScript script analysis and source analyzer selection.
+  - Update CLI and runtime package wiring for the expanded analyzer catalog.
+
 ## 0.1.2
 
 ### Patch Changes
