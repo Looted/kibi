@@ -1405,5 +1405,15 @@
         "documentation/tests/e2e/packed/proof-all-bounded-projection.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-multilingual-language-catalog",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/multilingual-language-catalog.test.ts"
+      ]
+    ]
   }
 ]

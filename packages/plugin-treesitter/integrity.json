@@ -1,7 +1,7 @@
 {
   "schemaVersion": "kibi.package-integrity.v1",
   "package": "kibi-plugin-treesitter",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "algorithm": "sha256",
   "selfHash": {
     "path": "integrity.json",
@@ -11,8 +11,8 @@
   "files": [
     {
       "path": "CHANGELOG.md",
-      "bytes": 1456,
-      "sha256": "aa236f1dd277cd86d471a246f3f8a331c338246ff60922bf85d628948d765216"
+      "bytes": 2199,
+      "sha256": "d87efe0a9691ff8f3d599919e7d7444d8b8be4d1d34416f93f3bc6c67058f167"
     },
     {
       "path": "LICENSE.md",
@@ -21,18 +21,48 @@
     },
     {
       "path": "README.md",
-      "bytes": 2337,
-      "sha256": "6acadba8fa46eca258b17fc276699c556326347c88f284dfe900cb880cc6df97"
+      "bytes": 3698,
+      "sha256": "708a38860b1049c2578e16063ef81b70c2c78be2aa4a1858caa5f81f0a99b734"
     },
     {
       "path": "SBOM.spdx.json",
-      "bytes": 4612,
-      "sha256": "3368f09089da06973891f4125b29c79bdb1e72f3ee6d34c32774b91ca310d70f"
+      "bytes": 11302,
+      "sha256": "f658df7bad4d16eda6185c5c365b1ca2481aeb63ea0e1b2e4c480e1e63c2dd7c"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
-      "bytes": 1588,
-      "sha256": "6a9736302ea4d0687eabfdaa9d4aba9ab182f0e50cf00c812bbf763fd1b8eb97"
+      "bytes": 1874,
+      "sha256": "0b1ede96cb261dab73fd1ec8c51d7bb5b2492eed0502f6c10ed071736daa263c"
+    },
+    {
+      "path": "assets/queries/bash.scm",
+      "bytes": 143,
+      "sha256": "6ca535e8fe652b51203ac272831881dab001f7ac508e50551bc2cdc4a15d7b6c"
+    },
+    {
+      "path": "assets/queries/c.scm",
+      "bytes": 375,
+      "sha256": "774ca67cfe23b0e0d1d3a4f01788049a822beb1311feee72b20a595a37be1e28"
+    },
+    {
+      "path": "assets/queries/cpp-extra.scm",
+      "bytes": 763,
+      "sha256": "7cf486901eaf7e9196bc2c5dfe83785eed70d367136f8008af37eb4f1c12a68a"
+    },
+    {
+      "path": "assets/queries/cpp.scm",
+      "bytes": 668,
+      "sha256": "029731ca946e32f919491d9f76c85a50e5deb5ad1934e37fd6849312c0d4a705"
+    },
+    {
+      "path": "assets/queries/csharp-extra.scm",
+      "bytes": 388,
+      "sha256": "d3a55c3c67cb236921da5785d08d146ba53f70d9e2af83a365f59954f8878a57"
+    },
+    {
+      "path": "assets/queries/csharp.scm",
+      "bytes": 848,
+      "sha256": "4ed08da0162ecd48206ac34bebe7ea9757a8c7b617f6ad8f70c168d685d514fe"
     },
     {
       "path": "assets/queries/go.scm",
@@ -40,9 +70,34 @@
       "sha256": "d1a9b1f678fe0278b85054e2dc56a28ef26aa478b8c88fb2b0dd83cdcdb9db35"
     },
     {
+      "path": "assets/queries/hcl.scm",
+      "bytes": 210,
+      "sha256": "cad52e3fd81bc5584ea181c920bdb8fa4be007f05f8c5e08f95e9ccb40aee93a"
+    },
+    {
+      "path": "assets/queries/java-extra.scm",
+      "bytes": 254,
+      "sha256": "5ce7857f2b52c10b3672bc09f39f287cff2eaa7caa0b75dafccbaa5fec58431d"
+    },
+    {
+      "path": "assets/queries/java.scm",
+      "bytes": 499,
+      "sha256": "bcb22147b8582d92743fc973864cefb894a4c12b3957f16f3d472b2ec7cd4c49"
+    },
+    {
+      "path": "assets/queries/php.scm",
+      "bytes": 947,
+      "sha256": "4ac5e30f99f3abe5417dcb42219e0790c66f9b4bb3be071bc60160dd012f3cd8"
+    },
+    {
       "path": "assets/queries/python.scm",
       "bytes": 350,
       "sha256": "d0f3e577878167bfabc30e526e497bce58d1699b9bcabf8ab3a50698efb5ca3e"
+    },
+    {
+      "path": "assets/queries/ruby.scm",
+      "bytes": 1087,
+      "sha256": "ed1e7dc07a95b87aef267e7f9715c6717a70f09efbd7b6f48bbd51c7b7510cf3"
     },
     {
       "path": "assets/queries/rust-extra.scm",
@@ -55,9 +110,49 @@
       "sha256": "f22867fdebde5cb091861c08d34690dc2540f4318068bf81be9f6b0d348ab8c1"
     },
     {
+      "path": "assets/queries/terraform.scm",
+      "bytes": 2535,
+      "sha256": "8a6974a8eb48e13b5b8cd64e7c81262a825b4251df01ab383aee5cdda8151e7e"
+    },
+    {
+      "path": "assets/tree-sitter-bash.wasm",
+      "bytes": 1358224,
+      "sha256": "8292919c88a0f7d3fb31d0cd0253ca5a9531bc1ede82b0537f2c63dd8abe6a7a"
+    },
+    {
+      "path": "assets/tree-sitter-c.wasm",
+      "bytes": 625918,
+      "sha256": "c852c2a85ebf2beb636aa3b0ef7f7e70458684d74f6741b20dcb296885bed9f9"
+    },
+    {
+      "path": "assets/tree-sitter-c_sharp.wasm",
+      "bytes": 5350581,
+      "sha256": "6f69e1cae44e1c32c1eccc170dc5a9778fb94ff716f71113fe1f8c4299aa2f40"
+    },
+    {
+      "path": "assets/tree-sitter-cpp.wasm",
+      "bytes": 3434931,
+      "sha256": "174eb0deb75b2ec7881bcacda9f995648d8e683956e5c2267e69ab6dc503fcbf"
+    },
+    {
       "path": "assets/tree-sitter-go.wasm",
       "bytes": 217182,
       "sha256": "9504573f352b20be7f2f1911754d710622aedc15afff16d5ed8fb5645681aee7"
+    },
+    {
+      "path": "assets/tree-sitter-hcl.release.wasm",
+      "bytes": 93854,
+      "sha256": "2f9acf63e7c263215f283e2cf0f4ebbb9bfa77f58e18fa42b91094be201372a7"
+    },
+    {
+      "path": "assets/tree-sitter-java.wasm",
+      "bytes": 414641,
+      "sha256": "4fdeac4ca6ca089f06c6f7e562abcac1733cd465728cc7031ebb73c2019122c4"
+    },
+    {
+      "path": "assets/tree-sitter-php.wasm",
+      "bytes": 1058041,
+      "sha256": "d4df6a6ff08c87c3ec4f9cbb785fe09998a0cb570e03f57d7b19b3acfb146aa7"
     },
     {
       "path": "assets/tree-sitter-python.wasm",
@@ -65,14 +160,24 @@
       "sha256": "16108b50df4ee9a30168794252ab55e7c93bfc5765d7fa0aa3e335752c515f47"
     },
     {
+      "path": "assets/tree-sitter-ruby.wasm",
+      "bytes": 2106352,
+      "sha256": "09a96427d7c72f0613ed470cd9812223fc4a91d6a9c025c0235cc6bd59ff96f4"
+    },
+    {
       "path": "assets/tree-sitter-rust.wasm",
       "bytes": 1102547,
       "sha256": "f65f354215611fd94ad34134b3427eb3d58cbb745df7b6509ba722184db73d57"
     },
     {
+      "path": "assets/tree-sitter-terraform.release.wasm",
+      "bytes": 93876,
+      "sha256": "59dbcbb0f08eb78b78f37510834559a48ce5c9d4866c978d62c6390796461cb5"
+    },
+    {
       "path": "catalog.json",
-      "bytes": 4368,
-      "sha256": "6474612ac72f236d65c72a0fde808d993443271df7686525bfc1272098b3d8a6"
+      "bytes": 16469,
+      "sha256": "d3695032eeb17ac194857627247fe1a110b653f8f227b6eef27fea90f36711a0"
     },
     {
       "path": "dist/analysis-worker.d.ts",
@@ -86,23 +191,23 @@
     },
     {
       "path": "dist/analysis-worker.js",
-      "bytes": 15706,
-      "sha256": "59404246864a2d91ceceab64f3ff0ee89ee6c275b1cfddb08c3bfaa1a0e6064e"
+      "bytes": 49813,
+      "sha256": "ce240b6eec417f32f40becbcb88554a7445768bec919b1372bc25833cb2266c4"
     },
     {
       "path": "dist/catalog.d.ts",
-      "bytes": 601,
-      "sha256": "905d20f7207abc6e871fb4c434062d10b13611544c981ca5eab8a5dd7033c4d6"
+      "bytes": 2056,
+      "sha256": "70d9870ca4d470928da73320d40e6e47c4c142a2f3c8e52a18860a136772a338"
     },
     {
       "path": "dist/catalog.d.ts.map",
-      "bytes": 347,
-      "sha256": "46162ab1ff8ec46f769b3ace486554166295103ef23b1008bec8ad3cc369aba1"
+      "bytes": 389,
+      "sha256": "67907a136cc8ce7e85036f9478a623a13323143a2a1eabb5080d0728efbb37e3"
     },
     {
       "path": "dist/catalog.js",
-      "bytes": 890,
-      "sha256": "f968a2bae1da2d7fc17f915728d419a85d558fb0c4e72baa236633b309a66ae0"
+      "bytes": 1822,
+      "sha256": "460243c48cb6a03b8c7971273729d8a1134955186978b6c0d04182c71960ebff"
     },
     {
       "path": "dist/extractor.d.ts",
@@ -112,12 +217,12 @@
     {
       "path": "dist/extractor.d.ts.map",
       "bytes": 255,
-      "sha256": "a65a95d6966772752d3478d4017e8d9276600fa7896009e0a9148ff025f6a4f8"
+      "sha256": "99ab7b106f993646d9aeca553b6f94dce89164f3ac449a592f87427c16b6db0a"
     },
     {
       "path": "dist/extractor.js",
-      "bytes": 6251,
-      "sha256": "420eb0861c90a869fef2472bb5bdbc758383dbc47b1aa42174b6dc289704f441"
+      "bytes": 11681,
+      "sha256": "0217b99fc63107af783dae0d1e8370c62eab9400c64ad574ff1c2804dbaa0a4e"
     },
     {
       "path": "dist/index.d.ts",
@@ -135,14 +240,54 @@
       "sha256": "adc03d77d94c0133b3188950b35f79db19e447cf7bfa1f7e1cf1f5c97a582a44"
     },
     {
+      "path": "licenses/tree-sitter-bash-MIT.txt",
+      "bytes": 1080,
+      "sha256": "49bf33cf78ef5897e4e161ce1517df7de1ae5042a65b6bcfd44401e0fc606559"
+    },
+    {
+      "path": "licenses/tree-sitter-c-MIT.txt",
+      "bytes": 1080,
+      "sha256": "2e0110e07abef7c2548b26ec9d6969775617ca539a0dc8dbeeb14d6452c711d1"
+    },
+    {
+      "path": "licenses/tree-sitter-c-sharp-MIT.txt",
+      "bytes": 1133,
+      "sha256": "778fb7d63b8c1844da315648c02f325c4713a6f4a5d19644fd413421422776d3"
+    },
+    {
+      "path": "licenses/tree-sitter-cpp-MIT.txt",
+      "bytes": 1080,
+      "sha256": "2e0110e07abef7c2548b26ec9d6969775617ca539a0dc8dbeeb14d6452c711d1"
+    },
+    {
       "path": "licenses/tree-sitter-go-MIT.txt",
       "bytes": 1080,
       "sha256": "2e0110e07abef7c2548b26ec9d6969775617ca539a0dc8dbeeb14d6452c711d1"
     },
     {
+      "path": "licenses/tree-sitter-hcl-Apache-2.0.txt",
+      "bytes": 11357,
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+    },
+    {
+      "path": "licenses/tree-sitter-java-MIT.txt",
+      "bytes": 1069,
+      "sha256": "52ed137b039cd9c46409bc22e89938af911c95b157feae2d040b51e6084369a7"
+    },
+    {
+      "path": "licenses/tree-sitter-php-MIT.txt",
+      "bytes": 1166,
+      "sha256": "664764fabf40c0b318e06324a5a12379092a2df25b8cbf2415f71bc0bb352346"
+    },
+    {
       "path": "licenses/tree-sitter-python-MIT.txt",
       "bytes": 1080,
       "sha256": "d724405ce238a22c0d35769c5a36b386ad5958192efe8bbb304fb2896254575f"
+    },
+    {
+      "path": "licenses/tree-sitter-ruby-MIT.txt",
+      "bytes": 1074,
+      "sha256": "9c99b99e93d3c6461bef9f6bac45d17b8bf014172625c24f76319bbd235a7b80"
     },
     {
       "path": "licenses/tree-sitter-rust-MIT.txt",
@@ -156,8 +301,8 @@
     },
     {
       "path": "package.json",
-      "bytes": 1355,
-      "sha256": "1a402e94d0d93fd37111a854f275eaeb2c340af24141e062a6da2864e500aeea"
+      "bytes": 1345,
+      "sha256": "3bc46d77b1be278847bf555174341e3ae82fe23c74d8fe307bafc3c8f75ed385"
     }
   ]
 }

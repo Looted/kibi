@@ -35,6 +35,7 @@ import type {
   CapabilityModeResolution,
   CapabilityRegistry,
 } from "./registry.js";
+import { classifySource } from "./source-classification.js";
 
 const SOURCE_LANGUAGE_EXTENSIONS: Record<string, string> = {
   ".c": "c",
@@ -192,17 +193,40 @@ export class SourceAnalysisService {
       (() => this.registry.resolveSymbolExtractors());
   }
 
-  /** Analyze supplied snapshot bytes with explicit completeness and host provenance. */
+  /**
+   * Analyze supplied snapshot bytes with explicit completeness and host provenance.
+   * An explicit language hint selects an ambiguous extension only when it agrees
+   * with any shebang; conflicting signals return unsupported without dispatch.
+   */
   // implements REQ-capability-plugin-activation-disclosure-v1
   async analyzeTextV2(
     filePath: string,
     content: string,
+    explicitLanguageHint?: string,
   ): Promise<HostSourceAnalysisResultV2> {
-    const input = { path: filePath, content };
+    const classification = classifySource(
+      filePath,
+      content,
+      explicitLanguageHint,
+    );
+    const input = {
+      path: filePath,
+      content,
+      ...(classification.kind === "language"
+        ? { language: classification.language }
+        : {}),
+    };
+    const language = classification.language;
     const inputFingerprint = createHash("sha256")
       .update(filePath)
       .update("\0")
       .update(content)
+      .update("\0")
+      .update(classification.kind)
+      .update("\0")
+      .update(classification.language)
+      .update("\0")
+      .update(explicitLanguageHint?.trim().toLowerCase() ?? "")
       .digest("hex");
     const fallback = (
       status: "unsupported" | "failed",
@@ -212,10 +236,10 @@ export class SourceAnalysisService {
       contractVersion: SYMBOL_EXTRACTOR_V2_CAPABILITY_ID,
       status,
       sourceFile: filePath,
-      language: detectSourceLanguage(filePath),
+      language,
       module: {
         title: inferModuleTitle(filePath),
-        language: detectSourceLanguage(filePath),
+        language,
         analysisMode: "fallback",
         fallbackReason: code,
       },
@@ -244,11 +268,29 @@ export class SourceAnalysisService {
     } catch (error) {
       return fallback("failed", "provider_resolution_failed", String(error));
     }
+    if (
+      classification.kind !== "language" &&
+      classification.kind !== "unknown"
+    ) {
+      const code =
+        classification.kind === "ambiguous"
+          ? "source_language_ambiguous"
+          : classification.kind === "conflict"
+            ? "source_classification_conflict"
+            : classification.kind === "file-level"
+              ? "source_file_level_only"
+              : "unsupported_language";
+      return fallback("unsupported", code, classification.reason);
+    }
     const run = async (
       entry: CapabilityModeResolution<SymbolExtractorV2>["builtin"],
     ): Promise<HostSourceAnalysisResultV2 | null> => {
       try {
-        if (!entry.capability.supports({ path: filePath })) return null;
+        const supportsInput =
+          classification.kind === "language"
+            ? { path: filePath, language: classification.language }
+            : { path: filePath };
+        if (!entry.capability.supports(supportsInput)) return null;
         let timer: ReturnType<typeof setTimeout> | undefined;
         let raw: unknown;
         try {
