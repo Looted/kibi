@@ -134,8 +134,9 @@ describe("MCP coverage tool handler", () => {
     );
     expect(coverageCall).toBeDefined();
     const firstCall = coverageCall as unknown as unknown[];
+    // Default 100-row requests are read in bounded 10-row pages.
     expect(String(firstCall[0])).toContain(
-      ", false, false, 100, 0, 'unknown', ",
+      ", false, false, 10, 0, 'unknown', ",
     );
   });
 });

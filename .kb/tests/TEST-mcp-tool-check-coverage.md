@@ -1667,5 +1667,38 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-34b48807979165c31079e115
+    test_id: TEST-mcp-tool-check-coverage
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: edf31aeb17bae9696cd9be1db2cfdab1162934903a40aff8334d03e84edd5872
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-27T09:58:13.375Z'
+    finished_at: '2026-09-27T10:21:29.406Z'
+    artifact_digest: 601f3dfdaa45bbef34f649d3ddd7d3e53a7dc2ba372aa80398ec1e1a58170f59
+    contract_hash: ac0fba616e4b48eb9674ad213fda4ee4da410842d1249b56f08aa2c1b7765e9b
+    binding_hash: 0477e3e102dd39c8a4758126f9efb3ae63bf2aaed0eae1a23bad990951241d61
+    fingerprint: db30787a733bf8f9f267d32e746cd09976d37a3f5abd270c9194635079010318
+    fingerprint_components:
+      contract: ac0fba616e4b48eb9674ad213fda4ee4da410842d1249b56f08aa2c1b7765e9b
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-mcp-tool-check-coverage
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 Call `kb_check` before and after a controlled repair with a focused rule filter, asserting machine-readable violations include the affected entity and disappear after the repair.

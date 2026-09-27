@@ -290,3 +290,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6f21747a9fa9
+  - type: implements
+    from: SYM-cli-COVERAGE_ROW_PAGE_SIZE
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-09-27T09:51:46.012Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3849d2da14ac
+  - type: covered_by
+    from: SYM-cli-COVERAGE_ROW_PAGE_SIZE
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-27T09:51:46.041Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-151ec8cf7d9a

@@ -267,6 +267,42 @@ export async function perContractTestBindings(
   return `_{${entries.join(", ")}}`;
 }
 
+/**
+ * Coverage rows can be large (full proof stages per requirement), so a
+ * whole-KB report in one answer approaches the engine's bounded output cap.
+ * Fetch it in small row pages instead; the engine memoizes the computed
+ * report per store generation, so later pages only paginate and encode.
+ */
+export const COVERAGE_ROW_PAGE_SIZE = 10;
+
+// implements REQ-kibi-verification-evidence-contract
+export async function readCoveragePages(
+  prolog: NonNullable<OperationContext["prolog"]>,
+  goalFor: (limit: number, offset: number) => string,
+  limit: number,
+  offset: number,
+): Promise<CoveragePayload> {
+  const read = (pageLimit: number, pageOffset: number) =>
+    runOperationJsonQuery<CoveragePayload>(
+      prolog,
+      "discovery.pl",
+      goalFor(pageLimit, pageOffset),
+      "Coverage execution",
+    );
+  if (limit <= COVERAGE_ROW_PAGE_SIZE) return read(limit, offset);
+  const first = await read(COVERAGE_ROW_PAGE_SIZE, offset);
+  const rows = [...first.rows];
+  let lastPageSize = first.rows.length;
+  let lastPageLimit = COVERAGE_ROW_PAGE_SIZE;
+  while (lastPageSize === lastPageLimit && rows.length < limit) {
+    lastPageLimit = Math.min(COVERAGE_ROW_PAGE_SIZE, limit - rows.length);
+    const page = await read(lastPageLimit, offset + rows.length);
+    rows.push(...page.rows);
+    lastPageSize = page.rows.length;
+  }
+  return { ...first, rows };
+}
+
 export async function executeCoverage(
   input: CoverageInput,
   context: OperationContext,
@@ -284,17 +320,17 @@ export async function executeCoverage(
       statuses.length === 0 && (input.by ?? "req") === "req"
         ? await perContractTestBindings(context)
         : null;
-    const goal =
+    const goalFor = (limit: number, offset: number): string =>
       bindingsDict !== null
-        ? `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, per_contract, ${bindingsDict}, ${input.includeTransitive ?? true}, ${input.limit ?? 100}, ${input.offset ?? 0}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`
+        ? `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, per_contract, ${bindingsDict}, ${input.includeTransitive ?? true}, ${limit}, ${offset}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`
         : statuses.length > 0
-          ? `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${toPrologList(statuses)}, ${input.includeTransitive ?? true}, ${input.limit ?? 100}, ${input.offset ?? 0}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`
-          : `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${input.includeTransitive ?? true}, ${input.limit ?? 100}, ${input.offset ?? 0}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`;
-    const payload = await runOperationJsonQuery<CoveragePayload>(
+          ? `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${toPrologList(statuses)}, ${input.includeTransitive ?? true}, ${limit}, ${offset}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`
+          : `discovery:coverage_report_json('${input.by ?? "req"}', ${toPrologList(input.tags)}, ${input.includePassing ?? false}, ${input.includeTransitive ?? true}, ${limit}, ${offset}, ${toPrologAtom(codeSnapshot)}, ${toPrologAtom(checkedAt)}, ${PROOF_RECEIPT_MAX_AGE_SECONDS}, JsonString)`;
+    const payload = await readCoveragePages(
       requireProlog(context),
-      "discovery.pl",
-      goal,
-      "Coverage execution",
+      goalFor,
+      input.limit ?? 100,
+      input.offset ?? 0,
     );
     const rows =
       (input.by ?? "req") === "req"

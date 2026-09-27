@@ -20,6 +20,7 @@
 :- use_module(library(lists)).
 :- use_module(library(pairs)).
 :- use_module('kb.pl').
+:- use_module(library(semweb/rdf_db), [rdf_generation/1]).
 :- use_module('requirement_proof.pl', [requirement_proof_context/1, requirement_proof_context/4, requirement_proof_context/6, requirement_proof/4]).
 :- use_module('status.pl', [status_meta_dict/1]).
 :- use_module('../schema/relationships.pl', [relationship_type/1]).
@@ -153,11 +154,11 @@ coverage_evidence_receipt_gap(Gap) :-
 coverage_report_json(By, Tags, IncludePassing, BindingMode, TestBindings, IncludeTransitive, Limit, Offset, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
     % Binding mode applies to requirement rows only; other By values keep
     % their snapshot-era arity so type/symbol reports are unchanged.
-    (   By == req
-    ->  coverage_rows(req, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, BindingMode, TestBindings, Rows0, Summary)
-    ;   coverage_rows(By, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows0, Summary)
-    ),
-    sort_dict_rows(Rows0, SortedRows),
+    memo_sorted_coverage(
+        binding(By, Tags, IncludePassing, BindingMode, TestBindings, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds),
+        binding_coverage_rows(By, Tags, IncludePassing, BindingMode, TestBindings, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds),
+        SortedRows,
+        Summary),
     paginate_rows(SortedRows, Offset, Limit, Rows),
     status_meta_dict(Meta),
     Response = _{summary: Summary, rows: Rows, meta: Meta},
@@ -171,12 +172,43 @@ coverage_report_json(By, Tags, IncludePassing, BindingMode, TestBindings, Includ
 % reason — without diffing full exports by hand. The summary is always
 % computed over all rows so filtered responses keep whole-KB counts.
 coverage_report_json(By, Tags, IncludePassing, StatusFilter, IncludeTransitive, Limit, Offset, VerificationSnapshot, CheckedAt, MaxAgeSeconds, JsonString) :-
-    status_filtered_coverage_rows(By, Tags, IncludePassing, StatusFilter, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, MatchedRows0, Summary),
-    sort_dict_rows(MatchedRows0, SortedRows),
+    memo_sorted_coverage(
+        status(By, Tags, IncludePassing, StatusFilter, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds),
+        status_filtered_coverage_rows(By, Tags, IncludePassing, StatusFilter, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds),
+        SortedRows,
+        Summary),
     paginate_rows(SortedRows, Offset, Limit, Rows),
     status_meta_dict(Meta),
     Response = _{summary: Summary, rows: Rows, meta: Meta},
     dict_json_string(Response, JsonString).
+
+binding_coverage_rows(req, Tags, IncludePassing, BindingMode, TestBindings, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary) :-
+    !,
+    coverage_rows(req, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, BindingMode, TestBindings, Rows, Summary).
+binding_coverage_rows(By, Tags, IncludePassing, _BindingMode, _TestBindings, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary) :-
+    coverage_rows(By, Tags, IncludePassing, IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary).
+
+:- dynamic coverage_memo/3.
+
+%% memo_sorted_coverage(+Args, :Compute, -SortedRows, -Summary)
+% Large coverage reports are fetched in bounded pages so no single answer
+% approaches the engine's output cap. Every page would otherwise recompute
+% the whole report; keep the most recent sorted result for the exact
+% arguments, graph, and RDF generation. Coverage reads only the store and its
+% arguments, so the memo is invalidated by any store change.
+memo_sorted_coverage(Args, Compute, SortedRows, Summary) :-
+    (kb:kb_graph(Graph) -> true ; Graph = none),
+    rdf_generation(Generation),
+    Key = key(Args, Graph, Generation),
+    (   coverage_memo(Stored, StoredRows, StoredSummary),
+        Stored =@= Key
+    ->  SortedRows = StoredRows,
+        Summary = StoredSummary
+    ;   call(Compute, Rows0, Summary),
+        sort_dict_rows(Rows0, SortedRows),
+        retractall(coverage_memo(_, _, _)),
+        assertz(coverage_memo(Key, SortedRows, Summary))
+    ).
 
 status_filtered_coverage_rows(By, Tags, IncludePassing, [], IncludeTransitive, VerificationSnapshot, CheckedAt, MaxAgeSeconds, Rows, Summary) :-
     !,

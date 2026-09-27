@@ -41727,3 +41727,23 @@ symbols:
         target: TEST-audit-quality-diagnostics-v1
       - type: implements
         target: REQ-audit-quality-diagnostics-v1
+  - id: SYM-cli-readCoveragePages
+    title: readCoveragePages
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
+  - id: SYM-cli-COVERAGE_ROW_PAGE_SIZE
+    title: COVERAGE_ROW_PAGE_SIZE
+    status: active
+    sourceFile: packages/cli/src/public/operations/specs/reporting.ts
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-verification-evidence-contract
+      - type: implements
+        target: REQ-kibi-verification-evidence-contract
