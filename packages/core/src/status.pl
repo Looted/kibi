@@ -274,9 +274,22 @@ directory_tree_newer_path(Path, SnapshotTime, ChildPath) :-
     directory_file_path(Path, Entry, Candidate),
     directory_tree_newer_path(Candidate, SnapshotTime, ChildPath).
 
+:- dynamic workspace_root_memo/2.
+
+% Resolved once per attached KB path: status maps every entity source to a
+% workspace-relative path, and re-deriving the root per entity dominated it.
 attached_workspace_root(WorkspaceRoot) :-
     kb:kb_attached(KbPath),
-    branch_workspace_from_kb_path(KbPath, _Branch, WorkspaceRoot).
+    (   workspace_root_memo(KbPath, Memo)
+    ->  Memo = found(WorkspaceRoot)
+    ;   (   once(branch_workspace_from_kb_path(KbPath, _Branch, Root))
+        ->  Memo = found(Root)
+        ;   Memo = none
+        ),
+        retractall(workspace_root_memo(_, _)),
+        assertz(workspace_root_memo(KbPath, Memo)),
+        Memo = found(WorkspaceRoot)
+    ).
 
 branch_workspace_from_kb_path(KbPath, Branch, WorkspaceRoot) :-
     branch_path_segments(KbPath, BranchesDir, Segments),

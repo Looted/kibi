@@ -300,3 +300,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2ff2e50d5043
+  - type: implements
+    from: SYM-cli-readCoveragePages
+    to: REQ-kibi-verification-evidence-contract
+    created_at: 2026-09-27T09:51:39.622Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4e4c697d8a66
+  - type: covered_by
+    from: SYM-cli-readCoveragePages
+    to: TEST-kibi-verification-evidence-contract
+    created_at: 2026-09-27T09:51:39.643Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-192edc8d38d4

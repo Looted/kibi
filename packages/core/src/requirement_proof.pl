@@ -237,7 +237,47 @@ inventory_entry_field(List, Key, Value) :-
     is_list(List),
     memberchk(Key=Value, List).
 
+% Pure-function memos, content-addressed by variant_sha1/2, so they need no
+% invalidation: equal inputs always produce equal outputs. Proof evaluation
+% re-parses the same receipt histories and re-validates the same receipts on
+% every coverage run; both are bounded so a long-lived engine cannot grow them
+% without limit.
+:- dynamic pure_memo/3.
+:- dynamic pure_memo_size/1.
+
+pure_memo_limit(4096).
+
+pure_memo(Kind, Input, Goal, Output) :-
+    variant_sha1(Kind-Input, Key),
+    (   pure_memo(Key, Kind, Cached)
+    ->  Output = Cached
+    ;   call(Goal, Input, Result),
+        pure_memo_remember(Key, Kind, Result),
+        Output = Result
+    ).
+
+pure_memo_remember(Key, Kind, Output) :-
+    (   pure_memo_size(Size)
+    ->  true
+    ;   Size = 0
+    ),
+    pure_memo_limit(Limit),
+    (   Size >= Limit
+    ->  retractall(pure_memo(_, _, _)),
+        NextSize = 1
+    ;   NextSize is Size + 1
+    ),
+    retractall(pure_memo_size(_)),
+    assertz(pure_memo_size(NextSize)),
+    assertz(pure_memo(Key, Kind, Output)).
+
 inventory_entries(Raw, Entries) :-
+    (   (atom(Raw) ; string(Raw))
+    ->  pure_memo(inventory_entries, Raw, parse_inventory_entries, Entries)
+    ;   parse_inventory_entries(Raw, Entries)
+    ).
+
+parse_inventory_entries(Raw, Entries) :-
     (   is_list(Raw)
     ->  Entries = Raw
     ;   Raw = ^^(Value, _)
@@ -727,8 +767,8 @@ receipt_evidence_state(TestId, Scope, Props, Receipts, _Present, _Context,
     proof_contract_binding(Props, ContractBinding),
     (ContractBinding == invalid
     ; Receipts == []
-    ; member(Receipt, Receipts), \+ valid_receipt_shape(TestId, Receipt)
-    ; \+ chronological_receipt_history(Receipts)),
+    ; pure_memo(receipt_history_well_formed, TestId-Receipts,
+                receipt_history_well_formed, false)),
     !.
 receipt_evidence_state(TestId, Scope, Props, Receipts, _Present, Context, Evidence) :-
     receipt_for_current_mode(TestId, Context, Receipts, SnapshotReceipts),
@@ -743,6 +783,13 @@ receipt_evidence_state(TestId, Scope, Props, Receipts, _Present, Context, Eviden
             receipt_runtime_state(Latest, FinishedStamp, Context, State, AgeSeconds),
             receipt_evidence_dict(TestId, Scope, Latest, State, AgeSeconds, Evidence)
         )
+    ).
+
+receipt_history_well_formed(TestId-Receipts, WellFormed) :-
+    (   forall(member(Receipt, Receipts), valid_receipt_shape(TestId, Receipt)),
+        chronological_receipt_history(Receipts)
+    ->  WellFormed = true
+    ;   WellFormed = false
     ).
 
 proof_receipt_entries(Props, Receipts, Present) :-

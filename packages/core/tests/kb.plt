@@ -320,6 +320,121 @@ test(proof_contract_projection_survives_reload, [setup(cleanup_test_kb), cleanup
 
 :- end_tests(kb_persistence).
 
+:- begin_tests(kb_entity_memo).
+
+% kb_entity/3 memoizes decoded property lists per RDF generation. Every
+% store change must be visible on the very next read.
+memo_title(Id, Title) :-
+    kb_entity(Id, _, Props),
+    memberchk(title=Raw, Props),
+    (Raw = ^^(Title0, _) -> true ; Title0 = Raw),
+    atom_string(Title0, Title).
+
+test(memo_sees_updates_rollbacks_and_deletes, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-MEMO', "Before", active, []),
+    memo_title('REQ-MEMO', Before),
+    assertion(Before == "Before"),
+    memo_title('REQ-MEMO', BeforeAgain),
+    assertion(BeforeAgain == "Before"),
+    assert_fixture_entity(req, 'REQ-MEMO', "After", active, []),
+    memo_title('REQ-MEMO', After),
+    assertion(After == "After"),
+    catch(rdf_transaction((
+              assert_fixture_entity(req, 'REQ-MEMO', "Rolled back", active, []),
+              memo_title('REQ-MEMO', Inside),
+              assertion(Inside == "Rolled back"),
+              throw(rollback_probe)
+          )),
+          rollback_probe,
+          true),
+    memo_title('REQ-MEMO', AfterRollback),
+    assertion(AfterRollback == "After"),
+    kb_retract_entity('REQ-MEMO'),
+    assertion(\+ kb_entity('REQ-MEMO', _, _)).
+
+test(memo_does_not_leak_across_stores, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    test_kb_root(Root),
+    directory_file_path(Root, memo_a, StoreA),
+    directory_file_path(Root, memo_b, StoreB),
+    kb_attach(StoreA),
+    assert_fixture_entity(req, 'REQ-MEMO-STORE', "Store A", active, []),
+    memo_title('REQ-MEMO-STORE', InA),
+    assertion(InA == "Store A"),
+    kb_save,
+    kb_detach,
+    kb_attach(StoreB),
+    assertion(\+ kb_entity('REQ-MEMO-STORE', _, _)),
+    kb_detach,
+    delete_directory_and_contents(StoreA),
+    delete_directory_and_contents(StoreB).
+
+% Incremental index rows are Prolog facts an RDF rollback does not undo,
+% while rdf_generation reverts. The index check must still notice.
+test(index_verification_survives_rollback, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-IDX-KEPT', "Kept", active, []),
+    kb_query_entities(req, none, [], none, 10, 0, _, Before),
+    assertion(Before == 1),
+    catch(rdf_transaction((
+              assert_fixture_entity(req, 'REQ-IDX-ROLLED', "Rolled", active, []),
+              throw(rollback_probe)
+          )),
+          rollback_probe,
+          true),
+    kb_query_entities(req, 'REQ-IDX-ROLLED', [], none, 10, 0, _, Rolled),
+    assertion(Rolled == 0),
+    kb_query_entities(req, none, [], none, 10, 0, _, After),
+    assertion(After == 1).
+
+coverage_row_ids(Ids) :-
+    discovery:coverage_report_json(req, [], true, true, 100, 0, unknown,
+                                   '2026-09-27T00:00:00Z', 604800, Json),
+    atom_json_dict(Json, Dict, []),
+    findall(Id, (member(Row, Dict.rows), atom_string(Id, Row.id)), Ids).
+
+test(coverage_memo_reflects_store_changes, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-COV-A', "Coverage A", active, []),
+    coverage_row_ids(First),
+    assertion(First == ['REQ-COV-A']),
+    coverage_row_ids(Repeat),
+    assertion(Repeat == First),
+    assert_fixture_entity(req, 'REQ-COV-B', "Coverage B", active, []),
+    coverage_row_ids(Second),
+    assertion(Second == ['REQ-COV-A', 'REQ-COV-B']).
+
+% Receipt-history validation is memoized by content. Both outcomes must be
+% cached (a helper that fails for one outcome silently recomputes forever)
+% and a cached answer must equal a fresh one.
+well_formed_history(TestId, Json, WellFormed) :-
+    requirement_proof:inventory_entries(Json, Receipts),
+    requirement_proof:pure_memo(receipt_history_well_formed, TestId-Receipts,
+                                receipt_history_well_formed, WellFormed).
+
+memoized(TestId, Json) :-
+    requirement_proof:inventory_entries(Json, Receipts),
+    variant_sha1(receipt_history_well_formed-(TestId-Receipts), Key),
+    requirement_proof:pure_memo(Key, receipt_history_well_formed, _).
+
+test(receipt_history_memo_caches_both_outcomes) :-
+    retractall(requirement_proof:pure_memo(_, _, _)),
+    proof_receipt_json('TEST-MEMO-RECEIPT',
+                       'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+                       passed, '2026-09-27T00:00:00Z', '2026-09-27T00:01:00Z', Valid),
+    % Production asks "is this history ill-formed?" with the output bound.
+    assertion(\+ well_formed_history('TEST-MEMO-RECEIPT', Valid, false)),
+    assertion(memoized('TEST-MEMO-RECEIPT', Valid)),
+    well_formed_history('TEST-MEMO-RECEIPT', Valid, First),
+    assertion(First == true),
+    well_formed_history('TEST-MEMO-RECEIPT', Valid, Second),
+    assertion(Second == true),
+    % The same receipt claims a different test: shape-invalid for this one.
+    well_formed_history('TEST-OTHER', Valid, Mismatch),
+    assertion(Mismatch == false),
+    assertion(memoized('TEST-OTHER', Valid)),
+    well_formed_history('TEST-OTHER', Valid, MismatchAgain),
+    assertion(MismatchAgain == false).
+
+:- end_tests(kb_entity_memo).
+
 :- begin_tests(status_freshness).
 
 % Freshness scans every knowledge-lane and documentation file. The content

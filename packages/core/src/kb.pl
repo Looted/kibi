@@ -120,6 +120,13 @@ kb_uri('urn-kibi:').
 :- dynamic kb_index_symbol_coordinate/5.
 :- dynamic kb_index_entity_count/1.
 :- dynamic kb_index_triple_count/1.
+% Read memo for per-entity property lists, valid only for the recorded
+% Graph-rdf_generation key. rdf_generation/1 changes on every RDF
+% modification (including inside transactions) and reverts on rollback, so
+% the memo never serves a property list the store no longer holds.
+:- dynamic kb_entity_props_memo/2.
+:- dynamic kb_entity_props_memo_key/1.
+:- dynamic kb_index_verified_key/1.
 :- dynamic entity/4.  % Support legacy .pl file format (Type, Id, Title, Props)
 
 %% kb_attach(+Directory)
@@ -327,6 +334,9 @@ kb_detach :-
             retractall(kb_dirty),
             retractall(kb_index_ready),
             retractall(kb_index_dirty),
+            retractall(kb_index_verified_key(_)),
+            retractall(kb_entity_props_memo(_, _)),
+            retractall(kb_entity_props_memo_key(_)),
             retractall(kb_index_entity(_, _)),
             retractall(kb_index_type(_, _)),
             retractall(kb_index_tag(_, _)),
@@ -1383,6 +1393,42 @@ kb_entity(Id, Type, Props) :-
 % Raw RDF/entity facts are kept separate from the index wrapper.  Rebuilding
 % an index must never recurse through the indexed query path.
 kb_entity_raw(Id, Type, Props) :-
+    (   nonvar(Id)
+    ->  rdf_entity_solutions(Id, Solutions),
+        member(Type-Props, Solutions)
+    ;   kb_entity_raw_rdf(Id, Type, Props)
+    ).
+
+% Fallback: read from legacy entity/4 facts loaded from .pl files
+kb_entity_raw(Id, Type, Props) :-
+    entity(Type, Id, _Title, PropList),
+    convert_legacy_props(PropList, Props).
+
+%% rdf_entity_solutions(+Id, -Solutions)
+% Coverage, proof, and check predicates look up the same entities tens of
+% thousands of times, and every lookup materializes and decodes every
+% property (including receipt histories). Memoize the decoded Type-Props
+% solutions per entity for the current graph and RDF generation.
+rdf_entity_solutions(Id, Solutions) :-
+    (   kb_graph(Graph)
+    ->  rdf_generation(Generation),
+        Key = Graph-Generation,
+        (   kb_entity_props_memo_key(Current),
+            Current == Key
+        ->  true
+        ;   retractall(kb_entity_props_memo(_, _)),
+            retractall(kb_entity_props_memo_key(_)),
+            assertz(kb_entity_props_memo_key(Key))
+        ),
+        (   kb_entity_props_memo(Id, Cached)
+        ->  Solutions = Cached
+        ;   findall(Type-Props, kb_entity_raw_rdf(Id, Type, Props), Solutions),
+            assertz(kb_entity_props_memo(Id, Solutions))
+        )
+    ;   Solutions = []
+    ).
+
+kb_entity_raw_rdf(Id, Type, Props) :-
     kb_graph(Graph),
     % Find entity by pattern - use unquoted namespace term kb:type
     (   var(Id)
@@ -1403,18 +1449,35 @@ kb_entity_raw(Id, Type, Props) :-
         literal_to_value(Key, ValueLiteral, Value)
 ), Props).
 
-% Fallback: read from legacy entity/4 facts loaded from .pl files
-kb_entity_raw(Id, Type, Props) :-
-    entity(Type, Id, _Title, PropList),
-    convert_legacy_props(PropList, Props).
-
+% Verifying the index counts every type triple in the store. Remember the
+% inputs of the last successful check (graph, RDF generation, legacy fact
+% count, and the index's own entity count) and skip the recount while all of
+% them are unchanged: the recount would then return the same answer. The
+% index count must be part of the key because incremental index updates are
+% plain Prolog facts that an RDF rollback does not undo, while the RDF
+% generation does revert.
 kb_ensure_indexes :-
     (   kb_index_ready,
         \+ kb_index_dirty,
         kb_index_entity_count(Expected),
-        current_entity_index_count(Expected)
+        index_verification_key(Expected, Key),
+        (   kb_index_verified_key(Verified),
+            Verified == Key
+        ->  true
+        ;   current_entity_index_count(Expected),
+            retractall(kb_index_verified_key(_)),
+            assertz(kb_index_verified_key(Key))
+        )
     ->  true
     ;   kb_rebuild_indexes
+    ).
+
+index_verification_key(IndexCount, key(Graph, Generation, LegacyCount, IndexCount)) :-
+    (kb_graph(Graph) -> true ; Graph = none),
+    rdf_generation(Generation),
+    (   predicate_property(kb:entity(_, _, _, _), number_of_clauses(Count))
+    ->  LegacyCount = Count
+    ;   LegacyCount = 0
     ).
 
 % Rebuild all acceleration structures from RDF/entity facts.  This is
@@ -1439,6 +1502,7 @@ kb_rebuild_indexes :-
         assertz(kb_index_triple_count(TripleCount)),
         retractall(kb_index_dirty),
         retractall(kb_index_ready),
+        retractall(kb_index_verified_key(_)),
         assertz(kb_index_ready)
     )).
 
