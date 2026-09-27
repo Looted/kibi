@@ -59,6 +59,7 @@
     "dev:zcode": "bun --filter ./packages/zcode dev",
     "dev:claude": "bun --filter ./packages/claude dev",
     "sync:cursor-dogfood": "./scripts/sync-cursor-dogfood.sh",
+    "sync:claude-dogfood": "bun run build:cli-stack && bun run build:runtime && bun run build:mcp && bun run build:claude",
     "sync:agent-skills": "bun run scripts/sync-agent-skills.ts --write",
     "skillopt:smoke": "bun run scripts/skillopt-eval/operator.ts smoke",
     "skillopt:optimize": "bun run scripts/skillopt-eval/operator.ts optimize",

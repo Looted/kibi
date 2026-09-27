@@ -103,8 +103,9 @@ bun test ./packages/claude
 claude plugin validate packages/claude
 ```
 
-To try it locally without installing, run `claude --plugin-dir packages/claude`
-from a Kibi workspace.
+This repository dogfoods the working-tree plugin automatically: see
+[DEV.md](DEV.md) for the setup, and for testing the packaged plugin with
+`claude --plugin-dir packages/claude`.
 
 ## Manual MCP fallback
 

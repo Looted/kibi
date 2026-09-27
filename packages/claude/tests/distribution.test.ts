@@ -181,6 +181,43 @@ describe("kibi-claude distribution artifacts", () => {
   });
 });
 
+describe("kibi-claude dogfood configuration", () => {
+  type HookGroups = Record<
+    string,
+    { matcher?: string; hooks: { command: string }[] }[]
+  >;
+
+  function eventMatchers(hooks: HookGroups): Record<string, string[]> {
+    return Object.fromEntries(
+      Object.entries(hooks).map(([event, groups]) => [
+        event,
+        groups.map((group) => group.matcher ?? ""),
+      ]),
+    );
+  }
+
+  test("repo dogfood hooks mirror the plugin hooks and run this checkout's bundle", () => {
+    const settings = JSON.parse(
+      fs.readFileSync(path.join(repoRoot, ".claude/settings.json"), "utf8"),
+    ) as { hooks: HookGroups; enabledPlugins: Record<string, boolean> };
+    const plugin = readJson("hooks/hooks.json") as unknown as {
+      hooks: HookGroups;
+    };
+    expect(eventMatchers(settings.hooks)).toEqual(eventMatchers(plugin.hooks));
+    for (const groups of Object.values(settings.hooks)) {
+      for (const group of groups) {
+        for (const hook of group.hooks) {
+          expect(hook.command).toBe(
+            'node "$CLAUDE_PROJECT_DIR/packages/claude/bin/hook-runner.mjs"',
+          );
+        }
+      }
+    }
+    // The released plugin is disabled here so dogfood hooks never double up.
+    expect(settings.enabledPlugins["kibi-claude@kibi"]).toBe(false);
+  });
+});
+
 describe("kibi-claude package contract", () => {
   test("optional package contract has no install lifecycle or runtime dependencies", () => {
     const pkg = readJson("package.json");
