@@ -1,6 +1,10 @@
 import { join } from "node:path";
 import { resolveBoundSymbolScope } from "../../extractors/manifest.js";
 import {
+  loadCoveredBySymbolsByTest,
+  receiptCodeScopeSymbolIds,
+} from "./code-scope.js";
+import {
   type ProofGap,
   evaluateContractAgainstRun,
 } from "../../proof/evaluate.js";
@@ -388,6 +392,9 @@ async function executeIngestProofUnlocked(
     receipt: ProofReceipt;
     existing: Record<string, unknown>[];
   };
+  // Loaded outside the per-test binding try/catch: an engine failure must fail
+  // the ingest, not silently write receipts without a binding hash.
+  const coveredBy = await loadCoveredBySymbolsByTest(context.prolog);
   const prepared: Prepared[] = [];
   for (const test of tests) {
     const testId = String(test.id);
@@ -437,7 +444,11 @@ async function executeIngestProofUnlocked(
         const stripped = removeFrontmatterBlock(authored, "proof_receipts");
         const codeScope = resolveBoundSymbolScope(
           join(context.workspaceRoot, ".kb", "symbols.yaml"),
-          bindings.map((binding) => binding.symbol_id),
+          receiptCodeScopeSymbolIds(
+            contract,
+            bindings,
+            coveredBy.get(testId) ?? [],
+          ),
         );
         bindingHash = receiptBindingHash(
           contract,
