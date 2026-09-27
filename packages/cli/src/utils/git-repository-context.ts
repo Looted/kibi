@@ -17,7 +17,7 @@
 */
 
 import { execFileSync } from "node:child_process";
-import { accessSync, constants, lstatSync } from "node:fs";
+import { lstatSync } from "node:fs";
 import * as path from "node:path";
 
 export interface GitRepositoryContext {
@@ -64,6 +64,16 @@ const PATH_FORMAT_MINIMUM = { major: 2, minor: 31 };
 // explicit absence diagnostic may classify a directory as standalone.
 const NOT_A_REPOSITORY_RE = /not a (git )?repository/i;
 
+/**
+ * Environment for diagnostic-parsing Git subprocesses: failure classification
+ * matches English diagnostics, so the child locale is pinned to C while every
+ * other environment value (and Git configuration) is preserved. The parent
+ * process's locale is never mutated.
+ */
+function gitEnv(): NodeJS.ProcessEnv {
+  return { ...process.env, LC_ALL: "C", LANG: "C" };
+}
+
 interface GitInvocation {
   /** Trimmed stdout when git exited successfully. */
   output: string | null;
@@ -77,6 +87,7 @@ function runGitChecked(cwd: string, args: string[]): GitInvocation {
       output: execFileSync("git", args, {
         cwd,
         encoding: "utf8",
+        env: gitEnv(),
         stdio: ["ignore", "pipe", "pipe"],
         timeout: 10_000,
         maxBuffer: 1024 * 1024,
@@ -112,34 +123,29 @@ function classifyGitFailure(
 }
 
 /**
- * Disambiguate Git's generic "not a git repository" answer: an existing but
- * unreadable `.git` entry (restricted permissions, broken ownership checks
- * upstream) produces that same fatal, and treating it as "no repository"
- * would send callers down the standalone path. Walk from the start directory
- * upward and report the first `.git` entry that exists but cannot be read;
- * null means every level is either absent or readable, so Git's answer stands.
+ * On Git's absence answer, find the nearest `.git` entry (file, directory, or
+ * symlink) at or above `start`. Git reports the same generic "not a git
+ * repository" fatal for entries it cannot fully read (restricted permissions
+ * on objects/refs/HEAD, ownership checks) as for true absence, so a present
+ * marker means the context is unresolved: callers must conservatively refuse
+ * with the marker instead of treating the directory as standalone. Null means
+ * no marker exists up to the filesystem root: the directory genuinely has no
+ * repository and standalone handling is legitimate.
  */
-function findUnreadableGitEntry(start: string): string | null {
+function findRepositoryMarker(start: string): string | null {
   let current = path.resolve(start);
   for (;;) {
     const entry = path.join(current, ".git");
-    let stat: ReturnType<typeof lstatSync> | null = null;
     try {
-      stat = lstatSync(entry);
+      lstatSync(entry);
+      return entry;
     } catch (error) {
       const code = (error as NodeJS.ErrnoException).code;
-      if (code === "EACCES" || code === "EPERM") return entry;
-      // ENOENT and friends: no entry at this level; keep walking.
-    }
-    if (stat) {
-      try {
-        accessSync(entry, stat.isDirectory() ? constants.R_OK | constants.X_OK : constants.R_OK);
-        if (stat.isDirectory()) accessSync(path.join(entry, "HEAD"), constants.R_OK);
-      } catch (error) {
-        const code = (error as NodeJS.ErrnoException).code;
-        if (code === "EACCES" || code === "EPERM") return entry;
+      if (code === "EACCES" || code === "EPERM") {
+        // The entry cannot even be inspected: treat it as present.
+        return entry;
       }
-      return null;
+      // ENOENT and friends: no entry at this level; keep walking.
     }
     const parent = path.dirname(current);
     if (parent === current) return null;
@@ -190,13 +196,14 @@ export function resolveGitRepository(
       };
     }
     if (classifyGitFailure(toplevel.failure) === "not-a-repository") {
-      // Git's absence answer also fires for `.git` entries it cannot read;
-      // surface that as a refusal instead of a standalone directory.
-      const unreadable = findUnreadableGitEntry(cwd);
-      if (unreadable !== null) {
+      // Git's absence answer also fires when a `.git` entry exists but some
+      // of its internals (objects, refs, HEAD) are unreadable; conservatively
+      // refuse with the marker instead of a standalone-directory verdict.
+      const marker = findRepositoryMarker(cwd);
+      if (marker !== null) {
         return {
           status: "git-refused",
-          reason: `Git reported no repository, but ${unreadable} exists and cannot be read by this process (${
+          reason: `Git reported no repository, but a .git entry exists at ${marker} (${
             toplevel.failure ?? "git produced no diagnostic output"
           }); refusing to guess.`,
         };

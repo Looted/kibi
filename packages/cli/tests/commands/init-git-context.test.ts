@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import {
+  accessSync,
   chmodSync,
+  constants,
   existsSync,
   lstatSync,
   mkdirSync,
@@ -103,13 +105,22 @@ describe("kibi init repository-context fixes", () => {
     });
   }
 
-  function refusalOutput(args: string, cwd: string, branch: string): string {
+  function refusalRun(
+    args: string,
+    cwd: string,
+    branch: string,
+    env = isolatedCliSandboxEnv({ KIBI_BRANCH: branch }),
+  ): { output: string; exitCode: number } {
     try {
-      return kibi(args, cwd, isolatedCliSandboxEnv({ KIBI_BRANCH: branch }));
+      return { output: kibi(args, cwd, env), exitCode: 0 };
     } catch (error) {
-      // init refuses with exit code 1; 2>&1 merges the diagnostics into
+      // init refuses with a nonzero exit; 2>&1 merges the diagnostics into
       // stdout, which nodeExecSync attaches to the thrown error.
-      return String((error as { stdout?: unknown }).stdout ?? "");
+      const err = error as { stdout?: unknown; status?: number };
+      return {
+        output: String(err.stdout ?? ""),
+        exitCode: typeof err.status === "number" ? err.status : 1,
+      };
     }
   }
 
@@ -247,15 +258,16 @@ describe("kibi init repository-context fixes", () => {
     commitReadme(repo);
     const before = snapshotDirectory(repo);
     chmodSync(path.join(repo, ".git"), 0o000);
-    let output: string;
+    let run: { output: string; exitCode: number };
     try {
-      output = refusalOutput("init", repo, "review-probe");
+      run = refusalRun("init", repo, "review-probe");
     } finally {
       chmodSync(path.join(repo, ".git"), 0o755);
     }
-    expect(output).toContain("Git reported no repository");
-    expect(output).toContain("cannot be read");
-    expect(output).toContain("refusing to create workspace state");
+    expect(run.exitCode).not.toBe(0);
+    expect(run.output).toContain("Git reported no repository");
+    expect(run.output).toContain("a .git entry exists at");
+    expect(run.output).toContain("refusing to create workspace state");
     // No workspace or hook mutations, even though KIBI_BRANCH makes the
     // standalone path available for genuine non-repositories.
     expect(existsSync(path.join(repo, ".kb"))).toBe(false);
@@ -270,15 +282,16 @@ describe("kibi init repository-context fixes", () => {
     mkdirSync(sub, { recursive: true });
     const before = snapshotDirectory(repo);
     chmodSync(path.join(repo, ".git"), 0o000);
-    let output: string;
+    let run: { output: string; exitCode: number };
     try {
-      output = refusalOutput("init", sub, "review-probe");
+      run = refusalRun("init", sub, "review-probe");
     } finally {
       chmodSync(path.join(repo, ".git"), 0o755);
     }
-    expect(output).toContain("Git reported no repository");
-    expect(output).toContain("cannot be read");
-    expect(output).toContain("refusing to create workspace state");
+    expect(run.exitCode).not.toBe(0);
+    expect(run.output).toContain("Git reported no repository");
+    expect(run.output).toContain("a .git entry exists at");
+    expect(run.output).toContain("refusing to create workspace state");
     expect(existsSync(path.join(sub, ".kb"))).toBe(false);
     expect(existsSync(path.join(repo, ".kb"))).toBe(false);
     expect(existsSync(path.join(repo, ".git/hooks/pre-commit"))).toBe(false);
@@ -288,8 +301,70 @@ describe("kibi init repository-context fixes", () => {
   test("init still treats a genuine non-repository as standalone with an explicit branch", () => {
     const standalone = path.join(tmpRoot, "standalone");
     mkdirSync(standalone, { recursive: true });
-    const output = refusalOutput("init", standalone, "review-probe");
-    expect(output).toContain("Kibi initialized");
+    const run = refusalRun("init", standalone, "review-probe");
+    expect(run.exitCode).toBe(0);
+    expect(run.output).toContain("Kibi initialized");
+    expect(existsSync(path.join(standalone, ".kb/manifest.json"))).toBe(true);
+  }, 180000);
+
+  for (const [internal, target] of [
+    ["objects", ".git/objects"],
+    ["refs", ".git/refs"],
+  ] as const) {
+    for (const from of ["root", "sub"] as const) {
+      test(`init refuses inaccessible .git/${internal} (from ${from}, explicit branch)`, () => {
+        const repo = makeRepo(`locked-${internal}-${from}`);
+        commitReadme(repo);
+        const sub = path.join(repo, "sub");
+        mkdirSync(sub, { recursive: true });
+        const targetPath = path.join(repo, ".git", internal);
+        const before = snapshotDirectory(repo);
+        chmodSync(targetPath, 0o000);
+        try {
+          // Precondition: the fixture must actually deny the executing user
+          // read access, otherwise the scenario is not exercised.
+          expect(() => accessSync(targetPath, constants.R_OK)).toThrow();
+          const cwd = from === "root" ? repo : sub;
+          const run = refusalRun("init", cwd, "review-probe");
+          expect(run.exitCode).not.toBe(0);
+          expect(run.output).toContain("Git reported no repository");
+          expect(run.output).toContain("a .git entry exists at");
+          expect(run.output).toContain("refusing to create workspace state");
+        } finally {
+          chmodSync(targetPath, 0o755);
+        }
+        // No workspace, gitignore, symbols-manifest, or hook mutations.
+        expect(existsSync(path.join(repo, ".kb"))).toBe(false);
+        expect(existsSync(path.join(sub, ".kb"))).toBe(false);
+        expect(existsSync(path.join(repo, ".gitignore"))).toBe(false);
+        expect(
+          existsSync(path.join(repo, ".kb/symbols.yaml")),
+        ).toBe(false);
+        expect(existsSync(path.join(repo, ".git/hooks/pre-commit"))).toBe(
+          false,
+        );
+        expect(snapshotDirectory(repo)).toEqual(before);
+      }, 180000);
+    }
+  }
+
+  test("localized parent locale keeps standalone init working (explicit branch)", () => {
+    const standalone = path.join(tmpRoot, "standalone-pl");
+    mkdirSync(standalone, { recursive: true });
+    const run = refusalRun(
+      "init",
+      standalone,
+      "review-probe",
+      isolatedCliSandboxEnv({
+        KIBI_BRANCH: "review-probe",
+        LC_ALL: "pl_PL.UTF-8",
+        LANG: "pl_PL.UTF-8",
+      }),
+    );
+    // The resolver pins the child locale, so the parent's Polish locale
+    // cannot translate Git's absence diagnostic into a refusal.
+    expect(run.exitCode).toBe(0);
+    expect(run.output).toContain("Kibi initialized");
     expect(existsSync(path.join(standalone, ".kb/manifest.json"))).toBe(true);
   }, 180000);
 });

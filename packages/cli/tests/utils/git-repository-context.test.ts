@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { execSync as nodeExecSync } from "node:child_process";
 import {
+  accessSync,
   chmodSync,
+  constants,
   existsSync,
   mkdirSync,
   mkdtempSync,
@@ -202,12 +204,70 @@ describe("resolveGitRepository", () => {
       // must become a refusal, not a standalone-directory verdict.
       expect(resolution.status).toBe("git-refused");
       if (resolution.status === "git-refused") {
-        expect(resolution.reason).toContain("cannot be read");
         expect(resolution.reason).toContain(path.join(repo, ".git"));
+        expect(resolution.reason).toContain("refusing to guess");
       }
     } finally {
       chmodSync(path.join(repo, ".git"), 0o755);
     }
+  });
+
+  test("reports git-refused for unreadable .git/objects from a subdirectory", () => {
+    const repo = makeRepo(tmpRoot, "locked-objects");
+    const sub = path.join(repo, "sub");
+    mkdirSync(sub, { recursive: true });
+    const objects = path.join(repo, ".git", "objects");
+    chmodSync(objects, 0o000);
+    try {
+      // Precondition: the fixture must actually deny access to the executing
+      // user, otherwise the scenario does not exercise the refusal.
+      expect(() => accessSync(objects, constants.R_OK)).toThrow();
+      const resolution = resolveGitRepository(sub);
+      expect(resolution.status).toBe("git-refused");
+      if (resolution.status === "git-refused") {
+        expect(resolution.reason).toContain(path.join(repo, ".git"));
+        expect(resolution.reason).toContain("refusing to guess");
+      }
+    } finally {
+      chmodSync(objects, 0o755);
+    }
+  });
+
+  test("pins the child locale so localized absence diagnostics stay standalone", () => {
+    // Mirror real Git: localized builds emit a translated absence fatal
+    // unless the child locale is C. The parent locale is Polish here; the
+    // resolver must pin LC_ALL=C for the child and classify the directory
+    // as standalone, not git-refused.
+    const shimDir = mkdtempSync(path.join(os.tmpdir(), "kibi-locale-shim-"));
+    writeFileSync(
+      path.join(shimDir, "git"),
+      '#!/bin/sh\n'
+        + 'if [ "$1" = "--version" ]; then echo "git version 2.45.0"; exit 0; fi\n'
+        + 'if [ "$LC_ALL" = "C" ]; then\n'
+        + '  echo "fatal: not a git repository (or any of the parent directories): .git" >&2\n'
+        + 'else\n'
+        + '  echo "fatal: to nie jest repozytorium git (ani zadnego z katalogow nadrzednych): .git" >&2\n'
+        + 'fi\nexit 128\n',
+      { mode: 0o755 },
+    );
+    const previousPath = process.env.PATH;
+    const previousLcAll = process.env.LC_ALL;
+    const previousLang = process.env.LANG;
+    process.env.PATH = `${shimDir}${path.delimiter}${previousPath ?? ""}`;
+    process.env.LC_ALL = "pl_PL.UTF-8";
+    process.env.LANG = "pl_PL.UTF-8";
+    envRestores.push(() => {
+      if (previousPath === undefined) delete process.env.PATH;
+      else process.env.PATH = previousPath;
+      if (previousLcAll === undefined) delete process.env.LC_ALL;
+      else process.env.LC_ALL = previousLcAll;
+      if (previousLang === undefined) delete process.env.LANG;
+      else process.env.LANG = previousLang;
+      rmSync(shimDir, { recursive: true, force: true });
+    });
+    const probe = path.join(tmpRoot, "standalone-pl");
+    mkdirSync(probe, { recursive: true });
+    expect(resolveGitRepository(probe)).toEqual({ status: "not-a-repository" });
   });
 
   test("reports git-refused for dubious ownership instead of no-repository", () => {

@@ -11189,10 +11189,10 @@ coordinates:
     sourceLine: 1
   SYM-git-hook-effective-install-init-context-verifier:
     identityHash: 164d2e5c9501d46832e55a52d9b24d506f14e1b93e3a8c8493278c16bc269911
-    sourceHash: bcca2c2066017dfa373a7d18181a7f0d1589f54b7b33c2abf4ff6a39af07f108
+    sourceHash: 1ce0765707ea0cbe2e7a5fc43b8055bf37dac49c332dfb0cbfd9ea12d533c314
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 573
+    sourceEndLine: 648
     sourceFile: packages/cli/tests/commands/init-git-context.test.ts
     sourceLine: 1
   SYM-git-hook-effective-install-installer-verifier:
@@ -11205,10 +11205,10 @@ coordinates:
     sourceLine: 1
   SYM-git-hook-effective-install-repository-context-verifier:
     identityHash: f2975b6173a786c3e0476ce19eb73d2f113a120d5fc5f126adb2d762efb46c5e
-    sourceHash: a4bbc5d76fa8ad898fb931162591810e64d82ae3895f62c85429dcef614de5bd
+    sourceHash: f505370089ab7c01b4eb87c44649f0060ef9143eafd32203c468cf87ee42db27
     sourceColumn: 0
     sourceEndColumn: 0
-    sourceEndLine: 246
+    sourceEndLine: 306
     sourceFile: packages/cli/tests/utils/git-repository-context.test.ts
     sourceLine: 1
   SYM-git-hook-install-result-type:
@@ -11221,15 +11221,15 @@ coordinates:
     sourceLine: 389
   SYM-git-repository-context-resolver:
     identityHash: c029c277f93f1a8835ccb156c9d0715297cdfd19023686394668e1bf3c7399e1
-    sourceHash: cd14214601e6f352d5ae2b38c615b5d505a58390727fd5883db4976eb4e63884
+    sourceHash: a7c4283b557955bf5b80a3401f667ff43b93ff70f95857a8dc745dd0052662e1
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 304
+    sourceEndLine: 311
     sourceFile: packages/cli/src/utils/git-repository-context.ts
-    sourceLine: 174
+    sourceLine: 180
   SYM-git-repository-context-type:
     identityHash: 7d8bfd5d91bf23e68fc02d1f85e68d023b46e3a551c182a625ab52ab883869bf
-    sourceHash: cd14214601e6f352d5ae2b38c615b5d505a58390727fd5883db4976eb4e63884
+    sourceHash: a7c4283b557955bf5b80a3401f667ff43b93ff70f95857a8dc745dd0052662e1
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 44
@@ -11237,7 +11237,7 @@ coordinates:
     sourceLine: 23
   SYM-git-repository-resolution-type:
     identityHash: b8497983f1a53a620a13b01bcdefe834380e329db1e9f6dc1b34de1a683f6fbd
-    sourceHash: cd14214601e6f352d5ae2b38c615b5d505a58390727fd5883db4976eb4e63884
+    sourceHash: a7c4283b557955bf5b80a3401f667ff43b93ff70f95857a8dc745dd0052662e1
     sourceColumn: 12
     sourceEndColumn: 46
     sourceEndLine: 55
