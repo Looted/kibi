@@ -54,7 +54,7 @@
     }
   },
   "dependencies": {
-    "yaml": "^2.9.0"
+    "kibi-agent-core": "^0.0.0"
   },
   "devDependencies": {
     "@types/node": "latest",

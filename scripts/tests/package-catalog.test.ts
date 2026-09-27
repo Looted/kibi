@@ -19,6 +19,7 @@ describe("canonical package catalog", () => {
     expect([...PUBLISHABLE_DIRS]).toEqual([
       "core",
       "plugin-sdk",
+      "agent-core",
       "plugin-builtin",
       "plugin-jev",
       "runtime",

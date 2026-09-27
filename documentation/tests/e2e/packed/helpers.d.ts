@@ -1,11 +1,15 @@
 export interface Tarballs {
   core: string;
+  "agent-core": string;
   cli: string;
   runtime: string;
   mcp: string;
   opencode: string;
   codex: string;
   cursor: string;
+  "plugin-sdk": string;
+  "plugin-builtin": string;
+  "plugin-jev": string;
 }
 
 export interface SharedPackedEnvironment {

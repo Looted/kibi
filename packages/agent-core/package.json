@@ -1,0 +1,49 @@
+{
+  "name": "kibi-agent-core",
+  "version": "0.0.0",
+  "description": "Shared low-latency hook helpers for Kibi agent adapters",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./kb-mcp-tools": {
+      "types": "./dist/kb-mcp-tools.d.ts",
+      "default": "./dist/kb-mcp-tools.js"
+    },
+    "./knowledge-index": {
+      "types": "./dist/knowledge-index.d.ts",
+      "default": "./dist/knowledge-index.js"
+    },
+    "./path-policy": {
+      "types": "./dist/path-policy.d.ts",
+      "default": "./dist/path-policy.js"
+    }
+  },
+  "files": ["dist", "CHANGELOG.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepack": "npm run build && node ../../scripts/verify-package-contract.mjs kibi-agent-core"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "AGPL-3.0-or-later",
+  "author": "Piotr Franczyk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Looted/kibi.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.8",
+    "semver": "^7.8.5",
+    "typescript": "^5.7.0"
+  }
+}

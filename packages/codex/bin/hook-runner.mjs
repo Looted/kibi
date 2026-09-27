@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // src/hook-runner.ts
-import path3 from "node:path";
+import path4 from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 // src/hook-input.ts
@@ -260,7 +260,7 @@ function clearDirtyPaths(pluginData) {
   return loadHookState(pluginData);
 }
 
-// src/kb-mcp-tools.ts
+// ../agent-core/dist/kb-mcp-tools.js
 function isRecord3(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -309,28 +309,58 @@ function canonicalKbToolName(toolName) {
 }
 function extractKbMcpToolCall(toolName, toolInput) {
   let normalizedToolName = canonicalKbToolName(toolName);
-  if (!isRecord3(toolInput)) {
-    return normalizedToolName ? { toolName: normalizedToolName, impactCheckRun: false, sourceFiles: [] } : undefined;
+  if (isRecord3(toolInput)) {
+    normalizedToolName ??= readString2(toolInput, [
+      "toolName",
+      "tool_name",
+      "name"
+    ]);
+    const args = readRecord(toolInput, ["arguments", "args"]);
+    const payload = args ?? toolInput;
+    const includeImpactDiagnostics = readBoolean(payload, [
+      "includeImpactDiagnostics",
+      "include_impact_diagnostics"
+    ]);
+    const includeWorkingTreeDiff = readBoolean(payload, [
+      "includeWorkingTreeDiff",
+      "include_working_tree_diff"
+    ]);
+    const sourceFiles = readStringArray(payload, [
+      "sourceFiles",
+      "source_files"
+    ]);
+    if (normalizedToolName?.startsWith("kb_")) {
+      return {
+        toolName: normalizedToolName,
+        impactCheckRun: normalizedToolName === "kb_check" && includeImpactDiagnostics === true && includeWorkingTreeDiff === true && sourceFiles.length > 0,
+        sourceFiles
+      };
+    }
+    const nestedArgs = toolInput.arguments ?? toolInput.args;
+    if (isRecord3(nestedArgs)) {
+      const nestedTool = readString2(nestedArgs, [
+        "toolName",
+        "tool_name",
+        "name"
+      ]);
+      if (nestedTool?.startsWith("kb_")) {
+        return { toolName: nestedTool, impactCheckRun: false, sourceFiles: [] };
+      }
+    }
   }
-  normalizedToolName ??= readString2(toolInput, [
-    "toolName",
-    "tool_name",
-    "name"
-  ]);
-  if (!normalizedToolName?.startsWith("kb_")) {
-    return;
+  if (normalizedToolName?.startsWith("kb_")) {
+    return {
+      toolName: normalizedToolName,
+      impactCheckRun: false,
+      sourceFiles: []
+    };
   }
-  const args = readRecord(toolInput, ["arguments", "args"]);
-  const payload = args ?? toolInput;
-  const sourceFiles = readStringArray(payload, ["sourceFiles", "source_files"]);
-  const impactCheckRun = normalizedToolName === "kb_check" && readBoolean(payload, [
-    "includeImpactDiagnostics",
-    "include_impact_diagnostics"
-  ]) === true && readBoolean(payload, [
-    "includeWorkingTreeDiff",
-    "include_working_tree_diff"
-  ]) === true && sourceFiles.length > 0;
-  return { toolName: normalizedToolName, impactCheckRun, sourceFiles };
+  return;
+}
+
+// src/kb-mcp-tools.ts
+function extractKbMcpToolCall2(toolName, toolInput) {
+  return extractKbMcpToolCall(toolName, toolInput);
 }
 
 // src/messages.ts
@@ -362,22 +392,12 @@ function impactCheckReminder(sourcePaths) {
 `);
 }
 
-// src/path-policy.ts
-var explicitPathKeys = new Set([
-  "absolute_path",
-  "file",
-  "file_path",
-  "filepath",
-  "new_path",
-  "old_path",
-  "path",
-  "paths",
-  "relative_path",
-  "target_path"
-]);
-var sourceExtensions = new Set([
+// ../agent-core/dist/path-policy.js
+import path2 from "node:path";
+var codeExtensions = new Set([
   ".c",
   ".cc",
+  ".cjs",
   ".cpp",
   ".cs",
   ".css",
@@ -392,6 +412,7 @@ var sourceExtensions = new Set([
   ".lua",
   ".mjs",
   ".mts",
+  ".cts",
   ".php",
   ".pl",
   ".py",
@@ -402,10 +423,37 @@ var sourceExtensions = new Set([
   ".swift",
   ".ts",
   ".tsx",
-  ".vue"
+  ".vue",
+  ".svelte"
 ]);
+var ignoredSegments = new Set([
+  "node_modules",
+  "dist",
+  "build",
+  "out",
+  "coverage",
+  "vendor",
+  "target",
+  ".git",
+  ".next",
+  ".turbo",
+  ".cache",
+  "__pycache__"
+]);
+var testSegments = new Set([
+  "test",
+  "tests",
+  "__tests__",
+  "spec",
+  "specs",
+  "e2e",
+  "__mocks__",
+  "fixtures"
+]);
+var testBasename = /(\.|_)(test|spec|e2e)\.[^.]+$|^test_[^/]+\.py$/;
 var documentationExtensions = new Set([".md", ".mdx", ".rst", ".txt"]);
-var CANONICAL_KB_KNOWLEDGE_LANES = new Set([
+var documentationSegments = new Set(["docs", "documentation"]);
+var canonicalKbKnowledgeLanes = new Set([
   "requirements",
   "scenarios",
   "tests",
@@ -414,58 +462,54 @@ var CANONICAL_KB_KNOWLEDGE_LANES = new Set([
   "flags",
   "events"
 ]);
-var CANONICAL_KB_KNOWLEDGE_FILES = new Set([
+var canonicalKbKnowledgeFiles = new Set([
   "symbols.yaml",
   "symbol-coordinates.yaml"
 ]);
-function isCanonicalKbKnowledgePath(segments) {
-  if (segments[0] !== ".kb") {
-    return false;
-  }
-  const lane = segments[1];
-  if (lane === undefined) {
-    return false;
-  }
-  return CANONICAL_KB_KNOWLEDGE_FILES.has(lane) || CANONICAL_KB_KNOWLEDGE_LANES.has(lane);
-}
+var explicitPathKeys = new Set([
+  "absolute_path",
+  "file",
+  "file_path",
+  "filepath",
+  "new_path",
+  "old_path",
+  "path",
+  "paths",
+  "relative_path",
+  "target_path"
+]);
 function isRecord4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
-function normalizePath(candidate) {
+function normalizeWorkspacePath(candidate) {
   return candidate.trim().replaceAll("\\", "/");
 }
 function pathSegments(candidate) {
-  return normalizePath(candidate).split("/").filter(Boolean);
+  return normalizeWorkspacePath(candidate).split("/").filter(Boolean);
 }
 function collectPathValues(value, output) {
   if (typeof value === "string") {
-    const normalized = normalizePath(value);
-    if (normalized.length > 0) {
+    const normalized = normalizeWorkspacePath(value);
+    if (normalized.length > 0)
       output.push(normalized);
-    }
     return;
   }
-  if (!Array.isArray(value)) {
+  if (!Array.isArray(value))
     return;
-  }
-  for (const item of value) {
+  for (const item of value)
     collectPathValues(item, output);
-  }
 }
 function visitExplicitPathFields(value, output) {
   if (Array.isArray(value)) {
-    for (const item of value) {
+    for (const item of value)
       visitExplicitPathFields(item, output);
-    }
     return;
   }
-  if (!isRecord4(value)) {
+  if (!isRecord4(value))
     return;
-  }
   for (const [key, child] of Object.entries(value)) {
-    if (explicitPathKeys.has(key.toLowerCase())) {
+    if (explicitPathKeys.has(key.toLowerCase()))
       collectPathValues(child, output);
-    }
     visitExplicitPathFields(child, output);
   }
 }
@@ -474,59 +518,87 @@ function extractExplicitPathFields(input) {
   visitExplicitPathFields(input, paths);
   return [...new Set(paths)];
 }
-function isDirectKbPath(candidate) {
+function classifyPath(relativePath) {
+  const segments = pathSegments(relativePath);
+  if (segments[0] === ".kb")
+    return "kb";
+  if (segments.some((segment) => ignoredSegments.has(segment)))
+    return "other";
+  if (segments.some((segment) => documentationSegments.has(segment))) {
+    return "other";
+  }
+  const basename = segments.at(-1) ?? "";
+  const extension = path2.extname(basename).toLowerCase();
+  if (!codeExtensions.has(extension))
+    return "other";
+  if (testBasename.test(basename) || segments.slice(0, -1).some((segment) => testSegments.has(segment))) {
+    return "test";
+  }
+  return "source";
+}
+function isKbPath(candidate) {
   return pathSegments(candidate).includes(".kb");
 }
-function isMeaningfulTrackedPath(candidate) {
-  const normalized = normalizePath(candidate);
-  const segments = pathSegments(normalized);
-  if (segments.includes("dist")) {
+function isCanonicalKbKnowledgePath(segments) {
+  const kbIndex = segments.indexOf(".kb");
+  if (kbIndex < 0)
     return false;
-  }
-  if (segments.includes(".kb")) {
+  const lane = segments[kbIndex + 1];
+  return lane !== undefined && (canonicalKbKnowledgeFiles.has(lane) || canonicalKbKnowledgeLanes.has(lane));
+}
+function isMeaningfulTrackedPath(candidate) {
+  const segments = pathSegments(candidate);
+  if (segments.some((segment) => ignoredSegments.has(segment)))
+    return false;
+  if (segments.includes(".kb"))
     return isCanonicalKbKnowledgePath(segments);
-  }
   const basename = segments.at(-1) ?? "";
-  const extension = basename.includes(".") ? `.${basename.split(".").at(-1) ?? ""}` : "";
-  if (segments.includes("docs") || segments.includes("documentation")) {
+  const extension = path2.extname(basename).toLowerCase();
+  if (basename === "README.md")
+    return true;
+  if (segments.some((segment) => documentationSegments.has(segment))) {
     return documentationExtensions.has(extension);
   }
-  if (basename === "README.md") {
-    return true;
+  if (testBasename.test(basename) || segments.slice(0, -1).some((segment) => testSegments.has(segment))) {
+    return codeExtensions.has(extension) || documentationExtensions.has(extension);
   }
-  if (segments.includes("src") || segments.includes("tests") || segments.includes("test")) {
-    return sourceExtensions.has(extension) || documentationExtensions.has(extension);
-  }
-  return false;
+  return codeExtensions.has(extension);
 }
 function isSourceImpactRelevantPath(candidate) {
-  const normalized = normalizePath(candidate);
-  const segments = pathSegments(normalized);
-  if (segments.includes(".kb") || segments.includes("dist") || segments.includes("tests") || segments.includes("test") || segments.includes("docs") || segments.includes("documentation")) {
-    return false;
-  }
-  const basename = segments.at(-1) ?? "";
-  const extension = basename.includes(".") ? `.${basename.split(".").at(-1) ?? ""}` : "";
-  return segments.includes("src") && sourceExtensions.has(extension);
+  return classifyPath(normalizeWorkspacePath(candidate)) === "source";
+}
+
+// src/path-policy.ts
+function extractExplicitPathFields2(input) {
+  return extractExplicitPathFields(input);
+}
+function isDirectKbPath(candidate) {
+  return isKbPath(candidate);
+}
+function isMeaningfulTrackedPath2(candidate) {
+  return isMeaningfulTrackedPath(candidate);
+}
+function isSourceImpactRelevantPath2(candidate) {
+  return isSourceImpactRelevantPath(candidate);
 }
 
 // src/workspace-optin.ts
 import fs2 from "node:fs";
-import path2 from "node:path";
+import path3 from "node:path";
 var KIBI_WORKSPACE_ENV_KEYS = [
   "KIBI_WORKSPACE",
   "KIBI_PROJECT_ROOT",
   "KIBI_ROOT"
 ];
 function nextAncestorDirectory(current) {
-  const parent = path2.dirname(current);
+  const parent = path3.dirname(current);
   return parent === current ? undefined : parent;
 }
 function hasKibiManifest(directory) {
-  return fs2.existsSync(path2.join(directory, ".kb", "manifest.json"));
+  return fs2.existsSync(path3.join(directory, ".kb", "manifest.json"));
 }
 function hasGitBoundary(directory) {
-  return fs2.existsSync(path2.join(directory, ".git"));
+  return fs2.existsSync(path3.join(directory, ".git"));
 }
 function resolutionFor(root) {
   return { root, optedIn: hasKibiManifest(root) };
@@ -535,10 +607,10 @@ function resolveKibiWorkspace(startDir, env = process.env) {
   for (const key of KIBI_WORKSPACE_ENV_KEYS) {
     const value = env[key]?.trim();
     if (value) {
-      return resolutionFor(path2.resolve(value));
+      return resolutionFor(path3.resolve(value));
     }
   }
-  let current = path2.resolve(startDir && startDir.trim().length > 0 ? startDir : process.cwd());
+  let current = path3.resolve(startDir && startDir.trim().length > 0 ? startDir : process.cwd());
   while (current !== undefined) {
     if (hasKibiManifest(current)) {
       return { root: current, optedIn: true };
@@ -548,7 +620,7 @@ function resolveKibiWorkspace(startDir, env = process.env) {
     }
     current = nextAncestorDirectory(current);
   }
-  return resolutionFor(path2.resolve(startDir ?? process.cwd()));
+  return resolutionFor(path3.resolve(startDir ?? process.cwd()));
 }
 
 // src/hook-runner.ts
@@ -571,7 +643,7 @@ async function runHook(rawInput, environment = {}) {
     case "SessionStart":
       return defaultResult();
     case "PreToolUse": {
-      const explicitPaths = extractExplicitPathFields(input.toolInput);
+      const explicitPaths = extractExplicitPathFields2(input.toolInput);
       const hasDirectKbEdit = isEditLikeTool(input.toolName) && explicitPaths.some(isDirectKbPath);
       if (hasDirectKbEdit) {
         return { continue: true, systemMessage: DIRECT_KB_EDIT_WARNING };
@@ -579,14 +651,14 @@ async function runHook(rawInput, environment = {}) {
       return defaultResult();
     }
     case "PostToolUse": {
-      const kbToolCall = extractKbMcpToolCall(input.toolName, input.toolInput);
+      const kbToolCall = extractKbMcpToolCall2(input.toolName, input.toolInput);
       if (kbToolCall) {
         recordKbMcpTool(stateDir, kbToolCall.toolName, {
           impactCheckRun: kbToolCall.impactCheckRun,
           sourceFiles: kbToolCall.sourceFiles
         });
       }
-      const dirtyPaths = extractExplicitPathFields(input.toolInput).filter(isMeaningfulTrackedPath);
+      const dirtyPaths = extractExplicitPathFields2(input.toolInput).filter(isMeaningfulTrackedPath2);
       if (dirtyPaths.length > 0) {
         addDirtyPaths(stateDir, dirtyPaths);
       }
@@ -594,7 +666,7 @@ async function runHook(rawInput, environment = {}) {
     }
     case "Stop": {
       const state = loadHookState(stateDir);
-      const uncheckedSourcePaths = state.dirtyPaths.filter(isSourceImpactRelevantPath).filter((sourcePath) => !state.impactCheckedPaths.includes(sourcePath));
+      const uncheckedSourcePaths = state.dirtyPaths.filter(isSourceImpactRelevantPath2).filter((sourcePath) => !state.impactCheckedPaths.includes(sourcePath));
       if (uncheckedSourcePaths.length > 0) {
         clearDirtyPaths(stateDir);
         return {
@@ -602,7 +674,7 @@ async function runHook(rawInput, environment = {}) {
           systemMessage: impactCheckReminder(uncheckedSourcePaths)
         };
       }
-      const freshnessPaths = state.dirtyPaths.filter((dirtyPath) => !isSourceImpactRelevantPath(dirtyPath));
+      const freshnessPaths = state.dirtyPaths.filter((dirtyPath) => !isSourceImpactRelevantPath2(dirtyPath));
       if (freshnessPaths.length > 0) {
         clearDirtyPaths(stateDir);
         return {
@@ -625,7 +697,7 @@ async function main() {
 `);
 }
 function isInvokedAsCli(argv1, moduleUrl) {
-  const invokedPath = argv1 ? pathToFileURL(path3.resolve(argv1)).href : "";
+  const invokedPath = argv1 ? pathToFileURL(path4.resolve(argv1)).href : "";
   return moduleUrl === invokedPath;
 }
 async function runHookCli() {

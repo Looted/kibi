@@ -1,223 +1,43 @@
 // implements REQ-cursor-kibi-plugin-v1
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
+import {
+  canonicalKbToolName as canonicalSharedKbToolName,
+  extractKbMcpToolCall as extractSharedKbMcpToolCall,
+  extractKbMcpToolName as extractSharedKbMcpToolName,
+  resolveKibiInterface as resolveSharedKibiInterface,
+} from "kibi-agent-core/kb-mcp-tools";
+import type {
+  KbMcpToolCall as SharedKbMcpToolCall,
+  KibiInterface as SharedKibiInterface,
+  McpState as SharedMcpState,
+} from "kibi-agent-core/kb-mcp-tools";
 
-function readString(
-  record: Record<string, unknown>,
-  keys: readonly string[],
-): string | undefined {
-  for (const key of keys) {
-    const value = record[key];
-    if (typeof value === "string") {
-      return value;
-    }
-  }
+export type KbMcpToolCall = SharedKbMcpToolCall;
+export type McpState = SharedMcpState;
+export type KibiInterface = SharedKibiInterface;
 
-  return undefined;
-}
-
-function readBoolean(
-  record: Record<string, unknown>,
-  keys: readonly string[],
-): boolean | undefined {
-  for (const key of keys) {
-    const value = record[key];
-    if (typeof value === "boolean") {
-      return value;
-    }
-  }
-
-  return undefined;
-}
-
-function readStringArray(
-  record: Record<string, unknown>,
-  keys: readonly string[],
-): string[] {
-  for (const key of keys) {
-    const value = record[key];
-    if (!Array.isArray(value)) {
-      continue;
-    }
-
-    return value.filter(
-      (item): item is string => typeof item === "string" && item.length > 0,
-    );
-  }
-
-  return [];
-}
-
-function readRecord(
-  record: Record<string, unknown>,
-  keys: readonly string[],
-): Record<string, unknown> | undefined {
-  for (const key of keys) {
-    const value = record[key];
-    if (isRecord(value)) {
-      return value;
-    }
-  }
-
-  return undefined;
-}
-
-/**
- * Canonical Kibi operation name for a host tool name. Hosts prefix MCP tools
- * (`mcp__kibi__kb_check`, `mcp__plugin_<plugin>_kibi__kb_check`,
- * `MCP:kb_check`, `kibi_kb_check`); an unprefixed `kb_check` passes through.
- */
 export function canonicalKbToolName(
   toolName: string | undefined,
 ): string | undefined {
-  const trimmed = toolName?.trim() ?? "";
-  const lastSegment = trimmed.includes("__")
-    ? (trimmed.split("__").at(-1) ?? "")
-    : trimmed.replace(/^MCP:/i, "");
-  const operation = lastSegment.replace(/^kibi_/, "");
-  return operation.startsWith("kb_") ? operation : undefined;
+  return canonicalSharedKbToolName(toolName);
 }
-
-export type KbMcpToolCall = {
-  toolName: string;
-  impactCheckRun: boolean;
-  sourceFiles: string[];
-};
-
-export type McpState = "observed" | "unknown";
-export type KibiInterface = "mcp" | "cli" | "setup";
 
 export function resolveKibiInterface(
   mcpState: McpState,
   workspaceTrusted: boolean,
 ): KibiInterface {
-  if (mcpState === "observed") {
-    return "mcp";
-  }
-  return workspaceTrusted ? "cli" : "setup";
+  return resolveSharedKibiInterface(mcpState, workspaceTrusted);
 }
 
 export function extractKbMcpToolCall(
   toolName: string | undefined,
   toolInput: unknown,
 ): KbMcpToolCall | undefined {
-  let normalizedToolName = canonicalKbToolName(toolName);
-
-  if (isRecord(toolInput)) {
-    normalizedToolName ??= readString(toolInput, [
-      "toolName",
-      "tool_name",
-      "name",
-    ]);
-
-    const args = readRecord(toolInput, ["arguments", "args"]);
-    const payload = args ?? toolInput;
-    const includeImpactDiagnostics = readBoolean(payload, [
-      "includeImpactDiagnostics",
-      "include_impact_diagnostics",
-    ]);
-    const includeWorkingTreeDiff = readBoolean(payload, [
-      "includeWorkingTreeDiff",
-      "include_working_tree_diff",
-    ]);
-    const sourceFiles = readStringArray(payload, [
-      "sourceFiles",
-      "source_files",
-    ]);
-
-    if (normalizedToolName?.startsWith("kb_")) {
-      return {
-        toolName: normalizedToolName,
-        impactCheckRun:
-          normalizedToolName === "kb_check" &&
-          includeImpactDiagnostics === true &&
-          includeWorkingTreeDiff === true &&
-          sourceFiles.length > 0,
-        sourceFiles,
-      };
-    }
-
-    const nestedArgs = toolInput.arguments ?? toolInput.args;
-    if (isRecord(nestedArgs)) {
-      const nestedTool = readString(nestedArgs, [
-        "toolName",
-        "tool_name",
-        "name",
-      ]);
-      if (nestedTool?.startsWith("kb_")) {
-        return { toolName: nestedTool, impactCheckRun: false, sourceFiles: [] };
-      }
-    }
-  }
-
-  if (normalizedToolName?.startsWith("kb_")) {
-    return {
-      toolName: normalizedToolName,
-      impactCheckRun: false,
-      sourceFiles: [],
-    };
-  }
-
-  return undefined;
+  return extractSharedKbMcpToolCall(toolName, toolInput);
 }
 
 export function extractKbMcpToolName(
   toolName: string | undefined,
   toolInput: unknown,
 ): string | undefined {
-  const toolCall = extractKbMcpToolCall(toolName, toolInput);
-  // rationale: the fallbacks below re-derive the same name from the same
-  // inputs, so dropping the toolCall shortcut is observationally equivalent.
-  // Stryker disable next-line ConditionalExpression, BlockStatement
-  if (toolCall) {
-    return toolCall.toolName;
-  }
-
-  // rationale: any tool name that trims to a kb_ prefix already produced a
-  // tool call above, so this branch only sees equivalent names.
-  // Stryker disable next-line MethodExpression
-  if (toolName) {
-    // rationale: any name that trims to a kb_ prefix already produced a tool
-    // call above, so this trim cannot change the returned name.
-    // Stryker disable MethodExpression
-    const normalized = toolName.trim();
-    if (normalized.startsWith("kb_")) {
-      return normalized;
-    }
-    // Stryker restore
-  }
-
-  if (!isRecord(toolInput)) {
-    return undefined;
-  }
-
-  // rationale: this alias list duplicates the one inside
-  // extractKbMcpToolCall, which already returned for every kb_ match.
-  // Stryker disable next-line StringLiteral
-  const directTool = readString(toolInput, ["toolName", "tool_name", "name"]);
-  if (directTool?.startsWith("kb_")) {
-    return directTool;
-  }
-
-  const nestedArgs = toolInput.arguments ?? toolInput.args;
-  if (isRecord(nestedArgs)) {
-    // rationale: this alias list duplicates the one inside
-    // extractKbMcpToolCall, which already returned for every kb_ match.
-    // Stryker disable next-line StringLiteral
-    // rationale: duplicate alias list; extractKbMcpToolCall already
-    // returned for every kb_ match.
-    // Stryker disable StringLiteral
-    const nestedTool = readString(nestedArgs, [
-      "toolName",
-      "tool_name",
-      "name",
-    ]);
-    // Stryker restore
-    if (nestedTool?.startsWith("kb_")) {
-      return nestedTool;
-    }
-  }
-
-  return undefined;
+  return extractSharedKbMcpToolName(toolName, toolInput);
 }

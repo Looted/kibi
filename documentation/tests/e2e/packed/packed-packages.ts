@@ -3,6 +3,7 @@
 export const packagesForPack = [
   "core",
   "plugin-sdk",
+  "agent-core",
   "plugin-builtin",
   "plugin-jev",
   "runtime",

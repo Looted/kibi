@@ -97,6 +97,31 @@ describe("source-linked requirement resolution", () => {
     const bare = createWorkspace();
     expect(getSourceLinkedRequirementIds(bare, "src/checkout.ts")).toEqual([]);
   });
+
+  test("reuses a size-and-mtime keyed index until the manifest changes", () => {
+    const root = createWorkspace(MANIFEST);
+    const cacheDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), "kibi-cursor-index-"),
+    );
+    tempRoots.push(cacheDir);
+
+    expect(
+      getSourceLinkedRequirementIds(root, "src/checkout.ts", cacheDir),
+    ).toEqual(["REQ-checkout-total"]);
+    const cachePath = path.join(cacheDir, "cursor-knowledge-index.json");
+    const cached = JSON.parse(fs.readFileSync(cachePath, "utf8"));
+    cached.index.files["src/checkout.ts"][0].implements = ["REQ-from-cache"];
+    fs.writeFileSync(cachePath, JSON.stringify(cached));
+
+    expect(
+      getSourceLinkedRequirementIds(root, "src/checkout.ts", cacheDir),
+    ).toEqual(["REQ-from-cache"]);
+
+    fs.appendFileSync(path.join(root, ".kb", "symbols.yaml"), "\n# changed\n");
+    expect(
+      getSourceLinkedRequirementIds(root, "src/checkout.ts", cacheDir),
+    ).toEqual(["REQ-checkout-total"]);
+  });
 });
 
 describe("pre-edit guidance content", () => {

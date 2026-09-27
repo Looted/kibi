@@ -143,13 +143,13 @@ function extractCliKbUsage(command) {
   return usage;
 }
 
-// src/knowledge-index.ts
+// ../agent-core/dist/knowledge-index.js
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 var SYMBOLS_MANIFEST = ".kb/symbols.yaml";
 var SYMBOL_COORDINATES = ".kb/symbol-coordinates.yaml";
-var INDEX_FORMAT = "kibi-claude.knowledge-index.v1";
+var INDEX_FORMAT = "kibi-agent-core.knowledge-index.v1";
 var CACHE_FILE = "knowledge-index.json";
 function unquote(raw) {
   const value = raw.trim();
@@ -309,7 +309,7 @@ function pushUnique(list, value) {
   if (!list.includes(value))
     list.push(value);
 }
-function buildKnowledgeIndex(records, coordinates = {}) {
+function buildKnowledgeIndex(records, coordinates = {}, options = {}) {
   const files = {};
   let symbolCount = 0;
   for (const record of records) {
@@ -326,18 +326,21 @@ function buildKnowledgeIndex(records, coordinates = {}) {
       executableFor: []
     };
     const relationships = [];
-    let links = [];
-    if (typeof record.links === "string")
-      links = [record.links];
-    else if (Array.isArray(record.links))
-      links = record.links;
-    for (const link of links) {
-      if (typeof link === "string") {
-        relationships.push({ type: "implements", target: link });
-      } else if (link !== null && typeof link === "object") {
-        const typed = link;
-        if (typeof typed.type === "string" && typeof typed.target === "string")
-          relationships.push({ type: typed.type, target: typed.target });
+    if (options.legacyLinksAsImplements !== false) {
+      let links = [];
+      if (typeof record.links === "string")
+        links = [record.links];
+      else if (Array.isArray(record.links))
+        links = record.links;
+      for (const link of links) {
+        if (typeof link === "string") {
+          relationships.push({ type: "implements", target: link });
+        } else if (link !== null && typeof link === "object") {
+          const typed = link;
+          if (typeof typed.type === "string" && typeof typed.target === "string") {
+            relationships.push({ type: typed.type, target: typed.target });
+          }
+        }
       }
     }
     for (const relation of Array.isArray(record.relationships) ? record.relationships : []) {
@@ -393,11 +396,12 @@ function writeCacheAtomically(cachePath, payload) {
     fs.renameSync(temporary, cachePath);
   } catch {}
 }
-function loadKnowledgeIndex(workspaceRoot, cacheDir) {
+function loadKnowledgeIndex(workspaceRoot, cacheDir, options = {}) {
   const symbolsPath = path.join(workspaceRoot, SYMBOLS_MANIFEST);
   const coordinatesPath = path.join(workspaceRoot, SYMBOL_COORDINATES);
-  const signature = `${INDEX_FORMAT}|${fileSignature(symbolsPath)}|${fileSignature(coordinatesPath)}`;
-  const cachePath = cacheDir ? path.join(cacheDir, CACHE_FILE) : undefined;
+  const legacyMode = options.legacyLinksAsImplements === false ? "typed" : "legacy";
+  const signature = `${INDEX_FORMAT}|${legacyMode}|${fileSignature(symbolsPath)}|${fileSignature(coordinatesPath)}`;
+  const cachePath = cacheDir ? path.join(cacheDir, options.cacheFileName ?? CACHE_FILE) : undefined;
   if (cachePath) {
     const cached = readText(cachePath);
     if (cached !== undefined) {
@@ -409,7 +413,7 @@ function loadKnowledgeIndex(workspaceRoot, cacheDir) {
     }
   }
   const symbolsText = readText(symbolsPath);
-  const index = symbolsText === undefined ? { files: {}, symbolCount: 0 } : buildKnowledgeIndex(scanSymbolsManifest(symbolsText), scanSymbolCoordinates(readText(coordinatesPath) ?? ""));
+  const index = symbolsText === undefined ? { files: {}, symbolCount: 0 } : buildKnowledgeIndex(scanSymbolsManifest(symbolsText), scanSymbolCoordinates(readText(coordinatesPath) ?? ""), options);
   if (cachePath) {
     writeCacheAtomically(cachePath, JSON.stringify({ signature, index }));
   }
@@ -458,7 +462,15 @@ function readEntitySummary(workspaceRoot, entityId) {
   return summary;
 }
 
-// src/path-policy.ts
+// src/knowledge-index.ts
+function loadKnowledgeIndex2(workspaceRoot, cacheDir) {
+  return loadKnowledgeIndex(workspaceRoot, cacheDir);
+}
+function readEntitySummary2(workspaceRoot, entityId) {
+  return readEntitySummary(workspaceRoot, entityId);
+}
+
+// ../agent-core/dist/path-policy.js
 import path2 from "node:path";
 var codeExtensions = new Set([
   ".c",
@@ -466,9 +478,11 @@ var codeExtensions = new Set([
   ".cjs",
   ".cpp",
   ".cs",
+  ".css",
   ".go",
   ".h",
   ".hpp",
+  ".html",
   ".java",
   ".js",
   ".jsx",
@@ -515,23 +529,67 @@ var testSegments = new Set([
   "fixtures"
 ]);
 var testBasename = /(\.|_)(test|spec|e2e)\.[^.]+$|^test_[^/]+\.py$/;
-function toWorkspacePath(workspaceRoot, rawPath, eventCwd) {
-  const trimmed = rawPath.trim();
+var documentationExtensions = new Set([".md", ".mdx", ".rst", ".txt"]);
+var documentationSegments = new Set(["docs", "documentation"]);
+var canonicalKbKnowledgeLanes = new Set([
+  "requirements",
+  "scenarios",
+  "tests",
+  "facts",
+  "adr",
+  "flags",
+  "events"
+]);
+var canonicalKbKnowledgeFiles = new Set([
+  "symbols.yaml",
+  "symbol-coordinates.yaml"
+]);
+var explicitPathKeys = new Set([
+  "absolute_path",
+  "file",
+  "file_path",
+  "filepath",
+  "new_path",
+  "old_path",
+  "path",
+  "paths",
+  "relative_path",
+  "target_path"
+]);
+function normalizeWorkspacePath(candidate) {
+  return candidate.trim().replaceAll("\\", "/");
+}
+function pathSegments(candidate) {
+  return normalizeWorkspacePath(candidate).split("/").filter(Boolean);
+}
+function canonicalizeWorkspacePath(workspaceRoot, options) {
+  const trimmed = normalizeWorkspacePath(options.rawPath);
   if (trimmed.length === 0)
     return;
-  const absolute = path2.isAbsolute(trimmed) ? path2.resolve(trimmed) : path2.resolve(eventCwd ?? workspaceRoot, trimmed);
-  const relative = path2.relative(workspaceRoot, absolute).replaceAll("\\", "/");
-  if (relative.length === 0 || relative === ".." || relative.startsWith("../") || path2.isAbsolute(relative)) {
+  const base = options.base ?? options.eventCwd ?? workspaceRoot;
+  const absolute = path2.isAbsolute(trimmed) ? path2.resolve(trimmed) : path2.resolve(base, trimmed);
+  const workspaceRelative = path2.relative(workspaceRoot, absolute).replaceAll("\\", "/");
+  if (workspaceRelative.length === 0 || workspaceRelative === ".." || workspaceRelative.startsWith("../") || path2.isAbsolute(workspaceRelative)) {
     return;
   }
-  return { relative, absolute };
+  return { workspaceRelative, absolute };
+}
+function toWorkspacePath(workspaceRoot, rawPath, eventCwd) {
+  const canonical = canonicalizeWorkspacePath(workspaceRoot, {
+    rawPath,
+    eventCwd
+  });
+  return canonical ? { relative: canonical.workspaceRelative, absolute: canonical.absolute } : undefined;
 }
 function classifyPath(relativePath) {
-  const segments = relativePath.split("/").filter(Boolean);
+  const segments = pathSegments(relativePath);
   if (segments[0] === ".kb")
     return "kb";
   if (segments.some((segment) => ignoredSegments.has(segment)))
     return "other";
+  if (segments.some((segment) => documentationSegments.has(segment))) {
+    return "other";
+  }
   const basename = segments.at(-1) ?? "";
   const extension = path2.extname(basename).toLowerCase();
   if (!codeExtensions.has(extension))
@@ -540,6 +598,14 @@ function classifyPath(relativePath) {
     return "test";
   }
   return "source";
+}
+
+// src/path-policy.ts
+function toWorkspacePath2(workspaceRoot, rawPath, eventCwd) {
+  return toWorkspacePath(workspaceRoot, rawPath, eventCwd);
+}
+function classifyPath2(relativePath) {
+  return classifyPath(relativePath);
 }
 
 // src/session-state.ts
@@ -905,10 +971,10 @@ function preToolUse(input, workspace) {
   if (!isRead && !isEdit)
     return {};
   const rawPath = toolPath(input.toolInput);
-  const target = rawPath ? toWorkspacePath(workspace.root, rawPath, input.cwd) : undefined;
+  const target = rawPath ? toWorkspacePath2(workspace.root, rawPath, input.cwd) : undefined;
   if (!target)
     return {};
-  const kind = classifyPath(target.relative);
+  const kind = classifyPath2(target.relative);
   if (kind === "kb") {
     if (state.notices.has("kb-direct"))
       return {};
@@ -985,7 +1051,7 @@ function preToolUse(input, workspace) {
   return {};
 }
 function recordKbUsage(usage, workspace, events) {
-  const paths = usage.paths.map((candidate) => toWorkspacePath(workspace.root, candidate, workspace.root)?.relative).filter((candidate) => candidate !== undefined);
+  const paths = usage.paths.map((candidate) => toWorkspacePath2(workspace.root, candidate, workspace.root)?.relative).filter((candidate) => candidate !== undefined);
   events.push({
     kind: "kb",
     operation: usage.operation,
@@ -1010,12 +1076,12 @@ function postToolUse(input, workspace) {
   const events = [];
   if (editTools.has(toolName)) {
     const rawPath = toolPath(input.toolInput);
-    const target = rawPath ? toWorkspacePath(workspace.root, rawPath, input.cwd) : undefined;
+    const target = rawPath ? toWorkspacePath2(workspace.root, rawPath, input.cwd) : undefined;
     if (target) {
       events.push({
         kind: "edited",
         path: target.relative,
-        pathKind: classifyPath(target.relative)
+        pathKind: classifyPath2(target.relative)
       });
     }
   } else if (toolName === "Bash") {
@@ -1060,13 +1126,13 @@ async function runHook(rawInput, environment = {}) {
     root: resolved.root,
     stateDir: sessionDir(dataDir, input.sessionId),
     index: () => {
-      index ??= loadKnowledgeIndex(resolved.root, dataDir);
+      index ??= loadKnowledgeIndex2(resolved.root, dataDir);
       return index;
     },
     summarize: (entityId) => {
       let summary = summaries.get(entityId);
       if (!summary) {
-        summary = readEntitySummary(resolved.root, entityId);
+        summary = readEntitySummary2(resolved.root, entityId);
         summaries.set(entityId, summary);
       }
       return summary;

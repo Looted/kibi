@@ -384,3 +384,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b75abb37835d
+  - type: implements
+    from: SYM-agent-core-isRootKbPath
+    to: REQ-zcode-kibi-plugin-v1
+    created_at: 2026-09-27T16:55:22.385Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f9a4b32ab065
+  - type: covered_by
+    from: SYM-agent-core-isRootKbPath
+    to: TEST-zcode-kibi-plugin-v1
+    created_at: 2026-09-27T16:55:22.455Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bfff04331fbe

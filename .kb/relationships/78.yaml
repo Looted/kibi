@@ -195,3 +195,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-41a0eb183322
+  - type: implements
+    from: SYM-agent-core-isMeaningfulTrackedPath
+    to: REQ-codex-kibi-plugin-v1
+    created_at: 2026-09-27T16:56:53.368Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18b6d864641c
+  - type: covered_by
+    from: SYM-agent-core-isMeaningfulTrackedPath
+    to: TEST-codex-kibi-plugin-v1
+    created_at: 2026-09-27T16:56:53.516Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2e80cd8c3bb4
