@@ -365,6 +365,8 @@ modes, the trust boundary, disclosure-only permissions, and optional Jev usage.
 
 ## Documentation
 
+The browsable documentation site — a human-oriented Guide and a technical Reference built from these sources — lives at **<https://looted.github.io/kibi/docs/>**, published on Pages next to the [requirement-health report](https://looted.github.io/kibi/kibi-report/).
+
 - [Installation guide](docs/install.md) — Prerequisites, package managers, client setup, and verification
 - [Proving requirements](docs/proving-requirements.md) — Proof contracts, `kibi prove`, producer artifacts, and receipts
 - [GitHub badge + report](docs/github-integration.md) — Publish requirement health on GitHub Pages

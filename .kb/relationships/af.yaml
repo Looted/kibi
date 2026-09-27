@@ -125,3 +125,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d3a8ef53624d
+  - type: implements
+    from: SYM-docs-site-theme-PageShell
+    to: REQ-docs-site-pages
+    created_at: 2026-09-27T08:40:26.864Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1441933b5b15

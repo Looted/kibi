@@ -43256,3 +43256,69 @@ symbols:
         target: TEST-cursor-kibi-plugin-v1
       - type: implements
         target: REQ-cursor-kibi-plugin-v1
+  - id: SYM-docs-site-theme-Section
+    title: Section
+    status: active
+    sourceFile: docs-site/theme.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-docs-site-pages
+  - id: SYM-docs-site-theme-PageShell
+    title: PageShell
+    status: active
+    sourceFile: docs-site/theme.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-docs-site-pages
+  - id: SYM-docs-site-theme-escapeHtml
+    title: escapeHtml
+    status: active
+    sourceFile: docs-site/theme.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-docs-site-pages
+  - id: SYM-docs-site-theme-landingContent
+    title: landingContent
+    status: active
+    sourceFile: docs-site/theme.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-docs-site-pages
+  - id: SYM-docs-site-theme-layout
+    title: layout
+    status: active
+    sourceFile: docs-site/theme.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-docs-site-pages
+  - id: SYM-docs-site-theme-prepareMark
+    title: prepareMark
+    status: active
+    sourceFile: docs-site/theme.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-docs-site-pages
+  - id: SYM-docs-site-theme-clientScript
+    title: clientScript
+    status: active
+    sourceFile: docs-site/theme.ts
+    symbol_role: module
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-docs-site-pages
+  - id: SYM-docs-site-theme-styles
+    title: styles
+    status: active
+    sourceFile: docs-site/theme.ts
+    symbol_role: module
+    granularity_reason: module-level-behavior
+    relationships:
+      - type: implements
+        target: REQ-docs-site-pages
