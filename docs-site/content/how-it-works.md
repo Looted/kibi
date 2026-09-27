@@ -3,6 +3,8 @@ title: How Kibi works
 description: The loop from human intent to proven implementation — compilation, deterministic checks, and fresh end-to-end evidence.
 ---
 
+You do not operate this loop by hand. You prompt, and you approve the decisions that are actually about the product. The rest of this page is what happens after that.
+
 Kibi combines two kinds of intelligence on purpose: probabilistic interpretation for understanding, deterministic verification for trust. A large language model is good at reading intent and navigating code; it is bad at remembering, and it will confidently invent things. Prolog is the opposite: it remembers nothing you did not encode, and it never pretends. Kibi wires them together so each covers the other's weakness.
 
 ## The loop

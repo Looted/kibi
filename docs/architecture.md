@@ -23,9 +23,6 @@ graph TD
 
 ## Component Descriptions
 
-### Monorepo Architecture and Simplification
-- Detailed analysis of package boundaries and simplification roadmap: [OpenCode monorepo simplification review](proposals/opencode-monorepo-simplification.md)
-
 ### Prolog Core
 
 - Located at `packages/core/src/kb.pl`
@@ -83,9 +80,9 @@ graph TD
 > **Entity Modeling:** `flag` entities represent runtime/config gates. Bug and workaround notes belong in `fact` entities with `fact_kind: observation` or `meta`. **Strict facts** drive contradiction checks; observation/meta are non-blocking notes. See [Entity Schema](entity-schema.md). `domain-contradictions` applies to strict lane; `strict-fact-shape` is an advisory default-on quality diagnostic.
 ### VS Code Extension
 - Located at `packages/vscode/`
-- TreeView scaffolding for KB navigation
+- Explorer tree of requirements, scenarios, tests, decisions, flags, events, and symbols from the workspace knowledge base
 - MCP integration for queries and updates
-- Minimal functionality in v0
+- Activates when the workspace contains `.kb`
 
 ### Git Hooks
 - Installed in `$GIT_DIR/hooks` or via `core.hooksPath`

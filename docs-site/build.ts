@@ -41,6 +41,8 @@ import {
 type DocSpec = {
   slug: string;
   section: Section;
+  /** Sidebar group label, in manifest order, under Guide or Reference. */
+  group: string;
   title?: string;
   description?: string;
   /** Repository-root-relative path of the markdown source. */
@@ -69,15 +71,22 @@ const GITHUB_FALLBACK = "https://github.com/Looted/kibi";
 
 const DOCS: DocSpec[] = [
   // Guide — human-oriented narrative, how-to, and explanation.
-  { slug: "welcome", section: "guide", source: "docs-site/content/welcome.md" },
+  {
+    slug: "welcome",
+    section: "guide",
+    group: "Start",
+    source: "docs-site/content/welcome.md",
+  },
   {
     slug: "quick-start",
     section: "guide",
+    group: "Start",
     source: "docs-site/content/quick-start.md",
   },
   {
     slug: "install",
     section: "guide",
+    group: "Start",
     title: "Installation",
     description:
       "Install the Kibi packages with your package manager and set up the SWI-Prolog prerequisite.",
@@ -86,16 +95,25 @@ const DOCS: DocSpec[] = [
   {
     slug: "connect-an-agent",
     section: "guide",
+    group: "Start",
     source: "docs-site/content/connect-an-agent.md",
   },
   {
     slug: "how-it-works",
     section: "guide",
+    group: "Understand",
     source: "docs-site/content/how-it-works.md",
+  },
+  {
+    slug: "reading-the-report",
+    section: "guide",
+    group: "Understand",
+    source: "docs-site/content/reading-the-report.md",
   },
   {
     slug: "proof-ladder",
     section: "guide",
+    group: "Understand",
     title: "The proof ladder",
     description:
       "From a stated requirement to fresh end-to-end evidence: the stages a requirement climbs to count as proven.",
@@ -104,6 +122,7 @@ const DOCS: DocSpec[] = [
   {
     slug: "modeling",
     section: "guide",
+    group: "Understand",
     title: "Modeling requirements",
     description:
       "A practical cheat sheet for turning product intent into requirements, scenarios, tests, facts, and code links.",
@@ -112,6 +131,7 @@ const DOCS: DocSpec[] = [
   {
     slug: "github-integration",
     section: "guide",
+    group: "Ship",
     title: "Publish requirement health",
     description:
       "Publish the requirement-health report and badge on GitHub Pages so proof status is visible on every pull request.",
@@ -120,6 +140,7 @@ const DOCS: DocSpec[] = [
   {
     slug: "troubleshooting",
     section: "guide",
+    group: "Ship",
     title: "Troubleshooting",
     description:
       "Recovery procedures for setup problems and broken Kibi state.",
@@ -129,6 +150,7 @@ const DOCS: DocSpec[] = [
   {
     slug: "cli",
     section: "reference",
+    group: "Commands",
     title: "CLI reference",
     description:
       "Every kibi CLI command, flag, and dedicated JSON operation route, command by command.",
@@ -137,14 +159,24 @@ const DOCS: DocSpec[] = [
   {
     slug: "mcp",
     section: "reference",
+    group: "Commands",
     title: "MCP tools",
     description:
       "The canonical MCP tool catalog, onboarding contract, and schemas exposed by the Kibi MCP server.",
     source: "docs/mcp-reference.md",
   },
   {
+    slug: "errors",
+    section: "reference",
+    group: "Commands",
+    title: "Error reference",
+    description: "Every MCP error code, its meaning, and the recovery path.",
+    source: "docs/error-reference.md",
+  },
+  {
     slug: "entity-schema",
     section: "reference",
+    group: "Model",
     title: "Entity schema",
     description:
       "The eight entity types, their fields, and every typed relationship the knowledge graph supports.",
@@ -153,45 +185,43 @@ const DOCS: DocSpec[] = [
   {
     slug: "inference-rules",
     section: "reference",
+    group: "Model",
     title: "Inference rules",
     description:
       "The deterministic validation, contradiction, and coherence rules Kibi enforces.",
     source: "docs/inference-rules.md",
   },
   {
-    slug: "proving",
-    section: "reference",
-    title: "Proving requirements",
-    description:
-      "Proof contracts, the kibi prove workflow, and the kibi.proof-run.v1 producer artifact contract.",
-    source: "docs/proving-requirements.md",
-  },
-  {
-    slug: "errors",
-    section: "reference",
-    title: "Error reference",
-    description: "Every MCP error code, its meaning, and the recovery path.",
-    source: "docs/error-reference.md",
-  },
-  {
-    slug: "architecture",
-    section: "reference",
-    title: "Architecture",
-    description:
-      "Storage layout, branch isolation, and the data flow between the CLI, MCP server, and Prolog engine.",
-    source: "docs/architecture.md",
-  },
-  {
     slug: "symbol-taxonomy",
     section: "reference",
+    group: "Model",
     title: "Symbol traceability taxonomy",
     description:
       "How code symbols are classified and linked to requirements, and what counts as sufficient traceability.",
     source: "docs/symbol-traceability-taxonomy.md",
   },
   {
+    slug: "architecture",
+    section: "reference",
+    group: "Model",
+    title: "Architecture",
+    description:
+      "Storage layout, branch isolation, and the data flow between the CLI, MCP server, and Prolog engine.",
+    source: "docs/architecture.md",
+  },
+  {
+    slug: "proving",
+    section: "reference",
+    group: "Proof",
+    title: "Proving requirements",
+    description:
+      "Proof contracts, the kibi prove workflow, and the kibi.proof-run.v1 producer artifact contract.",
+    source: "docs/proving-requirements.md",
+  },
+  {
     slug: "plugins",
     section: "reference",
+    group: "Extend",
     title: "Plugin development",
     description:
       "Extend Kibi with capability plugins: the SDK, manifests, and plugin lifecycle.",
@@ -200,6 +230,7 @@ const DOCS: DocSpec[] = [
   {
     slug: "agent-onboarding",
     section: "reference",
+    group: "Extend",
     title: "Agent onboarding",
     description:
       "The copy-paste discovery snippet that lets any coding agent find and use Kibi's interfaces.",
@@ -433,9 +464,11 @@ function renderMarkdown(
   } catch (error) {
     throw new Error(`Failed to render ${spec.source}: ${String(error)}`);
   }
-  html = html
-    .replaceAll("<table>", '<div class="tablewrap"><table>')
-    .replaceAll("</table>", "</table></div>");
+  html = decorateCallouts(
+    html
+      .replaceAll("<table>", '<div class="tablewrap"><table>')
+      .replaceAll("</table>", "</table></div>"),
+  );
 
   const ids = new Set<string>();
   const headings: RenderedPage["headings"] = [];
@@ -540,27 +573,57 @@ function rewriteLinks(
 // Chrome: navigation, table of contents, pager
 // ---------------------------------------------------------------------------
 
+/** GitHub-style alerts (`> [!NOTE]`) become labeled callouts. Other quotes stay quotes. */
+function decorateCallouts(html: string): string {
+  return html.replace(
+    /<blockquote>([\s\S]*?)<\/blockquote>/g,
+    (full, inner: string) => {
+      const text = stripTags(inner).trim();
+      const match = text.match(/^\[!(NOTE|TIP|WARNING|CAUTION)\]\s*/);
+      if (!match || !match[1]) return full;
+      const kind = match[1].toLowerCase();
+      const label =
+        kind === "note"
+          ? "Note"
+          : kind === "tip"
+            ? "Tip"
+            : kind === "warning"
+              ? "Warning"
+              : "Caution";
+      const body = inner
+        .replace(/<p>\s*\[!(?:NOTE|TIP|WARNING|CAUTION)\]\s*/i, "<p>")
+        .replace(/<p>\s*<\/p>/g, "");
+      return `<aside class="callout callout-${kind}"><span class="callout-label">${label}</span>${body}</aside>`;
+    },
+  );
+}
+
 function buildNav(
   titles: Map<string, string>,
   active: RenderedPage | null,
 ): string {
-  const groups: Array<{ label: string; section: Section }> = [
+  const sections: Array<{ label: string; section: Section }> = [
     { label: "Guide", section: "guide" },
     { label: "Reference", section: "reference" },
   ];
   const from = active ? active.url : "index.html";
-  return groups
+  return sections
     .map(({ label, section }) => {
-      const items = DOCS.filter((spec) => spec.section === section)
-        .map((spec) => {
-          const url = pageUrl(spec);
-          const current = active !== null && active.spec === spec;
-          return `      <a class="nav-item" href="${relativeHref(from, url)}"${
-            current ? ' aria-current="page"' : ""
-          }>${escapeHtml(titles.get(url) ?? spec.slug)}</a>`;
-        })
-        .join("\n");
-      return `    <div class="nav-label">${label}</div>\n${items}`;
+      const specs = DOCS.filter((spec) => spec.section === section);
+      let html = `    <div class="nav-label">${label}</div>\n`;
+      let currentGroup = "";
+      for (const spec of specs) {
+        if (spec.group !== currentGroup) {
+          currentGroup = spec.group;
+          html += `    <div class="nav-group">${escapeHtml(spec.group)}</div>\n`;
+        }
+        const url = pageUrl(spec);
+        const current = active !== null && active.spec === spec;
+        html += `      <a class="nav-item" href="${relativeHref(from, url)}"${
+          current ? ' aria-current="page"' : ""
+        }>${escapeHtml(titles.get(url) ?? spec.slug)}</a>\n`;
+      }
+      return html.trimEnd();
     })
     .join("\n");
 }
@@ -647,9 +710,9 @@ function main(): void {
   // Landing page
   const landing: PageShell = {
     root: "",
-    title: "Kibi Documentation",
+    title: "Kibi",
     description:
-      "Guides and reference for Kibi, the agent-native requirements compiler. Prompt the intent; Kibi makes the agent remember it and prove the implementation.",
+      "Say what the software should do. Kibi makes your agent follow it, and prove it did.",
     section: null,
     navHtml: buildNav(titles, null),
     tocHtml: "",
@@ -657,8 +720,6 @@ function main(): void {
       root: "",
       reportUrl,
       wordmarkSvg,
-      installCommand:
-        "npm install --save-dev kibi-core kibi-cli kibi-mcp\nnpm exec -- kibi init",
     }),
     pagerHtml: "",
     reportUrl,

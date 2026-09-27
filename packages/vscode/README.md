@@ -35,7 +35,7 @@ code --install-extension kibi-vscode-*.vsix
 
 1. Open a workspace containing a `.kb` directory
 2. The Kibi Knowledge Base panel will appear in the Explorer sidebar
-3. Expand entity categories to view their contents (placeholder in v0.1)
+3. Expand entity categories to view their contents
 4. Use the refresh button to reload the tree view
 
 ## Entity Types

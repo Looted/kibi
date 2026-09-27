@@ -23,7 +23,7 @@ operation surface. Capability plugins never register MCP tools or Git hooks.
 
 `kibi-plugin-builtin` ships with the standard CLI distribution and is always
 registered. It is **not** listed in `package.json` `kibi.plugins`. With no
-`kibi.plugins` config, behavior matches the historical builtin-only tree.
+`kibi.plugins` config, only the builtin pack runs.
 
 ## Named export
 
@@ -80,13 +80,13 @@ Rules:
 - Resolution follows the project's package manager (npm, pnpm symlink, Yarn PnP)
 - `NODE_PATH`, global installs, and ambient ancestor packages are rejected
 
-## Configuration surface (v1)
+## Configuration surface
 
 `package.json#kibi.plugins` is the canonical activation and mode surface. Each entry names a bare package and the capabilities it may provide, with `augment`, `replace`, or `shadow`. That manifest is small, declarative, and validated before any plugin module is imported. Provider secrets stay in the environment, outside repository configuration.
 
-v1 does not add `kibi.config.ts`, generic plugin options, plugin factories, or arbitrary executable config. A later version may add a typed config file if capability-specific settings outgrow this manifest. This note does not choose that future shape.
+The manifest does not include `kibi.config.ts`, generic plugin options, plugin factories, or executable config.
 
-`kibi doctor` prints the parsed plugin rows (package, capability, mode, declared dependency) without importing the plugin package. First-party Jev secret/model diagnostics are known statically; generic plugins do not get secret introspection until a future static manifest contract exists. A configured package that is not listed in `dependencies`, `devDependencies`, or `optionalDependencies` fails that check. Add the package to one of those fields, or remove the `kibi.plugins` entry. Editing `package.json` remains the way to enable or disable a plugin.
+`kibi doctor` prints the parsed plugin rows (package, capability, mode, declared dependency) without importing the plugin package. First-party Jev secret and model diagnostics are known statically. Generic plugins do not get secret introspection. A configured package that is not listed in `dependencies`, `devDependencies`, or `optionalDependencies` fails that check. Add the package to one of those fields, or remove the `kibi.plugins` entry. Editing `package.json` remains the way to enable or disable a plugin.
 
 ## Modes
 

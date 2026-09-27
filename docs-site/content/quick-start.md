@@ -24,7 +24,10 @@ npm install --save-dev kibi-core kibi-cli kibi-mcp
 npm exec -- kibi init
 ```
 
-`kibi init` creates the local infrastructure: the `.kb/` directory layout and the Git hooks that keep it synchronized. It does **not** invent product knowledge — that comes from your intent and your agent.
+`kibi init` creates the local infrastructure: the `.kb/` directory layout and the Git hooks that keep it synchronized.
+
+> [!NOTE]
+> Initialization does not invent product knowledge. Behavior enters when you prompt your agent and approve the plan.
 
 ## 3. Let your agent bootstrap the repository
 
@@ -42,7 +45,7 @@ After bootstrap, ask your agent for the health report — or run it yourself:
 npm exec -- kibi report --open
 ```
 
-You get a self-contained HTML page showing, per requirement: what is proven, what has no scenario or test yet, what is contradictory, and what evidence has gone stale. An honest 0% is fine on day one — the report exists to make gaps explicit, not to shame anyone.
+You get a self-contained HTML page. The headline is a count, such as "0 of 12 current requirements fully proven end-to-end." An honest zero on day one is a successful report: it exists to make gaps explicit. [Read the health report](reading-the-report.md) explains the rows.
 
 ## 5. Work normally
 

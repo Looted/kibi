@@ -33383,16 +33383,6 @@ symbols:
         target: TEST-skill-cli-load-validate
       - type: implements
         target: REQ-reusable-skill-subsystem
-  - id: SYM-ReceiptCodeScopeEntry
-    title: ReceiptCodeScopeEntry
-    status: active
-    sourceFile: packages/cli/src/extractors/manifest.ts
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-kibi-fresh-verification-receipts
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts
   - id: SYM-symbol-classification
     title: symbol_classification
     status: active
@@ -33412,14 +33402,6 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-e2e-coverage-pipeline
-      - type: implements
-        target: REQ-014
-  - id: SYM-COVERAGE_SHARDS
-    title: COVERAGE_SHARDS
-    status: active
-    sourceFile: scripts/run-unit-coverage.ts
-    granularity_reason: legacy-link
-    relationships:
       - type: implements
         target: REQ-014
   - id: SYM-runUnitCoverage
@@ -33462,21 +33444,6 @@ symbols:
         target: TEST-kibi-fresh-verification-receipts
       - type: implements
         target: REQ-kibi-fresh-verification-receipts
-  - id: SYM-resolveBoundSymbolScope
-    title: resolveBoundSymbolScope
-    sourceFile: packages/cli/src/extractors/manifest.ts
-    status: active
-    symbol_role: behavioral
-    granularity_reason: legacy-link
-    relationships:
-      - type: covered_by
-        target: TEST-generated-coordinate-repair
-      - type: covered_by
-        target: TEST-kibi-fresh-verification-receipts
-      - type: implements
-        target: REQ-kibi-fresh-verification-receipts
-      - type: implements
-        target: REQ-generated-coordinate-persistence
   - id: SYM-coordinateIdentityKey
     title: coordinateIdentityKey
     sourceFile: packages/cli/src/extractors/symbol-coordinates.ts

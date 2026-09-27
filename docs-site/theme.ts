@@ -60,20 +60,20 @@ function svgFavicon(svg: string): string {
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
 
-const RAIL_SVG = `<svg class="rail-svg" viewBox="0 0 760 96" role="img" aria-label="Intent travels a rail through compiled requirements and enforcement to a proof gate" fill="none">
-  <line x1="52" y1="40" x2="668" y2="40" stroke="#3e8ed6" stroke-width="2"/>
+const RAIL_SVG = `<svg class="rail-svg" viewBox="0 0 760 96" role="img" aria-label="Intent travels a rail through requirements, enforcement, and evidence, then passes a gate to become proof" fill="none">
+  <line x1="53" y1="40" x2="720" y2="40" stroke="#3e8ed6" stroke-width="2"/>
   <circle cx="40" cy="40" r="13" fill="#a2d3f4"/>
-  <circle cx="228" cy="40" r="5" fill="#111318" stroke="#3e8ed6" stroke-width="2"/>
-  <circle cx="416" cy="40" r="5" fill="#111318" stroke="#3e8ed6" stroke-width="2"/>
-  <circle cx="604" cy="40" r="5" fill="#111318" stroke="#3e8ed6" stroke-width="2"/>
-  <path d="M682 14v52M698 14v52" stroke="#3e8ed6" stroke-width="2" stroke-linecap="round"/>
-  <circle cx="726" cy="40" r="7" fill="#63c99a"/>
+  <circle cx="212" cy="40" r="5" fill="#111318" stroke="#3e8ed6" stroke-width="2"/>
+  <circle cx="384" cy="40" r="5" fill="#111318" stroke="#3e8ed6" stroke-width="2"/>
+  <circle cx="556" cy="40" r="5" fill="#111318" stroke="#3e8ed6" stroke-width="2"/>
+  <path d="M634 27v26M650 27v26" stroke="#3e8ed6" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="728" cy="40" r="8" fill="#63c99a"/>
   <g fill="#aab8c2" font-family="-apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="13">
     <text x="40" y="80" text-anchor="middle">Intent</text>
-    <text x="228" y="80" text-anchor="middle">Requirements</text>
-    <text x="416" y="80" text-anchor="middle">Enforcement</text>
-    <text x="604" y="80" text-anchor="middle">Evidence</text>
-    <text x="712" y="80" text-anchor="middle">Proof</text>
+    <text x="212" y="80" text-anchor="middle">Requirements</text>
+    <text x="384" y="80" text-anchor="middle">Enforcement</text>
+    <text x="556" y="80" text-anchor="middle">Evidence</text>
+    <text x="728" y="80" text-anchor="middle">Proof</text>
   </g>
 </svg>`;
 
@@ -130,9 +130,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
   position: sticky; top: 0; z-index: 40;
   display: flex; align-items: center; gap: 14px;
   height: var(--topbar-h); padding: 0 20px;
-  background: rgba(17, 19, 24, 0.92);
+  background: var(--deep);
   border-bottom: 1px solid var(--rail);
-  backdrop-filter: blur(4px);
 }
 .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--snow); flex-shrink: 0; }
 .brand svg.mark.logo { height: 26px; width: auto; display: block; }
@@ -147,6 +146,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
   padding: 6px 10px; border-radius: 8px;
 }
 .topbar-nav a:hover { color: var(--snow); background: var(--panel); }
+.topbar-nav a[aria-current="page"] { color: var(--snow); }
 .topbar-spacer { flex: 1; }
 
 .search { position: relative; }
@@ -209,21 +209,21 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
   color: var(--mist); margin: 22px 10px 8px; font-weight: 600;
 }
 .nav-label:first-child { margin-top: 0; }
+.nav-group {
+  font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  font-weight: 600; color: var(--mist);
+  margin: 18px 10px 6px;
+}
 .nav-item {
   position: relative; display: block;
-  padding: 6px 10px 6px 22px; margin: 1px 0;
+  padding: 6px 10px 6px 28px; margin: 1px 0;
   color: var(--mist); text-decoration: none;
   font-size: 13.8px; border-radius: 8px; line-height: 1.45;
 }
-.nav-item::before {
-  content: ""; position: absolute; left: 9px; top: 0; bottom: 0;
-  width: 2px; background: transparent; border-radius: 2px;
-}
 .nav-item:hover { color: var(--snow); background: rgba(25, 28, 34, 0.85); }
 .nav-item[aria-current="page"] { color: var(--ice); background: rgba(62, 142, 214, 0.1); }
-.nav-item[aria-current="page"]::before { background: var(--signal); }
-.nav-item[aria-current="page"]::after {
-  content: ""; position: absolute; left: 6px; top: 50%; transform: translateY(-50%);
+.nav-item[aria-current="page"]::before {
+  content: ""; position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
   width: 7px; height: 7px; border-radius: 50%; background: var(--ice);
 }
 
@@ -312,7 +312,7 @@ figure.code code { font-family: var(--mono); font-size: 13.2px; line-height: 1.6
 }
 figure.code:hover .code-copy, .code-copy:focus-visible, .code-copy.copied { opacity: 1; }
 .code-copy:hover { color: var(--snow); border-color: var(--signal); }
-.code-copy.copied { color: var(--deep); background: var(--proven); border-color: var(--proven); font-weight: 600; }
+.code-copy.copied { color: var(--deep); background: var(--ice); border-color: var(--ice); font-weight: 600; }
 .tok-k { color: var(--ice); }
 .tok-s { color: var(--proven); }
 .tok-c { color: var(--mist); font-style: italic; }
@@ -336,6 +336,21 @@ figure.code:hover .code-copy, .code-copy:focus-visible, .code-copy.copied { opac
 }
 .prose blockquote p:last-child { margin-bottom: 0; }
 .prose blockquote code { background: rgba(62, 142, 214, 0.13); }
+.callout {
+  margin: 16px 0 20px; padding: 12px 16px 12px 18px;
+  background: var(--panel); border-left: 3px solid var(--signal); border-radius: 0 10px 10px 0;
+}
+.callout-label {
+  display: block; margin-bottom: 6px;
+  font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600;
+  color: var(--ice);
+}
+.callout p { margin: 0; color: var(--mist); }
+.callout p + p { margin-top: 8px; }
+.callout-warning { border-left-color: var(--warning); }
+.callout-warning .callout-label { color: var(--warning); }
+.callout-caution { border-left-color: var(--contradiction); }
+.callout-caution .callout-label { color: var(--contradiction); }
 .prose img { max-width: 100%; border-radius: 10px; border: 1px solid var(--rail); }
 
 /* ---------- Pager ---------- */
@@ -369,20 +384,29 @@ figure.code:hover .code-copy, .code-copy:focus-visible, .code-copy.copied { opac
   padding: 22px 32px; display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center; justify-content: space-between;
   color: var(--mist); font-size: 13px;
 }
-.footer nav { display: flex; flex-wrap: wrap; gap: 18px; }
+.footer nav { display: flex; flex-wrap: wrap; gap: 18px; align-items: baseline; }
 .footer a { color: var(--mist); }
 .footer a:hover { color: var(--snow); }
-.footer .commit { font-family: var(--mono); font-size: 12px; }
+.footer .commit { font-family: var(--mono); font-size: 1em; }
 
 /* ---------- Landing ---------- */
-.hero { padding: 26px 0 10px; }
-.hero-mark svg.mark { width: min(300px, 72vw); height: auto; display: block; }
-.hero-title {
-  font-size: clamp(24px, 3.4vw, 34px); line-height: 1.22; letter-spacing: -0.015em;
-  max-width: 760px; margin: 26px 0 14px; font-weight: 700;
+.hero { padding: 0 0 8px; }
+.hero-grid { display: block; }
+.hero-lower {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: 36px 80px;
+  align-items: start;
+  margin-top: 28px;
 }
-.hero-sub { color: var(--mist); font-size: 16.5px; max-width: 700px; margin: 0 0 26px; }
-.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 34px; }
+.hero-mark svg.mark { width: min(280px, 72vw); height: auto; display: block; }
+.hero-title {
+  font-size: clamp(32px, 4vw, 48px); line-height: 1.12; letter-spacing: -0.02em;
+  max-width: 18em; margin: 28px 0 0; font-weight: 700;
+}
+.landing .hero-sub { color: var(--mist); font-size: 19px; font-weight: 400; line-height: 1.5; max-width: 36em; margin: 0 0 20px; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 0; }
+.landing .hero-canon { color: var(--mist); font-size: 13.5px; max-width: 36em; margin: 20px 0 0; }
 .btn {
   display: inline-block; text-decoration: none; font-weight: 600; font-size: 14.5px;
   padding: 10px 20px; border-radius: 10px; border: 1px solid transparent;
@@ -391,23 +415,92 @@ figure.code:hover .code-copy, .code-copy:focus-visible, .code-copy.copied { opac
 .btn-primary:hover { background: var(--snow); }
 .btn-ghost { border-color: var(--rail); color: var(--snow); }
 .btn-ghost:hover { border-color: var(--signal); color: var(--ice); }
-.hero-rail { margin: 8px 0 6px; overflow-x: auto; }
-.rail-svg { width: min(760px, 100%); min-width: 560px; height: auto; display: block; }
+.hero-rail { margin: 40px 0 0; overflow-x: auto; }
+.rail-svg { width: 100%; min-width: 0; height: auto; display: block; }
 
-.railline { position: relative; height: 2px; background: var(--rail); margin: 40px 0; border-radius: 2px; }
-.railline::before {
-  content: ""; position: absolute; left: 0; top: -3.5px;
-  width: 9px; height: 9px; border-radius: 50%; background: var(--ice);
+.ledger {
+  background:
+    linear-gradient(180deg, rgba(162, 211, 244, 0.07), transparent 46%),
+    var(--panel);
+  border: 1px solid rgba(162, 211, 244, 0.28);
+  border-radius: 12px;
+  padding: 14px 16px 12px;
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.28);
 }
+.ledger-kicker {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--mist); font-weight: 600;
+}
+.ledger-kicker a { font-size: 12px; letter-spacing: 0; text-transform: none; font-weight: 600; }
+.ledger-score { display: flex; align-items: baseline; gap: 8px; margin: 8px 0 2px; }
+.ledger-num { font-family: var(--mono); font-size: 22px; font-weight: 600; color: var(--snow); }
+.ledger-den { color: var(--mist); font-size: 14px; }
+.prose .ledger ol { list-style: none; margin: 8px 0 0; padding: 0; }
+.prose .ledger li { margin: 0; }
+.ledger li {
+  display: grid; grid-template-columns: 10px minmax(0, 1fr) auto;
+  gap: 10px; align-items: center;
+  padding: 6px 0; border-top: 1px solid rgba(52, 67, 79, 0.85);
+  font-size: 13.5px;
+}
+.ledger .name { color: var(--snow); }
+.ledger .state { font-family: var(--mono); font-size: 12px; white-space: nowrap; }
+.ledger .state.proven { color: var(--proven); }
+.ledger .state.gap { color: var(--warning); }
+.ledger .state.bad { color: var(--contradiction); }
+.ledger-foot { margin: 8px 0 0; color: var(--mist); font-size: 12.5px; }
+.dot.gap { background: var(--warning); }
+.dot.bad { background: var(--contradiction); }
 
-.landing h2 { font-size: 22px; margin: 0 0 18px; letter-spacing: -0.005em; }
+.landing > section { margin-top: 72px; }
+.landing > section.hero { margin-top: 0; }
+.landing h2 { font-size: 22px; margin: 0 0 18px; padding-left: 0; letter-spacing: -0.005em; }
+.landing h2::before { display: none; }
+.prose .loss { list-style: none; margin: 0; padding: 0; max-width: 720px; }
+.prose .loss li {
+  position: relative; margin: 0; padding: 8px 0 8px 22px;
+}
+.loss li::before {
+  content: ""; position: absolute; left: 0; top: 16px;
+  width: 8px; height: 8px; border-radius: 50%; background: var(--ice);
+}
+.loss li strong { color: var(--snow); }
+
+.prose .steps {
+  position: relative; list-style: none; margin: 8px 0 0; padding: 0;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px;
+}
+.prose .steps li { position: relative; margin: 0; padding-left: 22px; }
+.steps li::before {
+  content: ""; position: absolute; left: 0; top: 6px;
+  width: 8px; height: 8px; border-radius: 50%; background: var(--ice);
+}
+.steps h3 { margin: 0 0 6px; font-size: 16px; color: var(--snow); }
+.steps p { margin: 0; color: var(--mist); font-size: 14.5px; }
+
+.faq { max-width: 760px; }
+.faq details { padding: 8px 0 14px; }
+.faq summary { cursor: pointer; font-weight: 600; color: var(--snow); list-style: none; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq details p { margin: 8px 0 0; color: var(--mist); }
+
+.pm-tablist { display: flex; gap: 4px; }
+.pm-tab {
+  font: inherit; font-size: 13px; font-weight: 600; color: var(--mist);
+  background: transparent; border: 1px solid transparent; border-bottom: none;
+  border-radius: 8px 8px 0 0; padding: 7px 12px; cursor: pointer;
+}
+.pm-tab[aria-selected="true"] { color: var(--snow); background: var(--carbon); border-color: var(--rail); }
+.pm-tabs figure.code { margin-top: 0; border-radius: 0 12px 12px 12px; }
+
 .path-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .path-card {
   display: block; text-decoration: none;
-  background: var(--panel); border: 1px solid var(--rail); border-radius: 14px;
-  padding: 22px 24px; transition: border-color 120ms ease, transform 120ms ease;
+  background: var(--panel); border: 1px solid var(--rail); border-radius: 12px;
+  padding: 22px 24px; transition: border-color 120ms ease;
 }
-.path-card:hover { border-color: var(--signal); transform: translateY(-2px); }
+.path-card:hover { border-color: var(--signal); }
 .path-card h3 { margin: 12px 0 6px; font-size: 17.5px; color: var(--snow); }
 .path-card p { color: var(--mist); margin: 0 0 14px; font-size: 14.5px; }
 .path-card ul { margin: 0; padding: 0; list-style: none; }
@@ -418,17 +511,10 @@ figure.code:hover .code-copy, .code-copy:focus-visible, .code-copy.copied { opac
 }
 .path-card .path-more { display: inline-block; margin-top: 14px; font-size: 13.5px; font-weight: 600; }
 
-.feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-.feature {
-  background: var(--carbon); border: 1px solid rgba(52, 67, 79, 0.6); border-radius: 14px;
-  padding: 18px 20px;
-}
-.feature h3 { margin: 0 0 6px; font-size: 15.5px; color: var(--snow); display: flex; align-items: baseline; gap: 10px; }
-.feature h3::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ice); flex-shrink: 0; transform: translateY(-1px); }
-.feature p { margin: 0; color: var(--mist); font-size: 13.8px; }
-.feature p strong { color: var(--snow); }
-
 .install-cmd { margin: 16px 0 10px; }
+.pm-tabs .install-cmd { margin: 0 0 16px; }
+.landing .install > p { margin: 0 0 20px; }
+.landing .install > .fineprint { margin: 16px 0 0; }
 .fineprint { color: var(--mist); font-size: 13.5px; }
 .fineprint code { font-family: var(--mono); color: var(--ice); font-size: 12.5px; }
 
@@ -466,13 +552,37 @@ figure.code:hover .code-copy, .code-copy:focus-visible, .code-copy.copied { opac
   .search { flex: 1; }
   .content { padding: 28px 20px 56px; }
   .pager { grid-template-columns: 1fr; }
-  .path-grid, .feature-grid { grid-template-columns: 1fr; }
+  .path-grid, .hero-lower, .prose .steps { grid-template-columns: 1fr; }
+  .prose .steps li { padding: 0 0 20px 22px; }
+  .rail-svg { min-width: 640px; }
   .footer { padding: 18px 20px; }
 }
 @media (max-width: 560px) {
   .brand svg.mark.logo { height: 22px; }
   .brand-docs { display: none; }
 }
+.page-home { position: relative; }
+.page-home::before {
+  content: "";
+  position: absolute; z-index: 0; pointer-events: none;
+  top: 0; left: 0; right: 0; height: 860px;
+  background:
+    radial-gradient(920px 680px at -8% -14%, rgba(162, 211, 244, 0.34), transparent 60%),
+    radial-gradient(860px 640px at 108% -10%, rgba(62, 142, 214, 0.62), transparent 56%),
+    radial-gradient(640px 360px at 68% 28%, rgba(162, 211, 244, 0.12), transparent 68%);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 42%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 42%, transparent 100%);
+}
+.page-home .topbar {
+  background:
+    linear-gradient(90deg, rgba(162, 211, 244, 0.1), rgba(62, 142, 214, 0.14) 62%, rgba(17, 19, 24, 0)),
+    var(--deep);
+  border-bottom-color: rgba(52, 67, 79, 0.45);
+}
+.page-home .shell { display: block; position: relative; z-index: 1; max-width: 1080px; }
+.page-home .footer { position: relative; z-index: 1; }
+.page-home .nav-toggle { display: none; }
+.page-home .content { padding-top: 72px; }
 
 /* ---------- Preferences ---------- */
 @media (prefers-reduced-motion: reduce) {
@@ -483,6 +593,7 @@ figure.code:hover .code-copy, .code-copy:focus-visible, .code-copy.copied { opac
 @media print {
   :root { --deep: #ffffff; --carbon: #f5f6f8; --panel: #eef1f4; --snow: #12161c; --mist: #4a5560; --rail: #c3ccd4; --ice: #1d5f9e; --signal: #2568a8; }
   body { background: #fff; color: #12161c; }
+  .page-home::before { display: none; }
   .topbar, .sidebar, .toc, .search, .nav-toggle, .code-copy, .backdrop, .pager, .hlink { display: none !important; }
   .shell { display: block; max-width: none; }
   .content { padding: 0; }
@@ -554,6 +665,41 @@ export const clientScript = String.raw`
     document.body.removeChild(area);
     return ok;
   }
+
+  /* ----- Package-manager tabs ----- */
+  function selectPm(tab) {
+    var root = tab.closest("[data-pm-tabs]");
+    if (!root) return;
+    var name = tab.getAttribute("data-pm");
+    var tabs = root.querySelectorAll(".pm-tab");
+    var panels = root.querySelectorAll("[data-pm-panel]");
+    for (var i = 0; i < tabs.length; i++) {
+      var on = tabs[i] === tab;
+      tabs[i].setAttribute("aria-selected", on ? "true" : "false");
+      if (on) tabs[i].removeAttribute("tabindex");
+      else tabs[i].setAttribute("tabindex", "-1");
+    }
+    for (var j = 0; j < panels.length; j++) {
+      panels[j].hidden = panels[j].getAttribute("data-pm-panel") !== name;
+    }
+  }
+  document.addEventListener("click", function (e) {
+    var tab = e.target.closest ? e.target.closest(".pm-tab") : null;
+    if (tab) selectPm(tab);
+  });
+  document.addEventListener("keydown", function (e) {
+    var tab = e.target.closest ? e.target.closest(".pm-tab") : null;
+    if (!tab || (e.key !== "ArrowRight" && e.key !== "ArrowLeft")) return;
+    var list = tab.parentElement;
+    if (!list) return;
+    var tabs = list.querySelectorAll(".pm-tab");
+    var index = 0;
+    for (var i = 0; i < tabs.length; i++) if (tabs[i] === tab) index = i;
+    var next = e.key === "ArrowRight" ? (index + 1) % tabs.length : (index - 1 + tabs.length) % tabs.length;
+    e.preventDefault();
+    selectPm(tabs[next]);
+    tabs[next].focus();
+  });
 
   /* ----- Heading anchors ----- */
   var prose = document.querySelector(".prose");
@@ -722,82 +868,166 @@ export function landingContent(args: {
   root: string;
   reportUrl: string | null;
   wordmarkSvg: string;
-  installCommand: string;
 }): string {
-  const { root, reportUrl, wordmarkSvg, installCommand } = args;
+  const { root, reportUrl, wordmarkSvg } = args;
+  const managers: Array<{ id: string; label: string; command: string }> = [
+    {
+      id: "npm",
+      label: "npm",
+      command:
+        "npm install --save-dev kibi-core kibi-cli kibi-mcp\nnpm exec -- kibi init",
+    },
+    {
+      id: "pnpm",
+      label: "pnpm",
+      command: "pnpm add -D kibi-core kibi-cli kibi-mcp\npnpm exec kibi init",
+    },
+    {
+      id: "yarn",
+      label: "Yarn",
+      command: "yarn add -D kibi-core kibi-cli kibi-mcp\nyarn exec kibi init",
+    },
+  ];
+  const installTabs = managers
+    .map((manager, index) => {
+      const selected = index === 0;
+      return `<button type="button" class="pm-tab" role="tab" id="pm-tab-${manager.id}" aria-controls="pm-panel-${manager.id}" aria-selected="${selected ? "true" : "false"}"${selected ? "" : ' tabindex="-1"'} data-pm="${manager.id}">${manager.label}</button>`;
+    })
+    .join("");
+  const installPanels = managers
+    .map((manager, index) => {
+      const selected = index === 0;
+      return `<figure class="code install-cmd" id="pm-panel-${manager.id}" role="tabpanel" aria-labelledby="pm-tab-${manager.id}" data-pm-panel="${manager.id}"${selected ? "" : " hidden"}>
+  <span class="code-lang">bash</span>
+  <button type="button" class="code-copy" aria-label="Copy ${manager.label} install commands">Copy</button>
+  <pre><code>${escapeHtml(manager.command)}</code></pre>
+</figure>`;
+    })
+    .join("\n");
+  const liveReport = reportUrl ? `<a href="${reportUrl}">Live report</a>` : "";
   const reportStrip = reportUrl
     ? `<section class="report-strip">
   <div>
-    <h2>Watch the proof, not the promise</h2>
-    <p>Every push to the default branch republishes the live requirement-health report: the share of requirements with current proof, open contradictions, and stale evidence &mdash; generated from one coverage snapshot.</p>
-    <div class="report-note"><span class="dot proven"></span>Proven means fresh end-to-end evidence tied to the current code snapshot.</div>
+    <h2>This repository publishes its own report</h2>
+    <p>Every push to the default branch republishes requirement health for Kibi itself: how many current requirements are fully proven, which ones contradict each other, and which evidence has gone stale.</p>
+    <div class="report-note"><span class="dot proven"></span>Proven means fresh end-to-end evidence on the current code snapshot.</div>
   </div>
   <a class="btn btn-ghost" href="${reportUrl}">Open the live report</a>
 </section>`
     : "";
   return `<div class="prose landing">
 <section class="hero">
-  <div class="hero-mark">${wordmarkSvg}</div>
-  <h1 class="hero-title">Prompt the intent. Kibi makes the agent remember it &mdash; and prove the implementation.</h1>
-  <p class="hero-sub">Kibi turns product intent into an enforceable, branch-local model. Your coding agent maintains the requirements, scenarios, tests, and code links; deterministic checks keep them coherent and prove the implementation against them. No tickets, no parallel bureaucracy &mdash; the prompt stays the interface.</p>
-  <div class="hero-actions">
-    <a class="btn btn-primary" href="${root}guide/welcome.html">Read the guide</a>
-    <a class="btn btn-ghost" href="${root}guide/quick-start.html">Quick start</a>
+  <div class="hero-grid">
+    <div>
+      <div class="hero-mark">${wordmarkSvg}</div>
+      <h1 class="hero-title">Say what the software should do.</h1>
+    </div>
+    <div class="hero-lower">
+      <div>
+      <p class="hero-sub">You keep prompting your coding agent. Kibi writes that intent down beside the code, carries it onto every branch, and treats &ldquo;done&rdquo; as a claim that needs fresh evidence.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="${root}guide/quick-start.html">Install Kibi</a>
+        <a class="btn btn-ghost" href="${root}guide/reading-the-report.html">Read a health report</a>
+      </div>
+      <p class="hero-canon">Prompt the intent. Kibi makes the agent remember it&mdash;and prove the implementation.</p>
+    </div>
+    <aside class="ledger" aria-label="Example requirement-health ledger">
+      <div class="ledger-kicker"><span>Example ledger</span>${liveReport}</div>
+      <div class="ledger-score"><span class="ledger-num">4</span><span class="ledger-den">of 11 fully proven</span></div>
+      <ol>
+        <li><span class="dot proven" aria-hidden="true"></span><span class="name">Drafts save when you leave</span><span class="state proven">Proven</span></li>
+        <li><span class="dot gap" aria-hidden="true"></span><span class="name">Export keeps the current filters</span><span class="state gap">Proof gap</span></li>
+        <li><span class="dot bad" aria-hidden="true"></span><span class="name">Exactly three user roles</span><span class="state bad">Contradiction</span></li>
+      </ol>
+      <p class="ledger-foot">An example, not this repository&rsquo;s live numbers.</p>
+    </aside>
+    </div>
   </div>
   <div class="hero-rail">${RAIL_SVG}</div>
 </section>
-<div class="railline" aria-hidden="true"></div>
+<section>
+  <h2>What usually gets lost</h2>
+  <ul class="loss">
+    <li><strong>The prompt.</strong> The session ends, and the reason for yesterday&rsquo;s change is gone.</li>
+    <li><strong>The link to the code.</strong> A ticket can say what you wanted. It rarely names the function that was supposed to do it.</li>
+    <li><strong>The meaning of green.</strong> A passing suite does not say which product behavior is still true on this commit.</li>
+  </ul>
+</section>
+<section>
+  <h2>What you actually do</h2>
+  <ol class="steps">
+    <li>
+      <h3>State the behavior</h3>
+      <p>Prompt the way you already do. &ldquo;Draft edits must save when someone navigates away.&rdquo; You do not fill in a requirements form.</p>
+    </li>
+    <li>
+      <h3>Approve real decisions</h3>
+      <p>The agent proposes a plan before it writes project knowledge. You approve it, or you correct the product call. The bookkeeping stays with the agent.</p>
+    </li>
+    <li>
+      <h3>Read the result</h3>
+      <p>The health report names what is proven, what still has a gap, and what contradicts itself. A green test run is a different fact.</p>
+    </li>
+  </ol>
+</section>
 <section class="paths">
-  <h2>Choose your path</h2>
+  <h2>Where to go next</h2>
   <div class="path-grid">
     <a class="path-card" href="${root}guide/welcome.html">
       <span class="chip">Guide</span>
-      <h3>Understand and use Kibi</h3>
-      <p>What Kibi is, how to install it, how to connect your coding agent, and how to read your first requirement-health report. Plain language, no prior compiler knowledge needed.</p>
+      <h3>Use Kibi on a repository</h3>
+      <p>Install it, connect the agent you already use, and learn how to read the first health report. Written for the person prompting, not for the agent.</p>
       <ul>
         <li>What is Kibi?</li>
         <li>Quick start</li>
-        <li>Installation</li>
         <li>Connect your coding agent</li>
-        <li>Troubleshooting</li>
+        <li>Read the health report</li>
       </ul>
       <span class="path-more">Start the guide &rarr;</span>
     </a>
     <a class="path-card" href="${root}reference/cli.html">
       <span class="chip chip-reference">Reference</span>
-      <h3>Precise technical detail</h3>
-      <p>Complete, dry, exact documentation for daily operation: every CLI command, MCP tool, entity type, validation rule, and error the system can produce.</p>
+      <h3>Look up the exact contract</h3>
+      <p>Commands, tool schemas, entity fields, and the checks Kibi actually runs. Dry on purpose, and rendered from the same files as the repository.</p>
       <ul>
         <li>CLI reference</li>
         <li>MCP tools</li>
         <li>Entity schema</li>
-        <li>Inference rules</li>
         <li>Error reference</li>
       </ul>
       <span class="path-more">Open the reference &rarr;</span>
     </a>
   </div>
 </section>
-<div class="railline" aria-hidden="true"></div>
-<section class="features">
-  <h2>What Kibi does</h2>
-  <div class="feature-grid">
-    <div class="feature"><h3>Your agent remembers the product</h3><p>Requirements, scenarios, and code links live beside the code and return to the agent's context automatically. The prompt stays the interface; <strong>Kibi carries the memory</strong>.</p></div>
-    <div class="feature"><h3>Deterministic checks, not good intentions</h3><p>A Prolog safety layer validates every change for <strong>contradictions, unsupported invention, and incomplete semantics</strong> before it becomes accepted project knowledge.</p></div>
-    <div class="feature"><h3>Proof you can inspect</h3><p>Proof-bearing tests record fresh end-to-end evidence tied to the current code snapshot. The health report shows <strong>exactly what is proven</strong> and what is still waiting.</p></div>
-    <div class="feature"><h3>Knowledge that follows your branch</h3><p>Each Git branch carries its own project model. Feature context stays isolated and <strong>returns when you come back</strong> &mdash; nothing leaks between branches.</p></div>
+<section class="install" id="install">
+  <h2>Add Kibi to the repository</h2>
+  <p>Install the three packages the project will run, then create the local <code>.kb/</code> directory. That command does not invent what the product does.</p>
+  <div class="pm-tabs" data-pm-tabs>
+    <div class="pm-tablist" role="tablist" aria-label="Package manager">${installTabs}</div>
+    ${installPanels}
   </div>
+  <p class="fineprint">Requires <code>swipl</code> (SWI-Prolog 9.0+) on your <code>PATH</code>. Bun commands and per-platform setup are in the <a href="${root}guide/install.html">installation guide</a>.</p>
 </section>
-<div class="railline" aria-hidden="true"></div>
-<section class="install">
-  <h2>Start in two commands</h2>
-  <p>Add Kibi to an existing repository and let your agent bootstrap the rest.</p>
-  <figure class="code install-cmd">
-    <span class="code-lang">bash</span>
-    <button type="button" class="code-copy" aria-label="Copy install commands">Copy</button>
-    <pre><code>${escapeHtml(installCommand)}</code></pre>
-  </figure>
-  <p class="fineprint">Requires <code>swipl</code> (SWI-Prolog 9.0+) on your <code>PATH</code>. See the <a href="${root}guide/install.html">installation guide</a> for your package manager and platform.</p>
+<section>
+  <h2>Questions people ask first</h2>
+  <div class="faq">
+    <details>
+      <summary>Do I write the requirements myself?</summary>
+      <p>No. You describe the behavior. Your agent turns that into requirements, scenarios, tests, and links to the code. You step in when the product decision is actually ambiguous.</p>
+    </details>
+    <details>
+      <summary>Does this replace my issue tracker?</summary>
+      <p>No. Keep the tracker you have. Kibi connects a decision to the code that implements it, and to evidence that the code still does it.</p>
+    </details>
+    <details>
+      <summary>What counts as proven?</summary>
+      <p>A requirement is proven only when a test that claims to verify it has fresh end-to-end evidence for the current code. A passing unit test, a coverage percentage, or an old receipt does not count.</p>
+    </details>
+    <details>
+      <summary>Will Kibi decide the product for me?</summary>
+      <p>No. <code>kibi init</code> creates the directory and the Git hooks. It does not infer behavior. Checks prove what was encoded. Missing knowledge stays visible.</p>
+    </details>
+  </div>
 </section>
 ${reportStrip}
 </div>`;
@@ -832,8 +1062,8 @@ export function layout(page: PageShell): string {
     : null;
 
   const topbarNav = `<nav class="topbar-nav" aria-label="Primary">
-  <a href="${root}guide/welcome.html">Guide</a>
-  <a href="${root}reference/cli.html">Reference</a>
+  <a href="${root}guide/welcome.html"${section === "guide" ? ' aria-current="page"' : ""}>Guide</a>
+  <a href="${root}reference/cli.html"${section === "reference" ? ' aria-current="page"' : ""}>Reference</a>
   ${reportHref ? `<a href="${reportHref}">Report</a>` : ""}
   <a class="external" href="${githubUrl}" target="_blank" rel="noopener noreferrer">GitHub</a>
 </nav>`;
@@ -863,7 +1093,7 @@ export function layout(page: PageShell): string {
 <link rel="icon" href="${favicon}">
 <style>${styles}</style>
 </head>
-<body>
+<body${section === null ? ' class="page-home"' : ""}>
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="topbar">
   <button type="button" class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="sidebar">
@@ -885,7 +1115,11 @@ export function layout(page: PageShell): string {
 </header>
 <button type="button" class="backdrop" hidden aria-label="Close navigation" tabindex="-1"></button>
 <div class="shell">
-<nav class="sidebar" id="sidebar" aria-label="Documentation">${navHtml}</nav>
+${
+  section === null
+    ? ""
+    : `<nav class="sidebar" id="sidebar" aria-label="Documentation">${navHtml}</nav>`
+}
 <main id="main" class="content${section === null ? " wide" : ""}">
 ${contentHtml}
 ${pagerHtml}

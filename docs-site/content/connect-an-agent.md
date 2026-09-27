@@ -1,59 +1,103 @@
 ---
 title: Connect your coding agent
-description: Point your MCP client at the project-local kibi-mcp server, or use the kibi CLI directly — both expose the same operation catalog.
+description: Give your coding agent the same Kibi operations you can run yourself, through an MCP server or the kibi CLI.
 ---
 
-Kibi reaches your agent through two peer surfaces. Both expose the same canonical operation catalog, so which one you use depends on what your client shows you:
+Once Kibi is installed in the repository, your agent needs a way to call it. Two surfaces expose the same operations:
 
-- **MCP server** (`kibi-mcp`) — visible tools such as `kb_search`, `kb_check`, and `kb_upsert`.
-- **CLI** (`kibi`) — the same operations as dedicated JSON routes, plus human-friendly commands like `kibi report`.
+- **MCP server** (`kibi-mcp`) — tools such as `kb_search`, `kb_check`, and `kb_upsert` show up in the client's tool list.
+- **CLI** (`kibi`) — the same operations as JSON on stdin, plus commands you run yourself, such as `kibi report`.
 
-## Configure the MCP server
+Use whichever surface your client can see. You do not configure both unless you want to.
 
-Every MCP client starts the same project-local binary. Most stdio clients need:
+> [!TIP]
+> Cursor, Codex, OpenCode, and VS Code also have optional plugins that wire this up for you. The JSON below is the manual fallback when you are not using a plugin. Details and plugin install steps are in the [installation guide](install.md).
 
-```text
-command: npx
-args: --no-install kibi-mcp
-transport: stdio
+## Cursor, Codex, and most other clients
+
+Add this server to the client's MCP config. The working directory must be the repository where you ran `kibi init`, so the server attaches to that project's `.kb/`.
+
+```json
+{
+  "mcpServers": {
+    "kibi": {
+      "command": "npx",
+      "args": ["--no-install", "kibi-mcp"]
+    }
+  }
+}
 ```
 
-Point the client's working-directory setting at the project where Kibi is installed, so the server attaches to that repository's `.kb/`.
+`--no-install` matters. The client starts the `kibi-mcp` already in the project. It does not download a different copy at launch.
 
-### Client-specific setup
+Plugin pages in the installation guide:
 
-- **OpenCode** — add the server to `opencode.json`; the optional `kibi-opencode` plugin adds prompt guidance and background maintenance.
-- **Codex** — the `kibi-codex` adapter wires Kibi into Codex CLI sessions.
-- **Cursor** — the `kibi-cursor` adapter does the same for Cursor.
-- **Visual Studio Code** — the `kibi-vscode` extension integrates Kibi with VS Code agent sessions.
+- [Cursor plugin](install.md#optional-cursor-plugin)
+- [Codex plugin](install.md#optional-codex-plugin)
 
-Exact snippets for each client are in the [MCP reference](mcp.md). Install the adapter package alongside `kibi-core`, `kibi-cli`, and `kibi-mcp` if you use one.
+## OpenCode
+
+OpenCode takes the command as a list of tokens, in `opencode.json`:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "kibi": {
+      "type": "local",
+      "command": ["npx", "--no-install", "kibi-mcp"],
+      "enabled": true
+    }
+  }
+}
+```
+
+The optional `kibi-opencode` plugin adds prompt guidance and background maintenance. It does not replace the server above. See [OpenCode MCP](install.md#opencode-mcp).
+
+## VS Code
+
+Create `.vscode/mcp.json`:
+
+```json
+{
+  "servers": {
+    "kibi": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["--no-install", "kibi-mcp"]
+    }
+  }
+}
+```
+
+See [VS Code MCP](install.md#vs-code-mcp).
+
+## pnpm or Yarn
+
+Keep the same shape and swap in that package manager's local runner. For pnpm, the command is `pnpm` with args `["exec", "kibi-mcp"]`. For Yarn, `yarn` with args `["exec", "kibi-mcp"]`. The [installation guide](install.md#recommended-project-local-install) has the full table.
 
 ## No MCP? Use the CLI
 
-If your agent cannot use MCP tools, it can drive the same operations through the CLI's JSON routes:
+If the agent cannot see MCP tools, it can call the same operations through the CLI:
 
 ```bash
-printf '%s\n' '{"query":"login","limit":10}' | kibi search --input -
+printf '%s\n' '{"query":"login","limit":10}' | npm exec -- kibi search --input -
 ```
 
-Agents discover this path themselves from the [agent onboarding snippet](agent-onboarding.md); you do not need to configure anything beyond installing the packages.
+Agents discover this path from the [agent onboarding snippet](agent-onboarding.md). You do not configure it beyond installing the packages.
 
 ## The first prompt
 
-Once connected, the prompt that starts everything is:
+After the tools are visible, ask:
 
 > Bootstrap Kibi for this repository.
 
-Your agent will propose a read-only bootstrap plan and wait for your approval before writing anything. After that, ordinary prompts — features, fixes, refactors — keep the project model in step with the code.
+The agent shows a read-only plan and a hash, and it waits for your approval before writing. After that, ordinary prompts — features, fixes, refactors — keep the model in step with the code.
 
-## What your agent may and may not do
+## What stays in your hands
 
-Kibi enforces discipline on the agent side, and it is worth knowing the shape of it:
+- **Product calls.** If two behaviors would contradict, you pick one. Kibi will not paper over that.
+- **Approval of the plan.** Bootstrap and other bulk writes show you the plan before they apply it.
+- **The report.** You decide whether a gap is work still to do, or a behavior you no longer want.
 
-- **Nothing is written without a schema-valid operation.** The agent works through typed operations, not ad-hoc file edits to `.kb/`.
-- **Destructive or bulk changes go through plans.** Bootstrap and migrations surface an explicit plan and hash for your approval before applying.
-- **Mutations run sequentially.** The agent creates relationship targets before links and keeps changes in small, reviewable batches.
-- **Validation is part of the job.** A change is not finished until checks pass and the knowledge snapshot is fresh.
-
-You approve intent and ambiguity. The agent handles the bookkeeping. Kibi keeps both honest.
+The agent writes the model through typed operations. It does not edit `.kb/` by hand. A change is not finished while checks are failing or the snapshot is stale.

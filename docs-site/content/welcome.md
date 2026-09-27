@@ -3,7 +3,9 @@ title: What is Kibi?
 description: Kibi is an agent-native requirements compiler. It turns product intent into an enforceable model your coding agent carries with it — and proves.
 ---
 
-Kibi sits between what you ask for and what your coding agent builds. You describe product intent in plain language. Kibi compiles that intent into a structured, checkable model — requirements, scenarios, tests, facts, and code links — that lives beside your code and travels with every branch.
+You say what the software should do. Your coding agent writes the code. Kibi keeps those two attached: the behavior you asked for, the code that is supposed to do it, and evidence that it still does.
+
+Kibi compiles product intent into a structured, checkable model — requirements, scenarios, tests, facts, and code links — that lives beside your code and travels with every branch.
 
 Your agent does the routine work: authoring and updating the model as the code changes. Kibi does the unforgiving part: checking that the model stays coherent, that the code still maps to it, and that claims of "done" are backed by fresh evidence.
 
@@ -40,5 +42,6 @@ Nothing about this requires you to maintain a parallel requirements bureaucracy.
 ## Where to go next
 
 - [Quick start](quick-start.md) — install Kibi and bootstrap your repository.
+- [Read the health report](reading-the-report.md) — what proven, a proof gap, and a contradiction mean.
 - [How Kibi works](how-it-works.md) — the mental model behind the loop.
 - [Connect your coding agent](connect-an-agent.md) — wire Kibi into your client.

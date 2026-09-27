@@ -4,7 +4,7 @@ title: Discovery tools expand the public read surface without exposing raw infer
 status: proposed
 created_at: 2026-03-22T00:00:00Z
 updated_at: 2026-03-22T18:30:00Z
-source: docs/superpowers/specs/2026-03-22-discovery-bundle-design.md
+source: .kb/adr/ADR-discovery-tools-public-surface.md
 tags:
   - mcp
   - cli

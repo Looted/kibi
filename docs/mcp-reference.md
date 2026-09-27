@@ -264,7 +264,7 @@ Compile complete post-change intent into a deterministic, snapshot-bound plan wi
 
 ### `kb_apply_plan`
 
-Apply an approved `kibi.compile-plan.v1` after revalidating its canonical hash, branch/KB/workspace snapshots, source before-hashes, and entity/relationship shapes. Entity steps are applied sequentially through the shared upsert boundary. This v1 boundary does not publish source files or claim crash recovery.
+Apply an approved `kibi.compile-plan.v1` after revalidating its canonical hash, branch/KB/workspace snapshots, source before-hashes, and entity/relationship shapes. Entity steps are applied sequentially through the shared upsert boundary. Applying a compile plan does not publish source files and does not claim crash recovery.
 
 **Parameters:**
 - `plan` (required): Complete plan returned by `kb_compile_intent`.

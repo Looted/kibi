@@ -340,7 +340,7 @@ Coverage-depth reporting uses typed verification fields before legacy hints. A t
 
 Conservative requirement proof uses receipt history instead. Each `kibi.proof-receipt.v1` binds `receipt_id`, `test_id`, typed `scope`, `outcome`, `code_snapshot`, `environment_hash`, `started_at`, `finished_at`, `artifact_digest`, `contract_hash`, execution `fingerprint`, `integration_id`, `producer`, and `command_argv`. History is capped at 50 entries, receipt IDs are unique, finish times increase strictly, and existing entries cannot be removed, changed, or reordered through upsert or incremental sync. Proof accepts only the newest receipt for the deterministic current workspace snapshot when it passed, is not future-dated, and is at most seven days old. Missing, wrong-snapshot, stale, failed, malformed, or future-dated evidence produces explicit proof gaps.
 
-`kibi.workspace-snapshot.v2` hashes current versionable code plus requirement, scenario, fact, test-contract, and symbol-manifest inputs. It excludes `.kb/` derived runtime trees, release changesets, general `docs/`, and the `proof_receipts` frontmatter field inside every tracked Markdown file, preventing a receipt from invalidating its own code hash without hiding changes to the surrounding test contract. The v2 algorithm invalidates v1 snapshot-bound receipts once; they must be rerun.
+`kibi.workspace-snapshot.v2` hashes current versionable code plus requirement, scenario, fact, test-contract, and symbol-manifest inputs. It excludes `.kb/` derived runtime trees, release changesets, general `docs/`, and the `proof_receipts` frontmatter field inside every tracked Markdown file, preventing a receipt from invalidating its own code hash without hiding changes to the surrounding test contract. A receipt bound to an older snapshot hash is not proof of the current snapshot. Rerun `kibi prove` so the receipt matches the snapshot the branch is on now.
 
 #### Check output diagnostics
 
@@ -849,8 +849,13 @@ relationship:
 ---
 
 ## Notes
+<<<<<<< HEAD
 - All entity and relationship types are fixed in v0; extensibility is planned for future versions.
 - IDs must be stable and unique. Set an explicit frontmatter `id` named by what the entity governs (`<TYPE>-<area>-<behavior>`, e.g. `REQ-cli-gc`) and keep the filename stem equal to it; never pick the next free number. A missing `id` falls back to a path-and-title hash that changes on rename. `entity-id-style` reports stem mismatches and newly created numeric IDs; legacy numbered entities are grandfathered.
+=======
+- The schema is the eight entity types and the relationship catalog in this document.
+- IDs must be stable and unique (content-based SHA256 or explicit frontmatter).
+>>>>>>> fd441fac (docs: make the site human-facing and drop stale plans)
 - Relationship metadata supports audit and conflict resolution.
 - Status values are entity-type specific (see above).
 
