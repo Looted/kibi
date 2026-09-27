@@ -41569,8 +41569,6 @@ symbols:
         target: TEST-core-journaled-engine-lifecycle
       - type: implements
         target: REQ-core-journaled-engine-persistence
-      - type: implements
-        target: REQ-core-prolog-process-management
   - id: SYM-cli-EngineSession-boot
     title: EngineSession.boot
     status: active
@@ -41581,8 +41579,6 @@ symbols:
         target: TEST-core-journaled-engine-lifecycle
       - type: implements
         target: REQ-core-journaled-engine-persistence
-      - type: implements
-        target: REQ-core-prolog-process-management
   - id: SYM-cli-EngineSession-ensureLive
     title: EngineSession.ensureLive
     status: active
@@ -41593,8 +41589,6 @@ symbols:
         target: TEST-core-journaled-engine-lifecycle
       - type: implements
         target: REQ-core-journaled-engine-persistence
-      - type: implements
-        target: REQ-core-prolog-process-management
   - id: SYM-cli-EngineSession-needsRecycle
     title: EngineSession.needsRecycle
     status: active
@@ -41605,8 +41599,6 @@ symbols:
         target: TEST-core-journaled-engine-lifecycle
       - type: implements
         target: REQ-core-journaled-engine-persistence
-      - type: implements
-        target: REQ-core-prolog-process-management
   - id: SYM-cli-EngineSession-recordModuleLoad
     title: EngineSession.recordModuleLoad
     status: active
@@ -41617,8 +41609,6 @@ symbols:
         target: TEST-core-journaled-engine-lifecycle
       - type: implements
         target: REQ-core-journaled-engine-persistence
-      - type: implements
-        target: REQ-core-prolog-process-management
   - id: SYM-cli-PrologProcessTerminatedError
     title: PrologProcessTerminatedError
     status: active
@@ -41630,8 +41620,6 @@ symbols:
         target: TEST-core-journaled-engine-lifecycle
       - type: implements
         target: REQ-core-journaled-engine-persistence
-      - type: implements
-        target: REQ-core-prolog-process-management
   - id: SYM-cli-PrologProcessTerminatedError-code
     title: PrologProcessTerminatedError.code
     status: active
@@ -41641,8 +41629,6 @@ symbols:
         target: TEST-core-journaled-engine-lifecycle
       - type: implements
         target: REQ-core-journaled-engine-persistence
-      - type: implements
-        target: REQ-core-prolog-process-management
   - id: SYM-cli-PrologProcessTerminatedError-reason
     title: PrologProcessTerminatedError.reason
     status: active
@@ -41652,8 +41638,6 @@ symbols:
         target: TEST-core-journaled-engine-lifecycle
       - type: implements
         target: REQ-core-journaled-engine-persistence
-      - type: implements
-        target: REQ-core-prolog-process-management
   - id: SYM-cli-PrologProcess-needsRestart
     title: PrologProcess.needsRestart
     status: active
@@ -41664,8 +41648,6 @@ symbols:
         target: TEST-core-journaled-engine-lifecycle
       - type: implements
         target: REQ-core-journaled-engine-persistence
-      - type: implements
-        target: REQ-core-prolog-process-management
   - id: SYM-cli-PrologProcess-oneShotMode
     title: PrologProcess.oneShotMode
     status: active
@@ -41676,8 +41658,6 @@ symbols:
         target: TEST-core-journaled-engine-lifecycle
       - type: implements
         target: REQ-core-journaled-engine-persistence
-      - type: implements
-        target: REQ-core-prolog-process-management
   - id: SYM-cli-loadEntitiesPaged
     title: loadEntitiesPaged
     status: active
