@@ -1,0 +1,22 @@
+# GitLab Pages deployment for mirrors of this repository.
+#
+# GitHub (github.com/Looted/kibi) is the canonical host: it publishes both the
+# requirement-health report under /kibi-report/ and the documentation site
+# under /docs/ via GitHub Actions. This job gives GitLab mirrors the same
+# documentation site at https://<host>/<namespace>/<project>/docs/. Building
+# the report itself requires the full proof pipeline (SWI-Prolog, proof
+# receipts), so it stays GitHub-only; the docs site hides the report link
+# when no report URL is provided.
+
+pages:
+  image: oven/bun:1.4.2
+  stage: deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - bun install --frozen-lockfile
+    - bun run docs:site -- --out public/docs --report-url none
+    - printf '%s' '<!doctype html><meta charset="utf-8"><title>Kibi documentation</title><meta http-equiv="refresh" content="0; url=./docs/"><a href="./docs/">Kibi documentation</a>' > public/index.html
+  artifacts:
+    paths:
+      - public
