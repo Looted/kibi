@@ -1,5 +1,5 @@
-import { execSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { execFileSync, execSync } from "node:child_process";
+import { existsSync, lstatSync, readFileSync, realpathSync } from "node:fs";
 import * as path from "node:path";
 import type { HunkRange } from "../../traceability/git-staged.js";
 import {
@@ -18,6 +18,10 @@ const SOURCE_EXTENSIONS = new Set([
   ".cts",
   ".mjs",
   ".cjs",
+  ".py",
+  ".pyi",
+  ".go",
+  ".rs",
 ]);
 
 function isSupportedSourcePath(filePath: string): boolean {
@@ -38,12 +42,12 @@ export function uniqueSorted(values: Iterable<string>): string[] {
   return [...new Set(values)].sort();
 }
 
-function escapeGitPath(filePath: string): string {
-  return filePath.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-}
-
-function runGit(workspaceRoot: string, command: string): string {
-  return execSync(command, { cwd: workspaceRoot, encoding: "utf8" });
+function runGit(workspaceRoot: string, args: readonly string[]): string {
+  return execFileSync("git", [...args], {
+    cwd: workspaceRoot,
+    encoding: "utf8",
+    env: { ...process.env, GIT_LITERAL_PATHSPECS: "1" },
+  });
 }
 
 function readWorkingTreeSource(
@@ -51,8 +55,24 @@ function readWorkingTreeSource(
   sourceFile: string,
 ): string | null {
   const absolutePath = path.resolve(workspaceRoot, sourceFile);
-  if (!existsSync(absolutePath)) return null;
-  return readFileSync(absolutePath, "utf8");
+  const relative = path.relative(workspaceRoot, absolutePath);
+  if (!relative || relative.startsWith("..") || path.isAbsolute(relative))
+    throw new Error("Source path must remain inside the workspace");
+  if (!existsSync(absolutePath) || !lstatSync(absolutePath).isFile())
+    return null;
+  const actualRelative = path.relative(
+    realpathSync(workspaceRoot),
+    realpathSync(absolutePath),
+  );
+  if (actualRelative.startsWith("..") || path.isAbsolute(actualRelative))
+    throw new Error("Source path escapes the workspace");
+  const bytes = readFileSync(absolutePath);
+  if (bytes.includes(0)) return null;
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    return null;
+  }
 }
 
 function fullFileHunk(content: string): HunkRange[] {
@@ -62,9 +82,9 @@ function fullFileHunk(content: string): HunkRange[] {
 function getWorkingTreeDiffSourceFiles(workspaceRoot: string): string[] {
   try {
     return uniqueSorted(
-      runGit(workspaceRoot, "git diff --name-only --diff-filter=ACMR")
-        .split(/\r?\n/)
-        .map((filePath) => normalizeSourceFile(workspaceRoot, filePath.trim()))
+      runGit(workspaceRoot, ["diff", "--name-only", "-z", "--diff-filter=ACMR"])
+        .split("\0")
+        .map((filePath) => normalizeSourceFile(workspaceRoot, filePath))
         .filter((filePath) => filePath.length > 0)
         .filter(isSupportedSourcePath),
     );
@@ -78,10 +98,7 @@ function getWorkingTreeHunks(
   sourceFile: string,
 ): HunkRange[] {
   try {
-    const diffText = runGit(
-      workspaceRoot,
-      `git diff -U0 -- "${escapeGitPath(sourceFile)}"`,
-    );
+    const diffText = runGit(workspaceRoot, ["diff", "-U0", "--", sourceFile]);
     return parseHunksFromDiff(diffText);
   } catch {
     return [];
@@ -104,6 +121,7 @@ function getStagedSourceChanges(
     .flatMap((file): SourceChange[] => {
       if (file.content === undefined || file.hunkRanges.length === 0) return [];
       if (
+        !/\.(pyi?|go|rs)$/.test(file.path) &&
         file.diffText !== undefined &&
         !hasMeaningfulSourceDiff(file.diffText)
       ) {
@@ -132,11 +150,12 @@ function getWorkingTreeSourceChanges(
   return sourceFiles.flatMap((sourceFile): SourceChange[] => {
     const content = readWorkingTreeSource(workspaceRoot, sourceFile);
     if (content === null) return [];
-    const diffText = runGit(
-      workspaceRoot,
-      `git diff -U0 -- "${escapeGitPath(sourceFile)}"`,
-    );
-    if (!hasMeaningfulSourceDiff(diffText)) return [];
+    const diffText = runGit(workspaceRoot, ["diff", "-U0", "--", sourceFile]);
+    if (
+      !/\.(pyi?|go|rs)$/.test(sourceFile) &&
+      !hasMeaningfulSourceDiff(diffText)
+    )
+      return [];
     const hunkRanges = getWorkingTreeHunks(workspaceRoot, sourceFile);
     if (hunkRanges.length === 0) return [];
     return [{ file: sourceFile, status: "M", hunkRanges, content }];

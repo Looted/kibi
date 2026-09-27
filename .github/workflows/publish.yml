@@ -92,6 +92,8 @@ jobs:
 
       - name: Build packages
         run: bun run build
+      - name: Verify approved source analyzer closure
+        run: node scripts/qualify-source-analyzers.mjs
       - name: Build and package VS Code extension
         run: bun run --cwd packages/vscode package
       - name: Verify publish metadata for npm provenance
@@ -110,6 +112,7 @@ jobs:
             packages/agent-core/*.tgz
             packages/plugin-builtin/*.tgz
             packages/plugin-jev/*.tgz
+            packages/plugin-treesitter/*.tgz
             packages/runtime/*.tgz
             packages/cli/*.tgz
             packages/mcp/*.tgz

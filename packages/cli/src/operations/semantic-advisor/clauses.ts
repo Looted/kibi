@@ -8,8 +8,19 @@ export type SemanticClause = Readonly<{
   source: "detected" | "supplied";
 }>;
 
-const NORMATIVE_PATTERN =
-  /\b(?:must|shall|should|required|requires?|may\s+only|may\s+(?:have\s+)?(?:at\s+most|at\s+least|exactly|no\s+more\s+than|up\s+to)|only\s+.+?\s+(?:may|can)|must\s+not|shall\s+not|cannot|can't|denied|forbidden|prohibited|(?:is|are|be|become|becomes|remain|remains)\s+(?:invalid|rejected|prohibited|forbidden)|(?:reject|rejects|rejected|rejection)\s+(?:invalid|unresolved|ambiguous)|fail(?:s|ed)?\s+(?:clearly|explicitly|with)|expires?\s+(?:after|within|in)|failure\s+(?:behavior|policy|outcome)|error\s+(?:handling|behavior|policy|outcome)|required\s+outcome|defaults?\s+to|before|unless|when|if)\b/i;
+const NORMATIVE_ASSERTION_PATTERN =
+  /\b(?:must|shall|should|required|requires?|may\s+only|may\s+(?:have\s+)?(?:at\s+most|at\s+least|exactly|no\s+more\s+than|up\s+to)|only\s+.+?\s+(?:may|can)|must\s+not|shall\s+not|cannot|can't|denied|forbidden|prohibited|(?:is|are|be|become|becomes|remain|remains)\s+(?:invalid|rejected|prohibited|forbidden)|(?:reject|rejects|rejected|rejection)\s+(?:invalid|unresolved|ambiguous)|fail(?:s|ed)?\s+(?:clearly|explicitly|with)|expires?\s+(?:after|within|in)|failure\s+(?:behavior|policy|outcome)|error\s+(?:handling|behavior|policy|outcome)|required\s+outcome|defaults?\s+to)\b/i;
+
+// Conditional/temporal cues help discover clauses but do not by themselves
+// turn explanatory or subjective context into an asserted obligation.
+const NORMATIVE_PATTERN = new RegExp(
+  `${NORMATIVE_ASSERTION_PATTERN.source}|\\b(?:before|unless|when|if)\\b`,
+  "i",
+);
+
+export function hasNormativeAssertion(text: string): boolean {
+  return NORMATIVE_ASSERTION_PATTERN.test(text);
+}
 
 export function normalizeSemanticClause(value: string): string {
   return (

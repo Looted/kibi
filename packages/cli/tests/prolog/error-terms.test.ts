@@ -255,3 +255,57 @@ describe("structured error transport", () => {
     }
   }, 60000);
 });
+
+describe("bounded existence-error diagnostics", () => {
+  for (const oneShot of [true, false]) {
+    test(`identifies missing keys without exposing dictionaries (${oneShot ? "one-shot" : "interactive"})`, async () => {
+      const prolog = new PrologProcess({ oneShot, timeout: 30000 });
+      await prolog.start();
+      try {
+        const result = await prolog.query(
+          "'$get_dict_ex'(proofBindingMode, _{private_data:'DO_NOT_DISCLOSE'}, _)",
+        );
+        expect(result.success).toBe(false);
+        expect(result.error).toBe(
+          "Predicate or file not found (missing dictionary key: proofBindingMode)",
+        );
+        expect(result.error).not.toContain("DO_NOT_DISCLOSE");
+        expect(result.error).not.toContain("private_data");
+        expect(result.errorRecord).toBeUndefined();
+      } finally {
+        await prolog.terminate();
+      }
+    }, 60000);
+
+    test(`identifies missing procedures without exposing arguments (${oneShot ? "one-shot" : "interactive"})`, async () => {
+      const prolog = new PrologProcess({ oneShot, timeout: 30000 });
+      await prolog.start();
+      try {
+        const result = await prolog.query(
+          "throw(error(existence_error(procedure,requirement_proof:missing_synthetic_procedure/1),context(synthetic,'DO_NOT_DISCLOSE')))",
+        );
+        expect(result.success).toBe(false);
+        expect(result.error).toBe(
+          "Predicate or file not found (missing procedure: requirement_proof:missing_synthetic_procedure/1)",
+        );
+        expect(result.error).not.toContain("DO_NOT_DISCLOSE");
+      } finally {
+        await prolog.terminate();
+      }
+    }, 60000);
+  }
+
+  test("keeps the legacy fallback for unsupported or unsafe identifiers", async () => {
+    const prolog = new PrologProcess({ oneShot: true, timeout: 30000 });
+    try {
+      const result = await prolog.query(
+        "throw(error(existence_error(procedure,'unsafe,DO_NOT_DISCLOSE'),context(test/0,'private context')))",
+      );
+      expect(result.success).toBe(false);
+      expect(result.error).toBe("Predicate or file not found");
+      expect(result.error).not.toContain("DO_NOT_DISCLOSE");
+    } finally {
+      await prolog.terminate();
+    }
+  }, 60000);
+});

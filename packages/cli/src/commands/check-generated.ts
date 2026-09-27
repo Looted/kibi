@@ -10,6 +10,12 @@ import {
 import { tmpdir } from "node:os";
 import * as path from "node:path";
 import { load as parseYAML } from "js-yaml";
+import { enrichSymbolCoordinates } from "../extractors/symbols-coordinator.js";
+import {
+  createMaintenanceSourceAnalysisService,
+  readSnapshotSourceConfig,
+} from "../plugins/maintenance-source-analysis.js";
+import { captureStagedSnapshot } from "../traceability/git-change-snapshot.js";
 import { refreshManifestCoordinates } from "./sync/manifest.js";
 
 const MANIFESTS = [".kb/symbols.yaml", ".kb/symbol-coordinates.yaml"] as const;
@@ -27,10 +33,6 @@ function git(args: string[], input?: Buffer): Buffer {
     );
   }
   return result.stdout;
-}
-
-function indexTree(): string {
-  return git(["write-tree"]).toString("utf8").trim();
 }
 
 function treeBlobs(tree: string): {
@@ -130,7 +132,18 @@ export async function checkGeneratedManifests(
 ): Promise<{ exitCode: number }> {
   let snapshotDir: string | undefined;
   try {
-    const tree = indexTree();
+    const snapshot = captureStagedSnapshot(process.cwd());
+    const tree = snapshot.headTree;
+    const assertUnchanged = () => {
+      try {
+        snapshot.assertUnchanged();
+      } catch (error) {
+        throw new Error(
+          "Git index changed during generated-manifest analysis (or HEAD changed); retry the commit",
+          { cause: error },
+        );
+      }
+    };
     const { blobs, nonRegularPaths } = treeBlobs(tree);
     const symbolsOid = blobs.get(MANIFESTS[0]);
     if (!symbolsOid)
@@ -144,10 +157,7 @@ export async function checkGeneratedManifests(
     // Plain sync does not publish coordinate artifacts for a freshly
     // initialized, empty symbols manifest. The first commit must remain usable.
     if (symbolCount === 0) {
-      if (indexTree() !== tree)
-        throw new Error(
-          "Git index changed during generated-manifest analysis; retry the commit",
-        );
+      assertUnchanged();
       console.log(
         "kibi: staged symbols manifest is empty; no coordinates to refresh.",
       );
@@ -164,24 +174,20 @@ export async function checkGeneratedManifests(
         `Staged symbol source is not a regular file: ${nonRegular}`,
       );
     if (options.changedOnly) {
-      const changed = new Set(
-        git(["diff", "--cached", "--name-only", "--no-renames", "-z"])
-          .toString("utf8")
-          .split("\0")
-          .filter(Boolean),
-      );
-      if (![...MANIFESTS, ...sources].some((file) => changed.has(file))) {
-        if (indexTree() !== tree)
-          throw new Error(
-            "Git index changed during generated-manifest analysis; retry the commit",
-          );
+      const changed = new Set(snapshot.inventory.map((file) => file.path));
+      if (
+        ![...MANIFESTS, ...sources, "package.json"].some((file) =>
+          changed.has(file),
+        )
+      ) {
+        assertUnchanged();
         console.log(
           "kibi: no staged symbol sources or generated manifests changed.",
         );
         return { exitCode: 0 };
       }
     }
-    const files = [...MANIFESTS, ...sources];
+    const files = [...MANIFESTS, ...sources, "package.json"];
     const objectIds = [
       ...new Set(
         files
@@ -201,18 +207,24 @@ export async function checkGeneratedManifests(
       writeFileSync(target, bytes);
     }
 
+    const sourceAnalysisService = createMaintenanceSourceAnalysisService(
+      process.cwd(),
+      readSnapshotSourceConfig(snapshot),
+    );
     await refreshManifestCoordinates(
       path.join(snapshotDir, MANIFESTS[0]),
       snapshotDir,
       {
         refreshSymbolCoordinates: true,
         quiet: true,
+        enrichSymbolCoordinates: (entries, root) =>
+          enrichSymbolCoordinates(entries, root, { sourceAnalysisService }),
       },
     );
 
-    const snapshot = snapshotDir;
+    const materializedRoot = snapshotDir;
     const drift = MANIFESTS.filter((file) => {
-      const generatedPath = path.join(snapshot, file);
+      const generatedPath = path.join(materializedRoot, file);
       const expected = existsSync(generatedPath)
         ? readFileSync(generatedPath)
         : undefined;
@@ -224,10 +236,7 @@ export async function checkGeneratedManifests(
     });
     // An index mutation invalidates every comparison, even if the manifests
     // themselves were untouched. Git will commit the later index state.
-    if (indexTree() !== tree)
-      throw new Error(
-        "Git index changed during generated-manifest analysis; retry the commit",
-      );
+    assertUnchanged();
     if (drift.length > 0) {
       console.error(
         `kibi: generated manifest drift in staged snapshot: ${drift.join(", ")}`,

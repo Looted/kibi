@@ -169,6 +169,7 @@ describe("release invariants: develop-to-master model", () => {
         "plugin-builtin",
         "plugin-jev",
         "plugin-sdk",
+        "plugin-treesitter",
         "runtime",
       ]);
     });
@@ -240,6 +241,7 @@ describe("release invariants: develop-to-master model", () => {
         "plugin-builtin",
         "plugin-jev",
         "plugin-sdk",
+        "plugin-treesitter",
         "runtime",
       ]);
     });
@@ -308,6 +310,7 @@ describe("release invariants: develop-to-master model", () => {
         "plugin-builtin",
         "plugin-jev",
         "plugin-sdk",
+        "plugin-treesitter",
         "runtime",
       ]);
     });
@@ -352,6 +355,7 @@ describe("release invariants: develop-to-master model", () => {
         "plugin-builtin",
         "plugin-jev",
         "plugin-sdk",
+        "plugin-treesitter",
         "runtime",
       ]);
     });
@@ -384,6 +388,7 @@ describe("release invariants: develop-to-master model", () => {
         "plugin-builtin",
         "plugin-jev",
         "plugin-sdk",
+        "plugin-treesitter",
         "runtime",
       ]);
     });

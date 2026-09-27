@@ -228,7 +228,7 @@ describe("release dry-run: no-commit master publish model", () => {
       expect(decision.action).toBe("PUBLISH_ONLY_RERUN");
       expect(decision.reason).toContain("already published");
 
-      expect(decision.packages).toHaveLength(9);
+      expect(decision.packages).toHaveLength(PUBLISHABLE_DIRS_LIST.length - 2);
       const dirs = decision.packages.map((p) => p.dir).sort();
       expect(dirs).toEqual([
         "agent-core",
@@ -239,6 +239,7 @@ describe("release dry-run: no-commit master publish model", () => {
         "plugin-builtin",
         "plugin-jev",
         "plugin-sdk",
+        "plugin-treesitter",
         "runtime",
       ]);
 
@@ -274,6 +275,7 @@ describe("release dry-run: no-commit master publish model", () => {
         "plugin-builtin",
         "plugin-jev",
         "plugin-sdk",
+        "plugin-treesitter",
         "runtime",
       ]);
     });
@@ -290,6 +292,7 @@ describe("release dry-run: no-commit master publish model", () => {
         `${ALL_PACKAGES["agent-core"].name}@${ALL_PACKAGES["agent-core"].version}`,
         `${ALL_PACKAGES["plugin-builtin"].name}@${ALL_PACKAGES["plugin-builtin"].version}`,
         `${ALL_PACKAGES["plugin-jev"].name}@${ALL_PACKAGES["plugin-jev"].version}`,
+        `${ALL_PACKAGES["plugin-treesitter"].name}@${ALL_PACKAGES["plugin-treesitter"].version}`,
       ]);
       const ctx = makeContext({
         changesetFiles: NO_CHANGESETS,
@@ -441,10 +444,10 @@ Expected action: NOOP
       );
     });
 
-    test("partial rerun: comma-list fixture with core+cli published → PUBLISH_ONLY_RERUN with codex+cursor+mcp+opencode+runtime", () => {
+    test("partial rerun: core+cli published → PUBLISH_ONLY_RERUN with the remaining packages", () => {
       // Build comma-separated list from current core and cli package manifests.
       // This simulates a partial rerun where core and cli are already on npm,
-      // so only codex, cursor, mcp, opencode, and runtime remain to be published.
+      // so only the remaining packages are published on the rerun.
       const { name: coreName, version: coreVersion } = ALL_PACKAGES.core;
       const { name: cliName, version: cliVersion } = ALL_PACKAGES.cli;
       const mockNpm = `${coreName}@${coreVersion},${cliName}@${cliVersion}`;
@@ -467,7 +470,7 @@ Expected action: NOOP
       // --- Core action assertion ---
       expect(decision.action).toBe("PUBLISH_ONLY_RERUN");
 
-      // --- toPublish contains only codex, cursor, mcp, and opencode ---
+      // --- toPublish contains only unpublished packages ---
       expect(Array.isArray(decision.toPublish)).toBe(true);
       const toPublishDirs = decision.toPublish
         .map((entry: string) => entry.split("=")[0])
@@ -481,12 +484,13 @@ Expected action: NOOP
         "plugin-builtin",
         "plugin-jev",
         "plugin-sdk",
+        "plugin-treesitter",
         "runtime",
       ]);
 
       // --- PUBLISH_ONLY_RERUN only includes unpublished packages ---
       // The runner omits already-published packages from decision.packages.
-      expect(decision.packages).toHaveLength(9);
+      expect(decision.packages).toHaveLength(PUBLISHABLE_DIRS_LIST.length - 2);
       const pkgDirs = decision.packages
         .map((p: { dir: string }) => p.dir)
         .sort();
@@ -499,6 +503,7 @@ Expected action: NOOP
         "plugin-builtin",
         "plugin-jev",
         "plugin-sdk",
+        "plugin-treesitter",
         "runtime",
       ]);
 
@@ -539,6 +544,7 @@ Summary:
         "agent-core",
         "plugin-builtin",
         "plugin-jev",
+        "plugin-treesitter",
         "runtime",
         "cli",
         "mcp",
@@ -557,6 +563,7 @@ Summary:
         "plugin-builtin",
         "plugin-jev",
         "plugin-sdk",
+        "plugin-treesitter",
         "runtime",
       ]);
     });

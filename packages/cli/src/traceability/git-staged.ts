@@ -1,8 +1,9 @@
-import { execFileSync, execSync } from "node:child_process";
+import { execSync } from "node:child_process";
 import { isCliTraceOrDebugEnabled } from "../env.js";
 import { isEntityLanePath, isSymbolsManifestPath } from "../utils/kb-paths.js";
+import { captureStagedSnapshot } from "./git-change-snapshot.js";
 
-export type Status = "A" | "M" | "R" | "D";
+export type Status = "A" | "M" | "R" | "C" | "T" | "D";
 
 export interface HunkRange {
   start: number; // 1-based start line in new file
@@ -28,9 +29,13 @@ export type StagedSkipReason =
 
 /** Complete Git-index record used by staged validation before any filtering. */
 export interface StagedPath extends StagedFile {
+  /** Source path for a copy; unlike oldPath, it remains in the tree. */
+  copyFromPath?: string;
   analysisDepth: StagedAnalysisDepth;
   disposition: StagedDisposition;
   gitMode?: string;
+  previousMode?: string;
+  oldHunkRanges?: HunkRange[];
   previousContent?: string;
   skipReason?: StagedSkipReason;
 }
@@ -45,14 +50,6 @@ const GIT_EXEC_MAX_BUFFER = 64 * 1024 * 1024;
 
 function defaultExec(cmd: string, opts: { encoding: "utf8" }): string {
   return execSync(cmd, { ...opts, maxBuffer: GIT_EXEC_MAX_BUFFER });
-}
-
-function defaultGitArgsExec(args: readonly string[]): Buffer {
-  return execFileSync("git", args, {
-    encoding: "buffer",
-    maxBuffer: GIT_EXEC_MAX_BUFFER,
-    stdio: ["ignore", "pipe", "ignore"],
-  });
 }
 
 function runGitArgs(args: readonly string[], exec: GitArgsExecFn): Buffer {
@@ -198,14 +195,20 @@ function normalizeNewFileHunks(ranges: HunkRange[], content: string): void {
  * than the working tree.
  */
 // implements REQ-014
-export function getStagedInventory(
-  exec: GitArgsExecFn = defaultGitArgsExec,
-): StagedPath[] {
+export function getStagedInventory(exec?: GitArgsExecFn): StagedPath[] {
+  // The normal path reads only immutable tree/blob object IDs captured from the
+  // index. Keep the injectable reader path for existing callers and tests.
+  if (!exec) {
+    const snapshot = captureStagedSnapshot(process.cwd());
+    snapshot.assertUnchanged();
+    return snapshot.inventory;
+  }
+
   let parsed: ReturnType<typeof parseNameStatusNull>;
   try {
     parsed = parseNameStatusNull(
       runGitArgs(
-        ["diff", "--cached", "--name-status", "-z", "--diff-filter=ACMRD"],
+        ["diff", "--cached", "--name-status", "-z", "--diff-filter=ACMRTDC"],
         exec,
       ).toString("utf8"),
     );
@@ -216,8 +219,9 @@ export function getStagedInventory(
   return parsed.map((entry): StagedPath => {
     const status = (entry.status[0] as Status) || "M";
     const oldPath = status === "R" ? entry.parts[0] : undefined;
+    const copyFromPath = status === "C" ? entry.parts[0] : undefined;
     const path =
-      status === "R"
+      status === "R" || status === "C"
         ? (entry.parts[1] ?? entry.parts[0] ?? "")
         : (entry.parts[0] ?? "");
     const lookupPath = status === "D" ? (oldPath ?? path) : path;
@@ -232,6 +236,7 @@ export function getStagedInventory(
         path,
         status,
         ...(oldPath ? { oldPath } : {}),
+        ...(copyFromPath ? { copyFromPath } : {}),
         hunkRanges: [],
         gitMode,
         analysisDepth: "none",
@@ -254,6 +259,7 @@ export function getStagedInventory(
         path,
         status,
         ...(oldPath ? { oldPath } : {}),
+        ...(copyFromPath ? { copyFromPath } : {}),
         hunkRanges,
         diffText,
         ...(gitMode ? { gitMode } : {}),
@@ -278,6 +284,7 @@ export function getStagedInventory(
       path,
       status,
       ...(oldPath ? { oldPath } : {}),
+      ...(copyFromPath ? { copyFromPath } : {}),
       hunkRanges,
       diffText,
       ...(content !== undefined ? { content } : {}),

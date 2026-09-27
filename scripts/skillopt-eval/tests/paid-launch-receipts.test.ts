@@ -65,4 +65,21 @@ describe("paid launch fixture receipt contracts", () => {
       ),
     ).toThrow("fixture_signature_invalid");
   });
+
+  test("rejects fixture signer metadata that claims external signing", () => {
+    const externallySigned = {
+      ...debitSubentryReceiptFixture,
+      signer: { ...debitSubentryReceiptFixture.signer, externallySigned: true },
+    };
+    const externalProvenance = {
+      ...debitSubentryReceiptFixture,
+      signer: {
+        ...debitSubentryReceiptFixture.signer,
+        signatureProvenance: "external",
+      },
+    };
+
+    expect(() => parseDebitSubentryReceipt(externallySigned)).toThrow();
+    expect(() => parseDebitSubentryReceipt(externalProvenance)).toThrow();
+  });
 });

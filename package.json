@@ -13,7 +13,9 @@
       {
         "package": "kibi-plugin-jev",
         "capabilities": {
-          "kibi.semantic-classifier.v1": { "mode": "replace" }
+          "kibi.semantic-classifier.v1": {
+            "mode": "replace"
+          }
         }
       }
     ]
@@ -74,7 +76,7 @@
     "benchmark:journaled-engine": "node documentation/tests/benchmarks/journaled-engine.bench.mjs",
     "docs:site": "bun docs-site/build.ts",
     "sync:cursor-plugin-local": "./scripts/sync-cursor-plugin-local.sh",
-    "build": "bun run build:plugin-sdk && bun run build:agent-core && bun run build:plugin-builtin && bun run build:plugin-jev && bun run build:cli && bun run build:runtime && bun run build:mcp && bun run build:opencode && bun run build:codex && bun run build:cursor && bun run build:zcode && bun run build:claude",
+    "build": "bun run build:plugin-sdk && bun run build:agent-core && bun run build:plugin-builtin && bun run build:plugin-treesitter && bun run build:plugin-jev && bun run build:cli && bun run build:runtime && bun run build:mcp && bun run build:opencode && bun run build:codex && bun run build:cursor && bun run build:zcode && bun run build:claude",
     "typecheck:plugin-sdk": "tsc -p packages/plugin-sdk/tsconfig.json --noEmit",
     "typecheck:agent-core": "tsc -p packages/agent-core/tsconfig.json --noEmit",
     "typecheck:plugin-builtin": "bun run build:plugin-sdk && tsc -p packages/plugin-builtin/tsconfig.json --noEmit",
@@ -100,7 +102,7 @@
     "typecheck:agent-core:tests": "tsc -p packages/agent-core/tests/tsconfig.json --noEmit",
     "typecheck:claude:tests": "tsc -p packages/claude/tests/tsconfig.json --noEmit",
     "typecheck:scripts": "tsc -p tsconfig.scripts.json --noEmit",
-    "typecheck": "bun run typecheck:plugin-sdk && bun run typecheck:agent-core && bun run typecheck:plugin-builtin && bun run typecheck:plugin-jev && bun run typecheck:cli && bun run typecheck:mcp && bun run typecheck:opencode && bun run typecheck:codex && bun run typecheck:cursor && bun run typecheck:zcode && bun run typecheck:claude && bun run typecheck:cli:tests && bun run typecheck:mcp:tests && bun run typecheck:e2e:packed && bun run typecheck:e2e:local && bun run typecheck:vscode && bun run typecheck:vscode:tests && bun run typecheck:opencode:tests && bun run typecheck:codex:tests && bun run typecheck:cursor:tests && bun run typecheck:zcode:tests && bun run typecheck:agent-core:tests && bun run typecheck:claude:tests && bun run typecheck:scripts",
+    "typecheck": "bun run typecheck:plugin-sdk && bun run typecheck:agent-core && bun run typecheck:plugin-builtin && bun run typecheck:plugin-treesitter && bun run typecheck:plugin-jev && bun run typecheck:cli && bun run typecheck:mcp && bun run typecheck:opencode && bun run typecheck:codex && bun run typecheck:cursor && bun run typecheck:zcode && bun run typecheck:claude && bun run typecheck:cli:tests && bun run typecheck:mcp:tests && bun run typecheck:e2e:packed && bun run typecheck:e2e:local && bun run typecheck:vscode && bun run typecheck:vscode:tests && bun run typecheck:opencode:tests && bun run typecheck:codex:tests && bun run typecheck:cursor:tests && bun run typecheck:zcode:tests && bun run typecheck:agent-core:tests && bun run typecheck:claude:tests && bun run typecheck:scripts",
     "publish:selective": "./scripts/publish-selective.sh",
     "release:npm": "bun run build && ./scripts/publish-selective.sh",
     "release:bun": "bun run build && ./scripts/publish-selective.sh",
@@ -108,7 +110,9 @@
     "version-packages": "changeset version && bun run scripts/sync-plugin-manifest-versions.ts",
     "release": "changeset publish",
     "symbols:generate": "node scripts/generate-symbol-classification.mjs",
-    "symbols:check": "node scripts/generate-symbol-classification.mjs --check"
+    "symbols:check": "node scripts/generate-symbol-classification.mjs --check",
+    "build:plugin-treesitter": "bun --filter ./packages/plugin-treesitter build",
+    "typecheck:plugin-treesitter": "bun run build:plugin-sdk && tsc -p packages/plugin-treesitter/tsconfig.json --noEmit"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
@@ -127,6 +131,7 @@
     "mitata": "^1.0.34",
     "semver": "^7.8.5",
     "typescript": "^5.9.3",
-    "zod": "^4.6.5"
+    "zod": "^4.6.5",
+    "c8": "10.1.3"
   }
 }

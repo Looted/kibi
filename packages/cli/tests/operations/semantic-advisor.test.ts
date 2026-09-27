@@ -59,6 +59,253 @@ describe("semantic advisor operation", () => {
     expect(semanticAdvisorSpec.requiresProlog).toBe(false);
   });
 
+  for (const text of [
+    "The reviewer must record each changed clause with a rationale.",
+    "The service must retain artifacts such as review notes.",
+    "The reviewer must explain changes because reviewers need evidence.",
+    "The service must record changes so that reviewers can audit them.",
+    "The service must record changes in order to support review.",
+    "Therefore, the service must record changes.",
+    "The service must show illustrative review notes.",
+    "The service must make reviewers feel comfortable.",
+    "The reviewer is required to record a rationale before shipping.",
+    "Reviewers may have at most two active sessions such as release sessions.",
+    "The service cannot omit review notes because reviewers need evidence.",
+    "Only reviewers may approve changes such as release changes.",
+    "Because reviews need evidence, reviewers must record a rationale.",
+    "The reviewer should record each changed clause with a rationale.",
+    "The service should make reviewers feel comfortable.",
+    "The service should retain artifacts such as review notes.",
+    "The page must feel welcoming.",
+    "The page is required to feel comfortable.",
+    "The page should feel warm at exactly 37 degrees.",
+    "The page should feel comfortable for at least 3 minutes.",
+    "The page should feel welcoming and retain artifacts.",
+    "The reviewer must confirm the page should feel welcoming.",
+  ]) {
+    test(`retains the asserted obligation: ${text}`, async () => {
+      const context = {
+        workspaceRoot: "/tmp/semantic-advisor",
+        signal: new AbortController().signal,
+        clock: () => new Date(0),
+      };
+      const args = { text, type: "req", id: "REQ-CONTEXT-CUE" };
+      const claimKey = semanticClaimKey(text);
+      const preview = await semanticAdvisorSpec.execute(args, context);
+      const receipt = preview.structuredContent.receipt;
+      expect(receipt.propositions).toHaveLength(1);
+      expect(receipt.propositions[0]).toMatchObject({
+        claim_key: claimKey,
+        role: "normative",
+      });
+      expect(receipt.propositions[0]?.status).not.toBe("nonlogical");
+      expect(receipt.propositions[0]?.status).not.toBe("modeled");
+      expect(receipt.logic_coverage.expected_claim_keys).toContain(claimKey);
+      expect(receipt.logic_coverage.missing_claim_keys).toContain(claimKey);
+      expect(receipt.logic_coverage.unresolved_claim_keys).toContain(claimKey);
+      expect(receipt.logic_coverage.status).toBe("unverified");
+      expect(receipt.logic_readiness).toBe("needs_modeling");
+
+      const interpreted = await semanticAdvisorSpec.execute(
+        {
+          ...args,
+          interpretations: [
+            {
+              claim_key: claimKey,
+              claim_text: text,
+              ir: {
+                version: "kibi.logic.v1",
+                kind: "atom",
+                modality: "oblige",
+                head: { kind: "atom", name: "review_obligation", args: [] },
+              },
+            },
+          ],
+        },
+        context,
+      );
+      const typedReceipt = interpreted.structuredContent.receipt;
+      expect(typedReceipt.interpretations[0]?.valid).toBe(true);
+      expect(typedReceipt.propositions[0]).toMatchObject({
+        claim_key: claimKey,
+        role: "normative",
+        status: "modeled",
+        semantic_key: expect.any(String),
+      });
+      expect(typedReceipt.logic_coverage.unresolved_claim_keys).toEqual([]);
+      // A typed preview is not a persisted grounding or completed proof.
+      expect(typedReceipt.logic_coverage.missing_claim_keys).toContain(
+        claimKey,
+      );
+      expect(typedReceipt.logic_coverage.status).toBe("unverified");
+    });
+  }
+
+  for (const text of [
+    "The landing page should feel welcoming and energetic to new readers.",
+    "The page should feel comfortable for visitors.",
+    "The page should look complete.",
+    "The page should seem complete.",
+  ]) {
+    test(`keeps subjective should aspirations nonlogical: ${text}`, async () => {
+      const context = {
+        workspaceRoot: "/tmp/semantic-advisor",
+        signal: new AbortController().signal,
+        clock: () => new Date(0),
+      };
+      const result = await semanticAdvisorSpec.execute(
+        { text, type: "req" },
+        context,
+      );
+      const receipt = result.structuredContent.receipt;
+      expect(receipt.clauses[0]?.normative).toBe(true);
+      expect(receipt.propositions).toHaveLength(1);
+      expect(receipt.propositions[0]).toMatchObject({
+        role: "subjective",
+        status: "nonlogical",
+      });
+      expect(receipt.logic_coverage.expected_claim_keys).toEqual([]);
+      expect(receipt.logic_coverage.unresolved_claim_keys).toEqual([]);
+    });
+  }
+
+  test("keeps a cue-bearing obligation unresolved after an invalid typed interpretation", async () => {
+    const context = {
+      workspaceRoot: "/tmp/semantic-advisor",
+      signal: new AbortController().signal,
+      clock: () => new Date(0),
+    };
+    const text =
+      "The reviewer must record each changed clause with a rationale.";
+    const claimKey = semanticClaimKey(text);
+    const result = await semanticAdvisorSpec.execute(
+      {
+        text,
+        type: "req",
+        interpretations: [
+          {
+            claim_key: claimKey,
+            claim_text: text,
+            ir: {
+              version: "kibi.logic.v1",
+              kind: "atom",
+              modality: "oblige",
+              head: { kind: "atom", name: "ReviewObligation", args: [] },
+            },
+          },
+        ],
+      },
+      context,
+    );
+    const receipt = result.structuredContent.receipt;
+    expect(receipt.interpretations[0]?.valid).toBe(false);
+    expect(receipt.propositions[0]?.status).not.toBe("modeled");
+    expect(receipt.logic_coverage.expected_claim_keys).toContain(claimKey);
+    expect(receipt.logic_coverage.unresolved_claim_keys).toContain(claimKey);
+  });
+
+  test("keeps explicit contextual labels and standalone explanations nonlogical", async () => {
+    const context = {
+      workspaceRoot: "/tmp/semantic-advisor",
+      signal: new AbortController().signal,
+      clock: () => new Date(0),
+    };
+    for (const [text, role] of [
+      ["For example, the reviewer must record every change.", "example"],
+      ["Example: The reviewer must record every change.", "example"],
+      [
+        "Illustrative example: The reviewer must record every change.",
+        "example",
+      ],
+      ["e.g. a reviewer must record every change.", "example"],
+      ["Rationale: The reviewer must have evidence.", "rationale"],
+      ["Because reviews need an audit trail.", "rationale"],
+      ["Reviewers prefer concise explanations.", "subjective"],
+      ["Artifacts such as notes help reviewers.", "example"],
+    ] as const) {
+      const result = await semanticAdvisorSpec.execute(
+        { text, type: "req" },
+        context,
+      );
+      expect(result.structuredContent.receipt.propositions).toHaveLength(1);
+      expect(result.structuredContent.receipt.propositions[0]).toMatchObject({
+        role,
+        status: "nonlogical",
+      });
+      expect(
+        result.structuredContent.receipt.logic_coverage.expected_claim_keys,
+      ).toEqual([]);
+      expect(
+        result.structuredContent.receipt.logic_coverage.unresolved_claim_keys,
+      ).toEqual([]);
+    }
+  });
+
+  for (const [text, role] of [
+    ["Because reviews need an audit trail before shipping.", "rationale"],
+    ["Because reviews need notes if a change is substantial.", "rationale"],
+    ["Reviewers feel comfortable when the page looks complete.", "subjective"],
+    [
+      "Reviewers prefer concise notes unless a change is substantial.",
+      "subjective",
+    ],
+    [
+      "Artifacts such as notes help reviewers when discussing changes.",
+      "example",
+    ],
+  ] as const) {
+    test(`keeps weak context cues nonlogical: ${text}`, async () => {
+      const context = {
+        workspaceRoot: "/tmp/semantic-advisor",
+        signal: new AbortController().signal,
+        clock: () => new Date(0),
+      };
+      const result = await semanticAdvisorSpec.execute(
+        { text, type: "req" },
+        context,
+      );
+      const receipt = result.structuredContent.receipt;
+      // Preserve broader clause discovery while distinguishing context.
+      expect(receipt.clauses[0]?.normative).toBe(true);
+      expect(receipt.propositions).toHaveLength(1);
+      expect(receipt.propositions[0]).toMatchObject({
+        role,
+        status: "nonlogical",
+      });
+      expect(receipt.logic_coverage.expected_claim_keys).toEqual([]);
+      expect(receipt.logic_coverage.unresolved_claim_keys).toEqual([]);
+    });
+  }
+
+  test("retains asserted condition and exception roles around explanatory words", async () => {
+    const context = {
+      workspaceRoot: "/tmp/semantic-advisor",
+      signal: new AbortController().signal,
+      clock: () => new Date(0),
+    };
+    for (const [text, role] of [
+      [
+        "If a change is substantial, the reviewer must record a rationale.",
+        "condition",
+      ],
+      [
+        "Reviewers must record a rationale unless a change is exempt.",
+        "exception",
+      ],
+    ] as const) {
+      const result = await semanticAdvisorSpec.execute(
+        { text, type: "req" },
+        context,
+      );
+      const receipt = result.structuredContent.receipt;
+      const claimKey = semanticClaimKey(text);
+      expect(receipt.propositions[0]?.role).toBe(role);
+      expect(receipt.propositions[0]?.status).not.toBe("nonlogical");
+      expect(receipt.logic_coverage.expected_claim_keys).toContain(claimKey);
+      expect(receipt.logic_coverage.unresolved_claim_keys).toContain(claimKey);
+    }
+  });
+
   test("keeps semantic prose independent from text_ref evidence", () => {
     expect(
       semanticSourceOf({

@@ -21,6 +21,7 @@ semantic_text: 'Paid SkillOpt model launches must fail closed unless the externa
 logic_claims:
   - CLAIM-576BF8BC10A10142
   - CLAIM-51BD088AB2866532
+  - CLAIM-5BE77E3C3E73A342
   - CLAIM-6525F601F1D4D17D
 semantic_clauses:
   - Paid SkillOpt model launches must fail closed unless the external trust boundary validates immutable authority and supervisor-parent bindings; binds each one-use capability to the exact request ID, request hash, approved pricing, model, and lease; enforces pinned TLS, CA, SNI, IP, egress, request, invoice, and authorization ceilings; and preserves same-request idempotency without cross-request attribution.\n\nEvery accepted launch must produce strict typed debit-subentry, final debit/reconciliation, and final-verdict receipts
@@ -47,11 +48,12 @@ semantic_inventory:
       end: 711
   - claim_key: CLAIM-5BE77E3C3E73A342
     claim_text: 'Deterministic test-fixture signatures must declare `signatureProvenance: deterministic-test-fixture` and `externallySigned: false`; fixture evidence must never claim external signing.\n\nThis is intentionally an umbrella requirement because one paid launch crosses the external trust client, capability gateway, crash-safe accounting, reconciliation, and independently parsed receipt chain'
-    role: rationale
-    status: nonlogical
+    role: normative
+    status: modeled
     span:
       start: 713
       end: 1102
+    payload_hash: a0465c54472e23520657e857930300493987992e57f6707ed281fd6661c93cd7
   - claim_key: CLAIM-6525F601F1D4D17D
     claim_text: Symbol ownership remains limited to the behavioral boundaries that enforce or parse those guarantees; schemas, types, errors, fields, and fixture data are structural support rather than separate implementations
     role: descriptive

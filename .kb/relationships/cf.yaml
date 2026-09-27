@@ -188,3 +188,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fb06e5fcf4c2
+  - type: specified_by
+    from: REQ-core-persistence
+    to: SCEN-001
+    created_at: 2026-09-26T21:11:04.196Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9bde8cb85452
+  - type: verified_by
+    from: REQ-core-persistence
+    to: TEST-007
+    created_at: 2026-09-26T21:11:04.215Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0a85ced939d5
+  - type: supersedes
+    from: REQ-core-persistence
+    to: REQ-009
+    created_at: 2026-09-26T21:11:04.223Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7655759d3196

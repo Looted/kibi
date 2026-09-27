@@ -1,19 +1,20 @@
 # Developing Kibi capability plugins
 
-Kibi capability plugins extend four host-owned seams without taking over
+Kibi capability plugins extend five host-owned seams without taking over
 validation, Prolog, mutation, or proof:
 
 1. `kibi.semantic-classifier.v1` — lane / ambiguity classification over host
    propositions
 2. `kibi.ontology-pack.v1` — predicate schemas and match candidates
-3. `kibi.symbol-extractor.v1` — language-specific source symbol analysis
-4. `kibi.vocabulary-alignment.v1` — modeling-time vocabulary convergence:
+3. `kibi.symbol-extractor.v1` — synchronous legacy symbol analysis
+4. `kibi.symbol-extractor.v2` — asynchronous analysis with explicit completeness
+5. `kibi.vocabulary-alignment.v1` — modeling-time vocabulary convergence:
    `rankSubjects` (reuse an existing subject or declare `new_subject`) and
    `compareClaims` (possible-duplicate candidates for review)
 
 Every capability is optional for third-party plugins: a plugin declares only
 the capabilities it provides, and plugins written before a capability existed
-keep validating and loading unchanged. The builtin plugin provides all four.
+keep validating and loading unchanged. The builtin plugin provides all five.
 
 This is distinct from **host plugins** such as `kibi-cursor`, `kibi-opencode`,
 `kibi-codex`, `kibi-zcode`, and `kibi-claude`, which adapt an IDE or agent host to Kibi's
@@ -99,7 +100,8 @@ comparison metadata only.
 | --- | --- | --- |
 | Semantic classifier | First for `augment`; fallback for `replace` failure | External classifiers run only from `kb_semantic_advisor` and `kb_compile_intent`. Valid empty `decisions[]` under `replace` is abstention (conservative `none`), not builtin fill. |
 | Ontology pack | Catalog starts with builtin for `augment` | `replace` excludes the builtin provider catalog. Valid empty `match()` is abstention (no builtin consult). Allowed wherever Kibi already matches ontology |
-| Symbol extractor | Builtin first for supported files under `augment` | `replace` gets first claim with builtin fallback |
+| Symbol extractor v1 | Builtin first for supported files under `augment` | Legacy replacement and fallback behavior |
+| Symbol extractor v2 | Builtin first for supported files under `augment` | First claiming provider owns the result; partial, failed, or unsupported output never becomes a successful fallback |
 | Vocabulary alignment | Builtin always runs first; fallback for `replace` failure | External providers run only from `kb_model_requirement`. `augment` refines only clauses the builtin left as `new_subject` and pairs it did not judge duplicates (it can add candidates, never remove them). A provider may only choose among the builtin-ranked candidates or `new_subject`; any other answer is rejected and falls back to builtin with `fallbackUsed`. Results are advice in the modeling plan, never check outcomes |
 
 Sync maintenance paths (`sync`, `check`, `kb_upsert`, `status`, proof, and
@@ -110,6 +112,64 @@ plugins: `domain-redundancy`, `subject-key-identity`, and the other Prolog
 checks remain the only pass/fail authority. Async advisor / compile-intent / staged-symbol paths compose the
 registry (replace / augment / shadow); replace mode strips or overrides any
 sync-path builtin suggestions before results are returned.
+
+Maintenance source analysis uses the builtin extractor and explicitly activated,
+host-approved v2 source analyzers. Before importing an external source entrypoint,
+the host verifies its release-qualified package, runtime dependency and asset
+hashes. An unknown version, modified asset, missing dependency or escaping symlink
+fails analysis. Other plugin capabilities are not imported by this path.
+Semantic classification and ontology activation do not authorize their execution
+during maintenance.
+
+For staged checks, activation is read from captured Git trees. A commit changing
+source retains baseline source analyzers, so disabling a plugin in the same commit
+cannot bypass analysis. A configuration-only uninstall is permitted. Installed
+package files still have to match the host approval.
+
+## Source analysis v2
+
+An extractor exports `symbolExtractorV2` with `supports({ path, language })` and
+an asynchronous `analyze({ path, content })`. The input is supplied snapshot text;
+providers must not substitute working-tree contents. Results carry
+`contractVersion: "kibi.symbol-extractor.v2"` and one status:
+
+| Status | Meaning |
+| --- | --- |
+| `ok` | Complete supported analysis; zero declarations is valid. |
+| `partial` | Some declarations were recovered; diagnostics and uncovered ranges explain uncertainty. |
+| `unsupported` | The provider cannot analyze this input; no symbol evidence is returned. |
+| `failed` | Operational or validation failure; no successful symbol evidence is returned. |
+
+Positions are one-based lines and zero-based UTF-16 columns, with exclusive ends.
+The host validates bounds against original content, including CRLF and non-BMP
+characters. Qualified names and signatures are declaration locators; authored KB
+IDs remain the authority for identity, ownership and proof. An ambiguous locator
+cannot transfer an existing ID.
+
+`kibi-plugin-treesitter` is optional. Its qualified initial catalog covers Python,
+Go and Rust. Declare the exact qualified release as a project dependency and add:
+
+```json
+{
+  "kibi": {
+    "plugins": [{
+      "package": "kibi-plugin-treesitter",
+      "capabilities": { "kibi.symbol-extractor.v2": { "mode": "augment" } }
+    }]
+  }
+}
+```
+
+The package contains grammar WASM, queries, notices and integrity metadata. Analysis
+does not download parsers, start language servers or execute consumer build tools.
+Its worker deadline and resource limits contain parser failures; they are not a
+sandbox for arbitrary plugin JavaScript. After a reviewed package rebuild,
+`node scripts/qualify-source-analyzers.mjs --write` records its exact runtime
+closure; the command without `--write` verifies it. CI and packing must pass
+verification without rewriting approval. Update the package integrity manifest
+before recording approval, and requalify the relocated tarball. See
+[qualification](architecture/tree-sitter-qualification.md) and
+[delivery scope](architecture/multilingual-source-analysis.md).
 
 ## Trust boundary
 

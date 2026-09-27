@@ -1,5 +1,63 @@
 # kibi-core
 
+## 0.13.5
+
+### Patch Changes
+
+- 173ed66: `kibi coverage`, `kibi proof impact`, and requirement health reports no longer break with "Predicate or file not found" once a project's proof receipt history grows large. Per-contract proof binding used to load every test together with its full receipt history in a single answer. Past the 8 MiB output cap, that answer terminated the engine's Prolog session, and later queries quietly ran in throwaway processes without the attached KB. The engine now reads only the small per-test data it needs, and it restarts and reattaches its session if a query ever overflows or times out. Failures are reported instead of being hidden behind stale results.
+
+  - Engine daemon: a lost interactive SWI session (output overflow, timeout, crash) is recycled before the next request. Recycling restarts the process, reattaches the branch store, and reloads the preloaded and client-loaded modules. The overflowing request still fails with the explicit ENOBUFS error.
+  - `PrologProcess`: once started, a lost process never falls back to one-shot execution; queries raise `PrologProcessTerminatedError` with the cause. New `oneShotMode`/`needsRestart()` accessors and an injectable `maxOutputBytes` cap.
+  - `runOperationJsonQuery`: isolated (one-shot or unstarted) ports report `oneShotMode` and receive the combined module-load + call goal.
+  - `perContractTestBindings`: reads the paged `kb_query_proof_contracts` projection (now carrying `source`) and propagates engine failures instead of silently returning `null`.
+  - `kb_query_proof_contracts` (kibi-core) matches both the in-session `kb:Key` and the reloaded `urn-kibi:Key` property URIs. Before this, a reloaded store projected no tests.
+  - Receipt-bearing bulk loads now page: proof ingest candidate selection, `kibi proof prune`, legacy receipt migration, and the full-KB quality projection (no unbounded all-entities probe).
+
+## 0.13.4
+
+### Patch Changes
+
+- Coverage reports continue to work after many proof campaigns, without loading every archived receipt into the reporting transport. When a reporting query fails, Kibi now reports the actual failure instead of silently losing the test bindings or hiding affected requirements.
+
+  - Reuse the paged contract projection, including authored test source, for current binding discovery.
+  - Preserve matching snapshot fallback and requirement rows when a receipt binding differs.
+  - Include bounded missing-predicate diagnostics without exposing query arguments or stored values.
+
+## 0.13.3
+
+### Patch Changes
+
+- Status and lock-owner timestamps now stay accurate when Kibi runs in a non-UTC timezone. Persisted sync times are labeled in UTC, and journaled stores write a valid owner record with a parseable start time so operators can identify the process holding a store lock.
+
+  - Convert sync-file and lock-start timestamps to UTC before formatting the `Z` suffix.
+  - Serialize lock-owner metadata as a JSON object and cover both timestamp paths with spawned SWI-Prolog tests under `Europe/Warsaw`.
+  - Make the existing aggregate requirement-status test assert the actual reported requirement violation.
+
+## 0.13.2
+
+### Patch Changes
+
+- f7c2d56: A full proof campaign spends much less time repeating the same packed test and rewriting the knowledge base once per receipt. Contracts that declare the identical command now share one execution, and the receipt campaign commits in batches instead of flushing the journal after every test. Selecting which tests to prove no longer loads every receipt history up front.
+
+  - Run each distinct proof-step command once and record that attempt on every contract that declared it.
+  - Honor `KIBI_PROOF_STEP_CONCURRENCY` (default 1) when distinct commands can run together.
+  - Reuse one snapshot-keyed compilation of the packed end-to-end suite across proof steps.
+  - Commit proof-receipt upserts with `kb_commit_upsert_batch/2`, one transaction and one journal flush per batch of 25.
+  - Load only test id and `proof_contract` while choosing the campaign.
+
+- Search remains usable when test histories contain many proof receipts, and Node applications can start a parser from an evaluated module entrypoint. Full search results still include the selected entities' complete receipt histories, while summary results avoid serializing histories that ranking does not need. Parser workers retain their existing resource limits and never execute the analyzed program.
+
+  - Project indexed search candidates before transport and hydrate only selected full entities; preserve ranking, facets, and explicit transport failures.
+  - Start parser file workers without inheriting evaluation-only Node flags; verify the actual public subprocess path.
+
+## 0.13.1
+
+### Patch Changes
+
+- Kibi now checks documentation freshness once per relevant file, even when the document repeats entity metadata examples. Ignored documentation and test fixture directories are skipped before reading their contents, avoiding unnecessary work and decoding warnings during status checks.
+
+  - Make metadata marker checks deterministic and apply ignored-path filters before traversal and file reads.
+
 ## 0.13.0
 
 ### Minor Changes
