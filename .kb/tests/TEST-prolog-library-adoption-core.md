@@ -25,42 +25,6 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-a67c7fe16f3d095979067975
-    test_id: TEST-prolog-library-adoption-core
-    scope: end_to_end
-    outcome: failed
-    code_snapshot: 71b43ef38f0945d5febd8dad9a12223a2f13e5092564f8222974a6fb48fc1ea5
-    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
-    started_at: '2026-09-06T06:30:49.943Z'
-    finished_at: '2026-09-06T07:22:27.216Z'
-    artifact_digest: 874dd5c6d454cff93bdf784b60380ee2fa22f4058f4382076d931c84dde61ccd
-    contract_hash: 666e0b34432bbeb9d35018102a4d6a13533eba89806b065020b052ea7d60be3e
-    fingerprint: 7e4ba319e138faeb9a507bb0c7e8eae0ceeaedcf26147f6ef2ebee65a59f04b6
-    fingerprint_components:
-      contract: 666e0b34432bbeb9d35018102a4d6a13533eba89806b065020b052ea7d60be3e
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: failed
-    proof_results:
-      - symbol_id: SYM-e2e-test-prolog-library-adoption-core
-        target: default
-        outcome: failed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-    gaps:
-      - symbol_id: SYM-e2e-test-prolog-library-adoption-core
-        target: default
-        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-test-packed-dependency-ordered-repair-plan (failed), SYM-e2e-packed-cli-github-report (failed), SYM-test-core-journaled-engine-delta-sync (failed), SYM-test-opencode-bootstrap-paths (failed), SYM-codex-packed-plugin-e2e (failed) +83 more'
-  - version: kibi.proof-receipt.v1
     receipt_id: PR-928f38ec0b3f9610ecfbb4f8
     test_id: TEST-prolog-library-adoption-core
     scope: end_to_end
@@ -1682,6 +1646,39 @@ proof_receipts:
     artifact_digest: 601f3dfdaa45bbef34f649d3ddd7d3e53a7dc2ba372aa80398ec1e1a58170f59
     contract_hash: 666e0b34432bbeb9d35018102a4d6a13533eba89806b065020b052ea7d60be3e
     binding_hash: fcd12853d030676193868a4d12f230968cd41dd676ed434a81820ba4a8093057
+    fingerprint: 7e4ba319e138faeb9a507bb0c7e8eae0ceeaedcf26147f6ef2ebee65a59f04b6
+    fingerprint_components:
+      contract: 666e0b34432bbeb9d35018102a4d6a13533eba89806b065020b052ea7d60be3e
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-prolog-library-adoption-core
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-31e11d763e1f2ec3f2f4cca4
+    test_id: TEST-prolog-library-adoption-core
+    scope: integration
+    outcome: passed
+    code_snapshot: 1c7fc342e7e2f6dde52ad4d4bfb3dccda5184f524d128ad26d3d6aa8928b80df
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-27T15:30:37.315Z'
+    finished_at: '2026-09-27T16:09:53.858Z'
+    artifact_digest: cab9ee9d09f579ccae00bea019b0266d72e41c24a37e65651b84956de238bb61
+    contract_hash: 666e0b34432bbeb9d35018102a4d6a13533eba89806b065020b052ea7d60be3e
+    binding_hash: c532436551663addfe8a8f6361f7c4a66ba8585b2acbb7a8958655417b6747bc
     fingerprint: 7e4ba319e138faeb9a507bb0c7e8eae0ceeaedcf26147f6ef2ebee65a59f04b6
     fingerprint_components:
       contract: 666e0b34432bbeb9d35018102a4d6a13533eba89806b065020b052ea7d60be3e
