@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 110,
-  "proofProven": 110,
+  "currentRequirements": 111,
+  "proofProven": 111,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -402,6 +402,11 @@
       "uncoveredSymbols": []
     },
     "REQ-mcp-tool-upsert": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-multilingual-language-catalog": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

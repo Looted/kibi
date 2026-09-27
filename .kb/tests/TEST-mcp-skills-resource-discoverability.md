@@ -20,38 +20,6 @@ proof_contract:
   success_policy: all_required_first_attempt
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-576a03792f04d59244b0f981
-    test_id: TEST-mcp-skills-resource-discoverability
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 9648b885459e3a707873828ffc71810a3f3087e64d820acb1e5c20c4d424ee78
-    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
-    started_at: '2026-09-06T08:03:27.689Z'
-    finished_at: '2026-09-06T08:53:08.385Z'
-    artifact_digest: a9446e6bf639a8313722c309e3e6a6bf674e647b465bc9a1f94f58e2956e82a6
-    contract_hash: d1ef4e61d69a268fc8ac1724062fa7db51be5f116629333801a26a9ae5232781
-    fingerprint: cfb0aa44a71df80cfee69b149fa7661271f57c002526afe340f58a6b00fcc3da
-    fingerprint_components:
-      contract: d1ef4e61d69a268fc8ac1724062fa7db51be5f116629333801a26a9ae5232781
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: passed
-    proof_results:
-      - symbol_id: SYM-e2e-test-mcp-skills-resource-discoverability
-        target: default
-        outcome: passed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-  - version: kibi.proof-receipt.v1
     receipt_id: PR-60f33a127aea2376d75741ac
     test_id: TEST-mcp-skills-resource-discoverability
     scope: end_to_end
@@ -1672,6 +1640,39 @@ proof_receipts:
     started_at: '2026-09-27T11:03:41.438Z'
     finished_at: '2026-09-27T11:38:11.633Z'
     artifact_digest: d6ba04f64f847cb08f207889bbb37118a5a1399f665d6b626f1d259ddce79b44
+    contract_hash: d1ef4e61d69a268fc8ac1724062fa7db51be5f116629333801a26a9ae5232781
+    binding_hash: 50b2af1a897cd4fc7f3730d50f5e7ca74a582d39fdcf251c3cb401526a177525
+    fingerprint: cfb0aa44a71df80cfee69b149fa7661271f57c002526afe340f58a6b00fcc3da
+    fingerprint_components:
+      contract: d1ef4e61d69a268fc8ac1724062fa7db51be5f116629333801a26a9ae5232781
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-mcp-skills-resource-discoverability
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-9d2b3a31adaedb595d48fcf5
+    test_id: TEST-mcp-skills-resource-discoverability
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 6a4d33ffc576a16f68e502d3a2086100380f23d54976de35dc5e2a45e95ffcd0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-27T12:49:03.127Z'
+    finished_at: '2026-09-27T13:19:49.486Z'
+    artifact_digest: 6d59b3c0049b625c1357bc0c860f9fc1e736c49f0b21fc69f54c7272cca053c2
     contract_hash: d1ef4e61d69a268fc8ac1724062fa7db51be5f116629333801a26a9ae5232781
     binding_hash: 50b2af1a897cd4fc7f3730d50f5e7ca74a582d39fdcf251c3cb401526a177525
     fingerprint: cfb0aa44a71df80cfee69b149fa7661271f57c002526afe340f58a6b00fcc3da

@@ -833,6 +833,39 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-9d5a3097cb5d1635e4494c27
+    test_id: TEST-e2e-mcp-freshness-external-replace
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 6a4d33ffc576a16f68e502d3a2086100380f23d54976de35dc5e2a45e95ffcd0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-27T12:49:03.127Z'
+    finished_at: '2026-09-27T13:19:49.486Z'
+    artifact_digest: 6d59b3c0049b625c1357bc0c860f9fc1e736c49f0b21fc69f54c7272cca053c2
+    contract_hash: 324a80b163afbcc62bb1a4c8c38e4c6825f0b7b03574b8c87a3d8ac00cc35a0e
+    binding_hash: d6c7d35fa8e2430bde7067ab9606d3c79032b26b9c3983d5b8396e45afb9b9e9
+    fingerprint: d7d19108ce5e2ace3c65e0feccb41b17ddaab5c903f9340f45477b6b0576596a
+    fingerprint_components:
+      contract: 324a80b163afbcc62bb1a4c8c38e4c6825f0b7b03574b8c87a3d8ac00cc35a0e
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-mcp-freshness-external-replace
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 
 Packed end-to-end regression for mcp refreshes an externally replaced branch kb snapshot.

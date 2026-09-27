@@ -284,11 +284,15 @@ describe("independent final-state client", () => {
     try {
       await mkdir(join(workspace.target, ".kb"), { mode: 0o700 });
       const staged = await stageKibiMcpBroker(workspace, process.cwd());
+      const launchEnv = Object.fromEntries(
+        Object.entries(process.env).filter(([, value]) => value !== undefined),
+      );
+      launchEnv.KIBI_BRANCH = "skillopt-eval";
       const receipt = await runIndependentFinalState({
         launch: {
           ...staged.downstream,
           args: [...staged.downstream.args],
-          env: { ...process.env, KIBI_BRANCH: "skillopt-eval" },
+          env: launchEnv,
         },
         receiptPath: join(workspace.privateEvidence, "final-state.json"),
         requests: [

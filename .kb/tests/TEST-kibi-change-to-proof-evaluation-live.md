@@ -800,6 +800,39 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-f342e3bfbf4f66a25ea198f8
+    test_id: TEST-kibi-change-to-proof-evaluation-live
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 6a4d33ffc576a16f68e502d3a2086100380f23d54976de35dc5e2a45e95ffcd0
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-27T12:49:03.127Z'
+    finished_at: '2026-09-27T13:19:49.486Z'
+    artifact_digest: 6d59b3c0049b625c1357bc0c860f9fc1e736c49f0b21fc69f54c7272cca053c2
+    contract_hash: 2a9bfe59b870b62ebf6d959c8c73966b5cfa2301e93494b0a36f736272247960
+    binding_hash: bbda25742820f26a5c1b1a7a3b90c0b8f260a3227a1d69963fe051e67472f4f0
+    fingerprint: 259d022c2078d8e7a28ff3fa4ad146bf1c25a256b1282d985b76fd15aecb220b
+    fingerprint_components:
+      contract: 2a9bfe59b870b62ebf6d959c8c73966b5cfa2301e93494b0a36f736272247960
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-change-to-proof-eval-live
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 
 Runs the change-to-proof evaluator entry point live against the public held-out gold corpus and asserts the deterministic metric contract.
