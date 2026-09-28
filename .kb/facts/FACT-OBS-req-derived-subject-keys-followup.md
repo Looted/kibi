@@ -1,5 +1,5 @@
 ---
-title: Requirement-derived subject keys remain on 28 requirements
+title: Requirement-derived subject keys converged onto shared subject vocabulary
 status: active
 fact_kind: observation
 tags:
@@ -9,4 +9,10 @@ tags:
 id: FACT-OBS-req-derived-subject-keys-followup
 type: fact
 ---
-Observation: the mechanical subset of requirement-derived subject keys (opencode, cursor, vscode, codex, mcp kb_query/kb_upsert, staged check) was renamed to shared component.aspect subjects. 28 subject facts still carry req.<requirement_id> keys (for example req.req_cli_gc, req.req_mcp_search_discovery, req.req_skillopt_*), and 11 subjects fail the component.aspect shape (bare kibi, kibi_zcode_*, bootstrap_workflow). Each needs a judgment about which shared component subject it governs, so they are left for a follow-up rather than renamed mechanically. subject-key-identity and subject-key-shape report them as warnings.
+Observation (completed): the follow-up to converge requirement-derived subject keys onto the shared subject vocabulary is done.
+
+- Subject-key identity findings went from 28 to 0: strict facts no longer mint subject keys from the owning requirement ID.
+- Subject-key shape findings went from 11 to 0.
+- The orphaned strict fact `FACT-PROP-REQ-MCP-SUGGEST-PREDICATES-C02`, which no requirement referenced after convergence, was deleted.
+
+No further action is tracked here. New strict facts must reuse existing subject keys from the shared vocabulary instead of deriving them from requirement IDs.
