@@ -54,6 +54,11 @@ export interface RuleDefinition {
   /** Kibi-owned role of this rule in the enforcement contract. */
   enforcementClass: RuleEnforcementClass;
   category: "coverage" | "integrity" | "lifecycle" | "traceability";
+  /**
+   * Severity for non-canonical findings rendered as quality diagnostics.
+   * Omitted means "warning"; "info" marks purely informational signals.
+   */
+  diagnosticSeverity?: "warning" | "info";
 }
 
 /** A single KB check violation. */

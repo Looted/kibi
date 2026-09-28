@@ -36,6 +36,9 @@ const CATEGORIES = new Set([
   "traceability",
 ]);
 const IMPLEMENTATIONS = new Set(["prolog", "typescript"]);
+// Optional severity for non-canonical findings rendered as quality
+// diagnostics. Omitted means "warning"; canonical rules always block.
+const DIAGNOSTIC_SEVERITIES = new Set(["warning", "info"]);
 
 function escapeSingleQuotes(value) {
   return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
@@ -86,6 +89,16 @@ function validate(rules) {
     if (!IMPLEMENTATIONS.has(rule.implementation)) {
       throw new Error(`Rule ${rule.name}: unknown implementation`);
     }
+    if (rule.diagnosticSeverity !== undefined) {
+      if (!DIAGNOSTIC_SEVERITIES.has(rule.diagnosticSeverity)) {
+        throw new Error(`Rule ${rule.name}: unknown diagnosticSeverity`);
+      }
+      if (rule.enforcementClass === "canonical") {
+        throw new Error(
+          `Rule ${rule.name}: canonical rules must not declare diagnosticSeverity`,
+        );
+      }
+    }
     if (rule.implementation === "prolog") {
       if (typeof rule.prologPredicate !== "string") {
         throw new Error(`Rule ${rule.name}: prologPredicate is required`);
@@ -111,6 +124,15 @@ function renderRulesTs(rules) {
         renderTsProperty("    ", "description", rule.description),
         renderTsProperty("    ", "enforcementClass", rule.enforcementClass),
         renderTsProperty("    ", "category", rule.category),
+        ...(rule.diagnosticSeverity !== undefined
+          ? [
+              renderTsProperty(
+                "    ",
+                "diagnosticSeverity",
+                rule.diagnosticSeverity,
+              ),
+            ]
+          : []),
       ];
       return `  {\n${fields.join("\n")}\n  },`;
     })

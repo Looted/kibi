@@ -1,3 +1,4 @@
+import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -20,6 +21,8 @@ import path from "node:path";
  */
 import { getKbPlPathOverride } from "../../env.js";
 import { resolveKbPlPath } from "../../prolog.js";
+import { getStagedFiles } from "../../traceability/git-staged.js";
+import { createStagedEntityIdStyleDiagnostics } from "../../traceability/staged-entity-id-style.js";
 import { analyzePrologQueryPlanSafety } from "../../utils/prolog-query-plan-safety.js";
 import {
   RULE_NAMES,
@@ -63,7 +66,7 @@ export function partitionCheckFindings(findings: readonly Violation[]): {
     const definition = getRuleDefinition(finding.rule);
     qualityDiagnostics.push({
       id: `rule.${finding.rule}`,
-      severity: "warning",
+      severity: definition?.diagnosticSeverity ?? "warning",
       blocking: false,
       category: definition?.category ?? "integrity",
       ...(finding.entityId !== undefined ? { entityId: finding.entityId } : {}),
@@ -167,6 +170,29 @@ export async function analyzeKbCheckImpact(
       ? { maxDiagnostics: args.maxDiagnostics }
       : {}),
   });
+}
+
+/**
+ * Advisory naming-style review for entity Markdown staged as new. Runs only
+ * for `staged: true`, the creation boundary where a purely numeric ID can
+ * still be renamed cheaply; committed legacy entities are never evaluated.
+ */
+// implements REQ-kibi-entity-id-style
+export function stagedEntityIdStyleDiagnostics(
+  workspaceRoot: string,
+  args: Pick<CheckInput, "staged">,
+): readonly QualityDiagnostic[] {
+  if (args.staged !== true) return [];
+  try {
+    return createStagedEntityIdStyleDiagnostics(
+      getStagedFiles((command, options) =>
+        execSync(command, { ...options, cwd: workspaceRoot }),
+      ),
+    );
+  } catch {
+    // Outside a Git work tree there is no staged creation boundary.
+    return [];
+  }
 }
 
 // implements REQ-mcp-tool-check

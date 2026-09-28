@@ -1,6 +1,11 @@
+import { escapeAtom } from "../../prolog/codec.js";
+import type {
+  OperationContext,
+  PrologPort,
+} from "../../public/operations/runtime-types.js";
 // implements REQ-kibi-operation-interface-parity
-import type { OperationContext } from "../../public/operations/runtime-types.js";
 import type { OperationResult } from "../../public/operations/types.js";
+import { entityIdStyleWarnings } from "../../utils/entity-id-style.js";
 import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
 import {
   assertLogicalGroundingClaimKeys,
@@ -18,6 +23,14 @@ import {
   validateAppendOnlyProofReceipts,
 } from "./upsert.js";
 import { validateUpsertInput } from "./validation.js";
+
+// implements REQ-kibi-entity-id-style
+async function entityExists(prolog: PrologPort, id: string): Promise<boolean> {
+  const result = await prolog.query(
+    `once(kb_entity('${escapeAtom(id)}', _Type, _Props))`,
+  );
+  return result.success;
+}
 
 export async function executeValidateUpsert(
   input: UpsertInput,
@@ -71,10 +84,21 @@ export async function executeValidateUpsert(
         relationships,
       );
     }
+    const idStyleWarnings =
+      context.prolog !== undefined &&
+      !(await entityExists(context.prolog, input.id))
+        ? entityIdStyleWarnings({
+            id: input.id,
+            sourcePath:
+              typeof validated.entity.source === "string"
+                ? validated.entity.source
+                : undefined,
+          })
+        : [];
     const payload: ValidateUpsertPayload = {
       valid: true,
       errors: [],
-      warnings: semantic.warnings,
+      warnings: [...semantic.warnings, ...idStyleWarnings],
       semanticAdvisor: semantic.receipt,
       normalizedPreview: validated.entity,
     };

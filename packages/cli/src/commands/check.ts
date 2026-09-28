@@ -60,6 +60,7 @@ import {
   type KibiImpactDiagnostic,
   collectStagedKibiDiagnostics,
 } from "../traceability/staged-diagnostics.js";
+import { createStagedEntityIdStyleDiagnostics } from "../traceability/staged-entity-id-style.js";
 import {
   type StagedFileCoverageResult,
   analyzeStagedFileCoverage,
@@ -800,6 +801,7 @@ export async function checkCommand(
             symbolsByFile,
           }),
           ...createSemanticReviewDiagnostics({ symbolsByFile }),
+          ...createStagedEntityIdStyleDiagnostics(markdownFiles),
         );
 
         if (allSymbols.length === 0 && stagedEntityResults.length === 0) {
@@ -1164,6 +1166,7 @@ export async function checkNoDanglingRefs(
     "constrains",
     "requires_property",
     "supersedes",
+    "restates",
     "relates_to",
   ];
 

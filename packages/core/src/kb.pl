@@ -60,6 +60,7 @@
     symbol_no_req_coverage/2,
     predicate_schema/6,
     predicate_fact/5,
+    canonical_property_tuple/9,
     contradicting_reqs/3,
     req_conflict_witness/3,
     check_req_contradiction/1,
@@ -82,6 +83,7 @@
 :- use_module(library(solution_sequences), [distinct/1, limit/2, offset/2, order_by/2]).
 :- use_module('../schema/entities.pl', [entity_type/1, entity_property/3, required_property/2]).
 :- use_module('../schema/relationships.pl', [relationship_type/1, valid_relationship/3]).
+:- use_module('units.pl', [canonical_quantity/6]).
 :- use_module('../schema/validation.pl', [validate_entity/2, validate_relationship/3]).
 
 % Constants
@@ -2549,10 +2551,14 @@ req_conflict_witness(ReqA, ReqB, Witness) :-
     FactA \= FactB,
     scope_intersects(ScopeA, ScopeB),
     intervals_overlap(ValidFromA, ValidToA, ValidFromB, ValidToB),
-    (   polarity_conflict(SubjectKey, PropertyKey, OpA, ValTypeA, ValA, UnitA, ScopeA, PolarityA,
-                          OpB, ValTypeB, ValB, UnitB, ScopeB, PolarityB, Reason)
-    ;   property_conflict(SubjectKey, PropertyKey, OpA, ValTypeA, ValA, UnitA, PolarityA,
-                          OpB, ValTypeB, ValB, UnitB, PolarityB, Reason)
+    % Compare canonical quantities (30 min == 1800 s); witnesses keep the
+    % authored values so evidence still points at the source text.
+    canonical_quantity(ValTypeA, ValA, UnitA, CanonTypeA, CanonValA, CanonUnitA),
+    canonical_quantity(ValTypeB, ValB, UnitB, CanonTypeB, CanonValB, CanonUnitB),
+    (   polarity_conflict(SubjectKey, PropertyKey, OpA, CanonTypeA, CanonValA, CanonUnitA, ScopeA, PolarityA,
+                          OpB, CanonTypeB, CanonValB, CanonUnitB, ScopeB, PolarityB, Reason)
+    ;   property_conflict(SubjectKey, PropertyKey, OpA, CanonTypeA, CanonValA, CanonUnitA, PolarityA,
+                          OpB, CanonTypeB, CanonValB, CanonUnitB, PolarityB, Reason)
     ),
     property_conflict_side(ReqA, FactA, SubjectKey, PropertyKey, OpA, ValTypeA, ValA, UnitA, ScopeA, PolarityA, ValidFromA, ValidToA, Left),
     property_conflict_side(ReqB, FactB, SubjectKey, PropertyKey, OpB, ValTypeB, ValB, UnitB, ScopeB, PolarityB, ValidFromB, ValidToB, Right),
@@ -2697,6 +2703,14 @@ fact_property_tuple(FactId, Subject, Property, Op, ValType, Value, Unit, Scope, 
     ( memberchk(unit=UnitRaw, Props) -> normalize_term_atom(UnitRaw, Unit) ; Unit = '' ),
     ( memberchk(scope=ScopeRaw, Props) -> normalize_term_atom(ScopeRaw, Scope) ; Scope = '' ),
     ( memberchk(polarity=PolarityRaw, Props) -> normalize_term_atom(PolarityRaw, Polarity) ; Polarity = require ).
+
+%% canonical_property_tuple(+FactId, -Subject, -Property, -Op, -ValType, -Value, -Unit, -Scope, -Polarity)
+% fact_property_tuple/9 with the quantity converted to its canonical base unit
+% (units.pl). Used only for comparison; the authored fact is never rewritten.
+% implements REQ-kibi-unit-canonicalization
+canonical_property_tuple(FactId, Subject, Property, Op, CanonType, CanonValue, CanonUnit, Scope, Polarity) :-
+    fact_property_tuple(FactId, Subject, Property, Op, ValType, Value, Unit, Scope, Polarity),
+    canonical_quantity(ValType, Value, Unit, CanonType, CanonValue, CanonUnit).
 
 %% predicate_schema(+FactId, -Namespace, -Name, -Arity, -ArgumentNames, -ArgumentTypes)
 % Read one project-local ontology predicate schema fact.

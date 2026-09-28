@@ -21,6 +21,7 @@ import {
   computeShardPath,
 } from "../../relationships/shards.js";
 import { resolveBranchAttachment } from "../../utils/branch-resolver.js";
+import { entityIdStyleWarnings } from "../../utils/entity-id-style.js";
 import { CANONICAL_ENTITY_PATHS } from "../../utils/kb-paths.js";
 import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
 import {
@@ -590,6 +591,17 @@ export async function executeUpsert(
       input.id,
     );
     const created = changeKind === "created" ? 1 : 0;
+    const idStyleWarnings =
+      created === 1
+        ? entityIdStyleWarnings({
+            id: input.id,
+            sourcePath:
+              sourceWrite?.receipt.path ??
+              (typeof validated.entity.source === "string"
+                ? validated.entity.source
+                : undefined),
+          })
+        : [];
     const shardWarnings: string[] = [];
     const relationshipSourceWrites: Array<{
       path: string;
@@ -631,7 +643,12 @@ export async function executeUpsert(
       created,
       updated: changeKind === "updated" ? 1 : 0,
       relationships_created: validated.relationships.length,
-      warnings: [...semantic.warnings, ...coverage, ...shardWarnings],
+      warnings: [
+        ...semantic.warnings,
+        ...coverage,
+        ...idStyleWarnings,
+        ...shardWarnings,
+      ],
       semanticAdvisor: semantic.receipt,
       ...(shardWarnings.length > 0
         ? {

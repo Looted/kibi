@@ -31,6 +31,7 @@ import {
   partitionCheckFindings,
   qualityDiagnosticsFromImpact,
   resolveCheckRules,
+  stagedEntityIdStyleDiagnostics,
 } from "./check-helpers.js";
 import { executeStatus } from "./discovery-executors.js";
 import {
@@ -136,7 +137,10 @@ export async function executeCheck(
     const rulesAllowlist = resolveCheckRules(args);
     const hasExplicitRules = args.rules !== undefined;
     const impactResult = await analyzeKbCheckImpact(workspaceRoot, args);
-    const impactQualityDiagnostics = qualityDiagnosticsFromImpact(impactResult);
+    const impactQualityDiagnostics = [
+      ...qualityDiagnosticsFromImpact(impactResult),
+      ...stagedEntityIdStyleDiagnostics(workspaceRoot, args),
+    ];
     const maxDiagnosticsOption =
       args.maxDiagnostics !== undefined
         ? { maxDiagnostics: args.maxDiagnostics }

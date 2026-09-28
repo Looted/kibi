@@ -12,6 +12,32 @@ interface JsonViolation {
   evidence?: Record<string, unknown>;
 }
 
+function ontologyQualitySetting(raw: string | undefined): string {
+  if (raw === undefined || raw.trim() === "") return "default";
+  const value = Number(raw.trim());
+  return Number.isFinite(value) ? String(value) : "default";
+}
+
+/**
+ * Forward the invoking process's ontology-quality thresholds. The engine
+ * daemon outlives the CLI/MCP call that started it, so its own environment
+ * would otherwise decide. Prolog validates the values and falls back to its
+ * defaults for anything out of range.
+ */
+// implements REQ-kibi-ontology-quality
+export function ontologyQualityOverridesGoal(
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  const ratio = ontologyQualitySetting(
+    env.KIBI_ONTOLOGY_QUALITY_MAX_SINGLETON_RATIO,
+  );
+  const minFacts = ontologyQualitySetting(env.KIBI_ONTOLOGY_QUALITY_MIN_FACTS);
+  return `(   predicate_property(semantic_quality:set_ontology_quality_overrides(_, _), defined)
+    ->  semantic_quality:set_ontology_quality_overrides(${ratio}, ${minFacts})
+    ;   true
+    )`;
+}
+
 /**
  * Run all checks using the aggregated Prolog predicates.
  * This makes a single Prolog call and parses JSON output, significantly
@@ -40,7 +66,7 @@ export async function runAggregatedChecks(
       ;   ${fallbackQuery}
       )`
     : fallbackQuery;
-  const query = `(use_module('${checksPlPathEscaped}'), ${checksQuery})`;
+  const query = `(use_module('${checksPlPathEscaped}'), ${ontologyQualityOverridesGoal()}, ${checksQuery})`;
 
   const result = await prolog.query(query);
 
