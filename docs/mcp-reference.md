@@ -456,7 +456,7 @@ Nodes, edges, truncation flag, and status metadata.
 **Example:**
 ```json
 {
-  "seedIds": ["REQ-001"],
+  "seedIds": ["REQ-cli-gc"],
   "direction": "both",
   "depth": 2,
   "maxNodes": 100,

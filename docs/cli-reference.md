@@ -265,7 +265,7 @@ kibi query [type] [--id ID] [--tag TAG] [--source PATH] [--relationships ID] [--
 kibi query req --format table
 
 # Find specific test
-kibi query test --id TEST-001
+kibi query test --id TEST-mcp-search-discovery
 
 # Find all entities with "security" tag
 kibi query req --tag security --format table
@@ -274,7 +274,7 @@ kibi query req --tag security --format table
 kibi query symbol --source src/auth/login.ts --format table
 
 # Show relationships for one entity
-kibi query --relationships REQ-001
+kibi query --relationships REQ-cli-gc
 
 # Get paginated results
 kibi query scenario --limit 10 --offset 0
@@ -456,10 +456,10 @@ kibi graph --from IDS [--relationships RELS] [--direction outgoing|incoming|both
 **Examples:**
 ```bash
 # Follow requirement links outward
-kibi graph --from REQ-001 --direction outgoing --depth 2 --format table
+kibi graph --from REQ-cli-gc --direction outgoing --depth 2 --format table
 
 # Inspect both incoming and outgoing relationships
-kibi graph --from REQ-001,TEST-001 --direction both --depth 2 --format json
+kibi graph --from REQ-mcp-search-discovery,TEST-mcp-search-discovery --direction both --depth 2 --format json
 ```
 
 ## `kibi check`
@@ -804,8 +804,8 @@ The `kibi check --staged` command inventories every staged path and enforces tra
 Every new or modified code symbol (function, class, method, accessor, behavioral class property, or module) must be explicitly linked to at least one requirement before it can be committed. This prevents "orphan" code from being merged and catches edits hidden behind broad class/module links when a narrower changed anchor exists.
 
 **Workflow Options:**
-1. **Relationship-based (Preferred for Test/e2e):** Model the code as a symbol in your manifest (e.g., `.kb/symbols.yaml`), link it to a `TEST-*` entity with `executable_for` to establish its identity. The canonical traceability chain is `REQ-xxx` → `SCEN-xxx` → `TEST-xxx`. Use `covered_by` to link symbols to the tests that exercise them. This satisfies the staged check without modifying source code. Note that physical symbol coordinates are maintained separately in `.kb/symbol-coordinates.yaml` and must be refreshed via `kibi sync --refresh-symbol-coordinates` when code changes.
-2. **Comment-based (Optional Shortcut):** Add an inline `// implements REQ-xxx` comment. This remains backward-compatible and useful for quick code-only changes.
+1. **Relationship-based (Preferred for Test/e2e):** Model the code as a symbol in your manifest (e.g., `.kb/symbols.yaml`), link it to a `TEST-*` entity with `executable_for` to establish its identity. The canonical traceability chain is `REQ-<area>-<behavior>` → `SCEN-<area>-<behavior>` → `TEST-<area>-<behavior>`. Use `covered_by` to link symbols to the tests that exercise them. This satisfies the staged check without modifying source code. Note that physical symbol coordinates are maintained separately in `.kb/symbol-coordinates.yaml` and must be refreshed via `kibi sync --refresh-symbol-coordinates` when code changes.
+2. **Comment-based (Optional Shortcut):** Add an inline `// implements REQ-<area>-<behavior>` comment. This remains backward-compatible and useful for quick code-only changes.
 
 **How to use:**
 ```bash
@@ -830,13 +830,13 @@ Quality diagnostics may also appear during full or staged checks. They are desig
 Link a code symbol to a requirement by adding a comment:
 
 ```typescript
-export function myFunc() { } // implements REQ-001
+export function myFunc() { } // implements REQ-cli-gc
 ```
 
 Link to multiple requirements:
 
 ```typescript
-export class MyClass { } // implements REQ-001, REQ-002
+export class MyClass { } // implements REQ-cli-gc, REQ-cli-check
 ```
 
 **Analysis depth:**

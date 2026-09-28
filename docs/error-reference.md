@@ -60,7 +60,7 @@ If validation reports `Logical Claim Provenance Mismatch`, the fact's `claim_key
 
 ## Relationship source mismatch
 
-Same-call relationship rows must start from the entity being upserted. To link `REQ-001 -> TEST-001`, create `TEST-001` first, then upsert `REQ-001` with `verified_by`.
+Same-call relationship rows must start from the entity being upserted. To link `REQ-mcp-search-discovery -> TEST-mcp-search-discovery`, create `TEST-mcp-search-discovery` first, then upsert `REQ-mcp-search-discovery` with `verified_by`.
 
 ## Invalid relationship tuple
 

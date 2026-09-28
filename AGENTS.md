@@ -98,6 +98,16 @@ Graph coverage is useful for discovery, but it is **not semantic proof**. High l
 - Canonical traceability chain: `REQ-* -> SCEN-* -> TEST-*`.
 - Prefer typed relationships (`specified_by`, `verified_by`, `validates`, `implements`, `covered_by`, `executable_for`, etc.).
 - Plain string `links` import as generic `relates_to` only.
+- Use `restates` (req -> req) only when two current requirements intentionally ground the same logical term; it suppresses `domain-redundancy` for that pair. Use `supersedes` when one requirement replaces the other.
+
+### Naming entities (no numbering)
+
+- Name entities by what they govern, like source files: `<TYPE>-<area>-<behavior>` in kebab-case (`REQ-cli-gc`, `SCEN-mcp-search-discovery`, `TEST-mcp-search-discovery`, `ADR-capability-plugins-v1`, `EVT-exact-branch-store-ensure`). The filename stem equals the frontmatter `id`.
+- Never choose "the next number"; parallel branches collide on it.
+- `kb_search` the area before creating. If an entity already covers the behavior, update it or create a replacement linked with `supersedes`; a `-v2` suffix is acceptable only for that direct superseding replacement.
+- A name collision with another branch usually means duplicated work: reconcile, don't rename.
+- The area prefix is for humans; machine "sameness" lives in `subject_key` and predicate signatures. Subject keys are dotted `component.aspect[.sub]` with lowercase snake segments and are never derived from a requirement ID.
+- Legacy numbered entities (`REQ-001`…) are grandfathered by `entity-id-style` and must not be renamed; `// implements REQ-00x` comments reference them.
 
 ### Canonical entity-choice rule
 
@@ -135,7 +145,7 @@ Requirement semantic evolution is append-only:
 
 - New/modified symbols must be traceable to at least one requirement.
 - Preferred for test/e2e code: symbol manifest + `executable_for` relation.
-- Inline `// implements REQ-xxx` remains optional/backward-compatible for quick code-only changes.
+- Inline `// implements REQ-<area>-<behavior>` remains optional/backward-compatible for quick code-only changes.
 - When code edits change symbol extraction output, include updated `.kb/symbol-coordinates.yaml` in the same commit as the related code/documentation changes. If new logical symbols are added, update `.kb/symbols.yaml` accordingly.
 
 ## Release & Versioning Rules (npm packages)

@@ -192,7 +192,7 @@ export function formatViolations(violations: Violation[]): string {
     const name = `${v.name}()`;
     // Suggest adding requirement links with role-specific guidance
     const suggestion =
-      "Add ownership: implements: REQ-001 (production code), use covered_by for production coverage, or executable_for for executable test code";
+      "Add ownership: implements: REQ-<area>-<behavior> (production code), use covered_by for production coverage, or executable_for for executable test code";
     lines.push(`${loc}  ${name}  -> ${suggestion}`);
   }
   return lines.join("\n");
