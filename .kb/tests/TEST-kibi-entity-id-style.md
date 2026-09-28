@@ -1,6 +1,6 @@
 ---
 title: Entity ID style helper, staged review, and compile-intent slug IDs
-status: active
+status: passing
 verification_scope: unit
 tags:
   - vocabulary-convergence

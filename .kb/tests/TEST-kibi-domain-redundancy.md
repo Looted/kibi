@@ -1,6 +1,6 @@
 ---
 title: Advisory partitioning and Prolog redundancy, implication, and scaling suites
-status: active
+status: passing
 verification_scope: unit
 tags:
   - vocabulary-convergence

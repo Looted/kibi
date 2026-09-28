@@ -1,6 +1,6 @@
 ---
 title: Paraphrase-corpus convergence harness
-status: active
+status: passing
 verification_scope: integration
 tags:
   - vocabulary-convergence
