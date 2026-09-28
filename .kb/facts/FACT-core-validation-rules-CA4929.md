@@ -4,11 +4,11 @@ status: active
 fact_kind: predicate
 predicate_name: logical_requirement_rule
 predicate_args:
-  - core_validation
+  - kibi.checks.core_rules
   - no_cycles_rule
   - acyclic_dependency_chains
 predicate_namespace: kibi.requirements
-canonical_key: logical_requirement_rule(core_validation,no_cycles_rule,acyclic_dependency_chains)
+canonical_key: logical_requirement_rule(kibi.checks.core_rules,no_cycles_rule,acyclic_dependency_chains)
 polarity: assert
 claim_key: CLAIM-ECBEC0BAECCA4929
 claim_text: The Prolog KB core implements a no-cycles validation rule preventing circular dependency chains in requirements and ADRs

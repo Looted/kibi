@@ -20,4 +20,5 @@ claim_key: CLAIM-A29D577A4E285B4A
 claim_text: kibi doctor must report configured plugin package, capability, mode, and declared dependency status as a provider diagnostic without importing the plugin package
 id: FACT-PRED-7EF90EAD5210
 type: fact
+predicate_namespace: kibi.capability
 ---

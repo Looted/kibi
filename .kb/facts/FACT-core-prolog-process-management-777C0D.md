@@ -4,11 +4,11 @@ status: active
 fact_kind: predicate
 predicate_name: logical_requirement_rule
 predicate_args:
-  - compound_goal_status_query
+  - kibi.engine.prolog_process
   - prologprocess_result_cache
   - bypassed
 predicate_namespace: kibi.requirements
-canonical_key: logical_requirement_rule(compound_goal_status_query,prologprocess_result_cache,bypassed)
+canonical_key: logical_requirement_rule(kibi.engine.prolog_process,prologprocess_result_cache,bypassed)
 polarity: assert
 claim_key: CLAIM-61866D483A777C0D
 claim_text: Compound goals including the status query must bypass the PrologProcess result cache

@@ -20,4 +20,5 @@ claim_key: CLAIM-3F41F5281E4B98CA
 claim_text: Builtin providers must be allowed to keep historical deterministic semantic ontology and TypeScript symbol analysis
 id: FACT-PRED-A98E0E4498BA
 type: fact
+predicate_namespace: kibi.capability
 ---

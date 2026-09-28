@@ -20,4 +20,5 @@ claim_key: CLAIM-B0BADA99D4277113
 claim_text: The TYPESAFE_API_KEY provider setting must come from the process environment source when a real TypeSafe client is required
 id: FACT-PRED-DA56CE761218
 type: fact
+predicate_namespace: kibi.capability
 ---

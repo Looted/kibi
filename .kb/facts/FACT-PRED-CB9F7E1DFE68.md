@@ -20,4 +20,5 @@ claim_key: CLAIM-8755CB612B895673
 claim_text: Plugin secrets must be supplied from the process environment outside repository plugin configuration
 id: FACT-PRED-CB9F7E1DFE68
 type: fact
+predicate_namespace: kibi.capability
 ---

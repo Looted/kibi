@@ -10,14 +10,15 @@ tags:
 fact_kind: predicate
 predicate_name: logical_requirement_rule
 predicate_args:
-  - kibi_html_report_pagination
+  - kibi.report.html
   - require_complete_requirement_rows
   - fail_closed_on_partial_health_metrics
-canonical_key: logical_requirement_rule(kibi_html_report_pagination,require_complete_requirement_rows,fail_closed_on_partial_health_metrics)
+canonical_key: logical_requirement_rule(kibi.report.html,require_complete_requirement_rows,fail_closed_on_partial_health_metrics)
 polarity: assert
 claim_key: CLAIM-8F61569C04F4BEF8
 claim_text: Report generation must fail when pagination would make requirement-level health metrics incomplete
 id: FACT-PRED-B606CED833B8
 type: fact
+predicate_namespace: kibi.requirements
 ---
 Ground representation of one atomic behavior in the Kibi HTML requirement-health report.
