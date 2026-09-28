@@ -4521,7 +4521,10 @@ test(ontology_quality_flags_prose_atoms_and_respects_thresholds, [setup(setup_kb
            )),
     check_ontology_quality(Violations),
     assertion(length(Violations, 1)),
-    Violations = [violation('ontology-quality', 'FACT-SCHEMA-CATCH-ALL', _, _, _, Evidence)],
+    Violations = [violation('ontology-quality', 'FACT-SCHEMA-CATCH-ALL', Description, _, _, Evidence)],
+    % The message names the arguments that carry prose, not the shared one.
+    assertion(sub_string(Description, _, _, _, "prose-like arguments: subject (10/10), obligation (10/10)")),
+    assertion(\+ sub_string(Description, _, _, _, "outcome (")),
     Evidence.witnesses = [Witness],
     assertion(Witness.factCount == 10),
     assertion(Witness.singletonRatio >= 0.66),

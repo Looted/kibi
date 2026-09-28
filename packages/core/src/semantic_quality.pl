@@ -581,8 +581,9 @@ ontology_quality_violation(key(Namespace, Name, Arity), ArgLists, Threshold, Min
     schema_argument_names(SchemaIds, Arity, ArgumentNames),
     maplist(position_evidence(ArgumentNames), PositionStats, PositionEvidence),
     RatioPercent is round(Ratio * 100),
-    format(string(Description), "Predicate ~w/~w: ~w% of argument values across ~w facts occur in only one fact; arguments look like prose, so paraphrases will not converge", [Name, Arity, RatioPercent, FactCount]),
-    format(string(Suggestion), "Split ~w into narrower predicate schemas whose arguments come from a small shared vocabulary, and reuse existing argument constants instead of compressing each clause into new atoms", [Name]),
+    prose_arguments(ArgumentNames, PositionStats, FactCount, Threshold, ProseText),
+    format(string(Description), "Predicate ~w/~w: ~w% of argument values across ~w facts occur in only one fact; prose-like arguments: ~w, so paraphrases will not converge", [Name, Arity, RatioPercent, FactCount, ProseText]),
+    format(string(Suggestion), "Give the prose-like arguments of ~w a small shared vocabulary: declare argument_constants on its predicate_schema, map existing spellings with argument_aliases, and let kibi migrate rewrite the facts; split the predicate when an argument has no natural vocabulary", [Name]),
     Witness = _{
         kind: ontology_quality,
         predicateNamespace: Namespace,
@@ -605,6 +606,24 @@ position_singletons(ArgLists, Position, stats(Position, Distinct, Singletons)) :
     length(SingletonCounts, Singletons).
 
 singleton_count(_-1).
+
+% Arguments whose own singleton share reaches the threshold, as
+% "name (singletons/facts)"; the whole predicate is listed when no single
+% argument crosses it on its own.
+prose_arguments(ArgumentNames, PositionStats, FactCount, Threshold, Text) :-
+    findall(
+        Label,
+        (   member(stats(Position, _Distinct, Singletons), PositionStats),
+            Singletons / FactCount >= Threshold,
+            nth1(Position, ArgumentNames, Argument),
+            format(string(Label), "~w (~w/~w)", [Argument, Singletons, FactCount])
+        ),
+        Labels
+    ),
+    (   Labels == []
+    ->  Text = "spread across all arguments"
+    ;   atomic_list_concat(Labels, ', ', Text)
+    ).
 
 sum_singletons(stats(_, _, Singletons), Acc0, Acc) :-
     Acc is Acc0 + Singletons.
