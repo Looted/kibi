@@ -150,9 +150,9 @@ export function toKibiResult<T>(
     Pick<KibiResult<T>, "status" | "diagnostics" | "nextActions" | "error">
   > & {
     /**
-     * False when the operation was rejected before it ran (unknown operation
-     * or invalid input), so an error envelope reports its effects as not
-     * applicable rather than failed.
+     * False when the operation was rejected before it ran (invalid input),
+     * so an error envelope reports its effects as not applicable rather than
+     * failed.
      */
     readonly attempted?: boolean;
   } = {},
