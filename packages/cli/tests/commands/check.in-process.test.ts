@@ -404,6 +404,34 @@ Body.
     roots.push(cwd);
     mkdirSync(path.join(cwd, ".kb", "requirements"), { recursive: true });
     writeFileSync(
+      path.join(cwd, ".kb", "requirements", "REQ-auth-login.md"),
+      `---
+id: REQ-auth-login
+title: Auth
+status: open
+type: req
+---
+
+Login works.
+`,
+    );
+    git(cwd, "add .kb/requirements/REQ-auth-login.md");
+    const io = captureIo();
+    restores.push(io.restore);
+    const result = await withCwd(cwd, () =>
+      checkCommand({ staged: true, kbPath: path.join(cwd, "kb-store") }),
+    );
+    expect(result.exitCode).toBe(0);
+    expect(io.logText()).toMatch(/No violations found in staged files/);
+  });
+
+  test("warns without blocking when a staged entity uses a numbered ID", async () => {
+    const restoreEnv = isolateKibiEnv();
+    restores.push(restoreEnv);
+    const cwd = createGitWorkspace();
+    roots.push(cwd);
+    mkdirSync(path.join(cwd, ".kb", "requirements"), { recursive: true });
+    writeFileSync(
       path.join(cwd, ".kb", "requirements", "REQ-1.md"),
       `---
 id: REQ-1
@@ -422,7 +450,9 @@ Login works.
       checkCommand({ staged: true, kbPath: path.join(cwd, "kb-store") }),
     );
     expect(result.exitCode).toBe(0);
-    expect(io.logText()).toMatch(/No violations found in staged files/);
+    expect(io.logText()).toContain(
+      "[WARNING entity_id_style_review] Entity ID REQ-1 is a sequence number",
+    );
   });
 
   test("reports impact diagnostics for staged TypeScript without a symbols manifest", async () => {
