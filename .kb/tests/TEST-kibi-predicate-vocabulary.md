@@ -1,6 +1,6 @@
 ---
 title: Argument vocabulary helpers, upsert guard, suggestion binding, conformance, and migration actions
-status: active
+status: passing
 verification_scope: unit
 tags:
   - vocabulary-convergence

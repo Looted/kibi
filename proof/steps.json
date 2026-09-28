@@ -1254,5 +1254,15 @@
         "documentation/tests/e2e/packed/vocabulary-convergence.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-kibi-predicate-vocabulary-migration-e2e",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/predicate-vocabulary-migration.test.ts"
+      ]
+    ]
   }
 ]

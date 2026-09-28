@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 116,
-  "proofProven": 116,
+  "currentRequirements": 119,
+  "proofProven": 119,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -331,7 +331,22 @@
       "gaps": [],
       "uncoveredSymbols": []
     },
+    "REQ-kibi-predicate-argument-constants": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-predicate-schema-conformance": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
     "REQ-kibi-predicate-suggestion-relevance-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-kibi-predicate-vocabulary-migration": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []
