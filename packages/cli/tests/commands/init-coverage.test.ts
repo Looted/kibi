@@ -64,7 +64,7 @@ describe("initCommand remaining branches", () => {
     const first = await withCwd(cwd, () => initCommand({ hooks: true }));
     expect(first.exitCode).toBe(0);
     expect(io.logText()).toContain(".kb/ directory already exists");
-    expect(io.logText()).toContain("Installed git hooks");
+    expect(io.logText()).toContain("Installed/updated Kibi git hooks");
     expect(io.logText()).toContain(
       "Existing Kibi source knowledge was preserved",
     );

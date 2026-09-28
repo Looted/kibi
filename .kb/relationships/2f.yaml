@@ -223,3 +223,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-02feeb42b54f
+  - type: executable_for
+    from: SYM-git-hook-effective-install-init-context-verifier
+    to: TEST-git-hook-effective-install
+    created_at: 2026-09-28T18:22:15.237Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75b40abca308

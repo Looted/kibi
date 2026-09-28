@@ -167,3 +167,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-92cb981d5d28
+  - type: executable_for
+    from: SYM-git-hook-effective-install-repository-context-verifier
+    to: TEST-git-hook-effective-install
+    created_at: 2026-09-26T08:33:54.284Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f566cf7026f
+  - type: relates_to
+    from: REQ-git-hook-effective-install
+    to: REQ-git-hook-sync-v2
+    created_at: 2026-09-26T08:57:00.022Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-05857022f8ce
+  - type: specified_by
+    from: REQ-git-hook-effective-install
+    to: SCEN-git-hook-effective-install
+    created_at: 2026-09-26T08:57:00.040Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bc36262dc51a
+  - type: requires_predicate
+    from: REQ-git-hook-effective-install
+    to: FACT-PRED-57617C97AE46
+    created_at: 2026-09-26T08:57:00.049Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-caecd7161952
+  - type: requires_predicate
+    from: REQ-git-hook-effective-install
+    to: FACT-PRED-9941160A203B
+    created_at: 2026-09-26T08:57:00.055Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0b60decf30c1
