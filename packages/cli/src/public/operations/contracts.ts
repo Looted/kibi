@@ -172,6 +172,24 @@ export const OPERATION_DATA_SCHEMAS: Readonly<
     warnings: recordArray,
     migrationWarning: { type: ["string", "null"] },
     logic: recordValue,
+    vocabularyAlignment: objectData(
+      {
+        subject: recordValue,
+        redundancyCandidates: recordArray,
+        reviewPlan: recordArray,
+        stamps: recordArray,
+        fallbackUsed: booleanValue,
+        diagnostics: recordArray,
+      },
+      [
+        "subject",
+        "redundancyCandidates",
+        "reviewPlan",
+        "stamps",
+        "fallbackUsed",
+        "diagnostics",
+      ],
+    ),
   }),
   kb_suggest_predicates: objectData({
     text: stringValue,

@@ -74,7 +74,7 @@
           "type": "object"
         },
         "id": {
-          "description": "Unique entity ID (string). Example: 'REQ-123'. Existing ID updates the entity; new ID creates it.",
+          "description": "Unique entity ID (string). Example: 'REQ-cli-gc'. Name entities by the behavior they govern (<TYPE>-<area>-<behavior>), never by the next free number. Existing ID updates the entity; new ID creates it.",
           "type": "string"
         },
         "properties": {
@@ -191,7 +191,7 @@
               "type": "string"
             },
             "links": {
-              "description": "Optional references. Example: ['REQ-010','https://example.com/spec'].",
+              "description": "Optional references. Example: ['REQ-cli-gc','https://example.com/spec'].",
               "items": {
                 "type": "string"
               },
@@ -679,7 +679,7 @@
               "type": "string"
             },
             "source": {
-              "description": "Optional provenance string. Example: 'docs/requirements/REQ-123.md'. Defaults to 'mcp://kibi/upsert'.",
+              "description": "Optional provenance string. Example: '.kb/requirements/REQ-cli-gc.md'. Defaults to 'mcp://kibi/upsert'.",
               "type": "string"
             },
             "sourceFile": {
@@ -769,7 +769,7 @@
                 "type": "string"
               },
               "to": {
-                "description": "Target entity ID (must exist). Example: 'REQ-001'.",
+                "description": "Target entity ID (must exist). Example: 'REQ-cli-gc'.",
                 "type": "string"
               },
               "type": {
@@ -791,6 +791,7 @@
                   "publishes",
                   "consumes",
                   "supersedes",
+                  "restates",
                   "relates_to"
                 ],
                 "type": "string"

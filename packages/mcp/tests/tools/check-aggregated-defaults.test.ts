@@ -78,7 +78,7 @@ describe("MCP check aggregated defaults", () => {
             diagnostic.blocking === false,
         ),
       ).toBe(true);
-      expect(query).toHaveBeenCalledTimes(19);
+      expect(query).toHaveBeenCalledTimes(20);
     } finally {
       rmSync(workspaceRoot, { recursive: true, force: true });
     }
@@ -137,7 +137,7 @@ describe("MCP check aggregated defaults", () => {
             diagnostic.blocking === false,
         ),
       ).toBe(true);
-      expect(query).toHaveBeenCalledTimes(19);
+      expect(query).toHaveBeenCalledTimes(20);
     } finally {
       rmSync(workspaceRoot, { recursive: true, force: true });
     }

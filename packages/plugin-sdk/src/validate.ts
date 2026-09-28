@@ -18,6 +18,12 @@ import type {
   SymbolExtractorV1,
 } from "./capabilities/symbol-extractor.js";
 import {
+  type CompareClaimsResult,
+  NEW_SUBJECT_CHOICE,
+  type RankSubjectsResult,
+  type VocabularyAlignmentV1,
+} from "./capabilities/vocabulary-alignment.js";
+import {
   type CapabilityId,
   KIBI_PLUGIN_API_VERSION,
   type KibiPluginV1,
@@ -29,6 +35,7 @@ import {
   type ProjectPluginEntry,
   SEMANTIC_CLASSIFIER_CAPABILITY_ID,
   SYMBOL_EXTRACTOR_CAPABILITY_ID,
+  VOCABULARY_ALIGNMENT_CAPABILITY_ID,
 } from "./protocol.js";
 
 const SOURCE_SYMBOL_KINDS = [
@@ -98,7 +105,8 @@ export function isCapabilityId(value: string): value is CapabilityId {
   return (
     value === SEMANTIC_CLASSIFIER_CAPABILITY_ID ||
     value === ONTOLOGY_PACK_CAPABILITY_ID ||
-    value === SYMBOL_EXTRACTOR_CAPABILITY_ID
+    value === SYMBOL_EXTRACTOR_CAPABILITY_ID ||
+    value === VOCABULARY_ALIGNMENT_CAPABILITY_ID
   );
 }
 
@@ -202,6 +210,36 @@ function validateSymbolExtractor(value: unknown): SymbolExtractorV1 {
   };
 }
 
+function validateVocabularyAlignment(value: unknown): VocabularyAlignmentV1 {
+  if (
+    !isRecord(value) ||
+    typeof value.rankSubjects !== "function" ||
+    typeof value.compareClaims !== "function"
+  ) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY",
+      "vocabularyAlignment must expose rankSubjects() and compareClaims()",
+    );
+  }
+  let model: string | undefined;
+  if (value.model !== undefined) {
+    if (typeof value.model !== "string" || value.model.trim() === "") {
+      throw new PluginValidationError(
+        "INVALID_CAPABILITY",
+        "vocabularyAlignment.model must be a non-empty string when provided",
+      );
+    }
+    model = value.model.trim();
+  }
+  return {
+    id: requireString(value.id, "vocabularyAlignment.id", "INVALID_CAPABILITY"),
+    rankSubjects: value.rankSubjects as VocabularyAlignmentV1["rankSubjects"],
+    compareClaims:
+      value.compareClaims as VocabularyAlignmentV1["compareClaims"],
+    ...(model !== undefined ? { model } : {}),
+  };
+}
+
 // implements REQ-capability-plugin-protocol-v1
 export function validateKibiPlugin(value: unknown): KibiPluginV1 {
   if (!isRecord(value)) {
@@ -248,10 +286,19 @@ export function validateKibiPlugin(value: unknown): KibiPluginV1 {
     });
   }
 
+  if (value.capabilities.vocabularyAlignment !== undefined) {
+    Object.assign(capabilities, {
+      vocabularyAlignment: validateVocabularyAlignment(
+        value.capabilities.vocabularyAlignment,
+      ),
+    });
+  }
+
   if (
     capabilities.semanticClassifier === undefined &&
     capabilities.ontologyPack === undefined &&
-    capabilities.symbolExtractor === undefined
+    capabilities.symbolExtractor === undefined &&
+    capabilities.vocabularyAlignment === undefined
   ) {
     throw new PluginValidationError(
       "INVALID_CAPABILITY",
@@ -263,6 +310,7 @@ export function validateKibiPlugin(value: unknown): KibiPluginV1 {
     capabilities.semanticClassifier?.id,
     capabilities.ontologyPack?.id,
     capabilities.symbolExtractor?.id,
+    capabilities.vocabularyAlignment?.id,
   ].filter((entry): entry is string => typeof entry === "string");
   if (new Set(capabilityIds).size !== capabilityIds.length) {
     throw new PluginValidationError(
@@ -820,4 +868,150 @@ export function validateSourceAnalysisResultForPath(
     );
   }
   return result;
+}
+
+function requireUnitInterval(value: unknown, field: string): number {
+  const number = requireFiniteNumber(value, field);
+  if (number < 0 || number > 1) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      `${field} must be between 0 and 1`,
+    );
+  }
+  return number;
+}
+
+/**
+ * Validate a rankSubjects result against the clauses that were sent. Every
+ * choice must be one of that clause's candidates or `new_subject`; unknown or
+ * duplicate claim keys are rejected so a provider cannot invent subjects.
+ */
+// implements REQ-kibi-vocabulary-alignment-capability
+export function validateRankSubjectsResult(
+  value: unknown,
+  clauses: readonly {
+    readonly claimKey: string;
+    readonly candidates: readonly { readonly subjectKey: string }[];
+  }[],
+): RankSubjectsResult {
+  if (!isRecord(value) || !Array.isArray(value.decisions)) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      "rankSubjects result must include decisions[]",
+    );
+  }
+  const allowed = new Map(
+    clauses.map((clause) => [
+      clause.claimKey,
+      new Set([
+        NEW_SUBJECT_CHOICE as string,
+        ...clause.candidates.map((candidate) => candidate.subjectKey),
+      ]),
+    ]),
+  );
+  const seen = new Set<string>();
+  const decisions = value.decisions.map((decision, index) => {
+    if (!isRecord(decision)) {
+      throw new PluginValidationError(
+        "INVALID_CAPABILITY_RESULT",
+        `decisions[${index}] must be an object`,
+      );
+    }
+    const claimKey = requireString(
+      decision.claimKey,
+      `decisions[${index}].claimKey`,
+      "INVALID_CAPABILITY_RESULT",
+    );
+    const choices = allowed.get(claimKey);
+    if (choices === undefined) {
+      throw new PluginValidationError(
+        "INVALID_CAPABILITY_RESULT",
+        `foreign claimKey '${claimKey}' is not in the supplied rankSubjects input`,
+      );
+    }
+    if (seen.has(claimKey)) {
+      throw new PluginValidationError(
+        "INVALID_CAPABILITY_RESULT",
+        `duplicate decision for claimKey '${claimKey}'`,
+      );
+    }
+    seen.add(claimKey);
+    const choice = requireString(
+      decision.choice,
+      `decisions[${index}].choice`,
+      "INVALID_CAPABILITY_RESULT",
+    );
+    if (!choices.has(choice)) {
+      throw new PluginValidationError(
+        "INVALID_CAPABILITY_RESULT",
+        `decisions[${index}].choice '${choice}' is neither a supplied candidate nor ${NEW_SUBJECT_CHOICE}`,
+      );
+    }
+    return {
+      claimKey,
+      choice,
+      confidence: requireUnitInterval(
+        decision.confidence,
+        `decisions[${index}].confidence`,
+      ),
+    };
+  });
+  return { decisions };
+}
+
+/** Validate a compareClaims result against the pairs that were sent. */
+// implements REQ-kibi-vocabulary-alignment-capability
+export function validateCompareClaimsResult(
+  value: unknown,
+  pairKeys: readonly string[],
+): CompareClaimsResult {
+  if (!isRecord(value) || !Array.isArray(value.judgments)) {
+    throw new PluginValidationError(
+      "INVALID_CAPABILITY_RESULT",
+      "compareClaims result must include judgments[]",
+    );
+  }
+  const expected = new Set(pairKeys);
+  const seen = new Set<string>();
+  const judgments = value.judgments.map((judgment, index) => {
+    if (!isRecord(judgment)) {
+      throw new PluginValidationError(
+        "INVALID_CAPABILITY_RESULT",
+        `judgments[${index}] must be an object`,
+      );
+    }
+    const pairKey = requireString(
+      judgment.pairKey,
+      `judgments[${index}].pairKey`,
+      "INVALID_CAPABILITY_RESULT",
+    );
+    if (!expected.has(pairKey)) {
+      throw new PluginValidationError(
+        "INVALID_CAPABILITY_RESULT",
+        `foreign pairKey '${pairKey}' is not in the supplied compareClaims input`,
+      );
+    }
+    if (seen.has(pairKey)) {
+      throw new PluginValidationError(
+        "INVALID_CAPABILITY_RESULT",
+        `duplicate judgment for pairKey '${pairKey}'`,
+      );
+    }
+    seen.add(pairKey);
+    if (typeof judgment.sameObligation !== "boolean") {
+      throw new PluginValidationError(
+        "INVALID_CAPABILITY_RESULT",
+        `judgments[${index}].sameObligation must be a boolean`,
+      );
+    }
+    return {
+      pairKey,
+      sameObligation: judgment.sameObligation,
+      confidence: requireUnitInterval(
+        judgment.confidence,
+        `judgments[${index}].confidence`,
+      ),
+    };
+  });
+  return { judgments };
 }

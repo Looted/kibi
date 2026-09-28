@@ -472,6 +472,7 @@ Validates knowledge base integrity and runs inference rules.
 - Detects dangling references (entities that reference non-existent IDs)
 - Detects cycles in dependency graphs
 - Supports strict advisory modeling checks (`strict-fact-shape`, `strict-req-fact-pairing`, `predicate-verifiability`, `proof-contract-symbols`) that run by default as non-blocking `qualityDiagnostics`, and default-off migration diagnostics (`strict-readiness`, `semantic-completeness`) that run only when explicitly selected with `--rules`. Canonical rules always populate blocking `violations[]`. `--rules` is an invocation-time diagnostic filter only; leftover `.kb/config.json` cannot disable canonical checks. `proof-contract-symbols` reports unresolved `required_proofs.symbol_id` values, type-shape required proofs, and `proof_bindings.source_file` disagreement with the named symbol `sourceFile`. Kibi does not infer TEST names from filenames.
+- Runs vocabulary-convergence checks by default, all advisory and non-blocking (see [Vocabulary convergence checks](#vocabulary-convergence-checks)): `domain-redundancy`, `subject-key-identity`, `subject-key-shape`, `entity-id-style` (warnings) and `domain-implication`, `ontology-quality` (info).
 - With `--staged`, inventories every index path before analysis. TypeScript and JavaScript keep their blocking symbol checks; Kibi metadata is validated through its typed lanes; every other readable UTF-8 text file receives advisory file-level ownership and impact-evidence checks.
 - Staged deletions and renames retain committed content and ownership for removal review. Binary blobs, unsupported encodings, symlinks, and submodules are reported with explicit skipped reasons and remain non-blocking.
 - Reports blocking `violations[]` with actionable suggestions and additive `qualityDiagnostics[]` audit signals for modeling quality, coverage depth, broad requirements, duplicate coordinates, symbol fanout, and strict-fact review
@@ -522,7 +523,32 @@ kibi check --rules query-plan-safety
 
 # Audit requirement status vocabulary (catches ADR statuses on reqs)
 kibi check --rules req-status-vocabulary
+
+# Audit vocabulary convergence (duplicates, subject keys, prose-in-atoms)
+kibi check --rules domain-redundancy,subject-key-identity,subject-key-shape,ontology-quality
 ```
+
+### Vocabulary convergence checks
+
+Deduplication and contradiction checks only work when equivalent prose lands on
+the same subject, predicate, and arguments. These rules measure and nudge that
+convergence. They are advisory: findings are non-blocking `qualityDiagnostics`
+and never change the exit code. All of them are deterministic Prolog over the
+compiled KB; none calls a plugin or the network.
+
+| Rule | Severity | Reports |
+| --- | --- | --- |
+| `domain-redundancy` | warning | Two distinct current requirements ground the identical logical term (same predicate/property signature after unit canonicalization, same polarity) or link the same ground fact via `requires_property`, `requires_predicate`, or `requires_rule`. Pairs linked by `supersedes` or `restates` (either direction) are exempt. Evidence carries both requirement IDs, both fact IDs, and the signature. Links are grouped by signature once, so cost grows with the number of links, not with requirement pairs. |
+| `domain-implication` | info | Same subject and property, comparable numeric operators, and one bound strictly implies the other (`lte 30 min` implies `lte 3600 s`). Reported as "Implied by", never as a duplicate. |
+| `subject-key-identity` | warning | A subject key of the form `req.<segment>[.…]` where `<segment>` is a normalized existing requirement ID (`req.req_cli_gc` for `REQ-cli-gc`, or without the `req_` prefix). Every requirement becoming its own subject makes cross-requirement checks impossible. |
+| `subject-key-shape` | warning | Subject facts whose key is not dotted `component.aspect[.sub]` with lowercase snake segments (`kibi.cli.check.staged`). |
+| `ontology-quality` | info | A predicate (namespace, name, arity) with at least `KIBI_ONTOLOGY_QUALITY_MIN_FACTS` facts (default 8) where the share of argument slots holding a value that occurs in only one fact is at least `KIBI_ONTOLOGY_QUALITY_MAX_SINGLETON_RATIO` (default 0.6): prose is being compressed into atoms. Both variables are read from the invoking `kibi`/MCP process. |
+| `entity-id-style` | warning | Markdown entities whose filename stem differs from the frontmatter `id`. New purely numeric IDs (`REQ-123`) are reported where they are created: `kb_upsert`/`kb_validate_upsert` warnings and staged added or renamed entity files (`--staged`). Committed legacy numbered entities are never flagged. |
+
+Property values are compared after unit canonicalization: durations convert to
+seconds, data sizes to bytes (SI `kB`/`MB`, IEC `KiB`/`MiB`), and percentages
+to percent. The authored value is stored unchanged. Unknown or ambiguous units
+(`KB`, `Mb`, `month`) stay as written and are never equated with anything else.
 
 While editing, agents can run impact diagnostics through MCP `kb_check({sourceFiles:[...], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})` or the equivalent `kibi check --input <file|->` JSON route. `kibi check --staged` remains the commit-time git-hook gate once files are staged.
 

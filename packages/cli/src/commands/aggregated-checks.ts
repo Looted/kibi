@@ -32,8 +32,11 @@ export function ontologyQualityOverridesGoal(
     env.KIBI_ONTOLOGY_QUALITY_MAX_SINGLETON_RATIO,
   );
   const minFacts = ontologyQualitySetting(env.KIBI_ONTOLOGY_QUALITY_MIN_FACTS);
+  // call/1 defers resolution: a literal module-qualified goal is checked by
+  // the toplevel when the query is read, before use_module has loaded
+  // semantic_quality.pl (the same reason the check calls use call/1).
   return `(   predicate_property(semantic_quality:set_ontology_quality_overrides(_, _), defined)
-    ->  semantic_quality:set_ontology_quality_overrides(${ratio}, ${minFacts})
+    ->  call(semantic_quality:set_ontology_quality_overrides(${ratio}, ${minFacts}))
     ;   true
     )`;
 }

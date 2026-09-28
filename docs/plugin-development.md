@@ -1,12 +1,19 @@
 # Developing Kibi capability plugins
 
-Kibi capability plugins extend three host-owned seams without taking over
+Kibi capability plugins extend four host-owned seams without taking over
 validation, Prolog, mutation, or proof:
 
 1. `kibi.semantic-classifier.v1` — lane / ambiguity classification over host
    propositions
 2. `kibi.ontology-pack.v1` — predicate schemas and match candidates
 3. `kibi.symbol-extractor.v1` — language-specific source symbol analysis
+4. `kibi.vocabulary-alignment.v1` — modeling-time vocabulary convergence:
+   `rankSubjects` (reuse an existing subject or declare `new_subject`) and
+   `compareClaims` (possible-duplicate candidates for review)
+
+Every capability is optional for third-party plugins: a plugin declares only
+the capabilities it provides, and plugins written before a capability existed
+keep validating and loading unchanged. The builtin plugin provides all four.
 
 This is distinct from **host plugins** such as `kibi-cursor`, `kibi-opencode`,
 `kibi-codex`, and `kibi-zcode`, which adapt an IDE or agent host to Kibi's
@@ -93,11 +100,14 @@ comparison metadata only.
 | Semantic classifier | First for `augment`; fallback for `replace` failure | External classifiers run only from `kb_semantic_advisor` and `kb_compile_intent`. Valid empty `decisions[]` under `replace` is abstention (conservative `none`), not builtin fill. |
 | Ontology pack | Catalog starts with builtin for `augment` | `replace` excludes the builtin provider catalog. Valid empty `match()` is abstention (no builtin consult). Allowed wherever Kibi already matches ontology |
 | Symbol extractor | Builtin first for supported files under `augment` | `replace` gets first claim with builtin fallback |
+| Vocabulary alignment | Builtin always runs first; fallback for `replace` failure | External providers run only from `kb_model_requirement`. `augment` refines only clauses the builtin left as `new_subject` and pairs it did not judge duplicates (it can add candidates, never remove them). A provider may only choose among the builtin-ranked candidates or `new_subject`; any other answer is rejected and falls back to builtin with `fallbackUsed`. Results are advice in the modeling plan, never check outcomes |
 
 Sync maintenance paths (`sync`, `check`, `kb_upsert`, `status`, proof, and
-related) keep deterministic builtin analysis for all three capabilities and must
-never invoke external semantic classifiers, ontology packs, or symbol
-extractors. Async advisor / compile-intent / staged-symbol paths compose the
+related) keep deterministic builtin analysis for every capability and must
+never invoke external semantic classifiers, ontology packs, symbol extractors,
+or vocabulary-alignment providers. `kb_check` in particular never resolves
+plugins: `domain-redundancy`, `subject-key-identity`, and the other Prolog
+checks remain the only pass/fail authority. Async advisor / compile-intent / staged-symbol paths compose the
 registry (replace / augment / shadow); replace mode strips or overrides any
 sync-path builtin suggestions before results are returned.
 
@@ -127,10 +137,29 @@ providers must declare `metered: true` and list required secret names.
 - For optional providers such as Jev, cover missing key, timeout, and malformed
   responses with injectable clients and offline fixtures
 
-## Optional Jev classifier
+## Vocabulary alignment contract
 
-`kibi-plugin-jev` implements only `kibi.semantic-classifier.v1` via TypeSafe
-Jev (`@typesafe-ai/sdk`). It is **not** a default CLI or MCP dependency.
+`rankSubjects({ clauses })` receives, per clause, a `claimKey`, the clause
+`text`, the `proposedSubjectKey` Kibi would otherwise declare, and builtin
+`candidates` (`subjectKey`, `score` in [0, 1], optional `title` and
+`requirementTitles`). It returns one decision per clause: `choice` is one of the
+candidate subject keys or `new_subject`, plus a `confidence` in [0, 1].
+
+`compareClaims({ pairs })` receives pairs sharing a subject key (or predicate
+name) whose signatures differ, and returns `{ pairKey, sameObligation,
+confidence }` per pair. `sameObligation: true` only nominates the pair for
+review; exact duplicates are detected by the deterministic `domain-redundancy`
+check.
+
+Results are validated by `validateRankSubjectsResult` and
+`validateCompareClaimsResult`: foreign keys, duplicate keys, invented subjects,
+and out-of-range confidences are rejected before they reach the plan.
+
+## Optional Jev provider
+
+`kibi-plugin-jev` implements `kibi.semantic-classifier.v1` and
+`kibi.vocabulary-alignment.v1` via TypeSafe Jev (`@typesafe-ai/sdk`). Each is
+activated separately. It is **not** a default CLI or MCP dependency.
 
 - Install and activate explicitly (see [install.md](./install.md))
 - Set `TYPESAFE_API_KEY` via Kibi env bootstrap (same for every MCP host):
@@ -148,7 +177,8 @@ printf '%s\n' 'TYPESAFE_API_KEY=...' >> ~/.config/kibi/env
 - Explicit `JevSemanticClassifierOptions.model` and `timeoutMs` override those environment defaults. They are a programmatic constructor API, not fields in `package.json`
 - Importing the package, or leaving it installed but inactive, performs no TypeSafe client or network call
 - On failure Kibi falls back to the builtin classifier with an advisory warning
-- `kb_model_requirement` does not invoke this classifier. External semantic classifiers run only from `kb_semantic_advisor` and `kb_compile_intent`
+- `kb_model_requirement` does not invoke the classifier. External semantic classifiers run only from `kb_semantic_advisor` and `kb_compile_intent`
+- Vocabulary alignment (`rankSubjects` as a `choice` over the builtin top 5 plus `new_subject`; `compareClaims` as a `noul` per pair) runs only from `kb_model_requirement`, and only when `kibi.vocabulary-alignment.v1` is activated
 - Live tests require both `KIBI_JEV_LIVE_TEST=1` and `TYPESAFE_API_KEY`
 - `kibi doctor` reports first-party Jev secret source labels and model/timeout without importing the plugin or leaking values
 

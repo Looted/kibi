@@ -630,6 +630,8 @@ Kibi supports relationship types listed below. Each relationship has metadata:
 | publishes           | symbol               | event                | Symbol publishes event                            |
 | consumes            | symbol               | event                | Symbol consumes event                             |
 | supersedes          | adr                  | adr                  | The source ADR formally replaces the target ADR. The target is expected to carry status: archived or deprecated |
+| supersedes          | req                  | req                  | The source requirement replaces the target requirement; the target stops being current |
+| restates            | req                  | req                  | The source requirement intentionally restates a current requirement (e.g. a product requirement echoed in a platform requirement). Both stay current; `domain-redundancy` is suppressed for the pair |
 | relates_to          | a                    | b                    | Generic relationship (escape hatch)               |
 
 ---
@@ -832,11 +834,23 @@ relationship:
   source: https://example.com/fixtures/adrs/ADR-session-token-storage-v2
 ```
 
+**restates**
+```yaml
+# req REQ-billing-invoice-retention restates req REQ-platform-record-retention
+relationship:
+  type: restates
+  source: REQ-billing-invoice-retention
+  target: REQ-platform-record-retention
+  created_at: 2026-09-28T10:00:00Z
+  created_by: analyst
+  source: .kb/requirements/REQ-billing-invoice-retention.md
+```
+
 ---
 
 ## Notes
 - All entity and relationship types are fixed in v0; extensibility is planned for future versions.
-- IDs must be stable and unique (content-based SHA256 or explicit frontmatter).
+- IDs must be stable and unique. Set an explicit frontmatter `id` named by what the entity governs (`<TYPE>-<area>-<behavior>`, e.g. `REQ-cli-gc`) and keep the filename stem equal to it; never pick the next free number. A missing `id` falls back to a path-and-title hash that changes on rename. `entity-id-style` reports stem mismatches and newly created numeric IDs; legacy numbered entities are grandfathered.
 - Relationship metadata supports audit and conflict resolution.
 - Status values are entity-type specific (see above).
 

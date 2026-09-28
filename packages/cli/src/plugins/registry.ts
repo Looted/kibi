@@ -31,6 +31,8 @@ import {
   SYMBOL_EXTRACTOR_CAPABILITY_ID,
   type SemanticClassifierV1,
   type SymbolExtractorV1,
+  VOCABULARY_ALIGNMENT_CAPABILITY_ID,
+  type VocabularyAlignmentV1,
   defineKibiPlugin,
   validateKibiPlugin,
 } from "kibi-plugin-sdk";
@@ -83,12 +85,17 @@ export type CapabilityRegistryOptions = Readonly<{
   loadPluginOptions?: LoadPluginOptions;
 }>;
 
-type CapabilitySlot = "semanticClassifier" | "ontologyPack" | "symbolExtractor";
+type CapabilitySlot =
+  | "semanticClassifier"
+  | "ontologyPack"
+  | "symbolExtractor"
+  | "vocabularyAlignment";
 
 const CAPABILITY_SLOT: Record<CapabilityId, CapabilitySlot> = {
   [SEMANTIC_CLASSIFIER_CAPABILITY_ID]: "semanticClassifier",
   [ONTOLOGY_PACK_CAPABILITY_ID]: "ontologyPack",
   [SYMBOL_EXTRACTOR_CAPABILITY_ID]: "symbolExtractor",
+  [VOCABULARY_ALIGNMENT_CAPABILITY_ID]: "vocabularyAlignment",
 };
 
 /**
@@ -130,6 +137,23 @@ export function createStubBuiltinPlugin(): KibiPluginV1 {
               fallbackReason: "builtin_stub",
             },
             symbols: [],
+          }),
+        },
+        vocabularyAlignment: {
+          id: "kibi-plugin-builtin-stub.vocabulary",
+          rankSubjects: (input) => ({
+            decisions: input.clauses.map((clause) => ({
+              claimKey: clause.claimKey,
+              choice: "new_subject",
+              confidence: 0,
+            })),
+          }),
+          compareClaims: (input) => ({
+            judgments: input.pairs.map((pair) => ({
+              pairKey: pair.pairKey,
+              sameObligation: false,
+              confidence: 0,
+            })),
           }),
         },
       },
@@ -231,7 +255,12 @@ function bindingFor<T>(
 function capabilityFromPlugin(
   plugin: KibiPluginV1,
   capabilityId: CapabilityId,
-): SemanticClassifierV1 | OntologyPackV1 | SymbolExtractorV1 | undefined {
+):
+  | SemanticClassifierV1
+  | OntologyPackV1
+  | SymbolExtractorV1
+  | VocabularyAlignmentV1
+  | undefined {
   const slot = CAPABILITY_SLOT[capabilityId];
   return plugin.capabilities[slot];
 }
@@ -309,6 +338,14 @@ export class CapabilityRegistry {
     return this.resolveCapability(SYMBOL_EXTRACTOR_CAPABILITY_ID) as Promise<
       CapabilityModeResolution<SymbolExtractorV1>
     >;
+  }
+
+  async resolveVocabularyAlignment(): Promise<
+    CapabilityModeResolution<VocabularyAlignmentV1>
+  > {
+    return this.resolveCapability(
+      VOCABULARY_ALIGNMENT_CAPABILITY_ID,
+    ) as Promise<CapabilityModeResolution<VocabularyAlignmentV1>>;
   }
 
   async resolveCapability(

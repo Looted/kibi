@@ -84,7 +84,9 @@ describe("bundled Kibi skills", () => {
     expect(authoring).toContain("## Naming entities");
     expect(authoring).toContain('Never choose "the next number"');
     for (const text of [directions, authoring]) {
-      const numbered = text.match(/\b(?:REQ|SCEN|TEST|ADR|FLAG|EVT|SYM)-\d+\b/g);
+      const numbered = text.match(
+        /\b(?:REQ|SCEN|TEST|ADR|FLAG|EVT|SYM)-\d+\b/g,
+      );
       // Only the grandfathering note may cite a legacy numbered ID.
       expect(
         (numbered ?? []).filter((id) => !["REQ-123", "REQ-003"].includes(id)),

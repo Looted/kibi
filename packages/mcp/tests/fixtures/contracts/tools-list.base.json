@@ -12,7 +12,7 @@
       "inputSchema": {
         "properties": {
           "id": {
-            "description": "Optional exact entity ID. Example: 'REQ-001'. If omitted, returns matching entities by other filters.",
+            "description": "Optional exact entity ID. Example: 'REQ-cli-gc'. If omitted, returns matching entities by other filters.",
             "type": "string"
           },
           "limit": {
@@ -2184,7 +2184,7 @@
             "type": "object"
           },
           "id": {
-            "description": "Unique entity ID (string). Example: 'REQ-123'. Existing ID updates the entity; new ID creates it.",
+            "description": "Unique entity ID (string). Example: 'REQ-cli-gc'. Name entities by the behavior they govern (<TYPE>-<area>-<behavior>), never by the next free number. Existing ID updates the entity; new ID creates it.",
             "type": "string"
           },
           "properties": {
@@ -2301,7 +2301,7 @@
                 "type": "string"
               },
               "links": {
-                "description": "Optional references. Example: ['REQ-010','https://example.com/spec'].",
+                "description": "Optional references. Example: ['REQ-cli-gc','https://example.com/spec'].",
                 "items": {
                   "type": "string"
                 },
@@ -2789,7 +2789,7 @@
                 "type": "string"
               },
               "source": {
-                "description": "Optional provenance string. Example: 'docs/requirements/REQ-123.md'. Defaults to 'mcp://kibi/upsert'.",
+                "description": "Optional provenance string. Example: '.kb/requirements/REQ-cli-gc.md'. Defaults to 'mcp://kibi/upsert'.",
                 "type": "string"
               },
               "sourceFile": {
@@ -2879,7 +2879,7 @@
                   "type": "string"
                 },
                 "to": {
-                  "description": "Target entity ID (must exist). Example: 'REQ-001'.",
+                  "description": "Target entity ID (must exist). Example: 'REQ-cli-gc'.",
                   "type": "string"
                 },
                 "type": {
@@ -2901,6 +2901,7 @@
                     "publishes",
                     "consumes",
                     "supersedes",
+                    "restates",
                     "relates_to"
                   ],
                   "type": "string"
@@ -3560,7 +3561,7 @@
             "type": "integer"
           },
           "rules": {
-            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, source-relationship-parity, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, logic-coverage, rule-safety, rule-verifiability, query-plan-safety, req-status-vocabulary, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, strict-readiness, semantic-completeness, proof-contract-symbols. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
+            "description": "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, source-relationship-parity, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, logic-coverage, rule-safety, rule-verifiability, query-plan-safety, req-status-vocabulary, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, strict-readiness, semantic-completeness, proof-contract-symbols, entity-id-style, domain-redundancy, domain-implication, subject-key-identity, subject-key-shape, ontology-quality. If omitted, server runs canonical and advisory rules plus the full-KB qualityDiagnostics audit scan, including usage telemetry acceptance when evidence exists; migration rules run only when explicitly selected. Advisory and migration findings are non-blocking qualityDiagnostics. If supplied, server preserves scoped validation and skips the full-KB advisory scan.",
             "items": {
               "enum": [
                 "must-priority-coverage",
@@ -3582,7 +3583,13 @@
                 "predicate-verifiability",
                 "strict-readiness",
                 "semantic-completeness",
-                "proof-contract-symbols"
+                "proof-contract-symbols",
+                "entity-id-style",
+                "domain-redundancy",
+                "domain-implication",
+                "subject-key-identity",
+                "subject-key-shape",
+                "ontology-quality"
               ],
               "type": "string"
             },
@@ -3966,6 +3973,55 @@
               },
               "statement": {
                 "type": "string"
+              },
+              "vocabularyAlignment": {
+                "additionalProperties": false,
+                "properties": {
+                  "diagnostics": {
+                    "items": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "fallbackUsed": {
+                    "type": "boolean"
+                  },
+                  "redundancyCandidates": {
+                    "items": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "reviewPlan": {
+                    "items": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "stamps": {
+                    "items": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "subject": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "subject",
+                  "redundancyCandidates",
+                  "reviewPlan",
+                  "stamps",
+                  "fallbackUsed",
+                  "diagnostics"
+                ],
+                "type": "object"
               },
               "warnings": {
                 "items": {
