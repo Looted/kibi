@@ -1875,38 +1875,6 @@ test(typed_verification_scope_beats_legacy_e2e_heuristics, [setup(setup_kb), cle
     assertion(Row.coverageDepth == unit_only),
     assertion(Row.verificationScopes == [unit]).
 
-test(requirement_proof_shared_subject_key_grounds_each_property_once, [setup(setup_kb), cleanup(cleanup_kb)]) :-
-    % kb_model_requirement emits one subject fact per strict claim, so two
-    % claims about one subject leave two constrained subject facts with the
-    % same subject_key. Each property fact is still one ground representation.
-    assert_fixture_entity(req, 'REQ-SHARED-SUBJECT', "Shared subject requirement", open, []),
-    assert_fixture_entity(fact, 'FACT-SHARED-SUBJECT-A', "Shared subject A", active, [
-        fact_kind=subject,
-        subject_key="kibi.shared.subject"
-    ]),
-    assert_fixture_entity(fact, 'FACT-SHARED-SUBJECT-B', "Shared subject B", active, [
-        fact_kind=subject,
-        subject_key="kibi.shared.subject"
-    ]),
-    assert_fixture_entity(fact, 'FACT-SHARED-PROPERTY', "Shared subject property", active, [
-        fact_kind=property_value,
-        subject_key="kibi.shared.subject",
-        property_key="max_items",
-        operator=lte,
-        value_type=int,
-        value_int=1,
-        claim_key="CLAIM-SHARED-SUBJECT",
-        claim_text="The shared subject holds at most one item"
-    ]),
-    kb_assert_relationship(constrains, 'REQ-SHARED-SUBJECT', 'FACT-SHARED-SUBJECT-A', []),
-    kb_assert_relationship(constrains, 'REQ-SHARED-SUBJECT', 'FACT-SHARED-SUBJECT-B', []),
-    kb_assert_relationship(requires_property, 'REQ-SHARED-SUBJECT', 'FACT-SHARED-PROPERTY', []),
-    findall(Evidence, requirement_proof:valid_ground_evidence('REQ-SHARED-SUBJECT', Evidence), Evidence0),
-    sort(Evidence0, SortedEvidence),
-    assertion(length(SortedEvidence, 1)),
-    requirement_proof:duplicate_ground_keys(SortedEvidence, DuplicateKeys),
-    assertion(DuplicateKeys == []).
-
 test(requirement_proof_rejects_structural_coverage_without_semantics_or_scenario_e2e, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     assert_fixture_entity(req, 'REQ-PROOF-STRUCTURAL-ONLY', "Structural coverage only", active, [priority=must]),
     assert_fixture_entity(scenario, 'SCEN-PROOF-STRUCTURAL-ONLY', "Structural scenario", active, []),

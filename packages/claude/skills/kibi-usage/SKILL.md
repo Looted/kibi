@@ -167,7 +167,7 @@ Represent implementation ownership with a `symbol` entity that has
 `sourceFile`, `implements` to the requirement, and `covered_by` to the test.
 Prolog `symbol-coverage` also requires the test to `validates` the requirement
 (or the requirement `verified_by` the test). `covered_by` alone is not
-enough. Do not rely on legacy `// implements REQ-xxx` comments as the
+enough. Do not rely on legacy `// implements REQ-<area>-<behavior>` comments as the
 traceability record.
 
 ## Complete Logical Coverage

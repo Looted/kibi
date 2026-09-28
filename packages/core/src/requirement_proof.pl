@@ -375,13 +375,8 @@ valid_ground_evidence(ReqId, _{claimKey: ClaimKey, claimText: ClaimText, factId:
     kb_relationship(requires_property, ReqId, FactId),
     ground_claim_provenance(FactId, property_value, ClaimKey, ClaimText),
     kb:fact_property_tuple(FactId, SubjectKey, _, _, _, _, _, _, _),
-    % Existential: several constrained subject facts may share one subject
-    % key (kb_model_requirement emits one per strict claim), and each must not
-    % multiply this property fact into duplicate ground evidence.
-    once((
-        kb_relationship(constrains, ReqId, SubjectFactId),
-        kb:fact_subject_key(SubjectFactId, SubjectKey)
-    )).
+    kb_relationship(constrains, ReqId, SubjectFactId),
+    kb:fact_subject_key(SubjectFactId, SubjectKey).
 valid_ground_evidence(ReqId, _{claimKey: ClaimKey, claimText: ClaimText, factId: FactId, lane: predicate}) :-
     kb_relationship(requires_predicate, ReqId, FactId),
     ground_claim_provenance(FactId, predicate, ClaimKey, ClaimText),
