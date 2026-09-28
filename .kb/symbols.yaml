@@ -32554,18 +32554,23 @@ symbols:
       - type: executable_for
         target: TEST-test-journaled-engine-harness
   - id: SYM-runtime-packed-daemon-build
-    title: kibi-runtime packed daemon bundle build step
+    title: kibi-runtime package-boundary and daemon build step
     status: active
     tags:
       - runtime
       - engine
       - packed
+      - portability
     sourceFile: packages/runtime/package.json
     symbol_role: config
     granularity_reason: config-artifact
     relationships:
       - type: covered_by
+        target: TEST-e2e-runtime-symbol-portability
+      - type: covered_by
         target: TEST-runtime-packed-engine-daemon
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
       - type: implements
         target: REQ-runtime-packed-engine-daemon
   - id: SYM-shared-npm-cache-resolution
@@ -43628,3 +43633,45 @@ symbols:
         target: TEST-installed-staged-impact-timing-integrity
       - type: implements
         target: REQ-installed-staged-impact-timing-integrity
+  - id: SYM-test-tree-sitter-language-scaffold-draft-output
+    title: Tree-sitter language author scaffold CLI
+    status: active
+    sourceFile: scripts/tests/scaffold-tree-sitter-language.test.mjs
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-tree-sitter-language-authoring-scaffold-draft-output
+  - id: SYM-mcp-tools-list-base-contract
+    title: Base MCP tools-list contract fixture
+    status: active
+    sourceFile: packages/mcp/tests/fixtures/contracts/tools-list.base.json
+    symbol_role: config
+    granularity_reason: config-artifact
+    tags:
+      - mcp
+      - cli
+      - parity
+      - contract
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-mcp-tools-list-diagnostic-contract
+    title: Diagnostic MCP tools-list contract fixture
+    status: active
+    sourceFile: packages/mcp/tests/fixtures/contracts/tools-list.diagnostic.json
+    symbol_role: config
+    granularity_reason: config-artifact
+    tags:
+      - mcp
+      - cli
+      - parity
+      - contract
+      - diagnostics
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity

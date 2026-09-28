@@ -251,3 +251,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-508fa2c1ad5a
+  - type: executable_for
+    from: SYM-test-tree-sitter-language-scaffold-draft-output
+    to: TEST-tree-sitter-language-authoring-scaffold-draft-output
+    created_at: 2026-09-28T11:53:12.875Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb062f145e93

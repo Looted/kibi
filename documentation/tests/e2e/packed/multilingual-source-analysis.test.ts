@@ -268,7 +268,7 @@ async function runPythonDecoratorCoordinateWorkflow(
   );
   assert.match(
     outputOf(partialDefaultCheck),
-    /Cannot refresh incomplete source analysis for src\/sample\.py/i,
+    /Decorator coordinates for src\/sample\.py are not allowed by the captured base policy/i,
   );
   assert.deepEqual(readFileSync(sourcePath), expectedSourceBytes);
   assert.deepEqual(
@@ -611,6 +611,32 @@ async function runLanguageWorkflow(
       "generated-manifest validation must confirm the staged snapshot",
     );
     if (fixture.language === "Python") {
+      mkdirSync(join(sandbox.repoDir, ".kibi"), { recursive: true });
+      writeFileSync(
+        join(sandbox.repoDir, ".kibi/impact-policy.json"),
+        `${JSON.stringify(
+          {
+            contractVersion: "kibi.impact-policy.v1",
+            id: "multilingual-source-analysis-fixture",
+            version: "1",
+            allowUnsupportedReview: false,
+            allowedPartial: [],
+            notApplicablePaths: [],
+          },
+          null,
+          2,
+        )}\n`,
+        "utf8",
+      );
+      stageSourceFile(sandbox, ".kibi/impact-policy.json");
+      assertCommandExit(
+        await run("git", ["commit", "-m", "Trust the fixture impact policy"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        }),
+        0,
+        "trusted Python impact policy baseline",
+      );
       await runPythonDecoratorCoordinateWorkflow(sandbox, fixture);
     }
   } finally {

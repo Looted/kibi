@@ -11,4 +11,11 @@ verification_scope: unit
 verification_perspective: internal
 id: TEST-tree-sitter-language-authoring-scaffold-draft-output
 type: test
+proof_contract:
+  version: kibi.proof-contract.v1
+  integration: self-proof
+  required_proofs:
+    - symbol_id: SYM-test-tree-sitter-language-scaffold-draft-output
+      target: default
+  success_policy: all_required_first_attempt
 ---

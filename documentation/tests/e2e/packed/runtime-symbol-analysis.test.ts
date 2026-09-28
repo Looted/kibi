@@ -108,8 +108,8 @@ if (RUN_NODE_TEST_SUITE) {
         );
         assert.match(
           bundle,
-          /from ["']kibi-plugin-builtin["']/,
-          "runtime should resolve the builtin plugin through its package boundary",
+          /from ["']kibi-cli\//,
+          "runtime should resolve CLI exports through their package boundary",
         );
       });
 

@@ -258,6 +258,7 @@ if (RUN_NODE_TEST_SUITE) {
                       "kb_validate_upsert",
                       "kb_delete",
                       "kb_check",
+                      "kb_prepare_impact_review",
                       "kb_model_requirement",
                       "kb_suggest_predicates",
                       "kb_plan_bootstrap",

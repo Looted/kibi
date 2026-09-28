@@ -26,6 +26,7 @@ type CapturedTool = {
   name: string;
   description: string;
   inputSchema: { _zod?: unknown };
+  outputSchema?: { _zod?: unknown };
   annotations?: JsonRecord;
 };
 
@@ -174,22 +175,20 @@ function loadSeed(): ContractSeed {
   return readJson<ContractSeed>(SEED_PATH);
 }
 
-function buildToolListSnapshot(
-  tools: readonly {
-    name: string;
-    description: string;
-    inputSchema: JsonRecord;
-    outputSchema?: JsonRecord;
-    annotations?: JsonRecord;
-  }[],
-) {
+function buildToolListSnapshot(tools: readonly CapturedTool[]) {
   return {
     tools: tools.map((tool) => ({
       name: tool.name,
       description: tool.description,
-      inputSchema: stableSchema(tool.inputSchema) as JsonRecord,
+      inputSchema: stableSchema(
+        z.toJSONSchema(tool.inputSchema as never),
+      ) as JsonRecord,
       ...(tool.outputSchema
-        ? { outputSchema: stableSchema(tool.outputSchema) as JsonRecord }
+        ? {
+            outputSchema: stableSchema(
+              z.toJSONSchema(tool.outputSchema as never),
+            ) as JsonRecord,
+          }
         : {}),
       ...(tool.annotations
         ? { annotations: stableSchema(tool.annotations) as JsonRecord }
@@ -198,7 +197,9 @@ function buildToolListSnapshot(
   };
 }
 
-function createRegisteredToolsSnapshot(): CapturedTool[] {
+function createRegisteredToolsSnapshot(
+  tools: Parameters<typeof withDiagnosticTelemetrySchema>[0] = TOOLS,
+): CapturedTool[] {
   const registered: CapturedTool[] = [];
   const server = {
     registerTool: (
@@ -217,6 +218,7 @@ function createRegisteredToolsSnapshot(): CapturedTool[] {
         // tools-list fixture must reflect the wire output, so keep the Zod
         // schema and convert at snapshot time.
         inputSchema: config.inputSchema,
+        ...(config.outputSchema ? { outputSchema: config.outputSchema } : {}),
         // Annotations reach the wire on tools/list (e.g. kb_job_status's
         // read-only hints), so the fixture must capture them too.
         ...(config.annotations ? { annotations: config.annotations } : {}),
@@ -225,7 +227,7 @@ function createRegisteredToolsSnapshot(): CapturedTool[] {
   } as unknown as McpServer;
 
   const runtime = {
-    tools: TOOLS,
+    tools,
     diagnosticModeEnabled: () => false,
     appendUsageLogLine: () => undefined,
     classifyDiagnosticError: () => ({}),
@@ -285,6 +287,9 @@ describe("mcp contract fixtures", () => {
     const updatedFixturePaths: string[] = [];
     const seed = loadSeed();
     const registered = createRegisteredToolsSnapshot();
+    const diagnosticRegistered = createRegisteredToolsSnapshot(
+      withDiagnosticTelemetrySchema(TOOLS),
+    );
     const toolDefinitions = new Map(TOOLS.map((tool) => [tool.name, tool]));
     const registeredByName = new Map(
       registered.map((tool) => [tool.name, tool]),
@@ -297,34 +302,11 @@ describe("mcp contract fixtures", () => {
       "kb_briefing_generate",
     );
 
-    // The tools-list fixture must reflect the wire surface: the 22 canonical
-    // catalog operations plus the server-native kb_job_status poll tool that
-    // registerAllTools adds after the catalog (see jobs.ts).
-    const jobStatus = registeredByName.get("kb_job_status");
-    const jobStatusFixture = jobStatus
-      ? {
-          name: "kb_job_status",
-          description: jobStatus.description,
-          inputSchema: stableSchema(
-            z.toJSONSchema(jobStatus.inputSchema as never),
-          ) as JsonRecord,
-          ...(jobStatus.annotations
-            ? {
-                annotations: stableSchema(jobStatus.annotations) as JsonRecord,
-              }
-            : {}),
-        }
-      : null;
-    const baseTools = {
-      tools: [
-        ...buildToolListSnapshot(TOOLS).tools,
-        ...(jobStatusFixture ? [jobStatusFixture] : []),
-      ],
-    };
-    const diagnosticTools = buildToolListSnapshot(
-      withDiagnosticTelemetrySchema(TOOLS),
-    );
-    if (jobStatusFixture) diagnosticTools.tools.push(jobStatusFixture);
+    // Snapshot the Zod schemas passed to the MCP SDK. This is the actual
+    // tools/list wire surface, including the server-native kb_job_status poll
+    // tool that registerAllTools appends after the canonical catalog.
+    const baseTools = buildToolListSnapshot(registered);
+    const diagnosticTools = buildToolListSnapshot(diagnosticRegistered);
 
     if (updateFixtures) {
       writeFileSync(

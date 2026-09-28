@@ -159,7 +159,7 @@ describe("packed MCP and CLI operation parity", { concurrency: false }, () => {
         const tools = response.result?.tools as
           | readonly Record<string, unknown>[]
           | undefined;
-        assert.strictEqual(tools?.length, 22);
+        assert.strictEqual(tools?.length, 23);
         assert.ok(!tools?.some((tool) => tool.name === "kb_briefing_generate"));
       } finally {
         process.kill();

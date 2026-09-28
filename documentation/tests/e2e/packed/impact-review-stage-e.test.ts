@@ -1774,7 +1774,10 @@ async function runInstalledGeneratedCoordinateWorkflow(
       timeoutMs: COMMAND_TIMEOUT_MS,
     });
     assert.notEqual(staleSource.exitCode, 0);
-    assert.match(outputOf(staleSource), /Review scope fingerprint is stale/i);
+    assert.match(
+      outputOf(staleSource),
+      /Per-file Git or analysis fingerprint is stale: src\/decorated\.py \(after, newHunkRanges\)/i,
+    );
     await assertGateInputsPreserved(
       sandbox,
       sourcePath,

@@ -78,7 +78,7 @@ test("maps real parser workers to every TS source and closes the manifest throug
   const { root, packageRoot, output } = fixture();
   mkdirSync(output);
   const missingBefore = writeCoverageManifestAudit(root, output, "");
-  expect(missingBefore).toHaveLength(4);
+  expect(missingBefore).toHaveLength(5);
   const originalDist = distDigest(packageRoot);
   const result = run(root, output);
   expect(`${result.stdout}${result.stderr}`).toBe("");
