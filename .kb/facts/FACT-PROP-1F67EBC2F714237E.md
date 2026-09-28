@@ -10,9 +10,9 @@ tags:
   - lane:strict
   - fact:property_value
 fact_kind: property_value
-subject_key: kibi_claude_adapter
+subject_key: claude.kibi_plugin
 property_key: adapter_role
-canonical_key: mcp-kibi-model-requirement:kibi_claude_adapter:adapter_role:eq:optional
+canonical_key: mcp-kibi-model-requirement:claude.kibi_plugin:adapter_role:eq:optional
 operator: eq
 value_type: string
 value_string: optional

@@ -392,6 +392,21 @@ function mergeManifestRelationships(
   );
 }
 
+/** Indexes of every manifest entry whose `id` equals `id`, in file order. */
+function symbolManifestIndexes(
+  items: readonly unknown[],
+  id: string,
+): number[] {
+  return items.flatMap((item, index) =>
+    item &&
+    typeof item === "object" &&
+    "get" in item &&
+    String((item as { get(key: string): unknown }).get("id")) === id
+      ? [index]
+      : [],
+  );
+}
+
 function renderSymbolManifest(
   entity: Readonly<Record<string, unknown>>,
   relationships: readonly RelationshipInput[],
@@ -420,12 +435,15 @@ function renderSymbolManifest(
   }
   const items = (symbols as { items: unknown[] }).items;
   const id = String(entity.id);
-  const index = items.findIndex((item) => {
-    if (!item || typeof item !== "object" || !("get" in item)) return false;
-    return String((item as { get(key: string): unknown }).get("id")) === id;
-  });
-  const existingRelationships =
-    index >= 0 ? manifestRelationships(items[index]) : [];
+  // A rebase that unions both sides of the manifest can leave the same id
+  // twice with different ownership. Fold every copy into the first one so an
+  // upsert repairs the duplicate instead of updating one copy and leaving the
+  // other to shadow it.
+  const matches = symbolManifestIndexes(items, id);
+  const index = matches[0] ?? -1;
+  const existingRelationships = matches.flatMap((match) =>
+    manifestRelationships(items[match]),
+  );
   let next = symbolManifestRecord(
     entity,
     mergeManifestRelationships(existingRelationships, relationships, id),
@@ -433,24 +451,32 @@ function renderSymbolManifest(
   if (index >= 0) {
     // Partial symbol payloads (for example a relationship-only upsert) must
     // never erase authored provenance from the manifest. Preserve fields the
-    // payload omits, with incoming values winning on explicit conflicts.
-    const item = items[index] as {
-      toJSON?: () => unknown;
-    };
-    const previous =
-      typeof item?.toJSON === "function" ? (item.toJSON() as unknown) : null;
-    if (
-      typeof previous === "object" &&
-      previous !== null &&
-      !Array.isArray(previous)
-    ) {
-      const preserved = symbolManifestRecord(
-        previous as Readonly<Record<string, unknown>>,
-        [],
-      );
-      next = { ...preserved, ...next };
+    // payload omits, with incoming values winning on explicit conflicts; the
+    // first copy wins over later duplicates.
+    let preserved: Record<string, unknown> = {};
+    for (const match of [...matches].reverse()) {
+      const item = items[match] as { toJSON?: () => unknown };
+      const previous =
+        typeof item?.toJSON === "function" ? (item.toJSON() as unknown) : null;
+      if (
+        typeof previous === "object" &&
+        previous !== null &&
+        !Array.isArray(previous)
+      ) {
+        preserved = {
+          ...preserved,
+          ...symbolManifestRecord(
+            previous as Readonly<Record<string, unknown>>,
+            [],
+          ),
+        };
+      }
     }
+    next = { ...preserved, ...next };
     doc.setIn(["symbols", index], next);
+    for (const duplicate of matches.slice(1).reverse()) {
+      doc.deleteIn(["symbols", duplicate]);
+    }
   } else {
     doc.addIn(["symbols"], next);
   }
@@ -490,19 +516,17 @@ export function renderSourceDeletion(
       );
     }
     const items = (symbols as { items: unknown[] }).items;
-    const index = items.findIndex((item) => {
-      if (!item || typeof item !== "object" || !("get" in item)) return false;
-      return (
-        String((item as { get(key: string): unknown }).get("id")) === entityId
-      );
-    });
-    if (index < 0) {
+    const matches = symbolManifestIndexes(items, entityId);
+    if (matches.length === 0) {
       throw new OperationError(
         "SOURCE_ENTITY_MISMATCH",
         `Symbol manifest ${sourcePathValue} does not contain ${entityId}`,
       );
     }
-    doc.deleteIn(["symbols", index]);
+    // Delete every copy, last first so earlier indexes stay valid.
+    for (const match of [...matches].reverse()) {
+      doc.deleteIn(["symbols", match]);
+    }
     return { mode: "write", body: doc.toString(AUTHORED_YAML_OPTIONS) };
   }
   throw new OperationError(

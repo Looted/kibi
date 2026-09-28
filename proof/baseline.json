@@ -1,8 +1,8 @@
 {
   "version": "kibi.proof-baseline.v2",
   "mode": "equality",
-  "currentRequirements": 119,
-  "proofProven": 119,
+  "currentRequirements": 120,
+  "proofProven": 120,
   "currentUnproven": 0,
   "trackedGaps": {},
   "requirements": {
@@ -112,6 +112,11 @@
       "uncoveredSymbols": []
     },
     "REQ-capability-plugin-three-capabilities-v1": {
+      "proofStatus": "proven",
+      "gaps": [],
+      "uncoveredSymbols": []
+    },
+    "REQ-claude-code-kibi-plugin-v1": {
       "proofStatus": "proven",
       "gaps": [],
       "uncoveredSymbols": []

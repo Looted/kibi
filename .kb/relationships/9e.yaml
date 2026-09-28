@@ -251,13 +251,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a1cc6a55b2d5
-  - type: constrains
-    from: REQ-claude-code-kibi-plugin-v1
-    to: FACT-SUBJECT-14DDB5E66BF76BC7
-    created_at: 2026-09-27T09:13:17.259Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-4939271bdb3a
   - type: requires_property
     from: REQ-claude-code-kibi-plugin-v1
     to: FACT-PROP-DB72C1F7BFAC4B5F
@@ -279,13 +272,6 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-019ba9e61f9b
-  - type: constrains
-    from: REQ-claude-code-kibi-plugin-v1
-    to: FACT-SUBJECT-B495FB4B1BC95C41
-    created_at: 2026-09-27T09:13:17.309Z
-    created_by: kibi/upsert
-    source: mcp://kibi/upsert
-    id: rel-3b4f5e599345
   - type: requires_property
     from: REQ-claude-code-kibi-plugin-v1
     to: FACT-PROP-E5A7DECFE2B39039

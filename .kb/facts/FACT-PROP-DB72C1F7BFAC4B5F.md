@@ -10,9 +10,9 @@ tags:
   - lane:strict
   - fact:property_value
 fact_kind: property_value
-subject_key: kibi_claude_adapter
+subject_key: claude.kibi_plugin
 property_key: max_knowledge_snippets_per_file_per_session
-canonical_key: mcp-kibi-model-requirement:kibi_claude_adapter:max_knowledge_snippets_per_file_per_session:lte:1
+canonical_key: mcp-kibi-model-requirement:claude.kibi_plugin:max_knowledge_snippets_per_file_per_session:lte:1
 operator: lte
 value_type: int
 value_int: 1

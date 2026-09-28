@@ -1,6 +1,6 @@
 ---
 title: Verify Claude Code Kibi plugin hooks, distribution, and opt-in behavior
-status: active
+status: passing
 priority: must
 verification_scope: end_to_end
 verification_perspective: consumer
@@ -99,6 +99,93 @@ proof_receipts:
     artifact_digest: d4e17dcff308c5c75e034d7981fefff6afa5b8bd6443712a02eff436d1ad98cc
     contract_hash: 4e3b1ac6521cbd1093008c94b8f37b9b5092be62fe4e0d6894116372dacbfcc5
     binding_hash: 6d1238267a09385bfaf7bf19dce0b8dbb19f4369b473461cbc96f82ac66d3e9b
+    fingerprint: d414adaacef0b603643a49a9b108f9410a39641ee94cf5e2ade81337865027a4
+    fingerprint_components:
+      contract: 4e3b1ac6521cbd1093008c94b8f37b9b5092be62fe4e0d6894116372dacbfcc5
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: cedb35e8646279227314bac92644f91569206ac1e2d5dd30e951db57f3852fc6
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-claude-case-unconfigured-workspace-silent
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-read-snippet-once
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-edit-focus
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-stop-reminder-once
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-prefixed-check-acknowledges
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-advisory-boundary
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-scanner-equivalence
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-shipped-bundle-runs
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-mcp-silent-outside-kibi
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+      - symbol_id: SYM-claude-case-optional-package-contract
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-d420b04bc72ca7b4727f77c8
+    test_id: TEST-claude-code-kibi-plugin-v1
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a53859f2f439ec2624dd41c4a132252044c0e670cc24cdad4ee4c22577f7288f
+    environment_hash: 114832ed09273138cf1b4fc0e28f03cc356725e7e240bccf0117e45557f6397a
+    started_at: '2026-09-28T19:04:13.896Z'
+    finished_at: '2026-09-28T19:04:14.523Z'
+    artifact_digest: 0cfb3b15028347da720abea1dc92ff5ff964fa36ef9cae9d37f542c26a90b696
+    contract_hash: 4e3b1ac6521cbd1093008c94b8f37b9b5092be62fe4e0d6894116372dacbfcc5
+    binding_hash: f5b0a0048f89c7dd5faf5e47a0a19a1f21adb7579db3a984cef0e33f5f07b2ad
     fingerprint: d414adaacef0b603643a49a9b108f9410a39641ee94cf5e2ade81337865027a4
     fingerprint_components:
       contract: 4e3b1ac6521cbd1093008c94b8f37b9b5092be62fe4e0d6894116372dacbfcc5
