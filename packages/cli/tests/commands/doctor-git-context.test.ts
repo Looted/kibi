@@ -119,9 +119,9 @@ describe("doctor effective hooks context", () => {
       expect(subCheck).toEqual(rootCheck);
     }
     expect(checkByName(hookChecks(ioRoot), "Git hooks").passed).toBe(true);
-    expect(
-      checkByName(hookChecks(ioRoot), "Git hooks").message,
-    ).toContain("Installed and executable");
+    expect(checkByName(hookChecks(ioRoot), "Git hooks").message).toContain(
+      "Installed and executable",
+    );
   });
 
   test("sees a core.hooksPath change between in-process invocations", async () => {
@@ -139,6 +139,7 @@ describe("doctor effective hooks context", () => {
     const afterCheck = checkByName(hookChecks(after), "Git hooks");
     expect(afterCheck.passed).toBe(beforeCheck.passed);
     expect(afterCheck.message).toContain("core.hooksPath=.githooks");
+    expect(afterCheck.message).toContain(" from file:");
     expect(afterCheck.message).not.toBe(beforeCheck.message);
   });
 
@@ -173,5 +174,25 @@ describe("doctor effective hooks context", () => {
     expect(check.passed).toBe(true);
     expect(check.message).toContain("Not installed (optional)");
     expect(check.message).toContain("core.hooksPath=.githooks");
+  });
+
+  test("diagnoses lone hooks instead of reporting them absent", async () => {
+    const cwd = track(createGitWorkspace());
+    writeHook(cwd, "pre-commit", "#!/bin/sh\nkibi check --staged\n");
+    writeHook(cwd, "post-rewrite", "#!/bin/sh\nkibi sync\n");
+    makeExecutable(path.join(cwd, ".git", "hooks", "pre-commit"));
+    makeExecutable(path.join(cwd, ".git", "hooks", "post-rewrite"));
+
+    const io = await doctorAt(cwd);
+    const checks = hookChecks(io);
+    expect(checkByName(checks, "Git hooks").message).toContain(
+      "Partially installed",
+    );
+    for (const name of ["pre-commit hook", "post-rewrite hook"] as const) {
+      const check = checkByName(checks, name);
+      expect(check.passed).toBe(true);
+      expect(check.message).toContain("Installed and executable");
+      expect(check.message).not.toContain("Not installed (optional)");
+    }
   });
 });

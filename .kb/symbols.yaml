@@ -42125,3 +42125,39 @@ symbols:
         target: REQ-core-atomic-upsert-persistence
       - type: implements
         target: REQ-kibi-operation-interface-parity
+  - id: SYM-git-hook-effective-install-init-context-verifier
+    title: Init Git context verifier
+    status: active
+    sourceFile: packages/cli/tests/commands/init-git-context.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-git-hook-effective-install
+  - id: SYM-git-hook-effective-install-doctor-verifier
+    title: Doctor Git context verifier
+    status: active
+    sourceFile: packages/cli/tests/commands/doctor-git-context.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-git-hook-effective-install
+  - id: SYM-git-hook-effective-install-installer-verifier
+    title: Hook installer safety verifier
+    status: active
+    sourceFile: packages/cli/tests/commands/install-hook-safety.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-git-hook-effective-install
+  - id: SYM-git-hook-effective-install-repository-context-verifier
+    title: Git repository context verifier
+    status: active
+    sourceFile: packages/cli/tests/utils/git-repository-context.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-git-hook-effective-install

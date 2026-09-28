@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import {
+  constants,
   accessSync,
   chmodSync,
-  constants,
   existsSync,
   lstatSync,
   mkdirSync,
@@ -97,7 +97,11 @@ describe("kibi init repository-context fixes", () => {
     return snapshot;
   }
 
-  function kibi(args: string, cwd: string, env = isolatedCliSandboxEnv()): string {
+  function kibi(
+    args: string,
+    cwd: string,
+    env = isolatedCliSandboxEnv(),
+  ): string {
     return nodeExecSync(`bun ${JSON.stringify(kibiBin)} ${args} 2>&1`, {
       cwd,
       encoding: "utf8",
@@ -337,9 +341,7 @@ describe("kibi init repository-context fixes", () => {
         expect(existsSync(path.join(repo, ".kb"))).toBe(false);
         expect(existsSync(path.join(sub, ".kb"))).toBe(false);
         expect(existsSync(path.join(repo, ".gitignore"))).toBe(false);
-        expect(
-          existsSync(path.join(repo, ".kb/symbols.yaml")),
-        ).toBe(false);
+        expect(existsSync(path.join(repo, ".kb/symbols.yaml"))).toBe(false);
         expect(existsSync(path.join(repo, ".git/hooks/pre-commit"))).toBe(
           false,
         );
@@ -556,9 +558,13 @@ describe("kibi init hook-path coverage messaging", () => {
       "post-merge",
       "post-rewrite",
     ]) {
-      writeFileSync(path.join(configured, hook), "#!/bin/sh\necho 'user hook'\n", {
-        mode: 0o755,
-      });
+      writeFileSync(
+        path.join(configured, hook),
+        "#!/bin/sh\necho 'user hook'\n",
+        {
+          mode: 0o755,
+        },
+      );
     }
 
     const output = kibi("init", repo);
@@ -586,9 +592,13 @@ describe("kibi init hook-path coverage messaging", () => {
     git(repo, "config core.hooksPath .githooks");
     const configured = path.join(repo, ".githooks");
     mkdirSync(configured, { recursive: true });
-    writeFileSync(path.join(configured, "pre-commit"), "#!/bin/sh\necho 'user hook'\n", {
-      mode: 0o755,
-    });
+    writeFileSync(
+      path.join(configured, "pre-commit"),
+      "#!/bin/sh\necho 'user hook'\n",
+      {
+        mode: 0o755,
+      },
+    );
 
     const output = kibi("init", repo);
     const installedLine = output

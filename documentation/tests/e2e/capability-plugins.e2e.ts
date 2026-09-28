@@ -211,7 +211,7 @@ try {
   console.log = (...args: unknown[]) => {
     undeclaredDoctorLogs.push(args.map(String).join(" "));
   };
-  process.env.KIBI_WORKSPACE = root;
+  const restoreUndeclaredWorkspace = pinKibiWorkspace(root);
   try {
     await doctorCommand({ format: "json" });
   } finally {

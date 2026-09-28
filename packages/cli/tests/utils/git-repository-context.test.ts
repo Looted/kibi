@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { execSync as nodeExecSync } from "node:child_process";
 import {
+  constants,
   accessSync,
   chmodSync,
-  constants,
   existsSync,
   mkdirSync,
   mkdtempSync,
@@ -190,9 +190,7 @@ describe("resolveGitRepository", () => {
     const context = contextOf(repo);
     expect(context.hooksPathConfig).toBe("/kibi-unrelated-global-hooks");
     expect(context.effectiveHooksDir).toBe("/kibi-unrelated-global-hooks");
-    expect(context.hooksPathOrigin).toContain(
-      path.basename(globalConfigPath),
-    );
+    expect(context.hooksPathOrigin).toContain(path.basename(globalConfigPath));
   });
 
   test("reports git-refused when the .git directory is unreadable", () => {
@@ -241,13 +239,13 @@ describe("resolveGitRepository", () => {
     const shimDir = mkdtempSync(path.join(os.tmpdir(), "kibi-locale-shim-"));
     writeFileSync(
       path.join(shimDir, "git"),
-      '#!/bin/sh\n'
-        + 'if [ "$1" = "--version" ]; then echo "git version 2.45.0"; exit 0; fi\n'
-        + 'if [ "$LC_ALL" = "C" ]; then\n'
-        + '  echo "fatal: not a git repository (or any of the parent directories): .git" >&2\n'
-        + 'else\n'
-        + '  echo "fatal: to nie jest repozytorium git (ani zadnego z katalogow nadrzednych): .git" >&2\n'
-        + 'fi\nexit 128\n',
+      "#!/bin/sh\n" +
+        'if [ "$1" = "--version" ]; then echo "git version 2.45.0"; exit 0; fi\n' +
+        'if [ "$LC_ALL" = "C" ]; then\n' +
+        '  echo "fatal: not a git repository (or any of the parent directories): .git" >&2\n' +
+        "else\n" +
+        '  echo "fatal: to nie jest repozytorium git (ani zadnego z katalogow nadrzednych): .git" >&2\n' +
+        "fi\nexit 128\n",
       { mode: 0o755 },
     );
     const previousPath = process.env.PATH;
@@ -257,11 +255,14 @@ describe("resolveGitRepository", () => {
     process.env.LC_ALL = "pl_PL.UTF-8";
     process.env.LANG = "pl_PL.UTF-8";
     envRestores.push(() => {
-      if (previousPath === undefined) delete process.env.PATH;
+      if (previousPath === undefined)
+        Reflect.deleteProperty(process.env, "PATH");
       else process.env.PATH = previousPath;
-      if (previousLcAll === undefined) delete process.env.LC_ALL;
+      if (previousLcAll === undefined)
+        Reflect.deleteProperty(process.env, "LC_ALL");
       else process.env.LC_ALL = previousLcAll;
-      if (previousLang === undefined) delete process.env.LANG;
+      if (previousLang === undefined)
+        Reflect.deleteProperty(process.env, "LANG");
       else process.env.LANG = previousLang;
       rmSync(shimDir, { recursive: true, force: true });
     });
@@ -270,21 +271,47 @@ describe("resolveGitRepository", () => {
     expect(resolveGitRepository(probe)).toEqual({ status: "not-a-repository" });
   });
 
+  test("refuses an existing repository when Git is unavailable", () => {
+    const repo = makeRepo(tmpRoot, "missing-git-repo");
+    const standalone = path.join(tmpRoot, "missing-git-standalone");
+    const emptyPath = path.join(tmpRoot, "no-git-bin");
+    mkdirSync(standalone);
+    mkdirSync(emptyPath);
+    const previousPath = process.env.PATH;
+    process.env.PATH = emptyPath;
+    envRestores.push(() => {
+      if (previousPath === undefined) {
+        Reflect.deleteProperty(process.env, "PATH");
+      } else {
+        process.env.PATH = previousPath;
+      }
+    });
+
+    const resolution = resolveGitRepository(repo);
+    expect(resolution.status).toBe("git-refused");
+    if (resolution.status === "git-refused") {
+      expect(resolution.reason).toContain(path.join(repo, ".git"));
+    }
+    expect(resolveGitRepository(standalone)).toEqual({
+      status: "git-unavailable",
+    });
+  });
+
   test("reports git-refused for dubious ownership instead of no-repository", () => {
     // A PATH shim stands in for a git that refuses the repository the way
     // ownership checks do; the resolver must refuse, not fall back.
     const shimDir = mkdtempSync(path.join(os.tmpdir(), "kibi-git-shim-"));
     writeFileSync(
       path.join(shimDir, "git"),
-      '#!/bin/sh\nif [ "$1" = "--version" ]; then echo "git version 2.45.0"; exit 0; fi\n'
-        + 'echo "fatal: detected dubious ownership in repository at \'$PWD\'" >&2\nexit 128\n',
+      '#!/bin/sh\nif [ "$1" = "--version" ]; then echo "git version 2.45.0"; exit 0; fi\n' +
+        "echo \"fatal: detected dubious ownership in repository at '$PWD'\" >&2\nexit 128\n",
       { mode: 0o755 },
     );
     const previousPath = process.env.PATH;
     process.env.PATH = `${shimDir}${path.delimiter}${previousPath ?? ""}`;
     envRestores.push(() => {
       if (previousPath === undefined) {
-        delete process.env.PATH;
+        Reflect.deleteProperty(process.env, "PATH");
       } else {
         process.env.PATH = previousPath;
       }

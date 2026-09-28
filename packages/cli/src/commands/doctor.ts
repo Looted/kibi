@@ -813,7 +813,7 @@ function checkPreCommitHook(): {
   const postCheckoutExists = existsSync(postCheckoutPath);
   const postMergeExists = existsSync(postMergePath);
 
-  if (!postCheckoutExists && !postMergeExists) {
+  if (!postCheckoutExists && !postMergeExists && !existsSync(preCommitPath)) {
     return {
       passed: true,
       message: `Not installed (optional)${hooksPathSuffix()}`,
@@ -911,7 +911,7 @@ function checkPostRewriteHook(): {
   const postCheckoutExists = existsSync(postCheckoutPath);
   const postMergeExists = existsSync(postMergePath);
 
-  if (!postCheckoutExists && !postMergeExists) {
+  if (!postCheckoutExists && !postMergeExists && !existsSync(postRewritePath)) {
     return {
       passed: true,
       message: `Not installed (optional)${hooksPathSuffix()}`,

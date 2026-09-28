@@ -98,7 +98,10 @@ function runGitChecked(cwd: string, args: string[]): GitInvocation {
     const stderr = (error as { stderr?: string | Buffer }).stderr;
     const text = typeof stderr === "string" ? stderr : stderr?.toString("utf8");
     const firstLine =
-      text?.split("\n").map((line) => line.trim()).find(Boolean) ?? null;
+      text
+        ?.split("\n")
+        .map((line) => line.trim())
+        .find(Boolean) ?? null;
     return { output: null, failure: firstLine };
   }
 }
@@ -181,7 +184,16 @@ export function resolveGitRepository(
   cwd: string = process.cwd(),
 ): GitRepositoryResolution {
   const versionProbe = runGitChecked(cwd, ["--version"]);
-  if (versionProbe.output === null) return { status: "git-unavailable" };
+  if (versionProbe.output === null) {
+    const marker = findRepositoryMarker(cwd);
+    if (marker !== null) {
+      return {
+        status: "git-refused",
+        reason: `Git is unavailable, but a .git entry exists at ${marker}; refusing to guess.`,
+      };
+    }
+    return { status: "git-unavailable" };
+  }
 
   const toplevel = runGitChecked(cwd, ["rev-parse", "--show-toplevel"]);
   if (toplevel.output === null) {
@@ -213,7 +225,9 @@ export function resolveGitRepository(
     return {
       status: "git-refused",
       reason: `Git refused to inspect this directory: ${
-        toplevel.failure ?? gitDirProbe.failure ?? "git produced no diagnostic output"
+        toplevel.failure ??
+        gitDirProbe.failure ??
+        "git produced no diagnostic output"
       }`,
     };
   }
@@ -226,7 +240,11 @@ export function resolveGitRepository(
         version.minor >= PATH_FORMAT_MINIMUM.minor));
 
   const formatArgs = absolute ? ["--path-format=absolute"] : [];
-  const gitDirRaw = runGitChecked(cwd, ["rev-parse", ...formatArgs, "--git-dir"]);
+  const gitDirRaw = runGitChecked(cwd, [
+    "rev-parse",
+    ...formatArgs,
+    "--git-dir",
+  ]);
   const commonGitDirRaw = runGitChecked(cwd, [
     "rev-parse",
     ...formatArgs,
@@ -259,7 +277,10 @@ export function resolveGitRepository(
   const worktreeRoot = toplevel.output as string;
   const gitDir = resolveAgainstCwd(gitDirRaw.output as string, cwd);
   const commonGitDir = resolveAgainstCwd(commonGitDirRaw.output as string, cwd);
-  const effectiveHooksDir = resolveAgainstCwd(hooksDirRaw.output as string, cwd);
+  const effectiveHooksDir = resolveAgainstCwd(
+    hooksDirRaw.output as string,
+    cwd,
+  );
 
   const originLine = runGit(cwd, [
     "config",
