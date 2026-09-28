@@ -29,8 +29,10 @@ invocation picks it up. No session restart is needed:
 bun run --filter ./packages/claude build:hook-bundle
 ```
 
-`tests/distribution.test.ts` fails when the committed bundle is stale, or when
-the dogfood hook events and matchers drift from `hooks/hooks.json`.
+`tests/distribution.test.ts` fails when the committed bundle is stale. The
+repo-level `scripts/tests/dogfood-config.test.ts` fails when the dogfood hook
+events and matchers drift from `hooks/hooks.json`, or when any local path
+the dogfood configs reference goes missing.
 
 To see exactly what a hook injects, feed it a payload by hand:
 

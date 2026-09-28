@@ -148,6 +148,10 @@ const BATCHES: Batch[] = [
     args: ["test", "--timeout", "15000", "./packages/zcode"],
   },
   {
+    label: "agent-core",
+    args: ["test", "--timeout", "15000", "./packages/agent-core"],
+  },
+  {
     label: "claude",
     args: ["test", "--timeout", "15000", "./packages/claude"],
   },
