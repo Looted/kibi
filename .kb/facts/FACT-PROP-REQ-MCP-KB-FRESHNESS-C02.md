@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_mcp_kb_freshness
+subject_key: mcp.branch_attachment
 property_key: clause_02_mcp_must_refresh_attachment_state_before_serving
 operator: eq
 value_type: bool

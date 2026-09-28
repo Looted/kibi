@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_020
+subject_key: kibi.release.versioning
 property_key: clause_01_consistent_semantic_versioning_across_all_npm_pa
 operator: eq
 value_type: bool

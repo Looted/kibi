@@ -2,7 +2,7 @@
 title: Bootstrap contract clause 1
 status: active
 fact_kind: property_value
-subject_key: bootstrap_workflow
+subject_key: kibi.bootstrap.plan
 property_key: initialization_attachment
 operator: eq
 value_type: string

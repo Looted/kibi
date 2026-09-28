@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_skillopt_external_adoption_verdict
+subject_key: kibi.skillopt.adoption
 property_key: clause_04_only_a_complete_matrix_may_reach_external_verdic
 operator: eq
 value_type: bool

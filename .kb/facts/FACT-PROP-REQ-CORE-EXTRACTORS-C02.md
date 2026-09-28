@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_core_extractors
+subject_key: kibi.sync.extractors
 property_key: clause_02_consecutive_refreshes_over_unchanged_sources_mus
 operator: eq
 value_type: bool

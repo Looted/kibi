@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_agent_kibi_interface_selection
+subject_key: kibi.agent.interface_selection
 property_key: clause_03_guidance_may_name_either_public_surface_when_tha
 operator: eq
 value_type: bool

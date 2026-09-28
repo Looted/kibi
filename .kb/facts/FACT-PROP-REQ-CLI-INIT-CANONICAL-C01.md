@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_cli_init_canonical
+subject_key: kibi.kb.canonical_layout
 property_key: clause_01_kibi_init_must_create_the_canonical_kb_knowledge
 operator: eq
 value_type: bool

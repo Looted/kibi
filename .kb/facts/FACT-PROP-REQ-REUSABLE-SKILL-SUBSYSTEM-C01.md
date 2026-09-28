@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_reusable_skill_subsystem
+subject_key: kibi.skills.bundled
 property_key: clause_01_the_cli_exposes_reusable_bundled_markdown_skills
 operator: eq
 value_type: bool

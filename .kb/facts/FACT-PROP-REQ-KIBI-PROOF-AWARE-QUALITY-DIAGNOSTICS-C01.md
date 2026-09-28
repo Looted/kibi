@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_kibi_proof_aware_quality_diagnostics
+subject_key: kibi.checks.quality_diagnostics
 property_key: clause_01_full_checks_must_use_the_same_live_snapshot_boun
 operator: eq
 value_type: bool

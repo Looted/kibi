@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: subject
-subject_key: req.req_root_suite_batch_diagnostics
+subject_key: kibi.testing.harness
 canonical_key: req.req_root_suite_batch_diagnostics
 id: FACT-SUBJ-REQ-ROOT-SUITE-BATCH-DIAGNOSTICS
 type: fact

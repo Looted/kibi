@@ -9,7 +9,7 @@ claim_key: CLAIM-BE46AFC52D56D8C6
 claim_text: The kibi-zcode package must remain optional
 claim_span_start: 0
 claim_span_end: 43
-subject_key: kibi_zcode_adapter
+subject_key: zcode.kibi_adapter
 property_key: adapter_role
 canonical_key: kibi_zcode_adapter:adapter_role:eq:optional
 operator: eq

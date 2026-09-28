@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_mcp_kb_freshness
+subject_key: mcp.branch_attachment
 property_key: clause_04_mcp_must_not_block_normal_branch_switch_semantic
 operator: eq
 value_type: bool

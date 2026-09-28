@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: subject
-subject_key: req.req_agent_kibi_interface_selection
+subject_key: kibi.agent.interface_selection
 canonical_key: req.req_agent_kibi_interface_selection
 id: FACT-SUBJ-REQ-AGENT-KIBI-INTERFACE-SELECTION
 type: fact

@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_020
+subject_key: kibi.release.versioning
 property_key: clause_07_master_publishing_master_ci_builds_and_publishes
 operator: eq
 value_type: bool

@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_020
+subject_key: kibi.release.versioning
 property_key: clause_06_versioning_on_develop_version_bumps_and_changelo
 operator: eq
 value_type: bool

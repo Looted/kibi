@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_kibi_proof_aware_quality_diagnostics
+subject_key: kibi.checks.quality_diagnostics
 property_key: clause_02_a_fresh_passing_scenario_backed_e2e_receipt_must
 operator: eq
 value_type: bool

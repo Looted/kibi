@@ -2,13 +2,17 @@
 id: FACT-REQ-PROOF-EVALUATION-SUBJECT
 title: Kibi change-to-proof evaluation subject
 status: active
-created_at: 2026-08-13T00:00:00Z
-updated_at: 2026-08-13T00:00:00Z
+created_at: 2026-08-13T00:00:00.000Z
+updated_at: 2026-08-13T00:00:00.000Z
 source: documentation/facts/FACT-REQ-PROOF-EVALUATION-SUBJECT.md
-tags: [lane:strict, evaluation, dogfood]
+tags:
+  - lane:strict
+  - evaluation
+  - dogfood
 fact_kind: subject
-subject_key: kibi
+subject_key: kibi.proof.change_evaluation
 canonical_key: kibi
+type: fact
 ---
 
 Subject anchor for change-to-proof evaluation fixtures.

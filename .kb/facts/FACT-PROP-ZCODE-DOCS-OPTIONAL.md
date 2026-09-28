@@ -5,7 +5,7 @@ tags:
   - zcode
   - strict-modeling
 fact_kind: property_value
-subject_key: kibi_zcode_documentation
+subject_key: zcode.kibi_adapter.documentation
 property_key: adapter_documented_as
 operator: eq
 value_type: string

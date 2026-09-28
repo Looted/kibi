@@ -5,7 +5,7 @@ tags:
   - zcode
   - strict-modeling
 fact_kind: property_value
-subject_key: kibi_zcode_manual_mcp_configuration
+subject_key: zcode.kibi_adapter.mcp_configuration
 property_key: mcp_entry_point
 operator: eq
 value_type: string

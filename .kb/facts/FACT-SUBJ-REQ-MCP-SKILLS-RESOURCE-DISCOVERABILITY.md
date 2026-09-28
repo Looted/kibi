@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: subject
-subject_key: req.req_mcp_skills_resource_discoverability
+subject_key: kibi.skills.bundled
 canonical_key: req.req_mcp_skills_resource_discoverability
 id: FACT-SUBJ-REQ-MCP-SKILLS-RESOURCE-DISCOVERABILITY
 type: fact

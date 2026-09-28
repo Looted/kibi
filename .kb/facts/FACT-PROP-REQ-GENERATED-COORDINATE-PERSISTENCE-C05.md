@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_generated_coordinate_persistence
+subject_key: kibi.symbols.coordinates
 property_key: clause_05_an_explicitly_approved_coordinate_refresh_must_f
 operator: eq
 value_type: bool

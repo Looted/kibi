@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_cli_status_pre_first_sync
+subject_key: kibi.cli.status
 property_key: clause_01_kibi_cli_must_support_status_command_immediately
 operator: eq
 value_type: bool

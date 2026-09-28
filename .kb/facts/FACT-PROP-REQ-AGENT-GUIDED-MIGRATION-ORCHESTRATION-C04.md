@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_agent_guided_migration_orchestration
+subject_key: kibi.migration.orchestration
 property_key: clause_04_semantic_judgment_contradictions_e2e_execution_p
 operator: eq
 value_type: bool

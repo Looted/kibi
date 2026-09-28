@@ -5,7 +5,7 @@ tags:
   - zcode
   - strict-modeling
 fact_kind: property_value
-subject_key: kibi_zcode_adapter
+subject_key: zcode.kibi_adapter
 property_key: hard_enforcement_gate_provided
 operator: eq
 value_type: bool

@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_cli_doctor_packed_provenance
+subject_key: kibi.cli.doctor
 property_key: clause_03_the_package_provenance_unresolved_migration_acti
 operator: eq
 value_type: bool

@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_mcp_skills_resource_discoverability
+subject_key: kibi.skills.bundled
 property_key: clause_01_mcp_skill_resource_handlers_must_expose_declared
 operator: eq
 value_type: bool

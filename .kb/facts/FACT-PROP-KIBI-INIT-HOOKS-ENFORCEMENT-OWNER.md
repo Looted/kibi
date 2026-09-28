@@ -5,7 +5,7 @@ tags:
   - zcode
   - strict-modeling
 fact_kind: property_value
-subject_key: kibi_init_git_hooks
+subject_key: kibi.cli.init.git_hooks
 property_key: enforcement_role
 operator: eq
 value_type: string

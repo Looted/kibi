@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_mcp_cli_help
+subject_key: mcp.binary.help
 property_key: clause_02_it_must_not_start_the_mcp_stdio_server_or_wait_f
 operator: eq
 value_type: bool

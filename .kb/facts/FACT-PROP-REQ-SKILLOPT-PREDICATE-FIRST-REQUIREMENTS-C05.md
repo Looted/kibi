@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_skillopt_predicate_first_requirements
+subject_key: kibi.modeling.predicates
 property_key: clause_05_reusable_guidance_must_explain_the_prolog_shaped
 operator: eq
 value_type: bool

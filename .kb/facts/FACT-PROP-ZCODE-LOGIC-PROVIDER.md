@@ -9,7 +9,7 @@ claim_key: CLAIM-2F4AE37AAF7B6983
 claim_text: Project-local Kibi logic used through kibi-zcode must remain provided by kibi-core
 claim_span_start: 127
 claim_span_end: 209
-subject_key: project_local_kibi_operations
+subject_key: zcode.kibi_adapter.local_operations
 property_key: logic_provider
 canonical_key: project_local_kibi_operations:logic_provider:eq:kibi_core
 operator: eq

@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_audit_quality_diagnostics_v1
+subject_key: kibi.checks.quality_diagnostics
 property_key: clause_01_kibi_check_surfaces_must_keep_objectively_invali
 operator: eq
 value_type: bool

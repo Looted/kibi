@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_skillopt_cursor_compat
+subject_key: kibi.skillopt.cursor_lane
 property_key: clause_01_the_skillopt_cursor_operator_must_parse_its_qual
 operator: eq
 value_type: bool

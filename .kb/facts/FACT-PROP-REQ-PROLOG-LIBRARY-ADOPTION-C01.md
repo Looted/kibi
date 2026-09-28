@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_prolog_library_adoption
+subject_key: kibi.engine.prolog_libraries
 property_key: clause_01_kibi_should_adopt_maintained_swi_prolog_librarie
 operator: eq
 value_type: bool

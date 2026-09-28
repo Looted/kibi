@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_mcp_search_discovery
+subject_key: mcp.discovery
 property_key: clause_01_kibi_must_provide_a_curated_read_only_discovery_
 operator: eq
 value_type: bool

@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: subject
-subject_key: req.req_020
+subject_key: kibi.release.versioning
 canonical_key: req.req_020
 id: FACT-SUBJ-REQ-020
 type: fact

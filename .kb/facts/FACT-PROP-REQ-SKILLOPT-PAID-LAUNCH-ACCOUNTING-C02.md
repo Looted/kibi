@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_skillopt_paid_launch_accounting
+subject_key: kibi.skillopt.paid_launch
 property_key: clause_02_those_receipts_must_bind_request_parent_capabili
 operator: eq
 value_type: bool
