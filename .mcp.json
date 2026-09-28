@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "kibi": {
+      "command": "sh",
+      "args": ["packages/cursor/scripts/worktree-resolver.sh"],
+      "env": {
+        "KIBI_DIAGNOSTIC_MODE": "1",
+        "KIBI_MCP_HOST": "claude-code"
+      }
+    }
+  }
+}

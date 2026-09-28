@@ -535,6 +535,7 @@ async function bootstrapSharedInstall(
     tarballs.codex,
     tarballs.cursor,
     tarballs["plugin-sdk"],
+    tarballs["agent-core"],
     tarballs["plugin-builtin"],
   ].join("|");
   const existing = sharedInstallations.get(installKey);
@@ -646,6 +647,7 @@ export function cleanupSharedPackedInstallation(): void {
 /** Tarball paths for each package */
 export interface Tarballs {
   core: string;
+  "agent-core": string;
   cli: string;
   runtime: string;
   mcp: string;
@@ -940,6 +942,7 @@ export function createSandbox(): TestSandbox {
         tarballs.codex,
         tarballs.cursor,
         tarballs["plugin-sdk"],
+        tarballs["agent-core"],
         tarballs["plugin-builtin"],
       ].join("|");
 

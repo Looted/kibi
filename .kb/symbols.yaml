@@ -13950,15 +13950,19 @@ symbols:
         target: REQ-002
   - id: SYM-ReceiptCodeScopeEntry
     title: ReceiptCodeScopeEntry
-    sourceFile: packages/cli/src/extractors/manifest.ts
-    symbol_role: type-shape
     status: active
+    sourceFile: packages/cli/src/extractors/manifest.ts
     granularity_reason: legacy-link
+    symbol_role: type-shape
     relationships:
-      - type: implements
-        target: REQ-kibi-verification-receipts-v2
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
         target: TEST-kibi-verification-receipts-v2
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
   - id: SYM-refreshCoordinatesForSymbolId
     title: refreshCoordinatesForSymbolId
     status: active
@@ -14291,14 +14295,22 @@ symbols:
   - id: SYM-resolveBoundSymbolScope
     title: resolveBoundSymbolScope
     sourceFile: packages/cli/src/extractors/manifest.ts
-    symbol_role: behavioral
     status: active
+    symbol_role: behavioral
     granularity_reason: legacy-link
     relationships:
-      - type: implements
-        target: REQ-kibi-verification-receipts-v2
+      - type: covered_by
+        target: TEST-generated-coordinate-repair
+      - type: covered_by
+        target: TEST-kibi-fresh-verification-receipts
       - type: covered_by
         target: TEST-kibi-verification-receipts-v2
+      - type: implements
+        target: REQ-generated-coordinate-persistence
+      - type: implements
+        target: REQ-kibi-fresh-verification-receipts
+      - type: implements
+        target: REQ-kibi-verification-receipts-v2
   - id: SYM-resolveKbPlPath
     title: resolveKbPlPath
     sourceFile: packages/cli/src/prolog.ts
@@ -33076,6 +33088,8 @@ symbols:
       - type: covered_by
         target: TEST-scripts-unit-coverage-runner
       - type: implements
+        target: REQ-014
+      - type: implements
         target: REQ-root-suite-batch-diagnostics
   - id: SYM-skillopt-fixture-assert-coordinates-present
     title: assertSymbolCoordinatesPresent
@@ -42161,3 +42175,1084 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-git-hook-effective-install
+  - id: SYM-claude-parseHookInput
+    title: parseHookInput
+    status: active
+    sourceFile: packages/claude/src/hook-input.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-readStdin
+    title: readStdin
+    status: active
+    sourceFile: packages/claude/src/hook-input.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-parseStdinJson
+    title: parseStdinJson
+    status: active
+    sourceFile: packages/claude/src/hook-input.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-readFocus
+    title: readFocus
+    status: active
+    sourceFile: packages/claude/src/hook-runner.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-editFocus
+    title: editFocus
+    status: active
+    sourceFile: packages/claude/src/hook-runner.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-runHook
+    title: runHook
+    status: active
+    sourceFile: packages/claude/src/hook-runner.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-ContextEvent
+    title: ContextEvent
+    status: active
+    sourceFile: packages/claude/src/hook-runner.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-HookOutput
+    title: HookOutput
+    status: active
+    sourceFile: packages/claude/src/hook-runner.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-HookEnvironment
+    title: HookEnvironment
+    status: active
+    sourceFile: packages/claude/src/hook-runner.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-adapterKind
+    title: adapterKind
+    status: active
+    sourceFile: packages/claude/src/index.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-canonicalKbOperation
+    title: canonicalKbOperation
+    status: active
+    sourceFile: packages/claude/src/kb-tools.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-extractMcpKbUsage
+    title: extractMcpKbUsage
+    status: active
+    sourceFile: packages/claude/src/kb-tools.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-extractCliKbUsage
+    title: extractCliKbUsage
+    status: active
+    sourceFile: packages/claude/src/kb-tools.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-scanSymbolsManifest
+    title: scanSymbolsManifest
+    status: active
+    sourceFile: packages/claude/src/knowledge-index.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-scanSymbolCoordinates
+    title: scanSymbolCoordinates
+    status: active
+    sourceFile: packages/claude/src/knowledge-index.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-buildKnowledgeIndex
+    title: buildKnowledgeIndex
+    status: active
+    sourceFile: packages/claude/src/knowledge-index.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-loadKnowledgeIndex
+    title: loadKnowledgeIndex
+    status: active
+    sourceFile: packages/claude/src/knowledge-index.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-readEntitySummary
+    title: readEntitySummary
+    status: active
+    sourceFile: packages/claude/src/knowledge-index.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-IndexedSymbol
+    title: IndexedSymbol
+    status: active
+    sourceFile: packages/claude/src/knowledge-index.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-KnowledgeIndex
+    title: KnowledgeIndex
+    status: active
+    sourceFile: packages/claude/src/knowledge-index.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-Coordinates
+    title: Coordinates
+    status: active
+    sourceFile: packages/claude/src/knowledge-index.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-EntitySummary
+    title: EntitySummary
+    status: active
+    sourceFile: packages/claude/src/knowledge-index.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-toWorkspacePath
+    title: toWorkspacePath
+    status: active
+    sourceFile: packages/claude/src/path-policy.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-classifyPath
+    title: classifyPath
+    status: active
+    sourceFile: packages/claude/src/path-policy.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-PathKind
+    title: PathKind
+    status: active
+    sourceFile: packages/claude/src/path-policy.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-WorkspacePath
+    title: WorkspacePath
+    status: active
+    sourceFile: packages/claude/src/path-policy.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-workspaceDataDir
+    title: workspaceDataDir
+    status: active
+    sourceFile: packages/claude/src/session-state.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-sessionDir
+    title: sessionDir
+    status: active
+    sourceFile: packages/claude/src/session-state.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-emptySessionState
+    title: emptySessionState
+    status: active
+    sourceFile: packages/claude/src/session-state.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-applyEvent
+    title: applyEvent
+    status: active
+    sourceFile: packages/claude/src/session-state.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-loadSessionState
+    title: loadSessionState
+    status: active
+    sourceFile: packages/claude/src/session-state.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-appendSessionEvents
+    title: appendSessionEvents
+    status: active
+    sourceFile: packages/claude/src/session-state.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-SessionEvent
+    title: SessionEvent
+    status: active
+    sourceFile: packages/claude/src/session-state.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-SessionState
+    title: SessionState
+    status: active
+    sourceFile: packages/claude/src/session-state.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-focusedSymbols
+    title: focusedSymbols
+    status: active
+    sourceFile: packages/claude/src/snippets.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-fileKnowledgeSnippet
+    title: fileKnowledgeSnippet
+    status: active
+    sourceFile: packages/claude/src/snippets.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-focusUpdate
+    title: focusUpdate
+    status: active
+    sourceFile: packages/claude/src/snippets.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-unownedSourceNote
+    title: unownedSourceNote
+    status: active
+    sourceFile: packages/claude/src/snippets.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-searchTip
+    title: searchTip
+    status: active
+    sourceFile: packages/claude/src/snippets.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-sessionStartContext
+    title: sessionStartContext
+    status: active
+    sourceFile: packages/claude/src/snippets.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-stopReminder
+    title: stopReminder
+    status: active
+    sourceFile: packages/claude/src/snippets.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-LineRange
+    title: LineRange
+    status: active
+    sourceFile: packages/claude/src/snippets.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-SnippetInput
+    title: SnippetInput
+    status: active
+    sourceFile: packages/claude/src/snippets.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-MAX_SNIPPET_CHARS
+    title: MAX_SNIPPET_CHARS
+    status: active
+    sourceFile: packages/claude/src/snippets.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-DIRECT_KB_ACCESS_NOTE
+    title: DIRECT_KB_ACCESS_NOTE
+    status: active
+    sourceFile: packages/claude/src/snippets.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-resolveKibiWorkspace
+    title: resolveKibiWorkspace
+    status: active
+    sourceFile: packages/claude/src/workspace-optin.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-KibiWorkspaceResolution
+    title: KibiWorkspaceResolution
+    status: active
+    sourceFile: packages/claude/src/workspace-optin.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-KIBI_WORKSPACE_ENV_KEYS
+    title: KIBI_WORKSPACE_ENV_KEYS
+    status: active
+    sourceFile: packages/claude/src/workspace-optin.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-test-tempDir
+    title: tempDir
+    status: active
+    sourceFile: packages/claude/tests/fixture.ts
+    symbol_role: structural
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-test-cleanupTempDirs
+    title: cleanupTempDirs
+    status: active
+    sourceFile: packages/claude/tests/fixture.ts
+    symbol_role: structural
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-test-write
+    title: write
+    status: active
+    sourceFile: packages/claude/tests/fixture.ts
+    symbol_role: structural
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-test-createKibiWorkspace
+    title: createKibiWorkspace
+    status: active
+    sourceFile: packages/claude/tests/fixture.ts
+    symbol_role: structural
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-test-snapshotTree
+    title: snapshotTree
+    status: active
+    sourceFile: packages/claude/tests/fixture.ts
+    symbol_role: structural
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-test-Fixture
+    title: Fixture
+    status: active
+    sourceFile: packages/claude/tests/fixture.ts
+    symbol_role: type-shape
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-test-CHECKOUT_SOURCE
+    title: CHECKOUT_SOURCE
+    status: active
+    sourceFile: packages/claude/tests/fixture.ts
+    symbol_role: structural
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-test-SYMBOLS_YAML
+    title: SYMBOLS_YAML
+    status: active
+    sourceFile: packages/claude/tests/fixture.ts
+    symbol_role: structural
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-test-COORDINATES_YAML
+    title: COORDINATES_YAML
+    status: active
+    sourceFile: packages/claude/tests/fixture.ts
+    symbol_role: structural
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-codex-canonicalKbToolName
+    title: canonicalKbToolName
+    status: active
+    sourceFile: packages/codex/src/kb-mcp-tools.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+  - id: SYM-cursor-canonicalKbToolName
+    title: canonicalKbToolName
+    status: active
+    sourceFile: packages/cursor/src/kb-mcp-tools.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1
+  - id: SYM-zcode-canonicalKbToolName
+    title: canonicalKbToolName
+    status: active
+    sourceFile: packages/zcode/src/kb-mcp-tools.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-claude-transformClaudeSkillFrontmatter
+    title: transformClaudeSkillFrontmatter
+    status: active
+    sourceFile: scripts/sync-agent-skills.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-HookInput
+    title: HookInput
+    status: active
+    sourceFile: packages/claude/src/hook-input.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-packageName
+    title: packageName
+    status: active
+    sourceFile: packages/claude/src/index.ts
+    symbol_role: config
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-KbUsage
+    title: KbUsage
+    status: active
+    sourceFile: packages/claude/src/kb-tools.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-claude-case-unconfigured-workspace-silent
+    title: Every event is silent and stateless outside a Kibi workspace
+    status: active
+    sourceFile: packages/claude/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-case-read-snippet-once
+    title: A linked file shows requirement titles, symbols, tests, and next calls once
+    status: active
+    sourceFile: packages/claude/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-case-edit-focus
+    title: A first edit names the edited symbol and the impact check
+    status: active
+    sourceFile: packages/claude/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-case-stop-reminder-once
+    title: Unchecked source edits are reminded once, then the agent may stop
+    status: active
+    sourceFile: packages/claude/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-case-prefixed-check-acknowledges
+    title: A host-prefixed kb_check naming the file acknowledges it
+    status: active
+    sourceFile: packages/claude/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-case-advisory-boundary
+    title: Hooks never deny, rewrite input, or touch the workspace
+    status: active
+    sourceFile: packages/claude/tests/hook-runner.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-case-scanner-equivalence
+    title: Matches a full YAML parse on the canonical writer layout
+    status: active
+    sourceFile: packages/claude/tests/knowledge-index.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-case-shipped-bundle-runs
+    title: The bundle runs under node and emits Claude Code hook JSON
+    status: active
+    sourceFile: packages/claude/tests/distribution.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-case-mcp-silent-outside-kibi
+    title: Serves no tools when the project dir does not own .kb/manifest.json
+    status: active
+    sourceFile: packages/claude/tests/distribution.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-claude-case-optional-package-contract
+    title: Optional package contract has no install lifecycle or runtime dependencies
+    status: active
+    sourceFile: packages/claude/tests/distribution.test.ts
+    symbol_role: behavioral
+    granularity_reason: test-suite
+    relationships:
+      - type: executable_for
+        target: TEST-claude-code-kibi-plugin-v1
+  - id: SYM-cap-plugin-tsmorph-runtime
+    title: tsMorph
+    status: active
+    sourceFile: packages/plugin-builtin/src/symbols/ts-morph-runtime.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-e2e-capability-plugins
+      - type: implements
+        target: REQ-capability-plugin-builtin-parity-v1
+  - id: SYM-claude-isVerifiedGitCommit
+    title: isVerifiedGitCommit
+    status: active
+    sourceFile: packages/claude/src/kb-tools.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-agent-core-loadKnowledgeIndex
+    title: loadKnowledgeIndex
+    status: active
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-agent-core-classifyPath
+    title: classifyPath
+    status: active
+    sourceFile: packages/agent-core/src/path-policy.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-agent-core-extractKbMcpToolCall
+    title: extractKbMcpToolCall
+    status: active
+    sourceFile: packages/agent-core/src/kb-mcp-tools.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-agent-core-canonicalKbToolName
+    title: canonicalKbToolName
+    status: active
+    sourceFile: packages/agent-core/src/kb-mcp-tools.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1
+  - id: SYM-agent-core-resolveKibiInterface
+    title: resolveKibiInterface
+    status: active
+    sourceFile: packages/agent-core/src/kb-mcp-tools.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1
+  - id: SYM-agent-core-extractKbMcpToolName
+    title: extractKbMcpToolName
+    status: active
+    sourceFile: packages/agent-core/src/kb-mcp-tools.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1
+  - id: SYM-agent-core-KbMcpToolCall
+    title: KbMcpToolCall
+    status: active
+    sourceFile: packages/agent-core/src/kb-mcp-tools.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1
+  - id: SYM-agent-core-McpState
+    title: McpState
+    status: active
+    sourceFile: packages/agent-core/src/kb-mcp-tools.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1
+  - id: SYM-agent-core-KibiInterface
+    title: KibiInterface
+    status: active
+    sourceFile: packages/agent-core/src/kb-mcp-tools.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1
+  - id: SYM-agent-core-scanSymbolsManifest
+    title: scanSymbolsManifest
+    status: active
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-agent-core-scanSymbolCoordinates
+    title: scanSymbolCoordinates
+    status: active
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-agent-core-buildKnowledgeIndex
+    title: buildKnowledgeIndex
+    status: active
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-agent-core-readEntitySummary
+    title: readEntitySummary
+    status: active
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-agent-core-KnowledgeIndexOptions
+    title: KnowledgeIndexOptions
+    status: active
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-agent-core-IndexedSymbol
+    title: IndexedSymbol
+    status: active
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-agent-core-KnowledgeIndex
+    title: KnowledgeIndex
+    status: active
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-agent-core-Coordinates
+    title: Coordinates
+    status: active
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-agent-core-EntitySummary
+    title: EntitySummary
+    status: active
+    sourceFile: packages/agent-core/src/knowledge-index.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-agent-core-normalizeWorkspacePath
+    title: normalizeWorkspacePath
+    status: active
+    sourceFile: packages/agent-core/src/path-policy.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-agent-core-toWorkspacePath
+    title: toWorkspacePath
+    status: active
+    sourceFile: packages/agent-core/src/path-policy.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-agent-core-PathKind
+    title: PathKind
+    status: active
+    sourceFile: packages/agent-core/src/path-policy.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-agent-core-WorkspacePath
+    title: WorkspacePath
+    status: active
+    sourceFile: packages/agent-core/src/path-policy.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-claude-code-kibi-plugin-v1
+      - type: implements
+        target: REQ-claude-code-kibi-plugin-v1
+  - id: SYM-agent-core-extractExplicitPathFields
+    title: extractExplicitPathFields
+    status: active
+    sourceFile: packages/agent-core/src/path-policy.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-agent-core-canonicalizeWorkspacePath
+    title: canonicalizeWorkspacePath
+    status: active
+    sourceFile: packages/agent-core/src/path-policy.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-agent-core-isRootKbPath
+    title: isRootKbPath
+    status: active
+    sourceFile: packages/agent-core/src/path-policy.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-agent-core-CanonicalWorkspacePath
+    title: CanonicalWorkspacePath
+    status: active
+    sourceFile: packages/agent-core/src/path-policy.ts
+    symbol_role: type-shape
+    relationships:
+      - type: covered_by
+        target: TEST-zcode-kibi-plugin-v1
+      - type: implements
+        target: REQ-zcode-kibi-plugin-v1
+  - id: SYM-agent-core-isKbPath
+    title: isKbPath
+    status: active
+    sourceFile: packages/agent-core/src/path-policy.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+  - id: SYM-agent-core-isMeaningfulTrackedPath
+    title: isMeaningfulTrackedPath
+    status: active
+    sourceFile: packages/agent-core/src/path-policy.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+  - id: SYM-agent-core-isSourceImpactRelevantPath
+    title: isSourceImpactRelevantPath
+    status: active
+    sourceFile: packages/agent-core/src/path-policy.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+  - id: SYM-agent-core-isDocumentationTrackedPath
+    title: isDocumentationTrackedPath
+    status: active
+    sourceFile: packages/agent-core/src/path-policy.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1
+  - id: SYM-cursor-isFreshnessLane
+    title: isFreshnessLane
+    status: active
+    sourceFile: packages/cursor/src/path-policy.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-cursor-kibi-plugin-v1
+      - type: implements
+        target: REQ-cursor-kibi-plugin-v1

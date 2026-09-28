@@ -110,7 +110,7 @@ ls .cursor/rules
 Run the lock tests:
 
 ```bash
-bun test packages/cursor/tests/dogfood-config.test.ts
+bun test ./scripts/tests/dogfood-config.test.ts
 ```
 
 ## Common Issues

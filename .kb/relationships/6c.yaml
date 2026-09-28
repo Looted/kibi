@@ -195,3 +195,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6d1deeed5b2c
+  - type: implements
+    from: SYM-claude-editFocus
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:18:32.888Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2f457b63461d
+  - type: covered_by
+    from: SYM-claude-editFocus
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:18:32.920Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f438e97589e6

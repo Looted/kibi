@@ -160,3 +160,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-12f4c142ea2d
+  - type: implements
+    from: SYM-claude-loadSessionState
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:24:45.860Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-56f8c393cd19
+  - type: covered_by
+    from: SYM-claude-loadSessionState
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:24:45.877Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-48ec8eb3153a
+  - type: implements
+    from: SYM-claude-isVerifiedGitCommit
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T14:43:13.501Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3b02725cf393
+  - type: covered_by
+    from: SYM-claude-isVerifiedGitCommit
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T14:43:13.514Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-ae02ec90bd13

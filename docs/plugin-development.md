@@ -16,7 +16,7 @@ the capabilities it provides, and plugins written before a capability existed
 keep validating and loading unchanged. The builtin plugin provides all four.
 
 This is distinct from **host plugins** such as `kibi-cursor`, `kibi-opencode`,
-`kibi-codex`, and `kibi-zcode`, which adapt an IDE or agent host to Kibi's
+`kibi-codex`, `kibi-zcode`, and `kibi-claude`, which adapt an IDE or agent host to Kibi's
 operation surface. Capability plugins never register MCP tools or Git hooks.
 
 ## Automatic builtin

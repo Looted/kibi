@@ -228,9 +228,10 @@ describe("release dry-run: no-commit master publish model", () => {
       expect(decision.action).toBe("PUBLISH_ONLY_RERUN");
       expect(decision.reason).toContain("already published");
 
-      expect(decision.packages).toHaveLength(8);
+      expect(decision.packages).toHaveLength(9);
       const dirs = decision.packages.map((p) => p.dir).sort();
       expect(dirs).toEqual([
+        "agent-core",
         "codex",
         "cursor",
         "mcp",
@@ -264,6 +265,7 @@ describe("release dry-run: no-commit master publish model", () => {
         .map((p) => p.dir)
         .sort();
       expect(toPublish).toEqual([
+        "agent-core",
         "cli",
         "codex",
         "cursor",
@@ -285,6 +287,7 @@ describe("release dry-run: no-commit master publish model", () => {
         `${ALL_PACKAGES.cursor.name}@${ALL_PACKAGES.cursor.version}`,
         `${ALL_PACKAGES.runtime.name}@${ALL_PACKAGES.runtime.version}`,
         `${ALL_PACKAGES["plugin-sdk"].name}@${ALL_PACKAGES["plugin-sdk"].version}`,
+        `${ALL_PACKAGES["agent-core"].name}@${ALL_PACKAGES["agent-core"].version}`,
         `${ALL_PACKAGES["plugin-builtin"].name}@${ALL_PACKAGES["plugin-builtin"].version}`,
         `${ALL_PACKAGES["plugin-jev"].name}@${ALL_PACKAGES["plugin-jev"].version}`,
       ]);
@@ -470,6 +473,7 @@ Expected action: NOOP
         .map((entry: string) => entry.split("=")[0])
         .sort();
       expect(toPublishDirs).toEqual([
+        "agent-core",
         "codex",
         "cursor",
         "mcp",
@@ -482,11 +486,12 @@ Expected action: NOOP
 
       // --- PUBLISH_ONLY_RERUN only includes unpublished packages ---
       // The runner omits already-published packages from decision.packages.
-      expect(decision.packages).toHaveLength(8);
+      expect(decision.packages).toHaveLength(9);
       const pkgDirs = decision.packages
         .map((p: { dir: string }) => p.dir)
         .sort();
       expect(pkgDirs).toEqual([
+        "agent-core",
         "codex",
         "cursor",
         "mcp",
@@ -531,6 +536,7 @@ Summary:
       expect([...PUBLISHABLE_DIRS]).toEqual([
         "core",
         "plugin-sdk",
+        "agent-core",
         "plugin-builtin",
         "plugin-jev",
         "runtime",
@@ -541,6 +547,7 @@ Summary:
         "cursor",
       ]);
       expect([...PUBLISHABLE_DIRS].sort()).toEqual([
+        "agent-core",
         "cli",
         "codex",
         "core",

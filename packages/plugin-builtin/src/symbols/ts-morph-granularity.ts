@@ -17,7 +17,7 @@
 */
 
 import type { SourceSymbolKind } from "kibi-plugin-sdk";
-import { Project } from "ts-morph";
+import { tsMorph } from "./ts-morph-runtime.js";
 import { chooseScriptKind, isPrivateClassMember } from "./ts-morph-shared.js";
 
 // implements REQ-capability-plugin-builtin-parity-v1
@@ -35,7 +35,7 @@ export function collectGranularityCandidates(
   filePath: string,
   content: string,
 ): GranularitySymbolCandidate[] {
-  const source = new Project({
+  const source = new (tsMorph().Project)({
     skipAddingFilesFromTsConfig: true,
   }).createSourceFile(`${filePath}::granularity`, content, {
     overwrite: true,

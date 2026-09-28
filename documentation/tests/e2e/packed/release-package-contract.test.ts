@@ -19,6 +19,7 @@ import {
 const packageNames = [
   "core",
   "plugin-sdk",
+  "agent-core",
   "plugin-builtin",
   "cli",
   "runtime",

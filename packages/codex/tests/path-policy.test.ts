@@ -64,11 +64,14 @@ describe("Codex hook path policy", () => {
     expect(
       isSourceImpactRelevantPath("packages/codex/src/hook-runner.ts"),
     ).toBe(true);
+    expect(isSourceImpactRelevantPath("lib/hook-runner.ts")).toBe(true);
+    expect(isSourceImpactRelevantPath("main.py")).toBe(true);
     expect(
       isSourceImpactRelevantPath("packages/codex/tests/hook.test.ts"),
     ).toBe(false);
     expect(isSourceImpactRelevantPath("docs/codex.md")).toBe(false);
     expect(isSourceImpactRelevantPath(".kb/config.json")).toBe(false);
     expect(isSourceImpactRelevantPath("dist/hook-runner.js")).toBe(false);
+    expect(isSourceImpactRelevantPath("vendor/library.ts")).toBe(false);
   });
 });

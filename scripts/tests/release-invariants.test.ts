@@ -159,6 +159,7 @@ describe("release invariants: develop-to-master model", () => {
 
       const dirs = decision.packages.map((p) => p.dir).sort();
       expect(dirs).toEqual([
+        "agent-core",
         "cli",
         "codex",
         "core",
@@ -231,6 +232,7 @@ describe("release invariants: develop-to-master model", () => {
         .map((p) => p.dir)
         .sort();
       expect(unpublishedDirs).toEqual([
+        "agent-core",
         "codex",
         "cursor",
         "mcp",
@@ -298,6 +300,7 @@ describe("release invariants: develop-to-master model", () => {
         .map((p) => p.dir)
         .sort();
       expect(toPublish).toEqual([
+        "agent-core",
         "codex",
         "cursor",
         "mcp",
@@ -340,6 +343,7 @@ describe("release invariants: develop-to-master model", () => {
         .map((p) => p.dir)
         .sort();
       expect(toPublish).toEqual([
+        "agent-core",
         "cli",
         "codex",
         "cursor",
@@ -370,6 +374,7 @@ describe("release invariants: develop-to-master model", () => {
       const ctx = makeContext({});
       const dirs = Object.keys(ctx.packages).sort();
       expect(dirs).toEqual([
+        "agent-core",
         "cli",
         "codex",
         "core",

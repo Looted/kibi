@@ -188,3 +188,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cf7a6bd9f9c6
+  - type: implements
+    from: SYM-claude-appendSessionEvents
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:24:56.893Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f73fc6ae44ba
+  - type: covered_by
+    from: SYM-claude-appendSessionEvents
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:24:56.917Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9296302c3576
+  - type: implements
+    from: SYM-agent-core-McpState
+    to: REQ-cursor-kibi-plugin-v1
+    created_at: 2026-09-27T16:47:24.238Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4dae170e2ff2
+  - type: covered_by
+    from: SYM-agent-core-McpState
+    to: TEST-cursor-kibi-plugin-v1
+    created_at: 2026-09-27T16:47:24.306Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e1f059a57247

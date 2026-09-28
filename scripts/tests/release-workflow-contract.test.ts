@@ -91,6 +91,7 @@ describe("publish.yml CI workflow contract", () => {
     expect(artifactOrder).toEqual([
       "core",
       "plugin-sdk",
+      "agent-core",
       "plugin-builtin",
       "plugin-jev",
       "runtime",

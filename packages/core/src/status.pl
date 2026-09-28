@@ -19,7 +19,16 @@ status_meta_dict(StatusDict) :-
     snapshot_id(SnapshotId),
     synced_at(DataFile, SyncedAt),
     freshness_state(DataFile, Dirty, SyncState),
-    stale_reasons(StaleReasons, StaleReasonCount, StaleReasonsTruncated),
+    (   SyncState == fresh
+    ->  % fresh means no indexed source is newer or missing and no knowledge
+        % lane or documentation file is newer than the snapshot: exactly the
+        % conditions stale_reasons enumerates. Skip its full entity scan,
+        % which dominates status latency on large KBs.
+        StaleReasons = [],
+        StaleReasonCount = 0,
+        StaleReasonsTruncated = false
+    ;   stale_reasons(StaleReasons, StaleReasonCount, StaleReasonsTruncated)
+    ),
     StatusDict = _{
         branch: Branch,
         snapshotId: SnapshotId,

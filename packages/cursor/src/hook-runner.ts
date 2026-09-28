@@ -168,7 +168,11 @@ export async function runHook(
         hasKibi: kibiReady,
         mcpState: state.mcpState,
         workspaceTrusted,
-        linkedRequirementIds: getSourceLinkedRequirementIds(cwd, primaryPath),
+        linkedRequirementIds: getSourceLinkedRequirementIds(
+          cwd,
+          primaryPath,
+          stateDir,
+        ),
       });
       if (!guidance) {
         return emptyResult();

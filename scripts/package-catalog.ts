@@ -55,6 +55,15 @@ export const PACKAGE_CATALOG = [
     packAll: true,
   },
   {
+    dir: "agent-core",
+    npmName: "kibi-agent-core",
+    publishable: true,
+    packInCi: true,
+    includedInDefaultInstall: true,
+    optional: false,
+    packAll: true,
+  },
+  {
     dir: "plugin-builtin",
     npmName: "kibi-plugin-builtin",
     publishable: true,
@@ -129,6 +138,15 @@ export const PACKAGE_CATALOG = [
   {
     dir: "zcode",
     npmName: "kibi-zcode",
+    publishable: false,
+    packInCi: false,
+    includedInDefaultInstall: false,
+    optional: false,
+    packAll: true,
+  },
+  {
+    dir: "claude",
+    npmName: "kibi-claude",
     publishable: false,
     packInCi: false,
     includedInDefaultInstall: false,

@@ -230,3 +230,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-6b81f7e9dc89
+  - type: implements
+    from: SYM-claude-parseStdinJson
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:17:57.000Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-31f3d89c096b
+  - type: covered_by
+    from: SYM-claude-parseStdinJson
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:17:57.078Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d4a87de15550
+  - type: implements
+    from: SYM-claude-SnippetInput
+    to: REQ-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:26:55.063Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-149d38d88c35
+  - type: covered_by
+    from: SYM-claude-SnippetInput
+    to: TEST-claude-code-kibi-plugin-v1
+    created_at: 2026-09-27T09:26:55.093Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fc428ebbb124
