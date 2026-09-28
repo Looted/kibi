@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { performance } from "node:perf_hooks";
 import { fileURLToPath } from "node:url";
 import { parentPort, workerData } from "node:worker_threads";
 import type {
@@ -19,6 +20,14 @@ const MAX_DIAGNOSTICS = 64;
 interface AnalysisWorkerInput {
   readonly language: TreeSitterLanguage;
   readonly content: string;
+  readonly performanceTimingEnabled?: boolean;
+}
+
+interface AnalysisWorkerTimings {
+  readonly parserInitializationWallMs: number;
+  readonly parseWallMs: number;
+  readonly analysisWallMs: number;
+  readonly totalAnalysisWallMs: number;
 }
 
 interface AnalysisWorkerSuccess {
@@ -27,6 +36,7 @@ interface AnalysisWorkerSuccess {
   readonly symbols: readonly SourceSymbolAnalysisV2[];
   readonly diagnostics: readonly SourceAnalysisDiagnosticV2[];
   readonly uncoveredRanges: readonly SourceAnalysisUncoveredRangeV2[];
+  readonly performanceTimings?: AnalysisWorkerTimings;
 }
 
 interface AnalysisWorkerFailure {
@@ -1510,12 +1520,15 @@ const SUPPLEMENTAL_QUERIES: Readonly<
 
 async function run(): Promise<AnalysisWorkerResult> {
   const input = workerData as AnalysisWorkerInput;
+  const timingEnabled = input.performanceTimingEnabled === true;
+  const totalAnalysisStartedAt = timingEnabled ? performance.now() : 0;
   try {
     globalThis.fetch = async () => {
       throw new Error(
         "Network access is disabled in Tree-sitter analysis workers.",
       );
     };
+    const parserInitializationStartedAt = timingEnabled ? performance.now() : 0;
     await Parser.init();
     const grammarPath = fileURLToPath(
       new URL(`../assets/${GRAMMAR_ASSETS[input.language]}`, import.meta.url),
@@ -1539,7 +1552,12 @@ async function run(): Promise<AnalysisWorkerResult> {
     const parser = new Parser();
     parser.setLanguage(language);
     const query = new Query(language, `${upstreamQuery}\n${queryExtension}`);
+    const parserInitializationWallMs = timingEnabled
+      ? performance.now() - parserInitializationStartedAt
+      : 0;
+    const parseStartedAt = timingEnabled ? performance.now() : 0;
     const tree = parser.parse(input.content);
+    const parseWallMs = timingEnabled ? performance.now() - parseStartedAt : 0;
     if (tree === null) {
       query.delete();
       parser.delete();
@@ -1550,7 +1568,23 @@ async function run(): Promise<AnalysisWorkerResult> {
       };
     }
     try {
-      return analyzeInput(input.language, input.content, tree.rootNode, query);
+      const analysisStartedAt = timingEnabled ? performance.now() : 0;
+      const result = analyzeInput(
+        input.language,
+        input.content,
+        tree.rootNode,
+        query,
+      );
+      if (!timingEnabled) return result;
+      return {
+        ...result,
+        performanceTimings: {
+          parserInitializationWallMs,
+          parseWallMs,
+          analysisWallMs: performance.now() - analysisStartedAt,
+          totalAnalysisWallMs: performance.now() - totalAnalysisStartedAt,
+        },
+      };
     } finally {
       tree.delete();
       query.delete();

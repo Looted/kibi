@@ -1,5 +1,11 @@
 import assert from "node:assert";
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+} from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
@@ -54,6 +60,61 @@ test("interactive mode smoke test (Node) - start/attach/assert/query/detach", as
     } catch {}
     if (existsSync(tempKbDir))
       rmSync(tempKbDir, { recursive: true, force: true });
+  }
+});
+
+test("opt-in timing trace separates query round trips from cache hits without masking failures", async () => {
+  const traceDir = mkdtempSync(path.join(os.tmpdir(), "kibi-prolog-trace-"));
+  const priorEnabled = process.env.KIBI_PERF_TIMINGS;
+  const priorTraceDir = process.env.KIBI_PERF_TRACE_DIR;
+  try {
+    process.env.KIBI_PERF_TIMINGS = "1";
+    process.env.KIBI_PERF_TRACE_DIR = traceDir;
+    const prolog = createInteractiveProlog();
+    try {
+      await prolog.start();
+      assert.equal((await prolog.query("true")).success, true);
+      assert.equal((await prolog.query("true")).success, true);
+      const failure = await prolog.query("fail");
+      assert.deepEqual(failure, {
+        success: false,
+        bindings: {},
+        error: "Query failed",
+      });
+    } finally {
+      await prolog.terminate();
+    }
+
+    const traceFiles = readdirSync(traceDir);
+    assert.equal(traceFiles.length, 1);
+    assert.match(traceFiles[0], /^kibi-performance-\d+\.jsonl$/);
+    const events = readFileSync(path.join(traceDir, traceFiles[0]), "utf8")
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line));
+    assert.deepEqual(
+      events.map(({ kind }) => kind),
+      ["prolog-round-trip", "prolog-process-cache-hit", "prolog-round-trip"],
+    );
+    for (const event of events) {
+      assert.deepEqual(Object.keys(event).sort(), [
+        "durationMs",
+        "kind",
+        "pid",
+      ]);
+      assert(Number.isFinite(event.durationMs) && event.durationMs >= 0);
+      assert.equal(event.pid, process.pid);
+      assert.equal(JSON.stringify(event).includes("true"), false);
+      assert.equal(JSON.stringify(event).includes("fail"), false);
+    }
+  } finally {
+    if (priorEnabled === undefined)
+      Reflect.deleteProperty(process.env, "KIBI_PERF_TIMINGS");
+    else process.env.KIBI_PERF_TIMINGS = priorEnabled;
+    if (priorTraceDir === undefined)
+      Reflect.deleteProperty(process.env, "KIBI_PERF_TRACE_DIR");
+    else process.env.KIBI_PERF_TRACE_DIR = priorTraceDir;
+    rmSync(traceDir, { recursive: true, force: true });
   }
 });
 

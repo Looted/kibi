@@ -27,12 +27,14 @@ import {
 import * as net from "node:net";
 import * as os from "node:os";
 import * as path from "node:path";
+import { performance } from "node:perf_hooks";
 import { fileURLToPath } from "node:url";
 import type {
   EngineAttachmentIdentity,
   EngineCommandV1,
   EngineRequest,
 } from "./engine-types.js";
+import { writePerformanceTraceEvent } from "./performance-trace.js";
 import { PrologProcess, resolveKbPlPath } from "./prolog.js";
 import { parseEntityFromList, parseListOfLists } from "./prolog/codec.js";
 import { retryAttachAfterBreakingStaleLock } from "./prolog/store-lock.js";
@@ -2125,10 +2127,18 @@ export async function runEngineDaemon(options: {
         }
       }
       case "kbStatus": {
+        const freshnessCacheLookupStartedAt =
+          process.env.KIBI_PERF_TIMINGS === "1" ? performance.now() : null;
         if (
           freshnessCache !== null &&
           Date.now() - freshnessCache.capturedAt <= ENGINE_FRESHNESS_CACHE_MS
         ) {
+          if (freshnessCacheLookupStartedAt !== null) {
+            writePerformanceTraceEvent({
+              kind: "engine-freshness-cache-hit",
+              durationMs: performance.now() - freshnessCacheLookupStartedAt,
+            });
+          }
           return freshnessCache.result;
         }
         const result = exactBranchStatus(
@@ -2152,8 +2162,18 @@ export async function runEngineDaemon(options: {
           freshnessCache = null;
         }
         if (cacheableEngineGoal(request.goal)) {
+          const queryCacheLookupStartedAt =
+            process.env.KIBI_PERF_TIMINGS === "1" ? performance.now() : null;
           const cached = queryCache.get(request.goal);
-          if (cached !== undefined) return cached;
+          if (cached !== undefined) {
+            if (queryCacheLookupStartedAt !== null) {
+              writePerformanceTraceEvent({
+                kind: "engine-query-cache-hit",
+                durationMs: performance.now() - queryCacheLookupStartedAt,
+              });
+            }
+            return cached;
+          }
         }
         const result = await prolog.query(request.goal);
         session.recordModuleLoad(request.goal, result);

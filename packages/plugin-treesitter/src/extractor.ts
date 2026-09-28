@@ -12,12 +12,18 @@ import {
   normalizeTreeSitterLanguage,
   treeSitterLanguageForPath,
 } from "./catalog.js";
+import { createBoundedSourceAnalysisTimingEmitter } from "./performance-timing.js";
 
 const EXTRACTOR_ID = "kibi-plugin-treesitter.tree-sitter.v2";
 const MAX_INPUT_CODE_UNITS = 1_048_576;
 const MAX_INPUT_BYTES = 2_097_152;
 const MAX_CONCURRENT_ANALYSES = 2;
 const ANALYSIS_TIMEOUT_MS = 3_000;
+const emitPerformanceTiming = createBoundedSourceAnalysisTimingEmitter(
+  (line) => {
+    process.stderr.write(line);
+  },
+);
 const MAX_SHEBANG_LENGTH = 2_048;
 const MAX_SHEBANG_TOKENS = 16;
 const MAX_SHEBANG_TOKEN_LENGTH = 256;
@@ -28,6 +34,12 @@ interface WorkerSuccess {
   readonly symbols: SourceAnalysisResultV2["symbols"];
   readonly diagnostics: SourceAnalysisResultV2["diagnostics"];
   readonly uncoveredRanges: SourceAnalysisResultV2["uncoveredRanges"];
+  readonly performanceTimings?: {
+    readonly parserInitializationWallMs: number;
+    readonly parseWallMs: number;
+    readonly analysisWallMs: number;
+    readonly totalAnalysisWallMs: number;
+  };
 }
 
 interface WorkerFailure {
@@ -226,7 +238,11 @@ function withinWorker(
     try {
       worker = new Worker(new URL("./analysis-worker.js", import.meta.url), {
         execArgv: [],
-        workerData: { language, content },
+        workerData: {
+          language,
+          content,
+          performanceTimingEnabled: process.env.KIBI_PERF_TIMINGS === "1",
+        },
         resourceLimits: {
           maxOldGenerationSizeMb: 64,
           maxYoungGenerationSizeMb: 16,
@@ -385,6 +401,24 @@ export function createTreeSitterSymbolExtractor(): SymbolExtractorV2 {
           result.code,
           result.message,
         );
+      }
+
+      if (result.performanceTimings !== undefined) {
+        const timingValues = [
+          result.performanceTimings.parserInitializationWallMs,
+          result.performanceTimings.parseWallMs,
+          result.performanceTimings.analysisWallMs,
+          result.performanceTimings.totalAnalysisWallMs,
+        ];
+        if (
+          timingValues.every((value) => Number.isFinite(value) && value >= 0)
+        ) {
+          emitPerformanceTiming({
+            kind: "source-analysis",
+            language,
+            ...result.performanceTimings,
+          });
+        }
       }
 
       return {

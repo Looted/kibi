@@ -174,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-5f0f681bdde0
+  - type: implements
+    from: SYM-performance-trace-event-kind
+    to: REQ-installed-staged-impact-timing-integrity
+    created_at: 2026-09-28T09:39:30.780Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-830b5bd3a190
+  - type: covered_by
+    from: SYM-performance-trace-event-kind
+    to: TEST-installed-staged-impact-timing-integrity
+    created_at: 2026-09-28T09:39:30.797Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-634508b3b4e3

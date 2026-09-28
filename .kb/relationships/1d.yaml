@@ -272,3 +272,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-cfb0c27a889c
+  - type: implements
+    from: SYM-performance-timings-env
+    to: REQ-installed-staged-impact-timing-integrity
+    created_at: 2026-09-28T09:39:42.278Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18c91aef0be1
+  - type: covered_by
+    from: SYM-performance-timings-env
+    to: TEST-installed-staged-impact-timing-integrity
+    created_at: 2026-09-28T09:39:42.297Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-63e43135a4e6

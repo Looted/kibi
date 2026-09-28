@@ -265,3 +265,9 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e9d09811ff9e
+    from: SYM-installed-impact-runWorkflow
+    to: TEST-installed-staged-impact-timing-integrity
+    created_at: 2026-09-28T09:39:21.963Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-aba556be7ac9

@@ -251,3 +251,16 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9b37476359db
+    from: SYM-performance-trace-max-bytes
+    to: REQ-installed-staged-impact-timing-integrity
+    created_at: 2026-09-28T09:39:51.588Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-60364989a1e3
+  - type: covered_by
+    from: SYM-performance-trace-max-bytes
+    to: TEST-installed-staged-impact-timing-integrity
+    created_at: 2026-09-28T09:39:51.619Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-660fc1bef7b5

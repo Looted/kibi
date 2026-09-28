@@ -286,3 +286,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-91847210fe5d
+  - type: executable_for
+    from: SYM-installed-impact-SandboxOptions
+    to: TEST-installed-staged-impact-timing-integrity
+    created_at: 2026-09-28T09:39:17.185Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a04025abf16f

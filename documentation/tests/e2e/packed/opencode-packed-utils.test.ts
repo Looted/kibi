@@ -131,6 +131,19 @@ describe("opencode packed utility helpers", () => {
         "package.json",
         "pnpm-workspace.yaml",
       ]);
+
+      writePackedInstallManifest(prefix, tarballs, {
+        includeCompleteInventory: true,
+      });
+      const completePackageJson = JSON.parse(
+        readFileSync(join(prefix, "package.json"), "utf8"),
+      ) as { dependencies: Record<string, string> };
+      assert.deepStrictEqual(completePackageJson.dependencies, {
+        ...packageFiles,
+        "kibi-plugin-jev": `file:${tarballs["plugin-jev"]}`,
+        "kibi-plugin-treesitter": `file:${tarballs["plugin-treesitter"]}`,
+      });
+      assert.equal(Object.keys(completePackageJson.dependencies).length, 11);
     } finally {
       rmSync(prefix, { recursive: true, force: true });
     }

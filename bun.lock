@@ -55,7 +55,7 @@
     },
     "packages/cli": {
       "name": "kibi-cli",
-      "version": "2.5.0",
+      "version": "2.5.1",
       "bin": {
         "kibi": "bin/kibi",
       },
@@ -195,7 +195,7 @@
     },
     "packages/plugin-treesitter": {
       "name": "kibi-plugin-treesitter",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "dependencies": {
         "web-tree-sitter": "0.27.0",
       },

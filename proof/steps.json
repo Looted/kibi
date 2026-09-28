@@ -1425,5 +1425,51 @@
         "documentation/tests/e2e/packed/impact-review-stage-e.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-installed-staged-impact-timing-integrity",
+    "steps": [
+      [
+        "node",
+        "--test",
+        "scripts/benchmark-installed-staged-impact.test.mjs"
+      ],
+      [
+        "bun",
+        "test",
+        "--test-name-pattern",
+        "opt-in timing trace separates query round trips from cache hits without masking failures",
+        "./packages/cli/tests/prolog.node.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--test-name-pattern",
+        "records engine cache hits separately from Prolog query round trips",
+        "./packages/cli/tests/engine-daemon-inprocess.test.ts"
+      ],
+      [
+        "bun",
+        "test",
+        "--test-name-pattern",
+        "marks bounded parser timing output as truncated instead of dropping it silently|keeps opt-in parser timings off the result and out of source metadata",
+        "./packages/plugin-treesitter/tests/plugin.test.js"
+      ],
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/installed-staged-impact-benchmark.test.ts"
+      ]
+    ]
+  },
+  {
+    "test_id": "TEST-tree-sitter-language-authoring-scaffold-draft-output",
+    "steps": [
+      [
+        "node",
+        "--test",
+        "scripts/tests/scaffold-tree-sitter-language.test.mjs"
+      ]
+    ]
   }
 ]

@@ -139,3 +139,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-fbbedac1be65
+  - type: implements
+    from: SYM-source-analysis-timing-event
+    to: REQ-installed-staged-impact-timing-integrity
+    created_at: 2026-09-28T09:40:01.090Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-9f6ffc84928e
+  - type: covered_by
+    from: SYM-source-analysis-timing-event
+    to: TEST-installed-staged-impact-timing-integrity
+    created_at: 2026-09-28T09:40:01.125Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-862691ce8320
+  - type: implements
+    from: SYM-source-analysis-timing-limits
+    to: REQ-installed-staged-impact-timing-integrity
+    created_at: 2026-09-28T09:40:06.516Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c3b7c89ed4db
+  - type: covered_by
+    from: SYM-source-analysis-timing-limits
+    to: TEST-installed-staged-impact-timing-integrity
+    created_at: 2026-09-28T09:40:06.539Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b7b2ee1a1a46

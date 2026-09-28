@@ -5,6 +5,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -326,6 +327,95 @@ describe("runEngineDaemon in-process", () => {
       await client.terminate();
     }
     await daemon;
+  }, 90_000);
+
+  test("records engine cache hits separately from Prolog query round trips", async () => {
+    const root = tempRoot();
+    const traceDir = path.join(root, "trace");
+    mkdirSync(traceDir, { mode: 0o700 });
+    const previousEnabled = process.env.KIBI_PERF_TIMINGS;
+    const previousTraceDir = process.env.KIBI_PERF_TRACE_DIR;
+    const previousIdle = process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS;
+    let daemon: Promise<void> | null = null;
+    let client: EngineClient | null = null;
+    try {
+      process.env.KIBI_PERF_TIMINGS = "1";
+      process.env.KIBI_PERF_TRACE_DIR = traceDir;
+      process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS = "60000";
+      ensureBranchStoreManifest(root, "main");
+      const socketPath = engineSocketPath(root, "main");
+      daemon = runEngineDaemon({
+        workspaceRoot: root,
+        branch: "main",
+        socketPath,
+      });
+      await waitForSocket(socketPath);
+      client = new EngineClient({
+        workspaceRoot: root,
+        branch: "main",
+        timeout: 20_000,
+      });
+      await client.start(false);
+      const goal = "findall(Id, kb_entity(Id, _, _), Ids)";
+      const tracePath = path.join(
+        traceDir,
+        `kibi-performance-${process.pid}.jsonl`,
+      );
+      const traceOffset = existsSync(tracePath)
+        ? readFileSync(tracePath).length
+        : 0;
+      const first = await client.query(goal);
+      const second = await client.query(goal);
+      expect(second).toEqual(first);
+
+      const traceFiles = readdirSync(traceDir);
+      expect(traceFiles).toHaveLength(1);
+      const traceName = traceFiles[0];
+      if (traceName === undefined) throw new Error("Trace file is missing");
+      const traceBytes = readFileSync(path.join(traceDir, traceName));
+      const events = traceBytes
+        .subarray(traceOffset)
+        .toString("utf8")
+        .trim()
+        .split("\n")
+        .map((line) => JSON.parse(line));
+      expect(events.map(({ kind }) => kind)).toEqual([
+        "prolog-round-trip",
+        "engine-query-cache-hit",
+      ]);
+      for (const event of events) {
+        expect(Object.keys(event).sort()).toEqual([
+          "durationMs",
+          "kind",
+          "pid",
+        ]);
+        expect(Number.isFinite(event.durationMs) && event.durationMs >= 0).toBe(
+          true,
+        );
+        expect(event.pid).toBe(process.pid);
+      }
+    } finally {
+      try {
+        if (client !== null) {
+          await client.stop(false).catch(() => undefined);
+          await client.terminate();
+        }
+      } finally {
+        try {
+          if (daemon !== null) await daemon;
+        } finally {
+          if (previousEnabled === undefined)
+            Reflect.deleteProperty(process.env, "KIBI_PERF_TIMINGS");
+          else process.env.KIBI_PERF_TIMINGS = previousEnabled;
+          if (previousTraceDir === undefined)
+            Reflect.deleteProperty(process.env, "KIBI_PERF_TRACE_DIR");
+          else process.env.KIBI_PERF_TRACE_DIR = previousTraceDir;
+          if (previousIdle === undefined)
+            Reflect.deleteProperty(process.env, "KIBI_ENGINE_IDLE_TIMEOUT_MS");
+          else process.env.KIBI_ENGINE_IDLE_TIMEOUT_MS = previousIdle;
+        }
+      }
+    }
   }, 90_000);
 
   test("idle timeout shuts the in-process daemon down without a client", async () => {

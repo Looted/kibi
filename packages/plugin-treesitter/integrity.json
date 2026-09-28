@@ -1,7 +1,7 @@
 {
   "schemaVersion": "kibi.package-integrity.v1",
   "package": "kibi-plugin-treesitter",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "algorithm": "sha256",
   "selfHash": {
     "path": "integrity.json",
@@ -11,8 +11,8 @@
   "files": [
     {
       "path": "CHANGELOG.md",
-      "bytes": 2199,
-      "sha256": "d87efe0a9691ff8f3d599919e7d7444d8b8be4d1d34416f93f3bc6c67058f167"
+      "bytes": 2803,
+      "sha256": "85e8104425af08e4c12377ad8be246916cc7b7f172e9a94b4dcbc2c67ba881d0"
     },
     {
       "path": "LICENSE.md",
@@ -27,7 +27,7 @@
     {
       "path": "SBOM.spdx.json",
       "bytes": 11302,
-      "sha256": "f658df7bad4d16eda6185c5c365b1ca2481aeb63ea0e1b2e4c480e1e63c2dd7c"
+      "sha256": "2c04d17861d5fe7b6465713b111fd3d4354dc381fe535c0b9085de06fbcdb211"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -177,7 +177,7 @@
     {
       "path": "catalog.json",
       "bytes": 16469,
-      "sha256": "d3695032eeb17ac194857627247fe1a110b653f8f227b6eef27fea90f36711a0"
+      "sha256": "05f3616458f282e214c33ec449be56d805157e748113cd73280bfeec2cb7d006"
     },
     {
       "path": "dist/analysis-worker.d.ts",
@@ -191,8 +191,8 @@
     },
     {
       "path": "dist/analysis-worker.js",
-      "bytes": 49813,
-      "sha256": "ce240b6eec417f32f40becbcb88554a7445768bec919b1372bc25833cb2266c4"
+      "bytes": 50887,
+      "sha256": "1fb05ad348c470fa1c0fc15e70117bd9dc4936069704354f393672652598ceee"
     },
     {
       "path": "dist/catalog.d.ts",
@@ -217,12 +217,12 @@
     {
       "path": "dist/extractor.d.ts.map",
       "bytes": 255,
-      "sha256": "99ab7b106f993646d9aeca553b6f94dce89164f3ac449a592f87427c16b6db0a"
+      "sha256": "1c57be91e339cbe71eb97b73f5159c8ed01976e23aca46bf8acdfbda9a29dada"
     },
     {
       "path": "dist/extractor.js",
-      "bytes": 11681,
-      "sha256": "0217b99fc63107af783dae0d1e8370c62eab9400c64ad574ff1c2804dbaa0a4e"
+      "bytes": 12733,
+      "sha256": "925cc0a63dba55a8ce851f95704749a2e93b61d511a87920de150cfc14309be1"
     },
     {
       "path": "dist/index.d.ts",
@@ -238,6 +238,21 @@
       "path": "dist/index.js",
       "bytes": 784,
       "sha256": "adc03d77d94c0133b3188950b35f79db19e447cf7bfa1f7e1cf1f5c97a582a44"
+    },
+    {
+      "path": "dist/performance-timing.d.ts",
+      "bytes": 1051,
+      "sha256": "a7c31a16654bc0dd66c8941a26380c7dd8e2b94db78c373c8d24a1fe8926197c"
+    },
+    {
+      "path": "dist/performance-timing.d.ts.map",
+      "bytes": 739,
+      "sha256": "27b2f3c9fd397b182bf5a74c6f6c6ef5be17143979dd515a14f6e0009568464c"
+    },
+    {
+      "path": "dist/performance-timing.js",
+      "bytes": 2241,
+      "sha256": "56cce530f627c8fd079e8ec070322f84378ae50c40a6765d88b418850692940b"
     },
     {
       "path": "licenses/tree-sitter-bash-MIT.txt",
@@ -302,7 +317,7 @@
     {
       "path": "package.json",
       "bytes": 1345,
-      "sha256": "3bc46d77b1be278847bf555174341e3ae82fe23c74d8fe307bafc3c8f75ed385"
+      "sha256": "980dd86a14330560b969f0743c8b8080073f07992c5d26e48f67aa6f27ab3d85"
     }
   ]
 }

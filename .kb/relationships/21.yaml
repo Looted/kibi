@@ -181,3 +181,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-a481c90fde66
+  - type: implements
+    from: SYM-source-analysis-timing-emitter
+    to: REQ-installed-staged-impact-timing-integrity
+    created_at: 2026-09-28T09:39:56.363Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-49d4e88aacb2
+  - type: covered_by
+    from: SYM-source-analysis-timing-emitter
+    to: TEST-installed-staged-impact-timing-integrity
+    created_at: 2026-09-28T09:39:56.379Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-136aa01fd28f

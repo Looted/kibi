@@ -290,6 +290,73 @@ function evaluate(
 }
 
 describe("content-bound file impact review", () => {
+  test("preparation and evaluation share successful parser depth promotion", () => {
+    const f = repo();
+    stageSource(f);
+    const analyses = analysisMap(f.root);
+    const initial = captureStagedSnapshot(f.root);
+    const initialSource = initial.inventory.find(
+      (file) => file.path === "src/service.ts",
+    );
+    expect(initialSource).toBeDefined();
+    if (!initialSource) throw new Error("fixture source is missing");
+    initialSource.analysisDepth = "file";
+    initialSource.disposition = "advisory";
+
+    const prepared = prepareImpactReview(initial, {
+      analyses,
+      providerSetFingerprint: providerSet,
+      evaluatorFingerprint: evaluator,
+    });
+    const preparedSource = prepared.files.find(
+      (file) => file.path === "src/service.ts",
+    );
+    expect(preparedSource?.analysisDepth).toBe("symbol");
+    expect(preparedSource?.disposition).toBe("checked");
+    const scopePayload = prepared.scopePayload;
+    if (
+      !scopePayload ||
+      typeof scopePayload !== "object" ||
+      !("files" in scopePayload) ||
+      !Array.isArray(scopePayload.files)
+    ) {
+      throw new Error("prepared scope payload has no file inventory");
+    }
+    const scopeSource = scopePayload.files.find(
+      (file) =>
+        file && typeof file === "object" && file.path === "src/service.ts",
+    ) as {
+      analysisDepth?: string;
+      disposition?: string;
+    };
+    expect(scopeSource.analysisDepth).toBe("symbol");
+    expect(scopeSource.disposition).toBe("checked");
+    const record = createImpactReviewRecord(
+      prepared,
+      new Map([["src/service.ts", { decision: stillCurrent }]]),
+      "local-reviewer",
+      "2026-09-26T10:00:00Z",
+    );
+    f.write(IMPACT_REVIEW_PATH, `${JSON.stringify(record, null, 2)}\n`);
+    f.git("add", IMPACT_REVIEW_PATH);
+    const finalSnapshot = captureStagedSnapshot(f.root);
+    const finalSource = finalSnapshot.inventory.find(
+      (file) => file.path === "src/service.ts",
+    );
+    expect(finalSource).toBeDefined();
+    if (!finalSource) throw new Error("fixture source is missing");
+    finalSource.analysisDepth = "file";
+    finalSource.disposition = "advisory";
+
+    expect(
+      evaluateImpactReview(finalSnapshot, {
+        analyses,
+        providerSetFingerprint: providerSet,
+        evaluatorFingerprint: evaluator,
+      }).passed,
+    ).toBe(true);
+  });
+
   test("evaluator closure binds the entity normalization schema", () => {
     const root = mkdtempSync(join(tmpdir(), "kibi-impact-schema-closure-"));
     roots.push(root);

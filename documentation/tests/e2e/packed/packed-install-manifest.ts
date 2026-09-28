@@ -41,6 +41,7 @@ export function relocatePackedInstallMetadata(
 export function writePackedInstallManifest(
   prefix: string,
   tarballs: Tarballs,
+  options: { includeCompleteInventory?: boolean } = {},
 ): void {
   const packageFiles = {
     "kibi-core": `file:${tarballs.core}`,
@@ -51,9 +52,16 @@ export function writePackedInstallManifest(
     "kibi-opencode": `file:${tarballs.opencode}`,
     "kibi-codex": `file:${tarballs.codex}`,
     "kibi-cursor": `file:${tarballs.cursor}`,
-    // Capability-plugin defaults required by kibi-cli; Jev stays optional/out.
+    // Capability-plugin defaults required by kibi-cli; optional plugins stay
+    // out unless a consumer explicitly needs the complete packed inventory.
     "kibi-plugin-sdk": `file:${tarballs["plugin-sdk"]}`,
     "kibi-plugin-builtin": `file:${tarballs["plugin-builtin"]}`,
+    ...(options.includeCompleteInventory
+      ? {
+          "kibi-plugin-jev": `file:${tarballs["plugin-jev"]}`,
+          "kibi-plugin-treesitter": `file:${tarballs["plugin-treesitter"]}`,
+        }
+      : {}),
   };
   const workspaceOverrides = [
     "overrides:",

@@ -331,3 +331,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-757e05919d09
+  - type: verified_by
+    from: SCEN-installed-staged-impact-timing-integrity
+    to: TEST-installed-staged-impact-timing-integrity
+    created_at: 2026-09-28T09:25:22.659Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df84ac6abfde

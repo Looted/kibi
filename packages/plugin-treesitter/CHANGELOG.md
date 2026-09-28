@@ -1,5 +1,14 @@
 # kibi-plugin-treesitter
 
+## 0.2.1
+
+### Patch Changes
+
+- Opt-in performance observations now make it easier to understand staged checks without changing their results. When explicitly enabled, Kibi reports bounded parser phase timings and distinguishes real Prolog query round trips from cache hits, while keeping goals, source text, and paths out of the timing records.
+
+  - Add private, bounded, best-effort Prolog timing trace events and opt-in Tree-sitter worker phase observations.
+  - Keep timing observations outside public result schemas and add regressions for result equality, cache labeling, and failure preservation.
+
 ## 0.2.0
 
 ### Minor Changes

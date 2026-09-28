@@ -43446,3 +43446,185 @@ symbols:
         target: TEST-001
       - type: implements
         target: REQ-cli-doctor
+  - id: SYM-installed-impact-PackedInstallOptions
+    title: PackedInstallOptions
+    status: active
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: type-shape
+    tags:
+      - installed-impact
+      - performance-timing
+    relationships:
+      - type: executable_for
+        target: TEST-installed-staged-impact-timing-integrity
+  - id: SYM-installed-impact-SandboxOptions
+    title: SandboxOptions
+    status: active
+    sourceFile: documentation/tests/e2e/packed/helpers.ts
+    symbol_role: type-shape
+    tags:
+      - installed-impact
+      - performance-timing
+    relationships:
+      - type: executable_for
+        target: TEST-installed-staged-impact-timing-integrity
+  - id: SYM-installed-impact-runWorkflow
+    title: runInstalledStagedImpactBenchmarkWorkflow
+    status: active
+    sourceFile: documentation/tests/e2e/packed/installed-staged-impact-benchmark.test.ts
+    symbol_role: behavioral
+    tags:
+      - installed-impact
+      - performance-timing
+    relationships:
+      - type: executable_for
+        target: TEST-installed-staged-impact-timing-integrity
+  - id: SYM-performance-trace-write-event
+    title: writePerformanceTraceEvent
+    status: active
+    sourceFile: packages/cli/src/performance-trace.ts
+    symbol_role: behavioral
+    tags:
+      - installed-impact
+      - performance-timing
+    relationships:
+      - type: covered_by
+        target: TEST-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-installed-staged-impact-timing-integrity
+  - id: SYM-performance-trace-event-kind
+    title: PerformanceTraceEventKind
+    status: active
+    sourceFile: packages/cli/src/performance-trace.ts
+    symbol_role: type-shape
+    tags:
+      - installed-impact
+      - performance-timing
+    relationships:
+      - type: covered_by
+        target: TEST-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-installed-staged-impact-timing-integrity
+  - id: SYM-performance-trace-dir-env
+    title: KIBI_PERF_TRACE_DIR_ENV
+    status: active
+    sourceFile: packages/cli/src/performance-trace.ts
+    symbol_role: config
+    tags:
+      - installed-impact
+      - performance-timing
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-installed-staged-impact-timing-integrity
+  - id: SYM-performance-timings-env
+    title: KIBI_PERF_TIMINGS_ENV
+    status: active
+    sourceFile: packages/cli/src/performance-trace.ts
+    symbol_role: config
+    tags:
+      - installed-impact
+      - performance-timing
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-installed-staged-impact-timing-integrity
+  - id: SYM-performance-trace-max-events
+    title: KIBI_PERF_TRACE_MAX_EVENTS
+    status: active
+    sourceFile: packages/cli/src/performance-trace.ts
+    symbol_role: config
+    tags:
+      - installed-impact
+      - performance-timing
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-installed-staged-impact-timing-integrity
+  - id: SYM-performance-trace-max-bytes
+    title: KIBI_PERF_TRACE_MAX_BYTES
+    status: active
+    sourceFile: packages/cli/src/performance-trace.ts
+    symbol_role: config
+    tags:
+      - installed-impact
+      - performance-timing
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-installed-staged-impact-timing-integrity
+  - id: SYM-source-analysis-timing-emitter
+    title: createBoundedSourceAnalysisTimingEmitter
+    status: active
+    sourceFile: packages/plugin-treesitter/src/performance-timing.ts
+    symbol_role: behavioral
+    tags:
+      - installed-impact
+      - performance-timing
+    relationships:
+      - type: covered_by
+        target: TEST-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-installed-staged-impact-timing-integrity
+  - id: SYM-source-analysis-timing-event
+    title: SourceAnalysisTimingEvent
+    status: active
+    sourceFile: packages/plugin-treesitter/src/performance-timing.ts
+    symbol_role: type-shape
+    tags:
+      - installed-impact
+      - performance-timing
+    relationships:
+      - type: covered_by
+        target: TEST-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-installed-staged-impact-timing-integrity
+  - id: SYM-source-analysis-timing-limits
+    title: SourceAnalysisTimingLimits
+    status: active
+    sourceFile: packages/plugin-treesitter/src/performance-timing.ts
+    symbol_role: type-shape
+    tags:
+      - installed-impact
+      - performance-timing
+    relationships:
+      - type: covered_by
+        target: TEST-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-installed-staged-impact-timing-integrity
+  - id: SYM-source-analysis-timing-max-events
+    title: MAX_SOURCE_ANALYSIS_TIMING_EVENTS
+    status: active
+    sourceFile: packages/plugin-treesitter/src/performance-timing.ts
+    symbol_role: config
+    tags:
+      - installed-impact
+      - performance-timing
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-installed-staged-impact-timing-integrity
+  - id: SYM-source-analysis-timing-max-bytes
+    title: MAX_SOURCE_ANALYSIS_TIMING_BYTES
+    status: active
+    sourceFile: packages/plugin-treesitter/src/performance-timing.ts
+    symbol_role: config
+    tags:
+      - installed-impact
+      - performance-timing
+    granularity_reason: config-artifact
+    relationships:
+      - type: covered_by
+        target: TEST-installed-staged-impact-timing-integrity
+      - type: implements
+        target: REQ-installed-staged-impact-timing-integrity

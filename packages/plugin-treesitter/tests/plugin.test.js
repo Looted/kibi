@@ -1,9 +1,10 @@
 // executable_for TEST-source-analysis-v2-contract
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { describe, it } from "node:test";
 import { validateSourceAnalysisResultV2 } from "kibi-plugin-sdk";
+import { createBoundedSourceAnalysisTimingEmitter } from "../dist/performance-timing.js";
 
 // Make any accidental network use fail before either package is evaluated.
 globalThis.fetch = async () => {
@@ -28,6 +29,50 @@ function assertValidV2(result, input) {
 }
 
 describe("offline Tree-sitter symbol extractor", () => {
+  it("marks bounded parser timing output as truncated instead of dropping it silently", () => {
+    const event = {
+      kind: "source-analysis",
+      language: "python",
+      parserInitializationWallMs: 1,
+      parseWallMs: 2,
+      analysisWallMs: 3,
+      totalAnalysisWallMs: 6,
+    };
+    const eventLimitedLines = [];
+    const emitEventLimited = createBoundedSourceAnalysisTimingEmitter(
+      (line) => eventLimitedLines.push(line),
+      { maxEvents: 2, maxBytes: 4096 },
+    );
+    emitEventLimited(event);
+    emitEventLimited(event);
+    emitEventLimited(event);
+    assert.equal(eventLimitedLines.length, 2);
+    assert.equal(
+      JSON.parse(eventLimitedLines[0].slice("[kibi-performance] ".length)).kind,
+      "source-analysis",
+    );
+    assert.deepEqual(
+      JSON.parse(eventLimitedLines[1].slice("[kibi-performance] ".length)),
+      { kind: "source-analysis-truncated", reason: "event_limit" },
+    );
+
+    const byteLimitedLines = [];
+    const byteLimitMarker = `[kibi-performance] ${JSON.stringify({
+      kind: "source-analysis-truncated",
+      reason: "byte_limit",
+    })}\n`;
+    const emitByteLimited = createBoundedSourceAnalysisTimingEmitter(
+      (line) => byteLimitedLines.push(line),
+      {
+        maxEvents: 10,
+        maxBytes: Buffer.byteLength(byteLimitMarker, "utf8") + 1,
+      },
+    );
+    emitByteLimited(event);
+    emitByteLimited(event);
+    assert.deepEqual(byteLimitedLines, [byteLimitMarker]);
+  });
+
   it("exports package metadata version and the v2 plugin capability", async () => {
     const packageJson = JSON.parse(
       await readFile(new URL("../package.json", import.meta.url), "utf8"),
@@ -73,6 +118,67 @@ describe("offline Tree-sitter symbol extractor", () => {
     assert.equal(result.status, "ok");
     assertValidV2(result, input);
     assert(findSymbol(result, "entrypoint"));
+  });
+
+  it("keeps opt-in parser timings off the result and out of source metadata", async () => {
+    const content = await fixture("python/nested-duplicate.py");
+    const input = { path: "timing-fixture.py", content };
+    const moduleUrl = new URL("../dist/index.js", import.meta.url).href;
+    const childProgram = [
+      `import { createTreeSitterSymbolExtractor } from ${JSON.stringify(moduleUrl)};`,
+      `const result = await createTreeSitterSymbolExtractor().analyze(${JSON.stringify(input)});`,
+      "process.stdout.write(JSON.stringify(result));",
+    ].join("\n");
+    const run = (enabled) => {
+      const child = spawnSync(
+        "node",
+        ["--input-type=module", "-e", childProgram],
+        {
+          encoding: "utf8",
+          timeout: 15_000,
+          env: {
+            ...process.env,
+            KIBI_PERF_TIMINGS: enabled ? "1" : "0",
+          },
+        },
+      );
+      assert.equal(child.status, 0, child.stderr);
+      return {
+        result: JSON.parse(child.stdout),
+        stderr: child.stderr,
+      };
+    };
+
+    const defaultRun = run(false);
+    const timedRun = run(true);
+    assert.deepEqual(timedRun.result, defaultRun.result);
+    assert.equal("performanceTimings" in timedRun.result, false);
+    assert.equal(defaultRun.stderr.includes("[kibi-performance]"), false);
+    const eventLines = timedRun.stderr
+      .split("\n")
+      .filter((line) => line.startsWith("[kibi-performance] "));
+    assert.equal(eventLines.length, 1);
+    const event = JSON.parse(eventLines[0].slice("[kibi-performance] ".length));
+    assert.deepEqual(Object.keys(event).sort(), [
+      "analysisWallMs",
+      "kind",
+      "language",
+      "parseWallMs",
+      "parserInitializationWallMs",
+      "totalAnalysisWallMs",
+    ]);
+    assert.equal(event.kind, "source-analysis");
+    assert.equal(event.language, "python");
+    for (const key of [
+      "parserInitializationWallMs",
+      "parseWallMs",
+      "analysisWallMs",
+      "totalAnalysisWallMs",
+    ]) {
+      assert(Number.isFinite(event[key]) && event[key] >= 0);
+    }
+    assert.equal(eventLines[0].includes(input.path), false);
+    assert.equal(eventLines[0].includes(input.content), false);
   });
 
   it("preserves same-named declarations in nested Python scopes", async () => {

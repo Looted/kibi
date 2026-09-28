@@ -4,10 +4,10 @@
 export const qualifiedSourceAnalyzers = [
   {
     packageName: "kibi-plugin-treesitter",
-    version: "0.2.0",
+    version: "0.2.1",
     files: {
       "SBOM.spdx.json":
-        "f658df7bad4d16eda6185c5c365b1ca2481aeb63ea0e1b2e4c480e1e63c2dd7c",
+        "2c04d17861d5fe7b6465713b111fd3d4354dc381fe535c0b9085de06fbcdb211",
       "THIRD_PARTY_NOTICES.md":
         "0b1ede96cb261dab73fd1ec8c51d7bb5b2492eed0502f6c10ed071736daa263c",
       "assets/queries/bash.scm":
@@ -67,17 +67,19 @@ export const qualifiedSourceAnalyzers = [
       "assets/tree-sitter-terraform.release.wasm":
         "59dbcbb0f08eb78b78f37510834559a48ce5c9d4866c978d62c6390796461cb5",
       "catalog.json":
-        "d3695032eeb17ac194857627247fe1a110b653f8f227b6eef27fea90f36711a0",
+        "05f3616458f282e214c33ec449be56d805157e748113cd73280bfeec2cb7d006",
       "dist/analysis-worker.js":
-        "ce240b6eec417f32f40becbcb88554a7445768bec919b1372bc25833cb2266c4",
+        "1fb05ad348c470fa1c0fc15e70117bd9dc4936069704354f393672652598ceee",
       "dist/catalog.js":
         "460243c48cb6a03b8c7971273729d8a1134955186978b6c0d04182c71960ebff",
       "dist/extractor.js":
-        "0217b99fc63107af783dae0d1e8370c62eab9400c64ad574ff1c2804dbaa0a4e",
+        "925cc0a63dba55a8ce851f95704749a2e93b61d511a87920de150cfc14309be1",
       "dist/index.js":
         "adc03d77d94c0133b3188950b35f79db19e447cf7bfa1f7e1cf1f5c97a582a44",
+      "dist/performance-timing.js":
+        "56cce530f627c8fd079e8ec070322f84378ae50c40a6765d88b418850692940b",
       "integrity.json":
-        "55c13aef9f4d65c77b0ac306a61b99f039a9e3c5d2406bcdbf22043518ce57dd",
+        "0e72537cab9bf8753628a2f51f0fef80b8ab49de739c6f52be94007e7cb90844",
       "licenses/tree-sitter-bash-MIT.txt":
         "49bf33cf78ef5897e4e161ce1517df7de1ae5042a65b6bcfd44401e0fc606559",
       "licenses/tree-sitter-c-MIT.txt":
@@ -103,7 +105,7 @@ export const qualifiedSourceAnalyzers = [
       "licenses/web-tree-sitter-MIT.txt":
         "c5cfb43042b6b72045f4ba997834d0a7786d2793d91680868b5815b39f14fc78",
       "package.json":
-        "3bc46d77b1be278847bf555174341e3ae82fe23c74d8fe307bafc3c8f75ed385",
+        "980dd86a14330560b969f0743c8b8080073f07992c5d26e48f67aa6f27ab3d85",
     },
     dependencies: [
       {

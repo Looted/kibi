@@ -886,10 +886,15 @@ export function prepareImpactReview(
     )
       throw new Error(`Analysis contains an extraneous changed path: ${path}`);
   const files: Omit<ImpactFileRecord, "decision">[] = [];
+  const scopeFiles: unknown[] = [];
   const scopedRequirementIdsByPath = new Map<string, readonly string[]>();
   for (const file of sourceInventory) {
-    const projectedFile = projectedPathEvidence(file);
     const suppliedChange = options.analyses.get(file.path);
+    const projectedFile = projectedPathEvidence(
+      suppliedChange?.after?.status === "ok"
+        ? { ...file, analysisDepth: "symbol", disposition: "checked" }
+        : file,
+    );
     const change =
       file.analysisDepth === "metadata" || file.skipReason
         ? undefined
@@ -987,6 +992,7 @@ export function prepareImpactReview(
       after,
       analysisReviews: reviews,
     });
+    scopeFiles.push(exactPathProjection(projectedFile, before, after));
     scopedRequirementIdsByPath.set(file.path, [...reqIds].sort());
   }
   const scopePayload = {
@@ -995,18 +1001,7 @@ export function prepareImpactReview(
     evaluatorFingerprint: options.evaluatorFingerprint,
     providerSetFingerprint: options.providerSetFingerprint,
     knowledgeFingerprint,
-    files: files.map((file) => {
-      const inventoryRow = snapshot.inventory.find(
-        (row) => row.path === file.path,
-      );
-      if (!inventoryRow)
-        throw new Error(`Captured inventory is missing ${file.path}`);
-      return exactPathProjection(
-        projectedPathEvidence(inventoryRow),
-        file.before,
-        file.after,
-      );
-    }),
+    files: scopeFiles,
   };
   const scopeFingerprint = fingerprint(scopePayload);
   return {
@@ -1287,8 +1282,6 @@ export function evaluateImpactReview(
       throw new Error("Review provider-set binding is stale");
     if (record.scope.knowledgeFingerprint !== prepared.knowledgeFingerprint)
       throw new Error("Review captured-knowledge binding is stale");
-    if (record.scope.fingerprint !== prepared.scopeFingerprint)
-      throw new Error("Review scope fingerprint is stale");
     const expected = new Map(prepared.files.map((file) => [file.path, file]));
     if (record.files.length !== expected.size)
       throw new Error("Review omits or adds changed paths");
@@ -1308,10 +1301,23 @@ export function evaluateImpactReview(
       } = file;
       const { analysisReviews: _capturedReviews, ...expectedEvidence } =
         captured;
-      if (!same(capturedEvidence, expectedEvidence))
+      if (!same(capturedEvidence, expectedEvidence)) {
+        const capturedFields = capturedEvidence as Record<string, unknown>;
+        const expectedFields = expectedEvidence as Record<string, unknown>;
+        const changedFields = [
+          ...new Set([
+            ...Object.keys(capturedFields),
+            ...Object.keys(expectedFields),
+          ]),
+        ]
+          .filter(
+            (field) => !same(capturedFields[field], expectedFields[field]),
+          )
+          .sort();
         throw new Error(
-          `Per-file Git or analysis evidence is stale: ${file.path}`,
+          `Per-file Git or analysis fingerprint is stale: ${file.path} (${changedFields.join(", ")})`,
         );
+      }
       validateAnalysisReviews(file, prepared.policy);
       validateDecisionAgainstSnapshot(
         file.path,
@@ -1322,6 +1328,10 @@ export function evaluateImpactReview(
     }
     for (const path of expected.keys())
       if (!seen.has(path)) throw new Error(`Missing review path: ${path}`);
+    if (record.scope.fingerprint !== prepared.scopeFingerprint)
+      throw new Error(
+        `Review scope fingerprint is stale (record ${record.scope.fingerprint}; prepared ${prepared.scopeFingerprint})`,
+      );
     snapshot.assertUnchanged();
     return {
       passed: true,

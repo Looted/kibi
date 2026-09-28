@@ -20,8 +20,10 @@ import { type ChildProcess, spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
+import { performance } from "node:perf_hooks";
 import { fileURLToPath } from "node:url";
 import { getKbPlPathOverride, isPrologDebugEnabled } from "./env.js";
+import { writePerformanceTraceEvent } from "./performance-trace.js";
 import {
   type PrologErrorRecord,
   extractPrologErrorRecord,
@@ -352,8 +354,16 @@ export class PrologProcess {
     const cacheable = goalKey !== null && this.isCacheableGoal(goalKey);
 
     if (cacheable) {
+      const cacheLookupStartedAt =
+        process.env.KIBI_PERF_TIMINGS === "1" ? performance.now() : null;
       const cachedResult = this.cache.get(goalKey);
       if (cachedResult) {
+        if (cacheLookupStartedAt !== null) {
+          writePerformanceTraceEvent({
+            kind: "prolog-process-cache-hit",
+            durationMs: performance.now() - cacheLookupStartedAt,
+          });
+        }
         return cachedResult;
       }
     }
@@ -553,12 +563,21 @@ export class PrologProcess {
     });
 
     await previousQuery;
+    const tracingEnabled = process.env.KIBI_PERF_TIMINGS === "1";
+    let roundTripStartedAt: number | null = null;
     try {
       if (!this.isProcessUsable()) {
         throw this.lostProcessError();
       }
+      if (tracingEnabled) roundTripStartedAt = performance.now();
       return await runInteractiveQuery();
     } finally {
+      if (roundTripStartedAt !== null) {
+        writePerformanceTraceEvent({
+          kind: "prolog-round-trip",
+          durationMs: performance.now() - roundTripStartedAt,
+        });
+      }
       releaseQuery();
     }
   }
