@@ -27,10 +27,16 @@ import {
   predicateVocabularyFromEntity,
 } from "../../operations/modeling/predicate-vocabulary.js";
 import type { Violation } from "../../utils/rule-registry.js";
+import entitySchema from "../schemas/entity.js";
 import { loadEntitiesPaged } from "./discovery-entities.js";
 import type { PrologPort } from "./runtime-types.js";
 
 const RULE = "predicate-schema-conformance";
+
+/** Every property the public entity schema accepts. */
+const AUTHORED_FIELDS: ReadonlySet<string> = new Set(
+  Object.keys(entitySchema.properties as Record<string, unknown>),
+);
 const DEFAULT_NAMESPACE = "default";
 
 /** Fields that belong to the compiled entity, not to an authored upsert. */
@@ -142,20 +148,16 @@ function schemaRefs(facts: readonly Entity[]): Map<string, SchemaRef[]> {
 }
 
 function authoredProperties(entity: Entity): Record<string, unknown> {
+  // Keep only fields an upsert accepts. Query rows also carry relationship
+  // projections (relates_to, validates, ...) as strings or lists, which must
+  // never be replayed as entity properties.
   return Object.fromEntries(
     Object.entries(entity).filter(
       ([key, value]) =>
+        AUTHORED_FIELDS.has(key) &&
         !NON_AUTHORED_FIELDS.has(key) &&
         value !== null &&
-        value !== undefined &&
-        // Relationship projections (validates, relates_to, ...) are lists of
-        // kb:entity/... URIs, never authored fact fields.
-        !(
-          Array.isArray(value) &&
-          value.some(
-            (item) => typeof item === "string" && item.startsWith("kb:entity/"),
-          )
-        ),
+        value !== undefined,
     ),
   );
 }

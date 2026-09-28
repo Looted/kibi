@@ -31,7 +31,9 @@ function predicateFact(
     fact_kind: "predicate",
     polarity: "assert",
     claim_key: "CLAIM-0000000000000001",
-    relates_to: ["kb:entity/REQ-anything"],
+    // A single relationship projects as a string, several as a list.
+    relates_to: "kb:entity/REQ-anything",
+    validates: ["kb:entity/SCEN-a", "kb:entity/SCEN-b"],
     ...fields,
   };
 }
@@ -107,7 +109,14 @@ describe("predicate-schema-conformance", () => {
       claim_key: "CLAIM-0000000000000001",
     });
     // Compiled-only fields and relationship projections never enter an upsert.
-    for (const key of ["id", "type", "source", "created_at", "relates_to"]) {
+    for (const key of [
+      "id",
+      "type",
+      "source",
+      "created_at",
+      "relates_to",
+      "validates",
+    ]) {
       expect(repair.properties).not.toHaveProperty(key);
     }
   });
