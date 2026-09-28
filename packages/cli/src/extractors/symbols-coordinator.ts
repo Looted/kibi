@@ -99,8 +99,13 @@ interface EnrichSymbolCoordinatesDeps {
   sourceAnalysisService: SourceAnalysisService;
   enrichTsCoordinates: typeof enrichSymbolCoordinatesWithTsMorph;
   /** Coordinate-only sync may locate explicit declarations in decorated Python.
-   * Completeness-sensitive callers, including staged checks, keep this disabled. */
+   * Completeness-sensitive callers must also verify the captured policy/review. */
   allowPythonDecoratorCoordinates?: boolean;
+  /** Additional snapshot/policy authorization for completeness-sensitive gates. */
+  verifyPythonDecoratorCoordinates?: (
+    logicalPath: string,
+    analysis: Awaited<ReturnType<SourceAnalysisService["analyzeTextV2"]>>,
+  ) => Promise<void>;
 }
 
 const SOURCE_LANGUAGE_EXTENSIONS: Record<string, string> = {
@@ -323,6 +328,7 @@ export async function enrichSymbolCoordinates(
         `Cannot refresh incomplete source analysis for ${logicalPath}: ${analysis.diagnostics.map((d) => d.message).join("; ")}`,
       );
     if (coordinateOnlyPartial && firstAnalysis) {
+      await deps?.verifyPythonDecoratorCoordinates?.(logicalPath, analysis);
       console.warn(
         `[kibi] Coordinate-only refresh for ${logicalPath}; source analysis remains partial: ${analysis.diagnostics.map((diagnostic) => diagnostic.message).join("; ")}`,
       );

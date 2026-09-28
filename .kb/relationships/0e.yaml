@@ -269,5 +269,21 @@ relationships:
         created_by: kibi/upsert,
         source: mcp://kibi/upsert,
         id: rel-c7b6ca706b1b
+        type: covered_by,
+        from: SYM-impact-stage-e-type-impactreviewdiagnostic,
+        to: TEST-impact-policy-stage-e-installed-e2e,
+        created_at: 2026-09-27T17:51:10.796Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-8600668f615b
+      },
+    {
+        type: implements,
+        from: SYM-impact-stage-e-type-impactreviewdiagnostic,
+        to: REQ-impact-policy-stage-e-content-bound-review,
+        created_at: 2026-09-27T17:51:10.872Z,
+        created_by: kibi/upsert,
+        source: mcp://kibi/upsert,
+        id: rel-46d3e8b6542c
       }
   ]

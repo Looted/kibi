@@ -20,6 +20,14 @@ const valueArray: OperationJsonSchema = {
   type: "array",
   items: anyValue,
 };
+const stringValue: OperationJsonSchema = { type: "string" };
+const integerValue: OperationJsonSchema = { type: "integer" };
+const numberValue: OperationJsonSchema = { type: "number" };
+const booleanValue: OperationJsonSchema = { type: "boolean" };
+const stringArray: OperationJsonSchema = {
+  type: "array",
+  items: stringValue,
+};
 
 function objectData(
   properties: Readonly<Record<string, OperationJsonSchema>>,
@@ -32,6 +40,357 @@ function objectData(
     properties,
   };
 }
+
+const sha256Fingerprint: OperationJsonSchema = {
+  type: "string",
+  pattern: "^sha256:[0-9a-f]{64}$",
+};
+const gitObjectId: OperationJsonSchema = {
+  type: "string",
+  pattern: "^(?:[0-9a-f]{40}|[0-9a-f]{64})$",
+};
+const reviewRange = objectData({ start: integerValue, end: integerValue }, [
+  "start",
+  "end",
+]);
+const uncoveredReviewRange = objectData(
+  {
+    startLine: integerValue,
+    startColumn: integerValue,
+    endLine: integerValue,
+    endColumn: integerValue,
+    reason: stringValue,
+  },
+  ["startLine", "startColumn", "endLine", "endColumn", "reason"],
+);
+const reviewAnalysis = objectData(
+  {
+    contractVersion: { const: "kibi.symbol-extractor.v2" },
+    status: { enum: ["ok", "partial", "unsupported", "failed"] },
+    language: stringValue,
+    sourceFile: stringValue,
+    providerId: { type: ["string", "null"] },
+    providerStamp: anyValue,
+    providerFingerprint: { oneOf: [sha256Fingerprint, { type: "null" }] },
+    inputFingerprint: sha256Fingerprint,
+    resultFingerprint: sha256Fingerprint,
+    diagnosticCodes: stringArray,
+    uncoveredRanges: {
+      type: "array",
+      items: uncoveredReviewRange,
+    },
+  },
+  [
+    "contractVersion",
+    "status",
+    "language",
+    "sourceFile",
+    "providerId",
+    "providerStamp",
+    "providerFingerprint",
+    "inputFingerprint",
+    "resultFingerprint",
+    "diagnosticCodes",
+    "uncoveredRanges",
+  ],
+);
+const reviewSideEvidence = objectData(
+  {
+    mode: { enum: ["100644", "100755", "120000", "160000"] },
+    objectId: { oneOf: [gitObjectId, { type: "null" }] },
+    byteFingerprint: sha256Fingerprint,
+    kind: { enum: ["regular", "symlink", "gitlink"] },
+    contentProjection: { const: "proof_receipts_stripped" },
+    analysis: { oneOf: [reviewAnalysis, { type: "null" }] },
+  },
+  ["mode", "objectId", "byteFingerprint", "kind", "analysis"],
+);
+const reviewFileEvidence = {
+  ...objectData(
+    {
+      path: stringValue,
+      status: { enum: ["A", "M", "R", "C", "T", "D"] },
+      oldPath: stringValue,
+      copyFromPath: stringValue,
+      analysisDepth: { enum: ["symbol", "metadata", "file", "none"] },
+      disposition: { enum: ["checked", "advisory", "skipped"] },
+      skipReason: {
+        enum: ["binary", "unsupported_encoding", "symlink", "submodule"],
+      },
+      gitMode: stringValue,
+      previousMode: stringValue,
+      oldHunkRanges: { type: "array", items: reviewRange },
+      newHunkRanges: { type: "array", items: reviewRange },
+      before: { oneOf: [reviewSideEvidence, { type: "null" }] },
+      after: { oneOf: [reviewSideEvidence, { type: "null" }] },
+    },
+    [
+      "path",
+      "status",
+      "analysisDepth",
+      "disposition",
+      "oldHunkRanges",
+      "newHunkRanges",
+      "before",
+      "after",
+    ],
+  ),
+  anyOf: [
+    { properties: { before: reviewSideEvidence } },
+    { properties: { after: reviewSideEvidence } },
+  ],
+};
+const recordTemplateFile = {
+  ...objectData(
+    {
+      ...(((reviewFileEvidence as OperationJsonSchema).properties as Record<
+        string,
+        OperationJsonSchema
+      >) ?? {}),
+      analysisReviews: { type: "null" },
+      decision: { type: "null" },
+    },
+    [
+      "path",
+      "status",
+      "analysisDepth",
+      "disposition",
+      "oldHunkRanges",
+      "newHunkRanges",
+      "before",
+      "after",
+      "analysisReviews",
+      "decision",
+    ],
+  ),
+  anyOf: [
+    { properties: { before: reviewSideEvidence } },
+    { properties: { after: reviewSideEvidence } },
+  ],
+};
+const impactRecordHeaders = objectData(
+  {
+    contractVersion: { const: "kibi.impact-review.v1" },
+    policy: objectData(
+      {
+        id: stringValue,
+        version: stringValue,
+        fingerprint: sha256Fingerprint,
+      },
+      ["id", "version", "fingerprint"],
+    ),
+    evaluator: objectData(
+      {
+        contractVersion: { const: "kibi.impact-evaluator.v1" },
+        fingerprint: sha256Fingerprint,
+      },
+      ["contractVersion", "fingerprint"],
+    ),
+    scope: objectData(
+      {
+        fingerprint: sha256Fingerprint,
+        knowledgeFingerprint: sha256Fingerprint,
+        providerSetFingerprint: sha256Fingerprint,
+      },
+      ["fingerprint", "knowledgeFingerprint", "providerSetFingerprint"],
+    ),
+  },
+  ["contractVersion", "policy", "evaluator", "scope"],
+);
+const reviewSnapshotIdentity = objectData(
+  {
+    kind: { enum: ["staged", "diff"] },
+    baseCommit: { oneOf: [gitObjectId, { type: "null" }] },
+    baseTree: gitObjectId,
+    headCommit: { oneOf: [gitObjectId, { type: "null" }] },
+    headTree: gitObjectId,
+    headTreeSource: { enum: ["index", "commit"] },
+  },
+  [
+    "kind",
+    "baseCommit",
+    "baseTree",
+    "headCommit",
+    "headTree",
+    "headTreeSource",
+  ],
+);
+const semanticEdge = objectData(
+  { type: stringValue, from: stringValue, to: stringValue },
+  ["type", "from", "to"],
+);
+const relatedRequirementEntity = objectData(
+  {
+    id: stringValue,
+    type: { oneOf: [stringValue, { type: "null" }] },
+    entityFingerprint: { oneOf: [sha256Fingerprint, { type: "null" }] },
+    artifactPath: { oneOf: [stringValue, { type: "null" }] },
+    sourcePath: { oneOf: [stringValue, { type: "null" }] },
+    entity: recordValue,
+  },
+  ["id", "type", "entityFingerprint", "artifactPath", "sourcePath", "entity"],
+);
+const requirementContext = {
+  oneOf: [
+    objectData(
+      {
+        id: stringValue,
+        state: { const: "absent" },
+        entityFingerprint: { type: "null" },
+        artifactPath: { type: "null" },
+        sourcePath: { type: "null" },
+        relationships: { type: "array", items: semanticEdge },
+        relatedEntities: { type: "array", items: relatedRequirementEntity },
+      },
+      [
+        "id",
+        "state",
+        "entityFingerprint",
+        "artifactPath",
+        "sourcePath",
+        "relationships",
+        "relatedEntities",
+      ],
+    ),
+    objectData(
+      {
+        id: stringValue,
+        state: { const: "present" },
+        entityFingerprint: sha256Fingerprint,
+        artifactPath: stringValue,
+        sourcePath: { oneOf: [stringValue, { type: "null" }] },
+        entity: recordValue,
+        relationships: { type: "array", items: semanticEdge },
+        relatedEntities: { type: "array", items: relatedRequirementEntity },
+      },
+      [
+        "id",
+        "state",
+        "entityFingerprint",
+        "artifactPath",
+        "sourcePath",
+        "entity",
+        "relationships",
+        "relatedEntities",
+      ],
+    ),
+  ],
+};
+const requirementScope = objectData(
+  {
+    path: stringValue,
+    requirementIds: stringArray,
+    before: { type: "array", items: requirementContext },
+    after: { type: "array", items: requirementContext },
+  },
+  ["path", "requirementIds", "before", "after"],
+);
+const residualReviewObligation: OperationJsonSchema = {
+  oneOf: [
+    objectData(
+      {
+        path: stringValue,
+        side: { enum: ["before", "after"] },
+        status: { const: "unsupported" },
+        diagnosticCodes: stringArray,
+        kind: { const: "unsupported_review" },
+        wholeFile: { const: true },
+        pending: { const: true },
+      },
+      [
+        "path",
+        "side",
+        "status",
+        "diagnosticCodes",
+        "kind",
+        "wholeFile",
+        "pending",
+      ],
+    ),
+    objectData(
+      {
+        path: stringValue,
+        side: { enum: ["before", "after"] },
+        status: { const: "partial" },
+        diagnosticCodes: stringArray,
+        kind: { const: "partial_review" },
+        limitationClass: stringValue,
+        ranges: { type: "array", items: uncoveredReviewRange },
+        pending: { const: true },
+      },
+      [
+        "path",
+        "side",
+        "status",
+        "diagnosticCodes",
+        "kind",
+        "limitationClass",
+        "ranges",
+        "pending",
+      ],
+    ),
+  ],
+};
+const unauthoredRecordTemplate = objectData(
+  {
+    contractVersion: { const: "kibi.impact-review.v1" },
+    policy: (
+      impactRecordHeaders.properties as Record<string, OperationJsonSchema>
+    ).policy as OperationJsonSchema,
+    evaluator: (
+      impactRecordHeaders.properties as Record<string, OperationJsonSchema>
+    ).evaluator as OperationJsonSchema,
+    scope: (
+      impactRecordHeaders.properties as Record<string, OperationJsonSchema>
+    ).scope as OperationJsonSchema,
+    reviewer: objectData(
+      { id: { type: "null" }, source: { const: "self-claimed-local" } },
+      ["id", "source"],
+    ),
+    reviewedAt: { type: "null" },
+    files: { type: "array", items: recordTemplateFile },
+  },
+  [
+    "contractVersion",
+    "policy",
+    "evaluator",
+    "scope",
+    "reviewer",
+    "reviewedAt",
+    "files",
+  ],
+);
+const impactReviewAuthorship = objectData(
+  {
+    templateVersion: { const: "kibi.impact-review-authoring-template.v1" },
+    isValidImpactReviewRecord: { const: false },
+    instructions: stringValue,
+    authoredFields: stringArray,
+    recordSchema: recordValue,
+    decisionSchema: recordValue,
+    analysisReviewSchema: recordValue,
+    templateSchema: recordValue,
+    recordTemplate: objectData(
+      {
+        templateVersion: { const: "kibi.impact-review-authoring-template.v1" },
+        isValidImpactReviewRecord: { const: false },
+        record: unauthoredRecordTemplate,
+      },
+      ["templateVersion", "isValidImpactReviewRecord", "record"],
+    ),
+  },
+  [
+    "templateVersion",
+    "isValidImpactReviewRecord",
+    "instructions",
+    "authoredFields",
+    "recordSchema",
+    "decisionSchema",
+    "analysisReviewSchema",
+    "templateSchema",
+    "recordTemplate",
+  ],
+);
 
 /**
  * kibi.job.v1 receipt returned by async-mode operations (kb_check with
@@ -51,15 +410,6 @@ const jobReceiptData: OperationJsonSchema = objectData(
   },
   ["kibiProtocol", "jobVersion", "jobId", "tool", "status", "pollWith"],
 );
-
-const stringValue: OperationJsonSchema = { type: "string" };
-const integerValue: OperationJsonSchema = { type: "integer" };
-const numberValue: OperationJsonSchema = { type: "number" };
-const booleanValue: OperationJsonSchema = { type: "boolean" };
-const stringArray: OperationJsonSchema = {
-  type: "array",
-  items: stringValue,
-};
 
 /** Preserve JSON Schema's nullable scalar/object representation in every
  * generated consumer contract.  Using a `type` union keeps the catalog
@@ -298,6 +648,31 @@ export const OPERATION_DATA_SCHEMAS: Readonly<
       jobReceiptData,
     ],
   },
+  kb_prepare_impact_review: objectData(
+    {
+      preparationVersion: { const: "kibi.impact-review-preparation.v1" },
+      status: { const: "ready_for_authoring" },
+      snapshot: reviewSnapshotIdentity,
+      recordHeaders: impactRecordHeaders,
+      files: { type: "array", items: reviewFileEvidence },
+      requirementScopes: { type: "array", items: requirementScope },
+      residualReviewObligations: {
+        type: "array",
+        items: residualReviewObligation,
+      },
+      authorship: impactReviewAuthorship,
+    },
+    [
+      "preparationVersion",
+      "status",
+      "snapshot",
+      "recordHeaders",
+      "files",
+      "requirementScopes",
+      "residualReviewObligations",
+      "authorship",
+    ],
+  ),
   kb_compile_intent: objectData({
     version: stringValue,
     planHash: stringValue,
@@ -383,6 +758,7 @@ const EFFECT_OVERRIDES: Readonly<
     "workspace-write": { destructive: true, retrySafety: "unsafe" },
   },
   kb_check: {},
+  kb_prepare_impact_review: {},
   kb_compile_intent: {},
   kb_apply_plan: {
     "kb-write": { destructive: true, retrySafety: "unsafe" },

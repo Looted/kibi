@@ -1,5 +1,20 @@
 # kibi-cli
 
+## 2.5.0
+
+### Minor Changes
+
+- Projects can explicitly enable reviews that bind a change to its exact source, knowledge decisions and trusted analysis policy. Kibi validates both staged changes and a complete pull request diff, rejects stale review evidence, and supports reviewed coordinate migration for known Python decorators while retaining the parser's partial status.
+
+  - Add versioned impact policy and review schemas, immutable review fingerprints and the trusted aggregate `check-diff` command.
+  - Keep the workflow example inactive until separately adopted on the protected target; document required-check setup without changing repository administration.
+  - Exercise installed consumers, negative review cases, canonical receipt append and reviewed coordinate preservation.
+
+- Agents can now prepare a complete, content-bound impact-review template through the CLI or MCP. The result includes the captured scope, relevant requirement context, and any pending analysis reviews, while leaving every decision and reviewer field for an agent to author explicitly. Preparation does not stage files or claim approval or proof.
+
+  - Add the read-only `prepare-impact-review --input` CLI route and `kb_prepare_impact_review` MCP operation.
+  - Document staged and explicit immutable-diff authoring scopes and replace internal preparation in the installed fixture.
+
 ## 2.4.0
 
 ### Minor Changes

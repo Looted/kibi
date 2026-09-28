@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:kibi:impact-policy:v1",
+  "title": "Kibi trusted base-tree impact policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "id",
+    "version",
+    "allowUnsupportedReview",
+    "allowedPartial",
+    "notApplicablePaths"
+  ],
+  "properties": {
+    "contractVersion": { "const": "kibi.impact-policy.v1" },
+    "id": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "minLength": 1 },
+    "allowUnsupportedReview": { "type": "boolean" },
+    "allowedPartial": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "providerId",
+          "providerFingerprint",
+          "diagnosticCode",
+          "limitationClass"
+        ],
+        "properties": {
+          "providerId": { "type": "string", "minLength": 1 },
+          "providerFingerprint": { "$ref": "#/$defs/sha256" },
+          "diagnosticCode": { "type": "string", "minLength": 1 },
+          "limitationClass": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "notApplicablePaths": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1, "pattern": "^[^/].*$" }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+  }
+}

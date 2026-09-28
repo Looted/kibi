@@ -167,3 +167,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4bd670c1d2e5
+  - type: validates
+    from: TEST-impact-policy-stage-e-installed-e2e
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-27T17:31:20.578Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-102242cbad22
+  - type: validates
+    from: TEST-impact-policy-stage-e-installed-e2e
+    to: REQ-impact-review-public-preparation
+    created_at: 2026-09-27T17:31:20.629Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-15080cbafe8f
+  - type: validates
+    from: TEST-impact-policy-stage-e-installed-e2e
+    to: SCEN-impact-policy-stage-e-installed-consumer
+    created_at: 2026-09-27T17:31:20.655Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b492fc62457a
+  - type: validates
+    from: TEST-impact-policy-stage-e-installed-e2e
+    to: SCEN-impact-review-public-preparation
+    created_at: 2026-09-27T17:31:20.681Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e05785b4fedc

@@ -3866,6 +3866,2471 @@
         "idempotentHint": true,
         "openWorldHint": false,
         "readOnlyHint": true,
+        "title": "Prepare an impact review"
+      },
+      "description": "Prepare complete content-bound impact-review authoring inputs from the current staged snapshot or explicitly selected immutable Git commits. Returns strict reviewer schemas and an unauthored template; it does not decide, approve, sign, stage, or prove the review.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "scope": {
+            "oneOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "const": "staged"
+                  }
+                },
+                "required": ["kind"],
+                "type": "object"
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "baseCommit": {
+                    "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$",
+                    "type": "string"
+                  },
+                  "headCommit": {
+                    "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$",
+                    "type": "string"
+                  },
+                  "kind": {
+                    "const": "diff"
+                  }
+                },
+                "required": ["kind", "baseCommit", "headCommit"],
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "required": ["scope"],
+        "type": "object"
+      },
+      "name": "kb_prepare_impact_review",
+      "outputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": false,
+            "properties": {
+              "authorship": {
+                "additionalProperties": false,
+                "properties": {
+                  "analysisReviewSchema": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "authoredFields": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "decisionSchema": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "instructions": {
+                    "type": "string"
+                  },
+                  "isValidImpactReviewRecord": {
+                    "const": false
+                  },
+                  "recordSchema": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "recordTemplate": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "isValidImpactReviewRecord": {
+                        "const": false
+                      },
+                      "record": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "contractVersion": {
+                            "const": "kibi.impact-review.v1"
+                          },
+                          "evaluator": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "contractVersion": {
+                                "const": "kibi.impact-evaluator.v1"
+                              },
+                              "fingerprint": {
+                                "pattern": "^sha256:[0-9a-f]{64}$",
+                                "type": "string"
+                              }
+                            },
+                            "required": ["contractVersion", "fingerprint"],
+                            "type": "object"
+                          },
+                          "files": {
+                            "items": {
+                              "additionalProperties": false,
+                              "anyOf": [
+                                {
+                                  "properties": {
+                                    "before": {
+                                      "additionalProperties": false,
+                                      "properties": {
+                                        "analysis": {
+                                          "oneOf": [
+                                            {
+                                              "additionalProperties": false,
+                                              "properties": {
+                                                "contractVersion": {
+                                                  "const": "kibi.symbol-extractor.v2"
+                                                },
+                                                "diagnosticCodes": {
+                                                  "items": {
+                                                    "type": "string"
+                                                  },
+                                                  "type": "array"
+                                                },
+                                                "inputFingerprint": {
+                                                  "pattern": "^sha256:[0-9a-f]{64}$",
+                                                  "type": "string"
+                                                },
+                                                "language": {
+                                                  "type": "string"
+                                                },
+                                                "providerFingerprint": {
+                                                  "oneOf": [
+                                                    {
+                                                      "pattern": "^sha256:[0-9a-f]{64}$",
+                                                      "type": "string"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "providerId": {
+                                                  "type": ["string", "null"]
+                                                },
+                                                "providerStamp": {},
+                                                "resultFingerprint": {
+                                                  "pattern": "^sha256:[0-9a-f]{64}$",
+                                                  "type": "string"
+                                                },
+                                                "sourceFile": {
+                                                  "type": "string"
+                                                },
+                                                "status": {
+                                                  "enum": [
+                                                    "ok",
+                                                    "partial",
+                                                    "unsupported",
+                                                    "failed"
+                                                  ]
+                                                },
+                                                "uncoveredRanges": {
+                                                  "items": {
+                                                    "additionalProperties": false,
+                                                    "properties": {
+                                                      "endColumn": {
+                                                        "type": "integer"
+                                                      },
+                                                      "endLine": {
+                                                        "type": "integer"
+                                                      },
+                                                      "reason": {
+                                                        "type": "string"
+                                                      },
+                                                      "startColumn": {
+                                                        "type": "integer"
+                                                      },
+                                                      "startLine": {
+                                                        "type": "integer"
+                                                      }
+                                                    },
+                                                    "required": [
+                                                      "startLine",
+                                                      "startColumn",
+                                                      "endLine",
+                                                      "endColumn",
+                                                      "reason"
+                                                    ],
+                                                    "type": "object"
+                                                  },
+                                                  "type": "array"
+                                                }
+                                              },
+                                              "required": [
+                                                "contractVersion",
+                                                "status",
+                                                "language",
+                                                "sourceFile",
+                                                "providerId",
+                                                "providerStamp",
+                                                "providerFingerprint",
+                                                "inputFingerprint",
+                                                "resultFingerprint",
+                                                "diagnosticCodes",
+                                                "uncoveredRanges"
+                                              ],
+                                              "type": "object"
+                                            },
+                                            {
+                                              "type": "null"
+                                            }
+                                          ]
+                                        },
+                                        "byteFingerprint": {
+                                          "pattern": "^sha256:[0-9a-f]{64}$",
+                                          "type": "string"
+                                        },
+                                        "contentProjection": {
+                                          "const": "proof_receipts_stripped"
+                                        },
+                                        "kind": {
+                                          "enum": [
+                                            "regular",
+                                            "symlink",
+                                            "gitlink"
+                                          ]
+                                        },
+                                        "mode": {
+                                          "enum": [
+                                            "100644",
+                                            "100755",
+                                            "120000",
+                                            "160000"
+                                          ]
+                                        },
+                                        "objectId": {
+                                          "oneOf": [
+                                            {
+                                              "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$",
+                                              "type": "string"
+                                            },
+                                            {
+                                              "type": "null"
+                                            }
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "mode",
+                                        "objectId",
+                                        "byteFingerprint",
+                                        "kind",
+                                        "analysis"
+                                      ],
+                                      "type": "object"
+                                    }
+                                  }
+                                },
+                                {
+                                  "properties": {
+                                    "after": {
+                                      "additionalProperties": false,
+                                      "properties": {
+                                        "analysis": {
+                                          "oneOf": [
+                                            {
+                                              "additionalProperties": false,
+                                              "properties": {
+                                                "contractVersion": {
+                                                  "const": "kibi.symbol-extractor.v2"
+                                                },
+                                                "diagnosticCodes": {
+                                                  "items": {
+                                                    "type": "string"
+                                                  },
+                                                  "type": "array"
+                                                },
+                                                "inputFingerprint": {
+                                                  "pattern": "^sha256:[0-9a-f]{64}$",
+                                                  "type": "string"
+                                                },
+                                                "language": {
+                                                  "type": "string"
+                                                },
+                                                "providerFingerprint": {
+                                                  "oneOf": [
+                                                    {
+                                                      "pattern": "^sha256:[0-9a-f]{64}$",
+                                                      "type": "string"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "providerId": {
+                                                  "type": ["string", "null"]
+                                                },
+                                                "providerStamp": {},
+                                                "resultFingerprint": {
+                                                  "pattern": "^sha256:[0-9a-f]{64}$",
+                                                  "type": "string"
+                                                },
+                                                "sourceFile": {
+                                                  "type": "string"
+                                                },
+                                                "status": {
+                                                  "enum": [
+                                                    "ok",
+                                                    "partial",
+                                                    "unsupported",
+                                                    "failed"
+                                                  ]
+                                                },
+                                                "uncoveredRanges": {
+                                                  "items": {
+                                                    "additionalProperties": false,
+                                                    "properties": {
+                                                      "endColumn": {
+                                                        "type": "integer"
+                                                      },
+                                                      "endLine": {
+                                                        "type": "integer"
+                                                      },
+                                                      "reason": {
+                                                        "type": "string"
+                                                      },
+                                                      "startColumn": {
+                                                        "type": "integer"
+                                                      },
+                                                      "startLine": {
+                                                        "type": "integer"
+                                                      }
+                                                    },
+                                                    "required": [
+                                                      "startLine",
+                                                      "startColumn",
+                                                      "endLine",
+                                                      "endColumn",
+                                                      "reason"
+                                                    ],
+                                                    "type": "object"
+                                                  },
+                                                  "type": "array"
+                                                }
+                                              },
+                                              "required": [
+                                                "contractVersion",
+                                                "status",
+                                                "language",
+                                                "sourceFile",
+                                                "providerId",
+                                                "providerStamp",
+                                                "providerFingerprint",
+                                                "inputFingerprint",
+                                                "resultFingerprint",
+                                                "diagnosticCodes",
+                                                "uncoveredRanges"
+                                              ],
+                                              "type": "object"
+                                            },
+                                            {
+                                              "type": "null"
+                                            }
+                                          ]
+                                        },
+                                        "byteFingerprint": {
+                                          "pattern": "^sha256:[0-9a-f]{64}$",
+                                          "type": "string"
+                                        },
+                                        "contentProjection": {
+                                          "const": "proof_receipts_stripped"
+                                        },
+                                        "kind": {
+                                          "enum": [
+                                            "regular",
+                                            "symlink",
+                                            "gitlink"
+                                          ]
+                                        },
+                                        "mode": {
+                                          "enum": [
+                                            "100644",
+                                            "100755",
+                                            "120000",
+                                            "160000"
+                                          ]
+                                        },
+                                        "objectId": {
+                                          "oneOf": [
+                                            {
+                                              "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$",
+                                              "type": "string"
+                                            },
+                                            {
+                                              "type": "null"
+                                            }
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "mode",
+                                        "objectId",
+                                        "byteFingerprint",
+                                        "kind",
+                                        "analysis"
+                                      ],
+                                      "type": "object"
+                                    }
+                                  }
+                                }
+                              ],
+                              "properties": {
+                                "after": {
+                                  "oneOf": [
+                                    {
+                                      "additionalProperties": false,
+                                      "properties": {
+                                        "analysis": {
+                                          "oneOf": [
+                                            {
+                                              "additionalProperties": false,
+                                              "properties": {
+                                                "contractVersion": {
+                                                  "const": "kibi.symbol-extractor.v2"
+                                                },
+                                                "diagnosticCodes": {
+                                                  "items": {
+                                                    "type": "string"
+                                                  },
+                                                  "type": "array"
+                                                },
+                                                "inputFingerprint": {
+                                                  "pattern": "^sha256:[0-9a-f]{64}$",
+                                                  "type": "string"
+                                                },
+                                                "language": {
+                                                  "type": "string"
+                                                },
+                                                "providerFingerprint": {
+                                                  "oneOf": [
+                                                    {
+                                                      "pattern": "^sha256:[0-9a-f]{64}$",
+                                                      "type": "string"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "providerId": {
+                                                  "type": ["string", "null"]
+                                                },
+                                                "providerStamp": {},
+                                                "resultFingerprint": {
+                                                  "pattern": "^sha256:[0-9a-f]{64}$",
+                                                  "type": "string"
+                                                },
+                                                "sourceFile": {
+                                                  "type": "string"
+                                                },
+                                                "status": {
+                                                  "enum": [
+                                                    "ok",
+                                                    "partial",
+                                                    "unsupported",
+                                                    "failed"
+                                                  ]
+                                                },
+                                                "uncoveredRanges": {
+                                                  "items": {
+                                                    "additionalProperties": false,
+                                                    "properties": {
+                                                      "endColumn": {
+                                                        "type": "integer"
+                                                      },
+                                                      "endLine": {
+                                                        "type": "integer"
+                                                      },
+                                                      "reason": {
+                                                        "type": "string"
+                                                      },
+                                                      "startColumn": {
+                                                        "type": "integer"
+                                                      },
+                                                      "startLine": {
+                                                        "type": "integer"
+                                                      }
+                                                    },
+                                                    "required": [
+                                                      "startLine",
+                                                      "startColumn",
+                                                      "endLine",
+                                                      "endColumn",
+                                                      "reason"
+                                                    ],
+                                                    "type": "object"
+                                                  },
+                                                  "type": "array"
+                                                }
+                                              },
+                                              "required": [
+                                                "contractVersion",
+                                                "status",
+                                                "language",
+                                                "sourceFile",
+                                                "providerId",
+                                                "providerStamp",
+                                                "providerFingerprint",
+                                                "inputFingerprint",
+                                                "resultFingerprint",
+                                                "diagnosticCodes",
+                                                "uncoveredRanges"
+                                              ],
+                                              "type": "object"
+                                            },
+                                            {
+                                              "type": "null"
+                                            }
+                                          ]
+                                        },
+                                        "byteFingerprint": {
+                                          "pattern": "^sha256:[0-9a-f]{64}$",
+                                          "type": "string"
+                                        },
+                                        "contentProjection": {
+                                          "const": "proof_receipts_stripped"
+                                        },
+                                        "kind": {
+                                          "enum": [
+                                            "regular",
+                                            "symlink",
+                                            "gitlink"
+                                          ]
+                                        },
+                                        "mode": {
+                                          "enum": [
+                                            "100644",
+                                            "100755",
+                                            "120000",
+                                            "160000"
+                                          ]
+                                        },
+                                        "objectId": {
+                                          "oneOf": [
+                                            {
+                                              "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$",
+                                              "type": "string"
+                                            },
+                                            {
+                                              "type": "null"
+                                            }
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "mode",
+                                        "objectId",
+                                        "byteFingerprint",
+                                        "kind",
+                                        "analysis"
+                                      ],
+                                      "type": "object"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "analysisDepth": {
+                                  "enum": ["symbol", "metadata", "file", "none"]
+                                },
+                                "analysisReviews": {
+                                  "type": "null"
+                                },
+                                "before": {
+                                  "oneOf": [
+                                    {
+                                      "additionalProperties": false,
+                                      "properties": {
+                                        "analysis": {
+                                          "oneOf": [
+                                            {
+                                              "additionalProperties": false,
+                                              "properties": {
+                                                "contractVersion": {
+                                                  "const": "kibi.symbol-extractor.v2"
+                                                },
+                                                "diagnosticCodes": {
+                                                  "items": {
+                                                    "type": "string"
+                                                  },
+                                                  "type": "array"
+                                                },
+                                                "inputFingerprint": {
+                                                  "pattern": "^sha256:[0-9a-f]{64}$",
+                                                  "type": "string"
+                                                },
+                                                "language": {
+                                                  "type": "string"
+                                                },
+                                                "providerFingerprint": {
+                                                  "oneOf": [
+                                                    {
+                                                      "pattern": "^sha256:[0-9a-f]{64}$",
+                                                      "type": "string"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "providerId": {
+                                                  "type": ["string", "null"]
+                                                },
+                                                "providerStamp": {},
+                                                "resultFingerprint": {
+                                                  "pattern": "^sha256:[0-9a-f]{64}$",
+                                                  "type": "string"
+                                                },
+                                                "sourceFile": {
+                                                  "type": "string"
+                                                },
+                                                "status": {
+                                                  "enum": [
+                                                    "ok",
+                                                    "partial",
+                                                    "unsupported",
+                                                    "failed"
+                                                  ]
+                                                },
+                                                "uncoveredRanges": {
+                                                  "items": {
+                                                    "additionalProperties": false,
+                                                    "properties": {
+                                                      "endColumn": {
+                                                        "type": "integer"
+                                                      },
+                                                      "endLine": {
+                                                        "type": "integer"
+                                                      },
+                                                      "reason": {
+                                                        "type": "string"
+                                                      },
+                                                      "startColumn": {
+                                                        "type": "integer"
+                                                      },
+                                                      "startLine": {
+                                                        "type": "integer"
+                                                      }
+                                                    },
+                                                    "required": [
+                                                      "startLine",
+                                                      "startColumn",
+                                                      "endLine",
+                                                      "endColumn",
+                                                      "reason"
+                                                    ],
+                                                    "type": "object"
+                                                  },
+                                                  "type": "array"
+                                                }
+                                              },
+                                              "required": [
+                                                "contractVersion",
+                                                "status",
+                                                "language",
+                                                "sourceFile",
+                                                "providerId",
+                                                "providerStamp",
+                                                "providerFingerprint",
+                                                "inputFingerprint",
+                                                "resultFingerprint",
+                                                "diagnosticCodes",
+                                                "uncoveredRanges"
+                                              ],
+                                              "type": "object"
+                                            },
+                                            {
+                                              "type": "null"
+                                            }
+                                          ]
+                                        },
+                                        "byteFingerprint": {
+                                          "pattern": "^sha256:[0-9a-f]{64}$",
+                                          "type": "string"
+                                        },
+                                        "contentProjection": {
+                                          "const": "proof_receipts_stripped"
+                                        },
+                                        "kind": {
+                                          "enum": [
+                                            "regular",
+                                            "symlink",
+                                            "gitlink"
+                                          ]
+                                        },
+                                        "mode": {
+                                          "enum": [
+                                            "100644",
+                                            "100755",
+                                            "120000",
+                                            "160000"
+                                          ]
+                                        },
+                                        "objectId": {
+                                          "oneOf": [
+                                            {
+                                              "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$",
+                                              "type": "string"
+                                            },
+                                            {
+                                              "type": "null"
+                                            }
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "mode",
+                                        "objectId",
+                                        "byteFingerprint",
+                                        "kind",
+                                        "analysis"
+                                      ],
+                                      "type": "object"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "copyFromPath": {
+                                  "type": "string"
+                                },
+                                "decision": {
+                                  "type": "null"
+                                },
+                                "disposition": {
+                                  "enum": ["checked", "advisory", "skipped"]
+                                },
+                                "gitMode": {
+                                  "type": "string"
+                                },
+                                "newHunkRanges": {
+                                  "items": {
+                                    "additionalProperties": false,
+                                    "properties": {
+                                      "end": {
+                                        "type": "integer"
+                                      },
+                                      "start": {
+                                        "type": "integer"
+                                      }
+                                    },
+                                    "required": ["start", "end"],
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "oldHunkRanges": {
+                                  "items": {
+                                    "additionalProperties": false,
+                                    "properties": {
+                                      "end": {
+                                        "type": "integer"
+                                      },
+                                      "start": {
+                                        "type": "integer"
+                                      }
+                                    },
+                                    "required": ["start", "end"],
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "oldPath": {
+                                  "type": "string"
+                                },
+                                "path": {
+                                  "type": "string"
+                                },
+                                "previousMode": {
+                                  "type": "string"
+                                },
+                                "skipReason": {
+                                  "enum": [
+                                    "binary",
+                                    "unsupported_encoding",
+                                    "symlink",
+                                    "submodule"
+                                  ]
+                                },
+                                "status": {
+                                  "enum": ["A", "M", "R", "C", "T", "D"]
+                                }
+                              },
+                              "required": [
+                                "path",
+                                "status",
+                                "analysisDepth",
+                                "disposition",
+                                "oldHunkRanges",
+                                "newHunkRanges",
+                                "before",
+                                "after",
+                                "analysisReviews",
+                                "decision"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "policy": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "fingerprint": {
+                                "pattern": "^sha256:[0-9a-f]{64}$",
+                                "type": "string"
+                              },
+                              "id": {
+                                "type": "string"
+                              },
+                              "version": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["id", "version", "fingerprint"],
+                            "type": "object"
+                          },
+                          "reviewedAt": {
+                            "type": "null"
+                          },
+                          "reviewer": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "id": {
+                                "type": "null"
+                              },
+                              "source": {
+                                "const": "self-claimed-local"
+                              }
+                            },
+                            "required": ["id", "source"],
+                            "type": "object"
+                          },
+                          "scope": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "fingerprint": {
+                                "pattern": "^sha256:[0-9a-f]{64}$",
+                                "type": "string"
+                              },
+                              "knowledgeFingerprint": {
+                                "pattern": "^sha256:[0-9a-f]{64}$",
+                                "type": "string"
+                              },
+                              "providerSetFingerprint": {
+                                "pattern": "^sha256:[0-9a-f]{64}$",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "fingerprint",
+                              "knowledgeFingerprint",
+                              "providerSetFingerprint"
+                            ],
+                            "type": "object"
+                          }
+                        },
+                        "required": [
+                          "contractVersion",
+                          "policy",
+                          "evaluator",
+                          "scope",
+                          "reviewer",
+                          "reviewedAt",
+                          "files"
+                        ],
+                        "type": "object"
+                      },
+                      "templateVersion": {
+                        "const": "kibi.impact-review-authoring-template.v1"
+                      }
+                    },
+                    "required": [
+                      "templateVersion",
+                      "isValidImpactReviewRecord",
+                      "record"
+                    ],
+                    "type": "object"
+                  },
+                  "templateSchema": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "templateVersion": {
+                    "const": "kibi.impact-review-authoring-template.v1"
+                  }
+                },
+                "required": [
+                  "templateVersion",
+                  "isValidImpactReviewRecord",
+                  "instructions",
+                  "authoredFields",
+                  "recordSchema",
+                  "decisionSchema",
+                  "analysisReviewSchema",
+                  "templateSchema",
+                  "recordTemplate"
+                ],
+                "type": "object"
+              },
+              "files": {
+                "items": {
+                  "additionalProperties": false,
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "before": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "analysis": {
+                              "oneOf": [
+                                {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "contractVersion": {
+                                      "const": "kibi.symbol-extractor.v2"
+                                    },
+                                    "diagnosticCodes": {
+                                      "items": {
+                                        "type": "string"
+                                      },
+                                      "type": "array"
+                                    },
+                                    "inputFingerprint": {
+                                      "pattern": "^sha256:[0-9a-f]{64}$",
+                                      "type": "string"
+                                    },
+                                    "language": {
+                                      "type": "string"
+                                    },
+                                    "providerFingerprint": {
+                                      "oneOf": [
+                                        {
+                                          "pattern": "^sha256:[0-9a-f]{64}$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    },
+                                    "providerId": {
+                                      "type": ["string", "null"]
+                                    },
+                                    "providerStamp": {},
+                                    "resultFingerprint": {
+                                      "pattern": "^sha256:[0-9a-f]{64}$",
+                                      "type": "string"
+                                    },
+                                    "sourceFile": {
+                                      "type": "string"
+                                    },
+                                    "status": {
+                                      "enum": [
+                                        "ok",
+                                        "partial",
+                                        "unsupported",
+                                        "failed"
+                                      ]
+                                    },
+                                    "uncoveredRanges": {
+                                      "items": {
+                                        "additionalProperties": false,
+                                        "properties": {
+                                          "endColumn": {
+                                            "type": "integer"
+                                          },
+                                          "endLine": {
+                                            "type": "integer"
+                                          },
+                                          "reason": {
+                                            "type": "string"
+                                          },
+                                          "startColumn": {
+                                            "type": "integer"
+                                          },
+                                          "startLine": {
+                                            "type": "integer"
+                                          }
+                                        },
+                                        "required": [
+                                          "startLine",
+                                          "startColumn",
+                                          "endLine",
+                                          "endColumn",
+                                          "reason"
+                                        ],
+                                        "type": "object"
+                                      },
+                                      "type": "array"
+                                    }
+                                  },
+                                  "required": [
+                                    "contractVersion",
+                                    "status",
+                                    "language",
+                                    "sourceFile",
+                                    "providerId",
+                                    "providerStamp",
+                                    "providerFingerprint",
+                                    "inputFingerprint",
+                                    "resultFingerprint",
+                                    "diagnosticCodes",
+                                    "uncoveredRanges"
+                                  ],
+                                  "type": "object"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "byteFingerprint": {
+                              "pattern": "^sha256:[0-9a-f]{64}$",
+                              "type": "string"
+                            },
+                            "contentProjection": {
+                              "const": "proof_receipts_stripped"
+                            },
+                            "kind": {
+                              "enum": ["regular", "symlink", "gitlink"]
+                            },
+                            "mode": {
+                              "enum": ["100644", "100755", "120000", "160000"]
+                            },
+                            "objectId": {
+                              "oneOf": [
+                                {
+                                  "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$",
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "mode",
+                            "objectId",
+                            "byteFingerprint",
+                            "kind",
+                            "analysis"
+                          ],
+                          "type": "object"
+                        }
+                      }
+                    },
+                    {
+                      "properties": {
+                        "after": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "analysis": {
+                              "oneOf": [
+                                {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "contractVersion": {
+                                      "const": "kibi.symbol-extractor.v2"
+                                    },
+                                    "diagnosticCodes": {
+                                      "items": {
+                                        "type": "string"
+                                      },
+                                      "type": "array"
+                                    },
+                                    "inputFingerprint": {
+                                      "pattern": "^sha256:[0-9a-f]{64}$",
+                                      "type": "string"
+                                    },
+                                    "language": {
+                                      "type": "string"
+                                    },
+                                    "providerFingerprint": {
+                                      "oneOf": [
+                                        {
+                                          "pattern": "^sha256:[0-9a-f]{64}$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    },
+                                    "providerId": {
+                                      "type": ["string", "null"]
+                                    },
+                                    "providerStamp": {},
+                                    "resultFingerprint": {
+                                      "pattern": "^sha256:[0-9a-f]{64}$",
+                                      "type": "string"
+                                    },
+                                    "sourceFile": {
+                                      "type": "string"
+                                    },
+                                    "status": {
+                                      "enum": [
+                                        "ok",
+                                        "partial",
+                                        "unsupported",
+                                        "failed"
+                                      ]
+                                    },
+                                    "uncoveredRanges": {
+                                      "items": {
+                                        "additionalProperties": false,
+                                        "properties": {
+                                          "endColumn": {
+                                            "type": "integer"
+                                          },
+                                          "endLine": {
+                                            "type": "integer"
+                                          },
+                                          "reason": {
+                                            "type": "string"
+                                          },
+                                          "startColumn": {
+                                            "type": "integer"
+                                          },
+                                          "startLine": {
+                                            "type": "integer"
+                                          }
+                                        },
+                                        "required": [
+                                          "startLine",
+                                          "startColumn",
+                                          "endLine",
+                                          "endColumn",
+                                          "reason"
+                                        ],
+                                        "type": "object"
+                                      },
+                                      "type": "array"
+                                    }
+                                  },
+                                  "required": [
+                                    "contractVersion",
+                                    "status",
+                                    "language",
+                                    "sourceFile",
+                                    "providerId",
+                                    "providerStamp",
+                                    "providerFingerprint",
+                                    "inputFingerprint",
+                                    "resultFingerprint",
+                                    "diagnosticCodes",
+                                    "uncoveredRanges"
+                                  ],
+                                  "type": "object"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "byteFingerprint": {
+                              "pattern": "^sha256:[0-9a-f]{64}$",
+                              "type": "string"
+                            },
+                            "contentProjection": {
+                              "const": "proof_receipts_stripped"
+                            },
+                            "kind": {
+                              "enum": ["regular", "symlink", "gitlink"]
+                            },
+                            "mode": {
+                              "enum": ["100644", "100755", "120000", "160000"]
+                            },
+                            "objectId": {
+                              "oneOf": [
+                                {
+                                  "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$",
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "mode",
+                            "objectId",
+                            "byteFingerprint",
+                            "kind",
+                            "analysis"
+                          ],
+                          "type": "object"
+                        }
+                      }
+                    }
+                  ],
+                  "properties": {
+                    "after": {
+                      "oneOf": [
+                        {
+                          "additionalProperties": false,
+                          "properties": {
+                            "analysis": {
+                              "oneOf": [
+                                {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "contractVersion": {
+                                      "const": "kibi.symbol-extractor.v2"
+                                    },
+                                    "diagnosticCodes": {
+                                      "items": {
+                                        "type": "string"
+                                      },
+                                      "type": "array"
+                                    },
+                                    "inputFingerprint": {
+                                      "pattern": "^sha256:[0-9a-f]{64}$",
+                                      "type": "string"
+                                    },
+                                    "language": {
+                                      "type": "string"
+                                    },
+                                    "providerFingerprint": {
+                                      "oneOf": [
+                                        {
+                                          "pattern": "^sha256:[0-9a-f]{64}$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    },
+                                    "providerId": {
+                                      "type": ["string", "null"]
+                                    },
+                                    "providerStamp": {},
+                                    "resultFingerprint": {
+                                      "pattern": "^sha256:[0-9a-f]{64}$",
+                                      "type": "string"
+                                    },
+                                    "sourceFile": {
+                                      "type": "string"
+                                    },
+                                    "status": {
+                                      "enum": [
+                                        "ok",
+                                        "partial",
+                                        "unsupported",
+                                        "failed"
+                                      ]
+                                    },
+                                    "uncoveredRanges": {
+                                      "items": {
+                                        "additionalProperties": false,
+                                        "properties": {
+                                          "endColumn": {
+                                            "type": "integer"
+                                          },
+                                          "endLine": {
+                                            "type": "integer"
+                                          },
+                                          "reason": {
+                                            "type": "string"
+                                          },
+                                          "startColumn": {
+                                            "type": "integer"
+                                          },
+                                          "startLine": {
+                                            "type": "integer"
+                                          }
+                                        },
+                                        "required": [
+                                          "startLine",
+                                          "startColumn",
+                                          "endLine",
+                                          "endColumn",
+                                          "reason"
+                                        ],
+                                        "type": "object"
+                                      },
+                                      "type": "array"
+                                    }
+                                  },
+                                  "required": [
+                                    "contractVersion",
+                                    "status",
+                                    "language",
+                                    "sourceFile",
+                                    "providerId",
+                                    "providerStamp",
+                                    "providerFingerprint",
+                                    "inputFingerprint",
+                                    "resultFingerprint",
+                                    "diagnosticCodes",
+                                    "uncoveredRanges"
+                                  ],
+                                  "type": "object"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "byteFingerprint": {
+                              "pattern": "^sha256:[0-9a-f]{64}$",
+                              "type": "string"
+                            },
+                            "contentProjection": {
+                              "const": "proof_receipts_stripped"
+                            },
+                            "kind": {
+                              "enum": ["regular", "symlink", "gitlink"]
+                            },
+                            "mode": {
+                              "enum": ["100644", "100755", "120000", "160000"]
+                            },
+                            "objectId": {
+                              "oneOf": [
+                                {
+                                  "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$",
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "mode",
+                            "objectId",
+                            "byteFingerprint",
+                            "kind",
+                            "analysis"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "analysisDepth": {
+                      "enum": ["symbol", "metadata", "file", "none"]
+                    },
+                    "before": {
+                      "oneOf": [
+                        {
+                          "additionalProperties": false,
+                          "properties": {
+                            "analysis": {
+                              "oneOf": [
+                                {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "contractVersion": {
+                                      "const": "kibi.symbol-extractor.v2"
+                                    },
+                                    "diagnosticCodes": {
+                                      "items": {
+                                        "type": "string"
+                                      },
+                                      "type": "array"
+                                    },
+                                    "inputFingerprint": {
+                                      "pattern": "^sha256:[0-9a-f]{64}$",
+                                      "type": "string"
+                                    },
+                                    "language": {
+                                      "type": "string"
+                                    },
+                                    "providerFingerprint": {
+                                      "oneOf": [
+                                        {
+                                          "pattern": "^sha256:[0-9a-f]{64}$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    },
+                                    "providerId": {
+                                      "type": ["string", "null"]
+                                    },
+                                    "providerStamp": {},
+                                    "resultFingerprint": {
+                                      "pattern": "^sha256:[0-9a-f]{64}$",
+                                      "type": "string"
+                                    },
+                                    "sourceFile": {
+                                      "type": "string"
+                                    },
+                                    "status": {
+                                      "enum": [
+                                        "ok",
+                                        "partial",
+                                        "unsupported",
+                                        "failed"
+                                      ]
+                                    },
+                                    "uncoveredRanges": {
+                                      "items": {
+                                        "additionalProperties": false,
+                                        "properties": {
+                                          "endColumn": {
+                                            "type": "integer"
+                                          },
+                                          "endLine": {
+                                            "type": "integer"
+                                          },
+                                          "reason": {
+                                            "type": "string"
+                                          },
+                                          "startColumn": {
+                                            "type": "integer"
+                                          },
+                                          "startLine": {
+                                            "type": "integer"
+                                          }
+                                        },
+                                        "required": [
+                                          "startLine",
+                                          "startColumn",
+                                          "endLine",
+                                          "endColumn",
+                                          "reason"
+                                        ],
+                                        "type": "object"
+                                      },
+                                      "type": "array"
+                                    }
+                                  },
+                                  "required": [
+                                    "contractVersion",
+                                    "status",
+                                    "language",
+                                    "sourceFile",
+                                    "providerId",
+                                    "providerStamp",
+                                    "providerFingerprint",
+                                    "inputFingerprint",
+                                    "resultFingerprint",
+                                    "diagnosticCodes",
+                                    "uncoveredRanges"
+                                  ],
+                                  "type": "object"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "byteFingerprint": {
+                              "pattern": "^sha256:[0-9a-f]{64}$",
+                              "type": "string"
+                            },
+                            "contentProjection": {
+                              "const": "proof_receipts_stripped"
+                            },
+                            "kind": {
+                              "enum": ["regular", "symlink", "gitlink"]
+                            },
+                            "mode": {
+                              "enum": ["100644", "100755", "120000", "160000"]
+                            },
+                            "objectId": {
+                              "oneOf": [
+                                {
+                                  "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$",
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "mode",
+                            "objectId",
+                            "byteFingerprint",
+                            "kind",
+                            "analysis"
+                          ],
+                          "type": "object"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "copyFromPath": {
+                      "type": "string"
+                    },
+                    "disposition": {
+                      "enum": ["checked", "advisory", "skipped"]
+                    },
+                    "gitMode": {
+                      "type": "string"
+                    },
+                    "newHunkRanges": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "end": {
+                            "type": "integer"
+                          },
+                          "start": {
+                            "type": "integer"
+                          }
+                        },
+                        "required": ["start", "end"],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "oldHunkRanges": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "end": {
+                            "type": "integer"
+                          },
+                          "start": {
+                            "type": "integer"
+                          }
+                        },
+                        "required": ["start", "end"],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "oldPath": {
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "previousMode": {
+                      "type": "string"
+                    },
+                    "skipReason": {
+                      "enum": [
+                        "binary",
+                        "unsupported_encoding",
+                        "symlink",
+                        "submodule"
+                      ]
+                    },
+                    "status": {
+                      "enum": ["A", "M", "R", "C", "T", "D"]
+                    }
+                  },
+                  "required": [
+                    "path",
+                    "status",
+                    "analysisDepth",
+                    "disposition",
+                    "oldHunkRanges",
+                    "newHunkRanges",
+                    "before",
+                    "after"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "preparationVersion": {
+                "const": "kibi.impact-review-preparation.v1"
+              },
+              "recordHeaders": {
+                "additionalProperties": false,
+                "properties": {
+                  "contractVersion": {
+                    "const": "kibi.impact-review.v1"
+                  },
+                  "evaluator": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "contractVersion": {
+                        "const": "kibi.impact-evaluator.v1"
+                      },
+                      "fingerprint": {
+                        "pattern": "^sha256:[0-9a-f]{64}$",
+                        "type": "string"
+                      }
+                    },
+                    "required": ["contractVersion", "fingerprint"],
+                    "type": "object"
+                  },
+                  "policy": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "fingerprint": {
+                        "pattern": "^sha256:[0-9a-f]{64}$",
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "version": {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["id", "version", "fingerprint"],
+                    "type": "object"
+                  },
+                  "scope": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "fingerprint": {
+                        "pattern": "^sha256:[0-9a-f]{64}$",
+                        "type": "string"
+                      },
+                      "knowledgeFingerprint": {
+                        "pattern": "^sha256:[0-9a-f]{64}$",
+                        "type": "string"
+                      },
+                      "providerSetFingerprint": {
+                        "pattern": "^sha256:[0-9a-f]{64}$",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "fingerprint",
+                      "knowledgeFingerprint",
+                      "providerSetFingerprint"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": ["contractVersion", "policy", "evaluator", "scope"],
+                "type": "object"
+              },
+              "requirementScopes": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "after": {
+                      "items": {
+                        "oneOf": [
+                          {
+                            "additionalProperties": false,
+                            "properties": {
+                              "artifactPath": {
+                                "type": "null"
+                              },
+                              "entityFingerprint": {
+                                "type": "null"
+                              },
+                              "id": {
+                                "type": "string"
+                              },
+                              "relatedEntities": {
+                                "items": {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "artifactPath": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    },
+                                    "entity": {
+                                      "additionalProperties": true,
+                                      "type": "object"
+                                    },
+                                    "entityFingerprint": {
+                                      "oneOf": [
+                                        {
+                                          "pattern": "^sha256:[0-9a-f]{64}$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    },
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "sourcePath": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    },
+                                    "type": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "type",
+                                    "entityFingerprint",
+                                    "artifactPath",
+                                    "sourcePath",
+                                    "entity"
+                                  ],
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "relationships": {
+                                "items": {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "from": {
+                                      "type": "string"
+                                    },
+                                    "to": {
+                                      "type": "string"
+                                    },
+                                    "type": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": ["type", "from", "to"],
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "sourcePath": {
+                                "type": "null"
+                              },
+                              "state": {
+                                "const": "absent"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "state",
+                              "entityFingerprint",
+                              "artifactPath",
+                              "sourcePath",
+                              "relationships",
+                              "relatedEntities"
+                            ],
+                            "type": "object"
+                          },
+                          {
+                            "additionalProperties": false,
+                            "properties": {
+                              "artifactPath": {
+                                "type": "string"
+                              },
+                              "entity": {
+                                "additionalProperties": true,
+                                "type": "object"
+                              },
+                              "entityFingerprint": {
+                                "pattern": "^sha256:[0-9a-f]{64}$",
+                                "type": "string"
+                              },
+                              "id": {
+                                "type": "string"
+                              },
+                              "relatedEntities": {
+                                "items": {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "artifactPath": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    },
+                                    "entity": {
+                                      "additionalProperties": true,
+                                      "type": "object"
+                                    },
+                                    "entityFingerprint": {
+                                      "oneOf": [
+                                        {
+                                          "pattern": "^sha256:[0-9a-f]{64}$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    },
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "sourcePath": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    },
+                                    "type": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "type",
+                                    "entityFingerprint",
+                                    "artifactPath",
+                                    "sourcePath",
+                                    "entity"
+                                  ],
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "relationships": {
+                                "items": {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "from": {
+                                      "type": "string"
+                                    },
+                                    "to": {
+                                      "type": "string"
+                                    },
+                                    "type": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": ["type", "from", "to"],
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "sourcePath": {
+                                "oneOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "state": {
+                                "const": "present"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "state",
+                              "entityFingerprint",
+                              "artifactPath",
+                              "sourcePath",
+                              "entity",
+                              "relationships",
+                              "relatedEntities"
+                            ],
+                            "type": "object"
+                          }
+                        ]
+                      },
+                      "type": "array"
+                    },
+                    "before": {
+                      "items": {
+                        "oneOf": [
+                          {
+                            "additionalProperties": false,
+                            "properties": {
+                              "artifactPath": {
+                                "type": "null"
+                              },
+                              "entityFingerprint": {
+                                "type": "null"
+                              },
+                              "id": {
+                                "type": "string"
+                              },
+                              "relatedEntities": {
+                                "items": {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "artifactPath": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    },
+                                    "entity": {
+                                      "additionalProperties": true,
+                                      "type": "object"
+                                    },
+                                    "entityFingerprint": {
+                                      "oneOf": [
+                                        {
+                                          "pattern": "^sha256:[0-9a-f]{64}$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    },
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "sourcePath": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    },
+                                    "type": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "type",
+                                    "entityFingerprint",
+                                    "artifactPath",
+                                    "sourcePath",
+                                    "entity"
+                                  ],
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "relationships": {
+                                "items": {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "from": {
+                                      "type": "string"
+                                    },
+                                    "to": {
+                                      "type": "string"
+                                    },
+                                    "type": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": ["type", "from", "to"],
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "sourcePath": {
+                                "type": "null"
+                              },
+                              "state": {
+                                "const": "absent"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "state",
+                              "entityFingerprint",
+                              "artifactPath",
+                              "sourcePath",
+                              "relationships",
+                              "relatedEntities"
+                            ],
+                            "type": "object"
+                          },
+                          {
+                            "additionalProperties": false,
+                            "properties": {
+                              "artifactPath": {
+                                "type": "string"
+                              },
+                              "entity": {
+                                "additionalProperties": true,
+                                "type": "object"
+                              },
+                              "entityFingerprint": {
+                                "pattern": "^sha256:[0-9a-f]{64}$",
+                                "type": "string"
+                              },
+                              "id": {
+                                "type": "string"
+                              },
+                              "relatedEntities": {
+                                "items": {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "artifactPath": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    },
+                                    "entity": {
+                                      "additionalProperties": true,
+                                      "type": "object"
+                                    },
+                                    "entityFingerprint": {
+                                      "oneOf": [
+                                        {
+                                          "pattern": "^sha256:[0-9a-f]{64}$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    },
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "sourcePath": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    },
+                                    "type": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "type",
+                                    "entityFingerprint",
+                                    "artifactPath",
+                                    "sourcePath",
+                                    "entity"
+                                  ],
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "relationships": {
+                                "items": {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "from": {
+                                      "type": "string"
+                                    },
+                                    "to": {
+                                      "type": "string"
+                                    },
+                                    "type": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": ["type", "from", "to"],
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "sourcePath": {
+                                "oneOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "state": {
+                                "const": "present"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "state",
+                              "entityFingerprint",
+                              "artifactPath",
+                              "sourcePath",
+                              "entity",
+                              "relationships",
+                              "relatedEntities"
+                            ],
+                            "type": "object"
+                          }
+                        ]
+                      },
+                      "type": "array"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "requirementIds": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": ["path", "requirementIds", "before", "after"],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "residualReviewObligations": {
+                "items": {
+                  "oneOf": [
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "diagnosticCodes": {
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        },
+                        "kind": {
+                          "const": "unsupported_review"
+                        },
+                        "path": {
+                          "type": "string"
+                        },
+                        "pending": {
+                          "const": true
+                        },
+                        "side": {
+                          "enum": ["before", "after"]
+                        },
+                        "status": {
+                          "const": "unsupported"
+                        },
+                        "wholeFile": {
+                          "const": true
+                        }
+                      },
+                      "required": [
+                        "path",
+                        "side",
+                        "status",
+                        "diagnosticCodes",
+                        "kind",
+                        "wholeFile",
+                        "pending"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "diagnosticCodes": {
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        },
+                        "kind": {
+                          "const": "partial_review"
+                        },
+                        "limitationClass": {
+                          "type": "string"
+                        },
+                        "path": {
+                          "type": "string"
+                        },
+                        "pending": {
+                          "const": true
+                        },
+                        "ranges": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "endColumn": {
+                                "type": "integer"
+                              },
+                              "endLine": {
+                                "type": "integer"
+                              },
+                              "reason": {
+                                "type": "string"
+                              },
+                              "startColumn": {
+                                "type": "integer"
+                              },
+                              "startLine": {
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "startLine",
+                              "startColumn",
+                              "endLine",
+                              "endColumn",
+                              "reason"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "side": {
+                          "enum": ["before", "after"]
+                        },
+                        "status": {
+                          "const": "partial"
+                        }
+                      },
+                      "required": [
+                        "path",
+                        "side",
+                        "status",
+                        "diagnosticCodes",
+                        "kind",
+                        "limitationClass",
+                        "ranges",
+                        "pending"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
+              },
+              "snapshot": {
+                "additionalProperties": false,
+                "properties": {
+                  "baseCommit": {
+                    "oneOf": [
+                      {
+                        "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "baseTree": {
+                    "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$",
+                    "type": "string"
+                  },
+                  "headCommit": {
+                    "oneOf": [
+                      {
+                        "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "headTree": {
+                    "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$",
+                    "type": "string"
+                  },
+                  "headTreeSource": {
+                    "enum": ["index", "commit"]
+                  },
+                  "kind": {
+                    "enum": ["staged", "diff"]
+                  }
+                },
+                "required": [
+                  "kind",
+                  "baseCommit",
+                  "baseTree",
+                  "headCommit",
+                  "headTree",
+                  "headTreeSource"
+                ],
+                "type": "object"
+              },
+              "status": {
+                "const": "ready_for_authoring"
+              }
+            },
+            "required": [
+              "preparationVersion",
+              "status",
+              "snapshot",
+              "recordHeaders",
+              "files",
+              "requirementScopes",
+              "residualReviewObligations",
+              "authorship"
+            ],
+            "type": "object"
+          },
+          "diagnostics": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "detail": {},
+                "file": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": ["info", "warning", "error"]
+                },
+                "suggestion": {
+                  "type": "string"
+                }
+              },
+              "required": ["message"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "effects": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "detail": {},
+                "errorCode": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "status": {
+                  "enum": ["completed", "failed", "not_applicable"]
+                }
+              },
+              "required": ["kind", "status"],
+              "type": "object"
+            },
+            "minItems": 2,
+            "type": "array"
+          },
+          "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "details": {},
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "required": ["code", "message", "retryable"],
+            "type": "object"
+          },
+          "kibiProtocol": {
+            "const": 1
+          },
+          "nextActions": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {},
+                "operation": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["operation", "reason", "required"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "operation": {
+            "const": "kb_prepare_impact_review"
+          },
+          "resultVersion": {
+            "const": "kibi.kb_prepare_impact_review.v1"
+          },
+          "status": {
+            "enum": ["success", "committed_with_repairs", "error"]
+          }
+        },
+        "required": [
+          "kibiProtocol",
+          "operation",
+          "resultVersion",
+          "status",
+          "data",
+          "effects",
+          "diagnostics",
+          "nextActions"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
         "title": "Model a Kibi requirement"
       },
       "description": "Convert a prose requirement plus optional extracted claim fields into a deterministic strict-lane write set. Read-only modeling returns a sequential applyPlan for later kb_upsert calls. High-confidence claims emit req+fact strict output; lower-confidence claims emit an observation review artifact. Includes migration warnings when legacy schemaVersion metadata is detected.",

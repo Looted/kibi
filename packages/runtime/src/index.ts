@@ -36,6 +36,8 @@ export {
   applyPlanSpec,
   planBootstrapSpec,
   checkSpec,
+  prepareImpactReviewSpec,
+  executePrepareImpactReview,
   compileIntentSpec,
   coverageSpec,
   deleteSpec,
@@ -76,6 +78,10 @@ export {
   validateEntityType,
   validateUpsertSpec,
   withContractDefaults,
+} from "kibi-cli/operations";
+export type {
+  ImpactReviewPreparationScope,
+  PrepareImpactReviewInput,
 } from "kibi-cli/operations";
 export type { BootstrapAction, BootstrapPlanV1 } from "kibi-cli/operations";
 export {

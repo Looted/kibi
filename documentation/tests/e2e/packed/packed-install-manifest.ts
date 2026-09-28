@@ -1,7 +1,42 @@
 // implements REQ-kibi-operation-interface-parity
-import { writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { join, sep } from "node:path";
 import type { Tarballs } from "./helpers.js";
+
+/** Prepare owned install metadata for an atomic staging-to-cache rename.
+ * Return an exact rollback for a publisher that loses the rename race. */
+export function relocatePackedInstallMetadata(
+  prefix: string,
+  stagingTarballsRoot: string,
+  publishedTarballsRoot: string,
+): () => void {
+  const originals = new Map<string, Buffer>();
+  for (const name of [
+    "package.json",
+    "pnpm-workspace.yaml",
+    "package-lock.json",
+    "node_modules/.package-lock.json",
+  ]) {
+    const file = join(prefix, name);
+    if (existsSync(file)) originals.set(file, readFileSync(file));
+  }
+  const restore = () => {
+    for (const [file, content] of originals) writeFileSync(file, content);
+  };
+  const from = JSON.stringify(`file:${stagingTarballsRoot}${sep}`).slice(1, -1);
+  const to = JSON.stringify(`file:${publishedTarballsRoot}${sep}`).slice(1, -1);
+  try {
+    for (const [file, content] of originals) {
+      const text = content.toString("utf8");
+      const relocated = text.replaceAll(from, to);
+      if (relocated !== text) writeFileSync(file, relocated, "utf8");
+    }
+  } catch (error) {
+    restore();
+    throw error;
+  }
+  return restore;
+}
 
 export function writePackedInstallManifest(
   prefix: string,

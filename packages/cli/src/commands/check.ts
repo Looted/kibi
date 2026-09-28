@@ -27,9 +27,13 @@ import {
 } from "../extractors/markdown.js";
 import {
   createMaintenanceSourceAnalysisService,
+  fingerprintMaintenanceSourceSet,
   readSnapshotSourceConfig,
 } from "../plugins/maintenance-source-analysis.js";
-import { analyzeSourceChanges } from "../plugins/source-change-analysis.js";
+import {
+  type SourceChangeAnalysis,
+  analyzeSourceChanges,
+} from "../plugins/source-change-analysis.js";
 import { PrologProcess } from "../prolog.js";
 import {
   escapeAtom,
@@ -57,6 +61,12 @@ import {
   type StagedFile,
   supportedStagedFiles,
 } from "../traceability/git-staged.js";
+import {
+  evaluateImpactReview,
+  fingerprintImpactEvaluator,
+  hasValidBaseImpactPolicy,
+} from "../traceability/impact-evaluator.js";
+import { IMPACT_REVIEW_PATH } from "../traceability/impact-review.js";
 import { validateStagedMarkdown } from "../traceability/markdown-validate.js";
 import { readSnapshotKnowledge } from "../traceability/snapshot-knowledge.js";
 import {
@@ -435,6 +445,56 @@ function printStagedResult(input: {
   if (input.operationalError) console.error(input.operationalError);
 }
 
+function clearResolvedImpactReviewAdvisories(
+  coverage: StagedFileCoverageResult,
+): void {
+  const transport = coverage.files.find(
+    (file) => file.path === IMPACT_REVIEW_PATH,
+  );
+  const plainTransportChange =
+    transport !== undefined &&
+    (transport.status === "A" || transport.status === "M") &&
+    transport.oldPath === undefined;
+  const reviewedPaths = new Set(
+    coverage.files
+      .filter((file) => file.path !== IMPACT_REVIEW_PATH)
+      .map((file) => file.path),
+  );
+
+  coverage.diagnostics = coverage.diagnostics.filter((diagnostic) => {
+    if (
+      diagnostic.id === "staged_file_impact_review_needed" &&
+      reviewedPaths.has(diagnostic.path)
+    ) {
+      return false;
+    }
+    return !(
+      diagnostic.id === "staged_file_ownership_missing" &&
+      diagnostic.path === IMPACT_REVIEW_PATH &&
+      plainTransportChange
+    );
+  });
+}
+
+function noValidatedSymbolsMessage(
+  sourceAnalysis: ReadonlyMap<string, SourceChangeAnalysis>,
+): string {
+  const partialFiles = [...sourceAnalysis.values()].flatMap((analysis) => {
+    const partialSide = [analysis.before, analysis.after].find(
+      (side) => side?.status === "partial",
+    );
+    if (!partialSide) return [];
+    const provider = partialSide.providerId
+      ? ` via ${partialSide.providerId}`
+      : "";
+    return [`${analysis.path}${provider}`];
+  });
+  if (partialFiles.length > 0) {
+    return `Partial source analysis was reviewed for ${partialFiles.join(", ")}; no fully analyzed exported symbols or staged entities were available for symbol validation.`;
+  }
+  return "No exported symbols or staged entities found in staged files.";
+}
+
 function uniqueSorted(values: Iterable<string>): string[] {
   return Array.from(new Set(values)).sort();
 }
@@ -631,9 +691,13 @@ export async function checkCommand(
       try {
         const snapshot = captureStagedSnapshot(process.cwd());
         const stagedInventory = snapshot.inventory;
+        const trustedSourceConfig = readSnapshotSourceConfig(
+          snapshot,
+          snapshot.baseTree,
+        );
         const sourceService = createMaintenanceSourceAnalysisService(
           process.cwd(),
-          readSnapshotSourceConfig(snapshot),
+          trustedSourceConfig,
         );
         const sourceAnalysis = await analyzeSourceChanges(
           stagedInventory,
@@ -682,12 +746,34 @@ export async function checkCommand(
           record.providerId =
             analysis.after?.providerId ?? analysis.before?.providerId ?? null;
         }
+        const impactPolicyEnabled =
+          stagedInventory.length > 0 && hasValidBaseImpactPolicy(snapshot);
         for (const analysis of sourceAnalysis.values()) {
           for (const side of [analysis.before, analysis.after]) {
-            if (side?.status === "failed" || side?.status === "partial")
+            if (
+              side?.status === "failed" ||
+              (side?.status === "partial" && !impactPolicyEnabled)
+            )
               throw new Error(
                 `Source analysis ${side.status} for ${analysis.path}: ${side.diagnostics.map((d) => d.message).join("; ")}`,
               );
+          }
+        }
+        if (impactPolicyEnabled) {
+          const impactEvaluation = evaluateImpactReview(snapshot, {
+            providerSetFingerprint: fingerprintMaintenanceSourceSet(
+              process.cwd(),
+              trustedSourceConfig,
+            ),
+            evaluatorFingerprint: fingerprintImpactEvaluator(),
+            analyses: sourceAnalysis,
+          });
+          if (!impactEvaluation.passed)
+            throw new Error(
+              `Staged impact review failed:\n${impactEvaluation.diagnostics.map((item) => `${item.code}: ${item.message}`).join("\n")}`,
+            );
+          if (stagedCoverage) {
+            clearResolvedImpactReviewAdvisories(stagedCoverage);
           }
         }
         const stagedFiles = supportedStagedFiles(stagedInventory);
@@ -964,9 +1050,7 @@ export async function checkCommand(
           printSnapshotResult({
             format: options.format,
             coverage: stagedCoverage,
-            messages: [
-              "No exported symbols or staged entities found in staged files.",
-            ],
+            messages: [noValidatedSymbolsMessage(sourceAnalysis)],
           });
           return { exitCode: 0 };
         }

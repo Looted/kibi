@@ -217,6 +217,11 @@ export function registerConfiguredTools<TProlog>(
     },
   });
   register({
+    name: "kb_prepare_impact_review",
+    execute: async (context, args) =>
+      getSpec("kb_prepare_impact_review").execute(args, context),
+  });
+  register({
     name: "kb_model_requirement",
     execute: async (context, args) =>
       runtime.handleKbModelRequirement(

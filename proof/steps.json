@@ -1415,5 +1415,15 @@
         "documentation/tests/e2e/packed/multilingual-language-catalog.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-impact-policy-stage-e-installed-e2e",
+    "steps": [
+      [
+        "node",
+        "scripts/run-proof-packed-e2e.mjs",
+        "documentation/tests/e2e/packed/impact-review-stage-e.test.ts"
+      ]
+    ]
   }
 ]

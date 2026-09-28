@@ -223,3 +223,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f72ffef4568a
+  - type: covered_by
+    from: SYM-impact-stage-e-assertsha256
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-27T17:34:34.486Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b55bdeddc052
+  - type: implements
+    from: SYM-impact-stage-e-assertsha256
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-27T17:34:34.551Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-64d630a4f78e

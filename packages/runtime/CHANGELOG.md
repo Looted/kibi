@@ -1,5 +1,19 @@
 # kibi-runtime
 
+## 2.1.0
+
+### Minor Changes
+
+- Agents can now prepare a complete, content-bound impact-review template through the CLI or MCP. The result includes the captured scope, relevant requirement context, and any pending analysis reviews, while leaving every decision and reviewer field for an agent to author explicitly. Preparation does not stage files or claim approval or proof.
+
+  - Add the read-only `prepare-impact-review --input` CLI route and `kb_prepare_impact_review` MCP operation.
+  - Document staged and explicit immutable-diff authoring scopes and replace internal preparation in the installed fixture.
+
+### Patch Changes
+
+- Updated dependencies
+  - kibi-cli@2.5.0
+
 ## 2.0.6
 
 ### Patch Changes

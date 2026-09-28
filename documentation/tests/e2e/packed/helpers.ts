@@ -17,7 +17,10 @@ import {
   parseNpmPackJsonOutput,
   resolveNpmPackFilename,
 } from "./npm-pack-json.js";
-import { writePackedInstallManifest } from "./packed-install-manifest.js";
+import {
+  relocatePackedInstallMetadata,
+  writePackedInstallManifest,
+} from "./packed-install-manifest.js";
 import { packagesForPack } from "./packed-packages.js";
 
 // executable_for TEST-test-journaled-engine-harness
@@ -273,11 +276,17 @@ export function publishSharedPackCache(plan: SharedPackCachePlan): {
   tarballsRoot: string;
 } | null {
   if (plan.reusable || plan.scratch === null) return null;
+  const restoreMetadata = relocatePackedInstallMetadata(
+    join(plan.scratch, "prefix"),
+    join(plan.scratch, "tarballs"),
+    join(plan.area, "tarballs"),
+  );
   try {
     renameSync(plan.scratch, plan.area);
   } catch {
     // A sibling published first (or the rename raced); keep using the staging
     // tree, which remains complete and is reclaimed at process exit.
+    restoreMetadata();
     return null;
   }
   ownedSharedPaths.delete(plan.scratch);

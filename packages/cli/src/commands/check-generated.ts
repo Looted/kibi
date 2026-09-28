@@ -13,9 +13,12 @@ import { load as parseYAML } from "js-yaml";
 import { enrichSymbolCoordinates } from "../extractors/symbols-coordinator.js";
 import {
   createMaintenanceSourceAnalysisService,
+  fingerprintMaintenanceSourceSet,
   readSnapshotSourceConfig,
 } from "../plugins/maintenance-source-analysis.js";
 import { captureStagedSnapshot } from "../traceability/git-change-snapshot.js";
+import { fingerprintImpactEvaluator } from "../traceability/impact-evaluator.js";
+import { createReviewedDecoratorCoordinateVerifier } from "../traceability/reviewed-coordinate-refresh.js";
 import { refreshManifestCoordinates } from "./sync/manifest.js";
 
 const MANIFESTS = [".kb/symbols.yaml", ".kb/symbol-coordinates.yaml"] as const;
@@ -211,6 +214,35 @@ export async function checkGeneratedManifests(
       process.cwd(),
       readSnapshotSourceConfig(snapshot),
     );
+    let verifyReviewedCoordinates:
+      | ReturnType<typeof createReviewedDecoratorCoordinateVerifier>
+      | undefined;
+    const verifyPythonDecoratorCoordinates: NonNullable<
+      Parameters<typeof enrichSymbolCoordinates>[2]
+    >["verifyPythonDecoratorCoordinates"] = async (sourcePath, analysis) => {
+      if (verifyReviewedCoordinates === undefined) {
+        const trustedSourceConfig = readSnapshotSourceConfig(
+          snapshot,
+          snapshot.baseTree,
+        );
+        const trustedService = createMaintenanceSourceAnalysisService(
+          process.cwd(),
+          trustedSourceConfig,
+        );
+        verifyReviewedCoordinates = createReviewedDecoratorCoordinateVerifier(
+          snapshot,
+          trustedService,
+          {
+            providerSetFingerprint: fingerprintMaintenanceSourceSet(
+              process.cwd(),
+              trustedSourceConfig,
+            ),
+            evaluatorFingerprint: fingerprintImpactEvaluator(),
+          },
+        );
+      }
+      await verifyReviewedCoordinates(sourcePath, analysis);
+    };
     await refreshManifestCoordinates(
       path.join(snapshotDir, MANIFESTS[0]),
       snapshotDir,
@@ -218,7 +250,11 @@ export async function checkGeneratedManifests(
         refreshSymbolCoordinates: true,
         quiet: true,
         enrichSymbolCoordinates: (entries, root) =>
-          enrichSymbolCoordinates(entries, root, { sourceAnalysisService }),
+          enrichSymbolCoordinates(entries, root, {
+            sourceAnalysisService,
+            allowPythonDecoratorCoordinates: true,
+            verifyPythonDecoratorCoordinates,
+          }),
       },
     );
 

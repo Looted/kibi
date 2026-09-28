@@ -197,4 +197,15 @@ export function registerReportingCommands(program: Command): void {
         },
       ),
     );
+
+  program
+    .command("check-diff")
+    .description(
+      "Run the full protected pull-request impact gate from its trusted GitHub event",
+    )
+    .action(
+      withExitCode(async () =>
+        (await import("./commands/check-diff.js")).checkDiffCommand(),
+      ),
+    );
 }

@@ -338,7 +338,7 @@ describe("MCP Server", () => {
     const result = response.result as Record<string, unknown>;
     expect(result.tools).toBeDefined();
     const tools = result.tools as Array<Record<string, unknown>>;
-    expect(tools.length).toBe(22);
+    expect(tools.length).toBe(23);
     expect(tools.map((tool) => tool.name)).toEqual([
       "kb_query",
       "kb_search",
@@ -355,6 +355,7 @@ describe("MCP Server", () => {
       "kb_validate_upsert",
       "kb_delete",
       "kb_check",
+      "kb_prepare_impact_review",
       "kb_model_requirement",
       "kb_suggest_predicates",
       "kb_plan_bootstrap",

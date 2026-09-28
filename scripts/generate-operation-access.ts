@@ -50,10 +50,9 @@ into entity properties. On \`committed_with_repairs\`, follow typed required
 \`nextActions\` and do not retry the original mutation.
 `;
 
-writeFileSync(
-  path.resolve(
-    process.cwd(),
-    "packages/runtime/src/skills/kibi-usage/resources/operation-access.md",
-  ),
-  body,
-);
+for (const target of [
+  "packages/runtime/src/skills/kibi-usage/resources/operation-access.md",
+  "packages/cli/src/public/skills/kibi-usage/resources/operation-access.md",
+]) {
+  writeFileSync(path.resolve(process.cwd(), target), body);
+}

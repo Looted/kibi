@@ -125,3 +125,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-dd0afef6734e
+  - type: covered_by
+    from: SYM-impact-stage-e-createrevieweddecoratorcoordinateverifier
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-27T17:37:00.892Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-6c26e9fd3d9a
+  - type: implements
+    from: SYM-impact-stage-e-createrevieweddecoratorcoordinateverifier
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-27T17:37:00.972Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fbbedac1be65

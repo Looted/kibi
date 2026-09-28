@@ -6,6 +6,7 @@ import {
 import { planBootstrapSpec } from "./specs/bootstrap.js";
 import { checkSpec } from "./specs/check.js";
 import { querySpec, searchSpec, statusSpec } from "./specs/discovery.js";
+import { prepareImpactReviewSpec } from "./specs/impact-review-preparation.js";
 import {
   modelRequirementSpec,
   suggestPredicatesSpec,
@@ -49,6 +50,7 @@ export const OPERATION_CATALOG = [
   upsertSpec,
   deleteSpec,
   checkSpec,
+  prepareImpactReviewSpec,
   sparqlRemoteSpec,
   compileIntentSpec,
   applyPlanSpec,

@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
-import { readFileSync, realpathSync } from "node:fs";
+import { lstatSync, readFileSync, readdirSync, realpathSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   type ProjectPluginEntry,
   validateProjectKibiConfig,
@@ -9,6 +10,8 @@ import {
 import type { ProjectKibiConfig } from "kibi-plugin-sdk";
 import { SYMBOL_EXTRACTOR_V2_CAPABILITY_ID } from "kibi-plugin-sdk";
 import type { GitChangeSnapshot } from "../traceability/git-change-snapshot.js";
+import type { Fingerprint } from "../traceability/impact-review.js";
+import { fingerprint } from "../traceability/impact-review.js";
 import {
   APPROVED_SOURCE_ANALYZERS,
   type ApprovedSourceAnalyzer,
@@ -62,6 +65,142 @@ function dependencyRoot(importer: string, packageName: string): string {
       throw new Error(`Cannot locate approved dependency: ${packageName}`);
     current = parent;
   }
+}
+
+export function runtimePackageFingerprint(
+  importer: string,
+  packageName: string,
+  cache = new Map<string, string>(),
+  active = new Set<string>(),
+): string {
+  const packageRoot = realpathSync(dependencyRoot(importer, packageName));
+  const cached = cache.get(packageRoot);
+  if (cached) return cached;
+  if (active.has(packageRoot))
+    return fingerprint({ dependencyCycleAt: packageName });
+  active.add(packageRoot);
+  const manifest = JSON.parse(
+    readFileSync(join(packageRoot, "package.json"), "utf8"),
+  ) as {
+    name?: unknown;
+    version?: unknown;
+    dependencies?: Record<string, string>;
+    optionalDependencies?: Record<string, string>;
+    peerDependencies?: Record<string, string>;
+  };
+  if (manifest.name !== packageName || typeof manifest.version !== "string")
+    throw new Error(`Runtime dependency identity is invalid: ${packageName}`);
+  const files: { path: string; sha256: string }[] = [];
+  let totalBytes = 0;
+  const visit = (directory: string): void => {
+    for (const entry of readdirSync(directory, { withFileTypes: true }).sort(
+      (a, b) => a.name.localeCompare(b.name),
+    )) {
+      if (entry.name === "node_modules" || entry.name === ".git") continue;
+      const absolute = join(directory, entry.name);
+      const stat = lstatSync(absolute);
+      if (stat.isSymbolicLink())
+        throw new Error(
+          `Runtime dependency contains a symbolic link: ${absolute}`,
+        );
+      if (stat.isDirectory()) {
+        visit(absolute);
+        continue;
+      }
+      if (!stat.isFile())
+        throw new Error(
+          `Runtime dependency contains a special file: ${absolute}`,
+        );
+      totalBytes += stat.size;
+      if (files.length >= 20_000 || totalBytes > 512 * 1024 * 1024)
+        throw new Error(
+          `Runtime dependency closure is too large: ${packageName}`,
+        );
+      files.push({
+        path: relative(packageRoot, absolute).replaceAll("\\", "/"),
+        sha256: createHash("sha256")
+          .update(readFileSync(absolute))
+          .digest("hex"),
+      });
+    }
+  };
+  visit(packageRoot);
+  const dependencyNames = [
+    ...Object.keys(manifest.dependencies ?? {}),
+    ...Object.keys(manifest.optionalDependencies ?? {}),
+    ...Object.keys(manifest.peerDependencies ?? {}),
+  ].sort();
+  const dependencies = [...new Set(dependencyNames)].map((name) => ({
+    name,
+    fingerprint: runtimePackageFingerprint(packageRoot, name, cache, active),
+  }));
+  const result = fingerprint({
+    name: packageName,
+    version: manifest.version,
+    files,
+    dependencies,
+  });
+  active.delete(packageRoot);
+  cache.set(packageRoot, result);
+  return result;
+}
+
+/** Hash the exact trusted source-extractor activation and its host-pinned closure. */
+export function fingerprintMaintenanceSourceSet(
+  workspaceRoot: string,
+  projectConfig: ProjectKibiConfig,
+): Fingerprint {
+  const sourceEntries = (projectConfig.plugins ?? [])
+    .map((entry) => ({
+      package: entry.package,
+      capability: entry.capabilities[SYMBOL_EXTRACTOR_V2_CAPABILITY_ID] ?? null,
+    }))
+    .filter((entry) => entry.capability !== null)
+    .sort((a, b) => a.package.localeCompare(b.package));
+  const bindings = sourceEntries.map(({ package: packageName, capability }) => {
+    const approval = APPROVED_SOURCE_ANALYZERS.find(
+      (item) => item.packageName === packageName,
+    );
+    if (!approval)
+      throw new Error(
+        `Source analyzer is not approved for impact review: ${packageName}`,
+      );
+    const resolved = resolveProjectLocalPackage(workspaceRoot, packageName);
+    const entryRelative = relative(
+      resolved.packageRoot,
+      resolved.entryPath,
+    ).replaceAll("\\", "/");
+    if (!approval.files[entryRelative])
+      throw new Error(
+        "Source analyzer entrypoint is outside its approved closure",
+      );
+    return {
+      packageName,
+      capability,
+      approvalFingerprint: verifyApprovedSourceAnalyzer(
+        resolved.packageRoot,
+        approval,
+      ),
+    };
+  });
+  const runtimeCache = new Map<string, string>();
+  const cliPackageRoot = dirname(
+    dirname(dirname(fileURLToPath(import.meta.url))),
+  );
+  return fingerprint({
+    contractVersion: "kibi.maintenance-source-set.v1",
+    builtinRuntime: runtimePackageFingerprint(
+      cliPackageRoot,
+      "kibi-plugin-builtin",
+      runtimeCache,
+    ),
+    sdkRuntime: runtimePackageFingerprint(
+      cliPackageRoot,
+      "kibi-plugin-sdk",
+      runtimeCache,
+    ),
+    bindings,
+  });
 }
 
 /** Verify the exact host-approved closure before any plugin entrypoint executes. */
@@ -163,6 +302,7 @@ export function createMaintenanceSourceAnalysisService(
 // implements REQ-source-analysis-v2
 export function readSnapshotSourceConfig(
   snapshot: GitChangeSnapshot,
+  trustedTree?: string,
 ): ProjectKibiConfig {
   const readConfig = (tree: string): ProjectKibiConfig => {
     const entry = snapshot
@@ -179,6 +319,7 @@ export function readSnapshotSourceConfig(
       ).kibi,
     );
   };
+  if (trustedTree !== undefined) return readConfig(trustedTree);
   const entries = new Map<string, ProjectPluginEntry>();
   for (const entry of readConfig(snapshot.headTree).plugins ?? [])
     entries.set(entry.package, entry);

@@ -241,3 +241,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-128cb88a66e9
+  - type: covered_by
+    from: SYM-impact-stage-e-canonicaljson
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-27T17:35:34.647Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fb9c165c315d
+  - type: implements
+    from: SYM-impact-stage-e-canonicaljson
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-27T17:35:34.729Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-024546cdb9bd

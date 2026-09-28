@@ -146,3 +146,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7ac14855c0bf
+  - type: covered_by
+    from: SYM-impact-public-preparation-spec
+    to: TEST-impact-public-preparation-parity
+    created_at: 2026-09-27T17:34:08.228Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-98bfd50f5eb5
+  - type: implements
+    from: SYM-impact-public-preparation-spec
+    to: REQ-impact-review-public-preparation
+    created_at: 2026-09-27T17:34:08.347Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-52a50060a615

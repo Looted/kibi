@@ -290,14 +290,14 @@ describe("mcp contract fixtures", () => {
       registered.map((tool) => [tool.name, tool]),
     );
 
-    // 21 canonical catalog operations + the MCP-server-native kb_job_status
+    // 22 canonical catalog operations + the MCP-server-native kb_job_status
     // poll tool (see jobs.ts).
-    expect(registered.map((tool) => tool.name)).toHaveLength(22);
+    expect(registered.map((tool) => tool.name)).toHaveLength(23);
     expect(registered.map((tool) => tool.name)).not.toContain(
       "kb_briefing_generate",
     );
 
-    // The tools-list fixture must reflect the wire surface: the 21 canonical
+    // The tools-list fixture must reflect the wire surface: the 22 canonical
     // catalog operations plus the server-native kb_job_status poll tool that
     // registerAllTools adds after the catalog (see jobs.ts).
     const jobStatus = registeredByName.get("kb_job_status");

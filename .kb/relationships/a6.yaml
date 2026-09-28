@@ -146,3 +146,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-65798ec13154
+  - type: covered_by
+    from: SYM-impact-stage-e-impactevaluation
+    to: TEST-impact-policy-stage-e-installed-e2e
+    created_at: 2026-09-27T17:42:24.603Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-902ef3e947ea
+  - type: implements
+    from: SYM-impact-stage-e-impactevaluation
+    to: REQ-impact-policy-stage-e-content-bound-review
+    created_at: 2026-09-27T17:42:24.637Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-17ef572b7b02
