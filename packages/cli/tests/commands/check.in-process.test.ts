@@ -453,6 +453,7 @@ Login works.
     expect(io.logText()).toContain(
       "[WARNING entity_id_style_review] Entity ID REQ-1 is a sequence number",
     );
+    expect(io.logText()).toContain("✓ No violations found in staged files.");
   });
 
   test("reports impact diagnostics for staged TypeScript without a symbols manifest", async () => {
