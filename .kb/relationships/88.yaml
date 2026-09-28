@@ -202,3 +202,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8654762615ee
+  - type: implements
+    from: SYM-zcode-ZcodeHookEvent
+    to: REQ-zcode-kibi-plugin-v1
+    created_at: 2026-09-28T07:55:58.797Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-18d23c838a95

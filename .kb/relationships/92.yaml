@@ -150,3 +150,9 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-9d6e5c9d29f2
+    from: SYM-zcode-directKbEditWarning
+    to: REQ-zcode-kibi-plugin-v1
+    created_at: 2026-09-28T07:56:36.630Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d1f1241b65bd
