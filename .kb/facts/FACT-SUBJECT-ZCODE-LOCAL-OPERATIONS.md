@@ -2,7 +2,7 @@
 title: Project-local Kibi operations
 status: active
 fact_kind: subject
-subject_key: project_local_kibi_operations
+subject_key: zcode.kibi_adapter.local_operations
 canonical_key: project_local_kibi_operations
 tags:
   - strict-modeling

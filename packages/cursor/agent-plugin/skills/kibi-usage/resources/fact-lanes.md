@@ -55,6 +55,10 @@ relationship: { type: requires_predicate, from: REQ-EDITOR-DRAFT-AUTOSAVE, to: F
 
 The project-local schema endpoint must exist before this fact is linked. When ontology extension is explicitly authorized, define it first with `fact_kind: predicate_schema`, `predicate_name`, `predicate_arity`, and equally sized `argument_names` and `argument_types`. Without an authorized stable signature, record `review:ontology-gap` instead of inventing a schema.
 
+### Closed argument vocabularies
+
+A schema can close an argument with `argument_constants` (allowed values keyed by argument name) and map older spellings with `argument_aliases`. Reuse a declared constant; `kb_upsert` rejects any other value and names the constant to use for an alias. When a genuinely new value is needed, extend `argument_constants` on the schema first. To converge existing facts, declare aliases for their spellings and let `kibi migrate` rewrite them (`predicate_schema_alignment` actions). Close only arguments with a natural shared vocabulary, such as the governed component or a severity; forcing distinct obligations into a few constants makes different requirements share one ground term.
+
 ### Deny predicate
 
 Claim: “Suspended users must not publish articles.” When `permission_rule` fits, preserve its positive schema name and encode prohibition as polarity:

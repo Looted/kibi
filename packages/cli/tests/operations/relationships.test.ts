@@ -27,6 +27,7 @@ describe("relationship type contract", () => {
       "publishes",
       "consumes",
       "supersedes",
+      "restates",
       "relates_to",
     ]);
   });

@@ -2,6 +2,9 @@
 
 :- initialization(main, main).
 
+% Sources and annotated coverage output are UTF-8 regardless of the host locale.
+:- set_prolog_flag(encoding, utf8).
+
 :- use_module(library(error)).
 :- use_module(library(filesex)).
 :- use_module(library(http/json)).

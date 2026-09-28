@@ -139,3 +139,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-4d1c6e54557d
+  - type: specified_by
+    from: REQ-kibi-unit-canonicalization
+    to: SCEN-kibi-unit-canonicalization
+    created_at: 2026-09-28T09:43:21.198Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e002714def26
+  - type: requires_predicate
+    from: REQ-kibi-unit-canonicalization
+    to: FACT-UNIT-KNOWN-FAMILY-BASE-UNIT
+    created_at: 2026-09-28T09:43:21.220Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8ea634b8d457
+  - type: requires_predicate
+    from: REQ-kibi-unit-canonicalization
+    to: FACT-UNIT-AUTHORED-VALUE-UNCHANGED
+    created_at: 2026-09-28T09:43:21.232Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-132314730b63
+  - type: requires_predicate
+    from: REQ-kibi-unit-canonicalization
+    to: FACT-UNIT-UNKNOWN-NEVER-EQUATED
+    created_at: 2026-09-28T09:43:21.241Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1dffdccc3826

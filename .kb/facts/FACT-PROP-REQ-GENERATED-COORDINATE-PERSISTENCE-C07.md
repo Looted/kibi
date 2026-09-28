@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_generated_coordinate_persistence
+subject_key: kibi.symbols.coordinates
 property_key: clause_07_coordinate_artifact_publication_must_be_atomic_b
 operator: eq
 value_type: bool

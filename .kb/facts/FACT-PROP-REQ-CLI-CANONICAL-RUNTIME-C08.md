@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_cli_canonical_runtime
+subject_key: kibi.kb.canonical_layout
 property_key: clause_08_createrepoignorepolicy_must_hard_deny_derived_kb
 operator: eq
 value_type: bool

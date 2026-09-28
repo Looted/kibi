@@ -621,6 +621,8 @@ export async function executeDelete(
             : "Authored entity deletion returns a hash-bound plan for kb_apply_plan.",
         ],
         deletionPlan: { ...planBody, planHash },
+        // Only kb_apply_plan writes; this call returns the plan.
+        skippedEffects: ["kb-write", "workspace-write"],
       };
       return {
         content: [

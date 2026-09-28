@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_vscode_sidebar_kb_tree
+subject_key: vscode.kibi_extension
 property_key: clause_01_the_vs_code_extension_must_provide_a_structural_
 operator: eq
 value_type: bool

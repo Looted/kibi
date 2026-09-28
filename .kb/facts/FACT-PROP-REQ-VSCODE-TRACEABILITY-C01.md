@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_vscode_traceability
+subject_key: vscode.kibi_extension
 property_key: clause_01_the_kibi_vs_code_extension_provides_bidirectiona
 operator: eq
 value_type: bool

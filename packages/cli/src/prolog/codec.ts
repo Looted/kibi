@@ -233,6 +233,8 @@ export function parsePropertyList(propsStr: string): Record<string, unknown> {
     let parsed = parsePrologValue(value);
     if (
       (key === "rule_ir" ||
+        key === "argument_constants" ||
+        key === "argument_aliases" ||
         key === "semantic_inventory" ||
         key === "proof_receipts" ||
         key === "proof_contract" ||

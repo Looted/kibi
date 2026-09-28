@@ -2,6 +2,7 @@ import { createRequire } from "node:module";
 import { KIBI_PLUGIN_API_VERSION, defineKibiPlugin } from "kibi-plugin-sdk";
 import { createJevSemanticClassifier } from "./semantic-classifier.js";
 import type { JevSemanticClassifierOptions } from "./semantic-classifier.js";
+import { createJevVocabularyAlignment } from "./vocabulary-alignment.js";
 
 const packageJson = createRequire(import.meta.url)("../package.json") as {
   version: string;
@@ -16,6 +17,12 @@ export {
   resolveJevTimeoutMs,
   type JevSemanticClassifierOptions,
 } from "./semantic-classifier.js";
+// implements REQ-kibi-vocabulary-alignment-capability
+export {
+  createJevVocabularyAlignment,
+  JEV_SUBJECT_TOP_K,
+  type JevVocabularyAlignmentOptions,
+} from "./vocabulary-alignment.js";
 // implements REQ-capability-plugin-jev-fallback-v1
 export { createTypeSafeJevClient } from "./typesafe-client.js";
 // implements REQ-capability-plugin-jev-fallback-v1
@@ -42,6 +49,7 @@ export const kibiPlugin = defineKibiPlugin({
   },
   capabilities: {
     semanticClassifier: createJevSemanticClassifier(),
+    vocabularyAlignment: createJevVocabularyAlignment(),
   },
 });
 
@@ -51,6 +59,7 @@ export function createJevPlugin(options: JevSemanticClassifierOptions = {}) {
     ...kibiPlugin,
     capabilities: {
       semanticClassifier: createJevSemanticClassifier(options),
+      vocabularyAlignment: createJevVocabularyAlignment(options),
     },
   });
 }

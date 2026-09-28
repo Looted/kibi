@@ -9,7 +9,7 @@ claim_key: CLAIM-0B200F96DEDB4D84
 claim_text: The exposed MCP configuration must resolve the project-local kibi-mcp binary
 claim_span_start: 811
 claim_span_end: 887
-subject_key: kibi_zcode_adapter
+subject_key: zcode.kibi_adapter
 property_key: mcp_configuration_resolver
 canonical_key: kibi_zcode_adapter:mcp_configuration_resolver:eq:project_local_kibi_mcp_binary
 operator: eq

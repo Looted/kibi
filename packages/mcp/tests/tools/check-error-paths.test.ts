@@ -17,6 +17,14 @@ function emptyFullQualityResult(goal: string) {
     };
   }
 
+  if (goal.includes("kb_query_entities")) {
+    // Paged entity reads, such as the predicate-schema conformance fact scan.
+    return {
+      success: true,
+      bindings: { Results: "[]", Count: "0" },
+    };
+  }
+
   if (goal.includes("kb_relationship")) {
     return {
       success: true,
@@ -79,7 +87,7 @@ describe("kb_check error and edge branches", () => {
     );
 
     expect(result.structuredContent?.count).toBe(0);
-    expect(query).toHaveBeenCalledTimes(19);
+    expect(query).toHaveBeenCalledTimes(21);
   });
 
   test("returns early when all requested rules are invalid", async () => {

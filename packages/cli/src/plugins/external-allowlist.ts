@@ -22,3 +22,22 @@ export function allowsExternalSemanticClassifier(
 ): boolean {
   return ALLOWED.has(operationName);
 }
+
+/**
+ * Operations that may call external kibi.vocabulary-alignment.v1 providers.
+ * kb_check and every other operation stay builtin-only: vocabulary alignment is
+ * modeling-time advice and never participates in pass/fail checks.
+ */
+// implements REQ-kibi-vocabulary-alignment-capability
+export const EXTERNAL_VOCABULARY_ALIGNMENT_OPERATIONS = [
+  "kb_model_requirement",
+] as const;
+
+// implements REQ-kibi-vocabulary-alignment-capability
+export function allowsExternalVocabularyAlignment(
+  operationName: string,
+): boolean {
+  return (
+    EXTERNAL_VOCABULARY_ALIGNMENT_OPERATIONS as readonly string[]
+  ).includes(operationName);
+}

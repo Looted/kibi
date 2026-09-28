@@ -1,6 +1,13 @@
-import { buildStrictWriteSet } from "../../public/check-types.js";
+import {
+  type StrictWriteSet,
+  buildStrictWriteSet,
+} from "../../public/check-types.js";
 import type { OperationContext } from "../../public/operations/runtime-types.js";
 import { readKbManifestStatus } from "../../utils/kb-manifest.js";
+import {
+  isConventionalSubjectKey,
+  normalizeSubjectKey,
+} from "../../utils/strict-modeling.js";
 import {
   normalizeSemanticClause,
   semanticClaimKey,
@@ -23,11 +30,224 @@ import {
   normalizeOptionalString,
   normalizeSourceFiles,
 } from "./requirement-utils.js";
+import {
+  type VocabularyAlignmentOutcome,
+  alignRequirementVocabulary,
+} from "./vocabulary-alignment.js";
 
 export type {
   ModelRequirementArgs,
   ModelRequirementResult,
 } from "./requirement-types.js";
+
+type ExtractedClaim = ReturnType<typeof extractRequirementClaim>;
+
+type AlignedWriteSet = Readonly<{
+  writeSet: StrictWriteSet;
+  outcome: VocabularyAlignmentOutcome | null;
+  warnings: ReadonlyArray<{
+    kind: string;
+    message: string;
+    nextAction: string;
+  }>;
+  reviewPlan: Array<Record<string, unknown>>;
+  adjustPlan: (
+    plan: Array<Record<string, unknown>>,
+  ) => Array<Record<string, unknown>>;
+}>;
+
+const NEW_SUBJECT_REVIEW_SCORE = 0.3;
+
+function reuseExistingSubject(
+  writeSet: StrictWriteSet,
+  existingFactId: string,
+): { writeSet: StrictWriteSet; replacedSubjectId: string | null } {
+  if (!writeSet.isStrict) return { writeSet, replacedSubjectId: null };
+  const replacedSubjectId = writeSet.subjectFact.id;
+  return {
+    replacedSubjectId,
+    writeSet: {
+      ...writeSet,
+      subjectFact: {
+        ...writeSet.subjectFact,
+        id: existingFactId,
+        properties: { ...writeSet.subjectFact.properties, id: existingFactId },
+      },
+      relationships: writeSet.relationships.map((relationship) =>
+        relationship.type === "constrains"
+          ? { ...relationship, to: existingFactId }
+          : relationship,
+      ),
+    },
+  };
+}
+
+function possibleDuplicateObservation(
+  claimKey: string,
+  statement: string,
+  source: string,
+  candidates: VocabularyAlignmentOutcome["redundancyCandidates"],
+): Record<string, unknown> {
+  const id = `FACT-OBS-POSSIBLE-DUPLICATE-${claimKey.replace(/^CLAIM-/, "")}`;
+  return {
+    type: "fact",
+    id,
+    properties: {
+      id,
+      title: `Possible duplicate: ${statement}`,
+      status: "active",
+      source,
+      fact_kind: "observation",
+      tags: ["review:possible-duplicate", "vocabulary-alignment"],
+    },
+    relationships: candidates.map((candidate) => ({
+      type: "relates_to",
+      from: id,
+      to: candidate.factId,
+    })),
+  };
+}
+
+/**
+ * Resolve the clause subject against the existing KB vocabulary. A heuristic
+ * subject converges onto the chosen existing subject; an explicitly provided
+ * subject is kept (the caller owns it) but reuses the existing subject fact
+ * when the keys match. Otherwise the plan explicitly declares a new subject.
+ */
+// implements REQ-kibi-subject-vocabulary
+async function applyVocabularyAlignment(
+  context: OperationContext | undefined,
+  extracted: ExtractedClaim,
+  claimKey: string,
+): Promise<AlignedWriteSet> {
+  const initial = buildStrictWriteSet({
+    claim: extracted.claim,
+    statement: extracted.statement,
+  });
+  const unchanged: AlignedWriteSet = {
+    writeSet: initial,
+    outcome: null,
+    warnings: [],
+    reviewPlan: [],
+    adjustPlan: (plan) => plan,
+  };
+  if (!context?.prolog || !initial.isStrict) return unchanged;
+
+  const proposedSubjectKey = normalizeSubjectKey(extracted.claim.subjectKey);
+  const outcome = await alignRequirementVocabulary(context, {
+    claimKey,
+    statement: extracted.statement,
+    proposedSubjectKey,
+  });
+  if (outcome === null) return unchanged;
+
+  const warnings: Array<{ kind: string; message: string; nextAction: string }> =
+    [];
+  let writeSet: StrictWriteSet = initial;
+  let replacedSubjectId: string | null = null;
+  const subject = outcome.subject;
+  if (subject.decision === "reuse_existing" && subject.existingFactId) {
+    const followsVocabulary =
+      extracted.extractionMode !== "provided" ||
+      proposedSubjectKey === subject.subjectKey;
+    if (followsVocabulary) {
+      const rebuilt = buildStrictWriteSet({
+        claim: { ...extracted.claim, subjectKey: subject.subjectKey },
+        statement: extracted.statement,
+      });
+      ({ writeSet, replacedSubjectId } = reuseExistingSubject(
+        rebuilt,
+        subject.existingFactId,
+      ));
+    } else {
+      warnings.push({
+        kind: "subject_reuse_review",
+        message: `Provided subjectKey ${proposedSubjectKey} is new, but existing subject ${subject.subjectKey} (${subject.existingFactId}) matches this clause.`,
+        nextAction: `Reuse subjectKey ${subject.subjectKey} so this requirement can be compared with the others on that subject, or keep ${proposedSubjectKey} if it is genuinely a different component.`,
+      });
+    }
+  } else {
+    if (!isConventionalSubjectKey(subject.subjectKey)) {
+      warnings.push({
+        kind: "subject_key_shape_review",
+        message: `New subject key ${subject.subjectKey} does not follow the component.aspect[.sub] convention checked by subject-key-shape.`,
+        nextAction:
+          "Pass subjectKey as a dotted key with lowercase snake segments (for example kibi.cli.gc) so later requirements about the same component can reuse it.",
+      });
+    }
+    const nearest = subject.candidates[0];
+    if (nearest && nearest.score >= NEW_SUBJECT_REVIEW_SCORE) {
+      warnings.push({
+        kind: "new_subject_declared",
+        message: `Declaring new subject ${subject.subjectKey}; nearest existing subject is ${nearest.subjectKey} (score ${nearest.score}).`,
+        nextAction:
+          "Confirm the new subject is a different component, or pass subjectKey set to the existing subject to reuse it.",
+      });
+    }
+  }
+
+  const reviewPlan =
+    outcome.redundancyCandidates.length > 0
+      ? [
+          possibleDuplicateObservation(
+            claimKey,
+            extracted.statement,
+            extracted.source,
+            outcome.redundancyCandidates,
+          ),
+        ]
+      : [];
+  if (outcome.redundancyCandidates.length > 0) {
+    warnings.push({
+      kind: "possible_duplicate",
+      message: `This clause may restate existing claim(s) ${outcome.redundancyCandidates
+        .map((candidate) => candidate.factId)
+        .join(", ")} on ${subject.subjectKey}.`,
+      nextAction:
+        "Review the candidates: reuse the existing fact, supersede or restate the existing requirement, or record the returned review:possible-duplicate observation. This is advice, not a check verdict.",
+    });
+  }
+
+  const declaredNew = subject.decision === "declare_new";
+  return {
+    writeSet,
+    outcome,
+    warnings,
+    reviewPlan,
+    adjustPlan: (plan) =>
+      plan
+        .filter(
+          (step) =>
+            !(
+              replacedSubjectId !== null &&
+              writeSet.isStrict &&
+              step.id === writeSet.subjectFact.id &&
+              step.type === "fact" &&
+              (step.properties as { fact_kind?: string } | undefined)
+                ?.fact_kind === "subject"
+            ),
+        )
+        .map((step) => {
+          if (
+            !declaredNew ||
+            step.type !== "fact" ||
+            (step.properties as { fact_kind?: string } | undefined)
+              ?.fact_kind !== "subject"
+          ) {
+            return step;
+          }
+          const properties = step.properties as Record<string, unknown>;
+          const tags = Array.isArray(properties.tags) ? properties.tags : [];
+          return {
+            ...step,
+            properties: {
+              ...properties,
+              tags: [...tags, "vocabulary:new-subject"],
+            },
+          };
+        }),
+  };
+}
 export {
   estimateNormativeSignalConfidence,
   extractRequirementClaim,
@@ -106,6 +326,7 @@ export async function handleKbModelRequirement(
   _prolog: unknown,
   args: ModelRequirementArgs,
   workspaceRoot: string,
+  context?: OperationContext,
 ): Promise<ModelRequirementResult> {
   const extracted = extractRequirementClaim({
     ...args,
@@ -171,24 +392,24 @@ export async function handleKbModelRequirement(
       migrationWarning,
     };
   }
-  const writeSet = buildStrictWriteSet({
-    claim: extracted.claim,
-    statement: extracted.statement,
-  });
   const claimKey = semanticClaimKey(extracted.statement);
+  const aligned = await applyVocabularyAlignment(context, extracted, claimKey);
+  const writeSet = aligned.writeSet;
   const logicClaims = Array.from(
     new Set([...(args.existingLogicClaims ?? []), claimKey]),
   );
-  const applyPlan = strictWriteSetToApplyPlan(writeSet).map((step) =>
-    annotateModelRequirementStep(step, {
-      claimKey,
-      statement: extracted.statement,
-      logicClaims,
-    }),
-  );
+  const applyPlan = aligned
+    .adjustPlan(strictWriteSetToApplyPlan(writeSet))
+    .map((step) =>
+      annotateModelRequirementStep(step, {
+        claimKey,
+        statement: extracted.statement,
+        logicClaims,
+      }),
+    );
   const migrationWarning = await getWorkspaceMigrationWarning(workspaceRoot);
   const warnings = writeSet.isStrict
-    ? []
+    ? [...aligned.warnings]
     : [
         {
           kind: "low_confidence_observation_downgrade",
@@ -215,6 +436,14 @@ export async function handleKbModelRequirement(
     extractionWarnings: extracted.extractionWarnings,
     warnings,
     migrationWarning,
+    ...(aligned.outcome !== null
+      ? {
+          vocabularyAlignment: {
+            ...aligned.outcome,
+            reviewPlan: aligned.reviewPlan,
+          },
+        }
+      : {}),
   };
   return {
     content: [
@@ -239,6 +468,13 @@ export async function executeModelRequirement(
   // kb_model_requirement is intentionally off the external semantic-classifier
   // allowlist: classification after modeling only produced provenance warnings
   // and is not worth a metered provider call. Use kb_semantic_advisor when
-  // classifier routing is needed.
-  return handleKbModelRequirement(context.prolog, args, context.workspaceRoot);
+  // classifier routing is needed. It is on the vocabulary-alignment allowlist:
+  // choosing an existing subject is exactly the modeling-time decision that
+  // provider is for, and it only runs when explicitly activated.
+  return handleKbModelRequirement(
+    context.prolog,
+    args,
+    context.workspaceRoot,
+    context,
+  );
 }

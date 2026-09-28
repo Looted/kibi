@@ -50,9 +50,29 @@ export function failedEffectStatus(
   };
 }
 
+type EffectOutcome =
+  | { readonly kind: "completed" }
+  | { readonly kind: "failed"; readonly errorCode?: string }
+  | { readonly kind: "not_attempted" };
+
+function effectOutcome(
+  status: KibiResult["status"],
+  options: {
+    readonly attempted?: boolean;
+    readonly error?: KibiResult["error"];
+  },
+): EffectOutcome {
+  if (status !== "error") return { kind: "completed" };
+  if (options.attempted === false) return { kind: "not_attempted" };
+  return options.error
+    ? { kind: "failed", errorCode: options.error.code }
+    : { kind: "failed" };
+}
+
 function effectStatus(
   effect: OperationEffect,
   data: Record<string, unknown> | undefined,
+  outcome: EffectOutcome,
 ): KibiResult["effects"][number] {
   const failures = data?.effectFailures;
   if (Array.isArray(failures)) {
@@ -60,6 +80,25 @@ function effectStatus(
       (entry) => record(entry) && entry.kind === effect,
     );
     if (record(failure)) return failedEffectStatus(effect, failure);
+  }
+  // A plan-only result declares the effects it left to a later call.
+  if (
+    Array.isArray(data?.skippedEffects) &&
+    data.skippedEffects.includes(effect)
+  ) {
+    return { kind: effect, status: "not_applicable" };
+  }
+  // An error envelope must never claim a declared effect completed: the
+  // operation either never ran or stopped before reporting its effects.
+  if (outcome.kind === "not_attempted") {
+    return { kind: effect, status: "not_applicable" };
+  }
+  if (outcome.kind === "failed") {
+    return {
+      kind: effect,
+      status: "failed",
+      ...(outcome.errorCode ? { errorCode: outcome.errorCode } : {}),
+    };
   }
   return { kind: effect, status: "completed" };
 }
@@ -109,7 +148,14 @@ export function toKibiResult<T>(
   data: T,
   options: Partial<
     Pick<KibiResult<T>, "status" | "diagnostics" | "nextActions" | "error">
-  > = {},
+  > & {
+    /**
+     * False when the operation was rejected before it ran (invalid input),
+     * so an error envelope reports its effects as not applicable rather than
+     * failed.
+     */
+    readonly attempted?: boolean;
+  } = {},
 ): KibiResult<T> {
   const row = record(data) ? data : undefined;
   const status =
@@ -117,6 +163,7 @@ export function toKibiResult<T>(
     (row?.status === "committed_with_repairs"
       ? "committed_with_repairs"
       : "success");
+  const outcome = effectOutcome(status, options);
   return {
     kibiProtocol: KIBI_PROTOCOL_VERSION,
     operation: spec.name as OperationName,
@@ -124,7 +171,7 @@ export function toKibiResult<T>(
     status,
     data,
     effects: [
-      ...spec.effects.map((effect) => effectStatus(effect, row)),
+      ...spec.effects.map((effect) => effectStatus(effect, row, outcome)),
       ...extraFailedEffects(spec.effects, row),
     ],
     diagnostics: options.diagnostics ?? diagnostics(row?.diagnostics),

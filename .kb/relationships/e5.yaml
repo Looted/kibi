@@ -174,3 +174,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7dd85a66ac2b
+  - type: specified_by
+    from: REQ-kibi-predicate-schema-conformance
+    to: SCEN-kibi-predicate-schema-conformance
+    created_at: 2026-09-28T12:33:15.587Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8041ac66bd79
+  - type: requires_predicate
+    from: REQ-kibi-predicate-schema-conformance
+    to: FACT-CONFORMANCE-MISSING-SCHEMA
+    created_at: 2026-09-28T12:33:15.632Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-a125f3398617
+  - type: requires_predicate
+    from: REQ-kibi-predicate-schema-conformance
+    to: FACT-CONFORMANCE-UNDECLARED-CONSTANT
+    created_at: 2026-09-28T12:33:15.653Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d5ffb6fb1a1e
+  - type: requires_predicate
+    from: REQ-kibi-predicate-schema-conformance
+    to: FACT-CONFORMANCE-BUILTIN-EXEMPT
+    created_at: 2026-09-28T12:33:15.672Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df34315f5aae

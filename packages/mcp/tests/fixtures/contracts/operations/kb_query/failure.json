@@ -14,7 +14,7 @@
     "inputSchema": {
       "properties": {
         "id": {
-          "description": "Optional exact entity ID. Example: 'REQ-001'. If omitted, returns matching entities by other filters.",
+          "description": "Optional exact entity ID. Example: 'REQ-cli-gc'. If omitted, returns matching entities by other filters.",
           "type": "string"
         },
         "limit": {

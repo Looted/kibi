@@ -10,7 +10,7 @@ tags:
   - lane:strict
   - fact:subject
 fact_kind: subject
-subject_key: kibi_suggest_predicates
+subject_key: kibi.modeling.predicates
 canonical_key: kibi_suggest_predicates
 id: FACT-SUBJECT-79C92ADA34274409
 type: fact

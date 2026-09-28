@@ -290,3 +290,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1efcb6a52f0a
+  - type: implements
+    from: SYM-collect-predicate-schema-conformance
+    to: REQ-kibi-predicate-schema-conformance
+    created_at: 2026-09-28T12:34:19.150Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3bdddacb4188
+  - type: covered_by
+    from: SYM-collect-predicate-schema-conformance
+    to: TEST-kibi-predicate-vocabulary-migration-e2e
+    created_at: 2026-09-28T12:34:19.174Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b10d3c1a43f4

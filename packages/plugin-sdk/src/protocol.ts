@@ -16,11 +16,16 @@ export const ONTOLOGY_PACK_CAPABILITY_ID = "kibi.ontology-pack.v1" as const;
 export const SYMBOL_EXTRACTOR_CAPABILITY_ID =
   "kibi.symbol-extractor.v1" as const;
 
+// implements REQ-kibi-vocabulary-alignment-capability
+export const VOCABULARY_ALIGNMENT_CAPABILITY_ID =
+  "kibi.vocabulary-alignment.v1" as const;
+
 // implements REQ-capability-plugin-protocol-v1
 export type CapabilityId =
   | typeof SEMANTIC_CLASSIFIER_CAPABILITY_ID
   | typeof ONTOLOGY_PACK_CAPABILITY_ID
-  | typeof SYMBOL_EXTRACTOR_CAPABILITY_ID;
+  | typeof SYMBOL_EXTRACTOR_CAPABILITY_ID
+  | typeof VOCABULARY_ALIGNMENT_CAPABILITY_ID;
 
 // implements REQ-capability-plugin-protocol-v1
 export const PLUGIN_MODES = ["replace", "augment", "shadow"] as const;
@@ -51,12 +56,15 @@ export interface PluginProviderStamp {
 import type { OntologyPackV1 } from "./capabilities/ontology-pack.js";
 import type { SemanticClassifierV1 } from "./capabilities/semantic-classifier.js";
 import type { SymbolExtractorV1 } from "./capabilities/symbol-extractor.js";
+import type { VocabularyAlignmentV1 } from "./capabilities/vocabulary-alignment.js";
 
 // implements REQ-capability-plugin-protocol-v1
 export interface KibiPluginCapabilities {
   readonly semanticClassifier?: SemanticClassifierV1;
   readonly ontologyPack?: OntologyPackV1;
   readonly symbolExtractor?: SymbolExtractorV1;
+  /** Optional; plugins without it keep working unchanged. */
+  readonly vocabularyAlignment?: VocabularyAlignmentV1;
 }
 
 // implements REQ-capability-plugin-protocol-v1

@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_cli_canonical_runtime
+subject_key: kibi.kb.canonical_layout
 property_key: clause_05_untracked_knowledge_files_must_not_be_ingested_u
 operator: eq
 value_type: bool

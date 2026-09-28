@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_cursor_stop_job_vs_plan
+subject_key: cursor.kibi_plugin
 property_key: clause_01_the_cursor_kibi_stop_hook_must_treat_plan_delive
 operator: eq
 value_type: bool

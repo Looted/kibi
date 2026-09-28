@@ -41,7 +41,7 @@ export const querySpec = {
       id: {
         type: "string",
         description:
-          "Optional exact entity ID. Example: 'REQ-001'. If omitted, returns matching entities by other filters.",
+          "Optional exact entity ID. Example: 'REQ-cli-gc'. If omitted, returns matching entities by other filters.",
       },
       tags: {
         type: "array",

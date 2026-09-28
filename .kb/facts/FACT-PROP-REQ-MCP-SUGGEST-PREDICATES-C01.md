@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_mcp_suggest_predicates
+subject_key: kibi.modeling.predicates
 property_key: clause_01_the_mcp_server_must_suggest_matching_ontology_pr
 operator: eq
 value_type: bool

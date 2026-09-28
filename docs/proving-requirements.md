@@ -46,7 +46,7 @@ observe its exit code, the project can prove requirements with Kibi.**
 
 ```bash
 kibi prove --all            # prove every proof-bearing test
-kibi prove --test TEST-004  # one test
+kibi prove --test TEST-mcp-search-discovery  # one test
 kibi prove --requirement REQ-cli-check
 kibi prove --integration self-proof
 ```

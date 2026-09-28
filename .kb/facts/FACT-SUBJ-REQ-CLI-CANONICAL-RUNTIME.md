@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: subject
-subject_key: req.req_cli_canonical_runtime
+subject_key: kibi.kb.canonical_layout
 canonical_key: req.req_cli_canonical_runtime
 id: FACT-SUBJ-REQ-CLI-CANONICAL-RUNTIME
 type: fact

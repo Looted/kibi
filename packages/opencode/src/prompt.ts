@@ -575,7 +575,7 @@ This keeps domain truths centralized, searchable, and contradiction-safe.`;
 Your recent code edit contains a comment that looks like a **technical decision** (tradeoffs, rationale, or architecture choices).
 
 **Action**: Instead of inline comments, route this to an ADR entity:
-- Create \`.kb/adr/ADR-xxx.md\` documenting the decision
+- Create \`.kb/adr/ADR-<decision>.md\` documenting the decision
 - Include context, options considered, and the chosen approach
 - Link to constrained code symbols
 
@@ -586,7 +586,7 @@ This preserves decision context for future maintainers.`;
 Your recent code edit contains a comment that looks like **behavior intent** (system capabilities or user-facing requirements).
 
 **Action**: Instead of inline comments, route this to a REQ entity:
-- Create \`.kb/requirements/REQ-xxx.md\` with the behavior description
+- Create \`.kb/requirements/REQ-<area>-<behavior>.md\` (named by the behavior, never the next number) with the behavior description
 - Add SCEN and TEST entities for specification and verification
 - Link code: production uses \`implements\` (symbol→req) for ownership; test code uses \`executable_for\`; \`covered_by\` is coverage evidence only
 

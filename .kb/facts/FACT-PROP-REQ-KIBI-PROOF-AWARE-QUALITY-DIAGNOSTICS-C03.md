@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_kibi_proof_aware_quality_diagnostics
+subject_key: kibi.checks.quality_diagnostics
 property_key: clause_03_receipt_freshness_diagnostics_must_identify_affe
 operator: eq
 value_type: bool

@@ -20,4 +20,5 @@ claim_key: CLAIM-08144D5332C78E6F
 claim_text: An external semantic classifier must be allowed only for kb_semantic_advisor
 id: FACT-PRED-C842EDCDDC65
 type: fact
+predicate_namespace: kibi.capability
 ---

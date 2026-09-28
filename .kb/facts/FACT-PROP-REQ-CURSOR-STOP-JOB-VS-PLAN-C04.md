@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_cursor_stop_job_vs_plan
+subject_key: cursor.kibi_plugin
 property_key: clause_04_if_the_same_turn_both_delivered_a_plan_and_actua
 operator: eq
 value_type: bool

@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_mcp_kb_freshness
+subject_key: mcp.branch_attachment
 property_key: clause_03_the_attached_kb_stamp_must_be_based_on_branch_kb
 operator: eq
 value_type: bool

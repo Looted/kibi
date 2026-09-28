@@ -175,8 +175,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-kibi-predicate-vocabulary-migration-e2e
       - type: implements
         target: REQ-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-kibi-predicate-vocabulary-migration
   - id: SYM-kibi-migration-coverage-actions
     title: buildActionsFromCoverage
     sourceFile: packages/cli/src/public/operations/migration-plan.ts
@@ -862,6 +866,8 @@ symbols:
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-predicate-vocabulary-migration-e2e
       - type: implements
         target: REQ-agent-guided-migration-orchestration
       - type: implements
@@ -870,6 +876,8 @@ symbols:
         target: REQ-KIBI-BOOTSTRAP-PLAN
       - type: implements
         target: REQ-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-kibi-predicate-vocabulary-migration
   - id: SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanargs
     title: ApplyPlanArgs
     sourceFile: packages/cli/src/operations/planning/apply-plan-types.d.ts
@@ -25013,7 +25021,7 @@ symbols:
   - id: SYM-core-logical-ground-signature
     title: logical_ground_signature
     status: active
-    sourceFile: packages/core/src/checks.pl
+    sourceFile: packages/core/src/semantic_quality.pl
     symbol_role: behavioral
     granularity_reason: extractor-miss
     relationships:
@@ -41825,5 +41833,235 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-kibi-operation-interface-parity
+  - id: SYM-test-packed-vocabulary-convergence
+    title: assertVocabularyConvergenceOutcome
+    status: active
+    sourceFile: documentation/tests/e2e/packed/vocabulary-convergence.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-vocabulary-convergence-e2e
+  - id: SYM-core-check-entity-id-style
+    title: check_entity_id_style
+    status: active
+    sourceFile: packages/core/src/semantic_quality.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-vocabulary-convergence-e2e
+      - type: implements
+        target: REQ-kibi-entity-id-style
+  - id: SYM-entity-id-style-issues
+    title: entityIdStyleIssues
+    status: active
+    sourceFile: packages/cli/src/utils/entity-id-style.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-vocabulary-convergence-e2e
+      - type: implements
+        target: REQ-kibi-entity-id-style
+  - id: SYM-core-domain-redundancy-witnesses
+    title: check_domain_redundancy_witnesses
+    status: active
+    sourceFile: packages/core/src/semantic_quality.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-vocabulary-convergence-e2e
+      - type: implements
+        target: REQ-kibi-domain-redundancy
+  - id: SYM-core-domain-implication-witnesses
+    title: check_domain_implication_witnesses
+    status: active
+    sourceFile: packages/core/src/semantic_quality.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-vocabulary-convergence-e2e
+      - type: implements
+        target: REQ-kibi-domain-redundancy
+  - id: SYM-core-requirements-unrelated
+    title: requirements_unrelated
+    status: active
+    sourceFile: packages/core/src/semantic_quality.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-vocabulary-convergence-e2e
+      - type: implements
+        target: REQ-kibi-restates-relationship
+  - id: SYM-core-canonical-quantity
+    title: canonical_quantity
+    status: active
+    sourceFile: packages/core/src/units.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-vocabulary-convergence-e2e
+      - type: implements
+        target: REQ-kibi-unit-canonicalization
+  - id: SYM-core-check-subject-key-identity
+    title: check_subject_key_identity
+    status: active
+    sourceFile: packages/core/src/semantic_quality.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-vocabulary-convergence-e2e
+      - type: implements
+        target: REQ-kibi-subject-vocabulary
+  - id: SYM-core-check-subject-key-shape
+    title: check_subject_key_shape
+    status: active
+    sourceFile: packages/core/src/semantic_quality.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-vocabulary-convergence-e2e
+      - type: implements
+        target: REQ-kibi-subject-vocabulary
+  - id: SYM-align-requirement-vocabulary
+    title: alignRequirementVocabulary
+    status: active
+    sourceFile: packages/cli/src/operations/modeling/vocabulary-alignment.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-vocabulary-convergence-e2e
+      - type: implements
+        target: REQ-kibi-subject-vocabulary
+      - type: implements
+        target: REQ-kibi-vocabulary-alignment-capability
+  - id: SYM-core-check-ontology-quality
+    title: check_ontology_quality
+    status: active
+    sourceFile: packages/core/src/semantic_quality.pl
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-vocabulary-convergence-e2e
+      - type: implements
+        target: REQ-kibi-ontology-quality
+  - id: SYM-ontology-quality-overrides-goal
+    title: ontologyQualityOverridesGoal
+    status: active
+    sourceFile: packages/cli/src/commands/aggregated-checks.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-vocabulary-convergence-e2e
+      - type: implements
+        target: REQ-kibi-ontology-quality
+  - id: SYM-compose-subject-ranking
+    title: composeSubjectRanking
+    status: active
+    sourceFile: packages/cli/src/plugins/compose-vocabulary-alignment.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-vocabulary-convergence-e2e
+      - type: implements
+        target: REQ-kibi-vocabulary-alignment-capability
+  - id: SYM-rank-subject-candidates
+    title: rankSubjectCandidates
+    status: active
+    sourceFile: packages/plugin-builtin/src/vocabulary/builtin-vocabulary-alignment.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-vocabulary-convergence-e2e
+      - type: implements
+        target: REQ-kibi-vocabulary-alignment-capability
+  - id: SYM-test-packed-predicate-vocabulary-migration
+    title: assertPredicateVocabularyMigration
+    status: active
+    sourceFile: documentation/tests/e2e/packed/predicate-vocabulary-migration.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-predicate-vocabulary-migration-e2e
+  - id: SYM-predicate-vocabulary-from-entity
+    title: predicateVocabularyFromEntity
+    status: active
+    sourceFile: packages/cli/src/operations/modeling/predicate-vocabulary.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-vocabulary-migration-e2e
+      - type: implements
+        target: REQ-kibi-predicate-argument-constants
+  - id: SYM-predicate-vocabulary-errors
+    title: predicateVocabularyErrors
+    status: active
+    sourceFile: packages/cli/src/operations/modeling/predicate-vocabulary.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-vocabulary-migration-e2e
+      - type: implements
+        target: REQ-kibi-predicate-argument-constants
+  - id: SYM-predicate-argument-conformance
+    title: predicateArgumentConformance
+    status: active
+    sourceFile: packages/cli/src/operations/modeling/predicate-vocabulary.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-vocabulary-migration-e2e
+      - type: implements
+        target: REQ-kibi-predicate-argument-constants
+  - id: SYM-assert-predicate-argument-vocabulary
+    title: assertPredicateArgumentVocabulary
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/predicate-vocabulary-guard.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-vocabulary-migration-e2e
+      - type: implements
+        target: REQ-kibi-predicate-argument-constants
+  - id: SYM-evaluate-predicate-schema-conformance
+    title: evaluatePredicateSchemaConformance
+    status: active
+    sourceFile: packages/cli/src/public/operations/predicate-schema-conformance.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-vocabulary-migration-e2e
+      - type: implements
+        target: REQ-kibi-predicate-schema-conformance
+  - id: SYM-collect-predicate-schema-conformance
+    title: collectPredicateSchemaConformanceViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/predicate-schema-conformance.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-vocabulary-migration-e2e
+      - type: implements
+        target: REQ-kibi-predicate-schema-conformance
+  - id: SYM-retirePendingSourceReceipt
+    title: retirePendingSourceReceipt
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
       - type: implements
         target: REQ-kibi-operation-interface-parity

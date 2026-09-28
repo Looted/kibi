@@ -20,4 +20,5 @@ claim_key: CLAIM-DE8F089404951DE7
 claim_text: Explicit programmatic Jev options must override environment defaults
 id: FACT-PRED-A0122B94C999
 type: fact
+predicate_namespace: kibi.capability
 ---

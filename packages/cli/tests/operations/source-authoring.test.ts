@@ -393,4 +393,28 @@ describe("source-first authoring", () => {
     const after = await discoverSourceFiles(workspace, { trackedOnly: true });
     expect(after.markdownFiles).toEqual([]);
   });
+
+  test("removing one manifest symbol keeps other long titles on one line", () => {
+    const longTitle =
+      "predicate guidance loads a canonical decision tree with immutable resource examples";
+    const manifest = [
+      "symbols:",
+      "  - id: SYM-keep",
+      `    title: ${longTitle}`,
+      "  - id: SYM-drop",
+      "    title: drop",
+      "",
+    ].join("\n");
+
+    const result = renderSourceDeletion(
+      ".kb/symbols.yaml",
+      "SYM-drop",
+      "symbol",
+      manifest,
+    );
+
+    expect(result.mode).toBe("write");
+    expect(result.body).toContain(`    title: ${longTitle}\n`);
+    expect(result.body).not.toContain("SYM-drop");
+  });
 });

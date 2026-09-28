@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_cli_canonical_runtime
+subject_key: kibi.kb.canonical_layout
 property_key: clause_04_readme_md_files_under_entity_directories_must_be
 operator: eq
 value_type: bool

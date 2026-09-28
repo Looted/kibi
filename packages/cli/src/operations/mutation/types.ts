@@ -102,6 +102,8 @@ export type DeletePayload = {
   readonly error_codes?: readonly Readonly<Record<string, unknown>>[];
   readonly relationship_results?: readonly Record<string, unknown>[];
   readonly sync_required?: boolean;
+  /** Declared effects this call did not perform, such as a plan-only result. */
+  readonly skippedEffects?: readonly string[];
   readonly sourceWrites?: readonly {
     readonly path: string;
     readonly mode?: "write" | "delete";

@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_agent_kibi_interface_selection
+subject_key: kibi.agent.interface_selection
 property_key: clause_02_guidance_must_not_present_mcp_as_the_only_public
 operator: eq
 value_type: bool

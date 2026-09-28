@@ -8,6 +8,9 @@
     requirement_proof/4
 ]).
 
+% Source contains non-ASCII text; do not depend on the host locale.
+:- encoding(utf8).
+
 :- use_module(library(http/json)).
 :- use_module(library(crypto)).
 :- use_module(library(date)).

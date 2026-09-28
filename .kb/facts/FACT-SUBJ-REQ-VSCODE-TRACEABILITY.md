@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: subject
-subject_key: req.req_vscode_traceability
+subject_key: vscode.kibi_extension
 canonical_key: req.req_vscode_traceability
 id: FACT-SUBJ-REQ-VSCODE-TRACEABILITY
 type: fact

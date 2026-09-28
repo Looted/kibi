@@ -223,3 +223,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d2c118008e46
+  - type: relates_to
+    from: FACT-OBS-req-derived-subject-keys-followup
+    to: REQ-kibi-subject-vocabulary
+    created_at: 2026-09-28T10:08:30.557Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-14db8e1baf3f

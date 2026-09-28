@@ -9,7 +9,7 @@ claim_key: CLAIM-90DE3F8567CC6DC9
 claim_text: Project-local Kibi MCP operations used through kibi-zcode must remain provided by kibi-mcp
 claim_span_start: 308
 claim_span_end: 398
-subject_key: project_local_kibi_operations
+subject_key: zcode.kibi_adapter.local_operations
 property_key: mcp_operations_provider
 canonical_key: project_local_kibi_operations:mcp_operations_provider:eq:kibi_mcp
 operator: eq

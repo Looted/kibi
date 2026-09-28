@@ -745,7 +745,10 @@ export async function executeCompileIntent(
       );
     }
   }
-  if (args.mode === "create") requirementId = generatedRequirementId(intent);
+  // A caller-chosen ID names the requirement by what it governs and wins;
+  // the content-hash ID is only a fallback when none is supplied.
+  if (args.mode === "create" && !explicitId)
+    requirementId = generatedRequirementId(intent);
   if (!requirementId)
     throw new Error("Compile intent failed: could not determine requirementId");
 

@@ -60,6 +60,29 @@ export function writePendingSourceReceipt(
   );
 }
 
+/**
+ * Retire the pending receipt of a source that a committed plan deleted. A
+ * receipt binds untracked input to exact bytes, so one left behind for a
+ * removed file makes every later sync fail on a missing pending source.
+ */
+// implements REQ-core-atomic-upsert-persistence, REQ-kibi-operation-interface-parity
+export function retirePendingSourceReceipt(
+  workspaceRoot: string,
+  relativePath: string,
+): void {
+  try {
+    fs.unlinkSync(pendingReceiptPath(workspaceRoot, relativePath));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
+}
+
+/**
+ * Authored YAML round-trips keep long scalars on one line, matching sync and
+ * coordinate refresh output, so editing one entry never refolds the others.
+ */
+const AUTHORED_YAML_OPTIONS = { lineWidth: 0 } as const;
+
 function authoredPath(value: unknown): string | undefined {
   if (typeof value !== "string" || !value.trim()) return undefined;
   const normalized = value.replaceAll("\\", "/");
@@ -385,7 +408,7 @@ function renderSymbolManifest(
         ],
       }),
     );
-    return doc.toString();
+    return doc.toString(AUTHORED_YAML_OPTIONS);
   }
   const doc = parseDocument(existingContent);
   const symbols = doc.get("symbols", true);
@@ -431,7 +454,7 @@ function renderSymbolManifest(
   } else {
     doc.addIn(["symbols"], next);
   }
-  return doc.toString();
+  return doc.toString(AUTHORED_YAML_OPTIONS);
 }
 
 export function renderSourceDeletion(
@@ -480,7 +503,7 @@ export function renderSourceDeletion(
       );
     }
     doc.deleteIn(["symbols", index]);
-    return { mode: "write", body: doc.toString() };
+    return { mode: "write", body: doc.toString(AUTHORED_YAML_OPTIONS) };
   }
   throw new OperationError(
     "SOURCE_FORMAT_UNSUPPORTED",
@@ -557,7 +580,7 @@ export function renderMarkdownRelationshipDeletion(
   if (!removed) return { body: existingContent, removed: false };
   const body = existingContent.slice(marker + "\n---".length);
   return {
-    body: `---\n${frontmatter.toString()}---${body.startsWith("\n") ? "" : "\n"}${body}`,
+    body: `---\n${frontmatter.toString(AUTHORED_YAML_OPTIONS)}---${body.startsWith("\n") ? "" : "\n"}${body}`,
     removed: true,
   };
 }
@@ -634,7 +657,7 @@ export function renderYamlRelationshipDeletion(
     }
   }
   return removed
-    ? { body: doc.toString(), removed: true }
+    ? { body: doc.toString(AUTHORED_YAML_OPTIONS), removed: true }
     : { body: existingContent, removed: false };
 }
 

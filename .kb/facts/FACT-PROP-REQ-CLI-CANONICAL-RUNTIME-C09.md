@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_cli_canonical_runtime
+subject_key: kibi.kb.canonical_layout
 property_key: clause_09_mcp_workspace_activation_and_cursor_hook_readine
 operator: eq
 value_type: bool

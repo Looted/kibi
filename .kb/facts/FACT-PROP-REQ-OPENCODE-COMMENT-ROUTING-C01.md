@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_opencode_comment_routing
+subject_key: opencode.kibi_plugin
 property_key: clause_01_the_opencode_plugin_should_detect_long_explanato
 operator: eq
 value_type: bool

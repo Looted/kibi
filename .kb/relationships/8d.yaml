@@ -307,3 +307,66 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-1451892fc82a
+  - type: specified_by
+    from: REQ-kibi-domain-redundancy
+    to: SCEN-kibi-domain-redundancy
+    created_at: 2026-09-28T09:43:16.490Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-5684652514b6
+  - type: requires_predicate
+    from: REQ-kibi-domain-redundancy
+    to: FACT-DOMAIN-REDUNDANCY-IDENTICAL-TERM
+    created_at: 2026-09-28T09:43:16.548Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cc4d7fe4adf0
+  - type: requires_predicate
+    from: REQ-kibi-domain-redundancy
+    to: FACT-DOMAIN-REDUNDANCY-SUPERSEDES-EXEMPT
+    created_at: 2026-09-28T09:43:16.586Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-fe97f819a88d
+  - type: requires_predicate
+    from: REQ-kibi-domain-redundancy
+    to: FACT-DOMAIN-REDUNDANCY-RESTATES-EXEMPT
+    created_at: 2026-09-28T09:43:16.617Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-200ae026f8d9
+  - type: requires_predicate
+    from: REQ-kibi-domain-redundancy
+    to: FACT-DOMAIN-IMPLICATION-IMPLIED-BOUND
+    created_at: 2026-09-28T09:43:16.642Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-36c0df35f681
+  - type: implements
+    from: SYM-retirePendingSourceReceipt
+    to: REQ-core-atomic-upsert-persistence
+    created_at: 2026-09-28T14:14:39.756Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-589d00c0a215
+  - type: implements
+    from: SYM-retirePendingSourceReceipt
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-09-28T14:14:39.771Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ae9f6fa6dc1
+  - type: covered_by
+    from: SYM-retirePendingSourceReceipt
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-09-28T14:14:39.780Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e51283edd941
+  - type: covered_by
+    from: SYM-retirePendingSourceReceipt
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-28T14:14:39.789Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69a8ef67cd0c

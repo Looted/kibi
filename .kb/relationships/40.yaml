@@ -101,3 +101,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-397fb6781591
+  - type: validates
+    from: TEST-kibi-predicate-vocabulary-migration-e2e
+    to: SCEN-kibi-predicate-argument-constants
+    created_at: 2026-09-28T12:33:07.331Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-22f5233edfd7
+  - type: validates
+    from: TEST-kibi-predicate-vocabulary-migration-e2e
+    to: SCEN-kibi-predicate-schema-conformance
+    created_at: 2026-09-28T12:33:07.361Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-75760f4ea0cb
+  - type: validates
+    from: TEST-kibi-predicate-vocabulary-migration-e2e
+    to: SCEN-kibi-predicate-vocabulary-migration
+    created_at: 2026-09-28T12:33:07.373Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bab5585d2fc6

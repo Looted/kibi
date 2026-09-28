@@ -87,3 +87,15 @@ export {
   allowsExternalSemanticClassifier,
   type ExternalSemanticClassifierOperation,
 } from "./external-allowlist.js";
+// implements REQ-kibi-vocabulary-alignment-capability
+export {
+  composeClaimComparison,
+  composeSubjectRanking,
+  type ComposedVocabularyResult,
+  type VocabularyAlignmentDiagnostic,
+} from "./compose-vocabulary-alignment.js";
+// implements REQ-kibi-vocabulary-alignment-capability
+export {
+  EXTERNAL_VOCABULARY_ALIGNMENT_OPERATIONS,
+  allowsExternalVocabularyAlignment,
+} from "./external-allowlist.js";

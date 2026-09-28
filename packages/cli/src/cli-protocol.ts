@@ -36,6 +36,7 @@ function errorResult(
     effects: readonly OperationEffect[];
     resultVersion?: string;
   },
+  attempted = true,
 ): CliProtocolResult {
   const envelope = toKibiResult(
     spec ?? {
@@ -46,6 +47,7 @@ function errorResult(
     null,
     {
       status: "error",
+      attempted,
       error: {
         code: error.code,
         message: error.detail,
@@ -95,6 +97,7 @@ export async function executeOperation(
       catalogName,
       new InputError("VALIDATION_FAILED", prepared.errors.join("; ")),
       spec,
+      false,
     );
   }
 

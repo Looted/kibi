@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_mcp_cli_help
+subject_key: mcp.binary.help
 property_key: clause_03_this_allows_users_and_system_administrators_to_v
 operator: eq
 value_type: bool

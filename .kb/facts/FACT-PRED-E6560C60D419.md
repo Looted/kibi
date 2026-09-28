@@ -20,4 +20,5 @@ claim_key: CLAIM-F8D3453720E38457
 claim_text: package.json kibi.plugins must be the canonical v1 capability plugin activation and mode surface
 id: FACT-PRED-E6560C60D419
 type: fact
+predicate_namespace: kibi.capability
 ---

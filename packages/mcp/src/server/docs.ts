@@ -232,7 +232,7 @@ function registerDocResources(): DocResource[] {
     '2. `kb_coverage` with `{ "by": "req", "includePassing": false }` to review proof rows and `repairPlan`; require `repairPlan.scope.complete` before treating it as a project-wide inventory',
     "3. Apply only a `repairPlan` batch whose state is `ready`; batches are non-auto-applicable guidance, so query current endpoints, validate every write, and keep `kb_upsert` sequential",
     "4. Re-run `kb_coverage` after each batch instead of continuing from a stale plan",
-    '5. `kb_graph` with `{ "seedIds": ["REQ-001"], "direction": "both", "depth": 2 }` to inspect neighboring entities',
+    '5. `kb_graph` with `{ "seedIds": ["REQ-cli-gc"], "direction": "both", "depth": 2 }` to inspect neighboring entities',
     "",
     "## Add a requirement and link it to a test",
     '1. `kb_query` with `{ "type": "test" }` to check for existing test IDs',

@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_core_extractors
+subject_key: kibi.sync.extractors
 property_key: clause_01_kibi_extracts_entities_and_relationships_from_so
 operator: eq
 value_type: bool

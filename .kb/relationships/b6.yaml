@@ -125,3 +125,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7ac92da65597
+  - type: implements
+    from: SYM-core-check-ontology-quality
+    to: REQ-kibi-ontology-quality
+    created_at: 2026-09-28T09:49:11.548Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-71dede003292
+  - type: covered_by
+    from: SYM-core-check-ontology-quality
+    to: TEST-kibi-vocabulary-convergence-e2e
+    created_at: 2026-09-28T09:49:11.559Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f16775bd1ba0

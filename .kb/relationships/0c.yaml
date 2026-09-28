@@ -209,3 +209,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-2e4685a05886
+  - type: implements
+    from: SYM-rank-subject-candidates
+    to: REQ-kibi-vocabulary-alignment-capability
+    created_at: 2026-09-28T09:49:28.338Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b53496c8fd6a
+  - type: covered_by
+    from: SYM-rank-subject-candidates
+    to: TEST-kibi-vocabulary-convergence-e2e
+    created_at: 2026-09-28T09:49:28.359Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8aada7626a60

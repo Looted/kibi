@@ -209,7 +209,7 @@ describe("risk-classifier classifyRisk", () => {
       );
       assert.equal(result.riskClass, "traceability_candidate");
       assert.ok(
-        result.reasons.some((r) => r.includes("REQ-xxx")),
+        result.reasons.some((r) => r.includes("REQ-<area>-<behavior>")),
         "Should mention missing traceability",
       );
     });

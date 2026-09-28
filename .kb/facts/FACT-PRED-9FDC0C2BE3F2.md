@@ -20,4 +20,5 @@ claim_key: CLAIM-C47734A6D89B02CA
 claim_text: An SDK-only third-party plugin must be allowed through the host capability seam as a provider operation
 id: FACT-PRED-9FDC0C2BE3F2
 type: fact
+predicate_namespace: kibi.capability
 ---

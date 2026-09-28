@@ -1,12 +1,18 @@
 // implements REQ-kibi-operation-interface-parity
-import type { OperationContext } from "../../public/operations/runtime-types.js";
+import { escapeAtom } from "../../prolog/codec.js";
+import type {
+  OperationContext,
+  PrologPort,
+} from "../../public/operations/runtime-types.js";
 import type { OperationResult } from "../../public/operations/types.js";
+import { entityIdStyleWarnings } from "../../utils/entity-id-style.js";
 import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
 import {
   assertLogicalGroundingClaimKeys,
   assertSemanticInventoryBoundary,
   validateSemanticInventoryBoundary,
 } from "../semantic-advisor/ingestion-boundary.js";
+import { assertPredicateArgumentVocabulary } from "./predicate-vocabulary-guard.js";
 import {
   validateLiveRelationshipTargets,
   validateRelationshipSources,
@@ -18,6 +24,14 @@ import {
   validateAppendOnlyProofReceipts,
 } from "./upsert.js";
 import { validateUpsertInput } from "./validation.js";
+
+// implements REQ-kibi-entity-id-style
+async function entityExists(prolog: PrologPort, id: string): Promise<boolean> {
+  const result = await prolog.query(
+    `once(kb_entity('${escapeAtom(id)}', _Type, _Props))`,
+  );
+  return result.success;
+}
 
 export async function executeValidateUpsert(
   input: UpsertInput,
@@ -70,11 +84,27 @@ export async function executeValidateUpsert(
         { ...input, relationships },
         relationships,
       );
+      await assertPredicateArgumentVocabulary(context.prolog, validated.entity);
     }
+    // Style warnings apply only to entities this upsert would create, so the
+    // existence read happens only when the ID actually has a style issue.
+    const candidateIdStyleWarnings = entityIdStyleWarnings({
+      id: input.id,
+      sourcePath:
+        typeof validated.entity.source === "string"
+          ? validated.entity.source
+          : undefined,
+    });
+    const idStyleWarnings =
+      candidateIdStyleWarnings.length > 0 &&
+      context.prolog &&
+      !(await entityExists(context.prolog, input.id))
+        ? candidateIdStyleWarnings
+        : [];
     const payload: ValidateUpsertPayload = {
       valid: true,
       errors: [],
-      warnings: semantic.warnings,
+      warnings: [...semantic.warnings, ...idStyleWarnings],
       semanticAdvisor: semantic.receipt,
       normalizedPreview: validated.entity,
     };

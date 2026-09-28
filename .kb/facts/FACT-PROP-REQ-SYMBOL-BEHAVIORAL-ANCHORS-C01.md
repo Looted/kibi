@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_symbol_behavioral_anchors
+subject_key: kibi.symbols.traceability
 property_key: clause_01_symbol_traceability_granularity_checks_must_reje
 operator: eq
 value_type: bool

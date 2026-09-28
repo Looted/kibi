@@ -27,15 +27,33 @@
     check_rule_verifiability/1,
     check_semantic_completeness/1,
     check_req_status_vocabulary/1,
+    check_entity_id_style/1,
+    check_domain_redundancy/1,
+    check_domain_implication/1,
+    check_subject_key_identity/1,
+    check_subject_key_shape/1,
+    check_ontology_quality/1,
     run_checks_json/0,              % Entry point for JSON output
     violation_id_text/2             % Extract text from entity ID term (exported for testing)
 ]).
+
+% Source contains non-ASCII text; do not depend on the host locale.
+:- encoding(utf8).
 
 :- use_module(library(http/json)).
 :- use_module(library(http/json_convert)).
 :- use_module('kb.pl').
 :- use_module('../schema/entities.pl', [entity_type/1, required_property/2]).
 :- use_module('../schema/relationships.pl', [relationship_type/1]).
+:- use_module('semantic_quality.pl', [
+    logical_ground_signature/2,
+    check_entity_id_style/1,
+    check_domain_redundancy/1,
+    check_domain_implication/1,
+    check_subject_key_identity/1,
+    check_subject_key_shape/1,
+    check_ontology_quality/1
+]).
 :- use_module('logic_ir.pl', [logic_rule_safety/2, logic_rule_from_props/2, logic_rule_conflict/3, logic_rule_conflict_witness/3, logic_rules_stratified/1]).
 % GENERATED registry facts; single source is schema/rule-registry.json.
 :- use_module('rule_registry.pl', [known_rule/1]).
@@ -46,7 +64,7 @@ required_fields([id, title, status, created_at, updated_at, source]).
 % Relationship types to check for dangling references
 all_relationship_types([
     depends_on, verified_by, validates, specified_by,
-    constrains, requires_property, requires_predicate, requires_rule, supersedes, relates_to
+    constrains, requires_property, requires_predicate, requires_rule, supersedes, restates, relates_to
 ]).
 
 %% check_all(-ViolationsDict)
@@ -72,6 +90,12 @@ check_all(ViolationsDict) :-
     check_semantic_completeness(SemanticCompleteness),
     check_req_status_vocabulary(ReqStatusVocabulary),
     check_proof_contract_symbols(ProofContractSymbols),
+    check_entity_id_style(EntityIdStyle),
+    check_domain_redundancy(DomainRedundancy),
+    check_domain_implication(DomainImplication),
+    check_subject_key_identity(SubjectKeyIdentity),
+    check_subject_key_shape(SubjectKeyShape),
+    check_ontology_quality(OntologyQuality),
     ViolationsDict = _{
         must_priority_coverage: MustPriority,
         symbol_coverage: SymbolCoverage,
@@ -90,7 +114,13 @@ check_all(ViolationsDict) :-
         rule_verifiability: RuleVerifiability,
         semantic_completeness: SemanticCompleteness,
         req_status_vocabulary: ReqStatusVocabulary,
-        proof_contract_symbols: ProofContractSymbols
+        proof_contract_symbols: ProofContractSymbols,
+        entity_id_style: EntityIdStyle,
+        domain_redundancy: DomainRedundancy,
+        domain_implication: DomainImplication,
+        subject_key_identity: SubjectKeyIdentity,
+        subject_key_shape: SubjectKeyShape,
+        ontology_quality: OntologyQuality
     }.
 
 %% check_must_priority_coverage(-Violations)
@@ -134,7 +164,7 @@ symbol_coverage_violation(SymbolId, violation(
     'symbol-coverage',
     SymbolId,
     "Production symbol lacks qualifying requirement coverage.",
-    "Add 'covered_by: TEST-xxx' for production coverage. If the requirement has specified_by a scenario, use verified_by(scenario,test) or validates(test,scenario). Direct verified_by(req,test) does not count when a scenario exists.",
+    "Add 'covered_by: TEST-<area>-<behavior>' for production coverage. If the requirement has specified_by a scenario, use verified_by(scenario,test) or validates(test,scenario). Direct verified_by(req,test) does not count when a scenario exists.",
     Source
 )) :-
     violation_source(SymbolId, symbol, Source).
@@ -189,13 +219,13 @@ symbol_traceability_violation(RequireAdr, violation(
     % Determine what is missing
     (   HasReq = false, HasAdr = false, RequireAdr = true ->
         Description = "Symbol has no direct requirement ownership and no ADR constraint.",
-        Suggestion = "Add a direct 'implements: REQ-xxx' link for ownership, use 'covered_by' only for production coverage, use 'executable_for' only for executable test code, and add 'constrained_by: ADR-xxx' in symbols.yaml."
+        Suggestion = "Add a direct 'implements: REQ-<area>-<behavior>' link for ownership, use 'covered_by' only for production coverage, use 'executable_for' only for executable test code, and add 'constrained_by: ADR-<decision>' in symbols.yaml."
     ;   HasReq = false ->
         Description = "Symbol has no direct requirement ownership.",
-        Suggestion = "Add a direct 'implements: REQ-xxx' link for ownership. Use 'covered_by' for production coverage and 'executable_for' for executable test code identity."
+        Suggestion = "Add a direct 'implements: REQ-<area>-<behavior>' link for ownership. Use 'covered_by' for production coverage and 'executable_for' for executable test code identity."
     ;   HasAdr = false ->
         Description = "Symbol has no ADR constraint.",
-        Suggestion = "Add 'constrained_by: ADR-xxx' in symbols.yaml."
+        Suggestion = "Add 'constrained_by: ADR-<decision>' in symbols.yaml."
     ;   fail  % No violation
     ),
     violation_source(SymbolId, symbol, Source).
@@ -1307,32 +1337,6 @@ grounded_requirement_claim_fact(ReqId, ClaimKey, FactId) :-
     kb_relationship(requires_rule, ReqId, FactId),
     ground_fact_claim_key(FactId, rule, ClaimKey).
 
-logical_ground_signature(FactId, predicate(Namespace, Name, Args, Polarity)) :-
-    kb:predicate_fact(FactId, Namespace, Name, Args, Polarity).
-logical_ground_signature(
-    FactId,
-    property(Subject, Property, Operator, ValueType, Value, Unit, Scope, Polarity)
-) :-
-    kb:fact_property_tuple(
-        FactId,
-        Subject,
-        Property,
-        Operator,
-        ValueType,
-        Value,
-        Unit,
-        Scope,
-        Polarity
-    ).
-logical_ground_signature(FactId, rule(SemanticKey)) :-
-    kb_entity(FactId, fact, Props),
-    memberchk(fact_kind=RawKind, Props),
-    normalize_term_atom(RawKind, rule),
-    (   memberchk(semantic_key=RawKey, Props)
-    ->  normalize_term_atom(RawKey, SemanticKey)
-    ;   memberchk(rule_hash=RawKey, Props), normalize_term_atom(RawKey, SemanticKey)
-    ).
-
 ground_fact_claim_key(FactId, ExpectedKind, ClaimKey) :-
     kb_entity(FactId, fact, Props),
     memberchk(fact_kind=RawKind, Props),
@@ -1605,7 +1609,13 @@ check_selected_dispatch(Rules, _{
     rule_verifiability: RuleVerifiability,
     semantic_completeness: SemanticCompleteness,
     req_status_vocabulary: ReqStatusVocabulary,
-    proof_contract_symbols: ProofContractSymbols
+    proof_contract_symbols: ProofContractSymbols,
+    entity_id_style: EntityIdStyle,
+    domain_redundancy: DomainRedundancy,
+    domain_implication: DomainImplication,
+    subject_key_identity: SubjectKeyIdentity,
+    subject_key_shape: SubjectKeyShape,
+    ontology_quality: OntologyQuality
 }) :-
     selected_rule(Rules, 'must-priority-coverage', check_must_priority_coverage, MustPriority),
     selected_rule(Rules, 'symbol-coverage', check_symbol_coverage, SymbolCoverage),
@@ -1624,7 +1634,13 @@ check_selected_dispatch(Rules, _{
     selected_rule(Rules, 'rule-verifiability', check_rule_verifiability, RuleVerifiability),
     selected_rule(Rules, 'semantic-completeness', check_semantic_completeness, SemanticCompleteness),
     selected_rule(Rules, 'req-status-vocabulary', check_req_status_vocabulary, ReqStatusVocabulary),
-    selected_rule(Rules, 'proof-contract-symbols', check_proof_contract_symbols, ProofContractSymbols).
+    selected_rule(Rules, 'proof-contract-symbols', check_proof_contract_symbols, ProofContractSymbols),
+    selected_rule(Rules, 'entity-id-style', check_entity_id_style, EntityIdStyle),
+    selected_rule(Rules, 'domain-redundancy', check_domain_redundancy, DomainRedundancy),
+    selected_rule(Rules, 'domain-implication', check_domain_implication, DomainImplication),
+    selected_rule(Rules, 'subject-key-identity', check_subject_key_identity, SubjectKeyIdentity),
+    selected_rule(Rules, 'subject-key-shape', check_subject_key_shape, SubjectKeyShape),
+    selected_rule(Rules, 'ontology-quality', check_ontology_quality, OntologyQuality).
 
 selected_rule(Rules, Name, Goal, Violations) :-
     (   memberchk(Name, Rules)
@@ -1681,6 +1697,12 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
     check_semantic_completeness(SemanticCompleteness),
     check_req_status_vocabulary(ReqStatusVocabulary),
     check_proof_contract_symbols(ProofContractSymbols),
+    check_entity_id_style(EntityIdStyle),
+    check_domain_redundancy(DomainRedundancy),
+    check_domain_implication(DomainImplication),
+    check_subject_key_identity(SubjectKeyIdentity),
+    check_subject_key_shape(SubjectKeyShape),
+    check_ontology_quality(OntologyQuality),
     ViolationsDict = _{
         must_priority_coverage: MustPriority,
         symbol_coverage: SymbolCoverage,
@@ -1699,7 +1721,13 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
         rule_verifiability: RuleVerifiability,
         semantic_completeness: SemanticCompleteness,
         req_status_vocabulary: ReqStatusVocabulary,
-        proof_contract_symbols: ProofContractSymbols
+        proof_contract_symbols: ProofContractSymbols,
+        entity_id_style: EntityIdStyle,
+        domain_redundancy: DomainRedundancy,
+        domain_implication: DomainImplication,
+        subject_key_identity: SubjectKeyIdentity,
+        subject_key_shape: SubjectKeyShape,
+        ontology_quality: OntologyQuality
     }.
 
 %% violations_dict_to_json(+ViolationsDict, -JsonDict)
@@ -1718,7 +1746,12 @@ pairs_to_json_pairs([Key-Violations|Rest], [Key-JsonViolations|JsonRest]) :-
 
 %% violation_to_json(+Violation, -JsonDict)
 % Converts a violation(Rule, EntityId, Description, Suggestion, Source) term
-% to a JSON-compatible dict.
+% to a JSON-compatible dict. violation/6 carries precomputed JSON-safe
+% evidence (witnesses) as its sixth argument.
+violation_to_json(violation(Rule, EntityId, Description, Suggestion, Source, Evidence), JsonDict) :-
+    !,
+    violation_term_to_dict(violation(Rule, EntityId, Description, Suggestion, Source), BaseDict),
+    put_dict(evidence, BaseDict, Evidence, JsonDict).
 violation_to_json(Violation, JsonDict) :-
     violation_term_to_dict(Violation, BaseDict),
     (   contradiction_violation_witnesses(Violation, Witnesses),

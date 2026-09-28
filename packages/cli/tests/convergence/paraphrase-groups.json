@@ -1,0 +1,383 @@
+{
+  "$comment": "Hand-authored paraphrase groups for the vocabulary-convergence harness. Each variant is the strict claim an agent would extract from its prose. subjectKey is the agent's own guess (treated like heuristic extraction, so the subject ranker may redirect it to an existing subject); expectedSubjectKey is the shared subject a converged KB should use. converge=true means every variant must end with the same logical signature and domain-redundancy must pair them; converge=false marks controls (different obligations) and known gaps (property-key paraphrase) that must NOT share a signature.",
+  "vocabulary": [
+    {
+      "subjectKey": "session.lifetime",
+      "title": "Session lifetime",
+      "requirements": [
+        {
+          "id": "REQ-session-expiry",
+          "title": "User sessions expire after inactivity"
+        }
+      ]
+    },
+    {
+      "subjectKey": "upload.attachment",
+      "title": "Upload attachment",
+      "requirements": [
+        {
+          "id": "REQ-upload-size-limit",
+          "title": "Attachments have a maximum upload size"
+        }
+      ]
+    },
+    {
+      "subjectKey": "billing.invoice",
+      "title": "Billing invoice",
+      "requirements": [
+        {
+          "id": "REQ-invoice-retention",
+          "title": "Invoices are retained for audits"
+        }
+      ]
+    },
+    {
+      "subjectKey": "api.rate_limit",
+      "title": "API rate limit",
+      "requirements": [
+        {
+          "id": "REQ-api-throttling",
+          "title": "Public API requests are throttled per client"
+        }
+      ]
+    },
+    {
+      "subjectKey": "auth.password",
+      "title": "Password policy",
+      "requirements": [
+        {
+          "id": "REQ-password-length",
+          "title": "Passwords have a minimum length"
+        }
+      ]
+    },
+    {
+      "subjectKey": "report.export",
+      "title": "Report export",
+      "requirements": [
+        { "id": "REQ-report-export", "title": "Reports can be exported to CSV" }
+      ]
+    },
+    {
+      "subjectKey": "kibi.cli.gc",
+      "title": "Garbage collection",
+      "requirements": [
+        {
+          "id": "REQ-cli-gc",
+          "title": "Garbage collection removes stale branch stores"
+        }
+      ]
+    },
+    {
+      "subjectKey": "notification.email",
+      "title": "Email notifications",
+      "requirements": [
+        { "id": "REQ-email-digest", "title": "Email digests are sent daily" }
+      ]
+    },
+    {
+      "subjectKey": "cache.response",
+      "title": "Response cache",
+      "requirements": [
+        { "id": "REQ-response-cache", "title": "API responses are cached" }
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "id": "session-ttl-units",
+      "kind": "unit_variant",
+      "converge": true,
+      "expectedSubjectKey": "session.lifetime",
+      "variants": [
+        {
+          "text": "User sessions must expire after 30 minutes of inactivity.",
+          "subjectKey": "session.lifetime",
+          "propertyKey": "idle_timeout",
+          "operator": "lte",
+          "valueType": "int",
+          "value": 30,
+          "unit": "min"
+        },
+        {
+          "text": "User sessions shall expire after 1800 seconds of inactivity.",
+          "subjectKey": "session.lifetime",
+          "propertyKey": "idle_timeout",
+          "operator": "lte",
+          "valueType": "int",
+          "value": 1800,
+          "unit": "seconds"
+        },
+        {
+          "text": "Session lifetime without activity must not exceed half an hour.",
+          "subjectKey": "session.lifetime",
+          "propertyKey": "idle_timeout",
+          "operator": "lte",
+          "valueType": "number",
+          "value": 0.5,
+          "unit": "hours"
+        }
+      ]
+    },
+    {
+      "id": "upload-size-units",
+      "kind": "unit_variant",
+      "converge": true,
+      "expectedSubjectKey": "upload.attachment",
+      "variants": [
+        {
+          "text": "Attachments must not exceed 10 MB per upload.",
+          "subjectKey": "upload.attachment",
+          "propertyKey": "max_size",
+          "operator": "lte",
+          "valueType": "int",
+          "value": 10,
+          "unit": "MB"
+        },
+        {
+          "text": "Uploaded attachments shall be at most 10000000 bytes.",
+          "subjectKey": "upload.attachment",
+          "propertyKey": "max_size",
+          "operator": "lte",
+          "valueType": "int",
+          "value": 10000000,
+          "unit": "bytes"
+        }
+      ]
+    },
+    {
+      "id": "invoice-retention-subject",
+      "kind": "subject_variant",
+      "converge": true,
+      "expectedSubjectKey": "billing.invoice",
+      "variants": [
+        {
+          "text": "Billing invoices must be retained for 7 years.",
+          "subjectKey": "billing.invoice",
+          "propertyKey": "retention_years",
+          "operator": "eq",
+          "valueType": "int",
+          "value": 7,
+          "unit": ""
+        },
+        {
+          "text": "Customer invoices shall be kept for 7 years for billing audits.",
+          "subjectKey": "customer_invoices",
+          "propertyKey": "retention_years",
+          "operator": "eq",
+          "valueType": "int",
+          "value": 7,
+          "unit": ""
+        }
+      ]
+    },
+    {
+      "id": "rate-limit-subject",
+      "kind": "subject_variant",
+      "converge": true,
+      "expectedSubjectKey": "api.rate_limit",
+      "variants": [
+        {
+          "text": "The public API rate limit must allow at most 100 requests per client.",
+          "subjectKey": "api.rate_limit",
+          "propertyKey": "max_requests_per_minute",
+          "operator": "lte",
+          "valueType": "int",
+          "value": 100,
+          "unit": ""
+        },
+        {
+          "text": "API clients must be throttled to 100 requests per minute.",
+          "subjectKey": "api_clients",
+          "propertyKey": "max_requests_per_minute",
+          "operator": "lte",
+          "valueType": "int",
+          "value": 100,
+          "unit": ""
+        }
+      ]
+    },
+    {
+      "id": "password-length-subject",
+      "kind": "subject_variant",
+      "converge": true,
+      "expectedSubjectKey": "auth.password",
+      "variants": [
+        {
+          "text": "Passwords must be at least 12 characters long.",
+          "subjectKey": "auth.password",
+          "propertyKey": "min_length",
+          "operator": "gte",
+          "valueType": "int",
+          "value": 12,
+          "unit": ""
+        },
+        {
+          "text": "A user password shall contain no fewer than 12 characters.",
+          "subjectKey": "user_password",
+          "propertyKey": "min_length",
+          "operator": "gte",
+          "valueType": "int",
+          "value": 12,
+          "unit": ""
+        }
+      ]
+    },
+    {
+      "id": "gc-restatement",
+      "kind": "restatement",
+      "converge": true,
+      "expectedSubjectKey": "kibi.cli.gc",
+      "variants": [
+        {
+          "text": "Garbage collection must remove branch stores for deleted branches.",
+          "subjectKey": "kibi.cli.gc",
+          "propertyKey": "removes_stale_branch_stores",
+          "operator": "eq",
+          "valueType": "bool",
+          "value": true,
+          "unit": ""
+        },
+        {
+          "text": "Kibi garbage collection shall delete stale branch stores.",
+          "subjectKey": "kibi_garbage_collection",
+          "propertyKey": "removes_stale_branch_stores",
+          "operator": "eq",
+          "valueType": "bool",
+          "value": true,
+          "unit": ""
+        }
+      ]
+    },
+    {
+      "id": "email-digest-paraphrase-subject",
+      "kind": "subject_variant",
+      "converge": true,
+      "expectedSubjectKey": "notification.email",
+      "variants": [
+        {
+          "text": "Email digests must be sent at most once per day.",
+          "subjectKey": "notification.email",
+          "propertyKey": "max_digests_per_day",
+          "operator": "lte",
+          "valueType": "int",
+          "value": 1,
+          "unit": ""
+        },
+        {
+          "text": "Subscribers shall receive no more than one summary message daily.",
+          "subjectKey": "subscriber_summary",
+          "propertyKey": "max_digests_per_day",
+          "operator": "lte",
+          "valueType": "int",
+          "value": 1,
+          "unit": ""
+        }
+      ]
+    },
+    {
+      "id": "cache-ttl-property-gap",
+      "kind": "property_gap",
+      "converge": false,
+      "expectedSubjectKey": "cache.response",
+      "variants": [
+        {
+          "text": "API responses must be cached for 5 minutes.",
+          "subjectKey": "cache.response",
+          "propertyKey": "ttl",
+          "operator": "eq",
+          "valueType": "int",
+          "value": 5,
+          "unit": "min"
+        },
+        {
+          "text": "The response cache shall keep entries for 300 seconds.",
+          "subjectKey": "cache.response",
+          "propertyKey": "entry_lifetime",
+          "operator": "eq",
+          "valueType": "int",
+          "value": 300,
+          "unit": "s"
+        }
+      ]
+    },
+    {
+      "id": "session-ttl-control",
+      "kind": "control",
+      "converge": false,
+      "expectedSubjectKey": "session.lifetime",
+      "variants": [
+        {
+          "text": "Admin sessions must expire after 15 minutes of inactivity.",
+          "subjectKey": "session.lifetime",
+          "propertyKey": "admin_idle_timeout",
+          "operator": "lte",
+          "valueType": "int",
+          "value": 15,
+          "unit": "min"
+        },
+        {
+          "text": "Admin sessions must expire after 60 minutes of inactivity.",
+          "subjectKey": "session.lifetime",
+          "propertyKey": "admin_idle_timeout",
+          "operator": "lte",
+          "valueType": "int",
+          "value": 60,
+          "unit": "min"
+        }
+      ]
+    },
+    {
+      "id": "export-format-control",
+      "kind": "control",
+      "converge": false,
+      "expectedSubjectKey": "report.export",
+      "variants": [
+        {
+          "text": "Reports must be exportable as CSV.",
+          "subjectKey": "report.export",
+          "propertyKey": "format",
+          "operator": "eq",
+          "valueType": "string",
+          "value": "csv",
+          "unit": ""
+        },
+        {
+          "text": "Reports must be exportable as PDF.",
+          "subjectKey": "report.export",
+          "propertyKey": "format",
+          "operator": "eq",
+          "valueType": "string",
+          "value": "pdf",
+          "unit": ""
+        }
+      ]
+    },
+    {
+      "id": "unknown-unit-control",
+      "kind": "control",
+      "converge": false,
+      "expectedSubjectKey": "upload.attachment",
+      "variants": [
+        {
+          "text": "Attachments must be at most 3 Mb.",
+          "subjectKey": "upload.attachment",
+          "propertyKey": "max_transfer",
+          "operator": "lte",
+          "valueType": "int",
+          "value": 3,
+          "unit": "Mb"
+        },
+        {
+          "text": "Attachments must be at most 3 MB.",
+          "subjectKey": "upload.attachment",
+          "propertyKey": "max_transfer",
+          "operator": "lte",
+          "valueType": "int",
+          "value": 3,
+          "unit": "MB"
+        }
+      ]
+    }
+  ]
+}

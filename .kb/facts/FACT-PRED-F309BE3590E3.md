@@ -20,4 +20,5 @@ claim_key: CLAIM-4E1843572AFC51D0
 claim_text: Augment mode must add capability results beside builtin providers
 id: FACT-PRED-F309BE3590E3
 type: fact
+predicate_namespace: kibi.capability
 ---

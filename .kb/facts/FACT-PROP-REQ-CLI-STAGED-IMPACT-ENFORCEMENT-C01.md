@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_cli_staged_impact_enforcement
+subject_key: kibi.cli.check.staged
 property_key: clause_01_the_staged_check_must_block_behavior_changing_so
 operator: eq
 value_type: bool

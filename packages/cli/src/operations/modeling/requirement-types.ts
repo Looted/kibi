@@ -3,6 +3,7 @@ import type {
   SemanticClaim,
   StrictWriteSet,
 } from "../../public/check-types.js";
+import type { VocabularyAlignmentOutcome } from "./vocabulary-alignment.js";
 
 // implements REQ-002
 export type ModelRequirementArgs = Readonly<Record<string, unknown>> & {
@@ -52,6 +53,10 @@ export interface ModelRequirementResult {
       nextAction: string;
     }>;
     migrationWarning: string | null;
+    /** Subject reuse decision and possible-duplicate review candidates. */
+    vocabularyAlignment?: VocabularyAlignmentOutcome & {
+      readonly reviewPlan: Array<Record<string, unknown>>;
+    };
     logic?: {
       readonly semanticKey: string;
       readonly claimKey: string;

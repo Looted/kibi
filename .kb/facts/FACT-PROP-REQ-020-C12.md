@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_020
+subject_key: kibi.release.versioning
 property_key: clause_12_changesets_provides_a_robust_open_source_solutio
 operator: eq
 value_type: bool

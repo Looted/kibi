@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_cli_status_pre_first_sync
+subject_key: kibi.cli.status
 property_key: clause_02_this_enables_tools_and_agents_to_discover_the_kb
 operator: eq
 value_type: bool

@@ -20,4 +20,5 @@ claim_key: CLAIM-2F275AF8F97A7F6E
 claim_text: A capability plugin must be activated only from explicit package.json kibi.plugins configuration
 id: FACT-PRED-69D8C899BC66
 type: fact
+predicate_namespace: kibi.capability
 ---

@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_cli_init_canonical
+subject_key: kibi.kb.canonical_layout
 property_key: clause_02_it_must_not_write_user_configurable_kb_config_js
 operator: eq
 value_type: bool

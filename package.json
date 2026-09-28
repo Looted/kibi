@@ -77,7 +77,7 @@
     "typecheck:codex": "tsc -p packages/codex/tsconfig.json --noEmit",
     "typecheck:cursor": "tsc -p packages/cursor/tsconfig.json --noEmit",
     "typecheck:zcode": "tsc -p packages/zcode/tsconfig.json --noEmit",
-    "typecheck:cli:tests": "tsc -p packages/cli/tests/tsconfig.json --noEmit",
+    "typecheck:cli:tests": "bun run build:plugin-sdk && bun run build:plugin-jev && tsc -p packages/cli/tests/tsconfig.json --noEmit",
     "typecheck:mcp:tests": "tsc -p packages/mcp/tests/tsconfig.json --noEmit",
     "compile:e2e:packed": "node scripts/compile-e2e-packed.mjs",
     "typecheck:e2e:packed": "tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json --noEmit",

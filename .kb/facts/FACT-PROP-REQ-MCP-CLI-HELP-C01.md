@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_mcp_cli_help
+subject_key: mcp.binary.help
 property_key: clause_01_the_kibi_mcp_binary_must_support_standard_cli_he
 operator: eq
 value_type: bool

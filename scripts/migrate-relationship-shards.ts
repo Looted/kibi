@@ -230,6 +230,7 @@ const VALID_RELATIONSHIP_TYPES = new Set([
   "publishes",
   "consumes",
   "supersedes",
+  "restates",
   "relates_to",
 ]);
 

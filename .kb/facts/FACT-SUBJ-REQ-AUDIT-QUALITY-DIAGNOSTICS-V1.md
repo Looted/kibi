@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: subject
-subject_key: req.req_audit_quality_diagnostics_v1
+subject_key: kibi.checks.quality_diagnostics
 canonical_key: req.req_audit_quality_diagnostics_v1
 id: FACT-SUBJ-REQ-AUDIT-QUALITY-DIAGNOSTICS-V1
 type: fact

@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_agent_kibi_interface_selection
+subject_key: kibi.agent.interface_selection
 property_key: clause_04_guidance_must_keep_historical_policy_changes_vis
 operator: eq
 value_type: bool

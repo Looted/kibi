@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: subject
-subject_key: req.req_mcp_cli_help
+subject_key: mcp.binary.help
 canonical_key: req.req_mcp_cli_help
 id: FACT-SUBJ-REQ-MCP-CLI-HELP
 type: fact

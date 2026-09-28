@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_mcp_tag_filtering_server_side
+subject_key: mcp.kb_query
 property_key: clause_01_kb_query_must_apply_tag_filters_in_the_prolog_qu
 operator: eq
 value_type: bool

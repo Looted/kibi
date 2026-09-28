@@ -22,7 +22,7 @@ claim_key: CLAIM-25FBD776F3705A82
 claim_text: Unknown attempt histories, retries, skips, failed runs, stale receipts, and mismatched contracts or fingerprints must remain non-proof outcomes
 claim_span_start: 250
 claim_span_end: 351
-subject_key: kibi
+subject_key: kibi.proof.verification
 property_key: verification_invalid_outcomes_are_non_proof
 operator: eq
 value_type: bool

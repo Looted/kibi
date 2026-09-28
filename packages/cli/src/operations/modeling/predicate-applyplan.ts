@@ -17,6 +17,10 @@ import type {
   SuggestPredicatesArgs,
 } from "./predicate-types.js";
 import { hashId } from "./predicate-utils.js";
+import {
+  applyArgumentRewrites,
+  predicateArgumentConformance,
+} from "./predicate-vocabulary.js";
 
 // implements REQ-mcp-suggest-predicates
 export function buildSuggestion(
@@ -39,12 +43,28 @@ export function buildSuggestion(
     schema.predicate_name,
     text,
   );
-  const predicateArgs = schema.argument_names.map((name, index) => {
+  const boundArgs = schema.argument_names.map((name, index) => {
     const exactBinding = argumentBindings[name];
     return typeof exactBinding === "string" && exactBinding.trim().length > 0
       ? exactBinding.trim()
       : (inferredArgs[index] ?? "unknown");
   });
+  // A schema with closed argument vocabularies only accepts its declared
+  // constants: aliases converge onto the constant, anything else stays
+  // unbound so the plan asks for a declared value instead of minting an atom.
+  const vocabulary = {
+    constants: schema.argument_constants ?? {},
+    aliases: schema.argument_aliases ?? {},
+  };
+  const conformance = predicateArgumentConformance(
+    schema.argument_names,
+    boundArgs,
+    vocabulary,
+  );
+  const predicateArgs = applyArgumentRewrites(boundArgs, conformance.rewrites);
+  const undeclaredArguments = new Set(
+    conformance.undeclared.map((value) => value.argumentName),
+  );
   const bindingProvenanceByArgument = Object.fromEntries(
     schema.argument_names.map((name, index) => [
       name,
@@ -69,6 +89,7 @@ export function buildSuggestion(
   );
   const unboundArguments = schema.argument_names.filter(
     (name) =>
+      undeclaredArguments.has(name) ||
       !bindingCanBeApplied(bindingProvenanceByArgument[name] ?? "placeholder"),
   );
   const canonicalKey = `${schema.predicate_name}(${predicateArgs.join(",")})`;

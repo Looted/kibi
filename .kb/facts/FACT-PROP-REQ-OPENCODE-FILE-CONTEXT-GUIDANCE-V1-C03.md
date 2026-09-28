@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_opencode_file_context_guidance_v1
+subject_key: opencode.kibi_plugin
 property_key: clause_03_scope_lifecycle_reminders_are_only_eligible_in_r
 operator: eq
 value_type: bool

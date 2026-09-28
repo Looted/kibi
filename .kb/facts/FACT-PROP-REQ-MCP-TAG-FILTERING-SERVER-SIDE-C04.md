@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_mcp_tag_filtering_server_side
+subject_key: mcp.kb_query
 property_key: clause_04_mcp_must_not_fall_back_to_javascript_tag_filteri
 operator: eq
 value_type: bool

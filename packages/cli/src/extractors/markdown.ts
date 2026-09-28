@@ -52,6 +52,8 @@ const FACT_STRING_FIELDS = [
   "predicate_name",
   "predicate_namespace",
   "rule_ir",
+  "argument_constants",
+  "argument_aliases",
   "rule_hash",
   "rule_schema_id",
   "rule_name",
@@ -162,6 +164,8 @@ export interface ExtractedEntity {
   examples?: string[];
   predicate_args?: string[];
   rule_ir?: Record<string, unknown>;
+  argument_constants?: Record<string, string[]>;
+  argument_aliases?: Record<string, Record<string, string>>;
   rule_hash?: string;
   rule_schema_id?: string;
   rule_name?: string;
@@ -225,6 +229,7 @@ type RelationshipType =
   | "publishes"
   | "consumes"
   | "supersedes"
+  | "restates"
   | "relates_to";
 
 const VALID_RELATIONSHIP_TYPES = new Set<RelationshipType>([
@@ -244,6 +249,7 @@ const VALID_RELATIONSHIP_TYPES = new Set<RelationshipType>([
   "publishes",
   "consumes",
   "supersedes",
+  "restates",
   "relates_to",
 ]);
 
@@ -289,6 +295,7 @@ const VALID_RELATIONSHIP_DIRECTIONS: ReadonlyArray<{
   { type: "consumes", from: "symbol", to: "event" },
   { type: "supersedes", from: "adr", to: "adr" },
   { type: "supersedes", from: "req", to: "req" },
+  { type: "restates", from: "req", to: "req" },
 ];
 
 const RELATIONSHIP_TYPE_DISPLAY_LIST = Array.from(VALID_RELATIONSHIP_TYPES)

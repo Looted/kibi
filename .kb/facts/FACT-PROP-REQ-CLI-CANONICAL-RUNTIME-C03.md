@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_cli_canonical_runtime
+subject_key: kibi.kb.canonical_layout
 property_key: clause_03_kibi_sync_must_not_honor_leftover_kb_config_json
 operator: eq
 value_type: bool

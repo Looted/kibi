@@ -4,11 +4,11 @@ status: active
 fact_kind: predicate
 predicate_name: logical_requirement_rule
 predicate_args:
-  - one_shot_query_execution
+  - kibi.engine.prolog_process
   - read_after_write_consistency
   - compound_goals
 predicate_namespace: kibi.requirements
-canonical_key: logical_requirement_rule(one_shot_query_execution,read_after_write_consistency,compound_goals)
+canonical_key: logical_requirement_rule(kibi.engine.prolog_process,read_after_write_consistency,compound_goals)
 polarity: assert
 claim_key: CLAIM-EB52BC80E753E17A
 claim_text: One-shot query execution must preserve read-after-write consistency for compound goals

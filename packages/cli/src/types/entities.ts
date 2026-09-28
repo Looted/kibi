@@ -66,6 +66,8 @@ export interface FactFields {
   argument_names?: string[];
   argument_types?: string[];
   argument_descriptions?: string[];
+  argument_constants?: Record<string, string[]>;
+  argument_aliases?: Record<string, Record<string, string>>;
   aliases?: string[];
   examples?: string[];
   predicate_args?: string[];
