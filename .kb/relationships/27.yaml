@@ -90,3 +90,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e3ecca2476cd
+  - type: validates
+    from: TEST-kibi-vocabulary-convergence-harness
+    to: SCEN-kibi-subject-vocabulary
+    created_at: 2026-09-28T09:42:43.203Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-80e3a9965f1d
+  - type: validates
+    from: TEST-kibi-vocabulary-convergence-harness
+    to: SCEN-kibi-unit-canonicalization
+    created_at: 2026-09-28T09:42:43.223Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-73892f77b266

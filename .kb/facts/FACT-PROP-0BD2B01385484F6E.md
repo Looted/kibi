@@ -10,7 +10,7 @@ tags:
   - lane:strict
   - fact:property_value
 fact_kind: property_value
-subject_key: kibi_codex_plugin
+subject_key: codex.kibi_plugin
 property_key: mcp_registration_mode
 canonical_key: kb-requirements-req-codex-consumer-local-mcp-registration-v1-md:kibi_codex_plugin:mcp_registration_mode:eq:consumer-local
 operator: eq

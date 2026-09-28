@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_opencode_risk_classification
+subject_key: opencode.kibi_plugin
 property_key: clause_01_every_proposed_edit_or_action_must_be_classified
 operator: eq
 value_type: bool

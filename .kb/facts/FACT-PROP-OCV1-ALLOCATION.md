@@ -6,7 +6,7 @@ tags:
   - property-value
 text_ref: .kb/requirements/REQ-opencode-kibi-plugin-v1.md
 fact_kind: property_value
-subject_key: req.opencode_kibi_plugin_v1.document
+subject_key: opencode.kibi_plugin.v1
 property_key: specification_allocation
 operator: eq
 value_string: granular_child_requirement_documents

@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_mcp_tool_upsert
+subject_key: mcp.kb_upsert
 property_key: clause_01_the_kb_upsert_mcp_tool_must_n_nallow_agents_to_c
 operator: eq
 value_type: bool

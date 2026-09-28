@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_opencode_file_context_guidance_v1
+subject_key: opencode.kibi_plugin
 property_key: clause_07_suppression_guidance_must_be_suppressed_after_th
 operator: eq
 value_type: bool

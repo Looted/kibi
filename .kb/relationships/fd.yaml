@@ -62,3 +62,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-8d4097e3c3af
+  - type: implements
+    from: SYM-core-requirements-unrelated
+    to: REQ-kibi-restates-relationship
+    created_at: 2026-09-28T09:48:50.838Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-28f532412e99
+  - type: covered_by
+    from: SYM-core-requirements-unrelated
+    to: TEST-kibi-vocabulary-convergence-e2e
+    created_at: 2026-09-28T09:48:50.850Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-d2c348012d5a

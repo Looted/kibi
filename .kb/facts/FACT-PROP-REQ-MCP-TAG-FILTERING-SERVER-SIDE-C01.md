@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_mcp_tag_filtering_server_side
+subject_key: mcp.kb_query
 property_key: clause_01_kb_query_already_accepts_a_tags_filter_but_the_m
 operator: eq
 value_type: bool

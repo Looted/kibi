@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_opencode_file_context_guidance_v1
+subject_key: opencode.kibi_plugin
 property_key: clause_08_the_plugin_must_distinguish_between_authoritativ
 operator: eq
 value_type: bool

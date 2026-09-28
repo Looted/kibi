@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_cursor_agent_plugin_standard_v1
+subject_key: cursor.kibi_plugin
 property_key: clause_01_the_kibi_cursor_package_ships_a_portable_agent_p
 operator: eq
 value_type: bool

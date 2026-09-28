@@ -174,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-e2d9e253cb92
+  - type: implements
+    from: SYM-core-domain-redundancy-witnesses
+    to: REQ-kibi-domain-redundancy
+    created_at: 2026-09-28T09:48:42.746Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e3cee2b1314a
+  - type: covered_by
+    from: SYM-core-domain-redundancy-witnesses
+    to: TEST-kibi-vocabulary-convergence-e2e
+    created_at: 2026-09-28T09:48:42.761Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-cf7a6bd9f9c6

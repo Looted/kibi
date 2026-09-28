@@ -132,3 +132,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7e4c8fe7c966
+  - type: implements
+    from: SYM-core-check-subject-key-shape
+    to: REQ-kibi-subject-vocabulary
+    created_at: 2026-09-28T09:49:02.420Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-27a5505914a3
+  - type: covered_by
+    from: SYM-core-check-subject-key-shape
+    to: TEST-kibi-vocabulary-convergence-e2e
+    created_at: 2026-09-28T09:49:02.430Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-eb12e18dd3ff

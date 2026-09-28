@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_opencode_background_sync
+subject_key: opencode.kibi_plugin
 property_key: clause_01_the_plugin_must_maintain_kb_freshness_via_backgr
 operator: eq
 value_type: bool

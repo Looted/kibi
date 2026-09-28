@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_vscode_kb_to_source
+subject_key: vscode.kibi_extension
 property_key: clause_02_clicking_a_symbol_entity_in_the_kibi_tree_sideba
 operator: eq
 value_type: bool

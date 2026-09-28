@@ -174,3 +174,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-d5cda9bd2567
+  - type: specified_by
+    from: REQ-kibi-vocabulary-alignment-capability
+    to: SCEN-kibi-vocabulary-alignment-capability
+    created_at: 2026-09-28T09:43:28.323Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4be2e6af4894
+  - type: requires_predicate
+    from: REQ-kibi-vocabulary-alignment-capability
+    to: FACT-VOCABULARY-ALIGNMENT-BUILTIN-OFFLINE
+    created_at: 2026-09-28T09:43:28.350Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-0fd55f3a8d8f
+  - type: requires_predicate
+    from: REQ-kibi-vocabulary-alignment-capability
+    to: FACT-VOCABULARY-ALIGNMENT-MODEL-REQUIREMENT-ALLOW
+    created_at: 2026-09-28T09:43:28.364Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1041ef55e2dc
+  - type: requires_predicate
+    from: REQ-kibi-vocabulary-alignment-capability
+    to: FACT-VOCABULARY-ALIGNMENT-KB-CHECK-DENY
+    created_at: 2026-09-28T09:43:28.378Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3488b04b16ab
+  - type: requires_predicate
+    from: REQ-kibi-vocabulary-alignment-capability
+    to: FACT-VOCABULARY-ALIGNMENT-REPLACE-FALLBACK
+    created_at: 2026-09-28T09:43:28.394Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-3387fe6aa370

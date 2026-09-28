@@ -69,3 +69,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-99b1d7737850
+  - type: implements
+    from: SYM-core-check-entity-id-style
+    to: REQ-kibi-entity-id-style
+    created_at: 2026-09-28T09:48:34.436Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-c80e32df6b5e
+  - type: covered_by
+    from: SYM-core-check-entity-id-style
+    to: TEST-kibi-vocabulary-convergence-e2e
+    created_at: 2026-09-28T09:48:34.448Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-df9aced47a71

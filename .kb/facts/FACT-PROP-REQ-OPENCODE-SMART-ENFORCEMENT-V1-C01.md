@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_opencode_smart_enforcement_v1
+subject_key: opencode.kibi_plugin
 property_key: clause_01_the_opencode_kibi_plugin_implements_smart_postur
 operator: eq
 value_type: bool

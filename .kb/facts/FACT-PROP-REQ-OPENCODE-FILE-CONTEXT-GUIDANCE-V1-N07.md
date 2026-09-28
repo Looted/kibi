@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_opencode_file_context_guidance_v1
+subject_key: opencode.kibi_plugin
 property_key: clause_07_a_test_entity_is_e2e_if_it_has_tags_including_e2
 operator: eq
 value_type: bool

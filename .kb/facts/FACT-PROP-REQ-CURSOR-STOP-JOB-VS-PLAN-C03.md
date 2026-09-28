@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_cursor_stop_job_vs_plan
+subject_key: cursor.kibi_plugin
 property_key: clause_03_source_file_reads_search_and_other_non_edit_tool
 operator: eq
 value_type: bool

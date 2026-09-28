@@ -4,7 +4,7 @@ status: active
 tags:
   - strict-lane
 fact_kind: property_value
-subject_key: req.req_vscode_kb_to_source
+subject_key: vscode.kibi_extension
 property_key: clause_03_navigation_coordinates_must_be_resolved_from_kb_
 operator: eq
 value_type: bool
