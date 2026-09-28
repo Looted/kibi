@@ -41,6 +41,7 @@ import * as discovery from "../../src/public/operations/discovery-executors.js";
 import type {
   OperationContext,
   PrologPort,
+  PrologQueryResult,
 } from "../../src/public/operations/runtime-types.js";
 import { isolateKibiEnv } from "../helpers/in-process-workspace.js";
 
@@ -314,7 +315,7 @@ function modelingContext(overrides: Partial<OperationContext> = {}): {
 } {
   const goals: string[] = [];
   const prolog: PrologPort = {
-    query: async (goal) => {
+    query: async (goal): Promise<PrologQueryResult> => {
       goals.push(goal);
       if (goal.includes("subject_vocabulary_json")) {
         return {
@@ -515,7 +516,7 @@ describe("kb_check stays deterministic and offline", () => {
       signature: "property(s,p,eq,int,1,'','',require)",
     };
     const prolog: PrologPort = {
-      query: async (goal) =>
+      query: async (goal): Promise<PrologQueryResult> =>
         goal.includes("check_selected_json")
           ? {
               success: true,

@@ -172,7 +172,7 @@ export async function alignRequirementVocabulary(
   }>,
 ): Promise<VocabularyAlignmentOutcome | null> {
   const prolog = context.prolog;
-  if (prolog === undefined) return null;
+  if (prolog == null) return null;
 
   const vocabulary = (await readSubjectVocabulary(prolog)).filter(
     (entry) => entry.reqDerived !== true,

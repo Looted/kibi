@@ -84,16 +84,20 @@ export async function executeValidateUpsert(
         relationships,
       );
     }
+    // Style warnings apply only to entities this upsert would create, so the
+    // existence read happens only when the ID actually has a style issue.
+    const candidateIdStyleWarnings = entityIdStyleWarnings({
+      id: input.id,
+      sourcePath:
+        typeof validated.entity.source === "string"
+          ? validated.entity.source
+          : undefined,
+    });
     const idStyleWarnings =
+      candidateIdStyleWarnings.length > 0 &&
       context.prolog !== undefined &&
       !(await entityExists(context.prolog, input.id))
-        ? entityIdStyleWarnings({
-            id: input.id,
-            sourcePath:
-              typeof validated.entity.source === "string"
-                ? validated.entity.source
-                : undefined,
-          })
+        ? candidateIdStyleWarnings
         : [];
     const payload: ValidateUpsertPayload = {
       valid: true,

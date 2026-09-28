@@ -128,7 +128,7 @@ async function applyVocabularyAlignment(
     reviewPlan: [],
     adjustPlan: (plan) => plan,
   };
-  if (context?.prolog === undefined || !initial.isStrict) return unchanged;
+  if (context?.prolog == null || !initial.isStrict) return unchanged;
 
   const proposedSubjectKey = normalizeSubjectKey(extracted.claim.subjectKey);
   const outcome = await alignRequirementVocabulary(context, {

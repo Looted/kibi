@@ -112,6 +112,34 @@ describe("kb_compile_intent", () => {
     );
   });
 
+  // executable_for TEST-kibi-entity-id-style
+  test("create honors a caller-chosen slug ID instead of a prose hash", async () => {
+    const query = mock(
+      async (_goal: string): Promise<PrologQueryResult> => ({
+        success: true,
+        bindings: { Results: "[]", Rows: "[]", Edges: "[]" },
+      }),
+    );
+    const plan = (
+      await compileIntentSpec.execute(
+        {
+          intent: "Customer data must be retained for 7 years.",
+          mode: "create",
+          requirementId: "REQ-customer-data-retention",
+        },
+        contextFor(query),
+      )
+    ).structuredContent;
+    expect(plan.target.requirementId).toBe("REQ-customer-data-retention");
+    expect(plan.target.selectionReason).toBe("Caller supplied requirementId.");
+    expect(
+      plan.steps.some(
+        (step) =>
+          step.type === "req" && step.id === "REQ-customer-data-retention",
+      ),
+    ).toBe(true);
+  });
+
   test("fails closed when an update target is ambiguous", async () => {
     const query = mock(async (goal: string): Promise<PrologQueryResult> => {
       if (goal.includes("findall([A,B,Reason]"))
