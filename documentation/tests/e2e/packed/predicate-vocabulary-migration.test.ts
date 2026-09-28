@@ -35,7 +35,10 @@ type MigrationAction = {
 
 function conformance(stdout: string): Diagnostic[] {
   const payload = JSON.parse(stdout) as {
-    structuredContent: { violations: unknown[]; qualityDiagnostics: Diagnostic[] };
+    structuredContent: {
+      violations: unknown[];
+      qualityDiagnostics: Diagnostic[];
+    };
   };
   assert.deepStrictEqual(payload.structuredContent.violations, []);
   return payload.structuredContent.qualityDiagnostics.filter(
@@ -59,7 +62,10 @@ export function assertPredicateVocabularyMigration(input: {
   const byEntity = new Map(input.before.map((d) => [d.entityId, d]));
   assert.strictEqual(input.before.length, 2, JSON.stringify(input.before));
   assert.ok(input.before.every((d) => d.blocking === false));
-  assert.strictEqual(byEntity.get("FACT-POLICY-DRIFT")?.evidence?.issue, "missing_schema");
+  assert.strictEqual(
+    byEntity.get("FACT-POLICY-DRIFT")?.evidence?.issue,
+    "missing_schema",
+  );
   assert.strictEqual(
     byEntity.get("FACT-POLICY-FATAL")?.evidence?.issue,
     "undeclared_constant",
@@ -85,7 +91,11 @@ export function assertPredicateVocabularyMigration(input: {
   );
 }
 
-function writeTracked(sandbox: TestSandbox, relativePath: string, content: string): void {
+function writeTracked(
+  sandbox: TestSandbox,
+  relativePath: string,
+  content: string,
+): void {
   const fullPath = join(sandbox.repoDir, relativePath);
   mkdirSync(dirname(fullPath), { recursive: true });
   writeFileSync(fullPath, content, "utf8");
@@ -185,7 +195,10 @@ if (RUN_NODE_TEST_SUITE) {
           cwd: sandbox.repoDir,
           env: sandbox.env,
         });
-        assert.strictEqual((await kibi(sandbox, ["init", "--no-hooks"])).exitCode, 0);
+        assert.strictEqual(
+          (await kibi(sandbox, ["init", "--no-hooks"])).exitCode,
+          0,
+        );
         const sync = await kibi(sandbox, ["sync"]);
         assert.strictEqual(sync.exitCode, 0, `${sync.stdout}${sync.stderr}`);
 
@@ -218,7 +231,11 @@ if (RUN_NODE_TEST_SUITE) {
           "--format",
           "json",
         ]);
-        assert.strictEqual(applied.exitCode, 0, `${applied.stdout}${applied.stderr}`);
+        assert.strictEqual(
+          applied.exitCode,
+          0,
+          `${applied.stdout}${applied.stderr}`,
+        );
 
         const afterCheck = await kibi(sandbox, checkArgs);
         assert.strictEqual(afterCheck.exitCode, 0, afterCheck.stderr);

@@ -303,7 +303,7 @@ export const ENTITY_PROPERTIES_SCHEMA = {
         minItems: 1,
       },
       description:
-        "predicate_schema only: allowed constants keyed by argument name, e.g. {\"severity\": [\"warning\", \"info\"]}. Predicate facts must use a listed constant for those arguments; unlisted arguments stay open.",
+        'predicate_schema only: allowed constants keyed by argument name, e.g. {"severity": ["warning", "info"]}. Predicate facts must use a listed constant for those arguments; unlisted arguments stay open.',
     },
     argument_aliases: {
       type: "object",
@@ -312,7 +312,7 @@ export const ENTITY_PROPERTIES_SCHEMA = {
         additionalProperties: { type: "string", minLength: 1 },
       },
       description:
-        "predicate_schema only: legacy spellings keyed by argument name, each mapped to a declared constant, e.g. {\"severity\": {\"warn\": \"warning\"}}. kibi migrate rewrites facts that still use an alias.",
+        'predicate_schema only: legacy spellings keyed by argument name, each mapped to a declared constant, e.g. {"severity": {"warn": "warning"}}. kibi migrate rewrites facts that still use an alias.',
     },
     aliases: {
       type: "array",
