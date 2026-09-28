@@ -105,6 +105,8 @@ is_fact_only_field(predicate_arity).
 is_fact_only_field(argument_names).
 is_fact_only_field(argument_types).
 is_fact_only_field(argument_descriptions).
+is_fact_only_field(argument_constants).
+is_fact_only_field(argument_aliases).
 is_fact_only_field(aliases).
 is_fact_only_field(examples).
 is_fact_only_field(predicate_args).

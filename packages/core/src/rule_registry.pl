@@ -40,6 +40,7 @@ known_rule('domain-implication').
 known_rule('subject-key-identity').
 known_rule('subject-key-shape').
 known_rule('ontology-quality').
+known_rule('predicate-schema-conformance').
 
 rule_enforcement_class('must-priority-coverage', canonical).
 rule_enforcement_class('symbol-coverage', canonical).
@@ -67,6 +68,7 @@ rule_enforcement_class('domain-implication', advisory).
 rule_enforcement_class('subject-key-identity', advisory).
 rule_enforcement_class('subject-key-shape', advisory).
 rule_enforcement_class('ontology-quality', advisory).
+rule_enforcement_class('predicate-schema-conformance', advisory).
 
 rule_implementation('must-priority-coverage', prolog).
 rule_implementation('symbol-coverage', prolog).
@@ -94,6 +96,7 @@ rule_implementation('domain-implication', prolog).
 rule_implementation('subject-key-identity', prolog).
 rule_implementation('subject-key-shape', prolog).
 rule_implementation('ontology-quality', prolog).
+rule_implementation('predicate-schema-conformance', typescript).
 
 rule_predicate('must-priority-coverage', check_must_priority_coverage).
 rule_predicate('symbol-coverage', check_symbol_coverage).
@@ -171,3 +174,4 @@ rule_description('domain-implication', 'Informational: one requirement\'s numeri
 rule_description('subject-key-identity', 'Subject keys must name a shared component, not be derived from a requirement ID').
 rule_description('subject-key-shape', 'Subject keys follow dotted component.aspect[.sub] with lowercase snake segments').
 rule_description('ontology-quality', 'Informational: predicate schemas whose argument values mostly occur in only one fact are carrying prose instead of a shared vocabulary').
+rule_description('predicate-schema-conformance', 'Predicate facts match a predicate_schema (project-local, or the built-in catalog in the default namespace) and use its declared argument constants').
