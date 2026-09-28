@@ -4,6 +4,7 @@ import { escapeAtom, normalizeEntityId, parseTriples } from "./prolog/codec.js";
 import {
   SEARCH_CANDIDATE_PAGE_SIZE,
   type VALID_ENTITY_TYPES,
+  listSearchCandidates,
   loadEntities,
   loadSearchCandidates,
 } from "./public/operations/discovery-entities.js";
@@ -545,21 +546,25 @@ async function loadIntentCandidates(
     }
   }
 
-  if (prolog.searchEntities) {
-    for (const term of terms) {
-      if (candidates.size >= MAX_CANDIDATES) break;
-      const page = await loadSearchCandidates(prolog, {
-        query: term,
-        ...(options.type !== undefined ? { type: options.type } : {}),
-        maxCandidates: MAX_CANDIDATES - candidates.size,
-      });
-      addCandidates(page);
-    }
+  // Lexical candidates are projected rows (no receipt histories or other
+  // large structured properties); ports without the engine method run the
+  // same bounded Prolog search through `query`.
+  for (const term of terms) {
+    if (candidates.size >= MAX_CANDIDATES) break;
+    const page = await loadSearchCandidates(prolog, {
+      query: term,
+      ...(options.type !== undefined ? { type: options.type } : {}),
+      maxCandidates: MAX_CANDIDATES - candidates.size,
+    });
+    addCandidates(page);
   }
 
   if (!prolog.searchEntities && sourceLocations.length === 0) {
     addCandidates(
-      await loadEntities(prolog, options.type ? { type: options.type } : {}),
+      await listSearchCandidates(prolog, {
+        ...(options.type !== undefined ? { type: options.type } : {}),
+        maxCandidates: MAX_CANDIDATES,
+      }),
     );
   } else if (sourceLocations.length > 0 && !prolog.queryEntities) {
     for (const location of sourceLocations) {
@@ -583,11 +588,12 @@ async function loadIntentCandidates(
     facetValues(options.semanticFacets).length > 0 &&
     candidates.size < 20
   ) {
-    const all = await loadEntities(
-      prolog,
-      options.type ? { type: options.type } : {},
+    addCandidates(
+      await listSearchCandidates(prolog, {
+        ...(options.type !== undefined ? { type: options.type } : {}),
+        maxCandidates: MAX_CANDIDATES,
+      }),
     );
-    addCandidates(all.slice(0, MAX_CANDIDATES));
   }
   return Array.from(candidates.values()).slice(0, MAX_CANDIDATES);
 }

@@ -800,6 +800,39 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-b5bf784e3916e5869238be39
+    test_id: TEST-e2e-check-gate-enforcement
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 1d2237db9cb9df68ce5a43a5ebb63dbe6b70f66b617d7ffa68d33c708da3cf9f
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-27T22:29:15.770Z'
+    finished_at: '2026-09-27T23:18:57.015Z'
+    artifact_digest: 63668ccae6cd3a610be243d571de8e94f160e26926e4fd9f926a702b3a19dd3e
+    contract_hash: 99365a5621eeada9f3adb1b26c582f25f39899053dade2ec4367801c2618e1ee
+    binding_hash: c7511be87440af25442747ddb422d7036f730154243ed3f8661026d523c1af7e
+    fingerprint: 9ad166bf6258f7dc524695faa0c750864cba6a98d4b7ff1d9bfc1a2b4760fbbc
+    fingerprint_components:
+      contract: 99365a5621eeada9f3adb1b26c582f25f39899053dade2ec4367801c2618e1ee
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-cli-check-gate-enforcement
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 
 Packed end-to-end regression for packed check gate blocks uncovered must-priority work.

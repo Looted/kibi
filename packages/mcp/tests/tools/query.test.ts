@@ -204,92 +204,76 @@ describe("MCP kb.query Parsing Functions", () => {
       query: mockQuery,
     } as unknown as PrologProcess;
 
+    // Without the engine's indexed method, kb_query pages the same bounded
+    // indexed Prolog query: Prolog filters (type/id/tags/source), orders,
+    // pages, and reports the total count, so no caller materializes every
+    // entity with its receipt history in one answer.
+    const page = (rows: string, count: number) => ({
+      success: true,
+      bindings: { Rows: rows, Count: String(count) },
+    });
+
     test("should generate correct goal for all entities", async () => {
-      mockQuery.mockResolvedValueOnce({
-        success: true,
-        bindings: { Results: "[]" },
-      });
+      mockQuery.mockResolvedValueOnce(page("[]", 0));
 
       await handleKbQuery(mockProlog, {});
       expect(mockProlog.query).toHaveBeenCalledWith(
-        "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)",
+        "kb_query_entities(none, none, [], none, 25, 0, Rows, Count)",
         expect.any(AbortSignal),
       );
     });
 
     test("should generate correct goal for type filter", async () => {
-      mockQuery.mockResolvedValueOnce({
-        success: true,
-        bindings: { Results: "[]" },
-      });
+      mockQuery.mockResolvedValueOnce(page("[]", 0));
 
       await handleKbQuery(mockProlog, { type: "req" });
       expect(mockProlog.query).toHaveBeenCalledWith(
-        "findall([Id,'req',Props], kb_entity(Id, 'req', Props), Results)",
+        "kb_query_entities('req', none, [], none, 25, 0, Rows, Count)",
         expect.any(AbortSignal),
       );
     });
 
     test("should generate correct goal for id and type filter", async () => {
-      mockQuery.mockResolvedValueOnce({
-        success: true,
-        bindings: { Results: "[['id1','req',[title=\"T\"]]]" },
-      });
+      mockQuery.mockResolvedValueOnce(page("[['id1','req',[title=\"T\"]]]", 1));
 
-      await handleKbQuery(mockProlog, { id: "id1", type: "req" });
+      const result = await handleKbQuery(mockProlog, {
+        id: "id1",
+        type: "req",
+      });
       expect(mockProlog.query).toHaveBeenCalledWith(
-        "findall(['id1','req',Props], kb_entity('id1', 'req', Props), Results)",
+        "kb_query_entities('req', 'id1', [], none, 25, 0, Rows, Count)",
         expect.any(AbortSignal),
       );
+      expect(result.structuredContent?.entities[0]?.id).toBe("id1");
     });
 
     test("should escape single quotes in id using '' strategy", async () => {
-      mockQuery.mockResolvedValueOnce({
-        success: true,
-        bindings: { Results: "[]" },
-      });
+      mockQuery.mockResolvedValueOnce(page("[]", 0));
 
       await handleKbQuery(mockProlog, { id: "o'brien", type: "req" });
       expect(mockProlog.query).toHaveBeenCalledWith(
-        "findall(['o''brien','req',Props], kb_entity('o''brien', 'req', Props), Results)",
+        "kb_query_entities('req', 'o''brien', [], none, 25, 0, Rows, Count)",
         expect.any(AbortSignal),
       );
     });
 
-    test("should query entities before tag filtering", async () => {
-      mockQuery.mockResolvedValueOnce({
-        success: true,
-        bindings: { Results: "[]" },
-      });
+    test("should pass escaped tags to the indexed query", async () => {
+      mockQuery.mockResolvedValueOnce(page("[]", 0));
 
       await handleKbQuery(mockProlog, { tags: ["it's", "safe"] });
       expect(mockProlog.query).toHaveBeenCalledWith(
-        "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)",
+        "kb_query_entities(none, none, ['it''s','safe'], none, 25, 0, Rows, Count)",
         expect.any(AbortSignal),
       );
     });
 
-    test("should generate query goal for tags filter", async () => {
-      mockQuery.mockResolvedValueOnce({
-        success: true,
-        bindings: { Results: "[]" },
-      });
-
-      await handleKbQuery(mockProlog, { tags: ["t1", "t2"] });
-      expect(mockProlog.query).toHaveBeenCalledWith(
-        "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)",
-        expect.any(AbortSignal),
+    test("should report the indexed total count for tag queries", async () => {
+      mockQuery.mockResolvedValueOnce(
+        page(
+          '[[entity-1,fact,[title="One",status=active,tags=[dup_a,dup_b]]]]',
+          1,
+        ),
       );
-    });
-
-    test("should dedupe entities when multiple tags match", async () => {
-      mockQuery.mockResolvedValueOnce({
-        success: true,
-        bindings: {
-          Results:
-            '[[entity-1,fact,[title="One",status=active,tags=[dup_a,dup_b]]],[entity-1,fact,[title="One",status=active,tags=[dup_a,dup_b]]]]',
-        },
-      });
 
       const result = await handleKbQuery(mockProlog, {
         tags: ["dup_a", "dup_b"],
@@ -297,20 +281,23 @@ describe("MCP kb.query Parsing Functions", () => {
 
       expect(result.structuredContent?.entities.length).toBe(1);
       expect(result.structuredContent?.entities[0]?.id).toBe("entity-1");
+      expect(result.structuredContent?.count).toBe(1);
     });
 
     test("should handle pagination (limit/offset)", async () => {
-      const entities = Array.from(
-        { length: 10 },
-        (_, i) => `[id${i}, req, [title=\"T${i}\", status=\"active\"]]`,
+      mockQuery.mockResolvedValueOnce(
+        page(
+          '[[id3, req, [title="T3", status="active"]],[id4, req, [title="T4", status="active"]]]',
+          10,
+        ),
       );
-      mockQuery.mockResolvedValueOnce({
-        success: true,
-        bindings: { Results: `[${entities.join(",")}]` },
-      });
 
       const result = await handleKbQuery(mockProlog, { limit: 2, offset: 3 });
 
+      expect(mockProlog.query).toHaveBeenCalledWith(
+        "kb_query_entities(none, none, [], none, 2, 3, Rows, Count)",
+        expect.any(AbortSignal),
+      );
       expect(result.structuredContent?.count).toBe(10);
       expect(result.structuredContent?.entities.length).toBe(2);
       expect(result.structuredContent?.entities[0].id).toBe("id3");
@@ -342,7 +329,7 @@ describe("MCP kb.query Parsing Functions", () => {
       const calls: string[] = [];
       const query = mock(async () => {
         calls.push("query");
-        return { success: true, bindings: { Results: "[]" } };
+        return { success: true, bindings: { Rows: "[]", Count: "0" } };
       });
       const prolog = { query } as unknown as PrologProcess;
       const ensureProlog = mock(async () => {
@@ -400,7 +387,7 @@ describe("MCP kb.query Parsing Functions", () => {
 
       expect(ensureProlog).toHaveBeenCalledTimes(1);
       expect(query).toHaveBeenCalledWith(
-        "findall([Id,'req',Props], kb_entity(Id, 'req', Props), Results)",
+        "kb_query_entities('req', none, [], none, 25, 0, Rows, Count)",
         expect.any(AbortSignal),
       );
       expect(calls).toEqual(["ensureProlog", "query"]);

@@ -62,14 +62,19 @@ function largeEntityGoal(count: number): string {
   return `findall([Id,req,[title="skillopt ${TRANSPORT_PADDING}",status=open]], (between(1, ${count}, Index), atom_concat('REQ-skillopt-', Index, Id)), Results)`;
 }
 
+/** The same synthetic corpus, shaped as one bounded candidate page. */
+function largeCandidatePageGoal(count: number): string {
+  return `findall([Id,req,[title="skillopt ${TRANSPORT_PADDING}",status=open]], (between(1, ${count}, Index), atom_concat('REQ-skillopt-', Index, Id)), Rows), length(Rows, Count)`;
+}
+
 describe("shared discovery operation executors", () => {
   test("kb_query preserves exact id lookup behavior", async () => {
     // Given
     const query = mock(async (_goal: string) => ({
       success: true,
       bindings: {
-        Results:
-          '[[REQ-exact,req,[title="Exact lookup",status=open,source=".kb/requirements/REQ-exact.md"]]]',
+        Rows: '[[REQ-exact,req,[title="Exact lookup",status=open,source=".kb/requirements/REQ-exact.md"]]]',
+        Count: "1",
       },
     }));
 
@@ -92,16 +97,19 @@ describe("shared discovery operation executors", () => {
       ],
       count: 1,
     });
-    expect(query.mock.calls[0]?.[0]).toContain("'REQ-exact'");
+    expect(query.mock.calls[0]?.[0]).toBe(
+      "kb_query_entities(none, 'REQ-exact', [], none, 20, 0, Rows, Count)",
+    );
   });
 
-  test("kb_query filters tags before applying pagination", async () => {
-    // Given
-    const query = mock(async () => ({
+  test("kb_query delegates tag filtering and pagination to the bounded indexed query", async () => {
+    // Given: the indexed query filters tags before paging and reports the
+    // total match count, so no caller materializes every entity.
+    const query = mock(async (_goal: string) => ({
       success: true,
       bindings: {
-        Results:
-          '[[REQ-1,req,[title="One",status=open,tags=[other]]],[REQ-2,req,[title="Two",status=open,tags=[wanted]]],[REQ-3,req,[title="Three",status=open,tags=[wanted]]]]',
+        Rows: '[[REQ-3,req,[title="Three",status=open,tags=[wanted]]]]',
+        Count: "2",
       },
     }));
 
@@ -126,15 +134,18 @@ describe("shared discovery operation executors", () => {
         count: 2,
       }),
     );
+    expect(query.mock.calls[0]?.[0]).toBe(
+      "kb_query_entities('req', none, ['wanted'], none, 1, 1, Rows, Count)",
+    );
   });
 
   test("kb_search trims the query and preserves ranked pagination", async () => {
     // Given
-    const query = mock(async () => ({
+    const query = mock(async (_goal: string) => ({
       success: true,
       bindings: {
-        Results:
-          '[[REQ-1,req,[title="OAuth login flow",status=open]],[REQ-2,req,[title="OAuth login fallback",status=open]]]',
+        Rows: '[[REQ-1,req,[title="OAuth login flow",status=open]],[REQ-2,req,[title="OAuth login fallback",status=open]]]',
+        Count: "2",
       },
     }));
 
@@ -142,6 +153,9 @@ describe("shared discovery operation executors", () => {
     const result = await searchSpec.execute(
       { query: "  OAuth login  ", limit: 1, offset: 1 },
       createContext(query),
+    );
+    expect(query.mock.calls[0]?.[0]).toBe(
+      "kb_search_entities(none, 'OAuth login', 500, 0, Rows, Count)",
     );
 
     // Then
@@ -197,13 +211,26 @@ describe("shared discovery operation executors", () => {
   });
 
   test("kb_search summarizes entities by default and returns full bodies on request", async () => {
-    const query = mock(async () => ({
-      success: true,
-      bindings: {
-        Results:
-          '[[REQ-1,req,[title="OAuth login flow",status=open,semantic_text="a very long normative body",tags=[auth]]]]',
-      },
-    }));
+    // Candidates are projected rows; `fields: "full"` reloads the returned
+    // page by id.
+    const query = mock(
+      async (goal: string): Promise<PrologQueryResult> =>
+        goal.startsWith("kb_search_entities(")
+          ? {
+              success: true,
+              bindings: {
+                Rows: '[[REQ-1,req,[title="OAuth login flow",status=open,semantic_text="a very long normative body",tags=[auth]]]]',
+                Count: "1",
+              },
+            }
+          : {
+              success: true,
+              bindings: {
+                Results:
+                  '[[REQ-1,req,[title="OAuth login flow",status=open,semantic_text="a very long normative body",tags=[auth],proof_receipts="[]"]]]',
+              },
+            },
+    );
 
     const summary = await searchSpec.execute(
       { query: "OAuth login" },
@@ -228,6 +255,13 @@ describe("shared discovery operation executors", () => {
     expect(full.structuredContent?.results[0]?.entity.semantic_text).toBe(
       "a very long normative body",
     );
+    expect(
+      (full.structuredContent?.results[0]?.entity as Record<string, unknown>)
+        .proof_receipts,
+    ).toBeDefined();
+    expect(query.mock.calls.at(-1)?.[0]).toBe(
+      "findall(['REQ-1','req',Props], kb_entity('REQ-1', 'req', Props), Results)",
+    );
   });
 
   test("kb_search intent-v1 returns semantic evidence and analysis", async () => {
@@ -235,12 +269,13 @@ describe("shared discovery operation executors", () => {
       if (goal.includes("kb_relationship")) {
         return { success: true, bindings: { Edges: "[]" } };
       }
+      const rows =
+        '[[REQ-EXPORT,req,[title="Export report as CSV",status=open,tags=[download,reporting]]] , [REQ-LOGIN,req,[title="Authenticate an account",status=open]]]';
       return {
         success: true,
-        bindings: {
-          Results:
-            '[[REQ-EXPORT,req,[title="Export report as CSV",status=open,tags=[download,reporting]]] , [REQ-LOGIN,req,[title="Authenticate an account",status=open]]]',
-        },
+        bindings: goal.startsWith("findall(")
+          ? { Results: rows }
+          : { Rows: rows, Count: "2" },
       };
     });
 
@@ -288,7 +323,9 @@ describe("shared discovery operation executors", () => {
     // Given
     const prolog = new PrologProcess({ timeout: 15_000 });
     const query = (_goal: string) =>
-      prolog.query(largeEntityGoal(ABOVE_FORMER_TRANSPORT_CAPACITY_COUNT));
+      prolog.query(
+        largeCandidatePageGoal(ABOVE_FORMER_TRANSPORT_CAPACITY_COUNT),
+      );
 
     // When
     const result = await searchSpec.execute(

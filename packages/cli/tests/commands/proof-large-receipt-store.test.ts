@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { coverageCommand } from "../../src/commands/coverage.js";
+import { executeReportingSpec } from "../../src/commands/discovery-shared.js";
 import { engineStopCommand } from "../../src/commands/engine.js";
 import { initCommand } from "../../src/commands/init.js";
 import { proofImpactCommand } from "../../src/commands/proof-impact.js";
@@ -14,12 +15,20 @@ import { removeFrontmatterBlock } from "../../src/operations/proof/receipt-docum
 import { PrologProcess } from "../../src/prolog.js";
 import { toPrologString } from "../../src/prolog/codec.js";
 import { loadEntities } from "../../src/public/operations/discovery-entities.js";
+import {
+  executeQuery,
+  executeSearch,
+} from "../../src/public/operations/discovery-executors.js";
 import { nodeFilesystem } from "../../src/public/operations/node-ports.js";
 import { toPrologAtom } from "../../src/public/operations/prolog-json.js";
 import type {
   OperationContext,
   PrologPort,
 } from "../../src/public/operations/runtime-types.js";
+import {
+  querySpec,
+  searchSpec,
+} from "../../src/public/operations/specs/discovery.js";
 import { perContractTestBindings } from "../../src/public/operations/specs/reporting.js";
 import { receiptBindingHash } from "../../src/public/proof-fingerprint.js";
 import { resolveBranchAttachment } from "../../src/utils/branch-resolver.js";
@@ -289,5 +298,80 @@ describe("proof reporting on a receipt store larger than the Prolog output cap",
       sortEntries(`_{${entries.join(", ")}}`),
     );
     expect(sortEntries(projected)).toHaveLength(TEST_COUNT);
+  }, 300_000);
+
+  // Search candidates and entity queries used to materialize every candidate
+  // with its full receipt history in one answer; on a store past the output
+  // cap that failed with ENOBUFS even for `limit: 1`.
+  test("search and query stay bounded through the engine and without it", async () => {
+    const root = createGitWorkspace("main");
+    roots.push(root);
+    restores.push(isolateKibiEnv());
+    await withCwd(root, () => initCommand({}));
+    ensureBranchStoreManifest(root, "main");
+    await seedLargeStore(root);
+    const targetId = testId(7);
+
+    const searchCases = [
+      { query: targetId, limit: 1 },
+      { query: "large receipt store", type: "test", limit: 5 },
+      { query: targetId, limit: 1, fields: "full" as const },
+      {
+        query: "receipt store",
+        rankingMode: "intent-v1" as const,
+        semanticFacets: { objects: ["receipt"] },
+        limit: 3,
+      },
+    ];
+    const assertSearch = (
+      result: Awaited<ReturnType<typeof executeSearch>>,
+      input: (typeof searchCases)[number],
+    ) => {
+      const payload = result.structuredContent;
+      expect(payload?.results.length).toBeGreaterThan(0);
+      expect(payload?.results.length).toBeLessThanOrEqual(input.limit);
+      if (input.query === targetId) {
+        expect(payload?.results[0]?.entity.id).toBe(targetId);
+      }
+      if ("fields" in input) {
+        // Full results are reloaded by id, receipt history included.
+        const receipts = payload?.results[0]?.entity.proof_receipts;
+        expect(Array.isArray(receipts)).toBe(true);
+        expect((receipts as unknown[]).length).toBe(RECEIPTS_PER_TEST);
+      } else {
+        expect(payload?.results[0]?.entity.proof_receipts).toBeUndefined();
+      }
+    };
+
+    // Engine-backed public path.
+    for (const input of searchCases) {
+      const result = await withCwd(root, () =>
+        executeReportingSpec(searchSpec, input, { workspaceRoot: root }),
+      );
+      assertSearch(result as Awaited<ReturnType<typeof executeSearch>>, input);
+    }
+    const allTests = (await withCwd(root, () =>
+      executeReportingSpec(
+        querySpec,
+        { type: "test", limit: 500 },
+        { workspaceRoot: root },
+      ),
+    )) as Awaited<ReturnType<typeof executeQuery>>;
+    expect(allTests.structuredContent?.count).toBe(TEST_COUNT);
+    expect(allTests.structuredContent?.entities).toHaveLength(TEST_COUNT);
+    await stopEngine(root);
+
+    // A raw port without the engine's indexed methods takes the fallbacks.
+    const prolog = await attachedStore(root);
+    const context = contextFor(root, prolog);
+    for (const input of searchCases) {
+      assertSearch(await executeSearch(input, context), input);
+    }
+    const fallbackTests = await executeQuery(
+      { type: "test", limit: 500 },
+      context,
+    );
+    expect(fallbackTests.structuredContent?.count).toBe(TEST_COUNT);
+    expect(fallbackTests.structuredContent?.entities).toHaveLength(TEST_COUNT);
   }, 300_000);
 });

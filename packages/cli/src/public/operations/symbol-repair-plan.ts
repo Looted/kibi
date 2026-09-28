@@ -7,7 +7,13 @@ import {
   enrichSymbolCoordinates,
 } from "../../extractors/symbols-coordinator.js";
 import { isCoarseGranularityReason } from "../symbol-granularity.js";
-import { loadEntities } from "./discovery-entities.js";
+import { loadEntitiesPaged } from "./discovery-entities.js";
+
+/**
+ * Symbol pages for repair planning. The full symbol inventory is already half
+ * of the bounded engine output on large workspaces, so it is read in pages.
+ */
+const SYMBOL_PAGE_SIZE = 250;
 import type { OperationContext } from "./runtime-types.js";
 
 export const SYMBOL_REPAIR_PLAN_VERSION = "kibi.symbol-repair-plan.v1" as const;
@@ -131,7 +137,7 @@ export async function addCoordinateRepairEvidence(
   const ids = new Set(missingByRow.flat());
   if (ids.size === 0 || !context.prolog) return rows;
   const symbols = (
-    await loadEntities(context.prolog, { type: "symbol" })
+    await loadEntitiesPaged(context.prolog, "symbol", SYMBOL_PAGE_SIZE)
   ).filter((symbol) => ids.has(String(symbol.id)));
   const evidence = await inspectCoordinateRepairs(
     symbols,
@@ -227,7 +233,11 @@ export async function buildSymbolRepairPlan(
   context: OperationContext,
 ): Promise<SymbolRepairPlan | undefined> {
   if (!context.prolog || rows.length === 0) return undefined;
-  const symbols = await loadEntities(context.prolog, { type: "symbol" });
+  const symbols = await loadEntitiesPaged(
+    context.prolog,
+    "symbol",
+    SYMBOL_PAGE_SIZE,
+  );
   const extractedByPath = new Map<
     string,
     readonly { name: string; kind: string }[]

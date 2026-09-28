@@ -36,6 +36,7 @@ import type {
 import { PrologProcess, resolveKbPlPath } from "./prolog.js";
 import { parseEntityFromList, parseListOfLists } from "./prolog/codec.js";
 import { retryAttachAfterBreakingStaleLock } from "./prolog/store-lock.js";
+import { queryEntityChunks } from "./public/operations/discovery-entities.js";
 import type { PrologQueryResult } from "./public/operations/runtime-types.js";
 import type {
   PrologEntityQueryInput,
@@ -1071,6 +1072,18 @@ export class EngineClient {
   }
 
   async queryEntities(
+    input: PrologEntityQueryInput,
+    signal?: AbortSignal,
+  ): Promise<PrologEntityQueryResult> {
+    // Full entities carry receipt histories; a caller-sized page (up to 100k
+    // rows) is split into bounded engine requests.
+    return queryEntityChunks(
+      (chunk) => this.queryEntityChunk(chunk, signal),
+      input,
+    );
+  }
+
+  private async queryEntityChunk(
     input: PrologEntityQueryInput,
     signal?: AbortSignal,
   ): Promise<PrologEntityQueryResult> {

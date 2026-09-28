@@ -1,10 +1,18 @@
 import {
   escapeAtomContent,
+  normalizeEntityId,
+  parseAtomList,
   parseEntityFromBinding,
   parseEntityFromList,
   parseListOfLists,
 } from "../../prolog/codec.js";
-import type { PrologPort } from "./runtime-types.js";
+import type {
+  PrologEntityQueryInput,
+  PrologEntityQueryResult,
+  PrologPort,
+  PrologSearchQueryInput,
+  PrologSearchQueryResult,
+} from "./runtime-types.js";
 
 export type EntityQueryInput = {
   readonly type?: string;
@@ -193,7 +201,8 @@ export const SEARCH_CANDIDATE_PAGE_SIZE = 500;
 
 // implements REQ-kibi-operation-interface-parity, REQ-mcp-search-discovery
 export async function loadSearchCandidates(
-  prolog: Pick<PrologPort, "searchEntities">,
+  prolog: Pick<PrologPort, "searchEntities"> &
+    Partial<Pick<PrologPort, "query">>,
   input: {
     readonly query: string;
     readonly type?: string;
@@ -201,24 +210,69 @@ export async function loadSearchCandidates(
   },
   signal?: AbortSignal,
 ): Promise<Record<string, unknown>[]> {
+  // Call through the port property, never via a detached local: EngineClient
+  // searchEntities depends on `this` (this.command), and the PrologPort
+  // contract does not promise a pre-bound method. Ports without the indexed
+  // engine method run the same bounded Prolog search through `query`.
+  const readPage = (
+    page: PrologSearchQueryInput,
+  ): Promise<PrologSearchQueryResult> => {
+    if (prolog.searchEntities) return prolog.searchEntities(page, signal);
+    const query = prolog.query;
+    if (query === undefined) return Promise.resolve({ entities: [], count: 0 });
+    return searchEntitiesViaQuery(
+      { query: (goal, querySignal) => query.call(prolog, goal, querySignal) },
+      page,
+      signal,
+    );
+  };
+  return readCandidatePages(readPage, input);
+}
+
+/**
+ * Projected candidate rows for every entity (optionally of one type), in id
+ * order, bounded by `maxCandidates`. For semantic discovery that has no
+ * lexical token to pre-filter candidates.
+ */
+// implements REQ-kibi-operation-interface-parity, REQ-mcp-search-discovery
+export async function listSearchCandidates(
+  prolog: Pick<PrologPort, "query">,
+  input: { readonly type?: string; readonly maxCandidates: number },
+  signal?: AbortSignal,
+): Promise<Record<string, unknown>[]> {
+  const type = input.type ? `'${escapeAtomContent(input.type)}'` : "none";
+  return readCandidatePages(
+    (page) =>
+      readRowsAndCount(
+        prolog,
+        `kb_list_search_candidates(${type}, ${page.limit}, ${page.offset}, Rows, Count)`,
+        "Search candidate listing failed",
+        signal,
+      ),
+    { query: "", maxCandidates: input.maxCandidates },
+  );
+}
+
+async function readCandidatePages(
+  readPage: (page: PrologSearchQueryInput) => Promise<PrologSearchQueryResult>,
+  input: {
+    readonly query: string;
+    readonly type?: string;
+    readonly maxCandidates?: number;
+  },
+): Promise<Record<string, unknown>[]> {
   const maxCandidates = input.maxCandidates ?? Number.POSITIVE_INFINITY;
   const candidates: Record<string, unknown>[] = [];
   let offset = 0;
   let total = Number.POSITIVE_INFINITY;
   while (offset < total && candidates.length < maxCandidates) {
-    // Call through the port property, never via a detached local: EngineClient
-    // searchEntities depends on `this` (this.command), and the PrologPort
-    // contract does not promise a pre-bound method.
-    const page = await prolog.searchEntities?.(
-      {
-        query: input.query,
-        ...(input.type !== undefined ? { type: input.type } : {}),
-        limit: SEARCH_CANDIDATE_PAGE_SIZE,
-        offset,
-      },
-      signal,
-    );
-    if (!page || page.entities.length === 0) break;
+    const page = await readPage({
+      query: input.query,
+      ...(input.type !== undefined ? { type: input.type } : {}),
+      limit: SEARCH_CANDIDATE_PAGE_SIZE,
+      offset,
+    });
+    if (page.entities.length === 0) break;
     candidates.push(...page.entities);
     total = page.count;
     offset += page.entities.length;
@@ -226,6 +280,137 @@ export async function loadSearchCandidates(
   return Number.isFinite(maxCandidates)
     ? candidates.slice(0, maxCandidates)
     : candidates;
+}
+
+function searchEntitiesViaQuery(
+  prolog: Pick<PrologPort, "query">,
+  input: PrologSearchQueryInput,
+  signal?: AbortSignal,
+): Promise<PrologSearchQueryResult> {
+  const type = input.type ? `'${escapeAtomContent(input.type)}'` : "none";
+  return readRowsAndCount(
+    prolog,
+    `kb_search_entities(${type}, '${escapeAtomContent(input.query)}', ${input.limit}, ${input.offset}, Rows, Count)`,
+    "Indexed search candidate query failed",
+    signal,
+  );
+}
+
+async function readRowsAndCount(
+  prolog: Pick<PrologPort, "query">,
+  goal: string,
+  errorLabel: string,
+  signal?: AbortSignal,
+): Promise<PrologEntityQueryResult> {
+  const result = await prolog.query(goal, signal);
+  if (!result.success) {
+    // Same message as the engine client's indexed methods, so both surfaces
+    // report a failure identically.
+    throw new Error(result.error ?? errorLabel);
+  }
+  const entities = result.bindings.Rows
+    ? parseListOfLists(result.bindings.Rows).map(parseEntityFromList)
+    : [];
+  const count = Number.parseInt(result.bindings.Count ?? "0", 10);
+  return { entities, count: Number.isFinite(count) ? count : entities.length };
+}
+
+/**
+ * Rows per `kb_query_entities` request. Full entities carry receipt
+ * histories, so a caller-sized page (up to 100k rows) is split into bounded
+ * requests and concatenated; the reported count is the total match count.
+ */
+export const ENTITY_QUERY_CHUNK_SIZE = 25;
+
+// implements REQ-kibi-operation-interface-parity
+export async function queryEntityChunks(
+  readChunk: (
+    input: PrologEntityQueryInput,
+  ) => Promise<PrologEntityQueryResult>,
+  input: PrologEntityQueryInput,
+): Promise<PrologEntityQueryResult> {
+  const entities: Record<string, unknown>[] = [];
+  let count = 0;
+  let first = true;
+  while (first || entities.length < input.limit) {
+    const chunkLimit = Math.min(
+      ENTITY_QUERY_CHUNK_SIZE,
+      input.limit - entities.length,
+    );
+    const chunk = await readChunk({
+      ...input,
+      limit: chunkLimit,
+      offset: input.offset + entities.length,
+    });
+    if (first) count = chunk.count;
+    first = false;
+    entities.push(...chunk.entities);
+    if (chunk.entities.length < chunkLimit || chunkLimit === 0) break;
+  }
+  return { entities, count };
+}
+
+/** Bounded `kb_query_entities` paging for ports without the engine method. */
+// implements REQ-kibi-operation-interface-parity
+export function queryEntitiesViaQuery(
+  prolog: Pick<PrologPort, "query">,
+  input: PrologEntityQueryInput,
+  signal?: AbortSignal,
+): Promise<PrologEntityQueryResult> {
+  const atom = (value: string | undefined) =>
+    value === undefined ? "none" : `'${escapeAtomContent(value)}'`;
+  const tags = `[${(input.tags ?? []).map((tag) => `'${escapeAtomContent(tag)}'`).join(",")}]`;
+  return queryEntityChunks(
+    (chunk) =>
+      readRowsAndCount(
+        prolog,
+        `kb_query_entities(${atom(chunk.type)}, ${atom(chunk.id)}, ${tags}, ${atom(chunk.sourceFile)}, ${chunk.limit}, ${chunk.offset}, Rows, Count)`,
+        "Indexed entity query failed",
+        signal,
+      ),
+    input,
+  );
+}
+
+/** Every entity id, without materializing entity properties. */
+// implements REQ-002
+export async function loadEntityIds(
+  prolog: Pick<PrologPort, "query">,
+): Promise<string[]> {
+  const result = await prolog.query("kb_entity_ids(Ids)");
+  if (!result.success) {
+    throw new Error(
+      `Entity id enumeration failed: ${result.error ?? "Unknown error"}`,
+    );
+  }
+  return parseAtomList(result.bindings.Ids ?? "[]").map(normalizeEntityId);
+}
+
+/**
+ * Replace projected search candidates with complete entities, one bounded
+ * query per entity. Used only for the final result page when a caller asks
+ * for full entity bodies.
+ */
+// implements REQ-mcp-search-discovery
+export async function reloadFullEntities<
+  TMatch extends { readonly entity: Record<string, unknown> },
+>(
+  prolog: Pick<PrologPort, "query">,
+  matches: readonly TMatch[],
+): Promise<TMatch[]> {
+  const reloaded: TMatch[] = [];
+  for (const match of matches) {
+    const id = String(match.entity.id ?? "");
+    const type = match.entity.type;
+    const [full] = id
+      ? await loadEntities(prolog, {
+          id,
+          ...(typeof type === "string" ? { type } : {}),
+        })
+      : [];
+    reloaded.push(full ? { ...match, entity: full } : match);
+  }
+  return reloaded;
 }
 
 // implements REQ-002
