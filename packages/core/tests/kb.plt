@@ -4342,6 +4342,18 @@ test(unit_canonicalization_keeps_unknown_and_ambiguous_units_distinct) :-
     canonical_quantity(string, abc, '', string, abc, ''),
     canonical_quantity(int, 1, 'KB', _, 1, 'KB').
 
+test(unit_canonicalization_keeps_large_values_exact) :-
+    % Adjacent big integers must never collapse onto one canonical value.
+    canonical_quantity(int, 12345678901234567891, s, int, A, s),
+    canonical_quantity(int, 12345678901234567892, s, int, B, s),
+    assertion(A == 12345678901234567891),
+    assertion(A \== B),
+    canonical_quantity(int, 12345678901234567891, min, int, Minutes, s),
+    assertion(Minutes =:= 12345678901234567891 * 60),
+    % A float too large to round is kept rather than raising.
+    canonical_quantity(number, 1.0e305, s, number, Huge, s),
+    assertion(Huge =:= 1.0e305).
+
 test(every_listed_unit_alias_converts_to_its_family_base_unit) :-
     findall(Unit-Base-Factor, unit_base(Unit, Base, Factor), Aliases),
     assertion(Aliases \== []),

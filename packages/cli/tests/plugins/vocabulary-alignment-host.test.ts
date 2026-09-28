@@ -30,6 +30,7 @@ import {
 
 type JevSystemOneRequest = Parameters<JevClient["systemOne"]>[0];
 import { executeModelRequirement } from "../../src/operations/modeling/model-requirement.js";
+import { alignRequirementVocabulary } from "../../src/operations/modeling/vocabulary-alignment.js";
 import {
   CapabilityRegistry,
   composeClaimComparison,
@@ -358,7 +359,11 @@ type ModelData = {
       candidates: Array<{ subjectKey: string }>;
     };
     redundancyCandidates: Array<{ factId: string }>;
-    reviewPlan: Array<{ properties: { tags: string[] } }>;
+    reviewPlan: Array<{
+      id: string;
+      properties: { tags: string[] };
+      relationships: Array<{ type: string; from: string; to: string }>;
+    }>;
     stamps: Array<{ pluginId: string; fallbackUsed?: boolean }>;
     fallbackUsed: boolean;
   };
@@ -405,11 +410,64 @@ describe("kb_model_requirement subject reuse", () => {
     expect(alignment.reviewPlan[0]?.properties.tags).toContain(
       "review:possible-duplicate",
     );
+    expect(alignment.reviewPlan[0]?.relationships).toEqual([
+      {
+        type: "relates_to",
+        from: alignment.reviewPlan[0]?.id,
+        to: "FACT-PROP-SESSION-TTL",
+      },
+    ]);
     expect(data.warnings.map((w) => w.kind)).toContain("possible_duplicate");
     expect(alignment.stamps.map((s) => s.pluginId)).toEqual([
       "kibi-plugin-builtin",
       "kibi-plugin-builtin",
     ]);
+  });
+
+  test("a proposed key that already exists is reused even outside the top candidates", async () => {
+    restores.push(isolateKibiEnv());
+    const crowded = [
+      ...["alpha", "beta", "gamma", "delta", "epsilon", "zeta"].map((name) => ({
+        factId: `FACT-SUBJ-SESSION-${name.toUpperCase()}`,
+        subjectKey: `session.${name}_timeout`,
+        title: "Session timeout",
+        reqDerived: false,
+        requirements: [],
+      })),
+      {
+        factId: "FACT-SUBJ-BILLING-LEDGER",
+        subjectKey: "billing.ledger",
+        title: "Billing ledger",
+        reqDerived: false,
+        requirements: [],
+      },
+    ];
+    const prolog: PrologPort = {
+      query: async (goal): Promise<PrologQueryResult> =>
+        goal.includes("subject_vocabulary_json")
+          ? { success: true, bindings: { Json: JSON.stringify(crowded) } }
+          : { success: true, bindings: { Json: "[]" } },
+      nextSolution: async () => null,
+      save: async () => ({ success: true, bindings: {} }),
+    };
+    const outcome = await alignRequirementVocabulary(
+      {
+        workspaceRoot: process.cwd(),
+        signal: new AbortController().signal,
+        clock: () => new Date(0),
+        prolog,
+      },
+      {
+        claimKey: "CLAIM-0000000000000001",
+        statement: "Session timeout must be 30 minutes.",
+        proposedSubjectKey: "billing.ledger",
+      },
+    );
+    expect(outcome?.subject).toMatchObject({
+      decision: "reuse_existing",
+      subjectKey: "billing.ledger",
+      existingFactId: "FACT-SUBJ-BILLING-LEDGER",
+    });
   });
 
   test("an explicit new subject is kept and declared, with shape review", async () => {

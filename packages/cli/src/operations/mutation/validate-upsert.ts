@@ -1,9 +1,9 @@
+// implements REQ-kibi-operation-interface-parity
 import { escapeAtom } from "../../prolog/codec.js";
 import type {
   OperationContext,
   PrologPort,
 } from "../../public/operations/runtime-types.js";
-// implements REQ-kibi-operation-interface-parity
 import type { OperationResult } from "../../public/operations/types.js";
 import { entityIdStyleWarnings } from "../../utils/entity-id-style.js";
 import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
@@ -95,7 +95,7 @@ export async function executeValidateUpsert(
     });
     const idStyleWarnings =
       candidateIdStyleWarnings.length > 0 &&
-      context.prolog !== undefined &&
+      context.prolog &&
       !(await entityExists(context.prolog, input.id))
         ? candidateIdStyleWarnings
         : [];

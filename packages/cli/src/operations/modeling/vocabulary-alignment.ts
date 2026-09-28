@@ -142,6 +142,33 @@ export async function readSubjectClaims(
   return Array.isArray(parsed) ? (parsed as SubjectClaim[]) : [];
 }
 
+/**
+ * Keep an existing subject whose key equals the proposed key among the
+ * candidates even when it ranks outside the top k, so the plan reuses it
+ * instead of declaring a second subject fact with the same key.
+ */
+function withExactSubject(
+  candidates: readonly SubjectCandidate[],
+  vocabulary: readonly VocabularyEntryWithFact[],
+  proposedSubjectKey: string,
+): SubjectCandidate[] {
+  if (candidates.some((c) => c.subjectKey === proposedSubjectKey)) {
+    return [...candidates];
+  }
+  const exact = vocabulary.find(
+    (entry) => entry.subjectKey === proposedSubjectKey,
+  );
+  if (exact === undefined) return [...candidates];
+  return [
+    ...candidates,
+    {
+      subjectKey: exact.subjectKey,
+      score: 0,
+      ...(exact.title !== undefined ? { title: exact.title } : {}),
+    },
+  ];
+}
+
 async function resolveRegistry(
   context: OperationContext,
 ): Promise<CapabilityRegistry> {
@@ -172,12 +199,16 @@ export async function alignRequirementVocabulary(
   }>,
 ): Promise<VocabularyAlignmentOutcome | null> {
   const prolog = context.prolog;
-  if (prolog == null) return null;
+  if (!prolog) return null;
 
   const vocabulary = (await readSubjectVocabulary(prolog)).filter(
     (entry) => entry.reqDerived !== true,
   );
-  const candidates = rankSubjectCandidates(clause.statement, vocabulary);
+  const candidates = withExactSubject(
+    rankSubjectCandidates(clause.statement, vocabulary),
+    vocabulary,
+    clause.proposedSubjectKey,
+  );
   const registry = await resolveRegistry(context);
   const resolution = await registry.resolveVocabularyAlignment();
 

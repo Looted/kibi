@@ -128,13 +128,19 @@ known_unit(Unit, BaseUnit, Factor) :-
     ),
     !.
 
-% Round away binary floating-point noise (0.1 h * 3600 = 360.00000000000006)
-% before deciding whether the canonical value is integral.
+% Integers (including big integers) stay exact. Floats have binary noise
+% rounded away (0.1 h * 3600 = 360.00000000000006) before deciding whether the
+% canonical value is integral; floats too large to round stay as they are.
+canonical_number(Value, int, Value) :-
+    integer(Value),
+    !.
 canonical_number(Value, Type, Canonical) :-
-    Rounded is round(Value * 1.0e9) / 1.0e9,
+    catch(Rounded is round(Value * 1.0e9) / 1.0e9, _, fail),
+    !,
     (   Rounded =:= round(Rounded)
     ->  Type = int,
         Canonical is integer(round(Rounded))
     ;   Type = number,
         Canonical is float(Rounded)
     ).
+canonical_number(Value, number, Value).

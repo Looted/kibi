@@ -99,9 +99,12 @@ function possibleDuplicateObservation(
       source,
       fact_kind: "observation",
       tags: ["review:possible-duplicate", "vocabulary-alignment"],
-      text_ref: candidates.map((candidate) => candidate.factId).join(","),
     },
-    relationships: [],
+    relationships: candidates.map((candidate) => ({
+      type: "relates_to",
+      from: id,
+      to: candidate.factId,
+    })),
   };
 }
 
@@ -128,7 +131,7 @@ async function applyVocabularyAlignment(
     reviewPlan: [],
     adjustPlan: (plan) => plan,
   };
-  if (context?.prolog == null || !initial.isStrict) return unchanged;
+  if (!context?.prolog || !initial.isStrict) return unchanged;
 
   const proposedSubjectKey = normalizeSubjectKey(extracted.claim.subjectKey);
   const outcome = await alignRequirementVocabulary(context, {
