@@ -90,3 +90,38 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-f285e14a9925
+  - type: specified_by
+    from: REQ-kibi-predicate-vocabulary-migration
+    to: SCEN-kibi-predicate-vocabulary-migration
+    created_at: 2026-09-28T12:33:18.527Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-20553cc71137
+  - type: requires_predicate
+    from: REQ-kibi-predicate-vocabulary-migration
+    to: FACT-MIGRATION-NAMESPACE-ALIGNMENT
+    created_at: 2026-09-28T12:33:18.550Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-b48a08fdd048
+  - type: requires_predicate
+    from: REQ-kibi-predicate-vocabulary-migration
+    to: FACT-MIGRATION-ALIAS-REWRITE
+    created_at: 2026-09-28T12:33:18.558Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-8304a848e24c
+  - type: requires_predicate
+    from: REQ-kibi-predicate-vocabulary-migration
+    to: FACT-MIGRATION-AMBIGUOUS-REVIEW
+    created_at: 2026-09-28T12:33:18.565Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-2b27818c83b3
+  - type: requires_predicate
+    from: REQ-kibi-predicate-vocabulary-migration
+    to: FACT-MIGRATION-STALE-FACT-REFUSED
+    created_at: 2026-09-28T12:33:18.574Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-09dd724eae3a

@@ -41975,3 +41975,71 @@ symbols:
         target: TEST-kibi-vocabulary-convergence-e2e
       - type: implements
         target: REQ-kibi-vocabulary-alignment-capability
+  - id: SYM-test-packed-predicate-vocabulary-migration
+    title: assertPredicateVocabularyMigration
+    status: active
+    sourceFile: documentation/tests/e2e/packed/predicate-vocabulary-migration.test.ts
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-kibi-predicate-vocabulary-migration-e2e
+  - id: SYM-predicate-vocabulary-from-entity
+    title: predicateVocabularyFromEntity
+    status: active
+    sourceFile: packages/cli/src/operations/modeling/predicate-vocabulary.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-vocabulary-migration-e2e
+      - type: implements
+        target: REQ-kibi-predicate-argument-constants
+  - id: SYM-predicate-vocabulary-errors
+    title: predicateVocabularyErrors
+    status: active
+    sourceFile: packages/cli/src/operations/modeling/predicate-vocabulary.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-vocabulary-migration-e2e
+      - type: implements
+        target: REQ-kibi-predicate-argument-constants
+  - id: SYM-predicate-argument-conformance
+    title: predicateArgumentConformance
+    status: active
+    sourceFile: packages/cli/src/operations/modeling/predicate-vocabulary.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-vocabulary-migration-e2e
+      - type: implements
+        target: REQ-kibi-predicate-argument-constants
+  - id: SYM-assert-predicate-argument-vocabulary
+    title: assertPredicateArgumentVocabulary
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/predicate-vocabulary-guard.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-vocabulary-migration-e2e
+      - type: implements
+        target: REQ-kibi-predicate-argument-constants
+  - id: SYM-evaluate-predicate-schema-conformance
+    title: evaluatePredicateSchemaConformance
+    status: active
+    sourceFile: packages/cli/src/public/operations/predicate-schema-conformance.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-vocabulary-migration-e2e
+      - type: implements
+        target: REQ-kibi-predicate-schema-conformance
+  - id: SYM-collect-predicate-schema-conformance
+    title: collectPredicateSchemaConformanceViolations
+    status: active
+    sourceFile: packages/cli/src/public/operations/predicate-schema-conformance.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-predicate-vocabulary-migration-e2e
+      - type: implements
+        target: REQ-kibi-predicate-schema-conformance

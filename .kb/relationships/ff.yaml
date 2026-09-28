@@ -181,3 +181,24 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-7f9230e66159
+  - type: validates
+    from: TEST-kibi-predicate-vocabulary
+    to: SCEN-kibi-predicate-argument-constants
+    created_at: 2026-09-28T12:33:09.777Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-7880ed480c2a
+  - type: validates
+    from: TEST-kibi-predicate-vocabulary
+    to: SCEN-kibi-predicate-schema-conformance
+    created_at: 2026-09-28T12:33:09.814Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-22165d223333
+  - type: validates
+    from: TEST-kibi-predicate-vocabulary
+    to: SCEN-kibi-predicate-vocabulary-migration
+    created_at: 2026-09-28T12:33:09.830Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-bb0587e65c9b
