@@ -29,7 +29,10 @@ import {
   bootstrapPlanHash,
 } from "../bootstrap/types.js";
 import { executeDelete } from "../mutation/delete.js";
-import { writePendingSourceReceipt } from "../mutation/source-authoring.js";
+import {
+  retirePendingSourceReceipt,
+  writePendingSourceReceipt,
+} from "../mutation/source-authoring.js";
 import type {
   DeletePayload,
   RelationshipInput,
@@ -85,6 +88,28 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function digest(value: string): string {
   return createHash("sha256").update(value).digest("hex");
+}
+
+/**
+ * Reconcile pending-source receipts with committed source writes: a written
+ * file is bound to its exact bytes until Git tracks it, and a deleted file
+ * must not leave a receipt that later syncs would report as missing.
+ */
+function reconcilePendingSourceReceipts(
+  workspaceRoot: string,
+  writes: readonly {
+    readonly path: string;
+    readonly mode?: "write" | "delete";
+    readonly afterHash: string | null;
+  }[],
+): void {
+  for (const write of writes) {
+    if ((write.mode ?? "write") === "delete") {
+      retirePendingSourceReceipt(workspaceRoot, write.path);
+    } else if (write.afterHash !== null) {
+      writePendingSourceReceipt(workspaceRoot, write.path, write.afterHash);
+    }
+  }
 }
 
 function relationships(step: PlanStep): RelationshipInput[] {
@@ -585,15 +610,7 @@ async function applySourceWrites(
         );
       }
       onCommitted();
-      for (const entry of prior.entries) {
-        if (entry.mode === "write" && entry.afterHash !== null) {
-          writePendingSourceReceipt(
-            context.workspaceRoot,
-            entry.path,
-            entry.afterHash,
-          );
-        }
-      }
+      reconcilePendingSourceReceipts(context.workspaceRoot, prior.entries);
       return { paths: priorPaths, rollback: async () => undefined, journalId };
     }
   }
@@ -791,15 +808,7 @@ async function applySourceWrites(
     // A newly authored file is intentionally excluded from ordinary Git
     // discovery until the operator stages it. The receipt binds that pending
     // input to the exact bytes committed by this plan.
-    for (const write of writes) {
-      if ((write.mode ?? "write") === "write" && write.afterHash !== null) {
-        writePendingSourceReceipt(
-          context.workspaceRoot,
-          write.path,
-          write.afterHash,
-        );
-      }
-    }
+    reconcilePendingSourceReceipts(context.workspaceRoot, writes);
   } catch (error) {
     if (sourceCommitted) {
       // The authoritative source bytes must remain in place once the commit
@@ -940,15 +949,7 @@ async function executeSourceRecovery(
     true,
     onCommitted,
   );
-  for (const write of writes) {
-    if (write.mode === "write" && write.afterHash !== null) {
-      writePendingSourceReceipt(
-        context.workspaceRoot,
-        write.path,
-        write.afterHash,
-      );
-    }
-  }
+  reconcilePendingSourceReceipts(context.workspaceRoot, writes);
   const sync = await syncCommand({
     workspaceRoot: context.workspaceRoot,
     rebuild: true,

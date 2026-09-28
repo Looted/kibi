@@ -274,6 +274,7 @@ export const OPERATION_DATA_SCHEMAS: Readonly<
     sourceWrites: recordArray,
     deletionPlan: recordValue,
     supersessionPlan: recordValue,
+    skippedEffects: stringArray,
     status: stringValue,
     effectFailures: recordArray,
     nextActions: recordArray,

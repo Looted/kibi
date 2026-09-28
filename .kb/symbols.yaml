@@ -5085,7 +5085,8 @@ symbols:
       - type: implements
         target: REQ-test-journaled-engine-harness
   - id: SYM-cli-skills-content-predicate-guidance-tests
-    title: predicate guidance loads a canonical decision tree with immutable resource examples
+    title: predicate guidance loads a canonical decision tree with immutable
+      resource examples
     sourceFile: packages/cli/tests/skills-content.test.ts
     symbol_role: unknown
     granularity_reason: extractor-miss
@@ -38105,7 +38106,8 @@ symbols:
       - type: executable_for
         target: TEST-zcode-kibi-plugin-v1
   - id: SYM-zcode-case-optional-package-contract
-    title: '''Optional package contract: no install lifecycle or core runtime mutation'''
+    title: '''Optional package contract: no install lifecycle or core runtime
+      mutation'''
     status: active
     sourceFile: packages/zcode/tests/package-contract.test.ts
     symbol_role: behavioral
@@ -42051,3 +42053,17 @@ symbols:
         target: TEST-kibi-predicate-vocabulary-migration-e2e
       - type: implements
         target: REQ-kibi-predicate-schema-conformance
+  - id: SYM-retirePendingSourceReceipt
+    title: retirePendingSourceReceipt
+    status: active
+    sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
+    symbol_role: behavioral
+    relationships:
+      - type: covered_by
+        target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-operation-interface-parity
+      - type: implements
+        target: REQ-core-atomic-upsert-persistence
+      - type: implements
+        target: REQ-kibi-operation-interface-parity

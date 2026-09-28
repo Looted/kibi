@@ -342,3 +342,31 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-36c0df35f681
+  - type: implements
+    from: SYM-retirePendingSourceReceipt
+    to: REQ-core-atomic-upsert-persistence
+    created_at: 2026-09-28T14:14:39.756Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-589d00c0a215
+  - type: implements
+    from: SYM-retirePendingSourceReceipt
+    to: REQ-kibi-operation-interface-parity
+    created_at: 2026-09-28T14:14:39.771Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-1ae9f6fa6dc1
+  - type: covered_by
+    from: SYM-retirePendingSourceReceipt
+    to: TEST-kibi-change-to-proof-plan-compiler
+    created_at: 2026-09-28T14:14:39.780Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-e51283edd941
+  - type: covered_by
+    from: SYM-retirePendingSourceReceipt
+    to: TEST-kibi-operation-interface-parity
+    created_at: 2026-09-28T14:14:39.789Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-69a8ef67cd0c

@@ -180,6 +180,48 @@ describe("executeOperation", () => {
     // Then
     expect(result.exitCode).toBe(2);
     expect(result.stderr).toContain("_skipContradictionCheck");
+    // The operation never ran, so none of its declared writes happened.
+    expect(JSON.parse(result.stdout ?? "").effects).toEqual([
+      { kind: "kb-write", status: "not_applicable" },
+      { kind: "workspace-write", status: "not_applicable" },
+    ]);
+  });
+
+  test("reports declared effects as failed when an operation rejects its input", async () => {
+    // Given an upsert rejected by a validation guard inside the operation
+    const context = createContext({
+      prolog: {
+        query: async () => {
+          throw new Error("Entity validation failed: argument uses alias");
+        },
+        nextSolution: async () => null,
+        save: async () => ({ success: true, bindings: {} }),
+      },
+    });
+
+    // When
+    const result = await executeOperation(
+      "kb_upsert",
+      {
+        type: "req",
+        id: "REQ-REJECTED-WRITE",
+        properties: { title: "Rejected write", status: "open" },
+      },
+      context,
+    );
+
+    // Then the error envelope never claims the write completed
+    expect(result.exitCode).toBe(1);
+    const envelope = JSON.parse(result.stdout ?? "");
+    expect(envelope.status).toBe("error");
+    expect(envelope.effects).toEqual([
+      { kind: "kb-write", status: "failed", errorCode: "OPERATION_FAILED" },
+      {
+        kind: "workspace-write",
+        status: "failed",
+        errorCode: "OPERATION_FAILED",
+      },
+    ]);
   });
 
   // executable_for TEST-capability-plugin-host-resolution-v1

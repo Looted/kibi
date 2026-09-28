@@ -60,6 +60,23 @@ export function writePendingSourceReceipt(
   );
 }
 
+/**
+ * Retire the pending receipt of a source that a committed plan deleted. A
+ * receipt binds untracked input to exact bytes, so one left behind for a
+ * removed file makes every later sync fail on a missing pending source.
+ */
+// implements REQ-core-atomic-upsert-persistence, REQ-kibi-operation-interface-parity
+export function retirePendingSourceReceipt(
+  workspaceRoot: string,
+  relativePath: string,
+): void {
+  try {
+    fs.unlinkSync(pendingReceiptPath(workspaceRoot, relativePath));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
+}
+
 function authoredPath(value: unknown): string | undefined {
   if (typeof value !== "string" || !value.trim()) return undefined;
   const normalized = value.replaceAll("\\", "/");
