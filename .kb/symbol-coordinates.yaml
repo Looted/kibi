@@ -613,12 +613,12 @@ coordinates:
     sourceLine: 84
   SYM-auto-059ACEEC9EDC:
     identityHash: d016ef29355a75eb7ba6f4872164791bb0bdc1333ac3991b76ab4cb176f9f94c
-    sourceHash: 4c142b791958f3f2906728198c884a28517aa43f12c23d47d83eff6382030a9b
+    sourceHash: f69c1929debbd2d55e528445511fc4e6e36b75525f96b0fb6c79760f3892834d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 506
+    sourceEndLine: 512
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    sourceLine: 454
+    sourceLine: 460
   SYM-auto-0955397546A3:
     identityHash: 1c0ceb034c2dd046a376c39085a0d8f6635b2df26b513f5448d8c7bc225cae85
     sourceHash: 511ac6ab3171eeabaecc8f44da62d0b54ccf11aa7f7a265339ca8edb3b33318b
@@ -717,12 +717,12 @@ coordinates:
     sourceLine: 68
   SYM-auto-1EEC676792AC:
     identityHash: c9b7b3aba5d062313a5a26f47313cfe70dbbfade4109dd3dc0b26c30da6d0822
-    sourceHash: 4c142b791958f3f2906728198c884a28517aa43f12c23d47d83eff6382030a9b
+    sourceHash: f69c1929debbd2d55e528445511fc4e6e36b75525f96b0fb6c79760f3892834d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 580
+    sourceEndLine: 586
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    sourceLine: 516
+    sourceLine: 522
   SYM-auto-20020A915D46:
     identityHash: f76ec8e4eff414ceaaa532ac3f90866755586a3bad2e2df7d35f34c5fc2f5fe6
     sourceHash: a595abc44347b053ec2355f57ebdd2fb445e602d58604ca22add8137196b329e
@@ -813,12 +813,12 @@ coordinates:
     sourceLine: 190
   SYM-auto-2E8B94C6ABB2:
     identityHash: d5bf23f92a6f218f05b989ded4fdc0decf286ebdddb11f02639c2ded28627270
-    sourceHash: 4c142b791958f3f2906728198c884a28517aa43f12c23d47d83eff6382030a9b
+    sourceHash: f69c1929debbd2d55e528445511fc4e6e36b75525f96b0fb6c79760f3892834d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 147
+    sourceEndLine: 153
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    sourceLine: 133
+    sourceLine: 139
   SYM-auto-3317F858EB14:
     identityHash: 88412d580f27bad1766e1462ce30b678b272d3883f104d4911de2f9ee3e4c892
     sourceHash: 93e0e35fdb7c63b0861c1d0a481b5529ce9eb1a32e3c2bad26c75aa0dba5c843
@@ -861,15 +861,15 @@ coordinates:
     sourceLine: 49
   SYM-auto-44CE7BD0251E:
     identityHash: 18fcdcdbf6f1944fe9e13a36196c6e595b72596f0f77bdf207a8467d25890d3b
-    sourceHash: 4c142b791958f3f2906728198c884a28517aa43f12c23d47d83eff6382030a9b
+    sourceHash: f69c1929debbd2d55e528445511fc4e6e36b75525f96b0fb6c79760f3892834d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 189
+    sourceEndLine: 195
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    sourceLine: 174
+    sourceLine: 180
   SYM-auto-4533A0DDA5BD:
     identityHash: 4b8243c510811b6c9204ae93e11a6a722631ebe5a8d8b37e7967dcc23373517a
-    sourceHash: 4c142b791958f3f2906728198c884a28517aa43f12c23d47d83eff6382030a9b
+    sourceHash: f69c1929debbd2d55e528445511fc4e6e36b75525f96b0fb6c79760f3892834d
     sourceColumn: 12
     sourceEndColumn: 3
     sourceEndLine: 21
@@ -1061,12 +1061,12 @@ coordinates:
     sourceLine: 432
   SYM-auto-7C9A229C5071:
     identityHash: a93dbc11da4b0995097992b5b7f3d04712d757fe1b930d4b6c833c628484872e
-    sourceHash: 4c142b791958f3f2906728198c884a28517aa43f12c23d47d83eff6382030a9b
+    sourceHash: f69c1929debbd2d55e528445511fc4e6e36b75525f96b0fb6c79760f3892834d
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 812
+    sourceEndLine: 818
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    sourceLine: 687
+    sourceLine: 693
   SYM-auto-7D6473217301:
     identityHash: d1665087768367949aa931ac27bfa0eacbfffd3a2da2863b54a4e8b77cfa1ebe
     sourceHash: 511ac6ab3171eeabaecc8f44da62d0b54ccf11aa7f7a265339ca8edb3b33318b
@@ -1077,12 +1077,12 @@ coordinates:
     sourceLine: 25
   SYM-auto-7EA45A5BE416:
     identityHash: 66334f3ba75617f5d605a426a9f4e03fe2a8562b4b7a5d366bc9fe4a0a7a67cf
-    sourceHash: 4c142b791958f3f2906728198c884a28517aa43f12c23d47d83eff6382030a9b
+    sourceHash: f69c1929debbd2d55e528445511fc4e6e36b75525f96b0fb6c79760f3892834d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 131
+    sourceEndLine: 137
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    sourceLine: 88
+    sourceLine: 94
   SYM-auto-87E4086AAAB1:
     identityHash: d4be2e0456204edceac9577fcfb925131a809aa932c938efa8edc55ff11d16d6
     sourceHash: 76a1598fc47cfd9a64f42e2d8ae2a06a9807fa2a331223dce654b4c7924f9d1b
@@ -1117,12 +1117,12 @@ coordinates:
     sourceLine: 1240
   SYM-auto-897151BA8338:
     identityHash: f4edd71a232efa4864a77e0d3b2ee954620568777bec6c7420623c8343425fcc
-    sourceHash: 4c142b791958f3f2906728198c884a28517aa43f12c23d47d83eff6382030a9b
+    sourceHash: f69c1929debbd2d55e528445511fc4e6e36b75525f96b0fb6c79760f3892834d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 196
+    sourceEndLine: 202
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    sourceLine: 191
+    sourceLine: 197
   SYM-auto-8A6A1669C54A:
     identityHash: b69a20757bb1c70b2578aa19ba6c97183a8cade9a1655ce17ef5526d75df356d
     sourceHash: 6b58a104718a747a586eafaaa2384a9e8666e4c280ddb727fcda47e76f0a7085
@@ -1133,7 +1133,7 @@ coordinates:
     sourceLine: 9
   SYM-auto-8B6FF5246789:
     identityHash: b38b9e0687b570f3e2170025a11b26fe19651eca67ea8ae59bc5699d4be38310
-    sourceHash: 4c142b791958f3f2906728198c884a28517aa43f12c23d47d83eff6382030a9b
+    sourceHash: f69c1929debbd2d55e528445511fc4e6e36b75525f96b0fb6c79760f3892834d
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 61
@@ -1197,12 +1197,12 @@ coordinates:
     sourceLine: 41
   SYM-auto-9648A5F09C09:
     identityHash: 1c3557de0c7fa1604043c565c1143f9efb63fde117f6387f8938759314e7df42
-    sourceHash: 4c142b791958f3f2906728198c884a28517aa43f12c23d47d83eff6382030a9b
+    sourceHash: f69c1929debbd2d55e528445511fc4e6e36b75525f96b0fb6c79760f3892834d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 827
+    sourceEndLine: 833
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    sourceLine: 815
+    sourceLine: 821
   SYM-auto-9673173700B2:
     identityHash: 83e8f06a4ddfd224071cd07b0778252f68104f6c9136c6b78742b38dc22aee85
     sourceHash: 7c57086e06046c166c4bbb1491e79048f8410c3af200dc6cf867382b6f3555c5
@@ -10989,12 +10989,12 @@ coordinates:
     sourceLine: 23
   SYM-GENERATED_SYMBOL_FIELDS:
     identityHash: 83644ae5a195bb0dc5ab8cac1401771d3fe7b276eea76eec4fe06e3f1407d4ee
-    sourceHash: 4c142b791958f3f2906728198c884a28517aa43f12c23d47d83eff6382030a9b
+    sourceHash: f69c1929debbd2d55e528445511fc4e6e36b75525f96b0fb6c79760f3892834d
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 292
+    sourceEndLine: 298
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    sourceLine: 286
+    sourceLine: 292
   SYM-get-staged-inventory:
     identityHash: a579977ba7cb75035893fd09f2029164d9bd93aaa5a792d19300ef444734760f
     sourceHash: a0cb9bd2f051a0e6cba779c189d3b9d4eff43ee758bcc8b50bbb1e8b7880e969
@@ -19301,7 +19301,7 @@ coordinates:
     sourceLine: 14
   SYM-retirePendingSourceReceipt:
     identityHash: 0098c4b284c90f27ce12aa3e269f331895568f1ded19dc24930cb06b5f39102d
-    sourceHash: 4c142b791958f3f2906728198c884a28517aa43f12c23d47d83eff6382030a9b
+    sourceHash: f69c1929debbd2d55e528445511fc4e6e36b75525f96b0fb6c79760f3892834d
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 78
@@ -27109,12 +27109,12 @@ coordinates:
     sourceLine: 51
   SYM-source-authoring-manifest-relationships:
     identityHash: fd5253c753e450198b40b9f0acedf24b323dd7a09009dfa1d0d593bdb05d07af
-    sourceHash: 4c142b791958f3f2906728198c884a28517aa43f12c23d47d83eff6382030a9b
+    sourceHash: f69c1929debbd2d55e528445511fc4e6e36b75525f96b0fb6c79760f3892834d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 357
+    sourceEndLine: 363
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    sourceLine: 322
+    sourceLine: 328
   SYM-SourceAnalysisMode:
     identityHash: 3dffb4f28988f2cc2c1f1206ba9fca55568394d811daa321a9d213713b65eda0
     sourceHash: 49baab869ec2a804e37ba1c0d397199d91e38ee0a91b95cf1811433f683f2358
@@ -29077,12 +29077,12 @@ coordinates:
     sourceLine: 176
   SYM-yaml-relationship-deletion:
     identityHash: d276207f09c0d8cfd72427df6dfd02bd5c1c438d6fb1929ec1ab73523d3a16f4
-    sourceHash: 4c142b791958f3f2906728198c884a28517aa43f12c23d47d83eff6382030a9b
+    sourceHash: f69c1929debbd2d55e528445511fc4e6e36b75525f96b0fb6c79760f3892834d
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 656
+    sourceEndLine: 662
     sourceFile: packages/cli/src/operations/mutation/source-authoring.ts
-    sourceLine: 587
+    sourceLine: 593
   SYM-zcode-adapterKind:
     identityHash: 3962b2fb27d58fda41858bdb34e510433abc1452c9e1677c79630c761feb6a48
     sourceHash: 13a02517ba52616dd38b2614ac45bcbd938b485da5e434e38218dbf0f44d16ea
