@@ -175,8 +175,12 @@ symbols:
     relationships:
       - type: covered_by
         target: TEST-agent-guided-migration-orchestration
+      - type: covered_by
+        target: TEST-kibi-predicate-vocabulary-migration-e2e
       - type: implements
         target: REQ-agent-guided-migration-orchestration
+      - type: implements
+        target: REQ-kibi-predicate-vocabulary-migration
   - id: SYM-kibi-migration-coverage-actions
     title: buildActionsFromCoverage
     sourceFile: packages/cli/src/public/operations/migration-plan.ts
@@ -862,6 +866,8 @@ symbols:
         target: TEST-KIBI-BOOTSTRAP-PLAN-APPLY
       - type: covered_by
         target: TEST-kibi-change-to-proof-plan-compiler
+      - type: covered_by
+        target: TEST-kibi-predicate-vocabulary-migration-e2e
       - type: implements
         target: REQ-agent-guided-migration-orchestration
       - type: implements
@@ -870,6 +876,8 @@ symbols:
         target: REQ-KIBI-BOOTSTRAP-PLAN
       - type: implements
         target: REQ-kibi-change-to-proof-plan-compiler
+      - type: implements
+        target: REQ-kibi-predicate-vocabulary-migration
   - id: SYM-kibi-cli-src-operations-planning-apply-plan-ts-applyplanargs
     title: ApplyPlanArgs
     sourceFile: packages/cli/src/operations/planning/apply-plan-types.d.ts

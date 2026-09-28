@@ -174,3 +174,17 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-aa7db32dc86c
+  - type: implements
+    from: SYM-kibi-migration-check-actions
+    to: REQ-kibi-predicate-vocabulary-migration
+    created_at: 2026-09-28T13:28:33.914Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-edcdd49feb4b
+  - type: covered_by
+    from: SYM-kibi-migration-check-actions
+    to: TEST-kibi-predicate-vocabulary-migration-e2e
+    created_at: 2026-09-28T13:28:33.929Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f552e06e6c62

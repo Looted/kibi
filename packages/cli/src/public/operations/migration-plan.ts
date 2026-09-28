@@ -370,6 +370,7 @@ function predicateSchemaAlignmentAction(
 /** Migration code for mechanical predicate namespace/alias repairs. */
 export const PREDICATE_SCHEMA_ALIGNMENT_CODE = "predicate_schema_alignment";
 
+// implements REQ-agent-guided-migration-orchestration, REQ-kibi-predicate-vocabulary-migration
 export function buildActionsFromCheck(input: {
   violations?: readonly Readonly<Record<string, unknown>>[];
   qualityDiagnostics?: readonly Readonly<Record<string, unknown>>[];

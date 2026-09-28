@@ -1783,6 +1783,7 @@ async function executeApplyPlanUnlocked(
   };
 }
 
+// implements REQ-agent-guided-migration-orchestration, REQ-cli-canonical-runtime, REQ-KIBI-BOOTSTRAP-PLAN, REQ-kibi-change-to-proof-plan-compiler, REQ-kibi-predicate-vocabulary-migration
 export async function executeApplyPlan(
   args: ApplyPlanArgs,
   context: OperationContext,
