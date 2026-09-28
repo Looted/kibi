@@ -128,7 +128,7 @@ For normative requirements that should participate in contradiction checks:
 For project-local domain ontology claims:
 - Before writing ontology prose, spell out the requirement claim and call `kb_suggest_predicates` to get ranked predicate candidates.
 - Prefer applying the returned `fact_kind: predicate` plan and `requires_predicate` relationship when a candidate fits.
-- Use `fact_kind: predicate_schema` to define allowed predicate signatures.
+- Use `fact_kind: predicate_schema` to define allowed predicate signatures. Close arguments that have a natural shared vocabulary with `argument_constants` (and `argument_aliases` for older spellings); reuse declared constants instead of minting new atoms.
 - Use `fact_kind: predicate` to encode ground predicate claims with `predicate_name`, `predicate_args`, `canonical_key`, and optional `polarity: assert|deny`.
 - Link requirement -> `fact_kind: predicate` via `requires_predicate`.
 - Do not replace predicate facts with prose when a suitable predicate schema exists; use `observation` with `review:ontology-gap` when no predicate fits.

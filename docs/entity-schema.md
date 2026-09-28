@@ -547,7 +547,7 @@ Facts support two authoring lanes:
   - `observation`
   - `meta`
 - **Ontology lane** for project-local predicate modeling
-  - `predicate_schema`: defines an allowed predicate signature; requires `predicate_name`, `predicate_arity`, `argument_names`, and `argument_types`
+  - `predicate_schema`: defines an allowed predicate signature; requires `predicate_name`, `predicate_arity`, `argument_names`, and `argument_types`. May close argument vocabularies with `argument_constants` (allowed values keyed by argument name) and `argument_aliases` (legacy spellings keyed by argument name, each mapped to a declared constant); unlisted arguments stay open
   - `predicate`: stores a ground predicate claim; requires `predicate_name`, non-empty `predicate_args`, and `canonical_key`; may use `polarity: assert` or `deny`; logical coverage also uses the paired `claim_key` and `claim_text` provenance fields
 - **Logic lane** for conditional and modal requirements
   - `rule_schema`: declares the stable `kibi.logic.v1` signature used by rule facts

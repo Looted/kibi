@@ -107,3 +107,128 @@ describe("predicate argument vocabularies", () => {
     expect(predicateCanonicalKey("p", ["a", "b"])).toBe("p(a,b)");
   });
 });
+
+describe("vocabulary enforcement at write and modeling time", () => {
+  const schemaRow =
+    '[[\'FACT-SCHEMA-CHECK-FINDING-POLICY\',\'fact\',[fact_kind=predicate_schema,predicate_name="check_finding_policy",argument_names=["rule","finding","severity"],argument_constants="{\\"severity\\":[\\"warning\\",\\"info\\"]}",argument_aliases="{\\"severity\\":{\\"warn\\":\\"warning\\"}}"]]]';
+
+  function prologWith(results: string) {
+    const goals: string[] = [];
+    return {
+      goals,
+      prolog: {
+        query: async (goal: string) => {
+          goals.push(goal);
+          return { success: true, bindings: { Results: results } };
+        },
+      },
+    };
+  }
+
+  const fact = (severity: string) => ({
+    type: "fact",
+    id: "FACT-NEW",
+    fact_kind: "predicate",
+    predicate_namespace: "kibi.checks",
+    predicate_name: "check_finding_policy",
+    predicate_args: ["domain_redundancy", "same_signature", severity],
+  });
+
+  test("upsert accepts declared constants and looks up the exact signature", async () => {
+    const { assertPredicateArgumentVocabulary } = await import(
+      "../../src/operations/mutation/predicate-vocabulary-guard.js"
+    );
+    const { prolog, goals } = prologWith(schemaRow);
+    await assertPredicateArgumentVocabulary(prolog, fact("warning"));
+    expect(goals[0]).toContain("Name == check_finding_policy");
+    expect(goals[0]).toContain("Namespace == 'kibi.checks'");
+    expect(goals[0]).toContain("Arity =:= 3");
+  });
+
+  test("upsert rejects aliases and undeclared values with the constant to use", async () => {
+    const { assertPredicateArgumentVocabulary } = await import(
+      "../../src/operations/mutation/predicate-vocabulary-guard.js"
+    );
+    await expect(
+      assertPredicateArgumentVocabulary(
+        prologWith(schemaRow).prolog,
+        fact("warn"),
+      ),
+    ).rejects.toThrow(
+      "argument severity uses alias warn; use the declared constant warning",
+    );
+    await expect(
+      assertPredicateArgumentVocabulary(
+        prologWith(schemaRow).prolog,
+        fact("fatal"),
+      ),
+    ).rejects.toThrow(
+      "argument severity value fatal is not declared by FACT-SCHEMA-CHECK-FINDING-POLICY; allowed: warning, info",
+    );
+  });
+
+  test("facts without a closed schema and non-predicate entities pass untouched", async () => {
+    const { assertPredicateArgumentVocabulary } = await import(
+      "../../src/operations/mutation/predicate-vocabulary-guard.js"
+    );
+    const empty = prologWith("[]");
+    await assertPredicateArgumentVocabulary(empty.prolog, fact("anything"));
+    const untouched = prologWith(schemaRow);
+    await assertPredicateArgumentVocabulary(untouched.prolog, {
+      type: "req",
+      id: "REQ-x",
+    });
+    expect(untouched.goals).toEqual([]);
+  });
+
+  test("suggestions bind aliases to constants and leave undeclared values unbound", async () => {
+    const { buildSuggestion } = await import(
+      "../../src/operations/modeling/predicate-applyplan.js"
+    );
+    const candidate = {
+      id: "FACT-SCHEMA-CHECK-FINDING-POLICY",
+      predicate_name: "check_finding_policy",
+      title: "Check finding policy",
+      description: "A check rule reports a finding class at a severity.",
+      argument_names: ["rule", "finding", "severity"],
+      argument_types: ["check_rule", "finding_class", "diagnostic_severity"],
+      argument_constants: { severity: ["warning", "info"] },
+      argument_aliases: { severity: { warn: "warning" } },
+      keywords: [],
+      examples: [],
+      tags: [],
+    };
+    const text = "Domain redundancy reports same-signature findings.";
+    const alias = buildSuggestion(candidate, text, "domain_redundancy", 1, {
+      rule: "domain_redundancy",
+      finding: "same_signature",
+      severity: "warn",
+    });
+    expect(alias.predicate_args).toEqual([
+      "domain_redundancy",
+      "same_signature",
+      "warning",
+    ]);
+    expect(alias.canonical_key).toBe(
+      "check_finding_policy(domain_redundancy,same_signature,warning)",
+    );
+    expect(alias.unbound_arguments).not.toContain("severity");
+
+    const undeclared = buildSuggestion(
+      candidate,
+      text,
+      "domain_redundancy",
+      1,
+      {
+        rule: "domain_redundancy",
+        finding: "same_signature",
+        severity: "fatal",
+      },
+    );
+    expect(undeclared.binding_status).toBe("incomplete");
+    expect(undeclared.unbound_arguments).toContain("severity");
+    expect(undeclared.schema.argument_constants).toEqual({
+      severity: ["warning", "info"],
+    });
+  });
+});
