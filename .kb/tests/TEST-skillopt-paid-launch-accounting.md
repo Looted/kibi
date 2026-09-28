@@ -28,38 +28,6 @@ proof_contract:
   success_policy: all_required_first_attempt
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-3082a1f9cd37db0c83b07b4b
-    test_id: TEST-skillopt-paid-launch-accounting
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 877cc6202786943ab48c6e5914d1be7d4635e7e4450368b7cbb1cfbd537aeded
-    environment_hash: 75a5663e12b090d190cceb0443c194b5382c42227c663ee5fee9994dbda6ea62
-    started_at: '2026-09-06T10:13:05.534Z'
-    finished_at: '2026-09-06T11:02:05.222Z'
-    artifact_digest: 3da3eeee7d1f0f1eba5c4f27b12c053492661a41debcb4cc9944e6b22926a852
-    contract_hash: 810b6374f2a76c2c74f29906eda2835317f5fc9ef271cd84697bf77daa23d2ab
-    fingerprint: a8a972ce00cf9a0129592f57ab1583ed4b1799c04064b7899ac15f6ec9f19826
-    fingerprint_components:
-      contract: 810b6374f2a76c2c74f29906eda2835317f5fc9ef271cd84697bf77daa23d2ab
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: passed
-    proof_results:
-      - symbol_id: SYM-e2e-test-skillopt-paid-launch-accounting
-        target: default
-        outcome: passed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-  - version: kibi.proof-receipt.v1
     receipt_id: PR-f639e081779c12b193134c4b
     test_id: TEST-skillopt-paid-launch-accounting
     scope: end_to_end
@@ -1709,6 +1677,39 @@ proof_receipts:
       - symbol_id: SYM-e2e-test-skillopt-paid-launch-accounting
         target: default
         reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +110 more'
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-cf696280abbbdf9b7badc75e
+    test_id: TEST-skillopt-paid-launch-accounting
+    scope: integration
+    outcome: passed
+    code_snapshot: 7b45bde8c396e1889cbe888a55e3fe6409830b71c60ef6571946b110f7fb687a
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-28T12:30:38.786Z'
+    finished_at: '2026-09-28T12:55:46.304Z'
+    artifact_digest: 87c736584ea4f2d40913bfa77b642fc0971411c80c0e8ea721be854488754514
+    contract_hash: 810b6374f2a76c2c74f29906eda2835317f5fc9ef271cd84697bf77daa23d2ab
+    binding_hash: 78b2523129dafb7dee2ab69d99b3060894dbb387f0d864a71d4fc4646645a23c
+    fingerprint: a8a972ce00cf9a0129592f57ab1583ed4b1799c04064b7899ac15f6ec9f19826
+    fingerprint_components:
+      contract: 810b6374f2a76c2c74f29906eda2835317f5fc9ef271cd84697bf77daa23d2ab
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-skillopt-paid-launch-accounting
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 The model-gateway suites verify exact request-ID attribution under equal request hashes, byte-identical same-request retries, one-use capability replay rejection, approved-pricing binding, pinned CA/TLS/SNI/IP/egress policy, and request, invoice, and authorization ceilings.
 

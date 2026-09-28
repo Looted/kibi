@@ -870,6 +870,39 @@ proof_receipts:
       - symbol_id: SYM-e2e-test-cli-strict-modeling-surface
         target: default
         reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +110 more'
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-9795745d623920e881897f0a
+    test_id: TEST-e2e-strict-modeling-surface
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: 7b45bde8c396e1889cbe888a55e3fe6409830b71c60ef6571946b110f7fb687a
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-28T12:30:38.786Z'
+    finished_at: '2026-09-28T12:55:46.304Z'
+    artifact_digest: 87c736584ea4f2d40913bfa77b642fc0971411c80c0e8ea721be854488754514
+    contract_hash: 62bb341ec3ac05030910a1c9ef20b04db9a017531d44d6c618742400599fcf73
+    binding_hash: e03f3335488e48ab0dad3514a1a5ee039e0b396a18f08a1a57fac7bacfc129ec
+    fingerprint: 740ddc7856ffc78f07747b107d7ac80da29ce52d84cd834fbfb45caa6f13652c
+    fingerprint_components:
+      contract: 62bb341ec3ac05030910a1c9ef20b04db9a017531d44d6c618742400599fcf73
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-cli-strict-modeling-surface
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 
 Packed end-to-end regression for packed cli model-requirement returns strict and observation write sets.
