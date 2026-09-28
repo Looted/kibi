@@ -1,4 +1,5 @@
 % PLUnit test suite for kb.pl
+:- encoding(utf8).
 :- use_module('../src/kb.pl').
 :- use_module('../src/checks.pl').
 :- use_module('../src/semantic_quality.pl').
