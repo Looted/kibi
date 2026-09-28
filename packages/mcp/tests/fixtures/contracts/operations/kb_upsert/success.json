@@ -112,6 +112,29 @@
               },
               "type": "array"
             },
+            "argument_aliases": {
+              "additionalProperties": {
+                "additionalProperties": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              "description": "predicate_schema only: legacy spellings keyed by argument name, each mapped to a declared constant, e.g. {\"severity\": {\"warn\": \"warning\"}}. kibi migrate rewrites facts that still use an alias.",
+              "type": "object"
+            },
+            "argument_constants": {
+              "additionalProperties": {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "description": "predicate_schema only: allowed constants keyed by argument name, e.g. {\"severity\": [\"warning\", \"info\"]}. Predicate facts must use a listed constant for those arguments; unlisted arguments stay open.",
+              "type": "object"
+            },
             "argument_descriptions": {
               "description": "Optional ordered argument explanations.",
               "items": {

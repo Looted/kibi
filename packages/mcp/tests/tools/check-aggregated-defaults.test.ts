@@ -15,6 +15,14 @@ function emptyFullQualityResult(goal: string) {
     };
   }
 
+  if (goal.includes("kb_query_entities")) {
+    // Paged entity reads, such as the predicate-schema conformance fact scan.
+    return {
+      success: true,
+      bindings: { Results: "[]", Count: "0" },
+    };
+  }
+
   if (goal.includes("kb_relationship")) {
     return {
       success: true,
@@ -78,7 +86,7 @@ describe("MCP check aggregated defaults", () => {
             diagnostic.blocking === false,
         ),
       ).toBe(true);
-      expect(query).toHaveBeenCalledTimes(20);
+      expect(query).toHaveBeenCalledTimes(21);
     } finally {
       rmSync(workspaceRoot, { recursive: true, force: true });
     }
@@ -137,7 +145,7 @@ describe("MCP check aggregated defaults", () => {
             diagnostic.blocking === false,
         ),
       ).toBe(true);
-      expect(query).toHaveBeenCalledTimes(20);
+      expect(query).toHaveBeenCalledTimes(21);
     } finally {
       rmSync(workspaceRoot, { recursive: true, force: true });
     }
