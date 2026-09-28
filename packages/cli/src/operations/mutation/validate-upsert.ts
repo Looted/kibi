@@ -12,6 +12,7 @@ import {
   assertSemanticInventoryBoundary,
   validateSemanticInventoryBoundary,
 } from "../semantic-advisor/ingestion-boundary.js";
+import { assertPredicateArgumentVocabulary } from "./predicate-vocabulary-guard.js";
 import {
   validateLiveRelationshipTargets,
   validateRelationshipSources,
@@ -83,6 +84,7 @@ export async function executeValidateUpsert(
         { ...input, relationships },
         relationships,
       );
+      await assertPredicateArgumentVocabulary(context.prolog, validated.entity);
     }
     // Style warnings apply only to entities this upsert would create, so the
     // existence read happens only when the ID actually has a style issue.

@@ -17,6 +17,10 @@ export interface PredicateSchemaCandidate {
   argument_types: string[];
   /** Optional human-readable descriptions aligned with argument_names. */
   argument_descriptions?: string[];
+  /** Closed vocabularies: allowed constants keyed by argument name. */
+  argument_constants?: Record<string, string[]>;
+  /** Legacy spellings keyed by argument name, each mapped to a constant. */
+  argument_aliases?: Record<string, Record<string, string>>;
   keywords: string[];
   /** Human-language aliases and controlled paraphrase templates used for deterministic retrieval. */
   aliases?: string[];

@@ -1,4 +1,5 @@
 import { validateLogicIr } from "../../logic/ir.js";
+import { predicateVocabularyErrors } from "../modeling/predicate-vocabulary.js";
 
 const PROPERTY_VALUE_FIELDS = [
   "value_string",
@@ -129,6 +130,10 @@ export function validateFactModelingShape(
   const hints = factKindShapeHints(entity);
   if (hints.length > 0) {
     throw new Error(`Entity validation failed: ${hints.join("; ")}`);
+  }
+  const vocabularyErrors = predicateVocabularyErrors(entity);
+  if (vocabularyErrors.length > 0) {
+    throw new Error(`Entity validation failed: ${vocabularyErrors.join("; ")}`);
   }
   if (entity.type === "fact" && entity.fact_kind === "rule") {
     const validation = validateLogicIr(entity.rule_ir);

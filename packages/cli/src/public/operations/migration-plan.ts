@@ -319,6 +319,57 @@ export function migrationAction(
   return actionDefaults(input);
 }
 
+/**
+ * A predicate-schema-conformance finding whose repair is mechanical (move to
+ * the only matching schema namespace, rewrite declared aliases) becomes an
+ * automatic action carrying the exact kb_upsert input, so it is reviewable in
+ * the plan and replayable through either surface.
+ */
+// implements REQ-kibi-predicate-vocabulary-migration
+function predicateSchemaAlignmentAction(
+  diagnostic: Readonly<Record<string, unknown>>,
+): MigrationAction | null {
+  if (diagnostic.id !== "rule.predicate-schema-conformance") return null;
+  const evidence = isRecord(diagnostic.evidence) ? diagnostic.evidence : null;
+  const repair =
+    evidence !== null && isRecord(evidence.repair) ? evidence.repair : null;
+  if (
+    repair === null ||
+    repair.type !== "fact" ||
+    typeof repair.id !== "string" ||
+    !isRecord(repair.properties)
+  ) {
+    return null;
+  }
+  return migrationAction({
+    id: `predicate-schema-alignment-${repair.id}`,
+    code: PREDICATE_SCHEMA_ALIGNMENT_CODE,
+    category: "semantic",
+    safety: "automatic",
+    autoApplicable: true,
+    invocation: { kind: "operation", name: "kb_upsert", input: repair },
+    affectedEntityIds: [repair.id],
+    affectedFiles:
+      typeof diagnostic.source === "string" ? [diagnostic.source] : [],
+    postconditions: [
+      {
+        rule: "predicate-schema-conformance",
+        entityId: repair.id,
+        findings: 0,
+      },
+    ],
+    evidence: {
+      issue: evidence?.issue,
+      namespace: evidence?.namespace,
+      alignment: evidence?.alignment,
+      rewrites: evidence?.rewrites,
+    },
+  });
+}
+
+/** Migration code for mechanical predicate namespace/alias repairs. */
+export const PREDICATE_SCHEMA_ALIGNMENT_CODE = "predicate_schema_alignment";
+
 export function buildActionsFromCheck(input: {
   violations?: readonly Readonly<Record<string, unknown>>[];
   qualityDiagnostics?: readonly Readonly<Record<string, unknown>>[];
@@ -358,6 +409,11 @@ export function buildActionsFromCheck(input: {
         ? diagnostic.suggestion
         : "Review this quality diagnostic.";
     const blocking = diagnostic.blocking === true;
+    const predicateRepair = predicateSchemaAlignmentAction(diagnostic);
+    if (predicateRepair !== null) {
+      actions.push(predicateRepair);
+      continue;
+    }
     actions.push(
       migrationAction({
         id: `diagnostic-${id}-${entityId || "workspace"}-${index + 1}`,

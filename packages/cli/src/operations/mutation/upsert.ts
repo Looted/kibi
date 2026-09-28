@@ -30,6 +30,7 @@ import {
 } from "../semantic-advisor/ingestion-boundary.js";
 import type { SemanticAdvisorReceipt } from "../semantic-advisor/types.js";
 import { buildUpsertCommitGoal, formatUpsertError } from "./contradictions.js";
+import { assertPredicateArgumentVocabulary } from "./predicate-vocabulary-guard.js";
 import {
   existingRelationships,
   validateLiveRelationshipTargets,
@@ -355,6 +356,7 @@ export async function executeUpsert(
       { ...input, relationships },
       relationships,
     );
+    await assertPredicateArgumentVocabulary(prolog, validated.entity);
     if (context.fs !== undefined && context.sourceFirst !== false) {
       const existingRows = await loadEntities(prolog, {
         id: input.id,

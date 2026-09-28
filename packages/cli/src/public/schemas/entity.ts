@@ -531,6 +531,26 @@ const entitySchema: Record<string, unknown> = {
     aliases: { type: "array", items: { type: "string" } },
     examples: { type: "array", items: { type: "string" } },
     predicate_args: { type: "array", items: { type: "string" } },
+    // predicate_schema only: allowed constants per argument name. Arguments
+    // without an entry stay open; predicate facts must use a listed constant.
+    argument_constants: {
+      type: "object",
+      additionalProperties: {
+        type: "array",
+        minItems: 1,
+        uniqueItems: true,
+        items: { type: "string", minLength: 1 },
+      },
+    },
+    // predicate_schema only: legacy spellings per argument name, each mapped
+    // to one declared constant. kibi migrate rewrites facts that use them.
+    argument_aliases: {
+      type: "object",
+      additionalProperties: {
+        type: "object",
+        additionalProperties: { type: "string", minLength: 1 },
+      },
+    },
     rule_ir: { $ref: "#/$defs/logicRule" },
     rule_hash: { type: "string", pattern: "^[a-f0-9]{64}$" },
     rule_schema_id: { type: "string", minLength: 1 },
@@ -594,6 +614,8 @@ const entitySchema: Record<string, unknown> = {
             { required: ["aliases"] },
             { required: ["examples"] },
             { required: ["predicate_args"] },
+            { required: ["argument_constants"] },
+            { required: ["argument_aliases"] },
             { required: ["rule_ir"] },
             { required: ["rule_hash"] },
             { required: ["rule_schema_id"] },

@@ -52,6 +52,8 @@ const FACT_STRING_FIELDS = [
   "predicate_name",
   "predicate_namespace",
   "rule_ir",
+  "argument_constants",
+  "argument_aliases",
   "rule_hash",
   "rule_schema_id",
   "rule_name",
@@ -162,6 +164,8 @@ export interface ExtractedEntity {
   examples?: string[];
   predicate_args?: string[];
   rule_ir?: Record<string, unknown>;
+  argument_constants?: Record<string, string[]>;
+  argument_aliases?: Record<string, Record<string, string>>;
   rule_hash?: string;
   rule_schema_id?: string;
   rule_name?: string;

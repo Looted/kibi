@@ -190,4 +190,11 @@ export const GENERATED_RULES = [
     category: "integrity",
     diagnosticSeverity: "info",
   },
+  {
+    name: "predicate-schema-conformance",
+    description:
+      "Predicate facts match a predicate_schema (project-local, or the built-in catalog in the default namespace) and use its declared argument constants",
+    enforcementClass: "advisory",
+    category: "integrity",
+  },
 ] as const;

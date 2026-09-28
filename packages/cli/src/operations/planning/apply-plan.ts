@@ -10,10 +10,12 @@ import {
 } from "../../commands/branch.js";
 import { migrateCommand } from "../../commands/migrate.js";
 import { syncCommand } from "../../commands/sync.js";
+import { loadEntities } from "../../public/operations/discovery-entities.js";
 import { executeStatus } from "../../public/operations/discovery-executors.js";
 import {
   type MigrationAction,
   type MigrationPlan,
+  PREDICATE_SCHEMA_ALIGNMENT_CODE,
   migrationPlanHash,
 } from "../../public/operations/migration-plan.js";
 import { readMigrationConfigStatus } from "../../public/operations/migration-plan.js";
@@ -2075,9 +2077,61 @@ async function applyMigrationAction(
         throw new Error("Coordinate refresh did not complete successfully.");
       return;
     }
+    case PREDICATE_SCHEMA_ALIGNMENT_CODE:
+      await applyPredicateSchemaAlignment(action, context);
+      return;
     default:
       throw new Error(
         `Migration action '${action.code}' has no automatic executor.`,
       );
   }
+}
+
+/**
+ * Replay the planned kb_upsert for one predicate fact after confirming the
+ * fact still has the namespace and alias spellings the plan was built from.
+ */
+// implements REQ-kibi-predicate-vocabulary-migration
+async function applyPredicateSchemaAlignment(
+  action: MigrationAction,
+  context: OperationContext,
+): Promise<void> {
+  const invocation = action.invocation;
+  if (invocation.kind !== "operation" || invocation.name !== "kb_upsert")
+    throw new Error(
+      "Predicate schema alignment requires its planned kb_upsert invocation.",
+    );
+  const input = asUpsert(invocation.input as PlanStep);
+  if (input.type !== "fact")
+    throw new Error("Predicate schema alignment only rewrites fact entities.");
+  const prolog = context.prolog ?? (await context.ensureProlog?.());
+  if (!prolog)
+    throw new Error("Predicate schema alignment requires a Prolog runtime.");
+  const operationContext = { ...context, prolog, sourceFirst: true as const };
+  const [current] = await loadEntities(prolog, { type: "fact", id: input.id });
+  const evidence = action.evidence;
+  const currentNamespace =
+    typeof current?.predicate_namespace === "string" &&
+    current.predicate_namespace !== ""
+      ? current.predicate_namespace
+      : "default";
+  const currentArgs = Array.isArray(current?.predicate_args)
+    ? current.predicate_args
+    : [];
+  const rewrites = Array.isArray(evidence.rewrites) ? evidence.rewrites : [];
+  const unchanged =
+    current !== undefined &&
+    current.fact_kind === "predicate" &&
+    currentNamespace === evidence.namespace &&
+    rewrites.every(
+      (rewrite) =>
+        isRecord(rewrite) &&
+        typeof rewrite.index === "number" &&
+        currentArgs[rewrite.index] === rewrite.from,
+    );
+  if (!unchanged)
+    throw new Error(
+      `Predicate fact ${input.id} changed since planning; rerun kibi check and approve the new plan.`,
+    );
+  await executeUpsert(input, operationContext);
 }
