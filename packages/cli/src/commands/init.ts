@@ -244,8 +244,14 @@ export async function initCommand(
       if (!repoContext) {
         console.error("Warning: No git repository found, skipping hooks");
       } else if (!isRepositoryManagedHooksDir(repoContext)) {
+        // core.hooksPath is only the culprit when it is configured; the
+        // default hooks directory can also escape the repository through a
+        // symlink, and blaming a setting the operator never made misleads.
+        const cause = repoContext.hooksPathConfig
+          ? "core.hooksPath points outside this repository"
+          : "The Git hooks directory resolves outside this repository (for example through a symlink)";
         console.error(
-          `Warning: core.hooksPath points outside this repository (${repoContext.effectiveHooksDir}); refusing to install hooks into unrelated directories. Kibi enforcement stays OFF for this repository until the hooks path is repository-managed.`,
+          `Warning: ${cause} (${repoContext.effectiveHooksDir}); refusing to install hooks into unrelated directories. Kibi enforcement stays OFF for this repository until the hooks path is repository-managed.`,
         );
       } else {
         installGitHooks(repoContext.effectiveHooksDir, {

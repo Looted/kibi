@@ -110,6 +110,11 @@ import {
   prepareStagingEnvironment,
 } from "./sync/staging.js";
 
+// Manual deletion of a written-but-unstaged source leaves a recovery receipt
+// behind; sync refuses to guess, so the error must name the way out.
+const PENDING_SOURCE_RECOVERY_HINT =
+  " If the file was deleted on purpose, run 'kibi branch recover --apply' to rebuild the branch KB from the sources that remain.";
+
 export class SyncError extends Error {
   constructor(message: string) {
     super(message);
@@ -228,7 +233,9 @@ export function trackedRelationshipFiles(
           }
           continue;
         }
-        throw new SyncError(`Pending source is missing: ${relative}`);
+        throw new SyncError(
+          `Pending source is missing: ${relative}.${PENDING_SOURCE_RECOVERY_HINT}`,
+        );
       }
       const actual = createHash("sha256")
         .update(readFileSync(absolute))
