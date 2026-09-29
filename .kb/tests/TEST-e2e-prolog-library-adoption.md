@@ -936,6 +936,39 @@ proof_receipts:
         binding: aggregate_run
         attempts:
           status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-c4bf471f1c0a886099ff7a15
+    test_id: TEST-e2e-prolog-library-adoption
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a3fe505618ff579980a6f185d54387cd45dcf129ae2597ceaae05cd749e374c4
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-29T16:59:00.539Z'
+    finished_at: '2026-09-29T17:20:23.357Z'
+    artifact_digest: 0377648637a4a91448a458efbd8e2b41b4a87db69d5b5bb5b0e96f31624c281b
+    contract_hash: 1907394f271b961d238412efab3edf446e805cc77227d728ff5b157e40b14edc
+    binding_hash: 9fd2ac33d27980b3f2107d81aa2b03b1a74af6197b2aa6b90e433810f88636af
+    fingerprint: 9142d6dfcc2e65a03d5cee0e697ae9dda0ec9e06ffc7502ead7ca3a2760d1338
+    fingerprint_components:
+      contract: 1907394f271b961d238412efab3edf446e805cc77227d728ff5b157e40b14edc
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-e2e-test-prolog-library-adoption
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
 ---
 
 Packed end-to-end regression for prolog library adoption keeps local behavior with bounded remote sparql.

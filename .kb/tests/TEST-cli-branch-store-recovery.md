@@ -22,38 +22,6 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-f6c2542ea956710fbf577f64
-    test_id: TEST-cli-branch-store-recovery
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 93f5f0dec46e04618b4c7514f75527317c006ff103eb250884af156e885de263
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-09-08T22:25:21.260Z'
-    finished_at: '2026-09-08T23:59:14.030Z'
-    artifact_digest: 5e672ca9a5db1ab9542e79720f36a07a82650e12bd2d2a4066af2d1f8bdeb09e
-    contract_hash: cda95051897bf6845a0c48154d5b50b8151327f2af0cd08087fcae5b9d1ecefd
-    fingerprint: ee53ad48db3b932dc6de445243f0ba6daf8eccce144f17b391b96067211ce0df
-    fingerprint_components:
-      contract: cda95051897bf6845a0c48154d5b50b8151327f2af0cd08087fcae5b9d1ecefd
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: passed
-    proof_results:
-      - symbol_id: SYM-test-packed-exact-branch-recovery
-        target: default
-        outcome: passed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-  - version: kibi.proof-receipt.v1
     receipt_id: PR-b537cb46baf4cf4514787c2a
     test_id: TEST-cli-branch-store-recovery
     scope: end_to_end
@@ -1680,6 +1648,39 @@ proof_receipts:
     artifact_digest: 78f5c2131825423042b2829117ab404607fdd85de8edc3d4042fa4b5f7c820a8
     contract_hash: cda95051897bf6845a0c48154d5b50b8151327f2af0cd08087fcae5b9d1ecefd
     binding_hash: 0cc38d64b7175affba3cfe01370a53006faf4319925d16f3186aa11f6896de42
+    fingerprint: ee53ad48db3b932dc6de445243f0ba6daf8eccce144f17b391b96067211ce0df
+    fingerprint_components:
+      contract: cda95051897bf6845a0c48154d5b50b8151327f2af0cd08087fcae5b9d1ecefd
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-test-packed-exact-branch-recovery
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-fcd2e66a7068d31bcaf618c9
+    test_id: TEST-cli-branch-store-recovery
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a3fe505618ff579980a6f185d54387cd45dcf129ae2597ceaae05cd749e374c4
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-29T16:59:00.539Z'
+    finished_at: '2026-09-29T17:20:23.357Z'
+    artifact_digest: 0377648637a4a91448a458efbd8e2b41b4a87db69d5b5bb5b0e96f31624c281b
+    contract_hash: cda95051897bf6845a0c48154d5b50b8151327f2af0cd08087fcae5b9d1ecefd
+    binding_hash: 6234e5b0d26bebdc9050309c677bb038a314762ed967028c3c1a101dad20e73a
     fingerprint: ee53ad48db3b932dc6de445243f0ba6daf8eccce144f17b391b96067211ce0df
     fingerprint_components:
       contract: cda95051897bf6845a0c48154d5b50b8151327f2af0cd08087fcae5b9d1ecefd

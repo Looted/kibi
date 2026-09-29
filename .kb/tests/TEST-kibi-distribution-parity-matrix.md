@@ -28,38 +28,6 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-1deb20718f637353bded6273
-    test_id: TEST-kibi-distribution-parity-matrix
-    scope: end_to_end
-    outcome: passed
-    code_snapshot: 93f5f0dec46e04618b4c7514f75527317c006ff103eb250884af156e885de263
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-09-08T22:25:21.260Z'
-    finished_at: '2026-09-08T23:59:14.030Z'
-    artifact_digest: 5e672ca9a5db1ab9542e79720f36a07a82650e12bd2d2a4066af2d1f8bdeb09e
-    contract_hash: 43234b210205cc387390fbfa17dbb1c0e24034c7f8caaa64cbb546fff4e23035
-    fingerprint: 1a2ebcfa3a72e49e439ad2ee57852a0051ffef7bb0478a4bca8a6d80dd9996f4
-    fingerprint_components:
-      contract: 43234b210205cc387390fbfa17dbb1c0e24034c7f8caaa64cbb546fff4e23035
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: passed
-    proof_results:
-      - symbol_id: SYM-test-packed-distribution-parity
-        target: default
-        outcome: passed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-  - version: kibi.proof-receipt.v1
     receipt_id: PR-0c5193b15feaeffaa27bcc15
     test_id: TEST-kibi-distribution-parity-matrix
     scope: end_to_end
@@ -1684,6 +1652,39 @@ proof_receipts:
     started_at: '2026-09-29T12:17:13.830Z'
     finished_at: '2026-09-29T12:51:35.860Z'
     artifact_digest: 78f5c2131825423042b2829117ab404607fdd85de8edc3d4042fa4b5f7c820a8
+    contract_hash: 43234b210205cc387390fbfa17dbb1c0e24034c7f8caaa64cbb546fff4e23035
+    binding_hash: a814ae923de9d4366384f319b994182bf40e9ae7ab2d016bfbd9b3893b635496
+    fingerprint: 1a2ebcfa3a72e49e439ad2ee57852a0051ffef7bb0478a4bca8a6d80dd9996f4
+    fingerprint_components:
+      contract: 43234b210205cc387390fbfa17dbb1c0e24034c7f8caaa64cbb546fff4e23035
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-test-packed-distribution-parity
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-71a8771c78633ed812971ceb
+    test_id: TEST-kibi-distribution-parity-matrix
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a3fe505618ff579980a6f185d54387cd45dcf129ae2597ceaae05cd749e374c4
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-29T16:59:00.539Z'
+    finished_at: '2026-09-29T17:20:23.357Z'
+    artifact_digest: 0377648637a4a91448a458efbd8e2b41b4a87db69d5b5bb5b0e96f31624c281b
     contract_hash: 43234b210205cc387390fbfa17dbb1c0e24034c7f8caaa64cbb546fff4e23035
     binding_hash: a814ae923de9d4366384f319b994182bf40e9ae7ab2d016bfbd9b3893b635496
     fingerprint: 1a2ebcfa3a72e49e439ad2ee57852a0051ffef7bb0478a4bca8a6d80dd9996f4

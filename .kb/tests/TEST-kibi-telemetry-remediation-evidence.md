@@ -28,42 +28,6 @@ proof_contract:
 type: test
 proof_receipts:
   - version: kibi.proof-receipt.v1
-    receipt_id: PR-3614dc594c51fa580a57a935
-    test_id: TEST-kibi-telemetry-remediation-evidence
-    scope: end_to_end
-    outcome: failed
-    code_snapshot: 93f5f0dec46e04618b4c7514f75527317c006ff103eb250884af156e885de263
-    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
-    started_at: '2026-09-08T11:33:22.904Z'
-    finished_at: '2026-09-08T12:49:16.395Z'
-    artifact_digest: 2530f959a42f3cfa57d657b0d37ca5b35e47c46afda172d202b7e47e98f2b4ce
-    contract_hash: 6debbc187218ca97f73dfdab81233e24fad2f517d78137438cd0ac5cf24b6b39
-    fingerprint: 0b3a78c605209aa605da6e31c4a8f8c314c1e9549e493b905416efc21a9530d6
-    fingerprint_components:
-      contract: 6debbc187218ca97f73dfdab81233e24fad2f517d78137438cd0ac5cf24b6b39
-      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
-      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
-      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
-      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
-    integration_id: self-proof
-    producer:
-      name: kibi-command-producer
-    command_argv:
-      - node
-      - scripts/run-proof-producer.mjs
-    run_outcome: failed
-    proof_results:
-      - symbol_id: SYM-test-packed-telemetry-remediation
-        target: default
-        outcome: failed
-        binding: aggregate_run
-        attempts:
-          status: unavailable
-    gaps:
-      - symbol_id: SYM-test-packed-telemetry-remediation
-        target: default
-        reason: 'run did not pass (outcome: failed); this obligation''s own result outcome is ''failed''; failing member result(s): SYM-e2e-test-001 (failed), SYM-e2e-test-003 (failed), SYM-e2e-packed-cli-check (failed), SYM-e2e-test-005 (failed), SYM-test-packed-default-branch-sync-hooks (failed) +83 more'
-  - version: kibi.proof-receipt.v1
     receipt_id: PR-eca23f4e3f1b2d08fdb101a9
     test_id: TEST-kibi-telemetry-remediation-evidence
     scope: end_to_end
@@ -1688,6 +1652,39 @@ proof_receipts:
     started_at: '2026-09-29T12:17:13.830Z'
     finished_at: '2026-09-29T12:51:35.860Z'
     artifact_digest: 78f5c2131825423042b2829117ab404607fdd85de8edc3d4042fa4b5f7c820a8
+    contract_hash: 6debbc187218ca97f73dfdab81233e24fad2f517d78137438cd0ac5cf24b6b39
+    binding_hash: ffae307095a9f713e82a97b508701dbab91ed733230e8db13d374a77cc811886
+    fingerprint: 0b3a78c605209aa605da6e31c4a8f8c314c1e9549e493b905416efc21a9530d6
+    fingerprint_components:
+      contract: 6debbc187218ca97f73dfdab81233e24fad2f517d78137438cd0ac5cf24b6b39
+      integration: 41d3ed0ab7afab1838edccfd3c24450bd77214cd1a41cdc82378e69a99b2e84f
+      command: 7c365191a875641a88c83d96feedbb95a8c54007a2602b1eaa2e7742d2ae0e24
+      bindings: 4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945
+      producer: 3f1ef45ea6f7a150dff44ba43ea098e729d8dcd4e35f67bb455191a7f38609be
+    integration_id: self-proof
+    producer:
+      name: kibi-command-producer
+    command_argv:
+      - node
+      - scripts/run-proof-producer.mjs
+    run_outcome: passed
+    proof_results:
+      - symbol_id: SYM-test-packed-telemetry-remediation
+        target: default
+        outcome: passed
+        binding: aggregate_run
+        attempts:
+          status: unavailable
+  - version: kibi.proof-receipt.v1
+    receipt_id: PR-199591add01ae3235755cdf6
+    test_id: TEST-kibi-telemetry-remediation-evidence
+    scope: end_to_end
+    outcome: passed
+    code_snapshot: a3fe505618ff579980a6f185d54387cd45dcf129ae2597ceaae05cd749e374c4
+    environment_hash: 8c28bfe97999f50f6b499d06d26c16ce63bd84a450e406e91985a733468b47c7
+    started_at: '2026-09-29T16:59:00.539Z'
+    finished_at: '2026-09-29T17:20:23.357Z'
+    artifact_digest: 0377648637a4a91448a458efbd8e2b41b4a87db69d5b5bb5b0e96f31624c281b
     contract_hash: 6debbc187218ca97f73dfdab81233e24fad2f517d78137438cd0ac5cf24b6b39
     binding_hash: ffae307095a9f713e82a97b508701dbab91ed733230e8db13d374a77cc811886
     fingerprint: 0b3a78c605209aa605da6e31c4a8f8c314c1e9549e493b905416efc21a9530d6
