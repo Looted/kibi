@@ -321,6 +321,39 @@ test(proof_contract_projection_survives_reload, [setup(cleanup_test_kb), cleanup
                Source = ^^(".kb/tests/TEST-RELOADED.md", _))),
     assertion(\+ memberchk(proof_receipts=_, Projected)).
 
+% SWI-Prolog's rdf_db cannot write a journal for a graph whose URI is ~230
+% characters or longer, which broke every write in a deeply nested workspace.
+% A journaled store at such a path must still commit and reload its data.
+test(journaled_store_survives_long_workspace_path, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
+    test_kb_dir(Base),
+    length(Filler, 60),
+    maplist(=(0'x), Filler),
+    atom_codes(Segment, Filler),
+    atomic_list_concat([Base, Segment, Segment, Segment, Segment], '/', Dir),
+    atom_length(Dir, Length),
+    assertion(Length > 250),
+    make_directory_path(Dir),
+    atom_concat(Dir, '/storage.json', Marker),
+    setup_call_cleanup(
+        open(Marker, write, Out),
+        format(Out, '{"format":"kibi.rdf-journal.v1","schemaVersion":1}~n', []),
+        close(Out)),
+    kb_attach(Dir),
+    kb_commit_upsert(req, [
+        id='long-path-req',
+        title="Long path entity",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ], [], true, ChangeKind),
+    assertion(ChangeKind == created),
+    kb_detach,
+    kb_attach(Dir),
+    kb_entity('long-path-req', Type, _),
+    kb_detach,
+    assertion(Type == req).
+
 :- end_tests(kb_persistence).
 
 :- begin_tests(kb_entity_memo).

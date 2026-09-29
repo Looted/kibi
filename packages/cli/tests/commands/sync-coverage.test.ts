@@ -173,7 +173,7 @@ describe("syncCommand write, cache, and pending-receipt paths", () => {
       "b".repeat(64),
     );
     await expect(syncCommand({ workspaceRoot: cwd })).rejects.toThrow(
-      /Pending source is missing/,
+      /Pending source is missing: \.kb\/relationships\/missing\.yaml\..*kibi branch recover --apply/,
     );
   });
 

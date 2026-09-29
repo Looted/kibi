@@ -239,6 +239,22 @@ describe("kibi init repository-context fixes", () => {
     expect(existsSync(path.join(externalHooks, "post-rewrite"))).toBe(false);
   }, 180000);
 
+  test("init names the symlink, not core.hooksPath, when the default hooks directory escapes", () => {
+    const repo = makeRepo("default-hooks-symlink");
+    const externalHooks = path.join(tmpRoot, "external-default-hooks");
+    mkdirSync(externalHooks, { recursive: true });
+    rmSync(path.join(repo, ".git/hooks"), { recursive: true, force: true });
+    symlinkSync(externalHooks, path.join(repo, ".git/hooks"));
+
+    const output = kibi("init", repo);
+
+    expect(output).toContain(
+      "The Git hooks directory resolves outside this repository",
+    );
+    expect(output).not.toContain("core.hooksPath points outside");
+    expect(readdirSync(externalHooks)).toEqual([]);
+  }, 180000);
+
   test("checks the nearest existing ancestor when the hooks directory is missing", () => {
     const repo = makeRepo("missing-symlink-hooks");
     const externalParent = path.join(tmpRoot, "external-missing-hooks");

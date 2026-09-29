@@ -114,7 +114,9 @@ function pendingSourcePaths(
             });
             continue;
           }
-          throw new Error(`Pending source is missing: ${relative}`);
+          throw new Error(
+            `Pending source is missing: ${relative}. If the file was deleted on purpose, run 'kibi branch recover --apply' to rebuild the branch KB from the sources that remain.`,
+          );
         }
         const actual = createHash("sha256")
           .update(readFileSync(absolute))

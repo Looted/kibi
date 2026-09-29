@@ -76,6 +76,7 @@
 :- use_module(library(thread)).
 :- use_module(library(filesex)).
 :- use_module(library(readutil)).
+:- use_module(library(sha), [sha_hash/3, hash_atom/2]).
 :- use_module(library(http/json)).
 :- use_module(library(aggregate), [aggregate_all/3]).
 :- use_module(library(lists), [sum_list/2]).
@@ -201,8 +202,22 @@ kb_attach_journaled(Directory) :-
     load_kb_pl_files(Directory),
     kb_rebuild_indexes.
 
+% SWI-Prolog's rdf_db fails to write journals ("invalid term_t ... out of
+% range") for graphs whose URI is roughly 230 characters or longer.  Store
+% paths inside deep workspaces reach that length, so those stores use a short
+% digest-based graph URI; shorter paths keep the file:// URI they always had.
+journal_expected_graph_uri(Directory, Expected) :-
+    atom_concat('file://', Directory, FileURI),
+    atom_length(FileURI, Length),
+    (   Length =< 200
+    ->  Expected = FileURI
+    ;   sha_hash(Directory, Hash, [algorithm(sha1)]),
+        hash_atom(Hash, Digest),
+        atom_concat('urn:kibi:store:', Digest, Expected)
+    ).
+
 journal_graph_uri(Directory, GraphURI) :-
-    atom_concat('file://', Directory, Expected),
+    journal_expected_graph_uri(Directory, Expected),
     (   rdf_graph(Expected)
     ->  GraphURI = Expected
     ;   findall(G,
