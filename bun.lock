@@ -17,6 +17,7 @@
         "kibi-cli": "workspace:*",
         "kibi-mcp": "workspace:*",
         "kibi-plugin-jev": "workspace:*",
+        "marked": "^17.0.1",
         "mitata": "^1.0.34",
         "semver": "^7.8.5",
         "typescript": "^5.9.3",

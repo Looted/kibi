@@ -1310,5 +1310,18 @@
         "documentation/tests/e2e/packed/predicate-vocabulary-migration.test.ts"
       ]
     ]
+  },
+  {
+    "test_id": "TEST-docs-site-pages",
+    "steps": [
+      [
+        "bun",
+        "test",
+        "--retry=0",
+        "--timeout",
+        "120000",
+        "./packages/cli/tests/docs-site-pages.test.ts"
+      ]
+    ]
   }
 ]
