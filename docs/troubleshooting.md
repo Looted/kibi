@@ -21,7 +21,7 @@ Kibi is in beta. Package upgrades do not require deleting the knowledge base. `k
    kibi migrate --yes
    ```
 
-Migration upgrades entity schemas and the on-disk layout, including a leftover `documentation/` tree or `.kb/config.json`. It keeps authored knowledge. It does not wipe `.kb/`.
+Migration upgrades entity schemas and the on-disk layout, including a leftover `documentation/` tree or `.kb/config.json`. It keeps authored knowledge. It does not wipe `.kb/`. When a predicate fact is in the wrong namespace or still uses an old argument spelling, the same plan can move it to the only matching schema and rewrite that spelling to the declared constant. Review the plan hash before applying. Repairs that need a judgment stay as review items.
 
 If the compiled store for this branch is incomplete or unreadable, preview a rebuild before applying it. Recovery recompiles that store from authored sources and moves the previous bytes under `.kb/recovery/`. See [kibi branch](cli-reference.md#kibi-branch).
 

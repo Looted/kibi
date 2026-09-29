@@ -43229,6 +43229,8 @@ symbols:
     sourceFile: docs-site/theme.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
       - type: implements
         target: REQ-docs-site-pages
   - id: SYM-docs-site-theme-PageShell
@@ -43237,6 +43239,8 @@ symbols:
     sourceFile: docs-site/theme.ts
     symbol_role: type-shape
     relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
       - type: implements
         target: REQ-docs-site-pages
   - id: SYM-docs-site-theme-escapeHtml
@@ -43245,6 +43249,8 @@ symbols:
     sourceFile: docs-site/theme.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
       - type: implements
         target: REQ-docs-site-pages
   - id: SYM-docs-site-theme-landingContent
@@ -43253,6 +43259,8 @@ symbols:
     sourceFile: docs-site/theme.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
       - type: implements
         target: REQ-docs-site-pages
   - id: SYM-docs-site-theme-layout
@@ -43261,6 +43269,8 @@ symbols:
     sourceFile: docs-site/theme.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
       - type: implements
         target: REQ-docs-site-pages
   - id: SYM-docs-site-theme-prepareMark
@@ -43269,6 +43279,8 @@ symbols:
     sourceFile: docs-site/theme.ts
     symbol_role: behavioral
     relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
       - type: implements
         target: REQ-docs-site-pages
   - id: SYM-docs-site-theme-clientScript
@@ -43278,6 +43290,8 @@ symbols:
     symbol_role: module
     granularity_reason: module-level-behavior
     relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
       - type: implements
         target: REQ-docs-site-pages
   - id: SYM-docs-site-theme-styles
@@ -43287,5 +43301,16 @@ symbols:
     symbol_role: module
     granularity_reason: module-level-behavior
     relationships:
+      - type: covered_by
+        target: TEST-docs-site-pages
       - type: implements
         target: REQ-docs-site-pages
+  - id: SYM-docs-site-pages-build
+    title: Documentation site pages verifier
+    status: active
+    sourceFile: packages/cli/tests/docs-site-pages.test.ts
+    granularity_reason: test-suite
+    symbol_role: behavioral
+    relationships:
+      - type: executable_for
+        target: TEST-docs-site-pages

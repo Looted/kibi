@@ -849,13 +849,8 @@ relationship:
 ---
 
 ## Notes
-<<<<<<< HEAD
-- All entity and relationship types are fixed in v0; extensibility is planned for future versions.
-- IDs must be stable and unique. Set an explicit frontmatter `id` named by what the entity governs (`<TYPE>-<area>-<behavior>`, e.g. `REQ-cli-gc`) and keep the filename stem equal to it; never pick the next free number. A missing `id` falls back to a path-and-title hash that changes on rename. `entity-id-style` reports stem mismatches and newly created numeric IDs; legacy numbered entities are grandfathered.
-=======
 - The schema is the eight entity types and the relationship catalog in this document.
-- IDs must be stable and unique (content-based SHA256 or explicit frontmatter).
->>>>>>> fd441fac (docs: make the site human-facing and drop stale plans)
+- IDs must be stable and unique. Set an explicit frontmatter `id` named by what the entity governs (`<TYPE>-<area>-<behavior>`, e.g. `REQ-cli-gc`) and keep the filename stem equal to it; never pick the next free number. A missing `id` falls back to a path-and-title hash that changes on rename. `entity-id-style` reports stem mismatches and newly created numeric IDs; legacy numbered entities are grandfathered.
 - Relationship metadata supports audit and conflict resolution.
 - Status values are entity-type specific (see above).
 

@@ -167,3 +167,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-48e7bfae9c59
+  - type: covered_by
+    from: SYM-docs-site-theme-layout
+    to: TEST-docs-site-pages
+    created_at: 2026-09-29T08:30:28.835Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-f1b16d500541

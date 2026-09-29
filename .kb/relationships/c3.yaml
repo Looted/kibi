@@ -251,3 +251,10 @@ relationships:
     created_by: kibi/upsert
     source: mcp://kibi/upsert
     id: rel-b9c8fc832d7c
+  - type: covered_by
+    from: SYM-docs-site-theme-Section
+    to: TEST-docs-site-pages
+    created_at: 2026-09-29T08:29:43.913Z
+    created_by: kibi/upsert
+    source: mcp://kibi/upsert
+    id: rel-4fcfad4b0527

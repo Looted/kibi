@@ -279,8 +279,8 @@ describe("strict proof workflow contract", () => {
     );
     // Equality floor: every current requirement is proven end to end. Bump
     // this floor in the same commit that deliberately raises the baseline.
-    expect(baseline.currentRequirements).toBe(121);
-    expect(baseline.proofProven).toBe(121);
+    expect(baseline.currentRequirements).toBe(122);
+    expect(baseline.proofProven).toBe(122);
     expect(baseline.currentUnproven).toBe(0);
     expect(Object.keys(baseline.trackedGaps ?? {})).toEqual([]);
     expect(Object.keys(baseline.requirements ?? {}).length).toBe(

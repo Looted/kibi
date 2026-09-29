@@ -10355,6 +10355,14 @@ coordinates:
     sourceEndLine: 37
     sourceFile: packages/mcp/src/server/docs.ts
     sourceLine: 30
+  SYM-docs-site-pages-build:
+    identityHash: 5db60e46bde4607bb3b3f7c45ea3b41dd0be936f5573db9513a1071fc44d36ed
+    sourceHash: b23cb77fb14794ba70c2dcd71a59b3cf260f9049a2fc46f357792fa0e97c459e
+    sourceColumn: 0
+    sourceEndColumn: 0
+    sourceEndLine: 56
+    sourceFile: packages/cli/tests/docs-site-pages.test.ts
+    sourceLine: 1
   SYM-docs-site-theme-clientScript:
     identityHash: 9acb31c4882a74eebacdedcdfb99a244027ce506609e7120e80eadac0f712254
     sourceHash: ac77a05c02cf32dc2ab8ae79c6ca9a12d5a8182a3429b4c9db785a1974161594

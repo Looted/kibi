@@ -11,7 +11,7 @@ Once Kibi is installed in the repository, your agent needs a way to call it. Two
 Use whichever surface your client can see. You do not configure both unless you want to.
 
 > [!TIP]
-> Cursor, Codex, OpenCode, and VS Code also have optional plugins that wire this up for you. The JSON below is the manual fallback when you are not using a plugin. Details and plugin install steps are in the [installation guide](install.md).
+> Cursor, Codex, OpenCode, Claude Code, and VS Code also have optional plugins that wire this up for you. The JSON below is the manual fallback when you are not using a plugin. Details and plugin install steps are in the [installation guide](install.md).
 
 ## Cursor, Codex, and most other clients
 
@@ -34,6 +34,7 @@ Plugin pages in the installation guide:
 
 - [Cursor plugin](install.md#optional-cursor-plugin)
 - [Codex plugin](install.md#optional-codex-plugin)
+- [Claude Code plugin](install.md#optional-claude-code-plugin)
 
 ## OpenCode
 
