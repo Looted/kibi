@@ -128,9 +128,13 @@ export function createBuiltinTsMorphSymbolExtractor(): SymbolExtractorV1 {
 /** Built-in asynchronous ts-morph extractor for the source-bound v2 contract. */
 // implements REQ-capability-plugin-builtin-parity-v1
 export function createBuiltinTsMorphSymbolExtractorV2(): SymbolExtractorV2 {
-  const project = new Project({
-    skipAddingFilesFromTsConfig: true,
-  });
+  // Like the v1 extractor, build the project (and load the TypeScript
+  // compiler) on the first analysis rather than at plugin registration.
+  let project: Project | undefined;
+  const getProject = (): Project => {
+    project ??= new (tsMorph().Project)({ skipAddingFilesFromTsConfig: true });
+    return project;
+  };
 
   return {
     id: `${EXTRACTOR_ID}.v2`,
@@ -170,10 +174,11 @@ export function createBuiltinTsMorphSymbolExtractorV2(): SymbolExtractorV2 {
       }
 
       try {
-        const sourceFile = project.createSourceFile(input.path, input.content, {
-          overwrite: true,
-          scriptKind,
-        });
+        const sourceFile = getProject().createSourceFile(
+          input.path,
+          input.content,
+          { overwrite: true, scriptKind },
+        );
         const diagnostics = sourceFile
           .getProject()
           .getProgram()
